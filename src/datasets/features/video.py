@@ -258,7 +258,10 @@ class Video:
             type=pa.binary(),
         )
         path_array = pa.array(
-            [os.path.basename(path) if path is not None else None for path in storage.field("path").to_pylist()],
+            [
+                (os.path.basename(path) if os.path.isfile(path) else path) if path is not None else None
+                for path in storage.field("path").to_pylist()
+            ],
             type=pa.string(),
         )
         storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
