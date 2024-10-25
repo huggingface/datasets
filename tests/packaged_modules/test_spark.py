@@ -103,7 +103,7 @@ def test_spark_examples_iterable_shard():
     df = spark.range(20).repartition(4)
 
     # Partitions 0 and 2
-    shard_it_1 = SparkExamplesIterable(df).shard_data_sources(worker_id=0, num_workers=2)
+    shard_it_1 = SparkExamplesIterable(df).shard_data_sources(index=0, num_shards=2, contiguous=False)
     assert shard_it_1.num_shards == 2
     expected_row_ids_and_row_dicts_1 = _get_expected_row_ids_and_row_dicts_for_partition_order(df, [0, 2])
     for i, (row_id, row_dict) in enumerate(shard_it_1):
@@ -112,7 +112,7 @@ def test_spark_examples_iterable_shard():
         assert row_dict == expected_row_dict
 
     # Partitions 1 and 3
-    shard_it_2 = SparkExamplesIterable(df).shard_data_sources(worker_id=1, num_workers=2)
+    shard_it_2 = SparkExamplesIterable(df).shard_data_sources(index=1, num_shards=2, contiguous=False)
     assert shard_it_2.num_shards == 2
     expected_row_ids_and_row_dicts_2 = _get_expected_row_ids_and_row_dicts_for_partition_order(df, [1, 3])
     for i, (row_id, row_dict) in enumerate(shard_it_2):
