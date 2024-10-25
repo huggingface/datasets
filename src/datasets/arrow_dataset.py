@@ -4630,32 +4630,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         num_shards: int,
         index: int,
-        contiguous: bool = False,
+        contiguous: bool = True,
         keep_in_memory: bool = False,
         indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
     ) -> "Dataset":
         """Return the `index`-nth shard from dataset split into `num_shards` pieces.
 
-        This shards deterministically. `dset.shard(n, i)` will contain all elements of dset whose
-        index mod `n = i`.
+        This shards deterministically. `dataset.shard(n, i)` splits the dataset into contiguous chunks,
+        so it can be easily concatenated back together after processing. If `len(dataset) % n == l`, then the
+        first `l` dataset each have length `(len(dataset) // n) + 1`, and the remaining dataset have length `(len(dataset) // n)`.
+        `datasets.concatenate([dset.shard(n, i) for i in range(n)])` returns a dataset with the same order as the original.
 
-        `dset.shard(n, i, contiguous=True)` will instead split dset into contiguous chunks,
-        so it can be easily concatenated back together after processing. If `n % i == l`, then the
-        first `l` shards will have length `(n // i) + 1`, and the remaining shards will have length `(n // i)`.
-        `datasets.concatenate([dset.shard(n, i, contiguous=True) for i in range(n)])` will return
-        a dataset with the same order as the original.
+        Note: n should be less or equal to the number of elements in the dataset `len(dataset)`.
+
+        On the other hand, `dataset.shard(n, i, contiguous=False)` contains all elements of the dataset whose index mod `n = i`.
 
         Be sure to shard before using any randomizing operator (such as `shuffle`).
         It is best if the shard operator is used early in the dataset pipeline.
-
 
         Args:
             num_shards (`int`):
                 How many shards to split the dataset into.
             index (`int`):
                 Which shard to select and return.
-            contiguous: (`bool`, defaults to `False`):
+            contiguous: (`bool`, defaults to `True`):
                 Whether to select contiguous blocks of indices for shards.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
@@ -4663,7 +4662,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Provide the name of a path for the cache file. It is used to store the
                 indices of each shard instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`):
-                Number of rows per write operation for the cache file writer.
+                This only concerns the indices mapping.
+                Number of indices per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
 

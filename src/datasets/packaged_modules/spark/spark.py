@@ -105,7 +105,7 @@ class SparkExamplesIterable(_BaseExamplesIterable):
         return SparkExamplesIterable(self.df, partition_order=partition_order)
 
     @property
-    def n_shards(self) -> int:
+    def num_shards(self) -> int:
         return len(self.partition_order)
 
 

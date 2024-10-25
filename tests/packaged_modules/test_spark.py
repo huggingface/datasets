@@ -72,7 +72,7 @@ def test_spark_examples_iterable():
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     df = spark.range(10).repartition(1)
     it = SparkExamplesIterable(df)
-    assert it.n_shards == 1
+    assert it.num_shards == 1
     for i, (row_id, row_dict) in enumerate(it):
         assert row_id == f"0_{i}"
         assert row_dict == {"id": i}
@@ -89,7 +89,7 @@ def test_spark_examples_iterable_shuffle():
         expected_row_ids_and_row_dicts = _get_expected_row_ids_and_row_dicts_for_partition_order(df, [2, 1, 0])
 
         shuffled_it = SparkExamplesIterable(df).shuffle_data_sources(generator_mock)
-        assert shuffled_it.n_shards == 3
+        assert shuffled_it.num_shards == 3
         for i, (row_id, row_dict) in enumerate(shuffled_it):
             expected_row_id, expected_row_dict = expected_row_ids_and_row_dicts[i]
             assert row_id == expected_row_id
@@ -104,7 +104,7 @@ def test_spark_examples_iterable_shard():
 
     # Partitions 0 and 2
     shard_it_1 = SparkExamplesIterable(df).shard_data_sources(worker_id=0, num_workers=2)
-    assert shard_it_1.n_shards == 2
+    assert shard_it_1.num_shards == 2
     expected_row_ids_and_row_dicts_1 = _get_expected_row_ids_and_row_dicts_for_partition_order(df, [0, 2])
     for i, (row_id, row_dict) in enumerate(shard_it_1):
         expected_row_id, expected_row_dict = expected_row_ids_and_row_dicts_1[i]
@@ -113,7 +113,7 @@ def test_spark_examples_iterable_shard():
 
     # Partitions 1 and 3
     shard_it_2 = SparkExamplesIterable(df).shard_data_sources(worker_id=1, num_workers=2)
-    assert shard_it_2.n_shards == 2
+    assert shard_it_2.num_shards == 2
     expected_row_ids_and_row_dicts_2 = _get_expected_row_ids_and_row_dicts_for_partition_order(df, [1, 3])
     for i, (row_id, row_dict) in enumerate(shard_it_2):
         expected_row_id, expected_row_dict = expected_row_ids_and_row_dicts_2[i]
