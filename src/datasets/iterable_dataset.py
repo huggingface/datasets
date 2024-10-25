@@ -1963,7 +1963,9 @@ class IterableDataset(DatasetInfoMixin):
             )
         # split workload
         _log_prefix = f"node#{self._distributed.rank} " if self._distributed else ""
-        shards_indices = ex_iterable.split_shard_indices_by_worker(worker_info.id, worker_info.num_workers)
+        shards_indices = ex_iterable.split_shard_indices_by_worker(
+            num_shards=worker_info.num_workers, index=worker_info.id, contiguous=False
+        )
         if shards_indices:
             logger.debug(
                 f"{_log_prefix}dataloader worker#{worker_info.id}, ': Starting to iterate over {len(shards_indices)}/{ex_iterable.num_shards} shards."
