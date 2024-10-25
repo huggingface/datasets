@@ -1681,6 +1681,27 @@ def test_iterable_dataset_take(dataset: IterableDataset, n):
     assert list(take_dataset) == list(dataset)[:n]
 
 
+def test_iterable_dataset_shard():
+    num_examples = 20
+    num_shards = 5
+    dataset = Dataset.from_dict({"a": range(num_examples)}).to_iterable_dataset(num_shards=num_shards)
+    assert sum(dataset.shard(num_shards, i).num_shards for i in range(num_shards)) == dataset.num_shards
+    assert list(concatenate_datasets([dataset.shard(num_shards, i) for i in range(num_shards)])) == list(dataset)
+    num_shards = 2
+    assert sum(dataset.shard(num_shards, i).num_shards for i in range(num_shards)) == dataset.num_shards
+    assert list(concatenate_datasets([dataset.shard(num_shards, i) for i in range(num_shards)])) == list(dataset)
+    assert (
+        sum(dataset.shard(num_shards, i, contiguous=False).num_shards for i in range(num_shards)) == dataset.num_shards
+    )
+    assert list(
+        concatenate_datasets([dataset.shard(num_shards, i, contiguous=False) for i in range(num_shards)])
+    ) != list(dataset)
+    assert sorted(
+        concatenate_datasets([dataset.shard(num_shards, i, contiguous=False) for i in range(num_shards)]),
+        key=lambda x: x["a"],
+    ) == list(dataset)
+
+
 @pytest.mark.parametrize("method", ["skip", "take"])
 @pytest.mark.parametrize("after_shuffle", [False, True])
 @pytest.mark.parametrize("count", [2, 5, 11])
