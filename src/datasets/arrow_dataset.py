@@ -303,7 +303,7 @@ class TensorflowDatasetMixin:
                 tf_dtype = tf.float32
                 np_dtype = np.float32
             elif np_arrays[0].dtype.kind == "U":  # Unicode strings
-                np_dtype = np.unicode_
+                np_dtype = np.str_
                 tf_dtype = tf.string
             else:
                 raise RuntimeError(
