@@ -2671,7 +2671,7 @@ class IterableDataset(DatasetInfoMixin):
         This shards deterministically. `dataset.shard(n, i)` splits the dataset into contiguous chunks,
         so it can be easily concatenated back together after processing. If `dataset.num_shards % n == l`, then the
         first `l` datasets each have `(dataset.num_shards // n) + 1` shards, and the remaining datasets have `(dataset.num_shards // n)` shards.
-        `datasets.concatenate([dset.shard(n, i) for i in range(n)])` returns a dataset with the same order as the original.
+        `datasets.concatenate_datasets([dset.shard(n, i) for i in range(n)])` returns a dataset with the same order as the original.
         In particular, `dataset.shard(dataset.num_shards, i)` returns a dataset with 1 shard.
 
         Note: n should be less or equal to the number of shards in the dataset `dataset.num_shards`.

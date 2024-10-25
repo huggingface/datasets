@@ -4640,7 +4640,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         This shards deterministically. `dataset.shard(n, i)` splits the dataset into contiguous chunks,
         so it can be easily concatenated back together after processing. If `len(dataset) % n == l`, then the
         first `l` dataset each have length `(len(dataset) // n) + 1`, and the remaining dataset have length `(len(dataset) // n)`.
-        `datasets.concatenate([dset.shard(n, i) for i in range(n)])` returns a dataset with the same order as the original.
+        `datasets.concatenate_datasets([dset.shard(n, i) for i in range(n)])` returns a dataset with the same order as the original.
 
         Note: n should be less or equal to the number of elements in the dataset `len(dataset)`.
 
