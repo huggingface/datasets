@@ -5,9 +5,10 @@ from urllib.parse import quote
 
 import pytest
 from huggingface_hub import CommitOperationAdd, CommitOperationDelete
+from packaging import version
 
 import datasets
-from datasets.config import METADATA_CONFIGS_FIELD
+from datasets.config import METADATA_CONFIGS_FIELD, PYARROW_VERSION
 from datasets.hub import convert_to_parquet, delete_from_hub
 from datasets.utils.hub import hf_dataset_url
 
@@ -83,7 +84,7 @@ def test_convert_to_parquet(temporary_repo, hf_api, hf_token, ci_hub_config, ci_
           - name: train
             num_bytes: 55
             num_examples: 5
-          download_size: 790
+          download_size: 726
           dataset_size: 55
         {METADATA_CONFIGS_FIELD}:
         - config_name: first
@@ -104,7 +105,7 @@ def test_convert_to_parquet(temporary_repo, hf_api, hf_token, ci_hub_config, ci_
           - name: train
             num_bytes: 60
             num_examples: 5
-          download_size: 798
+          download_size: 732
           dataset_size: 60
         {METADATA_CONFIGS_FIELD}:
         - config_name: second
@@ -114,6 +115,9 @@ def test_convert_to_parquet(temporary_repo, hf_api, hf_token, ci_hub_config, ci_
         ---
         """),
     ]
+    if PYARROW_VERSION < version.parse("18.0.0"):
+        expected_readmes[0] = expected_readmes[0].replace("download_size: 726", "download_size: 790")
+        expected_readmes[1] = expected_readmes[1].replace("download_size: 732", "download_size: 798")
     for call_args, expected_commit_message, expected_create_pr, expected_readme, expected_parquet_path_in_repo in zip(
         mock_create_commit.call_args_list,
         ["Convert dataset to Parquet", "Add 'second' config data files"],
