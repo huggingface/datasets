@@ -828,8 +828,8 @@ def _add_retries_to_file_obj_read_method(file_obj):
             except (
                 aiohttp.client_exceptions.ClientError,
                 asyncio.TimeoutError,
-                requests.exceptions.ConnectTimeout,
                 requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout,
             ) as err:
                 disconnect_err = err
                 logger.warning(
