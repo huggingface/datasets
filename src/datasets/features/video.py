@@ -64,6 +64,10 @@ class Video:
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
     _type: str = field(default="Video", init=False, repr=False)
 
+    def __post_init__(self):
+        if config.DECORD_AVAILABLE:
+            patch_decord()
+
     def __call__(self):
         return self.pa_type
 
@@ -318,8 +322,11 @@ def patch_decord():
         # We need to import torch first, otherwise later it can cause issues
         # e.g. "RuntimeError: random_device could not be read"
         # when running `torch.tensor(value).share_memory_()`
+        # Same for duckdb which crashes on import
         if config.TORCH_AVAILABLE:
             import torch  # noqa
+        if config.DUCKDB_AVAILABLE:
+            import duckdb  # noqa
         import decord.video_reader
         from decord import VideoReader
 
@@ -334,7 +341,3 @@ def patch_decord():
             VideoReader._hf_patched = True
     else:
         raise ImportError("To support decoding videos, please install 'decord'.")
-
-
-if config.DECORD_AVAILABLE:
-    patch_decord()

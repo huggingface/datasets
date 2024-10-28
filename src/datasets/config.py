@@ -67,6 +67,17 @@ if POLARS_AVAILABLE:
     except importlib.metadata.PackageNotFoundError:
         pass
 
+
+DUCKDB_VERSION = "N/A"
+DUCKDB_AVAILABLE = importlib.util.find_spec("duckdb") is not None
+
+if DUCKDB_AVAILABLE:
+    try:
+        DUCKDB_VERSION = version.parse(importlib.metadata.version("duckdb"))
+        logger.info(f"Duckdb version {DUCKDB_VERSION} available.")
+    except importlib.metadata.PackageNotFoundError:
+        pass
+
 TF_VERSION = "N/A"
 TF_AVAILABLE = False
 
