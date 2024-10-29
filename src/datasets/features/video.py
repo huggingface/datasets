@@ -82,15 +82,10 @@ class Video:
             `dict` with "path" and "bytes" fields
         """
         if config.DECORD_AVAILABLE:
-            # We need to import torch first, otherwise later it can cause issues
-            # e.g. "RuntimeError: random_device could not be read"
-            # when running `torch.tensor(value).share_memory_()`
-            if config.TORCH_AVAILABLE:
-                import torch  # noqa
             from decord import VideoReader
 
         else:
-            raise ImportError("To support encoding videos, please install 'decord'.")
+            VideoReader = None
 
         if isinstance(value, list):
             value = np.array(value)
@@ -102,7 +97,7 @@ class Video:
         elif isinstance(value, np.ndarray):
             # convert the video array to bytes
             return encode_np_array(value)
-        elif isinstance(value, VideoReader):
+        elif VideoReader and isinstance(value, VideoReader):
             # convert the decord video reader to bytes
             return encode_decord_video(value)
         elif value.get("path") is not None and os.path.isfile(value["path"]):
@@ -138,12 +133,8 @@ class Video:
             raise RuntimeError("Decoding is disabled for this feature. Please use Video(decode=True) instead.")
 
         if config.DECORD_AVAILABLE:
-            # We need to import torch first, otherwise later it can cause issues
-            # e.g. "RuntimeError: random_device could not be read"
-            # when running `torch.tensor(value).share_memory_()`
-            if config.TORCH_AVAILABLE:
-                import torch  # noqa
             from decord import VideoReader
+
         else:
             raise ImportError("To support decoding videos, please install 'decord'.")
 
@@ -283,26 +274,23 @@ def _patched_get_batch(self: "VideoReader", *args, **kwargs):
 
 
 def patch_decord():
-    if config.DECORD_AVAILABLE:
-        # We need to import torch first, otherwise later it can cause issues
-        # e.g. "RuntimeError: random_device could not be read"
-        # when running `torch.tensor(value).share_memory_()`
-        # Same for duckdb which crashes on import
-        if config.TORCH_AVAILABLE:
-            import torch  # noqa
-        if config.DUCKDB_AVAILABLE:
-            import duckdb  # noqa
-        import decord.video_reader
-        from decord import VideoReader
+    # We need to import torch first, otherwise later it can cause issues
+    # e.g. "RuntimeError: random_device could not be read"
+    # when running `torch.tensor(value).share_memory_()`
+    # Same for duckdb which crashes on import
+    if config.TORCH_AVAILABLE:
+        import torch  # noqa
+    if config.DUCKDB_AVAILABLE:
+        import duckdb  # noqa
+    import decord.video_reader
+    from decord import VideoReader
 
-        if not hasattr(VideoReader, "_hf_patched"):
-            decord.video_reader.bridge_out = lambda x: x
-            VideoReader._original_init = VideoReader.__init__
-            VideoReader.__init__ = _patched_init
-            VideoReader._original_next = VideoReader.next
-            VideoReader.next = _patched_next
-            VideoReader._original_get_batch = VideoReader.get_batch
-            VideoReader.get_batch = _patched_get_batch
-            VideoReader._hf_patched = True
-    else:
-        raise ImportError("To support decoding videos, please install 'decord'.")
+    if not hasattr(VideoReader, "_hf_patched"):
+        decord.video_reader.bridge_out = lambda x: x
+        VideoReader._original_init = VideoReader.__init__
+        VideoReader.__init__ = _patched_init
+        VideoReader._original_next = VideoReader.next
+        VideoReader.next = _patched_next
+        VideoReader._original_get_batch = VideoReader.get_batch
+        VideoReader.get_batch = _patched_get_batch
+        VideoReader._hf_patched = True
