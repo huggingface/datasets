@@ -137,16 +137,98 @@ class JsonDatasetWriter:
             # Adjust the index to reflect the batch offset
             df.index = range(offset, offset + len(df))
 
-        json_str = df.to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
+        if orient in ["split"]:
+            # Index has already been taken care of
+            # to_json_kwargs["index"] = False
+            json_str = df.to_json(path_or_buf=None, orient="values", lines=lines, **to_json_kwargs)
+        else:
+            json_str = df.to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
 
         if orient in ["columns"]:
             # Read the dict pointed by column_names key
-            json_str = json.dumps(json.loads(json_str)[column_names], ensure_ascii=False)
+            json_str = json.dumps(json.loads(json_str)[column_names], ensure_ascii=False, separators=(",", ":"))
 
         if not json_str.endswith("\n"):
             json_str += "\n"
 
         return json_str.encode(self.encoding)
+
+    def _write_orient_split(
+        self,
+        file_obj: BinaryIO,
+        orient,
+        lines,
+        **to_json_kwargs,
+    ):
+        """Writes the dataset in 'split' orientation to the specified file object."""
+
+        written = 0
+        column_names = self.dataset.column_names
+        written += file_obj.write(
+            f"{{\"columns\":{json.dumps(self.dataset.column_names, separators = (',', ':'))},".encode(self.encoding)
+        )
+
+        if to_json_kwargs.get("index", False):
+            written += file_obj.write(
+                f"\"index\":{json.dumps(list(range(0, self.dataset.num_rows)), separators = (',', ':'))},".encode(
+                    self.encoding
+                )
+            )
+
+        written += file_obj.write('"data":['.encode(self.encoding))
+        first_batch = True
+
+        if self.num_proc is None or self.num_proc == 1:
+            for offset in hf_tqdm(
+                range(0, len(self.dataset), self.batch_size), unit="ba", desc=f"Writing column {column_names}"
+            ):
+                json_str = self._batch_json((offset, orient, lines, column_names, to_json_kwargs))
+                json_str = json_str.decode(self.encoding).strip()
+
+                # Remove the curly brackets from the batch string
+                if json_str.startswith("[") and json_str.endswith("]"):
+                    json_str = json_str[1:-1]
+
+                if not first_batch:
+                    written += file_obj.write(",".encode(self.encoding))
+                else:
+                    first_batch = False
+
+                json_str = json_str.encode(self.encoding)
+                written += file_obj.write(json_str)
+
+        else:
+            num_rows, batch_size = len(self.dataset), self.batch_size
+            with multiprociessing.Pool(self.num_proc) as pool:
+                for json_str in hf_tqdm(
+                    pool.imap(
+                        self._batch_json,
+                        [
+                            (offset, orient, lines, column_names, to_json_kwargs)
+                            for offset in range(0, num_rows, batch_size)
+                        ],
+                    ),
+                    total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
+                    units="ba",
+                    desc="Writing JSON lines",
+                ):
+                    json_str = json_str.decode(self.encoding).strip()
+
+                    # Remove the curly brackets from the batch string
+                    if json_str.startswith("[") and json_str.endswith("]"):
+                        json_str = json_str[1:-1]
+
+                    if not first_batch:
+                        written += file_obj.write(",".encode(self.encoding))
+                    else:
+                        first_batch = False
+
+                    json_str = json_str.encode(self.encoding)
+                    written += file_obj.write(json_str)
+
+        written += file_obj.write("]}".encode(self.encoding))
+
+        return written
 
     def _write_orient_columns(
         self,
@@ -314,7 +396,7 @@ class JsonDatasetWriter:
         lines,
         **to_json_kwargs,
     ) -> int:
-        """Handles writing to file when orient in ['split', 'table']"""
+        """Handles writing to file when orient in ['table']"""
 
         written = 0
         column_names = self.dataset.column_names
@@ -361,6 +443,8 @@ class JsonDatasetWriter:
             written = self._write_orient_list_like(file_obj=file_obj, orient=orient, lines=lines, **to_json_kwargs)
         elif orient in ["columns"]:
             written = self._write_orient_columns(file_obj=file_obj, orient=orient, lines=lines, **to_json_kwargs)
+        elif orient in ["split"]:
+            written = self._write_orient_split(file_obj=file_obj, orient=orient, lines=lines, **to_json_kwargs)
         else:
             written = self._write_legacy(file_obj=file_obj, orient=orient, lines=lines, **to_json_kwargs)
 
