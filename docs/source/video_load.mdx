@@ -26,11 +26,28 @@ When you load an video dataset and call the video column, the videos are decoded
 
 <Tip warning={true}>
 
-Index into an video dataset using the row index first and then the `video` column - `dataset[0]["video"]` - to avoid decoding and resampling all the video objects in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
+Index into an video dataset using the row index first and then the `video` column - `dataset[0]["video"]` - to avoid reading all the video objects in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
 
 </Tip>
 
 For a guide on how to load any type of dataset, take a look at the <a class="underline decoration-sky-400 decoration-2 font-semibold" href="./loading">general loading guide</a>.
+
+## Read frames
+
+Access frames directly from a video using the `VideoReader`:
+
+```python
+>>> dataset[0]["video"][0].shape  # first frame
+(240, 320, 3)
+```
+
+To get multiple frames at once, use `get_batch`. This is the efficient way to obtain a long list of frames:
+
+```python
+>>> frames = dataset[0]["video"].get_batch([1, 3, 5, 7, 9])
+>>> frames.shape
+(5, 240, 320, 3)
+```
 
 ## Local files
 
