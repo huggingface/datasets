@@ -74,6 +74,8 @@
       title: Object detection
     - local: video_load
       title: Load video data
+    - local: video_dataset
+      title: Create a video dataset
     title: "Vision"
   - sections:
     - local: nlp_load
