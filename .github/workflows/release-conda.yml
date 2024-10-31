@@ -25,7 +25,7 @@ jobs:
           auto-activate-base: false
           activate-environment: "build-datasets"
           python-version: 3.8
-          channels: huggingface,conda-forge
+          channels: huggingface
 
       - name: Setup conda env
         run: |
