@@ -100,12 +100,12 @@ class SparkExamplesIterable(_BaseExamplesIterable):
         generator.shuffle(partition_order)
         return SparkExamplesIterable(self.df, partition_order=partition_order)
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "SparkExamplesIterable":
-        partition_order = self.split_shard_indices_by_worker(worker_id, num_workers)
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "SparkExamplesIterable":
+        partition_order = self.split_shard_indices_by_worker(num_shards=num_shards, index=index, contiguous=contiguous)
         return SparkExamplesIterable(self.df, partition_order=partition_order)
 
     @property
-    def n_shards(self) -> int:
+    def num_shards(self) -> int:
         return len(self.partition_order)
 
 

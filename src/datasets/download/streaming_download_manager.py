@@ -64,6 +64,8 @@ class StreamingDownloadManager:
         self._data_dir = data_dir
         self._base_path = base_path or os.path.abspath(".")
         self.download_config = download_config or DownloadConfig()
+        self.downloaded_size = None
+        self.record_checksums = False
 
     @property
     def manual_dir(self):
@@ -208,3 +210,9 @@ class StreamingDownloadManager:
         ```
         """
         return FilesIterable.from_urlpaths(urlpaths, download_config=self.download_config)
+
+    def manage_extracted_files(self):
+        pass
+
+    def get_recorded_sizes_checksums(self):
+        pass

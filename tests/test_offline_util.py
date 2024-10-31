@@ -16,11 +16,11 @@ def test_offline_with_timeout():
     with offline(OfflineSimulationMode.CONNECTION_TIMES_OUT):
         with pytest.raises(RequestWouldHangIndefinitelyError):
             requests.request("GET", "https://huggingface.co")
-        with pytest.raises(requests.exceptions.ConnectTimeout):
+        with pytest.raises(requests.exceptions.Timeout):
             requests.request("GET", "https://huggingface.co", timeout=1.0)
         # old versions of `huggingface_hub` don't have timeouts by default and don't allow to set timeouts in HfFileSystem
         if version.parse(huggingface_hub.__version__) >= version.parse("0.23.0"):
-            with pytest.raises(requests.exceptions.ConnectTimeout), NamedTemporaryFile() as temp_file:
+            with pytest.raises(requests.exceptions.Timeout), NamedTemporaryFile() as temp_file:
                 fsspec_get("hf://dummy", temp_file=temp_file)
 
 

@@ -46,11 +46,11 @@ def test_split_dataset_by_node_iterable_sharded(shards_per_node):
     gen_kwargs = {"shards": [f"shard_{shard_idx}.txt" for shard_idx in range(num_shards)]}
     full_ds = IterableDataset.from_generator(gen, gen_kwargs=gen_kwargs)
     full_size = len(list(full_ds))
-    assert full_ds.n_shards == world_size * shards_per_node
+    assert full_ds.num_shards == world_size * shards_per_node
     datasets_per_rank = [
         split_dataset_by_node(full_ds, rank=rank, world_size=world_size) for rank in range(world_size)
     ]
-    assert [ds.n_shards for ds in datasets_per_rank] == [shards_per_node] * world_size
+    assert [ds.num_shards for ds in datasets_per_rank] == [shards_per_node] * world_size
     assert sum(len(list(ds)) for ds in datasets_per_rank) == full_size
     assert len({tuple(x.values()) for ds in datasets_per_rank for x in ds}) == full_size
 
