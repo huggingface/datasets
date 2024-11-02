@@ -2402,14 +2402,8 @@ class IterableDataset(DatasetInfoMixin):
         # TODO(QL): add format_kwargs
         # TODO(QL): add format_columns and return_all_columns
         # TODO(QL): add pandas format
-        ex_iterable = FormattedExamplesIterable(
-            self._ex_iterable,
-            formatting=FormattingConfig(format_type=type),
-            features=self.features,
-            token_per_repo_id=self._token_per_repo_id,
-        )
         return IterableDataset(
-            ex_iterable=ex_iterable,
+            ex_iterable=self._ex_iterable,
             info=self._info.copy(),
             split=self._split,
             formatting=FormattingConfig(format_type=type),
