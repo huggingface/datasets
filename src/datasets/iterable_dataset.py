@@ -1754,7 +1754,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
 
     @property
     def is_typed(self):
-        return self._features is not None
+        return self.ex_iterable.is_typed or self._features is not None
 
     @property
     def features(self):
@@ -2538,10 +2538,7 @@ class IterableDataset(DatasetInfoMixin):
             drop_last_batch=drop_last_batch,
             remove_columns=remove_columns,
             fn_kwargs=fn_kwargs,
-            # pass formatting bc we need to know that we can call iter_arrow if the formatting is arrow
-            formatting=copy.deepcopy(self._formatting)
-            if self._formatting and self._formatting.format_type == "arrow"
-            else None,  # formatting is handled within ex_iterable
+            formatting=self._formatting,
             features=features,
         )
         info = self.info.copy()
