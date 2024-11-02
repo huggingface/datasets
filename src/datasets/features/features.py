@@ -1621,7 +1621,7 @@ def to_pyarrow_listarray(data: Any, pa_type: _ArrayXDExtensionType) -> pa.Array:
 
 
 def list_of_dicts_to_pyarrow_structarray(
-    data: List[Dict[str, Any]], struct_type: Optional[pa.StructType] = None
+    data: List[Dict[str, Any]], struct_type: pa.StructType
 ) -> pa.StructArray:
     """Convert a list of dictionaries to a pyarrow StructArray.
 
@@ -1631,7 +1631,17 @@ def list_of_dicts_to_pyarrow_structarray(
     if not data:
         raise ValueError("Input data must be a non-empty list of dictionaries.")
 
-    field_arrays = {key: [] for key in data[0].keys()}
+    # Get field names from struct type if available, otherwise from first non-null dict
+    if struct_type is not None:
+        field_names = [field.name for field in struct_type]
+    else:
+        first_dict = next((d for d in data if d is not None), None)
+        if first_dict is None:
+            raise ValueError("All dictionaries in input data are None")
+        field_names = list(first_dict.keys())
+
+    # Initialize empty lists for each field
+    field_arrays = {name: [] for name in field_names}
 
     null_mask = []
     for row in data:
