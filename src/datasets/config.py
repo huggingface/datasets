@@ -67,6 +67,17 @@ if POLARS_AVAILABLE:
     except importlib.metadata.PackageNotFoundError:
         pass
 
+
+DUCKDB_VERSION = "N/A"
+DUCKDB_AVAILABLE = importlib.util.find_spec("duckdb") is not None
+
+if DUCKDB_AVAILABLE:
+    try:
+        DUCKDB_VERSION = version.parse(importlib.metadata.version("duckdb"))
+        logger.info(f"Duckdb version {DUCKDB_VERSION} available.")
+    except importlib.metadata.PackageNotFoundError:
+        pass
+
 TF_VERSION = "N/A"
 TF_AVAILABLE = False
 
@@ -129,6 +140,7 @@ IS_OPUS_SUPPORTED = importlib.util.find_spec("soundfile") is not None and versio
 IS_MP3_SUPPORTED = importlib.util.find_spec("soundfile") is not None and version.parse(
     importlib.import_module("soundfile").__libsndfile_version__
 ) >= version.parse("1.1.0")
+DECORD_AVAILABLE = importlib.util.find_spec("decord") is not None
 
 # Optional compression tools
 RARFILE_AVAILABLE = importlib.util.find_spec("rarfile") is not None
@@ -192,6 +204,7 @@ MAX_SHARD_SIZE = "500MB"
 PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS = 100
 PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS = 100
 PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS = 100
+PARQUET_ROW_GROUP_SIZE_FOR_VIDEO_DATASETS = 10
 
 # Offline mode
 _offline = os.environ.get("HF_DATASETS_OFFLINE")

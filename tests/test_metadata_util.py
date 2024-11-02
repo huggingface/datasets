@@ -9,6 +9,7 @@ import yaml
 from huggingface_hub import DatasetCard, DatasetCardData
 
 from datasets.config import METADATA_CONFIGS_FIELD
+from datasets.features import Features, Value
 from datasets.info import DatasetInfo
 from datasets.utils.metadata import MetadataConfigs
 
@@ -93,6 +94,21 @@ README_METADATA_TWO_CONFIGS_WITH_DEFAULT_NAME = f"""\
 """
 
 
+README_METADATA_WITH_FEATURES = f"""\
+---
+{METADATA_CONFIGS_FIELD}:
+  - config_name: default
+    features:
+      - name: id
+        dtype: int64
+      - name:  name
+        dtype: string
+      - name: score
+        dtype: float64
+---
+"""
+
+
 EXPECTED_METADATA_SINGLE_CONFIG = {"custom": {"data_dir": "v1", "drop_labels": True}}
 EXPECTED_METADATA_TWO_CONFIGS_DEFAULT_FLAG = {
     "v1": {"data_dir": "v1", "drop_labels": True},
@@ -101,6 +117,13 @@ EXPECTED_METADATA_TWO_CONFIGS_DEFAULT_FLAG = {
 EXPECTED_METADATA_TWO_CONFIGS_DEFAULT_NAME = {
     "custom": {"data_dir": "custom", "drop_labels": True},
     "default": {"data_dir": "data", "drop_labels": False},
+}
+EXPECTED_METADATA_WITH_FEATURES = {
+    "default": {
+        "features": Features(
+            {"id": Value(dtype="int64"), "name": Value(dtype="string"), "score": Value(dtype="float64")}
+        )
+    }
 }
 
 
@@ -227,6 +250,7 @@ class TestMetadataUtils(unittest.TestCase):
         (README_METADATA_SINGLE_CONFIG, EXPECTED_METADATA_SINGLE_CONFIG, "custom"),
         (README_METADATA_TWO_CONFIGS_WITH_DEFAULT_FLAG, EXPECTED_METADATA_TWO_CONFIGS_DEFAULT_FLAG, "v2"),
         (README_METADATA_TWO_CONFIGS_WITH_DEFAULT_NAME, EXPECTED_METADATA_TWO_CONFIGS_DEFAULT_NAME, "default"),
+        (README_METADATA_WITH_FEATURES, EXPECTED_METADATA_WITH_FEATURES, "default"),
     ],
 )
 def test_metadata_configs_dataset_card_data(

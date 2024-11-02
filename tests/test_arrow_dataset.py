@@ -2630,10 +2630,12 @@ class BaseDatasetTest(TestCase):
             tmp_file = os.path.join(tmp_dir, "test.arrow")
             with dset.select(range(10), indices_cache_file_name=tmp_file) as dset:
                 self.assertEqual(len(dset), 10)
-                # Shard
+                # Shard non-contiguous
                 tmp_file_1 = os.path.join(tmp_dir, "test_1.arrow")
                 fingerprint = dset._fingerprint
-                with dset.shard(num_shards=8, index=1, indices_cache_file_name=tmp_file_1) as dset_sharded:
+                with dset.shard(
+                    num_shards=8, index=1, contiguous=False, indices_cache_file_name=tmp_file_1
+                ) as dset_sharded:
                     self.assertEqual(2, len(dset_sharded))
                     self.assertEqual(["my_name-train_1", "my_name-train_9"], dset_sharded["filename"])
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
@@ -4268,7 +4270,7 @@ def test_dataset_to_iterable_dataset(dataset: Dataset):
     assert isinstance(iterable_dataset, IterableDataset)
     assert list(iterable_dataset) == list(dataset)
     assert iterable_dataset.features == dataset.features
-    assert iterable_dataset.n_shards == 3
+    assert iterable_dataset.num_shards == 3
     with pytest.raises(ValueError):
         dataset.to_iterable_dataset(num_shards=len(dataset) + 1)
     with pytest.raises(NotImplementedError):

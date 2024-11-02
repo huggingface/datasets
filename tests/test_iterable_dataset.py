@@ -1277,7 +1277,7 @@ def test_iterable_dataset_from_generator_with_shards():
     shard_names = [f"data{shard_idx}.txt" for shard_idx in range(4)]
     dataset = IterableDataset.from_generator(gen, gen_kwargs={"shard_names": shard_names})
     assert isinstance(dataset, IterableDataset)
-    assert dataset.n_shards == len(shard_names)
+    assert dataset.num_shards == len(shard_names)
 
 
 @require_numpy1_on_windows
@@ -1392,11 +1392,11 @@ def test_iterable_dataset_torch_dataloader_parallel():
 
 @require_torch
 @pytest.mark.filterwarnings("ignore:This DataLoader will create:UserWarning")
-@pytest.mark.parametrize("n_shards, num_workers", [(2, 1), (2, 2), (3, 2), (2, 3)])
-def test_sharded_iterable_dataset_torch_dataloader_parallel(n_shards, num_workers):
+@pytest.mark.parametrize("num_shards, num_workers", [(2, 1), (2, 2), (3, 2), (2, 3)])
+def test_sharded_iterable_dataset_torch_dataloader_parallel(num_shards, num_workers):
     from torch.utils.data import DataLoader
 
-    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}.txt" for i in range(n_shards)]})
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}.txt" for i in range(num_shards)]})
     dataset = IterableDataset(ex_iterable)
     dataloader = DataLoader(dataset, batch_size=None, num_workers=num_workers)
     result = list(dataloader)
@@ -1681,13 +1681,36 @@ def test_iterable_dataset_take(dataset: IterableDataset, n):
     assert list(take_dataset) == list(dataset)[:n]
 
 
+def test_iterable_dataset_shard():
+    num_examples = 20
+    num_shards = 5
+    dataset = Dataset.from_dict({"a": range(num_examples)}).to_iterable_dataset(num_shards=num_shards)
+    assert sum(dataset.shard(num_shards, i).num_shards for i in range(num_shards)) == dataset.num_shards
+    assert list(concatenate_datasets([dataset.shard(num_shards, i) for i in range(num_shards)])) == list(dataset)
+    num_shards = 2
+    assert sum(dataset.shard(num_shards, i).num_shards for i in range(num_shards)) == dataset.num_shards
+    assert list(concatenate_datasets([dataset.shard(num_shards, i) for i in range(num_shards)])) == list(dataset)
+    assert (
+        sum(dataset.shard(num_shards, i, contiguous=False).num_shards for i in range(num_shards)) == dataset.num_shards
+    )
+    assert list(
+        concatenate_datasets([dataset.shard(num_shards, i, contiguous=False) for i in range(num_shards)])
+    ) != list(dataset)
+    assert sorted(
+        concatenate_datasets([dataset.shard(num_shards, i, contiguous=False) for i in range(num_shards)]),
+        key=lambda x: x["a"],
+    ) == list(dataset)
+
+
 @pytest.mark.parametrize("method", ["skip", "take"])
 @pytest.mark.parametrize("after_shuffle", [False, True])
 @pytest.mark.parametrize("count", [2, 5, 11])
 def test_iterable_dataset_skip_or_take_after_shuffle(method, after_shuffle, count):
     seed = 42
-    n, n_shards = 3, 10
-    ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n, "filepaths": [f"{i}.txt" for i in range(n_shards)]})
+    n, num_shards = 3, 10
+    ex_iterable = ExamplesIterable(
+        generate_examples_fn, {"n": n, "filepaths": [f"{i}.txt" for i in range(num_shards)]}
+    )
     dataset = IterableDataset(ex_iterable)
     shuffled_dataset = dataset
     if after_shuffle:
@@ -1714,9 +1737,11 @@ def test_iterable_dataset_skip_or_take_after_shuffle(method, after_shuffle, coun
 @pytest.mark.parametrize("after_split_by_node", [False, True])
 @pytest.mark.parametrize("count", [2, 5, 11])
 def test_iterable_dataset_skip_or_take_after_split_by_node(method, after_split_by_node, count):
-    n, n_shards = 3, 10
+    n, num_shards = 3, 10
     rank, world_size = 1, 2
-    ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n, "filepaths": [f"{i}.txt" for i in range(n_shards)]})
+    ex_iterable = ExamplesIterable(
+        generate_examples_fn, {"n": n, "filepaths": [f"{i}.txt" for i in range(num_shards)]}
+    )
     dataset = IterableDataset(ex_iterable)
     distributed_dataset = dataset
     true_distributed_dataset = split_dataset_by_node(dataset, rank=rank, world_size=world_size)
@@ -2114,17 +2139,17 @@ def test_formatted_map(dataset: IterableDataset):
     assert isinstance(next(dataset.iter(batch_size=3))["id"], list)
 
 
-@pytest.mark.parametrize("n_shards1, n_shards2, num_workers", [(2, 1, 1), (2, 2, 2), (1, 3, 1), (4, 3, 3)])
-def test_interleave_dataset_with_sharding(n_shards1, n_shards2, num_workers):
+@pytest.mark.parametrize("num_shards1, num_shards2, num_workers", [(2, 1, 1), (2, 2, 2), (1, 3, 1), (4, 3, 3)])
+def test_interleave_dataset_with_sharding(num_shards1, num_shards2, num_workers):
     from torch.utils.data import DataLoader
 
-    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}-1.txt" for i in range(n_shards1)]})
+    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}-1.txt" for i in range(num_shards1)]})
     dataset1 = IterableDataset(ex_iterable1).with_format("torch")
-    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}-2.txt" for i in range(n_shards2)]})
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}-2.txt" for i in range(num_shards2)]})
     dataset2 = IterableDataset(ex_iterable2).with_format("torch")
 
     dataset_merged = interleave_datasets([dataset1, dataset2], stopping_strategy="first_exhausted")
-    assert dataset_merged.n_shards == min(n_shards1, n_shards2)
+    assert dataset_merged.num_shards == min(num_shards1, num_shards2)
     dataloader = DataLoader(dataset_merged, batch_size=None, num_workers=num_workers)
     result = list(dataloader)
     expected_length = 2 * min(

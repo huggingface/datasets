@@ -20,6 +20,7 @@ class WebDataset(datasets.GeneratorBasedBuilder):
     DEFAULT_WRITER_BATCH_SIZE = 100
     IMAGE_EXTENSIONS: List[str]  # definition at the bottom of the script
     AUDIO_EXTENSIONS: List[str]  # definition at the bottom of the script
+    VIDEO_EXTENSIONS: List[str]  # definition at the bottom of the script
     DECODERS: Dict[str, Callable[[Any], Any]]  # definition at the bottom of the script
     NUM_EXAMPLES_FOR_FEATURES_INFERENCE = 5
 
@@ -97,6 +98,11 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                 extension = field_name.rsplit(".", 1)[-1]
                 if extension in self.AUDIO_EXTENSIONS:
                     features[field_name] = datasets.Audio()
+            # Set Video types
+            for field_name in first_examples[0]:
+                extension = field_name.rsplit(".", 1)[-1]
+                if extension in self.VIDEO_EXTENSIONS:
+                    features[field_name] = datasets.Video()
             self.info.features = features
 
         return splits
@@ -257,6 +263,17 @@ AUDIO_EXTENSIONS = [
     "opus",
 ]
 WebDataset.AUDIO_EXTENSIONS = AUDIO_EXTENSIONS
+
+
+# TODO: initial list, we should check the compatibility of other formats
+VIDEO_EXTENSIONS = [
+    ".mkv",
+    ".mp4",
+    ".avi",
+    ".mpeg",
+    ".mov",
+]
+WebDataset.VIDEO_EXTENSIONS = VIDEO_EXTENSIONS
 
 
 def text_loads(data: bytes):

@@ -13,6 +13,7 @@ __all__ = [
     "Image",
     "Translation",
     "TranslationVariableLanguages",
+    "Video",
 ]
 
 
@@ -31,3 +32,4 @@ from .features import (
 )
 from .image import Image
 from .translation import Translation, TranslationVariableLanguages
+from .video import Video

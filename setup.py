@@ -129,11 +129,11 @@ REQUIRED_PKGS = [
     "multiprocess<0.70.17",  # to align with dill<0.3.9 (see above)
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0,<=2024.6.1",
+    "fsspec[http]>=2023.1.0,<=2024.9.0",
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface-hub>=0.22.0",
+    "huggingface-hub>=0.23.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -187,6 +187,7 @@ TESTS_REQUIRE = [
     "transformers>=4.42.0",  # Pins numpy < 2
     "zstandard",
     "polars[timezone]>=0.20.0",
+    "decord==0.6.0",
 ]
 
 
@@ -234,7 +235,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="3.0.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="3.0.3.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

@@ -43,6 +43,7 @@ from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
 from .translation import Translation, TranslationVariableLanguages
+from .video import Video
 
 
 logger = logging.get_logger(__name__)
@@ -1224,6 +1225,7 @@ FeatureType = Union[
     Audio,
     Image,
     CustomFeature,
+    Video,
 ]
 
 
@@ -1370,7 +1372,7 @@ def encode_nested_example(schema, obj, is_nested: bool = False):
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, (Audio, Image, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
+    elif isinstance(schema, (Audio, Image, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD, Video)):
         return schema.encode_example(obj) if obj is not None else None
 
     # Custom features
@@ -1431,7 +1433,6 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
             return schema.decode_example(obj, token_per_repo_id=token_per_repo_id)
     # Custom features
     elif isinstance(schema, CustomFeature) and schema.requires_decoding:
-        # we pass the token to read and decode files from private repositories in streaming mode
         if obj is not None and schema.decode:
             return schema.decode_example(obj, token_per_repo_id=token_per_repo_id)
     return obj
@@ -1450,6 +1451,7 @@ _FEATURE_TYPES: Dict[str, FeatureType] = {
     Array5D.__name__: Array5D,
     Audio.__name__: Audio,
     Image.__name__: Image,
+    Video.__name__: Video,
 }
 
 
