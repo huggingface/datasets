@@ -471,10 +471,16 @@ class CustomFeature:
             return self._encode_example(example)
         return example
 
+    def _encode_example(self, example):
+        raise NotImplementedError("Should be implemented by child class if `requires_encoding` is True")
+
     def decode_example(self, example):
         if self.requires_decoding:
             return self._decode_example(example)
         return example
+
+    def _decode_example(self, example):
+        raise NotImplementedError("Should be implemented by child class if `requires_decoding` is True")
 
 
 @dataclass
