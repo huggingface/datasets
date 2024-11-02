@@ -13,7 +13,6 @@ from ..download.download_config import DownloadConfig
 from ..table import array_cast
 from ..utils.file_utils import is_local_path, xopen
 from ..utils.py_utils import first_non_null_value, no_op_if_value_is_null, string_to_dict
-from .base import Feature
 
 
 if TYPE_CHECKING:
@@ -44,7 +43,7 @@ _VALID_IMAGE_ARRAY_DTPYES = [
 
 
 @dataclass
-class Image(Feature):
+class Image:
     """Image [`Feature`] to read image data from an image file.
 
     Input: The Image feature accepts as input:
@@ -80,9 +79,6 @@ class Image(Feature):
      'path': '/root/.cache/huggingface/datasets/downloads/extracted/b0a21163f78769a2cf11f58dfc767fb458fc7cea5c05dccc0144a2c0f0bc1292/train/healthy/healthy_train.85.jpg'}
     ```
     """
-
-    requires_encoding: ClassVar[bool] = True
-    requires_decoding: ClassVar[bool] = True
 
     mode: Optional[str] = None
     decode: bool = True

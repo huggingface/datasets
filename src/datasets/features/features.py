@@ -41,7 +41,6 @@ from ..table import array_cast
 from ..utils import experimental, logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
-from .base import Feature
 from .image import Image, encode_pil_image
 from .translation import Translation, TranslationVariableLanguages
 
@@ -458,8 +457,27 @@ def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_cast
     )[0]
 
 
+class CustomFeature:
+    """
+    Base class for feature types like Audio, Image, ClassLabel, etc that require special treatment (encoding/decoding).
+    """
+
+    requires_encoding: ClassVar[bool] = False
+    requires_decoding: ClassVar[bool] = False
+
+    def encode_example(self, example):
+        if self.requires_encoding:
+            return self._encode_example(example)
+        return example
+
+    def decode_example(self, example):
+        if self.requires_decoding:
+            return self._decode_example(example)
+        return example
+
+
 @dataclass
-class Value(Feature):
+class Value:
     """
     Scalar feature value of a particular data type.
 
@@ -505,8 +523,6 @@ class Value(Feature):
     ```
     """
 
-    requires_encoding: ClassVar[bool] = True
-
     dtype: str
     id: Optional[str] = None
     # Automatically constructed
@@ -536,9 +552,7 @@ class Value(Feature):
             return value
 
 
-class _ArrayXD(Feature):
-    requires_encoding: ClassVar[bool] = True
-
+class _ArrayXD:
     def __post_init__(self):
         self.shape = tuple(self.shape)
 
@@ -946,7 +960,7 @@ def pandas_types_mapper(dtype):
 
 
 @dataclass
-class ClassLabel(Feature):
+class ClassLabel:
     """Feature type for integer class labels.
 
     There are 3 ways to define a `ClassLabel`, which correspond to the 3 arguments:
@@ -976,8 +990,6 @@ class ClassLabel(Feature):
     {'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'], id=None)}
     ```
     """
-
-    requires_encoding: ClassVar[bool] = True
 
     num_classes: InitVar[Optional[int]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
     names: List[str] = None
@@ -1146,7 +1158,7 @@ class ClassLabel(Feature):
 
 
 @dataclass
-class Sequence(Feature):
+class Sequence:
     """Construct a list of feature from a single type or a dict of types.
     Mostly here for compatiblity with tfds.
 
@@ -1166,8 +1178,6 @@ class Sequence(Feature):
     ```
     """
 
-    requires_encoding: ClassVar[bool] = True
-    requires_decoding: ClassVar[bool] = True
     feature: Any
     length: int = -1
     id: Optional[str] = None
@@ -1176,53 +1186,9 @@ class Sequence(Feature):
     pa_type: ClassVar[Any] = None
     _type: str = field(default="Sequence", init=False, repr=False)
 
-    def encode_example(self, obj):
-        if obj is None:
-            return None
-        # We allow to reverse list of dict => dict of list for compatibility with tfds
-        if isinstance(self.feature, dict):
-            # dict of list to fill
-            list_dict = {}
-            if isinstance(obj, (list, tuple)):
-                # obj is a list of dict
-                for k in self.feature:
-                    list_dict[k] = [encode_nested_example(self.feature[k], o.get(k), is_nested=True) for o in obj]
-                return list_dict
-            else:
-                # obj is a single dict
-                for k in self.feature:
-                    list_dict[k] = (
-                        [encode_nested_example(self.feature[k], o, is_nested=True) for o in obj[k]]
-                        if k in obj
-                        else None
-                    )
-                return list_dict
-        # schema.feature is not a dict
-        if isinstance(obj, str):  # don't interpret a string as a list
-            raise ValueError(f"Got a string but expected a list instead: '{obj}'")
-        else:
-            if len(obj) > 0:
-                for first_elmt in obj:
-                    if _check_non_null_non_empty_recursive(first_elmt, self.feature):
-                        break
-                # be careful when comparing tensors here
-                if (
-                    not isinstance(first_elmt, list)
-                    or encode_nested_example(self.feature, first_elmt, is_nested=True) != first_elmt
-                ):
-                    return [encode_nested_example(self.feature, o, is_nested=True) for o in obj]
-            return list(obj)
-
-    def decode_example(self, obj):
-        # We allow to reverse list of dict => dict of list for compatibility with tfds
-        if isinstance(self.feature, dict):
-            return {k: decode_nested_example([self.feature[k]], obj[k]) for k in self.feature}
-        else:
-            return decode_nested_example([self.feature], obj)
-
 
 @dataclass
-class LargeList(Feature):
+class LargeList:
     """Feature type for large list data composed of child feature data type.
 
     It is backed by `pyarrow.LargeListType`, which is like `pyarrow.ListType` but with 64-bit rather than 32-bit offsets.
@@ -1240,38 +1206,24 @@ class LargeList(Feature):
     pa_type: ClassVar[Any] = None
     _type: str = field(default="LargeList", init=False, repr=False)
 
-    def encode_example(self, obj):
-        if obj is None:
-            return None
-        else:
-            if len(obj) > 0:
-                sub_schema = self.feature
-                for first_elmt in obj:
-                    if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
-                        break
-                if encode_nested_example(sub_schema, first_elmt, is_nested=True) != first_elmt:
-                    return [encode_nested_example(sub_schema, o, is_nested=True) for o in obj]
-            return list(obj)
-
-    def decode_example(self, obj):
-        if obj is None:
-            return None
-        else:
-            sub_schema = schema.feature
-            if len(obj) > 0:
-                for first_elmt in obj:
-                    if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
-                        break
-                if decode_nested_example(sub_schema, first_elmt) != first_elmt:
-                    return [decode_nested_example(sub_schema, o) for o in obj]
-            return list(obj)
-
 
 FeatureType = Union[
     dict,
     list,
     tuple,
-    Feature,
+    Value,
+    ClassLabel,
+    Translation,
+    TranslationVariableLanguages,
+    LargeList,
+    Sequence,
+    Array2D,
+    Array3D,
+    Array4D,
+    Array5D,
+    Audio,
+    Image,
+    CustomFeature,
 ]
 
 
@@ -1368,9 +1320,61 @@ def encode_nested_example(schema, obj, is_nested: bool = False):
                     return [encode_nested_example(sub_schema, o, is_nested=True) for o in obj]
             return list(obj)
 
+    elif isinstance(schema, LargeList):
+        if obj is None:
+            return None
+        else:
+            if len(obj) > 0:
+                sub_schema = schema.feature
+                for first_elmt in obj:
+                    if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
+                        break
+                if encode_nested_example(sub_schema, first_elmt, is_nested=True) != first_elmt:
+                    return [encode_nested_example(sub_schema, o, is_nested=True) for o in obj]
+            return list(obj)
+    elif isinstance(schema, Sequence):
+        if obj is None:
+            return None
+        # We allow to reverse list of dict => dict of list for compatibility with tfds
+        if isinstance(schema.feature, dict):
+            # dict of list to fill
+            list_dict = {}
+            if isinstance(obj, (list, tuple)):
+                # obj is a list of dict
+                for k in schema.feature:
+                    list_dict[k] = [encode_nested_example(schema.feature[k], o.get(k), is_nested=True) for o in obj]
+                return list_dict
+            else:
+                # obj is a single dict
+                for k in schema.feature:
+                    list_dict[k] = (
+                        [encode_nested_example(schema.feature[k], o, is_nested=True) for o in obj[k]]
+                        if k in obj
+                        else None
+                    )
+                return list_dict
+        # schema.feature is not a dict
+        if isinstance(obj, str):  # don't interpret a string as a list
+            raise ValueError(f"Got a string but expected a list instead: '{obj}'")
+        else:
+            if len(obj) > 0:
+                for first_elmt in obj:
+                    if _check_non_null_non_empty_recursive(first_elmt, schema.feature):
+                        break
+                # be careful when comparing tensors here
+                if (
+                    not isinstance(first_elmt, list)
+                    or encode_nested_example(schema.feature, first_elmt, is_nested=True) != first_elmt
+                ):
+                    return [encode_nested_example(schema.feature, o, is_nested=True) for o in obj]
+            return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, Feature) and schema.requires_encoding:
+    elif isinstance(schema, (Audio, Image, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
+        return schema.encode_example(obj) if obj is not None else None
+
+    # Custom features
+    elif isinstance(schema, CustomFeature) and schema.requires_encoding:
         return schema.encode_example(obj) if obj is not None else None
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
     return obj
@@ -1402,8 +1406,31 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
                 if decode_nested_example(sub_schema, first_elmt) != first_elmt:
                     return [decode_nested_example(sub_schema, o) for o in obj]
             return list(obj)
+    elif isinstance(schema, LargeList):
+        if obj is None:
+            return None
+        else:
+            sub_schema = schema.feature
+            if len(obj) > 0:
+                for first_elmt in obj:
+                    if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
+                        break
+                if decode_nested_example(sub_schema, first_elmt) != first_elmt:
+                    return [decode_nested_example(sub_schema, o) for o in obj]
+            return list(obj)
+    elif isinstance(schema, Sequence):
+        # We allow to reverse list of dict => dict of list for compatibility with tfds
+        if isinstance(schema.feature, dict):
+            return {k: decode_nested_example([schema.feature[k]], obj[k]) for k in schema.feature}
+        else:
+            return decode_nested_example([schema.feature], obj)
     # Object with special decoding:
-    elif isinstance(schema, Feature) and schema.requires_decoding:
+    elif isinstance(schema, (Audio, Image, Video)):
+        # we pass the token to read and decode files from private repositories in streaming mode
+        if obj is not None and schema.decode:
+            return schema.decode_example(obj, token_per_repo_id=token_per_repo_id)
+    # Custom features
+    elif isinstance(schema, CustomFeature) and schema.requires_decoding:
         # we pass the token to read and decode files from private repositories in streaming mode
         if obj is not None and schema.decode:
             return schema.decode_example(obj, token_per_repo_id=token_per_repo_id)
@@ -1435,7 +1462,9 @@ def register_feature(
     Register a Feature object using a name and class.
     This function must be used on a Feature class.
     """
-    assert issubclass(feature_cls, Feature), f"Feature class {feature_cls.__name__} must inherit from datasets.Feature"
+    assert issubclass(
+        feature_cls, CustomFeature
+    ), f"Custom feature class {feature_cls.__name__} must inherit from datasets.CustomFeature"
     if feature_type in _FEATURE_TYPES:
         logger.warning(
             f"Overwriting feature type '{feature_type}' ({_FEATURE_TYPES[feature_type].__name__} -> {feature_cls.__name__})"
@@ -1632,8 +1661,10 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
         return require_decoding(feature.feature)
     elif isinstance(feature, Sequence):
         return require_decoding(feature.feature)
-    elif isinstance(feature, Feature):
+    elif isinstance(feature, CustomFeature):
         return feature.requires_decoding and (feature.decode if not ignore_decode_attribute else True)
+    else:
+        return hasattr(feature, "decode_example") and (feature.decode if not ignore_decode_attribute else True)
 
 
 def require_storage_cast(feature: FeatureType) -> bool:
