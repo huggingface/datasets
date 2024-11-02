@@ -1633,10 +1633,17 @@ def list_of_dicts_to_pyarrow_structarray(
 
     field_arrays = {key: [] for key in data[0].keys()}
 
+    null_mask = []
     for row in data:
-        for key in field_arrays.keys():
-            value = row.get(key, None)
-            field_arrays[key].append(value)
+        if row is None:
+            null_mask.append(True)
+            for key in field_arrays.keys():
+                field_arrays[key].append(None)
+        else:
+            null_mask.append(False)
+            for key in field_arrays.keys():
+                value = row.get(key, None)
+                field_arrays[key].append(value)
 
     # TODO: do these need to be ordered?
     pa_fields = []
@@ -1655,8 +1662,9 @@ def list_of_dicts_to_pyarrow_structarray(
         pa_fields.append((key, pa_field))
 
     field_names, field_arrays = zip(*pa_fields)
+    null_mask_array = pa.array(null_mask, type=pa.bool_())
 
-    return pa.StructArray.from_arrays(field_arrays, field_names)
+    return pa.StructArray.from_arrays(field_arrays, field_names, mask=null_mask_array)
 
 
 def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureType]]) -> FeatureType:
