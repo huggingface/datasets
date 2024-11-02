@@ -1620,9 +1620,7 @@ def to_pyarrow_listarray(data: Any, pa_type: _ArrayXDExtensionType) -> pa.Array:
         return pa.array(data, pa_type.storage_dtype)
 
 
-def list_of_dicts_to_pyarrow_structarray(
-    data: List[Dict[str, Any]], struct_type: pa.StructType
-) -> pa.StructArray:
+def list_of_dicts_to_pyarrow_structarray(data: List[Dict[str, Any]], struct_type: pa.StructType) -> pa.StructArray:
     """Convert a list of dictionaries to a pyarrow StructArray.
 
     First builds a dict of lists, then converts each list to a pyarrow array,
