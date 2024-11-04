@@ -1,9 +1,19 @@
-from typing import List, Optional, TypeVar
+from typing import Dict, List, Optional, TypeVar
 
-from .arrow_dataset import Dataset, _concatenate_map_style_datasets, _interleave_map_style_datasets
+from .arrow_dataset import (
+    Dataset,
+    _concatenate_map_style_datasets,
+    _interleave_map_style_datasets,
+    _stack_map_style_datasets,
+)
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .info import DatasetInfo
-from .iterable_dataset import IterableDataset, _concatenate_iterable_datasets, _interleave_iterable_datasets
+from .iterable_dataset import (
+    IterableDataset,
+    _concatenate_iterable_datasets,
+    _interleave_iterable_datasets,
+    _stack_iterable_datasets,
+)
 from .splits import NamedSplit
 from .utils import logging
 from .utils.py_utils import Literal
@@ -213,3 +223,78 @@ def concatenate_datasets(
         return _concatenate_map_style_datasets(dsets, info=info, split=split, axis=axis)
     else:
         return _concatenate_iterable_datasets(dsets, info=info, split=split, axis=axis)
+
+
+def stack_datasets(
+    datasets: Dict[str, DatasetType],
+    info: Optional[DatasetInfo] = None,
+    split: Optional[NamedSplit] = None,
+    stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+) -> DatasetType:
+    """
+    Stack multiple datasets into a single dataset. Examples returned are meta-examples containing
+    one example from each dataset. Useful if each item (or later each batch)
+    should contain different (possibly complex) types from different sources that cannot simply be concatenated.
+    Inspired by torch.utils.data.StackDataset.
+
+    Args:
+        datasets (`Dict[str, IterableDataset]`): Dictionary of datasets to stack.
+        info ([`DatasetInfo`], *optional*, defaults to `None`):
+            Dataset information, like description, citation, etc.
+        split ([`NamedSplit`], *optional*, defaults to `None`):
+            Name of the dataset split.
+        stopping_strategy (`Literal["first_exhausted", "all_exhausted"]`, *optional*, defaults to `first_exhausted`):
+            If undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted.
+            If oversampling ("all_exhausted"), we stop as soon as every dataset is exhausted,
+            i.e as soon as every samples of every dataset has been visited at least once.
+            "all_exhausted" means that the examples of smaller datasets may be visited multiple times.
+
+    Returns:
+        [`Dataset`] or [`IterableDataset`]: Return type depends on the input `datasets`
+        parameter. Returns a `Dataset` if the input is a list of `Dataset`,
+        or an `IterableDataset` if the input is a list of `IterableDataset`.
+
+    Example:
+
+    ```python
+    >>> datasets = {'d1': dataset1, 'd2': dataset2}
+    >>> stacked = stack_datasets(datasets)
+    >>> next(iter(stacked))
+    {'d1': <dataset1_example1>, 'd2': <dataset2_example1>}
+    ```
+    """
+
+    if not datasets:
+        raise ValueError("Unable to stack an empty dict of datasets.")
+    for i, (name, dataset) in enumerate(datasets.items()):
+        if not isinstance(dataset, (Dataset, IterableDataset)):
+            if isinstance(dataset, (DatasetDict, IterableDatasetDict)):
+                if not dataset:
+                    raise ValueError(
+                        f"Expected a dict of Dataset objects or a dict of IterableDataset objects, but value of key '{name}' "
+                        "is an empty dataset dictionary."
+                    )
+                raise ValueError(
+                    f"Dataset of key '{name}' has at least one split: {list(dataset)}\n"
+                    f"Please pick one to stack with the other datasets, for example: dataset['{next(iter(dataset))}']"
+                )
+            raise ValueError(
+                f"Expected a dict of Dataset objects or a dict of IterableDataset objects, but value of key '{name}' is a {type(dataset).__name__}."
+            )
+        if i == 0:
+            dataset_type, other_type = (
+                (Dataset, IterableDataset) if isinstance(dataset, Dataset) else (IterableDataset, Dataset)
+            )
+            dataset_key = name
+        elif not isinstance(dataset, dataset_type):
+            raise ValueError(
+                f"Unable to stack a {dataset_type.__name__} (key '{dataset_key}') with a {other_type.__name__} (key '{name}'). Expected a dict of Dataset objects or a dict of IterableDataset objects."
+            )
+    if stopping_strategy not in ["first_exhausted", "all_exhausted"]:
+        raise ValueError(f"{stopping_strategy} is not supported. Please enter a valid stopping_strategy.")
+    if dataset_type is Dataset:
+        return _stack_map_style_datasets(
+            datasets=datasets, info=info, split=split, stopping_strategy=stopping_strategy
+        )
+    else:
+        return _stack_iterable_datasets(datasets=datasets, info=info, split=split, stopping_strategy=stopping_strategy)
