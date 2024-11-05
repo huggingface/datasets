@@ -251,8 +251,8 @@ def stack_datasets(
 
     Returns:
         [`Dataset`] or [`IterableDataset`]: Return type depends on the input `datasets`
-        parameter. Returns a `Dataset` if the input is a list of `Dataset`,
-        or an `IterableDataset` if the input is a list of `IterableDataset`.
+        parameter. Returns a `Dataset` if the input is a dict of `Dataset`,
+        or an `IterableDataset` if the input is a dict of `IterableDataset`.
 
     Example:
 
