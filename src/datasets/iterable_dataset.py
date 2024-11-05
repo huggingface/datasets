@@ -1837,11 +1837,11 @@ class StackedMultiSourcesExamplesIterable(_BaseExamplesIterable):
         return min(ex_iterable.num_shards for ex_iterable in self.ex_iterables.values())
 
     def shard_data_sources(
-        self, worker_id: int, num_workers: int, contiguous=True
+        self, num_shards: int, index: int, contiguous=True
     ) -> "StackedMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         ex_iterables = {
-            name: ex_iterable.shard_data_sources(worker_id, num_workers, contiguous)
+            name: ex_iterable.shard_data_sources(num_shards, index, contiguous)
             for name, ex_iterable in self.ex_iterables.items()
         }
         return StackedMultiSourcesExamplesIterable(ex_iterables, self.stopping_strategy)
