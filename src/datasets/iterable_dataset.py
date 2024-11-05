@@ -1772,7 +1772,7 @@ class StackedMultiSourcesExamplesIterable(_BaseExamplesIterable):
                 is_exhausted[name] = self._state_dict["is_exhausted"][name]
         else:
             is_exhausted = {name: False for name in self.ex_iterables.keys()}
-        
+
         iterators = {name: iter(ex_iterable) for name, ex_iterable in self.ex_iterables.items()}
         # we use this to buffer one example of each iterator to know if an iterator is exhausted
         nexts = {}
@@ -1781,14 +1781,16 @@ class StackedMultiSourcesExamplesIterable(_BaseExamplesIterable):
             nexts[name] = next(iterators[name], False)
             if nexts[name] is False:
                 empty_iterators.append(name)
-        
+
         if empty_iterators:
-            warnings.warn(f"Iteration stopped because the sub-iterators {empty_iterators} are empty. "
-                          f"Please remove keys {empty_iterators} from the dictionary of Iterators to combine "
-                          f"examples from the remaining iterators, and check that sub-iterators {empty_iterators} "
-                          f"actually returns examples.")
-            return         
-        
+            warnings.warn(
+                f"Iteration stopped because the sub-iterators {empty_iterators} are empty. "
+                f"Please remove keys {empty_iterators} from the dictionary of Iterators to combine "
+                f"examples from the remaining iterators, and check that sub-iterators {empty_iterators} "
+                f"actually returns examples."
+            )
+            return
+
         while True:
             example_dict = {}  # this is the example that will be yielded
             keys = []
@@ -1798,7 +1800,7 @@ class StackedMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
             for name in list(iterators.keys()):  # everytime we want a new example, we grab one from each iterator
                 result = nexts[name]
-                nexts[name] = next(iterators[name], False) # refill the buffer
+                nexts[name] = next(iterators[name], False)  # refill the buffer
                 if self._state_dict:
                     self._state_dict["previous_states"][name] = deepcopy(self._state_dict["ex_iterables"][name])
 
@@ -1815,14 +1817,13 @@ class StackedMultiSourcesExamplesIterable(_BaseExamplesIterable):
                     # noew refill the buffer with the first element
                     # will never fail because at this point we know the iterator is not empty
                     nexts[name] = next(iterators[name])
-                
+
                 key, example = result
                 keys.append(key)
                 example_dict[name] = example
-            
-            final_key = "_".join(str(key) for key in keys) # will be of the form "key1_key2_key3..."
-            yield final_key, example_dict
 
+            final_key = "_".join(str(key) for key in keys)  # will be of the form "key1_key2_key3..."
+            yield final_key, example_dict
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "StackedMultiSourcesExamplesIterable":
         """Shuffle each underlying examples iterable."""
@@ -1835,7 +1836,9 @@ class StackedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     def num_shards(self) -> int:
         return min(ex_iterable.num_shards for ex_iterable in self.ex_iterables.values())
 
-    def shard_data_sources(self, worker_id: int, num_workers: int, contiguous=True) -> "StackedMultiSourcesExamplesIterable":
+    def shard_data_sources(
+        self, worker_id: int, num_workers: int, contiguous=True
+    ) -> "StackedMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         ex_iterables = {
             name: ex_iterable.shard_data_sources(worker_id, num_workers, contiguous)
