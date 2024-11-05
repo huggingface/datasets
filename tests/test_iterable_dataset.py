@@ -1,6 +1,7 @@
 import pickle
 from copy import deepcopy
 from itertools import chain, cycle, islice
+from typing import Dict, Union
 
 import numpy as np
 import pandas as pd
@@ -9,7 +10,11 @@ import pyarrow.compute as pc
 import pytest
 
 from datasets import Dataset, load_dataset
-from datasets.combine import concatenate_datasets, interleave_datasets
+from datasets.combine import (
+    concatenate_datasets,
+    interleave_datasets,
+    stack_datasets,
+)
 from datasets.distributed import split_dataset_by_node
 from datasets.features import (
     ClassLabel,
@@ -40,6 +45,7 @@ from datasets.iterable_dataset import (
     TakeExamplesIterable,
     TypedExamplesIterable,
     VerticallyConcatenatedMultiSourcesExamplesIterable,
+    StackedMultiSourcesExamplesIterable,
     _BaseExamplesIterable,
     _batch_to_examples,
     _convert_to_arrow,
@@ -2153,6 +2159,147 @@ def test_interleave_dataset_with_sharding(num_shards1, num_shards2, num_workers)
     dataloader = DataLoader(dataset_merged, batch_size=None, num_workers=num_workers)
     result = list(dataloader)
     expected_length = 2 * min(
+        len([example for _, example in ex_iterable1]), len([example for _, example in ex_iterable2])
+    )
+    # some samples may be missing because the stopping strategy is applied per process
+    assert expected_length - num_workers <= len(result) <= expected_length
+    assert len(result) == len({str(x) for x in result})
+
+
+@pytest.fixture(params=[Dataset, IterableDataset])
+def dataset_dict_for_stacking(request):
+    """
+    Returns a dictionary with different dataset types (Dataset or IterableDataset) depending on the request.param.
+    This allows all test cases with the dataset_dict_for_stacking fixture to be run with both Dataset and IterableDataset.
+    """
+    DatasetClass = request.param
+    if DatasetClass is Dataset:
+        # Create regular Datasets
+        d1 = Dataset.from_dict({'a': [0, 1, 2]})
+        d2 = Dataset.from_dict({'b': [10, 11, 12, 13]})
+    elif DatasetClass is IterableDataset:
+        # Create IterableDatasets
+        d1 = IterableDataset(ExamplesIterable((lambda: (yield from [(i, {"a": i}) for i in [0, 1, 2]])), {}))
+        d2 = IterableDataset(ExamplesIterable((lambda: (yield from [(i, {"b": i}) for i in [10, 11, 12, 13]])), {}))
+    return {'d1': d1, 'd2': d2}
+
+@pytest.mark.parametrize(
+    "stopping_strategy",
+    [
+        ("first_exhausted"),
+        ("all_exhausted"),
+        ("wrong_strategy"),
+    ],
+)
+def test_stack_datasets_validity(
+    dataset_dict_for_stacking:Union[Dict[str, IterableDataset], Dict[str, Dataset]],
+    stopping_strategy
+):
+    d1 = dataset_dict_for_stacking['d1']
+
+    # select the opposite type of the current dataset to force error
+    if isinstance(d1, IterableDataset):
+        d2 = Dataset.from_list([{'b': i} for i in [10, 11, 12, 13]])
+    else:
+        d2 = IterableDataset(ExamplesIterable((lambda: (yield from [(i, {"b": i}) for i in [10, 11, 12, 13]])), {}))
+
+    # only allow dict of IterableDataset or dict of Dataset
+    with pytest.raises(ValueError):
+        merged_dataset = stack_datasets(
+            datasets={'d1': d1, 'd2': d2}, stopping_strategy=stopping_strategy
+        )
+
+    d2_iterable = dataset_dict_for_stacking['d2']
+
+    if stopping_strategy == 'wrong_strategy':
+        with pytest.raises(ValueError):
+            merged_dataset = stack_datasets(
+                datasets={'d1': d1, 'd2_iterable': d2_iterable}, stopping_strategy=stopping_strategy
+            )
+    else:
+        merged_dataset = stack_datasets(
+            datasets={'d1': d1, 'd2': d2_iterable}, stopping_strategy=stopping_strategy
+        )
+    
+        # Check the examples iterable
+        if isinstance(merged_dataset, IterableDataset):
+            assert isinstance(
+                merged_dataset._ex_iterable, StackedMultiSourcesExamplesIterable
+            )
+
+
+def test_stack_datasets_with_oversampling(
+    dataset_dict_for_stacking:Union[Dict[str, IterableDataset], Dict[str, Dataset]]
+):
+
+    expected_values = [
+        {'d1': {'a': 0}, 'd2': {'b': 10}},
+        {'d1': {'a': 1}, 'd2': {'b': 11}},
+        {'d1': {'a': 2}, 'd2': {'b': 12}},
+        {'d1': {'a': 0}, 'd2': {'b': 13}},
+    ]
+
+    stacked_dataset = stack_datasets(datasets=dataset_dict_for_stacking, stopping_strategy='all_exhausted')
+
+    actual_values = list(stacked_dataset)
+
+    assert actual_values == expected_values
+
+def test_stack_datasets_with_undersampling(
+    dataset_dict_for_stacking:Union[Dict[str, IterableDataset], Dict[str, Dataset]]
+):
+
+    expected_values = [
+        {'d1': {'a': 0}, 'd2': {'b': 10}},
+        {'d1': {'a': 1}, 'd2': {'b': 11}},
+        {'d1': {'a': 2}, 'd2': {'b': 12}},
+    ]
+
+    stacked_dataset = stack_datasets(datasets=dataset_dict_for_stacking, stopping_strategy='first_exhausted')
+
+    actual_values = list(stacked_dataset)
+
+    assert actual_values == expected_values
+
+def test_stack_datasets_with_features(
+    dataset_dict_for_stacking:Union[Dict[str, IterableDataset], Dict[str, Dataset]]
+):
+    # Test hardcoded results
+    d1 = dataset_dict_for_stacking['d1']
+    d2 = dataset_dict_for_stacking['d2']
+
+    # in IterableDataset, features are not known at the beginning
+    if isinstance(d1, IterableDataset):
+        d1 = d1._resolve_features()
+        d2 = d2._resolve_features()
+    
+    expected_features = Features({name: dset.features for name, dset in zip(['d1', 'd2'], [d1, d2])})
+
+    stacked_dataset:Union[IterableDataset, Dataset] = stack_datasets(datasets={'d1': d1, 'd2': d2}, stopping_strategy='first_exhausted')
+
+    actual_features = stacked_dataset.features
+
+    assert actual_features == expected_features
+
+@pytest.mark.parametrize("num_shards1, num_shards2, num_workers", [(2, 1, 1), (2, 2, 2), (1, 3, 1), (4, 3, 3)])
+def test_stack_datasets_with_sharding(
+    num_shards1, 
+    num_shards2, 
+    num_workers
+):
+    from torch.utils.data import DataLoader
+
+    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}-1.txt" for i in range(num_shards1)]})
+    dataset1 = IterableDataset(ex_iterable1).with_format("torch")
+
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}-2.txt" for i in range(num_shards2)]})
+    dataset2 = IterableDataset(ex_iterable2).with_format("torch")
+
+    dataset_merged = stack_datasets(datasets={'d1': dataset1, 'd2': dataset2}, stopping_strategy="first_exhausted")
+    assert dataset_merged.num_shards == min(num_shards1, num_shards2)
+    dataloader = DataLoader(dataset_merged, batch_size=None, num_workers=num_workers)
+    result = list(dataloader)
+    expected_length = min(
         len([example for _, example in ex_iterable1]), len([example for _, example in ex_iterable2])
     )
     # some samples may be missing because the stopping strategy is applied per process
