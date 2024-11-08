@@ -240,7 +240,6 @@ setup(
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     author="HuggingFace Inc., Alex Hawkins-Hooker",
-    author_email="thomas@huggingface.co",
     url="https://github.com/bioml-tools/fast-datasets",
     download_url="https://github.com/bioml-tools/fast-datasets/tags",
     license="Apache 2.0",
