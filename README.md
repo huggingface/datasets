@@ -1,9 +1,15 @@
 # Fast Datasets
 
-fast-datasets is a minimally divergent fork of [HuggingFace Datasets](https://github.com/huggingface/datasets), adding some optimisations for array feature types and iterable datasets.
-fast-datasets is a dependency of [bio-datasets](https://github.com/bioml-tools/bio-datasets).
+This repo is a minimally divergent fork of [HuggingFace Datasets](https://github.com/huggingface/datasets), adding some optimisations for array feature types and iterable datasets.
 
-If the modifications are approved as PRs to the main Datasets library, this fork will no longer be updated.
+These modifications have been submitted as PRs to the Datasets library and this fork will no longer be updated if the modifications are merged.
+
+Install via pip
+```
+pip install datasets-fast
+```
+
+datasets-fast is a dependency of [Bio Datasets](https://github.com/bioml-tools/bio-datasets).
 
 The following is the Datasets README.
 

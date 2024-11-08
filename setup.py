@@ -234,7 +234,7 @@ EXTRAS_REQUIRE = {
 }
 
 setup(
-    name="fast-datasets",
+    name="datasets-fast",
     version="3.1.0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="Optimisations for HuggingFace Datasets with array features",
     long_description=open("README.md", encoding="utf-8").read(),
