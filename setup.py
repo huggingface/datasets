@@ -138,6 +138,7 @@ REQUIRED_PKGS = [
     "packaging",
     # To parse YAML metadata from dataset cards
     "pyyaml>=5.1",
+    "datasets!=*",
 ]
 
 AUDIO_REQUIRE = [
