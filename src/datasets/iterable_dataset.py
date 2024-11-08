@@ -1,3 +1,5 @@
+# Modified from HuggingFace Datasets source by fast-datasets authors
+
 import copy
 import itertools
 import sys

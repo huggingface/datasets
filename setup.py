@@ -234,15 +234,15 @@ EXTRAS_REQUIRE = {
 }
 
 setup(
-    name="datasets",
-    version="3.1.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
-    description="HuggingFace community-driven open-source library of datasets",
+    name="fast-datasets",
+    version="1.0.0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    description="Optimisations for HuggingFace Datasets with array features",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
-    author="HuggingFace Inc.",
+    author="HuggingFace Inc., Alex Hawkins-Hooker",
     author_email="thomas@huggingface.co",
-    url="https://github.com/huggingface/datasets",
-    download_url="https://github.com/huggingface/datasets/tags",
+    url="https://github.com/bioml-tools/fast-datasets",
+    download_url="https://github.com/bioml-tools/fast-datasets/tags",
     license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages("src"),
