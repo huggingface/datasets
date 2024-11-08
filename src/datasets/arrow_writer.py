@@ -32,6 +32,7 @@ from .features.features import (
     cast_to_python_objects,
     generate_from_arrow_type,
     get_nested_type,
+    list_of_dicts_to_pyarrow_structarray,
     list_of_np_array_to_pyarrow_listarray,
     numpy_to_pyarrow_listarray,
     to_pyarrow_listarray,
@@ -223,6 +224,9 @@ class TypedSequence:
                 out = numpy_to_pyarrow_listarray(data)
             elif isinstance(data, list) and data and isinstance(first_non_null_value(data)[1], np.ndarray):
                 out = list_of_np_array_to_pyarrow_listarray(data)
+            elif isinstance(data, list) and data and isinstance(first_non_null_value(data)[1], dict):
+                # pa_type should be a struct type
+                out = list_of_dicts_to_pyarrow_structarray(data, pa_type)
             else:
                 trying_cast_to_python_objects = True
                 out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
