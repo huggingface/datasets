@@ -195,8 +195,8 @@ class BaseDatasetTest(TestCase):
                         }
                     ),
                 )
-                self.assertEqual(dset[0]["col_2"], [[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]])
-                self.assertEqual(dset["col_2"][0], [[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]])
+                assert (dset[0]["col_2"] == np.array([[[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]]])).all()
+                assert (dset["col_2"][0] == np.array([[[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]]])).all()
 
     def test_dataset_getitem(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -4388,30 +4388,33 @@ def test_map_cases(return_lazy_dict):
     def f(x):
         """May return a mix of LazyDict and regular Dict, but using an extension type"""
         if x["a"][0][0] < 2:
-            x["a"] = [[-1]]
+            x["a"] = np.array([[-1]], dtype="int32")
             return dict(x) if return_lazy_dict is False else x
         else:
             return x if return_lazy_dict is True else {}
 
     features = Features({"a": Array2D(shape=(1, 1), dtype="int32")})
-    ds = Dataset.from_dict({"a": [[[i]] for i in [0, 1, 2, 3]]}, features=features)
+    # If not passing array we get exceptions that are not easy to understand - not sure if there could be some type-checking needed somewhere?
+    ds = Dataset.from_dict({"a": [np.array([[i]], dtype="int32") for i in [0, 1, 2, 3]]}, features=features)
     ds = ds.map(f)
     outputs = ds[:]
-    assert outputs == {"a": [[[i]] for i in [-1, -1, 2, 3]]}
+    assert outputs == {"a": [np.array([[i]], dtype="int32") for i in [-1, -1, 2, 3]]}
 
     def f(x):
         """May return a mix of LazyDict and regular Dict, but using a nested extension type"""
         if x["a"]["nested"][0][0] < 2:
-            x["a"] = {"nested": [[-1]]}
+            x["a"] = {"nested": np.array([[-1]], dtype="int64")}
             return dict(x) if return_lazy_dict is False else x
         else:
             return x if return_lazy_dict is True else {}
 
     features = Features({"a": {"nested": Array2D(shape=(1, 1), dtype="int64")}})
-    ds = Dataset.from_dict({"a": [{"nested": [[i]]} for i in [0, 1, 2, 3]]}, features=features)
+    ds = Dataset.from_dict(
+        {"a": [{"nested": np.array([[i]], dtype="int64")} for i in [0, 1, 2, 3]]}, features=features
+    )
     ds = ds.map(f)
     outputs = ds[:]
-    assert outputs == {"a": [{"nested": [[i]]} for i in [-1, -1, 2, 3]]}
+    assert outputs == {"a": [{"nested": np.array([[i]], dtype="int64")} for i in [-1, -1, 2, 3]]}
 
 
 def test_dataset_getitem_raises():

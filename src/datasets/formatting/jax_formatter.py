@@ -38,8 +38,8 @@ DEVICE_MAPPING: Optional[dict] = None
 
 
 class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
-    def __init__(self, features=None, device=None, **jnp_array_kwargs):
-        super().__init__(features=features)
+    def __init__(self, features=None, device=None, token_per_repo_id=None, **jnp_array_kwargs):
+        super().__init__(features=features, token_per_repo_id=token_per_repo_id)
         import jax
         from jaxlib.xla_client import Device
 

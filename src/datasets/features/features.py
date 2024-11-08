@@ -549,6 +549,33 @@ class _ArrayXD:
 
 
 @dataclass
+class Array1D(_ArrayXD):
+    """Create a one-dimensional array.
+
+    Unlike Sequence, will be extracted as a numpy array irrespective of formatting.
+
+    Args:
+        shape (`tuple`):
+            Size of each dimension.
+        dtype (`str`):
+            Name of the data type.
+
+    Example:
+
+    ```py
+    >>> from datasets import Features
+    >>> features = Features({'x': Array1D(shape=(3,), dtype='int32')})
+    ```
+    """
+
+    shape: tuple
+    dtype: str
+    id: Optional[str] = None
+    # Automatically constructed
+    _type: str = field(default="Array1D", init=False, repr=False)
+
+
+@dataclass
 class Array2D(_ArrayXD):
     """Create a two-dimensional array.
 
@@ -652,8 +679,8 @@ class _ArrayXDExtensionType(pa.ExtensionType):
     ndims: Optional[int] = None
 
     def __init__(self, shape: tuple, dtype: str):
-        if self.ndims is None or self.ndims <= 1:
-            raise ValueError("You must instantiate an array type with a value for dim that is > 1")
+        if self.ndims is None:
+            raise ValueError("You must instantiate an array type with a value for dim that is >= 1")
         if len(shape) != self.ndims:
             raise ValueError(f"shape={shape} and ndims={self.ndims} don't match")
         for dim in range(1, self.ndims):
@@ -694,6 +721,10 @@ class _ArrayXDExtensionType(pa.ExtensionType):
         return PandasArrayExtensionDtype(self.value_type)
 
 
+class Array1DExtensionType(_ArrayXDExtensionType):
+    ndims = 1
+
+
 class Array2DExtensionType(_ArrayXDExtensionType):
     ndims = 2
 
@@ -711,6 +742,7 @@ class Array5DExtensionType(_ArrayXDExtensionType):
 
 
 # Register the extension types for deserialization
+pa.register_extension_type(Array1DExtensionType((1,), "int64"))
 pa.register_extension_type(Array2DExtensionType((1, 2), "int64"))
 pa.register_extension_type(Array3DExtensionType((1, 2, 3), "int64"))
 pa.register_extension_type(Array4DExtensionType((1, 2, 3, 4), "int64"))
@@ -794,10 +826,7 @@ class ArrayExtensionArray(pa.ExtensionArray):
     def to_pylist(self):
         zero_copy_only = _is_zero_copy_only(self.storage.type, unnest=True)
         numpy_arr = self.to_numpy(zero_copy_only=zero_copy_only)
-        if self.type.shape[0] is None and numpy_arr.dtype == object:
-            return [arr.tolist() for arr in numpy_arr.tolist()]
-        else:
-            return numpy_arr.tolist()
+        return list(numpy_arr)
 
 
 class PandasArrayExtensionDtype(PandasExtensionDtype):
@@ -1199,6 +1228,7 @@ FeatureType = Union[
     TranslationVariableLanguages,
     LargeList,
     Sequence,
+    Array1D,
     Array2D,
     Array3D,
     Array4D,
@@ -1415,6 +1445,7 @@ _FEATURE_TYPES: Dict[str, FeatureType] = {
     TranslationVariableLanguages.__name__: TranslationVariableLanguages,
     LargeList.__name__: LargeList,
     Sequence.__name__: Sequence,
+    Array1D.__name__: Array1D,
     Array2D.__name__: Array2D,
     Array3D.__name__: Array3D,
     Array4D.__name__: Array4D,
@@ -1499,8 +1530,11 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
         feature = generate_from_arrow_type(pa_type.value_type)
         return LargeList(feature=feature)
     elif isinstance(pa_type, _ArrayXDExtensionType):
-        array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
-        return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
+        if pa_type.ndims >= 1:
+            array_feature = [Array1D, Array2D, Array3D, Array4D, Array5D][pa_type.ndims - 1]
+            return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
+        else:
+            raise ValueError("Cannot convert 0-dimensional array to Array Feature type.")
     elif isinstance(pa_type, pa.DataType):
         return Value(dtype=_arrow_to_datasets_dtype(pa_type))
     else:
@@ -1589,6 +1623,61 @@ def to_pyarrow_listarray(data: Any, pa_type: _ArrayXDExtensionType) -> pa.Array:
         return any_np_array_to_pyarrow_listarray(data, type=pa_type.value_type)
     else:
         return pa.array(data, pa_type.storage_dtype)
+
+
+def list_of_dicts_to_pyarrow_structarray(data: List[Dict[str, Any]], struct_type: pa.StructType) -> pa.StructArray:
+    """Convert a list of dictionaries to a pyarrow StructArray.
+
+    First builds a dict of lists, then converts each list to a pyarrow array,
+    then creates a StructArray from the arrays.
+    """
+    if not data:
+        raise ValueError("Input data must be a non-empty list of dictionaries.")
+
+    # Get field names from struct type if available, otherwise from first non-null dict
+    if struct_type is not None:
+        field_names = [field.name for field in struct_type]
+    else:
+        first_dict = next((d for d in data if d is not None), None)
+        if first_dict is None:
+            raise ValueError("All dictionaries in input data are None")
+        field_names = list(first_dict.keys())
+
+    # Initialize empty lists for each field
+    field_arrays = {name: [] for name in field_names}
+
+    null_mask = []
+    for row in data:
+        if row is None:
+            null_mask.append(True)
+            for key in field_arrays.keys():
+                field_arrays[key].append(None)
+        else:
+            null_mask.append(False)
+            for key in field_arrays.keys():
+                value = row.get(key, None)
+                field_arrays[key].append(value)
+
+    # TODO: do these need to be ordered?
+    pa_fields = []
+    for key, values in field_arrays.items():
+        if struct_type is not None:
+            index = struct_type.get_field_index(key)
+            field_type = struct_type[index].type
+        else:
+            field_type = None
+        # TODO: should field_type None be handled better?
+        pa_field = (
+            to_pyarrow_listarray(values, field_type)
+            if contains_any_np_array(values) and field_type is not None
+            else pa.array(values)
+        )
+        pa_fields.append((key, pa_field))
+
+    field_names, field_arrays = zip(*pa_fields)
+    null_mask_array = pa.array(null_mask, type=pa.bool_())
+
+    return pa.StructArray.from_arrays(field_arrays, field_names, mask=null_mask_array)
 
 
 def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureType]]) -> FeatureType:
@@ -1720,7 +1809,7 @@ class Features(dict):
 
           </Tip>
 
-        - [`Array2D`], [`Array3D`], [`Array4D`] or [`Array5D`] feature for multidimensional arrays.
+        - [`Array1D`], [`Array2D`], [`Array3D`], [`Array4D`] or [`Array5D`] feature for multidimensional arrays.
         - [`Audio`] feature to store the absolute path to an audio file or a dictionary with the relative path
           to an audio file ("path" key) and its bytes content ("bytes" key). This feature extracts the audio data.
         - [`Image`] feature to store the absolute path to an image file, an `np.ndarray` object, a `PIL.Image.Image` object
