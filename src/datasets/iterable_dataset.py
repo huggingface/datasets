@@ -2547,7 +2547,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=ex_iterable,
             info=info,
             split=self._split,
-            formatting=None,  # formatting is applied in mapped ex_iterable; no need to re-apply it in IterableDataset
+            formatting=self._formatting,
             shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
@@ -2610,7 +2610,7 @@ class IterableDataset(DatasetInfoMixin):
         if self._info.features or self._formatting:
             ex_iterable = FormattedExamplesIterable(
                 ex_iterable,
-                formatting=copy.deepcopy(self._formatting),
+                formatting=self._formatting,
                 features=None if ex_iterable.is_typed else self._info.features,
                 token_per_repo_id=self._token_per_repo_id,
             )
@@ -2623,7 +2623,7 @@ class IterableDataset(DatasetInfoMixin):
             batched=batched,
             batch_size=batch_size,
             fn_kwargs=fn_kwargs,
-            formatting=copy.deepcopy(self._formatting),  # required by iter_arrow
+            formatting=self._formatting,
         )
         return IterableDataset(
             ex_iterable=ex_iterable,
