@@ -137,6 +137,8 @@ class Exr:
                     array = exload(bytes_)  # exload can handle file-like objects
         else:
             try:
+                bt = BytesIO(bytes_)
+                #print (len(bt.getvalue()))
                 array = exload(BytesIO(bytes_))  # exload can handle file-like objects
             except Exception as e:
                 print (f"Warning, cannot read exr file because of {e}")
