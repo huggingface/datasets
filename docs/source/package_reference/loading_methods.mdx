@@ -4,8 +4,6 @@ Methods for listing and loading datasets:
 
 ## Datasets
 
-[[autodoc]] datasets.list_datasets
-
 [[autodoc]] datasets.load_dataset
 
 [[autodoc]] datasets.load_from_disk
@@ -17,8 +15,6 @@ Methods for listing and loading datasets:
 [[autodoc]] datasets.get_dataset_infos
 
 [[autodoc]] datasets.get_dataset_split_names
-
-[[autodoc]] datasets.inspect_dataset
 
 ## From files
 
@@ -53,6 +49,12 @@ load_dataset("csv", data_dir="path/to/data/dir", sep="\t")
 
 [[autodoc]] datasets.packaged_modules.json.Json
 
+### XML
+
+[[autodoc]] datasets.packaged_modules.xml.XmlConfig
+
+[[autodoc]] datasets.packaged_modules.xml.Xml
+
 ### Parquet
 
 [[autodoc]] datasets.packaged_modules.parquet.ParquetConfig
@@ -82,6 +84,12 @@ load_dataset("csv", data_dir="path/to/data/dir", sep="\t")
 [[autodoc]] datasets.packaged_modules.audiofolder.AudioFolderConfig
 
 [[autodoc]] datasets.packaged_modules.audiofolder.AudioFolder
+
+### Videos
+
+[[autodoc]] datasets.packaged_modules.videofolder.VideoFolderConfig
+
+[[autodoc]] datasets.packaged_modules.videofolder.VideoFolder
 
 ### WebDataset
 

@@ -2,7 +2,7 @@
 
 There are two methods for creating and sharing an image dataset. This guide will show you how to:
 
-* Create an audio dataset from local files in python with [`Dataset.push_to_hub`]. This is an easy way that requires only a few steps in python.
+* Create an image dataset from local files in python with [`Dataset.push_to_hub`]. This is an easy way that requires only a few steps in python.
 
 * Create an image dataset with `ImageFolder` and some metadata. This is a no-code solution for quickly creating an image dataset with several thousand images.
 
@@ -345,7 +345,7 @@ def _info(self):
         homepage=_HOMEPAGE,
         citation=_CITATION,
         license=_LICENSE,
-        task_templates=[ImageClassification(image_column="image", label_column="label")],
+
     )
 ```
 

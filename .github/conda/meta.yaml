@@ -15,7 +15,7 @@ requirements:
     - python
     - pip
     - numpy >=1.17
-    - pyarrow >=8.0.0
+    - pyarrow >=15.0.0
     - python-xxhash
     - dill
     - pandas
@@ -24,15 +24,14 @@ requirements:
     - dataclasses
     - multiprocess
     - fsspec
-    - huggingface_hub >=0.21.2,<1.0.0
+    - huggingface_hub >=0.23.0,<1.0.0
     - packaging
     - aiohttp
   run:
     - python
     - pip
     - numpy >=1.17
-    - pyarrow >=8.0.0
-    - pyarrow-hotfix
+    - pyarrow >=15.0.0
     - python-xxhash
     - dill
     - pandas
@@ -41,7 +40,7 @@ requirements:
     - dataclasses
     - multiprocess
     - fsspec
-    - huggingface_hub >=0.21.2,<1.0.0
+    - huggingface_hub >=0.23.0,<1.0.0
     - packaging
     - aiohttp
 

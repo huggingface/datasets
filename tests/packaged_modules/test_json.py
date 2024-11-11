@@ -24,6 +24,22 @@ def jsonl_file(tmp_path):
     return str(filename)
 
 
+# ndjson format is no longer maintained (see: https://github.com/ndjson/ndjson-spec/issues/35#issuecomment-1285673417)
+@pytest.fixture
+def ndjson_file(tmp_path):
+    filename = tmp_path / "file.ndjson"
+    data = textwrap.dedent(
+        """\
+        {"col_1": -1}
+        {"col_1": 1, "col_2": 2}
+        {"col_1": 10, "col_2": 20}
+        """
+    )
+    with open(filename, "w") as f:
+        f.write(data)
+    return str(filename)
+
+
 @pytest.fixture
 def jsonl_file_utf16_encoded(tmp_path):
     filename = tmp_path / "file_utf16_encoded.jsonl"
@@ -188,6 +204,7 @@ def test_config_raises_when_invalid_data_files(data_files) -> None:
     "file_fixture, config_kwargs",
     [
         ("jsonl_file", {}),
+        ("ndjson_file", {}),
         ("jsonl_file_utf16_encoded", {"encoding": "utf-16"}),
         ("json_file_with_list_of_dicts", {}),
         ("json_file_with_list_of_dicts_field", {"field": "field3"}),

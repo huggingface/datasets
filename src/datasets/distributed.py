@@ -18,7 +18,7 @@ def split_dataset_by_node(dataset: DatasetType, rank: int, world_size: int) -> D
 
     For iterable datasets:
 
-    If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.n_shards % world_size == 0`),
+    If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.num_shards % world_size == 0`),
     then the shards are evenly assigned across the nodes, which is the most optimized.
     Otherwise, each node keeps 1 example out of `world_size`, skipping the other examples.
 

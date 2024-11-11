@@ -5,7 +5,6 @@ import json
 import math
 import posixpath
 import re
-import warnings
 from io import BytesIO
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
@@ -31,9 +30,7 @@ from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
 from .splits import NamedSplit, Split, SplitDict, SplitInfo
 from .table import Table
-from .tasks import TaskTemplate
 from .utils import logging
-from .utils.deprecation_utils import deprecated
 from .utils.doc_utils import is_documented_by
 from .utils.metadata import MetadataConfigs
 from .utils.py_utils import asdict, glob_pattern_to_regex, string_to_dict
@@ -696,12 +693,32 @@ class DatasetDict(dict):
          'format_kwargs': {},
          'output_all_columns': False,
          'type': None}
-        >>> ds = ds.with_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
+        >>> ds = ds.with_format("torch")
         >>> ds["train"].format
-        {'columns': ['input_ids', 'token_type_ids', 'attention_mask', 'label'],
+        {'columns': ['text', 'label', 'input_ids', 'token_type_ids', 'attention_mask'],
          'format_kwargs': {},
          'output_all_columns': False,
-         'type': 'tensorflow'}
+         'type': 'torch'}
+        >>> ds["train"][0]
+        {'text': 'compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children .',
+         'label': tensor(1),
+         'input_ids': tensor([  101, 18027, 16310, 16001,  1103,  9321,   178, 11604,  7235,  6617,
+                1742,  2165,  2820,  1206,  6588, 22572, 12937,  1811,  2153,  1105,
+                1147, 12890, 19587,  6463,  1105, 15026,  1482,   119,   102,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0]),
+         'token_type_ids': tensor([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+         'attention_mask': tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])}
         ```
         """
         dataset = copy.deepcopy(self)
@@ -1056,7 +1073,6 @@ class DatasetDict(dict):
         self,
         column_names: Union[str, Sequence[str]],
         reverse: Union[bool, Sequence[bool]] = False,
-        kind="deprecated",
         null_placement: str = "at_end",
         keep_in_memory: bool = False,
         load_from_cache_file: Optional[bool] = None,
@@ -1072,15 +1088,6 @@ class DatasetDict(dict):
                 If `True`, sort by descending order rather than ascending. If a single bool is provided,
                 the value is applied to the sorting of all column names. Otherwise a list of bools with the
                 same length and order as column_names must be provided.
-            kind (`str`, *optional*):
-                Pandas algorithm for sorting selected in `{quicksort, mergesort, heapsort, stable}`,
-                The default is `quicksort`. Note that both `stable` and `mergesort` use timsort under the covers and, in general,
-                the actual implementation will vary with data type. The `mergesort` option is retained for backwards compatibility.
-                <Deprecated version="2.8.0">
-
-                `kind` was deprecated in version 2.10.0 and will be removed in 3.0.0.
-
-                </Deprecated>
             null_placement (`str`, defaults to `at_end`):
                 Put `None` values at the beginning if `at_start` or `first` or at the end if `at_end` or `last`
             keep_in_memory (`bool`, defaults to `False`):
@@ -1119,7 +1126,6 @@ class DatasetDict(dict):
                 k: dataset.sort(
                     column_names=column_names,
                     reverse=reverse,
-                    kind=kind,
                     null_placement=null_placement,
                     keep_in_memory=keep_in_memory,
                     load_from_cache_file=load_from_cache_file,
@@ -1216,7 +1222,6 @@ class DatasetDict(dict):
     def save_to_disk(
         self,
         dataset_dict_path: PathLike,
-        fs="deprecated",
         max_shard_size: Optional[Union[str, int]] = None,
         num_shards: Optional[Dict[str, int]] = None,
         num_proc: Optional[int] = None,
@@ -1225,25 +1230,15 @@ class DatasetDict(dict):
         """
         Saves a dataset dict to a filesystem using `fsspec.spec.AbstractFileSystem`.
 
-        For [`Image`] and [`Audio`] data:
+        For [`Image`], [`Audio`] and [`Video`] data:
 
-        All the Image() and Audio() data are stored in the arrow files.
+        All the Image(), Audio() and Video() data are stored in the arrow files.
         If you want to store paths or urls, please use the Value("string") type.
 
         Args:
             dataset_dict_path (`path-like`):
                 Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset dict directory where the dataset dict will be saved to.
-            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
-                Instance of the remote filesystem where the dataset will be saved to.
-
-                <Deprecated version="2.8.0">
-
-                `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
-                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
-
-                </Deprecated>
-
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"50MB"`).
@@ -1271,14 +1266,6 @@ class DatasetDict(dict):
         >>> dataset_dict.save_to_disk("path/to/dataset/directory", num_shards={"train": 1024, "test": 8})
         ```
         """
-        if fs != "deprecated":
-            warnings.warn(
-                "'fs' was deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
-                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
-                FutureWarning,
-            )
-            storage_options = fs.storage_options
-
         fs: fsspec.AbstractFileSystem
         fs, _ = url_to_fs(dataset_dict_path, **(storage_options or {}))
 
@@ -1305,7 +1292,6 @@ class DatasetDict(dict):
     @staticmethod
     def load_from_disk(
         dataset_dict_path: PathLike,
-        fs="deprecated",
         keep_in_memory: Optional[bool] = None,
         storage_options: Optional[dict] = None,
     ) -> "DatasetDict":
@@ -1316,16 +1302,6 @@ class DatasetDict(dict):
             dataset_dict_path (`path-like`):
                 Path (e.g. `"dataset/train"`) or remote URI (e.g. `"s3//my-bucket/dataset/train"`)
                 of the dataset dict directory where the dataset dict will be loaded from.
-            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
-                Instance of the remote filesystem where the dataset will be saved to.
-
-                <Deprecated version="2.8.0">
-
-                `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
-                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
-
-                </Deprecated>
-
             keep_in_memory (`bool`, defaults to `None`):
                 Whether to copy the dataset in-memory. If `None`, the
                 dataset will not be copied in-memory unless explicitly enabled by setting
@@ -1345,14 +1321,6 @@ class DatasetDict(dict):
         >>> ds = load_from_disk('path/to/dataset/directory')
         ```
         """
-        if fs != "deprecated":
-            warnings.warn(
-                "'fs' was deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
-                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
-                FutureWarning,
-            )
-            storage_options = fs.storage_options
-
         fs: fsspec.AbstractFileSystem
         fs, dataset_dict_path = url_to_fs(dataset_dict_path, **(storage_options or {}))
 
@@ -1545,12 +1513,6 @@ class DatasetDict(dict):
             path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         ).read()
 
-    @deprecated()
-    @is_documented_by(Dataset.prepare_for_task)
-    def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "DatasetDict":
-        self._check_values_type()
-        return DatasetDict({k: dataset.prepare_for_task(task=task, id=id) for k, dataset in self.items()})
-
     @is_documented_by(Dataset.align_labels_with_mapping)
     def align_labels_with_mapping(self, label2id: Dict, label_column: str) -> "DatasetDict":
         self._check_values_type()
@@ -1572,7 +1534,6 @@ class DatasetDict(dict):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         revision: Optional[str] = None,
-        branch="deprecated",
         create_pr: Optional[bool] = False,
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[Dict[str, int]] = None,
@@ -1620,15 +1581,6 @@ class DatasetDict(dict):
                 Branch to push the uploaded files to. Defaults to the `"main"` branch.
 
                 <Added version="2.15.0"/>
-            branch (`str`, *optional*):
-                The git branch on which to push the dataset. This defaults to the default branch as specified
-                in your repository, which defaults to `"main"`.
-
-                <Deprecated version="2.15.0">
-
-                `branch` was deprecated in favor of `revision` in version 2.15.0 and will be removed in 3.0.0.
-
-                </Deprecated>
             create_pr (`bool`, *optional*, defaults to `False`):
                 Whether to create a PR with the uploaded files or directly commit.
 
@@ -1669,21 +1621,12 @@ class DatasetDict(dict):
         >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
         ```
         """
-
         if num_shards is None:
             num_shards = {k: None for k in self}
         elif not isinstance(num_shards, dict):
             raise ValueError(
                 "Please provide one `num_shards` per dataset in the dataset dictionary, e.g. {{'train': 128, 'test': 4}}"
             )
-
-        if branch != "deprecated":
-            warnings.warn(
-                "'branch' was deprecated in favor of 'revision' in version 2.15.0 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'revision={branch}' instead.",
-                FutureWarning,
-            )
-            revision = branch
 
         self._check_values_type()
         self._check_values_features()
@@ -1878,25 +1821,43 @@ class IterableDatasetDict(dict):
     ) -> "IterableDatasetDict":
         """
         Return a dataset with the specified format.
-        This method only supports the "torch" format for now.
-        The format is set to all the datasets of the dataset dictionary.
+        The 'pandas' format is currently not implemented.
 
         Args:
-            type (`str`, *optional*, defaults to `None`):
-                If set to "torch", the returned dataset
-                will be a subclass of `torch.utils.data.IterableDataset` to be used in a `DataLoader`.
+
+            type (`str`, *optional*):
+                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'arrow', 'jax']`.
+                `None` means it returns python objects (default).
 
         Example:
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
         >>> from transformers import AutoTokenizer
-        >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-        >>> def encode(example):
-        ...     return tokenizer(examples["text"], truncation=True, padding="max_length")
-        >>> ds = ds.map(encode, batched=True, remove_columns=["text"])
+        >>> ds = load_dataset("rotten_tomatoes", split="validation", streaming=True)
+        >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+        >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
         >>> ds = ds.with_format("torch")
+        >>> next(iter(ds))
+        {'text': 'compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children .',
+         'label': tensor(1),
+         'input_ids': tensor([  101, 18027, 16310, 16001,  1103,  9321,   178, 11604,  7235,  6617,
+                1742,  2165,  2820,  1206,  6588, 22572, 12937,  1811,  2153,  1105,
+                1147, 12890, 19587,  6463,  1105, 15026,  1482,   119,   102,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0]),
+         'token_type_ids': tensor([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+         'attention_mask': tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])}
         ```
         """
         return IterableDatasetDict({k: dataset.with_format(type=type) for k, dataset in self.items()})

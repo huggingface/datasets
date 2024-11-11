@@ -97,7 +97,6 @@ The base class [`Dataset`] implements a Dataset backed by an Apache Arrow table.
     - from_parquet
     - from_text
     - from_sql
-    - prepare_for_task
     - align_labels_with_mapping
 
 [[autodoc]] datasets.concatenate_datasets
@@ -150,7 +149,6 @@ It also has dataset transform methods like map or filter, to process all the spl
     - from_json
     - from_parquet
     - from_text
-    - prepare_for_task
 
 <a id='package_reference_features'></a>
 
@@ -173,6 +171,7 @@ The base class [`IterableDataset`] implements an iterable Dataset backed by pyth
     - batch
     - skip
     - take
+    - shard
     - load_state_dict
     - state_dict
     - info
@@ -211,17 +210,25 @@ Dictionary with split names as keys ('train', 'test' for example), and `Iterable
 
 [[autodoc]] datasets.Features
 
+### Scalar
+
 [[autodoc]] datasets.Value
 
 [[autodoc]] datasets.ClassLabel
+
+### Composite
 
 [[autodoc]] datasets.LargeList
 
 [[autodoc]] datasets.Sequence
 
+### Translation
+
 [[autodoc]] datasets.Translation
 
 [[autodoc]] datasets.TranslationVariableLanguages
+
+### Arrays
 
 [[autodoc]] datasets.Array2D
 
@@ -231,16 +238,19 @@ Dictionary with split names as keys ('train', 'test' for example), and `Iterable
 
 [[autodoc]] datasets.Array5D
 
+### Audio
+
 [[autodoc]] datasets.Audio
+
+### Image
 
 [[autodoc]] datasets.Image
 
+### Video
+
+[[autodoc]] datasets.Video
+
 ## Filesystems
-
-
-[[autodoc]] datasets.filesystems.S3FileSystem
-
-[[autodoc]] datasets.filesystems.extract_path_from_uri
 
 [[autodoc]] datasets.filesystems.is_remote_filesystem
 

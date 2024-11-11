@@ -7,6 +7,7 @@ from typing import Optional
 import pytest
 import requests
 from huggingface_hub.hf_api import HfApi, RepositoryNotFoundError
+from huggingface_hub.utils import hf_raise_for_status
 
 
 CI_HUB_USER = "__DUMMY_TRANSFORMERS_USER__"
@@ -32,7 +33,9 @@ def ci_hub_config(monkeypatch):
 
 
 @pytest.fixture
-def set_ci_hub_access_token(ci_hub_config):
+def set_ci_hub_access_token(ci_hub_config, monkeypatch):
+    # Enable implicit token
+    monkeypatch.setattr("huggingface_hub.constants.HF_HUB_DISABLE_IMPLICIT_TOKEN", False)
     old_environ = dict(os.environ)
     os.environ["HF_TOKEN"] = CI_HUB_USER_TOKEN
     yield
@@ -72,6 +75,38 @@ def temporary_repo(cleanup_repo):
                 pass
 
     return _temporary_repo
+
+
+@pytest.fixture(scope="session")
+def _hf_gated_dataset_repo_txt_data(hf_api: HfApi, hf_token, text_file_content):
+    repo_name = f"repo_txt_data-{int(time.time() * 10e6)}"
+    repo_id = f"{CI_HUB_USER}/{repo_name}"
+    hf_api.create_repo(repo_id, token=hf_token, repo_type="dataset")
+    hf_api.upload_file(
+        token=hf_token,
+        path_or_fileobj=text_file_content.encode(),
+        path_in_repo="data/text_data.txt",
+        repo_id=repo_id,
+        repo_type="dataset",
+    )
+    path = f"{hf_api.endpoint}/api/datasets/{repo_id}/settings"
+    repo_settings = {"gated": "auto"}
+    r = requests.put(
+        path,
+        headers={"authorization": f"Bearer {hf_token}"},
+        json=repo_settings,
+    )
+    hf_raise_for_status(r)
+    yield repo_id
+    try:
+        hf_api.delete_repo(repo_id, token=hf_token, repo_type="dataset")
+    except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
+        pass
+
+
+@pytest.fixture()
+def hf_gated_dataset_repo_txt_data(_hf_gated_dataset_repo_txt_data, ci_hub_config, ci_hfh_hf_hub_url):
+    return _hf_gated_dataset_repo_txt_data
 
 
 @pytest.fixture(scope="session")

@@ -2000,10 +2000,12 @@ def cast_array_to_feature(
             sequence_kwargs = vars(feature).copy()
             feature = sequence_kwargs.pop("feature")
             feature = {name: Sequence(subfeature, **sequence_kwargs) for name, subfeature in feature.items()}
-        if isinstance(feature, dict) and {field.name for field in array.type} == set(feature):
-            if array.type.num_fields == 0:
-                return array
-            arrays = [_c(array.field(name), subfeature) for name, subfeature in feature.items()]
+        if isinstance(feature, dict) and (array_fields := {field.name for field in array.type}) <= set(feature):
+            null_array = pa.array([None] * len(array))
+            arrays = [
+                _c(array.field(name) if name in array_fields else null_array, subfeature)
+                for name, subfeature in feature.items()
+            ]
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
     elif pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
         # feature must be either [subfeature] or LargeList(subfeature) or Sequence(subfeature)
@@ -2017,7 +2019,7 @@ def cast_array_to_feature(
                 array_offsets = _combine_list_array_offsets_with_mask(array)
                 return pa.ListArray.from_arrays(array_offsets, casted_array_values)
         elif isinstance(feature, LargeList):
-            casted_array_values = _c(array.values, feature.dtype)
+            casted_array_values = _c(array.values, feature.feature)
             if pa.types.is_large_list(array.type) and casted_array_values.type == array.values.type:
                 # Both array and feature have equal large_list type and values (within the list) type
                 return array
@@ -2075,7 +2077,9 @@ def cast_array_to_feature(
             return pa.ListArray.from_arrays(array_offsets, _c(array.values, feature[0]), mask=array.is_null())
         elif isinstance(feature, LargeList):
             array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
-            return pa.LargeListArray.from_arrays(array_offsets, _c(array.values, feature.dtype), mask=array.is_null())
+            return pa.LargeListArray.from_arrays(
+                array_offsets, _c(array.values, feature.feature), mask=array.is_null()
+            )
         elif isinstance(feature, Sequence):
             if feature.length > -1:
                 if feature.length == array.type.list_size:
@@ -2155,7 +2159,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
         # feature must be LargeList(subfeature)
         # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
         array_offsets = _combine_list_array_offsets_with_mask(array)
-        return pa.LargeListArray.from_arrays(array_offsets, _e(array.values, feature.dtype))
+        return pa.LargeListArray.from_arrays(array_offsets, _e(array.values, feature.feature))
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be Sequence(subfeature)
         if isinstance(feature, Sequence) and feature.length > -1:
@@ -2231,13 +2235,20 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
     from .features import Features
 
     features = Features.from_arrow_schema(schema)
-    if sorted(table.column_names) != sorted(features):
+    table_column_names = set(table.column_names)
+    if not table_column_names <= set(schema.names):
         raise CastError(
             f"Couldn't cast\n{_short_str(table.schema)}\nto\n{_short_str(features)}\nbecause column names don't match",
             table_column_names=table.column_names,
             requested_column_names=list(features),
         )
-    arrays = [cast_array_to_feature(table[name], feature) for name, feature in features.items()]
+    arrays = [
+        cast_array_to_feature(
+            table[name] if name in table_column_names else pa.array([None] * len(table), type=schema.field(name).type),
+            feature,
+        )
+        for name, feature in features.items()
+    ]
     return pa.Table.from_arrays(arrays, schema=schema)
 
 

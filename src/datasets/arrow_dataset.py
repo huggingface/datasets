@@ -77,7 +77,7 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .data_files import sanitize_patterns
 from .download.streaming_download_manager import xgetsize
-from .features import Audio, ClassLabel, Features, Image, Sequence, Value
+from .features import Audio, ClassLabel, Features, Image, Sequence, Value, Video
 from .features.features import (
     FeatureType,
     _align_features,
@@ -118,10 +118,8 @@ from .table import (
     table_iter,
     table_visitor,
 )
-from .tasks import TaskTemplate
 from .utils import logging
 from .utils import tqdm as hf_tqdm
-from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.metadata import MetadataConfigs
@@ -132,7 +130,6 @@ from .utils.py_utils import (
     glob_pattern_to_regex,
     iflatmap_unordered,
     string_to_dict,
-    unique_values,
 )
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
@@ -224,10 +221,6 @@ class DatasetInfoMixin:
         return self._info.supervised_keys
 
     @property
-    def task_templates(self):
-        return self._info.task_templates
-
-    @property
     def version(self):
         return self._info.version
 
@@ -310,7 +303,7 @@ class TensorflowDatasetMixin:
                 tf_dtype = tf.float32
                 np_dtype = np.float32
             elif np_arrays[0].dtype.kind == "U":  # Unicode strings
-                np_dtype = np.unicode_
+                np_dtype = np.str_
                 tf_dtype = tf.string
             else:
                 raise RuntimeError(
@@ -585,36 +578,6 @@ def transmit_format(func):
         return out
 
     wrapper._decorator_name_ = "transmit_format"
-    return wrapper
-
-
-def transmit_tasks(func):
-    """Wrapper for dataset transforms that recreate a new Dataset to transmit the task templates of the original dataset to the new dataset"""
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if args:
-            self: "Dataset" = args[0]
-            args = args[1:]
-        else:
-            self: "Dataset" = kwargs.pop("self")
-        # apply actual function
-        out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
-        datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
-        for dataset in datasets:
-            # Remove task templates if a column mapping of the template is no longer valid
-            if self.info.task_templates is not None:
-                dataset.info.task_templates = [
-                    template
-                    for template in self.info.task_templates
-                    if all(
-                        dataset._info.features.get(k) == self._info.features.get(k)
-                        for k in template.column_mapping.keys()
-                    )
-                ]
-        return out
-
-    wrapper._decorator_name_ = "transmit_tasks"
     return wrapper
 
 
@@ -1445,7 +1408,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def save_to_disk(
         self,
         dataset_path: PathLike,
-        fs="deprecated",
         max_shard_size: Optional[Union[str, int]] = None,
         num_shards: Optional[int] = None,
         num_proc: Optional[int] = None,
@@ -1454,25 +1416,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         Saves a dataset to a dataset directory, or in a filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
 
-        For [`Image`] and [`Audio`] data:
+        For [`Image`], [`Audio`] and [`Video`] data:
 
-        All the Image() and Audio() data are stored in the arrow files.
+        All the Image(), Audio() and Video() data are stored in the arrow files.
         If you want to store paths or urls, please use the Value("string") type.
 
         Args:
             dataset_path (`path-like`):
                 Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset directory where the dataset will be saved to.
-            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
-                Instance of the remote filesystem where the dataset will be saved to.
-
-                <Deprecated version="2.8.0">
-
-                `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
-                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
-
-                </Deprecated>
-
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"50MB"`).
@@ -1502,14 +1454,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise ValueError(
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
             )
-        if fs != "deprecated":
-            warnings.warn(
-                "'fs' was deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
-                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
-                FutureWarning,
-            )
-            storage_options = fs.storage_options
-
         if self.list_indexes():
             raise ValueError("please remove all the indexes using `dataset.drop_index` before saving a dataset")
 
@@ -1661,7 +1605,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @staticmethod
     def load_from_disk(
         dataset_path: PathLike,
-        fs="deprecated",
         keep_in_memory: Optional[bool] = None,
         storage_options: Optional[dict] = None,
     ) -> "Dataset":
@@ -1673,16 +1616,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_path (`path-like`):
                 Path (e.g. `"dataset/train"`) or remote URI (e.g. `"s3//my-bucket/dataset/train"`)
                 of the dataset directory where the dataset will be loaded from.
-            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
-                Instance of the remote filesystem where the dataset will be saved to.
-
-                <Deprecated version="2.8.0">
-
-                `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
-                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
-
-                </Deprecated>
-
             keep_in_memory (`bool`, defaults to `None`):
                 Whether to copy the dataset in-memory. If `None`, the
                 dataset will not be copied in-memory unless explicitly enabled by setting
@@ -1704,14 +1637,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = load_from_disk("path/to/dataset/directory")
         ```
         """
-        if fs != "deprecated":
-            warnings.warn(
-                "'fs' was deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
-                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
-                FutureWarning,
-            )
-            storage_options = fs.storage_options
-
         fs: fsspec.AbstractFileSystem
         fs, dataset_path = url_to_fs(dataset_path, **(storage_options or {}))
 
@@ -2176,7 +2101,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features[column] = feature
             return self.cast(features)
 
-    @transmit_tasks
     @transmit_format
     @fingerprint_transform(inplace=False)
     def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
@@ -2232,7 +2156,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @transmit_tasks
     @fingerprint_transform(inplace=False)
     def rename_column(
         self, original_column_name: str, new_column_name: str, new_fingerprint: Optional[str] = None
@@ -2299,7 +2222,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @transmit_tasks
     @fingerprint_transform(inplace=False)
     def rename_columns(self, column_mapping: Dict[str, str], new_fingerprint: Optional[str] = None) -> "Dataset":
         """
@@ -2367,7 +2289,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @transmit_tasks
     @transmit_format
     @fingerprint_transform(inplace=False)
     def select_columns(self, column_names: Union[str, List[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
@@ -2728,12 +2649,32 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
          'format_kwargs': {},
          'output_all_columns': False,
          'type': None}
-        >>> ds = ds.with_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
+        >>> ds = ds.with_format("torch")
         >>> ds.format
-        {'columns': ['input_ids', 'token_type_ids', 'attention_mask', 'label'],
+        {'columns': ['text', 'label', 'input_ids', 'token_type_ids', 'attention_mask'],
          'format_kwargs': {},
          'output_all_columns': False,
-         'type': 'tensorflow'}
+         'type': 'torch'}
+        >>> ds[0]
+        {'text': 'compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children .',
+         'label': tensor(1),
+         'input_ids': tensor([  101, 18027, 16310, 16001,  1103,  9321,   178, 11604,  7235,  6617,
+                1742,  2165,  2820,  1206,  6588, 22572, 12937,  1811,  2153,  1105,
+                1147, 12890, 19587,  6463,  1105, 15026,  1482,   119,   102,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0]),
+         'token_type_ids': tensor([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+         'attention_mask': tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])}
         ```
         """
         dataset = copy.deepcopy(self)
@@ -2786,57 +2727,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         dataset = copy.deepcopy(self)
         dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
-        return dataset
-
-    @deprecated()
-    def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "Dataset":
-        """
-        Prepare a dataset for the given task by casting the dataset's [`Features`] to standardized column names and types as detailed in [`datasets.tasks`](./task_templates).
-
-        Casts [`datasets.DatasetInfo.features`] according to a task-specific schema. Intended for single-use only, so all task templates are removed from [`datasets.DatasetInfo.task_templates`] after casting.
-
-        Args:
-            task (`Union[str, TaskTemplate]`):
-                The task to prepare the dataset for during training and evaluation. If `str`, supported tasks include:
-
-                - `"text-classification"`
-                - `"question-answering"`
-
-                If [`TaskTemplate`], must be one of the task templates in [`datasets.tasks`](./task_templates).
-            id (`int`, defaults to `0`):
-                The id required to unambiguously identify the task template when multiple task templates of the same type are supported.
-        """
-        # TODO(lewtun): Add support for casting nested features like answers.text and answers.answer_start in SQuAD
-        if isinstance(task, str):
-            tasks = [template.task for template in (self.info.task_templates or [])]
-            compatible_templates = [template for template in (self.info.task_templates or []) if template.task == task]
-            if not compatible_templates:
-                raise ValueError(
-                    f"Task {task} is not compatible with this dataset! Available tasks: {list(unique_values(tasks))}"
-                )
-
-            if not 0 <= id < len(compatible_templates):
-                templates_list_str = "\n".join(
-                    f"- `{idx}` for task {template}" for idx, template in enumerate(compatible_templates)
-                )
-                raise ValueError(
-                    f"Id {id} for task {task} is not in a valid range. Supported ids:\n{templates_list_str}"
-                )
-            template = compatible_templates[id]
-        elif isinstance(task, TaskTemplate):
-            template = task
-        else:
-            raise ValueError(
-                f"Expected a `str` or `datasets.TaskTemplate` object but got task {task} with type {type(task)}."
-            )
-        template = template.align_with_features(self.info.features)
-        column_mapping = template.column_mapping
-        columns_to_drop = [column for column in self.column_names if column not in column_mapping]
-        dataset = self.remove_columns(columns_to_drop)
-        dataset = dataset.rename_columns(column_mapping)
-        # We found a template so now flush `DatasetInfo` to skip the template update in `DatasetInfo.__post_init__`
-        dataset.info.task_templates = None
-        dataset = dataset.cast(features=template.features)
         return dataset
 
     def _getitem(self, key: Union[int, slice, str, ListLike[int]], **kwargs) -> Union[Dict, List]:
@@ -2924,7 +2814,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cache_file_path = os.path.join(cache_directory, cache_file_name)
         return cache_file_path
 
-    @transmit_tasks
     @transmit_format
     def map(
         self,
@@ -3140,7 +3029,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if os.path.exists(shard_kwargs["cache_file_name"]) and load_from_cache_file:
                     info = shard.info.copy()
                     info.features = features
-                    info.task_templates = None
                     return Dataset.from_file(shard_kwargs["cache_file_name"], info=info, split=shard.split)
             raise NonExistentDatasetError
 
@@ -3375,7 +3263,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         def validate_function_output(processed_inputs, indices):
             """Validate output of the map function."""
-            if processed_inputs is not None and not isinstance(processed_inputs, (Mapping, pa.Table, pd.DataFrame)):
+            allowed_processed_inputs_types = (Mapping, pa.Table, pd.DataFrame)
+            if config.POLARS_AVAILABLE and "polars" in sys.modules:
+                import polars as pl
+
+                allowed_processed_inputs_types += (pl.DataFrame,)
+            if processed_inputs is not None and not isinstance(processed_inputs, allowed_processed_inputs_types):
                 raise TypeError(
                     f"Provided `function` which is applied to all elements of table returns a variable of type {type(processed_inputs)}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects."
                 )
@@ -3434,7 +3327,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 returned_lazy_dict = False
             if update_data is None:
                 # Check if the function returns updated examples
-                update_data = isinstance(processed_inputs, (Mapping, pa.Table, pd.DataFrame))
+                updatable_types = (Mapping, pa.Table, pd.DataFrame)
+                if config.POLARS_AVAILABLE and "polars" in sys.modules:
+                    import polars as pl
+
+                    updatable_types += (pl.DataFrame,)
+                update_data = isinstance(processed_inputs, updatable_types)
                 validate_function_output(processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
@@ -3489,7 +3387,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             else:
                 buf_writer = None
                 logger.info(f"Caching processed dataset at {cache_file_name}")
-                tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(cache_file_name), delete=False)
+                cache_dir = os.path.dirname(cache_file_name)
+                os.makedirs(cache_dir, exist_ok=True)
+                tmp_file = tempfile.NamedTemporaryFile("wb", dir=cache_dir, delete=False)
                 writer = ArrowWriter(
                     features=writer_features,
                     path=tmp_file.name,
@@ -3609,7 +3509,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # Create new Dataset from buffer or file
             info = shard.info.copy()
             info.features = writer._features
-            info.task_templates = None
             if buf_writer is None:
                 yield rank, True, Dataset.from_file(cache_file_name, info=info, split=shard.split)
             else:
@@ -4082,7 +3981,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             buf_writer = None
             logger.info(f"Caching indices mapping at {indices_cache_file_name}")
-            tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(indices_cache_file_name), delete=False)
+            cache_dir = os.path.dirname(indices_cache_file_name)
+            os.makedirs(cache_dir, exist_ok=True)
+            tmp_file = tempfile.NamedTemporaryFile("wb", dir=cache_dir, delete=False)
             writer = ArrowWriter(
                 path=tmp_file.name, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
             )
@@ -4188,7 +4089,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         column_names: Union[str, Sequence_[str]],
         reverse: Union[bool, Sequence_[bool]] = False,
-        kind="deprecated",
         null_placement: str = "at_end",
         keep_in_memory: bool = False,
         load_from_cache_file: Optional[bool] = None,
@@ -4205,15 +4105,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If `True`, sort by descending order rather than ascending. If a single bool is provided,
                 the value is applied to the sorting of all column names. Otherwise a list of bools with the
                 same length and order as column_names must be provided.
-            kind (`str`, *optional*):
-                Pandas algorithm for sorting selected in `{quicksort, mergesort, heapsort, stable}`,
-                The default is `quicksort`. Note that both `stable` and `mergesort` use `timsort` under the covers and, in general,
-                the actual implementation will vary with data type. The `mergesort` option is retained for backwards compatibility.
-                <Deprecated version="2.8.0">
-
-                `kind` was deprecated in version 2.10.0 and will be removed in 3.0.0.
-
-                </Deprecated>
             null_placement (`str`, defaults to `at_end`):
                 Put `None` values at the beginning if `at_start` or `first` or at the end if `at_end` or `last`
 
@@ -4255,13 +4146,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # If the array is empty we do nothing
         if len(self) == 0:
             return self
-
-        # Deprecation warning
-        if kind != "deprecated":
-            warnings.warn(
-                "'kind' was deprecated in version 2.10.0 and will be removed in 3.0.0.",
-                category=FutureWarning,
-            )
 
         # Check proper format of and for duplicates in column_names
         if isinstance(column_names, str):
@@ -4746,32 +4630,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         num_shards: int,
         index: int,
-        contiguous: bool = False,
+        contiguous: bool = True,
         keep_in_memory: bool = False,
         indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
     ) -> "Dataset":
         """Return the `index`-nth shard from dataset split into `num_shards` pieces.
 
-        This shards deterministically. `dset.shard(n, i)` will contain all elements of dset whose
-        index mod `n = i`.
+        This shards deterministically. `dataset.shard(n, i)` splits the dataset into contiguous chunks,
+        so it can be easily concatenated back together after processing. If `len(dataset) % n == l`, then the
+        first `l` dataset each have length `(len(dataset) // n) + 1`, and the remaining dataset have length `(len(dataset) // n)`.
+        `datasets.concatenate_datasets([dset.shard(n, i) for i in range(n)])` returns a dataset with the same order as the original.
 
-        `dset.shard(n, i, contiguous=True)` will instead split dset into contiguous chunks,
-        so it can be easily concatenated back together after processing. If `n % i == l`, then the
-        first `l` shards will have length `(n // i) + 1`, and the remaining shards will have length `(n // i)`.
-        `datasets.concatenate([dset.shard(n, i, contiguous=True) for i in range(n)])` will return
-        a dataset with the same order as the original.
+        Note: n should be less or equal to the number of elements in the dataset `len(dataset)`.
+
+        On the other hand, `dataset.shard(n, i, contiguous=False)` contains all elements of the dataset whose index mod `n = i`.
 
         Be sure to shard before using any randomizing operator (such as `shuffle`).
         It is best if the shard operator is used early in the dataset pipeline.
-
 
         Args:
             num_shards (`int`):
                 How many shards to split the dataset into.
             index (`int`):
                 Which shard to select and return.
-            contiguous: (`bool`, defaults to `False`):
+            contiguous: (`bool`, defaults to `True`):
                 Whether to select contiguous blocks of indices for shards.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
@@ -4779,7 +4662,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Provide the name of a path for the cache file. It is used to store the
                 indices of each shard instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`):
-                Number of rows per write operation for the cache file writer.
+                This only concerns the indices mapping.
+                Number of indices per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
 
@@ -4818,96 +4702,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             writer_batch_size=writer_batch_size,
         )
 
-    @deprecated()
-    def export(
-        self,
-        filename: str,
-        format: str = "tfrecord",
-    ):
-        """Writes the Arrow dataset to a TFRecord file.
-
-        The dataset must already be in tensorflow format. The records will be written with
-        keys from `dataset._format_columns`.
-
-        Args:
-            filename (`str`): The filename, including the `.tfrecord` extension, to write to.
-            format (`str`, optional, default `"tfrecord"`): The type of output file. Currently this is a no-op, as
-                TFRecords are the only option. This enables a more flexible function signature later.
-        """
-        try:
-            import tensorflow as tf  # noqa: F401
-        except ImportError:
-            logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
-
-        # From https://www.tensorflow.org/tutorials/load_data/tfrecord
-        def _bytes_feature(values):
-            """Returns a bytes_list from a list of string / byte."""
-            return tf.train.Feature(bytes_list=tf.train.BytesList(value=values))
-
-        def _float_feature(values):
-            """Returns a float_list from a list of float / double."""
-            return tf.train.Feature(float_list=tf.train.FloatList(value=values))
-
-        def _int64_feature(values):
-            """Returns an int64_list from a list of bool / enum / int / uint."""
-            return tf.train.Feature(int64_list=tf.train.Int64List(value=values))
-
-        def _feature(values: Union[float, int, str, np.ndarray, list]) -> "tf.train.Feature":
-            """Typechecks `values` and returns the corresponding tf.train.Feature."""
-            if isinstance(values, list):
-                if values and isinstance(values[0], str):
-                    return _bytes_feature([v.encode() for v in values])
-                else:
-                    raise ValueError(f"values={values} is empty or contains items that cannot be serialized")
-            elif isinstance(values, np.ndarray):
-                if values.dtype == np.dtype(float):
-                    return _float_feature(values)
-                elif values.dtype == np.int64:
-                    return _int64_feature(values)
-                elif values.dtype == np.dtype(str) or (
-                    values.dtype == np.dtype(object) and len(values) > 0 and isinstance(values[0], str)
-                ):
-                    return _bytes_feature([v.encode() for v in values])
-                else:
-                    raise ValueError(
-                        f"values={values} is empty or is an np.ndarray with items of dtype {values[0].dtype}, which cannot be serialized"
-                    )
-            elif hasattr(values, "dtype"):
-                if np.issubdtype(values.dtype, np.floating):
-                    return _float_feature([values.item()])
-                elif np.issubdtype(values.dtype, np.integer):
-                    return _int64_feature([values.item()])
-                elif np.issubdtype(values.dtype, str):
-                    return _bytes_feature([values.item().encode()])
-                else:
-                    raise ValueError(f"values={values} has dtype {values.dtype}, which cannot be serialized")
-            else:
-                raise ValueError(f"values={values} are not numpy objects or strings, and so cannot be serialized")
-
-        def serialize_example(ex):
-            feature = {key: _feature(value) for key, value in ex.items()}
-            example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
-            return example_proto.SerializeToString()
-
-        def tf_serialize_example(ex):
-            tf_string = tf.py_function(serialize_example, (ex,), tf.string)
-            return tf.reshape(tf_string, ())
-
-        def generator():
-            for ex in self:
-                yield serialize_example(ex)
-
-        if self._format_type != "numpy":
-            raise ValueError("Dataset format must be numpy before exporting")
-        if not filename.endswith(".tfrecord"):
-            raise ValueError("filename {filename} must end with .tfrecord")
-        tf_dataset = tf.data.Dataset.from_generator(generator, output_types=tf.string, output_shapes=())
-        writer = tf.data.experimental.TFRecordWriter(filename)
-        logger.info(f"Writing TFRecord to {filename}")
-        writer.write(tf_dataset)
-        logger.info(f"Finished writing TFRecord to {filename}")
-        self = None  # delete the dataset reference used by tf_dataset
-
     def to_csv(
         self,
         path_or_buf: Union[PathLike, BinaryIO],
@@ -4935,7 +4729,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                 <Added version="2.19.0"/>
             **to_csv_kwargs (additional keyword arguments):
-                Parameters to pass to pandas's [`pandas.DataFrame.to_csv`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html).
+                Parameters to pass to pandas's [`pandas.DataFrame.to_csv`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_csv.html).
 
                 <Changed version="2.10.0">
 
@@ -4967,20 +4761,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             **to_csv_kwargs,
         ).write()
 
-    def to_dict(self, batch_size: Optional[int] = None, batched="deprecated") -> Union[dict, Iterator[dict]]:
+    def to_dict(self, batch_size: Optional[int] = None) -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
 
         Args:
-            batched (`bool`):
-                Set to `True` to return a generator that yields the dataset as batches
-                of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
-
-                <Deprecated version="2.11.0">
-
-                Use `.iter(batch_size=batch_size)` followed by `.to_dict()` on the individual batches instead.
-
-                </Deprecated>
-
             batch_size (`int`, *optional*): The size (number of rows) of the batches if `batched` is `True`.
                 Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
@@ -4993,30 +4777,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds.to_dict()
         ```
         """
-        if batched != "deprecated":
-            warnings.warn(
-                "'batched' was deprecated in version 2.11.0 and will be removed in version 3.0.0. Use `.iter(batch_size=batch_size)` followed by `.to_dict()` on the individual batches instead.",
-                FutureWarning,
-            )
-        else:
-            batched = False
-
-        if not batched:
-            return query_table(
-                table=self._data,
-                key=slice(0, len(self)),
-                indices=self._indices,
-            ).to_pydict()
-        else:
-            batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
-            return (
-                query_table(
-                    table=self._data,
-                    key=slice(offset, offset + batch_size),
-                    indices=self._indices,
-                ).to_pydict()
-                for offset in range(0, len(self), batch_size)
-            )
+        return query_table(
+            table=self._data,
+            key=slice(0, len(self)),
+            indices=self._indices,
+        ).to_pydict()
 
     def to_list(self) -> list:
         """Returns the dataset as a Python list.
@@ -5300,7 +5065,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             def extra_nbytes_visitor(array, feature):
                 nonlocal extra_nbytes
-                if isinstance(feature, (Audio, Image)):
+                if isinstance(feature, (Audio, Image, Video)):
                     for x in array.to_pylist():
                         if x is not None and x["bytes"] is None and x["path"] is not None:
                             size = xgetsize(x["path"])
@@ -5401,7 +5166,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```python
         >>> from datasets.distributed import split_dataset_by_node
         >>> ids = ds.to_iterable_dataset(num_shards=512)
-        >>> ids = ids.shuffle(buffer_size=10_000)  # will shuffle the shards order and use a shuffle buffer when you start iterating
+        >>> ids = ids.shuffle(buffer_size=10_000, seed=42)  # will shuffle the shards order and use a shuffle buffer when you start iterating
         >>> ids = split_dataset_by_node(ds, world_size=8, rank=0)  # will keep only 512 / 8 = 64 shards from the shuffled lists of shards when you start iterating
         >>> dataloader = torch.utils.data.DataLoader(ids, num_workers=4)  # will assign 64 / 4 = 16 shards from this node's list of shards to each worker when you start iterating
         >>> for example in ids:
@@ -5484,15 +5249,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         shards = (self.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
 
         if decodable_columns:
+            from .io.parquet import get_writer_batch_size
 
-            def shards_with_embedded_external_files(shards):
+            def shards_with_embedded_external_files(shards: Iterator[Dataset]) -> Iterator[Dataset]:
                 for shard in shards:
                     format = shard.format
                     shard = shard.with_format("arrow")
                     shard = shard.map(
                         embed_table_storage,
                         batched=True,
-                        batch_size=1000,
+                        batch_size=get_writer_batch_size(shard.features),
                         keep_in_memory=True,
                     )
                     shard = shard.with_format(**format)
@@ -5537,7 +5303,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         revision: Optional[str] = None,
-        branch="deprecated",
         create_pr: Optional[bool] = False,
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[int] = None,
@@ -5546,7 +5311,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Pushes the dataset to the hub as a Parquet dataset.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
-        The resulting Parquet files are self-contained by default. If your dataset contains [`Image`] or [`Audio`]
+        The resulting Parquet files are self-contained by default. If your dataset contains [`Image`], [`Audio`] or [`Video`]
         data, the Parquet files will store the bytes of your images or audio files.
         You can disable this by setting `embed_external_files` to `False`.
 
@@ -5585,15 +5350,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Branch to push the uploaded files to. Defaults to the `"main"` branch.
 
                 <Added version="2.15.0"/>
-            branch (`str`, *optional*):
-                The git branch on which to push the dataset. This defaults to the default branch as specified
-                in your repository, which defaults to `"main"`.
-
-                <Deprecated version="2.15.0">
-
-                `branch` was deprecated in favor of `revision` in version 2.15.0 and will be removed in 3.0.0.
-
-                </Deprecated>
             create_pr (`bool`, *optional*, defaults to `False`):
                 Whether to create a PR with the uploaded files or directly commit.
 
@@ -5644,6 +5400,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
         ```
         """
+        if "Video(" in str(self.features):
+            raise NotImplementedError(
+                "push_to_hub is not implemented for video datasets, instead you should upload the video files "
+                "using e.g. the huggingface_hub library and optionally upload a metadata.csv or metadata.jsonl "
+                "file containing other information like video captions, features or labels. More information "
+                "at https://huggingface.co/docs/datasets/main/en/video_load#videofolder"
+            )
         if config_name == "data":
             raise ValueError("`config_name` cannot be 'data'. Please, choose another name for configuration.")
 
@@ -5657,14 +5420,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if not re.match(_split_re, split):
             raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
-
-        if branch != "deprecated":
-            warnings.warn(
-                "'branch' was deprecated in favor of 'revision' in version 2.15.0 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'revision={branch}' instead.",
-                FutureWarning,
-            )
-            revision = branch
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
@@ -5886,7 +5641,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(inplace=False)
-    def add_column(self, name: str, column: Union[list, np.array], new_fingerprint: str):
+    def add_column(
+        self, name: str, column: Union[list, np.array], new_fingerprint: str, feature: Optional[FeatureType] = None
+    ):
         """Add column to Dataset.
 
         <Added version="1.7"/>
@@ -5896,6 +5653,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Column name.
             column (`list` or `np.array`):
                 Column data to be added.
+            feature (`FeatureType` or `None`, defaults to `None`):
+                Column datatype.
 
         Returns:
             [`Dataset`]
@@ -5913,7 +5672,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         })
         ```
         """
-        column_table = InMemoryTable.from_pydict({name: column})
+
+        if feature:
+            pyarrow_schema = Features({name: feature}).arrow_schema
+        else:
+            pyarrow_schema = None
+
+        column_table = InMemoryTable.from_pydict({name: column}, schema=pyarrow_schema)
         _check_column_names(self._data.column_names + column_table.column_names)
         dataset = self.flatten_indices() if self._indices is not None else self
         # Concatenate tables horizontally

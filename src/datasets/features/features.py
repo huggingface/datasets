@@ -44,6 +44,7 @@ from .audio import Audio
 from .image import Image, encode_pil_image
 from .exr import Exr
 from .translation import Translation, TranslationVariableLanguages
+from .video import Video
 
 
 logger = logging.get_logger(__name__)
@@ -461,8 +462,9 @@ def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_cast
 @dataclass
 class Value:
     """
-    The `Value` dtypes are as follows:
+    Scalar feature value of a particular data type.
 
+    The possible dtypes of `Value` are as follows:
     - `null`
     - `bool`
     - `int8`
@@ -489,6 +491,10 @@ class Value:
     - `large_binary`
     - `string`
     - `large_string`
+
+    Args:
+        dtype (`str`):
+            Name of the data type.
 
     Example:
 
@@ -547,9 +553,9 @@ class Array2D(_ArrayXD):
 
     Args:
         shape (`tuple`):
-            The size of each dimension.
+            Size of each dimension.
         dtype (`str`):
-            The value of the data type.
+            Name of the data type.
 
     Example:
 
@@ -572,9 +578,9 @@ class Array3D(_ArrayXD):
 
     Args:
         shape (`tuple`):
-            The size of each dimension.
+            Size of each dimension.
         dtype (`str`):
-            The value of the data type.
+            Name of the data type.
 
     Example:
 
@@ -597,9 +603,9 @@ class Array4D(_ArrayXD):
 
     Args:
         shape (`tuple`):
-            The size of each dimension.
+            Size of each dimension.
         dtype (`str`):
-            The value of the data type.
+            Name of the data type.
 
     Example:
 
@@ -622,9 +628,9 @@ class Array5D(_ArrayXD):
 
     Args:
         shape (`tuple`):
-            The size of each dimension.
+            Size of each dimension.
         dtype (`str`):
-            The value of the data type.
+            Name of the data type.
 
     Example:
 
@@ -1140,7 +1146,7 @@ class Sequence:
     Mostly here for compatiblity with tfds.
 
     Args:
-        feature:
+        feature ([`FeatureType`]):
             A list of features of a single type or a dictionary of types.
         length (`int`):
             Length of the sequence.
@@ -1171,11 +1177,11 @@ class LargeList:
     It is backed by `pyarrow.LargeListType`, which is like `pyarrow.ListType` but with 64-bit rather than 32-bit offsets.
 
     Args:
-        dtype:
+        feature ([`FeatureType`]):
             Child feature data type of each item within the large list.
     """
 
-    dtype: Any
+    feature: Any
     id: Optional[str] = None
     # Automatically constructed
     pa_type: ClassVar[Any] = None
@@ -1199,6 +1205,7 @@ FeatureType = Union[
     Audio,
     Exr,
     Image,
+    Video,
 ]
 
 
@@ -1215,8 +1222,6 @@ def _check_non_null_non_empty_recursive(obj, schema: Optional[FeatureType] = Non
                 pass
             elif isinstance(schema, (list, tuple)):
                 schema = schema[0]
-            elif isinstance(schema, LargeList):
-                schema = schema.dtype
             else:
                 schema = schema.feature
             return _check_non_null_non_empty_recursive(obj[0], schema)
@@ -1249,7 +1254,7 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
         value_type = get_nested_type(schema[0])
         return pa.list_(value_type)
     elif isinstance(schema, LargeList):
-        value_type = get_nested_type(schema.dtype)
+        value_type = get_nested_type(schema.feature)
         return pa.large_list(value_type)
     elif isinstance(schema, Sequence):
         value_type = get_nested_type(schema.feature)
@@ -1300,7 +1305,7 @@ def encode_nested_example(schema, obj, level=0):
             return None
         else:
             if len(obj) > 0:
-                sub_schema = schema.dtype
+                sub_schema = schema.feature
                 for first_elmt in obj:
                     if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
                         break
@@ -1345,7 +1350,7 @@ def encode_nested_example(schema, obj, level=0):
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, (Audio, Image, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
+    elif isinstance(schema, (Audio, Image, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD, Video)):
         return schema.encode_example(obj) if obj is not None else None
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
     return obj
@@ -1381,7 +1386,7 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
         if obj is None:
             return None
         else:
-            sub_schema = schema.dtype
+            sub_schema = schema.feature
             if len(obj) > 0:
                 for first_elmt in obj:
                     if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
@@ -1396,7 +1401,7 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
         else:
             return decode_nested_example([schema.feature], obj)
     # Object with special decoding:
-    elif isinstance(schema, (Audio, Image, Exr)):
+    elif isinstance(schema, (Audio, Image, Exr, Video)):
         # we pass the token to read and decode files from private repositories in streaming mode
         if obj is not None and schema.decode:
             return schema.decode_example(obj, token_per_repo_id=token_per_repo_id)
@@ -1417,7 +1422,7 @@ _FEATURE_TYPES: Dict[str, FeatureType] = {
     Audio.__name__: Audio,
     Image.__name__: Image,
     Exr.__name__: Exr,
-    
+    Video.__name__: Video,
 }
 
 
@@ -1462,8 +1467,8 @@ def generate_from_dict(obj: Any):
         raise ValueError(f"Feature type '{_type}' not found. Available feature types: {list(_FEATURE_TYPES.keys())}")
 
     if class_type == LargeList:
-        dtype = obj.pop("dtype")
-        return LargeList(generate_from_dict(dtype), **obj)
+        feature = obj.pop("feature")
+        return LargeList(feature=generate_from_dict(feature), **obj)
     if class_type == Sequence:
         feature = obj.pop("feature")
         return Sequence(feature=generate_from_dict(feature), **obj)
@@ -1492,8 +1497,8 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
             return [feature]
         return Sequence(feature=feature)
     elif isinstance(pa_type, pa.LargeListType):
-        dtype = generate_from_arrow_type(pa_type.value_type)
-        return LargeList(dtype)
+        feature = generate_from_arrow_type(pa_type.value_type)
+        return LargeList(feature=feature)
     elif isinstance(pa_type, _ArrayXDExtensionType):
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
@@ -1600,7 +1605,7 @@ def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureT
     elif isinstance(feature, (list, tuple)):
         out = func([_visit(feature[0], func)])
     elif isinstance(feature, LargeList):
-        out = func(LargeList(_visit(feature.dtype, func)))
+        out = func(LargeList(_visit(feature.feature, func)))
     elif isinstance(feature, Sequence):
         out = func(Sequence(_visit(feature.feature, func), length=feature.length))
     else:
@@ -1623,7 +1628,7 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
     elif isinstance(feature, (list, tuple)):
         return require_decoding(feature[0])
     elif isinstance(feature, LargeList):
-        return require_decoding(feature.dtype)
+        return require_decoding(feature.feature)
     elif isinstance(feature, Sequence):
         return require_decoding(feature.feature)
     else:
@@ -1643,7 +1648,7 @@ def require_storage_cast(feature: FeatureType) -> bool:
     elif isinstance(feature, (list, tuple)):
         return require_storage_cast(feature[0])
     elif isinstance(feature, LargeList):
-        return require_storage_cast(feature.dtype)
+        return require_storage_cast(feature.feature)
     elif isinstance(feature, Sequence):
         return require_storage_cast(feature.feature)
     else:
@@ -1663,7 +1668,7 @@ def require_storage_embed(feature: FeatureType) -> bool:
     elif isinstance(feature, (list, tuple)):
         return require_storage_cast(feature[0])
     elif isinstance(feature, LargeList):
-        return require_storage_cast(feature.dtype)
+        return require_storage_cast(feature.feature)
     elif isinstance(feature, Sequence):
         return require_storage_cast(feature.feature)
     else:
@@ -1699,30 +1704,30 @@ class Features(dict):
     and values are the type of that column.
 
     `FieldType` can be one of the following:
-        - a [`~datasets.Value`] feature specifies a single typed value, e.g. `int64` or `string`.
-        - a [`~datasets.ClassLabel`] feature specifies a field with a predefined set of classes which can have labels
-          associated to them and will be stored as integers in the dataset.
-        - a python `dict` which specifies that the field is a nested field containing a mapping of sub-fields to sub-fields
-          features. It's possible to have nested fields of nested fields in an arbitrary manner.
-        - a python `list` or a [`~datasets.Sequence`] specifies that the field contains a list of objects. The python
-          `list` or [`~datasets.Sequence`] should be provided with a single sub-feature as an example of the feature
-          type hosted in this list.
+        - [`Value`] feature specifies a single data type value, e.g. `int64` or `string`.
+        - [`ClassLabel`] feature specifies a predefined set of classes which can have labels associated to them and
+          will be stored as integers in the dataset.
+        - Python `dict` specifies a composite feature containing a mapping of sub-fields to sub-features.
+          It's possible to have nested fields of nested fields in an arbitrary manner.
+        - Python `list`, [`LargeList`] or [`Sequence`] specifies a composite feature containing a sequence of
+          sub-features, all of the same feature type.
 
           <Tip>
 
-           A [`~datasets.Sequence`] with a internal dictionary feature will be automatically converted into a dictionary of
+           A [`Sequence`] with an internal dictionary feature will be automatically converted into a dictionary of
            lists. This behavior is implemented to have a compatibility layer with the TensorFlow Datasets library but may be
-           un-wanted in some cases. If you don't want this behavior, you can use a python `list` instead of the
-           [`~datasets.Sequence`].
+           un-wanted in some cases. If you don't want this behavior, you can use a Python `list` or a [`LargeList`]
+           instead of the [`Sequence`].
 
           </Tip>
 
-        - a [`Array2D`], [`Array3D`], [`Array4D`] or [`Array5D`] feature for multidimensional arrays.
-        - an [`Audio`] feature to store the absolute path to an audio file or a dictionary with the relative path
+        - [`Array2D`], [`Array3D`], [`Array4D`] or [`Array5D`] feature for multidimensional arrays.
+        - [`Audio`] feature to store the absolute path to an audio file or a dictionary with the relative path
           to an audio file ("path" key) and its bytes content ("bytes" key). This feature extracts the audio data.
-        - an [`Image`] feature to store the absolute path to an image file, an `np.ndarray` object, a `PIL.Image.Image` object
-          or a dictionary with the relative path to an image file ("path" key) and its bytes content ("bytes" key). This feature extracts the image data.
-        - [`~datasets.Translation`] and [`~datasets.TranslationVariableLanguages`], the two features specific to Machine Translation.
+        - [`Image`] feature to store the absolute path to an image file, an `np.ndarray` object, a `PIL.Image.Image` object
+          or a dictionary with the relative path to an image file ("path" key) and its bytes content ("bytes" key).
+          This feature extracts the image data.
+        - [`Translation`] or [`TranslationVariableLanguages`] feature specific to Machine Translation.
     """
 
     def __init__(*args, **kwargs):
@@ -1875,8 +1880,8 @@ class Features(dict):
             if isinstance(obj, dict):
                 _type = obj.pop("_type", None)
                 if _type == "LargeList":
-                    value_type = obj.pop("dtype")
-                    return simplify({"large_list": to_yaml_inner(value_type), **obj})
+                    _feature = obj.pop("feature")
+                    return simplify({"large_list": to_yaml_inner(_feature), **obj})
                 elif _type == "Sequence":
                     _feature = obj.pop("feature")
                     return simplify({"sequence": to_yaml_inner(_feature), **obj})
@@ -1946,8 +1951,8 @@ class Features(dict):
                     return {}
                 _type = next(iter(obj))
                 if _type == "large_list":
-                    _dtype = unsimplify(obj).pop(_type)
-                    return {"dtype": from_yaml_inner(_dtype), **obj, "_type": "LargeList"}
+                    _feature = unsimplify(obj).pop(_type)
+                    return {"feature": from_yaml_inner(_feature), **obj, "_type": "LargeList"}
                 if _type == "sequence":
                     _feature = unsimplify(obj).pop(_type)
                     return {"feature": from_yaml_inner(_feature), **obj, "_type": "Sequence"}
@@ -2179,7 +2184,7 @@ class Features(dict):
             elif isinstance(source, LargeList):
                 if not isinstance(target, LargeList):
                     raise ValueError(f"Type mismatch: between {source} and {target}" + stack_position)
-                return LargeList(recursive_reorder(source.dtype, target.dtype, stack))
+                return LargeList(recursive_reorder(source.feature, target.feature, stack))
             else:
                 return source
 

@@ -726,7 +726,7 @@ def test_features_flatten_with_list_types(features_dict, expected_features_dict)
             {"col": [Value("int32")]},
         ),
         (
-            {"col": {"dtype": {"dtype": "int32", "_type": "Value"}, "_type": "LargeList"}},
+            {"col": {"feature": {"dtype": "int32", "_type": "Value"}, "_type": "LargeList"}},
             {"col": LargeList(Value("int32"))},
         ),
         (
@@ -738,7 +738,7 @@ def test_features_flatten_with_list_types(features_dict, expected_features_dict)
             {"col": [{"sub_col": Value("int32")}]},
         ),
         (
-            {"col": {"dtype": {"sub_col": {"dtype": "int32", "_type": "Value"}}, "_type": "LargeList"}},
+            {"col": {"feature": {"sub_col": {"dtype": "int32", "_type": "Value"}}, "_type": "LargeList"}},
             {"col": LargeList({"sub_col": Value("int32")})},
         ),
         (
@@ -760,7 +760,7 @@ def test_features_from_dict_with_list_types(deserialized_features_dict, expected
             [Value("int32")],
         ),
         (
-            {"dtype": {"dtype": "int32", "_type": "Value"}, "_type": "LargeList"},
+            {"feature": {"dtype": "int32", "_type": "Value"}, "_type": "LargeList"},
             LargeList(Value("int32")),
         ),
         (
@@ -772,7 +772,7 @@ def test_features_from_dict_with_list_types(deserialized_features_dict, expected
             [{"sub_col": Value("int32")}],
         ),
         (
-            {"dtype": {"sub_col": {"dtype": "int32", "_type": "Value"}}, "_type": "LargeList"},
+            {"feature": {"sub_col": {"dtype": "int32", "_type": "Value"}}, "_type": "LargeList"},
             LargeList({"sub_col": Value("int32")}),
         ),
         (
