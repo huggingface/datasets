@@ -417,8 +417,8 @@ class FaissIndex(BaseIndex):
 class IndexableMixin:
     """Add indexing features to `datasets.Dataset`"""
 
-    def __init__(self):
-        self._indexes: Dict[str, BaseIndex] = {}
+    def __init__(self, indexes: Optional[Dict[str, BaseIndex]]):
+        self._indexes = {} if indexes is None else indexes
 
     def __len__(self):
         raise NotImplementedError
