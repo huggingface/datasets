@@ -229,7 +229,7 @@ When you need to remove one or more columns, give [`IterableDataset.remove_colum
 >>> dataset.features
 {'sentence1': Value(dtype='string', id=None),
 'sentence2': Value(dtype='string', id=None),
-'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None),
+'label': ClassLabel(names=['not_equivalent', 'equivalent'], id=None),
 'idx': Value(dtype='int32', id=None)}
 
 >>> from datasets import ClassLabel, Value
@@ -240,7 +240,7 @@ When you need to remove one or more columns, give [`IterableDataset.remove_colum
 >>> dataset.features
 {'sentence1': Value(dtype='string', id=None),
 'sentence2': Value(dtype='string', id=None),
-'label': ClassLabel(num_classes=2, names=['negative', 'positive'], names_file=None, id=None),
+'label': ClassLabel(names=['negative', 'positive'], id=None),
 'idx': Value(dtype='int64', id=None)}
 ```
 
