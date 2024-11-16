@@ -278,7 +278,7 @@ class DatasetDict(dict):
         >>> from datasets import load_dataset, ClassLabel, Value
         >>> ds = load_dataset("rotten_tomatoes")
         >>> ds["train"].features
-        {'label': ClassLabel(names=['neg', 'pos'], id=None)
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> new_features = ds["train"].features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
