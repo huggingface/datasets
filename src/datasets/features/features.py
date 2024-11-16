@@ -966,10 +966,10 @@ class ClassLabel:
     Example:
 
     ```py
-    >>> from datasets import Features
+    >>> from datasets import Features, ClassLabel
     >>> features = Features({'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'])})
     >>> features
-    {'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'], id=None)}
+    {'label': ClassLabel(names=['bad', 'ok', 'good'], id=None)}
     ```
     """
 
@@ -1156,7 +1156,7 @@ class Sequence:
     >>> from datasets import Features, Sequence, Value, ClassLabel
     >>> features = Features({'post': Sequence(feature={'text': Value(dtype='string'), 'upvotes': Value(dtype='int32'), 'label': ClassLabel(num_classes=2, names=['hot', 'cold'])})})
     >>> features
-    {'post': Sequence(feature={'text': Value(dtype='string', id=None), 'upvotes': Value(dtype='int32', id=None), 'label': ClassLabel(num_classes=2, names=['hot', 'cold'], id=None)}, length=-1, id=None)}
+    {'post': Sequence(feature={'text': Value(dtype='string', id=None), 'upvotes': Value(dtype='int32', id=None), 'label': ClassLabel(names=['hot', 'cold'], id=None)}, length=-1, id=None)}
     ```
     """
 
@@ -2109,7 +2109,7 @@ class Features(dict):
         >>> ds = load_dataset("rotten_tomatoes", split="train")
         >>> copy_of_features = ds.features.copy()
         >>> copy_of_features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         ```
         """
