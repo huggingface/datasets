@@ -242,9 +242,11 @@ def configure_builder_class(
 def get_dataset_builder_class(
     dataset_module: "DatasetModule", dataset_name: Optional[str] = None
 ) -> Type[DatasetBuilder]:
-    with lock_importable_file(
-        dataset_module.importable_file_path
-    ) if dataset_module.importable_file_path else nullcontext():
+    with (
+        lock_importable_file(dataset_module.importable_file_path)
+        if dataset_module.importable_file_path
+        else nullcontext()
+    ):
         builder_cls = import_main_class(dataset_module.module_path)
     if dataset_module.builder_configs_parameters.builder_configs:
         dataset_name = dataset_name or dataset_module.builder_kwargs.get("dataset_name")
