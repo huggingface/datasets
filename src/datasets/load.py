@@ -1770,16 +1770,16 @@ def load_dataset_builder(
             Path or name of the dataset.
 
             - if `path` is a dataset repository on the HF hub (list all available datasets with [`huggingface_hub.list_datasets`])
-              -> load the dataset from supported filesin the repository (csv, json, parquet, etc.)
+              -> load the dataset builder from supported files in the repository (csv, json, parquet, etc.)
               e.g. `'username/dataset_name'`, a dataset repository on the HF hub containing the data files.
 
             - if `path` is a local directory
-              -> load the dataset from supported files in the directory (csv, json, parquet, etc.)
+              -> load the dataset builder from supported files in the directory (csv, json, parquet, etc.)
               e.g. `'./path/to/directory/with/my/csv/data'`.
 
             - if `path` is the name of a dataset builder and `data_files` or `data_dir` is specified
               (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder")
-              -> load the dataset from the files in `data_files` or `data_dir`
+              -> load the dataset builder from the files in `data_files` or `data_dir`
               e.g. `'parquet'`.
 
             It can also point to a local dataset script but this is not recommended.
@@ -1963,7 +1963,7 @@ def load_dataset(
             Path or name of the dataset.
 
             - if `path` is a dataset repository on the HF hub (list all available datasets with [`huggingface_hub.list_datasets`])
-              -> load the dataset from supported filesin the repository (csv, json, parquet, etc.)
+              -> load the dataset from supported files in the repository (csv, json, parquet, etc.)
               e.g. `'username/dataset_name'`, a dataset repository on the HF hub containing the data files.
 
             - if `path` is a local directory
