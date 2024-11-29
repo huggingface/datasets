@@ -242,9 +242,11 @@ def configure_builder_class(
 def get_dataset_builder_class(
     dataset_module: "DatasetModule", dataset_name: Optional[str] = None
 ) -> Type[DatasetBuilder]:
-    with lock_importable_file(
-        dataset_module.importable_file_path
-    ) if dataset_module.importable_file_path else nullcontext():
+    with (
+        lock_importable_file(dataset_module.importable_file_path)
+        if dataset_module.importable_file_path
+        else nullcontext()
+    ):
         builder_cls = import_main_class(dataset_module.module_path)
     if dataset_module.builder_configs_parameters.builder_configs:
         dataset_name = dataset_name or dataset_module.builder_kwargs.get("dataset_name")
@@ -1751,42 +1753,36 @@ def load_dataset_builder(
     _require_default_config_name=True,
     **config_kwargs,
 ) -> DatasetBuilder:
-    """Load a dataset builder from the Hugging Face Hub, or a local dataset. A dataset builder can be used to inspect general information that is required to build a dataset (cache directory, config, dataset info, etc.)
-    without downloading the dataset itself.
+    """Load a dataset builder which can be used to:
+
+    - Inspect general information that is required to build a dataset (cache directory, config, dataset info, features, data files, etc.)
+    - Download and prepare the dataset as Arrow files in the cache
+    - Get a streaming dataset without downloading or caching anything
 
     You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
 
-    A dataset is a directory that contains:
-
-    - some data files in generic formats (JSON, CSV, Parquet, text, etc.)
-    - and optionally a dataset script, if it requires some code to read the data files. This is used to load any kind of formats or structures.
-
-    Note that dataset scripts can also download and read data files from anywhere - in case your data files already exist online.
+    A dataset is a directory that contains some data files in generic formats (JSON, CSV, Parquet, etc.) and possibly
+    in a generic structure (Webdataset, ImageFolder, AudioFolder, VideoFolder, etc.)
 
     Args:
 
         path (`str`):
             Path or name of the dataset.
-            Depending on `path`, the dataset builder that is used comes from a generic dataset script (JSON, CSV, Parquet, text etc.) or from the dataset script (a python file) inside the dataset directory.
 
-            For local datasets:
+            - if `path` is a dataset repository on the HF hub (list all available datasets with [`huggingface_hub.list_datasets`])
+              -> load the dataset builder from supported files in the repository (csv, json, parquet, etc.)
+              e.g. `'username/dataset_name'`, a dataset repository on the HF hub containing the data files.
 
-            - if `path` is a local directory (containing data files only)
-              -> load a generic dataset builder (csv, json, text etc.) based on the content of the directory
+            - if `path` is a local directory
+              -> load the dataset builder from supported files in the directory (csv, json, parquet, etc.)
               e.g. `'./path/to/directory/with/my/csv/data'`.
-            - if `path` is a local dataset script or a directory containing a local dataset script (if the script has the same name as the directory)
-              -> load the dataset builder from the dataset script
-              e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`.
 
-            For datasets on the Hugging Face Hub (list all available datasets with [`huggingface_hub.list_datasets`])
+            - if `path` is the name of a dataset builder and `data_files` or `data_dir` is specified
+              (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder")
+              -> load the dataset builder from the files in `data_files` or `data_dir`
+              e.g. `'parquet'`.
 
-            - if `path` is a dataset repository on the HF hub (containing data files only)
-              -> load a generic dataset builder (csv, text etc.) based on the content of the repository
-              e.g. `'username/dataset_name'`, a dataset repository on the HF hub containing your data files.
-            - if `path` is a dataset repository on the HF hub with a dataset script (if the script has the same name as the directory)
-              -> load the dataset builder from the dataset script in the dataset repository
-              e.g. `glue`, `squad`, `'username/dataset_name'`, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
-
+            It can also point to a local dataset script but this is not recommended.
         name (`str`, *optional*):
             Defining the name of the dataset configuration.
         data_dir (`str`, *optional*):
@@ -1837,7 +1833,7 @@ def load_dataset_builder(
 
     ```py
     >>> from datasets import load_dataset_builder
-    >>> ds_builder = load_dataset_builder('rotten_tomatoes')
+    >>> ds_builder = load_dataset_builder('cornell-movie-review-data/rotten_tomatoes')
     >>> ds_builder.info.features
     {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
      'text': Value(dtype='string', id=None)}
@@ -1931,61 +1927,55 @@ def load_dataset(
 
     You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
 
-    A dataset is a directory that contains:
-
-    - some data files in generic formats (JSON, CSV, Parquet, text, etc.).
-    - and optionally a dataset script, if it requires some code to read the data files. This is used to load any kind of formats or structures.
-
-    Note that dataset scripts can also download and read data files from anywhere - in case your data files already exist online.
+    A dataset is a directory that contains some data files in generic formats (JSON, CSV, Parquet, etc.) and possibly
+    in a generic structure (Webdataset, ImageFolder, AudioFolder, VideoFolder, etc.)
 
     This function does the following under the hood:
 
-        1. Download and import in the library the dataset script from `path` if it's not already cached inside the library.
+        1. Load a dataset builder:
 
-            If the dataset has no dataset script, then a generic dataset script is imported instead (JSON, CSV, Parquet, text, etc.)
+            * Find the most common data format in the dataset and pick its associated builder (JSON, CSV, Parquet, Webdataset, ImageFolder, AudioFolder, etc.)
+            * Find which file goes into which split (e.g. train/test) based on file and directory names or on the YAML configuration
+            * It is also possible to specify `data_files` manually, and which dataset builder to use (e.g. "parquet").
 
-            Dataset scripts are small python scripts that define dataset builders. They define the citation, info and format of the dataset,
-            contain the path or URL to the original data files and the code to load examples from the original data files.
+        2. Run the dataset builder:
 
-            You can find the complete list of datasets in the Datasets [Hub](https://huggingface.co/datasets).
+            In the general case:
 
-        2. Run the dataset script which will:
-
-            * Download the dataset file from the original URL (see the script) if it's not already available locally or cached.
+            * Download the data files from the dataset if they are not already available locally or cached.
             * Process and cache the dataset in typed Arrow tables for caching.
 
                 Arrow table are arbitrarily long, typed tables which can store nested objects and be mapped to numpy/pandas/python generic types.
                 They can be directly accessed from disk, loaded in RAM or even streamed over the web.
 
+            In the streaming case:
+
+            * Don't download or cache anything. Instead, the dataset is lazily loaded and will be streamed on-the-fly when iterating on it.
+
         3. Return a dataset built from the requested splits in `split` (default: all).
 
-    It also allows to load a dataset from a local directory or a dataset repository on the Hugging Face Hub without dataset script.
-    In this case, it automatically loads all the data files from the directory or the dataset repository.
+    It can also use a custom dataset builder if the dataset contains a dataset script, but this feature is mostly for backward compatibility.
+    In this case the dataset script file must be named after the dataset repository or directory and end with ".py".
 
     Args:
 
         path (`str`):
             Path or name of the dataset.
-            Depending on `path`, the dataset builder that is used comes from a generic dataset script (JSON, CSV, Parquet, text etc.) or from the dataset script (a python file) inside the dataset directory.
 
-            For local datasets:
+            - if `path` is a dataset repository on the HF hub (list all available datasets with [`huggingface_hub.list_datasets`])
+              -> load the dataset from supported files in the repository (csv, json, parquet, etc.)
+              e.g. `'username/dataset_name'`, a dataset repository on the HF hub containing the data files.
 
-            - if `path` is a local directory (containing data files only)
-              -> load a generic dataset builder (csv, json, text etc.) based on the content of the directory
+            - if `path` is a local directory
+              -> load the dataset from supported files in the directory (csv, json, parquet, etc.)
               e.g. `'./path/to/directory/with/my/csv/data'`.
-            - if `path` is a local dataset script or a directory containing a local dataset script (if the script has the same name as the directory)
-              -> load the dataset builder from the dataset script
-              e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`.
 
-            For datasets on the Hugging Face Hub (list all available datasets with [`huggingface_hub.list_datasets`])
+            - if `path` is the name of a dataset builder and `data_files` or `data_dir` is specified
+              (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder")
+              -> load the dataset from the files in `data_files` or `data_dir`
+              e.g. `'parquet'`.
 
-            - if `path` is a dataset repository on the HF hub (containing data files only)
-              -> load a generic dataset builder (csv, text etc.) based on the content of the repository
-              e.g. `'username/dataset_name'`, a dataset repository on the HF hub containing your data files.
-            - if `path` is a dataset repository on the HF hub with a dataset script (if the script has the same name as the directory)
-              -> load the dataset builder from the dataset script in the dataset repository
-              e.g. `glue`, `squad`, `'username/dataset_name'`, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
-
+            It can also point to a local dataset script but this is not recommended.
         name (`str`, *optional*):
             Defining the name of the dataset configuration.
         data_dir (`str`, *optional*):
@@ -2072,11 +2062,18 @@ def load_dataset(
 
     ```py
     >>> from datasets import load_dataset
-    >>> ds = load_dataset('rotten_tomatoes', split='train')
+    >>> ds = load_dataset('cornell-movie-review-data/rotten_tomatoes', split='train')
 
-    # Map data files to splits
+    # Load a subset or dataset configuration (here 'sst2')
+    >>> from datasets import load_dataset
+    >>> ds = load_dataset('nyu-mll/glue', 'sst2', split='train')
+
+    # Manual mapping of data files to splits
     >>> data_files = {'train': 'train.csv', 'test': 'test.csv'}
     >>> ds = load_dataset('namespace/your_dataset_name', data_files=data_files)
+
+    # Manual selection of a directory to load
+    >>> ds = load_dataset('namespace/your_dataset_name', data_dir='folder_name')
     ```
 
     Load a local dataset:
@@ -2090,7 +2087,7 @@ def load_dataset(
     >>> from datasets import load_dataset
     >>> ds = load_dataset('json', data_files='path/to/local/my_dataset.json')
 
-    # Load from a local loading script
+    # Load from a local loading script (not recommended)
     >>> from datasets import load_dataset
     >>> ds = load_dataset('path/to/local/loading_script/loading_script.py', split='train')
     ```
@@ -2099,7 +2096,7 @@ def load_dataset(
 
     ```py
     >>> from datasets import load_dataset
-    >>> ds = load_dataset('rotten_tomatoes', split='train', streaming=True)
+    >>> ds = load_dataset('cornell-movie-review-data/rotten_tomatoes', split='train', streaming=True)
     ```
 
     Load an image dataset with the `ImageFolder` dataset builder:
