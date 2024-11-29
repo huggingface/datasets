@@ -84,7 +84,7 @@ def test_convert_to_parquet(temporary_repo, hf_api, hf_token, ci_hub_config, ci_
           - name: train
             num_bytes: 55
             num_examples: 5
-          download_size: 726
+          download_size: 717
           dataset_size: 55
         {METADATA_CONFIGS_FIELD}:
         - config_name: first
@@ -105,7 +105,7 @@ def test_convert_to_parquet(temporary_repo, hf_api, hf_token, ci_hub_config, ci_
           - name: train
             num_bytes: 60
             num_examples: 5
-          download_size: 732
+          download_size: 723
           dataset_size: 60
         {METADATA_CONFIGS_FIELD}:
         - config_name: second
@@ -115,6 +115,9 @@ def test_convert_to_parquet(temporary_repo, hf_api, hf_token, ci_hub_config, ci_
         ---
         """),
     ]
+    if PYARROW_VERSION < version.parse("18.1.0"):
+        expected_readmes[0] = expected_readmes[0].replace("download_size: 717", "download_size: 726")
+        expected_readmes[1] = expected_readmes[1].replace("download_size: 723", "download_size: 732")
     if PYARROW_VERSION < version.parse("18.0.0"):
         expected_readmes[0] = expected_readmes[0].replace("download_size: 726", "download_size: 790")
         expected_readmes[1] = expected_readmes[1].replace("download_size: 732", "download_size: 798")
