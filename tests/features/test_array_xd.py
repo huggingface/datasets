@@ -175,20 +175,20 @@ class ArrayXDTest(unittest.TestCase):
     def _check_getitem_output_type(self, dataset, shape_1, shape_2, first_matrix):
         matrix_column = dataset["matrix"]
         self.assertIsInstance(matrix_column, list)
-        self.assertIsInstance(matrix_column[0], list)
-        self.assertIsInstance(matrix_column[0][0], list)
+        self.assertIsInstance(matrix_column[0], np.ndarray)
+        self.assertIsInstance(matrix_column[0][0], np.ndarray)
         self.assertTupleEqual(np.array(matrix_column).shape, (2, *shape_2))
 
         matrix_field_of_first_example = dataset[0]["matrix"]
-        self.assertIsInstance(matrix_field_of_first_example, list)
-        self.assertIsInstance(matrix_field_of_first_example, list)
+        self.assertIsInstance(matrix_field_of_first_example, np.ndarray)
+        self.assertIsInstance(matrix_field_of_first_example[0], np.ndarray)
         self.assertEqual(np.array(matrix_field_of_first_example).shape, shape_2)
         np.testing.assert_array_equal(np.array(matrix_field_of_first_example), np.array(first_matrix))
 
         matrix_field_of_first_two_examples = dataset[:2]["matrix"]
         self.assertIsInstance(matrix_field_of_first_two_examples, list)
-        self.assertIsInstance(matrix_field_of_first_two_examples[0], list)
-        self.assertIsInstance(matrix_field_of_first_two_examples[0][0], list)
+        self.assertIsInstance(matrix_field_of_first_two_examples[0], np.ndarray)
+        self.assertIsInstance(matrix_field_of_first_two_examples[0][0], np.ndarray)
         self.assertTupleEqual(np.array(matrix_field_of_first_two_examples).shape, (2, *shape_2))
 
         with dataset.formatted_as("numpy"):
@@ -268,7 +268,7 @@ class ArrayXDDynamicTest(unittest.TestCase):
         pylist = arr_xd.to_pylist()
 
         for first_dim, single_arr in zip(first_dim_list, pylist):
-            self.assertIsInstance(single_arr, list)
+            self.assertIsInstance(single_arr, np.ndarray)
             self.assertTupleEqual(np.array(single_arr).shape, (first_dim, *fixed_shape))
 
     def test_to_numpy(self):
@@ -311,8 +311,8 @@ class ArrayXDDynamicTest(unittest.TestCase):
 
         for first_dim, ds_row in zip(first_dim_list, dataset):
             single_arr = ds_row["image"]
-            self.assertIsInstance(single_arr, list)
-            self.assertTupleEqual(np.array(single_arr).shape, (first_dim, *fixed_shape))
+            self.assertIsInstance(single_arr, np.ndarray)
+            self.assertTupleEqual(single_arr.shape, (first_dim, *fixed_shape))
 
     def test_to_pandas(self):
         fixed_shape = (2, 2)
@@ -353,8 +353,8 @@ class ArrayXDDynamicTest(unittest.TestCase):
         # check also if above function resulted with 2x bigger first dim
         for first_dim, ds_row in zip(first_dim_list, dataset):
             single_arr = ds_row["image"]
-            self.assertIsInstance(single_arr, list)
-            self.assertTupleEqual(np.array(single_arr).shape, (first_dim * 2, *fixed_shape))
+            self.assertIsInstance(single_arr, np.ndarray)
+            self.assertTupleEqual(single_arr.shape, (first_dim * 2, *fixed_shape))
 
 
 @pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
@@ -419,7 +419,7 @@ def test_array_xd_with_none():
 def test_array_xd_with_np(seq_type, dtype, shape, feature_class):
     feature = feature_class(dtype=dtype, shape=shape)
     data = np.zeros(shape, dtype=dtype)
-    expected = data.tolist()
+    expected = data
     if seq_type == "sequence":
         feature = datasets.Sequence(feature)
         data = [data]
@@ -429,7 +429,12 @@ def test_array_xd_with_np(seq_type, dtype, shape, feature_class):
         data = [[data]]
         expected = [[expected]]
     ds = datasets.Dataset.from_dict({"col": [data]}, features=datasets.Features({"col": feature}))
-    assert ds[0]["col"] == expected
+    if seq_type == "sequence":
+        assert (ds[0]["col"][0] == expected[0]).all()
+    elif seq_type == "sequence_of_sequence":
+        assert (ds[0]["col"][0][0] == expected[0][0]).all()
+    else:
+        assert (ds[0]["col"] == expected).all()
 
 
 @pytest.mark.parametrize("with_none", [False, True])

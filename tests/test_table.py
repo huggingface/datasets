@@ -1332,6 +1332,21 @@ def test_cast_array_to_feature_with_list_array_and_large_list_feature(from_list_
     assert cast_array.type == expected_array_type
 
 
+def all_arrays_equal(arr1, arr2):
+    if len(arr1) != len(arr2):
+        return False
+    for a1, a2 in zip(arr1, arr2):
+        if isinstance(a1, list) and isinstance(a2, list):
+            if not all_arrays_equal(a1, a2):
+                return False
+        elif isinstance(a1, np.ndarray) and isinstance(a2, np.ndarray):
+            if not (a1 == a2).all():
+                return False
+        elif a1 != a2:
+            return False
+    return True
+
+
 def test_cast_array_xd_to_features_sequence():
     arr = np.random.randint(0, 10, size=(8, 2, 3)).tolist()
     arr = Array2DExtensionType(shape=(2, 3), dtype="int64").wrap_array(pa.array(arr, pa.list_(pa.list_(pa.int64()))))
@@ -1339,11 +1354,11 @@ def test_cast_array_xd_to_features_sequence():
     # Variable size list
     casted_array = cast_array_to_feature(arr, Sequence(Array2D(shape=(2, 3), dtype="int32")))
     assert casted_array.type == get_nested_type(Sequence(Array2D(shape=(2, 3), dtype="int32")))
-    assert casted_array.to_pylist() == arr.to_pylist()
+    assert all_arrays_equal(casted_array.to_pylist(), arr.to_pylist())
     # Fixed size list
     casted_array = cast_array_to_feature(arr, Sequence(Array2D(shape=(2, 3), dtype="int32"), length=4))
     assert casted_array.type == get_nested_type(Sequence(Array2D(shape=(2, 3), dtype="int32"), length=4))
-    assert casted_array.to_pylist() == arr.to_pylist()
+    assert all_arrays_equal(casted_array.to_pylist(), arr.to_pylist())
 
 
 def test_embed_array_storage(image_file):
