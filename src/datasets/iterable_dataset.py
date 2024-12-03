@@ -2665,7 +2665,7 @@ class IterableDataset(DatasetInfoMixin):
         num_shards: int,
         index: int,
         contiguous: bool = True,
-    ) -> "Dataset":
+    ) -> "IterableDataset":
         """Return the `index`-nth shard from dataset split into `num_shards` pieces.
 
         This shards deterministically. `dataset.shard(n, i)` splits the dataset into contiguous chunks,
