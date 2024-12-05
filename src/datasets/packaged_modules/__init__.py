@@ -68,6 +68,7 @@ _EXTENSION_TO_MODULE: Dict[str, Tuple[str, dict]] = {
     # ndjson is no longer maintained (see: https://github.com/ndjson/ndjson-spec/issues/35#issuecomment-1285673417)
     ".ndjson": ("json", {}),
     ".parquet": ("parquet", {}),
+    ".pq": ("parquet", {}),
     ".geoparquet": ("parquet", {}),
     ".gpq": ("parquet", {}),
     ".arrow": ("arrow", {}),
