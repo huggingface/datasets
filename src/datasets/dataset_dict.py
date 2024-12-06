@@ -275,17 +275,17 @@ class DatasetDict(dict):
         Example:
 
         ```py
-        >>> from datasets import load_dataset
+        >>> from datasets import load_dataset, ClassLabel, Value
         >>> ds = load_dataset("rotten_tomatoes")
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> new_features = ds["train"].features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
         >>> ds = ds.cast(new_features)
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='large_string', id=None)}
         ```
         """
@@ -307,14 +307,14 @@ class DatasetDict(dict):
         Example:
 
         ```py
-        >>> from datasets import load_dataset
+        >>> from datasets import load_dataset, ClassLabel
         >>> ds = load_dataset("rotten_tomatoes")
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='string', id=None)}
         ```
         """
@@ -2201,14 +2201,14 @@ class IterableDatasetDict(dict):
         Example:
 
         ```py
-        >>> from datasets import load_dataset
+        >>> from datasets import load_dataset, ClassLabel
         >>> ds = load_dataset("rotten_tomatoes", streaming=True)
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='string', id=None)}
         ```
         """
@@ -2240,14 +2240,14 @@ class IterableDatasetDict(dict):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes", streaming=True)
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> new_features = ds["train"].features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
         >>> ds = ds.cast(new_features)
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='large_string', id=None)}
         ```
         """

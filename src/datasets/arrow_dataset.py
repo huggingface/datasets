@@ -2023,14 +2023,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset, ClassLabel, Value
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> new_features = ds.features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
         >>> ds = ds.cast(new_features)
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='large_string', id=None)}
         ```
         """
@@ -2078,14 +2078,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
-        >>> from datasets import load_dataset
+        >>> from datasets import load_dataset, ClassLabel
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='string', id=None)}
         ```
         """
