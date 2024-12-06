@@ -89,6 +89,16 @@ def test_parquet_read_geoparquet(geoparquet_path, tmp_path):
         assert dataset.features[feature].dtype == expected_dtype
 
 
+def test_parquet_read_filters(parquet_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    filters = [("col_2", "==", 1)]
+    dataset = ParquetDatasetReader(path_or_paths=parquet_path, cache_dir=cache_dir, filters=filters).read()
+
+    assert isinstance(dataset, Dataset)
+    assert all(example["col_2"] == 1 for example in dataset)
+    assert dataset.num_rows == 1
+
+
 def _check_parquet_datasetdict(dataset_dict, expected_features, splits=("train",)):
     assert isinstance(dataset_dict, (DatasetDict, IterableDatasetDict))
     for split in splits:
