@@ -184,7 +184,7 @@ class Audio:
                 array, sampling_rate = sf.read(f)
 
         else:
-            array, sampling_rate = sf.read(file, start=0, frames=1)
+            array, sampling_rate = sf.read(file)
 
         array = array.T
         if self.mono:
