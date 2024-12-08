@@ -184,7 +184,7 @@ class Audio:
                 array, sampling_rate = sf.read(f)
 
         else:
-            array, sampling_rate = sf.read(file)
+            array, sampling_rate = sf.read(file, start=0, frames=1)
 
         array = array.T
         if self.mono:
@@ -243,7 +243,59 @@ class Audio:
                 path_array = pa.array([None] * len(storage), type=pa.string())
             storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
         return array_cast(storage, self.pa_type)
+    
+    def embed_storage_offset(self, start, dur, storage) -> pa.StructArray:
+        """Embed audio files into the Arrow array.
 
+        Args:
+            storage (`pa.StructArray`):
+                PyArrow array to embed.
+
+        Returns:
+            `pa.StructArray`: Array in the Audio arrow storage type, that is
+                `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
+        """
+        import soundfile as sf
+
+        @no_op_if_value_is_null
+        def path_to_bytes(path):
+            with xopen(path, "rb") as f:
+                bytes_ = f.read()
+            return bytes_
+        
+        def path_to_bytes_offset(start, dur, path):
+            start = int(start.as_py() * 16000)
+            dur = int(dur.as_py() * 16000)
+            arr = sf.read(path, start=start, frames=dur)
+            return arr[0].tobytes()
+        
+        bytes_array = []
+        for i, x in enumerate(storage.to_pylist()):
+            if start[i].as_py() >= 0:
+                bytes_array.append(path_to_bytes_offset(start[i], dur[i], x["path"]))
+            else:
+                if x["bytes"] is None:
+                    bytes_array.append(path_to_bytes(x["path"]))
+                elif x is not None:
+                    bytes_array.append(x["bytes"])
+                else:
+                    bytes_array.append(None)
+        
+        bytes_array = pa.array(bytes_array, type=pa.binary())
+        #bytes_array = pa.array(
+        #    [
+        #        (path_to_bytes(x["start"], x["dur"], x["path"]) if x["bytes"] is None else x["bytes"]) if x is not None else None
+        #        for x in storage.to_pylist()
+        #    ],
+        #    type=pa.binary(),
+        #
+        path_array = pa.array(
+            [os.path.basename(x["path"]) if x["path"] is not None else None for x in storage.to_pylist()],
+            type=pa.string(),
+        )
+        storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
+        return array_cast(storage, self.pa_type)
+    
     def embed_storage(self, storage: pa.StructArray) -> pa.StructArray:
         """Embed audio files into the Arrow array.
 
@@ -255,13 +307,12 @@ class Audio:
             `pa.StructArray`: Array in the Audio arrow storage type, that is
                 `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
-
         @no_op_if_value_is_null
         def path_to_bytes(path):
             with xopen(path, "rb") as f:
                 bytes_ = f.read()
             return bytes_
-
+        
         bytes_array = pa.array(
             [
                 (path_to_bytes(x["path"]) if x["bytes"] is None else x["bytes"]) if x is not None else None
