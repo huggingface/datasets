@@ -1871,6 +1871,7 @@ def load_dataset_builder(
     if (
         path in _PACKAGED_DATASETS_MODULES
         and data_files is None
+        and not data_files
         and dataset_module.builder_configs_parameters.builder_configs[0].data_files is None
     ):
         error_msg = f"Please specify the data files or data directory to load for the {path} dataset builder."
