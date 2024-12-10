@@ -804,6 +804,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         contains `None/nan` objects, the type is set to `null`. This behavior can be avoided by constructing explicit
         features and passing it to this function.
 
+        Important: a dataset created with from_pandas() lives in memory
+        and therefore doesn't have an associated cache directory.
+        This may change in the feature, but in the meantime if you
+        want to reduce memory usage you should write it back on disk
+        and reload using using e.g. save_to_disk / load_from_disk.
+
         Args:
             df (`pandas.DataFrame`):
                 Dataframe that contains the dataset.
@@ -898,6 +904,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         Convert `dict` to a `pyarrow.Table` to create a [`Dataset`].
 
+        Important: a dataset created with from_dict() lives in memory
+        and therefore doesn't have an associated cache directory.
+        This may change in the feature, but in the meantime if you
+        want to reduce memory usage you should write it back on disk
+        and reload using using e.g. save_to_disk / load_from_disk.
+
         Args:
             mapping (`Mapping`):
                 Mapping of strings to Arrays or Python lists.
@@ -956,6 +968,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Note that the keys of the first entry will be used to determine the dataset columns,
         regardless of what is passed to features.
+
+        Important: a dataset created with from_list() lives in memory
+        and therefore doesn't have an associated cache directory.
+        This may change in the feature, but in the meantime if you
+        want to reduce memory usage you should write it back on disk
+        and reload using using e.g. save_to_disk / load_from_disk.
 
         Args:
             mapping (`List[dict]`): A list of mappings of strings to row values.
