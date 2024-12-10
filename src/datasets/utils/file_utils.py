@@ -27,7 +27,6 @@ from unittest.mock import patch
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
-import aiohttp.client_exceptions
 import fsspec
 import huggingface_hub
 import huggingface_hub.errors
@@ -44,6 +43,15 @@ from . import _tqdm, logging
 from ._filelock import FileLock
 from .extract import ExtractManager
 from .track import TrackedIterableFromGenerator
+
+try:
+    from aiohttp.client_exceptions import ClientError as _AiohttpClientError
+except ImportError:
+    # aiohttp is not available; synthesize an exception type
+    # that will never be raised by any actual code for use in the `except`
+    # clause only.
+    class _AiohttpClientError(Exception):
+        pass
 
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
@@ -826,7 +834,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
                 out = read(*args, **kwargs)
                 break
             except (
-                aiohttp.client_exceptions.ClientError,
+                _AiohttpClientError,
                 asyncio.TimeoutError,
                 requests.exceptions.ConnectionError,
                 requests.exceptions.Timeout,
