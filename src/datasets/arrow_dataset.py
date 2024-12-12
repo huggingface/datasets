@@ -77,7 +77,7 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .data_files import sanitize_patterns
 from .download.streaming_download_manager import xgetsize
-from .features import Audio, ClassLabel, Features, Image, Sequence, Value
+from .features import Audio, ClassLabel, Features, Image, Sequence, Value, Video
 from .features.features import (
     FeatureType,
     _align_features,
@@ -303,7 +303,7 @@ class TensorflowDatasetMixin:
                 tf_dtype = tf.float32
                 np_dtype = np.float32
             elif np_arrays[0].dtype.kind == "U":  # Unicode strings
-                np_dtype = np.unicode_
+                np_dtype = np.str_
                 tf_dtype = tf.string
             else:
                 raise RuntimeError(
@@ -372,7 +372,7 @@ class TensorflowDatasetMixin:
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
             num_workers (`int`, defaults to `0`):
-                Number of workers to use for loading the dataset. Only supported on Python versions >= 3.8.
+                Number of workers to use for loading the dataset.
             num_test_batches (`int`, defaults to `20`):
                 Number of batches to use to infer the output signature of the dataset.
                 The higher this number, the more accurate the signature will be, but the longer it will take to
@@ -804,6 +804,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         contains `None/nan` objects, the type is set to `null`. This behavior can be avoided by constructing explicit
         features and passing it to this function.
 
+        Important: a dataset created with from_pandas() lives in memory
+        and therefore doesn't have an associated cache directory.
+        This may change in the feature, but in the meantime if you
+        want to reduce memory usage you should write it back on disk
+        and reload using using e.g. save_to_disk / load_from_disk.
+
         Args:
             df (`pandas.DataFrame`):
                 Dataframe that contains the dataset.
@@ -898,6 +904,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         Convert `dict` to a `pyarrow.Table` to create a [`Dataset`].
 
+        Important: a dataset created with from_dict() lives in memory
+        and therefore doesn't have an associated cache directory.
+        This may change in the feature, but in the meantime if you
+        want to reduce memory usage you should write it back on disk
+        and reload using using e.g. save_to_disk / load_from_disk.
+
         Args:
             mapping (`Mapping`):
                 Mapping of strings to Arrays or Python lists.
@@ -956,6 +968,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Note that the keys of the first entry will be used to determine the dataset columns,
         regardless of what is passed to features.
+
+        Important: a dataset created with from_list() lives in memory
+        and therefore doesn't have an associated cache directory.
+        This may change in the feature, but in the meantime if you
+        want to reduce memory usage you should write it back on disk
+        and reload using using e.g. save_to_disk / load_from_disk.
 
         Args:
             mapping (`List[dict]`): A list of mappings of strings to row values.
@@ -1416,9 +1434,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         Saves a dataset to a dataset directory, or in a filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
 
-        For [`Image`] and [`Audio`] data:
+        For [`Image`], [`Audio`] and [`Video`] data:
 
-        All the Image() and Audio() data are stored in the arrow files.
+        All the Image(), Audio() and Video() data are stored in the arrow files.
         If you want to store paths or urls, please use the Value("string") type.
 
         Args:
@@ -2023,14 +2041,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset, ClassLabel, Value
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> new_features = ds.features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
         >>> ds = ds.cast(new_features)
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='large_string', id=None)}
         ```
         """
@@ -2078,14 +2096,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
-        >>> from datasets import load_dataset
+        >>> from datasets import load_dataset, ClassLabel
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='string', id=None)}
         ```
         """
@@ -4630,32 +4648,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         num_shards: int,
         index: int,
-        contiguous: bool = False,
+        contiguous: bool = True,
         keep_in_memory: bool = False,
         indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
     ) -> "Dataset":
         """Return the `index`-nth shard from dataset split into `num_shards` pieces.
 
-        This shards deterministically. `dset.shard(n, i)` will contain all elements of dset whose
-        index mod `n = i`.
+        This shards deterministically. `dataset.shard(n, i)` splits the dataset into contiguous chunks,
+        so it can be easily concatenated back together after processing. If `len(dataset) % n == l`, then the
+        first `l` dataset each have length `(len(dataset) // n) + 1`, and the remaining dataset have length `(len(dataset) // n)`.
+        `datasets.concatenate_datasets([dset.shard(n, i) for i in range(n)])` returns a dataset with the same order as the original.
 
-        `dset.shard(n, i, contiguous=True)` will instead split dset into contiguous chunks,
-        so it can be easily concatenated back together after processing. If `n % i == l`, then the
-        first `l` shards will have length `(n // i) + 1`, and the remaining shards will have length `(n // i)`.
-        `datasets.concatenate([dset.shard(n, i, contiguous=True) for i in range(n)])` will return
-        a dataset with the same order as the original.
+        Note: n should be less or equal to the number of elements in the dataset `len(dataset)`.
+
+        On the other hand, `dataset.shard(n, i, contiguous=False)` contains all elements of the dataset whose index mod `n = i`.
 
         Be sure to shard before using any randomizing operator (such as `shuffle`).
         It is best if the shard operator is used early in the dataset pipeline.
-
 
         Args:
             num_shards (`int`):
                 How many shards to split the dataset into.
             index (`int`):
                 Which shard to select and return.
-            contiguous: (`bool`, defaults to `False`):
+            contiguous: (`bool`, defaults to `True`):
                 Whether to select contiguous blocks of indices for shards.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
@@ -4663,7 +4680,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Provide the name of a path for the cache file. It is used to store the
                 indices of each shard instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`):
-                Number of rows per write operation for the cache file writer.
+                This only concerns the indices mapping.
+                Number of indices per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
 
@@ -4729,7 +4747,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                 <Added version="2.19.0"/>
             **to_csv_kwargs (additional keyword arguments):
-                Parameters to pass to pandas's [`pandas.DataFrame.to_csv`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html).
+                Parameters to pass to pandas's [`pandas.DataFrame.to_csv`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_csv.html).
 
                 <Changed version="2.10.0">
 
@@ -5065,7 +5083,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             def extra_nbytes_visitor(array, feature):
                 nonlocal extra_nbytes
-                if isinstance(feature, (Audio, Image)):
+                if isinstance(feature, (Audio, Image, Video)):
                     for x in array.to_pylist():
                         if x is not None and x["bytes"] is None and x["path"] is not None:
                             size = xgetsize(x["path"])
@@ -5249,15 +5267,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         shards = (self.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
 
         if decodable_columns:
+            from .io.parquet import get_writer_batch_size
 
-            def shards_with_embedded_external_files(shards):
+            def shards_with_embedded_external_files(shards: Iterator[Dataset]) -> Iterator[Dataset]:
                 for shard in shards:
                     format = shard.format
                     shard = shard.with_format("arrow")
                     shard = shard.map(
                         embed_table_storage,
                         batched=True,
-                        batch_size=1000,
+                        batch_size=get_writer_batch_size(shard.features),
                         keep_in_memory=True,
                     )
                     shard = shard.with_format(**format)
@@ -5299,7 +5318,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         data_dir: Optional[str] = None,
         commit_message: Optional[str] = None,
         commit_description: Optional[str] = None,
-        private: Optional[bool] = False,
+        private: Optional[bool] = None,
         token: Optional[str] = None,
         revision: Optional[str] = None,
         create_pr: Optional[bool] = False,
@@ -5310,7 +5329,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Pushes the dataset to the hub as a Parquet dataset.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
-        The resulting Parquet files are self-contained by default. If your dataset contains [`Image`] or [`Audio`]
+        The resulting Parquet files are self-contained by default. If your dataset contains [`Image`], [`Audio`] or [`Video`]
         data, the Parquet files will store the bytes of your images or audio files.
         You can disable this by setting `embed_external_files` to `False`.
 
@@ -5338,9 +5357,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Additionally, description of the PR if a PR is created (`create_pr` is True).
 
                 <Added version="2.16.0"/>
-            private (`bool`, *optional*, defaults to `False`):
-                Whether the dataset repository should be set to private or not. Only affects repository creation:
-                a repository that already exists will not be affected by that parameter.
+            private (`bool`, *optional*):
+                Whether to make the repo private. If `None` (default), the repo will be public unless the
+                organization's default is private. This value is ignored if the repo already exists.
             token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
                 to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
@@ -5399,6 +5418,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
         ```
         """
+        if "Video(" in str(self.features):
+            raise NotImplementedError(
+                "push_to_hub is not implemented for video datasets, instead you should upload the video files "
+                "using e.g. the huggingface_hub library and optionally upload a metadata.csv or metadata.jsonl "
+                "file containing other information like video captions, features or labels. More information "
+                "at https://huggingface.co/docs/datasets/main/en/video_load#videofolder"
+            )
         if config_name == "data":
             raise ValueError("`config_name` cannot be 'data'. Please, choose another name for configuration.")
 
