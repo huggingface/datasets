@@ -42,9 +42,9 @@ from ..utils import experimental, logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
+from .pdf import Pdf
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video
-from .pdf import Pdf
 
 
 logger = logging.get_logger(__name__)
