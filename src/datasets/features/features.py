@@ -44,6 +44,7 @@ from .audio import Audio
 from .image import Image, encode_pil_image
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video
+from .pdf import Pdf
 
 
 logger = logging.get_logger(__name__)
@@ -1204,6 +1205,7 @@ FeatureType = Union[
     Audio,
     Image,
     Video,
+    Pdf,
 ]
 
 
@@ -1419,6 +1421,7 @@ _FEATURE_TYPES: Dict[str, FeatureType] = {
     Audio.__name__: Audio,
     Image.__name__: Image,
     Video.__name__: Video,
+    Pdf.__name__: Pdf,
 }
 
 
