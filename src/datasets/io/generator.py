@@ -16,6 +16,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
         gen_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
         split: NamedSplit = Split.TRAIN,
+        with_rank: bool = False,
         **kwargs,
     ):
         super().__init__(
@@ -26,6 +27,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             num_proc=num_proc,
             **kwargs,
         )
+        self.with_rank = with_rank
         self.builder = Generator(
             cache_dir=cache_dir,
             features=features,
@@ -52,6 +54,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
                 verification_mode=verification_mode,
                 base_path=base_path,
                 num_proc=self.num_proc,
+                with_rank=self.with_rank,
             )
             dataset = self.builder.as_dataset(
                 split=self.builder.config.split, verification_mode=verification_mode, in_memory=self.keep_in_memory
