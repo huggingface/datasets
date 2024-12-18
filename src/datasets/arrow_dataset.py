@@ -808,7 +808,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         and therefore doesn't have an associated cache directory.
         This may change in the feature, but in the meantime if you
         want to reduce memory usage you should write it back on disk
-        and reload using using e.g. save_to_disk / load_from_disk.
+        and reload using e.g. save_to_disk / load_from_disk.
 
         Args:
             df (`pandas.DataFrame`):
@@ -908,7 +908,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         and therefore doesn't have an associated cache directory.
         This may change in the feature, but in the meantime if you
         want to reduce memory usage you should write it back on disk
-        and reload using using e.g. save_to_disk / load_from_disk.
+        and reload using e.g. save_to_disk / load_from_disk.
 
         Args:
             mapping (`Mapping`):
@@ -973,7 +973,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         and therefore doesn't have an associated cache directory.
         This may change in the feature, but in the meantime if you
         want to reduce memory usage you should write it back on disk
-        and reload using using e.g. save_to_disk / load_from_disk.
+        and reload using e.g. save_to_disk / load_from_disk.
 
         Args:
             mapping (`List[dict]`): A list of mappings of strings to row values.
