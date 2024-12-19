@@ -216,7 +216,7 @@ class Pdf:
         - `pa.struct({"bytes": pa.binary()})`
         - `pa.struct({"path": pa.string()})`
         - `pa.struct({"bytes": pa.binary(), "path": pa.string()})`  - order doesn't matter
-        - `pa.list(*)` - it must contain the image array data
+        - `pa.list(*)` - it must contain the pdf array data
 
         Args:
             storage (`Union[pa.StringArray, pa.StructArray, pa.ListArray]`):
