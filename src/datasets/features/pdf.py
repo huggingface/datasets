@@ -5,8 +5,6 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
 
 import pyarrow as pa
 
-from datasets import config
-
 from .. import config
 from ..download.download_config import DownloadConfig
 from ..table import array_cast
@@ -20,10 +18,18 @@ if TYPE_CHECKING:
     from .features import FeatureType
 
 
+def pdf_to_bytes(pdf: "pdfplumber.pdf.PDF") -> bytes:
+    """Convert a pdfplumber.pdf.PDF object to bytes."""
+    with BytesIO() as buffer:
+        for page in pdf.pages:
+            buffer.write(page.pdf.stream)
+        return buffer.getvalue()
+
+
 @dataclass
 class Pdf:
     """
-    **Experimental.** 
+    **Experimental.**
     Pdf [`Feature`] to read pdf documents from a pdf file.
 
     Input: The Pdf feature accepts as input:
@@ -42,7 +48,7 @@ class Pdf:
             Whether to decode the pdf data. If `False`,
             returns the underlying dictionary in the format `{"path": pdf_path, "bytes": pdf_bytes}`.
 
-    Examples: TODO UPDATE
+    Examples:
 
     ```py
     >>> from datasets import Dataset, Pdf
@@ -57,7 +63,7 @@ class Pdf:
     'path': 'path/to/pdf/file.pdf'}
         ```
     """
-    
+
     decode: bool = True
     id: Optional[str] = None
 
@@ -79,11 +85,10 @@ class Pdf:
         Returns:
             `dict` with "path" and "bytes" fields
         """
-        if config.PDFPLUMBER_AVAILABLE :
+        if config.PDFPLUMBER_AVAILABLE:
             import pdfplumber
         else:
             raise ImportError("To support encoding pdfs, please install 'pdfplumber'.")
-
 
         if isinstance(value, str):
             return {"path": value, "bytes": None}
@@ -104,13 +109,6 @@ class Pdf:
             raise ValueError(
                 f"A pdf sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
             )
-
-    def pdf_to_bytes(pdf: "pdfplumber.pdf.PDF") -> bytes:
-        """Convert a pdfplumber.pdf.PDF object to bytes."""
-        with BytesIO() as buffer:
-            for page in pdf.pages:
-                buffer.write(page.pdf.raw_stream)
-            return buffer.getvalue()
 
     def encode_pdfplumber_pdf(pdf: "pdfplumber.pdf.PDF") -> dict:
         """
@@ -144,8 +142,8 @@ class Pdf:
                 - `bytes`: The bytes of the pdf file.
 
             token_per_repo_id (`dict`, *optional*):
-                To access and decode pdf files from private repositories on 
-                the Hub, you can pass a dictionary 
+                To access and decode pdf files from private repositories on
+                the Hub, you can pass a dictionary
                 repo_id (`str`) -> token (`bool` or `str`).
 
         Returns:
