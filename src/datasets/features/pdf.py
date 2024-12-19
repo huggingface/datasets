@@ -133,7 +133,7 @@ class Pdf:
             # Convert the PDF to bytes if no path is available
             return {"path": None, "bytes": pdf_to_bytes(pdf)}
 
-    def decode_example(self, value: dict, token_per_repo_id=None) -> "PIL.Image.Image":
+    def decode_example(self, value: dict, token_per_repo_id=None) -> "pdfplumber.pdf.PDF":
         """Decode example pdf file into pdf data.
 
         Args:
