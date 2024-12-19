@@ -58,7 +58,6 @@ class Pdf:
         ```
     """
     
-    mode: Optional[str] = None
     decode: bool = True
     id: Optional[str] = None
 
