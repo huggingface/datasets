@@ -241,13 +241,4 @@ class Pdf:
             else:
                 path_array = pa.array([None] * len(storage), type=pa.string())
             storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
-        # elif pa.types.is_list(storage.type):
-        #     bytes_array = pa.array(
-        #         [encode_np_array(np.array(arr))["bytes"] if arr is not None else None for arr in storage.to_pylist()],
-        #         type=pa.binary(),
-        #     )
-        #     path_array = pa.array([None] * len(storage), type=pa.string())
-        #     storage = pa.StructArray.from_arrays(
-        #         [bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null()
-        #     )
         return array_cast(storage, self.pa_type)
