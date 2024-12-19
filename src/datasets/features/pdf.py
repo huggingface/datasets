@@ -103,7 +103,7 @@ class Pdf:
             return {"bytes": value.get("bytes"), "path": value.get("path")}
         else:
             raise ValueError(
-                f"An pdf sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
+                f"A pdf sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
             )
 
     def pdf_to_bytes(pdf: "pdfplumber.pdf.PDF") -> bytes:
