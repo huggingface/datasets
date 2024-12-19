@@ -75,7 +75,7 @@ class Pdf:
 
         Args:
             value (`str`, `bytes`, `pdfplumber.pdf.PDF` or `dict`):
-                Data passed as input to Image feature.
+                Data passed as input to Pdf feature.
 
         Returns:
             `dict` with "path" and "bytes" fields
