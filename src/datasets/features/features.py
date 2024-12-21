@@ -43,6 +43,7 @@ from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
 from .translation import Translation, TranslationVariableLanguages
+from .video import Video
 
 
 logger = logging.get_logger(__name__)
@@ -965,10 +966,10 @@ class ClassLabel:
     Example:
 
     ```py
-    >>> from datasets import Features
+    >>> from datasets import Features, ClassLabel
     >>> features = Features({'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'])})
     >>> features
-    {'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'], id=None)}
+    {'label': ClassLabel(names=['bad', 'ok', 'good'], id=None)}
     ```
     """
 
@@ -1155,7 +1156,7 @@ class Sequence:
     >>> from datasets import Features, Sequence, Value, ClassLabel
     >>> features = Features({'post': Sequence(feature={'text': Value(dtype='string'), 'upvotes': Value(dtype='int32'), 'label': ClassLabel(num_classes=2, names=['hot', 'cold'])})})
     >>> features
-    {'post': Sequence(feature={'text': Value(dtype='string', id=None), 'upvotes': Value(dtype='int32', id=None), 'label': ClassLabel(num_classes=2, names=['hot', 'cold'], id=None)}, length=-1, id=None)}
+    {'post': Sequence(feature={'text': Value(dtype='string', id=None), 'upvotes': Value(dtype='int32', id=None), 'label': ClassLabel(names=['hot', 'cold'], id=None)}, length=-1, id=None)}
     ```
     """
 
@@ -1202,6 +1203,7 @@ FeatureType = Union[
     Array5D,
     Audio,
     Image,
+    Video,
 ]
 
 
@@ -1346,7 +1348,7 @@ def encode_nested_example(schema, obj, level=0):
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, (Audio, Image, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
+    elif hasattr(schema, "encode_example"):
         return schema.encode_example(obj) if obj is not None else None
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
     return obj
@@ -1397,10 +1399,9 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
         else:
             return decode_nested_example([schema.feature], obj)
     # Object with special decoding:
-    elif isinstance(schema, (Audio, Image)):
+    elif hasattr(schema, "decode_example") and getattr(schema, "decode", True):
         # we pass the token to read and decode files from private repositories in streaming mode
-        if obj is not None and schema.decode:
-            return schema.decode_example(obj, token_per_repo_id=token_per_repo_id)
+        return schema.decode_example(obj, token_per_repo_id=token_per_repo_id) if obj is not None else None
     return obj
 
 
@@ -1417,6 +1418,7 @@ _FEATURE_TYPES: Dict[str, FeatureType] = {
     Array5D.__name__: Array5D,
     Audio.__name__: Audio,
     Image.__name__: Image,
+    Video.__name__: Video,
 }
 
 
@@ -1626,7 +1628,9 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
     elif isinstance(feature, Sequence):
         return require_decoding(feature.feature)
     else:
-        return hasattr(feature, "decode_example") and (feature.decode if not ignore_decode_attribute else True)
+        return hasattr(feature, "decode_example") and (
+            getattr(feature, "decode", True) if not ignore_decode_attribute else True
+        )
 
 
 def require_storage_cast(feature: FeatureType) -> bool:
@@ -2106,7 +2110,7 @@ class Features(dict):
         >>> ds = load_dataset("rotten_tomatoes", split="train")
         >>> copy_of_features = ds.features.copy()
         >>> copy_of_features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         ```
         """

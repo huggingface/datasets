@@ -17,10 +17,10 @@ This guide focuses on the 🤗 Datasets cache and will show you how to:
 
 ## Cache directory
 
-The default 🤗 Datasets cache directory is `~/.cache/huggingface/datasets`. Change the cache location by setting the shell environment variable, `HF_DATASETS_CACHE` to another directory:
+The default 🤗 Datasets cache directory is `~/.cache/huggingface/datasets`. Change the cache location by setting the shell environment variable, `HF_HOME` to another directory:
 
 ```
-$ export HF_DATASETS_CACHE="/path/to/another/directory/datasets"
+$ export HF_HOME="/path/to/another/directory/datasets"
 ```
 
 When you load a dataset, you also have the option to change where the data is cached. Change the `cache_dir` parameter to the path you want:

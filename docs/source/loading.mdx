@@ -11,7 +11,7 @@ This guide will show you how to load a dataset from:
 - A specific slice of a split
 - Local loading script (legacy)
 
-For more details specific to loading other dataset modalities, take a look at the <a class="underline decoration-pink-400 decoration-2 font-semibold" href="./audio_load">load audio dataset guide</a>, the <a class="underline decoration-yellow-400 decoration-2 font-semibold" href="./image_load">load image dataset guide</a>, or the <a class="underline decoration-green-400 decoration-2 font-semibold" href="./nlp_load">load text dataset guide</a>.
+For more details specific to loading other dataset modalities, take a look at the <a class="underline decoration-pink-400 decoration-2 font-semibold" href="./audio_load">load audio dataset guide</a>, the <a class="underline decoration-yellow-400 decoration-2 font-semibold" href="./image_load">load image dataset guide</a>, the <a class="underline decoration-blue-400 decoration-2 font-semibold" href="./video_load">load video dataset guide</a>, or the <a class="underline decoration-green-400 decoration-2 font-semibold" href="./nlp_load">load text dataset guide</a>.
 
 <a id='load-from-the-hub'></a>
 
@@ -435,7 +435,7 @@ Now when you look at your dataset features, you can see it uses the custom label
 ```py
 >>> dataset['train'].features
 {'text': Value(dtype='string', id=None),
-'label': ClassLabel(num_classes=6, names=['sadness', 'joy', 'love', 'anger', 'fear', 'surprise'], names_file=None, id=None)}
+'label': ClassLabel(names=['sadness', 'joy', 'love', 'anger', 'fear', 'surprise'], id=None)}
 ```
 
 ## (Legacy) Local loading script

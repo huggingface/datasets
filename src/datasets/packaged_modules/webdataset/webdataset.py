@@ -1,5 +1,6 @@
 import io
 import json
+import re
 from itertools import islice
 from typing import Any, Callable, Dict, List
 
@@ -19,6 +20,7 @@ class WebDataset(datasets.GeneratorBasedBuilder):
     DEFAULT_WRITER_BATCH_SIZE = 100
     IMAGE_EXTENSIONS: List[str]  # definition at the bottom of the script
     AUDIO_EXTENSIONS: List[str]  # definition at the bottom of the script
+    VIDEO_EXTENSIONS: List[str]  # definition at the bottom of the script
     DECODERS: Dict[str, Callable[[Any], Any]]  # definition at the bottom of the script
     NUM_EXAMPLES_FOR_FEATURES_INFERENCE = 5
 
@@ -28,25 +30,26 @@ class WebDataset(datasets.GeneratorBasedBuilder):
         fs: fsspec.AbstractFileSystem = fsspec.filesystem("memory")
         streaming_download_manager = datasets.StreamingDownloadManager()
         for filename, f in tar_iterator:
-            if "." in filename:
-                example_key, field_name = filename.split(".", 1)
-                if current_example and current_example["__key__"] != example_key:
-                    yield current_example
-                    current_example = {}
-                current_example["__key__"] = example_key
-                current_example["__url__"] = tar_path
-                current_example[field_name.lower()] = f.read()
-                if field_name.split(".")[-1] in SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL:
-                    fs.write_bytes(filename, current_example[field_name.lower()])
-                    extracted_file_path = streaming_download_manager.extract(f"memory://{filename}")
-                    with fsspec.open(extracted_file_path) as f:
-                        current_example[field_name.lower()] = f.read()
-                    fs.delete(filename)
-                    data_extension = xbasename(extracted_file_path).split(".")[-1]
-                else:
-                    data_extension = field_name.split(".")[-1]
-                if data_extension in cls.DECODERS:
-                    current_example[field_name] = cls.DECODERS[data_extension](current_example[field_name])
+            example_key, field_name = base_plus_ext(filename)
+            if example_key is None:
+                continue
+            if current_example and current_example["__key__"] != example_key:
+                yield current_example
+                current_example = {}
+            current_example["__key__"] = example_key
+            current_example["__url__"] = tar_path
+            current_example[field_name.lower()] = f.read()
+            if field_name.split(".")[-1] in SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL:
+                fs.write_bytes(filename, current_example[field_name.lower()])
+                extracted_file_path = streaming_download_manager.extract(f"memory://{filename}")
+                with fsspec.open(extracted_file_path) as f:
+                    current_example[field_name.lower()] = f.read()
+                fs.delete(filename)
+                data_extension = xbasename(extracted_file_path).split(".")[-1]
+            else:
+                data_extension = field_name.split(".")[-1]
+            if data_extension in cls.DECODERS:
+                current_example[field_name] = cls.DECODERS[data_extension](current_example[field_name])
         if current_example:
             yield current_example
 
@@ -95,6 +98,11 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                 extension = field_name.rsplit(".", 1)[-1]
                 if extension in self.AUDIO_EXTENSIONS:
                     features[field_name] = datasets.Audio()
+            # Set Video types
+            for field_name in first_examples[0]:
+                extension = field_name.rsplit(".", 1)[-1]
+                if extension in self.VIDEO_EXTENSIONS:
+                    features[field_name] = datasets.Video()
             self.info.features = features
 
         return splits
@@ -119,6 +127,18 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                             "bytes": example[field_name],
                         }
                 yield f"{tar_idx}_{example_idx}", example
+
+
+# Source: https://github.com/webdataset/webdataset/blob/87bd5aa41602d57f070f65a670893ee625702f2f/webdataset/tariterators.py#L25
+def base_plus_ext(path):
+    """Split off all file extensions.
+
+    Returns base, allext.
+    """
+    match = re.match(r"^((?:.*/|)[^.]+)[.]([^/]*)$", path)
+    if not match:
+        return None, None
+    return match.group(1), match.group(2)
 
 
 # Obtained with:
@@ -243,6 +263,17 @@ AUDIO_EXTENSIONS = [
     "opus",
 ]
 WebDataset.AUDIO_EXTENSIONS = AUDIO_EXTENSIONS
+
+
+# TODO: initial list, we should check the compatibility of other formats
+VIDEO_EXTENSIONS = [
+    ".mkv",
+    ".mp4",
+    ".avi",
+    ".mpeg",
+    ".mov",
+]
+WebDataset.VIDEO_EXTENSIONS = VIDEO_EXTENSIONS
 
 
 def text_loads(data: bytes):

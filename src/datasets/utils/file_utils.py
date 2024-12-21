@@ -282,14 +282,10 @@ def get_authentication_headers_for_url(url: str, token: Optional[Union[str, bool
         return {}
 
 
-class OfflineModeIsEnabled(ConnectionError):
-    pass
-
-
 def _raise_if_offline_mode_is_enabled(msg: Optional[str] = None):
     """Raise an OfflineModeIsEnabled error (subclass of ConnectionError) if HF_HUB_OFFLINE is True."""
     if config.HF_HUB_OFFLINE:
-        raise OfflineModeIsEnabled(
+        raise huggingface_hub.errors.OfflineModeIsEnabled(
             "Offline mode is enabled." if msg is None else "Offline mode is enabled. " + str(msg)
         )
 
@@ -480,6 +476,7 @@ BASE_KNOWN_EXTENSIONS = [
     "pickle",
     "rel",
     "xml",
+    "arrow",
 ]
 COMPRESSION_EXTENSION_TO_PROTOCOL = {
     # single file compression
@@ -831,8 +828,8 @@ def _add_retries_to_file_obj_read_method(file_obj):
             except (
                 aiohttp.client_exceptions.ClientError,
                 asyncio.TimeoutError,
-                requests.exceptions.ConnectTimeout,
                 requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout,
             ) as err:
                 disconnect_err = err
                 logger.warning(
