@@ -6343,3 +6343,93 @@ def get_indices_from_mask_function(
         indices_array = indices_mapping.column(0).take(indices_array)
         indices_array = indices_array.to_pylist()
     return {"indices": indices_array}
+
+
+def _stack_map_style_datasets(
+    datasets: Dict[str, "Dataset"],
+    info: Optional[DatasetInfo] = None,
+    split: Optional[NamedSplit] = None,
+    stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+) -> "Dataset":
+    """
+    Stack several map-style datasets (sources) into a single map-style dataset.
+    The new dataset is constructed by combining examples from each source dataset into a single example.
+
+    Args:
+        datasets (`Dict[str, Dataset]`): Dictionary of datasets to stack.
+        probabilities (`List[float]`, optional, default None): If specified, the new dataset is constructed by sampling
+            examples from one source at a time according to these probabilities.
+        info ([`DatasetInfo`], *optional*, defaults to `None`):
+            Dataset information, like description, citation, etc.
+        split ([`NamedSplit`], *optional*, defaults to `None`):
+            Name of the dataset split.
+        stopping_strategy (`Literal["first_exhausted", "all_exhausted"]`, *optional*, defaults to `first_exhausted`):
+            If undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted.
+            If oversampling ("all_exhausted"), we stop as soon as every dataset is exhausted,
+            i.e as soon as every samples of every dataset has been visited at least once.
+            "all_exhausted" means that the examples of smaller datasets may be visited multiple times.
+
+    Returns:
+        [`Dataset`]: A [`Dataset`] that returns examples where each example is a dictionary
+            with keys corresponding to the keys of the input dictionary of datasets, and values corresponding
+            to the examples of the respective dataset.
+    """
+    if stopping_strategy not in ["first_exhausted", "all_exhausted"]:
+        raise ValueError(
+            f"{stopping_strategy} stopping strategy in `stack_datasets` is not implemented yet with a dict of {type(next(iter(datasets.values())))}"
+        )
+
+    if any(dataset.num_rows > 0 for dataset in datasets.values()):
+        datasets = {name: dataset for name, dataset in datasets.items() if dataset.num_rows > 0}
+    else:
+        # Return first dataset if all datasets are empty
+        return next(iter(datasets.values()))
+
+    # the strategy is: 1. pad or truncate -> 2. join by concatenating along axis=1 -> 3. nest the columns (stacking)
+
+    d2len = {name: len(dataset) for name, dataset in datasets.items()}
+    if stopping_strategy == "first_exhausted":  # truncate all datasets to the length of the shortest one
+        min_len = min(d2len.values())
+        indices = range(min_len)
+        datasets = {name: dataset.select(indices) for name, dataset in datasets.items()}
+    else:  # "all_exhausted" -> "pad" all datasets to the length of the longest one
+        max_len = max(d2len.values())
+        for name in list(datasets.keys()):
+            dataset = datasets[name]
+            rows_remaining = max_len - d2len[name]
+            if rows_remaining == 0:
+                continue
+            n_repreat = max_len // d2len[name]
+            extra_rows = max_len % d2len[name]
+            to_concat = [dataset] * n_repreat
+            if extra_rows != 0:
+                to_concat.append(dataset.select(range(extra_rows)))
+            datasets[name] = _concatenate_map_style_datasets(
+                to_concat, info=dataset.info, split=dataset.split
+            )  # concat it with itself
+
+    # rename columns to avoid conflicts and to later distinguish the source (dataset) of each column
+    for name in list(datasets.keys()):
+        dataset = datasets[name]
+        datasets[name] = dataset.rename_columns({k: f"{name}.{k}" for k in dataset.column_names})
+
+    # create a joint dataset with all columns -> the columns will be named "dataset_name.column_name", so the structure is flattened
+    concatenated_dataset = _concatenate_map_style_datasets(list(datasets.values()), info=info, split=split, axis=1)
+
+    def structure_example(example):  # here we nest the columns again -> this gives us the stacked structure
+        """
+        ```python
+        >>> example = {"dataset1.column1": 1, "dataset2.column2": {'a': 1, 'b': 2}}
+        >>> structure_example(example) == {"dataset1": {"column1": 1}, "dataset2": {"column2": {'a': 1, 'b': 2}}}
+        ```
+        """
+        new_example = {name: {} for name in datasets.keys()}
+        for key, value in example.items():
+            # key.split(".", 1): "dataset_name.column_name" -> ("dataset_name", "column_name"),
+            #   "dataset_name.column_name.etc" -> ("dataset_name", "column_name.etc")
+            key_dataset, key_actual = key.split(".", 1)
+            new_example[key_dataset][key_actual] = value
+        return new_example
+
+    # because we generated new columns, we need to remove the old ones -> "remove_columns=concatenated_dataset.column_names"
+    return concatenated_dataset.map(structure_example, remove_columns=concatenated_dataset.column_names)
