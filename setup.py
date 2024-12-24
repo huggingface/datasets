@@ -130,8 +130,6 @@ REQUIRED_PKGS = [
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
     "fsspec[http]>=2023.1.0,<=2024.9.0",
-    # for data streaming via http
-    "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface-hub>=0.23.0",
     # Utilities from PyPA to e.g., compare versions
