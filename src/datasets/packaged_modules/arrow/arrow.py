@@ -65,7 +65,7 @@ class Arrow(datasets.ArrowBasedBuilder):
                 try:
                     try:
                         batches = pa.ipc.open_stream(f)
-                    except pa.lib.ArrowInvalid:
+                    except (OSError, pa.lib.ArrowInvalid):
                         reader = pa.ipc.open_file(f)
                         batches = (reader.get_batch(i) for i in range(reader.num_record_batches))
                     for batch_idx, record_batch in enumerate(batches):
