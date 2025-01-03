@@ -34,6 +34,9 @@ class WebDataset(datasets.GeneratorBasedBuilder):
             if example_key is None:
                 continue
             if current_example and current_example["__key__"] != example_key:
+                # reposition some keys in last position
+                current_example["__key__"] = current_example.pop("__key__")
+                current_example["__url__"] = current_example.pop("__url__")
                 yield current_example
                 current_example = {}
             current_example["__key__"] = example_key
