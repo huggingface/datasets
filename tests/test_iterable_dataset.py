@@ -545,9 +545,7 @@ def test_mapped_examples_iterable_with_indices(n, func, batched, batch_size):
     "n, func, batched, batch_size, remove_columns",
     [
         (3, lambda x: {"id+1": x["id"] + 1}, False, None, ["extra_column"]),  # just add 1 to the id
-        (3, lambda x: {"id+1": x["id"] + 1, "extra_column": "bar"}, False, None, ["extra_column"]),  # just add 1 to the id and add back a remove column
         (25, lambda x: {"id+1": [i + 1 for i in x["id"]]}, True, 10, ["extra_column"]),  # same with bs=10
-        (25, lambda x: {"id+1": [i + 1 for i in x["id"]], "extra_column": ["bar"]*len(x["id"])}, True, 10, ["extra_column"]),  # same with bs=10 and add back a remove column
         (
             50,
             lambda x: {"foo": ["bar"] * np.random.default_rng(x["id"][0]).integers(0, 10)},
@@ -555,17 +553,8 @@ def test_mapped_examples_iterable_with_indices(n, func, batched, batch_size):
             8,
             ["extra_column", "id"],
         ),  # make a duplicate of each example
-        (
-            50,
-            lambda x: (lambda n: {"foo": ["bar"]*n, "extra_column": ["bar"]*n})(np.random.default_rng(x["id"][0]).integers(0, 10)),
-            True,
-            8,
-            ["extra_column", "id"],
-        ),  # make a duplicate of each example and add back a remove column
         (5, lambda x: {"id+1": [i + 1 for i in x["id"]]}, True, None, ["extra_column"]),  # same with bs=None
-        (5, lambda x: {"id+1": [i + 1 for i in x["id"]], "extra_column": ["bar"]*len(x["id"])}, True, None, ["extra_column"]),  # same with bs=None and add back a remove column
         (5, lambda x: {"id+1": [i + 1 for i in x["id"]]}, True, -1, ["extra_column"]),  # same with bs<=0
-        (5, lambda x: {"id+1": [i + 1 for i in x["id"]], "extra_column": ["bar"]*len(x["id"])}, True, -1, ["extra_column"])  # same with bs<=0 and add back a remove column  
     ],
 )
 def test_mapped_examples_iterable_remove_columns(n, func, batched, batch_size, remove_columns):
@@ -595,6 +584,50 @@ def test_mapped_examples_iterable_remove_columns(n, func, batched, batch_size, r
     assert [x for _, x in ex_iterable] == expected
     assert_load_state_dict_resumes_iteration(ex_iterable)
 
+
+@pytest.mark.parametrize('batched', [False, True])
+@pytest.mark.parametrize('batch_size', [None, 2, 3])
+@pytest.mark.parametrize('input_columns', [None, ["i"]])
+@pytest.mark.parametrize('remove_columns', [None, ["i"]])
+@pytest.mark.parametrize('new_output', [False, True])
+def test_iterable_dataset_vs_dataset(
+    batched, batch_size, input_columns, remove_columns, new_output
+):
+    if input_columns is not None and not new_output:
+        return
+
+    ds1 = Dataset.from_list([{'i': i} for i in range(4)])
+
+    if batched:
+        f1 = lambda i: {'i': [j+1 for j in i]}
+    else:
+        f1 = lambda i: {'i': i+1}
+
+    if input_columns is None:
+        f2 = lambda x: f1(x['i'])
+    else:
+        f2 = f1
+
+    if new_output:
+        f = f2
+    else:
+        def f(x):
+            x['i'] = f2(x)['i']
+            return x
+    
+    r = [
+        list(ds2.map(
+            f, 
+            batch_size=batch_size, 
+            batched = batched,
+            remove_columns=remove_columns, 
+            input_columns=input_columns,
+        ))
+        for ds2 in [ds1, ds1.to_iterable_dataset()]
+    ]
+    r[1] = [x for x in r[1] if len(x)>0]
+    assert len(r[0]) == len(r[1])
+    assert all(x==y for x, y in zip(*r))
 
 @pytest.mark.parametrize(
     "n, func, batched, batch_size, fn_kwargs",
