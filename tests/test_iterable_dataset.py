@@ -591,7 +591,7 @@ def test_mapped_examples_iterable_remove_columns(n, func, batched, batch_size, r
 @pytest.mark.parametrize('input_columns', [None, ["i"]])
 @pytest.mark.parametrize('remove_columns', [None, ["i"]])
 @pytest.mark.parametrize('new_output', [False, True])
-def test_iterable_dataset_vs_dataset(
+def test_iterable_dataset_vs_dataset_map(
     batched, batch_size, input_columns, remove_columns, new_output
 ):
     if input_columns is not None and not new_output:
