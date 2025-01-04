@@ -545,7 +545,9 @@ def test_mapped_examples_iterable_with_indices(n, func, batched, batch_size):
     "n, func, batched, batch_size, remove_columns",
     [
         (3, lambda x: {"id+1": x["id"] + 1}, False, None, ["extra_column"]),  # just add 1 to the id
+        (3, lambda x: {"id+1": x["id"] + 1, "extra_column": "bar"}, False, None, ["extra_column"]),  # just add 1 to the id and add back a remove column
         (25, lambda x: {"id+1": [i + 1 for i in x["id"]]}, True, 10, ["extra_column"]),  # same with bs=10
+        (25, lambda x: {"id+1": [i + 1 for i in x["id"]], "extra_column": ["bar"]*len(x["id"])}, True, 10, ["extra_column"]),  # same with bs=10 and add back a remove column
         (
             50,
             lambda x: {"foo": ["bar"] * np.random.default_rng(x["id"][0]).integers(0, 10)},
@@ -553,8 +555,17 @@ def test_mapped_examples_iterable_with_indices(n, func, batched, batch_size):
             8,
             ["extra_column", "id"],
         ),  # make a duplicate of each example
+        (
+            50,
+            lambda x: (lambda n: {"foo": ["bar"]*n, "extra_column": ["bar"]*n})(np.random.default_rng(x["id"][0]).integers(0, 10)),
+            True,
+            8,
+            ["extra_column", "id"],
+        ),  # make a duplicate of each example and add back a remove column
         (5, lambda x: {"id+1": [i + 1 for i in x["id"]]}, True, None, ["extra_column"]),  # same with bs=None
+        (5, lambda x: {"id+1": [i + 1 for i in x["id"]], "extra_column": ["bar"]*len(x["id"])}, True, None, ["extra_column"]),  # same with bs=None and add back a remove column
         (5, lambda x: {"id+1": [i + 1 for i in x["id"]]}, True, -1, ["extra_column"]),  # same with bs<=0
+        (5, lambda x: {"id+1": [i + 1 for i in x["id"]], "extra_column": ["bar"]*len(x["id"])}, True, -1, ["extra_column"])  # same with bs<=0 and add back a remove column  
     ],
 )
 def test_mapped_examples_iterable_remove_columns(n, func, batched, batch_size, remove_columns):

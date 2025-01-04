@@ -1045,11 +1045,11 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 if self.with_indices:
                     function_args.append([current_idx + i for i in range(len(key_examples_list))])
                 transformed_batch = dict(batch)  # this will be updated with the function output
-                transformed_batch.update(self.function(*function_args, **self.fn_kwargs))
-                # then remove the unwanted columns
+                # remove the unwanted columns
                 if self.remove_columns:
                     for c in self.remove_columns:
                         del transformed_batch[c]
+                transformed_batch.update(self.function(*function_args, **self.fn_kwargs))
                 if transformed_batch:
                     first_col = next(iter(transformed_batch))
                     bad_cols = [
@@ -1088,11 +1088,11 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 if self.with_indices:
                     function_args.append(current_idx)
                 transformed_example = dict(example)  # this will be updated with the function output
-                transformed_example.update(self.function(*function_args, **self.fn_kwargs))
-                # then we remove the unwanted columns
+                # remove the unwanted columns
                 if self.remove_columns:
                     for c in self.remove_columns:
                         del transformed_example[c]
+                transformed_example.update(self.function(*function_args, **self.fn_kwargs))
                 current_idx += 1
                 if self._state_dict:
                     self._state_dict["previous_state_example_idx"] += 1
