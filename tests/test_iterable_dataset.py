@@ -585,6 +585,7 @@ def test_mapped_examples_iterable_remove_columns(n, func, batched, batch_size, r
     assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
+# issue #7345 and PR #7353
 @pytest.mark.parametrize('batched', [False, True])
 @pytest.mark.parametrize('batch_size', [None, 2, 3])
 @pytest.mark.parametrize('input_columns', [None, ["i"]])
