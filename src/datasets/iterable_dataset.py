@@ -79,7 +79,7 @@ def _examples_to_batch(examples: List[Dict[str, Any]]) -> Dict[str, list]:
 
 def _batch_to_examples(batch: Dict[str, list]) -> Iterator[Dict[str, Any]]:
     """Convert a batch (dict of examples) to examples list"""
-    n_examples = 0 if len(batch)==0 else len(batch[next(iter(batch))])    
+    n_examples = 0 if len(batch) == 0 else len(batch[next(iter(batch))])
     for i in range(n_examples):
         yield {col: array[i] for col, array in batch.items()}
 
