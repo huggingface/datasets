@@ -16,12 +16,12 @@
 """Utilities to handle file locking in `datasets`."""
 
 import os
+from pathlib import Path
 
 from filelock import FileLock as FileLock_
 from filelock import UnixFileLock
 from filelock import __version__ as _filelock_version
 from packaging import version
-from pathlib import Path
 
 
 class FileLock(FileLock_):
