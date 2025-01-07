@@ -1098,7 +1098,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     for c in self.remove_columns:
                         if c in inputs_to_merge:
                             del inputs_to_merge[c]
-                        if processed_inputs == inputs and c in processed_inputs:
+                        if processed_inputs is inputs and c in processed_inputs:
                             del processed_inputs[c]
                 transformed_example = {**inputs_to_merge, **processed_inputs}
                 current_idx += 1
