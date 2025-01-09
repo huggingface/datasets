@@ -221,7 +221,7 @@ def generate_fingerprint(dataset: "Dataset") -> str:
 
 
 def generate_random_fingerprint(nbits: int = 64) -> str:
-    return f"{fingerprint_rng.getrandbits(nbits):0{nbits//4}x}"
+    return f"{fingerprint_rng.getrandbits(nbits):0{nbits // 4}x}"
 
 
 def update_fingerprint(fingerprint, transform, transform_args):
