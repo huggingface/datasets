@@ -1146,9 +1146,9 @@ def test_skip_examples_iterable():
     skip_ex_iterable = SkipExamplesIterable(base_ex_iterable, n=count)
     expected = list(generate_examples_fn(n=total))[count:]
     assert list(skip_ex_iterable) == expected
-    assert (
-        skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is skip_ex_iterable
-    ), "skip examples makes the shards order fixed"
+    assert skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is skip_ex_iterable, (
+        "skip examples makes the shards order fixed"
+    )
     assert_load_state_dict_resumes_iteration(skip_ex_iterable)
 
 
@@ -1158,9 +1158,9 @@ def test_take_examples_iterable():
     take_ex_iterable = TakeExamplesIterable(base_ex_iterable, n=count)
     expected = list(generate_examples_fn(n=total))[:count]
     assert list(take_ex_iterable) == expected
-    assert (
-        take_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is take_ex_iterable
-    ), "skip examples makes the shards order fixed"
+    assert take_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is take_ex_iterable, (
+        "skip examples makes the shards order fixed"
+    )
     assert_load_state_dict_resumes_iteration(take_ex_iterable)
 
 
@@ -1208,9 +1208,9 @@ def test_horizontally_concatenated_examples_iterable():
     concatenated_ex_iterable = HorizontallyConcatenatedMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
     expected = [{**x, **y} for (_, x), (_, y) in zip(ex_iterable1, ex_iterable2)]
     assert [x for _, x in concatenated_ex_iterable] == expected
-    assert (
-        concatenated_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is concatenated_ex_iterable
-    ), "horizontally concatenated examples makes the shards order fixed"
+    assert concatenated_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is concatenated_ex_iterable, (
+        "horizontally concatenated examples makes the shards order fixed"
+    )
     assert_load_state_dict_resumes_iteration(concatenated_ex_iterable)
 
 
@@ -2270,7 +2270,7 @@ def test_iterable_dataset_batch():
         assert len(batch["id"]) == 3
         assert len(batch["text"]) == 3
         assert batch["id"] == [3 * i, 3 * i + 1, 3 * i + 2]
-        assert batch["text"] == [f"Text {3*i}", f"Text {3*i+1}", f"Text {3*i+2}"]
+        assert batch["text"] == [f"Text {3 * i}", f"Text {3 * i + 1}", f"Text {3 * i + 2}"]
 
     # Check last partial batch
     assert len(batches[3]["id"]) == 1
@@ -2287,7 +2287,7 @@ def test_iterable_dataset_batch():
         assert len(batch["id"]) == 3
         assert len(batch["text"]) == 3
         assert batch["id"] == [3 * i, 3 * i + 1, 3 * i + 2]
-        assert batch["text"] == [f"Text {3*i}", f"Text {3*i+1}", f"Text {3*i+2}"]
+        assert batch["text"] == [f"Text {3 * i}", f"Text {3 * i + 1}", f"Text {3 * i + 2}"]
 
     # Test with batch_size=4 (doesn't evenly divide dataset size)
     batched_ds = ds.batch(batch_size=4, drop_last_batch=False)
@@ -2298,7 +2298,7 @@ def test_iterable_dataset_batch():
         assert len(batch["id"]) == 4
         assert len(batch["text"]) == 4
         assert batch["id"] == [4 * i, 4 * i + 1, 4 * i + 2, 4 * i + 3]
-        assert batch["text"] == [f"Text {4*i}", f"Text {4*i+1}", f"Text {4*i+2}", f"Text {4*i+3}"]
+        assert batch["text"] == [f"Text {4 * i}", f"Text {4 * i + 1}", f"Text {4 * i + 2}", f"Text {4 * i + 3}"]
 
     # Check last partial batch
     assert len(batches[2]["id"]) == 2

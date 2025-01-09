@@ -81,11 +81,11 @@ def stratified_shuffle_split_generate_indices(y, n_train, n_test, rng, n_splits=
         raise ValueError("Minimum class count error")
     if n_train < n_classes:
         raise ValueError(
-            "The train_size = %d should be greater or " "equal to the number of classes = %d" % (n_train, n_classes)
+            "The train_size = %d should be greater or equal to the number of classes = %d" % (n_train, n_classes)
         )
     if n_test < n_classes:
         raise ValueError(
-            "The test_size = %d should be greater or " "equal to the number of classes = %d" % (n_test, n_classes)
+            "The test_size = %d should be greater or equal to the number of classes = %d" % (n_test, n_classes)
         )
     class_indices = np.split(np.argsort(y_indices, kind="mergesort"), np.cumsum(class_counts)[:-1])
     for _ in range(n_splits):

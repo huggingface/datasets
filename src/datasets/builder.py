@@ -1114,7 +1114,7 @@ class DatasetBuilder:
                 "datasets.load_dataset() before trying to access the Dataset object."
             )
 
-        logger.debug(f'Constructing Dataset for split {split or ", ".join(self.info.splits)}, from {self._output_dir}')
+        logger.debug(f"Constructing Dataset for split {split or ', '.join(self.info.splits)}, from {self._output_dir}")
 
         # By default, return all splits
         if split is None:
@@ -1528,9 +1528,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
                             # the content is the number of examples progress update
                             pbar.update(content)
 
-            assert (
-                None not in examples_per_job
-            ), f"Failed to retrieve results from prepare_split: result list {examples_per_job} still contains None - at least one worker failed to return its results"
+            assert None not in examples_per_job, (
+                f"Failed to retrieve results from prepare_split: result list {examples_per_job} still contains None - at least one worker failed to return its results"
+            )
 
         total_shards = sum(shards_per_job)
         total_num_examples = sum(examples_per_job)
@@ -1783,9 +1783,9 @@ class ArrowBasedBuilder(DatasetBuilder):
                             # the content is the number of examples progress update
                             pbar.update(content)
 
-            assert (
-                None not in examples_per_job
-            ), f"Failed to retrieve results from prepare_split: result list {examples_per_job} still contains None - at least one worker failed to return its results"
+            assert None not in examples_per_job, (
+                f"Failed to retrieve results from prepare_split: result list {examples_per_job} still contains None - at least one worker failed to return its results"
+            )
 
         total_shards = sum(shards_per_job)
         total_num_examples = sum(examples_per_job)
