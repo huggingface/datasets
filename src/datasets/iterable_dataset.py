@@ -3000,7 +3000,7 @@ class IterableDataset(DatasetInfoMixin):
     def _resolve_features(self):
         if self.features is not None:
             return self
-        elif isinstance(self._ex_iterable, TypedExamplesIterable):
+        if isinstance(self._ex_iterable, TypedExamplesIterable):
             features = self._ex_iterable.features
         else:
             features = _infer_features_from_batch(self.with_format(None)._head())
