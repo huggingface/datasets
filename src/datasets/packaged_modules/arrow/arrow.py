@@ -45,7 +45,7 @@ class Arrow(datasets.ArrowBasedBuilder):
                     with open(file, "rb") as f:
                         try:
                             reader = pa.ipc.open_stream(f)
-                        except pa.lib.ArrowInvalid:
+                        except (OSError, pa.lib.ArrowInvalid):
                             reader = pa.ipc.open_file(f)
                     self.info.features = datasets.Features.from_arrow_schema(reader.schema)
                     break
