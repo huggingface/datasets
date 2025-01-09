@@ -1,6 +1,7 @@
 import copy
 import itertools
 import sys
+import warnings
 from collections import Counter
 from copy import deepcopy
 from dataclasses import dataclass
@@ -1728,6 +1729,132 @@ class TypedExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.num_shards
 
 
+class StackedMultiSourcesExamplesIterable(_BaseExamplesIterable):
+    def __init__(
+        self,
+        ex_iterables: Dict[str, _BaseExamplesIterable],
+        stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+    ):
+        """
+        A meta-iterable that combines examples from multiple example iterables into a single example.
+
+        Args:
+            ex_iterables (`Dict[str, _BaseExamplesIterable]`): The iterable datasets to combine examples from.
+                Each example returned by the meta-iterable will be a dictionary with keys corresponding to the keys of this dictionary.
+
+            stopping_strategy (`Literal["first_exhausted", "all_exhausted"]`, *optional*, defaults to `first_exhausted`):
+                If undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted.
+                If oversampling ("all_exhausted"), we stop as soon as every dataset is exhausted,
+                i.e as soon as every samples of every dataset has been visited at least once.
+                "all_exhausted" means that iterators with fewer samples will be reinitialized in the process, so
+                some samples of those iterators may be visited multiple times.
+        """
+
+        super().__init__()
+        self.ex_iterables = ex_iterables
+        self.stopping_strategy = stopping_strategy
+
+        # if undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted
+        # if oversampling ("all_exhausted"), we stop as soon as every dataset is exhausted,
+        #   i.e as soon as every samples of every dataset has been visited at least once
+        self.bool_strategy_func = np.all if (stopping_strategy == "all_exhausted") else np.any
+
+    @property
+    def is_typed(self):
+        return all(ex_iterable.is_typed for ex_iterable in self.ex_iterables.values())
+
+    def _init_state_dict(self) -> dict:
+        self._state_dict = {
+            "ex_iterables": {name: ex_iterable._init_state_dict() for name, ex_iterable in self.ex_iterables.items()},
+            "previous_states": {name: None for name in self.ex_iterables.keys()},
+            "is_exhausted": {name: False for name in self.ex_iterables.keys()},
+        }
+        return self._state_dict
+
+    def __iter__(self):
+        if self._state_dict:
+            is_exhausted = {}
+            for name in self.ex_iterables.keys():
+                if self._state_dict["previous_states"][name] is not None:
+                    self.ex_iterables[name].load_state_dict(self._state_dict["previous_states"][name])
+                is_exhausted[name] = self._state_dict["is_exhausted"][name]
+        else:
+            is_exhausted = {name: False for name in self.ex_iterables.keys()}
+
+        iterators = {name: iter(ex_iterable) for name, ex_iterable in self.ex_iterables.items()}
+        # we use this to buffer one example of each iterator to know if an iterator is exhausted
+        nexts = {}
+        empty_iterators = []
+        for name in self.ex_iterables.keys():
+            nexts[name] = next(iterators[name], False)
+            if nexts[name] is False:
+                empty_iterators.append(name)
+
+        if empty_iterators:
+            warnings.warn(
+                f"Iteration stopped because the sub-iterators {empty_iterators} are empty. "
+                f"Please remove keys {empty_iterators} from the dictionary of Iterators to combine "
+                f"examples from the remaining iterators, and check that sub-iterators {empty_iterators} "
+                f"actually returns examples."
+            )
+            return
+
+        while True:
+            example_dict = {}  # this is the example that will be yielded
+            keys = []
+            # if the stopping criteria is met, break the main for loop
+            if self.bool_strategy_func(list(is_exhausted.values())):
+                break
+
+            for name in list(iterators.keys()):  # everytime we want a new example, we grab one from each iterator
+                result = nexts[name]
+                nexts[name] = next(iterators[name], False)  # refill the buffer
+                if self._state_dict:
+                    self._state_dict["previous_states"][name] = deepcopy(self._state_dict["ex_iterables"][name])
+
+                # the iterator is exhausted
+                if nexts[name] is False:
+                    is_exhausted[name] = True
+                    # we reset the iterator preliminarily, the stopping criteria will be
+                    #   checked at the beginning of the next iterator or the next example
+                    if self._state_dict:
+                        self._state_dict["ex_iterables"][name] = self.ex_iterables[name]._init_state_dict()
+                        self._state_dict["previous_states"][name] = None
+                        self._state_dict["is_exhausted"][name] = True
+                    iterators[name] = iter(self.ex_iterables[name])
+                    # noew refill the buffer with the first element
+                    # will never fail because at this point we know the iterator is not empty
+                    nexts[name] = next(iterators[name])
+
+                key, example = result
+                keys.append(key)
+                example_dict[name] = example
+
+            final_key = "_".join(str(key) for key in keys)  # will be of the form "key1_key2_key3..."
+            yield final_key, example_dict
+
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "StackedMultiSourcesExamplesIterable":
+        """Shuffle each underlying examples iterable."""
+        ex_iterables = {
+            name: ex_iterable.shuffle_data_sources(generator) for name, ex_iterable in self.ex_iterables.items()
+        }
+        return StackedMultiSourcesExamplesIterable(ex_iterables, self.stopping_strategy)
+
+    @property
+    def num_shards(self) -> int:
+        return min(ex_iterable.num_shards for ex_iterable in self.ex_iterables.values())
+
+    def shard_data_sources(
+        self, num_shards: int, index: int, contiguous=True
+    ) -> "StackedMultiSourcesExamplesIterable":
+        """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        ex_iterables = {
+            name: ex_iterable.shard_data_sources(num_shards, index, contiguous)
+            for name, ex_iterable in self.ex_iterables.items()
+        }
+        return StackedMultiSourcesExamplesIterable(ex_iterables, self.stopping_strategy)
+
+
 @dataclass
 class FormattingConfig:
     format_type: Optional[str]
@@ -3197,3 +3324,51 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
         distributed=distributed,
         token_per_repo_id=dataset._token_per_repo_id,
     )
+
+
+def _stack_iterable_datasets(
+    datasets: Dict[str, IterableDataset],
+    info: Optional[DatasetInfo] = None,
+    split: Optional[NamedSplit] = None,
+    stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+) -> IterableDataset:
+    """
+    Stack multiple datasets into a single dataset. Examples returned are meta-examples containing
+    one example from each dataset. Inspired by torch.utils.data.StackDataset.
+
+    Args:
+        datasets (`Dict[str, IterableDataset]`): Dictionary of datasets to stack.
+        info ([`DatasetInfo`], *optional*, defaults to `None`):
+            Dataset information, like description, citation, etc.
+        split ([`NamedSplit`], *optional*, defaults to `None`):
+            Name of the dataset split.
+        stopping_strategy (`Literal["first_exhausted", "all_exhausted"]`, *optional*, defaults to `first_exhausted`):
+            If undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted.
+            If oversampling ("all_exhausted"), we stop as soon as every dataset is exhausted,
+            i.e as soon as every samples of every dataset has been visited at least once.
+            "all_exhausted" means that iterators with fewer samples will be reinitialized in the process, so
+            some samples of those iterators may be visited multiple times.
+
+    Returns:
+        [`IterableDataset`]: An [`IterableDataset`] that returns examples where each example is a dictionary
+            with keys corresponding to the keys of the input dictionary of datasets, and values corresponding
+            to the examples of the respective dataset.
+    """
+    datasets = {name: dataset._resolve_features() for name, dataset in datasets.items()}
+
+    features = Features({name: dataset.features for name, dataset in datasets.items()})
+
+    ex_iterables = {name: copy.deepcopy(dataset._ex_iterable) for name, dataset in datasets.items()}
+    ex_iterable = StackedMultiSourcesExamplesIterable(ex_iterables, stopping_strategy)
+
+    if info is None:
+        info = DatasetInfo.from_merge([d.info for d in datasets.values()])
+    else:
+        info = info.copy()
+    info.features = features
+    # Get all the auth tokens per repository - in case the datasets come from different private repositories
+    token_per_repo_id = {
+        repo_id: token for dataset in datasets.values() for repo_id, token in dataset._token_per_repo_id.items()
+    }
+
+    return IterableDataset(ex_iterable=ex_iterable, info=info, split=split, token_per_repo_id=token_per_repo_id)
