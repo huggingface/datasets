@@ -59,7 +59,7 @@ from .utils import (
 )
 
 
-DEFAULT_N_EXAMPLES = 20
+DEFAULT_N_EXAMPLES = 40
 DEFAULT_BATCH_SIZE = 4
 DEFAULT_FILEPATH = "file.txt"
 
@@ -307,14 +307,17 @@ def test_rebatched_arrow_examples_iterable(tables, batch_size, drop_last_batch):
 
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
 def test_buffer_shuffled_examples_iterable(seed):
-    n, buffer_size = 100, 30
+    n, buffer_size, random_batch_size = 100, 30, 1000
     generator = np.random.default_rng(seed)
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
     ex_iterable = BufferShuffledExamplesIterable(base_ex_iterable, buffer_size=buffer_size, generator=generator)
 
     rng = deepcopy(generator)
     expected_indices_used_for_shuffling = list(
-        islice(BufferShuffledExamplesIterable._iter_random_indices(rng, buffer_size=buffer_size), n - buffer_size)
+        islice(
+            BufferShuffledExamplesIterable._iter_random_indices(rng, buffer_size=buffer_size, random_batch_size=random_batch_size),
+            n - buffer_size
+        )
     )
     # indices to pick in the shuffle buffer should all be in the right range
     assert all(0 <= index_to_pick < buffer_size for index_to_pick in expected_indices_used_for_shuffling)
@@ -1241,8 +1244,7 @@ def test_horizontally_concatenated_examples_iterable():
 )
 def test_no_iter_arrow(ex_iterable: _BaseExamplesIterable):
     assert ex_iterable.iter_arrow is None
-    if not isinstance(ex_iterable, BufferShuffledExamplesIterable):
-        assert_load_state_dict_resumes_iteration(ex_iterable)
+    assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
 @pytest.mark.parametrize(
