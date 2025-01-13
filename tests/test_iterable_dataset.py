@@ -26,6 +26,7 @@ from datasets.iterable_dataset import (
     CyclingMultiSourcesExamplesIterable,
     ExamplesIterable,
     FilteredExamplesIterable,
+    FormattedExamplesIterable,
     FormattingConfig,
     HorizontallyConcatenatedMultiSourcesExamplesIterable,
     IterableDataset,
@@ -39,7 +40,6 @@ from datasets.iterable_dataset import (
     SkipExamplesIterable,
     StepExamplesIterable,
     TakeExamplesIterable,
-    FormattedExamplesIterable,
     VerticallyConcatenatedMultiSourcesExamplesIterable,
     _BaseExamplesIterable,
     _batch_to_examples,
@@ -2199,7 +2199,7 @@ def test_format_from_arrow():
 
     with (
         patch.object(Formatter, "python_arrow_extractor") as mock_python_arrow_extractor,
-        patch.object(Formatter, "numpy_arrow_extractor") as mock_numpy_arrow_extractor
+        patch.object(Formatter, "numpy_arrow_extractor") as mock_numpy_arrow_extractor,
     ):
         mock_python_arrow_extractor.side_effect = python_arrow_extractor
         mock_numpy_arrow_extractor.side_effect = numpy_arrow_extractor
