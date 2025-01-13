@@ -1,6 +1,7 @@
 import pickle
 from copy import deepcopy
 from itertools import chain, cycle, islice
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -17,7 +18,7 @@ from datasets.features import (
     Image,
     Value,
 )
-from datasets.formatting import get_format_type_from_alias
+from datasets.formatting import Formatter, get_format_type_from_alias
 from datasets.info import DatasetInfo
 from datasets.iterable_dataset import (
     ArrowExamplesIterable,
@@ -38,7 +39,7 @@ from datasets.iterable_dataset import (
     SkipExamplesIterable,
     StepExamplesIterable,
     TakeExamplesIterable,
-    TypedExamplesIterable,
+    FormattedExamplesIterable,
     VerticallyConcatenatedMultiSourcesExamplesIterable,
     _BaseExamplesIterable,
     _batch_to_examples,
@@ -1234,8 +1235,8 @@ def test_horizontally_concatenated_examples_iterable():
         BufferShuffledExamplesIterable(ExamplesIterable(generate_examples_fn, {}), 10, np.random.default_rng(42)),
         SkipExamplesIterable(ExamplesIterable(generate_examples_fn, {}), 10),
         TakeExamplesIterable(ExamplesIterable(generate_examples_fn, {}), 10),
-        TypedExamplesIterable(
-            ExamplesIterable(generate_examples_fn, {}), Features({"id": Value("int32")}), token_per_repo_id={}
+        FormattedExamplesIterable(
+            ExamplesIterable(generate_examples_fn, {}), None, Features({"id": Value("int32")}), token_per_repo_id={}
         ),
     ],
 )
@@ -1279,8 +1280,8 @@ def test_no_iter_arrow(ex_iterable: _BaseExamplesIterable):
         # BufferShuffledExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), 10, np.random.default_rng(42)),  # not implemented
         # SkipExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), 10),  # not implemented
         # TakeExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), 10),  # not implemented
-        TypedExamplesIterable(
-            ArrowExamplesIterable(generate_tables_fn, {}), Features({"id": Value("int32")}), token_per_repo_id={}
+        FormattedExamplesIterable(
+            ArrowExamplesIterable(generate_tables_fn, {}), None, Features({"id": Value("int32")}), token_per_repo_id={}
         ),
     ],
 )
@@ -2190,6 +2191,31 @@ def test_formatted_map(dataset: IterableDataset):
     assert isinstance(next(dataset.iter(batch_size=3))["id"], np.ndarray)
     dataset = dataset.with_format(None)
     assert isinstance(next(dataset.iter(batch_size=3))["id"], list)
+
+
+def test_format_from_arrow():
+    python_arrow_extractor = Formatter.python_arrow_extractor
+    numpy_arrow_extractor = Formatter.numpy_arrow_extractor
+
+    with (
+        patch.object(Formatter, "python_arrow_extractor") as mock_python_arrow_extractor,
+        patch.object(Formatter, "numpy_arrow_extractor") as mock_numpy_arrow_extractor
+    ):
+        mock_python_arrow_extractor.side_effect = python_arrow_extractor
+        mock_numpy_arrow_extractor.side_effect = numpy_arrow_extractor
+
+        def g():
+            yield 0, pa.table({"a": range(10)})
+
+        ds = IterableDataset(ArrowExamplesIterable(g, {}))
+        ds = ds.with_format("np")
+        ds = ds.map(lambda x: x, batched=True)
+        next(iter(ds))
+
+        # we do arrow -> numpy -> python
+        mock_numpy_arrow_extractor.assert_called()
+        # we don't do any arrow -> python
+        mock_python_arrow_extractor.assert_not_called()
 
 
 @pytest.mark.parametrize("num_shards1, num_shards2, num_workers", [(2, 1, 1), (2, 2, 2), (1, 3, 1), (4, 3, 3)])
