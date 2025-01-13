@@ -116,9 +116,10 @@ class PyUtilsTest(TestCase):
     ],
 )
 def test_map_nested_num_proc(iterable_length, num_proc, expected_num_proc):
-    with patch("datasets.utils.py_utils._single_map_nested") as mock_single_map_nested, patch(
-        "datasets.parallel.parallel.Pool"
-    ) as mock_multiprocessing_pool:
+    with (
+        patch("datasets.utils.py_utils._single_map_nested") as mock_single_map_nested,
+        patch("datasets.parallel.parallel.Pool") as mock_multiprocessing_pool,
+    ):
         data_struct = {f"{i}": i for i in range(iterable_length)}
         _ = map_nested(lambda x: x + 10, data_struct, num_proc=num_proc, parallel_min_length=16)
         if expected_num_proc == 1:

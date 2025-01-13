@@ -275,17 +275,17 @@ class DatasetDict(dict):
         Example:
 
         ```py
-        >>> from datasets import load_dataset
+        >>> from datasets import load_dataset, ClassLabel, Value
         >>> ds = load_dataset("rotten_tomatoes")
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> new_features = ds["train"].features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
         >>> ds = ds.cast(new_features)
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='large_string', id=None)}
         ```
         """
@@ -307,14 +307,14 @@ class DatasetDict(dict):
         Example:
 
         ```py
-        >>> from datasets import load_dataset
+        >>> from datasets import load_dataset, ClassLabel
         >>> ds = load_dataset("rotten_tomatoes")
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='string', id=None)}
         ```
         """
@@ -1232,9 +1232,9 @@ class DatasetDict(dict):
         """
         Saves a dataset dict to a filesystem using `fsspec.spec.AbstractFileSystem`.
 
-        For [`Image`] and [`Audio`] data:
+        For [`Image`], [`Audio`] and [`Video`] data:
 
-        All the Image() and Audio() data are stored in the arrow files.
+        All the Image(), Audio() and Video() data are stored in the arrow files.
         If you want to store paths or urls, please use the Value("string") type.
 
         Args:
@@ -1533,7 +1533,7 @@ class DatasetDict(dict):
         data_dir: Optional[str] = None,
         commit_message: Optional[str] = None,
         commit_description: Optional[str] = None,
-        private: Optional[bool] = False,
+        private: Optional[bool] = None,
         token: Optional[str] = None,
         revision: Optional[str] = None,
         create_pr: Optional[bool] = False,
@@ -1573,8 +1573,8 @@ class DatasetDict(dict):
 
                 <Added version="2.16.0"/>
             private (`bool`, *optional*):
-                Whether the dataset repository should be set to private or not. Only affects repository creation:
-                a repository that already exists will not be affected by that parameter.
+                Whether to make the repo private. If `None` (default), the repo will be public unless the
+                organization's default is private. This value is ignored if the repo already exists.
             token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
                 to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
@@ -1804,7 +1804,7 @@ class DatasetDict(dict):
                     create_pr=create_pr,
                 )
                 logger.info(
-                    f"Commit #{i+1} completed"
+                    f"Commit #{i + 1} completed"
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
@@ -2203,14 +2203,14 @@ class IterableDatasetDict(dict):
         Example:
 
         ```py
-        >>> from datasets import load_dataset
+        >>> from datasets import load_dataset, ClassLabel
         >>> ds = load_dataset("rotten_tomatoes", streaming=True)
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='string', id=None)}
         ```
         """
@@ -2242,14 +2242,14 @@ class IterableDatasetDict(dict):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes", streaming=True)
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> new_features = ds["train"].features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
         >>> ds = ds.cast(new_features)
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='large_string', id=None)}
         ```
         """

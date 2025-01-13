@@ -47,6 +47,12 @@ If you want to add a dataset see specific instructions in the section [*How to a
 
 4. Set up a development environment by running the following command in a virtual environment:
 
+    Simple setup with code formatting only (recommended)
+    ```bash
+    pip install -e ".[quality]"
+    ```
+    
+    Advanced setup with all the optional dependencies
     ```bash
     pip install -e ".[dev]"
     ```
@@ -91,14 +97,16 @@ Note that if any files were formatted by `pre-commit` hooks during committing, y
 
    Go the webpage of your fork on GitHub. Click on "Pull request" to send your to the project maintainers for review.
 
-## How to add a dataset
+## Datasets on Hugging Face
 
-You can share your dataset on https://huggingface.co/datasets directly using your account, see the documentation:
+### How to add a dataset on Hugging Face
+
+You can share your dataset on https://huggingface.co/datasets directly using your account (no need to open a PR on GitHub), see the documentation:
 
 * [Create a dataset and upload files on the website](https://huggingface.co/docs/datasets/upload_dataset)
 * [Advanced guide using the CLI](https://huggingface.co/docs/datasets/share)
 
-## How to contribute to the dataset cards
+### How to contribute to the dataset cards
 
 Improving the documentation of datasets is an ever-increasing effort, and we invite users to contribute by sharing their insights with the community in the `README.md` dataset cards provided for each dataset.
 

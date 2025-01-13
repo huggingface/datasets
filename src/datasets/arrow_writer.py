@@ -24,10 +24,11 @@ import pyarrow.parquet as pq
 from fsspec.core import url_to_fs
 
 from . import config
-from .features import Features, Image, Value
+from .features import Audio, Features, Image, Value, Video
 from .features.features import (
     FeatureType,
     _ArrayXDExtensionType,
+    _visit,
     cast_to_python_objects,
     generate_from_arrow_type,
     get_nested_type,
@@ -46,6 +47,45 @@ from .utils.py_utils import asdict, first_non_null_value
 logger = logging.get_logger(__name__)
 
 type_ = type  # keep python's type function
+
+
+def get_writer_batch_size(features: Optional[Features]) -> Optional[int]:
+    """
+    Get the writer_batch_size that defines the maximum row group size in the parquet files.
+    The default in `datasets` is 1,000 but we lower it to 100 for image/audio datasets and 10 for videos.
+    This allows to optimize random access to parquet file, since accessing 1 row requires
+    to read its entire row group.
+
+    This can be improved to get optimized size for querying/iterating
+    but at least it matches the dataset viewer expectations on HF.
+
+    Args:
+        features (`datasets.Features` or `None`):
+            Dataset Features from `datasets`.
+    Returns:
+        writer_batch_size (`Optional[int]`):
+            Writer batch size to pass to a dataset builder.
+            If `None`, then it will use the `datasets` default.
+    """
+    if not features:
+        return None
+
+    batch_size = np.inf
+
+    def set_batch_size(feature: FeatureType) -> None:
+        nonlocal batch_size
+        if isinstance(feature, Image):
+            batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS)
+        elif isinstance(feature, Audio):
+            batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS)
+        elif isinstance(feature, Video):
+            batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_VIDEO_DATASETS)
+        elif isinstance(feature, Value) and feature.dtype == "binary":
+            batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS)
+
+    _visit(features, set_batch_size)
+
+    return None if batch_size is np.inf else batch_size
 
 
 class SchemaInferenceError(ValueError):
@@ -340,7 +380,9 @@ class ArrowWriter:
 
         self.fingerprint = fingerprint
         self.disable_nullable = disable_nullable
-        self.writer_batch_size = writer_batch_size or config.DEFAULT_MAX_BATCH_SIZE
+        self.writer_batch_size = (
+            writer_batch_size or get_writer_batch_size(self._features) or config.DEFAULT_MAX_BATCH_SIZE
+        )
         self.update_features = update_features
         self.with_metadata = with_metadata
         self.unit = unit

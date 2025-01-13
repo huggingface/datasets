@@ -100,11 +100,23 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
                 default_dtype = {"dtype": jnp.int32}
         elif isinstance(value, (np.number, np.ndarray)) and np.issubdtype(value.dtype, np.floating):
             default_dtype = {"dtype": jnp.float32}
-        elif config.PIL_AVAILABLE and "PIL" in sys.modules:
+
+        if config.PIL_AVAILABLE and "PIL" in sys.modules:
             import PIL.Image
 
             if isinstance(value, PIL.Image.Image):
                 value = np.asarray(value)
+        if config.DECORD_AVAILABLE and "decord" in sys.modules:
+            # We need to import torch first, otherwise later it can cause issues
+            # e.g. "RuntimeError: random_device could not be read"
+            # when running `torch.tensor(value).share_memory_()`
+            if config.TORCH_AVAILABLE:
+                import torch  # noqa
+            from decord import VideoReader
+
+            if isinstance(value, VideoReader):
+                value._hf_bridge_out = lambda x: jnp.array(np.asarray(x))
+                return value
 
         # using global variable since `jaxlib.xla_extension.Device` is not serializable neither
         # with `pickle` nor with `dill`, so we need to use a global variable instead

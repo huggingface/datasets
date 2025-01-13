@@ -225,7 +225,7 @@ The [`~Dataset.cast`] function transforms the feature type of one or more column
 >>> dataset.features
 {'sentence1': Value(dtype='string', id=None),
 'sentence2': Value(dtype='string', id=None),
-'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None),
+'label': ClassLabel(names=['not_equivalent', 'equivalent'], id=None),
 'idx': Value(dtype='int32', id=None)}
 
 >>> from datasets import ClassLabel, Value
@@ -236,7 +236,7 @@ The [`~Dataset.cast`] function transforms the feature type of one or more column
 >>> dataset.features
 {'sentence1': Value(dtype='string', id=None),
 'sentence2': Value(dtype='string', id=None),
-'label': ClassLabel(num_classes=2, names=['negative', 'positive'], names_file=None, id=None),
+'label': ClassLabel(names=['negative', 'positive'], id=None),
 'idx': Value(dtype='int64', id=None)}
 ```
 
@@ -736,7 +736,7 @@ Want to save your dataset to a cloud storage provider? Read our [Cloud Storage](
 | JSON                    | [`Dataset.to_json`]                                   |
 | Parquet                 | [`Dataset.to_parquet`]                                |
 | SQL                     | [`Dataset.to_sql`]                                    |
-| In-memory Python object | [`Dataset.to_pandas`] or [`Dataset.to_dict`] |
+| In-memory Python object | [`Dataset.to_pandas`], [`Dataset.to_polars`] or [`Dataset.to_dict`] |
 
 For example, export your dataset to a CSV file like this:
 

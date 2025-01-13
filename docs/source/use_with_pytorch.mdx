@@ -216,7 +216,7 @@ If the dataset is split in several shards (i.e. if the dataset consists of multi
 
 ```py
 >>> my_iterable_dataset = load_dataset("deepmind/code_contests", streaming=True, split="train")
->>> my_iterable_dataset.n_shards
+>>> my_iterable_dataset.num_shards
 39
 >>> dataloader = DataLoader(my_iterable_dataset, batch_size=32, num_workers=4)
 ```
@@ -259,7 +259,7 @@ Each node is assigned a chunk of data, e.g. rank 0 is given the first chunk of t
 
 For iterable datasets:
 
-If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.n_shards % world_size == 0`),
+If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.num_shards % world_size == 0`),
 then the shards are evenly assigned across the nodes, which is the most optimized.
 Otherwise, each node keeps 1 example out of `world_size`, skipping the other examples.
 
