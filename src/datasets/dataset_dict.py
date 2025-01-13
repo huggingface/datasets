@@ -893,28 +893,24 @@ class DatasetDict(dict):
         dataset_dict = dict()
         for k, dataset in self.items():
             fn_kwargs = {**fn_kwargs, "split": k} if with_split else fn_kwargs
-            dataset_dict.update(
-                {
-                    k: dataset.map(
-                        function=function,
-                        with_indices=with_indices,
-                        with_rank=with_rank,
-                        input_columns=input_columns,
-                        batched=batched,
-                        batch_size=batch_size,
-                        drop_last_batch=drop_last_batch,
-                        remove_columns=remove_columns,
-                        keep_in_memory=keep_in_memory,
-                        load_from_cache_file=load_from_cache_file,
-                        cache_file_name=cache_file_names[k],
-                        writer_batch_size=writer_batch_size,
-                        features=features,
-                        disable_nullable=disable_nullable,
-                        fn_kwargs=fn_kwargs,
-                        num_proc=num_proc,
-                        desc=desc,
-                    )
-                }
+            dataset_dict[k] = dataset.map(
+                function=function,
+                with_indices=with_indices,
+                with_rank=with_rank,
+                input_columns=input_columns,
+                batched=batched,
+                batch_size=batch_size,
+                drop_last_batch=drop_last_batch,
+                remove_columns=remove_columns,
+                keep_in_memory=keep_in_memory,
+                load_from_cache_file=load_from_cache_file,
+                cache_file_name=cache_file_names[k],
+                writer_batch_size=writer_batch_size,
+                features=features,
+                disable_nullable=disable_nullable,
+                fn_kwargs=fn_kwargs,
+                num_proc=num_proc,
+                desc=desc,
             )
 
         return DatasetDict(dataset_dict)
