@@ -819,6 +819,9 @@ class DatasetDict(dict):
             with_rank (`bool`, defaults to `False`):
                 Provide process rank to `function`. Note that in this case the
                 signature of `function` should be `def function(example[, idx], rank): ...`.
+            with_split (`bool`, defaults to `False`):
+                Provide process split to `function`. Note that in this case the
+                signature of `function` should be `def function(example[, idx], split): ...`.
             input_columns (`[Union[str, List[str]]]`, *optional*, defaults to `None`):
                 The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
@@ -884,30 +887,37 @@ class DatasetDict(dict):
         if cache_file_names is None:
             cache_file_names = {k: None for k in self}
 
-        return DatasetDict(
-            {
-                k: dataset.map(
-                    function=function,
-                    with_indices=with_indices,
-                    with_rank=with_rank,
-                    input_columns=input_columns,
-                    batched=batched,
-                    batch_size=batch_size,
-                    drop_last_batch=drop_last_batch,
-                    remove_columns=remove_columns,
-                    keep_in_memory=keep_in_memory,
-                    load_from_cache_file=load_from_cache_file,
-                    cache_file_name=cache_file_names[k],
-                    writer_batch_size=writer_batch_size,
-                    features=features,
-                    disable_nullable=disable_nullable,
-                    fn_kwargs={**fn_kwargs, "split": k} if with_split else fn_kwargs,
-                    num_proc=num_proc,
-                    desc=desc,
-                )
-                for k, dataset in self.items()
-            }
-        )
+        if with_split and "split" in fn_kwargs:
+            raise ValueError("The key 'split' is reserved for the split name and cannot be passed in fn_kwargs.")
+
+        dataset_dict = dict()
+        for k, dataset in self.items():
+            fn_kwargs = {**fn_kwargs, "split": k} if with_split else fn_kwargs
+            dataset_dict.update(
+                {
+                    k: dataset.map(
+                        function=function,
+                        with_indices=with_indices,
+                        with_rank=with_rank,
+                        input_columns=input_columns,
+                        batched=batched,
+                        batch_size=batch_size,
+                        drop_last_batch=drop_last_batch,
+                        remove_columns=remove_columns,
+                        keep_in_memory=keep_in_memory,
+                        load_from_cache_file=load_from_cache_file,
+                        cache_file_name=cache_file_names[k],
+                        writer_batch_size=writer_batch_size,
+                        features=features,
+                        disable_nullable=disable_nullable,
+                        fn_kwargs=fn_kwargs,
+                        num_proc=num_proc,
+                        desc=desc,
+                    )
+                }
+            )
+
+        return DatasetDict(dataset_dict)
 
     def filter(
         self,
