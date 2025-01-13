@@ -478,7 +478,7 @@ class SplitReadInstruction:
     """
 
     def __init__(self, split_info=None):
-        self._splits = NonMutableDict(error_msg="Overlap between splits. Split {key} has been added with " "itself.")
+        self._splits = NonMutableDict(error_msg="Overlap between splits. Split {key} has been added with itself.")
 
         if split_info:
             self.add(SlicedSplitInfo(split_info=split_info, slice_value=None))

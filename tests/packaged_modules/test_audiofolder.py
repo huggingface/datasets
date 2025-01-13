@@ -3,7 +3,6 @@ import textwrap
 
 import numpy as np
 import pytest
-import soundfile as sf
 
 from datasets import Audio, ClassLabel, Features, Value
 from datasets.builder import InvalidConfigName
@@ -195,6 +194,7 @@ def data_files_with_two_splits_and_metadata(request, tmp_path, audio_file):
 @pytest.fixture
 def data_files_with_zip_archives(tmp_path, audio_file):
     import librosa
+    import soundfile as sf
 
     data_dir = tmp_path / "audiofolder_data_dir_with_zip_archives"
     data_dir.mkdir(parents=True, exist_ok=True)

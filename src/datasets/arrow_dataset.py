@@ -372,7 +372,7 @@ class TensorflowDatasetMixin:
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
             num_workers (`int`, defaults to `0`):
-                Number of workers to use for loading the dataset. Only supported on Python versions >= 3.8.
+                Number of workers to use for loading the dataset.
             num_test_batches (`int`, defaults to `20`):
                 Number of batches to use to infer the output signature of the dataset.
                 The higher this number, the more accurate the signature will be, but the longer it will take to
@@ -804,6 +804,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         contains `None/nan` objects, the type is set to `null`. This behavior can be avoided by constructing explicit
         features and passing it to this function.
 
+        Important: a dataset created with from_pandas() lives in memory
+        and therefore doesn't have an associated cache directory.
+        This may change in the feature, but in the meantime if you
+        want to reduce memory usage you should write it back on disk
+        and reload using e.g. save_to_disk / load_from_disk.
+
         Args:
             df (`pandas.DataFrame`):
                 Dataframe that contains the dataset.
@@ -898,6 +904,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         Convert `dict` to a `pyarrow.Table` to create a [`Dataset`].
 
+        Important: a dataset created with from_dict() lives in memory
+        and therefore doesn't have an associated cache directory.
+        This may change in the feature, but in the meantime if you
+        want to reduce memory usage you should write it back on disk
+        and reload using e.g. save_to_disk / load_from_disk.
+
         Args:
             mapping (`Mapping`):
                 Mapping of strings to Arrays or Python lists.
@@ -956,6 +968,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Note that the keys of the first entry will be used to determine the dataset columns,
         regardless of what is passed to features.
+
+        Important: a dataset created with from_list() lives in memory
+        and therefore doesn't have an associated cache directory.
+        This may change in the feature, but in the meantime if you
+        want to reduce memory usage you should write it back on disk
+        and reload using e.g. save_to_disk / load_from_disk.
 
         Args:
             mapping (`List[dict]`): A list of mappings of strings to row values.
@@ -1972,7 +1990,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset.info.features = self._info.features.flatten(max_depth=max_depth)
         dataset.info.features = Features({col: dataset.info.features[col] for col in dataset.data.column_names})
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
-        logger.info(f'Flattened dataset from depth {depth} to depth {1 if depth + 1 < max_depth else "unknown"}.')
+        logger.info(f"Flattened dataset from depth {depth} to depth {1 if depth + 1 < max_depth else 'unknown'}.")
         dataset._fingerprint = new_fingerprint
         return dataset
 
@@ -2023,14 +2041,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset, ClassLabel, Value
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> new_features = ds.features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
         >>> ds = ds.cast(new_features)
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='large_string', id=None)}
         ```
         """
@@ -2078,14 +2096,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
-        >>> from datasets import load_dataset
+        >>> from datasets import load_dataset, ClassLabel
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='string', id=None)}
         ```
         """
@@ -3158,9 +3176,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     del kwargs["shard"]
             else:
                 logger.info(f"Loading cached processed dataset at {format_cache_file_name(cache_file_name, '*')}")
-            assert (
-                None not in transformed_shards
-            ), f"Failed to retrieve results from map: result list {transformed_shards} still contains None - at least one worker failed to return its results"
+            assert None not in transformed_shards, (
+                f"Failed to retrieve results from map: result list {transformed_shards} still contains None - at least one worker failed to return its results"
+            )
             logger.info(f"Concatenating {num_proc} shards")
             result = _concatenate_map_style_datasets(transformed_shards)
             # update fingerprint if the dataset changed
@@ -5300,7 +5318,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         data_dir: Optional[str] = None,
         commit_message: Optional[str] = None,
         commit_description: Optional[str] = None,
-        private: Optional[bool] = False,
+        private: Optional[bool] = None,
         token: Optional[str] = None,
         revision: Optional[str] = None,
         create_pr: Optional[bool] = False,
@@ -5339,9 +5357,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Additionally, description of the PR if a PR is created (`create_pr` is True).
 
                 <Added version="2.16.0"/>
-            private (`bool`, *optional*, defaults to `False`):
-                Whether the dataset repository should be set to private or not. Only affects repository creation:
-                a repository that already exists will not be affected by that parameter.
+            private (`bool`, *optional*):
+                Whether to make the repo private. If `None` (default), the repo will be public unless the
+                organization's default is private. This value is ignored if the repo already exists.
             token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
                 to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
@@ -5633,7 +5651,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     create_pr=create_pr,
                 )
                 logger.info(
-                    f"Commit #{i+1} completed"
+                    f"Commit #{i + 1} completed"
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
