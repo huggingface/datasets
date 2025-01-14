@@ -1220,7 +1220,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             if not isinstance(output_table, pa.Table):
                 raise TypeError(
                     f"Provided `function` which is applied to {formatter.table_type} returns a variable of type "
-                    f"{type(output_table)}. Make sure provided `function` returns a {formatter.table_type} to update the dataset."
+                    f"{type(output)}. Make sure provided `function` returns a {formatter.table_type} to update the dataset."
                 )
             # we don't need to merge results for consistency with Dataset.map which merges iif both input and output are dicts
             # then remove the unwanted columns
@@ -1419,7 +1419,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                     yield key, example
 
     def _iter_arrow(self, max_chunksize: Optional[int] = None):
-        formatter = get_formatter(self.formatting) if self.formatting else ArrowFormatter()
+        formatter = get_formatter(self.formatting.format_type) if self.formatting else ArrowFormatter()
         if self.ex_iterable.iter_arrow:
             iterator = self.ex_iterable.iter_arrow()
         else:
@@ -1456,10 +1456,10 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
             # then apply the transform
             output = self.function(*function_args, **self.fn_kwargs)
             mask = _table_output_to_arrow(output)
-            if not isinstance(mask, (pa.Array, pa.BooleanScalar)):
+            if not isinstance(mask, (bool, pa.Array, pa.BooleanScalar)):
                 raise TypeError(
                     f"Provided `function` which is applied to {formatter.table_type} returns a variable of type "
-                    f"{type(output_table)}. Make sure provided `function` returns a {formatter.column_type} to update the dataset."
+                    f"{type(output)}. Make sure provided `function` returns a {formatter.column_type} to update the dataset."
                 )
             # return output
             if self.batched:
