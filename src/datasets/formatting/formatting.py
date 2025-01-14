@@ -215,11 +215,14 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
 
 
 class PythonFeaturesDecoder:
-    def __init__(self, features: Optional[Features]):
+    def __init__(
+        self, features: Optional[Features], token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None
+    ):
         self.features = features
+        self.token_per_repo_id = token_per_repo_id
 
     def decode_row(self, row: dict) -> dict:
-        return self.features.decode_example(row) if self.features else row
+        return self.features.decode_example(row, token_per_repo_id=self.token_per_repo_id) if self.features else row
 
     def decode_column(self, column: list, column_name: str) -> list:
         return self.features.decode_column(column, column_name) if self.features else column
@@ -393,9 +396,14 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
 
-    def __init__(self, features: Optional[Features] = None):
+    def __init__(
+        self,
+        features: Optional[Features] = None,
+        token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
+    ):
         self.features = features
-        self.python_features_decoder = PythonFeaturesDecoder(self.features)
+        self.token_per_repo_id = token_per_repo_id
+        self.python_features_decoder = PythonFeaturesDecoder(self.features, self.token_per_repo_id)
         self.pandas_features_decoder = PandasFeaturesDecoder(self.features)
 
     def __call__(self, pa_table: pa.Table, query_type: str) -> Union[RowFormat, ColumnFormat, BatchFormat]:
@@ -433,8 +441,8 @@ class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
 
 
 class PythonFormatter(Formatter[Mapping, list, Mapping]):
-    def __init__(self, features=None, lazy=False):
-        super().__init__(features)
+    def __init__(self, features=None, lazy=False, token_per_repo_id=None):
+        super().__init__(features, token_per_repo_id)
         self.lazy = lazy
 
     def format_row(self, pa_table: pa.Table) -> Mapping:
@@ -484,8 +492,8 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
     to return.
     """
 
-    def __init__(self, transform: Callable[[dict], dict], features=None, **kwargs):
-        super().__init__(features=features)
+    def __init__(self, transform: Callable[[dict], dict], features=None, token_per_repo_id=None, **kwargs):
+        super().__init__(features=features, token_per_repo_id=token_per_repo_id)
         self.transform = transform
 
     def format_row(self, pa_table: pa.Table) -> dict:
