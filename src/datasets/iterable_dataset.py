@@ -2407,12 +2407,11 @@ class IterableDataset(DatasetInfoMixin):
     ) -> "IterableDataset":
         """
         Return a dataset with the specified format.
-        The 'pandas' format is currently not implemented.
 
         Args:
 
             type (`str`, *optional*):
-                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'arrow', 'jax']`.
+                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'jax', 'arrow', 'pandas', 'polars']`.
                 `None` means it returns python objects (default).
 
         Example:
