@@ -24,8 +24,8 @@ from .formatting import TensorFormatter
 
 
 class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
-    def __init__(self, features=None, **np_array_kwargs):
-        super().__init__(features=features)
+    def __init__(self, features=None, token_per_repo_id=None, **np_array_kwargs):
+        super().__init__(features=features, token_per_repo_id=token_per_repo_id)
         self.np_array_kwargs = np_array_kwargs
 
     def _consolidate(self, column):
