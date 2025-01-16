@@ -429,7 +429,15 @@ class TensorFormatter(Formatter[RowFormat, ColumnFormat, BatchFormat]):
         raise NotImplementedError
 
 
-class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
+class TableFormatter(Formatter[RowFormat, ColumnFormat, BatchFormat]):
+    table_type: str
+    column_type: str
+
+
+class ArrowFormatter(TableFormatter[pa.Table, pa.Array, pa.Table]):
+    table_type = "arrow table"
+    column_type = "arrow array"
+
     def format_row(self, pa_table: pa.Table) -> pa.Table:
         return self.simple_arrow_extractor().extract_row(pa_table)
 
@@ -465,7 +473,10 @@ class PythonFormatter(Formatter[Mapping, list, Mapping]):
         return batch
 
 
-class PandasFormatter(Formatter[pd.DataFrame, pd.Series, pd.DataFrame]):
+class PandasFormatter(TableFormatter[pd.DataFrame, pd.Series, pd.DataFrame]):
+    table_type = "pandas dataframe"
+    column_type = "pandas series"
+
     def format_row(self, pa_table: pa.Table) -> pd.DataFrame:
         row = self.pandas_arrow_extractor().extract_row(pa_table)
         row = self.pandas_features_decoder.decode_row(row)
