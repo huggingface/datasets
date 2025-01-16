@@ -57,8 +57,8 @@ IMAGE_EXTENSIONS = [
     ".gbr",
     ".gif",
     ".grib",
-    ".h5",
-    ".hdf",
+    # ".h5",   # may contain zero or several images
+    # ".hdf",  # may contain zero or several images
     ".png",
     ".apng",
     ".jp2",
