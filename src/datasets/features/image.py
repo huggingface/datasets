@@ -241,14 +241,33 @@ class Image:
                 path_array = pa.array([None] * len(storage), type=pa.string())
             storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
         elif pa.types.is_list(storage.type):
+            from .features import Array2DExtensionType, Array3DExtensionType
+
+            arrays = []
+            for i, is_null in enumerate(storage.is_null()):
+                if not is_null.as_py():
+                    storage_part = storage.take([i])
+                    shape = get_shapes_from_listarray(storage_part)
+                    dtype = get_dtypes_from_listarray(storage_part)
+
+                    if len(shape) == 2:
+                        extension_type = Array2DExtensionType(shape=shape, dtype=str(dtype))
+                    else:
+                        extension_type = Array3DExtensionType(shape=shape, dtype=str(dtype))
+                    array = pa.ExtensionArray.from_storage(extension_type, storage_part)
+                    arrays.append(array.to_numpy().squeeze(0))
+                else:
+                    arrays.append(None)
+
             bytes_array = pa.array(
-                [encode_np_array(np.array(arr))["bytes"] if arr is not None else None for arr in storage.to_pylist()],
+                [encode_np_array(arr)["bytes"] if arr is not None else None for arr in arrays],
                 type=pa.binary(),
             )
             path_array = pa.array([None] * len(storage), type=pa.string())
             storage = pa.StructArray.from_arrays(
                 [bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null()
             )
+
         return array_cast(storage, self.pa_type)
 
     def embed_storage(self, storage: pa.StructArray) -> pa.StructArray:
@@ -282,6 +301,23 @@ class Image:
         )
         storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
         return array_cast(storage, self.pa_type)
+
+
+def get_shapes_from_listarray(listarray: pa.ListArray):
+    shape = ()
+    while isinstance(listarray, pa.ListArray):
+        len_curr = len(listarray)
+        listarray = listarray.flatten()
+        len_new = len(listarray)
+        shape = shape + (len_new // len_curr,)
+    return shape
+
+
+def get_dtypes_from_listarray(listarray: pa.ListArray):
+    dtype = listarray.type
+    while hasattr(dtype, "value_type"):
+        dtype = dtype.value_type
+    return dtype
 
 
 def list_image_compression_formats() -> List[str]:
