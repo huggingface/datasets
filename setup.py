@@ -214,6 +214,8 @@ DOCS_REQUIRE = [
     "tensorflow>=2.6.0",
 ]
 
+PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
+
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
@@ -231,6 +233,7 @@ EXTRAS_REQUIRE = {
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": DOCS_REQUIRE,
+    "pdfs": PDFS_REQUIRE,
 }
 
 setup(

@@ -42,6 +42,7 @@ from ..utils import experimental, logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
+from .pdf import Pdf
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video
 
@@ -1204,6 +1205,7 @@ FeatureType = Union[
     Audio,
     Image,
     Video,
+    Pdf,
 ]
 
 
@@ -1419,6 +1421,7 @@ _FEATURE_TYPES: Dict[str, FeatureType] = {
     Audio.__name__: Audio,
     Image.__name__: Image,
     Video.__name__: Video,
+    Pdf.__name__: Pdf,
 }
 
 
