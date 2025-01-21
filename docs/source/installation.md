@@ -37,6 +37,9 @@ You should install 🤗 Datasets in a [virtual environment](https://docs.python.
    source ./env/bin/activate
    ```
 
+   </hfoption>
+   </hfoptions>
+
 Once you've created your virtual environment, you can install 🤗 Datasets in it.
 
 ## pip
