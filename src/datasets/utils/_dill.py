@@ -123,6 +123,10 @@ elif config.DILL_VERSION.release[:3] in [
 
     def log(pickler, msg):
         dill._dill.logger.trace(pickler, msg)
+else:
+
+    def log(pickler, msg):
+        dill._dill.log.info(msg)
 
 
 @pklregister(set)
