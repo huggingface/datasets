@@ -4070,9 +4070,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         if num_times is None:
             raise ValueError("Map style datasets do not support indefinite repetition.")
-        num_times = max(num_times, 0)
-        indices = list(range(len(self))) * num_times
-        return self.select(indices)
+        return _concatenate_map_style_datasets([self] * num_times) if num_times > 0 else self.select([])
 
     def take(self, n: int) -> "Dataset":
         """

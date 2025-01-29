@@ -1491,7 +1491,7 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
         ex_iterable: _BaseExamplesIterable,
-        num_times: int,
+        num_times: Optional[int],
     ):
         super().__init__()
         self.ex_iterable = ex_iterable
@@ -1507,7 +1507,7 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
     def __iter__(self):
         repeat_index = self._state_dict["repeat_index"] if self._state_dict else 0
         while True:
-            if self.num_times and repeat_index >= max(self.num_times, 0):
+            if self.num_times is not None and repeat_index >= max(self.num_times, 0):
                 break
             yield from self.ex_iterable
             repeat_index += 1
