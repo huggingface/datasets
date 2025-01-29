@@ -275,17 +275,17 @@ class DatasetDict(dict):
         Example:
 
         ```py
-        >>> from datasets import load_dataset
+        >>> from datasets import load_dataset, ClassLabel, Value
         >>> ds = load_dataset("rotten_tomatoes")
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> new_features = ds["train"].features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
         >>> ds = ds.cast(new_features)
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='large_string', id=None)}
         ```
         """
@@ -307,14 +307,14 @@ class DatasetDict(dict):
         Example:
 
         ```py
-        >>> from datasets import load_dataset
+        >>> from datasets import load_dataset, ClassLabel
         >>> ds = load_dataset("rotten_tomatoes")
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='string', id=None)}
         ```
         """
@@ -693,12 +693,32 @@ class DatasetDict(dict):
          'format_kwargs': {},
          'output_all_columns': False,
          'type': None}
-        >>> ds = ds.with_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
+        >>> ds = ds.with_format("torch")
         >>> ds["train"].format
-        {'columns': ['input_ids', 'token_type_ids', 'attention_mask', 'label'],
+        {'columns': ['text', 'label', 'input_ids', 'token_type_ids', 'attention_mask'],
          'format_kwargs': {},
          'output_all_columns': False,
-         'type': 'tensorflow'}
+         'type': 'torch'}
+        >>> ds["train"][0]
+        {'text': 'compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children .',
+         'label': tensor(1),
+         'input_ids': tensor([  101, 18027, 16310, 16001,  1103,  9321,   178, 11604,  7235,  6617,
+                1742,  2165,  2820,  1206,  6588, 22572, 12937,  1811,  2153,  1105,
+                1147, 12890, 19587,  6463,  1105, 15026,  1482,   119,   102,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0]),
+         'token_type_ids': tensor([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+         'attention_mask': tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])}
         ```
         """
         dataset = copy.deepcopy(self)
@@ -1210,9 +1230,9 @@ class DatasetDict(dict):
         """
         Saves a dataset dict to a filesystem using `fsspec.spec.AbstractFileSystem`.
 
-        For [`Image`] and [`Audio`] data:
+        For [`Image`], [`Audio`] and [`Video`] data:
 
-        All the Image() and Audio() data are stored in the arrow files.
+        All the Image(), Audio() and Video() data are stored in the arrow files.
         If you want to store paths or urls, please use the Value("string") type.
 
         Args:
@@ -1511,7 +1531,7 @@ class DatasetDict(dict):
         data_dir: Optional[str] = None,
         commit_message: Optional[str] = None,
         commit_description: Optional[str] = None,
-        private: Optional[bool] = False,
+        private: Optional[bool] = None,
         token: Optional[str] = None,
         revision: Optional[str] = None,
         create_pr: Optional[bool] = False,
@@ -1551,8 +1571,8 @@ class DatasetDict(dict):
 
                 <Added version="2.16.0"/>
             private (`bool`, *optional*):
-                Whether the dataset repository should be set to private or not. Only affects repository creation:
-                a repository that already exists will not be affected by that parameter.
+                Whether to make the repo private. If `None` (default), the repo will be public unless the
+                organization's default is private. This value is ignored if the repo already exists.
             token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
                 to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
@@ -1782,7 +1802,7 @@ class DatasetDict(dict):
                     create_pr=create_pr,
                 )
                 logger.info(
-                    f"Commit #{i+1} completed"
+                    f"Commit #{i + 1} completed"
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
@@ -1801,25 +1821,43 @@ class IterableDatasetDict(dict):
     ) -> "IterableDatasetDict":
         """
         Return a dataset with the specified format.
-        This method only supports the "torch" format for now.
-        The format is set to all the datasets of the dataset dictionary.
+        The 'pandas' format is currently not implemented.
 
         Args:
-            type (`str`, *optional*, defaults to `None`):
-                If set to "torch", the returned dataset
-                will be a subclass of `torch.utils.data.IterableDataset` to be used in a `DataLoader`.
+
+            type (`str`, *optional*):
+                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'arrow', 'jax']`.
+                `None` means it returns python objects (default).
 
         Example:
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
         >>> from transformers import AutoTokenizer
-        >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-        >>> def encode(example):
-        ...     return tokenizer(examples["text"], truncation=True, padding="max_length")
-        >>> ds = ds.map(encode, batched=True, remove_columns=["text"])
+        >>> ds = load_dataset("rotten_tomatoes", split="validation", streaming=True)
+        >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+        >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
         >>> ds = ds.with_format("torch")
+        >>> next(iter(ds))
+        {'text': 'compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children .',
+         'label': tensor(1),
+         'input_ids': tensor([  101, 18027, 16310, 16001,  1103,  9321,   178, 11604,  7235,  6617,
+                1742,  2165,  2820,  1206,  6588, 22572, 12937,  1811,  2153,  1105,
+                1147, 12890, 19587,  6463,  1105, 15026,  1482,   119,   102,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0]),
+         'token_type_ids': tensor([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+         'attention_mask': tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])}
         ```
         """
         return IterableDatasetDict({k: dataset.with_format(type=type) for k, dataset in self.items()})
@@ -2163,14 +2201,14 @@ class IterableDatasetDict(dict):
         Example:
 
         ```py
-        >>> from datasets import load_dataset
+        >>> from datasets import load_dataset, ClassLabel
         >>> ds = load_dataset("rotten_tomatoes", streaming=True)
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='string', id=None)}
         ```
         """
@@ -2202,14 +2240,14 @@ class IterableDatasetDict(dict):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes", streaming=True)
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> new_features = ds["train"].features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
         >>> ds = ds.cast(new_features)
         >>> ds["train"].features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='large_string', id=None)}
         ```
         """

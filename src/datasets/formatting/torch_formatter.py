@@ -30,8 +30,8 @@ if TYPE_CHECKING:
 
 
 class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
-    def __init__(self, features=None, **torch_tensor_kwargs):
-        super().__init__(features=features)
+    def __init__(self, features=None, token_per_repo_id=None, **torch_tensor_kwargs):
+        super().__init__(features=features, token_per_repo_id=token_per_repo_id)
         self.torch_tensor_kwargs = torch_tensor_kwargs
         import torch  # noqa import torch at initialization
 
@@ -66,7 +66,8 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
 
         elif isinstance(value, (np.number, np.ndarray)) and np.issubdtype(value.dtype, np.floating):
             default_dtype = {"dtype": torch.float32}
-        elif config.PIL_AVAILABLE and "PIL" in sys.modules:
+
+        if config.PIL_AVAILABLE and "PIL" in sys.modules:
             import PIL.Image
 
             if isinstance(value, PIL.Image.Image):
@@ -75,6 +76,14 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
                     value = value[:, :, np.newaxis]
 
                 value = value.transpose((2, 0, 1))
+        if config.DECORD_AVAILABLE and "decord" in sys.modules:
+            from decord import VideoReader
+            from decord.bridge import to_torch
+
+            if isinstance(value, VideoReader):
+                value._hf_bridge_out = to_torch
+                return value
+
         return torch.tensor(value, **{**default_dtype, **self.torch_tensor_kwargs})
 
     def _recursive_tensorize(self, data_struct):

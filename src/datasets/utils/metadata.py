@@ -9,6 +9,7 @@ import yaml
 from huggingface_hub import DatasetCardData
 
 from ..config import METADATA_CONFIGS_FIELD
+from ..features import Features
 from ..info import DatasetInfo, DatasetInfosDict
 from ..naming import _split_re
 from ..utils.logging import get_logger
@@ -101,7 +102,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
     @classmethod
     def _from_exported_parquet_files_and_dataset_infos(
         cls,
-        revision: str,
+        parquet_commit_hash: str,
         exported_parquet_files: List[Dict[str, Any]],
         dataset_infos: DatasetInfosDict,
     ) -> "MetadataConfigs":
@@ -111,7 +112,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                     {
                         "split": split_name,
                         "path": [
-                            parquet_file["url"].replace("refs%2Fconvert%2Fparquet", revision)
+                            parquet_file["url"].replace("refs%2Fconvert%2Fparquet", parquet_commit_hash)
                             for parquet_file in parquet_files_for_split
                         ],
                     }
@@ -152,8 +153,12 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                 cls._raise_if_data_files_field_not_valid(metadata_config)
             return cls(
                 {
-                    config["config_name"]: {param: value for param, value in config.items() if param != "config_name"}
-                    for config in metadata_configs
+                    config.pop("config_name"): {
+                        param: value if param != "features" else Features._from_yaml_list(value)
+                        for param, value in config.items()
+                    }
+                    for metadata_config in metadata_configs
+                    if (config := metadata_config.copy())
                 }
             )
         return cls()

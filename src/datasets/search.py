@@ -175,7 +175,7 @@ class ElasticSearchIndex(BaseIndex):
             successes += ok
         if successes != len(documents):
             logger.warning(
-                f"Some documents failed to be added to ElasticSearch. Failures: {len(documents)-successes}/{len(documents)}"
+                f"Some documents failed to be added to ElasticSearch. Failures: {len(documents) - successes}/{len(documents)}"
             )
         logger.info(f"Indexed {successes:d} documents")
 

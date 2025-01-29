@@ -36,10 +36,18 @@ import fsspec
 import requests
 import yaml
 from fsspec.core import url_to_fs
-from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFileSystem
-from huggingface_hub.utils import GatedRepoError, RepositoryNotFoundError, RevisionNotFoundError, get_session
+from huggingface_hub import DatasetCard, DatasetCardData, HfApi
+from huggingface_hub.utils import (
+    EntryNotFoundError,
+    GatedRepoError,
+    LocalEntryNotFoundError,
+    OfflineModeIsEnabled,
+    RepositoryNotFoundError,
+    RevisionNotFoundError,
+    get_session,
+)
 
-from . import config
+from . import __version__, config
 from .arrow_dataset import Dataset
 from .builder import BuilderConfig, DatasetBuilder
 from .data_files import (
@@ -73,7 +81,6 @@ from .packaged_modules import (
 from .splits import Split
 from .utils import _dataset_viewer
 from .utils.file_utils import (
-    OfflineModeIsEnabled,
     _raise_if_offline_mode_is_enabled,
     cached_path,
     get_datasets_user_agent,
@@ -82,7 +89,7 @@ from .utils.file_utils import (
     relative_to_absolute_path,
     url_or_path_join,
 )
-from .utils.hub import check_auth, hf_dataset_url
+from .utils.hub import hf_dataset_url
 from .utils.info_utils import VerificationMode, is_small_dataset
 from .utils.logging import get_logger
 from .utils.metadata import MetadataConfigs
@@ -235,9 +242,11 @@ def configure_builder_class(
 def get_dataset_builder_class(
     dataset_module: "DatasetModule", dataset_name: Optional[str] = None
 ) -> Type[DatasetBuilder]:
-    with lock_importable_file(
-        dataset_module.importable_file_path
-    ) if dataset_module.importable_file_path else nullcontext():
+    with (
+        lock_importable_file(dataset_module.importable_file_path)
+        if dataset_module.importable_file_path
+        else nullcontext()
+    ):
         builder_cls = import_main_class(dataset_module.module_path)
     if dataset_module.builder_configs_parameters.builder_configs:
         dataset_name = dataset_name or dataset_module.builder_kwargs.get("dataset_name")
@@ -974,49 +983,48 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
     def __init__(
         self,
         name: str,
-        revision: Optional[Union[str, Version]] = None,
+        commit_hash: str,
         data_dir: Optional[str] = None,
         data_files: Optional[Union[str, List, Dict]] = None,
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
+        use_exported_dataset_infos: bool = False,
     ):
         self.name = name
-        self.revision = revision
+        self.commit_hash = commit_hash
         self.data_files = data_files
         self.data_dir = data_dir
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
+        self.use_exported_dataset_infos = use_exported_dataset_infos
         increase_load_count(name)
 
     def get_module(self) -> DatasetModule:
-        hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
-            self.name,
-            revision=self.revision,
+        # Get the Dataset Card and fix the revision in case there are new commits in the meantime
+        api = HfApi(
+            endpoint=config.HF_ENDPOINT,
             token=self.download_config.token,
-            timeout=100.0,
+            library_name="datasets",
+            library_version=__version__,
+            user_agent=get_datasets_user_agent(self.download_config.user_agent),
         )
-        # even if metadata_configs is not None (which means that we will resolve files for each config later)
-        # we cannot skip resolving all files because we need to infer module name by files extensions
-        revision = hfh_dataset_info.sha  # fix the revision in case there are new commits in the meantime
-        base_path = f"hf://datasets/{self.name}@{revision}/{self.data_dir or ''}".rstrip("/")
-
-        download_config = self.download_config.copy()
-        if download_config.download_desc is None:
-            download_config.download_desc = "Downloading readme"
         try:
-            dataset_readme_path = cached_path(
-                hf_dataset_url(self.name, config.REPOCARD_FILENAME, revision=revision),
-                download_config=download_config,
+            dataset_readme_path = api.hf_hub_download(
+                repo_id=self.name,
+                filename=config.REPOCARD_FILENAME,
+                repo_type="dataset",
+                revision=self.commit_hash,
+                proxies=self.download_config.proxies,
             )
-            dataset_card_data = DatasetCard.load(Path(dataset_readme_path)).data
-        except FileNotFoundError:
+            dataset_card_data = DatasetCard.load(dataset_readme_path).data
+        except EntryNotFoundError:
             dataset_card_data = DatasetCardData()
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading standalone yaml"
         try:
             standalone_yaml_path = cached_path(
-                hf_dataset_url(self.name, config.REPOYAML_FILENAME, revision=revision),
+                hf_dataset_url(self.name, config.REPOYAML_FILENAME, revision=self.commit_hash),
                 download_config=download_config,
             )
             with open(standalone_yaml_path, "r", encoding="utf-8") as f:
@@ -1027,17 +1035,13 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                     dataset_card_data = DatasetCardData(**_dataset_card_data_dict)
         except FileNotFoundError:
             pass
+        base_path = f"hf://datasets/{self.name}@{self.commit_hash}/{self.data_dir or ''}".rstrip("/")
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
-        # Use the infos from the parquet export except in some cases:
-        if self.data_dir or self.data_files or (self.revision and self.revision != "main"):
-            use_exported_dataset_infos = False
-        else:
-            use_exported_dataset_infos = True
-        if config.USE_PARQUET_EXPORT and use_exported_dataset_infos:
+        if config.USE_PARQUET_EXPORT and self.use_exported_dataset_infos:
             try:
                 exported_dataset_infos = _dataset_viewer.get_exported_dataset_infos(
-                    dataset=self.name, revision=self.revision, token=self.download_config.token
+                    dataset=self.name, commit_hash=self.commit_hash, token=self.download_config.token
                 )
                 exported_dataset_infos = DatasetInfosDict(
                     {
@@ -1110,7 +1114,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             ]
             default_config_name = None
         builder_kwargs = {
-            "base_path": hf_dataset_url(self.name, "", revision=revision).rstrip("/"),
+            "base_path": hf_dataset_url(self.name, "", revision=self.commit_hash).rstrip("/"),
             "repo_id": self.name,
             "dataset_name": camelcase_to_snakecase(Path(self.name).name),
         }
@@ -1122,7 +1126,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         try:
             # this file is deprecated and was created automatically in old versions of push_to_hub
             dataset_infos_path = cached_path(
-                hf_dataset_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=revision),
+                hf_dataset_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.commit_hash),
                 download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
@@ -1143,10 +1147,9 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         if default_config_name is None and len(dataset_infos) == 1:
             default_config_name = next(iter(dataset_infos))
 
-        hash = revision
         return DatasetModule(
             module_path,
-            hash,
+            self.commit_hash,
             builder_kwargs,
             dataset_infos=dataset_infos,
             builder_configs_parameters=BuilderConfigsParameters(
@@ -1165,20 +1168,20 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
     def __init__(
         self,
         name: str,
-        revision: Optional[str] = None,
+        commit_hash: str,
         download_config: Optional[DownloadConfig] = None,
     ):
         self.name = name
-        self.revision = revision
+        self.commit_hash = commit_hash
         self.download_config = download_config or DownloadConfig()
         increase_load_count(name)
 
     def get_module(self) -> DatasetModule:
         exported_parquet_files = _dataset_viewer.get_exported_parquet_files(
-            dataset=self.name, revision=self.revision, token=self.download_config.token
+            dataset=self.name, commit_hash=self.commit_hash, token=self.download_config.token
         )
         exported_dataset_infos = _dataset_viewer.get_exported_dataset_infos(
-            dataset=self.name, revision=self.revision, token=self.download_config.token
+            dataset=self.name, commit_hash=self.commit_hash, token=self.download_config.token
         )
         dataset_infos = DatasetInfosDict(
             {
@@ -1186,15 +1189,26 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
                 for config_name in exported_dataset_infos
             }
         )
-        hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
-            self.name,
-            revision="refs/convert/parquet",
-            token=self.download_config.token,
-            timeout=100.0,
-        )
-        revision = hfh_dataset_info.sha  # fix the revision in case there are new commits in the meantime
+        parquet_commit_hash = (
+            HfApi(
+                endpoint=config.HF_ENDPOINT,
+                token=self.download_config.token,
+                library_name="datasets",
+                library_version=__version__,
+                user_agent=get_datasets_user_agent(self.download_config.user_agent),
+            )
+            .dataset_info(
+                self.name,
+                revision="refs/convert/parquet",
+                token=self.download_config.token,
+                timeout=100.0,
+            )
+            .sha
+        )  # fix the revision in case there are new commits in the meantime
         metadata_configs = MetadataConfigs._from_exported_parquet_files_and_dataset_infos(
-            revision=revision, exported_parquet_files=exported_parquet_files, dataset_infos=dataset_infos
+            parquet_commit_hash=parquet_commit_hash,
+            exported_parquet_files=exported_parquet_files,
+            dataset_infos=dataset_infos,
         )
         module_path, _ = _PACKAGED_DATASETS_MODULES["parquet"]
         builder_configs, default_config_name = create_builder_configs_from_metadata_configs(
@@ -1203,7 +1217,6 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
             supports_metadata=False,
             download_config=self.download_config,
         )
-        hash = self.revision
         builder_kwargs = {
             "repo_id": self.name,
             "dataset_name": camelcase_to_snakecase(Path(self.name).name),
@@ -1211,7 +1224,7 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
 
         return DatasetModule(
             module_path,
-            hash,
+            self.commit_hash,
             builder_kwargs,
             dataset_infos=dataset_infos,
             builder_configs_parameters=BuilderConfigsParameters(
@@ -1231,14 +1244,14 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
     def __init__(
         self,
         name: str,
-        revision: Optional[Union[str, Version]] = None,
+        commit_hash: str,
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
         dynamic_modules_path: Optional[str] = None,
         trust_remote_code: Optional[bool] = None,
     ):
         self.name = name
-        self.revision = revision
+        self.commit_hash = commit_hash
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
@@ -1246,14 +1259,14 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         increase_load_count(name)
 
     def download_loading_script(self) -> str:
-        file_path = hf_dataset_url(self.name, self.name.split("/")[-1] + ".py", revision=self.revision)
+        file_path = hf_dataset_url(self.name, self.name.split("/")[-1] + ".py", revision=self.commit_hash)
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading builder script"
         return cached_path(file_path, download_config=download_config)
 
     def download_dataset_infos_file(self) -> str:
-        dataset_infos = hf_dataset_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision)
+        dataset_infos = hf_dataset_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.commit_hash)
         # Download the dataset infos file if available
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
@@ -1267,7 +1280,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             return None
 
     def download_dataset_readme_file(self) -> str:
-        readme_url = hf_dataset_url(self.name, config.REPOCARD_FILENAME, revision=self.revision)
+        readme_url = hf_dataset_url(self.name, config.REPOCARD_FILENAME, revision=self.commit_hash)
         # Download the dataset infos file if available
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
@@ -1296,7 +1309,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         imports = get_imports(local_path)
         local_imports, library_imports = _download_additional_modules(
             name=self.name,
-            base_path=hf_dataset_url(self.name, "", revision=self.revision),
+            base_path=hf_dataset_url(self.name, "", revision=self.commit_hash),
             imports=imports,
             download_config=self.download_config,
         )
@@ -1343,7 +1356,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
         builder_kwargs = {
-            "base_path": hf_dataset_url(self.name, "", revision=self.revision).rstrip("/"),
+            "base_path": hf_dataset_url(self.name, "", revision=self.commit_hash).rstrip("/"),
             "repo_id": self.name,
         }
         return DatasetModule(module_path, hash, builder_kwargs, importable_file_path=importable_file_path)
@@ -1574,46 +1587,74 @@ def dataset_module_factory(
     # Try remotely
     elif is_relative_path(path) and path.count("/") <= 1:
         try:
-            _raise_if_offline_mode_is_enabled()
-            hf_api = HfApi(config.HF_ENDPOINT)
+            # Get the Dataset Card + get the revision + check authentication all at in one call
+            # We fix the commit_hash in case there are new commits in the meantime
+            api = HfApi(
+                endpoint=config.HF_ENDPOINT,
+                token=download_config.token,
+                library_name="datasets",
+                library_version=__version__,
+                user_agent=get_datasets_user_agent(download_config.user_agent),
+            )
             try:
-                dataset_info = hf_api.dataset_info(
+                _raise_if_offline_mode_is_enabled()
+                dataset_readme_path = api.hf_hub_download(
                     repo_id=path,
+                    filename=config.REPOCARD_FILENAME,
+                    repo_type="dataset",
                     revision=revision,
-                    token=download_config.token,
-                    timeout=100.0,
+                    proxies=download_config.proxies,
                 )
+                commit_hash = os.path.basename(os.path.dirname(dataset_readme_path))
+            except LocalEntryNotFoundError as e:
+                if isinstance(
+                    e.__cause__,
+                    (
+                        OfflineModeIsEnabled,
+                        requests.exceptions.Timeout,
+                        requests.exceptions.ConnectionError,
+                    ),
+                ):
+                    raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
+                else:
+                    raise
+            except EntryNotFoundError:
+                commit_hash = api.dataset_info(
+                    path,
+                    revision=revision,
+                    timeout=100.0,
+                ).sha
             except (
                 OfflineModeIsEnabled,
-                requests.exceptions.ConnectTimeout,
+                requests.exceptions.Timeout,
                 requests.exceptions.ConnectionError,
             ) as e:
                 raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
+            except GatedRepoError as e:
+                message = f"Dataset '{path}' is a gated dataset on the Hub."
+                if e.response.status_code == 401:
+                    message += " You must be authenticated to access it."
+                elif e.response.status_code == 403:
+                    message += f" Visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
+                raise DatasetNotFoundError(message) from e
             except RevisionNotFoundError as e:
                 raise DatasetNotFoundError(
                     f"Revision '{revision}' doesn't exist for dataset '{path}' on the Hub."
                 ) from e
             except RepositoryNotFoundError as e:
                 raise DatasetNotFoundError(f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed.") from e
-            if dataset_info.gated:
-                try:
-                    check_auth(hf_api, repo_id=path, token=download_config.token)
-                except GatedRepoError as e:
-                    message = f"Dataset '{path}' is a gated dataset on the Hub."
-                    if "401 Client Error" in str(e):
-                        message += " You must be authenticated to access it."
-                    elif "403 Client Error" in str(e):
-                        message += (
-                            f" Visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
-                        )
-                    raise DatasetNotFoundError(message) from e
-
-            if filename in [sibling.rfilename for sibling in dataset_info.siblings]:  # contains a dataset script
-                fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
+            try:
+                dataset_script_path = api.hf_hub_download(
+                    repo_id=path,
+                    filename=filename,
+                    repo_type="dataset",
+                    revision=commit_hash,
+                    proxies=download_config.proxies,
+                )
                 if _require_custom_configs or (revision and revision != "main"):
                     can_load_config_from_parquet_export = False
                 elif _require_default_config_name:
-                    with fs.open(f"datasets/{path}/{filename}", "r", encoding="utf-8") as f:
+                    with open(dataset_script_path, "r", encoding="utf-8") as f:
                         can_load_config_from_parquet_export = "DEFAULT_CONFIG_NAME" not in f.read()
                 else:
                     can_load_config_from_parquet_export = True
@@ -1622,29 +1663,48 @@ def dataset_module_factory(
                     # This fails when the dataset has multiple configs and a default config and
                     # the user didn't specify a configuration name (_require_default_config_name=True).
                     try:
-                        return HubDatasetModuleFactoryWithParquetExport(
-                            path, download_config=download_config, revision=dataset_info.sha
+                        out = HubDatasetModuleFactoryWithParquetExport(
+                            path, download_config=download_config, commit_hash=commit_hash
                         ).get_module()
+                        logger.info("Loading the dataset from the Parquet export on Hugging Face.")
+                        return out
                     except _dataset_viewer.DatasetViewerError:
                         pass
                 # Otherwise we must use the dataset script if the user trusts it
                 return HubDatasetModuleFactoryWithScript(
                     path,
-                    revision=revision,
+                    commit_hash=commit_hash,
                     download_config=download_config,
                     download_mode=download_mode,
                     dynamic_modules_path=dynamic_modules_path,
                     trust_remote_code=trust_remote_code,
                 ).get_module()
-            else:
+            except EntryNotFoundError:
+                # Use the infos from the parquet export except in some cases:
+                if data_dir or data_files or (revision and revision != "main"):
+                    use_exported_dataset_infos = False
+                else:
+                    use_exported_dataset_infos = True
                 return HubDatasetModuleFactoryWithoutScript(
                     path,
-                    revision=revision,
+                    commit_hash=commit_hash,
                     data_dir=data_dir,
                     data_files=data_files,
                     download_config=download_config,
                     download_mode=download_mode,
+                    use_exported_dataset_infos=use_exported_dataset_infos,
                 ).get_module()
+            except GatedRepoError as e:
+                message = f"Dataset '{path}' is a gated dataset on the Hub."
+                if e.response.status_code == 401:
+                    message += " You must be authenticated to access it."
+                elif e.response.status_code == 403:
+                    message += f" Visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
+                raise DatasetNotFoundError(message) from e
+            except RevisionNotFoundError as e:
+                raise DatasetNotFoundError(
+                    f"Revision '{revision}' doesn't exist for dataset '{path}' on the Hub."
+                ) from e
         except Exception as e1:
             # All the attempts failed, before raising the error we should check if the module is already cached
             try:
@@ -1693,42 +1753,36 @@ def load_dataset_builder(
     _require_default_config_name=True,
     **config_kwargs,
 ) -> DatasetBuilder:
-    """Load a dataset builder from the Hugging Face Hub, or a local dataset. A dataset builder can be used to inspect general information that is required to build a dataset (cache directory, config, dataset info, etc.)
-    without downloading the dataset itself.
+    """Load a dataset builder which can be used to:
+
+    - Inspect general information that is required to build a dataset (cache directory, config, dataset info, features, data files, etc.)
+    - Download and prepare the dataset as Arrow files in the cache
+    - Get a streaming dataset without downloading or caching anything
 
     You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
 
-    A dataset is a directory that contains:
-
-    - some data files in generic formats (JSON, CSV, Parquet, text, etc.)
-    - and optionally a dataset script, if it requires some code to read the data files. This is used to load any kind of formats or structures.
-
-    Note that dataset scripts can also download and read data files from anywhere - in case your data files already exist online.
+    A dataset is a directory that contains some data files in generic formats (JSON, CSV, Parquet, etc.) and possibly
+    in a generic structure (Webdataset, ImageFolder, AudioFolder, VideoFolder, etc.)
 
     Args:
 
         path (`str`):
             Path or name of the dataset.
-            Depending on `path`, the dataset builder that is used comes from a generic dataset script (JSON, CSV, Parquet, text etc.) or from the dataset script (a python file) inside the dataset directory.
 
-            For local datasets:
+            - if `path` is a dataset repository on the HF hub (list all available datasets with [`huggingface_hub.list_datasets`])
+              -> load the dataset builder from supported files in the repository (csv, json, parquet, etc.)
+              e.g. `'username/dataset_name'`, a dataset repository on the HF hub containing the data files.
 
-            - if `path` is a local directory (containing data files only)
-              -> load a generic dataset builder (csv, json, text etc.) based on the content of the directory
+            - if `path` is a local directory
+              -> load the dataset builder from supported files in the directory (csv, json, parquet, etc.)
               e.g. `'./path/to/directory/with/my/csv/data'`.
-            - if `path` is a local dataset script or a directory containing a local dataset script (if the script has the same name as the directory)
-              -> load the dataset builder from the dataset script
-              e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`.
 
-            For datasets on the Hugging Face Hub (list all available datasets with [`huggingface_hub.list_datasets`])
+            - if `path` is the name of a dataset builder and `data_files` or `data_dir` is specified
+              (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder")
+              -> load the dataset builder from the files in `data_files` or `data_dir`
+              e.g. `'parquet'`.
 
-            - if `path` is a dataset repository on the HF hub (containing data files only)
-              -> load a generic dataset builder (csv, text etc.) based on the content of the repository
-              e.g. `'username/dataset_name'`, a dataset repository on the HF hub containing your data files.
-            - if `path` is a dataset repository on the HF hub with a dataset script (if the script has the same name as the directory)
-              -> load the dataset builder from the dataset script in the dataset repository
-              e.g. `glue`, `squad`, `'username/dataset_name'`, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
-
+            It can also point to a local dataset script but this is not recommended.
         name (`str`, *optional*):
             Defining the name of the dataset configuration.
         data_dir (`str`, *optional*):
@@ -1779,9 +1833,9 @@ def load_dataset_builder(
 
     ```py
     >>> from datasets import load_dataset_builder
-    >>> ds_builder = load_dataset_builder('rotten_tomatoes')
+    >>> ds_builder = load_dataset_builder('cornell-movie-review-data/rotten_tomatoes')
     >>> ds_builder.info.features
-    {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+    {'label': ClassLabel(names=['neg', 'pos'], id=None),
      'text': Value(dtype='string', id=None)}
     ```
     """
@@ -1873,61 +1927,55 @@ def load_dataset(
 
     You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
 
-    A dataset is a directory that contains:
-
-    - some data files in generic formats (JSON, CSV, Parquet, text, etc.).
-    - and optionally a dataset script, if it requires some code to read the data files. This is used to load any kind of formats or structures.
-
-    Note that dataset scripts can also download and read data files from anywhere - in case your data files already exist online.
+    A dataset is a directory that contains some data files in generic formats (JSON, CSV, Parquet, etc.) and possibly
+    in a generic structure (Webdataset, ImageFolder, AudioFolder, VideoFolder, etc.)
 
     This function does the following under the hood:
 
-        1. Download and import in the library the dataset script from `path` if it's not already cached inside the library.
+        1. Load a dataset builder:
 
-            If the dataset has no dataset script, then a generic dataset script is imported instead (JSON, CSV, Parquet, text, etc.)
+            * Find the most common data format in the dataset and pick its associated builder (JSON, CSV, Parquet, Webdataset, ImageFolder, AudioFolder, etc.)
+            * Find which file goes into which split (e.g. train/test) based on file and directory names or on the YAML configuration
+            * It is also possible to specify `data_files` manually, and which dataset builder to use (e.g. "parquet").
 
-            Dataset scripts are small python scripts that define dataset builders. They define the citation, info and format of the dataset,
-            contain the path or URL to the original data files and the code to load examples from the original data files.
+        2. Run the dataset builder:
 
-            You can find the complete list of datasets in the Datasets [Hub](https://huggingface.co/datasets).
+            In the general case:
 
-        2. Run the dataset script which will:
-
-            * Download the dataset file from the original URL (see the script) if it's not already available locally or cached.
+            * Download the data files from the dataset if they are not already available locally or cached.
             * Process and cache the dataset in typed Arrow tables for caching.
 
                 Arrow table are arbitrarily long, typed tables which can store nested objects and be mapped to numpy/pandas/python generic types.
                 They can be directly accessed from disk, loaded in RAM or even streamed over the web.
 
+            In the streaming case:
+
+            * Don't download or cache anything. Instead, the dataset is lazily loaded and will be streamed on-the-fly when iterating on it.
+
         3. Return a dataset built from the requested splits in `split` (default: all).
 
-    It also allows to load a dataset from a local directory or a dataset repository on the Hugging Face Hub without dataset script.
-    In this case, it automatically loads all the data files from the directory or the dataset repository.
+    It can also use a custom dataset builder if the dataset contains a dataset script, but this feature is mostly for backward compatibility.
+    In this case the dataset script file must be named after the dataset repository or directory and end with ".py".
 
     Args:
 
         path (`str`):
             Path or name of the dataset.
-            Depending on `path`, the dataset builder that is used comes from a generic dataset script (JSON, CSV, Parquet, text etc.) or from the dataset script (a python file) inside the dataset directory.
 
-            For local datasets:
+            - if `path` is a dataset repository on the HF hub (list all available datasets with [`huggingface_hub.list_datasets`])
+              -> load the dataset from supported files in the repository (csv, json, parquet, etc.)
+              e.g. `'username/dataset_name'`, a dataset repository on the HF hub containing the data files.
 
-            - if `path` is a local directory (containing data files only)
-              -> load a generic dataset builder (csv, json, text etc.) based on the content of the directory
+            - if `path` is a local directory
+              -> load the dataset from supported files in the directory (csv, json, parquet, etc.)
               e.g. `'./path/to/directory/with/my/csv/data'`.
-            - if `path` is a local dataset script or a directory containing a local dataset script (if the script has the same name as the directory)
-              -> load the dataset builder from the dataset script
-              e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`.
 
-            For datasets on the Hugging Face Hub (list all available datasets with [`huggingface_hub.list_datasets`])
+            - if `path` is the name of a dataset builder and `data_files` or `data_dir` is specified
+              (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder")
+              -> load the dataset from the files in `data_files` or `data_dir`
+              e.g. `'parquet'`.
 
-            - if `path` is a dataset repository on the HF hub (containing data files only)
-              -> load a generic dataset builder (csv, text etc.) based on the content of the repository
-              e.g. `'username/dataset_name'`, a dataset repository on the HF hub containing your data files.
-            - if `path` is a dataset repository on the HF hub with a dataset script (if the script has the same name as the directory)
-              -> load the dataset builder from the dataset script in the dataset repository
-              e.g. `glue`, `squad`, `'username/dataset_name'`, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
-
+            It can also point to a local dataset script but this is not recommended.
         name (`str`, *optional*):
             Defining the name of the dataset configuration.
         data_dir (`str`, *optional*):
@@ -2014,11 +2062,18 @@ def load_dataset(
 
     ```py
     >>> from datasets import load_dataset
-    >>> ds = load_dataset('rotten_tomatoes', split='train')
+    >>> ds = load_dataset('cornell-movie-review-data/rotten_tomatoes', split='train')
 
-    # Map data files to splits
+    # Load a subset or dataset configuration (here 'sst2')
+    >>> from datasets import load_dataset
+    >>> ds = load_dataset('nyu-mll/glue', 'sst2', split='train')
+
+    # Manual mapping of data files to splits
     >>> data_files = {'train': 'train.csv', 'test': 'test.csv'}
     >>> ds = load_dataset('namespace/your_dataset_name', data_files=data_files)
+
+    # Manual selection of a directory to load
+    >>> ds = load_dataset('namespace/your_dataset_name', data_dir='folder_name')
     ```
 
     Load a local dataset:
@@ -2032,7 +2087,7 @@ def load_dataset(
     >>> from datasets import load_dataset
     >>> ds = load_dataset('json', data_files='path/to/local/my_dataset.json')
 
-    # Load from a local loading script
+    # Load from a local loading script (not recommended)
     >>> from datasets import load_dataset
     >>> ds = load_dataset('path/to/local/loading_script/loading_script.py', split='train')
     ```
@@ -2041,7 +2096,7 @@ def load_dataset(
 
     ```py
     >>> from datasets import load_dataset
-    >>> ds = load_dataset('rotten_tomatoes', split='train', streaming=True)
+    >>> ds = load_dataset('cornell-movie-review-data/rotten_tomatoes', split='train', streaming=True)
     ```
 
     Load an image dataset with the `ImageFolder` dataset builder:

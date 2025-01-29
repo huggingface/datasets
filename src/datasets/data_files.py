@@ -386,7 +386,7 @@ def resolve_pattern(
     matched_paths = [
         filepath if filepath.startswith(protocol_prefix) else protocol_prefix + filepath
         for filepath, info in fs.glob(pattern, detail=True, **glob_kwargs).items()
-        if info["type"] == "file"
+        if (info["type"] == "file" or (info.get("islink") and os.path.isfile(os.path.realpath(filepath))))
         and (xbasename(filepath) not in files_to_ignore)
         and not _is_inside_unrequested_special_dir(filepath, fs_pattern)
         and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(filepath, fs_pattern)

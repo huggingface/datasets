@@ -2653,10 +2653,12 @@ class BaseDatasetTest(TestCase):
             tmp_file = os.path.join(tmp_dir, "test.arrow")
             with dset.select(range(10), indices_cache_file_name=tmp_file) as dset:
                 self.assertEqual(len(dset), 10)
-                # Shard
+                # Shard non-contiguous
                 tmp_file_1 = os.path.join(tmp_dir, "test_1.arrow")
                 fingerprint = dset._fingerprint
-                with dset.shard(num_shards=8, index=1, indices_cache_file_name=tmp_file_1) as dset_sharded:
+                with dset.shard(
+                    num_shards=8, index=1, contiguous=False, indices_cache_file_name=tmp_file_1
+                ) as dset_sharded:
                     self.assertEqual(2, len(dset_sharded))
                     self.assertEqual(["my_name-train_1", "my_name-train_9"], dset_sharded["filename"])
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
@@ -2738,9 +2740,11 @@ class BaseDatasetTest(TestCase):
         import tensorflow as tf
         import torch
 
-        with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(
-            in_memory, tmp_dir
-        ) as dset, dset.map(lambda ex, i: {"vec": np.ones(3) * i}, with_indices=True) as dset:
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            self._create_dummy_dataset(in_memory, tmp_dir) as dset,
+            dset.map(lambda ex, i: {"vec": np.ones(3) * i}, with_indices=True) as dset,
+        ):
             columns = dset.column_names
 
             self.assertIsNotNone(dset[0])
@@ -2791,9 +2795,11 @@ class BaseDatasetTest(TestCase):
         import tensorflow as tf
         import torch
 
-        with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(
-            in_memory, tmp_dir
-        ) as dset, dset.map(lambda ex, i: {"vec": np.ones(3 + i) * i}, with_indices=True) as dset:
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            self._create_dummy_dataset(in_memory, tmp_dir) as dset,
+            dset.map(lambda ex, i: {"vec": np.ones(3 + i) * i}, with_indices=True) as dset,
+        ):
             columns = dset.column_names
 
             self.assertIsNotNone(dset[0])
@@ -2851,9 +2857,11 @@ class BaseDatasetTest(TestCase):
         import tensorflow as tf
         import torch
 
-        with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(
-            in_memory, tmp_dir
-        ) as dset, dset.map(lambda ex: {"nested": [{"foo": np.ones(3)}] * len(ex["filename"])}, batched=True) as dset:
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            self._create_dummy_dataset(in_memory, tmp_dir) as dset,
+            dset.map(lambda ex: {"nested": [{"foo": np.ones(3)}] * len(ex["filename"])}, batched=True) as dset,
+        ):
             self.assertDictEqual(
                 dset.features, Features({"filename": Value("string"), "nested": {"foo": Sequence(Value("float64"))}})
             )
@@ -3245,11 +3253,11 @@ class MiscellaneousDatasetTest(TestCase):
         info1 = DatasetInfo(description="Dataset1")
         info2 = DatasetInfo(description="Dataset2")
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with Dataset.from_dict(data1, info=info1).map(
-                cache_file_name=os.path.join(tmp_dir, "d1.arrow")
-            ) as dset1, Dataset.from_dict(data2, info=info2).map(
-                cache_file_name=os.path.join(tmp_dir, "d2.arrow")
-            ) as dset2, Dataset.from_dict(data3) as dset3:
+            with (
+                Dataset.from_dict(data1, info=info1).map(cache_file_name=os.path.join(tmp_dir, "d1.arrow")) as dset1,
+                Dataset.from_dict(data2, info=info2).map(cache_file_name=os.path.join(tmp_dir, "d2.arrow")) as dset2,
+                Dataset.from_dict(data3) as dset3,
+            ):
                 with concatenate_datasets([dset1, dset2, dset3]) as concatenated_dset:
                     self.assertEqual(len(concatenated_dset), len(dset1) + len(dset2) + len(dset3))
                     self.assertListEqual(concatenated_dset["id"], dset1["id"] + dset2["id"] + dset3["id"])
@@ -4151,9 +4159,10 @@ def test_dataset_to_json(dataset, tmp_path):
 )
 def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_params, arrow_file):
     method, args, kwargs = method_and_params
-    with Dataset.from_file(arrow_file, in_memory=in_memory) as dataset, Dataset.from_file(
-        arrow_file, in_memory=in_memory
-    ) as reference_dataset:
+    with (
+        Dataset.from_file(arrow_file, in_memory=in_memory) as dataset,
+        Dataset.from_file(arrow_file, in_memory=in_memory) as reference_dataset,
+    ):
         out = getattr(dataset, method)(*args, **kwargs)
         dataset = out if out is not None else dataset
         pickled_dataset = pickle.dumps(dataset)
@@ -4291,7 +4300,7 @@ def test_dataset_to_iterable_dataset(dataset: Dataset):
     assert isinstance(iterable_dataset, IterableDataset)
     assert list(iterable_dataset) == list(dataset)
     assert iterable_dataset.features == dataset.features
-    assert iterable_dataset.n_shards == 3
+    assert iterable_dataset.num_shards == 3
     with pytest.raises(ValueError):
         dataset.to_iterable_dataset(num_shards=len(dataset) + 1)
     with pytest.raises(NotImplementedError):

@@ -88,9 +88,11 @@ class IndexableDatasetTest(TestCase):
         from elasticsearch import Elasticsearch
 
         dset: Dataset = self._create_dummy_dataset()
-        with patch("elasticsearch.Elasticsearch.search") as mocked_search, patch(
-            "elasticsearch.client.IndicesClient.create"
-        ) as mocked_index_create, patch("elasticsearch.helpers.streaming_bulk") as mocked_bulk:
+        with (
+            patch("elasticsearch.Elasticsearch.search") as mocked_search,
+            patch("elasticsearch.client.IndicesClient.create") as mocked_index_create,
+            patch("elasticsearch.helpers.streaming_bulk") as mocked_bulk,
+        ):
             mocked_index_create.return_value = {"acknowledged": True}
             mocked_bulk.return_value([(True, None)] * 30)
             mocked_search.return_value = {"hits": {"hits": [{"_score": 1, "_id": 29}]}}
@@ -198,9 +200,11 @@ class ElasticSearchIndexTest(TestCase):
     def test_elasticsearch(self):
         from elasticsearch import Elasticsearch
 
-        with patch("elasticsearch.Elasticsearch.search") as mocked_search, patch(
-            "elasticsearch.client.IndicesClient.create"
-        ) as mocked_index_create, patch("elasticsearch.helpers.streaming_bulk") as mocked_bulk:
+        with (
+            patch("elasticsearch.Elasticsearch.search") as mocked_search,
+            patch("elasticsearch.client.IndicesClient.create") as mocked_index_create,
+            patch("elasticsearch.helpers.streaming_bulk") as mocked_bulk,
+        ):
             es_client = Elasticsearch()
             mocked_index_create.return_value = {"acknowledged": True}
             index = ElasticSearchIndex(es_client=es_client)

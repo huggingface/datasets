@@ -79,7 +79,7 @@ def _examples_to_batch(examples: List[Dict[str, Any]]) -> Dict[str, list]:
 
 def _batch_to_examples(batch: Dict[str, list]) -> Iterator[Dict[str, Any]]:
     """Convert a batch (dict of examples) to examples list"""
-    n_examples = len(batch[next(iter(batch))])
+    n_examples = 0 if len(batch) == 0 else len(batch[next(iter(batch))])
     for i in range(n_examples):
         yield {col: array[i] for col, array in batch.items()}
 
@@ -130,6 +130,14 @@ class _BaseExamplesIterable:
     def iter_arrow(self) -> Optional[Callable[[], Iterator[Tuple[Key, pa.Table]]]]:
         return None
 
+    @property
+    def is_typed(self) -> bool:
+        return False
+
+    @property
+    def features(self) -> Optional[Features]:
+        return None
+
     def shuffle_data_sources(self, generator: np.random.Generator) -> "_BaseExamplesIterable":
         """
         Either shuffle the shards/sources of the dataset, or propagate the shuffling to the underlying iterable.
@@ -137,16 +145,23 @@ class _BaseExamplesIterable:
         """
         raise NotImplementedError(f"{type(self)} doesn't implement shuffle_data_sources yet")
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "_BaseExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "_BaseExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         raise NotImplementedError(f"{type(self)} doesn't implement shard_data_sources yet")
 
-    def split_shard_indices_by_worker(self, worker_id: int, num_workers: int) -> List[int]:
-        return list(range(worker_id, self.n_shards, num_workers))
+    def split_shard_indices_by_worker(self, num_shards: int, index: int, contiguous=True) -> List[int]:
+        if contiguous:
+            div = self.num_shards // num_shards
+            mod = self.num_shards % num_shards
+            start = div * index + min(index, mod)
+            end = start + div + (1 if index < mod else 0)
+            return list(range(start, end))
+        else:
+            return list(range(index, self.num_shards, num_shards))
 
     @property
-    def n_shards(self) -> int:
-        raise NotImplementedError(f"{type(self)} doesn't implement n_shards yet")
+    def num_shards(self) -> int:
+        raise NotImplementedError(f"{type(self)} doesn't implement num_shards yet")
 
     def _init_state_dict(self) -> dict:
         raise NotImplementedError(f"{type(self)} doesn't implement _init_state_dict yet")
@@ -183,7 +198,7 @@ class ExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         shard_idx_start = self._state_dict["shard_idx"] if self._state_dict else 0
-        for gen_kwags in islice(_split_gen_kwargs(self.kwargs, max_num_jobs=self.n_shards), shard_idx_start, None):
+        for gen_kwags in islice(_split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards), shard_idx_start, None):
             shard_example_idx_start = self._state_dict["shard_example_idx"] if self._state_dict else 0
             for key_example in islice(self.generate_examples_fn(**gen_kwags), shard_example_idx_start, None):
                 if self._state_dict:
@@ -196,15 +211,15 @@ class ExamplesIterable(_BaseExamplesIterable):
     def shuffle_data_sources(self, generator: np.random.Generator) -> "ExamplesIterable":
         return ShuffledDataSourcesExamplesIterable(self.generate_examples_fn, self.kwargs, generator)
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "ExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ExamplesIterable":
         """Keep only the requested shard."""
-        gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.n_shards)
-        shard_indices = self.split_shard_indices_by_worker(worker_id, num_workers)
+        gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
+        shard_indices = self.split_shard_indices_by_worker(num_shards, index, contiguous=contiguous)
         requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
         return ExamplesIterable(self.generate_examples_fn, requested_gen_kwargs)
 
     @property
-    def n_shards(self) -> int:
+    def num_shards(self) -> int:
         return _number_of_shards_in_gen_kwargs(self.kwargs)
 
 
@@ -225,7 +240,7 @@ class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
         kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
         shard_idx_start = self._state_dict["shard_idx"] if self._state_dict else 0
         for gen_kwags in islice(
-            _split_gen_kwargs(kwargs_with_shuffled_shards, max_num_jobs=self.n_shards), shard_idx_start, None
+            _split_gen_kwargs(kwargs_with_shuffled_shards, max_num_jobs=self.num_shards), shard_idx_start, None
         ):
             shard_example_idx_start = self._state_dict["shard_example_idx"] if self._state_dict else 0
             for key_example in islice(self.generate_examples_fn(**gen_kwags), shard_example_idx_start, None):
@@ -236,12 +251,12 @@ class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
                 self._state_dict["shard_idx"] += 1
                 self._state_dict["shard_example_idx"] = 0
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "ExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ExamplesIterable":
         """Keep only the requested shard."""
         rng = deepcopy(self.generator)
         kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
         return ExamplesIterable(self.generate_examples_fn, kwargs_with_shuffled_shards).shard_data_sources(
-            worker_id, num_workers
+            num_shards, index, contiguous=contiguous
         )
 
 
@@ -262,7 +277,7 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
     def __iter__(self):
         formatter = PythonFormatter()
         shard_idx_start = self._state_dict["shard_idx"] if self._state_dict else 0
-        for gen_kwags in islice(_split_gen_kwargs(self.kwargs, max_num_jobs=self.n_shards), shard_idx_start, None):
+        for gen_kwags in islice(_split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards), shard_idx_start, None):
             shard_example_idx_start = self._state_dict["shard_example_idx"] if self._state_dict else 0
             shard_example_idx = 0
             for key, pa_table in self.generate_tables_fn(**gen_kwags):
@@ -283,7 +298,7 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
 
     def _iter_arrow(self):
         shard_idx_start = self._state_dict["shard_idx"] if self._state_dict else 0
-        for gen_kwags in islice(_split_gen_kwargs(self.kwargs, max_num_jobs=self.n_shards), shard_idx_start, None):
+        for gen_kwags in islice(_split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards), shard_idx_start, None):
             shard_example_idx_start = self._state_dict["shard_example_idx"] if self._state_dict else 0
             shard_example_idx = 0
             for key, pa_table in self.generate_tables_fn(**gen_kwags):
@@ -300,15 +315,15 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
     def shuffle_data_sources(self, generator: np.random.Generator) -> "ArrowExamplesIterable":
         return ShuffledDataSourcesArrowExamplesIterable(self.generate_tables_fn, self.kwargs, generator)
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "ArrowExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ArrowExamplesIterable":
         """Keep only the requested shard."""
-        gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.n_shards)
-        shard_indices = self.split_shard_indices_by_worker(worker_id, num_workers)
+        gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
+        shard_indices = self.split_shard_indices_by_worker(num_shards, index, contiguous=contiguous)
         requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
         return ArrowExamplesIterable(self.generate_tables_fn, requested_gen_kwargs)
 
     @property
-    def n_shards(self) -> int:
+    def num_shards(self) -> int:
         return _number_of_shards_in_gen_kwargs(self.kwargs)
 
 
@@ -333,7 +348,7 @@ class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
         formatter = PythonFormatter()
         shard_idx_start = self._state_dict["shard_idx"] if self._state_dict else 0
         for gen_kwags in islice(
-            _split_gen_kwargs(kwargs_with_shuffled_shards, max_num_jobs=self.n_shards), shard_idx_start, None
+            _split_gen_kwargs(kwargs_with_shuffled_shards, max_num_jobs=self.num_shards), shard_idx_start, None
         ):
             shard_example_idx_start = self._state_dict["shard_example_idx"] if self._state_dict else 0
             shard_example_idx = 0
@@ -358,7 +373,7 @@ class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
         kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
         shard_idx_start = self._state_dict["shard_idx"] if self._state_dict else 0
         for gen_kwags in islice(
-            _split_gen_kwargs(kwargs_with_shuffled_shards, max_num_jobs=self.n_shards), shard_idx_start, None
+            _split_gen_kwargs(kwargs_with_shuffled_shards, max_num_jobs=self.num_shards), shard_idx_start, None
         ):
             shard_example_idx_start = self._state_dict["shard_example_idx"] if self._state_dict else 0
             shard_example_idx = 0
@@ -373,12 +388,12 @@ class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
                 self._state_dict["shard_idx"] += 1
                 self._state_dict["shard_example_idx"] = 0
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "ArrowExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ArrowExamplesIterable":
         """Keep only the requested shard."""
         rng = deepcopy(self.generator)
         kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
         return ArrowExamplesIterable(self.generate_tables_fn, kwargs_with_shuffled_shards).shard_data_sources(
-            worker_id, num_workers
+            num_shards, index, contiguous=contiguous
         )
 
 
@@ -392,6 +407,14 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
     @property
     def iter_arrow(self):
         return self._iter_arrow
+
+    @property
+    def is_typed(self):
+        return self.ex_iterable.is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterable.features
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {
@@ -497,14 +520,16 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
             self.ex_iterable.shuffle_data_sources(generator), self.batch_size, self.drop_last_batch
         )
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "RebatchedArrowExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "RebatchedArrowExamplesIterable":
         return RebatchedArrowExamplesIterable(
-            self.ex_iterable.shard_data_sources(worker_id, num_workers), self.batch_size, self.drop_last_batch
+            self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
+            self.batch_size,
+            self.drop_last_batch,
         )
 
     @property
-    def n_shards(self) -> int:
-        return self.ex_iterable.n_shards
+    def num_shards(self) -> int:
+        return self.ex_iterable.num_shards
 
 
 class SelectColumnsIterable(_BaseExamplesIterable):
@@ -517,6 +542,14 @@ class SelectColumnsIterable(_BaseExamplesIterable):
     def iter_arrow(self):
         if self.ex_iterable.iter_arrow:
             return self._iter_arrow
+
+    @property
+    def is_typed(self):
+        return self.ex_iterable.is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterable.features
 
     def _init_state_dict(self) -> dict:
         self._state_dict = self.ex_iterable._init_state_dict()
@@ -534,12 +567,14 @@ class SelectColumnsIterable(_BaseExamplesIterable):
     def shuffle_data_sources(self, generator: np.random.Generator) -> "SelectColumnsIterable":
         return SelectColumnsIterable(self.ex_iterable.shuffle_data_sources(generator), self.column_names)
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "SelectColumnsIterable":
-        return SelectColumnsIterable(self.ex_iterable.shard_data_sources(worker_id, num_workers), self.column_names)
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "SelectColumnsIterable":
+        return SelectColumnsIterable(
+            self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous), self.column_names
+        )
 
     @property
-    def n_shards(self) -> int:
-        return self.ex_iterable.n_shards
+    def num_shards(self) -> int:
+        return self.ex_iterable.num_shards
 
 
 class StepExamplesIterable(_BaseExamplesIterable):
@@ -549,6 +584,14 @@ class StepExamplesIterable(_BaseExamplesIterable):
         self.step = step
         self.offset = offset
         # TODO(QL): implement iter_arrow
+
+    @property
+    def is_typed(self):
+        return self.ex_iterable.is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterable.features
 
     def _init_state_dict(self) -> dict:
         self._state_dict = self.ex_iterable._init_state_dict()
@@ -568,14 +611,16 @@ class StepExamplesIterable(_BaseExamplesIterable):
             self.ex_iterable.shuffle_data_sources(generator), step=self.step, offset=self.offset
         )
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "StepExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "StepExamplesIterable":
         return StepExamplesIterable(
-            self.ex_iterable.shard_data_sources(worker_id, num_workers), step=self.step, offset=self.offset
+            self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
+            step=self.step,
+            offset=self.offset,
         )
 
     @property
-    def n_shards(self) -> int:
-        return self.ex_iterable.n_shards
+    def num_shards(self) -> int:
+        return self.ex_iterable.num_shards
 
 
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
@@ -592,6 +637,14 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
         # if oversampling ("all_exhausted"), we stop as soons as every dataset is exhausted, i.e as soon as every samples of every dataset has been visited at least once
         self.bool_strategy_func = np.all if (stopping_strategy == "all_exhausted") else np.any
         # TODO(QL): implement iter_arrow
+
+    @property
+    def is_typed(self):
+        return self.ex_iterables[0].is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterables[0].features
 
     def _get_indices_iterator(self):
         # this is an infinite iterator to keep track of which iterator we want to pick examples from
@@ -659,13 +712,15 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
         return CyclingMultiSourcesExamplesIterable(ex_iterables, self.stopping_strategy)
 
     @property
-    def n_shards(self) -> int:
-        return min(ex_iterable.n_shards for ex_iterable in self.ex_iterables)
+    def num_shards(self) -> int:
+        return min(ex_iterable.num_shards for ex_iterable in self.ex_iterables)
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "CyclingMultiSourcesExamplesIterable":
+    def shard_data_sources(
+        self, num_shards: int, index: int, contiguous=True
+    ) -> "CyclingMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         return CyclingMultiSourcesExamplesIterable(
-            [iterable.shard_data_sources(worker_id, num_workers) for iterable in self.ex_iterables],
+            [iterable.shard_data_sources(num_shards, index, contiguous=contiguous) for iterable in self.ex_iterables],
             stopping_strategy=self.stopping_strategy,
         )
 
@@ -674,18 +729,26 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     """
     VerticallyConcatenatedMultiSourcesExamplesIterable simply chains the input iterables.
     It doesn't require the examples iterables to always yield the same columns.
-    Instead, this is handled by the `IterableDataset` class or `TypedExamplesIterable`.
+    Instead, this is handled by the `IterableDataset` class or `FormattedExamplesIterable`.
 
     For information, `IterableDataset` merges the features of all the datasets to concatenate into one.
     We use `IterableDataset._resolve_features` to obtain the features of all the datasets to concatenate.
 
-    Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
+    Then for each example, `IterableDataset` and `FormattedExamplesIterable` automatically fill missing columns with None.
     This is done with `_apply_feature_types_on_example`.
     """
 
     def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
         super().__init__()
         self.ex_iterables = ex_iterables
+
+    @property
+    def is_typed(self):
+        return self.ex_iterables[0].is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterables[0].features
 
     @property
     def iter_arrow(self):
@@ -724,15 +787,15 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
         return VerticallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
 
     @property
-    def n_shards(self) -> int:
-        return min(ex_iterable.n_shards for ex_iterable in self.ex_iterables)
+    def num_shards(self) -> int:
+        return min(ex_iterable.num_shards for ex_iterable in self.ex_iterables)
 
     def shard_data_sources(
-        self, worker_id: int, num_workers: int
+        self, num_shards: int, index: int, contiguous=True
     ) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         return VerticallyConcatenatedMultiSourcesExamplesIterable(
-            [iterable.shard_data_sources(worker_id, num_workers) for iterable in self.ex_iterables]
+            [iterable.shard_data_sources(num_shards, index, contiguous=contiguous) for iterable in self.ex_iterables]
         )
 
 
@@ -753,12 +816,12 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
     This check is done once when yielding the first example.
 
     However it doesn't fill missing columns with None.
-    Instead, this is handled by the `IterableDataset` class or `TypedExamplesIterable`.
+    Instead, this is handled by the `IterableDataset` class or `FormattedExamplesIterable`.
 
     For information, `IterableDataset` merges the features of all the datasets to concatenate into one.
     We use `IterableDataset._resolve_features` to obtain the features of all the datasets to concatenate.
 
-    Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
+    Then for each example, `IterableDataset` and `FormattedExamplesIterable` automatically fill missing columns with None.
     This is done with `_apply_feature_types_on_example`.
     """
 
@@ -766,6 +829,14 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
         super().__init__()
         self.ex_iterables = ex_iterables
         # TODO(QL): implement iter_arrow
+
+    @property
+    def is_typed(self):
+        return self.ex_iterables[0].is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterables[0].features
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {"ex_iterables": [ex_iterable._init_state_dict() for ex_iterable in self.ex_iterables]}
@@ -801,15 +872,15 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
         return self
 
     @property
-    def n_shards(self) -> int:
+    def num_shards(self) -> int:
         return 1
 
     def shard_data_sources(
-        self, worker_id: int, num_workers: int
+        self, num_shards: int, index: int, contiguous=True
     ) -> "HorizontallyConcatenatedMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         return HorizontallyConcatenatedMultiSourcesExamplesIterable(
-            [iterable.shard_data_sources(worker_id, num_workers) for iterable in self.ex_iterables]
+            [iterable.shard_data_sources(num_shards, index, contiguous=contiguous) for iterable in self.ex_iterables]
         )
 
 
@@ -825,6 +896,14 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         self.generator = deepcopy(generator)
         self.probabilities = probabilities
         # TODO(QL): implement iter_arrow
+
+    @property
+    def is_typed(self):
+        return self.ex_iterables[0].is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterables[0].features
 
     def _get_indices_iterator(self):
         rng = deepcopy(self.generator)
@@ -875,10 +954,12 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
             stopping_strategy=self.stopping_strategy,
         )
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "RandomlyCyclingMultiSourcesExamplesIterable":
+    def shard_data_sources(
+        self, num_shards: int, index: int, contiguous=True
+    ) -> "RandomlyCyclingMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         return RandomlyCyclingMultiSourcesExamplesIterable(
-            [iterable.shard_data_sources(worker_id, num_workers) for iterable in self.ex_iterables],
+            [iterable.shard_data_sources(num_shards, index, contiguous=contiguous) for iterable in self.ex_iterables],
             self.generator,
             self.probabilities,
             self.stopping_strategy,
@@ -898,6 +979,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         remove_columns: Optional[List[str]] = None,
         fn_kwargs: Optional[dict] = None,
         formatting: Optional["FormattingConfig"] = None,
+        features: Optional[Features] = None,
     ):
         super().__init__()
         self.ex_iterable = ex_iterable
@@ -909,7 +991,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         self.with_indices = with_indices
         self.input_columns = input_columns
         self.fn_kwargs = fn_kwargs or {}
-        self.formatting = formatting
+        self.formatting = formatting  # required for iter_arrow
+        self._features = features
         # sanity checks
         if formatting and formatting.format_type == "arrow":
             # batch_size should match for iter_arrow
@@ -928,6 +1011,14 @@ class MappedExamplesIterable(_BaseExamplesIterable):
     def iter_arrow(self):
         if self.formatting and self.formatting.format_type == "arrow":
             return self._iter_arrow
+
+    @property
+    def is_typed(self):
+        return self.features is not None  # user has extracted features
+
+    @property
+    def features(self):
+        return self._features
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {
@@ -991,12 +1082,16 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
                 if self.with_indices:
                     function_args.append([current_idx + i for i in range(len(key_examples_list))])
-                transformed_batch = dict(batch)  # this will be updated with the function output
-                transformed_batch.update(self.function(*function_args, **self.fn_kwargs))
-                # then remove the unwanted columns
+                inputs_to_merge = dict(batch)
+                processed_inputs = self.function(*function_args, **self.fn_kwargs)
+                # this logic mimics the one in Dataset.map
                 if self.remove_columns:
                     for c in self.remove_columns:
-                        del transformed_batch[c]
+                        if c in inputs_to_merge:
+                            del inputs_to_merge[c]
+                        if processed_inputs is inputs and c in processed_inputs:
+                            del processed_inputs[c]
+                transformed_batch = {**inputs_to_merge, **processed_inputs}
                 if transformed_batch:
                     first_col = next(iter(transformed_batch))
                     bad_cols = [
@@ -1006,8 +1101,14 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     ]
                     if bad_cols:
                         raise ValueError(
-                            f"Column lengths mismatch: columns {bad_cols} have length {[len(transformed_batch[col]) for col in bad_cols]} while {first_col} has length {len(transformed_batch[first_col])}."
+                            f"Column lengths mismatch: columns {bad_cols} have length {[len(transformed_batch[col]) for col in bad_cols]} "
+                            f"while {first_col} has length {len(transformed_batch[first_col])}."
                         )
+                if self.features:
+                    for c in self.features.keys():
+                        if c not in transformed_batch:
+                            transformed_batch[c] = [None] * len(transformed_batch[first_col])
+                    transformed_batch = self.features.decode_batch(transformed_batch)
                 # the new key is the concatenation of the examples keys from the batch
                 new_key = "_".join(str(key) for key in keys)
                 # yield one example at a time from the transformed batch
@@ -1034,12 +1135,21 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
                 if self.with_indices:
                     function_args.append(current_idx)
-                transformed_example = dict(example)  # this will be updated with the function output
-                transformed_example.update(self.function(*function_args, **self.fn_kwargs))
-                # then we remove the unwanted columns
+                processed_inputs = self.function(*function_args, **self.fn_kwargs)
+                inputs_to_merge = dict(example)
+                # this logic mimics the one in Dataset.map
                 if self.remove_columns:
                     for c in self.remove_columns:
-                        del transformed_example[c]
+                        if c in inputs_to_merge:
+                            del inputs_to_merge[c]
+                        if processed_inputs is inputs and c in processed_inputs:
+                            del processed_inputs[c]
+                transformed_example = {**inputs_to_merge, **processed_inputs}
+                if self.features:
+                    for c in self.features.keys():
+                        if c not in transformed_example:
+                            transformed_example[c] = None
+                    transformed_example = self.features.decode_example(transformed_example)
                 current_idx += 1
                 if self._state_dict:
                     self._state_dict["previous_state_example_idx"] += 1
@@ -1082,7 +1192,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             output_table = self.function(*function_args, **self.fn_kwargs)
             if not isinstance(output_table, pa.Table):
                 raise TypeError(
-                    f"Provided `function` which is applied to pyarrow tables returns a variable of type {type(output_table)}. Make sure provided `function` returns a a pyarrow table to update the dataset."
+                    f"Provided `function` which is applied to pyarrow tables returns a variable of type "
+                    f"{type(output_table)}. Make sure provided `function` returns a a pyarrow table to update the dataset."
                 )
             # we don't need to merge results for consistency with Dataset.map which merges iif both input and output are dicts
             # then remove the unwanted columns
@@ -1123,12 +1234,13 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             remove_columns=self.remove_columns,
             fn_kwargs=self.fn_kwargs,
             formatting=self.formatting,
+            features=self.features,
         )
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "MappedExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "MappedExamplesIterable":
         """Keep only the requested shard."""
         return MappedExamplesIterable(
-            self.ex_iterable.shard_data_sources(worker_id, num_workers),
+            self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
             function=self.function,
             with_indices=self.with_indices,
             input_columns=self.input_columns,
@@ -1138,11 +1250,12 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             remove_columns=self.remove_columns,
             fn_kwargs=self.fn_kwargs,
             formatting=self.formatting,
+            features=self.features,
         )
 
     @property
-    def n_shards(self) -> int:
-        return self.ex_iterable.n_shards
+    def num_shards(self) -> int:
+        return self.ex_iterable.num_shards
 
 
 class FilteredExamplesIterable(_BaseExamplesIterable):
@@ -1165,7 +1278,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         self.with_indices = with_indices
         self.input_columns = input_columns
         self.fn_kwargs = fn_kwargs or {}
-        self.formatting = formatting
+        self.formatting = formatting  # required for iter_arrow
         # sanity checks
         if formatting and formatting.format_type == "arrow":
             # batch_size should match for iter_arrow
@@ -1184,6 +1297,14 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
     def iter_arrow(self):
         if self.formatting and self.formatting.format_type == "arrow":
             return self._iter_arrow
+
+    @property
+    def is_typed(self):
+        return self.ex_iterable.is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterable.features
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {
@@ -1293,7 +1414,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 and self.drop_last_batch
             ):
                 return
-            # first build the batch
+
             function_args = [pa_table] if self.input_columns is None else [pa_table[col] for col in self.input_columns]
             if self.with_indices:
                 if self.batched:
@@ -1339,22 +1460,24 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            formatting=self.formatting,
         )
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "FilteredExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "FilteredExamplesIterable":
         """Keep only the requested shard."""
         return FilteredExamplesIterable(
-            self.ex_iterable.shard_data_sources(worker_id, num_workers),
+            self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
             function=self.function,
             with_indices=self.with_indices,
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            formatting=self.formatting,
         )
 
     @property
-    def n_shards(self) -> int:
-        return self.ex_iterable.n_shards
+    def num_shards(self) -> int:
+        return self.ex_iterable.num_shards
 
 
 class BufferShuffledExamplesIterable(_BaseExamplesIterable):
@@ -1364,6 +1487,14 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         self.buffer_size = buffer_size
         self.generator = generator
         # TODO(QL): implement iter_arrow
+
+    @property
+    def is_typed(self):
+        return self.ex_iterable.is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterable.features
 
     def _init_state_dict(self) -> dict:
         self._state_dict = self.ex_iterable._init_state_dict()
@@ -1407,17 +1538,17 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
             self.ex_iterable.shuffle_data_sources(generator), buffer_size=self.buffer_size, generator=generator
         )
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "BufferShuffledExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "BufferShuffledExamplesIterable":
         """Keep only the requested shard."""
         return BufferShuffledExamplesIterable(
-            self.ex_iterable.shard_data_sources(worker_id, num_workers),
+            self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
             buffer_size=self.buffer_size,
             generator=self.generator,
         )
 
     @property
-    def n_shards(self) -> int:
-        return self.ex_iterable.n_shards
+    def num_shards(self) -> int:
+        return self.ex_iterable.num_shards
 
 
 class SkipExamplesIterable(_BaseExamplesIterable):
@@ -1434,6 +1565,14 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         self.block_sources_order_when_shuffling = block_sources_order_when_shuffling
         self.split_when_sharding = split_when_sharding
         # TODO(QL): implement iter_arrow
+
+    @property
+    def is_typed(self):
+        return self.ex_iterable.is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterable.features
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {"skipped": False, "ex_iterable": self.ex_iterable._init_state_dict()}
@@ -1466,12 +1605,12 @@ class SkipExamplesIterable(_BaseExamplesIterable):
                 split_when_sharding=self.split_when_sharding,
             )
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "SkipExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "SkipExamplesIterable":
         """Keep only the requested shard."""
         if self.split_when_sharding:
             return SkipExamplesIterable(
-                self.ex_iterable.shard_data_sources(worker_id, num_workers),
-                n=self.split_number(self.n, num_workers)[worker_id],
+                self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
+                n=self.split_number(self.n, num_shards)[index],
                 block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
                 split_when_sharding=self.split_when_sharding,
             )
@@ -1479,8 +1618,8 @@ class SkipExamplesIterable(_BaseExamplesIterable):
             return self
 
     @property
-    def n_shards(self) -> int:
-        return self.ex_iterable.n_shards
+    def num_shards(self) -> int:
+        return self.ex_iterable.num_shards
 
 
 class RepeatExamplesIterable(_BaseExamplesIterable):
@@ -1546,6 +1685,14 @@ class TakeExamplesIterable(_BaseExamplesIterable):
         self.split_when_sharding = split_when_sharding
         # TODO(QL): implement iter_arrow
 
+    @property
+    def is_typed(self):
+        return self.ex_iterable.is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterable.features
+
     def _init_state_dict(self) -> dict:
         self._state_dict = {"num_taken": 0, "ex_iterable": self.ex_iterable._init_state_dict()}
         return self._state_dict
@@ -1578,26 +1725,26 @@ class TakeExamplesIterable(_BaseExamplesIterable):
                 split_when_sharding=self.split_when_sharding,
             )
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "TakeExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "TakeExamplesIterable":
         """Keep only the requested shard."""
         if self.split_when_sharding:
             return TakeExamplesIterable(
-                self.ex_iterable.shard_data_sources(worker_id, num_workers),
-                n=self.split_number(self.n, num_workers)[worker_id],
+                self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
+                n=self.split_number(self.n, num_shards)[index],
                 block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
                 split_when_sharding=self.split_when_sharding,
             )
         else:
             return TakeExamplesIterable(
-                self.ex_iterable.shard_data_sources(worker_id, num_workers),
+                self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
                 n=self.n,
                 block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
                 split_when_sharding=self.split_when_sharding,
             )
 
     @property
-    def n_shards(self) -> int:
-        return self.ex_iterable.n_shards
+    def num_shards(self) -> int:
+        return self.ex_iterable.num_shards
 
 
 def _apply_feature_types_on_example(
@@ -1631,70 +1778,6 @@ def _apply_feature_types_on_batch(
     return decoded_batch
 
 
-class TypedExamplesIterable(_BaseExamplesIterable):
-    def __init__(
-        self,
-        ex_iterable: _BaseExamplesIterable,
-        features: Features,
-        token_per_repo_id: Dict[str, Union[str, bool, None]],
-    ):
-        super().__init__()
-        self.ex_iterable = ex_iterable
-        self.features = features
-        self.token_per_repo_id = token_per_repo_id
-
-    @property
-    def iter_arrow(self):
-        if self.ex_iterable.iter_arrow is not None:
-            return self._iter_arrow
-
-    def _init_state_dict(self) -> dict:
-        self._state_dict = self.ex_iterable._init_state_dict()
-        return self._state_dict
-
-    def __iter__(self):
-        # Then for each example, `TypedExamplesIterable` automatically fills missing columns with None.
-        # This is done with `_apply_feature_types_on_example`.
-        for key, example in self.ex_iterable:
-            yield (
-                key,
-                _apply_feature_types_on_example(example, self.features, token_per_repo_id=self.token_per_repo_id),
-            )
-
-    def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
-        schema = self.features.arrow_schema
-        for key, pa_table in self.ex_iterable.iter_arrow():
-            columns = set(pa_table.column_names)
-            # add missing columns
-            for column_name in self.features:
-                if column_name not in columns:
-                    col = pa.NullArray.from_buffers(pa.null(), len(pa_table), [None])
-                    pa_table = pa_table.append_column(column_name, col)
-            if pa_table.schema != schema:
-                pa_table = cast_table_to_features(pa_table, self.features)
-            yield key, pa_table
-
-    def shuffle_data_sources(self, generator: np.random.Generator) -> "TypedExamplesIterable":
-        """Shuffle the wrapped examples iterable."""
-        return TypedExamplesIterable(
-            self.ex_iterable.shuffle_data_sources(generator),
-            features=self.features,
-            token_per_repo_id=self.token_per_repo_id,
-        )
-
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "TypedExamplesIterable":
-        """Keep only the requested shard."""
-        return TypedExamplesIterable(
-            self.ex_iterable.shard_data_sources(worker_id, num_workers),
-            features=self.features,
-            token_per_repo_id=self.token_per_repo_id,
-        )
-
-    @property
-    def n_shards(self) -> int:
-        return self.ex_iterable.n_shards
-
-
 @dataclass
 class FormattingConfig:
     format_type: Optional[str]
@@ -1704,6 +1787,104 @@ class FormattingConfig:
             raise NotImplementedError(
                 "The 'pandas' formatting is not implemented for iterable datasets. You can use 'numpy' or 'arrow' instead."
             )
+
+
+class FormattedExamplesIterable(_BaseExamplesIterable):
+    def __init__(
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        formatting: Optional[FormattingConfig],
+        features: Optional[Features],
+        token_per_repo_id: Dict[str, Union[str, bool, None]],
+    ):
+        super().__init__()
+        self.ex_iterable = ex_iterable
+        self._features = features
+        self.formatting = formatting
+        self.token_per_repo_id = token_per_repo_id
+
+    @property
+    def iter_arrow(self):
+        if self.ex_iterable.iter_arrow and (not self.formatting or self.formatting.format_type == "arrow"):
+            return self._iter_arrow
+
+    @property
+    def is_typed(self):
+        return self.ex_iterable.is_typed or self._features is not None
+
+    @property
+    def features(self):
+        return self._features
+
+    def _init_state_dict(self) -> dict:
+        self._state_dict = self.ex_iterable._init_state_dict()
+        return self._state_dict
+
+    def __iter__(self):
+        if not self.formatting or self.formatting.format_type == "arrow":
+            formatter = PythonFormatter()
+        else:
+            formatter = get_formatter(
+                self.formatting.format_type,
+                features=self._features if not self.ex_iterable.is_typed else None,
+                token_per_repo_id=self.token_per_repo_id,
+            )
+        if self.ex_iterable.iter_arrow:
+            # feature casting (inc column addition) handled within self._iter_arrow()
+            for key, pa_table in self._iter_arrow():
+                batch = formatter.format_batch(pa_table)
+                for example in _batch_to_examples(batch):
+                    yield key, example
+        else:
+            format_dict = (
+                formatter.recursive_tensorize
+                if isinstance(formatter, TensorFormatter)
+                else cast_to_python_objects  # cast in case features is None
+            )
+            for key, example in self.ex_iterable:
+                # don't apply feature types if already applied by ex_iterable (e.g. in case of chained with_format)
+                if self.features and not self.ex_iterable.is_typed:
+                    example = _apply_feature_types_on_example(
+                        example, self.features, token_per_repo_id=self.token_per_repo_id
+                    )
+                yield key, format_dict(example)
+
+    def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
+        if not self.features:
+            yield from self.ex_iterable._iter_arrow()
+        for key, pa_table in self.ex_iterable._iter_arrow():
+            columns = set(pa_table.column_names)
+            schema = self.features.arrow_schema
+            # add missing columns
+            for column_name in self.features:
+                if column_name not in columns:
+                    col = pa.NullArray.from_buffers(pa.null(), len(pa_table), [None])
+                    pa_table = pa_table.append_column(column_name, col)
+            if pa_table.schema != schema:
+                pa_table = cast_table_to_features(pa_table, self.features)
+            yield key, pa_table
+
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "FormattedExamplesIterable":
+        """Shuffle the wrapped examples iterable."""
+        return FormattedExamplesIterable(
+            self.ex_iterable.shuffle_data_sources(generator),
+            features=self.features,
+            token_per_repo_id=self.token_per_repo_id,
+            formatting=self.formatting,
+        )
+
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "FormattedExamplesIterable":
+        """Keep only the requested shard."""
+        return FormattedExamplesIterable(
+            self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
+            features=self.features,
+            token_per_repo_id=self.token_per_repo_id,
+            formatting=self.formatting,
+        )
+
+    @property
+    def num_shards(self) -> int:
+        return self.ex_iterable.num_shards
 
 
 @dataclass
@@ -1877,7 +2058,7 @@ class IterableDataset(DatasetInfoMixin):
         self._starting_state_dict = state_dict
 
     def __repr__(self):
-        return f"IterableDataset({{\n    features: {list(self._info.features.keys()) if self._info.features is not None else 'Unknown'},\n    n_shards: {self.n_shards}\n}})"
+        return f"IterableDataset({{\n    features: {list(self._info.features.keys()) if self._info.features is not None else 'Unknown'},\n    num_shards: {self.num_shards}\n}})"
 
     def __getstate__(self):
         return self.__dict__
@@ -1908,10 +2089,14 @@ class IterableDataset(DatasetInfoMixin):
             raise ValueError("This dataset is not shuffled")
 
     @property
-    def n_shards(self) -> int:
-        if self._distributed and self._ex_iterable.n_shards % self._distributed.world_size == 0:
-            return self._ex_iterable.n_shards // self._distributed.world_size
-        return self._ex_iterable.n_shards
+    def num_shards(self) -> int:
+        if self._distributed and self._ex_iterable.num_shards % self._distributed.world_size == 0:
+            return self._ex_iterable.num_shards // self._distributed.world_size
+        return self._ex_iterable.num_shards
+
+    @property
+    def n_shards(self) -> int:  # backward compatibility
+        return self.num_shards
 
     def _iter_pytorch(self):
         ex_iterable = self._prepare_ex_iterable_for_iteration()
@@ -1922,24 +2107,28 @@ class IterableDataset(DatasetInfoMixin):
         import torch.utils.data
 
         worker_info = torch.utils.data.get_worker_info()
-        if self._is_main_process() and ex_iterable.n_shards < worker_info.num_workers:
+        if self._is_main_process() and ex_iterable.num_shards < worker_info.num_workers:
             logger.warning(
-                f"Too many dataloader workers: {worker_info.num_workers} (max is dataset.n_shards={ex_iterable.n_shards}). "
-                f"Stopping {worker_info.num_workers - ex_iterable.n_shards} dataloader workers."
+                f"Too many dataloader workers: {worker_info.num_workers} (max is dataset.num_shards={ex_iterable.num_shards}). "
+                f"Stopping {worker_info.num_workers - ex_iterable.num_shards} dataloader workers."
             )
             logger.info(
                 f"To parallelize data loading, we give each process some shards (or data sources) to process. "
-                f"Therefore it's unnecessary to have a number of workers greater than dataset.n_shards={ex_iterable.n_shards}. "
-                f"To enable more parallelism, please split the dataset in more files than {ex_iterable.n_shards}."
+                f"Therefore it's unnecessary to have a number of workers greater than dataset.num_shards={ex_iterable.num_shards}. "
+                f"To enable more parallelism, please split the dataset in more files than {ex_iterable.num_shards}."
             )
         # split workload
         _log_prefix = f"node#{self._distributed.rank} " if self._distributed else ""
-        shards_indices = ex_iterable.split_shard_indices_by_worker(worker_info.id, worker_info.num_workers)
+        shards_indices = ex_iterable.split_shard_indices_by_worker(
+            num_shards=worker_info.num_workers, index=worker_info.id, contiguous=False
+        )
         if shards_indices:
             logger.debug(
-                f"{_log_prefix}dataloader worker#{worker_info.id}, ': Starting to iterate over {len(shards_indices)}/{ex_iterable.n_shards} shards."
+                f"{_log_prefix}dataloader worker#{worker_info.id}, ': Starting to iterate over {len(shards_indices)}/{ex_iterable.num_shards} shards."
             )
-            ex_iterable = ex_iterable.shard_data_sources(worker_id=worker_info.id, num_workers=worker_info.num_workers)
+            ex_iterable = ex_iterable.shard_data_sources(
+                num_shards=worker_info.num_workers, index=worker_info.id, contiguous=False
+            )
             self._state_dict = ex_iterable._init_state_dict()
             if self._starting_state_dict:
                 ex_iterable.load_state_dict(self._starting_state_dict)
@@ -1962,7 +2151,7 @@ class IterableDataset(DatasetInfoMixin):
                 return
             else:
                 for key, example in ex_iterable:
-                    if self.features:
+                    if self.features and not ex_iterable.is_typed:
                         # `IterableDataset` automatically fills missing columns with None.
                         # This is done with `_apply_feature_types_on_example`.
                         example = _apply_feature_types_on_example(
@@ -1970,11 +2159,11 @@ class IterableDataset(DatasetInfoMixin):
                         )
                     yield format_dict(example) if format_dict else example
             logger.debug(
-                f"{_log_prefix}dataloader worker#{worker_info.id}, ': Finished iterating over {len(shards_indices)}/{ex_iterable.n_shards} shards."
+                f"{_log_prefix}dataloader worker#{worker_info.id}, ': Finished iterating over {len(shards_indices)}/{ex_iterable.num_shards} shards."
             )
         else:
             logger.debug(
-                f"{_log_prefix}dataloader worker#{worker_info.id}, ': Stopping... Number of dataset shards < num_workers ({ex_iterable.n_shards}<{worker_info.num_workers})."
+                f"{_log_prefix}dataloader worker#{worker_info.id}, ': Stopping... Number of dataset shards < num_workers ({ex_iterable.num_shards}<{worker_info.num_workers})."
             )
 
     def _is_main_process(self):
@@ -2004,14 +2193,14 @@ class IterableDataset(DatasetInfoMixin):
         if self._distributed:
             rank = self._distributed.rank
             world_size = self._distributed.world_size
-            if ex_iterable.n_shards % world_size == 0:
+            if ex_iterable.num_shards % world_size == 0:
                 if self._is_main_process():
-                    n_shards_per_node = ex_iterable.n_shards // world_size
-                    plural = "s" if n_shards_per_node > 1 else ""
+                    num_shards_per_node = ex_iterable.num_shards // world_size
+                    plural = "s" if num_shards_per_node > 1 else ""
                     logger.info(
-                        f"Assigning {n_shards_per_node} shard{plural} (or data source{plural}) of the dataset to each node."
+                        f"Assigning {num_shards_per_node} shard{plural} (or data source{plural}) of the dataset to each node."
                     )
-                ex_iterable = ex_iterable.shard_data_sources(rank, world_size)
+                ex_iterable = ex_iterable.shard_data_sources(num_shards=world_size, index=rank, contiguous=False)
             else:
                 if self._is_main_process():
                     logger.info(
@@ -2020,7 +2209,7 @@ class IterableDataset(DatasetInfoMixin):
                     logger.info(
                         f"It is more optimized to distribute the dataset shards (or data sources) across nodes. "
                         f"You can do that by using a dataset with number of shards that is a factor of world_size={world_size}. "
-                        f"The current dataset has {ex_iterable.n_shards} which is not a factor of {world_size}"
+                        f"The current dataset has {ex_iterable.num_shards} which is not a factor of {world_size}"
                     )
                 ex_iterable = StepExamplesIterable(ex_iterable, step=world_size, offset=rank)
 
@@ -2058,7 +2247,7 @@ class IterableDataset(DatasetInfoMixin):
             return
 
         for key, example in ex_iterable:
-            if self.features:
+            if self.features and not ex_iterable.is_typed:
                 # `IterableDataset` automatically fills missing columns with None.
                 # This is done with `_apply_feature_types_on_example`.
                 example = _apply_feature_types_on_example(
@@ -2100,7 +2289,7 @@ class IterableDataset(DatasetInfoMixin):
             if drop_last_batch and len(examples) < batch_size:  # ignore last batch
                 return
             batch = _examples_to_batch(examples)
-            if self.features:
+            if self.features and not ex_iterable.is_typed:
                 # `IterableDataset` automatically fills missing columns with None.
                 # This is done with `_apply_feature_types_on_batch`.
                 batch = _apply_feature_types_on_batch(batch, self.features, token_per_repo_id=self._token_per_repo_id)
@@ -2226,13 +2415,44 @@ class IterableDataset(DatasetInfoMixin):
     ) -> "IterableDataset":
         """
         Return a dataset with the specified format.
-        Supported formats: "arrow", or None for regular python objects.
-        The other formats are currently not implemented.
+        The 'pandas' format is currently not implemented.
 
         Args:
 
-            type (`str`, optional, default None): if set to "torch", the returned dataset
-                will be a subclass of torch.utils.data.IterableDataset to be used in a DataLoader
+            type (`str`, *optional*):
+                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'arrow', 'jax']`.
+                `None` means it returns python objects (default).
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> from transformers import AutoTokenizer
+        >>> ds = load_dataset("rotten_tomatoes", split="validation", streaming=True)
+        >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+        >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
+        >>> ds = ds.with_format("torch")
+        >>> next(iter(ds))
+        {'text': 'compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children .',
+         'label': tensor(1),
+         'input_ids': tensor([  101, 18027, 16310, 16001,  1103,  9321,   178, 11604,  7235,  6617,
+                1742,  2165,  2820,  1206,  6588, 22572, 12937,  1811,  2153,  1105,
+                1147, 12890, 19587,  6463,  1105, 15026,  1482,   119,   102,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                    0,     0,     0,     0]),
+         'token_type_ids': tensor([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+         'attention_mask': tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])}
+        ```
         """
         type = get_format_type_from_alias(type)
         # TODO(QL): add format_kwargs
@@ -2335,16 +2555,40 @@ class IterableDataset(DatasetInfoMixin):
             function = identity_func
         if fn_kwargs is None:
             fn_kwargs = {}
-        ex_iterable = (
-            TypedExamplesIterable(self._ex_iterable, self._info.features, token_per_repo_id=self._token_per_repo_id)
-            if self._info.features is not None
-            else self._ex_iterable
+
+        ex_iterable = self._ex_iterable
+        # no need to apply features if ex_iterable is typed and if there was no cast_column()
+        input_features = (
+            None
+            if (ex_iterable.is_typed and (self._info.features is None or self._info.features == ex_iterable.features))
+            else self._info.features
         )
-        ex_iterable = (
-            RebatchedArrowExamplesIterable(ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch)
-            if self._formatting and self._formatting.format_type == "arrow"
-            else ex_iterable
-        )
+
+        if self._formatting and self._formatting.format_type == "arrow":
+            # apply formatting before iter_arrow to keep map examples iterable happy
+            ex_iterable = FormattedExamplesIterable(
+                ex_iterable,
+                formatting=copy.deepcopy(self._formatting),
+                features=input_features,
+                token_per_repo_id=self._token_per_repo_id,
+            )
+            ex_iterable = RebatchedArrowExamplesIterable(
+                ex_iterable, batch_size=batch_size if batched else 1, drop_last_batch=drop_last_batch
+            )
+        else:
+            if self._formatting and self._ex_iterable.iter_arrow:
+                ex_iterable = RebatchedArrowExamplesIterable(
+                    self._ex_iterable, batch_size=batch_size if batched else 1, drop_last_batch=drop_last_batch
+                )
+            if self._formatting or input_features:
+                # apply formatting after iter_arrow to avoid re-encoding the examples
+                ex_iterable = FormattedExamplesIterable(
+                    ex_iterable,
+                    formatting=copy.deepcopy(self._formatting),
+                    features=input_features,
+                    token_per_repo_id=self._token_per_repo_id,
+                )
+
         ex_iterable = MappedExamplesIterable(
             ex_iterable,
             function=function,
@@ -2356,6 +2600,7 @@ class IterableDataset(DatasetInfoMixin):
             remove_columns=remove_columns,
             fn_kwargs=fn_kwargs,
             formatting=self._formatting,
+            features=features,
         )
         info = self.info.copy()
         info.features = features
@@ -2420,15 +2665,19 @@ class IterableDataset(DatasetInfoMixin):
         if isinstance(input_columns, str):
             input_columns = [input_columns]
 
-        # TODO(QL): keep the features (right now if we keep it it would call decode_example again on an already decoded example)
-        info = copy.deepcopy(self._info)
-        info.features = None
+        # We need the examples to be decoded for certain feature types like Image or Audio,
+        # format and type before filtering
+        ex_iterable = self._ex_iterable
+        if self._info.features or self._formatting:
+            ex_iterable = FormattedExamplesIterable(
+                ex_iterable,
+                formatting=self._formatting,
+                features=None if ex_iterable.is_typed else self._info.features,
+                token_per_repo_id=self._token_per_repo_id,
+            )
 
-        # We need the examples to be decoded for certain feature types like Image or Audio, so we use TypedExamplesIterable here
         ex_iterable = FilteredExamplesIterable(
-            TypedExamplesIterable(self._ex_iterable, self._info.features, token_per_repo_id=self._token_per_repo_id)
-            if self._info.features is not None
-            else self._ex_iterable,
+            ex_iterable,
             function=function,
             with_indices=with_indices,
             input_columns=input_columns,
@@ -2439,7 +2688,7 @@ class IterableDataset(DatasetInfoMixin):
         )
         return IterableDataset(
             ex_iterable=ex_iterable,
-            info=info,
+            info=self._info,
             split=self._split,
             formatting=self._formatting,
             shuffling=copy.deepcopy(self._shuffling),
@@ -2631,6 +2880,63 @@ class IterableDataset(DatasetInfoMixin):
             block_sources_order_when_shuffling=self._shuffling is None,
             split_when_sharding=self._distributed is None,
         )
+        return IterableDataset(
+            ex_iterable=ex_iterable,
+            info=self._info.copy(),
+            split=self._split,
+            formatting=self._formatting,
+            shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
+            token_per_repo_id=self._token_per_repo_id,
+        )
+
+    def shard(
+        self,
+        num_shards: int,
+        index: int,
+        contiguous: bool = True,
+    ) -> "IterableDataset":
+        """Return the `index`-nth shard from dataset split into `num_shards` pieces.
+
+        This shards deterministically. `dataset.shard(n, i)` splits the dataset into contiguous chunks,
+        so it can be easily concatenated back together after processing. If `dataset.num_shards % n == l`, then the
+        first `l` datasets each have `(dataset.num_shards // n) + 1` shards, and the remaining datasets have `(dataset.num_shards // n)` shards.
+        `datasets.concatenate_datasets([dset.shard(n, i) for i in range(n)])` returns a dataset with the same order as the original.
+        In particular, `dataset.shard(dataset.num_shards, i)` returns a dataset with 1 shard.
+
+        Note: n should be less or equal to the number of shards in the dataset `dataset.num_shards`.
+
+        On the other hand, `dataset.shard(n, i, contiguous=False)` contains all the shards of the dataset whose index mod `n = i`.
+
+        Be sure to shard before using any randomizing operator (such as `shuffle`).
+        It is best if the shard operator is used early in the dataset pipeline.
+
+        Args:
+            num_shards (`int`):
+                How many shards to split the dataset into.
+            index (`int`):
+                Which shard to select and return.
+            contiguous: (`bool`, defaults to `True`):
+                Whether to select contiguous blocks of indices for shards.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("amazon_polarity", split="train", streaming=True)
+        >>> ds
+        Dataset({
+            features: ['label', 'title', 'content'],
+            num_shards: 4
+        })
+        >>> ds.shard(num_shards=2, index=0)
+        Dataset({
+            features: ['label', 'title', 'content'],
+            num_shards: 2
+        })
+        ```
+        """
+        ex_iterable = self._ex_iterable.shard_data_sources(num_shards=num_shards, index=index, contiguous=contiguous)
         return IterableDataset(
             ex_iterable=ex_iterable,
             info=self._info.copy(),
@@ -2875,17 +3181,17 @@ class IterableDataset(DatasetInfoMixin):
         Example:
 
         ```py
-        >>> from datasets import load_dataset
+        >>> from datasets import load_dataset, ClassLabel, Value
         >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         >>> new_features = ds.features.copy()
         >>> new_features["label"] = ClassLabel(names=["bad", "good"])
         >>> new_features["text"] = Value("large_string")
         >>> ds = ds.cast(new_features)
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good'], id=None),
          'text': Value(dtype='large_string', id=None)}
         ```
         """
@@ -2916,7 +3222,7 @@ class IterableDataset(DatasetInfoMixin):
     def _resolve_features(self):
         if self.features is not None:
             return self
-        elif isinstance(self._ex_iterable, TypedExamplesIterable):
+        elif self._ex_iterable.is_typed:
             features = self._ex_iterable.features
         else:
             features = _infer_features_from_batch(self.with_format(None)._head())
@@ -3085,7 +3391,7 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
     """
     Split an iterable dataset for the node at rank `rank` in a pool of nodes of size `world_size`.
 
-    If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.n_shards % world_size == 0`),
+    If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.num_shards % world_size == 0`),
     then the shards are evenly assigned across the nodes, which is the most optimized.
     Otherwise, each node keeps 1 example out of `world_size`, skipping the other examples.
 
