@@ -1758,7 +1758,6 @@ def test_iterable_dataset_take(dataset: IterableDataset, n):
     assert list(take_dataset) == list(dataset)[:n]
 
 
-
 @pytest.mark.parametrize("n", [0, 2])
 def test_iterable_dataset_repeat(dataset: IterableDataset, n):
     repeat_dataset = dataset.repeat(n)
