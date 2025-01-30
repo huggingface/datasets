@@ -51,6 +51,7 @@ from .utils import (
     assert_arrow_memory_doesnt_increase,
     is_rng_equal,
     require_dill_gt_0_3_2,
+    require_jax,
     require_not_windows,
     require_numpy1_on_windows,
     require_pyspark,
@@ -1681,7 +1682,12 @@ def test_iterable_dataset_features_cast_to_python():
     assert list(dataset) == [{"timestamp": pd.Timestamp(2020, 1, 1).to_pydatetime(), "array": [1] * 5, "id": 0}]
 
 
-@pytest.mark.parametrize("format_type", [None, "torch", "python", "tf", "tensorflow", "np", "numpy", "jax"])
+@require_torch
+@require_tf
+@require_jax
+@pytest.mark.parametrize(
+    "format_type", [None, "torch", "python", "tf", "tensorflow", "np", "numpy", "jax", "arrow", "pd", "pandas"]
+)
 def test_iterable_dataset_with_format(dataset: IterableDataset, format_type):
     formatted_dataset = dataset.with_format(format_type)
     assert formatted_dataset._formatting.format_type == get_format_type_from_alias(format_type)
