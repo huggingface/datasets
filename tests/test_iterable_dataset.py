@@ -54,6 +54,7 @@ from .utils import (
     require_jax,
     require_not_windows,
     require_numpy1_on_windows,
+    require_polars,
     require_pyspark,
     require_tf,
     require_torch,
@@ -2222,6 +2223,45 @@ def test_format_from_arrow():
         mock_numpy_arrow_extractor.assert_called()
         # we don't do any arrow -> python
         mock_python_arrow_extractor.assert_not_called()
+
+
+def test_format_arrow(dataset: IterableDataset):
+    ds = dataset.with_format("arrow")
+    assert isinstance(next(iter(ds)), pa.Table)
+    assert isinstance(next(iter(ds.iter(batch_size=4))), pa.Table)
+    assert len(next(iter(ds))) == 1
+    assert len(next(iter(ds.iter(batch_size=4)))) == 4
+    ds = ds.map(lambda t: t.append_column("new_col", pa.array([0] * len(t))))
+    ds = ds.map(lambda t: t.append_column("new_col_batched", pa.array([1] * len(t))), batched=True)
+    ds = ds.with_format(None)
+    assert next(iter(ds)) == {**next(iter(dataset)), "new_col": 0, "new_col_batched": 1}
+
+
+def test_format_pandas(dataset: IterableDataset):
+    ds = dataset.with_format("pandas")
+    assert isinstance(next(iter(ds)), pd.DataFrame)
+    assert isinstance(next(iter(ds.iter(batch_size=4))), pd.DataFrame)
+    assert len(next(iter(ds))) == 1
+    assert len(next(iter(ds.iter(batch_size=4)))) == 4
+    ds = ds.map(lambda df: df.assign(new_col=[0] * len(df)))
+    ds = ds.map(lambda df: df.assign(new_col_batched=[1] * len(df)), batched=True)
+    ds = ds.with_format(None)
+    assert next(iter(ds)) == {**next(iter(dataset)), "new_col": 0, "new_col_batched": 1}
+
+
+@require_polars
+def test_format_polars(dataset: IterableDataset):
+    import polars as pl
+
+    ds = dataset.with_format("polars")
+    assert isinstance(next(iter(ds)), pl.DataFrame)
+    assert isinstance(next(iter(ds.iter(batch_size=4))), pl.DataFrame)
+    assert len(next(iter(ds))) == 1
+    assert len(next(iter(ds.iter(batch_size=4)))) == 4
+    ds = ds.map(lambda df: df.with_columns(pl.Series([0] * len(df)).alias("new_col")))
+    ds = ds.map(lambda df: df.with_columns(pl.Series([1] * len(df)).alias("new_col_batched")), batched=True)
+    ds = ds.with_format(None)
+    assert next(iter(ds)) == {**next(iter(dataset)), "new_col": 0, "new_col_batched": 1}
 
 
 @pytest.mark.parametrize("num_shards1, num_shards2, num_workers", [(2, 1, 1), (2, 2, 2), (1, 3, 1), (4, 3, 3)])
