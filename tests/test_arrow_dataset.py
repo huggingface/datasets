@@ -873,7 +873,7 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 repeated_dset = dset.repeat(3)
-                column_values_dict = {col: repeated_dset[col] for col in repeated_dset.column_names}
+                column_values_dict = {col: dset[col] for col in dset.column_names}
                 for col, single_values in column_values_dict.items():
                     self.assertListEqual(repeated_dset[col], single_values * 3)
 
