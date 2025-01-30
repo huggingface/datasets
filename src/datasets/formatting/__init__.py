@@ -22,6 +22,7 @@ from .formatting import (
     Formatter,
     PandasFormatter,
     PythonFormatter,
+    TableFormatter,
     TensorFormatter,
     format_table,
     query_table,
