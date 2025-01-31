@@ -101,6 +101,28 @@ We use `batched=True` because it is faster to process batches of data in Polars 
 
 This also works for [`IterableDataset.map`] and [`IterableDataset.filter`].
 
+### Example: data extraction
+
+Many functions are available in Polars and for any data type: string, floats, integers, etc. You can find the full list [here](https://docs.pola.rs/api/python/stable/reference/expressions/functions.html). Those functions are written in Rust and run on batches of data which enables fast data processing.
+
+Here is an example that shows a 2.5x speed boost using Polars instead of a regular python function to extract solutions from a LLM reasoning dataset:
+
+```python
+from datasets import load_dataset
+
+ds = load_dataset("ServiceNow-AI/R1-Distill-SFT", "v0", split="train")
+
+# Using a regular python function
+pattern = re.compile("boxed\\{(.*)\\}")
+result_ds = ds.map(lambda x: {"value_solution": m.group(1) if (m:=pattern.search(x["solution"])) else None})
+# Time: 10s
+
+# Using a Polars function
+expr = pl.col("solution").str.extract("boxed\\{(.*)\\}").alias("value_solution")
+result_ds = ds.with_format("polars").map(lambda df: df.with_columns(expr), batched=True)
+# Time: 2s
+```
+
 ## Import or Export from Polars
 
 To import data from Polars, you can use [`Dataset.from_polars`]:
