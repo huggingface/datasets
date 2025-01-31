@@ -876,6 +876,7 @@ class BaseDatasetTest(TestCase):
                 column_values_dict = {col: dset[col] for col in dset.column_names}
                 for col, single_values in column_values_dict.items():
                     self.assertListEqual(repeated_dset[col], single_values * 3)
+                del repeated_dset
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
@@ -886,11 +887,13 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 repeated_dset = dset.repeat(0)
                 self.assertEqual(len(repeated_dset), 0)
+                del repeated_dset
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 repeated_dset = dset.repeat(-1)
                 self.assertEqual(len(repeated_dset), 0)
+                del repeated_dset
 
     def test_flatten(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
