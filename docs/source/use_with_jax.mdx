@@ -108,7 +108,7 @@ To avoid this, you must explicitly use the [`Array`] feature type and specify th
 >>> data = [[[1, 2],[3, 4]],[[5, 6],[7, 8]]]
 >>> features = Features({"data": Array2D(shape=(2, 2), dtype='int32')})
 >>> ds = Dataset.from_dict({"data": data}, features=features)
->>> ds = ds.with_format("torch")
+>>> ds = ds.with_format("jax")
 >>> ds[0]
 {'data': Array([[1, 2],
         [3, 4]], dtype=int32)}
