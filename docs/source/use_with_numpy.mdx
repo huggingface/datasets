@@ -1,7 +1,7 @@
 # Use with NumPy
 
 This document is a quick introduction to using `datasets` with NumPy, with a particular focus on how to get
-`numpy.ndarray` objects out of our datasets, and how to use them to train models based on NumPy.
+`numpy.ndarray` objects out of our datasets, and how to use them to train models based on NumPy such as `scikit-learn` models.
 
 
 ## Dataset format
@@ -159,13 +159,7 @@ array(44100, weak_type=True)
 
 ## Data loading
 
-NumPy doesn't have any built-in data loading capabilities, so you'll need to use a library such
-as [PyTorch](https://pytorch.org/) to load your data using a `DataLoader` or [TensorFlow](https://www.tensorflow.org/)
-using a `tf.data.Dataset`.
-
-So that's the reason why NumPy-formatting in `datasets` is so useful, because it lets you use
-any model from the HuggingFace Hub with NumPy, without having to worry about the data loading
-part.
+NumPy doesn't have any built-in data loading capabilities, so you'll either need to materialize the NumPy arrays like `X, y` to use in `scikit-learn` or use a library such as [PyTorch](https://pytorch.org/) to load your data using a `DataLoader`.
 
 ### Using `with_format('numpy')`
 
@@ -186,7 +180,7 @@ at the HuggingFace Hub at https://huggingface.co/datasets/mnist.
  'label': array(5)}
 ```
 
-Once the format is set we can feed the dataset to the NumPy model in batches using the `Dataset.iter()`
+Once the format is set we can feed the dataset to the model based on NumPy in batches using the `Dataset.iter()`
 method:
 
 ```py
