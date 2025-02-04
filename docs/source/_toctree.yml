@@ -30,12 +30,20 @@
       title: Process
     - local: stream
       title: Stream
-    - local: use_with_tensorflow
-      title: Use with TensorFlow
     - local: use_with_pytorch
       title: Use with PyTorch
+    - local: use_with_tensorflow
+      title: Use with TensorFlow
+    - local: use_with_numpy
+      title: Use with NumPy
     - local: use_with_jax
       title: Use with JAX
+    - local: use_with_pandas
+      title: Use with Pandas
+    - local: use_with_polars
+      title: Use with Polars
+    - local: use_with_pyarrow
+      title: Use with PyArrow
     - local: use_with_spark
       title: Use with Spark
     - local: cache

@@ -2457,7 +2457,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             type (`str`, *optional*):
-                Output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow', 'jax']`.
+                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'jax', 'arrow', 'pandas', 'polars']`.
                 `None` means `__getitem__`` returns python objects (default).
             columns (`List[str]`, *optional*):
                 Columns to format in the output.
@@ -2491,7 +2491,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             type (`str`, *optional*):
-                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow', 'jax']`.
+                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'jax', 'arrow', 'pandas', 'polars']`.
                 `None` means `__getitem__` returns python objects (default).
             columns (`List[str]`, *optional*):
                 Columns to format in the output.
@@ -2644,7 +2644,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             type (`str`, *optional*):
-                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow', 'jax']`.
+                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'jax', 'arrow', 'pandas', 'polars']`.
                 `None` means `__getitem__` returns python objects (default).
             columns (`List[str]`, *optional*):
                 Columns to format in the output.
@@ -5205,9 +5205,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .iterable_dataset import ArrowExamplesIterable, IterableDataset
 
         if self._format_type is not None:
-            raise NotImplementedError(
-                "Converting a formatted dataset to a formatted iterable dataset is not implemented yet. Please run `my_dataset = my_dataset.with_format(None)` before calling to_iterable_dataset"
-            )
+            if self._format_kwargs or (
+                self._format_columns is not None and set(self._format_columns) != set(self.column_names)
+            ):
+                raise NotImplementedError(
+                    "Converting a formatted dataset with kwargs or selected columns to a formatted iterable dataset is not implemented yet. Please run `my_dataset = my_dataset.with_format(None)` before calling to_iterable_dataset"
+                )
         if num_shards > len(self):
             raise ValueError(
                 f"Unable to shard a dataset of size {len(self)} into {num_shards} shards (the number of shards exceeds the number of samples)."
@@ -5228,7 +5231,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             Dataset._generate_tables_from_shards,
             kwargs={"shards": shards, "batch_size": config.DEFAULT_MAX_BATCH_SIZE},
         )
-        return IterableDataset(ex_iterable, info=DatasetInfo(features=self.features))
+        ds = IterableDataset(ex_iterable, info=DatasetInfo(features=self.features))
+        if self._format_type:
+            ds = ds.with_format(self._format_type)
+        return ds
 
     def _push_parquet_shards_to_hub(
         self,
@@ -6308,6 +6314,8 @@ def get_indices_from_mask_function(
         if with_rank:
             additional_args += (rank,)
         mask = function(*inputs, *additional_args, **fn_kwargs)
+        if isinstance(mask, (pa.Array, pa.ChunkedArray)):
+            mask = mask.to_pylist()
     else:
         # we get batched data (to do less look-ups) but `function` only accepts one example
         # therefore we need to call `function` on each example of the batch to get the mask

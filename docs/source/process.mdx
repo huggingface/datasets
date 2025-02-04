@@ -630,40 +630,94 @@ Note that if no sampling probabilities are specified, the new dataset will have 
 
 ## Format
 
-The [`~Dataset.set_format`] function changes the format of a column to be compatible with some common data formats. Specify the output you'd like in the `type` parameter and the columns you want to format. Formatting is applied on-the-fly.
+The [`~Dataset.with_format`] function changes the format of a column to be compatible with some common data formats. Specify the output you'd like in the `type` parameter. You can also choose which the columns you want to format using `columns=`. Formatting is applied on-the-fly.
 
 For example, create PyTorch tensors by setting `type="torch"`:
 
 ```py
->>> import torch
->>> dataset.set_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "label"])
+>>> dataset = dataset.with_format(type="torch")
 ```
 
-The [`~Dataset.with_format`] function also changes the format of a column, except it returns a new [`Dataset`] object:
+The [`~Dataset.set_format`] function also changes the format of a column, except it runs in-place:
 
 ```py
->>> dataset = dataset.with_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "label"])
+>>> dataset.set_format(type="torch")
 ```
+
+If you need to reset the dataset to its original format, set the format to `None` (or use [`~Dataset.reset_format`]):
+
+```py
+>>> dataset.format
+{'type': 'torch', 'format_kwargs': {}, 'columns': [...], 'output_all_columns': False}
+>>> dataset = dataset.with_format(None)
+>>> dataset.format
+{'type': None, 'format_kwargs': {}, 'columns': [...], 'output_all_columns': False}
+```
+
+### Tensors formats
+
+Several tensors or arrays formats are supported. It is generally recommended to use these formats instead of converting outputs of a dataset to tensors or arrays manually to avoid unnecessary data copies and accelerate data loading.
+
+Here is the list of supported tensors or arrays formats:
+
+- NumPy: format name is "numpy", for more information see [Using Datasets with NumPy](use_with_numpy)
+- PyTorch: format name is "torch", for more information see [Using Datasets with PyTorch](use_with_pytorch)
+- TensorFlow: format name is "tensorflow", for more information see [Using Datasets with TensorFlow](use_with_tensorflow)
+- JAX: format name is "jax", for more information see [Using Datasets with JAX](use_with_jax)
 
 <Tip>
 
-🤗 Datasets also provides support for other common data formats such as NumPy, Pandas, and JAX. Check out the [Using Datasets with TensorFlow](https://huggingface.co/docs/datasets/master/en/use_with_tensorflow#using-totfdataset) guide for more details on how to efficiently create a TensorFlow dataset.
+Check out the [Using Datasets with TensorFlow](use_with_tensorflow#using-totfdataset) guide for more details on how to efficiently create a TensorFlow dataset.
 
 </Tip>
 
-If you need to reset the dataset to its original format, use the [`~Dataset.reset_format`] function:
+When a dataset is formatted in a tensor or array format, all the data are formatted as tensors or arrays (except unsupported types like strings for example for PyTorch):
 
-```py
->>> dataset.format
-{'type': 'torch', 'format_kwargs': {}, 'columns': ['label'], 'output_all_columns': False}
->>> dataset.reset_format()
->>> dataset.format
-{'type': 'python', 'format_kwargs': {}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
+```python
+>>> ds = Dataset.from_dict({"text": ["foo", "bar"], "tokens": [[0, 1, 2], [3, 4, 5]]})
+>>> ds = ds.with_format("torch")
+>>> ds[0]
+{'text': 'foo', 'tokens': tensor([0, 1, 2])}
+>>> ds[:2]
+{'text': ['foo', 'bar'],
+ 'tokens': tensor([[0, 1, 2],
+         [3, 4, 5]])}
 ```
 
-### Format transform
+### Tabular formats
 
-The [`~Dataset.set_transform`] function applies a custom formatting transform on-the-fly. This function replaces any previously specified format. For example, you can use this function to tokenize and pad tokens on-the-fly. Tokenization is only applied when examples are accessed:
+You can use a dataframes or tables format to optimize data loading and data processing, since they generally offer zero-copy operations and transforms written in low-level languages.
+
+Here is the list of supported dataframes or tables formats:
+
+- Pandas: format name is "pandas", for more information see [Using Datasets with Pandas](use_with_pandas)
+- Polars: format name is "polars", for more information see [Using Datasets with Polars](use_with_polars)
+- PyArrow: format name is "arrow", for more information see [Using Datasets with PyArrow](use_with_tensorflow)
+
+When a dataset is formatted in a dataframe or table format, every dataset row or batches of rows is formatted as a dataframe or table, and dataset colums are formatted as a series or array:
+
+```python
+>>> ds = Dataset.from_dict({"text": ["foo", "bar"], "label": [0, 1]})
+>>> ds = ds.with_format("pandas")
+>>> ds[:2]
+  text  label
+0  foo      0
+1  bar      1
+```
+
+Those formats make it possible to iterate on the data faster by avoiding data copies, and also enable faster data processing in [`~Dataset.map`] or [`~Dataset.filter`]:
+
+```python
+>>> ds = ds.map(lambda df: df.assign(upper_text=df.text.str.upper()), batched=True)
+>>> ds[:2]
+  text  label upper_text
+0  foo      0        FOO
+1  bar      1        BAR
+```
+
+### Custom format transform
+
+The [`~Dataset.with_transform`] function applies a custom formatting transform on-the-fly. This function replaces any previously specified format. For example, you can use this function to tokenize and pad tokens on-the-fly. Tokenization is only applied when examples are accessed:
 
 ```py
 >>> from transformers import AutoTokenizer
@@ -671,12 +725,14 @@ The [`~Dataset.set_transform`] function applies a custom formatting transform on
 >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 >>> def encode(batch):
 ...     return tokenizer(batch["sentence1"], batch["sentence2"], padding="longest", truncation=True, max_length=512, return_tensors="pt")
->>> dataset.set_transform(encode)
+>>> dataset = dataset.with_transform(encode)
 >>> dataset.format
 {'type': 'custom', 'format_kwargs': {'transform': <function __main__.encode(batch)>}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
 ```
 
-You can also use the [`~Dataset.set_transform`] function to decode formats not supported by [`Features`]. For example, the [`Audio`] feature uses [`soundfile`](https://python-soundfile.readthedocs.io/en/0.11.0/) - a fast and simple library to install - but it does not provide support for less common audio formats. Here is where you can use [`~Dataset.set_transform`] to apply a custom decoding transform on the fly. You're free to use any library you like to decode the audio files.
+There is also [`~Dataset.set_transform`] which does the same but runs in-place.
+
+You can also use the [`~Dataset.with_transform`] function to decode formats not supported by [`Features`]. For example, the [`Audio`] feature uses [`soundfile`](https://python-soundfile.readthedocs.io/en/0.11.0/) - a fast and simple library to install - but it does not provide support for less common audio formats. Here is where you can use [`~Dataset.set_transform`] to apply a custom decoding transform on the fly. You're free to use any library you like to decode the audio files.
 
 The example below uses the [`pydub`](http://pydub.com/) package to open an audio format not supported by `soundfile`:
 

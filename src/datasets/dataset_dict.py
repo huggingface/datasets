@@ -527,7 +527,7 @@ class DatasetDict(dict):
 
         Args:
             type (`str`, *optional*):
-                Output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow', 'jax']`.
+                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'jax', 'arrow', 'pandas', 'polars']`.
                 `None` means `__getitem__` returns python objects (default).
             columns (`List[str]`, *optional*):
                 Columns to format in the output.
@@ -563,7 +563,7 @@ class DatasetDict(dict):
 
         Args:
             type (`str`, *optional*):
-                Output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow', 'jax']`.
+                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'jax', 'arrow', 'pandas', 'polars']`.
                 `None` means `__getitem__` returns python objects (default).
             columns (`List[str]`, *optional*):
                 Columns to format in the output.
@@ -670,7 +670,7 @@ class DatasetDict(dict):
 
         Args:
             type (`str`, *optional*):
-                Output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow', 'jax']`.
+                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'jax', 'arrow', 'pandas', 'polars']`.
                 `None` means `__getitem__` returns python objects (default).
             columns (`List[str]`, *optional*):
                 Columns to format in the output.
@@ -1829,12 +1829,11 @@ class IterableDatasetDict(dict):
     ) -> "IterableDatasetDict":
         """
         Return a dataset with the specified format.
-        The 'pandas' format is currently not implemented.
 
         Args:
 
             type (`str`, *optional*):
-                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'arrow', 'jax']`.
+                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'jax', 'arrow', 'pandas', 'polars']`.
                 `None` means it returns python objects (default).
 
         Example:
