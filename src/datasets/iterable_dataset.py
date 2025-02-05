@@ -1660,6 +1660,54 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.num_shards
 
 
+class RepeatExamplesIterable(_BaseExamplesIterable):
+    """
+    Iterable that repeats the underlying iterable a given number of times.
+    """
+
+    def __init__(
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        num_times: Optional[int],
+    ):
+        super().__init__()
+        self.ex_iterable = ex_iterable
+        self.num_times = num_times
+
+    def _init_state_dict(self) -> dict:
+        self._state_dict = {
+            "repeat_index": 0,
+            "ex_iterable": self.ex_iterable._init_state_dict(),
+        }
+        return self._state_dict
+
+    def __iter__(self):
+        repeat_index = self._state_dict["repeat_index"] if self._state_dict else 0
+        while True:
+            if self.num_times is not None and repeat_index >= max(self.num_times, 0):
+                break
+            yield from self.ex_iterable
+            repeat_index += 1
+            if self._state_dict:
+                self._state_dict["repeat_index"] = repeat_index
+                self._state_dict["ex_iterable"] = self.ex_iterable._init_state_dict()
+
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "RepeatExamplesIterable":
+        """Shuffle the underlying iterable, then repeat."""
+        return RepeatExamplesIterable(self.ex_iterable.shuffle_data_sources(generator), num_times=self.num_times)
+
+    def shard_data_sources(self, worker_id: int, num_workers: int) -> "RepeatExamplesIterable":
+        """Shard, then repeat shards."""
+        return RepeatExamplesIterable(
+            self.ex_iterable.shard_data_sources(worker_id, num_workers),
+            num_times=self.num_times,
+        )
+
+    @property
+    def n_shards(self) -> int:
+        return self.ex_iterable.n_shards
+
+
 class TakeExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
@@ -2794,6 +2842,49 @@ class IterableDataset(DatasetInfoMixin):
         return IterableDataset(
             ex_iterable=ex_iterable,
             info=self._info.copy(),
+            split=self._split,
+            formatting=self._formatting,
+            shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
+            token_per_repo_id=self._token_per_repo_id,
+        )
+
+    def repeat(self, num_times: Optional[int]) -> "IterableDataset":
+        """
+        Create a new [`IterableDataset`] that repeats the underlying dataset `num_times` times.
+
+        N.B. The effect of calling shuffle after repeat depends significantly on buffer size.
+        With buffer_size 1, duplicate data is never seen in the same iteration, even after shuffling:
+        ds.repeat(n).shuffle(seed=42, buffer_size=1) is equivalent to ds.shuffle(seed=42, buffer_size=1).repeat(n),
+        and only shuffles shard orders within each iteration.
+        With buffer size >= (num samples in the dataset * num_times), we get full shuffling of the repeated data, i.e. we can observe duplicates in
+        the same iteration.
+
+        Args:
+            num_times (`int`) or (`None`):
+                Number of times to repeat the dataset. If `None`, the dataset will be repeated indefinitely.
+
+        Example:
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = ds.take(2).repeat(2)
+        >>> list(ds)
+        [{'label': 1,
+         'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
+         {'label': 1,
+         'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'},
+         {'label': 1, 'text': 'effective but too-tepid biopic'},
+         {'label': 1,
+         'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
+         {'label': 1,
+         'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'},
+         {'label': 1, 'text': 'effective but too-tepid biopic'}]
+        ```
+        """
+        return IterableDataset(
+            ex_iterable=RepeatExamplesIterable(self._ex_iterable, num_times=num_times),
+            info=self._info,
             split=self._split,
             formatting=self._formatting,
             shuffling=copy.deepcopy(self._shuffling),
