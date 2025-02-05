@@ -3336,13 +3336,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if with_rank:
                 additional_args += (rank,)
             processed_inputs = function(*fn_args, *additional_args, **fn_kwargs)
+            returned_same_object = processed_inputs is inputs
             if isinstance(processed_inputs, LazyDict):
                 processed_inputs = {
                     k: v for k, v in processed_inputs.data.items() if k not in processed_inputs.keys_to_format
                 }
-                returned_lazy_dict = True
-            else:
-                returned_lazy_dict = False
             if update_data is None:
                 # Check if the function returns updated examples
                 updatable_types = (Mapping, pa.Table, pd.DataFrame)
@@ -3354,22 +3352,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 validate_function_output(processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
-            if shard._format_type or input_columns:
-                # TODO(QL, MS): ideally the behavior should be the same even if the dataset is formatted (may require major release)
-                inputs_to_merge = dict(zip(pa_inputs.column_names, pa_inputs.itercolumns()))
-            elif isinstance(inputs, LazyDict):
+            if isinstance(inputs, LazyDict):
                 inputs_to_merge = {
                     k: (v if k not in inputs.keys_to_format else pa_inputs[k]) for k, v in inputs.data.items()
                 }
             else:
-                inputs_to_merge = inputs
+                inputs_to_merge = dict(zip(pa_inputs.column_names, pa_inputs.itercolumns()))
             if remove_columns is not None:
                 for column in remove_columns:
                     # `function` can modify input in-place causing column to be already removed.
-                    if column in inputs_to_merge:
-                        inputs_to_merge.pop(column)
-                    if returned_lazy_dict and column in processed_inputs:
-                        processed_inputs.pop(column)
+                    inputs_to_merge.pop(column, None)
+                    if returned_same_object:
+                        processed_inputs.pop(column, None)
             if check_same_num_examples:
                 input_num_examples = len(pa_inputs)
                 processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
