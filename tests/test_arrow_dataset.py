@@ -4165,7 +4165,7 @@ def test_dummy_dataset_serialize_fs(dataset, mockfs):
     [
         "relative/path",
         "/absolute/path",
-        "s3://bucket/relative/path",
+        "hf://bucket/relative/path",
         "hdfs://relative/path",
         "hdfs:///absolute/path",
     ],
@@ -4179,7 +4179,7 @@ def test_build_local_temp_path(uri_or_path):
 
     assert (
         "hdfs://" not in path_relative_to_tmp_dir
-        and "s3://" not in path_relative_to_tmp_dir
+        and "hf://" not in path_relative_to_tmp_dir
         and not local_temp_path.startswith(extracted_path_without_anchor)
         and local_temp_path.endswith(extracted_path_without_anchor)
     ), f"Local temp path: {local_temp_path}"
