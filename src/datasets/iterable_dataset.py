@@ -18,7 +18,13 @@ import pyarrow as pa
 from . import config
 from .arrow_dataset import Dataset, DatasetInfoMixin
 from .features import Features
-from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned, cast_to_python_objects
+from .features.features import (
+    FeatureType,
+    Value,
+    _align_features,
+    _check_if_features_can_be_aligned,
+    cast_to_python_objects,
+)
 from .formatting import (
     ArrowFormatter,
     PythonFormatter,
@@ -1021,12 +1027,12 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             # batch_size should match for iter_arrow
             if not isinstance(ex_iterable, RebatchedArrowExamplesIterable):
                 raise ValueError(
-                    f"The {formatting.format_type.capitalize()}-formatted MappedExamplesIterable has underlying iterable"
+                    f"The {formatting.format_type.capitalize()}-formatted {type(self).__name__} has underlying iterable"
                     f"that is a {type(ex_iterable).__name__} instead of a RebatchedArrowExamplesIterable."
                 )
             elif ex_iterable.batch_size != (batch_size if batched else 1):
                 raise ValueError(
-                    f"The {formatting.format_type.capitalize()}-formatted MappedExamplesIterable has batch_size={batch_size if batched else 1} which is"
+                    f"The {formatting.format_type.capitalize()}-formatted {type(self).__name__} has batch_size={batch_size if batched else 1} which is"
                     f"different from {ex_iterable.batch_size=} from its underlying iterable."
                 )
 
@@ -1327,7 +1333,34 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.num_shards
 
 
-class FilteredExamplesIterable(_BaseExamplesIterable):
+def _add_mask(
+    input: Union[dict, pa.Table],
+    mask: Union[bool, list, pa.Array, pa.ChunkedArray, pa.BooleanScalar],
+    mask_column_name: str,
+):
+    if isinstance(input, pa.Table):
+        if not isinstance(mask, (list, pa.Array, pa.ChunkedArray)):
+            mask = [mask]
+        return input.add_column(mask_column_name, mask)
+    else:
+        return {mask_column_name: mask}
+
+
+def add_mask(mask_function: Callable, input: Union[dict, pa.Table], *args, mask_column_name: str, **kwargs):
+    mask = mask_function(input, *args, **kwargs)
+    return _add_mask(input, mask, mask_column_name)
+
+
+async def async_add_mask(
+    mask_function: Callable, input: Union[dict, pa.Table], *args, mask_column_name: str, **kwargs
+):
+    mask = await mask_function(input, *args, **kwargs)
+    return _add_mask(input, mask, mask_column_name)
+
+
+class FilteredExamplesIterable(MappedExamplesIterable):
+    mask_column_name = "===MASK==="
+
     def __init__(
         self,
         ex_iterable: _BaseExamplesIterable,
@@ -1339,207 +1372,48 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         fn_kwargs: Optional[dict] = None,
         formatting: Optional["FormattingConfig"] = None,
     ):
-        super().__init__()
-        self.ex_iterable = ex_iterable
-        self.function = function
-        self.batched = batched
-        self.batch_size = batch_size
-        self.with_indices = with_indices
-        self.input_columns = input_columns
-        self.fn_kwargs = fn_kwargs or {}
-        self.formatting = formatting  # required for iter_arrow
-        # sanity checks
-        if formatting and formatting.is_table:
-            # batch_size should match for iter_arrow
-            if not isinstance(ex_iterable, RebatchedArrowExamplesIterable):
-                raise ValueError(
-                    f"The {formatting.format_type.capitalize()}-formatted FilteredExamplesIterable has underlying iterable"
-                    f"that is a {type(ex_iterable).__name__} instead of a RebatchedArrowExamplesIterable."
-                )
-            elif ex_iterable.batch_size != (batch_size if batched else 1):
-                raise ValueError(
-                    f"The {formatting.format_type.capitalize()}-formatted FilteredExamplesIterable has batch_size={batch_size if batched else 1} which is"
-                    f"different from {ex_iterable.batch_size=} from its underlying iterable."
-                )
-
-    @property
-    def iter_arrow(self):
-        if self.formatting and self.formatting.format_type == "arrow":
-            return self._iter_arrow
-
-    @property
-    def is_typed(self):
-        return self.ex_iterable.is_typed
-
-    @property
-    def features(self):
-        return self.ex_iterable.features
-
-    def _init_state_dict(self) -> dict:
-        self._state_dict = {
-            "ex_iterable": self.ex_iterable._init_state_dict(),
-            "previous_state": None,
-            "num_examples_since_previous_state": 0,
-            "previous_state_example_idx": 0,
-        }
-        return self._state_dict
-
-    def __iter__(self):
-        if self.formatting and self.formatting.format_type == "arrow":
-            formatter = PythonFormatter()
-            for key, pa_table in self._iter_arrow(max_chunksize=1):
-                yield key, formatter.format_row(pa_table)
+        self.mask_function = function
+        if ex_iterable.is_typed:
+            features = Features({**ex_iterable.features, self.mask_column_name: Value("bool")})
         else:
-            yield from self._iter()
+            features = None
+        super().__init__(
+            ex_iterable=ex_iterable,
+            function=partial(
+                async_add_mask if inspect.iscoroutinefunction(function) else add_mask,
+                function,
+                mask_column_name=self.mask_column_name,
+            ),
+            with_indices=with_indices,
+            input_columns=input_columns,
+            batched=batched,
+            batch_size=batch_size,
+            fn_kwargs=fn_kwargs,
+            formatting=formatting,
+            features=features,
+        )
 
     def _iter(self):
-        current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
-        if self._state_dict and self._state_dict["previous_state"]:
-            self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
-            num_examples_to_skip = self._state_dict["num_examples_since_previous_state"]
-        else:
-            num_examples_to_skip = 0
-        iterator = iter(self.ex_iterable)
-
-        if self.formatting:
-            formatter = get_formatter(self.formatting.format_type)
-            format_dict = (
-                formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
-            )
-        else:
-            format_dict = None
-
-        if self.batched:
-            if self._state_dict:
-                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                self._state_dict["num_examples_since_previous_state"] = 0
-                self._state_dict["previous_state_example_idx"] = current_idx
-            for key, example in iterator:
-                # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
-                iterator_batch = (
-                    iterator
-                    if self.batch_size is None or self.batch_size <= 0
-                    else islice(iterator, self.batch_size - 1)
-                )
-                key_examples_list = [(key, example)] + list(iterator_batch)
-                keys, examples = zip(*key_examples_list)
-                batch = _examples_to_batch(examples)
-                batch = format_dict(batch) if format_dict else batch
-                # then compute the mask for the batch
-                inputs = batch
-                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
-                if self.with_indices:
-                    function_args.append([current_idx + i for i in range(len(key_examples_list))])
-                mask = self.function(*function_args, **self.fn_kwargs)
-                # yield one example at a time from the batch
-                for key_example, to_keep in zip(key_examples_list, mask):
-                    current_idx += 1
-                    if self._state_dict:
-                        self._state_dict["num_examples_since_previous_state"] += 1
-                    if num_examples_to_skip > 0:
-                        num_examples_to_skip -= 1
-                        continue
-                    if to_keep:
-                        yield key_example
-                if self._state_dict:
-                    self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                    self._state_dict["num_examples_since_previous_state"] = 0
-                    self._state_dict["previous_state_example_idx"] = current_idx
-        else:
-            for key, example in iterator:
-                # If not batched, we can apply the filtering function direcly
-                example = dict(example)
-                inputs = format_dict(example) if format_dict else example
-                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
-                if self.with_indices:
-                    function_args.append(current_idx)
-                to_keep = self.function(*function_args, **self.fn_kwargs)
-                current_idx += 1
-                if self._state_dict:
-                    self._state_dict["previous_state_example_idx"] += 1
-                if to_keep:
-                    yield key, example
+        for key, example in super()._iter():
+            example = dict(example)
+            if example.pop(self.mask_column_name):
+                yield key, example
 
     def _iter_arrow(self, max_chunksize: Optional[int] = None):
-        formatter = get_formatter(self.formatting.format_type) if self.formatting else ArrowFormatter()
-        if self.ex_iterable.iter_arrow:
-            iterator = self.ex_iterable.iter_arrow()
-        else:
-            iterator = _convert_to_arrow(self.ex_iterable, batch_size=self.batch_size if self.batched else 1)
-
-        if self._state_dict and self._state_dict["previous_state"]:
-            self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
-            num_examples_to_skip = self._state_dict["num_examples_since_previous_state"]
-        else:
-            num_examples_to_skip = 0
-        if self._state_dict and max_chunksize is not None:
-            self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-            self._state_dict["num_examples_since_previous_state"] = 0
-        current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
-        for key, pa_table in iterator:
-            if (
-                self.batched
-                and self.batch_size is not None
-                and len(pa_table) < self.batch_size
-                and self.drop_last_batch
-            ):
-                return
-
-            function_args = (
-                [formatter.format_batch(pa_table)]
-                if self.input_columns is None
-                else [pa_table[col] for col in self.input_columns]
-            )
-            if self.with_indices:
-                if self.batched:
-                    function_args.append([current_idx + i for i in range(len(pa_table))])
-                else:
-                    function_args.append(current_idx)
-            # then apply the transform
-            output = self.function(*function_args, **self.fn_kwargs)
-            mask = _table_output_to_arrow(output)
-            if not isinstance(mask, (bool, pa.Array, pa.BooleanScalar)):
-                raise TypeError(
-                    f"Provided `function` which is applied to {formatter.table_type} returns a variable of type "
-                    f"{type(output)}. Make sure provided `function` returns a {formatter.column_type} to update the dataset."
-                )
-            # return output
-            if self.batched:
-                output_table = pa_table.filter(mask)
-            elif mask.as_py() if isinstance(mask, pa.BooleanScalar) else mask:
-                output_table = pa_table
-            else:
-                output_table = pa_table.slice(0, 0)
-
-            if max_chunksize is None:
-                current_idx += len(pa_table)
-                if self._state_dict:
-                    self._state_dict["previous_state_example_idx"] += len(pa_table)
-                if len(output_table) > 0:
-                    yield key, output_table
-            else:
-                for i, pa_subtable in enumerate(output_table.to_reader(max_chunksize=max_chunksize)):
-                    current_idx += 1
-                    if self._state_dict:
-                        self._state_dict["num_examples_since_previous_state"] += 1
-                    if num_examples_to_skip > 0:
-                        num_examples_to_skip -= 1
-                        continue
-                    yield f"{key}_{i}", pa_subtable
-                if self._state_dict:
-                    self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                    self._state_dict["num_examples_since_previous_state"] = 0
-                    self._state_dict["previous_state_example_idx"] += len(pa_table)
+        for key, pa_table in super()._iter_arrow(max_chunksize=max_chunksize):
+            mask = pa_table[self.mask_column_name]
+            yield key, pa_table.drop(self.mask_column_name).filter(mask)
 
     def shuffle_data_sources(self, seed: Optional[int]) -> "FilteredExamplesIterable":
         """Shuffle the wrapped examples iterable."""
         return FilteredExamplesIterable(
             self.ex_iterable.shuffle_data_sources(seed),
-            function=self.function,
+            function=self.mask_function,
             with_indices=self.with_indices,
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            fn_kwargs=self.fn_kwargs,
             formatting=self.formatting,
         )
 
@@ -1547,11 +1421,12 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         """Keep only the requested shard."""
         return FilteredExamplesIterable(
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
-            function=self.function,
+            function=self.mask_function,
             with_indices=self.with_indices,
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            fn_kwargs=self.fn_kwargs,
             formatting=self.formatting,
         )
 

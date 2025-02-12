@@ -3707,7 +3707,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         indices = self.map(
             function=partial(
-                get_indices_from_mask_function,
+                async_get_indices_from_mask_function
+                if inspect.iscoroutinefunction(function)
+                else get_indices_from_mask_function,
                 function,
                 batched,
                 with_indices,
@@ -3719,7 +3721,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             with_rank=True,
             features=Features({"indices": Value("uint64")}),
             batched=True,
-            batch_size=batch_size,
+            batch_size=batch_size if batched else 1,
             remove_columns=self.column_names,
             keep_in_memory=keep_in_memory,
             load_from_cache_file=load_from_cache_file,
@@ -6337,7 +6339,7 @@ def get_indices_from_mask_function(
         if isinstance(mask, (pa.Array, pa.ChunkedArray)):
             mask = mask.to_pylist()
     else:
-        # we get batched data (to do less look-ups) but `function` only accepts one example
+        # we get batched data (to return less data than input) but `function` only accepts one example
         # therefore we need to call `function` on each example of the batch to get the mask
         *inputs, indices, rank = args
         mask = []
@@ -6365,6 +6367,65 @@ def get_indices_from_mask_function(
                 if with_rank:
                     additional_args += (rank,)
                 mask.append(function(*input, *additional_args, **fn_kwargs))
+    indices_array = [i for i, to_keep in zip(indices, mask) if to_keep]
+    if indices_mapping is not None:
+        indices_array = pa.array(indices_array, type=pa.uint64())
+        indices_array = indices_mapping.column(0).take(indices_array)
+        indices_array = indices_array.to_pylist()
+    return {"indices": indices_array}
+
+
+async def async_get_indices_from_mask_function(
+    function: Callable,
+    batched: bool,
+    with_indices: bool,
+    with_rank: bool,
+    input_columns: Optional[Union[str, List[str]]],
+    indices_mapping: Optional[Table] = None,
+    *args,
+    **fn_kwargs,
+):
+    """same function but async"""
+    if batched:
+        # we extract indices and rank from args
+        *inputs, indices, rank = args
+        additional_args = ()
+        if with_indices:
+            additional_args += (indices,)
+        if with_rank:
+            additional_args += (rank,)
+        mask = await function(*inputs, *additional_args, **fn_kwargs)
+        if isinstance(mask, (pa.Array, pa.ChunkedArray)):
+            mask = mask.to_pylist()
+    else:
+        # we get batched data (to return less data than input) but `function` only accepts one example
+        # therefore we need to call `function` on each example of the batch to get the mask
+        *inputs, indices, rank = args
+        mask = []
+        if input_columns is None:
+            # inputs only contains a batch of examples
+            batch: dict = inputs[0]
+            num_examples = len(batch[next(iter(batch.keys()))])
+            for i in range(num_examples):
+                example = {key: batch[key][i] for key in batch}
+                additional_args = ()
+                if with_indices:
+                    additional_args += (indices[i],)
+                if with_rank:
+                    additional_args += (rank,)
+                mask.append(await function(example, *additional_args, **fn_kwargs))
+        else:
+            # inputs is a list of columns
+            columns: List[List] = inputs
+            num_examples = len(columns[0])
+            for i in range(num_examples):
+                input = [column[i] for column in columns]
+                additional_args = ()
+                if with_indices:
+                    additional_args += (indices[i],)
+                if with_rank:
+                    additional_args += (rank,)
+                mask.append(await function(*input, *additional_args, **fn_kwargs))
     indices_array = [i for i, to_keep in zip(indices, mask) if to_keep]
     if indices_mapping is not None:
         indices_array = pa.array(indices_array, type=pa.uint64())
