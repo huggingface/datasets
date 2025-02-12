@@ -1,4 +1,6 @@
+import asyncio
 import copy
+import inspect
 import itertools
 import sys
 from collections import Counter
@@ -1075,11 +1077,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         else:
             format_dict = None
 
-        if self.batched:
-            if self._state_dict:
-                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                self._state_dict["num_examples_since_previous_state"] = 0
-                self._state_dict["previous_state_example_idx"] = current_idx
+        def iter_batched_inputs():
             for key, example in iterator:
                 # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
                 iterator_batch = (
@@ -1089,6 +1087,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 )
                 key_examples_list = [(key, example)] + list(iterator_batch)
                 keys, examples = zip(*key_examples_list)
+                # the new key is the concatenation of the examples keys from the batch
+                key = "_".join(str(key) for key in keys)
                 if (
                     self.drop_last_batch
                     and self.batch_size is not None
@@ -1098,40 +1098,106 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     return
                 batch = _examples_to_batch(examples)
                 batch = format_dict(batch) if format_dict else batch
-                # then apply the transform
-                inputs = batch
-                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
-                if self.with_indices:
-                    function_args.append([current_idx + i for i in range(len(key_examples_list))])
-                inputs_to_merge = dict(batch)
-                processed_inputs = self.function(*function_args, **self.fn_kwargs)
-                # this logic mimics the one in Dataset.map
-                if self.remove_columns:
-                    for c in self.remove_columns:
-                        if c in inputs_to_merge:
-                            del inputs_to_merge[c]
-                        if processed_inputs is inputs and c in processed_inputs:
-                            del processed_inputs[c]
-                transformed_batch = {**inputs_to_merge, **processed_inputs}
-                if transformed_batch:
-                    first_col = next(iter(transformed_batch))
-                    bad_cols = [
-                        col
-                        for col in transformed_batch
-                        if len(transformed_batch[col]) != len(transformed_batch[first_col])
-                    ]
-                    if bad_cols:
-                        raise ValueError(
-                            f"Column lengths mismatch: columns {bad_cols} have length {[len(transformed_batch[col]) for col in bad_cols]} "
-                            f"while {first_col} has length {len(transformed_batch[first_col])}."
+                indices = [current_idx + i for i in range(len(key_examples_list))]
+                yield indices, (key, batch)
+
+        def iter_inputs():
+            for key, example in iterator:
+                # If not batched, we can apply the transform and yield the example directly
+                # first copy the example, since we might drop some keys
+                example = dict(example)
+                example = format_dict(example) if format_dict else example
+                yield current_idx, (key, example)
+
+        def validate_function_output(processed_inputs):
+            if self.batched and processed_inputs:
+                first_col = next(iter(processed_inputs))
+                bad_cols = [
+                    col for col in processed_inputs if len(processed_inputs[col]) != len(processed_inputs[first_col])
+                ]
+                if bad_cols:
+                    raise ValueError(
+                        f"Column lengths mismatch: columns {bad_cols} have length {[len(processed_inputs[col]) for col in bad_cols]} "
+                        f"while {first_col} has length {len(processed_inputs[first_col])}."
+                    )
+
+        def prepare_inputs(key_example, indices):
+            key, example = key_example
+            fn_args = [example] if self.input_columns is None else [example[col] for col in self.input_columns]
+            additional_args = ()
+            if self.with_indices:
+                fn_args += (indices,)
+            inputs_to_merge = dict(example)
+            return inputs_to_merge, fn_args, additional_args, self.fn_kwargs
+
+        def prepare_outputs(inputs, processed_inputs):
+            validate_function_output(processed_inputs)
+            # this logic mimics the one in Dataset.map
+            if self.remove_columns:
+                for c in self.remove_columns:
+                    if c in inputs:
+                        del inputs[c]
+                    if processed_inputs is inputs and c in processed_inputs:
+                        del processed_inputs[c]
+            transformed_inputs = {**inputs, **processed_inputs}
+            if self.features:
+                for c in self.features.keys():
+                    if c not in transformed_inputs:
+                        transformed_inputs[c] = (
+                            [None] * len(transformed_inputs[next(iter(processed_inputs))]) if self.batched else None
                         )
-                if self.features:
-                    for c in self.features.keys():
-                        if c not in transformed_batch:
-                            transformed_batch[c] = [None] * len(transformed_batch[first_col])
-                    transformed_batch = self.features.decode_batch(transformed_batch)
-                # the new key is the concatenation of the examples keys from the batch
-                new_key = "_".join(str(key) for key in keys)
+                transformed_inputs = (
+                    self.features.decode_batch(transformed_inputs)
+                    if self.batched
+                    else self.features.decode_example(transformed_inputs)
+                )
+            return transformed_inputs
+
+        def apply_function(key_example, indices):
+            """Utility to apply the function on a selection of columns."""
+            inputs, fn_args, additional_args, fn_kwargs = prepare_inputs(key_example, indices)
+            processed_inputs = self.function(*fn_args, *additional_args, **fn_kwargs)
+            return prepare_outputs(inputs, processed_inputs)
+
+        async def async_apply_function(key_example, indices):
+            """Utility to apply the function on a selection of columns. Same code but async"""
+            inputs, fn_args, additional_args, fn_kwargs = prepare_inputs(key_example, indices)
+            processed_inputs = await self.function(*fn_args, *additional_args, **fn_kwargs)
+            return prepare_outputs(inputs, processed_inputs)
+
+        def iter_outputs():
+            inputs_iterator = iter_batched_inputs() if self.batched else iter_inputs()
+            if inspect.iscoroutinefunction(self.function):
+                indices: Union[List[int], List[List[int]]] = []
+                tasks: List[asyncio.Task] = []
+                loop = asyncio.get_event_loop()
+                for i, key_example in inputs_iterator:
+                    indices.append(i)
+                    tasks.append(loop.create_task(async_apply_function(key_example, i)))
+                    # keep the total active tasks under a certain number
+                    if len(tasks) >= config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL:
+                        done, pending = loop.run_until_complete(
+                            asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+                        )
+                        while tasks and len(pending) >= config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL:
+                            done, pending = loop.run_until_complete(
+                                asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+                            )
+                    # yield finished tasks
+                    while tasks and tasks[0].done():
+                        yield indices.pop(0), tasks.pop(0).result()
+                while tasks:
+                    yield indices.pop(0), loop.run_until_complete(tasks.pop(0))
+            else:
+                for i, key_example in inputs_iterator:
+                    yield i, apply_function(key_example, i)
+
+        if self.batched:
+            if self._state_dict:
+                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                self._state_dict["num_examples_since_previous_state"] = 0
+                self._state_dict["previous_state_example_idx"] = current_idx
+            for key, transformed_batch in iter_outputs():
                 # yield one example at a time from the transformed batch
                 for example in _batch_to_examples(transformed_batch):
                     current_idx += 1
@@ -1140,37 +1206,13 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     if num_examples_to_skip > 0:
                         num_examples_to_skip -= 1
                         continue
-                    yield new_key, example
+                    yield key, example
                 if self._state_dict:
                     self._state_dict["previous_state"] = self.ex_iterable.state_dict()
                     self._state_dict["num_examples_since_previous_state"] = 0
                     self._state_dict["previous_state_example_idx"] = current_idx
         else:
-            for key, example in iterator:
-                # If not batched, we can apply the transform and yield the example directly
-                # first copy the example, since we might drop some keys
-                example = dict(example)
-                example = format_dict(example) if format_dict else example
-                # then apply the transform
-                inputs = example
-                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
-                if self.with_indices:
-                    function_args.append(current_idx)
-                processed_inputs = self.function(*function_args, **self.fn_kwargs)
-                inputs_to_merge = dict(example)
-                # this logic mimics the one in Dataset.map
-                if self.remove_columns:
-                    for c in self.remove_columns:
-                        if c in inputs_to_merge:
-                            del inputs_to_merge[c]
-                        if processed_inputs is inputs and c in processed_inputs:
-                            del processed_inputs[c]
-                transformed_example = {**inputs_to_merge, **processed_inputs}
-                if self.features:
-                    for c in self.features.keys():
-                        if c not in transformed_example:
-                            transformed_example[c] = None
-                    transformed_example = self.features.decode_example(transformed_example)
+            for key, transformed_example in iter_outputs():
                 current_idx += 1
                 if self._state_dict:
                     self._state_dict["previous_state_example_idx"] += 1

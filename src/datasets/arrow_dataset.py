@@ -3427,7 +3427,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
             return buf_writer, writer, tmp_file
 
-        def iter_output_examples(shard_iterable):
+        def iter_outputs(shard_iterable):
             if inspect.iscoroutinefunction(function):
                 indices: Union[List[int], List[List[int]]] = []
                 tasks: List[asyncio.Task] = []
@@ -3477,7 +3477,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     )
                 if not batched:
                     _time = time.time()
-                    for i, example in iter_output_examples(shard_iterable):
+                    for i, example in iter_outputs(shard_iterable):
                         if update_data:
                             if i == 0:
                                 buf_writer, writer, tmp_file = init_buffer_and_writer()
@@ -3501,7 +3501,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             num_examples_progress_update = 0
                 else:
                     _time = time.time()
-                    for i, batch in iter_output_examples(shard_iterable):
+                    for i, batch in iter_outputs(shard_iterable):
                         num_examples_in_batch = len(i)
                         if update_data:
                             if i and i[0] == 0:
