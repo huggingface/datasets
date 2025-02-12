@@ -1133,17 +1133,17 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             additional_args = ()
             if self.with_indices:
                 fn_args += (indices,)
-            inputs_to_merge = dict(example)
-            return inputs_to_merge, fn_args, additional_args, self.fn_kwargs
+            inputs = dict(example)
+            return inputs, fn_args, additional_args, self.fn_kwargs
 
-        def prepare_outputs(inputs, processed_inputs):
+        def prepare_outputs(key_example, inputs, processed_inputs):
             validate_function_output(processed_inputs)
             # this logic mimics the one in Dataset.map
             if self.remove_columns:
                 for c in self.remove_columns:
                     if c in inputs:
                         del inputs[c]
-                    if processed_inputs is inputs and c in processed_inputs:
+                    if processed_inputs is key_example[1] and c in processed_inputs:
                         del processed_inputs[c]
             transformed_inputs = {**inputs, **processed_inputs}
             if self.features:
@@ -1163,13 +1163,13 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             """Utility to apply the function on a selection of columns."""
             inputs, fn_args, additional_args, fn_kwargs = prepare_inputs(key_example, indices)
             processed_inputs = self.function(*fn_args, *additional_args, **fn_kwargs)
-            return prepare_outputs(inputs, processed_inputs)
+            return prepare_outputs(key_example, inputs, processed_inputs)
 
         async def async_apply_function(key_example, indices):
             """Utility to apply the function on a selection of columns. Same code but async"""
             inputs, fn_args, additional_args, fn_kwargs = prepare_inputs(key_example, indices)
             processed_inputs = await self.function(*fn_args, *additional_args, **fn_kwargs)
-            return prepare_outputs(inputs, processed_inputs)
+            return prepare_outputs(key_example, inputs, processed_inputs)
 
         def iter_outputs():
             inputs_iterator = iter_batched_inputs() if self.batched else iter_inputs()
