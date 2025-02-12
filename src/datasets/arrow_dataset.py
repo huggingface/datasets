@@ -4078,6 +4078,38 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         return self.select(range(n, len(self)))
 
+    def repeat(self, num_times: int) -> "Dataset":
+        """
+        Create a new [`Dataset`] that repeats the underlying dataset `num_times` times.
+
+        Like itertools.repeat, repeating once just returns the full dataset.
+
+        Args:
+            num_times (`int`):
+                Number of times to repeat the dataset.
+
+        Example:
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = ds.take(2).repeat(2)
+        >>> list(ds)
+        [{'label': 1,
+         'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
+         {'label': 1,
+         'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'},
+         {'label': 1, 'text': 'effective but too-tepid biopic'},
+         {'label': 1,
+         'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
+         {'label': 1,
+         'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'},
+         {'label': 1, 'text': 'effective but too-tepid biopic'}]
+        ```
+        """
+        if num_times is None:
+            raise ValueError("Map style datasets do not support indefinite repetition.")
+        return _concatenate_map_style_datasets([self] * num_times) if num_times > 0 else self.select([])
+
     def take(self, n: int) -> "Dataset":
         """
         Create a new [`Dataset`] with only the first `n` elements.

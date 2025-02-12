@@ -33,6 +33,7 @@ from datasets.iterable_dataset import (
     MappedExamplesIterable,
     RandomlyCyclingMultiSourcesExamplesIterable,
     RebatchedArrowExamplesIterable,
+    RepeatExamplesIterable,
     SelectColumnsIterable,
     ShuffledDataSourcesArrowExamplesIterable,
     ShuffledDataSourcesExamplesIterable,
@@ -1167,6 +1168,28 @@ def test_take_examples_iterable():
     assert_load_state_dict_resumes_iteration(take_ex_iterable)
 
 
+@pytest.mark.parametrize(
+    "n, num_times",
+    [
+        (3, None),
+        (3, 3),
+        (3, 0),
+    ],
+)
+def test_repeat_examples_iterable(n, num_times):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = RepeatExamplesIterable(base_ex_iterable, num_times=num_times)
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    if num_times is not None:
+        expected = all_examples * max(num_times, 0)
+        assert [x for _, x in ex_iterable] == expected
+    else:
+        max_iters = 135
+        iterator = iter(ex_iterable)
+        for i in range(max_iters):
+            assert next(iterator)[1] == all_examples[i % len(all_examples)], f"iteration {i} failed,"
+
+
 def test_vertically_concatenated_examples_iterable():
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label": 10})
     ex_iterable2 = ExamplesIterable(generate_examples_fn, {"label": 5})
@@ -1740,6 +1763,14 @@ def test_iterable_dataset_take(dataset: IterableDataset, n):
     assert isinstance(take_dataset._ex_iterable, TakeExamplesIterable)
     assert take_dataset._ex_iterable.n == n
     assert list(take_dataset) == list(dataset)[:n]
+
+
+@pytest.mark.parametrize("n", [0, 2])
+def test_iterable_dataset_repeat(dataset: IterableDataset, n):
+    repeat_dataset = dataset.repeat(n)
+    assert isinstance(repeat_dataset._ex_iterable, RepeatExamplesIterable)
+    assert repeat_dataset._ex_iterable.num_times == n
+    assert list(repeat_dataset) == list(dataset) * n
 
 
 def test_iterable_dataset_shard():
