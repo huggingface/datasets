@@ -3431,7 +3431,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if inspect.iscoroutinefunction(function):
                 indices: Union[List[int], List[List[int]]] = []
                 tasks: List[asyncio.Task] = []
-                loop = asyncio.get_event_loop()
+                try:
+                    loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
                 for i, example in shard_iterable:
                     indices.append(i)
                     tasks.append(loop.create_task(async_apply_function(example, i, offset=offset)))
