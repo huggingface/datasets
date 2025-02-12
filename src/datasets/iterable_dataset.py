@@ -1340,8 +1340,8 @@ def _add_mask(
 ):
     if isinstance(input, pa.Table):
         if not isinstance(mask, (list, pa.Array, pa.ChunkedArray)):
-            mask = [mask]
-        return input.add_column(mask_column_name, mask)
+            mask = pa.array([mask], type=pa.bool_())
+        return input.append_column(mask_column_name, mask)
     else:
         return {mask_column_name: mask}
 
