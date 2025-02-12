@@ -3278,8 +3278,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             **format_kwargs,
         )
 
-        class NumExamplesMismatchError(Exception):
-            pass
+        check_same_num_examples = batched and len(shard.list_indexes()) > 0
 
         def validate_function_output(processed_inputs):
             """Validate output of the map function."""
@@ -3338,7 +3337,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 additional_args += (rank,)
             return inputs, fn_args, additional_args, fn_kwargs
 
-        def prepare_outputs(pa_inputs, inputs, processed_inputs, check_same_num_examples=False):
+        def prepare_outputs(pa_inputs, inputs, processed_inputs):
             nonlocal update_data
             if not (update_data := (processed_inputs is not None)):
                 return None
@@ -3370,7 +3369,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 input_num_examples = len(pa_inputs)
                 processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
                 if input_num_examples != processed_inputs_num_examples:
-                    raise NumExamplesMismatchError()
+                    raise DatasetTransformationNotAllowedError(
+                        "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
+                    ) from None
             if isinstance(inputs, Mapping) and isinstance(processed_inputs, Mapping):
                 # The .map() transform *updates* the dataset:
                 # the output dictionary contains both the the input data and the output data.
@@ -3379,21 +3380,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             else:
                 return processed_inputs
 
-        def apply_function_on_filtered_inputs(pa_inputs, indices, check_same_num_examples=False, offset=0):
+        def apply_function(pa_inputs, indices, offset=0):
             """Utility to apply the function on a selection of columns."""
             inputs, fn_args, additional_args, fn_kwargs = prepare_inputs(pa_inputs, indices, offset=offset)
             processed_inputs = function(*fn_args, *additional_args, **fn_kwargs)
-            return prepare_outputs(
-                pa_inputs, inputs, processed_inputs, check_same_num_examples=check_same_num_examples
-            )
+            return prepare_outputs(pa_inputs, inputs, processed_inputs)
 
-        async def async_apply_function_on_filtered_inputs(pa_inputs, indices, check_same_num_examples=False, offset=0):
+        async def async_apply_function(pa_inputs, indices, offset=0):
             """Utility to apply the function on a selection of columns. Same code but async"""
             inputs, fn_args, additional_args, fn_kwargs = prepare_inputs(pa_inputs, indices, offset=offset)
             processed_inputs = await function(*fn_args, *additional_args, **fn_kwargs)
-            return prepare_outputs(
-                pa_inputs, inputs, processed_inputs, check_same_num_examples=check_same_num_examples
-            )
+            return prepare_outputs(pa_inputs, inputs, processed_inputs)
 
         def init_buffer_and_writer():
             # Prepare output buffer and batched writer in memory or on file if we update the table
@@ -3432,12 +3429,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         def iter_output_examples(shard_iterable):
             if inspect.iscoroutinefunction(function):
-                indices: List[int] = []
+                indices: Union[List[int], List[List[int]]] = []
                 tasks: List[asyncio.Task] = []
                 loop = asyncio.get_event_loop()
                 for i, example in shard_iterable:
                     indices.append(i)
-                    tasks.append(loop.create_task(async_apply_function_on_filtered_inputs(example, i, offset=offset)))
+                    tasks.append(loop.create_task(async_apply_function(example, i, offset=offset)))
                     # keep the total active tasks under a certain number
                     if len(tasks) >= config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL:
                         done, pending = loop.run_until_complete(
@@ -3454,7 +3451,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     yield indices.pop(0), loop.run_until_complete(tasks.pop(0))
             else:
                 for i, example in shard_iterable:
-                    yield i, apply_function_on_filtered_inputs(example, i, offset=offset)
+                    yield i, apply_function(example, i, offset=offset)
 
         num_examples_progress_update = 0
         # If `update_data` is True after processing the first example/batch, initalize these resources with `init_buffer_and_writer`
@@ -3475,7 +3472,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 else:
                     num_rows = len(shard) if not drop_last_batch else len(shard) // batch_size * batch_size
                     shard_iterable = zip(
-                        range(0, num_rows, batch_size),
+                        (list(range(i, min(i + batch_size, num_rows))) for i in range(0, num_rows, batch_size)),
                         arrow_formatted_shard.iter(batch_size, drop_last_batch=drop_last_batch),
                     )
                 if not batched:
@@ -3504,24 +3501,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             num_examples_progress_update = 0
                 else:
                     _time = time.time()
-                    for i, batch in shard_iterable:
-                        num_examples_in_batch = len(batch)
-                        indices = list(
-                            range(*(slice(i, i + batch_size).indices(shard.num_rows)))
-                        )  # Something simpler?
-                        try:
-                            batch = apply_function_on_filtered_inputs(
-                                batch,
-                                indices,
-                                check_same_num_examples=len(shard.list_indexes()) > 0,
-                                offset=offset,
-                            )
-                        except NumExamplesMismatchError:
-                            raise DatasetTransformationNotAllowedError(
-                                "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
-                            ) from None
+                    for i, batch in iter_output_examples(shard_iterable):
+                        num_examples_in_batch = len(i)
                         if update_data:
-                            if i == 0:
+                            if i and i[0] == 0:
                                 buf_writer, writer, tmp_file = init_buffer_and_writer()
                                 stack.enter_context(writer)
                             if isinstance(batch, pa.Table):
