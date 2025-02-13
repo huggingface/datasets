@@ -2406,6 +2406,9 @@ class IterableDataset(DatasetInfoMixin):
           Note that the last batch may have less than `n` examples.
           A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
 
+        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simulatenous calls.
+        It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
+
         Args:
             function (`Callable`, *optional*, defaults to `None`):
                 Function applied on-the-fly on the examples when you iterate on the dataset.
@@ -2417,6 +2420,7 @@ class IterableDataset(DatasetInfoMixin):
                 - `function(batch: Dict[str, List], indices: List[int]) -> Dict[str, List]` if `batched=True` and `with_indices=True`
 
                 For advanced usage, the function can also return a `pyarrow.Table`.
+                If the function is asynchronous, then `map` will run your function in parallel.
                 Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
                 If no function is provided, default to identity function: `lambda x: x`.
             with_indices (`bool`, defaults to `False`):
@@ -2537,6 +2541,9 @@ class IterableDataset(DatasetInfoMixin):
         """Apply a filter function to all the elements so that the dataset only includes examples according to the filter function.
         The filtering is done on-the-fly when iterating over the dataset.
 
+        If the function is asynchronous, then `filter` will run your function in parallel, with up to one thousand simulatenous calls (configurable).
+        It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
+
         Args:
             function (`Callable`):
                 Callable with one of the following signatures:
@@ -2546,6 +2553,7 @@ class IterableDataset(DatasetInfoMixin):
                 - `function(example: Dict[str, List]) -> List[bool]` if `with_indices=False, batched=True`
                 - `function(example: Dict[str, List], indices: List[int]) -> List[bool]` if `with_indices=True, batched=True`
 
+                If the function is asynchronous, then `filter` will run your function in parallel.
                 If no function is provided, defaults to an always True function: `lambda x: True`.
             with_indices (`bool`, defaults to `False`):
                 Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.

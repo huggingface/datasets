@@ -502,6 +502,52 @@ Use [`~Dataset.map`] to apply the function over the whole dataset:
 
 For each original sentence, RoBERTA augmented a random word with three alternatives. The original word `distorting` is supplemented by `withholding`, `suppressing`, and `destroying`.
 
+### Run asynchronous calls
+
+Asynchronous functions are useful to call API endpoints in parallel, for example to download content like images or call a model endpoint.
+
+You can define an asynchronous function using the `async` and `await` keywords, here is an example function to call a chat model from Hugging Face:
+
+```python
+>>> import aiohttp
+>>> import asyncio
+>>> from huggingface_hub import get_token
+>>> sem = asyncio.Semaphore(20)  # max number of simultaneous queries
+>>> async def query_model(model, prompt):
+...     api_url = f"https://api-inference.huggingface.co/models/{model}/v1/chat/completions"
+...     headers = {"Authorization": f"Bearer {get_token()}", "Content-Type": "application/json"}
+...     json = {"messages": [{"role": "user", "content": prompt}], "max_tokens": 20, "seed": 42}
+...     async with sem, aiohttp.ClientSession() as session, session.post(api_url, headers=headers, json=json) as response:
+...         output = await response.json()
+...         return {"Output": output["choices"][0]["message"]["content"]}
+```
+
+Asynchronous functions run in parallel, which accelerates the process a lot. The same code takes a lot more time if it's run sequentially, because it does nothing while waiting for the model response. It is generally recommended to use `async` / `await` when you function has to wait for a response from an API for example, or if it downloads data and it can take some time.
+
+Note the presence of a `Semaphore`: it sets the maximum number of queries that can run in parallel. It is recommended to use a `Semaphore` when calling APIs to avoid rate limit errors.
+
+Let's use it to call the [microsoft/Phi-3-mini-4k-instruct](https://huggingface.co/microsoft/Phi-3-mini-4k-instruct) model and ask it to return the main topic of each math problem in the [Maxwell-Jia/AIME_2024](https://huggingface.co/Maxwell-Jia/AIME_2024) dataset:
+
+```python
+>>> from datasets import load_dataset
+>>> ds = load_dataset("Maxwell-Jia/AIME_2024", split="train")
+>>> model = "microsoft/Phi-3-mini-4k-instruct"
+>>> prompt = 'What is this text mainly about ? Here is the text:\n\n```\n{Problem}\n```\n\nReply using one or two words max, e.g. "The main topic is Linear Algebra".'
+>>> async def get_topic(example):
+...     return await query_model(model, prompt.format(Problem=example['Problem']))
+>>> ds = ds.map(get_topic)
+>>> ds[0]
+{'ID': '2024-II-4',
+ 'Problem': 'Let $x,y$ and $z$ be positive real numbers that...',
+ 'Solution': 'Denote $\\log_2(x) = a$, $\\log_2(y) = b$, and...,
+ 'Answer': 33,
+ 'Output': 'The main topic is Logarithms.'}
+```
+
+Here, [`Dataset.map`] runs many `get_topic` function asynchronously so it doesn't have to wait for every single model response which would take a lot of time to do sequentially.
+
+By default, [`Dataset.map`] runs up to one thousand queries in parallel, so don't forget to set the maximum number of queries that can run in parallel with a `Semaphore`, otherwise the model could return rate limit errors or overload. For advanced use cases, you can change the maximum number of queries in parallel in `datasets.config`.
+
 ### Process multiple splits
 
 Many datasets have splits that can be processed simultaneously with [`DatasetDict.map`]. For example, tokenize the `sentence1` field in the train and test split by:
