@@ -4,7 +4,7 @@
 
 The Hugging Face Dataset Hub is home to a growing collection of datasets that span a variety of domains and tasks.
 
-It is a cloud storage that provides data versioning thanks to git, as well as a Dataset Viewer to explore the data, making it a great place to store AI-ready datasets.
+It's more than a cloud storage: the Dataset Hub is a platform that provides data versioning thanks to git, as well as a Dataset Viewer to explore the data, making it a great place to store AI-ready datasets.
 
 This guide shows how to import data from other cloud storage using the filesystems implementations from `fsspec`.
 
@@ -37,7 +37,7 @@ First, instantiate your cloud storage filesystem and list the files you'd like t
 ["path/to/my/data/0001.parquet", "path/to/my/data/0001.parquet", ...]
 ```
 
-Then you can create a dataset on Hugging Face from your data using
+Then you can create a dataset on Hugging Face and import the data files, using for example:
 
 ```python
 >>> from huggingface_hub import create_repo, upload_file
