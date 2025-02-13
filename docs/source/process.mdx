@@ -625,20 +625,21 @@ Separate datasets can be concatenated if they share the same column types. Conca
 ```py
 >>> from datasets import concatenate_datasets, load_dataset
 
->>> bookcorpus = load_dataset("bookcorpus", split="train")
->>> wiki = load_dataset("wikipedia", "20220301.en", split="train")
+>>> stories = load_dataset("ajibawa-2023/General-Stories-Collection", split="train")
+>>> stories = stories.remove_columns([col for col in stories.column_names if col != "text"])  # only keep the 'text' column
+>>> wiki = load_dataset("wikimedia/wikipedia", "20220301.en", split="train")
 >>> wiki = wiki.remove_columns([col for col in wiki.column_names if col != "text"])  # only keep the 'text' column
 
->>> assert bookcorpus.features.type == wiki.features.type
->>> bert_dataset = concatenate_datasets([bookcorpus, wiki])
+>>> assert stories.features.type == wiki.features.type
+>>> bert_dataset = concatenate_datasets([stories, wiki])
 ```
 
 You can also concatenate two datasets horizontally by setting `axis=1` as long as the datasets have the same number of rows:
 
 ```py
 >>> from datasets import Dataset
->>> bookcorpus_ids = Dataset.from_dict({"ids": list(range(len(bookcorpus)))})
->>> bookcorpus_with_ids = concatenate_datasets([bookcorpus, bookcorpus_ids], axis=1)
+>>> stories_ids = Dataset.from_dict({"ids": list(range(len(stories)))})
+>>> stories_with_ids = concatenate_datasets([stories, stories_ids], axis=1)
 ```
 
 ### Interleave
@@ -821,12 +822,6 @@ Use the [`load_from_disk`] function to reload the dataset:
 >>> from datasets import load_from_disk
 >>> reloaded_dataset = load_from_disk("path/of/my/dataset/directory")
 ```
-
-<Tip>
-
-Want to save your dataset to a cloud storage provider? Read our [Cloud Storage](./filesystems) guide to learn how to save your dataset to AWS or Google Cloud Storage.
-
-</Tip>
 
 ## Export
 
