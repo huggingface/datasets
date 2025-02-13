@@ -397,22 +397,6 @@ If you want equal sized splits, use `pct1_dropremainder` rounding instead. This 
 
 Sometimes, you may get unexpected results when you load a dataset. Two of the most common issues you may encounter are manually downloading a dataset and specifying features of a dataset.
 
-### Manual download
-
-Certain datasets require you to manually download the dataset files due to licensing incompatibility or if the files are hidden behind a login page. This causes [`load_dataset`] to throw an `AssertionError`. But 🤗 Datasets provides detailed instructions for downloading the missing files. After you've downloaded the files, use the `data_dir` argument to specify the path to the files you just downloaded.
-
-For example, if you try to download a configuration from the [MATINF](https://huggingface.co/datasets/WHUIR/matinf) dataset:
-
-```py
->>> dataset = load_dataset("WHUIR/matinf", "summarization")
-Downloading and preparing dataset matinf/summarization (download: Unknown size, generated: 246.89 MiB, post-processed: Unknown size, total: 246.89 MiB) to /root/.cache/huggingface/datasets/matinf/summarization/1.0.0/82eee5e71c3ceaf20d909bca36ff237452b4e4ab195d3be7ee1c78b53e6f540e...
-AssertionError: The dataset matinf with config summarization requires manual data. 
-Please follow the manual download instructions: To use MATINF you have to download it manually. Please fill this google form (https://forms.gle/nkH4LVE4iNQeDzsc9). You will receive a download link and a password once you complete the form. Please extract all files in one folder and load the dataset with: *datasets.load_dataset('WHUIR/matinf', data_dir='path/to/folder/folder_name')*. 
-Manual data can be loaded with `datasets.load_dataset('WHUIR/matinf', data_dir='<path/to/manual/data>') 
-```
-
-If you've already downloaded a dataset from the *Hub with a loading script* to your computer, then you need to pass an absolute path to the `data_dir` or `data_files` parameter to load that dataset. Otherwise, if you pass a relative path, [`load_dataset`] will load the directory from the repository on the Hub instead of the local directory.
-
 ### Specify features
 
 When you create a dataset from local files, the [`Features`] are automatically inferred by [Apache Arrow](https://arrow.apache.org/docs/). However, the dataset's features may not always align with your expectations, or you may want to define the features yourself. The following example shows how you can add custom labels with the [`ClassLabel`] feature. 
