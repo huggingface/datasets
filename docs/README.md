@@ -237,7 +237,7 @@ The syntax for Example docstrings can look as follows:
 
     ```py
     >>> from datasets import load_dataset
-    >>> ds = load_dataset("rotten_tomatoes", split="validation")
+    >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
     >>> def add_prefix(example):
     ...     example["text"] = "Review: " + example["text"]
     ...     return example

@@ -303,7 +303,7 @@ Now if users want to load the `breakfast` configuration, they can use the config
 
 ```py
 >>> from datasets import load_dataset
->>> ds = load_dataset("food101", "breakfast", split="train")
+>>> ds = load_dataset("ethz/food101", "breakfast", split="train")
 ```
 
 ### Add dataset metadata
@@ -312,7 +312,7 @@ Adding information about your dataset is useful for users to learn more about it
 
 ```py
 >>> from datasets import load_dataset_builder
->>> ds_builder = load_dataset_builder("food101")
+>>> ds_builder = load_dataset_builder("ethz/food101")
 >>> ds_builder.info
 ```
 

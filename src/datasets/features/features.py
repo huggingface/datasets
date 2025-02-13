@@ -1026,7 +1026,7 @@ class ClassLabel:
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
         >>> ds.features["label"].str2int('neg')
         0
         ```
@@ -1073,7 +1073,7 @@ class ClassLabel:
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
         >>> ds.features["label"].int2str(0)
         'neg'
         ```
@@ -2110,7 +2110,7 @@ class Features(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
         >>> copy_of_features = ds.features.copy()
         >>> copy_of_features
         {'label': ClassLabel(names=['neg', 'pos'], id=None),
@@ -2207,7 +2207,7 @@ class Features(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("squad", split="train")
+        >>> ds = load_dataset("rajpurkar/squad", split="train")
         >>> ds.features.flatten()
         {'answers.answer_start': Sequence(feature=Value(dtype='int32', id=None), length=-1, id=None),
          'answers.text': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None),

@@ -89,7 +89,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds.data
         ```
         """
@@ -104,7 +104,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds.cache_files
         {'test': [{'filename': '/root/.cache/huggingface/datasets/rotten_tomatoes_movie_review/default/1.0.0/40d411e45a6ce3484deed7cc15b82a53dad9a72aafd9f86f8f227134bec5ca46/rotten_tomatoes_movie_review-test.arrow'}],
          'train': [{'filename': '/root/.cache/huggingface/datasets/rotten_tomatoes_movie_review/default/1.0.0/40d411e45a6ce3484deed7cc15b82a53dad9a72aafd9f86f8f227134bec5ca46/rotten_tomatoes_movie_review-train.arrow'}],
@@ -122,7 +122,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds.num_columns
         {'test': 2, 'train': 2, 'validation': 2}
         ```
@@ -138,7 +138,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds.num_rows
         {'test': 1066, 'train': 8530, 'validation': 1066}
         ```
@@ -154,7 +154,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds.column_names
         {'test': ['text', 'label'],
          'train': ['text', 'label'],
@@ -172,7 +172,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds.shape
         {'test': (1066, 2), 'train': (8530, 2), 'validation': (1066, 2)}
         ```
@@ -189,7 +189,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("squad")
+        >>> ds = load_dataset("rajpurkar/squad")
         >>> ds["train"].features
         {'answers': Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None),
          'context': Value(dtype='string', id=None),
@@ -228,7 +228,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds.unique("label")
         {'test': [1, 0], 'train': [1, 0], 'validation': [1, 0]}
         ```
@@ -247,7 +247,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds.cleanup_cache_files()
         {'test': 0, 'train': 0, 'validation': 0}
         ```
@@ -276,7 +276,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset, ClassLabel, Value
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds["train"].features
         {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
@@ -308,7 +308,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset, ClassLabel
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds["train"].features
         {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
@@ -342,7 +342,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds = ds.remove_columns("label")
         DatasetDict({
             train: Dataset({
@@ -382,7 +382,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds = ds.rename_column("label", "label_new")
         DatasetDict({
             train: Dataset({
@@ -425,7 +425,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds.rename_columns({'text': 'text_new', 'label': 'label_new'})
         DatasetDict({
             train: Dataset({
@@ -461,7 +461,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds.select_columns("text")
         DatasetDict({
             train: Dataset({
@@ -608,7 +608,7 @@ class DatasetDict(dict):
         ```py
         >>> from datasets import load_dataset
         >>> from transformers import AutoTokenizer
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
         >>> ds = ds.map(lambda x: tokenizer(x["text"], truncation=True, padding=True), batched=True)
         >>> ds.set_format(type="numpy", columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
@@ -685,7 +685,7 @@ class DatasetDict(dict):
         ```py
         >>> from datasets import load_dataset
         >>> from transformers import AutoTokenizer
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
         >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
         >>> ds["train"].format
@@ -755,7 +755,7 @@ class DatasetDict(dict):
         ```py
         >>> from datasets import load_dataset
         >>> from transformers import AutoTokenizer
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
         >>> def encode(example):
         ...     return tokenizer(example['text'], truncation=True, padding=True, return_tensors="pt")
@@ -863,7 +863,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> def add_prefix(example):
         ...     example["text"] = "Review: " + example["text"]
         ...     return example
@@ -975,7 +975,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds.filter(lambda x: x["label"] == 1)
         DatasetDict({
             train: Dataset({
@@ -1107,7 +1107,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset('rotten_tomatoes')
+        >>> ds = load_dataset('cornell-movie-review-data/rotten_tomatoes')
         >>> ds['train']['label'][:10]
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         >>> sorted_ds = ds.sort('label')
@@ -1183,7 +1183,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds["train"]["label"][:10]
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
@@ -1833,7 +1833,7 @@ class IterableDatasetDict(dict):
         ```py
         >>> from datasets import load_dataset
         >>> from transformers import AutoTokenizer
-        >>> ds = load_dataset("rotten_tomatoes", split="validation", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation", streaming=True)
         >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
         >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
         >>> ds = ds.with_format("torch")
@@ -1924,7 +1924,7 @@ class IterableDatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", streaming=True)
         >>> def add_prefix(example):
         ...     example["text"] = "Review: " + example["text"]
         ...     return example
@@ -1989,7 +1989,7 @@ class IterableDatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", streaming=True)
         >>> ds = ds.filter(lambda x: x["label"] == 0)
         >>> list(ds["train"].take(3))
         [{'label': 0, 'text': 'Review: simplistic , silly and tedious .'},
@@ -2047,7 +2047,7 @@ class IterableDatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", streaming=True)
         >>> list(ds["train"].take(3))
         [{'label': 1,
          'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
@@ -2090,7 +2090,7 @@ class IterableDatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", streaming=True)
         >>> ds = ds.rename_column("text", "movie_review")
         >>> next(iter(ds["train"]))
         {'label': 1,
@@ -2121,7 +2121,7 @@ class IterableDatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", streaming=True)
         >>> ds = ds.rename_columns({"text": "movie_review", "label": "rating"})
         >>> next(iter(ds["train"]))
         {'movie_review': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .',
@@ -2150,7 +2150,7 @@ class IterableDatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", streaming=True)
         >>> ds = ds.remove_columns("label")
         >>> next(iter(ds["train"]))
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
@@ -2176,7 +2176,7 @@ class IterableDatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", streaming=True)
         >>> ds = ds.select("text")
         >>> next(iter(ds["train"]))
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
@@ -2201,7 +2201,7 @@ class IterableDatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset, ClassLabel
-        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", streaming=True)
         >>> ds["train"].features
         {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
@@ -2237,7 +2237,7 @@ class IterableDatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", streaming=True)
         >>> ds["train"].features
         {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}

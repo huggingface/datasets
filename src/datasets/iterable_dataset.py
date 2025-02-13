@@ -2387,7 +2387,7 @@ class IterableDataset(DatasetInfoMixin):
         ```py
         >>> from datasets import load_dataset
         >>> from transformers import AutoTokenizer
-        >>> ds = load_dataset("rotten_tomatoes", split="validation", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation", streaming=True)
         >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
         >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
         >>> ds = ds.with_format("torch")
@@ -2497,7 +2497,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> def add_prefix(example):
         ...     example["text"] = "Review: " + example["text"]
         ...     return example
@@ -2619,7 +2619,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> ds = ds.filter(lambda x: x["label"] == 0)
         >>> list(ds.take(3))
         [{'label': 0, 'movie_review': 'simplistic , silly and tedious .'},
@@ -2696,7 +2696,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> list(ds.take(3))
         [{'label': 1,
          'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
@@ -2745,7 +2745,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> list(ds.take(3))
         [{'label': 1,
          'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
@@ -2795,7 +2795,7 @@ class IterableDataset(DatasetInfoMixin):
         Example:
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
         >>> ds = ds.take(2).repeat(2)
         >>> list(ds)
         [{'label': 1,
@@ -2832,7 +2832,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> small_ds = ds.take(2)
         >>> list(small_ds)
         [{'label': 1,
@@ -2922,7 +2922,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation", streaming=True)
         >>> ds.column_names
         ['text', 'label']
         ```
@@ -2959,7 +2959,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> next(iter(ds))
         {'label': 1,
          'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
@@ -3013,7 +3013,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> next(iter(ds))
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .', 'label': 1}
         >>> ds = ds.remove_columns("label")
@@ -3048,7 +3048,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> next(iter(ds))
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .', 'label': 1}
         >>> ds = ds.select_columns("text")
@@ -3149,7 +3149,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset, ClassLabel, Value
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> ds.features
         {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}

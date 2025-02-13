@@ -1751,7 +1751,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.data
         MemoryMappedTable
         text: string
@@ -1771,7 +1771,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.cache_files
         [{'filename': '/root/.cache/huggingface/datasets/rotten_tomatoes_movie_review/default/1.0.0/40d411e45a6ce3484deed7cc15b82a53dad9a72aafd9f86f8f227134bec5ca46/rotten_tomatoes_movie_review-validation.arrow'}]
         ```
@@ -1789,7 +1789,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.num_columns
         2
         ```
@@ -1804,7 +1804,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.num_rows
         1066
         ```
@@ -1821,7 +1821,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.column_names
         ['text', 'label']
         ```
@@ -1836,7 +1836,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.shape
         (1066, 2)
         ```
@@ -1861,7 +1861,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.unique('label')
         [1, 0]
         ```
@@ -1969,7 +1969,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("squad", split="train")
+        >>> ds = load_dataset("rajpurkar/squad", split="train")
         >>> ds.features
         {'answers': Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None),
          'context': Value(dtype='string', id=None),
@@ -2041,7 +2041,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset, ClassLabel, Value
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.features
         {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
@@ -2099,7 +2099,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset, ClassLabel
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.features
         {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
@@ -2144,7 +2144,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds = ds.remove_columns('label')
         Dataset({
             features: ['text'],
@@ -2200,7 +2200,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds = ds.rename_column('label', 'label_new')
         Dataset({
             features: ['text', 'label_new'],
@@ -2262,7 +2262,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds = ds.rename_columns({'text': 'text_new', 'label': 'label_new'})
         Dataset({
             features: ['text_new', 'label_new'],
@@ -2331,7 +2331,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.select_columns(['text'])
         Dataset({
             features: ['text'],
@@ -2364,7 +2364,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.__len__
         <bound method Dataset.__len__ of Dataset({
             features: ['text', 'label'],
@@ -2515,7 +2515,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> from transformers import AutoTokenizer
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
         >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
         >>> ds.set_format(type='numpy', columns=['text', 'label'])
@@ -2568,7 +2568,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> from transformers import AutoTokenizer
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
         >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
         >>> ds.set_format(type='numpy', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
@@ -2613,7 +2613,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> from transformers import AutoTokenizer
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
         >>> def encode(batch):
         ...     return tokenizer(batch['text'], padding=True, truncation=True, return_tensors='pt')
@@ -2661,7 +2661,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> from transformers import AutoTokenizer
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
         >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
         >>> ds.format
@@ -2730,7 +2730,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> from transformers import AutoTokenizer
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
         >>> def encode(example):
         ...     return tokenizer(example["text"], padding=True, truncation=True, return_tensors='pt')
@@ -2800,7 +2800,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.cleanup_cache_files()
         10
         ```
@@ -2942,7 +2942,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> def add_prefix(example):
         ...     example["text"] = "Review: " + example["text"]
         ...     return example
@@ -3591,7 +3591,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
         >>> batched_ds = ds.batch(batch_size=4)
         >>> batched_ds[0]
         {'text': ['compassionately explores the seemingly irreconcilable situation...', ...],  # 4 items
@@ -3697,7 +3697,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.filter(lambda x: x["label"] == 1)
         Dataset({
             features: ['text', 'label'],
@@ -3864,7 +3864,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.select(range(4))
         Dataset({
             features: ['text', 'label'],
@@ -3939,7 +3939,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds._select_contiguous(0, 4)
         Dataset({
             features: ['text', 'label'],
@@ -4002,7 +4002,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds._select_with_indices_mapping(range(4))
         Dataset({
             features: ['text', 'label'],
@@ -4093,7 +4093,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
         >>> list(ds.take(3))
         [{'label': 1,
          'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
@@ -4124,7 +4124,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
         >>> ds = ds.take(2).repeat(2)
         >>> list(ds)
         [{'label': 1,
@@ -4155,7 +4155,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
         >>> small_ds = ds.take(2)
         >>> list(small_ds)
         [{'label': 1,
@@ -4211,7 +4211,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset('rotten_tomatoes', split='validation')
+        >>> ds = load_dataset('cornell-movie-review-data/rotten_tomatoes', split='validation')
         >>> ds['label'][:10]
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         >>> sorted_ds = ds.sort('label')
@@ -4369,7 +4369,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds['label'][:10]
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
@@ -4503,7 +4503,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds = ds.train_test_split(test_size=0.2, shuffle=True)
         DatasetDict({
             train: Dataset({
@@ -4754,7 +4754,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds
         Dataset({
             features: ['text', 'label'],
@@ -5752,7 +5752,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> more_text = ds["text"]
         >>> ds.add_column(name="text_2", column=more_text)
         Dataset({
@@ -6003,7 +6003,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> new_review = {'label': 0, 'text': 'this movie is the absolute worst thing I have ever seen'}
         >>> ds = ds.add_item(new_review)
         >>> ds[-1]
@@ -6054,7 +6054,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```python
         >>> # dataset with mapping {'entailment': 0, 'neutral': 1, 'contradiction': 2}
-        >>> ds = load_dataset("glue", "mnli", split="train")
+        >>> ds = load_dataset("nyu-mll/glue", "mnli", split="train")
         >>> # mapping to align with
         >>> label2id = {'CONTRADICTION': 0, 'NEUTRAL': 1, 'ENTAILMENT': 2}
         >>> ds_aligned = ds.align_labels_with_mapping(label2id, "label")

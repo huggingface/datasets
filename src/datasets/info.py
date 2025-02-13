@@ -200,7 +200,7 @@ class DatasetInfo:
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.info.write_to_directory("/path/to/directory/")
         ```
         """
