@@ -175,7 +175,7 @@ Image datasets are loaded just like text datasets. However, instead of a tokeniz
 ```py
 >>> from datasets import load_dataset, Image
 
->>> dataset = load_dataset("beans", split="train")
+>>> dataset = load_dataset("AI-Lab-Makerere/beans", split="train")
 ```
 
 Most image models work with RBG images. If your dataset contains images in a different mode, you can use the [`~Dataset.cast_column`] function to set the mode to RGB:

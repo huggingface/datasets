@@ -69,7 +69,7 @@ class Image:
 
     ```py
     >>> from datasets import load_dataset, Image
-    >>> ds = load_dataset("beans", split="train")
+    >>> ds = load_dataset("AI-Lab-Makerere/beans", split="train")
     >>> ds.features["image"]
     Image(decode=True, id=None)
     >>> ds[0]["image"]

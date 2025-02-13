@@ -115,7 +115,7 @@ When you load an image dataset and call the image column, the [`Image`] feature 
 ```py
 >>> from datasets import load_dataset, Image
 
->>> dataset = load_dataset("beans", split="train")
+>>> dataset = load_dataset("AI-Lab-Makerere/beans", split="train")
 >>> dataset[0]["image"]
 <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=500x500 at 0x125506CF8>
 ```
@@ -129,7 +129,7 @@ Index into an image dataset using the row index first and then the `image` colum
 With `decode=False`, the [`Image`] type simply gives you the path or the bytes of the image file, without decoding it into an `PIL.Image`, 
 
 ```py
->>> dataset = load_dataset("beans", split="train").cast_column("image", Image(decode=False))
+>>> dataset = load_dataset("AI-Lab-Makerere/beans", split="train").cast_column("image", Image(decode=False))
 >>> dataset[0]["image"]
 {'bytes': None,
  'path': '/Users/username/.cache/huggingface/datasets/downloads/extracted/772e7c1fba622cff102b85dd74bcce46e8168634df4eaade7bedd3b8d91d3cd7/train/healthy/healthy_train.265.jpg'}

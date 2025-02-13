@@ -14,7 +14,7 @@ For example you can download ImageNet-1k like this and access any row:
 ```python
 from datasets import load_dataset
 
-imagenet = load_dataset("imagenet-1k", split="train")  # downloads the full dataset
+imagenet = load_dataset("timm/imagenet-1k-wds", split="train")  # downloads the full dataset
 print(imagenet[0])
 ```
 
@@ -28,7 +28,7 @@ For example, you can stream the ImageNet-1k dataset without downloading it on di
 ```python
 from datasets import load_dataset
 
-imagenet = load_dataset("imagenet-1k", split="train", streaming=True)  # will start loading the data when iterated over
+imagenet = load_dataset("timm/imagenet-1k-wds", split="train", streaming=True)  # will start loading the data when iterated over
 for example in imagenet:
     print(example)
     break
