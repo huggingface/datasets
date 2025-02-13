@@ -1172,7 +1172,7 @@ def test_load_dataset_builder_for_community_dataset_with_script_no_parquet_expor
 
 @pytest.mark.integration
 def test_load_dataset_builder_use_parquet_export_if_dont_trust_remote_code_keeps_features():
-    dataset_name = "food101"
+    dataset_name = "ethz/food101"
     builder = datasets.load_dataset_builder(dataset_name, trust_remote_code=False)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == "parquet"

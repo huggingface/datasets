@@ -35,7 +35,7 @@ Check out the [Tokenizers](https://huggingface.co/course/chapter2/4?fw=pt) secti
 >>> from datasets import load_dataset
 
 >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
->>> dataset = load_dataset("rotten_tomatoes", split="train")
+>>> dataset = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
 ```
 
 **2**. Call your tokenizer on the first row of `text` in the dataset:

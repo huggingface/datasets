@@ -263,7 +263,7 @@ Sometimes a column can be a nested structure of several types. Take a look at th
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset("squad", split="train")
+>>> dataset = load_dataset("rajpurkar/squad", split="train")
 >>> dataset.features
 {'answers': Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None),
 'context': Value(dtype='string', id=None),
@@ -600,7 +600,7 @@ Here's an example of how to use the `batch()` method:
 
 ```python
 >>> from datasets import load_dataset
->>> dataset = load_dataset("rotten_tomatoes", split="train")
+>>> dataset = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
 >>> batched_dataset = dataset.batch(batch_size=4)
 >>> batched_dataset[0]
 {'text': ['the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .',

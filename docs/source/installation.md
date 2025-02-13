@@ -48,7 +48,7 @@ pip install datasets
 Run the following command to check if 🤗 Datasets has been properly installed:
 
 ```bash
-python -c "from datasets import load_dataset; print(load_dataset('squad', split='train')[0])"
+python -c "from datasets import load_dataset; print(load_dataset('rajpurkar/squad', split='train')[0])"
 ```
 
 This command downloads version 1 of the [Stanford Question Answering Dataset (SQuAD)](https://rajpurkar.github.io/SQuAD-explorer/), loads the training split, and prints the first training example. You should see:
@@ -98,7 +98,7 @@ pip install -e .
 Again, you can check if 🤗 Datasets was properly installed with the following command:
 
 ```bash
-python -c "from datasets import load_dataset; print(load_dataset('squad', split='train')[0])"
+python -c "from datasets import load_dataset; print(load_dataset('rajpurkar/squad', split='train')[0])"
 ```
 
 ## conda
