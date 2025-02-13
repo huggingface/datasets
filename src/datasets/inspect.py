@@ -55,7 +55,7 @@ def get_dataset_infos(
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`
             - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`huggingface_hub.list_datasets`]),
-                e.g. `'rajpurkar/squad'`, `'glue'` or``'openai/webtext'`
+                e.g. `'rajpurkar/squad'`, `'nyu-mll/glue'` or``'openai/webtext'`
         revision (`Union[str, datasets.Version]`, *optional*):
             If specified, the dataset module will be loaded from the datasets repository at this version.
             By default:
@@ -122,7 +122,7 @@ def get_dataset_config_names(
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`
             - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`huggingface_hub.list_datasets`]),
-                e.g. `'rajpurkar/squad'`, `'glue'` or `'openai/webtext'`
+                e.g. `'rajpurkar/squad'`, `'nyu-mll/glue'` or `'openai/webtext'`
         revision (`Union[str, datasets.Version]`, *optional*):
             If specified, the dataset module will be loaded from the datasets repository at this version.
             By default:
@@ -146,7 +146,7 @@ def get_dataset_config_names(
 
     ```py
     >>> from datasets import get_dataset_config_names
-    >>> get_dataset_config_names("glue")
+    >>> get_dataset_config_names("nyu-mll/glue")
     ['cola',
      'sst2',
      'mrpc',
@@ -194,7 +194,7 @@ def get_dataset_default_config_name(
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`
             - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`huggingface_hub.list_datasets`]),
-                e.g. `'rajpurkar/squad'`, `'glue'` or `'openai/webtext'`
+                e.g. `'rajpurkar/squad'`, `'nyu-mll/glue'` or `'openai/webtext'`
         revision (`Union[str, datasets.Version]`, *optional*):
             If specified, the dataset module will be loaded from the datasets repository at this version.
             By default:
@@ -261,7 +261,7 @@ def get_dataset_config_info(
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
             - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`huggingface_hub.list_datasets`]),
-                e.g. ``'rajpurkar/squad'``, ``'glue'`` or ``'openai/webtext'``
+                e.g. ``'rajpurkar/squad'``, ``'nyu-mll/glue'`` or ``'openai/webtext'``
         config_name (:obj:`str`, optional): Defining the name of the dataset configuration.
         data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
         download_config (:class:`~download.DownloadConfig`, optional): Specific download configuration parameters.
@@ -322,7 +322,7 @@ def get_dataset_split_names(
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`
             - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`huggingface_hub.list_datasets`]),
-                e.g. `'rajpurkar/squad'`, `'glue'` or `'openai/webtext'`
+                e.g. `'rajpurkar/squad'`, `'nyu-mll/glue'` or `'openai/webtext'`
         config_name (`str`, *optional*):
             Defining the name of the dataset configuration.
         data_files (`str` or `Sequence` or `Mapping`, *optional*):

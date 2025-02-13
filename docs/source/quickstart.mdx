@@ -281,7 +281,7 @@ Text needs to be tokenized into individual tokens by a [tokenizer](https://huggi
 ```py
 >>> from datasets import load_dataset
 
->>> dataset = load_dataset("glue", "mrpc", split="train")
+>>> dataset = load_dataset("nyu-mll/glue", "mrpc", split="train")
 ```
 
 **2**. Next, load a pretrained [BERT](https://huggingface.co/bert-base-uncased) model and its corresponding tokenizer from the [🤗 Transformers](https://huggingface.co/transformers/) library. It is totally normal to see a warning after you load the model about some weights not being initialized. This is expected because you are loading this model checkpoint for training with another task.

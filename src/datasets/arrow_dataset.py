@@ -6054,7 +6054,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```python
         >>> # dataset with mapping {'entailment': 0, 'neutral': 1, 'contradiction': 2}
-        >>> ds = load_dataset("glue", "mnli", split="train")
+        >>> ds = load_dataset("nyu-mll/glue", "mnli", split="train")
         >>> # mapping to align with
         >>> label2id = {'CONTRADICTION': 0, 'NEUTRAL': 1, 'ENTAILMENT': 2}
         >>> ds_aligned = ds.align_labels_with_mapping(label2id, "label")

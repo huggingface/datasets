@@ -17,7 +17,7 @@ The examples in this guide use the MRPC dataset, but feel free to load any datas
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset("glue", "mrpc", split="train")
+>>> dataset = load_dataset("nyu-mll/glue", "mrpc", split="train")
 ```
 
 <Tip warning={true}>
@@ -556,7 +556,7 @@ Many datasets have splits that can be processed simultaneously with [`DatasetDic
 >>> from datasets import load_dataset
 
 # load all the splits
->>> dataset = load_dataset('glue', 'mrpc')
+>>> dataset = load_dataset('nyu-mll/glue', 'mrpc')
 >>> encoded_dataset = dataset.map(lambda examples: tokenizer(examples["sentence1"]), batched=True)
 >>> encoded_dataset["train"][0]
 {'sentence1': 'Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
