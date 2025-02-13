@@ -398,12 +398,15 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             output[k] = casted_v
         return output if has_changed else obj, has_changed
     elif hasattr(obj, "__array__"):
-        return (
-            _cast_to_python_objects(
-                obj.__array__(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-            )[0],
-            True,
-        )
+        if np.isscalar(obj):
+            return obj, False
+        else:
+            return (
+                _cast_to_python_objects(
+                    obj.__array__(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0],
+                True,
+            )
     elif isinstance(obj, (list, tuple)):
         if len(obj) > 0:
             for first_elmt in obj:
@@ -1341,7 +1344,7 @@ def encode_nested_example(schema, obj, level=0):
                         break
                 # be careful when comparing tensors here
                 if (
-                    not isinstance(first_elmt, list)
+                    not (isinstance(first_elmt, list) or np.isscalar(first_elmt))
                     or encode_nested_example(schema.feature, first_elmt, level=level + 1) != first_elmt
                 ):
                     return [encode_nested_example(schema.feature, o, level=level + 1) for o in obj]
