@@ -127,11 +127,11 @@ The splits are shuffled by default, but you can set `shuffle=False` to prevent s
 
 🤗 Datasets supports sharding to divide a very large dataset into a predefined number of chunks. Specify the `num_shards` parameter in [`~Dataset.shard`] to determine the number of shards to split the dataset into. You'll also need to provide the shard you want to return with the `index` parameter.
 
-For example, the [imdb](https://huggingface.co/datasets/imdb) dataset has 25000 examples:
+For example, the [stanfordnlp/imdb](https://huggingface.co/datasets/stanfordnlp/imdb) dataset has 25000 examples:
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset("imdb", split="train")
+>>> dataset = load_dataset("stanfordnlp/imdb", split="train")
 >>> print(dataset)
 Dataset({
     features: ['text', 'label'],
