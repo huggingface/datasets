@@ -546,7 +546,7 @@ Let's use it to call the [microsoft/Phi-3-mini-4k-instruct](https://huggingface.
 
 Here, [`Dataset.map`] runs many `get_topic` function asynchronously so it doesn't have to wait for every single model response which would take a lot of time to do sequentially.
 
-By default, [`Dataset.map`] runs up to one thousand queries in parallel, so don't forget to set the maximum number of queries that can run in parallel with a `Semaphore`, otherwise the model could return rate limit errors or overload. For advanced use cases, you can change the maximum number of queries in parallel in `datasets.config`.
+By default, [`Dataset.map`] runs up to one thousand map functions in parallel, so don't forget to set the maximum number of API calls that can run in parallel with a `Semaphore`, otherwise the model could return rate limit errors or overload. For advanced use cases, you can change the maximum number of queries in parallel in `datasets.config`.
 
 ### Process multiple splits
 
