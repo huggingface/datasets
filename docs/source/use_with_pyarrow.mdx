@@ -46,8 +46,8 @@ This also works for `IterableDataset` objects obtained e.g. using `load_dataset(
 
 ```py
 >>> ds = ds.with_format("arrow")
->>> for df in ds.iter(batch_size=2):
-...     print(df)
+>>> for table in ds.iter(batch_size=2):
+...     print(table)
 ...     break
 pyarrow.Table
 col_0: string
@@ -89,7 +89,7 @@ col_1: [[0]]
 col_2: [[1]]
 ```
 
-We use `batched=True` because it is faster to process batches of data in PyArrow rather than row by row. It's also possible to use `batch_size=` in `map()` to set the size of each `df`.
+We use `batched=True` because it is faster to process batches of data in PyArrow rather than row by row. It's also possible to use `batch_size=` in `map()` to set the size of each `table`.
 
 This also works for [`IterableDataset.map`] and [`IterableDataset.filter`].
 
