@@ -799,9 +799,23 @@ class DatasetDict(dict):
         num_proc: Optional[int] = None,
         desc: Optional[str] = None,
     ) -> "DatasetDict":
-        """Apply a function to all the elements in the table (individually or in batches)
-        and update the table (if function does updated examples).
+        """
+        Apply a function to all the examples in the table (individually or in batches) and update the table.
+        If your function returns a column that already exists, then it overwrites it.
         The transformation is applied to all the datasets of the dataset dictionary.
+
+        You can specify whether the function should be batched or not with the `batched` parameter:
+
+        - If batched is `False`, then the function takes 1 example in and should return 1 example.
+          An example is a dictionary, e.g. `{"text": "Hello there !"}`.
+        - If batched is `True` and `batch_size` is 1, then the function takes a batch of 1 example as input and can return a batch with 1 or more examples.
+          A batch is a dictionary, e.g. a batch of 1 example is `{"text": ["Hello there !"]}`.
+        - If batched is `True` and `batch_size` is `n > 1`, then the function takes a batch of `n` examples as input and can return a batch with `n` examples, or with an arbitrary number of examples.
+          Note that the last batch may have less than `n` examples.
+          A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
+
+        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simulatenous calls.
+        It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
 
         Args:
             function (`callable`): with one of the following signature:
@@ -811,8 +825,9 @@ class DatasetDict(dict):
                 - `function(batch: Dict[str, List], indices: List[int]) -> Dict[str, List]` if `batched=True` and `with_indices=True`
 
                 For advanced usage, the function can also return a `pyarrow.Table`.
+                If the function is asynchronous, then `map` will run your function in parallel.
                 Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
-
+                If no function is provided, default to identity function: `lambda x: x`.
             with_indices (`bool`, defaults to `False`):
                 Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
             with_rank (`bool`, defaults to `False`):
@@ -1888,6 +1903,9 @@ class IterableDatasetDict(dict):
           Note that the last batch may have less than `n` examples.
           A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
 
+        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simulatenous calls.
+        It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
+
         Args:
             function (`Callable`, *optional*, defaults to `None`):
                 Function applied on-the-fly on the examples when you iterate on the dataset.
@@ -1899,6 +1917,7 @@ class IterableDatasetDict(dict):
                 - `function(batch: Dict[str, List], indices: List[int]) -> Dict[str, List]` if `batched=True` and `with_indices=True`
 
                 For advanced usage, the function can also return a `pyarrow.Table`.
+                If the function is asynchronous, then `map` will run your function in parallel.
                 Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
                 If no function is provided, default to identity function: `lambda x: x`.
             with_indices (`bool`, defaults to `False`):

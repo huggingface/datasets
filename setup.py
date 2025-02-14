@@ -62,9 +62,7 @@ Steps to make a release:
      ```
    Check that you can install it in a virtualenv/notebook by running:
      ```
-     pip install huggingface-hub fsspec aiohttp
-     pip install -U tqdm pyarrow
-     pip install -i https://testpypi.python.org/pypi datasets
+     !pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ datasets
      ```
 
 6. Upload the final version to the actual PyPI:
