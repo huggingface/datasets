@@ -1052,6 +1052,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         gen_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
         split: NamedSplit = Split.TRAIN,
+        with_rank: bool = False,
         **kwargs,
     ):
         """Create a Dataset from a generator.
@@ -1115,6 +1116,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             gen_kwargs=gen_kwargs,
             num_proc=num_proc,
             split=split,
+            with_rank=with_rank,
             **kwargs,
         ).read()
 
