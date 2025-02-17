@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 import copy
 import itertools
@@ -7,6 +8,7 @@ import pickle
 import re
 import sys
 import tempfile
+import time
 from functools import partial
 from pathlib import Path
 from unittest import TestCase
@@ -4191,7 +4193,7 @@ def test_dummy_dataset_serialize_fs(dataset, mockfs):
     [
         "relative/path",
         "/absolute/path",
-        "s3://bucket/relative/path",
+        "hf://bucket/relative/path",
         "hdfs://relative/path",
         "hdfs:///absolute/path",
     ],
@@ -4205,7 +4207,7 @@ def test_build_local_temp_path(uri_or_path):
 
     assert (
         "hdfs://" not in path_relative_to_tmp_dir
-        and "s3://" not in path_relative_to_tmp_dir
+        and "hf://" not in path_relative_to_tmp_dir
         and not local_temp_path.startswith(extracted_path_without_anchor)
         and local_temp_path.endswith(extracted_path_without_anchor)
     ), f"Local temp path: {local_temp_path}"
@@ -4446,6 +4448,50 @@ def test_map_cases(return_lazy_dict):
     ds = ds.map(f)
     outputs = ds[:]
     assert outputs == {"a": [{"nested": [[i]]} for i in [-1, -1, 2, 3]]}
+
+
+def test_map_async():
+    dset = Dataset.from_dict({"x": range(100)})
+
+    async def f(example):
+        await asyncio.sleep(0.1)
+        return {"y": 1}
+
+    _start = time.time()
+    out = dset.map(f)
+    assert time.time() - _start < 2.0
+    assert out[0]["y"] == 1
+
+    async def f(batch):
+        await asyncio.sleep(0.1)
+        return {"y": [1] * len(batch["x"])}
+
+    _start = time.time()
+    out = dset.map(f, batched=True)
+    assert time.time() - _start < 2.0
+    assert out[0]["y"] == 1
+
+
+def test_filter_async():
+    dset = Dataset.from_dict({"x": range(100)})
+
+    async def f(example):
+        await asyncio.sleep(0.1)
+        return example["x"] == 42
+
+    _start = time.time()
+    out = dset.filter(f)
+    assert time.time() - _start < 2.0
+    assert len(out) == 1
+
+    async def f(batch):
+        await asyncio.sleep(0.1)
+        return [x == 42 for x in batch["x"]]
+
+    _start = time.time()
+    out = dset.filter(f, batched=True)
+    assert time.time() - _start < 2.0
+    assert len(out) == 1
 
 
 def test_dataset_getitem_raises():

@@ -13,7 +13,7 @@ This tutorial uses the [rotten_tomatoes](https://huggingface.co/datasets/rotten_
 ```py
 >>> from datasets import load_dataset
 
->>> dataset = load_dataset("rotten_tomatoes", split="train")
+>>> dataset = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
 ```
 
 ### Indexing
@@ -99,7 +99,7 @@ An [`IterableDataset`] is loaded when you set the `streaming` parameter to `True
 ```py
 >>> from datasets import load_dataset
 
->>> iterable_dataset = load_dataset("food101", split="train", streaming=True)
+>>> iterable_dataset = load_dataset("ethz/food101", split="train", streaming=True)
 >>> for example in iterable_dataset:
 ...     print(example)
 ...     break
@@ -111,7 +111,7 @@ You can also create an [`IterableDataset`] from an *existing* [`Dataset`], but i
 ```py
 >>> from datasets import load_dataset
 
->>> dataset = load_dataset("rotten_tomatoes", split="train")
+>>> dataset = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
 >>> iterable_dataset = dataset.to_iterable_dataset()
 ```
 

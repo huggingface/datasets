@@ -1,4 +1,6 @@
+import asyncio
 import copy
+import inspect
 import itertools
 import sys
 from collections import Counter
@@ -16,7 +18,13 @@ import pyarrow as pa
 from . import config
 from .arrow_dataset import Dataset, DatasetInfoMixin
 from .features import Features
-from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned, cast_to_python_objects
+from .features.features import (
+    FeatureType,
+    Value,
+    _align_features,
+    _check_if_features_can_be_aligned,
+    cast_to_python_objects,
+)
 from .formatting import (
     ArrowFormatter,
     PythonFormatter,
@@ -1019,12 +1027,12 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             # batch_size should match for iter_arrow
             if not isinstance(ex_iterable, RebatchedArrowExamplesIterable):
                 raise ValueError(
-                    f"The {formatting.format_type.capitalize()}-formatted MappedExamplesIterable has underlying iterable"
+                    f"The {formatting.format_type.capitalize()}-formatted {type(self).__name__} has underlying iterable"
                     f"that is a {type(ex_iterable).__name__} instead of a RebatchedArrowExamplesIterable."
                 )
             elif ex_iterable.batch_size != (batch_size if batched else 1):
                 raise ValueError(
-                    f"The {formatting.format_type.capitalize()}-formatted MappedExamplesIterable has batch_size={batch_size if batched else 1} which is"
+                    f"The {formatting.format_type.capitalize()}-formatted {type(self).__name__} has batch_size={batch_size if batched else 1} which is"
                     f"different from {ex_iterable.batch_size=} from its underlying iterable."
                 )
 
@@ -1075,11 +1083,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         else:
             format_dict = None
 
-        if self.batched:
-            if self._state_dict:
-                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                self._state_dict["num_examples_since_previous_state"] = 0
-                self._state_dict["previous_state_example_idx"] = current_idx
+        def iter_batched_inputs():
             for key, example in iterator:
                 # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
                 iterator_batch = (
@@ -1089,6 +1093,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 )
                 key_examples_list = [(key, example)] + list(iterator_batch)
                 keys, examples = zip(*key_examples_list)
+                # the new key is the concatenation of the examples keys from the batch
+                key = "_".join(str(key) for key in keys)
                 if (
                     self.drop_last_batch
                     and self.batch_size is not None
@@ -1098,40 +1104,109 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     return
                 batch = _examples_to_batch(examples)
                 batch = format_dict(batch) if format_dict else batch
-                # then apply the transform
-                inputs = batch
-                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
-                if self.with_indices:
-                    function_args.append([current_idx + i for i in range(len(key_examples_list))])
-                inputs_to_merge = dict(batch)
-                processed_inputs = self.function(*function_args, **self.fn_kwargs)
-                # this logic mimics the one in Dataset.map
-                if self.remove_columns:
-                    for c in self.remove_columns:
-                        if c in inputs_to_merge:
-                            del inputs_to_merge[c]
-                        if processed_inputs is inputs and c in processed_inputs:
-                            del processed_inputs[c]
-                transformed_batch = {**inputs_to_merge, **processed_inputs}
-                if transformed_batch:
-                    first_col = next(iter(transformed_batch))
-                    bad_cols = [
-                        col
-                        for col in transformed_batch
-                        if len(transformed_batch[col]) != len(transformed_batch[first_col])
-                    ]
-                    if bad_cols:
-                        raise ValueError(
-                            f"Column lengths mismatch: columns {bad_cols} have length {[len(transformed_batch[col]) for col in bad_cols]} "
-                            f"while {first_col} has length {len(transformed_batch[first_col])}."
+                indices = [current_idx + i for i in range(len(key_examples_list))]
+                yield indices, (key, batch)
+
+        def iter_inputs():
+            for key, example in iterator:
+                # If not batched, we can apply the transform and yield the example directly
+                # first copy the example, since we might drop some keys
+                example = dict(example)
+                example = format_dict(example) if format_dict else example
+                yield current_idx, (key, example)
+
+        def validate_function_output(processed_inputs):
+            if self.batched and processed_inputs:
+                first_col = next(iter(processed_inputs))
+                bad_cols = [
+                    col for col in processed_inputs if len(processed_inputs[col]) != len(processed_inputs[first_col])
+                ]
+                if bad_cols:
+                    raise ValueError(
+                        f"Column lengths mismatch: columns {bad_cols} have length {[len(processed_inputs[col]) for col in bad_cols]} "
+                        f"while {first_col} has length {len(processed_inputs[first_col])}."
+                    )
+
+        def prepare_inputs(key_example, indices):
+            key, example = key_example
+            fn_args = [example] if self.input_columns is None else [example[col] for col in self.input_columns]
+            additional_args = ()
+            if self.with_indices:
+                fn_args += (indices,)
+            inputs = dict(example)
+            return inputs, fn_args, additional_args, self.fn_kwargs
+
+        def prepare_outputs(key_example, inputs, processed_inputs):
+            validate_function_output(processed_inputs)
+            # this logic mimics the one in Dataset.map
+            if self.remove_columns:
+                for c in self.remove_columns:
+                    if c in inputs:
+                        del inputs[c]
+                    if processed_inputs is key_example[1] and c in processed_inputs:
+                        del processed_inputs[c]
+            transformed_inputs = {**inputs, **processed_inputs}
+            if self.features:
+                for c in self.features.keys():
+                    if c not in transformed_inputs:
+                        transformed_inputs[c] = (
+                            [None] * len(transformed_inputs[next(iter(processed_inputs))]) if self.batched else None
                         )
-                if self.features:
-                    for c in self.features.keys():
-                        if c not in transformed_batch:
-                            transformed_batch[c] = [None] * len(transformed_batch[first_col])
-                    transformed_batch = self.features.decode_batch(transformed_batch)
-                # the new key is the concatenation of the examples keys from the batch
-                new_key = "_".join(str(key) for key in keys)
+                transformed_inputs = (
+                    self.features.decode_batch(transformed_inputs)
+                    if self.batched
+                    else self.features.decode_example(transformed_inputs)
+                )
+            return transformed_inputs
+
+        def apply_function(key_example, indices):
+            """Utility to apply the function on a selection of columns."""
+            inputs, fn_args, additional_args, fn_kwargs = prepare_inputs(key_example, indices)
+            processed_inputs = self.function(*fn_args, *additional_args, **fn_kwargs)
+            return prepare_outputs(key_example, inputs, processed_inputs)
+
+        async def async_apply_function(key_example, indices):
+            """Utility to apply the function on a selection of columns. Same code but async"""
+            inputs, fn_args, additional_args, fn_kwargs = prepare_inputs(key_example, indices)
+            processed_inputs = await self.function(*fn_args, *additional_args, **fn_kwargs)
+            return prepare_outputs(key_example, inputs, processed_inputs)
+
+        def iter_outputs():
+            inputs_iterator = iter_batched_inputs() if self.batched else iter_inputs()
+            if inspect.iscoroutinefunction(self.function):
+                indices: Union[List[int], List[List[int]]] = []
+                tasks: List[asyncio.Task] = []
+                try:
+                    loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
+                for i, key_example in inputs_iterator:
+                    indices.append(i)
+                    tasks.append(loop.create_task(async_apply_function(key_example, i)))
+                    # keep the total active tasks under a certain number
+                    if len(tasks) >= config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL:
+                        done, pending = loop.run_until_complete(
+                            asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+                        )
+                        while tasks and len(pending) >= config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL:
+                            done, pending = loop.run_until_complete(
+                                asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+                            )
+                    # yield finished tasks
+                    while tasks and tasks[0].done():
+                        yield indices.pop(0), tasks.pop(0).result()
+                while tasks:
+                    yield indices.pop(0), loop.run_until_complete(tasks.pop(0))
+            else:
+                for i, key_example in inputs_iterator:
+                    yield i, apply_function(key_example, i)
+
+        if self.batched:
+            if self._state_dict:
+                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                self._state_dict["num_examples_since_previous_state"] = 0
+                self._state_dict["previous_state_example_idx"] = current_idx
+            for key, transformed_batch in iter_outputs():
                 # yield one example at a time from the transformed batch
                 for example in _batch_to_examples(transformed_batch):
                     current_idx += 1
@@ -1140,37 +1215,13 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     if num_examples_to_skip > 0:
                         num_examples_to_skip -= 1
                         continue
-                    yield new_key, example
+                    yield key, example
                 if self._state_dict:
                     self._state_dict["previous_state"] = self.ex_iterable.state_dict()
                     self._state_dict["num_examples_since_previous_state"] = 0
                     self._state_dict["previous_state_example_idx"] = current_idx
         else:
-            for key, example in iterator:
-                # If not batched, we can apply the transform and yield the example directly
-                # first copy the example, since we might drop some keys
-                example = dict(example)
-                example = format_dict(example) if format_dict else example
-                # then apply the transform
-                inputs = example
-                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
-                if self.with_indices:
-                    function_args.append(current_idx)
-                processed_inputs = self.function(*function_args, **self.fn_kwargs)
-                inputs_to_merge = dict(example)
-                # this logic mimics the one in Dataset.map
-                if self.remove_columns:
-                    for c in self.remove_columns:
-                        if c in inputs_to_merge:
-                            del inputs_to_merge[c]
-                        if processed_inputs is inputs and c in processed_inputs:
-                            del processed_inputs[c]
-                transformed_example = {**inputs_to_merge, **processed_inputs}
-                if self.features:
-                    for c in self.features.keys():
-                        if c not in transformed_example:
-                            transformed_example[c] = None
-                    transformed_example = self.features.decode_example(transformed_example)
+            for key, transformed_example in iter_outputs():
                 current_idx += 1
                 if self._state_dict:
                     self._state_dict["previous_state_example_idx"] += 1
@@ -1285,7 +1336,34 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.num_shards
 
 
-class FilteredExamplesIterable(_BaseExamplesIterable):
+def _add_mask(
+    input: Union[dict, pa.Table],
+    mask: Union[bool, list, pa.Array, pa.ChunkedArray, pa.BooleanScalar],
+    mask_column_name: str,
+):
+    if isinstance(input, pa.Table):
+        if not isinstance(mask, (list, pa.Array, pa.ChunkedArray)):
+            mask = pa.array([mask], type=pa.bool_())
+        return input.append_column(mask_column_name, mask)
+    else:
+        return {mask_column_name: mask}
+
+
+def add_mask(mask_function: Callable, input: Union[dict, pa.Table], *args, mask_column_name: str, **kwargs):
+    mask = mask_function(input, *args, **kwargs)
+    return _add_mask(input, mask, mask_column_name)
+
+
+async def async_add_mask(
+    mask_function: Callable, input: Union[dict, pa.Table], *args, mask_column_name: str, **kwargs
+):
+    mask = await mask_function(input, *args, **kwargs)
+    return _add_mask(input, mask, mask_column_name)
+
+
+class FilteredExamplesIterable(MappedExamplesIterable):
+    mask_column_name = "===MASK==="
+
     def __init__(
         self,
         ex_iterable: _BaseExamplesIterable,
@@ -1297,207 +1375,48 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         fn_kwargs: Optional[dict] = None,
         formatting: Optional["FormattingConfig"] = None,
     ):
-        super().__init__()
-        self.ex_iterable = ex_iterable
-        self.function = function
-        self.batched = batched
-        self.batch_size = batch_size
-        self.with_indices = with_indices
-        self.input_columns = input_columns
-        self.fn_kwargs = fn_kwargs or {}
-        self.formatting = formatting  # required for iter_arrow
-        # sanity checks
-        if formatting and formatting.is_table:
-            # batch_size should match for iter_arrow
-            if not isinstance(ex_iterable, RebatchedArrowExamplesIterable):
-                raise ValueError(
-                    f"The {formatting.format_type.capitalize()}-formatted FilteredExamplesIterable has underlying iterable"
-                    f"that is a {type(ex_iterable).__name__} instead of a RebatchedArrowExamplesIterable."
-                )
-            elif ex_iterable.batch_size != (batch_size if batched else 1):
-                raise ValueError(
-                    f"The {formatting.format_type.capitalize()}-formatted FilteredExamplesIterable has batch_size={batch_size if batched else 1} which is"
-                    f"different from {ex_iterable.batch_size=} from its underlying iterable."
-                )
-
-    @property
-    def iter_arrow(self):
-        if self.formatting and self.formatting.format_type == "arrow":
-            return self._iter_arrow
-
-    @property
-    def is_typed(self):
-        return self.ex_iterable.is_typed
-
-    @property
-    def features(self):
-        return self.ex_iterable.features
-
-    def _init_state_dict(self) -> dict:
-        self._state_dict = {
-            "ex_iterable": self.ex_iterable._init_state_dict(),
-            "previous_state": None,
-            "num_examples_since_previous_state": 0,
-            "previous_state_example_idx": 0,
-        }
-        return self._state_dict
-
-    def __iter__(self):
-        if self.formatting and self.formatting.format_type == "arrow":
-            formatter = PythonFormatter()
-            for key, pa_table in self._iter_arrow(max_chunksize=1):
-                yield key, formatter.format_row(pa_table)
+        self.mask_function = function
+        if ex_iterable.is_typed:
+            features = Features({**ex_iterable.features, self.mask_column_name: Value("bool")})
         else:
-            yield from self._iter()
+            features = None
+        super().__init__(
+            ex_iterable=ex_iterable,
+            function=partial(
+                async_add_mask if inspect.iscoroutinefunction(function) else add_mask,
+                function,
+                mask_column_name=self.mask_column_name,
+            ),
+            with_indices=with_indices,
+            input_columns=input_columns,
+            batched=batched,
+            batch_size=batch_size,
+            fn_kwargs=fn_kwargs,
+            formatting=formatting,
+            features=features,
+        )
 
     def _iter(self):
-        current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
-        if self._state_dict and self._state_dict["previous_state"]:
-            self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
-            num_examples_to_skip = self._state_dict["num_examples_since_previous_state"]
-        else:
-            num_examples_to_skip = 0
-        iterator = iter(self.ex_iterable)
-
-        if self.formatting:
-            formatter = get_formatter(self.formatting.format_type)
-            format_dict = (
-                formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
-            )
-        else:
-            format_dict = None
-
-        if self.batched:
-            if self._state_dict:
-                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                self._state_dict["num_examples_since_previous_state"] = 0
-                self._state_dict["previous_state_example_idx"] = current_idx
-            for key, example in iterator:
-                # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
-                iterator_batch = (
-                    iterator
-                    if self.batch_size is None or self.batch_size <= 0
-                    else islice(iterator, self.batch_size - 1)
-                )
-                key_examples_list = [(key, example)] + list(iterator_batch)
-                keys, examples = zip(*key_examples_list)
-                batch = _examples_to_batch(examples)
-                batch = format_dict(batch) if format_dict else batch
-                # then compute the mask for the batch
-                inputs = batch
-                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
-                if self.with_indices:
-                    function_args.append([current_idx + i for i in range(len(key_examples_list))])
-                mask = self.function(*function_args, **self.fn_kwargs)
-                # yield one example at a time from the batch
-                for key_example, to_keep in zip(key_examples_list, mask):
-                    current_idx += 1
-                    if self._state_dict:
-                        self._state_dict["num_examples_since_previous_state"] += 1
-                    if num_examples_to_skip > 0:
-                        num_examples_to_skip -= 1
-                        continue
-                    if to_keep:
-                        yield key_example
-                if self._state_dict:
-                    self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                    self._state_dict["num_examples_since_previous_state"] = 0
-                    self._state_dict["previous_state_example_idx"] = current_idx
-        else:
-            for key, example in iterator:
-                # If not batched, we can apply the filtering function direcly
-                example = dict(example)
-                inputs = format_dict(example) if format_dict else example
-                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
-                if self.with_indices:
-                    function_args.append(current_idx)
-                to_keep = self.function(*function_args, **self.fn_kwargs)
-                current_idx += 1
-                if self._state_dict:
-                    self._state_dict["previous_state_example_idx"] += 1
-                if to_keep:
-                    yield key, example
+        for key, example in super()._iter():
+            example = dict(example)
+            if example.pop(self.mask_column_name):
+                yield key, example
 
     def _iter_arrow(self, max_chunksize: Optional[int] = None):
-        formatter = get_formatter(self.formatting.format_type) if self.formatting else ArrowFormatter()
-        if self.ex_iterable.iter_arrow:
-            iterator = self.ex_iterable.iter_arrow()
-        else:
-            iterator = _convert_to_arrow(self.ex_iterable, batch_size=self.batch_size if self.batched else 1)
-
-        if self._state_dict and self._state_dict["previous_state"]:
-            self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
-            num_examples_to_skip = self._state_dict["num_examples_since_previous_state"]
-        else:
-            num_examples_to_skip = 0
-        if self._state_dict and max_chunksize is not None:
-            self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-            self._state_dict["num_examples_since_previous_state"] = 0
-        current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
-        for key, pa_table in iterator:
-            if (
-                self.batched
-                and self.batch_size is not None
-                and len(pa_table) < self.batch_size
-                and self.drop_last_batch
-            ):
-                return
-
-            function_args = (
-                [formatter.format_batch(pa_table)]
-                if self.input_columns is None
-                else [pa_table[col] for col in self.input_columns]
-            )
-            if self.with_indices:
-                if self.batched:
-                    function_args.append([current_idx + i for i in range(len(pa_table))])
-                else:
-                    function_args.append(current_idx)
-            # then apply the transform
-            output = self.function(*function_args, **self.fn_kwargs)
-            mask = _table_output_to_arrow(output)
-            if not isinstance(mask, (bool, pa.Array, pa.BooleanScalar)):
-                raise TypeError(
-                    f"Provided `function` which is applied to {formatter.table_type} returns a variable of type "
-                    f"{type(output)}. Make sure provided `function` returns a {formatter.column_type} to update the dataset."
-                )
-            # return output
-            if self.batched:
-                output_table = pa_table.filter(mask)
-            elif mask.as_py() if isinstance(mask, pa.BooleanScalar) else mask:
-                output_table = pa_table
-            else:
-                output_table = pa_table.slice(0, 0)
-
-            if max_chunksize is None:
-                current_idx += len(pa_table)
-                if self._state_dict:
-                    self._state_dict["previous_state_example_idx"] += len(pa_table)
-                if len(output_table) > 0:
-                    yield key, output_table
-            else:
-                for i, pa_subtable in enumerate(output_table.to_reader(max_chunksize=max_chunksize)):
-                    current_idx += 1
-                    if self._state_dict:
-                        self._state_dict["num_examples_since_previous_state"] += 1
-                    if num_examples_to_skip > 0:
-                        num_examples_to_skip -= 1
-                        continue
-                    yield f"{key}_{i}", pa_subtable
-                if self._state_dict:
-                    self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                    self._state_dict["num_examples_since_previous_state"] = 0
-                    self._state_dict["previous_state_example_idx"] += len(pa_table)
+        for key, pa_table in super()._iter_arrow(max_chunksize=max_chunksize):
+            mask = pa_table[self.mask_column_name]
+            yield key, pa_table.drop(self.mask_column_name).filter(mask)
 
     def shuffle_data_sources(self, seed: Optional[int]) -> "FilteredExamplesIterable":
         """Shuffle the wrapped examples iterable."""
         return FilteredExamplesIterable(
             self.ex_iterable.shuffle_data_sources(seed),
-            function=self.function,
+            function=self.mask_function,
             with_indices=self.with_indices,
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            fn_kwargs=self.fn_kwargs,
             formatting=self.formatting,
         )
 
@@ -1505,11 +1424,12 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         """Keep only the requested shard."""
         return FilteredExamplesIterable(
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
-            function=self.function,
+            function=self.mask_function,
             with_indices=self.with_indices,
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            fn_kwargs=self.fn_kwargs,
             formatting=self.formatting,
         )
 
@@ -2467,7 +2387,7 @@ class IterableDataset(DatasetInfoMixin):
         ```py
         >>> from datasets import load_dataset
         >>> from transformers import AutoTokenizer
-        >>> ds = load_dataset("rotten_tomatoes", split="validation", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation", streaming=True)
         >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
         >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
         >>> ds = ds.with_format("torch")
@@ -2534,6 +2454,9 @@ class IterableDataset(DatasetInfoMixin):
           Note that the last batch may have less than `n` examples.
           A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
 
+        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simulatenous calls.
+        It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
+
         Args:
             function (`Callable`, *optional*, defaults to `None`):
                 Function applied on-the-fly on the examples when you iterate on the dataset.
@@ -2545,6 +2468,7 @@ class IterableDataset(DatasetInfoMixin):
                 - `function(batch: Dict[str, List], indices: List[int]) -> Dict[str, List]` if `batched=True` and `with_indices=True`
 
                 For advanced usage, the function can also return a `pyarrow.Table`.
+                If the function is asynchronous, then `map` will run your function in parallel.
                 Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
                 If no function is provided, default to identity function: `lambda x: x`.
             with_indices (`bool`, defaults to `False`):
@@ -2573,7 +2497,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> def add_prefix(example):
         ...     example["text"] = "Review: " + example["text"]
         ...     return example
@@ -2665,6 +2589,9 @@ class IterableDataset(DatasetInfoMixin):
         """Apply a filter function to all the elements so that the dataset only includes examples according to the filter function.
         The filtering is done on-the-fly when iterating over the dataset.
 
+        If the function is asynchronous, then `filter` will run your function in parallel, with up to one thousand simulatenous calls (configurable).
+        It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
+
         Args:
             function (`Callable`):
                 Callable with one of the following signatures:
@@ -2674,6 +2601,7 @@ class IterableDataset(DatasetInfoMixin):
                 - `function(example: Dict[str, List]) -> List[bool]` if `with_indices=False, batched=True`
                 - `function(example: Dict[str, List], indices: List[int]) -> List[bool]` if `with_indices=True, batched=True`
 
+                If the function is asynchronous, then `filter` will run your function in parallel.
                 If no function is provided, defaults to an always True function: `lambda x: True`.
             with_indices (`bool`, defaults to `False`):
                 Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
@@ -2691,7 +2619,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> ds = ds.filter(lambda x: x["label"] == 0)
         >>> list(ds.take(3))
         [{'label': 0, 'movie_review': 'simplistic , silly and tedious .'},
@@ -2768,7 +2696,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> list(ds.take(3))
         [{'label': 1,
          'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
@@ -2817,7 +2745,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> list(ds.take(3))
         [{'label': 1,
          'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
@@ -2867,7 +2795,7 @@ class IterableDataset(DatasetInfoMixin):
         Example:
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
         >>> ds = ds.take(2).repeat(2)
         >>> list(ds)
         [{'label': 1,
@@ -2904,7 +2832,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> small_ds = ds.take(2)
         >>> list(small_ds)
         [{'label': 1,
@@ -2994,7 +2922,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation", streaming=True)
         >>> ds.column_names
         ['text', 'label']
         ```
@@ -3031,7 +2959,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> next(iter(ds))
         {'label': 1,
          'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
@@ -3085,7 +3013,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> next(iter(ds))
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .', 'label': 1}
         >>> ds = ds.remove_columns("label")
@@ -3120,7 +3048,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> next(iter(ds))
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .', 'label': 1}
         >>> ds = ds.select_columns("text")
@@ -3221,7 +3149,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset, ClassLabel, Value
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> ds.features
         {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}

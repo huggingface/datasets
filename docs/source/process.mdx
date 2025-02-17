@@ -17,7 +17,7 @@ The examples in this guide use the MRPC dataset, but feel free to load any datas
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset("glue", "mrpc", split="train")
+>>> dataset = load_dataset("nyu-mll/glue", "mrpc", split="train")
 ```
 
 <Tip warning={true}>
@@ -127,11 +127,11 @@ The splits are shuffled by default, but you can set `shuffle=False` to prevent s
 
 🤗 Datasets supports sharding to divide a very large dataset into a predefined number of chunks. Specify the `num_shards` parameter in [`~Dataset.shard`] to determine the number of shards to split the dataset into. You'll also need to provide the shard you want to return with the `index` parameter.
 
-For example, the [imdb](https://huggingface.co/datasets/imdb) dataset has 25000 examples:
+For example, the [stanfordnlp/imdb](https://huggingface.co/datasets/stanfordnlp/imdb) dataset has 25000 examples:
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset("imdb", split="train")
+>>> dataset = load_dataset("stanfordnlp/imdb", split="train")
 >>> print(dataset)
 Dataset({
     features: ['text', 'label'],
@@ -263,7 +263,7 @@ Sometimes a column can be a nested structure of several types. Take a look at th
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset("squad", split="train")
+>>> dataset = load_dataset("rajpurkar/squad", split="train")
 >>> dataset.features
 {'answers': Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None),
 'context': Value(dtype='string', id=None),
@@ -502,6 +502,52 @@ Use [`~Dataset.map`] to apply the function over the whole dataset:
 
 For each original sentence, RoBERTA augmented a random word with three alternatives. The original word `distorting` is supplemented by `withholding`, `suppressing`, and `destroying`.
 
+### Asynchronous processing
+
+Asynchronous functions are useful to call API endpoints in parallel, for example to download content like images or call a model endpoint.
+
+You can define an asynchronous function using the `async` and `await` keywords, here is an example function to call a chat model from Hugging Face:
+
+```python
+>>> import aiohttp
+>>> import asyncio
+>>> from huggingface_hub import get_token
+>>> sem = asyncio.Semaphore(20)  # max number of simultaneous queries
+>>> async def query_model(model, prompt):
+...     api_url = f"https://api-inference.huggingface.co/models/{model}/v1/chat/completions"
+...     headers = {"Authorization": f"Bearer {get_token()}", "Content-Type": "application/json"}
+...     json = {"messages": [{"role": "user", "content": prompt}], "max_tokens": 20, "seed": 42}
+...     async with sem, aiohttp.ClientSession() as session, session.post(api_url, headers=headers, json=json) as response:
+...         output = await response.json()
+...         return {"Output": output["choices"][0]["message"]["content"]}
+```
+
+Asynchronous functions run in parallel, which accelerates the process a lot. The same code takes a lot more time if it's run sequentially, because it does nothing while waiting for the model response. It is generally recommended to use `async` / `await` when you function has to wait for a response from an API for example, or if it downloads data and it can take some time.
+
+Note the presence of a `Semaphore`: it sets the maximum number of queries that can run in parallel. It is recommended to use a `Semaphore` when calling APIs to avoid rate limit errors.
+
+Let's use it to call the [microsoft/Phi-3-mini-4k-instruct](https://huggingface.co/microsoft/Phi-3-mini-4k-instruct) model and ask it to return the main topic of each math problem in the [Maxwell-Jia/AIME_2024](https://huggingface.co/Maxwell-Jia/AIME_2024) dataset:
+
+```python
+>>> from datasets import load_dataset
+>>> ds = load_dataset("Maxwell-Jia/AIME_2024", split="train")
+>>> model = "microsoft/Phi-3-mini-4k-instruct"
+>>> prompt = 'What is this text mainly about ? Here is the text:\n\n```\n{Problem}\n```\n\nReply using one or two words max, e.g. "The main topic is Linear Algebra".'
+>>> async def get_topic(example):
+...     return await query_model(model, prompt.format(Problem=example['Problem']))
+>>> ds = ds.map(get_topic)
+>>> ds[0]
+{'ID': '2024-II-4',
+ 'Problem': 'Let $x,y$ and $z$ be positive real numbers that...',
+ 'Solution': 'Denote $\\log_2(x) = a$, $\\log_2(y) = b$, and...,
+ 'Answer': 33,
+ 'Output': 'The main topic is Logarithms.'}
+```
+
+Here, [`Dataset.map`] runs many `get_topic` function asynchronously so it doesn't have to wait for every single model response which would take a lot of time to do sequentially.
+
+By default, [`Dataset.map`] runs up to one thousand map functions in parallel, so don't forget to set the maximum number of API calls that can run in parallel with a `Semaphore`, otherwise the model could return rate limit errors or overload. For advanced use cases, you can change the maximum number of queries in parallel in `datasets.config`.
+
 ### Process multiple splits
 
 Many datasets have splits that can be processed simultaneously with [`DatasetDict.map`]. For example, tokenize the `sentence1` field in the train and test split by:
@@ -510,7 +556,7 @@ Many datasets have splits that can be processed simultaneously with [`DatasetDic
 >>> from datasets import load_dataset
 
 # load all the splits
->>> dataset = load_dataset('glue', 'mrpc')
+>>> dataset = load_dataset('nyu-mll/glue', 'mrpc')
 >>> encoded_dataset = dataset.map(lambda examples: tokenizer(examples["sentence1"]), batched=True)
 >>> encoded_dataset["train"][0]
 {'sentence1': 'Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
@@ -554,7 +600,7 @@ Here's an example of how to use the `batch()` method:
 
 ```python
 >>> from datasets import load_dataset
->>> dataset = load_dataset("rotten_tomatoes", split="train")
+>>> dataset = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
 >>> batched_dataset = dataset.batch(batch_size=4)
 >>> batched_dataset[0]
 {'text': ['the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .',
@@ -579,20 +625,21 @@ Separate datasets can be concatenated if they share the same column types. Conca
 ```py
 >>> from datasets import concatenate_datasets, load_dataset
 
->>> bookcorpus = load_dataset("bookcorpus", split="train")
->>> wiki = load_dataset("wikipedia", "20220301.en", split="train")
+>>> stories = load_dataset("ajibawa-2023/General-Stories-Collection", split="train")
+>>> stories = stories.remove_columns([col for col in stories.column_names if col != "text"])  # only keep the 'text' column
+>>> wiki = load_dataset("wikimedia/wikipedia", "20220301.en", split="train")
 >>> wiki = wiki.remove_columns([col for col in wiki.column_names if col != "text"])  # only keep the 'text' column
 
->>> assert bookcorpus.features.type == wiki.features.type
->>> bert_dataset = concatenate_datasets([bookcorpus, wiki])
+>>> assert stories.features.type == wiki.features.type
+>>> bert_dataset = concatenate_datasets([stories, wiki])
 ```
 
 You can also concatenate two datasets horizontally by setting `axis=1` as long as the datasets have the same number of rows:
 
 ```py
 >>> from datasets import Dataset
->>> bookcorpus_ids = Dataset.from_dict({"ids": list(range(len(bookcorpus)))})
->>> bookcorpus_with_ids = concatenate_datasets([bookcorpus, bookcorpus_ids], axis=1)
+>>> stories_ids = Dataset.from_dict({"ids": list(range(len(stories)))})
+>>> stories_with_ids = concatenate_datasets([stories, stories_ids], axis=1)
 ```
 
 ### Interleave
@@ -775,12 +822,6 @@ Use the [`load_from_disk`] function to reload the dataset:
 >>> from datasets import load_from_disk
 >>> reloaded_dataset = load_from_disk("path/of/my/dataset/directory")
 ```
-
-<Tip>
-
-Want to save your dataset to a cloud storage provider? Read our [Cloud Storage](./filesystems) guide to learn how to save your dataset to AWS or Google Cloud Storage.
-
-</Tip>
 
 ## Export
 

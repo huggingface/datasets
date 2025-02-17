@@ -1,4 +1,6 @@
+import asyncio
 import pickle
+import time
 from copy import deepcopy
 from itertools import chain, cycle, islice
 from unittest.mock import patch
@@ -1142,6 +1144,50 @@ def test_filtered_examples_iterable_input_columns(n, func, batched, batch_size, 
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
     assert_load_state_dict_resumes_iteration(ex_iterable)
+
+
+def test_map_async():
+    dset = Dataset.from_dict({"x": range(100)}).to_iterable_dataset()
+
+    async def f(example):
+        await asyncio.sleep(0.1)
+        return {"y": 1}
+
+    _start = time.time()
+    out = dset.map(f)
+    assert time.time() - _start < 2.0
+    assert next(iter(out))["y"] == 1
+
+    async def f(batch):
+        await asyncio.sleep(0.1)
+        return {"y": [1] * len(batch["x"])}
+
+    _start = time.time()
+    out = dset.map(f, batched=True)
+    assert time.time() - _start < 2.0
+    assert next(iter(out))["y"] == 1
+
+
+def test_filter_async():
+    dset = Dataset.from_dict({"x": range(100)}).to_iterable_dataset()
+
+    async def f(example):
+        await asyncio.sleep(0.1)
+        return example["x"] == 42
+
+    _start = time.time()
+    out = dset.filter(f)
+    assert time.time() - _start < 2.0
+    assert len(list(out)) == 1
+
+    async def f(batch):
+        await asyncio.sleep(0.1)
+        return [x == 42 for x in batch["x"]]
+
+    _start = time.time()
+    out = dset.filter(f, batched=True)
+    assert time.time() - _start < 2.0
+    assert len(list(out)) == 1
 
 
 def test_skip_examples_iterable():

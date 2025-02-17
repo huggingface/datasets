@@ -398,12 +398,15 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             output[k] = casted_v
         return output if has_changed else obj, has_changed
     elif hasattr(obj, "__array__"):
-        return (
-            _cast_to_python_objects(
-                obj.__array__(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-            )[0],
-            True,
-        )
+        if np.isscalar(obj):
+            return obj, False
+        else:
+            return (
+                _cast_to_python_objects(
+                    obj.__array__(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0],
+                True,
+            )
     elif isinstance(obj, (list, tuple)):
         if len(obj) > 0:
             for first_elmt in obj:
@@ -1023,7 +1026,7 @@ class ClassLabel:
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
         >>> ds.features["label"].str2int('neg')
         0
         ```
@@ -1070,7 +1073,7 @@ class ClassLabel:
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
         >>> ds.features["label"].int2str(0)
         'neg'
         ```
@@ -1341,7 +1344,7 @@ def encode_nested_example(schema, obj, level=0):
                         break
                 # be careful when comparing tensors here
                 if (
-                    not isinstance(first_elmt, list)
+                    not (isinstance(first_elmt, list) or np.isscalar(first_elmt))
                     or encode_nested_example(schema.feature, first_elmt, level=level + 1) != first_elmt
                 ):
                     return [encode_nested_example(schema.feature, o, level=level + 1) for o in obj]
@@ -2107,7 +2110,7 @@ class Features(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
         >>> copy_of_features = ds.features.copy()
         >>> copy_of_features
         {'label': ClassLabel(names=['neg', 'pos'], id=None),
@@ -2204,7 +2207,7 @@ class Features(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("squad", split="train")
+        >>> ds = load_dataset("rajpurkar/squad", split="train")
         >>> ds.features.flatten()
         {'answers.answer_start': Sequence(feature=Value(dtype='int32', id=None), length=-1, id=None),
          'answers.text': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None),

@@ -16,7 +16,7 @@ pytestmark = pytest.mark.integration
 @pytest.mark.parametrize(
     "path, config_name, expected_splits",
     [
-        ("squad", "plain_text", ["train", "validation"]),
+        ("rajpurkar/squad", "plain_text", ["train", "validation"]),
         ("dalle-mini/wit", "default", ["train"]),
         ("paws", "labeled_final", ["train", "test", "validation"]),
     ],
@@ -54,7 +54,7 @@ def test_get_dataset_config_info_raises(path, config_name, expected_exception):
     "path, expected",
     [
         ("acronym_identification", ["default"]),
-        ("squad", ["plain_text"]),
+        ("rajpurkar/squad", ["plain_text"]),
         ("hf-internal-testing/dataset_with_script", ["default"]),
         ("dalle-mini/wit", ["default"]),
         ("hf-internal-testing/librispeech_asr_dummy", ["clean"]),
@@ -72,7 +72,7 @@ def test_get_dataset_config_names(path, expected):
     "path, expected",
     [
         ("acronym_identification", "default"),
-        ("squad", "plain_text"),
+        ("rajpurkar/squad", "plain_text"),
         ("hf-internal-testing/dataset_with_script", "default"),
         ("dalle-mini/wit", "default"),
         ("hf-internal-testing/librispeech_asr_dummy", "clean"),
@@ -92,7 +92,7 @@ def test_get_dataset_default_config_name(path, expected):
 @pytest.mark.parametrize(
     "path, expected_configs, expected_splits_in_first_config",
     [
-        ("squad", ["plain_text"], ["train", "validation"]),
+        ("rajpurkar/squad", ["plain_text"], ["train", "validation"]),
         ("dalle-mini/wit", ["default"], ["train"]),
         ("paws", ["labeled_final", "labeled_swap", "unlabeled_final"], ["train", "test", "validation"]),
     ],
@@ -110,7 +110,7 @@ def test_get_dataset_info(path, expected_configs, expected_splits_in_first_confi
 @pytest.mark.parametrize(
     "path, expected_config, expected_splits",
     [
-        ("squad", "plain_text", ["train", "validation"]),
+        ("rajpurkar/squad", "plain_text", ["train", "validation"]),
         ("dalle-mini/wit", "default", ["train"]),
         ("paws", "labeled_final", ["train", "test", "validation"]),
     ],
