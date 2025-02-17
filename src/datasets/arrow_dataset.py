@@ -3181,7 +3181,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         logger.debug("All shards processed")
                     logger.debug("End pool")
                     pool.close()
+                    logger.debug('closed')
                     pool.join()
+                    logger.debug('joined')
                 logger.debug("Out of pool")
                 # Avoids PermissionError on Windows (the error: https://github.com/huggingface/datasets/actions/runs/4026734820/jobs/6921621805)
                 for kwargs in kwargs_per_job:
