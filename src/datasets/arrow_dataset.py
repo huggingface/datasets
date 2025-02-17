@@ -3175,20 +3175,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 shards_done += 1
                                 logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
                                 transformed_shards[rank] = content
-                                # logger.debug(f"Shard set {rank}")
                             else:
                                 pbar.update(content)
-                        # logger.debug("All shards processed")
-                    # logger.debug("End pool")
                     pool.close()
-                    # logger.debug('closed')
                     pool.join()
-                    # logger.debug('joined')
-                # logger.debug("Out of pool")
                 # Avoids PermissionError on Windows (the error: https://github.com/huggingface/datasets/actions/runs/4026734820/jobs/6921621805)
                 for kwargs in kwargs_per_job:
                     del kwargs["shard"]
-                # logger.debug("deld")
             else:
                 logger.info(f"Loading cached processed dataset at {format_cache_file_name(cache_file_name, '*')}")
             assert None not in transformed_shards, (
