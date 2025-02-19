@@ -13,7 +13,6 @@ env:
   HF_ALLOW_CODE_EVAL: 1
 
 jobs:
-
   check_code_quality:
     runs-on: ubuntu-latest
     steps:
@@ -35,7 +34,7 @@ jobs:
     needs: check_code_quality
     strategy:
       matrix:
-        test: ['unit', 'integration']
+        test: ["unit", "integration"]
         os: [ubuntu-latest, windows-latest]
         deps_versions: [deps-latest, deps-minimum]
     continue-on-error: ${{ matrix.test == 'integration' }}
@@ -56,13 +55,13 @@ jobs:
       - name: Install uv
         run: pip install --upgrade uv
       - name: Install dependencies
-        run: uv pip install --system "datasets[tests] @ ."
+        run: uv pip install --allow-prerelease --system "datasets[tests] @ ."
       - name: Install dependencies (latest versions)
         if: ${{ matrix.deps_versions == 'deps-latest' }}
-        run: uv pip install --system --upgrade pyarrow huggingface-hub "dill<0.3.9"
+        run: uv pip install --allow-prerelease --system --upgrade pyarrow huggingface-hub "dill<0.3.9"
       - name: Install dependencies (minimum versions)
         if: ${{ matrix.deps_versions != 'deps-latest' }}
-        run: uv pip install --system pyarrow==15.0.0 huggingface-hub==0.24.7 transformers dill==0.3.1.1
+        run: uv pip install --allow-prerelease --system pyarrow==15.0.0 huggingface-hub==0.24.7 transformers dill==0.3.1.1
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
@@ -71,7 +70,7 @@ jobs:
     needs: check_code_quality
     strategy:
       matrix:
-        test: ['unit']
+        test: ["unit"]
         os: [ubuntu-latest, windows-latest]
         deps_versions: [deps-latest]
     continue-on-error: false
@@ -89,7 +88,7 @@ jobs:
       - name: Install uv
         run: pip install --upgrade uv
       - name: Install dependencies
-        run: uv pip install --system "datasets[tests] @ ."
+        run: uv pip install --allow-prerelease --system "datasets[tests] @ ."
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
@@ -98,7 +97,7 @@ jobs:
     needs: check_code_quality
     strategy:
       matrix:
-        test: ['unit']
+        test: ["unit"]
         os: [ubuntu-latest, windows-latest]
         deps_versions: [deps-latest]
     continue-on-error: false
@@ -116,7 +115,7 @@ jobs:
       - name: Install uv
         run: pip install --upgrade uv
       - name: Install dependencies
-        run: uv pip install --system "datasets[tests_numpy2] @ ."
+        run: uv pip install --allow-prerelease --system "datasets[tests_numpy2] @ ."
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
