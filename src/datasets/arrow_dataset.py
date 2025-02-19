@@ -3431,14 +3431,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
             return buf_writer, writer, tmp_file
 
+        tasks: List[asyncio.Task] = []
+        if inspect.iscoroutinefunction(function):
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+        else:
+            loop = None
+
         def iter_outputs(shard_iterable):
+            nonlocal tasks, loop
             if inspect.iscoroutinefunction(function):
                 indices: Union[List[int], List[List[int]]] = []
-                tasks: List[asyncio.Task] = []
-                try:
-                    loop = asyncio.get_running_loop()
-                except RuntimeError:
-                    loop = asyncio.new_event_loop()
                 for i, example in shard_iterable:
                     indices.append(i)
                     tasks.append(loop.create_task(async_apply_function(example, i, offset=offset)))
@@ -3455,7 +3460,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     while tasks and tasks[0].done():
                         yield indices.pop(0), tasks.pop(0).result()
                 while tasks:
-                    yield indices.pop(0), loop.run_until_complete(tasks.pop(0))
+                    yield indices[0], loop.run_until_complete(tasks[0])
+                    indices.pop(0), tasks.pop(0)
             else:
                 for i, example in shard_iterable:
                     yield i, apply_function(example, i, offset=offset)
@@ -3540,6 +3546,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         tmp_file.close()
                         if os.path.exists(tmp_file.name):
                             os.remove(tmp_file.name)
+                if loop:
+                    logger.debug(f"Canceling {len(tasks)} async tasks.")
+                    for task in tasks:
+                        task.cancel(msg="KeyboardInterrupt")
+                    try:
+                        loop.run_until_complete(asyncio.gather(*tasks))
+                    except asyncio.CancelledError:
+                        logger.debug("Tasks canceled.")
                 raise
 
         yield rank, False, num_examples_progress_update
