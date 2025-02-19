@@ -3177,6 +3177,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 transformed_shards[rank] = content
                             else:
                                 pbar.update(content)
+                    pool.close()
+                    pool.join()
                 # Avoids PermissionError on Windows (the error: https://github.com/huggingface/datasets/actions/runs/4026734820/jobs/6921621805)
                 for kwargs in kwargs_per_job:
                     del kwargs["shard"]
