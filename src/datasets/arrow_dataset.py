@@ -3716,6 +3716,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if len(self) == 0:
             return self
 
+        # We generally batch the underlying map() to get faster throughput,
+        # but in case of async we force batch_size=1 to enable parallelism
+        if inspect.iscoroutinefunction(function) and not batched:
+            batch_size = 1
+
         indices = self.map(
             function=partial(
                 async_get_indices_from_mask_function
@@ -3732,7 +3737,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             with_rank=True,
             features=Features({"indices": Value("uint64")}),
             batched=True,
-            batch_size=batch_size if batched else 1,
+            batch_size=batch_size,
             remove_columns=self.column_names,
             keep_in_memory=keep_in_memory,
             load_from_cache_file=load_from_cache_file,
