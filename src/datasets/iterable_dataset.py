@@ -1171,15 +1171,20 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             processed_inputs = await self.function(*fn_args, *additional_args, **fn_kwargs)
             return prepare_outputs(key_example, inputs, processed_inputs)
 
+        tasks: List[asyncio.Task] = []
+        if inspect.iscoroutinefunction(self.function):
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+        else:
+            loop = None
+
         def iter_outputs():
+            nonlocal tasks, loop
             inputs_iterator = iter_batched_inputs() if self.batched else iter_inputs()
             if inspect.iscoroutinefunction(self.function):
                 indices: Union[List[int], List[List[int]]] = []
-                tasks: List[asyncio.Task] = []
-                try:
-                    loop = asyncio.get_running_loop()
-                except RuntimeError:
-                    loop = asyncio.new_event_loop()
                 for i, key_example in inputs_iterator:
                     indices.append(i)
                     tasks.append(loop.create_task(async_apply_function(key_example, i)))
@@ -1196,36 +1201,48 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     while tasks and tasks[0].done():
                         yield indices.pop(0), tasks.pop(0).result()
                 while tasks:
-                    yield indices.pop(0), loop.run_until_complete(tasks.pop(0))
+                    yield indices[0], loop.run_until_complete(tasks[0])
+                    indices.pop(0), tasks.pop(0)
             else:
                 for i, key_example in inputs_iterator:
                     yield i, apply_function(key_example, i)
 
-        if self.batched:
-            if self._state_dict:
-                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                self._state_dict["num_examples_since_previous_state"] = 0
-                self._state_dict["previous_state_example_idx"] = current_idx
-            for key, transformed_batch in iter_outputs():
-                # yield one example at a time from the transformed batch
-                for example in _batch_to_examples(transformed_batch):
-                    current_idx += 1
-                    if self._state_dict:
-                        self._state_dict["num_examples_since_previous_state"] += 1
-                    if num_examples_to_skip > 0:
-                        num_examples_to_skip -= 1
-                        continue
-                    yield key, example
+        try:
+            if self.batched:
                 if self._state_dict:
                     self._state_dict["previous_state"] = self.ex_iterable.state_dict()
                     self._state_dict["num_examples_since_previous_state"] = 0
                     self._state_dict["previous_state_example_idx"] = current_idx
-        else:
-            for key, transformed_example in iter_outputs():
-                current_idx += 1
-                if self._state_dict:
-                    self._state_dict["previous_state_example_idx"] += 1
-                yield key, transformed_example
+                for key, transformed_batch in iter_outputs():
+                    # yield one example at a time from the transformed batch
+                    for example in _batch_to_examples(transformed_batch):
+                        current_idx += 1
+                        if self._state_dict:
+                            self._state_dict["num_examples_since_previous_state"] += 1
+                        if num_examples_to_skip > 0:
+                            num_examples_to_skip -= 1
+                            continue
+                        yield key, example
+                    if self._state_dict:
+                        self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                        self._state_dict["num_examples_since_previous_state"] = 0
+                        self._state_dict["previous_state_example_idx"] = current_idx
+            else:
+                for key, transformed_example in iter_outputs():
+                    current_idx += 1
+                    if self._state_dict:
+                        self._state_dict["previous_state_example_idx"] += 1
+                    yield key, transformed_example
+        except (Exception, KeyboardInterrupt):
+            if loop:
+                logger.debug(f"Canceling {len(tasks)} async tasks.")
+                for task in tasks:
+                    task.cancel(msg="KeyboardInterrupt")
+                try:
+                    loop.run_until_complete(asyncio.gather(*tasks))
+                except asyncio.CancelledError:
+                    logger.debug("Tasks canceled.")
+            raise
 
     def _iter_arrow(self, max_chunksize: Optional[int] = None) -> Iterator[Tuple[Key, pa.Table]]:
         formatter: TableFormatter = get_formatter(self.formatting.format_type) if self.formatting else ArrowFormatter()
