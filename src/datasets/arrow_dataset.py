@@ -808,7 +808,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Important: a dataset created with from_pandas() lives in memory
         and therefore doesn't have an associated cache directory.
-        This may change in the feature, but in the meantime if you
+        This may change in the future, but in the meantime if you
         want to reduce memory usage you should write it back on disk
         and reload using e.g. save_to_disk / load_from_disk.
 
@@ -908,7 +908,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Important: a dataset created with from_dict() lives in memory
         and therefore doesn't have an associated cache directory.
-        This may change in the feature, but in the meantime if you
+        This may change in the future, but in the meantime if you
         want to reduce memory usage you should write it back on disk
         and reload using e.g. save_to_disk / load_from_disk.
 
@@ -973,7 +973,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Important: a dataset created with from_list() lives in memory
         and therefore doesn't have an associated cache directory.
-        This may change in the feature, but in the meantime if you
+        This may change in the future, but in the meantime if you
         want to reduce memory usage you should write it back on disk
         and reload using e.g. save_to_disk / load_from_disk.
 
