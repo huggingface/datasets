@@ -12,38 +12,56 @@ If you want to use 🤗 Datasets with TensorFlow or PyTorch, you'll need to inst
 
 You should install 🤗 Datasets in a [virtual environment](https://docs.python.org/3/library/venv.html) to keep things tidy and avoid dependency conflicts.
 
-1. Create and navigate to your project directory:
+Create and navigate to your project directory.
 
-   ```bash
-   mkdir ~/my-project
-   cd ~/my-project
-   ```
+```bash
+mkdir ~/my-project
+cd ~/my-project
+```
 
-2. Start a virtual environment inside your directory:
+Start a virtual environment inside your directory. You can use python or [uv](https://docs.astral.sh/uv/) (refer to [Installation](https://docs.astral.sh/uv/getting-started/installation/) for installation instructions), a fast Rust-based Python package and project manager.
 
-   ```bash
-   python -m venv .env
-   ```
+<hfoptions id="install">
+<hfoption id="uv">
 
-3. Activate and deactivate the virtual environment with the following commands:
+```bash
+uv venv my-env
+source my-env/bin/activate
+```
 
-   ```bash
-   # Activate the virtual environment
-   source .env/bin/activate
-   
-   # Deactivate the virtual environment
-   source .env/bin/deactivate
-   ```
+</hfoption>
+<hfoption id="python">
+
+```bash
+python -m venv .env
+source ./env/bin/activate
+```
+
+</hfoption>
+</hfoptions>
 
 Once you've created your virtual environment, you can install 🤗 Datasets in it.
 
 ## pip
 
-The most straightforward way to install 🤗 Datasets is with pip:
+The most straightforward way to install 🤗 Datasets is with pip or uv.
+
+<hfoptions id="pip">
+<hfoption id="uv">
+
+```bash
+uv pip install datasets
+```
+
+</hfoption>
+<hfoption id="pip">
 
 ```bash
 pip install datasets
 ```
+
+</hfoption>
+</hfoptions>
 
 Run the following command to check if 🤗 Datasets has been properly installed:
 
