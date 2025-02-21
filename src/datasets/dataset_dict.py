@@ -5,6 +5,7 @@ import json
 import math
 import posixpath
 import re
+from functools import partial
 from io import BytesIO
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
@@ -902,12 +903,17 @@ class DatasetDict(dict):
         if cache_file_names is None:
             cache_file_names = {k: None for k in self}
 
-        if with_split and "split" in fn_kwargs:
-            raise ValueError("The key 'split' is reserved for the split name and cannot be passed in fn_kwargs.")
+        if with_split:
 
-        dataset_dict = dict()
+            class bind(partial):
+                def __call__(self, *fn_args, **fn_kwargs):
+                    breakpoint()
+                    return self.func(*fn_args, *self.args, **fn_kwargs)
+
+            function = bind(function, with_split)
+
+        dataset_dict = {}
         for k, dataset in self.items():
-            fn_kwargs = {**fn_kwargs, "split": k} if with_split else fn_kwargs
             dataset_dict[k] = dataset.map(
                 function=function,
                 with_indices=with_indices,
