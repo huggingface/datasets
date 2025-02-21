@@ -907,7 +907,6 @@ class DatasetDict(dict):
 
             class bind(partial):
                 def __call__(self, *fn_args, **fn_kwargs):
-                    breakpoint()
                     return self.func(*fn_args, *self.args, **fn_kwargs)
 
             function = bind(function, with_split)
