@@ -41,6 +41,11 @@ from .utils.typing import PathLike
 logger = logging.get_logger(__name__)
 
 
+class bind(partial):
+    def __call__(self, *fn_args, **fn_kwargs):
+        return self.func(*fn_args, *self.args, **fn_kwargs)
+
+
 class DatasetDict(dict):
     """A dictionary (dict of str: datasets.Dataset) with dataset transforms methods (map, filter, etc.)"""
 
@@ -797,7 +802,7 @@ class DatasetDict(dict):
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
         disable_nullable: bool = False,
-        fn_kwargs: dict = {},
+        fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
         desc: Optional[str] = None,
     ) -> "DatasetDict":
@@ -903,17 +908,12 @@ class DatasetDict(dict):
         if cache_file_names is None:
             cache_file_names = {k: None for k in self}
 
-        if with_split:
-
-            class bind(partial):
-                def __call__(self, *fn_args, **fn_kwargs):
-                    return self.func(*fn_args, *self.args, **fn_kwargs)
-
-            function = bind(function, with_split)
-
         dataset_dict = {}
-        for k, dataset in self.items():
-            dataset_dict[k] = dataset.map(
+        for split, dataset in self.items():
+            if with_split:
+                function = bind(function, split)
+
+            dataset_dict[split] = dataset.map(
                 function=function,
                 with_indices=with_indices,
                 with_rank=with_rank,
@@ -924,7 +924,7 @@ class DatasetDict(dict):
                 remove_columns=remove_columns,
                 keep_in_memory=keep_in_memory,
                 load_from_cache_file=load_from_cache_file,
-                cache_file_name=cache_file_names[k],
+                cache_file_name=cache_file_names[split],
                 writer_batch_size=writer_batch_size,
                 features=features,
                 disable_nullable=disable_nullable,
@@ -1893,6 +1893,7 @@ class IterableDatasetDict(dict):
         self,
         function: Optional[Callable] = None,
         with_indices: bool = False,
+        with_split: bool = False,
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: int = 1000,
@@ -1966,21 +1967,23 @@ class IterableDatasetDict(dict):
          'text': 'Review: the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
         ```
         """
-        return IterableDatasetDict(
-            {
-                k: dataset.map(
-                    function=function,
-                    with_indices=with_indices,
-                    input_columns=input_columns,
-                    batched=batched,
-                    batch_size=batch_size,
-                    drop_last_batch=drop_last_batch,
-                    remove_columns=remove_columns,
-                    fn_kwargs=fn_kwargs,
-                )
-                for k, dataset in self.items()
-            }
-        )
+
+        dataset_dict = {}
+        for split, dataset in self.items():
+            if with_split:
+                function = bind(function, split)
+
+            dataset_dict[split] = dataset.map(
+                function=function,
+                with_indices=with_indices,
+                input_columns=input_columns,
+                batched=batched,
+                batch_size=batch_size,
+                drop_last_batch=drop_last_batch,
+                remove_columns=remove_columns,
+                fn_kwargs=fn_kwargs,
+            )
+        return IterableDatasetDict(dataset_dict)
 
     def filter(
         self,
