@@ -24,7 +24,10 @@ from huggingface_hub import (
 from huggingface_hub.hf_api import RepoFile
 
 from . import config
-from .arrow_dataset import PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED, Dataset
+from .arrow_dataset import (
+    PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED,
+    Dataset,
+)
 from .features import Features
 from .features.features import FeatureType
 from .info import DatasetInfo, DatasetInfosDict
@@ -409,7 +412,10 @@ class DatasetDict(dict):
         self._check_values_type()
         return DatasetDict(
             {
-                k: dataset.rename_column(original_column_name=original_column_name, new_column_name=new_column_name)
+                k: dataset.rename_column(
+                    original_column_name=original_column_name,
+                    new_column_name=new_column_name,
+                )
                 for k, dataset in self.items()
             }
         )
@@ -554,7 +560,10 @@ class DatasetDict(dict):
         finally:
             for k, dataset in self.items():
                 dataset.set_format(
-                    old_format_type[k], old_format_columns[k], old_output_all_columns[k], **old_format_kwargs[k]
+                    old_format_type[k],
+                    old_format_columns[k],
+                    old_output_all_columns[k],
+                    **old_format_kwargs[k],
                 )
 
     def set_format(
@@ -601,7 +610,12 @@ class DatasetDict(dict):
         """
         self._check_values_type()
         for dataset in self.values():
-            dataset.set_format(type=type, columns=columns, output_all_columns=output_all_columns, **format_kwargs)
+            dataset.set_format(
+                type=type,
+                columns=columns,
+                output_all_columns=output_all_columns,
+                **format_kwargs,
+            )
 
     def reset_format(self):
         """Reset `__getitem__` return format to python objects and all columns.
@@ -657,7 +671,12 @@ class DatasetDict(dict):
         """
         self._check_values_type()
         for dataset in self.values():
-            dataset.set_format("custom", columns=columns, output_all_columns=output_all_columns, transform=transform)
+            dataset.set_format(
+                "custom",
+                columns=columns,
+                output_all_columns=output_all_columns,
+                transform=transform,
+            )
 
     def with_format(
         self,
@@ -728,7 +747,12 @@ class DatasetDict(dict):
         ```
         """
         dataset = copy.deepcopy(self)
-        dataset.set_format(type=type, columns=columns, output_all_columns=output_all_columns, **format_kwargs)
+        dataset.set_format(
+            type=type,
+            columns=columns,
+            output_all_columns=output_all_columns,
+            **format_kwargs,
+        )
         return dataset
 
     def with_transform(
@@ -932,6 +956,9 @@ class DatasetDict(dict):
                 num_proc=num_proc,
                 desc=desc,
             )
+
+            if with_split:
+                function = function.func
 
         return DatasetDict(dataset_dict)
 
@@ -1306,7 +1333,11 @@ class DatasetDict(dict):
 
         fs.makedirs(dataset_dict_path, exist_ok=True)
 
-        with fs.open(posixpath.join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME), "w", encoding="utf-8") as f:
+        with fs.open(
+            posixpath.join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME),
+            "w",
+            encoding="utf-8",
+        ) as f:
             json.dump({"splits": list(self)}, f)
         for k, dataset in self.items():
             dataset.save_to_disk(
@@ -1371,7 +1402,9 @@ class DatasetDict(dict):
         for k in splits:
             dataset_dict_split_path = posixpath.join(fs.unstrip_protocol(dataset_dict_path), k)
             dataset_dict[k] = Dataset.load_from_disk(
-                dataset_dict_split_path, keep_in_memory=keep_in_memory, storage_options=storage_options
+                dataset_dict_split_path,
+                keep_in_memory=keep_in_memory,
+                storage_options=storage_options,
             )
         return dataset_dict
 
@@ -1411,7 +1444,11 @@ class DatasetDict(dict):
         from .io.csv import CsvDatasetReader
 
         return CsvDatasetReader(
-            path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+            path_or_paths,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            **kwargs,
         ).read()
 
     @staticmethod
@@ -1450,7 +1487,11 @@ class DatasetDict(dict):
         from .io.json import JsonDatasetReader
 
         return JsonDatasetReader(
-            path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+            path_or_paths,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            **kwargs,
         ).read()
 
     @staticmethod
@@ -1538,7 +1579,11 @@ class DatasetDict(dict):
         from .io.text import TextDatasetReader
 
         return TextDatasetReader(
-            path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+            path_or_paths,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            **kwargs,
         ).read()
 
     @is_documented_by(Dataset.align_labels_with_mapping)
@@ -1681,7 +1726,13 @@ class DatasetDict(dict):
 
         if revision is not None and not revision.startswith("refs/pr/"):
             # We do not call create_branch for a PR reference: 400 Bad Request
-            api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
+            api.create_branch(
+                repo_id,
+                branch=revision,
+                token=token,
+                repo_type="dataset",
+                exist_ok=True,
+            )
 
         if not data_dir:
             data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
@@ -1717,7 +1768,11 @@ class DatasetDict(dict):
         deletions = []
         repo_files_to_add = [addition.path_in_repo for addition in additions]
         for repo_file in api.list_repo_tree(
-            repo_id=repo_id, revision=revision, repo_type="dataset", token=token, recursive=True
+            repo_id=repo_id,
+            revision=revision,
+            repo_type="dataset",
+            token=token,
+            recursive=True,
         ):
             if not isinstance(repo_file, RepoFile):
                 continue
@@ -1731,7 +1786,8 @@ class DatasetDict(dict):
             ):
                 deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
             elif fnmatch.fnmatch(
-                repo_file.rfilename, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*")
+                repo_file.rfilename,
+                PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
             ):
                 repo_split = string_to_dict(
                     repo_file.rfilename,
@@ -1743,7 +1799,10 @@ class DatasetDict(dict):
         # get the info from the README to update them
         if repo_with_dataset_card:
             dataset_card_path = api.hf_hub_download(
-                repo_id, config.REPOCARD_FILENAME, repo_type="dataset", revision=revision
+                repo_id,
+                config.REPOCARD_FILENAME,
+                repo_type="dataset",
+                revision=revision,
             )
             dataset_card = DatasetCard.load(Path(dataset_card_path))
             dataset_card_data = dataset_card.data
@@ -1780,7 +1839,10 @@ class DatasetDict(dict):
         # push to the deprecated dataset_infos.json
         if repo_with_dataset_infos:
             dataset_infos_path = api.hf_hub_download(
-                repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=revision
+                repo_id,
+                config.DATASETDICT_INFOS_FILENAME,
+                repo_type="dataset",
+                revision=revision,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: dict = json.load(f)
@@ -1788,14 +1850,20 @@ class DatasetDict(dict):
             buffer = BytesIO()
             buffer.write(json.dumps(dataset_infos, indent=4).encode("utf-8"))
             additions.append(
-                CommitOperationAdd(path_in_repo=config.DATASETDICT_INFOS_FILENAME, path_or_fileobj=buffer)
+                CommitOperationAdd(
+                    path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+                    path_or_fileobj=buffer,
+                )
             )
         # push to README
         DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
         MetadataConfigs({config_name: metadata_config_to_dump}).to_dataset_card_data(dataset_card_data)
         dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
         additions.append(
-            CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
+            CommitOperationAdd(
+                path_in_repo=config.REPOCARD_FILENAME,
+                path_or_fileobj=str(dataset_card).encode(),
+            )
         )
 
         commit_message = commit_message if commit_message is not None else "Upload dataset"
@@ -1983,6 +2051,10 @@ class IterableDatasetDict(dict):
                 remove_columns=remove_columns,
                 fn_kwargs=fn_kwargs,
             )
+
+            if with_split:
+                function = function.func
+
         return IterableDatasetDict(dataset_dict)
 
     def filter(
@@ -2049,7 +2121,10 @@ class IterableDatasetDict(dict):
         )
 
     def shuffle(
-        self, seed=None, generator: Optional[np.random.Generator] = None, buffer_size: int = 1000
+        self,
+        seed=None,
+        generator: Optional[np.random.Generator] = None,
+        buffer_size: int = 1000,
     ) -> "IterableDatasetDict":
         """
         Randomly shuffles the elements of this dataset.
@@ -2134,7 +2209,10 @@ class IterableDatasetDict(dict):
         """
         return IterableDatasetDict(
             {
-                k: dataset.rename_column(original_column_name=original_column_name, new_column_name=new_column_name)
+                k: dataset.rename_column(
+                    original_column_name=original_column_name,
+                    new_column_name=new_column_name,
+                )
                 for k, dataset in self.items()
             }
         )
