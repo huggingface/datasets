@@ -3581,6 +3581,10 @@ def test_dataset_add_column(column, expected_dtype, in_memory, transform, datase
         expected_dataset_indices = original_dataset._indices["indices"].to_pylist()
         assert dataset_indices == expected_dataset_indices
     assert_arrow_metadata_are_synced_with_dataset_features(dataset)
+    indexed_dataset = original_dataset.map(lambda x: {"emb": np.random.uniform(-1, 0, 5).astype(np.float32)})
+    indexed_dataset.add_faiss_index(column="emb")
+    dataset = indexed_dataset.add_column(column_name, column)
+    assert dataset.list_indexes() == indexed_dataset.list_indexes()
 
 
 @pytest.mark.parametrize(

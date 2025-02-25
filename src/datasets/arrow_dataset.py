@@ -639,11 +639,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
         indices_table: Optional[Table] = None,
+        indexes: Optional[dict] = None,
         fingerprint: Optional[str] = None,
     ):
         info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
-        IndexableMixin.__init__(self)
+        IndexableMixin.__init__(self, indexes=indexes)
 
         self._data: Table = _check_table(arrow_table)
         self._indices: Optional[Table] = _check_table(indices_table) if indices_table is not None else None
@@ -5797,7 +5798,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         info = dataset.info.copy()
         info.features.update(Features.from_arrow_schema(column_table.schema))
         table = update_metadata_with_features(table, info.features)
-        return Dataset(table, info=info, split=self.split, indices_table=None, fingerprint=new_fingerprint)
+        return Dataset(
+            table, info=info, split=self.split, indices_table=None, indexes=self._indexes, fingerprint=new_fingerprint
+        )
 
     def add_faiss_index(
         self,
