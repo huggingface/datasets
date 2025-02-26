@@ -1,12 +1,27 @@
+from __future__ import annotations
+
 import os
 import posixpath
+import shutil
 import uuid
 from dataclasses import dataclass
 from itertools import islice
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Generator,
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    Optional,
+    Sequence,
+    Union,
+)
 
 import numpy as np
 import pyarrow as pa
+import pyspark.sql
 
 import datasets
 from datasets.arrow_writer import ArrowWriter, ParquetWriter
@@ -24,7 +39,6 @@ logger = datasets.utils.logging.get_logger(__name__)
 
 if TYPE_CHECKING:
     import pyspark
-    import pyspark.sql
 
 
 @dataclass
@@ -33,11 +47,13 @@ class SparkConfig(datasets.BuilderConfig):
 
     features: Optional[datasets.Features] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
 
 
-def _reorder_dataframe_by_partition(df: "pyspark.sql.DataFrame", new_partition_order: List[int]):
+def _reorder_dataframe_by_partition(
+    df: pyspark.sql.DataFrame, new_partition_order: Sequence[int]
+) -> pyspark.sql.DataFrame:
     df_combined = df.select("*").where(f"part_id = {new_partition_order[0]}")
     for partition_id in new_partition_order[1:]:
         partition_df = df.select("*").where(f"part_id = {partition_id}")
@@ -46,10 +62,10 @@ def _reorder_dataframe_by_partition(df: "pyspark.sql.DataFrame", new_partition_o
 
 
 def _generate_iterable_examples(
-    df: "pyspark.sql.DataFrame",
-    partition_order: List[int],
-    state_dict: Optional[dict] = None,
-):
+    df: pyspark.sql.DataFrame,
+    partition_order: Sequence[int],
+    state_dict: Optional[MutableMapping] = None,
+) -> Generator[tuple[str, dict]]:
     import pyspark
 
     df_with_partition_id = df.select("*", pyspark.sql.functions.spark_partition_id().alias("part_id"))
@@ -77,30 +93,30 @@ def _generate_iterable_examples(
 class SparkExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
-        df: "pyspark.sql.DataFrame",
-        partition_order=None,
-    ):
+        df: pyspark.sql.DataFrame,
+        partition_order: Optional[Sequence[int]] = None,
+    ) -> None:
         super().__init__()
         self.df = df
         self.partition_order = partition_order or range(self.df.rdd.getNumPartitions())
 
-    def _init_state_dict(self) -> dict:
+    def _init_state_dict(self) -> dict[str, int]:
         self._state_dict = {"partition_idx": 0, "partition_example_idx": 0}
         return self._state_dict
 
     @experimental
-    def load_state_dict(self, state_dict: dict) -> dict:
+    def load_state_dict(self, state_dict: Optional[Mapping]) -> Optional[Mapping]:
         return super().load_state_dict(state_dict)
 
-    def __iter__(self):
+    def __iter__(self) -> Generator[tuple[str, dict]]:
         yield from _generate_iterable_examples(self.df, self.partition_order, self._state_dict)
 
-    def shuffle_data_sources(self, generator: np.random.Generator) -> "SparkExamplesIterable":
+    def shuffle_data_sources(self, generator: np.random.Generator) -> SparkExamplesIterable:
         partition_order = list(range(self.df.rdd.getNumPartitions()))
         generator.shuffle(partition_order)
         return SparkExamplesIterable(self.df, partition_order=partition_order)
 
-    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "SparkExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous: bool = True) -> SparkExamplesIterable:
         partition_order = self.split_shard_indices_by_worker(num_shards=num_shards, index=index, contiguous=contiguous)
         return SparkExamplesIterable(self.df, partition_order=partition_order)
 
@@ -114,11 +130,11 @@ class Spark(datasets.DatasetBuilder):
 
     def __init__(
         self,
-        df: "pyspark.sql.DataFrame",
-        cache_dir: str = None,
-        working_dir: str = None,
-        **config_kwargs,
-    ):
+        df: pyspark.sql.DataFrame,
+        cache_dir: Optional[str] = None,
+        working_dir: Optional[str] = None,
+        **config_kwargs: Any,
+    ) -> None:
         import pyspark
 
         self._spark = pyspark.sql.SparkSession.builder.getOrCreate()
@@ -131,13 +147,13 @@ class Spark(datasets.DatasetBuilder):
             **config_kwargs,
         )
 
-    def _validate_cache_dir(self):
+    def _validate_cache_dir(self) -> None:
         # Define this so that we don't reference self in create_cache_and_write_probe, which will result in a pickling
         # error due to pickling the SparkContext.
         cache_dir = self._cache_dir
 
         # Returns the path of the created file.
-        def create_cache_and_write_probe(context):
+        def create_cache_and_write_probe(context) -> list[str]:
             # makedirs with exist_ok will recursively create the directory. It will not throw an error if directories
             # already exist.
             os.makedirs(cache_dir, exist_ok=True)
@@ -164,16 +180,18 @@ class Spark(datasets.DatasetBuilder):
             "When using Dataset.from_spark on a multi-node cluster, the driver and all workers should be able to access cache_dir"
         )
 
-    def _info(self):
+    def _info(self) -> datasets.DatasetInfo:
         return datasets.DatasetInfo(features=self.config.features)
 
-    def _split_generators(self, dl_manager: datasets.download.download_manager.DownloadManager):
+    def _split_generators(
+        self, dl_manager: datasets.download.download_manager.DownloadManager
+    ) -> list[datasets.SplitGenerator]:
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN)]
 
-    def _repartition_df_if_needed(self, max_shard_size):
+    def _repartition_df_if_needed(self, max_shard_size: int) -> None:
         import pyspark
 
-        def get_arrow_batch_size(it):
+        def get_arrow_batch_size(it: Iterable[pa.RecordBatch]) -> Generator[pa.RecordBatch]:
             for batch in it:
                 yield pa.RecordBatch.from_pydict({"batch_bytes": [batch.nbytes]})
 
@@ -200,7 +218,7 @@ class Spark(datasets.DatasetBuilder):
         fpath: str,
         file_format: str,
         max_shard_size: int,
-    ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
+    ) -> Generator[tuple[int, tuple[int, int, int, int]]]:
         import pyspark
 
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
@@ -213,7 +231,7 @@ class Spark(datasets.DatasetBuilder):
         writer_batch_size = self._writer_batch_size
         storage_options = self._fs.storage_options
 
-        def write_arrow(it):
+        def write_arrow(it: Iterator[pa.RecordBatch]) -> Union[pa.RecordBatch, Generator[pa.RecordBatch]]:
             # Within the same SparkContext, no two task attempts will share the same attempt ID.
             task_id = pyspark.TaskContext().taskAttemptId()
             first_batch = next(it, None)
@@ -281,12 +299,12 @@ class Spark(datasets.DatasetBuilder):
 
     def _prepare_split(
         self,
-        split_generator: "datasets.SplitGenerator",
+        split_generator: datasets.SplitGenerator,
         file_format: str = "arrow",
         max_shard_size: Optional[Union[str, int]] = None,
         num_proc: Optional[int] = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         self._validate_cache_dir()
 
         max_shard_size = convert_file_size_to_int(max_shard_size or MAX_SHARD_SIZE)
@@ -335,7 +353,7 @@ class Spark(datasets.DatasetBuilder):
                 task_id: int,
                 shard_id: int,
                 global_shard_id: int,
-            ):
+            ) -> None:
                 rename(
                     fs,
                     fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
@@ -361,6 +379,6 @@ class Spark(datasets.DatasetBuilder):
 
     def _get_examples_iterable_for_split(
         self,
-        split_generator: "datasets.SplitGenerator",
+        split_generator: datasets.SplitGenerator,
     ) -> SparkExamplesIterable:
         return SparkExamplesIterable(self.df)
