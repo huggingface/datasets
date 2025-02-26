@@ -16,11 +16,15 @@
 """Utilities to handle file locking in `datasets`."""
 
 import os
+from typing import Any, TypeVar
 
 from filelock import FileLock as FileLock_
 from filelock import UnixFileLock
 from filelock import __version__ as _filelock_version
 from packaging import version
+
+
+T = TypeVar("T", bound="FileLock")
 
 
 class FileLock(FileLock_):
@@ -31,7 +35,7 @@ class FileLock(FileLock_):
 
     MAX_FILENAME_LENGTH = 255
 
-    def __init__(self, lock_file: str, *args, **kwargs) -> None:
+    def __init__(self, lock_file: str, *args: Any, **kwargs: Any) -> None:
         # The "mode" argument is required if we want to use the current umask in filelock >= 3.10
         # In previous previous it was already using the current umask.
         if "mode" not in kwargs and version.parse(_filelock_version) >= version.parse("3.10.0"):
@@ -42,7 +46,7 @@ class FileLock(FileLock_):
         super().__init__(lock_file, *args, **kwargs)
 
     @classmethod
-    def hash_filename_if_too_long(cls, path: str) -> str:
+    def hash_filename_if_too_long(cls: type[T], path: str) -> str:
         path = os.path.abspath(os.path.expanduser(path))
         filename = os.path.basename(path)
         max_filename_length = cls.MAX_FILENAME_LENGTH
