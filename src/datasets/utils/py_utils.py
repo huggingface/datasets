@@ -15,6 +15,8 @@
 # Lint as: python3
 """Some python utils function and classes."""
 
+from __future__ import annotations
+
 import copy
 import functools
 import itertools
@@ -30,12 +32,28 @@ from multiprocessing import Manager
 from pathlib import Path
 from queue import Empty
 from shutil import disk_usage
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Generator,
+    Generic,
+    Iterable,
+    Iterator,
+    Literal,
+    Optional,
+    Set,
+    Type,
+    TypeGuard,
+    TypeVar,
+    Union,
+)
 from urllib.parse import urlparse
 
 import multiprocess
 import multiprocess.pool
 import numpy as np
+from filelock import BaseFileLock
 from tqdm.auto import tqdm
 
 from .. import config
@@ -51,12 +69,8 @@ from ._dill import (  # noqa: F401 # imported for backward compatibility. TODO: 
 from ._filelock import FileLock
 
 
-try:  # pragma: no branch
-    import typing_extensions as _typing_extensions
-    from typing_extensions import Final, Literal
-except ImportError:
-    _typing_extensions = Literal = Final = None
-
+if TYPE_CHECKING:
+    from _typeshed import ConvertibleToFloat, DataclassInstance
 
 logger = logging.get_logger(__name__)
 
@@ -69,7 +83,7 @@ logger = logging.get_logger(__name__)
 memoize = functools.lru_cache
 
 
-def size_str(size_in_bytes):
+def size_str(size_in_bytes: ConvertibleToFloat) -> str:
     """Returns a human readable size string.
 
     If size_in_bytes is None, then returns "Unknown size".
@@ -137,7 +151,7 @@ def convert_file_size_to_int(size: Union[int, str]) -> int:
     raise ValueError(f"`size={size}` is not in a valid format. Use an integer followed by the unit, e.g., '5GB'.")
 
 
-def glob_pattern_to_regex(pattern):
+def glob_pattern_to_regex(pattern: str) -> str:
     # partially taken from fsspec:
     # https://github.com/fsspec/filesystem_spec/blob/697d0f8133d8a5fbc3926e4761d7ecd51337ce50/fsspec/asyn.py#L735
     return (
@@ -156,7 +170,7 @@ def glob_pattern_to_regex(pattern):
     )
 
 
-def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
+def string_to_dict(string: str, pattern: str) -> dict[str, str]:
     """Un-format a string using a python f-string pattern.
     From https://stackoverflow.com/a/36838374
 
@@ -174,7 +188,7 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
         pattern (str): pattern formatted like a python f-string
 
     Returns:
-        Dict[str, str]: dictionary of variable -> value, retrieved from the input using the pattern
+        dict[str, str]: dictionary of variable -> value, retrieved from the input using the pattern
 
     Raises:
         ValueError: if the string doesn't match the pattern
@@ -189,15 +203,14 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
     return _dict
 
 
-def asdict(obj):
+def asdict(obj: object) -> dict[str, Any]:
     """Convert an object to its dictionary representation recursively.
 
     <Added version="2.4.0"/>
     """
 
     # Implementation based on https://docs.python.org/3/library/dataclasses.html#dataclasses.asdict
-
-    def _is_dataclass_instance(obj):
+    def _is_dataclass_instance(obj: object) -> TypeGuard[DataclassInstance]:
         # https://docs.python.org/3/library/dataclasses.html#dataclasses.is_dataclass
         return is_dataclass(obj) and not isinstance(obj, type)
 
@@ -229,7 +242,7 @@ def asdict(obj):
 
 
 @contextmanager
-def temporary_assignment(obj, attr, value):
+def temporary_assignment(obj: object, attr: str, value: object) -> Generator[Any]:
     """Temporarily assign obj.attr to value."""
     original = getattr(obj, attr, None)
     setattr(obj, attr, value)
@@ -240,7 +253,7 @@ def temporary_assignment(obj, attr, value):
 
 
 @contextmanager
-def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
+def temp_seed(seed: int, set_pytorch: bool = False, set_tensorflow: bool = False) -> Generator[Any]:
     """Temporarily set the random seed. This works for python numpy, pytorch and tensorflow."""
     np_state = np.random.get_state()
     np.random.seed(seed)
@@ -293,7 +306,7 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
                 delattr(tf_context, "_rng")
 
 
-def unique_values(values):
+def unique_values(values: Iterable) -> Generator[Any]:
     """Iterate over iterable and return only unique values in order."""
     seen = set()
     for value in values:
@@ -302,16 +315,20 @@ def unique_values(values):
             yield value
 
 
-def no_op_if_value_is_null(func):
+T = TypeVar("T")
+R = TypeVar("R")
+
+
+def no_op_if_value_is_null(func: Callable[[T], R]) -> Callable[[Optional[T]], Optional[R]]:
     """If the value is None, return None, else call `func`."""
 
-    def wrapper(value):
+    def wrapper(value: Optional[T]) -> Optional[R]:
         return func(value) if value is not None else None
 
     return wrapper
 
 
-def first_non_null_value(iterable):
+def first_non_null_value(iterable: Iterable) -> tuple[int, Any]:
     """Return the index and the value of the first non-null value in the iterable. If all values are None, return -1 as index."""
     for i, value in enumerate(iterable):
         if value is not None:
@@ -319,14 +336,18 @@ def first_non_null_value(iterable):
     return -1, None
 
 
-def zip_dict(*dicts):
+def zip_dict(*dicts: dict[Any, Any]) -> Iterator:
     """Iterate over items of dictionaries grouped by their keys."""
     for key in unique_values(itertools.chain(*dicts)):  # set merge all keys
         # Will raise KeyError if the dict don't have the same keys
         yield key, tuple(d[key] for d in dicts)
 
 
-class NonMutableDict(dict):
+KT = TypeVar("KT")
+VT = TypeVar("VT")
+
+
+class NonMutableDict(dict[KT, VT], Generic[KT, VT]):
     """Dict where keys can only be added but not modified.
 
     Will raise an error if the user try to overwrite one key. The error message
@@ -334,7 +355,7 @@ class NonMutableDict(dict):
     the overwritten key.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self._error_msg = kwargs.pop(
             "error_msg",
             "Try to overwrite existing key: {key}",
@@ -343,25 +364,26 @@ class NonMutableDict(dict):
             raise ValueError("NonMutableDict cannot be initialized with kwargs.")
         super().__init__(*args, **kwargs)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: KT, value: VT) -> None:
         if key in self:
             raise ValueError(self._error_msg.format(key=key))
         return super().__setitem__(key, value)
 
-    def update(self, other):
+    def update(self, other) -> None:
         if any(k in self for k in other):
             raise ValueError(self._error_msg.format(key=set(self) & set(other)))
         return super().update(other)
 
 
-class classproperty(property):  # pylint: disable=invalid-name
+class classproperty(property, Generic[T]):  # pylint: disable=invalid-name
     """Descriptor to be used as decorator for @classmethods."""
 
-    def __get__(self, obj, objtype=None):
-        return self.fget.__get__(None, objtype)()
+    def __get__(self, obj: Optional[T], objtype: Optional[type[T]] = None) -> Optional[T]:
+        if self.fget is not None:
+            return self.fget.__get__(None, objtype)()
 
 
-def _single_map_nested(args):
+def _single_map_nested(args: Iterable) -> Union[dict, list, tuple, np.ndarray]:
     """Apply a function recursively to each element of a nested data struct."""
     function, data_struct, batched, batch_size, types, rank, disable_tqdm, desc = args
 
@@ -403,7 +425,7 @@ def _single_map_nested(args):
                 return tuple(mapped)
             else:
                 return np.array(mapped)
-
+from typing import Sequence
 
 def map_nested(
     function: Callable[[Any], Any],
@@ -415,8 +437,8 @@ def map_nested(
     num_proc: Optional[int] = None,
     parallel_min_length: int = 2,
     batched: bool = False,
-    batch_size: Optional[int] = 1000,
-    types: Optional[tuple] = None,
+    batch_size: int = 1000,
+    types: Optional[Sequence[type]] = None,
     disable_tqdm: bool = True,
     desc: Optional[str] = None,
 ) -> Any:
@@ -467,7 +489,7 @@ def map_nested(
         `Any`
     """
     if types is None:
-        types = []
+        types: list[None] = []
         if not dict_only:
             if map_list:
                 types.append(list)
@@ -475,7 +497,7 @@ def map_nested(
                 types.append(tuple)
             if map_numpy:
                 types.append(np.ndarray)
-        types = tuple(types)
+        types: tuple = tuple(types)
 
     # Singleton
     if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
@@ -543,10 +565,10 @@ def map_nested(
 
 
 class NestedDataStructure:
-    def __init__(self, data=None):
+    def __init__(self, data: Optional[Iterable] = None) -> None:
         self.data = data if data is not None else []
 
-    def flatten(self, data=None):
+    def flatten(self, data: Optional[Iterable] = None) -> list:
         data = data if data is not None else self.data
         if isinstance(data, dict):
             return self.flatten(list(data.values()))
@@ -556,7 +578,7 @@ class NestedDataStructure:
             return [data]
 
 
-def has_sufficient_disk_space(needed_bytes, directory="."):
+def has_sufficient_disk_space(needed_bytes: int, directory: str = ".") -> bool:
     try:
         free_bytes = disk_usage(os.path.abspath(directory)).free
     except OSError:
@@ -564,7 +586,7 @@ def has_sufficient_disk_space(needed_bytes, directory="."):
     return needed_bytes < free_bytes
 
 
-def _convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
+def _convert_github_url(url_path: str) -> tuple[str, Optional[str]]:
     """Convert a link to a file on a github repo in a link to the raw github object."""
     parsed = urlparse(url_path)
     sub_directory = None
@@ -583,7 +605,7 @@ def _convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
     return url_path, sub_directory
 
 
-def lock_importable_file(importable_local_file: str) -> FileLock:
+def lock_importable_file(importable_local_file: Union[str, os.PathLike]) -> BaseFileLock:
     # Check the directory with a unique name in our dataset folder
     # path is: ./datasets/dataset_name/hash_from_code/script.py
     # we use a hash as subdirectory_name to be able to have multiple versions of a dataset processing file together
@@ -592,7 +614,9 @@ def lock_importable_file(importable_local_file: str) -> FileLock:
     return FileLock(lock_path)
 
 
-def get_imports(file_path: str) -> Tuple[str, str, str, str]:
+
+
+def get_imports(file_path: str) -> list[tuple[Literal["external", "internal", "library"], str, str ,Optional[str]]]:
     """Find whether we should import or clone additional files for a given processing script.
         And list the import.
 
@@ -617,7 +641,7 @@ def get_imports(file_path: str) -> Tuple[str, str, str, str]:
         lines.extend(f.readlines())
 
     logger.debug(f"Checking {file_path} for additional imports.")
-    imports: List[Tuple[str, str, str, Optional[str]]] = []
+    imports: list[tuple[Literal["external", "internal", "library"], str, str ,Optional[str]]] = []
     is_in_docstring = False
     for line in lines:
         docstr_start_match = re.findall(r'[\s\S]*?"""[\s\S]*?', line)
@@ -665,7 +689,7 @@ def get_imports(file_path: str) -> Tuple[str, str, str, str]:
     return imports
 
 
-def copyfunc(func):
+def copyfunc(func: Callable) -> Callable:
     result = types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
     result.__kwdefaults__ = func.__kwdefaults__
     return result
@@ -718,10 +742,7 @@ def iflatmap_unordered(
                 [async_result.get(timeout=0.05) for async_result in async_results]
 
 
-T = TypeVar("T")
-
-
-def iter_batched(iterable: Iterable[T], n: int) -> Iterable[List[T]]:
+def iter_batched(iterable: Iterable[T], n: int) -> Iterable[list[T]]:
     if n < 1:
         raise ValueError(f"Invalid batch size {n}")
     batch = []
