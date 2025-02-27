@@ -63,17 +63,11 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
 
             if isinstance(value, PIL.Image.Image):
                 return np.asarray(value, **self.np_array_kwargs)
-        if config.DECORD_AVAILABLE and "decord" in sys.modules:
-            # We need to import torch first, otherwise later it can cause issues
-            # e.g. "RuntimeError: random_device could not be read"
-            # when running `torch.tensor(value).share_memory_()`
-            if config.TORCH_AVAILABLE:
-                import torch  # noqa
-            from decord import VideoReader
+        if config.TORCHCODEC_AVAILABLE and "decord" in sys.modules:
+            from torchcodec.decoders import VideoDecoder
 
-            if isinstance(value, VideoReader):
-                value._hf_bridge_out = np.asarray
-                return value
+            if isinstance(value, VideoDecoder):
+                pass  # TODO(QL): set output to np arrays ?
 
         return np.asarray(value, **{**default_dtype, **self.np_array_kwargs})
 

@@ -76,13 +76,11 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
                     value = value[:, :, np.newaxis]
 
                 value = value.transpose((2, 0, 1))
-        if config.DECORD_AVAILABLE and "decord" in sys.modules:
-            from decord import VideoReader
-            from decord.bridge import to_torch
+        if config.TORCHCODEC_AVAILABLE and "decord" in sys.modules:
+            from torchcodec.decoders import VideoDecoder
 
-            if isinstance(value, VideoReader):
-                value._hf_bridge_out = to_torch
-                return value
+            if isinstance(value, VideoDecoder):
+                pass  # TODO(QL): set output to torch tensors ?
 
         return torch.tensor(value, **{**default_dtype, **self.torch_tensor_kwargs})
 

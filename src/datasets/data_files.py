@@ -107,11 +107,14 @@ if config.FSSPEC_VERSION < version.parse("2023.9.0"):
         "**/metadata.csv",
         "metadata.jsonl",
         "**/metadata.jsonl",
+        "metadata.parquet",
+        "**/metadata.parquet",
     ]  # metadata file for ImageFolder and AudioFolder
 else:
     METADATA_PATTERNS = [
         "**/metadata.csv",
         "**/metadata.jsonl",
+        "**/metadata.parquet",
     ]  # metadata file for ImageFolder and AudioFolder
 WILDCARD_CHARACTERS = "*[]"
 FILES_TO_IGNORE = [

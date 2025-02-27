@@ -185,7 +185,7 @@ def require_decord(test_case):
     These tests are skipped when decord isn't installed.
 
     """
-    if not config.DECORD_AVAILABLE:
+    if not config.TORCHCODEC_AVAILABLE:
         test_case = unittest.skip("test requires decord")(test_case)
     return test_case
 

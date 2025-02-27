@@ -1,6 +1,5 @@
 import os
 from dataclasses import dataclass, field
-from io import BytesIO
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
 
 import numpy as np
@@ -14,7 +13,7 @@ from ..utils.py_utils import string_to_dict
 
 
 if TYPE_CHECKING:
-    from decord import VideoReader
+    from torchcodec.decoders import VideoDecoder
 
     from .features import FeatureType
 
@@ -33,7 +32,7 @@ class Video:
 
       This is useful for archived files with sequential access.
 
-    - A `decord.VideoReader`: decord video reader object.
+    - A `decord.VideoDecoder`: decord video reader object.
 
     Args:
         mode (`str`, *optional*):
@@ -50,7 +49,7 @@ class Video:
     >>> ds.features["video"]
     Video(decode=True, id=None)
     >>> ds[0]["video"]
-    <decord.video_reader.VideoReader at 0x105525c70>
+    <decord.video_reader.VideoDecoder at 0x105525c70>
     >>> ds = ds.cast_column('video', Video(decode=False))
     {'bytes': None,
      'path': 'path/to/Screen Recording.mov'}
@@ -60,32 +59,32 @@ class Video:
     decode: bool = True
     id: Optional[str] = None
     # Automatically constructed
-    dtype: ClassVar[str] = "decord.VideoReader"
+    dtype: ClassVar[str] = "decord.VideoDecoder"
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
     _type: str = field(default="Video", init=False, repr=False)
 
     def __post_init__(self):
-        if config.DECORD_AVAILABLE:
-            patch_decord()
+        if config.TORCHCODEC_AVAILABLE:
+            patch_torchcodec()
 
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, bytes, dict, np.ndarray, "VideoReader"]) -> dict:
+    def encode_example(self, value: Union[str, bytes, dict, np.ndarray, "VideoDecoder"]) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
-            value (`str`, `np.ndarray`, `VideoReader` or `dict`):
+            value (`str`, `np.ndarray`, `VideoDecoder` or `dict`):
                 Data passed as input to Video feature.
 
         Returns:
             `dict` with "path" and "bytes" fields
         """
-        if config.DECORD_AVAILABLE:
-            from decord import VideoReader
+        if config.TORCHCODEC_AVAILABLE:
+            from torchcodec.decoders import VideoDecoder
 
         else:
-            VideoReader = None
+            VideoDecoder = None
 
         if isinstance(value, list):
             value = np.array(value)
@@ -97,7 +96,7 @@ class Video:
         elif isinstance(value, np.ndarray):
             # convert the video array to bytes
             return encode_np_array(value)
-        elif VideoReader and isinstance(value, VideoReader):
+        elif VideoDecoder and isinstance(value, VideoDecoder):
             # convert the decord video reader to bytes
             return encode_decord_video(value)
         elif value.get("path") is not None and os.path.isfile(value["path"]):
@@ -111,7 +110,7 @@ class Video:
                 f"A video sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
             )
 
-    def decode_example(self, value: dict, token_per_repo_id=None) -> "VideoReader":
+    def decode_example(self, value: dict, token_per_repo_id=None) -> "VideoDecoder":
         """Decode example video file into video data.
 
         Args:
@@ -127,13 +126,13 @@ class Video:
                 a dictionary repo_id (`str`) -> token (`bool` or `str`).
 
         Returns:
-            `decord.VideoReader`
+            `decord.VideoDecoder`
         """
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Video(decode=True) instead.")
 
-        if config.DECORD_AVAILABLE:
-            from decord import VideoReader
+        if config.TORCHCODEC_AVAILABLE:
+            from torchcodec.decoders import VideoDecoder
 
         else:
             raise ImportError("To support decoding videos, please install 'decord'.")
@@ -147,7 +146,7 @@ class Video:
                 raise ValueError(f"A video should have one of 'path' or 'bytes' but both are None in {value}.")
             else:
                 if is_local_path(path):
-                    video = VideoReader(path)
+                    video = VideoDecoder(path)
                 else:
                     source_url = path.split("::")[-1]
                     pattern = (
@@ -162,10 +161,9 @@ class Video:
                         token = None
                     download_config = DownloadConfig(token=token)
                     with xopen(path, "rb", download_config=download_config) as f:
-                        bytes_ = BytesIO(f.read())
-                    video = VideoReader(bytes_)
+                        video = VideoDecoder(f.read())
         else:
-            video = VideoReader(BytesIO(bytes_))
+            video = VideoDecoder(bytes_)
         return video
 
     def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
@@ -228,12 +226,12 @@ class Video:
         return array_cast(storage, self.pa_type)
 
 
-def video_to_bytes(video: "VideoReader") -> bytes:
+def video_to_bytes(video: "VideoDecoder") -> bytes:
     """Convert a decord Video object to bytes using native compression if possible"""
     raise NotImplementedError()
 
 
-def encode_decord_video(video: "VideoReader") -> dict:
+def encode_decord_video(video: "VideoDecoder") -> dict:
     if hasattr(video, "_hf_encoded"):
         return video._hf_encoded
     else:
@@ -253,44 +251,18 @@ def encode_np_array(array: np.ndarray) -> dict:
 # This doesn't affect the normal usage of decord.
 
 
-def _patched_init(self: "VideoReader", uri: Union[str, BytesIO], *args, **kwargs) -> None:
-    from decord.bridge import bridge_out
-
-    if hasattr(uri, "read"):
-        self._hf_encoded = {"bytes": uri.read(), "path": None}
-        uri.seek(0)
-    elif isinstance(uri, str):
-        self._hf_encoded = {"bytes": None, "path": uri}
-    self._hf_bridge_out = bridge_out
-    self._original_init(uri, *args, **kwargs)
+def _patched_init(self: "VideoDecoder", source: Union[str, bytes], *args, **kwargs) -> None:
+    if isinstance(source, bytes):
+        self._hf_encoded = {"bytes": source, "path": None}
+    elif isinstance(source, str):
+        self._hf_encoded = {"bytes": None, "path": source}
+    self._original_init(source, *args, **kwargs)
 
 
-def _patched_next(self: "VideoReader", *args, **kwargs):
-    return self._hf_bridge_out(self._original_next(*args, **kwargs))
+def patch_torchcodec():
+    from torchcodec.decoders import VideoDecoder
 
-
-def _patched_get_batch(self: "VideoReader", *args, **kwargs):
-    return self._hf_bridge_out(self._original_get_batch(*args, **kwargs))
-
-
-def patch_decord():
-    # We need to import torch first, otherwise later it can cause issues
-    # e.g. "RuntimeError: random_device could not be read"
-    # when running `torch.tensor(value).share_memory_()`
-    # Same for duckdb which crashes on import
-    if config.TORCH_AVAILABLE:
-        import torch  # noqa
-    if config.DUCKDB_AVAILABLE:
-        import duckdb  # noqa
-    import decord.video_reader
-    from decord import VideoReader
-
-    if not hasattr(VideoReader, "_hf_patched"):
-        decord.video_reader.bridge_out = lambda x: x
-        VideoReader._original_init = VideoReader.__init__
-        VideoReader.__init__ = _patched_init
-        VideoReader._original_next = VideoReader.next
-        VideoReader.next = _patched_next
-        VideoReader._original_get_batch = VideoReader.get_batch
-        VideoReader.get_batch = _patched_get_batch
-        VideoReader._hf_patched = True
+    if not hasattr(VideoDecoder, "_hf_patched"):
+        VideoDecoder._original_init = VideoDecoder.__init__
+        VideoDecoder.__init__ = _patched_init
+        VideoDecoder._hf_patched = True

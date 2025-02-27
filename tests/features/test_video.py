@@ -19,7 +19,7 @@ from ..utils import require_decord
     ],
 )
 def test_video_feature_encode_example(shared_datadir, build_example):
-    from decord import VideoReader
+    from torchcodec.decoders import VideoDecoder
 
     video_path = str(shared_datadir / "test_video_66x50.mov")
     video = Video()
@@ -28,13 +28,13 @@ def test_video_feature_encode_example(shared_datadir, build_example):
     assert encoded_example.keys() == {"bytes", "path"}
     assert encoded_example["bytes"] is not None or encoded_example["path"] is not None
     decoded_example = video.decode_example(encoded_example)
-    assert isinstance(decoded_example, VideoReader)
+    assert isinstance(decoded_example, VideoDecoder)
 
 
 @require_decord
 def test_dataset_with_video_feature(shared_datadir):
-    from decord import VideoReader
     from decord.ndarray import NDArray
+    from torchcodec.decoders import VideoDecoder
 
     video_path = str(shared_datadir / "test_video_66x50.mov")
     data = {"video": [video_path]}
@@ -42,18 +42,18 @@ def test_dataset_with_video_feature(shared_datadir):
     dset = Dataset.from_dict(data, features=features)
     item = dset[0]
     assert item.keys() == {"video"}
-    assert isinstance(item["video"], VideoReader)
+    assert isinstance(item["video"], VideoDecoder)
     assert item["video"][0].shape == (50, 66, 3)
     assert isinstance(item["video"][0], NDArray)
     batch = dset[:1]
     assert len(batch) == 1
     assert batch.keys() == {"video"}
-    assert isinstance(batch["video"], list) and all(isinstance(item, VideoReader) for item in batch["video"])
+    assert isinstance(batch["video"], list) and all(isinstance(item, VideoDecoder) for item in batch["video"])
     assert batch["video"][0][0].shape == (50, 66, 3)
     assert isinstance(batch["video"][0][0], NDArray)
     column = dset["video"]
     assert len(column) == 1
-    assert isinstance(column, list) and all(isinstance(item, VideoReader) for item in column)
+    assert isinstance(column, list) and all(isinstance(item, VideoDecoder) for item in column)
     assert column[0][0].shape == (50, 66, 3)
     assert isinstance(column[0][0], NDArray)
 
@@ -63,7 +63,7 @@ def test_dataset_with_video_feature(shared_datadir):
     dset = Dataset.from_dict(data, features=features)
     item = dset[0]
     assert item.keys() == {"video"}
-    assert isinstance(item["video"], VideoReader)
+    assert isinstance(item["video"], VideoDecoder)
     assert item["video"][0].shape == (50, 66, 3)
     assert isinstance(item["video"][0], NDArray)
 
@@ -71,7 +71,7 @@ def test_dataset_with_video_feature(shared_datadir):
 @require_decord
 def test_dataset_with_video_map_and_formatted(shared_datadir):
     import numpy as np
-    from decord import VideoReader
+    from torchcodec.decoders import VideoDecoder
 
     video_path = str(shared_datadir / "test_video_66x50.mov")
     data = {"video": [video_path]}
@@ -79,7 +79,7 @@ def test_dataset_with_video_map_and_formatted(shared_datadir):
     dset = Dataset.from_dict(data, features=features)
     dset = dset.map(lambda x: x).with_format("numpy")
     example = dset[0]
-    assert isinstance(example["video"], VideoReader)
+    assert isinstance(example["video"], VideoDecoder)
     assert isinstance(example["video"][0], np.ndarray)
 
     # from bytes
@@ -88,5 +88,5 @@ def test_dataset_with_video_map_and_formatted(shared_datadir):
     dset = Dataset.from_dict(data, features=features)
     dset = dset.map(lambda x: x).with_format("numpy")
     example = dset[0]
-    assert isinstance(example["video"], VideoReader)
+    assert isinstance(example["video"], VideoDecoder)
     assert isinstance(example["video"][0], np.ndarray)

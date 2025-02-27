@@ -267,6 +267,8 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                 if isinstance(self.config.filters, list)
                 else self.config.filters
             )
+        else:
+            filter_expr = None
         if metadata_ext == ".csv":
             chunksize = 10_000  # 10k lines
             schema = self.config.features.arrow_schema if self.config.features else None
@@ -329,9 +331,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             with open(metadata_file, "rb") as f:
                 parquet_fragment = ds.ParquetFileFormat().make_fragment(f)
                 if parquet_fragment.row_groups:
-                    batch_size = self.config.batch_size or parquet_fragment.row_groups[0].num_rows
+                    batch_size = parquet_fragment.row_groups[0].num_rows
                 else:
-                    batch_size = self.config.batch_size or config.DEFAULT_MAX_BATCH_SIZE
+                    batch_size = config.DEFAULT_MAX_BATCH_SIZE
                 for record_batch in parquet_fragment.to_batches(
                     batch_size=batch_size,
                     filter=filter_expr,
