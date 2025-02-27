@@ -13,7 +13,6 @@ from itertools import cycle, islice
 from typing import (
     TYPE_CHECKING,
     Any,
-    Awaitable,
     Callable,
     Generator,
     Iterable,
@@ -21,6 +20,7 @@ from typing import (
     Mapping,
     MutableMapping,
     Optional,
+    Sequence,
     Union,
 )
 
@@ -69,7 +69,7 @@ def identity_func(x: object) -> object:
     return x
 
 
-def _rename_columns_fn(example: dict, column_mapping: dict[str, str]):
+def _rename_columns_fn(example: Sequence, column_mapping: Mapping) -> dict[str, Any]:
     if any(col not in example for col in column_mapping):
         raise ValueError(
             f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_mapping) - set(example)} are not in the dataset."
@@ -84,13 +84,13 @@ def _rename_columns_fn(example: dict, column_mapping: dict[str, str]):
     }
 
 
-def add_column_fn(example: dict, idx: int, name: str, column: list[dict]) -> dict:
+def add_column_fn(example: Sequence, idx: int, name: str, column: Sequence[Mapping]) -> dict[str, Mapping]:
     if name in example:
         raise ValueError(f"Error when adding {name}: column {name} is already in the dataset.")
     return {name: column[idx]}
 
 
-def _infer_features_from_batch(batch: dict[str, list], try_features: Optional[Features] = None) -> Features:
+def _infer_features_from_batch(batch: Mapping, try_features: Optional[Features] = None) -> Features:
     pa_table = pa.Table.from_pydict(batch)
     if try_features is not None:
         try:
@@ -99,8 +99,8 @@ def _infer_features_from_batch(batch: dict[str, list], try_features: Optional[Fe
             pass
     return Features.from_arrow_schema(pa_table.schema)
 
-from typing import Sequence
-def _examples_to_batch(examples: Sequence[dict]) -> dict:
+
+def _examples_to_batch(examples: Iterable[Mapping[str, Sequence]]) -> dict:
     # we order the columns by order of appearance
     # to do so, we use a dict as an ordered set
     cols = {col: None for example in examples for col in example}
@@ -109,7 +109,7 @@ def _examples_to_batch(examples: Sequence[dict]) -> dict:
     return dict(zip(cols, arrays))
 
 
-def _batch_to_examples(batch: dict[str, list]) -> Iterator[dict[str, Any]]:
+def _batch_to_examples(batch: Mapping[str, Sequence]) -> Iterator[dict[str, Sequence]]:
     """Convert a batch (dict of examples) to examples list"""
     n_examples = 0 if len(batch) == 0 else len(batch[next(iter(batch))])
     for i in range(n_examples):
@@ -154,7 +154,7 @@ class _BaseExamplesIterable:
     def __init__(self) -> None:
         self._state_dict: Optional[MutableMapping[str, Any]] = None
 
-    def __iter__(self) -> Iterator[tuple[Key, dict]]:
+    def __iter__(self) -> Generator[tuple[Key, pa.Table]]:
         """An examples iterable should yield tuples (example_key, example) of type (int/str, dict)"""
         raise NotImplementedError(f"{type(self)} doesn't implement __iter__ yet")
 
@@ -299,7 +299,7 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
         self.kwargs = kwargs
 
     @property
-    def iter_arrow(self) -> Generator:
+    def iter_arrow(self):
         return self._iter_arrow
 
     def _init_state_dict(self) -> dict:
@@ -328,7 +328,7 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
                 self._state_dict["shard_idx"] += 1
                 self._state_dict["shard_example_idx"] = 0
 
-    def _iter_arrow(self) -> Iterator:
+    def _iter_arrow(self):
         shard_idx_start = self._state_dict["shard_idx"] if self._state_dict else 0
         for gen_kwags in islice(_split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards), shard_idx_start, None):
             shard_example_idx_start = self._state_dict["shard_example_idx"] if self._state_dict else 0
@@ -344,10 +344,10 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
                 self._state_dict["shard_idx"] += 1
                 self._state_dict["shard_example_idx"] = 0
 
-    def shuffle_data_sources(self, generator: np.random.Generator) -> "ArrowExamplesIterable":
+    def shuffle_data_sources(self, generator: np.random.Generator) -> ArrowExamplesIterable:
         return ShuffledDataSourcesArrowExamplesIterable(self.generate_tables_fn, self.kwargs, generator)
 
-    def shard_data_sources(self, num_shards: int, index: int, contiguous: bool = True) -> "ArrowExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous: bool = True) -> ArrowExamplesIterable:
         """Keep only the requested shard."""
         gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
         shard_indices = self.split_shard_indices_by_worker(num_shards, index, contiguous=contiguous)
@@ -420,7 +420,7 @@ class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
                 self._state_dict["shard_idx"] += 1
                 self._state_dict["shard_example_idx"] = 0
 
-    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ArrowExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous: bool = True) -> ArrowExamplesIterable:
         """Keep only the requested shard."""
         rng = deepcopy(self.generator)
         kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
@@ -1002,7 +1002,9 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         )
 
 
-def _table_output_to_arrow(output) -> pa.Table:
+def _table_output_to_arrow(
+    output,
+) -> Union[pa.Array, pa.Table]:
     if isinstance(output, pa.Table):
         return output
     if isinstance(output, (pd.DataFrame, pd.Series)):
@@ -1377,7 +1379,7 @@ def _add_mask(
     input: Union[dict, pa.Table],
     mask: Union[bool, list, pa.Array, pa.ChunkedArray, pa.BooleanScalar],
     mask_column_name: str,
-):
+) -> Union[pa.Table, dict[str, Union[bool, list, pa.Array, pa.ChunkedArray, pa.BooleanScalar]]]:
     if isinstance(input, pa.Table):
         if not isinstance(mask, (list, pa.Array, pa.ChunkedArray)):
             mask = pa.array([mask], type=pa.bool_())
@@ -1386,14 +1388,16 @@ def _add_mask(
         return {mask_column_name: mask}
 
 
-def add_mask(mask_function: Callable, input: Union[dict, pa.Table], *args, mask_column_name: str, **kwargs):
+def add_mask(
+    mask_function: Callable, input: Union[dict, pa.Table], *args: Any, mask_column_name: str, **kwargs: Any
+) -> Union[pa.Table, dict[str, Union[bool, list, pa.Array, pa.ChunkedArray, pa.BooleanScalar]]]:
     mask = mask_function(input, *args, **kwargs)
     return _add_mask(input, mask, mask_column_name)
 
 
 async def async_add_mask(
-    mask_function: Callable, input: Union[dict, pa.Table], *args, mask_column_name: str, **kwargs
-):
+    mask_function: Callable, input: Union[dict, pa.Table], *args: Any, mask_column_name: str, **kwargs: Any
+)-> Union[pa.Table, dict[str, Union[bool, list, pa.Array, pa.ChunkedArray, pa.BooleanScalar]]]:
     mask = await mask_function(input, *args, **kwargs)
     return _add_mask(input, mask, mask_column_name)
 
@@ -1484,7 +1488,7 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         # TODO(QL): implement iter_arrow
 
     @property
-    def is_typed(self):
+    def is_typed(self) -> bool:
         return self.ex_iterable.is_typed
 
     @property
@@ -2071,7 +2075,7 @@ class IterableDataset(DatasetInfoMixin):
         # Re-add torch iterable dataset as a parent class, since dynamically added parent classes are not kept when pickling
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
-    def _head(self, n: int = 5) -> dict:
+    def _head(self, n: int = 5) -> Mapping:
         return _examples_to_batch(list(self.take(n)))
 
     @property
@@ -2970,7 +2974,7 @@ class IterableDataset(DatasetInfoMixin):
         """
         return list(self._info.features.keys()) if self._info.features is not None else None
 
-    def add_column(self, name: str, column: Union[list, np.array]) -> IterableDataset:
+    def add_column(self, name: str, column: Union[list, np.ndarray]) -> IterableDataset:
         """Add column to Dataset.
 
         Args:
@@ -3227,7 +3231,7 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-    def _resolve_features(self):
+    def _resolve_features(self) -> IterableDataset:
         if self.features is not None:
             return self
         elif self._ex_iterable.is_typed:
@@ -3246,7 +3250,7 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-    def batch(self, batch_size: int, drop_last_batch: bool = False) -> "IterableDataset":
+    def batch(self, batch_size: int, drop_last_batch: bool = False) -> IterableDataset:
         """
         Group samples from the dataset into batches.
 
@@ -3261,7 +3265,7 @@ class IterableDataset(DatasetInfoMixin):
         ```
         """
 
-        def batch_fn(unbatched):
+        def batch_fn(unbatched: Mapping) -> dict:
             return {k: [v] for k, v in unbatched.items()}
 
         return self.map(batch_fn, batched=True, batch_size=batch_size, drop_last_batch=drop_last_batch)
