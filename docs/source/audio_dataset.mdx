@@ -51,8 +51,8 @@ my_dataset/
 
 ## AudioFolder
 
+
 The `AudioFolder` is a dataset builder designed to quickly load an audio dataset with several thousand audio files without requiring you to write any code.
-Any additional information about your dataset - such as transcription, speaker accent, or speaker intent - is automatically loaded by `AudioFolder` as long as you include this information in a metadata file (`metadata.csv`/`metadata.jsonl`).
 
 <Tip>
 
@@ -60,104 +60,39 @@ Any additional information about your dataset - such as transcription, speaker a
 
 </Tip>
 
-Create a dataset repository on the Hugging Face Hub and upload your dataset directory following the `AudioFolder` structure:
+`AudioFolder` automatically infers the class labels of your dataset based on the directory name. Store your dataset in a directory structure like:
 
 ```
-my_dataset/
-├── README.md
-├── metadata.csv
-└── data/
+folder/train/dog/golden_retriever.mp3
+folder/train/dog/german_shepherd.mp3
+folder/train/dog/chihuahua.mp3
+
+folder/train/cat/maine_coon.mp3
+folder/train/cat/bengal.mp3
+folder/train/cat/birman.mp3
 ```
 
-The `data` folder can be any name you want.
-
-<Tip>
-
-It can be helpful to store your metadata as a `jsonl` file if the data columns contain a more complex format (like a list of floats) to avoid parsing errors or reading complex values as strings.
-
-</Tip>
-
-The metadata file should include a `file_name` column to link an audio file to it's metadata:
-
-```csv
-file_name,transcription
-data/first_audio_file.mp3,znowu się duch z ciałem zrośnie w młodocianej wstaniesz wiosnie i możesz skutkiem tych leków umierać wstawać wiek wieków dalej tam były przestrogi jak siekać głowę jak nogi
-data/second_audio_file.mp3,już u źwierzyńca podwojów król zasiada przy nim książęta i panowie rada a gdzie wzniosły krążył ganek rycerze obok kochanek król skinął palcem zaczęto igrzysko
-data/third_audio_file.mp3,pewnie kędyś w obłędzie ubite minęły szlaki zaczekajmy dzień jaki poślemy szukać wszędzie dziś jutro pewnie będzie posłali wszędzie sługi czekali dzień i drugi gdy nic nie doczekali z płaczem chcą jechać dali
-```
-
-Then you can store your dataset in a directory structure like this:
-
-```
-metadata.csv
-data/first_audio_file.mp3
-data/second_audio_file.mp3
-data/third_audio_file.mp3
-
-```
-
-Users can now load your dataset and the associated metadata by specifying `audiofolder` in [`load_dataset`] and the dataset directory in `data_dir`:
+If the dataset follows the `AudioFolder` structure, then you can load it directly with [`load_dataset`]:
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset("audiofolder", data_dir="/path/to/data")
->>> dataset["train"][0]
-{'audio':
-    {'path': '/path/to/extracted/audio/first_audio_file.mp3',
-    'array': array([ 0.00088501,  0.0012207 ,  0.00131226, ..., -0.00045776, -0.00054932, -0.00054932], dtype=float32),
-    'sampling_rate': 16000},
- 'transcription': 'znowu się duch z ciałem zrośnie w młodocianej wstaniesz wiosnie i możesz skutkiem tych leków umierać wstawać wiek wieków dalej tam były przestrogi jak siekać głowę jak nogi'
-}
+
+>>> dataset = load_dataset("username/dataset_name")
 ```
 
-You can also use `audiofolder` to load datasets involving multiple splits. To do so, your dataset directory might have the following structure:
-
-```
-data/train/first_train_audio_file.mp3
-data/train/second_train_audio_file.mp3
-
-data/test/first_test_audio_file.mp3
-data/test/second_test_audio_file.mp3
-
-```
-
-<Tip warning={true}>
-
-    Note that if audio files are located not right next to a metadata file, `file_name` column should be a full relative path to an audio file, not just its filename.
-
-</Tip>
-
-For audio datasets that don't have any associated metadata, `AudioFolder` automatically infers the class labels of the dataset based on the directory name. It might be useful for audio classification tasks. Your dataset directory might look like:
-
-```
-data/train/electronic/01.mp3
-data/train/punk/01.mp3
-
-data/test/electronic/09.mp3
-data/test/punk/09.mp3
-```
-
-Load the dataset with `AudioFolder`, and it will create a `label` column from the directory name (language id):
+This is equivalent to passing `audiofolder` manually in [`load_dataset`] and the directory in `data_dir`:
 
 ```py
->>> from datasets import load_dataset
->>> dataset = load_dataset("audiofolder", data_dir="/path/to/data")
->>> dataset["train"][0]
-{'audio':
-    {'path': '/path/to/electronic/01.mp3',
-     'array': array([ 3.9714024e-07,  7.3031038e-07,  7.5640685e-07, ...,
-         -1.1963668e-01, -1.1681189e-01, -1.1244172e-01], dtype=float32),
-     'sampling_rate': 44100},
- 'label': 0  # "electronic"
-}
->>> dataset["train"][-1]
-{'audio':
-    {'path': '/path/to/punk/01.mp3',
-     'array': array([0.15237972, 0.13222949, 0.10627693, ..., 0.41940814, 0.37578005,
-         0.33717662], dtype=float32),
-     'sampling_rate': 44100},
- 'label': 1  # "punk"
-}
+>>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder")
+```
+
+You can also use `audiofolder` to load datasets involving multiple splits. To do so, your dataset directory should have the following structure:
+
+```
+folder/train/dog/golden_retriever.mp3
+folder/train/cat/maine_coon.mp3
+folder/test/dog/german_shepherd.mp3
+folder/test/cat/bengal.mp3
 ```
 
 <Tip warning={true}>
@@ -167,11 +102,57 @@ If all audio files are contained in a single directory or if they are not on the
 </Tip>
 
 
-<Tip>
+If there is additional information you'd like to include about your dataset, like text captions or bounding boxes, add it as a `metadata.csv` file in your folder. This lets you quickly create datasets for different computer vision tasks like text captioning or object detection. You can also use a JSONL file `metadata.jsonl` or a Parquet file `metadata.parquet`.
 
-Some audio datasets, like those found in [Kaggle competitions](https://www.kaggle.com/competitions/kaggle-pog-series-s01e02/overview), have separate metadata files for each split. Provided the metadata features are the same for each split, `audiofolder` can be used to load all splits at once. If the metadata features differ across each split, you should load them with separate `load_dataset()` calls.
+```
+folder/train/metadata.csv
+folder/train/0001.mp3
+folder/train/0002.mp3
+folder/train/0003.mp3
+```
 
-</Tip>
+You can also zip your audio files, and in this case each zip should contain both the audio files and the metadata
+
+```
+folder/train.zip
+folder/test.zip
+folder/validation.zip
+```
+
+Your `metadata.csv` file must have a `file_name` or `*_file_name` field which links audio files with their metadata:
+
+```csv
+file_name,additional_feature
+0001.mp3,This is a first value of a text feature you added to your audio files
+0002.mp3,This is a second value of a text feature you added to your audio files
+0003.mp3,This is a third value of a text feature you added to your audio files
+```
+
+or using `metadata.jsonl`:
+
+```jsonl
+{"file_name": "0001.mp3", "additional_feature": "This is a first value of a text feature you added to your audio files"}
+{"file_name": "0002.mp3", "additional_feature": "This is a second value of a text feature you added to your audio files"}
+{"file_name": "0003.mp3", "additional_feature": "This is a third value of a text feature you added to your audio files"}
+```
+
+Here the `file_name` must be the name of the audio file next to the metadata file. More generally, it must be the relative path from the directory containing the metadata to the audio file.
+
+It's possible to point to more than one audio in each row in your dataset, for example if both your input and output are audio files:
+
+```jsonl
+{"input_file_name": "0001.mp3", "output_file_name": "0001_output.mp3"}
+{"input_file_name": "0002.mp3", "output_file_name": "0002_output.mp3"}
+{"input_file_name": "0003.mp3", "output_file_name": "0003_output.mp3"}
+```
+
+You can also define lists of audio files. In that case you need to name the field `file_names` or `*_file_names`. Here is an example:
+
+```jsonl
+{"recordings_file_names": ["0001_r0.mp3", "0001_r1.mp3"], label: "same_person"}
+{"recordings_file_names": ["0002_r0.mp3", "0002_r1.mp3"], label: "same_person"}
+{"recordings_file_names": ["0003_r0.mp3", "0003_r1.mp3"], label: "different_person"}
+```
 
 ## (Legacy) Loading script
 
