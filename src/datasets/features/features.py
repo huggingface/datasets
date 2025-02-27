@@ -24,7 +24,7 @@ from collections.abc import Sequence as SequenceABC
 from dataclasses import InitVar, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
-from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, ClassVar, Dict, List, Literal, Optional, Tuple, Union
 from typing import Sequence as Sequence_
 
 import numpy as np
@@ -1599,7 +1599,9 @@ def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureT
     Returns:
         visited feature (FeatureType)
     """
-    if isinstance(feature, dict):
+    if isinstance(feature, Features):
+        out = func(Features({k: _visit(f, func) for k, f in feature.items()}))
+    elif isinstance(feature, dict):
         out = func({k: _visit(f, func) for k, f in feature.items()})
     elif isinstance(feature, (list, tuple)):
         out = func([_visit(feature[0], func)])
@@ -1609,6 +1611,48 @@ def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureT
         out = func(Sequence(_visit(feature.feature, func), length=feature.length))
     else:
         out = func(feature)
+    return feature if out is None else out
+
+
+_VisitPath = list[Union[str, Literal[0]]]
+
+
+def _visit_with_path(
+    feature: FeatureType, func: Callable[[FeatureType, _VisitPath], Optional[FeatureType]], visit_path: _VisitPath = []
+) -> FeatureType:
+    """Visit a (possibly nested) feature with its path in the Feature object.
+
+    A path in a nested feature object is the list of keys that need to be
+    sequentially accessed to get to the sub-feature.
+
+    For example:
+    - ["foo"] corresponds to the column "foo"
+    - ["foo", 0] corresponds to the sub-feature of the lists in "foo"
+    - ["foo", "bar"] corresponds to the sub-feature of the dicts in "foo" with key "bar"
+
+    Args:
+        feature (`FeatureType`): the feature type to be checked.
+
+    Returns:
+        `FeatureType`: the visited feature.
+    """
+    if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
+        feature = {k: [f] for k, f in feature.feature.items()}
+        # ^ Sequence of dicts is special, it must be converted to a dict of lists (see https://huggingface.co/docs/datasets/v2.16.1/en/package_reference/main_classes#datasets.Features)
+    if isinstance(feature, Features):
+        out = func(Features({k: _visit_with_path(f, func, visit_path + [k]) for k, f in feature.items()}), visit_path)
+    elif isinstance(feature, dict):
+        out = func({k: _visit_with_path(f, func, visit_path + [k]) for k, f in feature.items()}, visit_path)
+    elif isinstance(feature, (list, tuple)):
+        out = func([_visit_with_path(feature[0], func, visit_path + [0])], visit_path)
+    elif isinstance(feature, Sequence):
+        out = func(
+            Sequence(_visit_with_path(feature.feature, func, visit_path + [0]), length=feature.length), visit_path
+        )
+    elif isinstance(feature, LargeList):
+        out = func(LargeList(_visit_with_path(feature.feature, func, visit_path + [0])), visit_path)
+    else:
+        out = func(feature, visit_path)
     return feature if out is None else out
 
 
