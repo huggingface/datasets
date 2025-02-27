@@ -3457,7 +3457,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
             return buf_writer, writer, tmp_file
 
-        tasks: List[asyncio.Task] = []
+        tasks: list[asyncio.Task] = []
         if inspect.iscoroutinefunction(function):
             try:
                 loop = asyncio.get_running_loop()
@@ -3469,7 +3469,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         def iter_outputs(shard_iterable):
             nonlocal tasks, loop
             if inspect.iscoroutinefunction(function):
-                indices: Union[List[int], List[List[int]]] = []
+                indices: Union[list[int], list[list[int]]] = []
                 for i, example in shard_iterable:
                     indices.append(i)
                     tasks.append(loop.create_task(async_apply_function(example, i, offset=offset)))
