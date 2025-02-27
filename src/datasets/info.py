@@ -28,6 +28,8 @@ processed the dataset as well:
  - etc.
 """
 
+from __future__ import annotations
+
 import copy
 import dataclasses
 import json
@@ -35,7 +37,7 @@ import os
 import posixpath
 from dataclasses import dataclass
 from pathlib import Path
-from typing import ClassVar, Dict, List, Optional, Union
+from typing import ClassVar, Dict, List, Optional, TypeVar, Union
 
 import fsspec
 from fsspec.core import url_to_fs
@@ -77,7 +79,7 @@ class PostProcessedInfo:
     features: Optional[Features] = None
     resources_checksums: Optional[dict] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # Convert back to the correct classes when we reload from dict
         if self.features is not None and not isinstance(self.features, Features):
             self.features = Features.from_dict(self.features)
@@ -164,7 +166,7 @@ class DatasetInfo:
         "splits",
     ]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # Convert back to the correct classes when we reload from dict
         if self.features is not None and not isinstance(self.features, Features):
             self.features = Features.from_dict(self.features)
@@ -183,7 +185,9 @@ class DatasetInfo:
             else:
                 self.supervised_keys = SupervisedKeysData(**self.supervised_keys)
 
-    def write_to_directory(self, dataset_info_dir, pretty_print=False, storage_options: Optional[dict] = None):
+    def write_to_directory(
+        self, dataset_info_dir: str, pretty_print: bool = False, storage_options: Optional[dict] = None
+    ) -> None:
         """Write `DatasetInfo` and license (if present) as JSON files to `dataset_info_dir`.
 
         Args:
@@ -212,16 +216,16 @@ class DatasetInfo:
             with fs.open(posixpath.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
                 self._dump_license(f)
 
-    def _dump_info(self, file, pretty_print=False):
+    def _dump_info(self, file, pretty_print: bool = False) -> None:
         """Dump info in `file` file-like object open in bytes mode (to support remote files)"""
         file.write(json.dumps(asdict(self), indent=4 if pretty_print else None).encode("utf-8"))
 
-    def _dump_license(self, file):
+    def _dump_license(self, file) -> None:
         """Dump license in `file` file-like object open in bytes mode (to support remote files)"""
         file.write(self.license.encode("utf-8"))
 
     @classmethod
-    def from_merge(cls, dataset_infos: List["DatasetInfo"]):
+    def from_merge(cls, dataset_infos: List[DatasetInfo]) -> DatasetInfo:
         dataset_infos = [dset_info.copy() for dset_info in dataset_infos if dset_info is not None]
 
         if len(dataset_infos) > 0 and all(dataset_infos[0] == dset_info for dset_info in dataset_infos):
@@ -283,7 +287,7 @@ class DatasetInfo:
         field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in dataset_info_dict.items() if k in field_names})
 
-    def update(self, other_dataset_info: "DatasetInfo", ignore_none=True):
+    def update(self, other_dataset_info: "DatasetInfo", ignore_none: bool = True) -> None:
         self_dict = self.__dict__
         self_dict.update(
             **{
@@ -321,8 +325,11 @@ class DatasetInfo:
         return cls(**{k: v for k, v in yaml_data.items() if k in field_names})
 
 
-class DatasetInfosDict(Dict[str, DatasetInfo]):
-    def write_to_directory(self, dataset_infos_dir, overwrite=False, pretty_print=False) -> None:
+T_DatasetInfoDict = TypeVar("T_DatasetInfoDict", bound=DatasetInfosDict)
+
+
+class DatasetInfosDict(dict[str, DatasetInfo]):
+    def write_to_directory(self, dataset_infos_dir: str, overwrite: bool = False, pretty_print: bool = False) -> None:
         total_dataset_infos = {}
         dataset_infos_path = os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)
         dataset_readme_path = os.path.join(dataset_infos_dir, config.REPOCARD_FILENAME)
@@ -351,7 +358,7 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
             dataset_card.save(Path(dataset_readme_path))
 
     @classmethod
-    def from_directory(cls, dataset_infos_dir) -> "DatasetInfosDict":
+    def from_directory(cls: type[T_DatasetInfoDict], dataset_infos_dir: str) -> T_DatasetInfoDict:
         logger.info(f"Loading Dataset Infos from {dataset_infos_dir}")
         # Load the info from the YAML part of README.md
         if os.path.exists(os.path.join(dataset_infos_dir, config.REPOCARD_FILENAME)):
@@ -371,7 +378,7 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
             return cls()
 
     @classmethod
-    def from_dataset_card_data(cls, dataset_card_data: DatasetCardData) -> "DatasetInfosDict":
+    def from_dataset_card_data(cls: type[T_DatasetInfoDict], dataset_card_data: DatasetCardData) -> T_DatasetInfoDict:
         if isinstance(dataset_card_data.get("dataset_info"), (list, dict)):
             if isinstance(dataset_card_data["dataset_info"], list):
                 return cls(
