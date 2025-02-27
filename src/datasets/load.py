@@ -1507,7 +1507,7 @@ def dataset_module_factory(
             Directory to read/write data. Defaults to `"~/.cache/huggingface/datasets"`.
 
             <Added version="2.16.0"/>
-        trust_remote_code (`bool`, *optional*, defaults to `False`):
+        trust_remote_code (`bool`, *optional*, defaults to `None`):
             Whether or not to allow for datasets defined on the Hub using a dataset script. This option
             should only be set to `True` for repositories you trust and in which you have read the code, as it will
             execute code present on the Hub on your local machine.
