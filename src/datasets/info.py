@@ -37,7 +37,7 @@ import os
 import posixpath
 from dataclasses import dataclass
 from pathlib import Path
-from typing import ClassVar, Dict, List, Optional, TypeVar, Union
+from typing import ClassVar, List, Optional, TypeVar, Union
 
 import fsspec
 from fsspec.core import url_to_fs

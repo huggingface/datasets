@@ -43,7 +43,6 @@ from typing import (
     Literal,
     Optional,
     Set,
-    Type,
     TypeGuard,
     TypeVar,
     Union,
@@ -426,6 +425,7 @@ def _single_map_nested(args: Iterable) -> Union[dict, list, tuple, np.ndarray]:
             else:
                 return np.array(mapped)
 from typing import Sequence
+
 
 def map_nested(
     function: Callable[[Any], Any],
