@@ -3,7 +3,7 @@ import io
 import itertools
 import os
 from dataclasses import dataclass
-from typing import Iterator, List, Optional, Tuple, Type, Union
+from typing import Any, Callable, Iterator, List, Optional, Tuple, Type, Union
 
 import pandas as pd
 import pyarrow as pa
@@ -13,7 +13,7 @@ import pyarrow.parquet as pq
 
 import datasets
 from datasets import config
-from datasets.features.features import FeatureType, require_storage_cast
+from datasets.features.features import FeatureType, _visit, _visit_with_path, _VisitPath, require_storage_cast
 from datasets.utils.file_utils import readline
 
 
@@ -191,18 +191,51 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         f"Metadata files {downloaded_metadata_file} and {features_per_metadata_file[0][0]} have different features: {features_per_metadata_file[0]} != {metadata_features}"
                     )
             metadata_features = features_per_metadata_file[0][1]
-            if "file_name" not in metadata_features:
-                raise ValueError("`file_name` must be present as dictionary key in metadata files")
-            if metadata_features["file_name"] != datasets.Value("string"):
-                raise ValueError("`file_name` key must be a string")
-            del metadata_features["file_name"]
+            feature_not_found = True
+
+            def _set_feature(feature):
+                nonlocal feature_not_found
+                if isinstance(feature, dict):
+                    out = type(feature)()
+                    for key in feature:
+                        if (key == "file_name" or key.endswith("_file_name")) and feature[key] == datasets.Value(
+                            "string"
+                        ):
+                            key = key[: -len("_file_name")] or self.BASE_COLUMN_NAME
+                            out[key] = self.BASE_FEATURE()
+                            feature_not_found = False
+                        elif (key == "file_names" or key.endswith("_file_names")) and feature[
+                            key
+                        ] == datasets.Sequence(datasets.Value("string")):
+                            key = key[: -len("_file_names")] or (self.BASE_COLUMN_NAME + "s")
+                            out[key] = datasets.Sequence(self.BASE_FEATURE())
+                            feature_not_found = False
+                        elif (key == "file_names" or key.endswith("_file_names")) and feature[key] == [
+                            datasets.Value("string")
+                        ]:
+                            key = key[: -len("_file_names")] or (self.BASE_COLUMN_NAME + "s")
+                            out[key] = [self.BASE_FEATURE()]
+                            feature_not_found = False
+                        else:
+                            out[key] = feature[key]
+                    return out
+                return feature
+
+            metadata_features = _visit(metadata_features, _set_feature)
+
+            if feature_not_found:
+                raise ValueError(
+                    "`file_name` or `*_file_name` must be present as dictionary key (with type string) in metadata files"
+                )
         else:
             metadata_features = None
 
         # Normally, we would do this in _info, but we need to know the labels and/or metadata
         # before building the features
         if self.config.features is None:
-            if add_labels:
+            if add_metadata:
+                self.info.features = metadata_features
+            elif add_labels:
                 self.info.features = datasets.Features(
                     {
                         self.BASE_COLUMN_NAME: self.BASE_FEATURE(),
@@ -211,24 +244,6 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                 )
             else:
                 self.info.features = datasets.Features({self.BASE_COLUMN_NAME: self.BASE_FEATURE()})
-
-            if add_metadata:
-                # Warn if there are duplicated keys in metadata compared to the existing features
-                # (`BASE_COLUMN_NAME`, optionally "label")
-                duplicated_keys = set(self.info.features) & set(metadata_features)
-                if duplicated_keys:
-                    logger.warning(
-                        f"Ignoring metadata columns {list(duplicated_keys)} as they are already present in "
-                        f"the features dictionary."
-                    )
-                # skip metadata duplicated keys
-                self.info.features.update(
-                    {
-                        feature: metadata_features[feature]
-                        for feature in metadata_features
-                        if feature not in duplicated_keys
-                    }
-                )
 
         return splits
 
@@ -326,28 +341,41 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     yield pa.Table.from_batches([record_batch])
 
     def _generate_examples(self, files, metadata_files, add_metadata, add_labels):
-        sample_empty_metadata = (
-            {k: None for k in self.info.features if k != self.BASE_COLUMN_NAME} if self.info.features else {}
-        )
-
-        file_idx = 0
+        sample_idx = 0
         if add_metadata:
+            feature_paths = []
+
+            def find_feature_path(feature, feature_path):
+                nonlocal feature_paths
+                if isinstance(feature, self.BASE_FEATURE):
+                    feature_paths.append(feature_path)
+
+            _visit_with_path(self.info.features, find_feature_path)
+
             for original_metadata_file, downloaded_metadata_file in metadata_files:
                 metadata_ext = os.path.splitext(original_metadata_file)[-1]
+                downloaded_metadata_dir = os.path.dirname(downloaded_metadata_file)
+
+                def set_feature(item, feature_path: _VisitPath):
+                    if len(feature_path) == 2 and isinstance(feature_path[0], str) and feature_path[1] == 0:
+                        item[feature_path[0]] = item.pop("file_names", None) or item.pop(
+                            feature_path[0] + "_file_names", None
+                        )
+                    elif len(feature_path) == 1 and isinstance(feature_path[0], str):
+                        item[feature_path[0]] = item.pop("file_name", None) or item.pop(
+                            feature_path[0] + "_file_name", None
+                        )
+                    elif len(feature_path) == 0:
+                        file_relpath = os.path.normpath(item).replace("\\", "/")
+                        item = os.path.join(downloaded_metadata_dir, file_relpath)
+                    return item
+
                 for pa_metadata_table in self._read_metadata(downloaded_metadata_file, metadata_ext=metadata_ext):
-                    pa_file_name_array = pa_metadata_table["file_name"]
-                    pa_metadata_table = pa_metadata_table.drop(["file_name"])
-                    downloaded_metadata_dir = os.path.dirname(downloaded_metadata_file)
-                    for file_name, sample_metadata in zip(
-                        pa_file_name_array.to_pylist(), pa_metadata_table.to_pylist()
-                    ):
-                        file_relpath = os.path.normpath(file_name).replace("\\", "/")
-                        downloaded_file = os.path.join(downloaded_metadata_dir, file_relpath)
-                        sample = dict(sample_empty_metadata)
-                        sample[self.BASE_COLUMN_NAME] = downloaded_file
-                        sample.update(sample_metadata)
-                        yield file_idx, sample
-                        file_idx += 1
+                    for sample in pa_metadata_table.to_pylist():
+                        for feature_path in feature_paths:
+                            _nested_apply(sample, feature_path, set_feature)
+                        yield sample_idx, sample
+                        sample_idx += 1
         else:
             for original_file, downloaded_file_or_dir in files:
                 downloaded_files = [downloaded_file_or_dir] if original_file else downloaded_file_or_dir
@@ -358,5 +386,18 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     sample = {self.BASE_COLUMN_NAME: downloaded_file}
                     if add_labels:
                         sample["label"] = os.path.basename(os.path.dirname(original_file or downloaded_file))
-                    yield file_idx, sample
-                    file_idx += 1
+                    yield sample_idx, sample
+                    sample_idx += 1
+
+
+def _nested_apply(item: Any, feature_path: _VisitPath, func: Callable[[Any, _VisitPath], Any]):
+    # see _visit_with_path() to see how feature paths are constructed
+    item = func(item, feature_path)
+    if feature_path:
+        key = feature_path[0]
+        if key == 0:
+            for i in range(len(item)):
+                item[i] = _nested_apply(item[i], feature_path[1:], func)
+        else:
+            item[key] = _nested_apply(item[key], feature_path[1:], func)
+    return item
