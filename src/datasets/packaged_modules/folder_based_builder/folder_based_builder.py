@@ -377,6 +377,12 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         yield sample_idx, sample
                         sample_idx += 1
         else:
+            if self.config.filters is not None:
+                filter_expr = (
+                    pq.filters_to_expression(self.config.filters)
+                    if isinstance(self.config.filters, list)
+                    else self.config.filters
+                )
             for original_file, downloaded_file_or_dir in files:
                 downloaded_files = [downloaded_file_or_dir] if original_file else downloaded_file_or_dir
                 for downloaded_file in downloaded_files:
@@ -386,6 +392,10 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     sample = {self.BASE_COLUMN_NAME: downloaded_file}
                     if add_labels:
                         sample["label"] = os.path.basename(os.path.dirname(original_file or downloaded_file))
+                    if self.config.filters is not None:
+                        pa_table = pa.Table.from_pylist([sample]).filter(filter_expr)
+                        if len(pa_table) == 0:
+                            continue
                     yield sample_idx, sample
                     sample_idx += 1
 
