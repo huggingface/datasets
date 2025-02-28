@@ -10,7 +10,7 @@ Video datasets have [`Video`] type columns, which contain `torchvision` objects.
 
 <Tip>
 
-To work with video datasets, you need to have the `torchvision` package installed. Check out the [installation](https://github.com/dmlc/torchvision?tab=readme-ov-file#installation) guide to learn how to install it, or the [related discussions](https://github.com/dmlc/torchvision/issues/213).
+To work with video datasets, you need to have the `torchvision` package installed. Check out the [installation](https://github.com/pytorch/vision#installation) guide to learn how to install it.
 
 </Tip>
 
@@ -34,7 +34,7 @@ For a guide on how to load any type of dataset, take a look at the <a class="und
 
 ## Read frames
 
-Access frames directly from a video using the `VideoReader`:
+Access frames directly from a video using the `VideoReader` using `next()`:
 
 ```python
 >>> video = dataset[0]["video"]
