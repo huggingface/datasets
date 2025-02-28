@@ -351,50 +351,6 @@ def test_generate_examples_drop_metadata(image_file_with_metadata, drop_metadata
 
 
 @require_pil
-@pytest.mark.parametrize("drop_metadata", [None, True, False])
-def test_generate_examples_with_metadata_in_wrong_location(image_file, image_file_with_metadata, drop_metadata):
-    _, image_metadata_file = image_file_with_metadata
-    imagefolder = ImageFolder(drop_metadata=drop_metadata, data_files={"train": [image_file, image_metadata_file]})
-    gen_kwargs = imagefolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
-    generator = imagefolder._generate_examples(**gen_kwargs)
-    if not drop_metadata:
-        with pytest.raises(ValueError):
-            list(generator)
-    else:
-        assert all(
-            example.keys() == {"image"} and all(val is not None for val in example.values())
-            for _, example in generator
-        )
-
-
-@require_pil
-@pytest.mark.parametrize("drop_metadata", [None, True, False])
-def test_generate_examples_with_metadata_that_misses_one_image(
-    image_files_with_metadata_that_misses_one_image, drop_metadata
-):
-    image_file, image_file2, image_metadata_file = image_files_with_metadata_that_misses_one_image
-    if not drop_metadata:
-        features = Features({"image": Image(), "caption": Value("string")})
-    else:
-        features = Features({"image": Image()})
-    imagefolder = ImageFolder(
-        drop_metadata=drop_metadata,
-        features=features,
-        data_files={"train": [image_file, image_file2, image_metadata_file]},
-    )
-    gen_kwargs = imagefolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
-    generator = imagefolder._generate_examples(**gen_kwargs)
-    if not drop_metadata:
-        with pytest.raises(ValueError):
-            list(generator)
-    else:
-        assert all(
-            example.keys() == {"image"} and all(val is not None for val in example.values())
-            for _, example in generator
-        )
-
-
-@require_pil
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_single_split(streaming, cache_dir, data_files_with_one_split_and_metadata):
     data_files = data_files_with_one_split_and_metadata
@@ -471,14 +427,14 @@ def test_data_files_with_wrong_metadata_file_name(cache_dir, tmp_path, image_fil
 
 
 @require_pil
-def test_data_files_with_wrong_image_file_name_column_in_metadata_file(cache_dir, tmp_path, image_file):
-    data_dir = tmp_path / "data_dir_with_bad_metadata"
+def test_data_files_with_custom_image_file_name_column_in_metadata_file(cache_dir, tmp_path, image_file):
+    data_dir = tmp_path / "data_dir_with_custom_file_name_metadata"
     data_dir.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(image_file, data_dir / "image_rgb.jpg")
     image_metadata_filename = data_dir / "metadata.jsonl"
     image_metadata = textwrap.dedent(  # with bad column "bad_file_name" instead of "file_name"
         """\
-        {"bad_file_name": "image_rgb.jpg", "caption": "Nice image"}
+        {"picture_file_name": "image_rgb.jpg", "caption": "Nice image"}
         """
     )
     with open(image_metadata_filename, "w", encoding="utf-8") as f:
@@ -486,9 +442,10 @@ def test_data_files_with_wrong_image_file_name_column_in_metadata_file(cache_dir
 
     data_files_with_bad_metadata = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
     imagefolder = ImageFolder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
-    with pytest.raises(ValueError) as exc_info:
-        imagefolder.download_and_prepare()
-    assert "`file_name` must be present" in str(exc_info.value)
+    imagefolder.download_and_prepare()
+    dataset = imagefolder.as_dataset(split="train")
+    assert "picture" in dataset.features
+    assert "picture_file_name" not in dataset.features
 
 
 @require_pil

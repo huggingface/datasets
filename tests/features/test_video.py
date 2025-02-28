@@ -43,19 +43,19 @@ def test_dataset_with_video_feature(shared_datadir):
     item = dset[0]
     assert item.keys() == {"video"}
     assert isinstance(item["video"], VideoReader)
-    assert next(iter(item["video"])).shape == (50, 66, 3)
-    assert isinstance(item["video"][0], torch.Tensor)
+    assert next(item["video"])["data"].shape == (3, 50, 66)
+    assert isinstance(next(item["video"])["data"], torch.Tensor)
     batch = dset[:1]
     assert len(batch) == 1
     assert batch.keys() == {"video"}
     assert isinstance(batch["video"], list) and all(isinstance(item, VideoReader) for item in batch["video"])
-    assert batch["video"][0][0].shape == (50, 66, 3)
-    assert isinstance(next(iter(batch["video"][0])), torch.Tensor)
+    assert next(batch["video"][0])["data"].shape == (3, 50, 66)
+    assert isinstance(next(batch["video"][0])["data"], torch.Tensor)
     column = dset["video"]
     assert len(column) == 1
     assert isinstance(column, list) and all(isinstance(item, VideoReader) for item in column)
-    assert next(iter(column[0])).shape == (50, 66, 3)
-    assert isinstance(next(iter(column[0])), torch.Tensor)
+    assert next(column[0])["data"].shape == (3, 50, 66)
+    assert isinstance(next(column[0])["data"], torch.Tensor)
 
     # from bytes
     with open(video_path, "rb") as f:
@@ -64,8 +64,8 @@ def test_dataset_with_video_feature(shared_datadir):
     item = dset[0]
     assert item.keys() == {"video"}
     assert isinstance(item["video"], VideoReader)
-    assert next(iter(item["video"])).shape == (50, 66, 3)
-    assert isinstance(item["video"][0], torch.Tensor)
+    assert next(item["video"])["data"].shape == (3, 50, 66)
+    assert isinstance(next(item["video"])["data"], torch.Tensor)
 
 
 @require_torchvision

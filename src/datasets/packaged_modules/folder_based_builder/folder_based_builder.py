@@ -168,8 +168,10 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
             # Check that all metadata files share the same format
             metadata_ext = {
-                os.path.splitext(original_metadata_file)[-1]
-                for original_metadata_file, _ in itertools.chain.from_iterable(metadata_files.values())
+                os.path.splitext(original_metadata_file or downloaded_metadata_file)[-1]
+                for original_metadata_file, downloaded_metadata_file in itertools.chain.from_iterable(
+                    metadata_files.values()
+                )
             }
             if len(metadata_ext) > 1:
                 raise ValueError(f"Found metadata files with different extensions: {list(metadata_ext)}")
@@ -355,7 +357,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             _visit_with_path(self.info.features, find_feature_path)
 
             for original_metadata_file, downloaded_metadata_file in metadata_files:
-                metadata_ext = os.path.splitext(original_metadata_file)[-1]
+                metadata_ext = os.path.splitext(original_metadata_file or downloaded_metadata_file)[-1]
                 downloaded_metadata_dir = os.path.dirname(downloaded_metadata_file)
 
                 def set_feature(item, feature_path: _VisitPath):

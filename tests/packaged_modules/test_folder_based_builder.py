@@ -22,8 +22,12 @@ remote_files = [
 ]
 
 
+class DummyFeature:
+    pass
+
+
 class DummyFolderBasedBuilder(FolderBasedBuilder):
-    BASE_FEATURE = dict
+    BASE_FEATURE = DummyFeature
     BASE_COLUMN_NAME = "base"
     BUILDER_CONFIG_CLASS = FolderBasedBuilderConfig
     EXTENSIONS = [".txt"]
@@ -306,38 +310,6 @@ def test_streaming_patched():
 
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
-def test_generate_examples_duplicated_label_key(
-    files_with_labels_and_duplicated_label_key_in_metadata, drop_metadata, drop_labels, cache_dir, caplog
-):
-    class0_file, class1_file, metadata_file = files_with_labels_and_duplicated_label_key_in_metadata
-    autofolder = DummyFolderBasedBuilder(
-        data_files=[class0_file, class1_file, metadata_file],
-        cache_dir=cache_dir,
-        drop_metadata=drop_metadata,
-        drop_labels=drop_labels,
-    )
-    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
-    generator = autofolder._generate_examples(**gen_kwargs)
-    if drop_labels is False:
-        # infer labels from directories even if metadata files are found
-        warning_in_logs = any("ignoring metadata columns" in record.msg.lower() for record in caplog.records)
-        assert warning_in_logs if drop_metadata is not True else not warning_in_logs
-        assert autofolder.info.features["label"] == ClassLabel(names=["class0", "class1"])
-        assert all(example["label"] in ["class0", "class1"] for _, example in generator)
-
-    else:
-        if drop_metadata is not True:
-            # labels are from metadata
-            assert autofolder.info.features["label"] == Value("string")
-            assert all(example["label"] in ["CLASS_0", "CLASS_1"] for _, example in generator)
-        else:
-            # drop both labels and metadata
-            assert autofolder.info.features == Features({"base": {}})
-            assert all(example.keys() == {"base"} for _, example in generator)
-
-
-@pytest.mark.parametrize("drop_metadata", [None, True, False])
-@pytest.mark.parametrize("drop_labels", [None, True, False])
 def test_generate_examples_drop_labels(
     data_files_with_labels_no_metadata, auto_text_file, drop_metadata, drop_labels, cache_dir
 ):
@@ -377,7 +349,7 @@ def test_generate_examples_drop_metadata(file_with_metadata, drop_metadata, drop
     # since the dataset has metadata, removing the metadata explicitly requires drop_metadata=True
     assert gen_kwargs["add_metadata"] is not bool(drop_metadata)
     # since the dataset has metadata, adding the labels explicitly requires drop_labels=False
-    assert gen_kwargs["add_labels"] is (drop_labels is False)
+    assert gen_kwargs["add_labels"] is False
     generator = autofolder._generate_examples(**gen_kwargs)
     expected_columns = {"base"}
     if gen_kwargs["add_metadata"]:
@@ -520,14 +492,14 @@ def test_data_files_with_wrong_metadata_file_name(cache_dir, tmp_path, auto_text
     assert all("additional_feature" not in example for _, example in generator)
 
 
-def test_data_files_with_wrong_file_name_column_in_metadata_file(cache_dir, tmp_path, auto_text_file):
-    data_dir = tmp_path / "data_dir_with_bad_metadata"
+def test_data_files_with_custom_file_name_column_in_metadata_file(cache_dir, tmp_path, auto_text_file):
+    data_dir = tmp_path / "data_dir_with_custom_file_name_metadata"
     data_dir.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(auto_text_file, data_dir / "file.txt")
     metadata_filename = data_dir / "metadata.jsonl"
     metadata = textwrap.dedent(  # with bad column "bad_file_name" instead of "file_name"
         """\
-        {"bad_file_name": "file.txt", "additional_feature": "Dummy file"}
+        {"text_file_name": "file.txt", "additional_feature": "Dummy file"}
         """
     )
     with open(metadata_filename, "w", encoding="utf-8") as f:
@@ -535,6 +507,6 @@ def test_data_files_with_wrong_file_name_column_in_metadata_file(cache_dir, tmp_
 
     data_files_with_bad_metadata = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
     autofolder = DummyFolderBasedBuilder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
-    with pytest.raises(ValueError) as exc_info:
-        _ = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
-    assert "`file_name` must be present" in str(exc_info.value)
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    generator = autofolder._generate_examples(**gen_kwargs)
+    assert all("text" in example and "text_file_name" not in example for _, example in generator)
