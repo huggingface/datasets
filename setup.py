@@ -185,7 +185,8 @@ TESTS_REQUIRE = [
     "transformers>=4.42.0",  # Pins numpy < 2
     "zstandard",
     "polars[timezone]>=0.20.0",
-    "torchcodec",
+    "torchvision",
+    "pyav",
 ]
 
 

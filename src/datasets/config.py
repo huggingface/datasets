@@ -140,7 +140,7 @@ IS_OPUS_SUPPORTED = importlib.util.find_spec("soundfile") is not None and versio
 IS_MP3_SUPPORTED = importlib.util.find_spec("soundfile") is not None and version.parse(
     importlib.import_module("soundfile").__libsndfile_version__
 ) >= version.parse("1.1.0")
-TORCHCODEC_AVAILABLE = importlib.util.find_spec("torchcodec") is not None
+TORCHVISION_AVAILABLE = importlib.util.find_spec("torchvision") is not None
 
 # Optional compression tools
 RARFILE_AVAILABLE = importlib.util.find_spec("rarfile") is not None

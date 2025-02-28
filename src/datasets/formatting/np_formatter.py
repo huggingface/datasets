@@ -63,11 +63,11 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
 
             if isinstance(value, PIL.Image.Image):
                 return np.asarray(value, **self.np_array_kwargs)
-        if config.TORCHCODEC_AVAILABLE and "decord" in sys.modules:
-            from torchcodec.decoders import VideoDecoder
+        if config.TORCHVISION_AVAILABLE and "torchvision" in sys.modules:
+            from torchvision.io import VideoReader
 
-            if isinstance(value, VideoDecoder):
-                pass  # TODO(QL): set output to np arrays ?
+            if isinstance(value, VideoReader):
+                return value  # TODO(QL): set output to np arrays ?
 
         return np.asarray(value, **{**default_dtype, **self.np_array_kwargs})
 

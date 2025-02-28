@@ -106,11 +106,11 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
 
             if isinstance(value, PIL.Image.Image):
                 value = np.asarray(value)
-        if config.TORCHCODEC_AVAILABLE and "decord" in sys.modules:
-            from torchcodec.decoders import VideoDecoder
+        if config.TORCHVISION_AVAILABLE and "torchvision" in sys.modules:
+            from torchvision.io import VideoReader
 
-            if isinstance(value, VideoDecoder):
-                pass  # TODO(QL): set output to jax arrays ?
+            if isinstance(value, VideoReader):
+                return value  # TODO(QL): set output to jax arrays ?
 
         # using global variable since `jaxlib.xla_extension.Device` is not serializable neither
         # with `pickle` nor with `dill`, so we need to use a global variable instead
