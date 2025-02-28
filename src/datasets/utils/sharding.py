@@ -1,4 +1,3 @@
-from typing import List
 
 import numpy as np
 
@@ -10,19 +9,17 @@ def _number_of_shards_in_gen_kwargs(gen_kwargs: dict) -> int:
     lists_lengths = {key: len(value) for key, value in gen_kwargs.items() if isinstance(value, list)}
     if len(set(lists_lengths.values())) > 1:
         raise RuntimeError(
-            (
-                "Sharding is ambiguous for this dataset: "
-                + "we found several data sources lists of different lengths, and we don't know over which list we should parallelize:\n"
-                + "\n".join(f"\t- key {key} has length {length}" for key, length in lists_lengths.items())
-                + "\nTo fix this, check the 'gen_kwargs' and make sure to use lists only for data sources, "
-                + "and use tuples otherwise. In the end there should only be one single list, or several lists with the same length."
-            )
+            "Sharding is ambiguous for this dataset: "
+            + "we found several data sources lists of different lengths, and we don't know over which list we should parallelize:\n"
+            + "\n".join(f"\t- key {key} has length {length}" for key, length in lists_lengths.items())
+            + "\nTo fix this, check the 'gen_kwargs' and make sure to use lists only for data sources, "
+            + "and use tuples otherwise. In the end there should only be one single list, or several lists with the same length."
         )
     max_length = max(lists_lengths.values(), default=0)
     return max(1, max_length)
 
 
-def _distribute_shards(num_shards: int, max_num_jobs: int) -> List[range]:
+def _distribute_shards(num_shards: int, max_num_jobs: int) -> list[range]:
     """
     Get the range of shard indices per job.
     If num_shards<max_num_jobs, then num_shards jobs are given a range of one shard.
@@ -49,7 +46,7 @@ def _distribute_shards(num_shards: int, max_num_jobs: int) -> List[range]:
     return shards_indices_per_group
 
 
-def _split_gen_kwargs(gen_kwargs: dict, max_num_jobs: int) -> List[dict]:
+def _split_gen_kwargs(gen_kwargs: dict, max_num_jobs: int) -> list[dict]:
     """Split the gen_kwargs into `max_num_job` gen_kwargs"""
     # Having lists of different sizes makes sharding ambigious, raise an error in this case
     num_shards = _number_of_shards_in_gen_kwargs(gen_kwargs)
@@ -68,7 +65,7 @@ def _split_gen_kwargs(gen_kwargs: dict, max_num_jobs: int) -> List[dict]:
         ]
 
 
-def _merge_gen_kwargs(gen_kwargs_list: List[dict]) -> dict:
+def _merge_gen_kwargs(gen_kwargs_list: list[dict]) -> dict:
     return {
         key: [value for gen_kwargs in gen_kwargs_list for value in gen_kwargs[key]]
         if isinstance(gen_kwargs_list[0][key], list)

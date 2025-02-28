@@ -1,9 +1,10 @@
 import os
 import posixpath
 import uuid
+from collections.abc import Iterable
 from dataclasses import dataclass
 from itertools import islice
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import numpy as np
 import pyarrow as pa
@@ -37,7 +38,7 @@ class SparkConfig(datasets.BuilderConfig):
         super().__post_init__()
 
 
-def _reorder_dataframe_by_partition(df: "pyspark.sql.DataFrame", new_partition_order: List[int]):
+def _reorder_dataframe_by_partition(df: "pyspark.sql.DataFrame", new_partition_order: list[int]):
     df_combined = df.select("*").where(f"part_id = {new_partition_order[0]}")
     for partition_id in new_partition_order[1:]:
         partition_df = df.select("*").where(f"part_id = {partition_id}")
@@ -47,7 +48,7 @@ def _reorder_dataframe_by_partition(df: "pyspark.sql.DataFrame", new_partition_o
 
 def _generate_iterable_examples(
     df: "pyspark.sql.DataFrame",
-    partition_order: List[int],
+    partition_order: list[int],
     state_dict: Optional[dict] = None,
 ):
     import pyspark
@@ -200,7 +201,7 @@ class Spark(datasets.DatasetBuilder):
         fpath: str,
         file_format: str,
         max_shard_size: int,
-    ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
+    ) -> Iterable[tuple[int, bool, Union[int, tuple]]]:
         import pyspark
 
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter

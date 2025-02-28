@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import pyarrow as pa
 import pyarrow.dataset as ds
@@ -18,9 +18,9 @@ class ParquetConfig(datasets.BuilderConfig):
     """BuilderConfig for Parquet."""
 
     batch_size: Optional[int] = None
-    columns: Optional[List[str]] = None
+    columns: Optional[list[str]] = None
     features: Optional[datasets.Features] = None
-    filters: Optional[Union[ds.Expression, List[tuple], List[List[tuple]]]] = None
+    filters: Optional[Union[ds.Expression, list[tuple], list[list[tuple]]]] = None
 
     def __post_init__(self):
         super().__post_init__()

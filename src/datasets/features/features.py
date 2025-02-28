@@ -21,11 +21,11 @@ import re
 import sys
 from collections.abc import Iterable, Mapping
 from collections.abc import Sequence as SequenceABC
+from collections.abc import Sequence as Sequence_
 from dataclasses import InitVar, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
-from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, Union
-from typing import Sequence as Sequence_
+from typing import Any, Callable, ClassVar, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -264,7 +264,7 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
     )
 
 
-def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_casting: bool) -> Tuple[Any, bool]:
+def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_casting: bool) -> tuple[Any, bool]:
     """
     Cast pytorch/tensorflow/pandas objects to python numpy array/lists.
     It works recursively.
@@ -977,14 +977,14 @@ class ClassLabel:
     """
 
     num_classes: InitVar[Optional[int]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
-    names: List[str] = None
+    names: list[str] = None
     names_file: InitVar[Optional[str]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "int64"
     pa_type: ClassVar[Any] = pa.int64()
-    _str2int: ClassVar[Dict[str, int]] = None
-    _int2str: ClassVar[Dict[int, int]] = None
+    _str2int: ClassVar[dict[str, int]] = None
+    _int2str: ClassVar[dict[int, int]] = None
     _type: str = field(default="ClassLabel", init=False, repr=False)
 
     def __post_init__(self, num_classes, names_file):
@@ -1357,7 +1357,7 @@ def encode_nested_example(schema, obj, level=0):
     return obj
 
 
-def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
+def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
     """Decode a nested example.
     This is used since some features (in particular Audio and Image) have some logic during decoding.
 
@@ -1408,7 +1408,7 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
     return obj
 
 
-_FEATURE_TYPES: Dict[str, FeatureType] = {
+_FEATURE_TYPES: dict[str, FeatureType] = {
     Value.__name__: Value,
     ClassLabel.__name__: ClassLabel,
     Translation.__name__: Translation,
@@ -1519,7 +1519,7 @@ def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.
     return values
 
 
-def list_of_pa_arrays_to_pyarrow_listarray(l_arr: List[Optional[pa.Array]]) -> pa.ListArray:
+def list_of_pa_arrays_to_pyarrow_listarray(l_arr: list[Optional[pa.Array]]) -> pa.ListArray:
     null_mask = np.array([arr is None for arr in l_arr])
     null_indices = np.arange(len(null_mask))[null_mask] - np.arange(np.sum(null_mask))
     l_arr = [arr for arr in l_arr if arr is not None]
@@ -1532,7 +1532,7 @@ def list_of_pa_arrays_to_pyarrow_listarray(l_arr: List[Optional[pa.Array]]) -> p
     return pa.ListArray.from_arrays(offsets, values)
 
 
-def list_of_np_array_to_pyarrow_listarray(l_arr: List[np.ndarray], type: pa.DataType = None) -> pa.ListArray:
+def list_of_np_array_to_pyarrow_listarray(l_arr: list[np.ndarray], type: pa.DataType = None) -> pa.ListArray:
     """Build a PyArrow ListArray from a possibly nested list of NumPy arrays"""
     if len(l_arr) > 0:
         return list_of_pa_arrays_to_pyarrow_listarray(
@@ -1559,7 +1559,7 @@ def contains_any_np_array(data: Any):
         return False
 
 
-def any_np_array_to_pyarrow_listarray(data: Union[np.ndarray, List], type: pa.DataType = None) -> pa.ListArray:
+def any_np_array_to_pyarrow_listarray(data: Union[np.ndarray, list], type: pa.DataType = None) -> pa.ListArray:
     """Convert to PyArrow ListArray either a NumPy ndarray or (recursively) a list that may contain any NumPy ndarray.
 
     Args:
@@ -1737,7 +1737,7 @@ class Features(dict):
             raise TypeError("descriptor '__init__' of 'Features' object needs an argument")
         self, *args = args
         super(Features, self).__init__(*args, **kwargs)
-        self._column_requires_decoding: Dict[str, bool] = {
+        self._column_requires_decoding: dict[str, bool] = {
             col: require_decoding(feature) for col, feature in self.items()
         }
 
@@ -1792,8 +1792,8 @@ class Features(dict):
         """
         # try to load features from the arrow schema metadata
         metadata_features = Features()
-        if pa_schema.metadata is not None and "huggingface".encode("utf-8") in pa_schema.metadata:
-            metadata = json.loads(pa_schema.metadata["huggingface".encode("utf-8")].decode())
+        if pa_schema.metadata is not None and b"huggingface" in pa_schema.metadata:
+            metadata = json.loads(pa_schema.metadata[b"huggingface"].decode())
             if "info" in metadata and "features" in metadata["info"] and metadata["info"]["features"] is not None:
                 metadata_features = Features.from_dict(metadata["info"]["features"])
         metadata_features_schema = metadata_features.arrow_schema
@@ -2031,7 +2031,7 @@ class Features(dict):
             encoded_batch[key] = [encode_nested_example(self[key], obj, level=1) for obj in column]
         return encoded_batch
 
-    def decode_example(self, example: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
+    def decode_example(self, example: dict, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
         """Decode example with custom feature decoding.
 
         Args:
@@ -2072,7 +2072,7 @@ class Features(dict):
             else column
         )
 
-    def decode_batch(self, batch: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
+    def decode_batch(self, batch: dict, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
         """Decode batch with custom feature decoding.
 
         Args:
@@ -2244,7 +2244,7 @@ class Features(dict):
         return self
 
 
-def _align_features(features_list: List[Features]) -> List[Features]:
+def _align_features(features_list: list[Features]) -> list[Features]:
     """Align dictionaries of features so that the keys that are found in multiple dictionaries share the same feature."""
     name2feature = {}
     for features in features_list:
@@ -2258,7 +2258,7 @@ def _align_features(features_list: List[Features]) -> List[Features]:
     return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
 
 
-def _check_if_features_can_be_aligned(features_list: List[Features]):
+def _check_if_features_can_be_aligned(features_list: list[Features]):
     """Check if the dictionaries of features can be aligned.
 
     Two dictonaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.

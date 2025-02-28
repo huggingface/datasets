@@ -1,4 +1,3 @@
-from typing import List
 
 import datasets
 
@@ -22,7 +21,7 @@ class AudioFolder(folder_based_builder.FolderBasedBuilder):
     BASE_FEATURE = datasets.Audio
     BASE_COLUMN_NAME = "audio"
     BUILDER_CONFIG_CLASS = AudioFolderConfig
-    EXTENSIONS: List[str]  # definition at the bottom of the script
+    EXTENSIONS: list[str]  # definition at the bottom of the script
 
 
 # Obtained with:

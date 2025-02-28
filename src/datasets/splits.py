@@ -21,7 +21,7 @@ import copy
 import dataclasses
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Union
+from typing import Optional, Union
 
 from .arrow_reader import FileInstructions, make_file_instructions
 from .naming import _split_re
@@ -33,7 +33,7 @@ class SplitInfo:
     name: str = dataclasses.field(default="", metadata={"include_in_asdict_even_if_is_default": True})
     num_bytes: int = dataclasses.field(default=0, metadata={"include_in_asdict_even_if_is_default": True})
     num_examples: int = dataclasses.field(default=0, metadata={"include_in_asdict_even_if_is_default": True})
-    shard_lengths: Optional[List[int]] = None
+    shard_lengths: Optional[list[int]] = None
 
     # Deprecated
     # For backward compatibility, this field needs to always be included in files like
@@ -554,7 +554,7 @@ class SplitDict(dict):
         return sum(s.num_examples for s in self.values())
 
     @classmethod
-    def from_split_dict(cls, split_infos: Union[List, Dict], dataset_name: Optional[str] = None):
+    def from_split_dict(cls, split_infos: Union[list, dict], dataset_name: Optional[str] = None):
         """Returns a new SplitDict initialized from a Dict or List of `split_infos`."""
         if isinstance(split_infos, dict):
             split_infos = list(split_infos.values())
@@ -626,7 +626,7 @@ class SplitGenerator:
     """
 
     name: str
-    gen_kwargs: Dict = dataclasses.field(default_factory=dict)
+    gen_kwargs: dict = dataclasses.field(default_factory=dict)
     split_info: SplitInfo = dataclasses.field(init=False)
 
     def __post_init__(self):

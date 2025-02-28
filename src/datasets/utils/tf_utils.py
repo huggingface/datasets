@@ -83,7 +83,7 @@ def np_get_batch(
     elif isinstance(indices, np.ndarray):
         batch = dataset[indices]
     else:
-        raise RuntimeError("Unexpected type for indices: {}".format(type(indices)))
+        raise RuntimeError(f"Unexpected type for indices: {type(indices)}")
 
     if cols_to_retain is not None:
         batch = {

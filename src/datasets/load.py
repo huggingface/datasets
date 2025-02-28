@@ -27,10 +27,11 @@ import signal
 import time
 import warnings
 from collections import Counter
+from collections.abc import Mapping, Sequence
 from contextlib import nullcontext
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
+from typing import Any, Optional, Union
 
 import fsspec
 import requests
@@ -164,7 +165,7 @@ def init_dynamic_modules(
     return dynamic_modules_path
 
 
-def import_main_class(module_path) -> Optional[Type[DatasetBuilder]]:
+def import_main_class(module_path) -> Optional[type[DatasetBuilder]]:
     """Import a module at module_path and return its main class: a DatasetBuilder"""
     module = importlib.import_module(module_path)
     # Find the main class in our imported module
@@ -200,11 +201,11 @@ class _InitializeConfiguredDatasetBuilder:
 
 
 def configure_builder_class(
-    builder_cls: Type[DatasetBuilder],
-    builder_configs: List[BuilderConfig],
+    builder_cls: type[DatasetBuilder],
+    builder_configs: list[BuilderConfig],
     default_config_name: Optional[str],
     dataset_name: str,
-) -> Type[DatasetBuilder]:
+) -> type[DatasetBuilder]:
     """
     Dynamically create a builder class with custom builder configs parsed from README.md file,
     i.e. set BUILDER_CONFIGS class variable of a builder class to custom configs list.
@@ -241,7 +242,7 @@ def configure_builder_class(
 
 def get_dataset_builder_class(
     dataset_module: "DatasetModule", dataset_name: Optional[str] = None
-) -> Type[DatasetBuilder]:
+) -> type[DatasetBuilder]:
     with (
         lock_importable_file(dataset_module.importable_file_path)
         if dataset_module.importable_file_path
@@ -261,12 +262,12 @@ def get_dataset_builder_class(
     return builder_cls
 
 
-def files_to_hash(file_paths: List[str]) -> str:
+def files_to_hash(file_paths: list[str]) -> str:
     """
     Convert a list of scripts or text files provided in file_paths into a hashed filename in a repeatable way.
     """
     # List all python files in directories if directories are supplied as part of external imports
-    to_use_files: List[Union[Path, str]] = []
+    to_use_files: list[Union[Path, str]] = []
     for file_path in file_paths:
         if os.path.isdir(file_path):
             to_use_files.extend(list(Path(file_path).rglob("*.[pP][yY]")))
@@ -295,8 +296,8 @@ def increase_load_count(name: str):
 
 
 def _download_additional_modules(
-    name: str, base_path: str, imports: Tuple[str, str, str, str], download_config: Optional[DownloadConfig]
-) -> Tuple[List[Tuple[str, str]], List[Tuple[str, str]]]:
+    name: str, base_path: str, imports: tuple[str, str, str, str], download_config: Optional[DownloadConfig]
+) -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
     """
     Download additional module for a module <name>.py at URL (or local path) <base_path>/<name>.py
     The imports must have been parsed first using ``get_imports``.
@@ -341,7 +342,7 @@ def _download_additional_modules(
     return local_imports, library_imports
 
 
-def _check_library_imports(name: str, library_imports: List[Tuple[str, str]]) -> None:
+def _check_library_imports(name: str, library_imports: list[tuple[str, str]]) -> None:
     # Check library imports
     needs_to_be_installed = {}
     for library_import_name, library_import_path in library_imports:
@@ -369,8 +370,8 @@ def _copy_script_and_other_resources_in_importable_dir(
     importable_directory_path: str,
     subdirectory_name: str,
     original_local_path: str,
-    local_imports: List[Tuple[str, str]],
-    additional_files: List[Tuple[str, str]],
+    local_imports: list[tuple[str, str]],
+    additional_files: list[tuple[str, str]],
     download_mode: Optional[Union[DownloadMode, str]],
 ) -> str:
     """Copy a script and its required imports to an importable directory
@@ -460,8 +461,8 @@ def _get_importable_file_path(
 
 def _create_importable_file(
     local_path: str,
-    local_imports: List[Tuple[str, str]],
-    additional_files: List[Tuple[str, str]],
+    local_imports: list[tuple[str, str]],
+    additional_files: list[tuple[str, str]],
     dynamic_modules_path: str,
     module_namespace: str,
     subdirectory_name: str,
@@ -488,7 +489,7 @@ def _load_importable_file(
     module_namespace: str,
     subdirectory_name: str,
     name: str,
-) -> Tuple[str, str]:
+) -> tuple[str, str]:
     module_path = ".".join(
         [
             os.path.basename(dynamic_modules_path),
@@ -503,7 +504,7 @@ def _load_importable_file(
 
 def infer_module_for_data_files_list(
     data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
-) -> Tuple[Optional[str], dict]:
+) -> tuple[Optional[str], dict]:
     """Infer module (and builder kwargs) from list of data files.
 
     It picks the module based on the most common file extension.
@@ -525,7 +526,7 @@ def infer_module_for_data_files_list(
     )
     if extensions_counter:
 
-        def sort_key(ext_count: Tuple[Tuple[str, bool], int]) -> Tuple[int, bool]:
+        def sort_key(ext_count: tuple[tuple[str, bool], int]) -> tuple[int, bool]:
             """Sort by count and set ".parquet" as the favorite in case of a draw, and ignore metadata files"""
             (ext, is_metadata), count = ext_count
             return (not is_metadata, count, ext == ".parquet", ext)
@@ -540,7 +541,7 @@ def infer_module_for_data_files_list(
 
 def infer_module_for_data_files_list_in_archives(
     data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
-) -> Tuple[Optional[str], dict]:
+) -> tuple[Optional[str], dict]:
     """Infer module (and builder kwargs) from list of archive data files.
 
     Args:
@@ -578,7 +579,7 @@ def infer_module_for_data_files_list_in_archives(
 
 def infer_module_for_data_files(
     data_files: DataFilesDict, path: Optional[str] = None, download_config: Optional[DownloadConfig] = None
-) -> Tuple[Optional[str], Dict[str, Any]]:
+) -> tuple[Optional[str], dict[str, Any]]:
     """Infer module (and builder kwargs) from data files. Raise if module names for different splits don't match.
 
     Args:
@@ -609,9 +610,9 @@ def create_builder_configs_from_metadata_configs(
     metadata_configs: MetadataConfigs,
     supports_metadata: bool,
     base_path: Optional[str] = None,
-    default_builder_kwargs: Dict[str, Any] = None,
+    default_builder_kwargs: dict[str, Any] = None,
     download_config: Optional[DownloadConfig] = None,
-) -> Tuple[List[BuilderConfig], str]:
+) -> tuple[list[BuilderConfig], str]:
     builder_cls = import_main_class(module_path)
     builder_config_cls = builder_cls.BUILDER_CONFIG_CLASS
     default_config_name = metadata_configs.get_default_config_name()
@@ -689,7 +690,7 @@ class BuilderConfigsParameters:
     """
 
     metadata_configs: Optional[MetadataConfigs] = None
-    builder_configs: Optional[List[BuilderConfig]] = None
+    builder_configs: Optional[list[BuilderConfig]] = None
     default_config_name: Optional[str] = None
 
 
@@ -800,7 +801,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self,
         path: str,
         data_dir: Optional[str] = None,
-        data_files: Optional[Union[str, List, Dict]] = None,
+        data_files: Optional[Union[str, list, dict]] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
     ):
         if data_dir and os.path.isabs(data_dir):
@@ -817,7 +818,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         standalone_yaml_path = os.path.join(self.path, config.REPOYAML_FILENAME)
         dataset_card_data = DatasetCard.load(readme_path).data if os.path.isfile(readme_path) else DatasetCardData()
         if os.path.exists(standalone_yaml_path):
-            with open(standalone_yaml_path, "r", encoding="utf-8") as f:
+            with open(standalone_yaml_path, encoding="utf-8") as f:
                 standalone_yaml_data = yaml.safe_load(f.read())
                 if standalone_yaml_data:
                     _dataset_card_data_dict = dataset_card_data.to_dict()
@@ -871,7 +872,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 default_builder_kwargs=default_builder_kwargs,
             )
         else:
-            builder_configs: List[BuilderConfig] = [
+            builder_configs: list[BuilderConfig] = [
                 import_main_class(module_path).BUILDER_CONFIG_CLASS(
                     data_files=data_files,
                     **default_builder_kwargs,
@@ -923,7 +924,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         self,
         name: str,
         data_dir: Optional[str] = None,
-        data_files: Optional[Union[str, List, Dict]] = None,
+        data_files: Optional[Union[str, list, dict]] = None,
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
     ):
@@ -985,7 +986,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         name: str,
         commit_hash: str,
         data_dir: Optional[str] = None,
-        data_files: Optional[Union[str, List, Dict]] = None,
+        data_files: Optional[Union[str, list, dict]] = None,
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
         use_exported_dataset_infos: bool = False,
@@ -1027,7 +1028,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 hf_dataset_url(self.name, config.REPOYAML_FILENAME, revision=self.commit_hash),
                 download_config=download_config,
             )
-            with open(standalone_yaml_path, "r", encoding="utf-8") as f:
+            with open(standalone_yaml_path, encoding="utf-8") as f:
                 standalone_yaml_data = yaml.safe_load(f.read())
                 if standalone_yaml_data:
                     _dataset_card_data_dict = dataset_card_data.to_dict()
@@ -1106,7 +1107,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 download_config=self.download_config,
             )
         else:
-            builder_configs: List[BuilderConfig] = [
+            builder_configs: list[BuilderConfig] = [
                 import_main_class(module_path).BUILDER_CONFIG_CLASS(
                     data_files=data_files,
                     **default_builder_kwargs,
@@ -1457,7 +1458,7 @@ def dataset_module_factory(
     download_mode: Optional[Union[DownloadMode, str]] = None,
     dynamic_modules_path: Optional[str] = None,
     data_dir: Optional[str] = None,
-    data_files: Optional[Union[Dict, List, str, DataFilesDict]] = None,
+    data_files: Optional[Union[dict, list, str, DataFilesDict]] = None,
     cache_dir: Optional[str] = None,
     trust_remote_code: Optional[bool] = None,
     _require_default_config_name=True,
@@ -1654,7 +1655,7 @@ def dataset_module_factory(
                 if _require_custom_configs or (revision and revision != "main"):
                     can_load_config_from_parquet_export = False
                 elif _require_default_config_name:
-                    with open(dataset_script_path, "r", encoding="utf-8") as f:
+                    with open(dataset_script_path, encoding="utf-8") as f:
                         can_load_config_from_parquet_export = "DEFAULT_CONFIG_NAME" not in f.read()
                 else:
                     can_load_config_from_parquet_export = True
@@ -1748,7 +1749,7 @@ def load_dataset_builder(
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
     token: Optional[Union[bool, str]] = None,
-    storage_options: Optional[Dict] = None,
+    storage_options: Optional[dict] = None,
     trust_remote_code: Optional[bool] = None,
     _require_default_config_name=True,
     **config_kwargs,
@@ -1919,7 +1920,7 @@ def load_dataset(
     token: Optional[Union[bool, str]] = None,
     streaming: bool = False,
     num_proc: Optional[int] = None,
-    storage_options: Optional[Dict] = None,
+    storage_options: Optional[dict] = None,
     trust_remote_code: Optional[bool] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:

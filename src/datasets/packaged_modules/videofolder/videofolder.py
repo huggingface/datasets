@@ -1,4 +1,3 @@
-from typing import List
 
 import datasets
 
@@ -22,7 +21,7 @@ class VideoFolder(folder_based_builder.FolderBasedBuilder):
     BASE_FEATURE = datasets.Video
     BASE_COLUMN_NAME = "video"
     BUILDER_CONFIG_CLASS = VideoFolderConfig
-    EXTENSIONS: List[str]  # definition at the bottom of the script
+    EXTENSIONS: list[str]  # definition at the bottom of the script
 
 
 # TODO: initial list, we should check the compatibility of other formats

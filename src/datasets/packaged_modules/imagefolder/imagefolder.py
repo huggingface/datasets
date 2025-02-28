@@ -1,4 +1,3 @@
-from typing import List
 
 import datasets
 
@@ -22,7 +21,7 @@ class ImageFolder(folder_based_builder.FolderBasedBuilder):
     BASE_FEATURE = datasets.Image
     BASE_COLUMN_NAME = "image"
     BUILDER_CONFIG_CLASS = ImageFolderConfig
-    EXTENSIONS: List[str]  # definition at the bottom of the script
+    EXTENSIONS: list[str]  # definition at the bottom of the script
 
 
 # Obtained with:

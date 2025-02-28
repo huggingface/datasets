@@ -1,6 +1,6 @@
 import sys
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import pandas as pd
 import pyarrow as pa
@@ -26,11 +26,11 @@ class SqlConfig(datasets.BuilderConfig):
 
     sql: Union[str, "sqlalchemy.sql.Selectable"] = None
     con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"] = None
-    index_col: Optional[Union[str, List[str]]] = None
+    index_col: Optional[Union[str, list[str]]] = None
     coerce_float: bool = True
-    params: Optional[Union[List, Tuple, Dict]] = None
-    parse_dates: Optional[Union[List, Dict]] = None
-    columns: Optional[List[str]] = None
+    params: Optional[Union[list, tuple, dict]] = None
+    parse_dates: Optional[Union[list, dict]] = None
+    columns: Optional[list[str]] = None
     chunksize: Optional[int] = 10_000
     features: Optional[datasets.Features] = None
 
