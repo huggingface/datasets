@@ -1920,7 +1920,7 @@ def load_dataset(
     streaming: bool = False,
     num_proc: Optional[int] = None,
     storage_options: Optional[Dict] = None,
-    trust_remote_code: bool = None,
+    trust_remote_code: Optional[bool] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset from the Hugging Face Hub, or a local dataset.
