@@ -3052,6 +3052,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 cache_file_name = self._get_cache_file_path(new_fingerprint)
         dataset_kwargs["cache_file_name"] = cache_file_name
 
+        if cache_file_name is not None:
+            cache_file_prefix, cache_file_ext = os.path.splitext(cache_file_name)
+            if not cache_file_ext:
+                raise ValueError(f"Expected cache_file_name to have an extension, but got: {cache_file_name}")
+        else:
+            cache_file_prefix = cache_file_ext = None
+
         def load_processed_shard_from_cache(shard_kwargs: dict[str, Any]) -> Dataset:
             """Load a processed shard from cache if it exists, otherwise throw an error."""
             shard = shard_kwargs["shard"]
@@ -3072,39 +3079,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 return total // num_shards // batch_size * num_shards * batch_size
             return total
 
-        def get_existing_cache_file_map(
-            cache_file_name: Optional[str],
-        ) -> dict[int, list[str]]:
-            cache_files_by_num_proc: dict[int, list[str]] = defaultdict(list)
-            if cache_file_name is None:
-                return cache_files_by_num_proc
+        existing_cache_file_map: dict[int, list[str]] = defaultdict(list)
+        if cache_file_name is not None:
             if os.path.exists(cache_file_name):
-                cache_files_by_num_proc[1] = [cache_file_name]
+                existing_cache_file_map[1] = [cache_file_name]
 
-            suffix_pattern_parts: list[str] = []
-            for literal_text, field_name, format_spec, _ in string_formatter.parse(suffix_template):
-                suffix_pattern_parts.append(re.escape(literal_text))
-                if field_name:
-                    # TODO: we may want to place restrictions on acceptable format_spec or we will fail to match
-                    # someone's hexidecimal or scientific notation format 😵
-                    suffix_pattern_parts.append(f"(?P<{field_name}>\\d+)")
-            suffix_pattern = "".join(suffix_pattern_parts)
-
-            cache_file_prefix, cache_file_ext = os.path.splitext(cache_file_name)
-            if not cache_file_ext:
-                raise ValueError(f"Expected cache_file_name to have an extension, but got: {cache_file_name}")
-
-            cache_file_pattern = "^" + re.escape(cache_file_prefix) + suffix_pattern + re.escape(cache_file_ext) + "$"
-            cache_file_regex = re.compile(cache_file_pattern)
+            assert cache_file_prefix is not None and cache_file_ext is not None
+            cache_file_with_suffix_pattern = cache_file_prefix + suffix_template + cache_file_ext
 
             for cache_file in glob.iglob(f"{cache_file_prefix}*{cache_file_ext}"):
-                if m := cache_file_regex.match(cache_file):
-                    file_num_proc = int(m.group("num_proc"))
-                    cache_files_by_num_proc[file_num_proc].append(cache_file)
-
-            return cache_files_by_num_proc
-
-        existing_cache_file_map = get_existing_cache_file_map(cache_file_name)
+                suffix_variable_map = string_to_dict(cache_file, cache_file_with_suffix_pattern)
+                if suffix_variable_map is not None:
+                    file_num_proc = int(suffix_variable_map["num_proc"])
+                    existing_cache_file_map[file_num_proc].append(cache_file)
 
         num_shards = num_proc or 1
         if existing_cache_file_map:
@@ -3122,7 +3109,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             num_shards = min(existing_cache_file_map, key=select_existing_cache_files)
 
-        existing_cache_files = existing_cache_file_map.get(num_shards, [])
+        existing_cache_files = existing_cache_file_map[num_shards]
 
         def format_cache_file_name(
             cache_file_name: Optional[str],
@@ -3131,9 +3118,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if not cache_file_name:
                 return cache_file_name
 
-            cache_file_prefix, cache_file_ext = os.path.splitext(cache_file_name)
-            if not cache_file_ext:
-                raise ValueError(f"Expected cache_file_name to have an extension, but got: {cache_file_name}")
+            assert cache_file_prefix is not None and cache_file_ext is not None
 
             if isinstance(rank, int):
                 cache_file_name = (
@@ -5835,7 +5820,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @transmit_format
     @fingerprint_transform(inplace=False)
     def add_column(
-        self, name: str, column: Union[list, np.array], new_fingerprint: str, feature: Optional[FeatureType] = None
+        self, name: str, column: Union[list, np.ndarray], new_fingerprint: str, feature: Optional[FeatureType] = None
     ):
         """Add column to Dataset.
 
