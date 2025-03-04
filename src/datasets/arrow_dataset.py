@@ -3204,10 +3204,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 pass
 
         if unprocessed_kwargs_per_job := [kwargs for kwargs in kwargs_per_job if kwargs is not None]:
-            if len(unprocessed_kwargs_per_job) < num_shards:
+            if len(unprocessed_kwargs_per_job) != num_shards:
                 logger.info(
                     f"Reprocessing {len(unprocessed_kwargs_per_job)}/{num_shards} shards because some of them were "
-                    " missing from the cache."
+                    "missing from the cache."
                 )
 
             with hf_tqdm(
