@@ -1507,7 +1507,7 @@ def dataset_module_factory(
             Directory to read/write data. Defaults to `"~/.cache/huggingface/datasets"`.
 
             <Added version="2.16.0"/>
-        trust_remote_code (`bool`, defaults to `False`):
+        trust_remote_code (`bool`, *optional*, defaults to `None`):
             Whether or not to allow for datasets defined on the Hub using a dataset script. This option
             should only be set to `True` for repositories you trust and in which you have read the code, as it will
             execute code present on the Hub on your local machine.
@@ -1809,7 +1809,7 @@ def load_dataset_builder(
             **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
 
             <Added version="2.11.0"/>
-        trust_remote_code (`bool`, defaults to `False`):
+        trust_remote_code (`bool`, *optional*, defaults to `None`):
             Whether or not to allow for datasets defined on the Hub using a dataset script. This option
             should only be set to `True` for repositories you trust and in which you have read the code, as it will
             execute code present on the Hub on your local machine.
@@ -1920,7 +1920,7 @@ def load_dataset(
     streaming: bool = False,
     num_proc: Optional[int] = None,
     storage_options: Optional[Dict] = None,
-    trust_remote_code: bool = None,
+    trust_remote_code: Optional[bool] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset from the Hugging Face Hub, or a local dataset.
@@ -2029,7 +2029,7 @@ def load_dataset(
             **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
 
             <Added version="2.11.0"/>
-        trust_remote_code (`bool`, defaults to `False`):
+        trust_remote_code (`bool`, *optional*, defaults to `None`):
             Whether or not to allow for datasets defined on the Hub using a dataset script. This option
             should only be set to `True` for repositories you trust and in which you have read the code, as it will
             execute code present on the Hub on your local machine.
