@@ -3139,7 +3139,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 cache_file_name = (
                     cache_file_prefix + suffix_template.format(rank=rank, num_proc=num_shards) + cache_file_ext
                 )
-                logger.info(f"Process #{rank} will write at {cache_file_name}")
+                if not os.path.exists(cache_file_name):
+                    process_name = (
+                        "Main process" if num_proc is None or num_proc == 1 else f"Process #{rank % num_shards + 1}"
+                    )
+                    logger.info(f"{process_name} will write at {cache_file_name}")
             else:
                 # TODO: this assumes the format_spec of rank in suffix_template
                 cache_file_name = (
