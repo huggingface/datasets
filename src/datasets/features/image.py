@@ -174,11 +174,9 @@ class Image:
                         if source_url.startswith(config.HF_ENDPOINT)
                         else config.HUB_DATASETS_HFFS_URL
                     )
-                    try:
-                        repo_id = string_to_dict(source_url, pattern)["repo_id"]
-                        token = token_per_repo_id.get(repo_id)
-                    except ValueError:
-                        token = None
+                    source_url_fields = string_to_dict(source_url, pattern)
+                    assert source_url_fields is not None
+                    token = token_per_repo_id.get(source_url_fields["repo_id"])
                     download_config = DownloadConfig(token=token)
                     with xopen(path, "rb", download_config=download_config) as f:
                         bytes_ = BytesIO(f.read())

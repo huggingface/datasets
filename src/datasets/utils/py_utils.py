@@ -30,7 +30,7 @@ from multiprocessing import Manager
 from pathlib import Path
 from queue import Empty
 from shutil import disk_usage
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, TypeVar, Union
+from typing import Any, Callable, Iterable, List, Optional, Set, Tuple, TypeVar, Union
 from urllib.parse import urlparse
 
 import multiprocess
@@ -156,7 +156,7 @@ def glob_pattern_to_regex(pattern):
     )
 
 
-def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
+def string_to_dict(string: str, pattern: str) -> Optional[dict[str, str]]:
     """Un-format a string using a python f-string pattern.
     From https://stackoverflow.com/a/36838374
 
@@ -174,15 +174,14 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
         pattern (str): pattern formatted like a python f-string
 
     Returns:
-        Dict[str, str]: dictionary of variable -> value, retrieved from the input using the pattern
-
-    Raises:
-        ValueError: if the string doesn't match the pattern
+        Optional[dict[str, str]]: dictionary of variable -> value, retrieved from the input using the pattern, or
+        `None` if the string does not match the pattern.
     """
+    pattern = re.sub(r"{([^:}]+)(?::[^}]+)?}", r"{\1}", pattern)  # remove format specifiers, e.g. {rank:05d} -> {rank}
     regex = re.sub(r"{(.+?)}", r"(?P<_\1>.+)", pattern)
     result = re.search(regex, string)
     if result is None:
-        raise ValueError(f"String {string} doesn't match the pattern {pattern}")
+        return None
     values = list(result.groups())
     keys = re.findall(r"{(.+?)}", pattern)
     _dict = dict(zip(keys, values))

@@ -3,7 +3,7 @@ import re
 from functools import partial
 from glob import has_magic
 from pathlib import Path, PurePath
-from typing import Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import huggingface_hub
 from fsspec.core import url_to_fs
@@ -276,14 +276,16 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[str]]) -> Di
         except FileNotFoundError:
             continue
         if len(data_files) > 0:
-            splits: Set[str] = {
-                string_to_dict(xbasename(p), glob_pattern_to_regex(xbasename(split_pattern)))["split"]
-                for p in data_files
-            }
+            splits: set[str] = set()
+            for p in data_files:
+                p_parts = string_to_dict(xbasename(p), glob_pattern_to_regex(xbasename(split_pattern)))
+                assert p_parts is not None
+                splits.add(p_parts["split"])
+
             if any(not re.match(_split_re, split) for split in splits):
                 raise ValueError(f"Split name should match '{_split_re}'' but got '{splits}'.")
             sorted_splits = [str(split) for split in DEFAULT_SPLITS if split in splits] + sorted(
-                splits - set(DEFAULT_SPLITS)
+                splits - {str(split) for split in DEFAULT_SPLITS}
             )
             return {split: [split_pattern.format(split=split)] for split in sorted_splits}
     # then check the default patterns based on train/valid/test splits
