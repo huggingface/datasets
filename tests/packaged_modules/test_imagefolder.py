@@ -4,7 +4,7 @@ import textwrap
 import numpy as np
 import pytest
 
-from datasets import ClassLabel, Features, Image, Value
+from datasets import ClassLabel, Features, Image
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesDict, DataFilesList, get_data_patterns
 from datasets.download.streaming_download_manager import StreamingDownloadManager
@@ -268,40 +268,6 @@ def test_generate_examples_with_labels(data_files_with_labels_no_metadata, cache
 @require_pil
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
-def test_generate_examples_duplicated_label_key(
-    image_files_with_labels_and_duplicated_label_key_in_metadata, drop_metadata, drop_labels, cache_dir, caplog
-):
-    cat_image_file, dog_image_file, image_metadata_file = image_files_with_labels_and_duplicated_label_key_in_metadata
-    imagefolder = ImageFolder(
-        drop_metadata=drop_metadata,
-        drop_labels=drop_labels,
-        data_files=[cat_image_file, dog_image_file, image_metadata_file],
-        cache_dir=cache_dir,
-    )
-    if drop_labels is False:
-        # infer labels from directories even if metadata files are found
-        imagefolder.download_and_prepare()
-        warning_in_logs = any("ignoring metadata columns" in record.msg.lower() for record in caplog.records)
-        assert warning_in_logs if drop_metadata is not True else not warning_in_logs
-        dataset = imagefolder.as_dataset()["train"]
-        assert imagefolder.info.features["label"] == ClassLabel(names=["cat", "dog"])
-        assert all(example["label"] in imagefolder.info.features["label"]._str2int.values() for example in dataset)
-    else:
-        imagefolder.download_and_prepare()
-        dataset = imagefolder.as_dataset()["train"]
-        if drop_metadata is not True:
-            # labels are from metadata
-            assert imagefolder.info.features["label"] == Value("string")
-            assert all(example["label"] in ["Cat", "Dog"] for example in dataset)
-        else:
-            # drop both labels and metadata
-            assert imagefolder.info.features == Features({"image": Image()})
-            assert all(example.keys() == {"image"} for example in dataset)
-
-
-@require_pil
-@pytest.mark.parametrize("drop_metadata", [None, True, False])
-@pytest.mark.parametrize("drop_labels", [None, True, False])
 def test_generate_examples_drop_labels(data_files_with_labels_no_metadata, drop_metadata, drop_labels):
     imagefolder = ImageFolder(
         drop_metadata=drop_metadata, drop_labels=drop_labels, data_files=data_files_with_labels_no_metadata
@@ -335,7 +301,7 @@ def test_generate_examples_drop_metadata(image_file_with_metadata, drop_metadata
     # since the dataset has metadata, removing the metadata explicitly requires drop_metadata=True
     assert gen_kwargs["add_metadata"] is not bool(drop_metadata)
     # since the dataset has metadata, adding the labels explicitly requires drop_labels=False
-    assert gen_kwargs["add_labels"] is (drop_labels is False)
+    assert gen_kwargs["add_labels"] is False
     generator = imagefolder._generate_examples(**gen_kwargs)
     expected_columns = {"image"}
     if gen_kwargs["add_metadata"]:

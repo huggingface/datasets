@@ -351,7 +351,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
             def find_feature_path(feature, feature_path):
                 nonlocal feature_paths
-                if isinstance(feature, self.BASE_FEATURE):
+                if feature_path and isinstance(feature, self.BASE_FEATURE):
                     feature_paths.append(feature_path)
 
             _visit_with_path(self.info.features, find_feature_path)

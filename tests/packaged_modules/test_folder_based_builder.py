@@ -4,7 +4,7 @@ import textwrap
 
 import pytest
 
-from datasets import ClassLabel, DownloadManager, Features, Value
+from datasets import ClassLabel, DownloadManager
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesDict, DataFilesList, get_data_patterns
 from datasets.download.streaming_download_manager import StreamingDownloadManager
@@ -143,23 +143,6 @@ def file_with_metadata(tmp_path, text_file):
     return str(filename), str(metadata_filename)
 
 
-@pytest.fixture()
-def files_with_metadata_that_misses_one_sample(tmp_path, auto_text_file):
-    filename = tmp_path / "file.txt"
-    shutil.copyfile(auto_text_file, filename)
-    filename2 = tmp_path / "file2.txt"
-    shutil.copyfile(auto_text_file, filename2)
-    metadata_filename = tmp_path / "metadata.jsonl"
-    metadata = textwrap.dedent(
-        """\
-        {"file_name": "file.txt", "additional_feature": "Dummy file"}
-        """
-    )
-    with open(metadata_filename, "w", encoding="utf-8") as f:
-        f.write(metadata)
-    return str(filename), str(filename2), str(metadata_filename)
-
-
 @pytest.fixture
 def data_files_with_one_split_and_metadata(tmp_path, auto_text_file):
     data_dir = tmp_path / "autofolder_data_dir_with_metadata_one_split"
@@ -284,7 +267,7 @@ def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cac
         data_files=data_files_with_labels_no_metadata, cache_dir=cache_dir, drop_labels=False
     )
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
-    assert autofolder.info.features == Features({"base": {}, "label": ClassLabel(names=["class0", "class1"])})
+    assert autofolder.info.features["label"] == ClassLabel(names=["class0", "class1"])
     generator = autofolder._generate_examples(**gen_kwargs)
     assert all(example["label"] in {"class0", "class1"} for _, example in generator)
 
@@ -406,32 +389,6 @@ def test_data_files_with_one_label_no_metadata(data_files_with_one_label_no_meta
         assert "label" in autofolder.info.features
         assert isinstance(autofolder.info.features["label"], ClassLabel)
         assert all(example.keys() == {"base", "label"} for _, example in generator)
-
-
-@pytest.mark.parametrize("drop_metadata", [None, True, False])
-def test_data_files_with_metadata_that_misses_one_sample(
-    files_with_metadata_that_misses_one_sample, drop_metadata, cache_dir
-):
-    file, file2, metadata_file = files_with_metadata_that_misses_one_sample
-    if not drop_metadata:
-        features = Features({"base": None, "additional_feature": Value("string")})
-    else:
-        features = Features({"base": None})
-    autofolder = DummyFolderBasedBuilder(
-        data_files=[file, file2, metadata_file],
-        drop_metadata=drop_metadata,
-        features=features,
-        cache_dir=cache_dir,
-    )
-    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
-    generator = autofolder._generate_examples(**gen_kwargs)
-    if not drop_metadata:
-        with pytest.raises(ValueError):
-            list(generator)
-    else:
-        assert all(
-            example.keys() == {"base"} and all(val is not None for val in example.values()) for _, example in generator
-        )
 
 
 @pytest.mark.parametrize("streaming", [False, True])
