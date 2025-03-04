@@ -5415,7 +5415,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[int] = None,
         embed_external_files: bool = True,
-    ) -> Tuple[str, str, int, int, List[str], int]:
+    ) -> tuple[list[CommitOperationAdd], int, int]:
         """Pushes the dataset shards as Parquet files to the hub.
 
         Returns:
@@ -5461,7 +5461,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
         uploaded_size = 0
-        additions = []
+        additions: list[CommitOperationAdd] = []
         for index, shard in hf_tqdm(
             enumerate(shards),
             desc="Uploading the dataset shards",
@@ -5646,8 +5646,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
         # and delete old split shards (if they exist)
         repo_with_dataset_card, repo_with_dataset_infos = False, False
-        deletions, deleted_size = [], 0
-        repo_splits = []  # use a list to keep the order of the splits
+        deletions: list[CommitOperationDelete] = []
+        deleted_size = 0
+        repo_splits: list[str] = []  # use a list to keep the order of the splits
         repo_files_to_add = [addition.path_in_repo for addition in additions]
         for repo_file in api.list_repo_tree(
             repo_id=repo_id, revision=revision, repo_type="dataset", token=token, recursive=True
@@ -5666,10 +5667,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             elif fnmatch.fnmatch(
                 repo_file.rfilename, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*")
             ):
-                repo_split = string_to_dict(
-                    repo_file.rfilename,
-                    glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED),
-                )["split"]
+                pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
+                assert split_pattern_fields is not None
+                repo_split = split_pattern_fields["split"]
                 if repo_split not in repo_splits:
                     repo_splits.append(repo_split)
 
