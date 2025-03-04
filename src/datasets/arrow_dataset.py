@@ -3070,15 +3070,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     return Dataset.from_file(shard_kwargs["cache_file_name"], info=info, split=shard.split)
             raise NonExistentDatasetError
 
-        def pbar_total(num_shards: int, batch_size: Optional[int]) -> int:
-            total = len(self)
-            if len(existing_cache_files) < num_shards:
-                total -= len(existing_cache_files) * total // num_shards
-            if batched and drop_last_batch:
-                batch_size = batch_size or 1
-                return total // num_shards // batch_size * num_shards * batch_size
-            return total
-
         existing_cache_file_map: dict[int, list[str]] = defaultdict(list)
         if cache_file_name is not None:
             if os.path.exists(cache_file_name):
@@ -3199,9 +3190,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     "missing from the cache."
                 )
 
+            pbar_total = len(self)
+            pbar_initial = len(existing_cache_files) * pbar_total // num_shards
+            if batched and drop_last_batch:
+                batch_size = batch_size or 1
+                pbar_initial = pbar_initial // num_shards // batch_size * num_shards * batch_size
+                pbar_total = pbar_total // num_shards // batch_size * num_shards * batch_size
+
             with hf_tqdm(
                 unit=" examples",
-                total=pbar_total(num_shards, batch_size),
+                initial=pbar_initial,
+                total=pbar_total,
                 desc=(desc or "Map") + (f" (num_proc={num_proc})" if num_proc is not None and num_proc > 1 else ""),
             ) as pbar:
                 shards_done = 0
