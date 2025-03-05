@@ -3179,9 +3179,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     del kwargs["shard"]
             else:
                 logger.info(f"Loading cached processed dataset at {format_cache_file_name(cache_file_name, '*')}")
-            assert (
-                None not in transformed_shards
-            ), f"Failed to retrieve results from map: result list {transformed_shards} still contains None - at least one worker failed to return its results"
+            assert None not in transformed_shards, (
+                f"Failed to retrieve results from map: result list {transformed_shards} still contains None - at least one worker failed to return its results"
+            )
             logger.info(f"Concatenating {num_proc} shards")
             result = _concatenate_map_style_datasets(transformed_shards)
             # update fingerprint if the dataset changed
