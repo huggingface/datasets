@@ -5,9 +5,10 @@ import json
 import math
 import posixpath
 import re
+from collections.abc import Sequence
 from io import BytesIO
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Callable, Optional, Union
 
 import fsspec
 import numpy as np
@@ -82,7 +83,7 @@ class DatasetDict(dict):
             )
 
     @property
-    def data(self) -> Dict[str, Table]:
+    def data(self) -> dict[str, Table]:
         """The Apache Arrow tables backing each split.
 
         Example:
@@ -97,7 +98,7 @@ class DatasetDict(dict):
         return {k: dataset.data for k, dataset in self.items()}
 
     @property
-    def cache_files(self) -> Dict[str, Dict]:
+    def cache_files(self) -> dict[str, dict]:
         """The cache files containing the Apache Arrow table backing each split.
 
         Example:
@@ -115,7 +116,7 @@ class DatasetDict(dict):
         return {k: dataset.cache_files for k, dataset in self.items()}
 
     @property
-    def num_columns(self) -> Dict[str, int]:
+    def num_columns(self) -> dict[str, int]:
         """Number of columns in each split of the dataset.
 
         Example:
@@ -131,7 +132,7 @@ class DatasetDict(dict):
         return {k: dataset.num_columns for k, dataset in self.items()}
 
     @property
-    def num_rows(self) -> Dict[str, int]:
+    def num_rows(self) -> dict[str, int]:
         """Number of rows in each split of the dataset.
 
         Example:
@@ -147,7 +148,7 @@ class DatasetDict(dict):
         return {k: dataset.num_rows for k, dataset in self.items()}
 
     @property
-    def column_names(self) -> Dict[str, List[str]]:
+    def column_names(self) -> dict[str, list[str]]:
         """Names of the columns in each split of the dataset.
 
         Example:
@@ -165,7 +166,7 @@ class DatasetDict(dict):
         return {k: dataset.column_names for k, dataset in self.items()}
 
     @property
-    def shape(self) -> Dict[str, Tuple[int]]:
+    def shape(self) -> dict[str, tuple[int]]:
         """Shape of each split of the dataset (number of rows, number of columns).
 
         Example:
@@ -212,7 +213,7 @@ class DatasetDict(dict):
         self._check_values_type()
         return DatasetDict({k: dataset.flatten(max_depth=max_depth) for k, dataset in self.items()})
 
-    def unique(self, column: str) -> Dict[str, List]:
+    def unique(self, column: str) -> dict[str, list]:
         """Return a list of the unique elements in a column for each split.
 
         This is implemented in the low-level backend and as such, very fast.
@@ -236,7 +237,7 @@ class DatasetDict(dict):
         self._check_values_type()
         return {k: dataset.unique(column) for k, dataset in self.items()}
 
-    def cleanup_cache_files(self) -> Dict[str, int]:
+    def cleanup_cache_files(self) -> dict[str, int]:
         """Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is one.
         Be careful when running this command that no other process is currently using other cache files.
 
@@ -321,7 +322,7 @@ class DatasetDict(dict):
         self._check_values_type()
         return DatasetDict({k: dataset.cast_column(column=column, feature=feature) for k, dataset in self.items()})
 
-    def remove_columns(self, column_names: Union[str, List[str]]) -> "DatasetDict":
+    def remove_columns(self, column_names: Union[str, list[str]]) -> "DatasetDict":
         """
         Remove one or several column(s) from each split in the dataset
         and the features associated to the column(s).
@@ -408,7 +409,7 @@ class DatasetDict(dict):
             }
         )
 
-    def rename_columns(self, column_mapping: Dict[str, str]) -> "DatasetDict":
+    def rename_columns(self, column_mapping: dict[str, str]) -> "DatasetDict":
         """
         Rename several columns in the dataset, and move the features associated to the original columns under
         the new column names.
@@ -446,7 +447,7 @@ class DatasetDict(dict):
         self._check_values_type()
         return DatasetDict({k: dataset.rename_columns(column_mapping=column_mapping) for k, dataset in self.items()})
 
-    def select_columns(self, column_names: Union[str, List[str]]) -> "DatasetDict":
+    def select_columns(self, column_names: Union[str, list[str]]) -> "DatasetDict":
         """Select one or several column(s) from each split in the dataset and
         the features associated to the column(s).
 
@@ -518,7 +519,7 @@ class DatasetDict(dict):
     def formatted_as(
         self,
         type: Optional[str] = None,
-        columns: Optional[List] = None,
+        columns: Optional[list] = None,
         output_all_columns: bool = False,
         **format_kwargs,
     ):
@@ -554,7 +555,7 @@ class DatasetDict(dict):
     def set_format(
         self,
         type: Optional[str] = None,
-        columns: Optional[List] = None,
+        columns: Optional[list] = None,
         output_all_columns: bool = False,
         **format_kwargs,
     ):
@@ -632,7 +633,7 @@ class DatasetDict(dict):
     def set_transform(
         self,
         transform: Optional[Callable],
-        columns: Optional[List] = None,
+        columns: Optional[list] = None,
         output_all_columns: bool = False,
     ):
         """Set ``__getitem__`` return format using this transform. The transform is applied on-the-fly on batches when ``__getitem__`` is called.
@@ -656,7 +657,7 @@ class DatasetDict(dict):
     def with_format(
         self,
         type: Optional[str] = None,
-        columns: Optional[List] = None,
+        columns: Optional[list] = None,
         output_all_columns: bool = False,
         **format_kwargs,
     ) -> "DatasetDict":
@@ -728,7 +729,7 @@ class DatasetDict(dict):
     def with_transform(
         self,
         transform: Optional[Callable],
-        columns: Optional[List] = None,
+        columns: Optional[list] = None,
         output_all_columns: bool = False,
     ) -> "DatasetDict":
         """Set `__getitem__` return format using this transform. The transform is applied on-the-fly on batches when `__getitem__` is called.
@@ -784,14 +785,14 @@ class DatasetDict(dict):
         function: Optional[Callable] = None,
         with_indices: bool = False,
         with_rank: bool = False,
-        input_columns: Optional[Union[str, List[str]]] = None,
+        input_columns: Optional[Union[str, list[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[Union[str, List[str]]] = None,
+        remove_columns: Optional[Union[str, list[str]]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: Optional[bool] = None,
-        cache_file_names: Optional[Dict[str, Optional[str]]] = None,
+        cache_file_names: Optional[dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
         disable_nullable: bool = False,
@@ -927,12 +928,12 @@ class DatasetDict(dict):
         function: Optional[Callable] = None,
         with_indices: bool = False,
         with_rank: bool = False,
-        input_columns: Optional[Union[str, List[str]]] = None,
+        input_columns: Optional[Union[str, list[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         keep_in_memory: bool = False,
         load_from_cache_file: Optional[bool] = None,
-        cache_file_names: Optional[Dict[str, Optional[str]]] = None,
+        cache_file_names: Optional[dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
@@ -1035,7 +1036,7 @@ class DatasetDict(dict):
     def flatten_indices(
         self,
         keep_in_memory: bool = False,
-        cache_file_names: Optional[Dict[str, Optional[str]]] = None,
+        cache_file_names: Optional[dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
         disable_nullable: bool = False,
@@ -1091,7 +1092,7 @@ class DatasetDict(dict):
         null_placement: str = "at_end",
         keep_in_memory: bool = False,
         load_from_cache_file: Optional[bool] = None,
-        indices_cache_file_names: Optional[Dict[str, Optional[str]]] = None,
+        indices_cache_file_names: Optional[dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
     ) -> "DatasetDict":
         """Create a new dataset sorted according to a single or multiple columns.
@@ -1153,12 +1154,12 @@ class DatasetDict(dict):
 
     def shuffle(
         self,
-        seeds: Optional[Union[int, Dict[str, Optional[int]]]] = None,
+        seeds: Optional[Union[int, dict[str, Optional[int]]]] = None,
         seed: Optional[int] = None,
-        generators: Optional[Dict[str, np.random.Generator]] = None,
+        generators: Optional[dict[str, np.random.Generator]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: Optional[bool] = None,
-        indices_cache_file_names: Optional[Dict[str, Optional[str]]] = None,
+        indices_cache_file_names: Optional[dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
     ) -> "DatasetDict":
         """Create a new Dataset where the rows are shuffled.
@@ -1238,7 +1239,7 @@ class DatasetDict(dict):
         self,
         dataset_dict_path: PathLike,
         max_shard_size: Optional[Union[str, int]] = None,
-        num_shards: Optional[Dict[str, int]] = None,
+        num_shards: Optional[dict[str, int]] = None,
         num_proc: Optional[int] = None,
         storage_options: Optional[dict] = None,
     ):
@@ -1364,7 +1365,7 @@ class DatasetDict(dict):
 
     @staticmethod
     def from_csv(
-        path_or_paths: Dict[str, PathLike],
+        path_or_paths: dict[str, PathLike],
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
@@ -1403,7 +1404,7 @@ class DatasetDict(dict):
 
     @staticmethod
     def from_json(
-        path_or_paths: Dict[str, PathLike],
+        path_or_paths: dict[str, PathLike],
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
@@ -1442,11 +1443,11 @@ class DatasetDict(dict):
 
     @staticmethod
     def from_parquet(
-        path_or_paths: Dict[str, PathLike],
+        path_or_paths: dict[str, PathLike],
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
-        columns: Optional[List[str]] = None,
+        columns: Optional[list[str]] = None,
         **kwargs,
     ) -> "DatasetDict":
         """Create [`DatasetDict`] from Parquet file(s).
@@ -1491,7 +1492,7 @@ class DatasetDict(dict):
 
     @staticmethod
     def from_text(
-        path_or_paths: Dict[str, PathLike],
+        path_or_paths: dict[str, PathLike],
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
@@ -1529,7 +1530,7 @@ class DatasetDict(dict):
         ).read()
 
     @is_documented_by(Dataset.align_labels_with_mapping)
-    def align_labels_with_mapping(self, label2id: Dict, label_column: str) -> "DatasetDict":
+    def align_labels_with_mapping(self, label2id: dict, label_column: str) -> "DatasetDict":
         self._check_values_type()
         return DatasetDict(
             {
@@ -1551,7 +1552,7 @@ class DatasetDict(dict):
         revision: Optional[str] = None,
         create_pr: Optional[bool] = False,
         max_shard_size: Optional[Union[int, str]] = None,
-        num_shards: Optional[Dict[str, int]] = None,
+        num_shards: Optional[dict[str, int]] = None,
         embed_external_files: bool = True,
     ) -> CommitInfo:
         """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
@@ -1880,11 +1881,11 @@ class IterableDatasetDict(dict):
         self,
         function: Optional[Callable] = None,
         with_indices: bool = False,
-        input_columns: Optional[Union[str, List[str]]] = None,
+        input_columns: Optional[Union[str, list[str]]] = None,
         batched: bool = False,
         batch_size: int = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[Union[str, List[str]]] = None,
+        remove_columns: Optional[Union[str, list[str]]] = None,
         fn_kwargs: Optional[dict] = None,
     ) -> "IterableDatasetDict":
         """
@@ -1973,7 +1974,7 @@ class IterableDatasetDict(dict):
         self,
         function: Optional[Callable] = None,
         with_indices=False,
-        input_columns: Optional[Union[str, List[str]]] = None,
+        input_columns: Optional[Union[str, list[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
@@ -2123,7 +2124,7 @@ class IterableDatasetDict(dict):
             }
         )
 
-    def rename_columns(self, column_mapping: Dict[str, str]) -> "IterableDatasetDict":
+    def rename_columns(self, column_mapping: dict[str, str]) -> "IterableDatasetDict":
         """
         Rename several columns in the dataset, and move the features associated to the original columns under
         the new column names.
@@ -2151,7 +2152,7 @@ class IterableDatasetDict(dict):
             {k: dataset.rename_columns(column_mapping=column_mapping) for k, dataset in self.items()}
         )
 
-    def remove_columns(self, column_names: Union[str, List[str]]) -> "IterableDatasetDict":
+    def remove_columns(self, column_names: Union[str, list[str]]) -> "IterableDatasetDict":
         """
         Remove one or several column(s) in the dataset and the features associated to them.
         The removal is done on-the-fly on the examples when iterating over the dataset.
@@ -2177,7 +2178,7 @@ class IterableDatasetDict(dict):
         """
         return IterableDatasetDict({k: dataset.remove_columns(column_names) for k, dataset in self.items()})
 
-    def select_columns(self, column_names: Union[str, List[str]]) -> "IterableDatasetDict":
+    def select_columns(self, column_names: Union[str, list[str]]) -> "IterableDatasetDict":
         """Select one or several column(s) in the dataset and the features
         associated to them. The selection is done on-the-fly on the examples
         when iterating over the dataset. The selection is applied to all the

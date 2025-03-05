@@ -16,7 +16,8 @@
 """List and inspect datasets."""
 
 import os
-from typing import Dict, List, Mapping, Optional, Sequence, Union
+from collections.abc import Mapping, Sequence
+from typing import Optional, Union
 
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadMode
@@ -40,7 +41,7 @@ class SplitsNotFoundError(ValueError):
 
 def get_dataset_infos(
     path: str,
-    data_files: Optional[Union[Dict, List, str]] = None,
+    data_files: Optional[Union[dict, list, str]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
@@ -111,7 +112,7 @@ def get_dataset_config_names(
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
     dynamic_modules_path: Optional[str] = None,
-    data_files: Optional[Union[Dict, List, str]] = None,
+    data_files: Optional[Union[dict, list, str]] = None,
     **download_kwargs,
 ):
     """Get the list of available config names for a particular dataset.
@@ -182,7 +183,7 @@ def get_dataset_default_config_name(
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
     dynamic_modules_path: Optional[str] = None,
-    data_files: Optional[Union[Dict, List, str]] = None,
+    data_files: Optional[Union[dict, list, str]] = None,
     **download_kwargs,
 ) -> Optional[str]:
     """Get the default config name for a particular dataset.

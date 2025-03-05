@@ -1,9 +1,10 @@
 import logging
 import os
 from argparse import ArgumentParser
+from collections.abc import Generator
 from pathlib import Path
 from shutil import copyfile, rmtree
-from typing import Generator, Optional
+from typing import Optional
 
 import datasets.config
 from datasets.builder import DatasetBuilder

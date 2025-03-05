@@ -1,7 +1,6 @@
 import os
 from dataclasses import dataclass, field
-from io import BytesIO
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, TypedDict, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Optional, TypedDict, Union
 
 import numpy as np
 import pyarrow as pa
@@ -14,7 +13,7 @@ from ..utils.py_utils import string_to_dict
 
 
 if TYPE_CHECKING:
-    from decord import VideoReader
+    from torchvision.io import VideoReader
 
     from .features import FeatureType
 
@@ -38,7 +37,7 @@ class Video:
 
       This is useful for archived files with sequential access.
 
-    - A `decord.VideoReader`: decord video reader object.
+    - A `torchvision.io.VideoReader`: torchvision video reader object.
 
     Args:
         mode (`str`, *optional*):
@@ -55,7 +54,7 @@ class Video:
     >>> ds.features["video"]
     Video(decode=True, id=None)
     >>> ds[0]["video"]
-    <decord.video_reader.VideoReader at 0x105525c70>
+    <torchvision.io.video_reader.VideoReader object at 0x325b1aae0>
     >>> ds = ds.cast_column('video', Video(decode=False))
     {'bytes': None,
      'path': 'path/to/Screen Recording.mov'}
@@ -65,13 +64,9 @@ class Video:
     decode: bool = True
     id: Optional[str] = None
     # Automatically constructed
-    dtype: ClassVar[str] = "decord.VideoReader"
+    dtype: ClassVar[str] = "torchvision.io.VideoReader"
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
     _type: str = field(default="Video", init=False, repr=False)
-
-    def __post_init__(self):
-        if config.DECORD_AVAILABLE:
-            patch_decord()
 
     def __call__(self):
         return self.pa_type
@@ -86,8 +81,8 @@ class Video:
         Returns:
             `dict` with "path" and "bytes" fields
         """
-        if config.DECORD_AVAILABLE:
-            from decord import VideoReader
+        if config.TORCHVISION_AVAILABLE:
+            from torchvision.io import VideoReader
 
         else:
             VideoReader = None
@@ -103,8 +98,8 @@ class Video:
             # convert the video array to bytes
             return encode_np_array(value)
         elif VideoReader is not None and isinstance(value, VideoReader):
-            # convert the decord video reader to bytes
-            return encode_decord_video(value)
+            # convert the torchvision video reader to bytes
+            return encode_torchvision_video(value)
         elif isinstance(value, dict):
             path, bytes_ = value.get("path"), value.get("bytes")
             if path is not None and os.path.isfile(path):
@@ -140,16 +135,16 @@ class Video:
                 a dictionary repo_id (`str`) -> token (`bool` or `str`).
 
         Returns:
-            `decord.VideoReader`
+            `torchvision.io.VideoReader`
         """
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Video(decode=True) instead.")
 
-        if config.DECORD_AVAILABLE:
-            from decord import VideoReader
+        if config.TORCHVISION_AVAILABLE:
+            from torchvision.io import VideoReader
 
         else:
-            raise ImportError("To support decoding videos, please install 'decord'.")
+            raise ImportError("To support decoding videos, please install 'torchvision'.")
 
         if token_per_repo_id is None:
             token_per_repo_id = {}
@@ -162,28 +157,16 @@ class Video:
         if bytes_ is None:
             if path is None:
                 raise ValueError(f"A video should have one of 'path' or 'bytes' but both are None in {value}.")
+            elif is_local_path(path):
+                video = VideoReader(path)
             else:
-                if is_local_path(path):
-                    video = VideoReader(path)
-                else:
-                    source_url = path.split("::")[-1]
-                    pattern = (
-                        config.HUB_DATASETS_URL
-                        if source_url.startswith(config.HF_ENDPOINT)
-                        else config.HUB_DATASETS_HFFS_URL
-                    )
-                    source_url_fields = string_to_dict(source_url, pattern)
-                    assert source_url_fields is not None
-                    token = token_per_repo_id.get(source_url_fields["repo_id"])
-                    download_config = DownloadConfig(token=token)
-                    with xopen(path, "rb", download_config=download_config) as f:
-                        bytes_ = BytesIO(f.read())
-                    video = VideoReader(bytes_)
+                video = hf_video_reader(path, token_per_repo_id=token_per_repo_id)
         else:
-            video = VideoReader(BytesIO(bytes_))
+            video = VideoReader(bytes_)
+        video._hf_encoded = {"path": path, "bytes": bytes_}
         return video
 
-    def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
+    def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """If in the decodable state, return the feature itself, otherwise flatten the feature into a dictionary."""
         from .features import Value
 
@@ -244,17 +227,16 @@ class Video:
 
 
 def video_to_bytes(video: "VideoReader") -> bytes:
-    """Convert a decord Video object to bytes using native compression if possible"""
+    """Convert a torchvision Video object to bytes using native compression if possible"""
     raise NotImplementedError()
 
 
-def encode_decord_video(video: "VideoReader") -> Example:
+def encode_torchvision_video(video: "VideoReader") -> Example:
     if hasattr(video, "_hf_encoded"):
         return video._hf_encoded
     else:
         raise NotImplementedError(
-            "Encoding a decord video is not implemented. "
-            "Please call `datasets.features.video.patch_decord()` before loading videos to enable this."
+            "Encoding a VideoReader that doesn't come from datasets.Video.decode() is not implemented"
         )
 
 
@@ -262,50 +244,38 @@ def encode_np_array(array: np.ndarray) -> Example:
     raise NotImplementedError()
 
 
-# Patching decord a little bit to:
+# Patching torchvision a little bit to:
 # 1. store the encoded video data {"path": ..., "bytes": ...} in `video._hf_encoded``
-# 2. set the decord bridge to numpy/torch/tf/jax using `video._hf_bridge_out` (per video instance) instead of decord.bridge.bridge_out (global)
-# This doesn't affect the normal usage of decord.
+# 2. add support for hf:// files
+# This doesn't affect the normal usage of torchvision.
 
 
-def _patched_init(self: "VideoReader", uri: Union[str, BytesIO], *args, **kwargs) -> None:
-    from decord.bridge import bridge_out
+def hf_video_reader(
+    path: str, token_per_repo_id: Optional[dict[str, Union[bool, str]]] = None, stream: str = "video"
+) -> "VideoReader":
+    import av
+    from torchvision import get_video_backend
+    from torchvision.io import VideoReader
 
-    if hasattr(uri, "read"):
-        self._hf_encoded = {"bytes": uri.read(), "path": None}
-        uri.seek(0)
-    elif isinstance(uri, str):
-        self._hf_encoded = {"bytes": None, "path": uri}
-    self._hf_bridge_out = bridge_out
-    self._original_init(uri, *args, **kwargs)
+    # Load the file from HF
+    if token_per_repo_id is None:
+        token_per_repo_id = {}
+    source_url = path.split("::")[-1]
+    pattern = config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
+    source_url_fields = string_to_dict(source_url, pattern)
+    assert source_url_fields is not None
+    token = token_per_repo_id.get(source_url_fields["repo_id"])
+    download_config = DownloadConfig(token=token)
+    f = xopen(path, "rb", download_config=download_config)
 
-
-def _patched_next(self: "VideoReader", *args, **kwargs):
-    return self._hf_bridge_out(self._original_next(*args, **kwargs))
-
-
-def _patched_get_batch(self: "VideoReader", *args, **kwargs):
-    return self._hf_bridge_out(self._original_get_batch(*args, **kwargs))
-
-
-def patch_decord():
-    # We need to import torch first, otherwise later it can cause issues
-    # e.g. "RuntimeError: random_device could not be read"
-    # when running `torch.tensor(value).share_memory_()`
-    # Same for duckdb which crashes on import
-    if config.TORCH_AVAILABLE:
-        import torch  # noqa
-    if config.DUCKDB_AVAILABLE:
-        import duckdb  # noqa
-    import decord.video_reader
-    from decord import VideoReader
-
-    if not hasattr(VideoReader, "_hf_patched"):
-        decord.video_reader.bridge_out = lambda x: x
-        VideoReader._original_init = VideoReader.__init__
-        VideoReader.__init__ = _patched_init
-        VideoReader._original_next = VideoReader.next
-        VideoReader.next = _patched_next
-        VideoReader._original_get_batch = VideoReader.get_batch
-        VideoReader.get_batch = _patched_get_batch
-        VideoReader._hf_patched = True
+    # Instantiate the VideoReader
+    vr = object.__new__(VideoReader)
+    vr.backend = get_video_backend()
+    if vr.backend != "pyav":
+        raise RuntimeError(f"Unsupported video backend for VideoReader from HF files: {vr.backend}")
+    vr.container = av.open(f, metadata_errors="ignore")
+    stream_type = stream.split(":")[0]
+    stream_id = 0 if len(stream.split(":")) == 1 else int(stream.split(":")[1])
+    vr.pyav_stream = {stream_type: stream_id}
+    vr._c = vr.container.decode(**vr.pyav_stream)
+    return vr
