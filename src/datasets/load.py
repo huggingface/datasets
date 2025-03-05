@@ -52,14 +52,11 @@ from . import __version__, config
 from .arrow_dataset import Dataset
 from .builder import BuilderConfig, DatasetBuilder
 from .data_files import (
-    DEFAULT_PATTERNS_ALL,
     DataFilesDict,
     DataFilesList,
     DataFilesPatternsDict,
-    DataFilesPatternsList,
     EmptyDatasetError,
     get_data_patterns,
-    get_metadata_patterns,
     sanitize_patterns,
 )
 from .dataset_dict import DatasetDict, IterableDatasetDict
@@ -74,8 +71,8 @@ from .iterable_dataset import IterableDataset
 from .naming import camelcase_to_snakecase, snakecase_to_camelcase
 from .packaged_modules import (
     _EXTENSION_TO_MODULE,
-    _MODULE_SUPPORTS_METADATA,
     _MODULE_TO_EXTENSIONS,
+    _MODULE_TO_METADATA_FILE_NAMES,
     _PACKAGED_DATASETS_MODULES,
     _hash_python_lines,
 )
@@ -608,7 +605,6 @@ def infer_module_for_data_files(
 def create_builder_configs_from_metadata_configs(
     module_path: str,
     metadata_configs: MetadataConfigs,
-    supports_metadata: bool,
     base_path: Optional[str] = None,
     default_builder_kwargs: dict[str, Any] = None,
     download_config: Optional[DownloadConfig] = None,
@@ -639,19 +635,6 @@ def create_builder_configs_from_metadata_configs(
                 f"Dataset at '{base_path}' doesn't contain data files matching the patterns for config '{config_name}',"
                 f" check `data_files` and `data_fir` parameters in the `configs` YAML field in README.md. "
             ) from e
-        if config_data_files is None and supports_metadata and config_patterns != DEFAULT_PATTERNS_ALL:
-            try:
-                config_metadata_patterns = get_metadata_patterns(base_path, download_config=download_config)
-            except FileNotFoundError:
-                config_metadata_patterns = None
-            if config_metadata_patterns is not None:
-                config_metadata_data_files_list = DataFilesPatternsList.from_patterns(config_metadata_patterns)
-                config_data_files_dict = DataFilesPatternsDict(
-                    {
-                        split: data_files_list + config_metadata_data_files_list
-                        for split, data_files_list in config_data_files_dict.items()
-                    }
-                )
         ignored_params = [
             param for param in config_params if not hasattr(builder_config_cls, param) and param != "default"
         ]
@@ -844,31 +827,15 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             data_files=data_files,
             path=self.path,
         )
-        data_files = data_files.filter_extensions(_MODULE_TO_EXTENSIONS[module_name])
-        # Collect metadata files if the module supports them
-        supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
-        if self.data_files is None and supports_metadata:
-            try:
-                metadata_patterns = get_metadata_patterns(base_path)
-            except FileNotFoundError:
-                metadata_patterns = None
-            if metadata_patterns is not None:
-                metadata_data_files_list = DataFilesList.from_patterns(metadata_patterns, base_path=base_path)
-                if metadata_data_files_list:
-                    data_files = DataFilesDict(
-                        {
-                            split: data_files_list + metadata_data_files_list
-                            for split, data_files_list in data_files.items()
-                        }
-                    )
-
+        data_files = data_files.filter(
+            extensions=_MODULE_TO_EXTENSIONS[module_name], file_names=_MODULE_TO_METADATA_FILE_NAMES[module_name]
+        )
         module_path, _ = _PACKAGED_DATASETS_MODULES[module_name]
         if metadata_configs:
             builder_configs, default_config_name = create_builder_configs_from_metadata_configs(
                 module_path,
                 metadata_configs,
                 base_path=base_path,
-                supports_metadata=supports_metadata,
                 default_builder_kwargs=default_builder_kwargs,
             )
         else:
@@ -947,23 +914,6 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             download_config=self.download_config,
             base_path=base_path,
         )
-        supports_metadata = self.name in _MODULE_SUPPORTS_METADATA
-        if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
-            try:
-                metadata_patterns = get_metadata_patterns(base_path, download_config=self.download_config)
-            except FileNotFoundError:
-                metadata_patterns = None
-            if metadata_patterns is not None:
-                metadata_data_files_list = DataFilesList.from_patterns(
-                    metadata_patterns, download_config=self.download_config, base_path=base_path
-                )
-                if metadata_data_files_list:
-                    data_files = DataFilesDict(
-                        {
-                            split: data_files_list + metadata_data_files_list
-                            for split, data_files_list in data_files.items()
-                        }
-                    )
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
 
@@ -1076,33 +1026,15 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             path=self.name,
             download_config=self.download_config,
         )
-        data_files = data_files.filter_extensions(_MODULE_TO_EXTENSIONS[module_name])
-        # Collect metadata files if the module supports them
-        supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
-        if self.data_files is None and supports_metadata:
-            try:
-                metadata_patterns = get_metadata_patterns(base_path, download_config=self.download_config)
-            except FileNotFoundError:
-                metadata_patterns = None
-            if metadata_patterns is not None:
-                metadata_data_files_list = DataFilesList.from_patterns(
-                    metadata_patterns, download_config=self.download_config, base_path=base_path
-                )
-                if metadata_data_files_list:
-                    data_files = DataFilesDict(
-                        {
-                            split: data_files_list + metadata_data_files_list
-                            for split, data_files_list in data_files.items()
-                        }
-                    )
-
+        data_files = data_files.filter(
+            extensions=_MODULE_TO_EXTENSIONS[module_name], file_names=_MODULE_TO_METADATA_FILE_NAMES[module_name]
+        )
         module_path, _ = _PACKAGED_DATASETS_MODULES[module_name]
         if metadata_configs:
             builder_configs, default_config_name = create_builder_configs_from_metadata_configs(
                 module_path,
                 metadata_configs,
                 base_path=base_path,
-                supports_metadata=supports_metadata,
                 default_builder_kwargs=default_builder_kwargs,
                 download_config=self.download_config,
             )
@@ -1215,7 +1147,6 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
         builder_configs, default_config_name = create_builder_configs_from_metadata_configs(
             module_path,
             metadata_configs,
-            supports_metadata=False,
             download_config=self.download_config,
         )
         builder_kwargs = {
