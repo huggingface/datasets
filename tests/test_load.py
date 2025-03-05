@@ -151,9 +151,9 @@ def data_dir_with_metadata(tmp_path):
     data_dir.mkdir()
     (data_dir / "train").mkdir()
     (data_dir / "test").mkdir()
-    with open(data_dir / "train"/ "cat.jpg", "wb") as f:
+    with open(data_dir / "train" / "cat.jpg", "wb") as f:
         f.write(b"train_image_bytes")
-    with open(data_dir / "test"/ "dog.jpg", "wb") as f:
+    with open(data_dir / "test" / "dog.jpg", "wb") as f:
         f.write(b"test_image_bytes")
     with open(data_dir / "train" / "metadata.jsonl", "w") as f:
         f.write(
