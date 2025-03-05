@@ -74,7 +74,7 @@ class BaseIndex:
             queries (`Union[List[str], np.ndarray]`): The queries as a list of strings if `column` is a text index or as a numpy array if `column` is a vector index.
             k (`int`): The number of examples to retrieve per query.
 
-        Ouput:
+        Output:
             total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
             total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
         """
@@ -186,7 +186,7 @@ class ElasticSearchIndex(BaseIndex):
             query (`str`): The query as a string.
             k (`int`): The number of examples to retrieve.
 
-        Ouput:
+        Output:
             scores (`List[List[float]`): The retrieval scores of the retrieved examples.
             indices (`List[List[int]]`): The indices of the retrieved examples.
         """
@@ -353,7 +353,7 @@ class FaissIndex(BaseIndex):
             query (`np.array`): The query as a numpy array.
             k (`int`): The number of examples to retrieve.
 
-        Ouput:
+        Output:
             scores (`List[List[float]`): The retrieval scores of the retrieved examples.
             indices (`List[List[int]]`): The indices of the retrieved examples.
         """
@@ -373,7 +373,7 @@ class FaissIndex(BaseIndex):
             queries (`np.array`): The queries as a numpy array.
             k (`int`): The number of examples to retrieve.
 
-        Ouput:
+        Output:
             total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
             total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
         """

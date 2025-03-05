@@ -53,7 +53,7 @@ def _memory_mapped_record_batch_reader_from_file(filename: str) -> pa.RecordBatc
 def read_schema_from_file(filename: str) -> pa.Schema:
     """
     Infer arrow table schema from file without loading whole file into memory.
-    Usefull especially while having very big files.
+    Useful especially while having very big files.
     """
     with pa.memory_map(filename) as memory_mapped_stream:
         schema = pa.ipc.open_stream(memory_mapped_stream).schema
