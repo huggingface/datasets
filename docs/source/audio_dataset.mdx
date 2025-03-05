@@ -154,6 +154,58 @@ You can also define lists of audio files. In that case you need to name the fiel
 {"recordings_file_names": ["0003_r0.mp3", "0003_r1.mp3"], label: "different_person"}
 ```
 
+## WebDataset
+
+The [WebDataset](https://github.com/webdataset/webdataset) format is based on TAR archives and is suitable for big audio datasets.
+Indeed you can group your audio files in TAR archives (e.g. 1GB of audio files per TAR archive) and have thousands of TAR archives:
+
+```
+folder/train/00000.tar
+folder/train/00001.tar
+folder/train/00002.tar
+...
+```
+
+In the archives, each example is made of files sharing the same prefix:
+
+```
+e39871fd9fd74f55.mp3
+e39871fd9fd74f55.json
+f18b91585c4d3f3e.mp3
+f18b91585c4d3f3e.json
+ede6e66b2fb59aab.mp3
+ede6e66b2fb59aab.json
+ed600d57fcee4f94.mp3
+ed600d57fcee4f94.json
+...
+```
+
+You can put your audio files labels/captions/bounding boxes using JSON or text files for example.
+
+Load your WebDataset and it will create on column per file suffix (here "mp3" and "json"):
+
+```python
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("webdataset", data_dir="/path/to/folder", split="train")
+>>> dataset[0]["json"]
+{"transcript": "Hello there !", "speaker": "Obi-Wan Kenobi"}
+```
+
+It's also possible to have several audio files per example like this:
+
+```
+e39871fd9fd74f55.input.mp3
+e39871fd9fd74f55.output.mp3
+e39871fd9fd74f55.json
+f18b91585c4d3f3e.input.mp3
+f18b91585c4d3f3e.output.mp3
+f18b91585c4d3f3e.json
+...
+```
+
+For more details on the WebDataset format and the python library, please check the [WebDataset documentation](https://webdataset.github.io/webdataset).
+
 ## (Legacy) Loading script
 
 Write a dataset loading script to manually create a dataset.

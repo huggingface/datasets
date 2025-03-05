@@ -194,8 +194,6 @@ ed600d57fcee4f94.json
 
 You can put your images labels/captions/bounding boxes using JSON or text files for example.
 
-For more details on the WebDataset format and the python library, please check the [WebDataset documentation](https://webdataset.github.io/webdataset).
-
 Load your WebDataset and it will create on column per file suffix (here "jpg" and "json"):
 
 ```python
@@ -205,6 +203,20 @@ Load your WebDataset and it will create on column per file suffix (here "jpg" an
 >>> dataset[0]["json"]
 {"bbox": [[302.0, 109.0, 73.0, 52.0]], "categories": [0]}
 ```
+
+It's also possible to have several images per example like this:
+
+```
+e39871fd9fd74f55.input.jpg
+e39871fd9fd74f55.output.jpg
+e39871fd9fd74f55.json
+f18b91585c4d3f3e.input.jpg
+f18b91585c4d3f3e.output.jpg
+f18b91585c4d3f3e.json
+...
+```
+
+For more details on the WebDataset format and the python library, please check the [WebDataset documentation](https://webdataset.github.io/webdataset).
 
 ## (Legacy) Loading script
 
