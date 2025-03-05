@@ -105,6 +105,8 @@ if config.FSSPEC_VERSION < version.parse("2023.9.0"):
     METADATA_PATTERNS = [
         "metadata.csv",
         "**/metadata.csv",
+        "**/*-metadata.csv",
+        "**/*_metadata.csv",
         "metadata.jsonl",
         "**/metadata.jsonl",
     ]  # metadata file for ImageFolder and AudioFolder
