@@ -15,7 +15,7 @@
 # Lint as: python3
 import sys
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 import pyarrow as pa
@@ -64,7 +64,7 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
         self.jnp_array_kwargs = jnp_array_kwargs
 
     @staticmethod
-    def _map_devices_to_str() -> Dict[str, "jaxlib.xla_extension.Device"]:
+    def _map_devices_to_str() -> dict[str, "jaxlib.xla_extension.Device"]:
         import jax
 
         return {str(device): device for device in jax.devices()}

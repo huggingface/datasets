@@ -2,7 +2,7 @@ import collections
 import itertools
 import os
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Type
+from typing import Optional
 
 import pandas as pd
 import pyarrow as pa
@@ -44,12 +44,12 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             will be included in a dataset)
     """
 
-    BASE_FEATURE: Type[FeatureType]
+    BASE_FEATURE: type[FeatureType]
     BASE_COLUMN_NAME: str
     BUILDER_CONFIG_CLASS: FolderBasedBuilderConfig
-    EXTENSIONS: List[str]
+    EXTENSIONS: list[str]
 
-    METADATA_FILENAMES: List[str] = ["metadata.csv", "metadata.jsonl"]
+    METADATA_FILENAMES: list[str] = ["metadata.csv", "metadata.jsonl"]
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
@@ -160,7 +160,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             # Verify that:
             # * all metadata files have the same set of features
             # * the `file_name` key is one of the metadata keys and is of type string
-            features_per_metadata_file: List[Tuple[str, datasets.Features]] = []
+            features_per_metadata_file: list[tuple[str, datasets.Features]] = []
 
             # Check that all metadata files share the same format
             metadata_ext = {

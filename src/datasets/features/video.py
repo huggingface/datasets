@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass, field
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Optional, Union
 
 import numpy as np
 import pyarrow as pa
@@ -168,7 +168,7 @@ class Video:
             video = VideoReader(BytesIO(bytes_))
         return video
 
-    def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
+    def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """If in the decodable state, return the feature itself, otherwise flatten the feature into a dictionary."""
         from .features import Value
 
