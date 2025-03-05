@@ -15,7 +15,6 @@ from datasets.data_files import (
     DataFilesPatternsDict,
     DataFilesPatternsList,
     _get_data_files_patterns,
-    _get_metadata_files_patterns,
     _is_inside_unrequested_special_dir,
     _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir,
     get_data_patterns,
@@ -669,29 +668,6 @@ def test_get_data_files_patterns(base_path, data_file_per_split):
             for file_path in data_file_per_split[split]
         ]
         assert matched == expected
-
-
-@pytest.mark.parametrize(
-    "metadata_files",
-    [
-        # metadata files at the root
-        ["metadata.jsonl"],
-        ["metadata.csv"],
-        # nested metadata files
-        ["metadata.jsonl", "data/metadata.jsonl"],
-        ["metadata.csv", "data/metadata.csv"],
-    ],
-)
-def test_get_metadata_files_patterns(metadata_files):
-    DummyTestFS = mock_fs(metadata_files)
-    fs = DummyTestFS()
-
-    def resolver(pattern):
-        return [file_path for file_path in fs.glob(pattern) if fs.isfile(file_path)]
-
-    patterns = _get_metadata_files_patterns(resolver)
-    matched = [file_path for pattern in patterns for file_path in resolver(pattern)]
-    assert sorted(matched) == sorted(metadata_files)
 
 
 def test_get_data_patterns_from_directory_with_the_word_data_twice(tmp_path):
