@@ -88,13 +88,13 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
 SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/dataset_with_script"  # has dataset script and also a parquet export
 SAMPLE_DATASET_IDENTIFIER2 = "hf-internal-testing/dataset_with_data_files"  # only has data files
 SAMPLE_DATASET_IDENTIFIER3 = "hf-internal-testing/multi_dir_dataset"  # has multiple data directories
-SAMPLE_DATASET_IDENTIFIER4 = "hf-internal-testing/imagefolder_with_metadata"  # imagefolder with a metadata file outside of the train/test directories
+SAMPLE_DATASET_IDENTIFIER4 = "hf-internal-testing/imagefolder_with_metadata"  # imagefolder with a metadata file inside the train/test directories
 SAMPLE_DATASET_IDENTIFIER5 = "hf-internal-testing/imagefolder_with_metadata_no_splits"  # imagefolder with a metadata file and no default split names in data files
 
 SAMPLE_DATASET_COMMIT_HASH = "0e1cee81e718feadf49560b287c4eb669c2efb1a"
 SAMPLE_DATASET_COMMIT_HASH2 = "c19550d35263090b1ec2bfefdbd737431fafec40"
 SAMPLE_DATASET_COMMIT_HASH3 = "aaa2d4bdd1d877d1c6178562cfc584bdfa90f6dc"
-SAMPLE_DATASET_COMMIT_HASH4 = "a7415617490f32e51c2f0ea20b5ce7cfba035a62"
+SAMPLE_DATASET_COMMIT_HASH4 = "507fa72044169a5a1802b7ac2d6bd38d5f310739"
 SAMPLE_DATASET_COMMIT_HASH5 = "4971fa562942cab8263f56a448c3f831b18f1c27"
 
 SAMPLE_DATASET_NO_CONFIGS_IN_METADATA = "hf-internal-testing/audiofolder_no_configs_in_metadata"
@@ -149,15 +149,22 @@ def data_dir_with_arrow(tmp_path):
 def data_dir_with_metadata(tmp_path):
     data_dir = tmp_path / "data_dir_with_metadata"
     data_dir.mkdir()
-    with open(data_dir / "train.jpg", "wb") as f:
+    (data_dir / "train").mkdir()
+    (data_dir / "test").mkdir()
+    with open(data_dir / "train"/ "cat.jpg", "wb") as f:
         f.write(b"train_image_bytes")
-    with open(data_dir / "test.jpg", "wb") as f:
+    with open(data_dir / "test"/ "dog.jpg", "wb") as f:
         f.write(b"test_image_bytes")
-    with open(data_dir / "metadata.jsonl", "w") as f:
+    with open(data_dir / "train" / "metadata.jsonl", "w") as f:
         f.write(
             """\
-        {"file_name": "train.jpg", "caption": "Cool tran image"}
-        {"file_name": "test.jpg", "caption": "Cool test image"}
+        {"file_name": "cat.jpg", "caption": "Cool train cat image"}
+        """
+        )
+    with open(data_dir / "test" / "metadata.jsonl", "w") as f:
+        f.write(
+            """\
+        {"file_name": "dog.jpg", "caption": "Cool test dog image"}
         """
         )
     return str(data_dir)
@@ -624,8 +631,8 @@ class ModuleFactoryTest(TestCase):
         assert importlib.import_module(module_factory_result.module_path) is not None
         data_files = module_factory_result.builder_kwargs.get("data_files")
         assert data_files is not None and len(data_files["train"]) > 0 and len(data_files["test"]) > 0
-        assert Path(data_files["train"][0]).parent.samefile(self._data_dir_with_metadata)
-        assert Path(data_files["test"][0]).parent.samefile(self._data_dir_with_metadata)
+        assert Path(self._data_dir_with_metadata) in Path(data_files["train"][0]).parents
+        assert Path(self._data_dir_with_metadata) in Path(data_files["test"][0]).parents
         assert any(Path(data_file).name == "metadata.jsonl" for data_file in data_files["train"])
         assert any(Path(data_file).name == "metadata.jsonl" for data_file in data_files["test"])
 

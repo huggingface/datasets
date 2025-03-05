@@ -101,21 +101,6 @@ ALL_DEFAULT_PATTERNS = [
     DEFAULT_PATTERNS_SPLIT_IN_FILENAME,
     DEFAULT_PATTERNS_ALL,
 ]
-if config.FSSPEC_VERSION < version.parse("2023.9.0"):
-    METADATA_PATTERNS = [
-        "metadata.csv",
-        "**/metadata.csv",
-        "metadata.jsonl",
-        "**/metadata.jsonl",
-        "metadata.parquet",
-        "**/metadata.parquet",
-    ]  # metadata file for ImageFolder and AudioFolder
-else:
-    METADATA_PATTERNS = [
-        "**/metadata.csv",
-        "**/metadata.jsonl",
-        "**/metadata.parquet",
-    ]  # metadata file for ImageFolder and AudioFolder
 WILDCARD_CHARACTERS = "*[]"
 FILES_TO_IGNORE = [
     "README.md",
@@ -306,23 +291,6 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[str]]) -> Di
     raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
 
 
-def _get_metadata_files_patterns(pattern_resolver: Callable[[str], List[str]]) -> List[str]:
-    """
-    Get the supported metadata patterns from a directory or repository.
-    """
-    non_empty_patterns = []
-    for pattern in METADATA_PATTERNS:
-        try:
-            metadata_files = pattern_resolver(pattern)
-            if len(metadata_files) > 0:
-                non_empty_patterns.append(pattern)
-        except FileNotFoundError:
-            pass
-    if non_empty_patterns:
-        return non_empty_patterns
-    raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
-
-
 def resolve_pattern(
     pattern: str,
     base_path: str,
@@ -506,20 +474,6 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
         raise EmptyDatasetError(f"The directory at {base_path} doesn't contain any data files") from None
 
 
-def get_metadata_patterns(
-    base_path: str,
-    download_config: Optional[DownloadConfig] = None,
-) -> List[str]:
-    """
-    Get the supported metadata patterns from a local directory.
-    """
-    resolver = partial(resolve_pattern, base_path=base_path, download_config=download_config)
-    try:
-        return _get_metadata_files_patterns(resolver)
-    except FileNotFoundError:
-        raise FileNotFoundError(f"The directory at {base_path} doesn't contain any metadata file") from None
-
-
 def _get_single_origin_metadata(
     data_file: str,
     download_config: Optional[DownloadConfig] = None,
@@ -637,13 +591,23 @@ class DataFilesList(List[str]):
         origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
         return cls(data_files, origin_metadata)
 
-    def filter_extensions(self, extensions: List[str]) -> "DataFilesList":
-        pattern = "|".join("\\" + ext for ext in extensions)
-        pattern = re.compile(f".*({pattern})(\\..+)?$")
-        return DataFilesList(
-            [data_file for data_file in self if pattern.match(data_file)],
-            origin_metadata=self.origin_metadata,
-        )
+    def filter(
+        self, *, extensions: Optional[list[str]] = None, file_names: Optional[list[str]] = None
+    ) -> "DataFilesList":
+        patterns = []
+        if extensions is not None:
+            ext_pattern = "|".join(re.escape(ext) for ext in extensions)
+            patterns.append(re.compile(f".*({ext_pattern})(\\..+)?$"))
+        if file_names is not None:
+            fn_pattern = "|".join(re.escape(fn) for fn in file_names)
+            patterns.append(re.compile(rf".*[\/]?({fn_pattern})$"))
+        if patterns:
+            return DataFilesList(
+                [data_file for data_file in self if any(pattern.match(data_file) for pattern in patterns)],
+                origin_metadata=self.origin_metadata,
+            )
+        else:
+            return DataFilesList(list(self), origin_metadata=self.origin_metadata)
 
 
 class DataFilesDict(Dict[str, DataFilesList]):
@@ -730,10 +694,12 @@ class DataFilesDict(Dict[str, DataFilesList]):
             )
         return out
 
-    def filter_extensions(self, extensions: List[str]) -> "DataFilesDict":
+    def filter(
+        self, *, extensions: Optional[list[str]] = None, file_names: Optional[list[str]] = None
+    ) -> "DataFilesDict":
         out = type(self)()
         for key, data_files_list in self.items():
-            out[key] = data_files_list.filter_extensions(extensions)
+            out[key] = data_files_list.filter(extensions=extensions, file_names=file_names)
         return out
 
 

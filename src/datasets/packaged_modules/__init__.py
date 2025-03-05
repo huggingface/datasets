@@ -81,7 +81,6 @@ _EXTENSION_TO_MODULE.update({ext: ("audiofolder", {}) for ext in audiofolder.Aud
 _EXTENSION_TO_MODULE.update({ext.upper(): ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("videofolder", {}) for ext in videofolder.VideoFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("videofolder", {}) for ext in videofolder.VideoFolder.EXTENSIONS})
-_MODULE_SUPPORTS_METADATA = {"imagefolder", "audiofolder", "videofolder"}
 
 # Used to filter data files based on extensions given a module name
 _MODULE_TO_EXTENSIONS: Dict[str, List[str]] = {}
@@ -90,3 +89,11 @@ for _ext, (_module, _) in _EXTENSION_TO_MODULE.items():
 
 for _module in _MODULE_TO_EXTENSIONS:
     _MODULE_TO_EXTENSIONS[_module].append(".zip")
+
+# Used to filter data files based on file names
+_MODULE_TO_METADATA_FILE_NAMES: Dict[str, List[str]] = {}
+for _module in _MODULE_TO_EXTENSIONS:
+    _MODULE_TO_METADATA_FILE_NAMES[_module] = []
+_MODULE_TO_METADATA_FILE_NAMES["imagefolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
+_MODULE_TO_METADATA_FILE_NAMES["audiofolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
+_MODULE_TO_METADATA_FILE_NAMES["videofolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
