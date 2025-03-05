@@ -9,7 +9,7 @@ import warnings
 import zipfile
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, List, Optional, Type, Union
+from typing import Optional, Union
 
 from .. import config
 from ._filelock import FileLock
@@ -60,7 +60,7 @@ class BaseExtractor(ABC):
 
 
 class MagicNumberBaseExtractor(BaseExtractor, ABC):
-    magic_numbers: List[bytes] = []
+    magic_numbers: list[bytes] = []
 
     @staticmethod
     def read_magic_number(path: Union[Path, str], magic_number_length: int):
@@ -268,7 +268,7 @@ class Lz4Extractor(MagicNumberBaseExtractor):
 
 class Extractor:
     #  Put zip file to the last, b/c it is possible wrongly detected as zip (I guess it means: as tar or gzip)
-    extractors: Dict[str, Type[BaseExtractor]] = {
+    extractors: dict[str, type[BaseExtractor]] = {
         "tar": TarExtractor,
         "gzip": GzipExtractor,
         "zip": ZipExtractor,
