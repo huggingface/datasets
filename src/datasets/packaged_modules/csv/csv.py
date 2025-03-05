@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 import pandas as pd
 import pyarrow as pa
@@ -27,21 +27,21 @@ class CsvConfig(datasets.BuilderConfig):
 
     sep: str = ","
     delimiter: Optional[str] = None
-    header: Optional[Union[int, List[int], str]] = "infer"
-    names: Optional[List[str]] = None
-    column_names: Optional[List[str]] = None
-    index_col: Optional[Union[int, str, List[int], List[str]]] = None
-    usecols: Optional[Union[List[int], List[str]]] = None
+    header: Optional[Union[int, list[int], str]] = "infer"
+    names: Optional[list[str]] = None
+    column_names: Optional[list[str]] = None
+    index_col: Optional[Union[int, str, list[int], list[str]]] = None
+    usecols: Optional[Union[list[int], list[str]]] = None
     prefix: Optional[str] = None
     mangle_dupe_cols: bool = True
     engine: Optional[Literal["c", "python", "pyarrow"]] = None
-    converters: Dict[Union[int, str], Callable[[Any], Any]] = None
+    converters: dict[Union[int, str], Callable[[Any], Any]] = None
     true_values: Optional[list] = None
     false_values: Optional[list] = None
     skipinitialspace: bool = False
-    skiprows: Optional[Union[int, List[int]]] = None
+    skiprows: Optional[Union[int, list[int]]] = None
     nrows: Optional[int] = None
-    na_values: Optional[Union[str, List[str]]] = None
+    na_values: Optional[Union[str, list[str]]] = None
     keep_default_na: bool = True
     na_filter: bool = True
     verbose: bool = False

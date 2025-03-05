@@ -21,7 +21,7 @@ import os
 import re
 from dataclasses import dataclass
 from functools import partial
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -86,12 +86,12 @@ class FileInstructions:
     """
 
     num_examples: int
-    file_instructions: List[dict]
+    file_instructions: list[dict]
 
 
 def make_file_instructions(
     name: str,
-    split_infos: List["SplitInfo"],
+    split_infos: list["SplitInfo"],
     instruction: Union[str, "ReadInstruction"],
     filetype_suffix: Optional[str] = None,
     prefix_path: Optional[str] = None,
@@ -253,7 +253,7 @@ class BaseReader:
 
     def read_files(
         self,
-        files: List[dict],
+        files: list[dict],
         original_instructions: Union[None, "ReadInstruction", "Split"] = None,
         in_memory=False,
     ):
