@@ -23,10 +23,11 @@ import re
 import sys
 from collections.abc import Iterable, Mapping
 from collections.abc import Sequence as SequenceABC
+from collections.abc import Sequence as Sequence_
 from dataclasses import InitVar, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Dict, List, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Dict, List, Literal, Optional, TypeVar, Union
 from typing import Sequence as Sequence_
 
 import numpy as np
@@ -1019,14 +1020,14 @@ class ClassLabel:
     """
 
     num_classes: InitVar[Optional[int]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
-    names: List[str] = None
+    names: list[str] = None
     names_file: InitVar[Optional[str]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "int64"
     pa_type: ClassVar[Any] = pa.int64()
-    _str2int: ClassVar[Dict[str, int]] = None
-    _int2str: ClassVar[Dict[int, int]] = None
+    _str2int: ClassVar[dict[str, int]] = None
+    _int2str: ClassVar[dict[int, int]] = None
     _type: str = field(default="ClassLabel", init=False, repr=False)
 
     def __post_init__(self, num_classes, names_file):
@@ -1399,7 +1400,7 @@ def encode_nested_example(schema, obj, level: int = 0):
     return obj
 
 
-def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
+def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
     """Decode a nested example.
     This is used since some features (in particular Audio and Image) have some logic during decoding.
 
@@ -1561,7 +1562,7 @@ def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.
     return values
 
 
-def list_of_pa_arrays_to_pyarrow_listarray(l_arr: List[Optional[pa.Array]]) -> pa.ListArray:
+def list_of_pa_arrays_to_pyarrow_listarray(l_arr: list[Optional[pa.Array]]) -> pa.ListArray:
     null_mask = np.array([arr is None for arr in l_arr])
     null_indices = np.arange(len(null_mask))[null_mask] - np.arange(np.sum(null_mask))
     l_arr = [arr for arr in l_arr if arr is not None]
@@ -1574,7 +1575,7 @@ def list_of_pa_arrays_to_pyarrow_listarray(l_arr: List[Optional[pa.Array]]) -> p
     return pa.ListArray.from_arrays(offsets, values)
 
 
-def list_of_np_array_to_pyarrow_listarray(l_arr: List[np.ndarray], type: pa.DataType = None) -> pa.ListArray:
+def list_of_np_array_to_pyarrow_listarray(l_arr: list[np.ndarray], type: pa.DataType = None) -> pa.ListArray:
     """Build a PyArrow ListArray from a possibly nested list of NumPy arrays"""
     if len(l_arr) > 0:
         return list_of_pa_arrays_to_pyarrow_listarray(
@@ -1601,7 +1602,7 @@ def contains_any_np_array(data: Any):
         return False
 
 
-def any_np_array_to_pyarrow_listarray(data: Union[np.ndarray, List], type: pa.DataType = None) -> pa.ListArray:
+def any_np_array_to_pyarrow_listarray(data: Union[np.ndarray, list], type: pa.DataType = None) -> pa.ListArray:
     """Convert to PyArrow ListArray either a NumPy ndarray or (recursively) a list that may contain any NumPy ndarray.
 
     Args:
@@ -1641,7 +1642,9 @@ def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureT
     Returns:
         visited feature (FeatureType)
     """
-    if isinstance(feature, dict):
+    if isinstance(feature, Features):
+        out = func(Features({k: _visit(f, func) for k, f in feature.items()}))
+    elif isinstance(feature, dict):
         out = func({k: _visit(f, func) for k, f in feature.items()})
     elif isinstance(feature, (list, tuple)):
         out = func([_visit(feature[0], func)])
@@ -1651,6 +1654,48 @@ def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureT
         out = func(Sequence(_visit(feature.feature, func), length=feature.length))
     else:
         out = func(feature)
+    return feature if out is None else out
+
+
+_VisitPath = list[Union[str, Literal[0]]]
+
+
+def _visit_with_path(
+    feature: FeatureType, func: Callable[[FeatureType, _VisitPath], Optional[FeatureType]], visit_path: _VisitPath = []
+) -> FeatureType:
+    """Visit a (possibly nested) feature with its path in the Feature object.
+
+    A path in a nested feature object is the list of keys that need to be
+    sequentially accessed to get to the sub-feature.
+
+    For example:
+    - ["foo"] corresponds to the column "foo"
+    - ["foo", 0] corresponds to the sub-feature of the lists in "foo"
+    - ["foo", "bar"] corresponds to the sub-feature of the dicts in "foo" with key "bar"
+
+    Args:
+        feature (`FeatureType`): the feature type to be checked.
+
+    Returns:
+        `FeatureType`: the visited feature.
+    """
+    if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
+        feature = {k: [f] for k, f in feature.feature.items()}
+        # ^ Sequence of dicts is special, it must be converted to a dict of lists (see https://huggingface.co/docs/datasets/v2.16.1/en/package_reference/main_classes#datasets.Features)
+    if isinstance(feature, Features):
+        out = func(Features({k: _visit_with_path(f, func, visit_path + [k]) for k, f in feature.items()}), visit_path)
+    elif isinstance(feature, dict):
+        out = func({k: _visit_with_path(f, func, visit_path + [k]) for k, f in feature.items()}, visit_path)
+    elif isinstance(feature, (list, tuple)):
+        out = func([_visit_with_path(feature[0], func, visit_path + [0])], visit_path)
+    elif isinstance(feature, Sequence):
+        out = func(
+            Sequence(_visit_with_path(feature.feature, func, visit_path + [0]), length=feature.length), visit_path
+        )
+    elif isinstance(feature, LargeList):
+        out = func(LargeList(_visit_with_path(feature.feature, func, visit_path + [0])), visit_path)
+    else:
+        out = func(feature, visit_path)
     return feature if out is None else out
 
 
@@ -1834,8 +1879,8 @@ class Features(dict):
         """
         # try to load features from the arrow schema metadata
         metadata_features = Features()
-        if pa_schema.metadata is not None and "huggingface".encode("utf-8") in pa_schema.metadata:
-            metadata = json.loads(pa_schema.metadata["huggingface".encode("utf-8")].decode())
+        if pa_schema.metadata is not None and b"huggingface" in pa_schema.metadata:
+            metadata = json.loads(pa_schema.metadata[b"huggingface"].decode())
             if "info" in metadata and "features" in metadata["info"] and metadata["info"]["features"] is not None:
                 metadata_features = Features.from_dict(metadata["info"]["features"])
         metadata_features_schema = metadata_features.arrow_schema
@@ -2073,7 +2118,7 @@ class Features(dict):
             encoded_batch[key] = [encode_nested_example(self[key], obj, level=1) for obj in column]
         return encoded_batch
 
-    def decode_example(self, example: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
+    def decode_example(self, example: dict, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
         """Decode example with custom feature decoding.
 
         Args:
@@ -2114,7 +2159,7 @@ class Features(dict):
             else column
         )
 
-    def decode_batch(self, batch: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
+    def decode_batch(self, batch: dict, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
         """Decode batch with custom feature decoding.
 
         Args:

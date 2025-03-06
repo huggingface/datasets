@@ -158,7 +158,7 @@ class DatasetInfo:
     dataset_size: Optional[int] = None
     size_in_bytes: Optional[int] = None
 
-    _INCLUDED_INFO_IN_YAML: ClassVar[List[str]] = [
+    _INCLUDED_INFO_IN_YAML: ClassVar[list[str]] = [
         "config_name",
         "download_size",
         "dataset_size",
@@ -225,7 +225,7 @@ class DatasetInfo:
         file.write(self.license.encode("utf-8"))
 
     @classmethod
-    def from_merge(cls, dataset_infos: List[DatasetInfo]) -> DatasetInfo:
+    def from_merge(cls, dataset_infos: list[DatasetInfo]) -> DatasetInfo:
         dataset_infos = [dset_info.copy() for dset_info in dataset_infos if dset_info is not None]
 
         if len(dataset_infos) > 0 and all(dataset_infos[0] == dset_info for dset_info in dataset_infos):

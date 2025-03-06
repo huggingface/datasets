@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import os
+from collections.abc import Iterator
 from functools import partial
 from itertools import groupby
 from typing import (
@@ -127,7 +128,7 @@ def _interpolation_search(arr: Sequence[int], x: int) -> int:
 class IndexedTableMixin:
     def __init__(self, table: pa.Table) -> None:
         self._schema: pa.Schema = table.schema
-        self._batches: List[pa.RecordBatch] = [
+        self._batches: list[pa.RecordBatch] = [
             recordbatch for recordbatch in table.to_batches() if len(recordbatch) > 0
         ]
         self._offsets: np.ndarray = np.cumsum([0] + [len(b) for b in self._batches], dtype=np.int64)
@@ -1435,7 +1436,7 @@ class ConcatenationTable(Table):
             return cls(table, blocks)
 
     @classmethod
-    def from_tables(cls, tables: List[Union[pa.Table, Table]], axis: int = 0) -> "ConcatenationTable":
+    def from_tables(cls, tables: list[Union[pa.Table, Table]], axis: int = 0) -> "ConcatenationTable":
         """Create `ConcatenationTable` from list of tables.
 
         Args:
@@ -1456,14 +1457,14 @@ class ConcatenationTable(Table):
             else:
                 return [[table]]
 
-        def _slice_row_block(row_block: List[TableBlock], length: int) -> Tuple[List[TableBlock], List[TableBlock]]:
+        def _slice_row_block(row_block: list[TableBlock], length: int) -> tuple[list[TableBlock], list[TableBlock]]:
             sliced = [table.slice(0, length) for table in row_block]
             remainder = [table.slice(length, len(row_block[0]) - length) for table in row_block]
             return sliced, remainder
 
         def _split_both_like(
-            result: List[List[TableBlock]], blocks: List[List[TableBlock]]
-        ) -> Tuple[List[List[TableBlock]], List[List[TableBlock]]]:
+            result: list[list[TableBlock]], blocks: list[list[TableBlock]]
+        ) -> tuple[list[list[TableBlock]], list[list[TableBlock]]]:
             """
             Make sure each row_block contain the same num_rows to be able to concatenate them on axis=1.
 
@@ -1499,8 +1500,8 @@ class ConcatenationTable(Table):
             return new_result, new_blocks
 
         def _extend_blocks(
-            result: List[List[TableBlock]], blocks: List[List[TableBlock]], axis: int = 0
-        ) -> List[List[TableBlock]]:
+            result: list[list[TableBlock]], blocks: list[list[TableBlock]], axis: int = 0
+        ) -> list[list[TableBlock]]:
             if axis == 0:
                 result.extend(blocks)
             elif axis == 1:
@@ -1811,7 +1812,7 @@ def concat_tables(tables: list[Table], axis: int = 0) -> ConcatenationTable:
     return ConcatenationTable.from_tables(tables, axis=axis)
 
 
-def list_table_cache_files(table: Table) -> List[str]:
+def list_table_cache_files(table: Table) -> list[str]:
     """
     Get the cache files that are loaded by the table.
     Cache file are used when parts of the table come from the disk via memory mapping.

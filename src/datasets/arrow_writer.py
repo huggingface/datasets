@@ -15,7 +15,8 @@
 
 import json
 import sys
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from collections.abc import Iterable
+from typing import Any, Optional, Union
 
 import fsspec
 import numpy as np
@@ -169,7 +170,7 @@ class TypedSequence:
         return self._inferred_type
 
     @staticmethod
-    def _infer_custom_type_and_encode(data: Iterable) -> Tuple[Iterable, Optional[FeatureType]]:
+    def _infer_custom_type_and_encode(data: Iterable) -> tuple[Iterable, Optional[FeatureType]]:
         """Implement type inference for custom objects like PIL.Image.Image -> Image type.
 
         This function is only used for custom python objects that can't be direclty passed to build
@@ -390,8 +391,8 @@ class ArrowWriter:
 
         self._num_examples = 0
         self._num_bytes = 0
-        self.current_examples: List[Tuple[Dict[str, Any], str]] = []
-        self.current_rows: List[pa.Table] = []
+        self.current_examples: list[tuple[dict[str, Any], str]] = []
+        self.current_rows: list[pa.Table] = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
         self.hkey_record = []
 
@@ -452,7 +453,7 @@ class ArrowWriter:
         return _schema if _schema is not None else []
 
     @staticmethod
-    def _build_metadata(info: DatasetInfo, fingerprint: Optional[str] = None) -> Dict[str, str]:
+    def _build_metadata(info: DatasetInfo, fingerprint: Optional[str] = None) -> dict[str, str]:
         info_keys = ["features"]  # we can add support for more DatasetInfo keys in the future
         info_as_dict = asdict(info)
         metadata = {}
@@ -505,7 +506,7 @@ class ArrowWriter:
 
     def write(
         self,
-        example: Dict[str, Any],
+        example: dict[str, Any],
         key: Optional[Union[str, int, bytes]] = None,
         writer_batch_size: Optional[int] = None,
     ) -> None:
@@ -567,7 +568,7 @@ class ArrowWriter:
 
     def write_batch(
         self,
-        batch_examples: Dict[str, List],
+        batch_examples: dict[str, list],
         writer_batch_size: Optional[int] = None,
     ):
         """Write a batch of Example to file.

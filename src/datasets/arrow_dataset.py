@@ -35,7 +35,8 @@ import time
 import warnings
 import weakref
 from collections import Counter
-from collections.abc import Mapping
+from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Sequence as Sequence_
 from copy import deepcopy
 from functools import partial, wraps
 from io import BytesIO
@@ -56,7 +57,6 @@ from typing import (
     Union,
     overload,
 )
-from typing import Sequence as Sequence_
 
 import fsspec
 import numpy as np
@@ -1347,7 +1347,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .io.spark import SparkDatasetReader
 
         if sys.platform == "win32":
-            raise EnvironmentError("Dataset.from_spark is not currently supported on Windows")
+            raise OSError("Dataset.from_spark is not currently supported on Windows")
 
         return SparkDatasetReader(
             df,
@@ -3232,7 +3232,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
         offset: int = 0,
-    ) -> Iterator:
+    ) -> Iterable[tuple[int, bool, Union[int, Dataset]]]:
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does update examples).
 

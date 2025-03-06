@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import operator
-from collections.abc import Mapping, MutableMapping
+from collections.abc import Iterable, Mapping, MutableMapping
 from functools import partial
 
 # Lint as: python3
@@ -128,7 +128,7 @@ class BaseArrowExtractor(Generic[RowFormat, ColumnFormat, BatchFormat]):
         raise NotImplementedError
 
 
-def _unnest(py_dict: Dict[str, List[T]]) -> Dict[str, T]:
+def _unnest(py_dict: dict[str, list[T]]) -> dict[str, T]:
     """Return the first element of a batch (dict) as a row (dict)"""
     return {key: array[0] for key, array in py_dict.items()}
 
@@ -173,24 +173,24 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
             if isinstance(pa_array.type, _ArrayXDExtensionType):
                 # don't call to_pylist() to preserve dtype of the fixed-size array
                 zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
-                array: List = [
+                array: list = [
                     row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
                 ]
             else:
                 zero_copy_only = _is_zero_copy_only(pa_array.type) and all(
                     not _is_array_with_nulls(chunk) for chunk in pa_array.chunks
                 )
-                array: List = [
+                array: list = [
                     row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
                 ]
         else:
             if isinstance(pa_array.type, _ArrayXDExtensionType):
                 # don't call to_pylist() to preserve dtype of the fixed-size array
                 zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
-                array: List = pa_array.to_numpy(zero_copy_only=zero_copy_only)
+                array: list = pa_array.to_numpy(zero_copy_only=zero_copy_only)
             else:
                 zero_copy_only = _is_zero_copy_only(pa_array.type) and not _is_array_with_nulls(pa_array)
-                array: List = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
+                array: list = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
 
         if len(array) > 0:
             if any(
@@ -220,7 +220,7 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
 
 class PythonFeaturesDecoder:
     def __init__(
-        self, features: Optional[Features], token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None
+        self, features: Optional[Features], token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None
     ) -> None:
         self.features = features
         self.token_per_repo_id = token_per_repo_id
@@ -402,7 +402,7 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     def __init__(
         self,
         features: Optional[Features] = None,
-        token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
+        token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None,
     ) -> None:
         self.features = features
         self.token_per_repo_id = token_per_repo_id
@@ -555,7 +555,7 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
         return self.transform(batch)
 
 
-def _check_valid_column_key(key: str, columns: List[str]) -> None:
+def _check_valid_column_key(key: str, columns: list[str]) -> None:
     if key not in columns:
         raise KeyError(f"Column {key} not in the dataset. Current columns in the dataset: {columns}")
 

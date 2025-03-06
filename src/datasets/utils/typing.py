@@ -1,9 +1,9 @@
 import os
-from typing import Dict, List, Tuple, TypeVar, Union
+from typing import TypeVar, Union
 
 
 T = TypeVar("T")
 
-ListLike = Union[List[T], Tuple[T, ...]]
-NestedDataStructureLike = Union[T, List[T], Dict[str, T]]
+ListLike = Union[list[T], tuple[T, ...]]
+NestedDataStructureLike = Union[T, list[T], dict[str, T]]
 PathLike = Union[str, bytes, os.PathLike]

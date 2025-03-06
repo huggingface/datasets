@@ -26,6 +26,7 @@ import queue
 import re
 import types
 import warnings
+from collections.abc import Iterable
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
 from multiprocessing import Manager
@@ -68,8 +69,15 @@ from ._dill import (  # noqa: F401 # imported for backward compatibility. TODO: 
 from ._filelock import FileLock
 
 
+try:  # pragma: no branch
+    import typing_extensions as _typing_extensions
+    from typing_extensions import Final, Literal
+except ImportError:
+    _typing_extensions = Literal = Final = None
+
 if TYPE_CHECKING:
     from _typeshed import ConvertibleToFloat, DataclassInstance
+
 
 logger = logging.get_logger(__name__)
 
@@ -704,7 +712,7 @@ def _write_generator_to_queue(queue: queue.Queue, func: Callable[..., Iterable[Y
     return i
 
 
-def _get_pool_pid(pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool]) -> Set[int]:
+def _get_pool_pid(pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool]) -> set[int]:
     return {f.pid for f in pool._pool}
 
 

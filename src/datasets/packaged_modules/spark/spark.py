@@ -4,6 +4,7 @@ import os
 import posixpath
 import shutil
 import uuid
+from collections.abc import Iterable
 from dataclasses import dataclass
 from itertools import islice
 from typing import (

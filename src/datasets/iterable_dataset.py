@@ -6,6 +6,7 @@ import inspect
 import itertools
 import sys
 from collections import Counter
+from collections.abc import Iterable, Iterator
 from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
@@ -1193,7 +1194,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             processed_inputs = await self.function(*fn_args, *additional_args, **fn_kwargs)
             return prepare_outputs(key_example, inputs, processed_inputs)
 
-        tasks: List[asyncio.Task] = []
+        tasks: list[asyncio.Task] = []
         if inspect.iscoroutinefunction(self.function):
             try:
                 loop = asyncio.get_running_loop()
@@ -1206,7 +1207,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             nonlocal tasks, loop
             inputs_iterator = iter_batched_inputs() if self.batched else iter_inputs()
             if inspect.iscoroutinefunction(self.function):
-                indices: Union[List[int], List[List[int]]] = []
+                indices: Union[list[int], list[list[int]]] = []
                 for i, key_example in inputs_iterator:
                     indices.append(i)
                     tasks.append(loop.create_task(async_apply_function(key_example, i)))
@@ -2388,7 +2389,7 @@ class IterableDataset(DatasetInfoMixin):
         from .io.spark import SparkDatasetReader
 
         if sys.platform == "win32":
-            raise EnvironmentError("IterableDataset.from_spark is not currently supported on Windows")
+            raise OSError("IterableDataset.from_spark is not currently supported on Windows")
 
         return SparkDatasetReader(
             df,
