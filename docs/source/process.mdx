@@ -366,7 +366,7 @@ The [`~Dataset.map`] also works with the rank of the process if you set `with_ra
 >>> def gpu_computation(batch, rank):
 ...     # Move the model on the right GPU if it's not there already
 ...     device = f"cuda:{(rank or 0) % torch.cuda.device_count()}"
-...     model.to(device)
+...     model = model.to(device)
 ...     
 ...     # Your big GPU call goes here, for example:
 ...     chats = [[
