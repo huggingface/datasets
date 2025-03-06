@@ -3175,12 +3175,11 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(tf_dataset), 2)  # One batch of 3 and one batch of 1
             self.assertEqual(len(tf_dataset_with_drop), 1)  # Incomplete batch of 1 is dropped
         # Test that `NotImplementedError` is raised `batch_size` is None and `num_workers` is > 0
-        if sys.version_info >= (3, 8):
-            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-                with self.assertRaisesRegex(
-                    NotImplementedError, "`batch_size` must be specified when using multiple workers"
-                ):
-                    dset.to_tf_dataset(columns="col_1", batch_size=None, num_workers=2)
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            with self.assertRaisesRegex(
+                NotImplementedError, "`batch_size` must be specified when using multiple workers"
+            ):
+                dset.to_tf_dataset(columns="col_1", batch_size=None, num_workers=2)
         del tf_dataset  # For correct cleanup
         del tf_dataset_with_drop
 
@@ -3960,8 +3959,7 @@ def data_generator():
             {"col_1": "2", "col_2": 2, "col_3": 2.0},
             {"col_1": "3", "col_2": 3, "col_3": 3.0},
         ]
-        for item in data:
-            yield item
+        yield from data
 
     return _gen
 
