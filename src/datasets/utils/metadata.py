@@ -3,7 +3,7 @@ import textwrap
 from collections import Counter
 from itertools import groupby
 from operator import itemgetter
-from typing import Any, ClassVar, Dict, List, Optional, Tuple
+from typing import Any, ClassVar, Optional
 
 import yaml
 from huggingface_hub import DatasetCardData
@@ -33,7 +33,7 @@ class _NoDuplicateSafeLoader(yaml.SafeLoader):
         return mapping
 
 
-def _split_yaml_from_readme(readme_content: str) -> Tuple[Optional[str], str]:
+def _split_yaml_from_readme(readme_content: str) -> tuple[Optional[str], str]:
     full_content = list(readme_content.splitlines())
     if full_content and full_content[0] == "---" and "---" in full_content[1:]:
         sep_idx = full_content[1:].index("---") + 1
@@ -43,7 +43,7 @@ def _split_yaml_from_readme(readme_content: str) -> Tuple[Optional[str], str]:
     return None, "\n".join(full_content)
 
 
-class MetadataConfigs(Dict[str, Dict[str, Any]]):
+class MetadataConfigs(dict[str, dict[str, Any]]):
     """Should be in format {config_name: {**config_params}}."""
 
     FIELD_NAME: ClassVar[str] = METADATA_CONFIGS_FIELD
@@ -103,7 +103,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
     def _from_exported_parquet_files_and_dataset_infos(
         cls,
         parquet_commit_hash: str,
-        exported_parquet_files: List[Dict[str, Any]],
+        exported_parquet_files: list[dict[str, Any]],
         dataset_infos: DatasetInfosDict,
     ) -> "MetadataConfigs":
         metadata_configs = {

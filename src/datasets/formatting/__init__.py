@@ -32,15 +32,15 @@ from .np_formatter import NumpyFormatter
 
 logger = logging.get_logger(__name__)
 
-_FORMAT_TYPES: Dict[Optional[str], Type[Formatter]] = {}
-_FORMAT_TYPES_ALIASES: Dict[Optional[str], str] = {}
-_FORMAT_TYPES_ALIASES_UNAVAILABLE: Dict[Optional[str], Exception] = {}
+_FORMAT_TYPES: dict[Optional[str], type[Formatter]] = {}
+_FORMAT_TYPES_ALIASES: dict[Optional[str], str] = {}
+_FORMAT_TYPES_ALIASES_UNAVAILABLE: dict[Optional[str], Exception] = {}
 
 
 def _register_formatter(
     formatter_cls: type,
     format_type: Optional[str],
-    aliases: Optional[List[str]] = None,
+    aliases: Optional[list[str]] = None,
 ):
     """
     Register a Formatter object using a name and optional aliases.
@@ -61,7 +61,7 @@ def _register_formatter(
 
 
 def _register_unavailable_formatter(
-    unavailable_error: Exception, format_type: Optional[str], aliases: Optional[List[str]] = None
+    unavailable_error: Exception, format_type: Optional[str], aliases: Optional[list[str]] = None
 ):
     """
     Register an unavailable Formatter object using a name and optional aliases.

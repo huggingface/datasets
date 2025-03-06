@@ -1,5 +1,4 @@
-from collections.abc import Iterator
-from typing import Iterable
+from collections.abc import Iterable, Iterator
 
 
 class tracked_str(str):

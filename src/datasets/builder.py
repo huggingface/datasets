@@ -25,10 +25,11 @@ import shutil
 import textwrap
 import time
 import urllib
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Iterable, Mapping, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Union
 from unittest.mock import patch
 
 import fsspec
@@ -533,7 +534,7 @@ class DatasetBuilder:
 
     def _create_builder_config(
         self, config_name=None, custom_features=None, **config_kwargs
-    ) -> Tuple[BuilderConfig, str]:
+    ) -> tuple[BuilderConfig, str]:
         """Create and validate BuilderConfig object as well as a unique config id for this config.
         Raises ValueError if there are multiple builder configs and config_name and DEFAULT_CONFIG_NAME are None.
         config_kwargs override the defaults kwargs in config
@@ -624,7 +625,7 @@ class DatasetBuilder:
     @classproperty
     @classmethod
     @memoize()
-    def builder_configs(cls) -> Dict[str, BuilderConfig]:
+    def builder_configs(cls) -> dict[str, BuilderConfig]:
         """Dictionary of pre-defined configurations for this builder class."""
         configs = {config.name: config for config in cls.BUILDER_CONFIGS}
         if len(configs) != len(cls.BUILDER_CONFIGS):
@@ -1248,7 +1249,7 @@ class DatasetBuilder:
         self,
         split: Optional[str] = None,
         base_path: Optional[str] = None,
-    ) -> Union[Dict[str, IterableDataset], IterableDataset]:
+    ) -> Union[dict[str, IterableDataset], IterableDataset]:
         if is_remote_filesystem(self._fs):
             raise NotImplementedError(
                 f"Loading a streaming dataset cached in a {type(self._fs).__name__} is not supported yet."
@@ -1295,7 +1296,7 @@ class DatasetBuilder:
         """Run dataset transforms or add indexes"""
         return None
 
-    def _post_processing_resources(self, split: str) -> Dict[str, str]:
+    def _post_processing_resources(self, split: str) -> dict[str, str]:
         """Mapping resource_name -> resource_file_name"""
         return {}
 
@@ -1492,9 +1493,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
                         pbar.update(content)
             # wrapping everything into lists for consistency with the multiprocessed code path
             assert result is not None, "Failed to retrieve results from prepare_split"
-            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = [
+            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = (
                 [item] for item in result
-            ]
+            )
         else:
             kwargs_per_job = [
                 {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
@@ -1545,7 +1546,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         if total_shards > 1:
             # use the -SSSSS-of-NNNNN pattern
 
-            def _rename_shard(shard_and_job: Tuple[int]):
+            def _rename_shard(shard_and_job: tuple[int]):
                 shard_id, job_id = shard_and_job
                 global_shard_id = sum(shards_per_job[:job_id]) + shard_id
                 self._rename(
@@ -1583,7 +1584,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         split_info: SplitInfo,
         check_duplicate_keys: bool,
         job_id: int,
-    ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
+    ) -> Iterable[tuple[int, bool, Union[int, tuple]]]:
         generator = self._generate_examples(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
@@ -1747,9 +1748,9 @@ class ArrowBasedBuilder(DatasetBuilder):
                         pbar.update(content)
             # wrapping everything into lists for consistency with the multiprocessed code path
             assert result is not None, "Failed to retrieve results from prepare_split"
-            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = [
+            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = (
                 [item] for item in result
-            ]
+            )
         else:
             kwargs_per_job = [
                 {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
@@ -1800,7 +1801,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         if total_shards > 1:
             # use the -SSSSS-of-NNNNN pattern
 
-            def _rename_shard(shard_id_and_job: Tuple[int]):
+            def _rename_shard(shard_id_and_job: tuple[int]):
                 shard_id, job_id = shard_id_and_job
                 global_shard_id = sum(shards_per_job[:job_id]) + shard_id
                 self._rename(
@@ -1831,7 +1832,7 @@ class ArrowBasedBuilder(DatasetBuilder):
 
     def _prepare_split_single(
         self, gen_kwargs: dict, fpath: str, file_format: str, max_shard_size: int, job_id: int
-    ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
+    ) -> Iterable[tuple[int, bool, Union[int, tuple]]]:
         gen_kwargs = {k: tracked_list(v) if isinstance(v, list) else v for k, v in gen_kwargs.items()}
         generator = self._generate_tables(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter

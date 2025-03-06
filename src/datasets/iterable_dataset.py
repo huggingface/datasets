@@ -4,11 +4,12 @@ import inspect
 import itertools
 import sys
 from collections import Counter
+from collections.abc import Iterable, Iterator
 from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
 from itertools import cycle, islice
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 
 import fsspec.asyn
 import numpy as np
@@ -53,7 +54,7 @@ def identity_func(x):
     return x
 
 
-def _rename_columns_fn(example: Dict, column_mapping: Dict[str, str]):
+def _rename_columns_fn(example: dict, column_mapping: dict[str, str]):
     if any(col not in example for col in column_mapping):
         raise ValueError(
             f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_mapping) - set(example)} are not in the dataset."
@@ -68,13 +69,13 @@ def _rename_columns_fn(example: Dict, column_mapping: Dict[str, str]):
     }
 
 
-def add_column_fn(example: Dict, idx: int, name: str, column: List[Dict]):
+def add_column_fn(example: dict, idx: int, name: str, column: list[dict]):
     if name in example:
         raise ValueError(f"Error when adding {name}: column {name} is already in the dataset.")
     return {name: column[idx]}
 
 
-def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Features] = None) -> Features:
+def _infer_features_from_batch(batch: dict[str, list], try_features: Optional[Features] = None) -> Features:
     pa_table = pa.Table.from_pydict(batch)
     if try_features is not None:
         try:
@@ -84,7 +85,7 @@ def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Fe
     return Features.from_arrow_schema(pa_table.schema)
 
 
-def _examples_to_batch(examples: List[Dict[str, Any]]) -> Dict[str, list]:
+def _examples_to_batch(examples: list[dict[str, Any]]) -> dict[str, list]:
     # we order the columns by order of appearance
     # to do so, we use a dict as an ordered set
     cols = {col: None for example in examples for col in example}
@@ -93,7 +94,7 @@ def _examples_to_batch(examples: List[Dict[str, Any]]) -> Dict[str, list]:
     return dict(zip(cols, arrays))
 
 
-def _batch_to_examples(batch: Dict[str, list]) -> Iterator[Dict[str, Any]]:
+def _batch_to_examples(batch: dict[str, list]) -> Iterator[dict[str, Any]]:
     """Convert a batch (dict of examples) to examples list"""
     n_examples = 0 if len(batch) == 0 else len(batch[next(iter(batch))])
     for i in range(n_examples):
@@ -101,10 +102,10 @@ def _batch_to_examples(batch: Dict[str, list]) -> Iterator[Dict[str, Any]]:
 
 
 def _convert_to_arrow(
-    iterable: Iterable[Tuple[Key, dict]],
+    iterable: Iterable[tuple[Key, dict]],
     batch_size: int,
     drop_last_batch: bool = False,
-) -> Iterator[Tuple[Key, pa.Table]]:
+) -> Iterator[tuple[Key, pa.Table]]:
     """Convert and group examples in Arrow tables of size `batch_size`.
 
     Args:
@@ -138,12 +139,12 @@ class _BaseExamplesIterable:
     def __init__(self) -> None:
         self._state_dict: Optional[Union[list, dict]] = None
 
-    def __iter__(self) -> Iterator[Tuple[Key, dict]]:
+    def __iter__(self) -> Iterator[tuple[Key, dict]]:
         """An examples iterable should yield tuples (example_key, example) of type (int/str, dict)"""
         raise NotImplementedError(f"{type(self)} doesn't implement __iter__ yet")
 
     @property
-    def iter_arrow(self) -> Optional[Callable[[], Iterator[Tuple[Key, pa.Table]]]]:
+    def iter_arrow(self) -> Optional[Callable[[], Iterator[tuple[Key, pa.Table]]]]:
         return None
 
     @property
@@ -165,7 +166,7 @@ class _BaseExamplesIterable:
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         raise NotImplementedError(f"{type(self)} doesn't implement shard_data_sources yet")
 
-    def split_shard_indices_by_worker(self, num_shards: int, index: int, contiguous=True) -> List[int]:
+    def split_shard_indices_by_worker(self, num_shards: int, index: int, contiguous=True) -> list[int]:
         if contiguous:
             div = self.num_shards // num_shards
             mod = self.num_shards % num_shards
@@ -203,7 +204,7 @@ class _BaseExamplesIterable:
 
 
 class ExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, generate_examples_fn: Callable[..., Tuple[Key, dict]], kwargs: dict):
+    def __init__(self, generate_examples_fn: Callable[..., tuple[Key, dict]], kwargs: dict):
         super().__init__()
         self.generate_examples_fn = generate_examples_fn
         self.kwargs = kwargs
@@ -241,7 +242,7 @@ class ExamplesIterable(_BaseExamplesIterable):
 
 class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
     def __init__(
-        self, generate_examples_fn: Callable[..., Tuple[Key, dict]], kwargs: dict, generator: np.random.Generator
+        self, generate_examples_fn: Callable[..., tuple[Key, dict]], kwargs: dict, generator: np.random.Generator
     ):
         super().__init__(generate_examples_fn, kwargs)
         self.generator = deepcopy(generator)
@@ -277,7 +278,7 @@ class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
 
 
 class ArrowExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, generate_tables_fn: Callable[..., Tuple[Key, pa.Table]], kwargs: dict):
+    def __init__(self, generate_tables_fn: Callable[..., tuple[Key, pa.Table]], kwargs: dict):
         super().__init__()
         self.generate_tables_fn = generate_tables_fn
         self.kwargs = kwargs
@@ -346,7 +347,7 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
 class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
     def __init__(
         self,
-        generate_tables_fn: Callable[..., Tuple[Key, pa.Table]],
+        generate_tables_fn: Callable[..., tuple[Key, pa.Table]],
         kwargs: dict,
         generator: np.random.Generator,
     ):
@@ -445,7 +446,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
     def __iter__(self):
         yield from self.ex_iterable
 
-    def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
+    def _iter_arrow(self) -> Iterator[tuple[Key, pa.Table]]:
         """Iterate over sub-tables of size `batch_size`."""
         if self._state_dict and self._state_dict["previous_state"]:
             self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
@@ -549,7 +550,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
 
 
 class SelectColumnsIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterable: _BaseExamplesIterable, column_names: List[str]):
+    def __init__(self, ex_iterable: _BaseExamplesIterable, column_names: list[str]):
         super().__init__()
         self.ex_iterable = ex_iterable
         self.column_names = column_names
@@ -575,7 +576,7 @@ class SelectColumnsIterable(_BaseExamplesIterable):
         for idx, row in self.ex_iterable:
             yield idx, {c: row[c] for c in self.column_names}
 
-    def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
+    def _iter_arrow(self) -> Iterator[tuple[Key, pa.Table]]:
         for idx, pa_table in self.ex_iterable.iter_arrow():
             if len(pa_table) > 0:  # empty tables have no schema
                 yield idx, pa_table.select(self.column_names)
@@ -642,7 +643,7 @@ class StepExamplesIterable(_BaseExamplesIterable):
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
-        ex_iterables: List[_BaseExamplesIterable],
+        ex_iterables: list[_BaseExamplesIterable],
         stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
     ):
         super().__init__()
@@ -754,7 +755,7 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     This is done with `_apply_feature_types_on_example`.
     """
 
-    def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
+    def __init__(self, ex_iterables: list[_BaseExamplesIterable]):
         super().__init__()
         self.ex_iterables = ex_iterables
 
@@ -815,7 +816,7 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
         )
 
 
-def _check_column_names(column_names: List[str]):
+def _check_column_names(column_names: list[str]):
     """Check the column names to make sure they don't contain duplicates."""
     counter = Counter(column_names)
     if not all(count == 1 for count in counter.values()):
@@ -841,7 +842,7 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
     This is done with `_apply_feature_types_on_example`.
     """
 
-    def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
+    def __init__(self, ex_iterables: list[_BaseExamplesIterable]):
         super().__init__()
         self.ex_iterables = ex_iterables
         # TODO(QL): implement iter_arrow
@@ -903,9 +904,9 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
 class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIterable):
     def __init__(
         self,
-        ex_iterables: List[_BaseExamplesIterable],
+        ex_iterables: list[_BaseExamplesIterable],
         generator: np.random.Generator,
-        probabilities: Optional[List[float]] = None,
+        probabilities: Optional[list[float]] = None,
         stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
     ):
         super().__init__(ex_iterables, stopping_strategy)
@@ -1001,11 +1002,11 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         ex_iterable: _BaseExamplesIterable,
         function: Callable,
         with_indices: bool = False,
-        input_columns: Optional[List[str]] = None,
+        input_columns: Optional[list[str]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[List[str]] = None,
+        remove_columns: Optional[list[str]] = None,
         fn_kwargs: Optional[dict] = None,
         formatting: Optional["FormattingConfig"] = None,
         features: Optional[Features] = None,
@@ -1171,7 +1172,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             processed_inputs = await self.function(*fn_args, *additional_args, **fn_kwargs)
             return prepare_outputs(key_example, inputs, processed_inputs)
 
-        tasks: List[asyncio.Task] = []
+        tasks: list[asyncio.Task] = []
         if inspect.iscoroutinefunction(self.function):
             try:
                 loop = asyncio.get_running_loop()
@@ -1184,7 +1185,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             nonlocal tasks, loop
             inputs_iterator = iter_batched_inputs() if self.batched else iter_inputs()
             if inspect.iscoroutinefunction(self.function):
-                indices: Union[List[int], List[List[int]]] = []
+                indices: Union[list[int], list[list[int]]] = []
                 for i, key_example in inputs_iterator:
                     indices.append(i)
                     tasks.append(loop.create_task(async_apply_function(key_example, i)))
@@ -1244,7 +1245,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     logger.debug("Tasks canceled.")
             raise
 
-    def _iter_arrow(self, max_chunksize: Optional[int] = None) -> Iterator[Tuple[Key, pa.Table]]:
+    def _iter_arrow(self, max_chunksize: Optional[int] = None) -> Iterator[tuple[Key, pa.Table]]:
         formatter: TableFormatter = get_formatter(self.formatting.format_type) if self.formatting else ArrowFormatter()
         if self.ex_iterable.iter_arrow:
             iterator = self.ex_iterable.iter_arrow()
@@ -1386,7 +1387,7 @@ class FilteredExamplesIterable(MappedExamplesIterable):
         ex_iterable: _BaseExamplesIterable,
         function: Callable,
         with_indices: bool = False,
-        input_columns: Optional[List[str]] = None,
+        input_columns: Optional[list[str]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
@@ -1723,7 +1724,7 @@ class TakeExamplesIterable(_BaseExamplesIterable):
 
 
 def _apply_feature_types_on_example(
-    example: dict, features: Features, token_per_repo_id: Dict[str, Union[str, bool, None]]
+    example: dict, features: Features, token_per_repo_id: dict[str, Union[str, bool, None]]
 ) -> dict:
     example = dict(example)
     # add missing columns
@@ -1738,7 +1739,7 @@ def _apply_feature_types_on_example(
 
 
 def _apply_feature_types_on_batch(
-    batch: dict, features: Features, token_per_repo_id: Dict[str, Union[str, bool, None]]
+    batch: dict, features: Features, token_per_repo_id: dict[str, Union[str, bool, None]]
 ) -> dict:
     batch = dict(batch)
     # add missing columns
@@ -1772,7 +1773,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
         ex_iterable: _BaseExamplesIterable,
         formatting: Optional[FormattingConfig],
         features: Optional[Features],
-        token_per_repo_id: Dict[str, Union[str, bool, None]],
+        token_per_repo_id: dict[str, Union[str, bool, None]],
     ):
         super().__init__()
         self.ex_iterable = ex_iterable
@@ -1826,7 +1827,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
                     )
                 yield key, format_dict(example)
 
-    def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
+    def _iter_arrow(self) -> Iterator[tuple[Key, pa.Table]]:
         if not self.features:
             yield from self.ex_iterable._iter_arrow()
         for key, pa_table in self.ex_iterable._iter_arrow():
@@ -1908,7 +1909,7 @@ class IterableDataset(DatasetInfoMixin):
         formatting: Optional[FormattingConfig] = None,
         shuffling: Optional[ShufflingConfig] = None,
         distributed: Optional[DistributedConfig] = None,
-        token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
+        token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None,
     ):
         if distributed and distributed.world_size > 1 and shuffling and shuffling._original_seed is None:
             raise RuntimeError(
@@ -1923,7 +1924,7 @@ class IterableDataset(DatasetInfoMixin):
         self._formatting = formatting
         self._shuffling = shuffling
         self._distributed = distributed
-        self._token_per_repo_id: Dict[str, Union[str, bool, None]] = token_per_repo_id or {}
+        self._token_per_repo_id: dict[str, Union[str, bool, None]] = token_per_repo_id or {}
         self._epoch: Union[int, "torch.Tensor"] = _maybe_share_with_torch_persistent_workers(0)
         self._starting_state_dict: Optional[dict] = None
         self._prepared_ex_iterable = self._prepare_ex_iterable_for_iteration()
@@ -2360,7 +2361,7 @@ class IterableDataset(DatasetInfoMixin):
         from .io.spark import SparkDatasetReader
 
         if sys.platform == "win32":
-            raise EnvironmentError("IterableDataset.from_spark is not currently supported on Windows")
+            raise OSError("IterableDataset.from_spark is not currently supported on Windows")
 
         return SparkDatasetReader(
             df,
@@ -2448,11 +2449,11 @@ class IterableDataset(DatasetInfoMixin):
         self,
         function: Optional[Callable] = None,
         with_indices: bool = False,
-        input_columns: Optional[Union[str, List[str]]] = None,
+        input_columns: Optional[Union[str, list[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[Union[str, List[str]]] = None,
+        remove_columns: Optional[Union[str, list[str]]] = None,
         features: Optional[Features] = None,
         fn_kwargs: Optional[dict] = None,
     ) -> "IterableDataset":
@@ -2598,7 +2599,7 @@ class IterableDataset(DatasetInfoMixin):
         self,
         function: Optional[Callable] = None,
         with_indices=False,
-        input_columns: Optional[Union[str, List[str]]] = None,
+        input_columns: Optional[Union[str, list[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
@@ -2932,7 +2933,7 @@ class IterableDataset(DatasetInfoMixin):
         )
 
     @property
-    def column_names(self) -> Optional[List[str]]:
+    def column_names(self) -> Optional[list[str]]:
         """Names of the columns in the dataset.
 
         Example:
@@ -2988,7 +2989,7 @@ class IterableDataset(DatasetInfoMixin):
         """
         return self.rename_columns({original_column_name: new_column_name})
 
-    def rename_columns(self, column_mapping: Dict[str, str]) -> "IterableDataset":
+    def rename_columns(self, column_mapping: dict[str, str]) -> "IterableDataset":
         """
         Rename several columns in the dataset, and move the features associated to the original columns under
         the new column names.
@@ -3013,7 +3014,7 @@ class IterableDataset(DatasetInfoMixin):
             )
         return ds_iterable
 
-    def remove_columns(self, column_names: Union[str, List[str]]) -> "IterableDataset":
+    def remove_columns(self, column_names: Union[str, list[str]]) -> "IterableDataset":
         """
         Remove one or several column(s) in the dataset and the features associated to them.
         The removal is done on-the-fly on the examples when iterating over the dataset.
@@ -3048,7 +3049,7 @@ class IterableDataset(DatasetInfoMixin):
 
         return ds_iterable
 
-    def select_columns(self, column_names: Union[str, List[str]]) -> "IterableDataset":
+    def select_columns(self, column_names: Union[str, list[str]]) -> "IterableDataset":
         """Select one or several column(s) in the dataset and the features
         associated to them. The selection is done on-the-fly on the examples
         when iterating over the dataset.
@@ -3244,7 +3245,7 @@ class IterableDataset(DatasetInfoMixin):
 
 
 def _concatenate_iterable_datasets(
-    dsets: List[IterableDataset],
+    dsets: list[IterableDataset],
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
     axis: int = 0,
@@ -3304,8 +3305,8 @@ def _concatenate_iterable_datasets(
 
 
 def _interleave_iterable_datasets(
-    datasets: List[IterableDataset],
-    probabilities: Optional[List[float]] = None,
+    datasets: list[IterableDataset],
+    probabilities: Optional[list[float]] = None,
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,

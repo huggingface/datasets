@@ -1,4 +1,4 @@
-from typing import List, Optional, TypeVar
+from typing import Optional, TypeVar
 
 from .arrow_dataset import Dataset, _concatenate_map_style_datasets, _interleave_map_style_datasets
 from .dataset_dict import DatasetDict, IterableDatasetDict
@@ -16,8 +16,8 @@ DatasetType = TypeVar("DatasetType", Dataset, IterableDataset)
 
 
 def interleave_datasets(
-    datasets: List[DatasetType],
-    probabilities: Optional[List[float]] = None,
+    datasets: list[DatasetType],
+    probabilities: Optional[list[float]] = None,
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
@@ -156,7 +156,7 @@ def interleave_datasets(
 
 
 def concatenate_datasets(
-    dsets: List[DatasetType],
+    dsets: list[DatasetType],
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
     axis: int = 0,

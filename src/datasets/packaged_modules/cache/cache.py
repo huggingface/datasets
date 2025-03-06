@@ -4,7 +4,7 @@ import os
 import shutil
 import time
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import pyarrow as pa
 
@@ -27,7 +27,7 @@ def _find_hash_in_cache(
     cache_dir: Optional[str],
     config_kwargs: dict,
     custom_features: Optional[datasets.Features],
-) -> Tuple[str, str, str]:
+) -> tuple[str, str, str]:
     if config_name or config_kwargs or custom_features:
         config_id = datasets.BuilderConfig(config_name or "default").create_config_id(
             config_kwargs=config_kwargs, custom_features=custom_features
@@ -156,7 +156,7 @@ class Cache(datasets.ArrowBasedBuilder):
     def _split_generators(self, dl_manager):
         # used to stream from cache
         if isinstance(self.info.splits, datasets.SplitDict):
-            split_infos: List[datasets.SplitInfo] = list(self.info.splits.values())
+            split_infos: list[datasets.SplitInfo] = list(self.info.splits.values())
         else:
             raise ValueError(f"Missing splits info for {self.dataset_name} in cache directory {self.cache_dir}")
         return [
