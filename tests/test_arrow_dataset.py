@@ -4040,8 +4040,7 @@ def data_generator():
             {"col_1": "2", "col_2": 2, "col_3": 2.0},
             {"col_1": "3", "col_2": 3, "col_3": 3.0},
         ]
-        for item in data:
-            yield item
+        yield from data
 
     return _gen
 

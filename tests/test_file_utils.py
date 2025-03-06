@@ -361,7 +361,7 @@ def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
         (
             str(Path().resolve()),
             ("file.txt",),
-            str((Path().resolve() / "file.txt")),
+            str(Path().resolve() / "file.txt"),
         ),
     ],
 )

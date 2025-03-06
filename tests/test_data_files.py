@@ -1,7 +1,6 @@
 import copy
 import os
 from pathlib import Path
-from typing import List
 from unittest.mock import patch
 
 import fsspec
@@ -509,7 +508,7 @@ def test_DataFilesPatternsDict(text_file):
     assert isinstance(data_files_dict["train"], DataFilesList)
 
 
-def mock_fs(file_paths: List[str]):
+def mock_fs(file_paths: list[str]):
     """
     Set up a mock filesystem for fsspec containing the provided files
 

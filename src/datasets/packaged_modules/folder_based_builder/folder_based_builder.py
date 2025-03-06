@@ -2,8 +2,9 @@ import collections
 import io
 import itertools
 import os
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Any, Callable, Iterator, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 import pandas as pd
 import pyarrow as pa
