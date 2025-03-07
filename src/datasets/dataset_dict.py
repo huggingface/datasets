@@ -342,7 +342,7 @@ class DatasetDict(dict):
         doesn't copy the data of the remaining columns and is thus faster.
 
         Args:
-            column_names (`Union[str, List[str]]`):
+            column_names (`Union[str, list[str]]`):
                 Name of the column(s) to remove.
 
         Returns:
@@ -467,7 +467,7 @@ class DatasetDict(dict):
         dictionary.
 
         Args:
-            column_names (`Union[str, List[str]]`):
+            column_names (`Union[str, list[str]]`):
                 Name of the column(s) to keep.
 
         Example:
@@ -542,7 +542,7 @@ class DatasetDict(dict):
             type (`str`, *optional*):
                 Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'jax', 'arrow', 'pandas', 'polars']`.
                 `None` means `__getitem__` returns python objects (default).
-            columns (`List[str]`, *optional*):
+            columns (`list[str]`, *optional*):
                 Columns to format in the output.
                 `None` means `__getitem__` returns all columns (default).
             output_all_columns (`bool`, defaults to False):
@@ -581,7 +581,7 @@ class DatasetDict(dict):
             type (`str`, *optional*):
                 Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'jax', 'arrow', 'pandas', 'polars']`.
                 `None` means `__getitem__` returns python objects (default).
-            columns (`List[str]`, *optional*):
+            columns (`list[str]`, *optional*):
                 Columns to format in the output.
                 `None` means `__getitem__` returns all columns (default).
             output_all_columns (`bool`, defaults to False):
@@ -664,7 +664,7 @@ class DatasetDict(dict):
             transform (`Callable`, optional): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
                 A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
                 This function is applied right before returning the objects in ``__getitem__``.
-            columns (`List[str]`, optional): columns to format in the output
+            columns (`list[str]`, optional): columns to format in the output
                 If specified, then the input batch of the transform only contains those columns.
             output_all_columns (`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
                 If set to True, then the other un-formatted columns are kept with the output of the transform.
@@ -698,7 +698,7 @@ class DatasetDict(dict):
             type (`str`, *optional*):
                 Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'jax', 'arrow', 'pandas', 'polars']`.
                 `None` means `__getitem__` returns python objects (default).
-            columns (`List[str]`, *optional*):
+            columns (`list[str]`, *optional*):
                 Columns to format in the output.
                 `None` means `__getitem__` returns all columns (default).
             output_all_columns (`bool`, defaults to `False`):
@@ -774,7 +774,7 @@ class DatasetDict(dict):
                 User-defined formatting transform, replaces the format defined by [`~datasets.Dataset.set_format`].
                 A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
                 This function is applied right before returning the objects in `__getitem__`.
-            columns (`List[str]`, *optional*):
+            columns (`list[str]`, *optional*):
                 Columns to format in the output.
                 If specified, then the input batch of the transform only contains those columns.
             output_all_columns (`bool`, defaults to False):
@@ -815,9 +815,8 @@ class DatasetDict(dict):
         function: Optional[Callable] = None,
         with_indices: bool = False,
         with_rank: bool = False,
-
         with_split: bool = False,
-        input_columns: Optional[Union[str, List[str]]] = None,
+        input_columns: Optional[Union[str, list[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
@@ -854,8 +853,8 @@ class DatasetDict(dict):
             function (`callable`): with one of the following signature:
                 - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False`
                 - `function(example: Dict[str, Any], indices: int) -> Dict[str, Any]` if `batched=False` and `with_indices=True`
-                - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False`
-                - `function(batch: Dict[str, List], indices: List[int]) -> Dict[str, List]` if `batched=True` and `with_indices=True`
+                - `function(batch: Dict[str, list]) -> Dict[str, list]` if `batched=True` and `with_indices=False`
+                - `function(batch: Dict[str, list], indices: list[int]) -> Dict[str, list]` if `batched=True` and `with_indices=True`
 
                 For advanced usage, the function can also return a `pyarrow.Table`.
                 If the function is asynchronous, then `map` will run your function in parallel.
@@ -869,7 +868,7 @@ class DatasetDict(dict):
             with_split (`bool`, defaults to `False`):
                 Provide process split to `function`. Note that in this case the
                 signature of `function` should be `def function(example[, idx], split): ...`.
-            input_columns (`[Union[str, List[str]]]`, *optional*, defaults to `None`):
+            input_columns (`[Union[str, list[str]]]`, *optional*, defaults to `None`):
                 The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (`bool`, defaults to `False`):
@@ -880,7 +879,7 @@ class DatasetDict(dict):
             drop_last_batch (`bool`, defaults to `False`):
                 Whether a last batch smaller than the batch_size should be
                 dropped instead of being processed by the function.
-            remove_columns (`[Union[str, List[str]]]`, *optional*, defaults to `None`):
+            remove_columns (`[Union[str, list[str]]]`, *optional*, defaults to `None`):
                 Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
@@ -989,8 +988,8 @@ class DatasetDict(dict):
 
                 - `function(example: Dict[str, Any]) -> bool` if `batched=False` and `with_indices=False` and `with_rank=False`
                 - `function(example: Dict[str, Any], *extra_args) -> bool` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
-                - `function(batch: Dict[str, List]) -> List[bool]` if `batched=True` and `with_indices=False` and `with_rank=False`
-                - `function(batch: Dict[str, List], *extra_args) -> List[bool]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+                - `function(batch: Dict[str, list]) -> list[bool]` if `batched=True` and `with_indices=False` and `with_rank=False`
+                - `function(batch: Dict[str, list], *extra_args) -> list[bool]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
 
                 If no function is provided, defaults to an always `True` function: `lambda x: True`.
             with_indices (`bool`, defaults to `False`):
@@ -999,7 +998,7 @@ class DatasetDict(dict):
             with_rank (`bool`, defaults to `False`):
                 Provide process rank to `function`. Note that in this case the
                 signature of `function` should be `def function(example[, idx], rank): ...`.
-            input_columns (`[Union[str, List[str]]]`, *optional*, defaults to `None`):
+            input_columns (`[Union[str, list[str]]]`, *optional*, defaults to `None`):
                 The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (`bool`, defaults to `False`):
@@ -1516,7 +1515,7 @@ class DatasetDict(dict):
                 Directory to cache data.
             keep_in_memory (`bool`, defaults to `False`):
                 Whether to copy the data in-memory.
-            columns (`List[str]`, *optional*):
+            columns (`list[str]`, *optional*):
                 If not `None`, only these columns will be read from the file.
                 A column name may be a prefix of a nested field, e.g. 'a' will select
                 'a.b', 'a.c', and 'a.d.e'.
@@ -1964,7 +1963,7 @@ class IterableDatasetDict(dict):
         function: Optional[Callable] = None,
         with_indices: bool = False,
         with_split: bool = False,
-        input_columns: Optional[Union[str, List[str]]] = None,
+        input_columns: Optional[Union[str, list[str]]] = None,
         batched: bool = False,
         batch_size: int = 1000,
         drop_last_batch: bool = False,
@@ -1997,8 +1996,8 @@ class IterableDatasetDict(dict):
 
                 - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False`
                 - `function(example: Dict[str, Any], idx: int) -> Dict[str, Any]` if `batched=False` and `with_indices=True`
-                - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False`
-                - `function(batch: Dict[str, List], indices: List[int]) -> Dict[str, List]` if `batched=True` and `with_indices=True`
+                - `function(batch: Dict[str, list]) -> Dict[str, list]` if `batched=True` and `with_indices=False`
+                - `function(batch: Dict[str, list], indices: list[int]) -> Dict[str, list]` if `batched=True` and `with_indices=True`
 
                 For advanced usage, the function can also return a `pyarrow.Table`.
                 If the function is asynchronous, then `map` will run your function in parallel.
@@ -2006,7 +2005,7 @@ class IterableDatasetDict(dict):
                 If no function is provided, default to identity function: `lambda x: x`.
             with_indices (`bool`, defaults to `False`):
                 Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
-            input_columns (`[Union[str, List[str]]]`, *optional*, defaults to `None`):
+            input_columns (`[Union[str, list[str]]]`, *optional*, defaults to `None`):
                 The columns to be passed into `function`
                 as positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (`bool`, defaults to `False`):
@@ -2016,7 +2015,7 @@ class IterableDatasetDict(dict):
             drop_last_batch (`bool`, defaults to `False`):
                 Whether a last batch smaller than the `batch_size` should be
                 dropped instead of being processed by the function.
-            remove_columns (`[List[str]]`, *optional*, defaults to `None`):
+            remove_columns (`[list[str]]`, *optional*, defaults to `None`):
                 Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
@@ -2078,13 +2077,13 @@ class IterableDatasetDict(dict):
 
                 - `function(example: Dict[str, Any]) -> bool` if `with_indices=False, batched=False`
                 - `function(example: Dict[str, Any], indices: int) -> bool` if `with_indices=True, batched=False`
-                - `function(example: Dict[str, List]) -> List[bool]` if `with_indices=False, batched=True`
-                - `function(example: Dict[str, List], indices: List[int]) -> List[bool]` if `with_indices=True, batched=True`
+                - `function(example: Dict[str, list]) -> list[bool]` if `with_indices=False, batched=True`
+                - `function(example: Dict[str, list], indices: list[int]) -> list[bool]` if `with_indices=True, batched=True`
 
                 If no function is provided, defaults to an always True function: `lambda x: True`.
             with_indices (`bool`, defaults to `False`):
                 Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-            input_columns (`str` or `List[str]`, *optional*):
+            input_columns (`str` or `list[str]`, *optional*):
                 The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (`bool`, defaults to `False`):
@@ -2255,7 +2254,7 @@ class IterableDatasetDict(dict):
 
 
         Args:
-            column_names (`Union[str, List[str]]`):
+            column_names (`Union[str, list[str]]`):
                 Name of the column(s) to remove.
 
         Returns:
@@ -2281,7 +2280,7 @@ class IterableDatasetDict(dict):
 
 
         Args:
-            column_names (`Union[str, List[str]]`):
+            column_names (`Union[str, list[str]]`):
                 Name of the column(s) to keep.
 
         Returns:
