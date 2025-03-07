@@ -4,7 +4,7 @@ from typing import BinaryIO, Optional, Union
 
 import fsspec
 
-from .. import Dataset, Features, NamedSplit, config
+from .. import Dataset, DatasetDict, Features, IterableDataset, IterableDatasetDict, NamedSplit, config
 from ..formatting import query_table
 from ..packaged_modules.json.json import Json
 from ..utils import tqdm as hf_tqdm
@@ -18,13 +18,13 @@ class JsonDatasetReader(AbstractDatasetReader):
         path_or_paths: NestedDataStructureLike[PathLike],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
-        cache_dir: str = None,
+        cache_dir: Optional[str] = None,
         keep_in_memory: bool = False,
         streaming: bool = False,
         field: Optional[str] = None,
         num_proc: Optional[int] = None,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__(
             path_or_paths,
             split=split,
@@ -45,7 +45,7 @@ class JsonDatasetReader(AbstractDatasetReader):
             **kwargs,
         )
 
-    def read(self):
+    def read(self) -> Union[Dataset, DatasetDict, IterableDatasetDict, IterableDataset]:
         # Build iterable dataset
         if self.streaming:
             dataset = self.builder.as_streaming_dataset(split=self.split)
@@ -78,7 +78,7 @@ class JsonDatasetWriter:
         num_proc: Optional[int] = None,
         storage_options: Optional[dict] = None,
         **to_json_kwargs,
-    ):
+    ) -> None:
         if num_proc is not None and num_proc <= 0:
             raise ValueError(f"num_proc {num_proc} must be an integer > 0.")
 
