@@ -11,12 +11,12 @@ class AbstractDatasetReader(ABC):
         path_or_paths: Optional[NestedDataStructureLike[PathLike]] = None,
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
-        cache_dir: str = None,
+        cache_dir: Optional[str] = None,
         keep_in_memory: bool = False,
         streaming: bool = False,
         num_proc: Optional[int] = None,
         **kwargs,
-    ):
+    ) -> None:
         self.path_or_paths = path_or_paths
         self.split = split if split or isinstance(path_or_paths, dict) else "train"
         self.features = features
@@ -35,12 +35,12 @@ class AbstractDatasetInputStream(ABC):
     def __init__(
         self,
         features: Optional[Features] = None,
-        cache_dir: str = None,
+        cache_dir: Optional[str] = None,
         keep_in_memory: bool = False,
         streaming: bool = False,
         num_proc: Optional[int] = None,
         **kwargs,
-    ):
+    ) -> None:
         self.features = features
         self.cache_dir = cache_dir
         self.keep_in_memory = keep_in_memory
@@ -49,5 +49,5 @@ class AbstractDatasetInputStream(ABC):
         self.kwargs = kwargs
 
     @abstractmethod
-    def read(self) -> Union[Dataset, IterableDataset]:
+    def read(self) -> Union[Dataset, IterableDataset, dict[str, IterableDataset]]:
         pass

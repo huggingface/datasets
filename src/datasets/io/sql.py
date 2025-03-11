@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import multiprocessing
 from typing import TYPE_CHECKING, Optional, Union
 
@@ -13,6 +15,8 @@ if TYPE_CHECKING:
 
     import sqlalchemy
 
+    from .. import DatasetDict
+
 
 class SqlDatasetReader(AbstractDatasetInputStream):
     def __init__(
@@ -20,10 +24,10 @@ class SqlDatasetReader(AbstractDatasetInputStream):
         sql: Union[str, "sqlalchemy.sql.Selectable"],
         con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
         features: Optional[Features] = None,
-        cache_dir: str = None,
+        cache_dir: Optional[str] = None,
         keep_in_memory: bool = False,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__(features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs)
         self.builder = Sql(
             cache_dir=cache_dir,
@@ -33,7 +37,7 @@ class SqlDatasetReader(AbstractDatasetInputStream):
             **kwargs,
         )
 
-    def read(self):
+    def read(self) -> Union[Dataset, DatasetDict]:
         download_config = None
         download_mode = None
         verification_mode = None
@@ -58,11 +62,11 @@ class SqlDatasetWriter:
         self,
         dataset: Dataset,
         name: str,
-        con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
+        con: Union[str, sqlalchemy.engine.Connection, sqlalchemy.engine.Engine, sqlite3.Connection],
         batch_size: Optional[int] = None,
         num_proc: Optional[int] = None,
         **to_sql_kwargs,
-    ):
+    ) -> None:
         if num_proc is not None and num_proc <= 0:
             raise ValueError(f"num_proc {num_proc} must be an integer > 0.")
 
@@ -81,7 +85,7 @@ class SqlDatasetWriter:
         written = self._write(index=index, **self.to_sql_kwargs)
         return written
 
-    def _batch_sql(self, args):
+    def _batch_sql(self, args) -> int:
         offset, index, to_sql_kwargs = args
         to_sql_kwargs = {**to_sql_kwargs, "if_exists": "append"} if offset > 0 else to_sql_kwargs
         batch = query_table(
@@ -93,7 +97,7 @@ class SqlDatasetWriter:
         num_rows = df.to_sql(self.name, self.con, index=index, **to_sql_kwargs)
         return num_rows or len(df)
 
-    def _write(self, index, **to_sql_kwargs) -> int:
+    def _write(self, index: bool, **to_sql_kwargs) -> int:
         """Writes the pyarrow table as SQL to a database.
 
         Caller is responsible for opening and closing the SQL connection.

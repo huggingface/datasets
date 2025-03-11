@@ -1,6 +1,6 @@
-from typing import Optional
+from typing import Optional, Union
 
-from .. import Features, NamedSplit
+from .. import Dataset, DatasetDict, Features, IterableDataset, IterableDatasetDict, NamedSplit
 from ..packaged_modules.text.text import Text
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
@@ -12,12 +12,12 @@ class TextDatasetReader(AbstractDatasetReader):
         path_or_paths: NestedDataStructureLike[PathLike],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
-        cache_dir: str = None,
+        cache_dir: Optional[str] = None,
         keep_in_memory: bool = False,
         streaming: bool = False,
         num_proc: Optional[int] = None,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__(
             path_or_paths,
             split=split,
@@ -36,7 +36,7 @@ class TextDatasetReader(AbstractDatasetReader):
             **kwargs,
         )
 
-    def read(self):
+    def read(self) -> Union[IterableDatasetDict, IterableDataset, Dataset, DatasetDict]:
         # Build iterable dataset
         if self.streaming:
             dataset = self.builder.as_streaming_dataset(split=self.split)

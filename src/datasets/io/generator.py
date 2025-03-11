@@ -1,8 +1,18 @@
-from typing import Callable, Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Callable, Optional, Union
+
+from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 
 from .. import Features, NamedSplit, Split
 from ..packaged_modules.generator.generator import Generator
 from .abc import AbstractDatasetInputStream
+
+
+if TYPE_CHECKING:
+    from ..arrow_dataset import Dataset, DatasetDict
+    from ..dataset_dict import IterableDatasetDict
+    from ..iterable_dataset import IterableDataset
 
 
 class GeneratorDatasetInputStream(AbstractDatasetInputStream):
@@ -10,14 +20,14 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
         self,
         generator: Callable,
         features: Optional[Features] = None,
-        cache_dir: str = None,
+        cache_dir: Optional[str] = None,
         keep_in_memory: bool = False,
         streaming: bool = False,
         gen_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
         split: NamedSplit = Split.TRAIN,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__(
             features=features,
             cache_dir=cache_dir,
@@ -35,7 +45,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             **kwargs,
         )
 
-    def read(self):
+    def read(self) -> Union[Dataset, DatasetDict, IterableDatasetDict, IterableDataset]:
         # Build iterable dataset
         if self.streaming:
             dataset = self.builder.as_streaming_dataset(split=self.builder.config.split)

@@ -4,7 +4,7 @@ from typing import BinaryIO, Optional, Union
 import fsspec
 import pyarrow.parquet as pq
 
-from .. import Dataset, Features, NamedSplit, config
+from .. import Dataset, DatasetDict, Features, IterableDataset, IterableDatasetDict, NamedSplit, config
 from ..arrow_writer import get_writer_batch_size
 from ..formatting import query_table
 from ..packaged_modules import _PACKAGED_DATASETS_MODULES
@@ -20,7 +20,7 @@ class ParquetDatasetReader(AbstractDatasetReader):
         path_or_paths: NestedDataStructureLike[PathLike],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
-        cache_dir: str = None,
+        cache_dir: Optional[str] = None,
         keep_in_memory: bool = False,
         streaming: bool = False,
         num_proc: Optional[int] = None,
@@ -46,7 +46,7 @@ class ParquetDatasetReader(AbstractDatasetReader):
             **kwargs,
         )
 
-    def read(self):
+    def read(self) -> Union[Dataset, DatasetDict, IterableDataset, IterableDatasetDict]:
         # Build iterable dataset
         if self.streaming:
             dataset = self.builder.as_streaming_dataset(split=self.split)
@@ -78,7 +78,7 @@ class ParquetDatasetWriter:
         batch_size: Optional[int] = None,
         storage_options: Optional[dict] = None,
         **parquet_writer_kwargs,
-    ):
+    ) -> None:
         self.dataset = dataset
         self.path_or_buf = path_or_buf
         self.batch_size = batch_size or get_writer_batch_size(dataset.features)
