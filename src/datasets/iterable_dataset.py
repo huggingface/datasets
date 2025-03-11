@@ -1818,7 +1818,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         if not self.formatting or self.formatting.is_table:
-            formatter = PythonFormatter()
+            formatter = PythonFormatter(features=self._features if not self.ex_iterable.is_typed else None)
         else:
             formatter = get_formatter(
                 self.formatting.format_type,
