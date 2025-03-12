@@ -1765,8 +1765,8 @@ class DatasetDict(dict):
         # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
         # and delete old split shards (if they exist)
         repo_with_dataset_card, repo_with_dataset_infos = False, False
-        repo_splits = []  # use a list to keep the order of the splits
-        deletions = []
+        repo_splits: list[str] = []  # use a list to keep the order of the splits
+        deletions: list[CommitOperationDelete] = []
         repo_files_to_add = [addition.path_in_repo for addition in additions]
         for repo_file in api.list_repo_tree(
             repo_id=repo_id,
@@ -1790,12 +1790,12 @@ class DatasetDict(dict):
                 repo_file.rfilename,
                 PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
             ):
-                repo_split = string_to_dict(
-                    repo_file.rfilename,
-                    glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED),
-                )["split"]
+                pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
+                assert split_pattern_fields is not None
+                repo_split = split_pattern_fields["split"]
                 if repo_split not in repo_splits:
-                    repo_splits.append(split)
+                    repo_splits.append(repo_split)
 
         # get the info from the README to update them
         if repo_with_dataset_card:
