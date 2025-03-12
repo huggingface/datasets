@@ -1,22 +1,39 @@
+import asyncio
 import copy
+import inspect
 import itertools
 import sys
 from collections import Counter
+from collections.abc import Iterable, Iterator
 from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
 from itertools import cycle, islice
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 
 import fsspec.asyn
 import numpy as np
+import pandas as pd
 import pyarrow as pa
 
 from . import config
 from .arrow_dataset import Dataset, DatasetInfoMixin
 from .features import Features
-from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned, cast_to_python_objects
-from .formatting import PythonFormatter, TensorFormatter, get_format_type_from_alias, get_formatter
+from .features.features import (
+    FeatureType,
+    Value,
+    _align_features,
+    _check_if_features_can_be_aligned,
+    cast_to_python_objects,
+)
+from .formatting import (
+    ArrowFormatter,
+    PythonFormatter,
+    TableFormatter,
+    TensorFormatter,
+    get_format_type_from_alias,
+    get_formatter,
+)
 from .info import DatasetInfo
 from .splits import NamedSplit, Split
 from .table import cast_table_to_features, read_schema_from_file, table_cast
@@ -37,7 +54,7 @@ def identity_func(x):
     return x
 
 
-def _rename_columns_fn(example: Dict, column_mapping: Dict[str, str]):
+def _rename_columns_fn(example: dict, column_mapping: dict[str, str]):
     if any(col not in example for col in column_mapping):
         raise ValueError(
             f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_mapping) - set(example)} are not in the dataset."
@@ -52,13 +69,13 @@ def _rename_columns_fn(example: Dict, column_mapping: Dict[str, str]):
     }
 
 
-def add_column_fn(example: Dict, idx: int, name: str, column: List[Dict]):
+def add_column_fn(example: dict, idx: int, name: str, column: list[dict]):
     if name in example:
         raise ValueError(f"Error when adding {name}: column {name} is already in the dataset.")
     return {name: column[idx]}
 
 
-def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Features] = None) -> Features:
+def _infer_features_from_batch(batch: dict[str, list], try_features: Optional[Features] = None) -> Features:
     pa_table = pa.Table.from_pydict(batch)
     if try_features is not None:
         try:
@@ -68,7 +85,7 @@ def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Fe
     return Features.from_arrow_schema(pa_table.schema)
 
 
-def _examples_to_batch(examples: List[Dict[str, Any]]) -> Dict[str, list]:
+def _examples_to_batch(examples: list[dict[str, Any]]) -> dict[str, list]:
     # we order the columns by order of appearance
     # to do so, we use a dict as an ordered set
     cols = {col: None for example in examples for col in example}
@@ -77,7 +94,7 @@ def _examples_to_batch(examples: List[Dict[str, Any]]) -> Dict[str, list]:
     return dict(zip(cols, arrays))
 
 
-def _batch_to_examples(batch: Dict[str, list]) -> Iterator[Dict[str, Any]]:
+def _batch_to_examples(batch: dict[str, list]) -> Iterator[dict[str, Any]]:
     """Convert a batch (dict of examples) to examples list"""
     n_examples = 0 if len(batch) == 0 else len(batch[next(iter(batch))])
     for i in range(n_examples):
@@ -85,10 +102,10 @@ def _batch_to_examples(batch: Dict[str, list]) -> Iterator[Dict[str, Any]]:
 
 
 def _convert_to_arrow(
-    iterable: Iterable[Tuple[Key, dict]],
+    iterable: Iterable[tuple[Key, dict]],
     batch_size: int,
     drop_last_batch: bool = False,
-) -> Iterator[Tuple[Key, pa.Table]]:
+) -> Iterator[tuple[Key, pa.Table]]:
     """Convert and group examples in Arrow tables of size `batch_size`.
 
     Args:
@@ -122,12 +139,12 @@ class _BaseExamplesIterable:
     def __init__(self) -> None:
         self._state_dict: Optional[Union[list, dict]] = None
 
-    def __iter__(self) -> Iterator[Tuple[Key, dict]]:
+    def __iter__(self) -> Iterator[tuple[Key, dict]]:
         """An examples iterable should yield tuples (example_key, example) of type (int/str, dict)"""
         raise NotImplementedError(f"{type(self)} doesn't implement __iter__ yet")
 
     @property
-    def iter_arrow(self) -> Optional[Callable[[], Iterator[Tuple[Key, pa.Table]]]]:
+    def iter_arrow(self) -> Optional[Callable[[], Iterator[tuple[Key, pa.Table]]]]:
         return None
 
     @property
@@ -149,7 +166,7 @@ class _BaseExamplesIterable:
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         raise NotImplementedError(f"{type(self)} doesn't implement shard_data_sources yet")
 
-    def split_shard_indices_by_worker(self, num_shards: int, index: int, contiguous=True) -> List[int]:
+    def split_shard_indices_by_worker(self, num_shards: int, index: int, contiguous=True) -> list[int]:
         if contiguous:
             div = self.num_shards // num_shards
             mod = self.num_shards % num_shards
@@ -187,7 +204,7 @@ class _BaseExamplesIterable:
 
 
 class ExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, generate_examples_fn: Callable[..., Tuple[Key, dict]], kwargs: dict):
+    def __init__(self, generate_examples_fn: Callable[..., tuple[Key, dict]], kwargs: dict):
         super().__init__()
         self.generate_examples_fn = generate_examples_fn
         self.kwargs = kwargs
@@ -225,7 +242,7 @@ class ExamplesIterable(_BaseExamplesIterable):
 
 class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
     def __init__(
-        self, generate_examples_fn: Callable[..., Tuple[Key, dict]], kwargs: dict, generator: np.random.Generator
+        self, generate_examples_fn: Callable[..., tuple[Key, dict]], kwargs: dict, generator: np.random.Generator
     ):
         super().__init__(generate_examples_fn, kwargs)
         self.generator = deepcopy(generator)
@@ -261,7 +278,7 @@ class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
 
 
 class ArrowExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, generate_tables_fn: Callable[..., Tuple[Key, pa.Table]], kwargs: dict):
+    def __init__(self, generate_tables_fn: Callable[..., tuple[Key, pa.Table]], kwargs: dict):
         super().__init__()
         self.generate_tables_fn = generate_tables_fn
         self.kwargs = kwargs
@@ -330,7 +347,7 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
 class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
     def __init__(
         self,
-        generate_tables_fn: Callable[..., Tuple[Key, pa.Table]],
+        generate_tables_fn: Callable[..., tuple[Key, pa.Table]],
         kwargs: dict,
         generator: np.random.Generator,
     ):
@@ -429,7 +446,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
     def __iter__(self):
         yield from self.ex_iterable
 
-    def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
+    def _iter_arrow(self) -> Iterator[tuple[Key, pa.Table]]:
         """Iterate over sub-tables of size `batch_size`."""
         if self._state_dict and self._state_dict["previous_state"]:
             self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
@@ -533,7 +550,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
 
 
 class SelectColumnsIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterable: _BaseExamplesIterable, column_names: List[str]):
+    def __init__(self, ex_iterable: _BaseExamplesIterable, column_names: list[str]):
         super().__init__()
         self.ex_iterable = ex_iterable
         self.column_names = column_names
@@ -559,7 +576,7 @@ class SelectColumnsIterable(_BaseExamplesIterable):
         for idx, row in self.ex_iterable:
             yield idx, {c: row[c] for c in self.column_names}
 
-    def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
+    def _iter_arrow(self) -> Iterator[tuple[Key, pa.Table]]:
         for idx, pa_table in self.ex_iterable.iter_arrow():
             if len(pa_table) > 0:  # empty tables have no schema
                 yield idx, pa_table.select(self.column_names)
@@ -626,7 +643,7 @@ class StepExamplesIterable(_BaseExamplesIterable):
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
-        ex_iterables: List[_BaseExamplesIterable],
+        ex_iterables: list[_BaseExamplesIterable],
         stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
     ):
         super().__init__()
@@ -738,7 +755,7 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     This is done with `_apply_feature_types_on_example`.
     """
 
-    def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
+    def __init__(self, ex_iterables: list[_BaseExamplesIterable]):
         super().__init__()
         self.ex_iterables = ex_iterables
 
@@ -799,7 +816,7 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
         )
 
 
-def _check_column_names(column_names: List[str]):
+def _check_column_names(column_names: list[str]):
     """Check the column names to make sure they don't contain duplicates."""
     counter = Counter(column_names)
     if not all(count == 1 for count in counter.values()):
@@ -825,7 +842,7 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
     This is done with `_apply_feature_types_on_example`.
     """
 
-    def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
+    def __init__(self, ex_iterables: list[_BaseExamplesIterable]):
         super().__init__()
         self.ex_iterables = ex_iterables
         # TODO(QL): implement iter_arrow
@@ -887,9 +904,9 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
 class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIterable):
     def __init__(
         self,
-        ex_iterables: List[_BaseExamplesIterable],
+        ex_iterables: list[_BaseExamplesIterable],
         generator: np.random.Generator,
-        probabilities: Optional[List[float]] = None,
+        probabilities: Optional[list[float]] = None,
         stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
     ):
         super().__init__(ex_iterables, stopping_strategy)
@@ -966,17 +983,30 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         )
 
 
+def _table_output_to_arrow(output) -> pa.Table:
+    if isinstance(output, pa.Table):
+        return output
+    if isinstance(output, (pd.DataFrame, pd.Series)):
+        return pa.Table.from_pandas(output)
+    if config.POLARS_AVAILABLE and "polars" in sys.modules:
+        import polars as pl
+
+        if isinstance(output, (pl.DataFrame, pl.Series)):
+            return output.to_arrow()
+    return output
+
+
 class MappedExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
         ex_iterable: _BaseExamplesIterable,
         function: Callable,
         with_indices: bool = False,
-        input_columns: Optional[List[str]] = None,
+        input_columns: Optional[list[str]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[List[str]] = None,
+        remove_columns: Optional[list[str]] = None,
         fn_kwargs: Optional[dict] = None,
         formatting: Optional["FormattingConfig"] = None,
         features: Optional[Features] = None,
@@ -994,22 +1024,22 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         self.formatting = formatting  # required for iter_arrow
         self._features = features
         # sanity checks
-        if formatting and formatting.format_type == "arrow":
+        if formatting and formatting.is_table:
             # batch_size should match for iter_arrow
             if not isinstance(ex_iterable, RebatchedArrowExamplesIterable):
                 raise ValueError(
-                    "The Arrow-formatted MappedExamplesIterable has underlying iterable"
+                    f"The {formatting.format_type.capitalize()}-formatted {type(self).__name__} has underlying iterable"
                     f"that is a {type(ex_iterable).__name__} instead of a RebatchedArrowExamplesIterable."
                 )
             elif ex_iterable.batch_size != (batch_size if batched else 1):
                 raise ValueError(
-                    f"The Arrow-formatted MappedExamplesIterable has batch_size={batch_size if batched else 1} which is"
+                    f"The {formatting.format_type.capitalize()}-formatted {type(self).__name__} has batch_size={batch_size if batched else 1} which is"
                     f"different from {ex_iterable.batch_size=} from its underlying iterable."
                 )
 
     @property
     def iter_arrow(self):
-        if self.formatting and self.formatting.format_type == "arrow":
+        if self.formatting and self.formatting.is_table:
             return self._iter_arrow
 
     @property
@@ -1030,7 +1060,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         return self._state_dict
 
     def __iter__(self):
-        if self.formatting and self.formatting.format_type == "arrow":
+        if self.formatting and self.formatting.is_table:
             formatter = PythonFormatter()
             for key, pa_table in self._iter_arrow(max_chunksize=1):
                 yield key, formatter.format_row(pa_table)
@@ -1054,11 +1084,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         else:
             format_dict = None
 
-        if self.batched:
-            if self._state_dict:
-                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                self._state_dict["num_examples_since_previous_state"] = 0
-                self._state_dict["previous_state_example_idx"] = current_idx
+        def iter_batched_inputs():
             for key, example in iterator:
                 # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
                 iterator_batch = (
@@ -1068,6 +1094,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 )
                 key_examples_list = [(key, example)] + list(iterator_batch)
                 keys, examples = zip(*key_examples_list)
+                # the new key is the concatenation of the examples keys from the batch
+                key = "_".join(str(key) for key in keys)
                 if (
                     self.drop_last_batch
                     and self.batch_size is not None
@@ -1077,85 +1105,148 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     return
                 batch = _examples_to_batch(examples)
                 batch = format_dict(batch) if format_dict else batch
-                # then apply the transform
-                inputs = batch
-                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
-                if self.with_indices:
-                    function_args.append([current_idx + i for i in range(len(key_examples_list))])
-                inputs_to_merge = dict(batch)
-                processed_inputs = self.function(*function_args, **self.fn_kwargs)
-                # this logic mimics the one in Dataset.map
-                if self.remove_columns:
-                    for c in self.remove_columns:
-                        if c in inputs_to_merge:
-                            del inputs_to_merge[c]
-                        if processed_inputs is inputs and c in processed_inputs:
-                            del processed_inputs[c]
-                transformed_batch = {**inputs_to_merge, **processed_inputs}
-                if transformed_batch:
-                    first_col = next(iter(transformed_batch))
-                    bad_cols = [
-                        col
-                        for col in transformed_batch
-                        if len(transformed_batch[col]) != len(transformed_batch[first_col])
-                    ]
-                    if bad_cols:
-                        raise ValueError(
-                            f"Column lengths mismatch: columns {bad_cols} have length {[len(transformed_batch[col]) for col in bad_cols]} "
-                            f"while {first_col} has length {len(transformed_batch[first_col])}."
-                        )
-                if self.features:
-                    for c in self.features.keys():
-                        if c not in transformed_batch:
-                            transformed_batch[c] = [None] * len(transformed_batch[first_col])
-                    transformed_batch = self.features.decode_batch(transformed_batch)
-                # the new key is the concatenation of the examples keys from the batch
-                new_key = "_".join(str(key) for key in keys)
-                # yield one example at a time from the transformed batch
-                for example in _batch_to_examples(transformed_batch):
-                    current_idx += 1
-                    if self._state_dict:
-                        self._state_dict["num_examples_since_previous_state"] += 1
-                    if num_examples_to_skip > 0:
-                        num_examples_to_skip -= 1
-                        continue
-                    yield new_key, example
-                if self._state_dict:
-                    self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                    self._state_dict["num_examples_since_previous_state"] = 0
-                    self._state_dict["previous_state_example_idx"] = current_idx
-        else:
+                indices = [current_idx + i for i in range(len(key_examples_list))]
+                yield indices, (key, batch)
+
+        def iter_inputs():
             for key, example in iterator:
                 # If not batched, we can apply the transform and yield the example directly
                 # first copy the example, since we might drop some keys
                 example = dict(example)
                 example = format_dict(example) if format_dict else example
-                # then apply the transform
-                inputs = example
-                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
-                if self.with_indices:
-                    function_args.append(current_idx)
-                processed_inputs = self.function(*function_args, **self.fn_kwargs)
-                inputs_to_merge = dict(example)
-                # this logic mimics the one in Dataset.map
-                if self.remove_columns:
-                    for c in self.remove_columns:
-                        if c in inputs_to_merge:
-                            del inputs_to_merge[c]
-                        if processed_inputs is inputs and c in processed_inputs:
-                            del processed_inputs[c]
-                transformed_example = {**inputs_to_merge, **processed_inputs}
-                if self.features:
-                    for c in self.features.keys():
-                        if c not in transformed_example:
-                            transformed_example[c] = None
-                    transformed_example = self.features.decode_example(transformed_example)
-                current_idx += 1
-                if self._state_dict:
-                    self._state_dict["previous_state_example_idx"] += 1
-                yield key, transformed_example
+                yield current_idx, (key, example)
 
-    def _iter_arrow(self, max_chunksize: Optional[int] = None) -> Iterator[Tuple[Key, pa.Table]]:
+        def validate_function_output(processed_inputs):
+            if self.batched and processed_inputs:
+                first_col = next(iter(processed_inputs))
+                bad_cols = [
+                    col for col in processed_inputs if len(processed_inputs[col]) != len(processed_inputs[first_col])
+                ]
+                if bad_cols:
+                    raise ValueError(
+                        f"Column lengths mismatch: columns {bad_cols} have length {[len(processed_inputs[col]) for col in bad_cols]} "
+                        f"while {first_col} has length {len(processed_inputs[first_col])}."
+                    )
+
+        def prepare_inputs(key_example, indices):
+            key, example = key_example
+            fn_args = [example] if self.input_columns is None else [example[col] for col in self.input_columns]
+            additional_args = ()
+            if self.with_indices:
+                fn_args += (indices,)
+            inputs = dict(example)
+            return inputs, fn_args, additional_args, self.fn_kwargs
+
+        def prepare_outputs(key_example, inputs, processed_inputs):
+            validate_function_output(processed_inputs)
+            # this logic mimics the one in Dataset.map
+            if self.remove_columns:
+                for c in self.remove_columns:
+                    if c in inputs:
+                        del inputs[c]
+                    if processed_inputs is key_example[1] and c in processed_inputs:
+                        del processed_inputs[c]
+            transformed_inputs = {**inputs, **processed_inputs}
+            if self.features:
+                for c in self.features.keys():
+                    if c not in transformed_inputs:
+                        transformed_inputs[c] = (
+                            [None] * len(transformed_inputs[next(iter(processed_inputs))]) if self.batched else None
+                        )
+                transformed_inputs = (
+                    self.features.decode_batch(transformed_inputs)
+                    if self.batched
+                    else self.features.decode_example(transformed_inputs)
+                )
+            return transformed_inputs
+
+        def apply_function(key_example, indices):
+            """Utility to apply the function on a selection of columns."""
+            inputs, fn_args, additional_args, fn_kwargs = prepare_inputs(key_example, indices)
+            processed_inputs = self.function(*fn_args, *additional_args, **fn_kwargs)
+            return prepare_outputs(key_example, inputs, processed_inputs)
+
+        async def async_apply_function(key_example, indices):
+            """Utility to apply the function on a selection of columns. Same code but async"""
+            inputs, fn_args, additional_args, fn_kwargs = prepare_inputs(key_example, indices)
+            processed_inputs = await self.function(*fn_args, *additional_args, **fn_kwargs)
+            return prepare_outputs(key_example, inputs, processed_inputs)
+
+        tasks: list[asyncio.Task] = []
+        if inspect.iscoroutinefunction(self.function):
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+        else:
+            loop = None
+
+        def iter_outputs():
+            nonlocal tasks, loop
+            inputs_iterator = iter_batched_inputs() if self.batched else iter_inputs()
+            if inspect.iscoroutinefunction(self.function):
+                indices: Union[list[int], list[list[int]]] = []
+                for i, key_example in inputs_iterator:
+                    indices.append(i)
+                    tasks.append(loop.create_task(async_apply_function(key_example, i)))
+                    # keep the total active tasks under a certain number
+                    if len(tasks) >= config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL:
+                        done, pending = loop.run_until_complete(
+                            asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+                        )
+                        while tasks and len(pending) >= config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL:
+                            done, pending = loop.run_until_complete(
+                                asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+                            )
+                    # yield finished tasks
+                    while tasks and tasks[0].done():
+                        yield indices.pop(0), tasks.pop(0).result()
+                while tasks:
+                    yield indices[0], loop.run_until_complete(tasks[0])
+                    indices.pop(0), tasks.pop(0)
+            else:
+                for i, key_example in inputs_iterator:
+                    yield i, apply_function(key_example, i)
+
+        try:
+            if self.batched:
+                if self._state_dict:
+                    self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                    self._state_dict["num_examples_since_previous_state"] = 0
+                    self._state_dict["previous_state_example_idx"] = current_idx
+                for key, transformed_batch in iter_outputs():
+                    # yield one example at a time from the transformed batch
+                    for example in _batch_to_examples(transformed_batch):
+                        current_idx += 1
+                        if self._state_dict:
+                            self._state_dict["num_examples_since_previous_state"] += 1
+                        if num_examples_to_skip > 0:
+                            num_examples_to_skip -= 1
+                            continue
+                        yield key, example
+                    if self._state_dict:
+                        self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                        self._state_dict["num_examples_since_previous_state"] = 0
+                        self._state_dict["previous_state_example_idx"] = current_idx
+            else:
+                for key, transformed_example in iter_outputs():
+                    current_idx += 1
+                    if self._state_dict:
+                        self._state_dict["previous_state_example_idx"] += 1
+                    yield key, transformed_example
+        except (Exception, KeyboardInterrupt):
+            if loop:
+                logger.debug(f"Canceling {len(tasks)} async tasks.")
+                for task in tasks:
+                    task.cancel(msg="KeyboardInterrupt")
+                try:
+                    loop.run_until_complete(asyncio.gather(*tasks))
+                except asyncio.CancelledError:
+                    logger.debug("Tasks canceled.")
+            raise
+
+    def _iter_arrow(self, max_chunksize: Optional[int] = None) -> Iterator[tuple[Key, pa.Table]]:
+        formatter: TableFormatter = get_formatter(self.formatting.format_type) if self.formatting else ArrowFormatter()
         if self.ex_iterable.iter_arrow:
             iterator = self.ex_iterable.iter_arrow()
         else:
@@ -1182,18 +1273,23 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             ):
                 return
             # first build the batch
-            function_args = [pa_table] if self.input_columns is None else [pa_table[col] for col in self.input_columns]
+            function_args = (
+                [formatter.format_batch(pa_table)]
+                if self.input_columns is None
+                else [pa_table[col] for col in self.input_columns]
+            )
             if self.with_indices:
                 if self.batched:
                     function_args.append([current_idx + i for i in range(len(pa_table))])
                 else:
                     function_args.append(current_idx)
             # then apply the transform
-            output_table = self.function(*function_args, **self.fn_kwargs)
+            output = self.function(*function_args, **self.fn_kwargs)
+            output_table = _table_output_to_arrow(output)
             if not isinstance(output_table, pa.Table):
                 raise TypeError(
-                    f"Provided `function` which is applied to pyarrow tables returns a variable of type "
-                    f"{type(output_table)}. Make sure provided `function` returns a a pyarrow table to update the dataset."
+                    f"Provided `function` which is applied to {formatter.table_type} returns a variable of type "
+                    f"{type(output)}. Make sure provided `function` returns a {formatter.table_type} to update the dataset."
                 )
             # we don't need to merge results for consistency with Dataset.map which merges iif both input and output are dicts
             # then remove the unwanted columns
@@ -1258,208 +1354,87 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.num_shards
 
 
-class FilteredExamplesIterable(_BaseExamplesIterable):
+def _add_mask(
+    input: Union[dict, pa.Table],
+    mask: Union[bool, list, pa.Array, pa.ChunkedArray, pa.BooleanScalar],
+    mask_column_name: str,
+):
+    if isinstance(input, pa.Table):
+        if not isinstance(mask, (list, pa.Array, pa.ChunkedArray)):
+            mask = pa.array([mask], type=pa.bool_())
+        return input.append_column(mask_column_name, mask)
+    else:
+        return {mask_column_name: mask}
+
+
+def add_mask(mask_function: Callable, input: Union[dict, pa.Table], *args, mask_column_name: str, **kwargs):
+    mask = mask_function(input, *args, **kwargs)
+    return _add_mask(input, mask, mask_column_name)
+
+
+async def async_add_mask(
+    mask_function: Callable, input: Union[dict, pa.Table], *args, mask_column_name: str, **kwargs
+):
+    mask = await mask_function(input, *args, **kwargs)
+    return _add_mask(input, mask, mask_column_name)
+
+
+class FilteredExamplesIterable(MappedExamplesIterable):
+    mask_column_name = "===MASK==="
+
     def __init__(
         self,
         ex_iterable: _BaseExamplesIterable,
         function: Callable,
         with_indices: bool = False,
-        input_columns: Optional[List[str]] = None,
+        input_columns: Optional[list[str]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
         formatting: Optional["FormattingConfig"] = None,
     ):
-        super().__init__()
-        self.ex_iterable = ex_iterable
-        self.function = function
-        self.batched = batched
-        self.batch_size = batch_size
-        self.with_indices = with_indices
-        self.input_columns = input_columns
-        self.fn_kwargs = fn_kwargs or {}
-        self.formatting = formatting  # required for iter_arrow
-        # sanity checks
-        if formatting and formatting.format_type == "arrow":
-            # batch_size should match for iter_arrow
-            if not isinstance(ex_iterable, RebatchedArrowExamplesIterable):
-                raise ValueError(
-                    "The Arrow-formatted FilteredExamplesIterable has underlying iterable"
-                    f"that is a {type(ex_iterable).__name__} instead of a RebatchedArrowExamplesIterable."
-                )
-            elif ex_iterable.batch_size != (batch_size if batched else 1):
-                raise ValueError(
-                    f"The Arrow-formatted FilteredExamplesIterable has batch_size={batch_size if batched else 1} which is"
-                    f"different from {ex_iterable.batch_size=} from its underlying iterable."
-                )
-
-    @property
-    def iter_arrow(self):
-        if self.formatting and self.formatting.format_type == "arrow":
-            return self._iter_arrow
-
-    @property
-    def is_typed(self):
-        return self.ex_iterable.is_typed
-
-    @property
-    def features(self):
-        return self.ex_iterable.features
-
-    def _init_state_dict(self) -> dict:
-        self._state_dict = {
-            "ex_iterable": self.ex_iterable._init_state_dict(),
-            "previous_state": None,
-            "num_examples_since_previous_state": 0,
-            "previous_state_example_idx": 0,
-        }
-        return self._state_dict
-
-    def __iter__(self):
-        if self.formatting and self.formatting.format_type == "arrow":
-            formatter = PythonFormatter()
-            for key, pa_table in self._iter_arrow(max_chunksize=1):
-                yield key, formatter.format_row(pa_table)
+        self.mask_function = function
+        if ex_iterable.is_typed:
+            features = Features({**ex_iterable.features, self.mask_column_name: Value("bool")})
         else:
-            yield from self._iter()
+            features = None
+        super().__init__(
+            ex_iterable=ex_iterable,
+            function=partial(
+                async_add_mask if inspect.iscoroutinefunction(function) else add_mask,
+                function,
+                mask_column_name=self.mask_column_name,
+            ),
+            with_indices=with_indices,
+            input_columns=input_columns,
+            batched=batched,
+            batch_size=batch_size,
+            fn_kwargs=fn_kwargs,
+            formatting=formatting,
+            features=features,
+        )
 
     def _iter(self):
-        current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
-        if self._state_dict and self._state_dict["previous_state"]:
-            self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
-            num_examples_to_skip = self._state_dict["num_examples_since_previous_state"]
-        else:
-            num_examples_to_skip = 0
-        iterator = iter(self.ex_iterable)
-
-        if self.formatting:
-            formatter = get_formatter(self.formatting.format_type)
-            format_dict = (
-                formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
-            )
-        else:
-            format_dict = None
-
-        if self.batched:
-            if self._state_dict:
-                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                self._state_dict["num_examples_since_previous_state"] = 0
-                self._state_dict["previous_state_example_idx"] = current_idx
-            for key, example in iterator:
-                # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
-                iterator_batch = (
-                    iterator
-                    if self.batch_size is None or self.batch_size <= 0
-                    else islice(iterator, self.batch_size - 1)
-                )
-                key_examples_list = [(key, example)] + list(iterator_batch)
-                keys, examples = zip(*key_examples_list)
-                batch = _examples_to_batch(examples)
-                batch = format_dict(batch) if format_dict else batch
-                # then compute the mask for the batch
-                inputs = batch
-                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
-                if self.with_indices:
-                    function_args.append([current_idx + i for i in range(len(key_examples_list))])
-                mask = self.function(*function_args, **self.fn_kwargs)
-                # yield one example at a time from the batch
-                for key_example, to_keep in zip(key_examples_list, mask):
-                    current_idx += 1
-                    if self._state_dict:
-                        self._state_dict["num_examples_since_previous_state"] += 1
-                    if num_examples_to_skip > 0:
-                        num_examples_to_skip -= 1
-                        continue
-                    if to_keep:
-                        yield key_example
-                if self._state_dict:
-                    self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                    self._state_dict["num_examples_since_previous_state"] = 0
-                    self._state_dict["previous_state_example_idx"] = current_idx
-        else:
-            for key, example in iterator:
-                # If not batched, we can apply the filtering function direcly
-                example = dict(example)
-                inputs = format_dict(example) if format_dict else example
-                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
-                if self.with_indices:
-                    function_args.append(current_idx)
-                to_keep = self.function(*function_args, **self.fn_kwargs)
-                current_idx += 1
-                if self._state_dict:
-                    self._state_dict["previous_state_example_idx"] += 1
-                if to_keep:
-                    yield key, example
+        for key, example in super()._iter():
+            example = dict(example)
+            if example.pop(self.mask_column_name):
+                yield key, example
 
     def _iter_arrow(self, max_chunksize: Optional[int] = None):
-        if self.ex_iterable.iter_arrow:
-            iterator = self.ex_iterable.iter_arrow()
-        else:
-            iterator = _convert_to_arrow(self.ex_iterable, batch_size=self.batch_size if self.batched else 1)
-
-        if self._state_dict and self._state_dict["previous_state"]:
-            self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
-            num_examples_to_skip = self._state_dict["num_examples_since_previous_state"]
-        else:
-            num_examples_to_skip = 0
-        if self._state_dict and max_chunksize is not None:
-            self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-            self._state_dict["num_examples_since_previous_state"] = 0
-        current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
-        for key, pa_table in iterator:
-            if (
-                self.batched
-                and self.batch_size is not None
-                and len(pa_table) < self.batch_size
-                and self.drop_last_batch
-            ):
-                return
-
-            function_args = [pa_table] if self.input_columns is None else [pa_table[col] for col in self.input_columns]
-            if self.with_indices:
-                if self.batched:
-                    function_args.append([current_idx + i for i in range(len(pa_table))])
-                else:
-                    function_args.append(current_idx)
-            # then apply the transform
-            mask = self.function(*function_args, **self.fn_kwargs)
-            # return output
-            if self.batched:
-                output_table = pa_table.filter(mask)
-            elif mask.as_py() if isinstance(mask, pa.BooleanScalar) else mask:
-                output_table = pa_table
-            else:
-                output_table = pa_table.slice(0, 0)
-
-            if max_chunksize is None:
-                current_idx += len(pa_table)
-                if self._state_dict:
-                    self._state_dict["previous_state_example_idx"] += len(pa_table)
-                if len(output_table) > 0:
-                    yield key, output_table
-            else:
-                for i, pa_subtable in enumerate(output_table.to_reader(max_chunksize=max_chunksize)):
-                    current_idx += 1
-                    if self._state_dict:
-                        self._state_dict["num_examples_since_previous_state"] += 1
-                    if num_examples_to_skip > 0:
-                        num_examples_to_skip -= 1
-                        continue
-                    yield f"{key}_{i}", pa_subtable
-                if self._state_dict:
-                    self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                    self._state_dict["num_examples_since_previous_state"] = 0
-                    self._state_dict["previous_state_example_idx"] += len(pa_table)
+        for key, pa_table in super()._iter_arrow(max_chunksize=max_chunksize):
+            mask = pa_table[self.mask_column_name]
+            yield key, pa_table.drop(self.mask_column_name).filter(mask)
 
     def shuffle_data_sources(self, seed: Optional[int]) -> "FilteredExamplesIterable":
         """Shuffle the wrapped examples iterable."""
         return FilteredExamplesIterable(
             self.ex_iterable.shuffle_data_sources(seed),
-            function=self.function,
+            function=self.mask_function,
             with_indices=self.with_indices,
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            fn_kwargs=self.fn_kwargs,
             formatting=self.formatting,
         )
 
@@ -1467,11 +1442,12 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         """Keep only the requested shard."""
         return FilteredExamplesIterable(
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
-            function=self.function,
+            function=self.mask_function,
             with_indices=self.with_indices,
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            fn_kwargs=self.fn_kwargs,
             formatting=self.formatting,
         )
 
@@ -1622,6 +1598,54 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.num_shards
 
 
+class RepeatExamplesIterable(_BaseExamplesIterable):
+    """
+    Iterable that repeats the underlying iterable a given number of times.
+    """
+
+    def __init__(
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        num_times: Optional[int],
+    ):
+        super().__init__()
+        self.ex_iterable = ex_iterable
+        self.num_times = num_times
+
+    def _init_state_dict(self) -> dict:
+        self._state_dict = {
+            "repeat_index": 0,
+            "ex_iterable": self.ex_iterable._init_state_dict(),
+        }
+        return self._state_dict
+
+    def __iter__(self):
+        repeat_index = self._state_dict["repeat_index"] if self._state_dict else 0
+        while True:
+            if self.num_times is not None and repeat_index >= max(self.num_times, 0):
+                break
+            yield from self.ex_iterable
+            repeat_index += 1
+            if self._state_dict:
+                self._state_dict["repeat_index"] = repeat_index
+                self._state_dict["ex_iterable"] = self.ex_iterable._init_state_dict()
+
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "RepeatExamplesIterable":
+        """Shuffle the underlying iterable, then repeat."""
+        return RepeatExamplesIterable(self.ex_iterable.shuffle_data_sources(generator), num_times=self.num_times)
+
+    def shard_data_sources(self, worker_id: int, num_workers: int) -> "RepeatExamplesIterable":
+        """Shard, then repeat shards."""
+        return RepeatExamplesIterable(
+            self.ex_iterable.shard_data_sources(worker_id, num_workers),
+            num_times=self.num_times,
+        )
+
+    @property
+    def n_shards(self) -> int:
+        return self.ex_iterable.n_shards
+
+
 class TakeExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
@@ -1700,7 +1724,7 @@ class TakeExamplesIterable(_BaseExamplesIterable):
 
 
 def _apply_feature_types_on_example(
-    example: dict, features: Features, token_per_repo_id: Dict[str, Union[str, bool, None]]
+    example: dict, features: Features, token_per_repo_id: dict[str, Union[str, bool, None]]
 ) -> dict:
     example = dict(example)
     # add missing columns
@@ -1715,7 +1739,7 @@ def _apply_feature_types_on_example(
 
 
 def _apply_feature_types_on_batch(
-    batch: dict, features: Features, token_per_repo_id: Dict[str, Union[str, bool, None]]
+    batch: dict, features: Features, token_per_repo_id: dict[str, Union[str, bool, None]]
 ) -> dict:
     batch = dict(batch)
     # add missing columns
@@ -1734,11 +1758,13 @@ def _apply_feature_types_on_batch(
 class FormattingConfig:
     format_type: Optional[str]
 
-    def __post_init__(self):
-        if self.format_type == "pandas":
-            raise NotImplementedError(
-                "The 'pandas' formatting is not implemented for iterable datasets. You can use 'numpy' or 'arrow' instead."
-            )
+    @property
+    def is_table(self) -> bool:
+        return isinstance(get_formatter(self.format_type), TableFormatter)
+
+    @property
+    def is_tensor(self) -> bool:
+        return isinstance(get_formatter(self.format_type), TensorFormatter)
 
 
 class FormattedExamplesIterable(_BaseExamplesIterable):
@@ -1747,7 +1773,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
         ex_iterable: _BaseExamplesIterable,
         formatting: Optional[FormattingConfig],
         features: Optional[Features],
-        token_per_repo_id: Dict[str, Union[str, bool, None]],
+        token_per_repo_id: dict[str, Union[str, bool, None]],
     ):
         super().__init__()
         self.ex_iterable = ex_iterable
@@ -1757,7 +1783,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
 
     @property
     def iter_arrow(self):
-        if self.ex_iterable.iter_arrow and (not self.formatting or self.formatting.format_type == "arrow"):
+        if self.ex_iterable.iter_arrow and (not self.formatting or self.formatting.is_table):
             return self._iter_arrow
 
     @property
@@ -1773,7 +1799,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
         return self._state_dict
 
     def __iter__(self):
-        if not self.formatting or self.formatting.format_type == "arrow":
+        if not self.formatting or self.formatting.is_table:
             formatter = PythonFormatter()
         else:
             formatter = get_formatter(
@@ -1801,7 +1827,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
                     )
                 yield key, format_dict(example)
 
-    def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
+    def _iter_arrow(self) -> Iterator[tuple[Key, pa.Table]]:
         if not self.features:
             yield from self.ex_iterable._iter_arrow()
         for key, pa_table in self.ex_iterable._iter_arrow():
@@ -1883,7 +1909,7 @@ class IterableDataset(DatasetInfoMixin):
         formatting: Optional[FormattingConfig] = None,
         shuffling: Optional[ShufflingConfig] = None,
         distributed: Optional[DistributedConfig] = None,
-        token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
+        token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None,
     ):
         if distributed and distributed.world_size > 1 and shuffling and shuffling._original_seed is None:
             raise RuntimeError(
@@ -1898,7 +1924,7 @@ class IterableDataset(DatasetInfoMixin):
         self._formatting = formatting
         self._shuffling = shuffling
         self._distributed = distributed
-        self._token_per_repo_id: Dict[str, Union[str, bool, None]] = token_per_repo_id or {}
+        self._token_per_repo_id: dict[str, Union[str, bool, None]] = token_per_repo_id or {}
         self._epoch: Union[int, "torch.Tensor"] = _maybe_share_with_torch_persistent_workers(0)
         self._starting_state_dict: Optional[dict] = None
         self._prepared_ex_iterable = self._prepare_ex_iterable_for_iteration()
@@ -2093,7 +2119,7 @@ class IterableDataset(DatasetInfoMixin):
             else:
                 format_dict = None
 
-            if self._formatting and (ex_iterable.iter_arrow or self._formatting == "arrow"):
+            if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
                 if ex_iterable.iter_arrow:
                     iterator = ex_iterable.iter_arrow()
                 else:
@@ -2133,7 +2159,7 @@ class IterableDataset(DatasetInfoMixin):
         self, batch_size: int = 1, drop_last_batch: bool = False
     ) -> _BaseExamplesIterable:
         ex_iterable = self._ex_iterable
-        if self._formatting and (ex_iterable.iter_arrow or self._formatting.format_type == "arrow"):
+        if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
             ex_iterable = RebatchedArrowExamplesIterable(
                 ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch
             )
@@ -2189,7 +2215,7 @@ class IterableDataset(DatasetInfoMixin):
         else:
             format_dict = None
 
-        if self._formatting and (ex_iterable.iter_arrow or self._formatting.format_type == "arrow"):
+        if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
             if ex_iterable.iter_arrow:
                 iterator = ex_iterable.iter_arrow()
             else:
@@ -2225,7 +2251,7 @@ class IterableDataset(DatasetInfoMixin):
             format_dict = None
 
         ex_iterable = self._prepare_ex_iterable_for_iteration(batch_size=batch_size, drop_last_batch=drop_last_batch)
-        if self._formatting and (ex_iterable.iter_arrow or self._formatting == "arrow"):
+        if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
             if ex_iterable.iter_arrow:
                 iterator = ex_iterable.iter_arrow()
             else:
@@ -2335,7 +2361,7 @@ class IterableDataset(DatasetInfoMixin):
         from .io.spark import SparkDatasetReader
 
         if sys.platform == "win32":
-            raise EnvironmentError("IterableDataset.from_spark is not currently supported on Windows")
+            raise OSError("IterableDataset.from_spark is not currently supported on Windows")
 
         return SparkDatasetReader(
             df,
@@ -2367,12 +2393,11 @@ class IterableDataset(DatasetInfoMixin):
     ) -> "IterableDataset":
         """
         Return a dataset with the specified format.
-        The 'pandas' format is currently not implemented.
 
         Args:
 
             type (`str`, *optional*):
-                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'arrow', 'jax']`.
+                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'jax', 'arrow', 'pandas', 'polars']`.
                 `None` means it returns python objects (default).
 
         Example:
@@ -2380,7 +2405,7 @@ class IterableDataset(DatasetInfoMixin):
         ```py
         >>> from datasets import load_dataset
         >>> from transformers import AutoTokenizer
-        >>> ds = load_dataset("rotten_tomatoes", split="validation", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation", streaming=True)
         >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
         >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
         >>> ds = ds.with_format("torch")
@@ -2424,11 +2449,11 @@ class IterableDataset(DatasetInfoMixin):
         self,
         function: Optional[Callable] = None,
         with_indices: bool = False,
-        input_columns: Optional[Union[str, List[str]]] = None,
+        input_columns: Optional[Union[str, list[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[Union[str, List[str]]] = None,
+        remove_columns: Optional[Union[str, list[str]]] = None,
         features: Optional[Features] = None,
         fn_kwargs: Optional[dict] = None,
     ) -> "IterableDataset":
@@ -2447,6 +2472,9 @@ class IterableDataset(DatasetInfoMixin):
           Note that the last batch may have less than `n` examples.
           A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
 
+        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simulatenous calls.
+        It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
+
         Args:
             function (`Callable`, *optional*, defaults to `None`):
                 Function applied on-the-fly on the examples when you iterate on the dataset.
@@ -2458,6 +2486,7 @@ class IterableDataset(DatasetInfoMixin):
                 - `function(batch: Dict[str, List], indices: List[int]) -> Dict[str, List]` if `batched=True` and `with_indices=True`
 
                 For advanced usage, the function can also return a `pyarrow.Table`.
+                If the function is asynchronous, then `map` will run your function in parallel.
                 Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
                 If no function is provided, default to identity function: `lambda x: x`.
             with_indices (`bool`, defaults to `False`):
@@ -2486,7 +2515,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> def add_prefix(example):
         ...     example["text"] = "Review: " + example["text"]
         ...     return example
@@ -2516,7 +2545,7 @@ class IterableDataset(DatasetInfoMixin):
             else self._info.features
         )
 
-        if self._formatting and self._formatting.format_type == "arrow":
+        if self._formatting and self._formatting.is_table:
             # apply formatting before iter_arrow to keep map examples iterable happy
             ex_iterable = FormattedExamplesIterable(
                 ex_iterable,
@@ -2570,13 +2599,16 @@ class IterableDataset(DatasetInfoMixin):
         self,
         function: Optional[Callable] = None,
         with_indices=False,
-        input_columns: Optional[Union[str, List[str]]] = None,
+        input_columns: Optional[Union[str, list[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
     ) -> "IterableDataset":
         """Apply a filter function to all the elements so that the dataset only includes examples according to the filter function.
         The filtering is done on-the-fly when iterating over the dataset.
+
+        If the function is asynchronous, then `filter` will run your function in parallel, with up to one thousand simulatenous calls (configurable).
+        It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
 
         Args:
             function (`Callable`):
@@ -2587,6 +2619,7 @@ class IterableDataset(DatasetInfoMixin):
                 - `function(example: Dict[str, List]) -> List[bool]` if `with_indices=False, batched=True`
                 - `function(example: Dict[str, List], indices: List[int]) -> List[bool]` if `with_indices=True, batched=True`
 
+                If the function is asynchronous, then `filter` will run your function in parallel.
                 If no function is provided, defaults to an always True function: `lambda x: True`.
             with_indices (`bool`, defaults to `False`):
                 Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
@@ -2604,7 +2637,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> ds = ds.filter(lambda x: x["label"] == 0)
         >>> list(ds.take(3))
         [{'label': 0, 'movie_review': 'simplistic , silly and tedious .'},
@@ -2681,7 +2714,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> list(ds.take(3))
         [{'label': 1,
          'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
@@ -2730,7 +2763,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> list(ds.take(3))
         [{'label': 1,
          'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
@@ -2762,6 +2795,49 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
+    def repeat(self, num_times: Optional[int]) -> "IterableDataset":
+        """
+        Create a new [`IterableDataset`] that repeats the underlying dataset `num_times` times.
+
+        N.B. The effect of calling shuffle after repeat depends significantly on buffer size.
+        With buffer_size 1, duplicate data is never seen in the same iteration, even after shuffling:
+        ds.repeat(n).shuffle(seed=42, buffer_size=1) is equivalent to ds.shuffle(seed=42, buffer_size=1).repeat(n),
+        and only shuffles shard orders within each iteration.
+        With buffer size >= (num samples in the dataset * num_times), we get full shuffling of the repeated data, i.e. we can observe duplicates in
+        the same iteration.
+
+        Args:
+            num_times (`int`) or (`None`):
+                Number of times to repeat the dataset. If `None`, the dataset will be repeated indefinitely.
+
+        Example:
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
+        >>> ds = ds.take(2).repeat(2)
+        >>> list(ds)
+        [{'label': 1,
+         'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
+         {'label': 1,
+         'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'},
+         {'label': 1, 'text': 'effective but too-tepid biopic'},
+         {'label': 1,
+         'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
+         {'label': 1,
+         'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'},
+         {'label': 1, 'text': 'effective but too-tepid biopic'}]
+        ```
+        """
+        return IterableDataset(
+            ex_iterable=RepeatExamplesIterable(self._ex_iterable, num_times=num_times),
+            info=self._info,
+            split=self._split,
+            formatting=self._formatting,
+            shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
+            token_per_repo_id=self._token_per_repo_id,
+        )
+
     def take(self, n: int) -> "IterableDataset":
         """
         Create a new [`IterableDataset`] with only the first `n` elements.
@@ -2774,7 +2850,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> small_ds = ds.take(2)
         >>> list(small_ds)
         [{'label': 1,
@@ -2857,14 +2933,14 @@ class IterableDataset(DatasetInfoMixin):
         )
 
     @property
-    def column_names(self) -> Optional[List[str]]:
+    def column_names(self) -> Optional[list[str]]:
         """Names of the columns in the dataset.
 
         Example:
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation", streaming=True)
         >>> ds.column_names
         ['text', 'label']
         ```
@@ -2901,7 +2977,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> next(iter(ds))
         {'label': 1,
          'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
@@ -2913,7 +2989,7 @@ class IterableDataset(DatasetInfoMixin):
         """
         return self.rename_columns({original_column_name: new_column_name})
 
-    def rename_columns(self, column_mapping: Dict[str, str]) -> "IterableDataset":
+    def rename_columns(self, column_mapping: dict[str, str]) -> "IterableDataset":
         """
         Rename several columns in the dataset, and move the features associated to the original columns under
         the new column names.
@@ -2938,7 +3014,7 @@ class IterableDataset(DatasetInfoMixin):
             )
         return ds_iterable
 
-    def remove_columns(self, column_names: Union[str, List[str]]) -> "IterableDataset":
+    def remove_columns(self, column_names: Union[str, list[str]]) -> "IterableDataset":
         """
         Remove one or several column(s) in the dataset and the features associated to them.
         The removal is done on-the-fly on the examples when iterating over the dataset.
@@ -2955,7 +3031,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> next(iter(ds))
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .', 'label': 1}
         >>> ds = ds.remove_columns("label")
@@ -2973,7 +3049,7 @@ class IterableDataset(DatasetInfoMixin):
 
         return ds_iterable
 
-    def select_columns(self, column_names: Union[str, List[str]]) -> "IterableDataset":
+    def select_columns(self, column_names: Union[str, list[str]]) -> "IterableDataset":
         """Select one or several column(s) in the dataset and the features
         associated to them. The selection is done on-the-fly on the examples
         when iterating over the dataset.
@@ -2990,7 +3066,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> next(iter(ds))
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .', 'label': 1}
         >>> ds = ds.select_columns("text")
@@ -3091,7 +3167,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset, ClassLabel, Value
-        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> ds.features
         {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
@@ -3169,7 +3245,7 @@ class IterableDataset(DatasetInfoMixin):
 
 
 def _concatenate_iterable_datasets(
-    dsets: List[IterableDataset],
+    dsets: list[IterableDataset],
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
     axis: int = 0,
@@ -3229,8 +3305,8 @@ def _concatenate_iterable_datasets(
 
 
 def _interleave_iterable_datasets(
-    datasets: List[IterableDataset],
-    probabilities: Optional[List[float]] = None,
+    datasets: list[IterableDataset],
+    probabilities: Optional[list[float]] = None,
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,

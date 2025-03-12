@@ -1,4 +1,6 @@
+import asyncio
 import pickle
+import time
 from copy import deepcopy
 from itertools import chain, cycle, islice
 from unittest.mock import patch
@@ -33,6 +35,7 @@ from datasets.iterable_dataset import (
     MappedExamplesIterable,
     RandomlyCyclingMultiSourcesExamplesIterable,
     RebatchedArrowExamplesIterable,
+    RepeatExamplesIterable,
     SelectColumnsIterable,
     ShuffledDataSourcesArrowExamplesIterable,
     ShuffledDataSourcesExamplesIterable,
@@ -51,8 +54,10 @@ from .utils import (
     assert_arrow_memory_doesnt_increase,
     is_rng_equal,
     require_dill_gt_0_3_2,
+    require_jax,
     require_not_windows,
     require_numpy1_on_windows,
+    require_polars,
     require_pyspark,
     require_tf,
     require_torch,
@@ -1141,6 +1146,50 @@ def test_filtered_examples_iterable_input_columns(n, func, batched, batch_size, 
     assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
+def test_map_async():
+    dset = Dataset.from_dict({"x": range(100)}).to_iterable_dataset()
+
+    async def f(example):
+        await asyncio.sleep(0.1)
+        return {"y": 1}
+
+    _start = time.time()
+    out = dset.map(f)
+    assert time.time() - _start < 2.0
+    assert next(iter(out))["y"] == 1
+
+    async def f(batch):
+        await asyncio.sleep(0.1)
+        return {"y": [1] * len(batch["x"])}
+
+    _start = time.time()
+    out = dset.map(f, batched=True)
+    assert time.time() - _start < 2.0
+    assert next(iter(out))["y"] == 1
+
+
+def test_filter_async():
+    dset = Dataset.from_dict({"x": range(100)}).to_iterable_dataset()
+
+    async def f(example):
+        await asyncio.sleep(0.1)
+        return example["x"] == 42
+
+    _start = time.time()
+    out = dset.filter(f)
+    assert time.time() - _start < 2.0
+    assert len(list(out)) == 1
+
+    async def f(batch):
+        await asyncio.sleep(0.1)
+        return [x == 42 for x in batch["x"]]
+
+    _start = time.time()
+    out = dset.filter(f, batched=True)
+    assert time.time() - _start < 2.0
+    assert len(list(out)) == 1
+
+
 def test_skip_examples_iterable():
     total, count = 10, 2
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": total})
@@ -1163,6 +1212,28 @@ def test_take_examples_iterable():
         "skip examples makes the shards order fixed"
     )
     assert_load_state_dict_resumes_iteration(take_ex_iterable)
+
+
+@pytest.mark.parametrize(
+    "n, num_times",
+    [
+        (3, None),
+        (3, 3),
+        (3, 0),
+    ],
+)
+def test_repeat_examples_iterable(n, num_times):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = RepeatExamplesIterable(base_ex_iterable, num_times=num_times)
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    if num_times is not None:
+        expected = all_examples * max(num_times, 0)
+        assert [x for _, x in ex_iterable] == expected
+    else:
+        max_iters = 135
+        iterator = iter(ex_iterable)
+        for i in range(max_iters):
+            assert next(iterator)[1] == all_examples[i % len(all_examples)], f"iteration {i} failed,"
 
 
 def test_vertically_concatenated_examples_iterable():
@@ -1681,7 +1752,12 @@ def test_iterable_dataset_features_cast_to_python():
     assert list(dataset) == [{"timestamp": pd.Timestamp(2020, 1, 1).to_pydatetime(), "array": [1] * 5, "id": 0}]
 
 
-@pytest.mark.parametrize("format_type", [None, "torch", "python", "tf", "tensorflow", "np", "numpy", "jax"])
+@require_torch
+@require_tf
+@require_jax
+@pytest.mark.parametrize(
+    "format_type", [None, "torch", "python", "tf", "tensorflow", "np", "numpy", "jax", "arrow", "pd", "pandas"]
+)
 def test_iterable_dataset_with_format(dataset: IterableDataset, format_type):
     formatted_dataset = dataset.with_format(format_type)
     assert formatted_dataset._formatting.format_type == get_format_type_from_alias(format_type)
@@ -1733,6 +1809,14 @@ def test_iterable_dataset_take(dataset: IterableDataset, n):
     assert isinstance(take_dataset._ex_iterable, TakeExamplesIterable)
     assert take_dataset._ex_iterable.n == n
     assert list(take_dataset) == list(dataset)[:n]
+
+
+@pytest.mark.parametrize("n", [0, 2])
+def test_iterable_dataset_repeat(dataset: IterableDataset, n):
+    repeat_dataset = dataset.repeat(n)
+    assert isinstance(repeat_dataset._ex_iterable, RepeatExamplesIterable)
+    assert repeat_dataset._ex_iterable.num_times == n
+    assert list(repeat_dataset) == list(dataset) * n
 
 
 def test_iterable_dataset_shard():
@@ -2216,6 +2300,45 @@ def test_format_from_arrow():
         mock_numpy_arrow_extractor.assert_called()
         # we don't do any arrow -> python
         mock_python_arrow_extractor.assert_not_called()
+
+
+def test_format_arrow(dataset: IterableDataset):
+    ds = dataset.with_format("arrow")
+    assert isinstance(next(iter(ds)), pa.Table)
+    assert isinstance(next(iter(ds.iter(batch_size=4))), pa.Table)
+    assert len(next(iter(ds))) == 1
+    assert len(next(iter(ds.iter(batch_size=4)))) == 4
+    ds = ds.map(lambda t: t.append_column("new_col", pa.array([0] * len(t))))
+    ds = ds.map(lambda t: t.append_column("new_col_batched", pa.array([1] * len(t))), batched=True)
+    ds = ds.with_format(None)
+    assert next(iter(ds)) == {**next(iter(dataset)), "new_col": 0, "new_col_batched": 1}
+
+
+def test_format_pandas(dataset: IterableDataset):
+    ds = dataset.with_format("pandas")
+    assert isinstance(next(iter(ds)), pd.DataFrame)
+    assert isinstance(next(iter(ds.iter(batch_size=4))), pd.DataFrame)
+    assert len(next(iter(ds))) == 1
+    assert len(next(iter(ds.iter(batch_size=4)))) == 4
+    ds = ds.map(lambda df: df.assign(new_col=[0] * len(df)))
+    ds = ds.map(lambda df: df.assign(new_col_batched=[1] * len(df)), batched=True)
+    ds = ds.with_format(None)
+    assert next(iter(ds)) == {**next(iter(dataset)), "new_col": 0, "new_col_batched": 1}
+
+
+@require_polars
+def test_format_polars(dataset: IterableDataset):
+    import polars as pl
+
+    ds = dataset.with_format("polars")
+    assert isinstance(next(iter(ds)), pl.DataFrame)
+    assert isinstance(next(iter(ds.iter(batch_size=4))), pl.DataFrame)
+    assert len(next(iter(ds))) == 1
+    assert len(next(iter(ds.iter(batch_size=4)))) == 4
+    ds = ds.map(lambda df: df.with_columns(pl.Series([0] * len(df)).alias("new_col")))
+    ds = ds.map(lambda df: df.with_columns(pl.Series([1] * len(df)).alias("new_col_batched")), batched=True)
+    ds = ds.with_format(None)
+    assert next(iter(ds)) == {**next(iter(dataset)), "new_col": 0, "new_col_batched": 1}
 
 
 @pytest.mark.parametrize("num_shards1, num_shards2, num_workers", [(2, 1, 1), (2, 2, 2), (1, 3, 1), (4, 3, 3)])

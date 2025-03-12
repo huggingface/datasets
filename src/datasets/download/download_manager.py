@@ -21,7 +21,7 @@ import multiprocessing
 import os
 from datetime import datetime
 from functools import partial
-from typing import Dict, List, Optional, Union
+from typing import Optional, Union
 
 import fsspec
 from fsspec.core import url_to_fs
@@ -100,7 +100,7 @@ class DownloadManager:
         self._data_dir = data_dir
         self._base_path = base_path or os.path.abspath(".")
         # To record what is being used: {url: {num_bytes: int, checksum: str}}
-        self._recorded_sizes_checksums: Dict[str, Dict[str, Optional[Union[int, str]]]] = {}
+        self._recorded_sizes_checksums: dict[str, dict[str, Optional[Union[int, str]]]] = {}
         self.record_checksums = record_checksums
         self.download_config = download_config or DownloadConfig()
         self.downloaded_paths = {}
@@ -180,9 +180,9 @@ class DownloadManager:
 
     def _download_batched(
         self,
-        url_or_filenames: List[str],
+        url_or_filenames: list[str],
         download_config: DownloadConfig,
-    ) -> List[str]:
+    ) -> list[str]:
         if len(url_or_filenames) >= 16:
             download_config = download_config.copy()
             download_config.disable_tqdm = True
@@ -256,7 +256,7 @@ class DownloadManager:
         else:
             return ArchiveIterable.from_urlpath(path_or_buf)
 
-    def iter_files(self, paths: Union[str, List[str]]):
+    def iter_files(self, paths: Union[str, list[str]]):
         """Iterate over file paths.
 
         Args:

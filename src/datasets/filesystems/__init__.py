@@ -10,7 +10,7 @@ from fsspec.implementations.local import LocalFileSystem
 from . import compression
 
 
-COMPRESSION_FILESYSTEMS: List[compression.BaseCompressedFileFileSystem] = [
+COMPRESSION_FILESYSTEMS: list[compression.BaseCompressedFileFileSystem] = [
     compression.Bz2FileSystem,
     compression.GzipFileSystem,
     compression.Lz4FileSystem,

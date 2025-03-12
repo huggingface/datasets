@@ -15,7 +15,7 @@
 # Lint as: python3
 import sys
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 import pyarrow as pa
@@ -64,7 +64,7 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
         self.jnp_array_kwargs = jnp_array_kwargs
 
     @staticmethod
-    def _map_devices_to_str() -> Dict[str, "jaxlib.xla_extension.Device"]:
+    def _map_devices_to_str() -> dict[str, "jaxlib.xla_extension.Device"]:
         import jax
 
         return {str(device): device for device in jax.devices()}
@@ -106,17 +106,11 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
 
             if isinstance(value, PIL.Image.Image):
                 value = np.asarray(value)
-        if config.DECORD_AVAILABLE and "decord" in sys.modules:
-            # We need to import torch first, otherwise later it can cause issues
-            # e.g. "RuntimeError: random_device could not be read"
-            # when running `torch.tensor(value).share_memory_()`
-            if config.TORCH_AVAILABLE:
-                import torch  # noqa
-            from decord import VideoReader
+        if config.TORCHVISION_AVAILABLE and "torchvision" in sys.modules:
+            from torchvision.io import VideoReader
 
             if isinstance(value, VideoReader):
-                value._hf_bridge_out = lambda x: jnp.array(np.asarray(x))
-                return value
+                return value  # TODO(QL): set output to jax arrays ?
 
         # using global variable since `jaxlib.xla_extension.Device` is not serializable neither
         # with `pickle` nor with `dill`, so we need to use a global variable instead

@@ -52,7 +52,7 @@ def set_sqlalchemy_silence_uber_warning(monkeypatch):
     # To be removed once SQLAlchemy 2.0 supported
     try:
         monkeypatch.setattr("sqlalchemy.util.deprecations.SILENCE_UBER_WARNING", True)
-    except AttributeError:
+    except (ModuleNotFoundError, AttributeError):
         pass
 
 

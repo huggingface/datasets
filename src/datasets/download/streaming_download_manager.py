@@ -1,6 +1,7 @@
 import io
 import os
-from typing import Iterable, List, Optional, Tuple, Union
+from collections.abc import Iterable
+from typing import Optional, Union
 
 from ..utils.file_utils import (  # noqa: F401 # backward compatibility
     SINGLE_FILE_COMPRESSION_PROTOCOLS,
@@ -167,7 +168,7 @@ class StreamingDownloadManager:
         """
         return self.extract(self.download(url_or_urls))
 
-    def iter_archive(self, urlpath_or_buf: Union[str, io.BufferedReader]) -> Iterable[Tuple]:
+    def iter_archive(self, urlpath_or_buf: Union[str, io.BufferedReader]) -> Iterable[tuple]:
         """Iterate over files within an archive.
 
         Args:
@@ -192,7 +193,7 @@ class StreamingDownloadManager:
         else:
             return ArchiveIterable.from_urlpath(urlpath_or_buf, download_config=self.download_config)
 
-    def iter_files(self, urlpaths: Union[str, List[str]]) -> Iterable[str]:
+    def iter_files(self, urlpaths: Union[str, list[str]]) -> Iterable[str]:
         """Iterate over files.
 
         Args:

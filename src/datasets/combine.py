@@ -1,4 +1,4 @@
-from typing import List, Optional, TypeVar
+from typing import Optional, TypeVar
 
 from .arrow_dataset import Dataset, _concatenate_map_style_datasets, _interleave_map_style_datasets
 from .dataset_dict import DatasetDict, IterableDatasetDict
@@ -16,8 +16,8 @@ DatasetType = TypeVar("DatasetType", Dataset, IterableDataset)
 
 
 def interleave_datasets(
-    datasets: List[DatasetType],
-    probabilities: Optional[List[float]] = None,
+    datasets: list[DatasetType],
+    probabilities: Optional[list[float]] = None,
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
@@ -104,15 +104,15 @@ def interleave_datasets(
         [10, 0, 11, 1, 2, 20, 12, 13, ..., 0, 1, 2, 0, 24]
         For datasets in streaming mode (iterable):
 
-        >>> from datasets import load_dataset, interleave_datasets
-        >>> d1 = load_dataset("oscar", "unshuffled_deduplicated_en", split="train", streaming=True)
-        >>> d2 = load_dataset("oscar", "unshuffled_deduplicated_fr", split="train", streaming=True)
+        >>> from datasets import interleave_datasets
+        >>> d1 = load_dataset('allenai/c4', 'es', split='train', streaming=True)
+        >>> d2 = load_dataset('allenai/c4', 'fr', split='train', streaming=True)
         >>> dataset = interleave_datasets([d1, d2])
         >>> iterator = iter(dataset)
         >>> next(iterator)
-        {'text': 'Mtendere Village was inspired by the vision...}
+        {'text': 'Comprar Zapatillas para niña en chancla con goma por...'}
         >>> next(iterator)
-        {'text': "Média de débat d'idées, de culture...}
+        {'text': 'Le sacre de philippe ier, 23 mai 1059 - Compte Rendu...'
         ```
     """
     from .arrow_dataset import Dataset
@@ -156,7 +156,7 @@ def interleave_datasets(
 
 
 def concatenate_datasets(
-    dsets: List[DatasetType],
+    dsets: list[DatasetType],
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
     axis: int = 0,

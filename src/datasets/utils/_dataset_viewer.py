@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 from huggingface_hub.utils import get_session
 
@@ -25,7 +25,7 @@ class DatasetViewerError(DatasetsError):
 
 def get_exported_parquet_files(
     dataset: str, commit_hash: str, token: Optional[Union[str, bool]]
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Get the dataset exported parquet files
     Docs: https://huggingface.co/docs/datasets-server/parquet
@@ -61,7 +61,7 @@ def get_exported_parquet_files(
 
 def get_exported_dataset_infos(
     dataset: str, commit_hash: str, token: Optional[Union[str, bool]]
-) -> Dict[str, Dict[str, Any]]:
+) -> dict[str, dict[str, Any]]:
     """
     Get the dataset information, can be useful to get e.g. the dataset features.
     Docs: https://huggingface.co/docs/datasets-server/info
