@@ -1081,9 +1081,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
 
         if self.formatting:
             formatter = get_formatter(self.formatting.format_type)
-            format_dict = (
-                formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
-            )
+            format_dict = formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else None
         else:
             format_dict = None
 
@@ -1835,7 +1833,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             format_dict = (
                 formatter.recursive_tensorize
                 if isinstance(formatter, TensorFormatter)
-                else cast_to_python_objects  # cast in case features is None
+                else None  # cast in case features is None
             )
             for key, example in self.ex_iterable:
                 # don't apply feature types if already applied by ex_iterable (e.g. in case of chained with_format)
@@ -1843,7 +1841,9 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
                     example = _apply_feature_types_on_example(
                         example, self.features, token_per_repo_id=self.token_per_repo_id
                     )
-                yield key, format_dict(example)
+                if format_dict:
+                    example = format_dict(example)
+                yield key, example
 
     def _iter_arrow(self) -> Iterator[tuple[Key, pa.Table]]:
         if not self.features:
@@ -2246,9 +2246,7 @@ class IterableDataset(DatasetInfoMixin):
 
         if self._formatting:
             formatter = get_formatter(self._formatting.format_type, features=self.features)
-            format_dict = (
-                formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
-            )
+            format_dict = formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else None
         else:
             format_dict = None
 
