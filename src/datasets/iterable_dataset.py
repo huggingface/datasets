@@ -1211,7 +1211,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                             self._state_dict["previous_state_example_idx"] = previous_state_example_idx
                             previous_state, previous_state_task = None, None
                     # checkpoint
-                    if self._state_dict and previous_state_task is None:
+                    if self._state_dict and previous_state_task is None and tasks:
                         previous_state = self.ex_iterable.state_dict()
                         previous_state_task = tasks[-1]
                         previous_state_example_idx = current_idx
