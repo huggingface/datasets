@@ -2476,17 +2476,18 @@ def test_iterable_dataset_batch():
         assert batch["text"] == [f"Text {3 * i}", f"Text {3 * i + 1}", f"Text {3 * i + 2}"]
 
 
+class DecodableFeature:
+    decode_example_num_calls = 0
+
+    def __init__(self):
+        self.decode = True
+
+    def decode_example(self, example, token_per_repo_id=None):
+        type(self).decode_example_num_calls += 1
+        return "decoded" if self.decode else example
+
+
 def test_decode():
-    class DecodableFeature:
-        decode_example_num_calls = 0
-
-        def __init__(self):
-            self.decode = True
-
-        def decode_example(self, example, token_per_repo_id=None):
-            type(self).decode_example_num_calls += 1
-            return "decoded" if self.decode else example
-
     data = [{"i": i} for i in range(10)]
     features = Features({"i": DecodableFeature()})
     ds = IterableDataset.from_generator(lambda: (x for x in data), features=features)
