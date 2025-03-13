@@ -3214,10 +3214,9 @@ class IterableDataset(DatasetInfoMixin):
         data streaming. However it can be slower than `num_threads=0` for local data on fast disks.
 
         Disabling decoding is useful if you want to iterate on the paths or bytes of the media files
-        without actually decoding their content.
-
-        Disabling decoding is equivalent to calling `.cast()` or `.cast_column()` with all the Audio,
-        Image and Video types set to `decode=False`.
+        without actually decoding their content. To disable decoding you can use `.decode(False)`, which
+        is equivalent to calling `.cast()` or `.cast_column()` with all the Audio, Image and Video types
+        set to `decode=False`.
 
         Args:
             enable (`bool`, defaults to `True`):
