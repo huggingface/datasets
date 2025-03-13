@@ -1076,15 +1076,17 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             num_examples_to_skip = 0
         iterator = iter(self.ex_iterable)
 
+        # We use the same logic as in Dataset.map, but with less features/formatting
+        # since they're handled by FormattedExamplesIterable
+
         if self.formatting:
             formatter = get_formatter(self.formatting.format_type)
-            format_dict = (
-                formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
-            )
+            format_dict = formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else None
         else:
             format_dict = None
 
         def iter_batched_inputs():
+            nonlocal current_idx
             for key, example in iterator:
                 # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
                 iterator_batch = (
@@ -1104,17 +1106,21 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 ):  # ignore last batch
                     return
                 batch = _examples_to_batch(examples)
+                # we need to format here in case we need to stack tensors together
                 batch = format_dict(batch) if format_dict else batch
                 indices = [current_idx + i for i in range(len(key_examples_list))]
+                current_idx += len(indices)
                 yield indices, (key, batch)
 
         def iter_inputs():
+            nonlocal current_idx
             for key, example in iterator:
                 # If not batched, we can apply the transform and yield the example directly
                 # first copy the example, since we might drop some keys
                 example = dict(example)
-                example = format_dict(example) if format_dict else example
-                yield current_idx, (key, example)
+                # no need to do formatting here
+                current_idx += 1
+                yield current_idx - 1, (key, example)
 
         def validate_function_output(processed_inputs):
             if self.batched and processed_inputs:
@@ -1147,17 +1153,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     if processed_inputs is key_example[1] and c in processed_inputs:
                         del processed_inputs[c]
             transformed_inputs = {**inputs, **processed_inputs}
-            if self.features:
-                for c in self.features.keys():
-                    if c not in transformed_inputs:
-                        transformed_inputs[c] = (
-                            [None] * len(transformed_inputs[next(iter(processed_inputs))]) if self.batched else None
-                        )
-                transformed_inputs = (
-                    self.features.decode_batch(transformed_inputs)
-                    if self.batched
-                    else self.features.decode_example(transformed_inputs)
-                )
+            # no need to do features decoding here
             return transformed_inputs
 
         def apply_function(key_example, indices):
@@ -1185,6 +1181,11 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             nonlocal tasks, loop
             inputs_iterator = iter_batched_inputs() if self.batched else iter_inputs()
             if inspect.iscoroutinefunction(self.function):
+                if self._state_dict:
+                    previous_state = self.ex_iterable.state_dict()
+                    self._state_dict["previous_state"] = previous_state
+                    previous_state_task = None
+                    previous_state_example_idx = self._state_dict["previous_state_example_idx"]
                 indices: Union[list[int], list[list[int]]] = []
                 for i, key_example in inputs_iterator:
                     indices.append(i)
@@ -1198,42 +1199,57 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                             done, pending = loop.run_until_complete(
                                 asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
                             )
+                    if len(tasks) >= 10 * config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL:
+                        loop.run_until_complete(tasks[0])
                     # yield finished tasks
                     while tasks and tasks[0].done():
-                        yield indices.pop(0), tasks.pop(0).result()
+                        i, task = indices.pop(0), tasks.pop(0)
+                        yield i, task.result()
+                        if self._state_dict and task is previous_state_task:
+                            self._state_dict["previous_state"] = previous_state
+                            self._state_dict["num_examples_since_previous_state"] = 0
+                            self._state_dict["previous_state_example_idx"] = previous_state_example_idx
+                            previous_state, previous_state_task = None, None
+                    # checkpoint
+                    if self._state_dict and previous_state_task is None and tasks:
+                        previous_state = self.ex_iterable.state_dict()
+                        previous_state_task = tasks[-1]
+                        previous_state_example_idx = current_idx
                 while tasks:
                     yield indices[0], loop.run_until_complete(tasks[0])
                     indices.pop(0), tasks.pop(0)
             else:
-                for i, key_example in inputs_iterator:
-                    yield i, apply_function(key_example, i)
-
-        try:
-            if self.batched:
                 if self._state_dict:
-                    self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                    self._state_dict["num_examples_since_previous_state"] = 0
-                    self._state_dict["previous_state_example_idx"] = current_idx
-                for key, transformed_batch in iter_outputs():
-                    # yield one example at a time from the transformed batch
-                    for example in _batch_to_examples(transformed_batch):
-                        current_idx += 1
-                        if self._state_dict:
-                            self._state_dict["num_examples_since_previous_state"] += 1
-                        if num_examples_to_skip > 0:
-                            num_examples_to_skip -= 1
-                            continue
-                        yield key, example
-                    if self._state_dict:
+                    if self.batched:
                         self._state_dict["previous_state"] = self.ex_iterable.state_dict()
                         self._state_dict["num_examples_since_previous_state"] = 0
                         self._state_dict["previous_state_example_idx"] = current_idx
-            else:
-                for key, transformed_example in iter_outputs():
-                    current_idx += 1
+                for i, key_example in inputs_iterator:
                     if self._state_dict:
-                        self._state_dict["previous_state_example_idx"] += 1
-                    yield key, transformed_example
+                        if not self.batched:
+                            self._state_dict["previous_state_example_idx"] = current_idx
+                    yield i, apply_function(key_example, i)
+                    if self._state_dict:
+                        if self.batched:
+                            self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                            self._state_dict["num_examples_since_previous_state"] = 0
+                            self._state_dict["previous_state_example_idx"] = current_idx
+
+        try:
+            outputs = iter_outputs()
+            if self.batched:
+                outputs = (
+                    (key, transformed_example)
+                    for key, transformed_batch in outputs
+                    for transformed_example in _batch_to_examples(transformed_batch)
+                )
+            for key, transformed_example in outputs:
+                if self._state_dict and self._state_dict["previous_state"] is not None:
+                    self._state_dict["num_examples_since_previous_state"] += 1
+                if num_examples_to_skip > 0:
+                    num_examples_to_skip -= 1
+                    continue
+                yield key, transformed_example
         except (Exception, KeyboardInterrupt):
             if loop:
                 logger.debug(f"Canceling {len(tasks)} async tasks.")
@@ -1800,7 +1816,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         if not self.formatting or self.formatting.is_table:
-            formatter = PythonFormatter()
+            formatter = PythonFormatter(features=self._features if not self.ex_iterable.is_typed else None)
         else:
             formatter = get_formatter(
                 self.formatting.format_type,
@@ -1817,7 +1833,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             format_dict = (
                 formatter.recursive_tensorize
                 if isinstance(formatter, TensorFormatter)
-                else cast_to_python_objects  # cast in case features is None
+                else None  # cast in case features is None
             )
             for key, example in self.ex_iterable:
                 # don't apply feature types if already applied by ex_iterable (e.g. in case of chained with_format)
@@ -1825,7 +1841,9 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
                     example = _apply_feature_types_on_example(
                         example, self.features, token_per_repo_id=self.token_per_repo_id
                     )
-                yield key, format_dict(example)
+                if format_dict:
+                    example = format_dict(example)
+                yield key, example
 
     def _iter_arrow(self) -> Iterator[tuple[Key, pa.Table]]:
         if not self.features:
@@ -2049,7 +2067,7 @@ class IterableDataset(DatasetInfoMixin):
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
     def _head(self, n=5):
-        return _examples_to_batch(list(self.take(n)))
+        return next(iter(self.iter(batch_size=n)))
 
     @property
     def epoch(self) -> int:
@@ -2111,15 +2129,8 @@ class IterableDataset(DatasetInfoMixin):
             if self._starting_state_dict:
                 ex_iterable.load_state_dict(self._starting_state_dict)
 
-            if self._formatting:
-                formatter = get_formatter(self._formatting.format_type, features=self.features)
-                format_dict = (
-                    formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
-                )
-            else:
-                format_dict = None
-
             if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
+                formatter = get_formatter(self._formatting.format_type, features=self.features)
                 if ex_iterable.iter_arrow:
                     iterator = ex_iterable.iter_arrow()
                 else:
@@ -2129,13 +2140,8 @@ class IterableDataset(DatasetInfoMixin):
                 return
             else:
                 for key, example in ex_iterable:
-                    if self.features and not ex_iterable.is_typed:
-                        # `IterableDataset` automatically fills missing columns with None.
-                        # This is done with `_apply_feature_types_on_example`.
-                        example = _apply_feature_types_on_example(
-                            example, self.features, token_per_repo_id=self._token_per_repo_id
-                        )
-                    yield format_dict(example) if format_dict else example
+                    # no need to format thanks to FormattedExamplesIterable
+                    yield example
             logger.debug(
                 f"{_log_prefix}dataloader worker#{worker_info.id}, ': Finished iterating over {len(shards_indices)}/{ex_iterable.num_shards} shards."
             )
@@ -2191,6 +2197,14 @@ class IterableDataset(DatasetInfoMixin):
                     )
                 ex_iterable = StepExamplesIterable(ex_iterable, step=world_size, offset=rank)
 
+        if self._formatting or (self.features and ex_iterable.features != self.features):
+            ex_iterable = FormattedExamplesIterable(
+                ex_iterable,
+                formatting=self._formatting,
+                features=self.features,
+                token_per_repo_id=self._token_per_repo_id,
+            )
+
         self._state_dict = ex_iterable._init_state_dict()
         if self._starting_state_dict:
             ex_iterable.load_state_dict(self._starting_state_dict)
@@ -2207,15 +2221,8 @@ class IterableDataset(DatasetInfoMixin):
                 return
 
         ex_iterable = self._prepare_ex_iterable_for_iteration()
-        if self._formatting:
-            formatter = get_formatter(self._formatting.format_type, features=self.features)
-            format_dict = (
-                formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
-            )
-        else:
-            format_dict = None
-
         if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
+            formatter = get_formatter(self._formatting.format_type, features=self.features)
             if ex_iterable.iter_arrow:
                 iterator = ex_iterable.iter_arrow()
             else:
@@ -2225,13 +2232,8 @@ class IterableDataset(DatasetInfoMixin):
             return
 
         for key, example in ex_iterable:
-            if self.features and not ex_iterable.is_typed:
-                # `IterableDataset` automatically fills missing columns with None.
-                # This is done with `_apply_feature_types_on_example`.
-                example = _apply_feature_types_on_example(
-                    example, self.features, token_per_repo_id=self._token_per_repo_id
-                )
-            yield format_dict(example) if format_dict else example
+            # no need to format thanks to FormattedExamplesIterable
+            yield example
 
     def iter(self, batch_size: int, drop_last_batch: bool = False):
         """Iterate through the batches of size `batch_size`.
@@ -2244,9 +2246,7 @@ class IterableDataset(DatasetInfoMixin):
 
         if self._formatting:
             formatter = get_formatter(self._formatting.format_type, features=self.features)
-            format_dict = (
-                formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
-            )
+            format_dict = formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else None
         else:
             format_dict = None
 
@@ -2267,10 +2267,7 @@ class IterableDataset(DatasetInfoMixin):
             if drop_last_batch and len(examples) < batch_size:  # ignore last batch
                 return
             batch = _examples_to_batch(examples)
-            if self.features and not ex_iterable.is_typed:
-                # `IterableDataset` automatically fills missing columns with None.
-                # This is done with `_apply_feature_types_on_batch`.
-                batch = _apply_feature_types_on_batch(batch, self.features, token_per_repo_id=self._token_per_repo_id)
+            # we need to format here in case we need to stack tensors together
             yield format_dict(batch) if format_dict else batch
 
     @staticmethod
@@ -3241,7 +3238,13 @@ class IterableDataset(DatasetInfoMixin):
         def batch_fn(unbatched):
             return {k: [v] for k, v in unbatched.items()}
 
-        return self.map(batch_fn, batched=True, batch_size=batch_size, drop_last_batch=drop_last_batch)
+        if self.features:
+            features = Features({col: [feature] for col, feature in self.features.items()})
+        else:
+            features = None
+        return self.map(
+            batch_fn, batched=True, batch_size=batch_size, drop_last_batch=drop_last_batch, features=features
+        )
 
 
 def _concatenate_iterable_datasets(
