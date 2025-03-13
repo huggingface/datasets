@@ -505,6 +505,13 @@ def test_mapped_examples_iterable_drop_last_batch(n, func, batched, batch_size):
             next(iter(ex_iterable))
 
 
+def _wrap_async(func, *args, **kwargs):
+    async def wrapped_func(*args, **kwargs):
+        return func(*args, **kwargs)
+
+    return wrapped_func
+
+
 @pytest.mark.parametrize(
     "n, func, batched, batch_size",
     [
@@ -519,10 +526,11 @@ def test_mapped_examples_iterable_drop_last_batch(n, func, batched, batch_size):
         (5, lambda x, indices: {"id+idx": [i + j for i, j in zip(x["id"], indices)]}, True, -1),  # same with bs<=0
     ],
 )
-def test_mapped_examples_iterable_with_indices(n, func, batched, batch_size):
+@pytest.mark.parametrize("wrapper", [lambda x: x, _wrap_async])
+def test_mapped_examples_iterable_with_indices(n, func, batched, batch_size, wrapper):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
     ex_iterable = MappedExamplesIterable(
-        base_ex_iterable, func, batched=batched, batch_size=batch_size, with_indices=True
+        base_ex_iterable, wrapper(func), batched=batched, batch_size=batch_size, with_indices=True
     )
     all_examples = [x for _, x in generate_examples_fn(n=n)]
     if batched is False:
@@ -2454,3 +2462,15 @@ def test_iterable_dataset_batch():
     assert len(batches[2]["text"]) == 2
     assert batches[2]["id"] == [8, 9]
     assert batches[2]["text"] == ["Text 8", "Text 9"]
+
+    # Test with features
+    batched_ds = ds._resolve_features().batch(batch_size=3)
+    batches = list(batched_ds)
+
+    assert batched_ds.features is not None
+    assert len(batches) == 4  # 3 full batches and 1 partial batch
+    for i, batch in enumerate(batches[:1]):
+        assert len(batch["id"]) == 3
+        assert len(batch["text"]) == 3
+        assert batch["id"] == [3 * i, 3 * i + 1, 3 * i + 2]
+        assert batch["text"] == [f"Text {3 * i}", f"Text {3 * i + 1}", f"Text {3 * i + 2}"]
