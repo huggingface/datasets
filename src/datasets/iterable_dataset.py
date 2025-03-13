@@ -1042,6 +1042,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     f"The {formatting.format_type.capitalize()}-formatted {type(self).__name__} has batch_size={batch_size if batched else 1} which is"
                     f"different from {ex_iterable.batch_size=} from its underlying iterable."
                 )
+        # to enable graceful ends
+        self._owned_loops_and_tasks: list[tuple[asyncio.AbstractEventLoop, list[asyncio.Task]]] = []
 
     @property
     def iter_arrow(self):
@@ -1180,6 +1182,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 loop = asyncio.get_running_loop()
             except RuntimeError:
                 loop = asyncio.new_event_loop()
+            self._owned_loops_and_tasks.append((loop, tasks))
         else:
             loop = None
 
@@ -1263,7 +1266,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     task.cancel(msg="KeyboardInterrupt")
                 try:
                     loop.run_until_complete(asyncio.gather(*tasks))
-                except asyncio.CancelledError:
+                except (asyncio.CancelledError, ValueError):
                     logger.debug("Tasks canceled.")
             raise
 
