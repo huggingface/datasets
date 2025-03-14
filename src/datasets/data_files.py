@@ -19,7 +19,7 @@ from .splits import Split
 from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils.file_utils import _prepare_path_and_storage_options, is_local_path, is_relative_path, xbasename, xjoin
-from .utils.py_utils import glob_pattern_to_regex, string_to_dict
+from .utils.py_utils import string_to_dict
 
 
 SingleOriginMetadata = Union[tuple[str, str], tuple[str], tuple[()]]
@@ -266,7 +266,7 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], list[str]]) -> di
         if len(data_files) > 0:
             splits: set[str] = set()
             for p in data_files:
-                p_parts = string_to_dict(xbasename(p), glob_pattern_to_regex(xbasename(split_pattern)))
+                p_parts = string_to_dict(xbasename(p), xbasename(split_pattern))
                 assert p_parts is not None
                 splits.add(p_parts["split"])
 
