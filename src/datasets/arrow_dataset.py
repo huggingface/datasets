@@ -3615,7 +3615,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         task.cancel(msg="KeyboardInterrupt")
                     try:
                         loop.run_until_complete(asyncio.gather(*tasks))
-                    except asyncio.CancelledError:
+                    except (asyncio.CancelledError, ValueError):
                         logger.debug("Tasks canceled.")
                 raise
 
