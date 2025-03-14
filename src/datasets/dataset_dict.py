@@ -931,7 +931,7 @@ class DatasetDict(dict):
         """
         self._check_values_type()
         if cache_file_names is None:
-            cache_file_names = {k: None for k in self}
+            cache_file_names = dict.fromkeys(self)
 
         dataset_dict = {}
         for split, dataset in self.items():
@@ -1051,7 +1051,7 @@ class DatasetDict(dict):
         """
         self._check_values_type()
         if cache_file_names is None:
-            cache_file_names = {k: None for k in self}
+            cache_file_names = dict.fromkeys(self)
         return DatasetDict(
             {
                 k: dataset.filter(
@@ -1109,7 +1109,7 @@ class DatasetDict(dict):
         """
         self._check_values_type()
         if cache_file_names is None:
-            cache_file_names = {k: None for k in self}
+            cache_file_names = dict.fromkeys(self)
         return DatasetDict(
             {
                 k: dataset.flatten_indices(
@@ -1176,7 +1176,7 @@ class DatasetDict(dict):
         """
         self._check_values_type()
         if indices_cache_file_names is None:
-            indices_cache_file_names = {k: None for k in self}
+            indices_cache_file_names = dict.fromkeys(self)
         return DatasetDict(
             {
                 k: dataset.sort(
@@ -1254,13 +1254,13 @@ class DatasetDict(dict):
             raise ValueError("Please specify seed or seeds, but not both")
         seeds = seed if seed is not None else seeds
         if seeds is None:
-            seeds = {k: None for k in self}
+            seeds = dict.fromkeys(self)
         elif not isinstance(seeds, dict):
-            seeds = {k: seeds for k in self}
+            seeds = dict.fromkeys(self, seeds)
         if generators is None:
-            generators = {k: None for k in self}
+            generators = dict.fromkeys(self)
         if indices_cache_file_names is None:
-            indices_cache_file_names = {k: None for k in self}
+            indices_cache_file_names = dict.fromkeys(self)
         return DatasetDict(
             {
                 k: dataset.shuffle(
@@ -1326,7 +1326,7 @@ class DatasetDict(dict):
         fs, _ = url_to_fs(dataset_dict_path, **(storage_options or {}))
 
         if num_shards is None:
-            num_shards = {k: None for k in self}
+            num_shards = dict.fromkeys(self)
         elif not isinstance(num_shards, dict):
             raise ValueError(
                 "Please provide one `num_shards` per dataset in the dataset dictionary, e.g. {{'train': 128, 'test': 4}}"
@@ -1696,7 +1696,7 @@ class DatasetDict(dict):
         ```
         """
         if num_shards is None:
-            num_shards = {k: None for k in self}
+            num_shards = dict.fromkeys(self)
         elif not isinstance(num_shards, dict):
             raise ValueError(
                 "Please provide one `num_shards` per dataset in the dataset dictionary, e.g. {{'train': 128, 'test': 4}}"
