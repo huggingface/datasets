@@ -2108,6 +2108,34 @@ def cast_array_to_feature(
         )
     raise TypeError(f"Couldn't cast array of type\n{_short_str(array.type)}\nto\n{_short_str(feature)}")
 
+def embed_array_storage_audio(array_start: pa.Array, array_dur: pa.Array, array_wav: pa.Array, feature: "FeatureType"):
+    """Embed data into an arrays's storage.
+    For custom features like Audio or Image, it takes into account the "embed_storage" methods
+    they define to embed external data (e.g. an image file) into an array.
+
+    <Added version="2.4.0"/>
+
+    Args:
+        array (`pa.Array`):
+            The PyArrow array in which to embed data.
+        feature (`datasets.features.FeatureType`):
+            Array features.
+
+    Raises:
+        `TypeError`: if the target type is not supported according, e.g.
+
+            - if a field is missing
+
+    Returns:
+         array (`pyarrow.Array`): the casted array
+    """
+    from .features import Sequence
+
+    if hasattr(feature, "embed_storage_offset"):
+        return feature.embed_storage_offset(array_start, array_dur, array_wav)
+    raise TypeError(f"Couldn't embed array of type\n{_short_str(array.type)}\nwith\n{_short_str(feature)}")
+
+
 
 @_wrap_for_chunked_arrays
 def embed_array_storage(array: pa.Array, feature: "FeatureType"):
@@ -2266,12 +2294,22 @@ def embed_table_storage(table: pa.Table):
         table (`pyarrow.Table`): the table with embedded data
     """
     from .features.features import Features, require_storage_embed
-
+    from .features import Audio
+    
     features = Features.from_arrow_schema(table.schema)
-    arrays = [
-        embed_array_storage(table[name], feature) if require_storage_embed(feature) else table[name]
-        for name, feature in features.items()
-    ]
+    arrays = []
+    for name, feature in features.items():
+        if require_storage_embed(feature):
+            if isinstance(feature, Audio):
+                arrays.append(embed_array_storage_audio(table['start'], table['duration'], table[name], feature))
+            else:
+                arrays.append(embed_array_storage(table[name], feature))
+        else:
+            arrays.append(table[name])
+    # arrays = [
+    #    embed_array_storage(table[name], feature) if require_storage_embed(feature) else table[name]
+    #    for name, feature in features.items()
+    # ]
     return pa.Table.from_arrays(arrays, schema=features.arrow_schema)
 
 
