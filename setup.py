@@ -62,7 +62,7 @@ Steps to make a release:
      ```
    Check that you can install it in a virtualenv/notebook by running:
      ```
-     !pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ datasets
+     !pip install -U --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ datasets
      ```
 
 6. Upload the final version to the actual PyPI:
