@@ -2,6 +2,7 @@ import asyncio
 import copy
 import inspect
 import itertools
+import multiprocessing.pool
 import sys
 from collections import Counter
 from collections.abc import Iterable, Iterator
@@ -24,6 +25,7 @@ from .features.features import (
     Value,
     _align_features,
     _check_if_features_can_be_aligned,
+    _visit,
     cast_to_python_objects,
 )
 from .formatting import (
@@ -1010,6 +1012,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         fn_kwargs: Optional[dict] = None,
         formatting: Optional["FormattingConfig"] = None,
         features: Optional[Features] = None,
+        max_num_running_async_map_functions_in_parallel: Optional[int] = None,
     ):
         super().__init__()
         self.ex_iterable = ex_iterable
@@ -1023,6 +1026,9 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         self.fn_kwargs = fn_kwargs or {}
         self.formatting = formatting  # required for iter_arrow
         self._features = features
+        self.max_num_running_async_map_functions_in_parallel = (
+            max_num_running_async_map_functions_in_parallel or config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL
+        )
         # sanity checks
         if formatting and formatting.is_table:
             # batch_size should match for iter_arrow
@@ -1036,6 +1042,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     f"The {formatting.format_type.capitalize()}-formatted {type(self).__name__} has batch_size={batch_size if batched else 1} which is"
                     f"different from {ex_iterable.batch_size=} from its underlying iterable."
                 )
+        # to enable graceful ends
+        self._owned_loops_and_tasks: list[tuple[asyncio.AbstractEventLoop, list[asyncio.Task]]] = []
 
     @property
     def iter_arrow(self):
@@ -1174,6 +1182,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 loop = asyncio.get_running_loop()
             except RuntimeError:
                 loop = asyncio.new_event_loop()
+            self._owned_loops_and_tasks.append((loop, tasks))
         else:
             loop = None
 
@@ -1191,15 +1200,15 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     indices.append(i)
                     tasks.append(loop.create_task(async_apply_function(key_example, i)))
                     # keep the total active tasks under a certain number
-                    if len(tasks) >= config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL:
+                    if len(tasks) >= self.max_num_running_async_map_functions_in_parallel:
                         done, pending = loop.run_until_complete(
                             asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
                         )
-                        while tasks and len(pending) >= config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL:
+                        while tasks and len(pending) >= self.max_num_running_async_map_functions_in_parallel:
                             done, pending = loop.run_until_complete(
                                 asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
                             )
-                    if len(tasks) >= 10 * config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL:
+                    if len(tasks) >= 10 * self.max_num_running_async_map_functions_in_parallel:
                         loop.run_until_complete(tasks[0])
                     # yield finished tasks
                     while tasks and tasks[0].done():
@@ -1257,7 +1266,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     task.cancel(msg="KeyboardInterrupt")
                 try:
                     loop.run_until_complete(asyncio.gather(*tasks))
-                except asyncio.CancelledError:
+                except (asyncio.CancelledError, ValueError):
                     logger.debug("Tasks canceled.")
             raise
 
@@ -1347,6 +1356,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             fn_kwargs=self.fn_kwargs,
             formatting=self.formatting,
             features=self.features,
+            max_num_running_async_map_functions_in_parallel=self.max_num_running_async_map_functions_in_parallel,
         )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "MappedExamplesIterable":
@@ -1363,6 +1373,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             fn_kwargs=self.fn_kwargs,
             formatting=self.formatting,
             features=self.features,
+            max_num_running_async_map_functions_in_parallel=self.max_num_running_async_map_functions_in_parallel,
         )
 
     @property
@@ -3189,6 +3200,99 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
+    def decode(self, enable: bool = True, num_threads: int = 0) -> "IterableDataset":
+        """
+        Enable or disable the dataset features decoding for audio, image, video.
+
+        When enabled (default), media types are decoded:
+
+        * audio -> dict of "array" and "sampling_rate" and "path"
+        * image -> PIL.Image
+        * video -> torchvision.io.VideoReader
+
+        You can enable multithreading using `num_threads`. This is especially useful to speed up remote
+        data streaming. However it can be slower than `num_threads=0` for local data on fast disks.
+
+        Disabling decoding is useful if you want to iterate on the paths or bytes of the media files
+        without actually decoding their content. To disable decoding you can use `.decode(False)`, which
+        is equivalent to calling `.cast()` or `.cast_column()` with all the Audio, Image and Video types
+        set to `decode=False`.
+
+        Args:
+            enable (`bool`, defaults to `True`):
+                Enable or disable features decoding.
+            num_threads (`int`, defaults to `0`):
+                Enable multithreading for features decoding.
+
+        Returns:
+            `IterableDataset`: A copy of the dataset with casted features.
+
+        Examples:
+
+        Disable decoding:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("sshh12/planet-textures", split="train", streaming=True)
+        >>> next(iter(ds))
+        {'image': <PIL.PngImagePlugin.PngImageFile image mode=RGB size=2048x1024>,
+        'text': 'A distant celestial object with an icy crust, displaying a light blue shade, covered with round pits and rugged terrains.'}
+        >>> ds = ds.decode(False)
+        >>> ds.features
+        {'image': Image(mode=None, decode=False, id=None),
+        'text': Value(dtype='string', id=None)}
+        >>> next(iter(ds))
+        {
+          'image': {
+            'path': 'hf://datasets/sshh12/planet-textures@69dc4cef7a5c4b2cfe387727ec8ea73d4bff7302/train/textures/0000.png',
+            'bytes': None
+          },
+          'text': 'A distant celestial object with an icy crust, displaying a light blue shade, covered with round pits and rugged terrains.'
+        }
+        ```
+
+        Speed up streaming with multithreading:
+
+        ```py
+        >>> import os
+        >>> from datasets import load_dataset
+        >>> from tqdm import tqdm
+        >>> ds = load_dataset("sshh12/planet-textures", split="train", streaming=True)
+        >>> num_threads = min(32, (os.cpu_count() or 1) + 4)
+        >>> ds = ds.decode(num_threads=num_threads)
+        >>> for _ in tqdm(ds):  # 20 times faster !
+        ...     ...
+        ```
+        """
+        if not self.features:
+            raise ValueError(
+                "Features decoding is only available for datasets with known features, but features are Unknown. "
+                "Please set the datasets features with `ds = ds.cast(features)`."
+            )
+        ds = self
+
+        def set_decoding(decode: bool, feature):
+            if hasattr(feature, "decode"):
+                feature.decode = decode
+
+        if enable and num_threads > 0:
+            disabled_decoding_features = self.features.copy()
+            enabled_decoding_features = self.features.copy()
+
+            _visit(disabled_decoding_features, partial(set_decoding, False))
+            _visit(enabled_decoding_features, partial(set_decoding, True))
+            ds = ds.cast(disabled_decoding_features)
+            pool = multiprocessing.pool.ThreadPool(num_threads)
+            func = partial(_apply_async, pool, enabled_decoding_features.decode_example)
+            ds = ds.map(func, features=enabled_decoding_features)
+            assert isinstance(ds._ex_iterable, MappedExamplesIterable)
+            ds._ex_iterable.max_num_running_async_map_functions_in_parallel = 2 * num_threads
+        else:
+            features = ds.features.copy()
+            _visit(features, partial(set_decoding, enable))
+            ds = ds.cast(features)
+        return ds
+
     def _step(self, step: int, offset: int) -> "IterableDataset":
         ex_iterable = StepExamplesIterable(self._ex_iterable, step=step, offset=offset)
         return IterableDataset(
@@ -3407,3 +3511,12 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
         distributed=distributed,
         token_per_repo_id=dataset._token_per_repo_id,
     )
+
+
+async def _apply_async(pool, func, x):
+    future = pool.apply_async(func, (x,))
+    while True:
+        if future.ready():
+            return future.get()
+        else:
+            await asyncio.sleep(0)

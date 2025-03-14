@@ -2474,3 +2474,31 @@ def test_iterable_dataset_batch():
         assert len(batch["text"]) == 3
         assert batch["id"] == [3 * i, 3 * i + 1, 3 * i + 2]
         assert batch["text"] == [f"Text {3 * i}", f"Text {3 * i + 1}", f"Text {3 * i + 2}"]
+
+
+class DecodableFeature:
+    decode_example_num_calls = 0
+
+    def __init__(self):
+        self.decode = True
+
+    def decode_example(self, example, token_per_repo_id=None):
+        type(self).decode_example_num_calls += 1
+        return "decoded" if self.decode else example
+
+
+def test_decode():
+    data = [{"i": i} for i in range(10)]
+    features = Features({"i": DecodableFeature()})
+    ds = IterableDataset.from_generator(lambda: (x for x in data), features=features)
+    assert next(iter(ds)) == {"i": "decoded"}
+    assert DecodableFeature.decode_example_num_calls == 1
+    ds = ds.decode(False)
+    assert next(iter(ds)) == {"i": 0}
+    assert DecodableFeature.decode_example_num_calls == 1
+    ds = ds.decode(True)
+    assert next(iter(ds)) == {"i": "decoded"}
+    assert DecodableFeature.decode_example_num_calls == 2
+    ds = ds.decode(num_threads=1)
+    assert next(iter(ds)) == {"i": "decoded"}
+    assert DecodableFeature.decode_example_num_calls == 4
