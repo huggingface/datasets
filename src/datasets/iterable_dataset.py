@@ -212,7 +212,7 @@ class ExamplesIterable(_BaseExamplesIterable):
         self.kwargs = kwargs
 
     def _init_state_dict(self) -> dict:
-        self._state_dict = {"shard_idx": 0, "shard_example_idx": 0}
+        self._state_dict = {"shard_idx": 0, "shard_example_idx": 0, "type": self.__class__.__name__}
         return self._state_dict
 
     def __iter__(self):
@@ -250,7 +250,7 @@ class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
         self.generator = deepcopy(generator)
 
     def _init_state_dict(self) -> dict:
-        self._state_dict = {"shard_idx": 0, "shard_example_idx": 0}
+        self._state_dict = {"shard_idx": 0, "shard_example_idx": 0, "type": self.__class__.__name__}
         return self._state_dict
 
     def __iter__(self):
@@ -290,7 +290,7 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
         return self._iter_arrow
 
     def _init_state_dict(self) -> dict:
-        self._state_dict = {"shard_idx": 0, "shard_example_idx": 0}
+        self._state_dict = {"shard_idx": 0, "shard_example_idx": 0, "type": self.__class__.__name__}
         return self._state_dict
 
     def __iter__(self):
@@ -357,7 +357,7 @@ class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
         self.generator = deepcopy(generator)
 
     def _init_state_dict(self) -> dict:
-        self._state_dict = {"shard_idx": 0, "shard_example_idx": 0}
+        self._state_dict = {"shard_idx": 0, "shard_example_idx": 0, "type": self.__class__.__name__}
         return self._state_dict
 
     def __iter__(self):
@@ -437,11 +437,12 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {
-            "ex_iterable": self.ex_iterable._init_state_dict(),
+            "examples_iterable": self.ex_iterable._init_state_dict(),
             "previous_state": None,
             "batch_idx": 0,
             "num_chunks_since_previous_state": 0,
             "cropped_chunk_length": 0,
+            "type": self.__class__.__name__,
         }
         return self._state_dict
 
@@ -680,6 +681,7 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             "ex_iterables": [ex_iterable._init_state_dict() for ex_iterable in self.ex_iterables],
             "previous_states": [None] * len(self.ex_iterables),
             "is_exhausted": [False] * len(self.ex_iterables),
+            "type": self.__class__.__name__,
         }
         return self._state_dict
 
@@ -778,6 +780,7 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
         self._state_dict = {
             "ex_iterable_idx": 0,
             "ex_iterables": [ex_iterable._init_state_dict() for ex_iterable in self.ex_iterables],
+            "type": self.__class__.__name__,
         }
         return self._state_dict
 
@@ -858,7 +861,10 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
         return self.ex_iterables[0].features
 
     def _init_state_dict(self) -> dict:
-        self._state_dict = {"ex_iterables": [ex_iterable._init_state_dict() for ex_iterable in self.ex_iterables]}
+        self._state_dict = {
+            "ex_iterables": [ex_iterable._init_state_dict() for ex_iterable in self.ex_iterables],
+            "type": self.__class__.__name__,
+        }
         return self._state_dict
 
     def __iter__(self):
@@ -960,6 +966,7 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
             "ex_iterables": [ex_iterable._init_state_dict() for ex_iterable in self.ex_iterables],
             "previous_states": [None] * len(self.ex_iterables),
             "is_exhausted": [False] * len(self.ex_iterables),
+            "type": self.__class__.__name__,
         }
         return self._state_dict
 
@@ -1060,10 +1067,11 @@ class MappedExamplesIterable(_BaseExamplesIterable):
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {
-            "ex_iterable": self.ex_iterable._init_state_dict(),
+            "examples_iterable": self.ex_iterable._init_state_dict(),
             "previous_state": None,
             "num_examples_since_previous_state": 0,
             "previous_state_example_idx": 0,
+            "type": self.__class__.__name__,
         }
         return self._state_dict
 
@@ -1578,7 +1586,11 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.features
 
     def _init_state_dict(self) -> dict:
-        self._state_dict = {"skipped": False, "ex_iterable": self.ex_iterable._init_state_dict()}
+        self._state_dict = {
+            "skipped": False,
+            "examples_iterable": self.ex_iterable._init_state_dict(),
+            "type": self.__class__.__name__,
+        }
         return self._state_dict
 
     def __iter__(self):
@@ -1642,7 +1654,8 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
     def _init_state_dict(self) -> dict:
         self._state_dict = {
             "repeat_index": 0,
-            "ex_iterable": self.ex_iterable._init_state_dict(),
+            "examples_iterable": self.ex_iterable._init_state_dict(),
+            "type": self.__class__.__name__,
         }
         return self._state_dict
 
@@ -1655,7 +1668,7 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
             repeat_index += 1
             if self._state_dict:
                 self._state_dict["repeat_index"] = repeat_index
-                self._state_dict["ex_iterable"] = self.ex_iterable._init_state_dict()
+                self._state_dict["examples_iterable"] = self.ex_iterable._init_state_dict()
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "RepeatExamplesIterable":
         """Shuffle the underlying iterable, then repeat."""
@@ -1697,7 +1710,11 @@ class TakeExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.features
 
     def _init_state_dict(self) -> dict:
-        self._state_dict = {"num_taken": 0, "ex_iterable": self.ex_iterable._init_state_dict()}
+        self._state_dict = {
+            "num_taken": 0,
+            "examples_iterable": self.ex_iterable._init_state_dict(),
+            "type": self.__class__.__name__,
+        }
         return self._state_dict
 
     def __iter__(self):
@@ -1956,9 +1973,8 @@ class IterableDataset(DatasetInfoMixin):
         self._token_per_repo_id: dict[str, Union[str, bool, None]] = token_per_repo_id or {}
         self._epoch: Union[int, "torch.Tensor"] = _maybe_share_with_torch_persistent_workers(0)
         self._starting_state_dict: Optional[dict] = None
-        self._prepared_ex_iterable = self._prepare_ex_iterable_for_iteration()
-        self._state_dict = self._prepared_ex_iterable._init_state_dict()
-        _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
+        self._prepare_ex_iterable_for_iteration()  # set state_dict
+        _maybe_add_torch_iterable_dataset_parent_class(self.__class__)  # subclass of torch IterableDataset
 
     def state_dict(self) -> dict:
         """Get the current state_dict of the dataset.
@@ -2061,7 +2077,6 @@ class IterableDataset(DatasetInfoMixin):
         >>> dataloader.load_state_dict(state_dict)  # uses ds.load_state_dict() under the hood
         ```
         """
-        self._prepared_ex_iterable.load_state_dict(state_dict)
         self._starting_state_dict = state_dict
 
     def __repr__(self):
@@ -2136,9 +2151,12 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable = ex_iterable.shard_data_sources(
                 num_shards=worker_info.num_workers, index=worker_info.id, contiguous=False
             )
-            self._state_dict = ex_iterable._init_state_dict()
-            if self._starting_state_dict:
-                ex_iterable.load_state_dict(self._starting_state_dict)
+            self._state_dict = {
+                "examples_iterable": ex_iterable._init_state_dict(),
+                "epoch": self.epoch,
+            }
+            if self._starting_state_dict and self.epoch == self._starting_state_dict["epoch"]:
+                ex_iterable.load_state_dict(self._starting_state_dict["examples_iterable"])
 
             if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
                 formatter = get_formatter(self._formatting.format_type, features=self.features)
@@ -2216,9 +2234,12 @@ class IterableDataset(DatasetInfoMixin):
                 token_per_repo_id=self._token_per_repo_id,
             )
 
-        self._state_dict = ex_iterable._init_state_dict()
-        if self._starting_state_dict:
-            ex_iterable.load_state_dict(self._starting_state_dict)
+        self._state_dict = {
+            "examples_iterable": ex_iterable._init_state_dict(),
+            "epoch": self.epoch,
+        }
+        if self._starting_state_dict and self.epoch == self._starting_state_dict["epoch"]:
+            ex_iterable.load_state_dict(self._starting_state_dict["examples_iterable"])
         return ex_iterable
 
     def __iter__(self):
