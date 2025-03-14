@@ -1945,9 +1945,8 @@ class IterableDataset(DatasetInfoMixin):
         self._token_per_repo_id: dict[str, Union[str, bool, None]] = token_per_repo_id or {}
         self._epoch: Union[int, "torch.Tensor"] = _maybe_share_with_torch_persistent_workers(0)
         self._starting_state_dict: Optional[dict] = None
-        self._prepared_ex_iterable = self._prepare_ex_iterable_for_iteration()
-        self._state_dict = self._prepared_ex_iterable._init_state_dict()
-        _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
+        self._prepare_ex_iterable_for_iteration()  # set state_dict
+        _maybe_add_torch_iterable_dataset_parent_class(self.__class__)  # subclass of torch IterableDataset
 
     def state_dict(self) -> dict:
         """Get the current state_dict of the dataset.
@@ -2050,7 +2049,6 @@ class IterableDataset(DatasetInfoMixin):
         >>> dataloader.load_state_dict(state_dict)  # uses ds.load_state_dict() under the hood
         ```
         """
-        self._prepared_ex_iterable.load_state_dict(state_dict)
         self._starting_state_dict = state_dict
 
     def __repr__(self):
@@ -2125,9 +2123,12 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable = ex_iterable.shard_data_sources(
                 num_shards=worker_info.num_workers, index=worker_info.id, contiguous=False
             )
-            self._state_dict = ex_iterable._init_state_dict()
-            if self._starting_state_dict:
-                ex_iterable.load_state_dict(self._starting_state_dict)
+            self._state_dict = {
+                "examples_iterable": ex_iterable._init_state_dict(),
+                "epoch": self.epoch,
+            }
+            if self._starting_state_dict and self.epoch == self._starting_state_dict["epoch"]:
+                ex_iterable.load_state_dict(self._starting_state_dict["examples_iterable"])
 
             if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
                 formatter = get_formatter(self._formatting.format_type, features=self.features)
@@ -2205,9 +2206,12 @@ class IterableDataset(DatasetInfoMixin):
                 token_per_repo_id=self._token_per_repo_id,
             )
 
-        self._state_dict = ex_iterable._init_state_dict()
-        if self._starting_state_dict:
-            ex_iterable.load_state_dict(self._starting_state_dict)
+        self._state_dict = {
+            "examples_iterable": ex_iterable._init_state_dict(),
+            "epoch": self.epoch,
+        }
+        if self._starting_state_dict and self.epoch == self._starting_state_dict["epoch"]:
+            ex_iterable.load_state_dict(self._starting_state_dict["examples_iterable"])
         return ex_iterable
 
     def __iter__(self):
