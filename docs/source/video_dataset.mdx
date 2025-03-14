@@ -99,9 +99,9 @@ It's possible to point to more than one video in each row in your dataset, for e
 You can also define lists of videos. In that case you need to name the field `file_names` or `*_file_names`. Here is an example:
 
 ```jsonl
-{"frames_file_names": ["0001_t0.mp4", "0001_t1.mp4"], label: "moving_up"}
-{"frames_file_names": ["0002_t0.mp4", "0002_t1.mp4"], label: "moving_down"}
-{"frames_file_names": ["0003_t0.mp4", "0003_t1.mp4"], label: "moving_right"}
+{"videos_file_names": ["0001_left.mp4", "0001_right.mp4"], "label": "moving_up"}
+{"videos_file_names": ["0002_left.mp4", "0002_right.mp4"], "label": "moving_down"}
+{"videos_file_names": ["0003_left.mp4", "0003_right.mp4"], "label": "moving_right"}
 ```
 
 ### Video captioning
