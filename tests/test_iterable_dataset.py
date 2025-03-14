@@ -1581,6 +1581,17 @@ def test_iterable_dataset_set_epoch(dataset: IterableDataset):
     assert dataset._epoch == 42
 
 
+def test_iterable_dataset_set_epoch_resuming(dataset: IterableDataset):
+    dataset_length = len(list(dataset))
+    assert len(list(dataset)) == dataset_length > 0
+    dataset.load_state_dict(dataset.state_dict())
+    assert len(list(dataset)) == 0
+    dataset.set_epoch(1)
+    assert len(list(dataset)) == dataset_length > 0
+    dataset.load_state_dict(dataset.state_dict())
+    assert len(list(dataset)) == 0
+
+
 @pytest.mark.parametrize("seed", [None, 42, 1337])
 @pytest.mark.parametrize("epoch", [None, 0, 1, 10])
 def test_iterable_dataset_set_epoch_of_shuffled_dataset(dataset: IterableDataset, seed, epoch):
