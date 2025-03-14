@@ -62,7 +62,7 @@ Steps to make a release:
      ```
    Check that you can install it in a virtualenv/notebook by running:
      ```
-     !pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ datasets
+     !pip install -U --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ datasets
      ```
 
 6. Upload the final version to the actual PyPI:
@@ -234,7 +234,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="3.3.3.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="3.4.0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
