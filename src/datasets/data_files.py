@@ -113,7 +113,7 @@ FILES_TO_IGNORE = [
 
 
 def contains_wildcards(pattern: str) -> bool:
-    return any(wilcard_character in pattern for wilcard_character in WILDCARD_CHARACTERS)
+    return any(wildcard_character in pattern for wildcard_character in WILDCARD_CHARACTERS)
 
 
 def sanitize_patterns(patterns: Union[dict, list, str]) -> dict[str, Union[list[str], "DataFilesList"]]:
@@ -156,7 +156,7 @@ def sanitize_patterns(patterns: Union[dict, list, str]) -> dict[str, Union[list[
 
 def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> bool:
     """
-    When a path matches a pattern, we additionnally check if it's inside a special directory
+    When a path matches a pattern, we additionally check if it's inside a special directory
     we ignore by default (if it starts with a double underscore).
 
     Users can still explicitly request a filepath inside such a directory if "__pycache__" is
@@ -179,7 +179,7 @@ def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> b
     >>> _is_inside_unrequested_special_dir("__pycache__/b.txt", "__*/*")
     False
     """
-    # We just need to check if every special directories from the path is present explicly in the pattern.
+    # We just need to check if every special directories from the path is present explicitly in the pattern.
     # Since we assume that the path matches the pattern, it's equivalent to counting that both
     # the parent path and the parent pattern have the same number of special directories.
     data_dirs_to_ignore_in_path = [part for part in PurePath(matched_rel_path).parent.parts if part.startswith("__")]
@@ -189,7 +189,7 @@ def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> b
 
 def _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(matched_rel_path: str, pattern: str) -> bool:
     """
-    When a path matches a pattern, we additionnally check if it's a hidden file or if it's inside
+    When a path matches a pattern, we additionally check if it's a hidden file or if it's inside
     a hidden directory we ignore by default, i.e. if the file name or a parent directory name starts with a dot.
 
     Users can still explicitly request a filepath that is hidden or is inside a hidden directory
@@ -237,7 +237,7 @@ def _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(matched_rel_
     >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/.hidden_file.txt", ".hidden_dir/.*")
     False
     """
-    # We just need to check if every hidden part from the path is present explicly in the pattern.
+    # We just need to check if every hidden part from the path is present explicitly in the pattern.
     # Since we assume that the path matches the pattern, it's equivalent to counting that both
     # the path and the pattern have the same number of hidden parts.
     hidden_directories_in_path = [
@@ -318,7 +318,7 @@ def resolve_pattern(
 
     Hidden files and directories (i.e. whose names start with a dot) are ignored, unless they are explicitly requested.
     The same applies to special directories that start with a double underscore like "__pycache__".
-    You can still include one if the pattern explicilty mentions it:
+    You can still include one if the pattern explicitly mentions it:
     - to include a hidden file: "*/.hidden.txt" or "*/.*"
     - to include a hidden directory: ".hidden/*" or ".*/*"
     - to include a special directory: "__special__/*" or "__*/*"
