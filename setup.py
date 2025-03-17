@@ -146,6 +146,7 @@ AUDIO_REQUIRE = [
 
 VISION_REQUIRE = [
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
+    "openexr_numpy>=0.0.6", # for EXR format support for depth
 ]
 
 BENCHMARKS_REQUIRE = [

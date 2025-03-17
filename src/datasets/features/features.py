@@ -42,6 +42,7 @@ from ..utils import experimental, logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
+from .exr import Exr
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video
 
@@ -1205,6 +1206,7 @@ FeatureType = Union[
     Array4D,
     Array5D,
     Audio,
+    Exr,
     Image,
     Video,
 ]
@@ -1421,6 +1423,7 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     Array5D.__name__: Array5D,
     Audio.__name__: Audio,
     Image.__name__: Image,
+    Exr.__name__: Exr,
     Video.__name__: Video,
 }
 
