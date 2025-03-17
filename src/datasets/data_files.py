@@ -597,10 +597,10 @@ class DataFilesList(list[str]):
         self, *, extensions: Optional[list[str]] = None, file_names: Optional[list[str]] = None
     ) -> "DataFilesList":
         patterns = []
-        if extensions is not None:
+        if extensions:
             ext_pattern = "|".join(re.escape(ext) for ext in extensions)
             patterns.append(re.compile(f".*({ext_pattern})(\\..+)?$"))
-        if file_names is not None:
+        if file_names:
             fn_pattern = "|".join(re.escape(fn) for fn in file_names)
             patterns.append(re.compile(rf".*[\/]?({fn_pattern})$"))
         if patterns:
