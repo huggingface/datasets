@@ -51,17 +51,15 @@ third_audio_file.mp3,pewnie kędyś w obłędzie ubite minęły szlaki zaczekajm
 ```py
 >>> from datasets import load_dataset
 
->>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder")
->>> # OR by specifying the list of files
->>> dataset = load_dataset("audiofolder", data_files=["path/to/audio_1", "path/to/audio_2", ..., "path/to/audio_n"])
+>>> dataset = load_dataset("username/dataset_name")
+>>> # OR locally:
+>>> dataset = load_dataset("/path/to/folder")
 ```
 
-You can load remote datasets from their URLs with the data_files parameter:
+For local datasets, this is equivalent to passing `audiofolder` manually in [`load_dataset`] and the directory in `data_dir`:
 
 ```py
->>> dataset = load_dataset("audiofolder", data_files=["https://foo.bar/audio_1", "https://foo.bar/audio_2", ..., "https://foo.bar/audio_n"]
->>> # for example, pass SpeechCommands archive:
->>> dataset = load_dataset("audiofolder", data_files="https://s3.amazonaws.com/datasets.huggingface.co/SpeechCommands/v0.01/v0.01_test.tar.gz")
+>>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder")
 ```
 
 Metadata can also be specified as JSON Lines, in which case use `metadata.jsonl` as the name of the metadata file. This format is helpful in scenarios when one of the columns is complex, e.g. a list of floats, to avoid parsing errors or reading the complex values as strings.
@@ -71,7 +69,7 @@ To ignore the information in the metadata file, set `drop_metadata=True` in [`lo
 ```py
 >>> from datasets import load_dataset
 
->>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder", drop_metadata=True)
+>>> dataset = load_dataset("username/dataset_with_metadata", drop_metadata=True)
 ```
 
 If you don't have a metadata file, `AudioFolder` automatically infers the label name from the directory name.
@@ -81,7 +79,14 @@ In this case, your dataset will only contain an audio column:
 ```py
 >>> from datasets import load_dataset
 
->>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder_without_metadata", drop_labels=True)
+>>> dataset = load_dataset("username/dataset_without_metadata", drop_labels=True)
+```
+
+Finally the `filters` argument lets you load only a subset of the dataset, based on a condition on the label or the metadata. This is especially useful if the metadata is in Parquet format, since this format enables fast filtering. It is also recommended to use this argument with `streaming=True`, because by default the dataset is fully downloaded before filtering.
+
+```python
+>>> filters = [("label", "=", 0)]
+>>> dataset = load_dataset("username/dataset_name", streaming=True, filters=filters)
 ```
 
 <Tip>
@@ -91,3 +96,27 @@ For more information about creating your own `AudioFolder` dataset, take a look 
 </Tip>
 
 For a guide on how to load any type of dataset, take a look at the <a class="underline decoration-sky-400 decoration-2 font-semibold" href="./loading">general loading guide</a>.
+
+## Audio decoding
+
+By default, audio files are decoded sequentially as NumPy arrays when you iterate on a dataset.
+However it is possible to speed up the dataset significantly using multithreaded decoding:
+
+```python
+>>> import os
+>>> num_threads = num_threads = min(32, (os.cpu_count() or 1) + 4)
+>>> dataset = dataset.decode(num_threads=num_threads)
+>>> for example in dataset:  # up to 20 times faster !
+...     ...
+```
+
+You can enable multithreading using `num_threads`. This is especially useful to speed up remote data streaming.
+However it can be slower than `num_threads=0` for local data on fast disks.
+
+If you are not interested in the images decoded as NumPy arrays and would like to access the path/bytes instead, you can disable decoding:
+
+```python
+>>> dataset = dataset.decode(False)
+```
+
+Note: [`IterableDataset.decode`] is only available for streaming datasets at the moment.

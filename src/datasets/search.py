@@ -2,7 +2,7 @@ import importlib.util
 import os
 import tempfile
 from pathlib import PurePath
-from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
+from typing import TYPE_CHECKING, NamedTuple, Optional, Union
 
 import fsspec
 import numpy as np
@@ -38,23 +38,23 @@ class MissingIndex(Exception):
 
 
 class SearchResults(NamedTuple):
-    scores: List[float]
-    indices: List[int]
+    scores: list[float]
+    indices: list[int]
 
 
 class BatchedSearchResults(NamedTuple):
-    total_scores: List[List[float]]
-    total_indices: List[List[int]]
+    total_scores: list[list[float]]
+    total_indices: list[list[int]]
 
 
 class NearestExamplesResults(NamedTuple):
-    scores: List[float]
+    scores: list[float]
     examples: dict
 
 
 class BatchedNearestExamplesResults(NamedTuple):
-    total_scores: List[List[float]]
-    total_examples: List[dict]
+    total_scores: list[list[float]]
+    total_examples: list[dict]
 
 
 class BaseIndex:
@@ -143,7 +143,7 @@ class ElasticSearchIndex(BaseIndex):
             }
         )
 
-    def add_documents(self, documents: Union[List[str], "Dataset"], column: Optional[str] = None):
+    def add_documents(self, documents: Union[list[str], "Dataset"], column: Optional[str] = None):
         """
         Add documents to the index.
         If the documents are inside a certain column, you can specify it using the `column` argument.
@@ -175,7 +175,7 @@ class ElasticSearchIndex(BaseIndex):
             successes += ok
         if successes != len(documents):
             logger.warning(
-                f"Some documents failed to be added to ElasticSearch. Failures: {len(documents)-successes}/{len(documents)}"
+                f"Some documents failed to be added to ElasticSearch. Failures: {len(documents) - successes}/{len(documents)}"
             )
         logger.info(f"Indexed {successes:d} documents")
 
@@ -224,7 +224,7 @@ class FaissIndex(BaseIndex):
 
     def __init__(
         self,
-        device: Optional[Union[int, List[int]]] = None,
+        device: Optional[Union[int, list[int]]] = None,
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
         custom_index: Optional["faiss.Index"] = None,
@@ -313,7 +313,7 @@ class FaissIndex(BaseIndex):
             self.faiss_index.add(vecs)
 
     @staticmethod
-    def _faiss_index_to_device(index: "faiss.Index", device: Optional[Union[int, List[int]]] = None) -> "faiss.Index":
+    def _faiss_index_to_device(index: "faiss.Index", device: Optional[Union[int, list[int]]] = None) -> "faiss.Index":
         """
         Sends a faiss index to a device.
         A device can either be a positive integer (GPU id), a negative integer (all GPUs),
@@ -384,7 +384,7 @@ class FaissIndex(BaseIndex):
         scores, indices = self.faiss_index.search(queries, k, **kwargs)
         return BatchedSearchResults(scores, indices.astype(int))
 
-    def save(self, file: Union[str, PurePath], storage_options: Optional[Dict] = None):
+    def save(self, file: Union[str, PurePath], storage_options: Optional[dict] = None):
         """Serialize the FaissIndex on disk"""
         import faiss  # noqa: F811
 
@@ -400,8 +400,8 @@ class FaissIndex(BaseIndex):
     def load(
         cls,
         file: Union[str, PurePath],
-        device: Optional[Union[int, List[int]]] = None,
-        storage_options: Optional[Dict] = None,
+        device: Optional[Union[int, list[int]]] = None,
+        storage_options: Optional[dict] = None,
     ) -> "FaissIndex":
         """Deserialize the FaissIndex from disk"""
         import faiss  # noqa: F811
@@ -418,7 +418,7 @@ class IndexableMixin:
     """Add indexing features to `datasets.Dataset`"""
 
     def __init__(self):
-        self._indexes: Dict[str, BaseIndex] = {}
+        self._indexes: dict[str, BaseIndex] = {}
 
     def __len__(self):
         raise NotImplementedError
@@ -435,7 +435,7 @@ class IndexableMixin:
                 f"Index with index_name '{index_name}' not initialized yet. Please make sure that you call `add_faiss_index` or `add_elasticsearch_index` first."
             )
 
-    def list_indexes(self) -> List[str]:
+    def list_indexes(self) -> list[str]:
         """List the `colindex_nameumns`/identifiers of all the attached indexes."""
         return list(self._indexes)
 
@@ -455,7 +455,7 @@ class IndexableMixin:
         self,
         column: str,
         index_name: Optional[str] = None,
-        device: Optional[Union[int, List[int]]] = None,
+        device: Optional[Union[int, list[int]]] = None,
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
         custom_index: Optional["faiss.Index"] = None,
@@ -496,7 +496,7 @@ class IndexableMixin:
         self,
         external_arrays: np.array,
         index_name: str,
-        device: Optional[Union[int, List[int]]] = None,
+        device: Optional[Union[int, list[int]]] = None,
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
         custom_index: Optional["faiss.Index"] = None,
@@ -532,7 +532,7 @@ class IndexableMixin:
         )
         self._indexes[index_name] = faiss_index
 
-    def save_faiss_index(self, index_name: str, file: Union[str, PurePath], storage_options: Optional[Dict] = None):
+    def save_faiss_index(self, index_name: str, file: Union[str, PurePath], storage_options: Optional[dict] = None):
         """Save a FaissIndex on disk.
 
         Args:
@@ -554,8 +554,8 @@ class IndexableMixin:
         self,
         index_name: str,
         file: Union[str, PurePath],
-        device: Optional[Union[int, List[int]]] = None,
-        storage_options: Optional[Dict] = None,
+        device: Optional[Union[int, list[int]]] = None,
+        storage_options: Optional[dict] = None,
     ):
         """Load a FaissIndex from disk.
 
@@ -711,7 +711,7 @@ class IndexableMixin:
         return self._indexes[index_name].search(query, k, **kwargs)
 
     def search_batch(
-        self, index_name: str, queries: Union[List[str], np.array], k: int = 10, **kwargs
+        self, index_name: str, queries: Union[list[str], np.array], k: int = 10, **kwargs
     ) -> BatchedSearchResults:
         """Find the nearest examples indices in the dataset to the query.
 
@@ -757,7 +757,7 @@ class IndexableMixin:
         return NearestExamplesResults(scores[: len(top_indices)], self[top_indices])
 
     def get_nearest_examples_batch(
-        self, index_name: str, queries: Union[List[str], np.array], k: int = 10, **kwargs
+        self, index_name: str, queries: Union[list[str], np.array], k: int = 10, **kwargs
     ) -> BatchedNearestExamplesResults:
         """Find the nearest examples in the dataset to the query.
 

@@ -12,7 +12,7 @@ Use the [`load_dataset_builder`] function to load a dataset builder and inspect 
 
 ```py
 >>> from datasets import load_dataset_builder
->>> ds_builder = load_dataset_builder("rotten_tomatoes")
+>>> ds_builder = load_dataset_builder("cornell-movie-review-data/rotten_tomatoes")
 
 # Inspect dataset description
 >>> ds_builder.info.description
@@ -20,7 +20,7 @@ Movie Review Dataset. This is a dataset of containing 5,331 positive and 5,331 n
 
 # Inspect dataset features
 >>> ds_builder.info.features
-{'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+{'label': ClassLabel(names=['neg', 'pos'], id=None),
  'text': Value(dtype='string', id=None)}
 ```
 
@@ -29,7 +29,7 @@ If you're happy with the dataset, then load it with [`load_dataset`]:
 ```py
 >>> from datasets import load_dataset
 
->>> dataset = load_dataset("rotten_tomatoes", split="train")
+>>> dataset = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
 ```
 
 ## Splits
@@ -39,7 +39,7 @@ A split is a specific subset of a dataset like `train` and `test`. List a datase
 ```py
 >>> from datasets import get_dataset_split_names
 
->>> get_dataset_split_names("rotten_tomatoes")
+>>> get_dataset_split_names("cornell-movie-review-data/rotten_tomatoes")
 ['train', 'validation', 'test']
 ```
 
@@ -48,7 +48,7 @@ Then you can load a specific split with the `split` parameter. Loading a dataset
 ```py
 >>> from datasets import load_dataset
 
->>> dataset = load_dataset("rotten_tomatoes", split="train")
+>>> dataset = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
 >>> dataset
 Dataset({
     features: ['text', 'label'],
@@ -61,7 +61,7 @@ If you don't specify a `split`, 🤗 Datasets returns a [`DatasetDict`] object i
 ```py
 >>> from datasets import load_dataset
 
->>> dataset = load_dataset("rotten_tomatoes")
+>>> dataset = load_dataset("cornell-movie-review-data/rotten_tomatoes")
 DatasetDict({
     train: Dataset({
         features: ['text', 'label'],

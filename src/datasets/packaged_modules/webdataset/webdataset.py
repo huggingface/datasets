@@ -2,7 +2,7 @@ import io
 import json
 import re
 from itertools import islice
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable
 
 import fsspec
 import numpy as np
@@ -18,10 +18,10 @@ logger = datasets.utils.logging.get_logger(__name__)
 
 class WebDataset(datasets.GeneratorBasedBuilder):
     DEFAULT_WRITER_BATCH_SIZE = 100
-    IMAGE_EXTENSIONS: List[str]  # definition at the bottom of the script
-    AUDIO_EXTENSIONS: List[str]  # definition at the bottom of the script
-    VIDEO_EXTENSIONS: List[str]  # definition at the bottom of the script
-    DECODERS: Dict[str, Callable[[Any], Any]]  # definition at the bottom of the script
+    IMAGE_EXTENSIONS: list[str]  # definition at the bottom of the script
+    AUDIO_EXTENSIONS: list[str]  # definition at the bottom of the script
+    VIDEO_EXTENSIONS: list[str]  # definition at the bottom of the script
+    DECODERS: dict[str, Callable[[Any], Any]]  # definition at the bottom of the script
     NUM_EXAMPLES_FOR_FEATURES_INFERENCE = 5
 
     @classmethod
@@ -34,6 +34,9 @@ class WebDataset(datasets.GeneratorBasedBuilder):
             if example_key is None:
                 continue
             if current_example and current_example["__key__"] != example_key:
+                # reposition some keys in last position
+                current_example["__key__"] = current_example.pop("__key__")
+                current_example["__url__"] = current_example.pop("__url__")
                 yield current_example
                 current_example = {}
             current_example["__key__"] = example_key

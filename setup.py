@@ -62,9 +62,7 @@ Steps to make a release:
      ```
    Check that you can install it in a virtualenv/notebook by running:
      ```
-     pip install huggingface-hub fsspec aiohttp
-     pip install -U tqdm pyarrow
-     pip install -i https://testpypi.python.org/pypi datasets
+     !pip install -U --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ datasets
      ```
 
 6. Upload the final version to the actual PyPI:
@@ -129,11 +127,11 @@ REQUIRED_PKGS = [
     "multiprocess<0.70.17",  # to align with dill<0.3.9 (see above)
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0,<=2024.9.0",
+    "fsspec[http]>=2023.1.0,<=2024.12.0",
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface-hub>=0.23.0",
+    "huggingface-hub>=0.24.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -166,7 +164,7 @@ TESTS_REQUIRE = [
     "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
-    "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
+    "elasticsearch>=7.17.12,<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch(); 7.9.1 has legacy numpy.float_ which was fixed in https://github.com/elastic/elasticsearch-py/pull/2551.
     "faiss-cpu>=1.8.0.post1",  # Pins numpy < 2
     "jax>=0.3.14; sys_platform != 'win32'",
     "jaxlib>=0.3.14; sys_platform != 'win32'",
@@ -187,7 +185,8 @@ TESTS_REQUIRE = [
     "transformers>=4.42.0",  # Pins numpy < 2
     "zstandard",
     "polars[timezone]>=0.20.0",
-    "decord==0.6.0",
+    "torchvision",
+    "pyav",
 ]
 
 
@@ -235,7 +234,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="3.1.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="3.4.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
@@ -251,7 +250,7 @@ setup(
         "datasets.utils.resources": ["*.json", "*.yaml", "*.tsv"],
     },
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
-    python_requires=">=3.8.0",
+    python_requires=">=3.9.0",
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
     classifiers=[
@@ -262,7 +261,6 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",

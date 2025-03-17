@@ -1,3 +1,4 @@
+import os
 import time
 from dataclasses import dataclass
 from multiprocessing import Pool
@@ -13,6 +14,7 @@ from datasets.utils.py_utils import (
     asdict,
     iflatmap_unordered,
     map_nested,
+    string_to_dict,
     temp_seed,
     temporary_assignment,
     zip_dict,
@@ -116,9 +118,10 @@ class PyUtilsTest(TestCase):
     ],
 )
 def test_map_nested_num_proc(iterable_length, num_proc, expected_num_proc):
-    with patch("datasets.utils.py_utils._single_map_nested") as mock_single_map_nested, patch(
-        "datasets.parallel.parallel.Pool"
-    ) as mock_multiprocessing_pool:
+    with (
+        patch("datasets.utils.py_utils._single_map_nested") as mock_single_map_nested,
+        patch("datasets.parallel.parallel.Pool") as mock_multiprocessing_pool,
+    ):
         data_struct = {f"{i}": i for i in range(iterable_length)}
         _ = map_nested(lambda x: x + 10, data_struct, num_proc=num_proc, parallel_min_length=16)
         if expected_num_proc == 1:
@@ -266,3 +269,21 @@ def test_iflatmap_unordered():
         assert out.count("a") == 2
         assert out.count("b") == 2
         assert len(out) == 4
+
+
+def test_string_to_dict():
+    file_name = "dataset/cache-3b163736cf4505085d8b5f9b4c266c26.arrow"
+    file_name_prefix, file_name_ext = os.path.splitext(file_name)
+
+    suffix_template = "_{rank:05d}_of_{num_proc:05d}"
+    cache_file_name_pattern = file_name_prefix + suffix_template + file_name_ext
+
+    file_name_parts = string_to_dict(file_name, cache_file_name_pattern)
+    assert file_name_parts is None
+
+    rank = 1
+    num_proc = 2
+    file_name = file_name_prefix + suffix_template.format(rank=rank, num_proc=num_proc) + file_name_ext
+    file_name_parts = string_to_dict(file_name, cache_file_name_pattern)
+    assert file_name_parts is not None
+    assert file_name_parts == {"rank": f"{rank:05d}", "num_proc": f"{num_proc:05d}"}

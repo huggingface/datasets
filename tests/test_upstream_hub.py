@@ -242,8 +242,9 @@ class TestPushToHub:
         with temporary_repo() as ds_name:
             self._api.create_repo(ds_name, token=self._token, repo_type="dataset")
             num_commits_before_push = len(self._api.list_repo_commits(ds_name, repo_type="dataset", token=self._token))
-            with patch("datasets.config.MAX_SHARD_SIZE", "16KB"), patch(
-                "datasets.config.UPLOADS_MAX_NUMBER_PER_COMMIT", 1
+            with (
+                patch("datasets.config.MAX_SHARD_SIZE", "16KB"),
+                patch("datasets.config.UPLOADS_MAX_NUMBER_PER_COMMIT", 1),
             ):
                 local_ds.push_to_hub(ds_name, token=self._token)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")

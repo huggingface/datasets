@@ -24,13 +24,14 @@ import queue
 import re
 import types
 import warnings
+from collections.abc import Iterable
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
 from multiprocessing import Manager
 from pathlib import Path
 from queue import Empty
 from shutil import disk_usage
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, TypeVar, Union
+from typing import Any, Callable, Optional, TypeVar, Union
 from urllib.parse import urlparse
 
 import multiprocess
@@ -52,8 +53,10 @@ from ._filelock import FileLock
 
 
 try:  # pragma: no branch
+    from typing import Final
+
     import typing_extensions as _typing_extensions
-    from typing_extensions import Final, Literal
+    from typing_extensions import Literal
 except ImportError:
     _typing_extensions = Literal = Final = None
 
@@ -156,7 +159,7 @@ def glob_pattern_to_regex(pattern):
     )
 
 
-def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
+def string_to_dict(string: str, pattern: str) -> Optional[dict[str, str]]:
     """Un-format a string using a python f-string pattern.
     From https://stackoverflow.com/a/36838374
 
@@ -174,15 +177,14 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
         pattern (str): pattern formatted like a python f-string
 
     Returns:
-        Dict[str, str]: dictionary of variable -> value, retrieved from the input using the pattern
-
-    Raises:
-        ValueError: if the string doesn't match the pattern
+        Optional[dict[str, str]]: dictionary of variable -> value, retrieved from the input using the pattern, or
+        `None` if the string does not match the pattern.
     """
+    pattern = re.sub(r"{([^:}]+)(?::[^}]+)?}", r"{\1}", pattern)  # remove format specifiers, e.g. {rank:05d} -> {rank}
     regex = re.sub(r"{(.+?)}", r"(?P<_\1>.+)", pattern)
     result = re.search(regex, string)
     if result is None:
-        raise ValueError(f"String {string} doesn't match the pattern {pattern}")
+        return None
     values = list(result.groups())
     keys = re.findall(r"{(.+?)}", pattern)
     _dict = dict(zip(keys, values))
@@ -564,7 +566,7 @@ def has_sufficient_disk_space(needed_bytes, directory="."):
     return needed_bytes < free_bytes
 
 
-def _convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
+def _convert_github_url(url_path: str) -> tuple[str, Optional[str]]:
     """Convert a link to a file on a github repo in a link to the raw github object."""
     parsed = urlparse(url_path)
     sub_directory = None
@@ -592,7 +594,7 @@ def lock_importable_file(importable_local_file: str) -> FileLock:
     return FileLock(lock_path)
 
 
-def get_imports(file_path: str) -> Tuple[str, str, str, str]:
+def get_imports(file_path: str) -> tuple[str, str, str, str]:
     """Find whether we should import or clone additional files for a given processing script.
         And list the import.
 
@@ -617,7 +619,7 @@ def get_imports(file_path: str) -> Tuple[str, str, str, str]:
         lines.extend(f.readlines())
 
     logger.debug(f"Checking {file_path} for additional imports.")
-    imports: List[Tuple[str, str, str, Optional[str]]] = []
+    imports: list[tuple[str, str, str, Optional[str]]] = []
     is_in_docstring = False
     for line in lines:
         docstr_start_match = re.findall(r'[\s\S]*?"""[\s\S]*?', line)
@@ -680,7 +682,7 @@ def _write_generator_to_queue(queue: queue.Queue, func: Callable[..., Iterable[Y
     return i
 
 
-def _get_pool_pid(pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool]) -> Set[int]:
+def _get_pool_pid(pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool]) -> set[int]:
     return {f.pid for f in pool._pool}
 
 
@@ -721,7 +723,7 @@ def iflatmap_unordered(
 T = TypeVar("T")
 
 
-def iter_batched(iterable: Iterable[T], n: int) -> Iterable[List[T]]:
+def iter_batched(iterable: Iterable[T], n: int) -> Iterable[list[T]]:
     if n < 1:
         raise ValueError(f"Invalid batch size {n}")
     batch = []

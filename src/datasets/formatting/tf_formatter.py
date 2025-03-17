@@ -30,8 +30,8 @@ if TYPE_CHECKING:
 
 
 class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
-    def __init__(self, features=None, **tf_tensor_kwargs):
-        super().__init__(features=features)
+    def __init__(self, features=None, token_per_repo_id=None, **tf_tensor_kwargs):
+        super().__init__(features=features, token_per_repo_id=token_per_repo_id)
         self.tf_tensor_kwargs = tf_tensor_kwargs
         import tensorflow as tf  # noqa: F401 - import tf at initialization
 
@@ -70,18 +70,11 @@ class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
 
             if isinstance(value, PIL.Image.Image):
                 value = np.asarray(value)
-        if config.DECORD_AVAILABLE and "decord" in sys.modules:
-            # We need to import torch first, otherwise later it can cause issues
-            # e.g. "RuntimeError: random_device could not be read"
-            # when running `torch.tensor(value).share_memory_()`
-            if config.TORCH_AVAILABLE:
-                import torch  # noqa
-            from decord import VideoReader
-            from decord.bridge import to_tensorflow
+        if config.TORCHVISION_AVAILABLE and "torchvision" in sys.modules:
+            from torchvision.io import VideoReader
 
             if isinstance(value, VideoReader):
-                value._hf_bridge_out = to_tensorflow
-                return value
+                return value  # TODO(QL): set output to tf tensors ?
 
         return tf.convert_to_tensor(value, **{**default_dtype, **self.tf_tensor_kwargs})
 

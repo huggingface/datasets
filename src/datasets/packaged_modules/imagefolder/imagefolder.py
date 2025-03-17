@@ -1,5 +1,3 @@
-from typing import List
-
 import datasets
 
 from ..folder_based_builder import folder_based_builder
@@ -22,7 +20,7 @@ class ImageFolder(folder_based_builder.FolderBasedBuilder):
     BASE_FEATURE = datasets.Image
     BASE_COLUMN_NAME = "image"
     BUILDER_CONFIG_CLASS = ImageFolderConfig
-    EXTENSIONS: List[str]  # definition at the bottom of the script
+    EXTENSIONS: list[str]  # definition at the bottom of the script
 
 
 # Obtained with:
@@ -57,8 +55,8 @@ IMAGE_EXTENSIONS = [
     ".gbr",
     ".gif",
     ".grib",
-    ".h5",
-    ".hdf",
+    # ".h5",   # may contain zero or several images
+    # ".hdf",  # may contain zero or several images
     ".png",
     ".apng",
     ".jp2",

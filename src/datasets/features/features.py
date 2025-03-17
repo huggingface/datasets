@@ -21,11 +21,11 @@ import re
 import sys
 from collections.abc import Iterable, Mapping
 from collections.abc import Sequence as SequenceABC
+from collections.abc import Sequence as Sequence_
 from dataclasses import InitVar, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
-from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, Union
-from typing import Sequence as Sequence_
+from typing import Any, Callable, ClassVar, Literal, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -265,7 +265,7 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
     )
 
 
-def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_casting: bool) -> Tuple[Any, bool]:
+def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_casting: bool) -> tuple[Any, bool]:
     """
     Cast pytorch/tensorflow/pandas objects to python numpy array/lists.
     It works recursively.
@@ -399,12 +399,15 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             output[k] = casted_v
         return output if has_changed else obj, has_changed
     elif hasattr(obj, "__array__"):
-        return (
-            _cast_to_python_objects(
-                obj.__array__(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-            )[0],
-            True,
-        )
+        if np.isscalar(obj):
+            return obj, False
+        else:
+            return (
+                _cast_to_python_objects(
+                    obj.__array__(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0],
+                True,
+            )
     elif isinstance(obj, (list, tuple)):
         if len(obj) > 0:
             for first_elmt in obj:
@@ -967,22 +970,22 @@ class ClassLabel:
     Example:
 
     ```py
-    >>> from datasets import Features
+    >>> from datasets import Features, ClassLabel
     >>> features = Features({'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'])})
     >>> features
-    {'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'], id=None)}
+    {'label': ClassLabel(names=['bad', 'ok', 'good'], id=None)}
     ```
     """
 
     num_classes: InitVar[Optional[int]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
-    names: List[str] = None
+    names: list[str] = None
     names_file: InitVar[Optional[str]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "int64"
     pa_type: ClassVar[Any] = pa.int64()
-    _str2int: ClassVar[Dict[str, int]] = None
-    _int2str: ClassVar[Dict[int, int]] = None
+    _str2int: ClassVar[dict[str, int]] = None
+    _int2str: ClassVar[dict[int, int]] = None
     _type: str = field(default="ClassLabel", init=False, repr=False)
 
     def __post_init__(self, num_classes, names_file):
@@ -1024,7 +1027,7 @@ class ClassLabel:
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
         >>> ds.features["label"].str2int('neg')
         0
         ```
@@ -1071,7 +1074,7 @@ class ClassLabel:
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
         >>> ds.features["label"].int2str(0)
         'neg'
         ```
@@ -1157,7 +1160,7 @@ class Sequence:
     >>> from datasets import Features, Sequence, Value, ClassLabel
     >>> features = Features({'post': Sequence(feature={'text': Value(dtype='string'), 'upvotes': Value(dtype='int32'), 'label': ClassLabel(num_classes=2, names=['hot', 'cold'])})})
     >>> features
-    {'post': Sequence(feature={'text': Value(dtype='string', id=None), 'upvotes': Value(dtype='int32', id=None), 'label': ClassLabel(num_classes=2, names=['hot', 'cold'], id=None)}, length=-1, id=None)}
+    {'post': Sequence(feature={'text': Value(dtype='string', id=None), 'upvotes': Value(dtype='int32', id=None), 'label': ClassLabel(names=['hot', 'cold'], id=None)}, length=-1, id=None)}
     ```
     """
 
@@ -1343,20 +1346,20 @@ def encode_nested_example(schema, obj, level=0):
                         break
                 # be careful when comparing tensors here
                 if (
-                    not isinstance(first_elmt, list)
+                    not (isinstance(first_elmt, list) or np.isscalar(first_elmt))
                     or encode_nested_example(schema.feature, first_elmt, level=level + 1) != first_elmt
                 ):
                     return [encode_nested_example(schema.feature, o, level=level + 1) for o in obj]
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, (Audio, Image, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD, Video)):
+    elif hasattr(schema, "encode_example"):
         return schema.encode_example(obj) if obj is not None else None
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
     return obj
 
 
-def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
+def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
     """Decode a nested example.
     This is used since some features (in particular Audio and Image) have some logic during decoding.
 
@@ -1401,14 +1404,13 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
         else:
             return decode_nested_example([schema.feature], obj)
     # Object with special decoding:
-    elif isinstance(schema, (Audio, Image, Exr, Video)):
+    elif hasattr(schema, "decode_example") and getattr(schema, "decode", True):
         # we pass the token to read and decode files from private repositories in streaming mode
-        if obj is not None and schema.decode:
-            return schema.decode_example(obj, token_per_repo_id=token_per_repo_id)
+        return schema.decode_example(obj, token_per_repo_id=token_per_repo_id) if obj is not None else None
     return obj
 
 
-_FEATURE_TYPES: Dict[str, FeatureType] = {
+_FEATURE_TYPES: dict[str, FeatureType] = {
     Value.__name__: Value,
     ClassLabel.__name__: ClassLabel,
     Translation.__name__: Translation,
@@ -1520,7 +1522,7 @@ def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.
     return values
 
 
-def list_of_pa_arrays_to_pyarrow_listarray(l_arr: List[Optional[pa.Array]]) -> pa.ListArray:
+def list_of_pa_arrays_to_pyarrow_listarray(l_arr: list[Optional[pa.Array]]) -> pa.ListArray:
     null_mask = np.array([arr is None for arr in l_arr])
     null_indices = np.arange(len(null_mask))[null_mask] - np.arange(np.sum(null_mask))
     l_arr = [arr for arr in l_arr if arr is not None]
@@ -1533,7 +1535,7 @@ def list_of_pa_arrays_to_pyarrow_listarray(l_arr: List[Optional[pa.Array]]) -> p
     return pa.ListArray.from_arrays(offsets, values)
 
 
-def list_of_np_array_to_pyarrow_listarray(l_arr: List[np.ndarray], type: pa.DataType = None) -> pa.ListArray:
+def list_of_np_array_to_pyarrow_listarray(l_arr: list[np.ndarray], type: pa.DataType = None) -> pa.ListArray:
     """Build a PyArrow ListArray from a possibly nested list of NumPy arrays"""
     if len(l_arr) > 0:
         return list_of_pa_arrays_to_pyarrow_listarray(
@@ -1560,7 +1562,7 @@ def contains_any_np_array(data: Any):
         return False
 
 
-def any_np_array_to_pyarrow_listarray(data: Union[np.ndarray, List], type: pa.DataType = None) -> pa.ListArray:
+def any_np_array_to_pyarrow_listarray(data: Union[np.ndarray, list], type: pa.DataType = None) -> pa.ListArray:
     """Convert to PyArrow ListArray either a NumPy ndarray or (recursively) a list that may contain any NumPy ndarray.
 
     Args:
@@ -1600,7 +1602,9 @@ def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureT
     Returns:
         visited feature (FeatureType)
     """
-    if isinstance(feature, dict):
+    if isinstance(feature, Features):
+        out = func(Features({k: _visit(f, func) for k, f in feature.items()}))
+    elif isinstance(feature, dict):
         out = func({k: _visit(f, func) for k, f in feature.items()})
     elif isinstance(feature, (list, tuple)):
         out = func([_visit(feature[0], func)])
@@ -1610,6 +1614,48 @@ def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureT
         out = func(Sequence(_visit(feature.feature, func), length=feature.length))
     else:
         out = func(feature)
+    return feature if out is None else out
+
+
+_VisitPath = list[Union[str, Literal[0]]]
+
+
+def _visit_with_path(
+    feature: FeatureType, func: Callable[[FeatureType, _VisitPath], Optional[FeatureType]], visit_path: _VisitPath = []
+) -> FeatureType:
+    """Visit a (possibly nested) feature with its path in the Feature object.
+
+    A path in a nested feature object is the list of keys that need to be
+    sequentially accessed to get to the sub-feature.
+
+    For example:
+    - ["foo"] corresponds to the column "foo"
+    - ["foo", 0] corresponds to the sub-feature of the lists in "foo"
+    - ["foo", "bar"] corresponds to the sub-feature of the dicts in "foo" with key "bar"
+
+    Args:
+        feature (`FeatureType`): the feature type to be checked.
+
+    Returns:
+        `FeatureType`: the visited feature.
+    """
+    if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
+        feature = {k: [f] for k, f in feature.feature.items()}
+        # ^ Sequence of dicts is special, it must be converted to a dict of lists (see https://huggingface.co/docs/datasets/v2.16.1/en/package_reference/main_classes#datasets.Features)
+    if isinstance(feature, Features):
+        out = func(Features({k: _visit_with_path(f, func, visit_path + [k]) for k, f in feature.items()}), visit_path)
+    elif isinstance(feature, dict):
+        out = func({k: _visit_with_path(f, func, visit_path + [k]) for k, f in feature.items()}, visit_path)
+    elif isinstance(feature, (list, tuple)):
+        out = func([_visit_with_path(feature[0], func, visit_path + [0])], visit_path)
+    elif isinstance(feature, Sequence):
+        out = func(
+            Sequence(_visit_with_path(feature.feature, func, visit_path + [0]), length=feature.length), visit_path
+        )
+    elif isinstance(feature, LargeList):
+        out = func(LargeList(_visit_with_path(feature.feature, func, visit_path + [0])), visit_path)
+    else:
+        out = func(feature, visit_path)
     return feature if out is None else out
 
 
@@ -1632,7 +1678,9 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
     elif isinstance(feature, Sequence):
         return require_decoding(feature.feature)
     else:
-        return hasattr(feature, "decode_example") and (feature.decode if not ignore_decode_attribute else True)
+        return hasattr(feature, "decode_example") and (
+            getattr(feature, "decode", True) if not ignore_decode_attribute else True
+        )
 
 
 def require_storage_cast(feature: FeatureType) -> bool:
@@ -1736,7 +1784,7 @@ class Features(dict):
             raise TypeError("descriptor '__init__' of 'Features' object needs an argument")
         self, *args = args
         super(Features, self).__init__(*args, **kwargs)
-        self._column_requires_decoding: Dict[str, bool] = {
+        self._column_requires_decoding: dict[str, bool] = {
             col: require_decoding(feature) for col, feature in self.items()
         }
 
@@ -1791,8 +1839,8 @@ class Features(dict):
         """
         # try to load features from the arrow schema metadata
         metadata_features = Features()
-        if pa_schema.metadata is not None and "huggingface".encode("utf-8") in pa_schema.metadata:
-            metadata = json.loads(pa_schema.metadata["huggingface".encode("utf-8")].decode())
+        if pa_schema.metadata is not None and b"huggingface" in pa_schema.metadata:
+            metadata = json.loads(pa_schema.metadata[b"huggingface"].decode())
             if "info" in metadata and "features" in metadata["info"] and metadata["info"]["features"] is not None:
                 metadata_features = Features.from_dict(metadata["info"]["features"])
         metadata_features_schema = metadata_features.arrow_schema
@@ -2030,7 +2078,7 @@ class Features(dict):
             encoded_batch[key] = [encode_nested_example(self[key], obj, level=1) for obj in column]
         return encoded_batch
 
-    def decode_example(self, example: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
+    def decode_example(self, example: dict, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
         """Decode example with custom feature decoding.
 
         Args:
@@ -2071,7 +2119,7 @@ class Features(dict):
             else column
         )
 
-    def decode_batch(self, batch: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
+    def decode_batch(self, batch: dict, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
         """Decode batch with custom feature decoding.
 
         Args:
@@ -2109,10 +2157,10 @@ class Features(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
         >>> copy_of_features = ds.features.copy()
         >>> copy_of_features
-        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos'], id=None),
          'text': Value(dtype='string', id=None)}
         ```
         """
@@ -2170,8 +2218,8 @@ class Features(dict):
                 if sorted(source) != sorted(target):
                     message = (
                         f"Keys mismatch: between {source} (source) and {target} (target).\n"
-                        f"{source.keys()-target.keys()} are missing from target "
-                        f"and {target.keys()-source.keys()} are missing from source" + stack_position
+                        f"{source.keys() - target.keys()} are missing from target "
+                        f"and {target.keys() - source.keys()} are missing from source" + stack_position
                     )
                     raise ValueError(message)
                 return {key: recursive_reorder(source[key], target[key], stack + f".{key}") for key in target}
@@ -2206,7 +2254,7 @@ class Features(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("squad", split="train")
+        >>> ds = load_dataset("rajpurkar/squad", split="train")
         >>> ds.features.flatten()
         {'answers.answer_start': Sequence(feature=Value(dtype='int32', id=None), length=-1, id=None),
          'answers.text': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None),
@@ -2243,7 +2291,7 @@ class Features(dict):
         return self
 
 
-def _align_features(features_list: List[Features]) -> List[Features]:
+def _align_features(features_list: list[Features]) -> list[Features]:
     """Align dictionaries of features so that the keys that are found in multiple dictionaries share the same feature."""
     name2feature = {}
     for features in features_list:
@@ -2257,7 +2305,7 @@ def _align_features(features_list: List[Features]) -> List[Features]:
     return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
 
 
-def _check_if_features_can_be_aligned(features_list: List[Features]):
+def _check_if_features_can_be_aligned(features_list: list[Features]):
     """Check if the dictionaries of features can be aligned.
 
     Two dictonaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.

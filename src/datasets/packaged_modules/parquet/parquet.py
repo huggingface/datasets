@@ -1,8 +1,9 @@
 import itertools
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional, Union
 
 import pyarrow as pa
+import pyarrow.dataset as ds
 import pyarrow.parquet as pq
 
 import datasets
@@ -17,8 +18,9 @@ class ParquetConfig(datasets.BuilderConfig):
     """BuilderConfig for Parquet."""
 
     batch_size: Optional[int] = None
-    columns: Optional[List[str]] = None
+    columns: Optional[list[str]] = None
     features: Optional[datasets.Features] = None
+    filters: Optional[Union[ds.Expression, list[tuple], list[list[tuple]]]] = None
 
     def __post_init__(self):
         super().__post_init__()
@@ -77,14 +79,25 @@ class Parquet(datasets.ArrowBasedBuilder):
                 raise ValueError(
                     f"Tried to load parquet data with columns '{self.config.columns}' with mismatching features '{self.info.features}'"
                 )
+        filter_expr = (
+            pq.filters_to_expression(self.config.filters)
+            if isinstance(self.config.filters, list)
+            else self.config.filters
+        )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             with open(file, "rb") as f:
-                parquet_file = pq.ParquetFile(f)
-                if parquet_file.metadata.num_row_groups > 0:
-                    batch_size = self.config.batch_size or parquet_file.metadata.row_group(0).num_rows
+                parquet_fragment = ds.ParquetFileFormat().make_fragment(f)
+                if parquet_fragment.row_groups:
+                    batch_size = self.config.batch_size or parquet_fragment.row_groups[0].num_rows
                     try:
                         for batch_idx, record_batch in enumerate(
-                            parquet_file.iter_batches(batch_size=batch_size, columns=self.config.columns)
+                            parquet_fragment.to_batches(
+                                batch_size=batch_size,
+                                columns=self.config.columns,
+                                filter=filter_expr,
+                                batch_readahead=0,
+                                fragment_readahead=0,
+                            )
                         ):
                             pa_table = pa.Table.from_batches([record_batch])
                             # Uncomment for debugging (will print the Arrow table size and elements)

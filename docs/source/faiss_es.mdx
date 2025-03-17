@@ -76,7 +76,7 @@ Start Elasticsearch on your machine, or see the [Elasticsearch installation guid
 
 ```py
 >>> from datasets import load_dataset
->>> squad = load_dataset('squad', split='validation')
+>>> squad = load_dataset('rajpurkar/squad', split='validation')
 ```
 
 2. Build the index with [`Dataset.add_elasticsearch_index`]:
@@ -98,7 +98,7 @@ Start Elasticsearch on your machine, or see the [Elasticsearch installation guid
 
 ```py
 >>> from datasets import load_dataset
->>> squad = load_dataset('squad', split='validation')
+>>> squad = load_dataset('rajpurkar/squad', split='validation')
 >>> squad.add_elasticsearch_index("context", host="localhost", port="9200", es_index_name="hf_squad_val_context")
 >>> squad.get_index("context").es_index_name
 hf_squad_val_context
@@ -108,7 +108,7 @@ hf_squad_val_context
 
 ```py
 >>> from datasets import load_dataset
->>> squad = load_dataset('squad', split='validation')
+>>> squad = load_dataset('rajpurkar/squad', split='validation')
 >>> squad.load_elasticsearch_index("context", host="localhost", port="9200", es_index_name="hf_squad_val_context")
 >>> query = "machine"
 >>> scores, retrieved_examples = squad.get_nearest_examples("context", query, k=10)
