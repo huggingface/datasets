@@ -140,7 +140,7 @@ IS_OPUS_SUPPORTED = importlib.util.find_spec("soundfile") is not None and versio
 IS_MP3_SUPPORTED = importlib.util.find_spec("soundfile") is not None and version.parse(
     importlib.import_module("soundfile").__libsndfile_version__
 ) >= version.parse("1.1.0")
-DECORD_AVAILABLE = importlib.util.find_spec("decord") is not None
+TORCHVISION_AVAILABLE = importlib.util.find_spec("torchvision") is not None
 PDFPLUMBER_AVAILABLE = importlib.util.find_spec("pdfplumber") is not None
 
 # Optional compression tools
@@ -255,6 +255,9 @@ STREAMING_READ_RETRY_INTERVAL = 5
 DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE = 200
 GLOBBED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE = 10
 ARCHIVED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE = 200
+
+# Async map functions
+MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL = 1000
 
 # Progress bars
 PBAR_REFRESH_TIME_INTERVAL = 0.05  # 20 progress updates per sec

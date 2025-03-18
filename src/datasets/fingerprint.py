@@ -6,7 +6,7 @@ import tempfile
 import weakref
 from functools import wraps
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 
 import numpy as np
 import xxhash
@@ -170,13 +170,13 @@ def get_temporary_cache_files_directory() -> str:
 class Hasher:
     """Hasher that accepts python objects as inputs."""
 
-    dispatch: Dict = {}
+    dispatch: dict = {}
 
     def __init__(self):
         self.m = xxhash.xxh64()
 
     @classmethod
-    def hash_bytes(cls, value: Union[bytes, List[bytes]]) -> str:
+    def hash_bytes(cls, value: Union[bytes, list[bytes]]) -> str:
         value = [value] if isinstance(value, bytes) else value
         m = xxhash.xxh64()
         for x in value:
@@ -203,7 +203,7 @@ class Hasher:
 
 fingerprint_rng = random.Random()
 # we show a warning only once when fingerprinting fails to avoid spam
-fingerprint_warnings: Dict[str, bool] = {}
+fingerprint_warnings: dict[str, bool] = {}
 
 
 def generate_fingerprint(dataset: "Dataset") -> str:
@@ -221,7 +221,7 @@ def generate_fingerprint(dataset: "Dataset") -> str:
 
 
 def generate_random_fingerprint(nbits: int = 64) -> str:
-    return f"{fingerprint_rng.getrandbits(nbits):0{nbits//4}x}"
+    return f"{fingerprint_rng.getrandbits(nbits):0{nbits // 4}x}"
 
 
 def update_fingerprint(fingerprint, transform, transform_args):
@@ -306,12 +306,12 @@ def format_transform_for_fingerprint(func: Callable, version: Optional[str] = No
 
 def format_kwargs_for_fingerprint(
     func: Callable,
-    args: Tuple,
-    kwargs: Dict[str, Any],
-    use_kwargs: Optional[List[str]] = None,
-    ignore_kwargs: Optional[List[str]] = None,
+    args: tuple,
+    kwargs: dict[str, Any],
+    use_kwargs: Optional[list[str]] = None,
+    ignore_kwargs: Optional[list[str]] = None,
     randomized_function: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Format the kwargs of a transform to the format that will be used to update the fingerprint.
     """
@@ -351,9 +351,9 @@ def format_kwargs_for_fingerprint(
 
 def fingerprint_transform(
     inplace: bool,
-    use_kwargs: Optional[List[str]] = None,
-    ignore_kwargs: Optional[List[str]] = None,
-    fingerprint_names: Optional[List[str]] = None,
+    use_kwargs: Optional[list[str]] = None,
+    ignore_kwargs: Optional[list[str]] = None,
+    fingerprint_names: Optional[list[str]] = None,
     randomized_function: bool = False,
     version: Optional[str] = None,
 ):

@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 import copy
 import itertools
@@ -7,6 +8,7 @@ import pickle
 import re
 import sys
 import tempfile
+import time
 from functools import partial
 from pathlib import Path
 from unittest import TestCase
@@ -868,6 +870,32 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_concat.cache_files), 1 if in_memory else 2 + 1)
                     self.assertEqual(dset_concat.info.description, "Dataset2\n\nDataset1")
             del dset1, dset2, dset3
+
+    def test_repeat(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                repeated_dset = dset.repeat(3)
+                column_values_dict = {col: dset[col] for col in dset.column_names}
+                for col, single_values in column_values_dict.items():
+                    self.assertListEqual(repeated_dset[col], single_values * 3)
+                del repeated_dset
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                with pytest.raises(ValueError):
+                    dset.repeat(None)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                repeated_dset = dset.repeat(0)
+                self.assertEqual(len(repeated_dset), 0)
+                del repeated_dset
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                repeated_dset = dset.repeat(-1)
+                self.assertEqual(len(repeated_dset), 0)
+                del repeated_dset
 
     def test_flatten(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -4165,7 +4193,7 @@ def test_dummy_dataset_serialize_fs(dataset, mockfs):
     [
         "relative/path",
         "/absolute/path",
-        "s3://bucket/relative/path",
+        "hf://bucket/relative/path",
         "hdfs://relative/path",
         "hdfs:///absolute/path",
     ],
@@ -4179,7 +4207,7 @@ def test_build_local_temp_path(uri_or_path):
 
     assert (
         "hdfs://" not in path_relative_to_tmp_dir
-        and "s3://" not in path_relative_to_tmp_dir
+        and "hf://" not in path_relative_to_tmp_dir
         and not local_temp_path.startswith(extracted_path_without_anchor)
         and local_temp_path.endswith(extracted_path_without_anchor)
     ), f"Local temp path: {local_temp_path}"
@@ -4280,8 +4308,9 @@ def test_dataset_to_iterable_dataset(dataset: Dataset):
     assert iterable_dataset.num_shards == 3
     with pytest.raises(ValueError):
         dataset.to_iterable_dataset(num_shards=len(dataset) + 1)
+    assert dataset.with_format("torch").to_iterable_dataset()._formatting.format_type == "torch"
     with pytest.raises(NotImplementedError):
-        dataset.with_format("torch").to_iterable_dataset()
+        dataset.with_format("torch", columns=[dataset.column_names[0]]).to_iterable_dataset()
 
 
 @require_pil
@@ -4419,6 +4448,50 @@ def test_map_cases(return_lazy_dict):
     ds = ds.map(f)
     outputs = ds[:]
     assert outputs == {"a": [{"nested": [[i]]} for i in [-1, -1, 2, 3]]}
+
+
+def test_map_async():
+    dset = Dataset.from_dict({"x": range(100)})
+
+    async def f(example):
+        await asyncio.sleep(0.1)
+        return {"y": 1}
+
+    _start = time.time()
+    out = dset.map(f)
+    assert time.time() - _start < 2.0
+    assert out[0]["y"] == 1
+
+    async def f(batch):
+        await asyncio.sleep(0.1)
+        return {"y": [1] * len(batch["x"])}
+
+    _start = time.time()
+    out = dset.map(f, batched=True)
+    assert time.time() - _start < 2.0
+    assert out[0]["y"] == 1
+
+
+def test_filter_async():
+    dset = Dataset.from_dict({"x": range(100)})
+
+    async def f(example):
+        await asyncio.sleep(0.1)
+        return example["x"] == 42
+
+    _start = time.time()
+    out = dset.filter(f)
+    assert time.time() - _start < 2.0
+    assert len(out) == 1
+
+    async def f(batch):
+        await asyncio.sleep(0.1)
+        return [x == 42 for x in batch["x"]]
+
+    _start = time.time()
+    out = dset.filter(f, batched=True)
+    assert time.time() - _start < 2.0
+    assert len(out) == 1
 
 
 def test_dataset_getitem_raises():

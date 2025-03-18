@@ -143,8 +143,8 @@ To load a Parquet file:
 To load remote Parquet files via HTTP, pass the URLs instead:
 
 ```py
->>> base_url = "https://storage.googleapis.com/huggingface-nlp/cache/datasets/wikipedia/20200501.en/1.0.0/"
->>> data_files = {"train": base_url + "wikipedia-train.parquet"}
+>>> base_url = "https://huggingface.co/datasets/wikimedia/wikipedia/resolve/main/20231101.ab/"
+>>> data_files = {"train": base_url + "train-00000-of-00001.parquet"}
 >>> wiki = load_dataset("parquet", data_files=data_files, split="train")
 ```
 
@@ -162,8 +162,8 @@ To load an Arrow file:
 To load remote Arrow files via HTTP, pass the URLs instead:
 
 ```py
->>> base_url = "https://storage.googleapis.com/huggingface-nlp/cache/datasets/wikipedia/20200501.en/1.0.0/"
->>> data_files = {"train": base_url + "wikipedia-train.arrow"}
+>>> base_url = "https://huggingface.co/datasets/croissantllm/croissant_dataset/resolve/main/english_660B_11/"
+>>> data_files = {"train": base_url + "train/data-00000-of-00080.arrow"}
 >>> wiki = load_dataset("arrow", data_files=data_files, split="train")
 ```
 
@@ -232,7 +232,7 @@ In this case, each process is given a subset of shards to prepare:
 ```python
 from datasets import load_dataset
 
-imagenet = load_dataset("imagenet-1k", num_proc=8)
+imagenet = load_dataset("timm/imagenet-1k-wds", num_proc=8)
 ml_librispeech_spanish = load_dataset("facebook/multilingual_librispeech", "spanish", num_proc=8)
 ```
 
@@ -321,16 +321,16 @@ You can also choose only to load specific slices of a split. There are two optio
 Concatenate a `train` and `test` split by:
 
 ```py
->>> train_test_ds = datasets.load_dataset("bookcorpus", split="train+test")
+>>> train_test_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", split="train+test")
 ===STRINGAPI-READINSTRUCTION-SPLIT===
 >>> ri = datasets.ReadInstruction("train") + datasets.ReadInstruction("test")
->>> train_test_ds = datasets.load_dataset("bookcorpus", split=ri)
+>>> train_test_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", split=ri)
 ```
 
 Select specific rows of the `train` split:
 
 ```py
->>> train_10_20_ds = datasets.load_dataset("bookcorpus", split="train[10:20]")
+>>> train_10_20_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", split="train[10:20]")
 ===STRINGAPI-READINSTRUCTION-SPLIT===
 >>> train_10_20_ds = datasets.load_dataset("bookcorpu", split=datasets.ReadInstruction("train", from_=10, to=20, unit="abs"))
 ```
@@ -338,28 +338,28 @@ Select specific rows of the `train` split:
 Or select a percentage of a split with:
 
 ```py
->>> train_10pct_ds = datasets.load_dataset("bookcorpus", split="train[:10%]")
+>>> train_10pct_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", split="train[:10%]")
 ===STRINGAPI-READINSTRUCTION-SPLIT===
->>> train_10_20_ds = datasets.load_dataset("bookcorpus", split=datasets.ReadInstruction("train", to=10, unit="%"))
+>>> train_10_20_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", split=datasets.ReadInstruction("train", to=10, unit="%"))
 ```
 
 Select a combination of percentages from each split:
 
 ```py
->>> train_10_80pct_ds = datasets.load_dataset("bookcorpus", split="train[:10%]+train[-80%:]")
+>>> train_10_80pct_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", split="train[:10%]+train[-80%:]")
 ===STRINGAPI-READINSTRUCTION-SPLIT===
 >>> ri = (datasets.ReadInstruction("train", to=10, unit="%") + datasets.ReadInstruction("train", from_=-80, unit="%"))
->>> train_10_80pct_ds = datasets.load_dataset("bookcorpus", split=ri)
+>>> train_10_80pct_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", split=ri)
 ```
 
 Finally, you can even create cross-validated splits. The example below creates 10-fold cross-validated splits. Each validation dataset is a 10% chunk, and the training dataset makes up the remaining complementary 90% chunk:
 
 ```py
->>> val_ds = datasets.load_dataset("bookcorpus", split=[f"train[{k}%:{k+10}%]" for k in range(0, 100, 10)])
->>> train_ds = datasets.load_dataset("bookcorpus", split=[f"train[:{k}%]+train[{k+10}%:]" for k in range(0, 100, 10)])
+>>> val_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", split=[f"train[{k}%:{k+10}%]" for k in range(0, 100, 10)])
+>>> train_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", split=[f"train[:{k}%]+train[{k+10}%:]" for k in range(0, 100, 10)])
 ===STRINGAPI-READINSTRUCTION-SPLIT===
->>> val_ds = datasets.load_dataset("bookcorpus", [datasets.ReadInstruction("train", from_=k, to=k+10, unit="%") for k in range(0, 100, 10)])
->>> train_ds = datasets.load_dataset("bookcorpus", [(datasets.ReadInstruction("train", to=k, unit="%") + datasets.ReadInstruction("train", from_=k+10, unit="%")) for k in range(0, 100, 10)])
+>>> val_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", [datasets.ReadInstruction("train", from_=k, to=k+10, unit="%") for k in range(0, 100, 10)])
+>>> train_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", [(datasets.ReadInstruction("train", to=k, unit="%") + datasets.ReadInstruction("train", from_=k+10, unit="%")) for k in range(0, 100, 10)])
 ```
 
 ### Percent slicing and rounding
@@ -368,21 +368,21 @@ The default behavior is to round the boundaries to the nearest integer for datas
 
 ```py
 # 19 records, from 500 (included) to 519 (excluded).
->>> train_50_52_ds = datasets.load_dataset("bookcorpus", split="train[50%:52%]")
+>>> train_50_52_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", split="train[50%:52%]")
 # 20 records, from 519 (included) to 539 (excluded).
->>> train_52_54_ds = datasets.load_dataset("bookcorpus", split="train[52%:54%]")
+>>> train_52_54_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", split="train[52%:54%]")
 ```
 
 If you want equal sized splits, use `pct1_dropremainder` rounding instead. This treats the specified percentage boundaries as multiples of 1%. 
 
 ```py
 # 18 records, from 450 (included) to 468 (excluded).
->>> train_50_52pct1_ds = datasets.load_dataset("bookcorpus", split=datasets.ReadInstruction("train", from_=50, to=52, unit="%", rounding="pct1_dropremainder"))
+>>> train_50_52pct1_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", split=datasets.ReadInstruction("train", from_=50, to=52, unit="%", rounding="pct1_dropremainder"))
 # 18 records, from 468 (included) to 486 (excluded).
->>> train_52_54pct1_ds = datasets.load_dataset("bookcorpus", split=datasets.ReadInstruction("train",from_=52, to=54, unit="%", rounding="pct1_dropremainder"))
+>>> train_52_54pct1_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", split=datasets.ReadInstruction("train",from_=52, to=54, unit="%", rounding="pct1_dropremainder"))
 # Or equivalently:
->>> train_50_52pct1_ds = datasets.load_dataset("bookcorpus", split="train[50%:52%](pct1_dropremainder)")
->>> train_52_54pct1_ds = datasets.load_dataset("bookcorpus", split="train[52%:54%](pct1_dropremainder)")
+>>> train_50_52pct1_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", split="train[50%:52%](pct1_dropremainder)")
+>>> train_52_54pct1_ds = datasets.load_dataset("ajibawa-2023/General-Stories-Collection", split="train[52%:54%](pct1_dropremainder)")
 ```
 
 <Tip warning={true}>
@@ -396,22 +396,6 @@ If you want equal sized splits, use `pct1_dropremainder` rounding instead. This 
 ## Troubleshooting
 
 Sometimes, you may get unexpected results when you load a dataset. Two of the most common issues you may encounter are manually downloading a dataset and specifying features of a dataset.
-
-### Manual download
-
-Certain datasets require you to manually download the dataset files due to licensing incompatibility or if the files are hidden behind a login page. This causes [`load_dataset`] to throw an `AssertionError`. But 🤗 Datasets provides detailed instructions for downloading the missing files. After you've downloaded the files, use the `data_dir` argument to specify the path to the files you just downloaded.
-
-For example, if you try to download a configuration from the [MATINF](https://huggingface.co/datasets/matinf) dataset:
-
-```py
->>> dataset = load_dataset("matinf", "summarization")
-Downloading and preparing dataset matinf/summarization (download: Unknown size, generated: 246.89 MiB, post-processed: Unknown size, total: 246.89 MiB) to /root/.cache/huggingface/datasets/matinf/summarization/1.0.0/82eee5e71c3ceaf20d909bca36ff237452b4e4ab195d3be7ee1c78b53e6f540e...
-AssertionError: The dataset matinf with config summarization requires manual data. 
-Please follow the manual download instructions: To use MATINF you have to download it manually. Please fill this google form (https://forms.gle/nkH4LVE4iNQeDzsc9). You will receive a download link and a password once you complete the form. Please extract all files in one folder and load the dataset with: *datasets.load_dataset('matinf', data_dir='path/to/folder/folder_name')*. 
-Manual data can be loaded with `datasets.load_dataset(matinf, data_dir='<path/to/manual/data>') 
-```
-
-If you've already downloaded a dataset from the *Hub with a loading script* to your computer, then you need to pass an absolute path to the `data_dir` or `data_files` parameter to load that dataset. Otherwise, if you pass a relative path, [`load_dataset`] will load the directory from the repository on the Hub instead of the local directory.
 
 ### Specify features
 

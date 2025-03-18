@@ -56,7 +56,7 @@ Pass the dictionary of the label mappings to the [`~Dataset.align_labels_with_ma
 ```py
 >>> from datasets import load_dataset
 
->>> mnli = load_dataset("glue", "mnli", split="train")
+>>> mnli = load_dataset("nyu-mll/glue", "mnli", split="train")
 >>> mnli_aligned = mnli.align_labels_with_mapping(label2id, "label")
 ```
 

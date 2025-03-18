@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass, field
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Optional, Union
 
 import numpy as np
 import pyarrow as pa
@@ -110,7 +110,7 @@ class Audio:
                 else:
                     bytes_value = np.memmap(value["path"], dtype="h", mode="r").astype(np.float32) / 32767
 
-                buffer = BytesIO(bytes())
+                buffer = BytesIO(b"")
                 sf.write(buffer, bytes_value, value["sampling_rate"], format="wav")
                 return {"bytes": buffer.getvalue(), "path": None}
             else:
@@ -124,7 +124,7 @@ class Audio:
             )
 
     def decode_example(
-        self, value: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None
+        self, value: dict, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None
     ) -> dict:
         """Decode example audio file into audio data.
 
@@ -173,11 +173,8 @@ class Audio:
             pattern = (
                 config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
             )
-            try:
-                repo_id = string_to_dict(source_url, pattern)["repo_id"]
-                token = token_per_repo_id[repo_id]
-            except (ValueError, KeyError):
-                token = None
+            source_url_fields = string_to_dict(source_url, pattern)
+            token = token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
 
             download_config = DownloadConfig(token=token)
             with xopen(path, "rb", download_config=download_config) as f:
@@ -195,7 +192,7 @@ class Audio:
 
         return {"path": path, "array": array, "sampling_rate": sampling_rate}
 
-    def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
+    def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """If in the decodable state, raise an error, otherwise flatten the feature into a dictionary."""
         from .features import Value
 

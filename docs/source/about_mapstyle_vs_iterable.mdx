@@ -14,7 +14,7 @@ For example you can download ImageNet-1k like this and access any row:
 ```python
 from datasets import load_dataset
 
-imagenet = load_dataset("imagenet-1k", split="train")  # downloads the full dataset
+imagenet = load_dataset("timm/imagenet-1k-wds", split="train")  # downloads the full dataset
 print(imagenet[0])
 ```
 
@@ -28,14 +28,14 @@ For example, you can stream the ImageNet-1k dataset without downloading it on di
 ```python
 from datasets import load_dataset
 
-imagenet = load_dataset("imagenet-1k", split="train", streaming=True)  # will start loading the data when iterated over
+imagenet = load_dataset("timm/imagenet-1k-wds", split="train", streaming=True)  # will start loading the data when iterated over
 for example in imagenet:
     print(example)
     break
 ```
 
 Streaming can read online data without writing any file to disk.
-For example, you can stream datasets made out of multiple shards, each of which is hundreds of gigabytes like [C4](https://huggingface.co/datasets/c4), [OSCAR](https://huggingface.co/datasets/oscar) or [LAION-2B](https://huggingface.co/datasets/laion/laion2B-en).
+For example, you can stream datasets made out of multiple shards, each of which is hundreds of gigabytes like [C4](https://huggingface.co/datasets/c4)  or [LAION-2B](https://huggingface.co/datasets/laion/laion2B-en).
 Learn more about how to stream a dataset in the [Dataset Streaming Guide](./stream).
 
 This is not the only difference though, because the "lazy" behavior of an `IterableDataset` is also present when it comes to dataset creation and processing.

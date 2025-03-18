@@ -18,11 +18,12 @@ import tarfile
 import time
 import xml.dom.minidom
 import zipfile
+from collections.abc import Generator
 from contextlib import contextmanager
 from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Generator, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Optional, TypeVar, Union
 from unittest.mock import patch
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
@@ -852,7 +853,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
 
 def _prepare_path_and_storage_options(
     urlpath: str, download_config: Optional[DownloadConfig] = None
-) -> Tuple[str, Dict[str, Dict[str, Any]]]:
+) -> tuple[str, dict[str, dict[str, Any]]]:
     prepared_urlpath = []
     prepared_storage_options = {}
     for hop in urlpath.split("::"):
@@ -864,7 +865,7 @@ def _prepare_path_and_storage_options(
 
 def _prepare_single_hop_path_and_storage_options(
     urlpath: str, download_config: Optional[DownloadConfig] = None
-) -> Tuple[str, Dict[str, Dict[str, Any]]]:
+) -> tuple[str, dict[str, dict[str, Any]]]:
     """
     Prepare the URL and the kwargs that must be passed to the HttpFileSystem or HfFileSystem
 
@@ -965,7 +966,7 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
     return file_obj
 
 
-def xlistdir(path: str, download_config: Optional[DownloadConfig] = None) -> List[str]:
+def xlistdir(path: str, download_config: Optional[DownloadConfig] = None) -> list[str]:
     """Extend `os.listdir` function to support remote files.
 
     Args:
@@ -1155,7 +1156,7 @@ class xPath(type(Path())):
         """
         return xopen(str(self), *args, **kwargs)
 
-    def joinpath(self, *p: Tuple[str, ...]) -> "xPath":
+    def joinpath(self, *p: tuple[str, ...]) -> "xPath":
         """Extend :func:`xjoin` to support argument of type :obj:`~pathlib.Path`.
 
         Args:
@@ -1321,7 +1322,7 @@ class ArchiveIterable(TrackedIterableFromGenerator):
             yield file_path, file_obj
 
     @classmethod
-    def _iter_from_fileobj(cls, f) -> Generator[Tuple, None, None]:
+    def _iter_from_fileobj(cls, f) -> Generator[tuple, None, None]:
         compression = _get_extraction_protocol_with_magic_number(f)
         if compression == "zip":
             yield from cls._iter_zip(f)
@@ -1331,7 +1332,7 @@ class ArchiveIterable(TrackedIterableFromGenerator):
     @classmethod
     def _iter_from_urlpath(
         cls, urlpath: str, download_config: Optional[DownloadConfig] = None
-    ) -> Generator[Tuple, None, None]:
+    ) -> Generator[tuple, None, None]:
         compression = _get_extraction_protocol(urlpath, download_config=download_config)
         # Set block_size=0 to get faster streaming
         # (e.g. for hf:// and https:// it uses streaming Requests file-like instances)
@@ -1355,7 +1356,7 @@ class FilesIterable(TrackedIterableFromGenerator):
 
     @classmethod
     def _iter_from_urlpaths(
-        cls, urlpaths: Union[str, List[str]], download_config: Optional[DownloadConfig] = None
+        cls, urlpaths: Union[str, list[str]], download_config: Optional[DownloadConfig] = None
     ) -> Generator[str, None, None]:
         if not isinstance(urlpaths, list):
             urlpaths = [urlpaths]
