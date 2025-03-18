@@ -61,7 +61,7 @@ class Pdf:
     >>> ds[0]["pdf"]
     {'bytes': None,
     'path': 'path/to/pdf/file.pdf'}
-        ```
+    ```
     """
 
     decode: bool = True
