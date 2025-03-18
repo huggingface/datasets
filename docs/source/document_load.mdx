@@ -82,6 +82,22 @@ Out[24]:
 []
 ```
 
+You can also load each page as a `PIL.Image`:
+
+```python
+>>> import PIL.Image
+>>> import io
+>>> first_page.to_image()
+<pdfplumber.display.PageImage at 0x107d68dd0>
+>>> buffer = io.BytesIO()
+>>> first_page.to_image().save(buffer)
+>>> img = PIL.Image.open(buffer)
+>>> img
+<PIL.PngImagePlugin.PngImageFile image mode=P size=612x792>
+```
+
+Note that you can pass `resolution=` to `.to_image()` to render the image in higher resolution that the default (72 ppi).
+
 ## Local files
 
 You can load a dataset from the pdf path. Use the [`~Dataset.cast_column`] function to accept a column of pdf file paths, and decode it into a `pdfplumber` pdf with the [`Pdf`] feature:
