@@ -164,8 +164,7 @@ class Pdf:
                 raise ValueError(f"A pdf should have one of 'path' or 'bytes' but both are None in {value}.")
             else:
                 if is_local_path(path):
-                    with pdfplumber.open(path) as p:
-                        pdf = p
+                    pdf = pdfplumber.open(path)
                 else:
                     source_url = path.split("::")[-1]
                     pattern = (
