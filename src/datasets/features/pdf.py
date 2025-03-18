@@ -88,17 +88,15 @@ class Pdf:
         if config.PDFPLUMBER_AVAILABLE:
             import pdfplumber
         else:
-            raise ImportError("To support encoding pdfs, please install 'pdfplumber'.")
+            pdfplumber = None
 
         if isinstance(value, str):
             return {"path": value, "bytes": None}
         elif isinstance(value, bytes):
-            # TODO: maybe I need to add io.Bytes to this
             return {"path": None, "bytes": value}
-        elif isinstance(value, pdfplumber.pdf.PDF):
+        elif pdfplumber is not None and isinstance(value, pdfplumber.pdf.PDF):
             # convert the pdfplumber.pdf.PDF to bytes
-            return encode_pdfplumber_pdf(value)
-
+            return self.encode_pdfplumber_pdf(value)
         elif value.get("path") is not None and os.path.isfile(value["path"]):
             # we set "bytes": None to not duplicate the data if they're already available locally
             return {"bytes": None, "path": value.get("path")}
@@ -181,10 +179,8 @@ class Pdf:
                     except ValueError:
                         token = None
                     download_config = DownloadConfig(token=token)
-                    with xopen(path, "rb", download_config=download_config) as f:
-                        bytes_ = BytesIO(f.read())
-                    with pdfplumber.open(bytes_) as p:
-                        pdf = p
+                    f = xopen(path, "rb", download_config=download_config)
+                    return pdfplumber.open(f)
         else:
             with pdfplumber.open(BytesIO(bytes_)) as p:
                 pdf = p
