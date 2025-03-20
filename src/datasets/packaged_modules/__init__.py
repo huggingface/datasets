@@ -12,6 +12,7 @@ from .imagefolder import imagefolder
 from .json import json
 from .pandas import pandas
 from .parquet import parquet
+from .pdffolder import pdffolder
 from .sql import sql
 from .text import text
 from .videofolder import videofolder
@@ -43,6 +44,7 @@ _PACKAGED_DATASETS_MODULES = {
     "imagefolder": (imagefolder.__name__, _hash_python_lines(inspect.getsource(imagefolder).splitlines())),
     "audiofolder": (audiofolder.__name__, _hash_python_lines(inspect.getsource(audiofolder).splitlines())),
     "videofolder": (videofolder.__name__, _hash_python_lines(inspect.getsource(videofolder).splitlines())),
+    "pdffolder": (pdffolder.__name__, _hash_python_lines(inspect.getsource(pdffolder).splitlines())),
     "webdataset": (webdataset.__name__, _hash_python_lines(inspect.getsource(webdataset).splitlines())),
     "xml": (xml.__name__, _hash_python_lines(inspect.getsource(xml).splitlines())),
 }
@@ -81,6 +83,8 @@ _EXTENSION_TO_MODULE.update({ext: ("audiofolder", {}) for ext in audiofolder.Aud
 _EXTENSION_TO_MODULE.update({ext.upper(): ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("videofolder", {}) for ext in videofolder.VideoFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("videofolder", {}) for ext in videofolder.VideoFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext: ("pdffolder", {}) for ext in pdffolder.PdfFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext.upper(): ("pdffolder", {}) for ext in pdffolder.PdfFolder.EXTENSIONS})
 
 # Used to filter data files based on extensions given a module name
 _MODULE_TO_EXTENSIONS: dict[str, list[str]] = {}
@@ -97,3 +101,4 @@ for _module in _MODULE_TO_EXTENSIONS:
 _MODULE_TO_METADATA_FILE_NAMES["imagefolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["audiofolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["videofolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
+_MODULE_TO_METADATA_FILE_NAMES["pdffolder"] = imagefolder.ImageFolder.METADATA_FILENAMES

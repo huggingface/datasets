@@ -270,7 +270,7 @@ class LazyDict(MutableMapping):
         self.pa_table = pa_table
         self.formatter = formatter
 
-        self.data = {key: None for key in pa_table.column_names}
+        self.data = dict.fromkeys(pa_table.column_names)
         self.keys_to_format = set(self.data.keys())
 
     def __len__(self):

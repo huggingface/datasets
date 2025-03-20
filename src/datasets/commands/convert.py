@@ -167,7 +167,7 @@ class ConvertCommand(BaseDatasetsCLICommand):
                 output_file = os.path.join(output_dir, f_name)
                 os.makedirs(output_dir, exist_ok=True)
                 self._logger.info(f"Adding directory {output_dir}")
-                imports_to_builder_map.update({imp: output_dir for imp in tfds_imports})
+                imports_to_builder_map.update(dict.fromkeys(tfds_imports, output_dir))
             else:
                 # Utilities will be moved at the end
                 utils_files.append(output_file)

@@ -138,3 +138,27 @@ You can load a WebDataset like this:
 
 >>> dataset = load_dataset("webdataset", data_dir="/path/to/folder", streaming=True)
 ```
+
+## Image decoding
+
+By default, images are decoded sequentially as `PIL.Images` when you iterate on a dataset.
+However it is possible to speed up the dataset significantly using multithreaded decoding:
+
+```python
+>>> import os
+>>> num_threads = num_threads = min(32, (os.cpu_count() or 1) + 4)
+>>> dataset = dataset.decode(num_threads=num_threads)
+>>> for example in dataset:  # up to 20 times faster !
+...     ...
+```
+
+You can enable multithreading using `num_threads`. This is especially useful to speed up remote data streaming.
+However it can be slower than `num_threads=0` for local data on fast disks.
+
+If you are not interested in the images decoded as `PIL.Images` and would like to access the path/bytes instead, you can disable decoding:
+
+```python
+>>> dataset = dataset.decode(False)
+```
+
+Note: [`IterableDataset.decode`] is only available for streaming datasets at the moment.
