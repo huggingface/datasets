@@ -141,7 +141,7 @@ REQUIRED_PKGS = [
 AUDIO_REQUIRE = [
     "soundfile>=0.12.1",
     "librosa",
-    "soxr>=0.4.0; python_version>='3.9'",  # Supports numpy-2
+    "soxr>=0.4.0",  # Supports numpy-2
 ]
 
 VISION_REQUIRE = [

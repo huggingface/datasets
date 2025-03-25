@@ -304,49 +304,46 @@ class LazyDict(MutableMapping):
         self._format_all()
         return repr(self.data)
 
-    if config.PY_VERSION >= version.parse("3.9"):
-        # merging with the union ("|") operator is supported in Python 3.9+
+    def __or__(self, other):
+        if isinstance(other, LazyDict):
+            inst = self.copy()
+            other = other.copy()
+            other._format_all()
+            inst.keys_to_format -= other.data.keys()
+            inst.data = inst.data | other.data
+            return inst
+        if isinstance(other, dict):
+            inst = self.copy()
+            inst.keys_to_format -= other.keys()
+            inst.data = inst.data | other
+            return inst
+        return NotImplemented
 
-        def __or__(self, other):
-            if isinstance(other, LazyDict):
-                inst = self.copy()
-                other = other.copy()
-                other._format_all()
-                inst.keys_to_format -= other.data.keys()
-                inst.data = inst.data | other.data
-                return inst
-            if isinstance(other, dict):
-                inst = self.copy()
-                inst.keys_to_format -= other.keys()
-                inst.data = inst.data | other
-                return inst
-            return NotImplemented
+    def __ror__(self, other):
+        if isinstance(other, LazyDict):
+            inst = self.copy()
+            other = other.copy()
+            other._format_all()
+            inst.keys_to_format -= other.data.keys()
+            inst.data = other.data | inst.data
+            return inst
+        if isinstance(other, dict):
+            inst = self.copy()
+            inst.keys_to_format -= other.keys()
+            inst.data = other | inst.data
+            return inst
+        return NotImplemented
 
-        def __ror__(self, other):
-            if isinstance(other, LazyDict):
-                inst = self.copy()
-                other = other.copy()
-                other._format_all()
-                inst.keys_to_format -= other.data.keys()
-                inst.data = other.data | inst.data
-                return inst
-            if isinstance(other, dict):
-                inst = self.copy()
-                inst.keys_to_format -= other.keys()
-                inst.data = other | inst.data
-                return inst
-            return NotImplemented
-
-        def __ior__(self, other):
-            if isinstance(other, LazyDict):
-                other = other.copy()
-                other._format_all()
-                self.keys_to_format -= other.data.keys()
-                self.data |= other.data
-            else:
-                self.keys_to_format -= other.keys()
-                self.data |= other
-            return self
+    def __ior__(self, other):
+        if isinstance(other, LazyDict):
+            other = other.copy()
+            other._format_all()
+            self.keys_to_format -= other.data.keys()
+            self.data |= other.data
+        else:
+            self.keys_to_format -= other.keys()
+            self.data |= other
+        return self
 
     def __copy__(self):
         # Identical to `UserDict.__copy__`
