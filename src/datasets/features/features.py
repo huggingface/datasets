@@ -1778,13 +1778,13 @@ class Features(dict):
         - [`Translation`] or [`TranslationVariableLanguages`] feature specific to Machine Translation.
     """
 
-    def __init__(*args, **kwargs):
+    def __init__(*args, non_nullable_flds: set | None = None, **kwargs):
         # self not in the signature to allow passing self as a kwarg
         if not args:
             raise TypeError("descriptor '__init__' of 'Features' object needs an argument")
         self, *args = args
 
-        self.non_nullable: set[str] = kwargs.pop("non_nullable", set())
+        self.non_nullable_flds: set[str] = non_nullable_flds or set()
         super(Features, self).__init__(*args, **kwargs)
         self._column_requires_decoding: dict[str, bool] = {
             col: require_decoding(feature) for col, feature in self.items()
@@ -1821,7 +1821,7 @@ class Features(dict):
         """
         hf_metadata = {"info": {"features": self.to_dict()}}
         schema = pa.schema(self.type, metadata={"huggingface": json.dumps(hf_metadata)})
-        schema = restore_non_nullable_fields(schema, self.non_nullable)
+        schema = restore_non_nullable_fields(schema, self.non_nullable_flds)
         return schema
 
     @classmethod
@@ -1829,7 +1829,8 @@ class Features(dict):
         """
         Construct [`Features`] from Arrow Schema.
         It also checks the schema metadata for Hugging Face Datasets features.
-        Non-nullable fields are not supported and set to nullable.
+        Non-nullable fields are supported and are stored in the non_nullable_flds attribute.
+        Calling `arrow_schema` will attempt to restore the non-nullable fields.
 
         Also, pa.dictionary is not supported and it uses its underlying type instead.
         Therefore datasets convert DictionaryArray objects to their actual values.
@@ -1860,7 +1861,7 @@ class Features(dict):
 
         non_nullable = find_non_nullable_fields(pa_schema)
 
-        return cls(**obj, non_nullable=non_nullable)
+        return cls(**obj, non_nullable_flds=non_nullable)
 
     @classmethod
     def from_dict(cls, dic) -> "Features":
@@ -2346,30 +2347,29 @@ def find_non_nullable_fields(schema: pa.Schema, parent_path: str = "") -> set[st
     Returns:
         set[str]: Set of non-nullable field paths, where embedded paths are separated by a period
     """
-    non_nullable_fields = {}
+    non_nullable_fields = set()
+
+    if hasattr(schema, "name"):
+        parent_path = f"{parent_path}.{schema.name}".lstrip(".")
 
     # Full Schema
     if isinstance(schema, pa.Schema):
         for schema_field in schema:
             non_nullable_fields.update(find_non_nullable_fields(schema_field, parent_path))
     # Regular Fields
-    elif hasattr(schema, "type") and hasattr(schema, "name"):
-        current_path = f"{parent_path}.{schema.name}".lstrip(".")
-
+    elif hasattr(schema, "type"):
         # Check for non-nullable top-level Field
         if not schema.nullable:
-            non_nullable_fields.add(current_path)
+            non_nullable_fields.add(parent_path)
 
         # Recursively inspect nested types
-        non_nullable_fields.update(find_non_nullable_fields(schema.type, current_path))
+        non_nullable_fields.update(find_non_nullable_fields(schema.type, parent_path))
 
     elif pa.types.is_struct(schema):
         for schema_field in schema:
             non_nullable_fields.update(find_non_nullable_fields(schema_field, parent_path))
     elif pa.types.is_list(schema):
-        value_type = schema.value_type
-        if hasattr(value_type, "type"):
-            non_nullable_fields.update(find_non_nullable_fields(value_type, parent_path))
+        non_nullable_fields.update(find_non_nullable_fields(schema.value_field, parent_path))
 
     return non_nullable_fields
 
