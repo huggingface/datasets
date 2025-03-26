@@ -1783,6 +1783,8 @@ class Features(dict):
         if not args:
             raise TypeError("descriptor '__init__' of 'Features' object needs an argument")
         self, *args = args
+
+        self.non_nullable: set[str] = kwargs.pop("non_nullable", set())
         super(Features, self).__init__(*args, **kwargs)
         self._column_requires_decoding: dict[str, bool] = {
             col: require_decoding(feature) for col, feature in self.items()
@@ -1818,7 +1820,9 @@ class Features(dict):
             :obj:`pyarrow.Schema`
         """
         hf_metadata = {"info": {"features": self.to_dict()}}
-        return pa.schema(self.type).with_metadata({"huggingface": json.dumps(hf_metadata)})
+        schema = pa.schema(self.type, metadata={"huggingface": json.dumps(hf_metadata)})
+        schema = restore_non_nullable_fields(schema, self.non_nullable)
+        return schema
 
     @classmethod
     def from_arrow_schema(cls, pa_schema: pa.Schema) -> "Features":
@@ -1845,14 +1849,18 @@ class Features(dict):
                 metadata_features = Features.from_dict(metadata["info"]["features"])
         metadata_features_schema = metadata_features.arrow_schema
         obj = {
-            field.name: (
-                metadata_features[field.name]
-                if field.name in metadata_features and metadata_features_schema.field(field.name) == field
-                else generate_from_arrow_type(field.type)
+            schema_field.name: (
+                metadata_features[schema_field.name]
+                if schema_field.name in metadata_features
+                and metadata_features_schema.field(schema_field.name) == schema_field
+                else generate_from_arrow_type(schema_field.type)
             )
-            for field in pa_schema
+            for schema_field in pa_schema
         }
-        return cls(**obj)
+
+        non_nullable = find_non_nullable_fields(pa_schema)
+
+        return cls(**obj, non_nullable=non_nullable)
 
     @classmethod
     def from_dict(cls, dic) -> "Features":
@@ -2325,3 +2333,84 @@ def _check_if_features_can_be_aligned(features_list: list[Features]):
                 raise ValueError(
                     f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
                 )
+
+
+def find_non_nullable_fields(schema: pa.Schema, parent_path: str = "") -> set[str]:
+    """Recursively find non-nullable fields in a PyArrow schema and return them
+    as a set of period-separated paths, useful for deeper structures.
+
+    Args:
+        schema (pa.Schema): PyArrow schema to inspect
+        parent_path (str, optional): Path to the current field for nested types (recursion)
+
+    Returns:
+        set[str]: Set of non-nullable field paths, where embedded paths are separated by a period
+    """
+    non_nullable_fields = {}
+
+    # Full Schema
+    if isinstance(schema, pa.Schema):
+        for schema_field in schema:
+            non_nullable_fields.update(find_non_nullable_fields(schema_field, parent_path))
+    # Regular Fields
+    elif hasattr(schema, "type") and hasattr(schema, "name"):
+        current_path = f"{parent_path}.{schema.name}".lstrip(".")
+
+        # Check for non-nullable top-level Field
+        if not schema.nullable:
+            non_nullable_fields.add(current_path)
+
+        # Recursively inspect nested types
+        non_nullable_fields.update(find_non_nullable_fields(schema.type, current_path))
+
+    elif pa.types.is_struct(schema):
+        for schema_field in schema:
+            non_nullable_fields.update(find_non_nullable_fields(schema_field, parent_path))
+    elif pa.types.is_list(schema):
+        value_type = schema.value_type
+        if hasattr(value_type, "type"):
+            non_nullable_fields.update(find_non_nullable_fields(value_type, parent_path))
+
+    return non_nullable_fields
+
+
+def restore_non_nullable_fields(schema: pa.Schema, non_nullable: set[str]) -> pa.Schema:
+    """Recover non-nullable fields in a PyArrow schema based on a set of period-separated paths.
+    See `find_non_nullable_fields` for more information.
+
+    Args:
+        schema (pa.Schema): PyArrow schema to update
+        non_nullable (set[str]): Set of non-nullable field paths, where embedded paths are separated by a period
+
+    Returns:
+        pa.Schema: Updated PyArrow schema
+    """
+
+    # Recursively update the schema
+    def update_field(schema_field: pa.Field, parent_path: str = ""):
+        # Check if the current field is non-nullable
+        current_path = f"{parent_path}.{schema_field.name}".lstrip(".")
+        if current_path in non_nullable:
+            schema_field = schema_field.with_nullable(False)
+
+        # Recursively update nested fields
+        if pa.types.is_struct(schema_field.type):
+            new_fields = []
+            for nested_field in schema_field.type:
+                new_fields.append(update_field(nested_field, current_path))
+            schema_field = schema_field.with_type(pa.struct(new_fields))
+
+        # Recursively update list value types
+        elif pa.types.is_list(schema_field.type):
+            value_type = schema_field.type.value_type
+            if hasattr(value_type, "type"):
+                schema_field = schema_field.with_type(pa.list_(update_field(value_type, current_path)))
+
+        return schema_field
+
+    # Update all fields in the schema
+    new_fields = []
+    for schema_field in schema:
+        new_fields.append(update_field(schema_field))
+
+    return pa.schema(new_fields)
