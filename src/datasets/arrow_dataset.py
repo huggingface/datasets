@@ -5191,8 +5191,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def _generate_tables_from_cache_file(filename: str):
-        for batch_idx, batch in enumerate(_memory_mapped_record_batch_reader_from_file(filename)):
-            yield batch_idx, pa.Table.from_batches([batch])
+        reader, mmap_stream = _memory_mapped_record_batch_reader_from_file(filename)
+        try:
+            for batch_idx, batch in enumerate(reader):
+                yield batch_idx, pa.Table.from_batches([batch])
+        finally:
+            reader.close()
+            mmap_stream.close()
 
     def to_iterable_dataset(self, num_shards: Optional[int] = 1) -> "IterableDataset":
         """Get an [`datasets.IterableDataset`] from a map-style [`datasets.Dataset`].
