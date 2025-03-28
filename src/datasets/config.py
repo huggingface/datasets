@@ -265,5 +265,5 @@ PBAR_REFRESH_TIME_INTERVAL = 0.05  # 20 progress updates per sec
 # Maximum number of uploaded files per commit
 UPLOADS_MAX_NUMBER_PER_COMMIT = 50
 
-# Backward compatibiliy
+# Backward compatibility
 MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30

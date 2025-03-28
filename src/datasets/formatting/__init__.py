@@ -124,7 +124,7 @@ def get_formatter(format_type: Optional[str], **format_kwargs) -> Formatter:
     """
     Factory function to get a Formatter given its type name and keyword arguments.
     A formatter is an object that extracts and formats data from pyarrow table.
-    It defines the formatting for rows, colums and batches.
+    It defines the formatting for rows, columns and batches.
     If the formatter for a given type name doesn't exist or is not available, an error is raised.
     """
     format_type = get_format_type_from_alias(format_type)
