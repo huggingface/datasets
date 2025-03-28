@@ -42,7 +42,7 @@ from ..utils import experimental, logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
-from .pdf import Pdf
+from .pdf import Pdf, encode_pdfplumber_pdf
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video
 
@@ -299,6 +299,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
     if config.PIL_AVAILABLE and "PIL" in sys.modules:
         import PIL.Image
 
+    if config.PDFPLUMBER_AVAILABLE and "pdfplumber" in sys.modules:
+        import pdfplumber
+
     if isinstance(obj, np.ndarray):
         if obj.ndim == 0:
             return obj[()], True
@@ -367,6 +370,8 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             )
     elif config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(obj, PIL.Image.Image):
         return encode_pil_image(obj), True
+    elif config.PDFPLUMBER_AVAILABLE and "pdfplumber" in sys.modules and isinstance(obj, pdfplumber.pdf.PDF):
+        return encode_pdfplumber_pdf(obj), True
     elif isinstance(obj, pd.Series):
         return (
             _cast_to_python_objects(
