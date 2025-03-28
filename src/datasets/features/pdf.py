@@ -96,7 +96,7 @@ class Pdf:
             return {"path": None, "bytes": value}
         elif pdfplumber is not None and isinstance(value, pdfplumber.pdf.PDF):
             # convert the pdfplumber.pdf.PDF to bytes
-            return self.encode_pdfplumber_pdf(value)
+            return encode_pdfplumber_pdf(value)
         elif value.get("path") is not None and os.path.isfile(value["path"]):
             # we set "bytes": None to not duplicate the data if they're already available locally
             return {"bytes": None, "path": value.get("path")}
