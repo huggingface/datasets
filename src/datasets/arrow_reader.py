@@ -48,10 +48,10 @@ _SUB_SPEC_RE = re.compile(
 ^
  (?P<split>{_split_re[1:-1]})
  (\[
-    ((?P<from>-?\d+)
+    ((?P<from>-?[\d_]+)
      (?P<from_pct>%)?)?
     :
-    ((?P<to>-?\d+)
+    ((?P<to>-?[\d_]+)
      (?P<to_pct>%)?)?
  \])?(\((?P<rounding>[^\)]*)\))?
 $
