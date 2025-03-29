@@ -25,7 +25,7 @@ import pyarrow.parquet as pq
 from fsspec.core import url_to_fs
 
 from . import config
-from .features import Audio, Features, Image, Value, Video
+from .features import Audio, Features, Image, Pdf, Value, Video
 from .features.features import (
     FeatureType,
     _ArrayXDExtensionType,
@@ -42,7 +42,7 @@ from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .table import array_cast, cast_array_to_feature, embed_table_storage, table_cast
 from .utils import logging
-from .utils.py_utils import asdict, first_non_null_value
+from .utils.py_utils import asdict, first_non_null_non_empty_value
 
 
 logger = logging.get_logger(__name__)
@@ -189,9 +189,23 @@ class TypedSequence:
         if config.PIL_AVAILABLE and "PIL" in sys.modules:
             import PIL.Image
 
-            non_null_idx, non_null_value = first_non_null_value(data)
+            non_null_idx, non_null_value = first_non_null_non_empty_value(data)
             if isinstance(non_null_value, PIL.Image.Image):
                 return [Image().encode_example(value) if value is not None else None for value in data], Image()
+            if isinstance(non_null_value, list) and isinstance(non_null_value[0], PIL.Image.Image):
+                return [[Image().encode_example(x) for x in value] if value is not None else None for value in data], [
+                    Image()
+                ]
+        if config.PDFPLUMBER_AVAILABLE and "pdfplumber" in sys.modules:
+            import pdfplumber
+
+            non_null_idx, non_null_value = first_non_null_non_empty_value(data)
+            if isinstance(non_null_value, pdfplumber.pdf.PDF):
+                return [Pdf().encode_example(value) if value is not None else None for value in data], Pdf()
+            if isinstance(non_null_value, list) and isinstance(non_null_value[0], pdfplumber.pdf.PDF):
+                return [[Pdf().encode_example(x) for x in value] if value is not None else None for value in data], [
+                    Pdf()
+                ]
         return data, None
 
     def __arrow_array__(self, type: Optional[pa.DataType] = None):
@@ -222,7 +236,7 @@ class TypedSequence:
             # efficient np array to pyarrow array
             if isinstance(data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(data)
-            elif isinstance(data, list) and data and isinstance(first_non_null_value(data)[1], np.ndarray):
+            elif isinstance(data, list) and data and isinstance(first_non_null_non_empty_value(data)[1], np.ndarray):
                 out = list_of_np_array_to_pyarrow_listarray(data)
             else:
                 trying_cast_to_python_objects = True
