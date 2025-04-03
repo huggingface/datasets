@@ -35,6 +35,8 @@ def _in_memory_arrow_table_from_file(filename: str) -> pa.Table:
     in_memory_stream = pa.input_stream(filename)
     opened_stream = pa.ipc.open_stream(in_memory_stream)
     pa_table = opened_stream.read_all()
+    opened_stream.close()
+    in_memory_stream.close()
     return pa_table
 
 
@@ -42,10 +44,14 @@ def _in_memory_arrow_table_from_buffer(buffer: pa.Buffer) -> pa.Table:
     stream = pa.BufferReader(buffer)
     opened_stream = pa.ipc.open_stream(stream)
     table = opened_stream.read_all()
+    opened_stream.close()
+    stream.close()
     return table
 
 
-def _memory_mapped_record_batch_reader_from_file(filename: str) -> tuple[pa.RecordBatchStreamReader, pa.MemoryMappedFile]:
+def _memory_mapped_record_batch_reader_from_file(
+    filename: str,
+) -> tuple[pa.RecordBatchStreamReader, pa.MemoryMappedFile]:
     memory_mapped_stream = pa.memory_map(filename)
     return pa.ipc.open_stream(memory_mapped_stream), memory_mapped_stream
 
