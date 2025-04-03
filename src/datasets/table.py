@@ -52,6 +52,25 @@ def _in_memory_arrow_table_from_buffer(buffer: pa.Buffer) -> pa.Table:
 def _memory_mapped_record_batch_reader_from_file(
     filename: str,
 ) -> tuple[pa.RecordBatchStreamReader, pa.MemoryMappedFile]:
+    """
+    Creates a memory-mapped record batch reader from a file.
+
+    This function opens a file as a memory-mapped stream and initializes
+    a RecordBatchStreamReader for reading Arrow record batches from the stream.
+
+    Note: Both the returned RecordBatchStreamReader and MemoryMappedFile
+    must be explicitly closed after use to release resources.
+
+    Args:
+        filename (str): The path to the file to be memory-mapped.
+
+    Returns:
+        tuple[pa.RecordBatchStreamReader, pa.MemoryMappedFile]:
+            A tuple containing:
+            - A RecordBatchStreamReader for reading Arrow record batches.
+            - A MemoryMappedFile object representing the memory-mapped file.
+
+    """
     memory_mapped_stream = pa.memory_map(filename)
     return pa.ipc.open_stream(memory_mapped_stream), memory_mapped_stream
 
