@@ -193,6 +193,7 @@ def cached_path(
                     filename=resolved_path.path_in_repo,
                     force_download=download_config.force_download,
                     proxies=download_config.proxies,
+                    cache_dir=cache_dir
                 )
             except (
                 huggingface_hub.utils.RepositoryNotFoundError,
