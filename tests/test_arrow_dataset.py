@@ -127,7 +127,12 @@ class BaseDatasetTest(TestCase):
         self._caplog = caplog
 
     def _create_dummy_dataset(
-        self, in_memory: bool, tmp_dir: str, multiple_columns=False, array_features=False, nested_features=False,
+        self,
+        in_memory: bool,
+        tmp_dir: str,
+        multiple_columns=False,
+        array_features=False,
+        nested_features=False,
         int_to_float=False,
     ) -> Dataset:
         assert int(multiple_columns) + int(array_features) + int(nested_features) < 2
@@ -155,7 +160,7 @@ class BaseDatasetTest(TestCase):
         elif int_to_float:
             data = {
                 "text": ["text1", "text2", "text3", "text4"],
-                "labels": [[1, 1, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 1], [0, 0, 0, 1, 0]]
+                "labels": [[1, 1, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 1], [0, 0, 0, 1, 0]],
             }
             dset = Dataset.from_dict(data)
         else:
@@ -1133,11 +1138,21 @@ class BaseDatasetTest(TestCase):
         # casting int labels to float labels
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, int_to_float=True) as dset:
+
                 def _preprocess(examples):
                     result = {"labels": [list(map(float, labels)) for labels in examples["labels"]]}
                     return result
 
-                with dset.map(_preprocess, remove_columns=["labels", "text"]) as dset_test:
+                with dset.map(
+                    _preprocess, remove_columns=["labels", "text"], batched=True, try_original_type=True
+                ) as dset_test:
+                    for labels in dset_test["labels"]:
+                        for label in labels:
+                            self.assertIsInstance(label, int)
+
+                with dset.map(
+                    _preprocess, remove_columns=["labels", "text"], batched=True, try_original_type=False
+                ) as dset_test:
                     for labels in dset_test["labels"]:
                         for label in labels:
                             self.assertIsInstance(label, float)

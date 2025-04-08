@@ -570,7 +570,7 @@ class ArrowWriter:
         self,
         batch_examples: dict[str, list],
         writer_batch_size: Optional[int] = None,
-        skip_trying_type: Optional[bool] = False,
+        try_original_type: Optional[bool] = True,
     ):
         """Write a batch of Example to file.
         Ignores the batch if it appears to be empty,
@@ -578,7 +578,7 @@ class ArrowWriter:
 
         Args:
             batch_examples: the batch of examples to add.
-            skip_trying_type: use try_type=None when instantiating OptimizedTypedSequence.
+            try_original_type: use `try_type` when instantiating OptimizedTypedSequence if `True`, otherwise `try_type = None`.
         """
         if batch_examples and len(next(iter(batch_examples.values()))) == 0:
             return
@@ -603,7 +603,11 @@ class ArrowWriter:
                 arrays.append(array)
                 inferred_features[col] = generate_from_arrow_type(col_values.type)
             else:
-                col_try_type = try_features[col] if try_features is not None and col in try_features and not skip_trying_type else None
+                col_try_type = (
+                    try_features[col]
+                    if try_features is not None and col in try_features and try_original_type
+                    else None
+                )
                 typed_sequence = OptimizedTypedSequence(col_values, type=col_type, try_type=col_try_type, col=col)
                 arrays.append(pa.array(typed_sequence))
                 inferred_features[col] = typed_sequence.get_inferred_type()
