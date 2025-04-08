@@ -2934,7 +2934,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             desc (`str`, *optional*, defaults to `None`):
                 Meaningful description to be displayed alongside with the progress bar while mapping examples.
             try_original_type (`Optional[bool]`, defaults to `True`):
-                Use `try_type` when instantiating OptimizedTypedSequence if `True`, otherwise `try_type = None`.
+                Try to keep the types of the original columns (e.g. int32 -> int32).
+                Set to False if you want to always infer new types.
 
         Example:
 
@@ -3262,7 +3263,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
             rank: (`int`, optional, defaults to `None`): If specified, this is the process rank when doing multiprocessing
             offset: (`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`.
-            try_original_type: (`Optional[bool]`, defaults to `True`): Use `try_type` when instantiating OptimizedTypedSequence if `True`, otherwise `try_type = None`.
+            try_original_type: (`Optional[bool]`, defaults to `True`):
+                Try to keep the types of the original columns (e.g. int32 -> int32).
+                Set to False if you want to always infer new types.
         """
         if fn_kwargs is None:
             fn_kwargs = {}
