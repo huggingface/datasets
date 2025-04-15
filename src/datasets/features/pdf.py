@@ -96,7 +96,7 @@ class Pdf:
             return {"path": None, "bytes": value}
         elif pdfplumber is not None and isinstance(value, pdfplumber.pdf.PDF):
             # convert the pdfplumber.pdf.PDF to bytes
-            return self.encode_pdfplumber_pdf(value)
+            return encode_pdfplumber_pdf(value)
         elif value.get("path") is not None and os.path.isfile(value["path"]):
             # we set "bytes": None to not duplicate the data if they're already available locally
             return {"bytes": None, "path": value.get("path")}
@@ -107,26 +107,6 @@ class Pdf:
             raise ValueError(
                 f"A pdf sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
             )
-
-    def encode_pdfplumber_pdf(pdf: "pdfplumber.pdf.PDF") -> dict:
-        """
-        Encode a pdfplumber.pdf.PDF object into a dictionary.
-
-        If the PDF has an associated file path, returns the path. Otherwise, serializes
-        the PDF content into bytes.
-
-        Args:
-            pdf (pdfplumber.pdf.PDF): A pdfplumber PDF object.
-
-        Returns:
-            dict: A dictionary with "path" or "bytes" field.
-        """
-        if hasattr(pdf, "stream") and hasattr(pdf.stream, "name") and pdf.stream.name:
-            # Return the path if the PDF has an associated file path
-            return {"path": pdf.stream.name, "bytes": None}
-        else:
-            # Convert the PDF to bytes if no path is available
-            return {"path": None, "bytes": pdf_to_bytes(pdf)}
 
     def decode_example(self, value: dict, token_per_repo_id=None) -> "pdfplumber.pdf.PDF":
         """Decode example pdf file into pdf data.
@@ -235,3 +215,24 @@ class Pdf:
                 path_array = pa.array([None] * len(storage), type=pa.string())
             storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
         return array_cast(storage, self.pa_type)
+
+
+def encode_pdfplumber_pdf(pdf: "pdfplumber.pdf.PDF") -> dict:
+    """
+    Encode a pdfplumber.pdf.PDF object into a dictionary.
+
+    If the PDF has an associated file path, returns the path. Otherwise, serializes
+    the PDF content into bytes.
+
+    Args:
+        pdf (pdfplumber.pdf.PDF): A pdfplumber PDF object.
+
+    Returns:
+        dict: A dictionary with "path" or "bytes" field.
+    """
+    if hasattr(pdf, "stream") and hasattr(pdf.stream, "name") and pdf.stream.name:
+        # Return the path if the PDF has an associated file path
+        return {"path": pdf.stream.name, "bytes": None}
+    else:
+        # Convert the PDF to bytes if no path is available
+        return {"path": None, "bytes": pdf_to_bytes(pdf)}
