@@ -137,7 +137,7 @@ def test_repartition_df_if_needed_max_num_df_rows():
 
 @require_not_windows
 @require_dill_gt_0_3_2
-def test_iterable_image():
+def test_iterable_image_features():
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     img_bytes = np.zeros((10, 10, 3), dtype=np.uint8).tobytes()
     data = [(img_bytes,)]
@@ -147,3 +147,24 @@ def test_iterable_image():
     item = next(iter(dset))
     assert item.keys() == {"image"}
     assert item == {"image": {"path": None, "bytes": img_bytes}}
+
+
+@require_not_windows
+@require_dill_gt_0_3_2
+def test_iterable_image_features_decode():
+    from io import BytesIO
+
+    import PIL.Image
+
+    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
+    img = PIL.Image.fromarray(np.zeros((10, 10, 3), dtype=np.uint8), "RGB")
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    img_bytes = bytes(buffer.getvalue())
+    data = [(img_bytes,)]
+    df = spark.createDataFrame(data, "image: binary")
+    features = Features({"image": Image()})
+    dset = IterableDataset.from_spark(df, features=features)
+    item = next(iter(dset))
+    assert item.keys() == {"image"}
+    assert isinstance(item["image"], PIL.Image.Image)
