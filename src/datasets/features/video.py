@@ -71,7 +71,7 @@ class Video:
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, bytes, Example, np.ndarray, "VideoReader"]) -> Example:
+    def encode_example(self, value: Union[str, bytes, bytearray, Example, np.ndarray, "VideoReader"]) -> Example:
         """Encode example into a format for Arrow.
 
         Args:
@@ -92,7 +92,7 @@ class Video:
 
         if isinstance(value, str):
             return {"path": value, "bytes": None}
-        elif isinstance(value, bytes):
+        elif isinstance(value, (bytes, bytearray)):
             return {"path": None, "bytes": value}
         elif isinstance(value, np.ndarray):
             # convert the video array to bytes
