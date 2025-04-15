@@ -166,7 +166,7 @@ class Pdf:
 
         return pdf
 
-    def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
+    def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """If in the decodable state, return the feature itself, otherwise flatten the feature into a dictionary."""
         from .features import Value
 
