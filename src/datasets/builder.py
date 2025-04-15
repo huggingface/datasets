@@ -172,6 +172,9 @@ class BuilderConfig:
                 data_dir = config_kwargs_to_add_to_suffix["data_dir"]
                 data_dir = os.path.normpath(data_dir)
                 config_kwargs_to_add_to_suffix["data_dir"] = data_dir
+        # Hashing a generator can take significant amount of time, removing it
+        if "generator" in config_kwargs_to_add_to_suffix:
+            config_kwargs_to_add_to_suffix.pop("generator", None)
         if config_kwargs_to_add_to_suffix:
             # we don't care about the order of the kwargs
             config_kwargs_to_add_to_suffix = {
