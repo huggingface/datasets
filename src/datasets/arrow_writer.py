@@ -173,7 +173,7 @@ class TypedSequence:
     def _infer_custom_type_and_encode(data: Iterable) -> tuple[Iterable, Optional[FeatureType]]:
         """Implement type inference for custom objects like PIL.Image.Image -> Image type.
 
-        This function is only used for custom python objects that can't be direclty passed to build
+        This function is only used for custom python objects that can't be directly passed to build
         an Arrow array. In such cases is infers the feature type to use, and it encodes the data so
         that they can be passed to an Arrow array.
 
@@ -492,7 +492,7 @@ class ArrowWriter:
         batch_examples = {}
         for col in cols:
             # We use row[0][col] since current_examples contains (example, key) tuples.
-            # Morever, examples could be Arrow arrays of 1 element.
+            # Moreover, examples could be Arrow arrays of 1 element.
             # This can happen in `.map()` when we want to re-write the same Arrow data
             if all(isinstance(row[0][col], (pa.Array, pa.ChunkedArray)) for row in self.current_examples):
                 arrays = [row[0][col] for row in self.current_examples]
@@ -546,7 +546,7 @@ class ArrowWriter:
         if writer_batch_size is not None and len(self.current_examples) >= writer_batch_size:
             if self._check_duplicates:
                 self.check_duplicate_keys()
-                # Re-intializing to empty list for next batch
+                # Re-initializing to empty list for next batch
                 self.hkey_record = []
 
             self.write_examples_on_file()
@@ -652,7 +652,7 @@ class ArrowWriter:
         # In case current_examples < writer_batch_size, but user uses finalize()
         if self._check_duplicates:
             self.check_duplicate_keys()
-            # Re-intializing to empty list for next batch
+            # Re-initializing to empty list for next batch
             self.hkey_record = []
         self.write_examples_on_file()
         # If schema is known, infer features even if no examples were written
