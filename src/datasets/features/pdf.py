@@ -75,7 +75,7 @@ class Pdf:
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, bytes, dict, "pdfplumber.pdf.PDF"]) -> dict:
+    def encode_example(self, value: Union[str, bytes, bytearray, dict, "pdfplumber.pdf.PDF"]) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
@@ -92,7 +92,7 @@ class Pdf:
 
         if isinstance(value, str):
             return {"path": value, "bytes": None}
-        elif isinstance(value, bytes):
+        elif isinstance(value, (bytes, bytearray)):
             return {"path": None, "bytes": value}
         elif pdfplumber is not None and isinstance(value, pdfplumber.pdf.PDF):
             # convert the pdfplumber.pdf.PDF to bytes

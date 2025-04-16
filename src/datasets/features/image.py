@@ -91,7 +91,7 @@ class Image:
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, bytes, dict, np.ndarray, "PIL.Image.Image"]) -> dict:
+    def encode_example(self, value: Union[str, bytes, bytearray, dict, np.ndarray, "PIL.Image.Image"]) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
@@ -111,7 +111,7 @@ class Image:
 
         if isinstance(value, str):
             return {"path": value, "bytes": None}
-        elif isinstance(value, bytes):
+        elif isinstance(value, (bytes, bytearray)):
             return {"path": None, "bytes": value}
         elif isinstance(value, np.ndarray):
             # convert the image array to PNG/TIFF bytes
