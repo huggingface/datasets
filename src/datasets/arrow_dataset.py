@@ -5742,7 +5742,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 commit_info = api.create_commit(
                     repo_id,
                     operations=operations,
-                    commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                    commit_message=commit_message + f" (part {i + 1:05d}-of-{num_commits:05d})",
                     commit_description=commit_description,
                     token=token,
                     repo_type="dataset",
