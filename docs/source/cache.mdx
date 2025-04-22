@@ -21,6 +21,14 @@ The default 🤗 Datasets cache directory is `~/.cache/huggingface/datasets`. Ch
 
 ```
 $ export HF_HOME="/path/to/another/directory/datasets"
+
+```
+## HF_DATASETS_CACHE
+
+In addition to using `HF_HOME`, you can override the default 🤗 Datasets cache directory by setting the `HF_DATASETS_CACHE` environment variable. This variable allows you to specify a custom cache location for datasets converted into Arrow format. For instance:
+
+```
+$ export HF_DATASETS_CACHE="/path/to/your/custom/cache"
 ```
 
 When you load a dataset, you also have the option to change where the data is cached. Change the `cache_dir` parameter to the path you want:
