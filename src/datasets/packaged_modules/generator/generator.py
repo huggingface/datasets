@@ -10,6 +10,7 @@ class GeneratorConfig(datasets.BuilderConfig):
     gen_kwargs: Optional[dict] = None
     features: Optional[datasets.Features] = None
     split: datasets.NamedSplit = datasets.Split.TRAIN
+    dataset_id_suffix: Optional[str] = None
 
     def __post_init__(self):
         super().__post_init__()

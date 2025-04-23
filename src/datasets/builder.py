@@ -155,43 +155,46 @@ class BuilderConfig:
         """
         # Possibly add a suffix to the name to handle custom features/data_files/config_kwargs
         suffix: Optional[str] = None
-        config_kwargs_to_add_to_suffix = config_kwargs.copy()
-        # name and version are already used to build the cache directory
-        config_kwargs_to_add_to_suffix.pop("name", None)
-        config_kwargs_to_add_to_suffix.pop("version", None)
-        # data dir handling (when specified it points to the manually downloaded data):
-        # it was previously ignored before the introduction of config id because we didn't want
-        # to change the config name. Now it's fine to take it into account for the config id.
-        # config_kwargs_to_add_to_suffix.pop("data_dir", None)
-        if "data_dir" in config_kwargs_to_add_to_suffix:
-            if config_kwargs_to_add_to_suffix["data_dir"] is None:
-                config_kwargs_to_add_to_suffix.pop("data_dir", None)
-            else:
-                # canonicalize the data dir to avoid two paths to the same location having different
-                # hashes
-                data_dir = config_kwargs_to_add_to_suffix["data_dir"]
-                data_dir = os.path.normpath(data_dir)
-                config_kwargs_to_add_to_suffix["data_dir"] = data_dir
-        if config_kwargs_to_add_to_suffix:
-            # we don't care about the order of the kwargs
-            config_kwargs_to_add_to_suffix = {
-                k: config_kwargs_to_add_to_suffix[k] for k in sorted(config_kwargs_to_add_to_suffix)
-            }
-            if all(isinstance(v, (str, bool, int, float)) for v in config_kwargs_to_add_to_suffix.values()):
-                suffix = ",".join(
-                    str(k) + "=" + urllib.parse.quote_plus(str(v)) for k, v in config_kwargs_to_add_to_suffix.items()
-                )
-                if len(suffix) > 32:  # hash if too long
+        if "dataset_id_suffix" in config_kwargs and config_kwargs["dataset_id_suffix"] is not None:
+            suffix = config_kwargs["dataset_id_suffix"]
+        else:
+            config_kwargs_to_add_to_suffix = config_kwargs.copy()
+            # name and version are already used to build the cache directory
+            config_kwargs_to_add_to_suffix.pop("name", None)
+            config_kwargs_to_add_to_suffix.pop("version", None)
+            # data dir handling (when specified it points to the manually downloaded data):
+            # it was previously ignored before the introduction of config id because we didn't want
+            # to change the config name. Now it's fine to take it into account for the config id.
+            # config_kwargs_to_add_to_suffix.pop("data_dir", None)
+            if "data_dir" in config_kwargs_to_add_to_suffix:
+                if config_kwargs_to_add_to_suffix["data_dir"] is None:
+                    config_kwargs_to_add_to_suffix.pop("data_dir", None)
+                else:
+                    # canonicalize the data dir to avoid two paths to the same location having different
+                    # hashes
+                    data_dir = config_kwargs_to_add_to_suffix["data_dir"]
+                    data_dir = os.path.normpath(data_dir)
+                    config_kwargs_to_add_to_suffix["data_dir"] = data_dir
+            if config_kwargs_to_add_to_suffix:
+                # we don't care about the order of the kwargs
+                config_kwargs_to_add_to_suffix = {
+                    k: config_kwargs_to_add_to_suffix[k] for k in sorted(config_kwargs_to_add_to_suffix)
+                }
+                if all(isinstance(v, (str, bool, int, float)) for v in config_kwargs_to_add_to_suffix.values()):
+                    suffix = ",".join(
+                        str(k) + "=" + urllib.parse.quote_plus(str(v)) for k, v in config_kwargs_to_add_to_suffix.items()
+                    )
+                    if len(suffix) > 32:  # hash if too long
+                        suffix = Hasher.hash(config_kwargs_to_add_to_suffix)
+                else:
                     suffix = Hasher.hash(config_kwargs_to_add_to_suffix)
-            else:
-                suffix = Hasher.hash(config_kwargs_to_add_to_suffix)
 
-        if custom_features is not None:
-            m = Hasher()
-            if suffix:
-                m.update(suffix)
-            m.update(custom_features)
-            suffix = m.hexdigest()
+            if custom_features is not None:
+                m = Hasher()
+                if suffix:
+                    m.update(suffix)
+                m.update(custom_features)
+                suffix = m.hexdigest()
 
         if suffix:
             config_id = self.name + "-" + suffix
