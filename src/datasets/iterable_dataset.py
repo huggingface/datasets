@@ -3409,10 +3409,16 @@ def _concatenate_iterable_datasets(
         _check_column_names([col_name for dset in dsets for col_name in dset.features])
 
     # Check format is consistent; if so, will set format for concatenated dataset
-    format_type_set = {dset._formatting.format_type for dset in dsets if dset._formatting}
-    if len(format_type_set) > 1:
-        logger.info("Some of the datasets have disparate format. Resetting the format of the concatenated dataset.")
-    format_type = format_type_set.pop() if len(format_type_set) == 1 else None
+    if any(dset._formatting is None for dset in dsets):
+        formatting = None
+    else:
+        format_type_set = {dset._formatting.format_type for dset in dsets}
+        format_type = format_type_set.pop() if len(format_type_set) == 1 else None
+        formatting = FormattingConfig(format_type=format_type)
+    if formatting is None:
+        logger.info(
+            "Some of the datasets have disparate format or format not set. Resetting the format of the concatenated dataset."
+        )
 
     # TODO: improve this to account for a mix of ClassLabel and Value for example
     # right now it would keep the type of the first dataset in the list
@@ -3440,7 +3446,7 @@ def _concatenate_iterable_datasets(
         info=info,
         split=split,
         token_per_repo_id=token_per_repo_id,
-        formatting=FormattingConfig(format_type=format_type),
+        formatting=formatting,
     )
 
 
