@@ -1488,7 +1488,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             parent_cache_files_paths = {
                 Path(cache_filename["filename"]).resolve().parent for cache_filename in self.cache_files
             }
-            # Check that the dataset doesn't overwrite iself. It can cause a permission error on Windows and a segfault on linux.
+            # Check that the dataset doesn't overwrite itself. It can cause a permission error on Windows and a segfault on linux.
             if Path(dataset_path).expanduser().resolve() in parent_cache_files_paths:
                 raise PermissionError(
                     f"Tried to overwrite {Path(dataset_path).expanduser().resolve()} but a dataset can't overwrite itself."
@@ -2867,7 +2867,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
           Note that the last batch may have less than `n` examples.
           A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
 
-        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simulatenous calls.
+        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simultaneous calls.
         It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
 
         Args:
@@ -3475,7 +3475,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     yield i, apply_function(example, i, offset=offset)
 
         num_examples_progress_update = 0
-        # If `update_data` is True after processing the first example/batch, initalize these resources with `init_buffer_and_writer`
+        # If `update_data` is True after processing the first example/batch, initialize these resources with `init_buffer_and_writer`
         buf_writer, writer, tmp_file = None, None, None
 
         # Check if Polars is available and import it if so
@@ -3659,7 +3659,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Apply a filter function to all the elements in the table in batches
         and update the table so that the dataset only includes examples according to the filter function.
 
-        If the function is asynchronous, then `filter` will run your function in parallel, with up to one thousand simulatenous calls (configurable).
+        If the function is asynchronous, then `filter` will run your function in parallel, with up to one thousand simultaneous calls (configurable).
         It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
 
         Args:
@@ -4277,7 +4277,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"Column '{column}' not found in the dataset. Please provide a column selected in: {self._data.column_names}"
                 )
 
-        # Change null_placement to conform to pyarrow's sort_indices() while ensuring backwards compatability
+        # Change null_placement to conform to pyarrow's sort_indices() while ensuring backwards compatibility
         if null_placement not in ["at_start", "at_end"]:
             if null_placement == "first":
                 null_placement = "at_start"
@@ -5345,7 +5345,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Returns:
             additions (`List[CommitOperation]`): list of the `CommitOperationAdd` of the uploaded shards
             uploaded_size (`int`): number of uploaded bytes to the repository
-            dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset afer uncompression
+            dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset after uncompression
         """
         # Find decodable columns, because if there are any, we need to:
         # embed the bytes from the files in the shards
@@ -6178,7 +6178,7 @@ def _concatenate_map_style_datasets(
         # Return first dataset if all datasets are empty
         return dsets[0]
 
-    # Perform checks (and a potentional cast if axis=0)
+    # Perform checks (and a potential cast if axis=0)
     if axis == 0:
         _check_if_features_can_be_aligned([dset.features for dset in dsets])
     else:
