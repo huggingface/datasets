@@ -798,7 +798,7 @@ class ArrayExtensionArray(pa.ExtensionArray):
 
         return numpy_arr
 
-    def to_pylist(self):
+    def to_pylist(self, maps_as_pydicts: Optional[Literal["lossy", "strict"]] = None):
         zero_copy_only = _is_zero_copy_only(self.storage.type, unnest=True)
         numpy_arr = self.to_numpy(zero_copy_only=zero_copy_only)
         if self.type.shape[0] is None and numpy_arr.dtype == object:
