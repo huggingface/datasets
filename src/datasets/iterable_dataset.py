@@ -3415,7 +3415,7 @@ def _concatenate_iterable_datasets(
         format_type_set = {dset._formatting.format_type for dset in dsets}
         format_type = format_type_set.pop() if len(format_type_set) == 1 else None
         formatting = FormattingConfig(format_type=format_type)
-    if formatting is None:
+    if formatting is None or formatting.format_type is None:
         logger.info(
             "Some of the datasets have disparate format or format not set. Resetting the format of the concatenated dataset."
         )
