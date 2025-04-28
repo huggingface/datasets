@@ -1204,9 +1204,9 @@ def test_skip_examples_iterable():
     skip_ex_iterable = SkipExamplesIterable(base_ex_iterable, n=count)
     expected = list(generate_examples_fn(n=total))[count:]
     assert list(skip_ex_iterable) == expected
-    assert (
-        skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is skip_ex_iterable
-    ), "skip examples makes the shards order fixed"
+    assert skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is skip_ex_iterable, (
+        "skip examples makes the shards order fixed"
+    )
     assert_load_state_dict_resumes_iteration(skip_ex_iterable)
 
 
@@ -1216,9 +1216,9 @@ def test_take_examples_iterable():
     take_ex_iterable = TakeExamplesIterable(base_ex_iterable, n=count)
     expected = list(generate_examples_fn(n=total))[:count]
     assert list(take_ex_iterable) == expected
-    assert (
-        take_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is take_ex_iterable
-    ), "skip examples makes the shards order fixed"
+    assert take_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is take_ex_iterable, (
+        "skip examples makes the shards order fixed"
+    )
     assert_load_state_dict_resumes_iteration(take_ex_iterable)
 
 
@@ -1288,9 +1288,9 @@ def test_horizontally_concatenated_examples_iterable():
     concatenated_ex_iterable = HorizontallyConcatenatedMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
     expected = [{**x, **y} for (_, x), (_, y) in zip(ex_iterable1, ex_iterable2)]
     assert [x for _, x in concatenated_ex_iterable] == expected
-    assert (
-        concatenated_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is concatenated_ex_iterable
-    ), "horizontally concatenated examples makes the shards order fixed"
+    assert concatenated_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is concatenated_ex_iterable, (
+        "horizontally concatenated examples makes the shards order fixed"
+    )
     assert_load_state_dict_resumes_iteration(concatenated_ex_iterable)
 
 
