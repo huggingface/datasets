@@ -960,7 +960,7 @@ class DatasetDict(dict):
                 fn_kwargs=fn_kwargs,
                 num_proc=num_proc,
                 desc=desc,
-                try_original_type=try_original_type
+                try_original_type=try_original_type,
             )
 
             if with_split:

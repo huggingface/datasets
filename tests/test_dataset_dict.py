@@ -342,14 +342,14 @@ class DatasetDictTest(TestCase):
             with dset_dict.map(
                 _preprocess, remove_columns=["labels", "text"], batched=True, try_original_type=True
             ) as dset_test:
-                for labels in dset_test['test']["labels"]:
+                for labels in dset_test["test"]["labels"]:
                     for label in labels:
                         self.assertIsInstance(label, int)
 
             with dset_dict.map(
                 _preprocess, remove_columns=["labels", "text"], batched=True, try_original_type=False
             ) as dset_test:
-                for labels in dset_test['test']["labels"]:
+                for labels in dset_test["test"]["labels"]:
                     for label in labels:
                         self.assertIsInstance(label, float)
 
