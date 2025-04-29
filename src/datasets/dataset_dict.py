@@ -830,6 +830,7 @@ class DatasetDict(dict):
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
         desc: Optional[str] = None,
+        try_original_type: Optional[bool] = True,
     ) -> "DatasetDict":
         """
         Apply a function to all the examples in the table (individually or in batches) and update the table.
@@ -908,6 +909,9 @@ class DatasetDict(dict):
                 use multiprocessing.
             desc (`str`, *optional*, defaults to `None`):
                 Meaningful description to be displayed alongside with the progress bar while mapping examples.
+            try_original_type (`Optional[bool]`, defaults to `True`):
+                Try to keep the types of the original columns (e.g. int32 -> int32).
+                Set to False if you want to always infer new types.
 
         Example:
 
@@ -956,6 +960,7 @@ class DatasetDict(dict):
                 fn_kwargs=fn_kwargs,
                 num_proc=num_proc,
                 desc=desc,
+                try_original_type=try_original_type
             )
 
             if with_split:
