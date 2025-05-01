@@ -13,6 +13,7 @@ import os
 import posixpath
 import re
 import shutil
+import stat
 import sys
 import tarfile
 import time
@@ -411,11 +412,14 @@ def get_from_cache(
             # GET file object
             fsspec_get(url, temp_file, storage_options=storage_options, desc=download_desc, disable_tqdm=disable_tqdm)
 
+        # get the permissions of the temp file
+        temp_file_mode = stat.S_IMODE(os.stat(temp_file.name).st_mode)
+
         logger.info(f"storing {url} in cache at {cache_path}")
         shutil.move(temp_file.name, cache_path)
-        umask = os.umask(0o666)
-        os.umask(umask)
-        os.chmod(cache_path, 0o666 & ~umask)
+
+        # make sure make sure permissions on cache_path are the same as temp_file, shutil.move may not preserve them
+        os.chmod(cache_path, temp_file_mode)
 
         logger.info(f"creating metadata file for {cache_path}")
         meta = {"url": url, "etag": etag}
