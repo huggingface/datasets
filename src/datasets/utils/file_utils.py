@@ -28,7 +28,7 @@ from unittest.mock import patch
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
-import aiohttp.client_exceptions
+# import aiohttp.client_exceptions
 import fsspec
 import huggingface_hub
 import huggingface_hub.errors

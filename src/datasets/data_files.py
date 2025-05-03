@@ -7,7 +7,7 @@ from typing import Callable, Optional, Union
 
 import huggingface_hub
 from fsspec.core import url_to_fs
-from fsspec.implementations.http import HTTPFileSystem
+# from fsspec.implementations.http import HTTPFileSystem
 from huggingface_hub import HfFileSystem
 from packaging import version
 from tqdm.contrib.concurrent import thread_map
@@ -485,11 +485,11 @@ def _get_single_origin_metadata(
     if isinstance(fs, HfFileSystem):
         resolved_path = fs.resolve_path(data_file)
         return resolved_path.repo_id, resolved_path.revision
-    elif isinstance(fs, HTTPFileSystem) and data_file.startswith(config.HF_ENDPOINT):
-        hffs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
-        data_file = "hf://" + data_file[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
-        resolved_path = hffs.resolve_path(data_file)
-        return resolved_path.repo_id, resolved_path.revision
+    # elif isinstance(fs, HTTPFileSystem) and data_file.startswith(config.HF_ENDPOINT):
+    #     hffs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
+    #     data_file = "hf://" + data_file[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
+    #     resolved_path = hffs.resolve_path(data_file)
+    #     return resolved_path.repo_id, resolved_path.revision
     info = fs.info(data_file)
     # s3fs uses "ETag", gcsfs uses "etag", and for local we simply check mtime
     for key in ["ETag", "etag", "mtime"]:
