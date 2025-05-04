@@ -141,6 +141,7 @@ class BuilderConfig:
         self,
         config_kwargs: dict,
         custom_features: Optional[Features] = None,
+        fingerprint: Optional[str] = None,
     ) -> str:
         """
         The config id is used to build the cache directory.
@@ -155,8 +156,9 @@ class BuilderConfig:
         """
         # Possibly add a suffix to the name to handle custom features/data_files/config_kwargs
         suffix: Optional[str] = None
-        if "dataset_id_suffix" in config_kwargs and config_kwargs["dataset_id_suffix"] is not None:
-            suffix = config_kwargs["dataset_id_suffix"]
+
+        if fingerprint is not None:
+           suffix = fingerprint
         else:
             config_kwargs_to_add_to_suffix = config_kwargs.copy()
             # name and version are already used to build the cache directory
@@ -316,6 +318,7 @@ class DatasetBuilder:
         data_dir: Optional[str] = None,
         storage_options: Optional[dict] = None,
         writer_batch_size: Optional[int] = None,
+        fingerprint: Optional[str] = None,
         **config_kwargs,
     ):
         # DatasetBuilder name
@@ -346,6 +349,7 @@ class DatasetBuilder:
         self.config, self.config_id = self._create_builder_config(
             config_name=config_name,
             custom_features=features,
+            fingerprint=fingerprint,
             **config_kwargs,
         )
 
@@ -536,7 +540,7 @@ class DatasetBuilder:
         return self.get_all_exported_dataset_infos().get(self.config.name, DatasetInfo())
 
     def _create_builder_config(
-        self, config_name=None, custom_features=None, **config_kwargs
+        self, config_name=None, custom_features=None, fingerprint=None, **config_kwargs
     ) -> tuple[BuilderConfig, str]:
         """Create and validate BuilderConfig object as well as a unique config id for this config.
         Raises ValueError if there are multiple builder configs and config_name and DEFAULT_CONFIG_NAME are None.
@@ -607,6 +611,7 @@ class DatasetBuilder:
         config_id = builder_config.create_config_id(
             config_kwargs,
             custom_features=custom_features,
+            fingerprint=fingerprint,
         )
         is_custom = (config_id not in self.builder_configs) and config_id != "default"
         if is_custom:
