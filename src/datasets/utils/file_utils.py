@@ -13,14 +13,12 @@ import os
 import posixpath
 import re
 import shutil
-import stat
 import sys
 import tarfile
 import time
 import xml.dom.minidom
 import zipfile
 from collections.abc import Generator
-from contextlib import contextmanager
 from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePosixPath
@@ -1374,8 +1372,3 @@ class FilesIterable(TrackedIterableFromGenerator):
     @classmethod
     def from_urlpaths(cls, urlpaths, download_config: Optional[DownloadConfig] = None) -> "FilesIterable":
         return cls(cls._iter_from_urlpaths, urlpaths, download_config)
-
-# if __name__ == "__main__":
-
-#     with open("/tmp/test.txt", "w+b") as f:
-#         f.write(b"test")
