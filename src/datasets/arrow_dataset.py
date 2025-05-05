@@ -5394,8 +5394,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
             buffer = BytesIO()
             shard.to_parquet(buffer)
-            uploaded_size += buffer.tell()
-            shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=buffer)
+            parquet_bytes = buffer.read()
+            uploaded_size += len(parquet_bytes)
+            del buffer
+            shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=parquet_bytes)
             api.preupload_lfs_files(
                 repo_id=repo_id,
                 additions=[shard_addition],
