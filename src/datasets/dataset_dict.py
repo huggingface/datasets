@@ -7,7 +7,6 @@ import posixpath
 import re
 from collections.abc import Sequence
 from functools import partial
-from io import BytesIO
 from pathlib import Path
 from typing import Callable, Optional, Union
 
@@ -1853,12 +1852,10 @@ class DatasetDict(dict):
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: dict = json.load(f)
             dataset_infos[config_name] = asdict(info_to_dump)
-            buffer = BytesIO()
-            buffer.write(json.dumps(dataset_infos, indent=4).encode("utf-8"))
             additions.append(
                 CommitOperationAdd(
                     path_in_repo=config.DATASETDICT_INFOS_FILENAME,
-                    path_or_fileobj=buffer,
+                    path_or_fileobj=json.dumps(dataset_infos, indent=4).encode("utf-8"),
                 )
             )
         # push to README
