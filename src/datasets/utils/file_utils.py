@@ -19,7 +19,6 @@ import time
 import xml.dom.minidom
 import zipfile
 from collections.abc import Generator
-from contextlib import contextmanager
 from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePosixPath
@@ -399,23 +398,15 @@ def get_from_cache(
 
         incomplete_path = cache_path + ".incomplete"
 
-        @contextmanager
-        def temp_file_manager(mode="w+b"):
-            with open(incomplete_path, mode) as f:
-                yield f
-
         # Download to temporary file, then copy to cache path once finished.
         # Otherwise, you get corrupt cache entries if the download gets interrupted.
-        with temp_file_manager() as temp_file:
+        with open(incomplete_path, "w+b") as temp_file:
             logger.info(f"{url} not found in cache or force_download set to True, downloading to {temp_file.name}")
             # GET file object
             fsspec_get(url, temp_file, storage_options=storage_options, desc=download_desc, disable_tqdm=disable_tqdm)
 
         logger.info(f"storing {url} in cache at {cache_path}")
         shutil.move(temp_file.name, cache_path)
-        umask = os.umask(0o666)
-        os.umask(umask)
-        os.chmod(cache_path, 0o666 & ~umask)
 
         logger.info(f"creating metadata file for {cache_path}")
         meta = {"url": url, "etag": etag}

@@ -7,7 +7,6 @@ import posixpath
 import re
 from collections.abc import Sequence
 from functools import partial
-from io import BytesIO
 from pathlib import Path
 from typing import Callable, Optional, Union
 
@@ -830,6 +829,7 @@ class DatasetDict(dict):
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
         desc: Optional[str] = None,
+        try_original_type: Optional[bool] = True,
     ) -> "DatasetDict":
         """
         Apply a function to all the examples in the table (individually or in batches) and update the table.
@@ -908,6 +908,9 @@ class DatasetDict(dict):
                 use multiprocessing.
             desc (`str`, *optional*, defaults to `None`):
                 Meaningful description to be displayed alongside with the progress bar while mapping examples.
+            try_original_type (`Optional[bool]`, defaults to `True`):
+                Try to keep the types of the original columns (e.g. int32 -> int32).
+                Set to False if you want to always infer new types.
 
         Example:
 
@@ -956,6 +959,7 @@ class DatasetDict(dict):
                 fn_kwargs=fn_kwargs,
                 num_proc=num_proc,
                 desc=desc,
+                try_original_type=try_original_type,
             )
 
             if with_split:
@@ -1848,12 +1852,10 @@ class DatasetDict(dict):
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: dict = json.load(f)
             dataset_infos[config_name] = asdict(info_to_dump)
-            buffer = BytesIO()
-            buffer.write(json.dumps(dataset_infos, indent=4).encode("utf-8"))
             additions.append(
                 CommitOperationAdd(
                     path_in_repo=config.DATASETDICT_INFOS_FILENAME,
-                    path_or_fileobj=buffer,
+                    path_or_fileobj=json.dumps(dataset_infos, indent=4).encode("utf-8"),
                 )
             )
         # push to README

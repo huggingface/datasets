@@ -24,9 +24,15 @@ from .utils import (
 
 
 class DatasetDictTest(TestCase):
-    def _create_dummy_dataset(self, multiple_columns=False):
+    def _create_dummy_dataset(self, multiple_columns=False, int_to_float=False):
         if multiple_columns:
             data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
+            dset = Dataset.from_dict(data)
+        elif int_to_float:
+            data = {
+                "text": ["text1", "text2", "text3", "text4"],
+                "labels": [[1, 1, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 1], [0, 0, 0, 1, 0]],
+            }
             dset = Dataset.from_dict(data)
         else:
             dset = Dataset.from_dict(
@@ -34,11 +40,11 @@ class DatasetDictTest(TestCase):
             )
         return dset
 
-    def _create_dummy_dataset_dict(self, multiple_columns=False) -> DatasetDict:
+    def _create_dummy_dataset_dict(self, multiple_columns=False, int_to_float=False) -> DatasetDict:
         return DatasetDict(
             {
-                "train": self._create_dummy_dataset(multiple_columns=multiple_columns),
-                "test": self._create_dummy_dataset(multiple_columns=multiple_columns),
+                "train": self._create_dummy_dataset(multiple_columns=multiple_columns, int_to_float=int_to_float),
+                "test": self._create_dummy_dataset(multiple_columns=multiple_columns, int_to_float=int_to_float),
             }
         )
 
@@ -324,6 +330,28 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(list(dsets.keys()), list(mapped_dsets_2.keys()))
             self.assertListEqual(sorted(mapped_dsets_2["train"].column_names), sorted(["filename", "foo", "bar"]))
             del dsets, mapped_dsets_1, mapped_dsets_2
+
+        # casting int labels to float labels
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset_dict = self._create_dummy_dataset_dict(int_to_float=True)
+
+            def _preprocess(examples):
+                result = {"labels": [list(map(float, labels)) for labels in examples["labels"]]}
+                return result
+
+            with dset_dict.map(
+                _preprocess, remove_columns=["labels", "text"], batched=True, try_original_type=True
+            ) as dset_test:
+                for labels in dset_test["test"]["labels"]:
+                    for label in labels:
+                        self.assertIsInstance(label, int)
+
+            with dset_dict.map(
+                _preprocess, remove_columns=["labels", "text"], batched=True, try_original_type=False
+            ) as dset_test:
+                for labels in dset_test["test"]["labels"]:
+                    for label in labels:
+                        self.assertIsInstance(label, float)
 
     def test_iterable_map(self):
         dsets = self._create_dummy_iterable_dataset_dict()
