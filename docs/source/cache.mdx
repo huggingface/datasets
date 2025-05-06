@@ -23,6 +23,32 @@ The default 🤗 Datasets cache directory is `~/.cache/huggingface/datasets`. Ch
 $ export HF_HOME="/path/to/another/directory/datasets"
 ```
 
+Alternatively, you can set the `HF_DATASETS_CACHE` environment variable to control only the datasets-specific cache directory:
+
+```
+$ export HF_DATASETS_CACHE="/path/to/datasets_cache"
+```
+
+⚠️ This only applies to files written by the `datasets` library (e.g., Arrow files and indices).  
+It does **not** affect files downloaded from the Hugging Face Hub (such as models, tokenizers, or raw dataset sources), which are located in `~/.cache/huggingface/hub` by default and controlled separately via the `HF_HUB_CACHE` variable:
+
+```
+$ export HF_HUB_CACHE="/path/to/hub_cache"
+```
+
+💡 If you'd like to relocate all Hugging Face caches — including datasets and hub downloads — use the `HF_HOME` variable instead:
+
+```
+$ export HF_HOME="/path/to/cache_root"
+```
+
+This results in:
+- datasets cache → `/path/to/cache_root/datasets`
+- hub cache → `/path/to/cache_root/hub`
+
+These distinctions are especially useful when working in shared environments or networked file systems (e.g., NFS).  
+See [issue #7480](https://github.com/huggingface/datasets/issues/7480) for discussion on how users encountered unexpected cache locations when `HF_HUB_CACHE` was not set alongside `HF_DATASETS_CACHE`.
+
 When you load a dataset, you also have the option to change where the data is cached. Change the `cache_dir` parameter to the path you want:
 
 ```py
@@ -82,6 +108,6 @@ If you want to reuse a dataset from scratch, try setting the `download_mode` par
 
 Disabling the cache and copying the dataset in-memory will speed up dataset operations. There are two options for copying the dataset in-memory:
 
-1. Set `datasets.config.IN_MEMORY_MAX_SIZE` to a nonzero value (in bytes) that fits in your RAM memory. 
+1. Set `datasets.config.IN_MEMORY_MAX_SIZE` to a nonzero value (in bytes) that fits in your RAM memory.
 
 2. Set the environment variable `HF_DATASETS_IN_MEMORY_MAX_SIZE` to a nonzero value. Note that the first method takes higher precedence.
