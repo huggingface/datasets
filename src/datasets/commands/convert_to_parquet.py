@@ -55,7 +55,6 @@ class ConvertToParquetCommand(BaseDatasetsCLICommand):
             revision=self._revision,
             token=self._token,
             trust_remote_code=self._trust_remote_code,
-            merge_pull_request=self._merge_pull_request,
         )
 
         if self._merge_pull_request:
