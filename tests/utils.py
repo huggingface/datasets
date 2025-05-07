@@ -178,15 +178,27 @@ def require_pil(test_case):
     return test_case
 
 
-def require_decord(test_case):
+def require_torchvision(test_case):
     """
-    Decorator marking a test that requires decord.
+    Decorator marking a test that requires torchvision.
+
+    These tests are skipped when torchvision isn't installed.
+
+    """
+    if not config.TORCHVISION_AVAILABLE:
+        test_case = unittest.skip("test requires torchvision")(test_case)
+    return test_case
+
+
+def require_pdfplumber(test_case):
+    """
+    Decorator marking a test that requires pdfplumber.
 
     These tests are skipped when decord isn't installed.
 
     """
-    if not config.DECORD_AVAILABLE:
-        test_case = unittest.skip("test requires decord")(test_case)
+    if not config.PDFPLUMBER_AVAILABLE:
+        test_case = unittest.skip("test requires pdfplumber")(test_case)
     return test_case
 
 

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import sys
-from collections.abc import Mapping
 from functools import partial
 from typing import TYPE_CHECKING, Optional
 
@@ -23,7 +22,7 @@ from .. import config
 from ..features import Features
 from ..features.features import decode_nested_example
 from ..utils.py_utils import no_op_if_value_is_null
-from .formatting import BaseArrowExtractor, TensorFormatter
+from .formatting import BaseArrowExtractor, TableFormatter
 
 
 if TYPE_CHECKING:
@@ -98,7 +97,10 @@ class PolarsFeaturesDecoder:
         return self.decode_row(batch)
 
 
-class PolarsFormatter(TensorFormatter[Mapping, "pl.DataFrame", Mapping]):
+class PolarsFormatter(TableFormatter["pl.DataFrame", "pl.Series", "pl.DataFrame"]):
+    table_type = "polars dataframe"
+    column_type = "polars series"
+
     def __init__(self, features=None, **np_array_kwargs):
         super().__init__(features=features)
         self.np_array_kwargs = np_array_kwargs

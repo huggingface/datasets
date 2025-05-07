@@ -1,8 +1,9 @@
 import copy
 import os
+from collections.abc import Iterator
 from functools import partial
 from itertools import groupby
-from typing import TYPE_CHECKING, Any, Callable, Iterator, List, Optional, Tuple, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, Union
 
 import numpy as np
 import pyarrow as pa
@@ -52,7 +53,7 @@ def _memory_mapped_record_batch_reader_from_file(filename: str) -> pa.RecordBatc
 def read_schema_from_file(filename: str) -> pa.Schema:
     """
     Infer arrow table schema from file without loading whole file into memory.
-    Usefull especially while having very big files.
+    Useful especially while having very big files.
     """
     with pa.memory_map(filename) as memory_mapped_stream:
         schema = pa.ipc.open_stream(memory_mapped_stream).schema
@@ -75,7 +76,7 @@ def _deepcopy(x, memo: dict):
     return result
 
 
-def _interpolation_search(arr: List[int], x: int) -> int:
+def _interpolation_search(arr: list[int], x: int) -> int:
     """
     Return the position i of a sorted array so that arr[i] <= x < arr[i+1]
 
@@ -104,12 +105,12 @@ def _interpolation_search(arr: List[int], x: int) -> int:
 class IndexedTableMixin:
     def __init__(self, table: pa.Table):
         self._schema: pa.Schema = table.schema
-        self._batches: List[pa.RecordBatch] = [
+        self._batches: list[pa.RecordBatch] = [
             recordbatch for recordbatch in table.to_batches() if len(recordbatch) > 0
         ]
         self._offsets: np.ndarray = np.cumsum([0] + [len(b) for b in self._batches], dtype=np.int64)
 
-    def fast_gather(self, indices: Union[List[int], np.ndarray]) -> pa.Table:
+    def fast_gather(self, indices: Union[list[int], np.ndarray]) -> pa.Table:
         """
         Create a pa.Table by gathering the records at the records at the specified indices. Should be faster
         than pa.concat_tables(table.fast_slice(int(i) % table.num_rows, 1) for i in indices) since NumPy can compute
@@ -983,7 +984,7 @@ class InMemoryTable(TableBlock):
 
 
 # The MemoryMappedTable needs replays to properly reload tables from the disk
-Replay = Tuple[str, tuple, dict]
+Replay = tuple[str, tuple, dict]
 
 
 class MemoryMappedTable(TableBlock):
@@ -1007,10 +1008,10 @@ class MemoryMappedTable(TableBlock):
     stay low.
     """
 
-    def __init__(self, table: pa.Table, path: str, replays: Optional[List[Replay]] = None):
+    def __init__(self, table: pa.Table, path: str, replays: Optional[list[Replay]] = None):
         super().__init__(table)
         self.path = os.path.abspath(path)
-        self.replays: List[Replay] = replays if replays is not None else []
+        self.replays: list[Replay] = replays if replays is not None else []
 
     @classmethod
     def from_file(cls, filename: str, replays=None):
@@ -1029,7 +1030,7 @@ class MemoryMappedTable(TableBlock):
         MemoryMappedTable.__init__(self, table, path=path, replays=replays)
 
     @staticmethod
-    def _apply_replays(table: pa.Table, replays: Optional[List[Replay]] = None) -> pa.Table:
+    def _apply_replays(table: pa.Table, replays: Optional[list[Replay]] = None) -> pa.Table:
         if replays is not None:
             for name, args, kwargs in replays:
                 if name == "cast":
@@ -1040,7 +1041,7 @@ class MemoryMappedTable(TableBlock):
                     table = getattr(table, name)(*args, **kwargs)
         return table
 
-    def _append_replay(self, replay: Replay) -> List[Replay]:
+    def _append_replay(self, replay: Replay) -> list[Replay]:
         replays = copy.deepcopy(self.replays)
         replays.append(replay)
         return replays
@@ -1267,7 +1268,7 @@ class MemoryMappedTable(TableBlock):
 # The ``blocks`` attributes stores a list of list of blocks.
 # The first axis concatenates the tables along the axis 0 (it appends rows),
 # while the second axis concatenates tables along the axis 1 (it appends columns).
-TableBlockContainer = TypeVar("TableBlockContainer", TableBlock, List[TableBlock], List[List[TableBlock]])
+TableBlockContainer = TypeVar("TableBlockContainer", TableBlock, list[TableBlock], list[list[TableBlock]])
 
 
 class ConcatenationTable(Table):
@@ -1296,7 +1297,7 @@ class ConcatenationTable(Table):
     and the blocks by accessing the `ConcatenationTable.blocks` attribute.
     """
 
-    def __init__(self, table: pa.Table, blocks: List[List[TableBlock]]):
+    def __init__(self, table: pa.Table, blocks: list[list[TableBlock]]):
         super().__init__(table)
         self.blocks = blocks
         # Check that all the blocks have the right type.
@@ -1324,7 +1325,7 @@ class ConcatenationTable(Table):
         ConcatenationTable.__init__(self, table, blocks=blocks)
 
     @staticmethod
-    def _concat_blocks(blocks: List[Union[TableBlock, pa.Table]], axis: int = 0) -> pa.Table:
+    def _concat_blocks(blocks: list[Union[TableBlock, pa.Table]], axis: int = 0) -> pa.Table:
         pa_tables = [table.table if hasattr(table, "table") else table for table in blocks]
         if axis == 0:
             # We set promote_options="default" to fill missing columns with null values
@@ -1341,7 +1342,7 @@ class ConcatenationTable(Table):
             raise ValueError("'axis' must be either 0 or 1")
 
     @classmethod
-    def _concat_blocks_horizontally_and_vertically(cls, blocks: List[List[TableBlock]]) -> pa.Table:
+    def _concat_blocks_horizontally_and_vertically(cls, blocks: list[list[TableBlock]]) -> pa.Table:
         pa_tables_to_concat_vertically = []
         for i, tables in enumerate(blocks):
             if not tables:
@@ -1390,7 +1391,7 @@ class ConcatenationTable(Table):
             return cls(table, blocks)
 
     @classmethod
-    def from_tables(cls, tables: List[Union[pa.Table, Table]], axis: int = 0) -> "ConcatenationTable":
+    def from_tables(cls, tables: list[Union[pa.Table, Table]], axis: int = 0) -> "ConcatenationTable":
         """Create `ConcatenationTable` from list of tables.
 
         Args:
@@ -1403,7 +1404,7 @@ class ConcatenationTable(Table):
                 <Added version="1.6.0"/>
         """
 
-        def to_blocks(table: Union[pa.Table, Table]) -> List[List[TableBlock]]:
+        def to_blocks(table: Union[pa.Table, Table]) -> list[list[TableBlock]]:
             if isinstance(table, pa.Table):
                 return [[InMemoryTable(table)]]
             elif isinstance(table, ConcatenationTable):
@@ -1411,14 +1412,14 @@ class ConcatenationTable(Table):
             else:
                 return [[table]]
 
-        def _slice_row_block(row_block: List[TableBlock], length: int) -> Tuple[List[TableBlock], List[TableBlock]]:
+        def _slice_row_block(row_block: list[TableBlock], length: int) -> tuple[list[TableBlock], list[TableBlock]]:
             sliced = [table.slice(0, length) for table in row_block]
             remainder = [table.slice(length, len(row_block[0]) - length) for table in row_block]
             return sliced, remainder
 
         def _split_both_like(
-            result: List[List[TableBlock]], blocks: List[List[TableBlock]]
-        ) -> Tuple[List[List[TableBlock]], List[List[TableBlock]]]:
+            result: list[list[TableBlock]], blocks: list[list[TableBlock]]
+        ) -> tuple[list[list[TableBlock]], list[list[TableBlock]]]:
             """
             Make sure each row_block contain the same num_rows to be able to concatenate them on axis=1.
 
@@ -1454,8 +1455,8 @@ class ConcatenationTable(Table):
             return new_result, new_blocks
 
         def _extend_blocks(
-            result: List[List[TableBlock]], blocks: List[List[TableBlock]], axis: int = 0
-        ) -> List[List[TableBlock]]:
+            result: list[list[TableBlock]], blocks: list[list[TableBlock]], axis: int = 0
+        ) -> list[list[TableBlock]]:
             if axis == 0:
                 result.extend(blocks)
             elif axis == 1:
@@ -1743,7 +1744,7 @@ class ConcatenationTable(Table):
         return ConcatenationTable(table, blocks)
 
 
-def concat_tables(tables: List[Table], axis: int = 0) -> Table:
+def concat_tables(tables: list[Table], axis: int = 0) -> Table:
     """
     Concatenate tables.
 
@@ -1766,7 +1767,7 @@ def concat_tables(tables: List[Table], axis: int = 0) -> Table:
     return ConcatenationTable.from_tables(tables, axis=axis)
 
 
-def list_table_cache_files(table: Table) -> List[str]:
+def list_table_cache_files(table: Table) -> list[str]:
     """
     Get the cache files that are loaded by the table.
     Cache file are used when parts of the table come from the disk via memory mapping.
@@ -2176,7 +2177,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
 class CastError(ValueError):
     """When it's not possible to cast an Arrow table to a specific schema or set of features"""
 
-    def __init__(self, *args, table_column_names: List[str], requested_column_names: List[str]) -> None:
+    def __init__(self, *args, table_column_names: list[str], requested_column_names: list[str]) -> None:
         super().__init__(*args)
         self.table_column_names = table_column_names
         self.requested_column_names = requested_column_names

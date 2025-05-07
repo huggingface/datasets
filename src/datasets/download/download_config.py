@@ -1,7 +1,7 @@
 import copy
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 
 from .. import config
 
@@ -15,7 +15,7 @@ class DownloadConfig:
             Specify a cache directory to save the file to (overwrite the
             default cache dir).
         force_download (`bool`, defaults to `False`):
-            If `True`, re-dowload the file even if it's already cached in
+            If `True`, re-download the file even if it's already cached in
             the cache dir.
         resume_download (`bool`, defaults to `False`):
             If `True`, resume the download if an incompletely received file is
@@ -55,7 +55,7 @@ class DownloadConfig:
     force_download: bool = False
     resume_download: bool = False
     local_files_only: bool = False
-    proxies: Optional[Dict] = None
+    proxies: Optional[dict] = None
     user_agent: Optional[str] = None
     extract_compressed_file: bool = False
     force_extract: bool = False
@@ -65,7 +65,7 @@ class DownloadConfig:
     num_proc: Optional[int] = None
     max_retries: int = 1
     token: Optional[Union[str, bool]] = None
-    storage_options: Dict[str, Any] = field(default_factory=dict)
+    storage_options: dict[str, Any] = field(default_factory=dict)
     download_desc: Optional[str] = None
     disable_tqdm: bool = False
 

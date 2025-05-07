@@ -2,10 +2,10 @@ import pytest
 
 from datasets import Dataset, Features, Video
 
-from ..utils import require_decord
+from ..utils import require_torchvision
 
 
-@require_decord
+@require_torchvision
 @pytest.mark.parametrize(
     "build_example",
     [
@@ -19,7 +19,7 @@ from ..utils import require_decord
     ],
 )
 def test_video_feature_encode_example(shared_datadir, build_example):
-    from decord import VideoReader
+    from torchvision.io import VideoReader
 
     video_path = str(shared_datadir / "test_video_66x50.mov")
     video = Video()
@@ -31,10 +31,10 @@ def test_video_feature_encode_example(shared_datadir, build_example):
     assert isinstance(decoded_example, VideoReader)
 
 
-@require_decord
+@require_torchvision
 def test_dataset_with_video_feature(shared_datadir):
-    from decord import VideoReader
-    from decord.ndarray import NDArray
+    import torch
+    from torchvision.io import VideoReader
 
     video_path = str(shared_datadir / "test_video_66x50.mov")
     data = {"video": [video_path]}
@@ -43,19 +43,19 @@ def test_dataset_with_video_feature(shared_datadir):
     item = dset[0]
     assert item.keys() == {"video"}
     assert isinstance(item["video"], VideoReader)
-    assert item["video"][0].shape == (50, 66, 3)
-    assert isinstance(item["video"][0], NDArray)
+    assert next(item["video"])["data"].shape == (3, 50, 66)
+    assert isinstance(next(item["video"])["data"], torch.Tensor)
     batch = dset[:1]
     assert len(batch) == 1
     assert batch.keys() == {"video"}
     assert isinstance(batch["video"], list) and all(isinstance(item, VideoReader) for item in batch["video"])
-    assert batch["video"][0][0].shape == (50, 66, 3)
-    assert isinstance(batch["video"][0][0], NDArray)
+    assert next(batch["video"][0])["data"].shape == (3, 50, 66)
+    assert isinstance(next(batch["video"][0])["data"], torch.Tensor)
     column = dset["video"]
     assert len(column) == 1
     assert isinstance(column, list) and all(isinstance(item, VideoReader) for item in column)
-    assert column[0][0].shape == (50, 66, 3)
-    assert isinstance(column[0][0], NDArray)
+    assert next(column[0])["data"].shape == (3, 50, 66)
+    assert isinstance(next(column[0])["data"], torch.Tensor)
 
     # from bytes
     with open(video_path, "rb") as f:
@@ -64,14 +64,13 @@ def test_dataset_with_video_feature(shared_datadir):
     item = dset[0]
     assert item.keys() == {"video"}
     assert isinstance(item["video"], VideoReader)
-    assert item["video"][0].shape == (50, 66, 3)
-    assert isinstance(item["video"][0], NDArray)
+    assert next(item["video"])["data"].shape == (3, 50, 66)
+    assert isinstance(next(item["video"])["data"], torch.Tensor)
 
 
-@require_decord
+@require_torchvision
 def test_dataset_with_video_map_and_formatted(shared_datadir):
-    import numpy as np
-    from decord import VideoReader
+    from torchvision.io import VideoReader
 
     video_path = str(shared_datadir / "test_video_66x50.mov")
     data = {"video": [video_path]}
@@ -80,7 +79,7 @@ def test_dataset_with_video_map_and_formatted(shared_datadir):
     dset = dset.map(lambda x: x).with_format("numpy")
     example = dset[0]
     assert isinstance(example["video"], VideoReader)
-    assert isinstance(example["video"][0], np.ndarray)
+    # assert isinstance(example["video"][0], np.ndarray)
 
     # from bytes
     with open(video_path, "rb") as f:
@@ -89,4 +88,4 @@ def test_dataset_with_video_map_and_formatted(shared_datadir):
     dset = dset.map(lambda x: x).with_format("numpy")
     example = dset[0]
     assert isinstance(example["video"], VideoReader)
-    assert isinstance(example["video"][0], np.ndarray)
+    # assert isinstance(example["video"][0], np.ndarray)

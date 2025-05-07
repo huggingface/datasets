@@ -13,13 +13,13 @@ This is especially helpful when:
     <img class="hidden dark:block" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/streaming-dark.gif"/>
 </div>
 
-For example, the English split of the [oscar-corpus/OSCAR-2201](https://huggingface.co/datasets/oscar-corpus/OSCAR-2201) dataset is 1.2 terabytes, but you can use it instantly with streaming. Stream a dataset by setting `streaming=True` in [`load_dataset`] as shown below:
+For example, the English split of the [HuggingFaceFW/fineweb](https://huggingface.co/datasets/HuggingFaceFW/fineweb) dataset is 45 terabytes, but you can use it instantly with streaming. Stream a dataset by setting `streaming=True` in [`load_dataset`] as shown below:
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('oscar-corpus/OSCAR-2201', 'en', split='train', streaming=True)
+>>> dataset = load_dataset('HuggingFaceFW/fineweb', split='train', streaming=True)
 >>> print(next(iter(dataset)))
-{'id': 0, 'text': 'Founded in 2015, Golden Bees is a leading programmatic recruitment platform dedicated to employers, HR agencies and job boards. The company has developed unique HR-custom technologies and predictive algorithms to identify and attract the best candidates for a job opportunity.', ...
+{'text': "How AP reported in all formats from tornado-stricken regionsMarch 8, 2012\nWhen the first serious bout of tornadoes of 2012 blew through middle America in the middle of the night, they touched down in places hours from any AP bureau...
 ```
 
 Dataset streaming also lets you work with a dataset made of local files without doing any conversion.
@@ -59,11 +59,11 @@ If you have an existing [`Dataset`] object, you can convert it to an [`IterableD
 >>> from datasets import load_dataset
 
 # faster 🐇
->>> dataset = load_dataset("food101")
+>>> dataset = load_dataset("ethz/food101")
 >>> iterable_dataset = dataset.to_iterable_dataset()
 
 # slower 🐢
->>> iterable_dataset = load_dataset("food101", streaming=True)
+>>> iterable_dataset = load_dataset("ethz/food101", streaming=True)
 ```
 
 The [`~Dataset.to_iterable_dataset`] function supports sharding when the [`IterableDataset`] is instantiated. This is useful when working with big datasets, and you'd like to shuffle the dataset or to enable fast parallel loading with a PyTorch DataLoader.
@@ -72,7 +72,7 @@ The [`~Dataset.to_iterable_dataset`] function supports sharding when the [`Itera
 >>> import torch
 >>> from datasets import load_dataset
 
->>> dataset = load_dataset("food101")
+>>> dataset = load_dataset("ethz/food101")
 >>> iterable_dataset = dataset.to_iterable_dataset(num_shards=64) # shard the dataset
 >>> iterable_dataset = iterable_dataset.shuffle(buffer_size=10_000)  # shuffles the shards order and use a shuffle buffer when you start iterating
 dataloader = torch.utils.data.DataLoader(iterable_dataset, num_workers=4)  # assigns 64 / 4 = 16 shards from the shuffled list of shards to each worker when you start iterating
@@ -86,7 +86,7 @@ The `buffer_size` argument controls the size of the buffer to randomly sample ex
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
+>>> dataset = load_dataset('HuggingFaceFW/fineweb', split='train', streaming=True)
 >>> shuffled_dataset = dataset.shuffle(seed=42, buffer_size=10_000)
 ```
 
@@ -116,10 +116,11 @@ You can split your dataset one of two ways:
 - [`IterableDataset.take`] returns the first `n` examples in a dataset:
 
 ```py
->>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
+>>> dataset = load_dataset('HuggingFaceFW/fineweb', split='train', streaming=True)
 >>> dataset_head = dataset.take(2)
 >>> list(dataset_head)
-[{'id': 0, 'text': 'Mtendere Village was...'}, {'id': 1, 'text': 'Lily James cannot fight the music...'}]
+[{'text': "How AP reported in all formats from tor...},
+ {'text': 'Did you know you have two little yellow...}]
 ```
 
 - [`IterableDataset.skip`] omits the first `n` examples in a dataset and returns the remaining examples:
@@ -171,20 +172,22 @@ If your dataset has `dataset.num_shards==1`, you should chunk it using [`Iterabl
 
 ```py
 >>> from datasets import interleave_datasets
->>> en_dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True, trust_remote_code=True)
->>> fr_dataset = load_dataset('oscar', "unshuffled_deduplicated_fr", split='train', streaming=True, trust_remote_code=True)
+>>> es_dataset = load_dataset('allenai/c4', 'es', split='train', streaming=True)
+>>> fr_dataset = load_dataset('allenai/c4', 'fr', split='train', streaming=True)
 
->>> multilingual_dataset = interleave_datasets([en_dataset, fr_dataset])
+>>> multilingual_dataset = interleave_datasets([es_dataset, fr_dataset])
 >>> list(multilingual_dataset.take(2))
-[{'text': 'Mtendere Village was inspired by the vision...'}, {'text': "Média de débat d'idées, de culture et de littérature..."}]
+[{'text': 'Comprar Zapatillas para niña en chancla con goma por...'},
+ {'text': 'Le sacre de philippe ier, 23 mai 1059 - Compte Rendu...'}]
 ```
 
 Define sampling probabilities from each of the original datasets for more control over how each of them are sampled and combined. Set the `probabilities` argument with your desired sampling probabilities:
 
 ```py
->>> multilingual_dataset_with_oversampling = interleave_datasets([en_dataset, fr_dataset], probabilities=[0.8, 0.2], seed=42)
+>>> multilingual_dataset_with_oversampling = interleave_datasets([es_dataset, fr_dataset], probabilities=[0.8, 0.2], seed=42)
 >>> list(multilingual_dataset_with_oversampling.take(2))
-[{'text': 'Mtendere Village was inspired by the vision...'}, {'text': 'Lily James cannot fight the music...'}]
+[{'text': 'Comprar Zapatillas para niña en chancla con goma por...'},
+ {'text': 'Chevrolet Cavalier Usados en Bogota - Carros en Vent...'}]
 ```
 
 Around 80% of the final dataset is made of the `en_dataset`, and 20% of the `fr_dataset`.
@@ -205,7 +208,7 @@ Provide [`IterableDataset.rename_column`] with the name of the original column, 
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('mc4', 'en', streaming=True, split='train', trust_remote_code=True)
+>>> dataset = load_dataset('allenai/c4', 'en', streaming=True, split='train')
 >>> dataset = dataset.rename_column("text", "content")
 ```
 
@@ -215,7 +218,7 @@ When you need to remove one or more columns, give [`IterableDataset.remove_colum
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('mc4', 'en', streaming=True, split='train', trust_remote_code=True)
+>>> dataset = load_dataset('allenai/c4', 'en', streaming=True, split='train')
 >>> dataset = dataset.remove_columns('timestamp')
 ```
 
@@ -225,11 +228,11 @@ When you need to remove one or more columns, give [`IterableDataset.remove_colum
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('glue', 'mrpc', split='train', streaming=True)
+>>> dataset = load_dataset('nyu-mll/glue', 'mrpc', split='train', streaming=True)
 >>> dataset.features
 {'sentence1': Value(dtype='string', id=None),
 'sentence2': Value(dtype='string', id=None),
-'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None),
+'label': ClassLabel(names=['not_equivalent', 'equivalent'], id=None),
 'idx': Value(dtype='int32', id=None)}
 
 >>> from datasets import ClassLabel, Value
@@ -240,7 +243,7 @@ When you need to remove one or more columns, give [`IterableDataset.remove_colum
 >>> dataset.features
 {'sentence1': Value(dtype='string', id=None),
 'sentence2': Value(dtype='string', id=None),
-'label': ClassLabel(num_classes=2, names=['negative', 'positive'], names_file=None, id=None),
+'label': ClassLabel(names=['negative', 'positive'], id=None),
 'idx': Value(dtype='int64', id=None)}
 ```
 
@@ -280,24 +283,30 @@ Next, apply this function to the dataset with [`IterableDataset.map`]:
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('oscar', 'unshuffled_deduplicated_en', streaming=True, split='train', trust_remote_code=True)
+>>> dataset = load_dataset('allenai/c4', 'en', streaming=True, split='train')
 >>> updated_dataset = dataset.map(add_prefix)
 >>> list(updated_dataset.take(3))
-[{'id': 0, 'text': 'My text: Mtendere Village was inspired by...'},
- {'id': 1, 'text': 'My text: Lily James cannot fight the music...'},
- {'id': 2, 'text': 'My text: "I\'d love to help kickstart...'}]
+[{'text': 'My text: Beginners BBQ Class Taking Place in Missoula!\nDo you want to get better at making...',
+  'timestamp': '2019-04-25 12:57:54',
+  'url': 'https://klyq.com/beginners-bbq-class-taking-place-in-missoula/'},
+ {'text': 'My text: Discussion in \'Mac OS X Lion (10.7)\' started by axboi87, Jan 20, 2012.\nI\'ve go...',
+  'timestamp': '2019-04-21 10:07:13',
+  'url': 'https://forums.macrumors.com/threads/restore-from-larger-disk-to-smaller-disk.1311329/'},
+ {'text': 'My text: Foil plaid lycra and spandex shortall with metallic slinky insets. Attached metall...',
+  'timestamp': '2019-04-25 10:40:23',
+  'url': 'https://awishcometrue.com/Catalogs/Clearance/Tweens/V1960-Find-A-Way'}]
 ```
 
-Let's take a look at another example, except this time, you will remove a column with [`IterableDataset.map`]. When you remove a column, it is only removed after the example has been provided to the mapped function. This allows the mapped function to use the content of the columns before they are removed.
+Let's take a look at another example, except this time, you will remove columns with [`IterableDataset.map`]. When you remove a column, it is only removed after the example has been provided to the mapped function. This allows the mapped function to use the content of the columns before they are removed.
 
 Specify the column to remove with the `remove_columns` argument in [`IterableDataset.map`]:
 
 ```py
->>> updated_dataset = dataset.map(add_prefix, remove_columns=["id"])
+>>> updated_dataset = dataset.map(add_prefix, remove_columns=["timestamp", "url"])
 >>> list(updated_dataset.take(3))
-[{'text': 'My text: Mtendere Village was inspired by...'},
- {'text': 'My text: Lily James cannot fight the music...'},
- {'text': 'My text: "I\'d love to help kickstart...'}]
+[{'text': 'My text: Beginners BBQ Class Taking Place in Missoula!\nDo you want to get better at making...'},
+ {'text': 'My text: Discussion in \'Mac OS X Lion (10.7)\' started by axboi87, Jan 20, 2012.\nI\'ve go...'},
+ {'text': 'My text: Foil plaid lycra and spandex shortall with metallic slinky insets. Attached metall...'}]
 ```
 
 ### Batch processing
@@ -309,14 +318,14 @@ Specify the column to remove with the `remove_columns` argument in [`IterableDat
 ```py
 >>> from datasets import load_dataset
 >>> from transformers import AutoTokenizer
->>> dataset = load_dataset("mc4", "en", streaming=True, split="train", trust_remote_code=True)
+>>> dataset = load_dataset("allenai/c4", "en", streaming=True, split="train")
 >>> tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
 >>> def encode(examples):
 ...     return tokenizer(examples['text'], truncation=True, padding='max_length')
 >>> dataset = dataset.map(encode, batched=True, remove_columns=["text", "timestamp", "url"])
 >>> next(iter(dataset))
-{'input_ids': [101, 8466, 1018, 1010, 4029, 2475, 2062, 18558, 3100, 2061, ...,1106, 3739, 102],
-'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ..., 1, 1]}
+{'input_ids': [101, 4088, 16912, 22861, 4160, 2465, 2635, 2173, 1999, 3335, ..., 0, 0, 0],
+'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ..., 0, 0]}
 ```
 
 <Tip>
@@ -331,10 +340,10 @@ You can filter rows in the dataset based on a predicate function using [`Dataset
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('oscar', 'unshuffled_deduplicated_en', streaming=True, split='train', trust_remote_code=True)
->>> start_with_ar = dataset.filter(lambda example: example['text'].startswith('Ar'))
+>>> dataset = load_dataset('HuggingFaceFW/fineweb', streaming=True, split='train')
+>>> start_with_ar = dataset.filter(lambda example: example['text'].startswith('San Francisco'))
 >>> next(iter(start_with_ar))
-{'id': 4, 'text': 'Are you looking for Number the Stars (Essential Modern Classics)?...'}
+{'text': 'San Francisco 49ers cornerback Shawntae Spencer will miss the rest of the sea...}
 ```
 
 [`Dataset.filter`] can also filter by indices if you set `with_indices=True`:
@@ -342,9 +351,9 @@ You can filter rows in the dataset based on a predicate function using [`Dataset
 ```py
 >>> even_dataset = dataset.filter(lambda example, idx: idx % 2 == 0, with_indices=True)
 >>> list(even_dataset.take(3))
-[{'id': 0, 'text': 'Mtendere Village was inspired by the vision of Chief Napoleon Dzombe, ...'},
- {'id': 2, 'text': '"I\'d love to help kickstart continued development! And 0 EUR/month...'},
- {'id': 4, 'text': 'Are you looking for Number the Stars (Essential Modern Classics)? Normally, ...'}]
+[{'text': 'How AP reported in all formats from tornado-stricken regionsMarch 8, 2012 Whe...},
+ {'text': 'Car Wash For Clara! Now is your chance to help! 2 year old Clara Woodward has...},
+ {'text': 'Log In Please enter your ECode to log in. Forgotten your eCode? If you create...}]
 ```
 
 ## Batch

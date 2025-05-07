@@ -35,7 +35,7 @@ import os
 import posixpath
 from dataclasses import dataclass
 from pathlib import Path
-from typing import ClassVar, Dict, List, Optional, Union
+from typing import ClassVar, Optional, Union
 
 import fsspec
 from fsspec.core import url_to_fs
@@ -156,7 +156,7 @@ class DatasetInfo:
     dataset_size: Optional[int] = None
     size_in_bytes: Optional[int] = None
 
-    _INCLUDED_INFO_IN_YAML: ClassVar[List[str]] = [
+    _INCLUDED_INFO_IN_YAML: ClassVar[list[str]] = [
         "config_name",
         "download_size",
         "dataset_size",
@@ -200,7 +200,7 @@ class DatasetInfo:
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.info.write_to_directory("/path/to/directory/")
         ```
         """
@@ -221,7 +221,7 @@ class DatasetInfo:
         file.write(self.license.encode("utf-8"))
 
     @classmethod
-    def from_merge(cls, dataset_infos: List["DatasetInfo"]):
+    def from_merge(cls, dataset_infos: list["DatasetInfo"]):
         dataset_infos = [dset_info.copy() for dset_info in dataset_infos if dset_info is not None]
 
         if len(dataset_infos) > 0 and all(dataset_infos[0] == dset_info for dset_info in dataset_infos):
@@ -321,7 +321,7 @@ class DatasetInfo:
         return cls(**{k: v for k, v in yaml_data.items() if k in field_names})
 
 
-class DatasetInfosDict(Dict[str, DatasetInfo]):
+class DatasetInfosDict(dict[str, DatasetInfo]):
     def write_to_directory(self, dataset_infos_dir, overwrite=False, pretty_print=False) -> None:
         total_dataset_infos = {}
         dataset_infos_path = os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)

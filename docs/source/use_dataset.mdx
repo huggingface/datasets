@@ -35,7 +35,7 @@ Check out the [Tokenizers](https://huggingface.co/course/chapter2/4?fw=pt) secti
 >>> from datasets import load_dataset
 
 >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
->>> dataset = load_dataset("rotten_tomatoes", split="train")
+>>> dataset = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
 ```
 
 **2**. Call your tokenizer on the first row of `text` in the dataset:
@@ -159,7 +159,7 @@ The most common preprocessing you'll do with image datasets is *data augmentatio
 >>> from datasets import load_dataset, Image
 
 >>> feature_extractor = AutoFeatureExtractor.from_pretrained("google/vit-base-patch16-224-in21k")
->>> dataset = load_dataset("beans", split="train")
+>>> dataset = load_dataset("AI-Lab-Makerere/beans", split="train")
 ```
 
 **2**. Index into the first row of the dataset. When you call the `image` column of the dataset, the underlying PIL object is automatically decoded into an image.

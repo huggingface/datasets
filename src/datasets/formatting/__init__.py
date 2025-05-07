@@ -22,6 +22,7 @@ from .formatting import (
     Formatter,
     PandasFormatter,
     PythonFormatter,
+    TableFormatter,
     TensorFormatter,
     format_table,
     query_table,
@@ -31,15 +32,15 @@ from .np_formatter import NumpyFormatter
 
 logger = logging.get_logger(__name__)
 
-_FORMAT_TYPES: Dict[Optional[str], Type[Formatter]] = {}
-_FORMAT_TYPES_ALIASES: Dict[Optional[str], str] = {}
-_FORMAT_TYPES_ALIASES_UNAVAILABLE: Dict[Optional[str], Exception] = {}
+_FORMAT_TYPES: dict[Optional[str], type[Formatter]] = {}
+_FORMAT_TYPES_ALIASES: dict[Optional[str], str] = {}
+_FORMAT_TYPES_ALIASES_UNAVAILABLE: dict[Optional[str], Exception] = {}
 
 
 def _register_formatter(
     formatter_cls: type,
     format_type: Optional[str],
-    aliases: Optional[List[str]] = None,
+    aliases: Optional[list[str]] = None,
 ):
     """
     Register a Formatter object using a name and optional aliases.
@@ -60,7 +61,7 @@ def _register_formatter(
 
 
 def _register_unavailable_formatter(
-    unavailable_error: Exception, format_type: Optional[str], aliases: Optional[List[str]] = None
+    unavailable_error: Exception, format_type: Optional[str], aliases: Optional[list[str]] = None
 ):
     """
     Register an unavailable Formatter object using a name and optional aliases.
@@ -123,7 +124,7 @@ def get_formatter(format_type: Optional[str], **format_kwargs) -> Formatter:
     """
     Factory function to get a Formatter given its type name and keyword arguments.
     A formatter is an object that extracts and formats data from pyarrow table.
-    It defines the formatting for rows, colums and batches.
+    It defines the formatting for rows, columns and batches.
     If the formatter for a given type name doesn't exist or is not available, an error is raised.
     """
     format_type = get_format_type_from_alias(format_type)

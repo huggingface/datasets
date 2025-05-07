@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Optional, Union
 
 import pyarrow as pa
 
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 @dataclass
 class Translation:
     """`Feature` for translations with fixed languages per example.
-    Here for compatiblity with tfds.
+    Here for compatibility with tfds.
 
     Args:
         languages (`dict`):
@@ -31,7 +31,7 @@ class Translation:
     ```
     """
 
-    languages: List[str]
+    languages: list[str]
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
@@ -41,7 +41,7 @@ class Translation:
     def __call__(self):
         return pa.struct({lang: pa.string() for lang in sorted(self.languages)})
 
-    def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
+    def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """Flatten the Translation feature into a dictionary."""
         from .features import Value
 
@@ -51,7 +51,7 @@ class Translation:
 @dataclass
 class TranslationVariableLanguages:
     """`Feature` for translations with variable languages per example.
-    Here for compatiblity with tfds.
+    Here for compatibility with tfds.
 
     Args:
         languages (`dict`):
@@ -81,7 +81,7 @@ class TranslationVariableLanguages:
     ```
     """
 
-    languages: Optional[List] = None
+    languages: Optional[list] = None
     num_languages: Optional[int] = None
     id: Optional[str] = None
     # Automatically constructed
@@ -102,7 +102,7 @@ class TranslationVariableLanguages:
             return translation_dict
         elif self.languages and set(translation_dict) - lang_set:
             raise ValueError(
-                f'Some languages in example ({", ".join(sorted(set(translation_dict) - lang_set))}) are not in valid set ({", ".join(lang_set)}).'
+                f"Some languages in example ({', '.join(sorted(set(translation_dict) - lang_set))}) are not in valid set ({', '.join(lang_set)})."
             )
 
         # Convert dictionary into tuples, splitting out cases where there are
@@ -119,7 +119,7 @@ class TranslationVariableLanguages:
 
         return {"language": languages, "translation": translations}
 
-    def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
+    def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """Flatten the TranslationVariableLanguages feature into a dictionary."""
         from .features import Sequence, Value
 

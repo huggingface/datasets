@@ -97,7 +97,7 @@ To ensure a dataset is complete, [`load_dataset`] will perform a series of tests
 - The number of splits in the generated `DatasetDict`.
 - The number of samples in each split of the generated `DatasetDict`.
 - The list of downloaded files.
-- The SHA256 checksums of the downloaded files (disabled by defaut).
+- The SHA256 checksums of the downloaded files (disabled by default).
 
 If the dataset doesn't pass the verifications, it is likely that the original host of the dataset made some changes in the data files. 
 
@@ -117,4 +117,4 @@ The dataset repositories on the Hub are scanned for malware, see more informatio
 
 Moreover the datasets without a namespace (originally contributed on our GitHub repository) have all been reviewed by our maintainers.
 The code of these datasets is considered **safe**.
-It concerns datasets that are not under a namespace, e.g. "squad" or "glue", unlike the other datasets that are named "username/dataset_name" or "org/dataset_name".
+It concerns datasets that are not under a namespace, e.g. "rajpurkar/squad" or "nyu-mll/glue", unlike the other datasets that are named "username/dataset_name" or "org/dataset_name".

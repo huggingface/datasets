@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 import copy
 import itertools
@@ -7,6 +8,7 @@ import pickle
 import re
 import sys
 import tempfile
+import time
 from functools import partial
 from pathlib import Path
 from unittest import TestCase
@@ -125,7 +127,13 @@ class BaseDatasetTest(TestCase):
         self._caplog = caplog
 
     def _create_dummy_dataset(
-        self, in_memory: bool, tmp_dir: str, multiple_columns=False, array_features=False, nested_features=False
+        self,
+        in_memory: bool,
+        tmp_dir: str,
+        multiple_columns=False,
+        array_features=False,
+        nested_features=False,
+        int_to_float=False,
     ) -> Dataset:
         assert int(multiple_columns) + int(array_features) + int(nested_features) < 2
         if multiple_columns:
@@ -149,6 +157,12 @@ class BaseDatasetTest(TestCase):
             data = {"nested": [{"a": i, "x": i * 10, "c": i * 100} for i in range(1, 11)]}
             features = Features({"nested": {"a": Value("int64"), "x": Value("int64"), "c": Value("int64")}})
             dset = Dataset.from_dict(data, features=features)
+        elif int_to_float:
+            data = {
+                "text": ["text1", "text2", "text3", "text4"],
+                "labels": [[1, 1, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 1], [0, 0, 0, 1, 0]],
+            }
+            dset = Dataset.from_dict(data)
         else:
             dset = Dataset.from_dict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
         if not in_memory:
@@ -869,6 +883,32 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(dset_concat.info.description, "Dataset2\n\nDataset1")
             del dset1, dset2, dset3
 
+    def test_repeat(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                repeated_dset = dset.repeat(3)
+                column_values_dict = {col: dset[col] for col in dset.column_names}
+                for col, single_values in column_values_dict.items():
+                    self.assertListEqual(repeated_dset[col], single_values * 3)
+                del repeated_dset
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                with pytest.raises(ValueError):
+                    dset.repeat(None)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                repeated_dset = dset.repeat(0)
+                self.assertEqual(len(repeated_dset), 0)
+                del repeated_dset
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                repeated_dset = dset.repeat(-1)
+                self.assertEqual(len(repeated_dset), 0)
+                del repeated_dset
+
     def test_flatten(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
@@ -1095,6 +1135,27 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(sorted(dset_test[0].keys()), ["col_1", "col_1_plus_one"])
                     self.assertListEqual(sorted(dset_test.column_names), ["col_1", "col_1_plus_one", "col_2", "col_3"])
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
+        # casting int labels to float labels
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, int_to_float=True) as dset:
+
+                def _preprocess(examples):
+                    result = {"labels": [list(map(float, labels)) for labels in examples["labels"]]}
+                    return result
+
+                with dset.map(
+                    _preprocess, remove_columns=["labels", "text"], batched=True, try_original_type=True
+                ) as dset_test:
+                    for labels in dset_test["labels"]:
+                        for label in labels:
+                            self.assertIsInstance(label, int)
+
+                with dset.map(
+                    _preprocess, remove_columns=["labels", "text"], batched=True, try_original_type=False
+                ) as dset_test:
+                    for labels in dset_test["labels"]:
+                        for label in labels:
+                            self.assertIsInstance(label, float)
 
     def test_map_multiprocessing(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:  # standard
@@ -2717,9 +2778,11 @@ class BaseDatasetTest(TestCase):
         import tensorflow as tf
         import torch
 
-        with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(
-            in_memory, tmp_dir
-        ) as dset, dset.map(lambda ex, i: {"vec": np.ones(3) * i}, with_indices=True) as dset:
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            self._create_dummy_dataset(in_memory, tmp_dir) as dset,
+            dset.map(lambda ex, i: {"vec": np.ones(3) * i}, with_indices=True) as dset,
+        ):
             columns = dset.column_names
 
             self.assertIsNotNone(dset[0])
@@ -2770,9 +2833,11 @@ class BaseDatasetTest(TestCase):
         import tensorflow as tf
         import torch
 
-        with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(
-            in_memory, tmp_dir
-        ) as dset, dset.map(lambda ex, i: {"vec": np.ones(3 + i) * i}, with_indices=True) as dset:
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            self._create_dummy_dataset(in_memory, tmp_dir) as dset,
+            dset.map(lambda ex, i: {"vec": np.ones(3 + i) * i}, with_indices=True) as dset,
+        ):
             columns = dset.column_names
 
             self.assertIsNotNone(dset[0])
@@ -2830,9 +2895,11 @@ class BaseDatasetTest(TestCase):
         import tensorflow as tf
         import torch
 
-        with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(
-            in_memory, tmp_dir
-        ) as dset, dset.map(lambda ex: {"nested": [{"foo": np.ones(3)}] * len(ex["filename"])}, batched=True) as dset:
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            self._create_dummy_dataset(in_memory, tmp_dir) as dset,
+            dset.map(lambda ex: {"nested": [{"foo": np.ones(3)}] * len(ex["filename"])}, batched=True) as dset,
+        ):
             self.assertDictEqual(
                 dset.features, Features({"filename": Value("string"), "nested": {"foo": Sequence(Value("float64"))}})
             )
@@ -3108,12 +3175,11 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(tf_dataset), 2)  # One batch of 3 and one batch of 1
             self.assertEqual(len(tf_dataset_with_drop), 1)  # Incomplete batch of 1 is dropped
         # Test that `NotImplementedError` is raised `batch_size` is None and `num_workers` is > 0
-        if sys.version_info >= (3, 8):
-            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-                with self.assertRaisesRegex(
-                    NotImplementedError, "`batch_size` must be specified when using multiple workers"
-                ):
-                    dset.to_tf_dataset(columns="col_1", batch_size=None, num_workers=2)
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            with self.assertRaisesRegex(
+                NotImplementedError, "`batch_size` must be specified when using multiple workers"
+            ):
+                dset.to_tf_dataset(columns="col_1", batch_size=None, num_workers=2)
         del tf_dataset  # For correct cleanup
         del tf_dataset_with_drop
 
@@ -3224,11 +3290,11 @@ class MiscellaneousDatasetTest(TestCase):
         info1 = DatasetInfo(description="Dataset1")
         info2 = DatasetInfo(description="Dataset2")
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with Dataset.from_dict(data1, info=info1).map(
-                cache_file_name=os.path.join(tmp_dir, "d1.arrow")
-            ) as dset1, Dataset.from_dict(data2, info=info2).map(
-                cache_file_name=os.path.join(tmp_dir, "d2.arrow")
-            ) as dset2, Dataset.from_dict(data3) as dset3:
+            with (
+                Dataset.from_dict(data1, info=info1).map(cache_file_name=os.path.join(tmp_dir, "d1.arrow")) as dset1,
+                Dataset.from_dict(data2, info=info2).map(cache_file_name=os.path.join(tmp_dir, "d2.arrow")) as dset2,
+                Dataset.from_dict(data3) as dset3,
+            ):
                 with concatenate_datasets([dset1, dset2, dset3]) as concatenated_dset:
                     self.assertEqual(len(concatenated_dset), len(dset1) + len(dset2) + len(dset3))
                     self.assertListEqual(concatenated_dset["id"], dset1["id"] + dset2["id"] + dset3["id"])
@@ -4130,9 +4196,10 @@ def test_dataset_to_json(dataset, tmp_path):
 )
 def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_params, arrow_file):
     method, args, kwargs = method_and_params
-    with Dataset.from_file(arrow_file, in_memory=in_memory) as dataset, Dataset.from_file(
-        arrow_file, in_memory=in_memory
-    ) as reference_dataset:
+    with (
+        Dataset.from_file(arrow_file, in_memory=in_memory) as dataset,
+        Dataset.from_file(arrow_file, in_memory=in_memory) as reference_dataset,
+    ):
         out = getattr(dataset, method)(*args, **kwargs)
         dataset = out if out is not None else dataset
         pickled_dataset = pickle.dumps(dataset)
@@ -4158,7 +4225,7 @@ def test_dummy_dataset_serialize_fs(dataset, mockfs):
     [
         "relative/path",
         "/absolute/path",
-        "s3://bucket/relative/path",
+        "hf://bucket/relative/path",
         "hdfs://relative/path",
         "hdfs:///absolute/path",
     ],
@@ -4172,7 +4239,7 @@ def test_build_local_temp_path(uri_or_path):
 
     assert (
         "hdfs://" not in path_relative_to_tmp_dir
-        and "s3://" not in path_relative_to_tmp_dir
+        and "hf://" not in path_relative_to_tmp_dir
         and not local_temp_path.startswith(extracted_path_without_anchor)
         and local_temp_path.endswith(extracted_path_without_anchor)
     ), f"Local temp path: {local_temp_path}"
@@ -4273,8 +4340,9 @@ def test_dataset_to_iterable_dataset(dataset: Dataset):
     assert iterable_dataset.num_shards == 3
     with pytest.raises(ValueError):
         dataset.to_iterable_dataset(num_shards=len(dataset) + 1)
+    assert dataset.with_format("torch").to_iterable_dataset()._formatting.format_type == "torch"
     with pytest.raises(NotImplementedError):
-        dataset.with_format("torch").to_iterable_dataset()
+        dataset.with_format("torch", columns=[dataset.column_names[0]]).to_iterable_dataset()
 
 
 @require_pil
@@ -4412,6 +4480,50 @@ def test_map_cases(return_lazy_dict):
     ds = ds.map(f)
     outputs = ds[:]
     assert outputs == {"a": [{"nested": [[i]]} for i in [-1, -1, 2, 3]]}
+
+
+def test_map_async():
+    dset = Dataset.from_dict({"x": range(100)})
+
+    async def f(example):
+        await asyncio.sleep(0.1)
+        return {"y": 1}
+
+    _start = time.time()
+    out = dset.map(f)
+    assert time.time() - _start < 2.0
+    assert out[0]["y"] == 1
+
+    async def f(batch):
+        await asyncio.sleep(0.1)
+        return {"y": [1] * len(batch["x"])}
+
+    _start = time.time()
+    out = dset.map(f, batched=True)
+    assert time.time() - _start < 2.0
+    assert out[0]["y"] == 1
+
+
+def test_filter_async():
+    dset = Dataset.from_dict({"x": range(100)})
+
+    async def f(example):
+        await asyncio.sleep(0.1)
+        return example["x"] == 42
+
+    _start = time.time()
+    out = dset.filter(f)
+    assert time.time() - _start < 2.0
+    assert len(out) == 1
+
+    async def f(batch):
+        await asyncio.sleep(0.1)
+        return [x == 42 for x in batch["x"]]
+
+    _start = time.time()
+    out = dset.filter(f, batched=True)
+    assert time.time() - _start < 2.0
+    assert len(out) == 1
 
 
 def test_dataset_getitem_raises():

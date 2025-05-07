@@ -15,7 +15,8 @@
 
 import json
 import sys
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from collections.abc import Iterable
+from typing import Any, Optional, Union
 
 import fsspec
 import numpy as np
@@ -24,7 +25,7 @@ import pyarrow.parquet as pq
 from fsspec.core import url_to_fs
 
 from . import config
-from .features import Audio, Features, Image, Value, Video
+from .features import Audio, Features, Image, Pdf, Value, Video
 from .features.features import (
     FeatureType,
     _ArrayXDExtensionType,
@@ -41,7 +42,7 @@ from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .table import array_cast, cast_array_to_feature, embed_table_storage, table_cast
 from .utils import logging
-from .utils.py_utils import asdict, first_non_null_value
+from .utils.py_utils import asdict, first_non_null_non_empty_value
 
 
 logger = logging.get_logger(__name__)
@@ -169,10 +170,10 @@ class TypedSequence:
         return self._inferred_type
 
     @staticmethod
-    def _infer_custom_type_and_encode(data: Iterable) -> Tuple[Iterable, Optional[FeatureType]]:
+    def _infer_custom_type_and_encode(data: Iterable) -> tuple[Iterable, Optional[FeatureType]]:
         """Implement type inference for custom objects like PIL.Image.Image -> Image type.
 
-        This function is only used for custom python objects that can't be direclty passed to build
+        This function is only used for custom python objects that can't be directly passed to build
         an Arrow array. In such cases is infers the feature type to use, and it encodes the data so
         that they can be passed to an Arrow array.
 
@@ -188,9 +189,23 @@ class TypedSequence:
         if config.PIL_AVAILABLE and "PIL" in sys.modules:
             import PIL.Image
 
-            non_null_idx, non_null_value = first_non_null_value(data)
+            non_null_idx, non_null_value = first_non_null_non_empty_value(data)
             if isinstance(non_null_value, PIL.Image.Image):
                 return [Image().encode_example(value) if value is not None else None for value in data], Image()
+            if isinstance(non_null_value, list) and isinstance(non_null_value[0], PIL.Image.Image):
+                return [[Image().encode_example(x) for x in value] if value is not None else None for value in data], [
+                    Image()
+                ]
+        if config.PDFPLUMBER_AVAILABLE and "pdfplumber" in sys.modules:
+            import pdfplumber
+
+            non_null_idx, non_null_value = first_non_null_non_empty_value(data)
+            if isinstance(non_null_value, pdfplumber.pdf.PDF):
+                return [Pdf().encode_example(value) if value is not None else None for value in data], Pdf()
+            if isinstance(non_null_value, list) and isinstance(non_null_value[0], pdfplumber.pdf.PDF):
+                return [[Pdf().encode_example(x) for x in value] if value is not None else None for value in data], [
+                    Pdf()
+                ]
         return data, None
 
     def __arrow_array__(self, type: Optional[pa.DataType] = None):
@@ -221,7 +236,7 @@ class TypedSequence:
             # efficient np array to pyarrow array
             if isinstance(data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(data)
-            elif isinstance(data, list) and data and isinstance(first_non_null_value(data)[1], np.ndarray):
+            elif isinstance(data, list) and data and isinstance(first_non_null_non_empty_value(data)[1], np.ndarray):
                 out = list_of_np_array_to_pyarrow_listarray(data)
             else:
                 trying_cast_to_python_objects = True
@@ -390,8 +405,8 @@ class ArrowWriter:
 
         self._num_examples = 0
         self._num_bytes = 0
-        self.current_examples: List[Tuple[Dict[str, Any], str]] = []
-        self.current_rows: List[pa.Table] = []
+        self.current_examples: list[tuple[dict[str, Any], str]] = []
+        self.current_rows: list[pa.Table] = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
         self.hkey_record = []
 
@@ -452,7 +467,7 @@ class ArrowWriter:
         return _schema if _schema is not None else []
 
     @staticmethod
-    def _build_metadata(info: DatasetInfo, fingerprint: Optional[str] = None) -> Dict[str, str]:
+    def _build_metadata(info: DatasetInfo, fingerprint: Optional[str] = None) -> dict[str, str]:
         info_keys = ["features"]  # we can add support for more DatasetInfo keys in the future
         info_as_dict = asdict(info)
         metadata = {}
@@ -477,7 +492,7 @@ class ArrowWriter:
         batch_examples = {}
         for col in cols:
             # We use row[0][col] since current_examples contains (example, key) tuples.
-            # Morever, examples could be Arrow arrays of 1 element.
+            # Moreover, examples could be Arrow arrays of 1 element.
             # This can happen in `.map()` when we want to re-write the same Arrow data
             if all(isinstance(row[0][col], (pa.Array, pa.ChunkedArray)) for row in self.current_examples):
                 arrays = [row[0][col] for row in self.current_examples]
@@ -505,7 +520,7 @@ class ArrowWriter:
 
     def write(
         self,
-        example: Dict[str, Any],
+        example: dict[str, Any],
         key: Optional[Union[str, int, bytes]] = None,
         writer_batch_size: Optional[int] = None,
     ):
@@ -531,7 +546,7 @@ class ArrowWriter:
         if writer_batch_size is not None and len(self.current_examples) >= writer_batch_size:
             if self._check_duplicates:
                 self.check_duplicate_keys()
-                # Re-intializing to empty list for next batch
+                # Re-initializing to empty list for next batch
                 self.hkey_record = []
 
             self.write_examples_on_file()
@@ -567,8 +582,9 @@ class ArrowWriter:
 
     def write_batch(
         self,
-        batch_examples: Dict[str, List],
+        batch_examples: dict[str, list],
         writer_batch_size: Optional[int] = None,
+        try_original_type: Optional[bool] = True,
     ):
         """Write a batch of Example to file.
         Ignores the batch if it appears to be empty,
@@ -576,6 +592,7 @@ class ArrowWriter:
 
         Args:
             batch_examples: the batch of examples to add.
+            try_original_type: use `try_type` when instantiating OptimizedTypedSequence if `True`, otherwise `try_type = None`.
         """
         if batch_examples and len(next(iter(batch_examples.values()))) == 0:
             return
@@ -600,7 +617,11 @@ class ArrowWriter:
                 arrays.append(array)
                 inferred_features[col] = generate_from_arrow_type(col_values.type)
             else:
-                col_try_type = try_features[col] if try_features is not None and col in try_features else None
+                col_try_type = (
+                    try_features[col]
+                    if try_features is not None and col in try_features and try_original_type
+                    else None
+                )
                 typed_sequence = OptimizedTypedSequence(col_values, type=col_type, try_type=col_try_type, col=col)
                 arrays.append(pa.array(typed_sequence))
                 inferred_features[col] = typed_sequence.get_inferred_type()
@@ -631,7 +652,7 @@ class ArrowWriter:
         # In case current_examples < writer_batch_size, but user uses finalize()
         if self._check_duplicates:
             self.check_duplicate_keys()
-            # Re-intializing to empty list for next batch
+            # Re-initializing to empty list for next batch
             self.hkey_record = []
         self.write_examples_on_file()
         # If schema is known, infer features even if no examples were written

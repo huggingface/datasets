@@ -52,6 +52,7 @@ The base class [`Dataset`] implements a Dataset backed by an Apache Arrow table.
     - take
     - train_test_split
     - shard
+    - repeat
     - to_tf_dataset
     - push_to_hub
     - save_to_disk
@@ -162,6 +163,7 @@ The base class [`IterableDataset`] implements an iterable Dataset backed by pyth
     - select_columns
     - cast_column
     - cast
+    - decode
     - __iter__
     - iter
     - map
@@ -172,6 +174,7 @@ The base class [`IterableDataset`] implements an iterable Dataset backed by pyth
     - skip
     - take
     - shard
+    - repeat
     - load_state_dict
     - state_dict
     - info
@@ -249,6 +252,10 @@ Dictionary with split names as keys ('train', 'test' for example), and `Iterable
 ### Video
 
 [[autodoc]] datasets.Video
+
+### Pdf
+
+[[autodoc]] datasets.Pdf
 
 ## Filesystems
 

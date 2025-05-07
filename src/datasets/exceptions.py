@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2023 The HuggingFace Authors.
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 from huggingface_hub import HfFileSystem
 
@@ -56,13 +56,13 @@ class DatasetGenerationCastError(DatasetGenerationError):
         cls,
         cast_error: CastError,
         builder_name: str,
-        gen_kwargs: Dict[str, Any],
+        gen_kwargs: dict[str, Any],
         token: Optional[Union[bool, str]],
     ) -> "DatasetGenerationCastError":
         explanation_message = (
             f"\n\nAll the data files must have the same columns, but at some point {cast_error.details()}"
         )
-        formatted_tracked_gen_kwargs: List[str] = []
+        formatted_tracked_gen_kwargs: list[str] = []
         for gen_kwarg in gen_kwargs.values():
             if not isinstance(gen_kwarg, (tracked_str, tracked_list, TrackedIterableFromGenerator)):
                 continue

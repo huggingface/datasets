@@ -30,11 +30,17 @@ folder/train/cat/bengal.mp4
 folder/train/cat/birman.mp4
 ```
 
-Then users can load your dataset by specifying `videofolder` in [`load_dataset`] and the directory in `data_dir`:
+If the dataset follows the `VideoFolder` structure, then you can load it directly with [`load_dataset`]:
 
 ```py
 >>> from datasets import load_dataset
 
+>>> dataset = load_dataset("path/to/folder")
+```
+
+This is equivalent to passing `videofolder` manually in [`load_dataset`] and the directory in `data_dir`:
+
+```py
 >>> dataset = load_dataset("videofolder", data_dir="/path/to/folder")
 ```
 
@@ -54,7 +60,7 @@ If all video files are contained in a single directory or if they are not on the
 </Tip>
 
 
-If there is additional information you'd like to include about your dataset, like text captions or bounding boxes, add it as a `metadata.csv` file in your folder. This lets you quickly create datasets for different computer vision tasks like text captioning or object detection. You can also use a JSONL file `metadata.jsonl`.
+If there is additional information you'd like to include about your dataset, like text captions or bounding boxes, add it as a `metadata.csv` file in your folder. This lets you quickly create datasets for different computer vision tasks like text captioning or object detection. You can also use a JSONL file `metadata.jsonl` or a Parquet file `metadata.parquet`.
 
 ```
 folder/train/metadata.csv
@@ -63,16 +69,7 @@ folder/train/0002.mp4
 folder/train/0003.mp4
 ```
 
-You can also zip your videos:
-
-```
-folder/metadata.csv
-folder/train.zip
-folder/test.zip
-folder/valid.zip
-```
-
-Your `metadata.csv` file must have a `file_name` column which links video files with their metadata:
+Your `metadata.csv` file must have a `file_name` or `*_file_name` field which links video files with their metadata:
 
 ```csv
 file_name,additional_feature
@@ -89,11 +86,23 @@ or using `metadata.jsonl`:
 {"file_name": "0003.mp4", "additional_feature": "This is a third value of a text feature you added to your videos"}
 ```
 
-<Tip>
+Here the `file_name` must be the name of the video file next to the metadata file. More generally, it must be the relative path from the directory containing the metadata to the video file.
 
-If metadata files are present, the inferred labels based on the directory name are dropped by default. To include those labels, set `drop_labels=False` in `load_dataset`.
+It's possible to point to more than one video in each row in your dataset, for example if both your input and output are videos:
 
-</Tip>
+```jsonl
+{"input_file_name": "0001.mp4", "output_file_name": "0001_output.mp4"}
+{"input_file_name": "0002.mp4", "output_file_name": "0002_output.mp4"}
+{"input_file_name": "0003.mp4", "output_file_name": "0003_output.mp4"}
+```
+
+You can also define lists of videos. In that case you need to name the field `file_names` or `*_file_names`. Here is an example:
+
+```jsonl
+{"videos_file_names": ["0001_left.mp4", "0001_right.mp4"], "label": "moving_up"}
+{"videos_file_names": ["0002_left.mp4", "0002_right.mp4"], "label": "moving_down"}
+{"videos_file_names": ["0003_left.mp4", "0003_right.mp4"], "label": "moving_right"}
+```
 
 ### Video captioning
 

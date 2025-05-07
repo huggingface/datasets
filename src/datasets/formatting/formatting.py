@@ -13,18 +13,16 @@
 # limitations under the License.
 
 import operator
-from collections.abc import Mapping, MutableMapping
+from collections.abc import Iterable, Mapping, MutableMapping
 from functools import partial
 
 # Lint as: python3
-from typing import Any, Callable, Dict, Generic, Iterable, List, Optional, TypeVar, Union
+from typing import Any, Callable, Generic, Optional, TypeVar, Union
 
 import numpy as np
 import pandas as pd
 import pyarrow as pa
-from packaging import version
 
-from .. import config
 from ..features import Features
 from ..features.features import _ArrayXDExtensionType, _is_zero_copy_only, decode_nested_example, pandas_types_mapper
 from ..table import Table
@@ -124,7 +122,7 @@ class BaseArrowExtractor(Generic[RowFormat, ColumnFormat, BatchFormat]):
         raise NotImplementedError
 
 
-def _unnest(py_dict: Dict[str, List[T]]) -> Dict[str, T]:
+def _unnest(py_dict: dict[str, list[T]]) -> dict[str, T]:
     """Return the first element of a batch (dict) as a row (dict)"""
     return {key: array[0] for key, array in py_dict.items()}
 
@@ -169,24 +167,24 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
             if isinstance(pa_array.type, _ArrayXDExtensionType):
                 # don't call to_pylist() to preserve dtype of the fixed-size array
                 zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
-                array: List = [
+                array: list = [
                     row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
                 ]
             else:
                 zero_copy_only = _is_zero_copy_only(pa_array.type) and all(
                     not _is_array_with_nulls(chunk) for chunk in pa_array.chunks
                 )
-                array: List = [
+                array: list = [
                     row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
                 ]
         else:
             if isinstance(pa_array.type, _ArrayXDExtensionType):
                 # don't call to_pylist() to preserve dtype of the fixed-size array
                 zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
-                array: List = pa_array.to_numpy(zero_copy_only=zero_copy_only)
+                array: list = pa_array.to_numpy(zero_copy_only=zero_copy_only)
             else:
                 zero_copy_only = _is_zero_copy_only(pa_array.type) and not _is_array_with_nulls(pa_array)
-                array: List = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
+                array: list = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
 
         if len(array) > 0:
             if any(
@@ -215,11 +213,14 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
 
 
 class PythonFeaturesDecoder:
-    def __init__(self, features: Optional[Features]):
+    def __init__(
+        self, features: Optional[Features], token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None
+    ):
         self.features = features
+        self.token_per_repo_id = token_per_repo_id
 
     def decode_row(self, row: dict) -> dict:
-        return self.features.decode_example(row) if self.features else row
+        return self.features.decode_example(row, token_per_repo_id=self.token_per_repo_id) if self.features else row
 
     def decode_column(self, column: list, column_name: str) -> list:
         return self.features.decode_column(column, column_name) if self.features else column
@@ -267,7 +268,7 @@ class LazyDict(MutableMapping):
         self.pa_table = pa_table
         self.formatter = formatter
 
-        self.data = {key: None for key in pa_table.column_names}
+        self.data = dict.fromkeys(pa_table.column_names)
         self.keys_to_format = set(self.data.keys())
 
     def __len__(self):
@@ -301,49 +302,46 @@ class LazyDict(MutableMapping):
         self._format_all()
         return repr(self.data)
 
-    if config.PY_VERSION >= version.parse("3.9"):
-        # merging with the union ("|") operator is supported in Python 3.9+
+    def __or__(self, other):
+        if isinstance(other, LazyDict):
+            inst = self.copy()
+            other = other.copy()
+            other._format_all()
+            inst.keys_to_format -= other.data.keys()
+            inst.data = inst.data | other.data
+            return inst
+        if isinstance(other, dict):
+            inst = self.copy()
+            inst.keys_to_format -= other.keys()
+            inst.data = inst.data | other
+            return inst
+        return NotImplemented
 
-        def __or__(self, other):
-            if isinstance(other, LazyDict):
-                inst = self.copy()
-                other = other.copy()
-                other._format_all()
-                inst.keys_to_format -= other.data.keys()
-                inst.data = inst.data | other.data
-                return inst
-            if isinstance(other, dict):
-                inst = self.copy()
-                inst.keys_to_format -= other.keys()
-                inst.data = inst.data | other
-                return inst
-            return NotImplemented
+    def __ror__(self, other):
+        if isinstance(other, LazyDict):
+            inst = self.copy()
+            other = other.copy()
+            other._format_all()
+            inst.keys_to_format -= other.data.keys()
+            inst.data = other.data | inst.data
+            return inst
+        if isinstance(other, dict):
+            inst = self.copy()
+            inst.keys_to_format -= other.keys()
+            inst.data = other | inst.data
+            return inst
+        return NotImplemented
 
-        def __ror__(self, other):
-            if isinstance(other, LazyDict):
-                inst = self.copy()
-                other = other.copy()
-                other._format_all()
-                inst.keys_to_format -= other.data.keys()
-                inst.data = other.data | inst.data
-                return inst
-            if isinstance(other, dict):
-                inst = self.copy()
-                inst.keys_to_format -= other.keys()
-                inst.data = other | inst.data
-                return inst
-            return NotImplemented
-
-        def __ior__(self, other):
-            if isinstance(other, LazyDict):
-                other = other.copy()
-                other._format_all()
-                self.keys_to_format -= other.data.keys()
-                self.data |= other.data
-            else:
-                self.keys_to_format -= other.keys()
-                self.data |= other
-            return self
+    def __ior__(self, other):
+        if isinstance(other, LazyDict):
+            other = other.copy()
+            other._format_all()
+            self.keys_to_format -= other.data.keys()
+            self.data |= other.data
+        else:
+            self.keys_to_format -= other.keys()
+            self.data |= other
+        return self
 
     def __copy__(self):
         # Identical to `UserDict.__copy__`
@@ -393,9 +391,14 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
 
-    def __init__(self, features: Optional[Features] = None):
+    def __init__(
+        self,
+        features: Optional[Features] = None,
+        token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None,
+    ):
         self.features = features
-        self.python_features_decoder = PythonFeaturesDecoder(self.features)
+        self.token_per_repo_id = token_per_repo_id
+        self.python_features_decoder = PythonFeaturesDecoder(self.features, self.token_per_repo_id)
         self.pandas_features_decoder = PandasFeaturesDecoder(self.features)
 
     def __call__(self, pa_table: pa.Table, query_type: str) -> Union[RowFormat, ColumnFormat, BatchFormat]:
@@ -421,7 +424,15 @@ class TensorFormatter(Formatter[RowFormat, ColumnFormat, BatchFormat]):
         raise NotImplementedError
 
 
-class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
+class TableFormatter(Formatter[RowFormat, ColumnFormat, BatchFormat]):
+    table_type: str
+    column_type: str
+
+
+class ArrowFormatter(TableFormatter[pa.Table, pa.Array, pa.Table]):
+    table_type = "arrow table"
+    column_type = "arrow array"
+
     def format_row(self, pa_table: pa.Table) -> pa.Table:
         return self.simple_arrow_extractor().extract_row(pa_table)
 
@@ -433,8 +444,8 @@ class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
 
 
 class PythonFormatter(Formatter[Mapping, list, Mapping]):
-    def __init__(self, features=None, lazy=False):
-        super().__init__(features)
+    def __init__(self, features=None, lazy=False, token_per_repo_id=None):
+        super().__init__(features, token_per_repo_id)
         self.lazy = lazy
 
     def format_row(self, pa_table: pa.Table) -> Mapping:
@@ -457,7 +468,10 @@ class PythonFormatter(Formatter[Mapping, list, Mapping]):
         return batch
 
 
-class PandasFormatter(Formatter[pd.DataFrame, pd.Series, pd.DataFrame]):
+class PandasFormatter(TableFormatter[pd.DataFrame, pd.Series, pd.DataFrame]):
+    table_type = "pandas dataframe"
+    column_type = "pandas series"
+
     def format_row(self, pa_table: pa.Table) -> pd.DataFrame:
         row = self.pandas_arrow_extractor().extract_row(pa_table)
         row = self.pandas_features_decoder.decode_row(row)
@@ -480,12 +494,12 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
     The transform must take as input a batch of data extracted for an arrow table using the python extractor,
     and return a batch.
     If the output batch is not a dict, then output_all_columns won't work.
-    If the ouput batch has several fields, then querying a single column won't work since we don't know which field
+    If the output batch has several fields, then querying a single column won't work since we don't know which field
     to return.
     """
 
-    def __init__(self, transform: Callable[[dict], dict], features=None, **kwargs):
-        super().__init__(features=features)
+    def __init__(self, transform: Callable[[dict], dict], features=None, token_per_repo_id=None, **kwargs):
+        super().__init__(features=features, token_per_repo_id=token_per_repo_id)
         self.transform = transform
 
     def format_row(self, pa_table: pa.Table) -> dict:
@@ -522,7 +536,7 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
         return self.transform(batch)
 
 
-def _check_valid_column_key(key: str, columns: List[str]) -> None:
+def _check_valid_column_key(key: str, columns: list[str]) -> None:
     if key not in columns:
         raise KeyError(f"Column {key} not in the dataset. Current columns in the dataset: {columns}")
 
