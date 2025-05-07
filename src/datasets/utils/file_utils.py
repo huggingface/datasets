@@ -44,6 +44,7 @@ from ._filelock import FileLock
 from .extract import ExtractManager
 from .track import TrackedIterableFromGenerator
 
+
 try:
     from aiohttp.client_exceptions import ClientError as _AiohttpClientError
 except ImportError:
