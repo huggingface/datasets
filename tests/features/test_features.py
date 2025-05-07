@@ -1,5 +1,4 @@
 import datetime
-from typing import List, Tuple
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -858,7 +857,7 @@ NESTED_COMPARISON = [
 
 
 @pytest.mark.parametrize("features", NESTED_COMPARISON)
-def test_features_alignment(features: Tuple[List[Features], Features]):
+def test_features_alignment(features: tuple[list[Features], Features]):
     inputs, expected = features
     _check_if_features_can_be_aligned(inputs)  # Check that we can align, will raise otherwise.
     assert _align_features(inputs) == expected
