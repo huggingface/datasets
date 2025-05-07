@@ -32,7 +32,7 @@ class ConvertToParquetCommand(BaseDatasetsCLICommand):
         parser.add_argument(
             "--merge-pull-request",
             action="store_true",
-            help="whether to automatically merge the pull request(s) after conversion",
+            help="whether to automatically merge the pull request after conversion",
         )
         parser.set_defaults(func=_command_factory)
 
