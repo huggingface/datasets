@@ -2195,7 +2195,7 @@ class IterableDataset(DatasetInfoMixin):
     ) -> _BaseExamplesIterable:
         ex_iterable = self._ex_iterable
         if (self._formatting or (self.features and ex_iterable.features != self.features)) and (
-            ex_iterable.iter_arrow or self._formatting.is_table
+            ex_iterable.iter_arrow or (self._formatting and self._formatting.is_table)
         ):
             ex_iterable = RebatchedArrowExamplesIterable(
                 ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch
