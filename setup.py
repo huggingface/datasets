@@ -162,7 +162,7 @@ TESTS_REQUIRE = [
     "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
-    "aiohttp"
+    "aiohttp",
     "elasticsearch>=7.17.12,<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch(); 7.9.1 has legacy numpy.float_ which was fixed in https://github.com/elastic/elasticsearch-py/pull/2551.
     "faiss-cpu>=1.8.0.post1",  # Pins numpy < 2
     "jax>=0.3.14; sys_platform != 'win32'",
