@@ -35,14 +35,14 @@ from typing import Union
 from huggingface_hub.utils import insecure_hashlib
 
 
-def _as_bytes(hash_data: Union[str, int, bytes]) -> bytes:
+def _as_bytes(hash_data: Union[str, int, bytes, bytearray]) -> bytes:
     """
     Returns the input hash_data in its bytes form
 
     Args:
     hash_data: the hash salt/key to be converted to bytes
     """
-    if isinstance(hash_data, bytes):
+    if isinstance(hash_data, (bytes, bytearray)):
         # Data already in bytes, returns as it as
         return hash_data
     elif isinstance(hash_data, str):

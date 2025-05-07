@@ -19,7 +19,6 @@ import time
 import xml.dom.minidom
 import zipfile
 from collections.abc import Generator
-from contextlib import contextmanager
 from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePosixPath
@@ -28,7 +27,6 @@ from unittest.mock import patch
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
-import aiohttp.client_exceptions
 import fsspec
 import huggingface_hub
 import huggingface_hub.errors
@@ -45,6 +43,16 @@ from . import _tqdm, logging
 from ._filelock import FileLock
 from .extract import ExtractManager
 from .track import TrackedIterableFromGenerator
+
+
+try:
+    from aiohttp.client_exceptions import ClientError as _AiohttpClientError
+except ImportError:
+    # aiohttp is not available; synthesize an exception type
+    # that will never be raised by any actual code for use in the `except`
+    # clause only.
+    class _AiohttpClientError(Exception):
+        pass
 
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
@@ -399,23 +407,15 @@ def get_from_cache(
 
         incomplete_path = cache_path + ".incomplete"
 
-        @contextmanager
-        def temp_file_manager(mode="w+b"):
-            with open(incomplete_path, mode) as f:
-                yield f
-
         # Download to temporary file, then copy to cache path once finished.
         # Otherwise, you get corrupt cache entries if the download gets interrupted.
-        with temp_file_manager() as temp_file:
+        with open(incomplete_path, "w+b") as temp_file:
             logger.info(f"{url} not found in cache or force_download set to True, downloading to {temp_file.name}")
             # GET file object
             fsspec_get(url, temp_file, storage_options=storage_options, desc=download_desc, disable_tqdm=disable_tqdm)
 
         logger.info(f"storing {url} in cache at {cache_path}")
         shutil.move(temp_file.name, cache_path)
-        umask = os.umask(0o666)
-        os.umask(umask)
-        os.chmod(cache_path, 0o666 & ~umask)
 
         logger.info(f"creating metadata file for {cache_path}")
         meta = {"url": url, "etag": etag}
@@ -827,7 +827,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
                 out = read(*args, **kwargs)
                 break
             except (
-                aiohttp.client_exceptions.ClientError,
+                _AiohttpClientError,
                 asyncio.TimeoutError,
                 requests.exceptions.ConnectionError,
                 requests.exceptions.Timeout,

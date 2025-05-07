@@ -2,6 +2,7 @@ import asyncio
 import pickle
 import time
 from copy import deepcopy
+from dataclasses import dataclass
 from itertools import chain, cycle, islice
 from unittest.mock import patch
 
@@ -2499,6 +2500,7 @@ def test_iterable_dataset_batch():
         assert batch["text"] == [f"Text {3 * i}", f"Text {3 * i + 1}", f"Text {3 * i + 2}"]
 
 
+@dataclass
 class DecodableFeature:
     decode_example_num_calls = 0
 
@@ -2509,15 +2511,18 @@ class DecodableFeature:
         type(self).decode_example_num_calls += 1
         return "decoded" if self.decode else example
 
+    def __call__(self):
+        return pa.string()
+
 
 def test_decode():
-    data = [{"i": i} for i in range(10)]
+    data = [{"i": str(i)} for i in range(10)]
     features = Features({"i": DecodableFeature()})
     ds = IterableDataset.from_generator(lambda: (x for x in data), features=features)
     assert next(iter(ds)) == {"i": "decoded"}
     assert DecodableFeature.decode_example_num_calls == 1
     ds = ds.decode(False)
-    assert next(iter(ds)) == {"i": 0}
+    assert next(iter(ds)) == {"i": "0"}
     assert DecodableFeature.decode_example_num_calls == 1
     ds = ds.decode(True)
     assert next(iter(ds)) == {"i": "decoded"}

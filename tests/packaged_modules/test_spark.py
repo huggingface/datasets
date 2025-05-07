@@ -1,8 +1,10 @@
 from unittest.mock import patch
 
+import numpy as np
 import pyspark
 import pytest
 
+from datasets import Features, Image, IterableDataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.spark.spark import (
@@ -131,3 +133,38 @@ def test_repartition_df_if_needed_max_num_df_rows():
     spark_builder._repartition_df_if_needed(max_shard_size=1)
     # The new number of partitions should not be greater than the number of rows.
     assert spark_builder.df.rdd.getNumPartitions() == 100
+
+
+@require_not_windows
+@require_dill_gt_0_3_2
+def test_iterable_image_features():
+    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
+    img_bytes = np.zeros((10, 10, 3), dtype=np.uint8).tobytes()
+    data = [(img_bytes,)]
+    df = spark.createDataFrame(data, "image: binary")
+    features = Features({"image": Image(decode=False)})
+    dset = IterableDataset.from_spark(df, features=features)
+    item = next(iter(dset))
+    assert item.keys() == {"image"}
+    assert item == {"image": {"path": None, "bytes": img_bytes}}
+
+
+@require_not_windows
+@require_dill_gt_0_3_2
+def test_iterable_image_features_decode():
+    from io import BytesIO
+
+    import PIL.Image
+
+    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
+    img = PIL.Image.fromarray(np.zeros((10, 10, 3), dtype=np.uint8), "RGB")
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    img_bytes = bytes(buffer.getvalue())
+    data = [(img_bytes,)]
+    df = spark.createDataFrame(data, "image: binary")
+    features = Features({"image": Image()})
+    dset = IterableDataset.from_spark(df, features=features)
+    item = next(iter(dset))
+    assert item.keys() == {"image"}
+    assert isinstance(item["image"], PIL.Image.Image)
