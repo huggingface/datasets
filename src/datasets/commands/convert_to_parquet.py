@@ -51,10 +51,7 @@ class ConvertToParquetCommand(BaseDatasetsCLICommand):
 
     def run(self) -> None:
         commit_info = convert_to_parquet(
-            self._dataset_id,
-            revision=self._revision,
-            token=self._token,
-            trust_remote_code=self._trust_remote_code,
+            self._dataset_id, revision=self._revision, token=self._token, trust_remote_code=self._trust_remote_code
         )
 
         if self._merge_pull_request:
