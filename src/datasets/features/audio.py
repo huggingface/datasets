@@ -74,7 +74,7 @@ class Audio:
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, bytes, dict]) -> dict:
+    def encode_example(self, value: Union[str, bytes, bytearray, dict]) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
@@ -90,7 +90,7 @@ class Audio:
             raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
         if isinstance(value, str):
             return {"bytes": None, "path": value}
-        elif isinstance(value, bytes):
+        elif isinstance(value, (bytes, bytearray)):
             return {"bytes": value, "path": None}
         elif "array" in value:
             # convert the audio array to wav bytes
