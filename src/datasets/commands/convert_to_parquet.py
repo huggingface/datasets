@@ -42,12 +42,13 @@ class ConvertToParquetCommand(BaseDatasetsCLICommand):
         token: Optional[str],
         revision: Optional[str],
         trust_remote_code: bool,
+        merge_pull_request: bool = False,
     ):
         self._dataset_id = dataset_id
         self._token = token
         self._revision = revision
         self._trust_remote_code = trust_remote_code
-        self._merge_pull_request = False
+        self._merge_pull_request = merge_pull_request
 
     def run(self) -> None:
         commit_info = convert_to_parquet(
