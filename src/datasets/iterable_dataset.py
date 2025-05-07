@@ -3426,23 +3426,6 @@ def _concatenate_iterable_datasets(
             logger.info(
                 "Some of the datasets have disparate format or format not set. Resetting the format of the concatenated dataset."
             )
-        ```
-            format_type = format_type_set.pop()
-            formatting = FormattingConfig(format_type=format_type)
-        else:
-            formatting = None
-            logger.info(
-                "Some of the datasets have disparate format or format not set. Resetting the format of the concatenated dataset."
-            )
-        ```
-            format_type = format_type_set.pop()
-            formatting = FormattingConfig(format_type=format_type)
-        else:
-            formatting = None
-            logger.info(
-                "Some of the datasets have disparate format or format not set. Resetting the format of the concatenated dataset."
-            )
-        ```
 
     # TODO: improve this to account for a mix of ClassLabel and Value for example
     # right now it would keep the type of the first dataset in the list
