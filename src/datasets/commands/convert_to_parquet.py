@@ -1,6 +1,9 @@
 from argparse import ArgumentParser
 from typing import Optional
 
+from huggingface_hub import HfApi
+
+import datasets.config
 from datasets.commands import BaseDatasetsCLICommand
 from datasets.hub import convert_to_parquet
 
@@ -26,6 +29,11 @@ class ConvertToParquetCommand(BaseDatasetsCLICommand):
         parser.add_argument(
             "--trust_remote_code", action="store_true", help="whether to trust the code execution of the load script"
         )
+        parser.add_argument(
+            "--merge-pull-request",
+            action="store_true",
+            help="whether to automatically merge the pull request(s) after conversion",
+        )
         parser.set_defaults(func=_command_factory)
 
     def __init__(
@@ -39,8 +47,22 @@ class ConvertToParquetCommand(BaseDatasetsCLICommand):
         self._token = token
         self._revision = revision
         self._trust_remote_code = trust_remote_code
+        self._merge_pull_request = False
 
     def run(self) -> None:
-        _ = convert_to_parquet(
-            self._dataset_id, revision=self._revision, token=self._token, trust_remote_code=self._trust_remote_code
+        commit_info = convert_to_parquet(
+            self._dataset_id,
+            revision=self._revision,
+            token=self._token,
+            trust_remote_code=self._trust_remote_code,
+            merge_pull_request=self._merge_pull_request,
         )
+
+        if self._merge_pull_request:
+            api = HfApi(endpoint=datasets.config.HF_ENDPOINT, token=self._token)
+            api.merge_pull_request(
+                repo_id=self._dataset_id,
+                discussion_num=int(commit_info.pr_num),
+                token=self._token,
+                repo_type="dataset",
+            )
