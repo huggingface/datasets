@@ -14,6 +14,7 @@ def _command_factory(args):
         args.token,
         args.revision,
         args.trust_remote_code,
+        args.merge_pull_request,
     )
 
 
@@ -42,7 +43,7 @@ class ConvertToParquetCommand(BaseDatasetsCLICommand):
         token: Optional[str],
         revision: Optional[str],
         trust_remote_code: bool,
-        merge_pull_request: bool = False,
+        merge_pull_request: bool,
     ):
         self._dataset_id = dataset_id
         self._token = token
