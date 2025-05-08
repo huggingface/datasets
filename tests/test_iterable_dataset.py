@@ -32,6 +32,7 @@ from datasets.iterable_dataset import (
     FormattedExamplesIterable,
     FormattingConfig,
     HorizontallyConcatenatedMultiSourcesExamplesIterable,
+    IterableColumn,
     IterableDataset,
     MappedExamplesIterable,
     RandomlyCyclingMultiSourcesExamplesIterable,
@@ -1205,9 +1206,9 @@ def test_skip_examples_iterable():
     skip_ex_iterable = SkipExamplesIterable(base_ex_iterable, n=count)
     expected = list(generate_examples_fn(n=total))[count:]
     assert list(skip_ex_iterable) == expected
-    assert skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is skip_ex_iterable, (
-        "skip examples makes the shards order fixed"
-    )
+    assert (
+        skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is skip_ex_iterable
+    ), "skip examples makes the shards order fixed"
     assert_load_state_dict_resumes_iteration(skip_ex_iterable)
 
 
@@ -1217,9 +1218,9 @@ def test_take_examples_iterable():
     take_ex_iterable = TakeExamplesIterable(base_ex_iterable, n=count)
     expected = list(generate_examples_fn(n=total))[:count]
     assert list(take_ex_iterable) == expected
-    assert take_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is take_ex_iterable, (
-        "skip examples makes the shards order fixed"
-    )
+    assert (
+        take_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is take_ex_iterable
+    ), "skip examples makes the shards order fixed"
     assert_load_state_dict_resumes_iteration(take_ex_iterable)
 
 
@@ -1289,9 +1290,9 @@ def test_horizontally_concatenated_examples_iterable():
     concatenated_ex_iterable = HorizontallyConcatenatedMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
     expected = [{**x, **y} for (_, x), (_, y) in zip(ex_iterable1, ex_iterable2)]
     assert [x for _, x in concatenated_ex_iterable] == expected
-    assert concatenated_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is concatenated_ex_iterable, (
-        "horizontally concatenated examples makes the shards order fixed"
-    )
+    assert (
+        concatenated_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is concatenated_ex_iterable
+    ), "horizontally concatenated examples makes the shards order fixed"
     assert_load_state_dict_resumes_iteration(concatenated_ex_iterable)
 
 
@@ -2518,3 +2519,56 @@ def test_decode():
     ds = ds.decode(num_threads=1)
     assert next(iter(ds)) == {"i": "decoded"}
     assert DecodableFeature.decode_example_num_calls == 4
+
+
+############################
+#
+#   IterableColumn tests
+#
+############################
+
+
+class TestIterableColumn:
+    def test_simple_getitem(self):
+        def gen():
+            yield {"text": "Good", "label": 0}
+            yield {"text": "Bad", "label": 1}
+
+        ds = IterableDataset.from_generator(gen)
+        texts = ds["text"]
+        assert isinstance(texts, IterableColumn)
+
+        first_pass = list(texts)
+        assert first_pass == ["Good", "Bad"]
+        second_pass = list(texts)
+        assert second_pass == ["Good", "Bad"]
+
+    def test_chained_getitem(self):
+        def gen():
+            yield {"sample": {"text": "Good", "label": 0}}
+            yield {"sample": {"text": "Bad", "label": 1}}
+
+        ds = IterableDataset.from_generator(gen)
+        texts = ds["sample"]["text"]
+        assert isinstance(texts, IterableColumn)
+
+        first_pass = list(texts)
+        assert first_pass == ["Good", "Bad"]
+        second_pass = list(texts)
+        assert second_pass == ["Good", "Bad"]
+
+    def test_getitem_for_batched_dataset(self):
+        data = [
+            {"text": "Good", "label": 0},
+            {"text": "Bad", "label": 1},
+            {"text": "Good again", "label": 0},
+            {"text": "Bad again", "label": 1},
+        ]
+
+        def gen():
+            yield from data
+
+        ds = IterableDataset.from_generator(gen).batch(batch_size=2)
+        texts = ds["text"]
+        assert isinstance(texts, IterableColumn)
+        assert list(texts) == [["Good", "Bad"], ["Good again", "Bad again"]]
