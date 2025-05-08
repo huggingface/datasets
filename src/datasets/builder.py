@@ -141,7 +141,6 @@ class BuilderConfig:
         self,
         config_kwargs: dict,
         custom_features: Optional[Features] = None,
-        fingerprint: Optional[str] = None,
     ) -> str:
         """
         The config id is used to build the cache directory.
@@ -156,47 +155,43 @@ class BuilderConfig:
         """
         # Possibly add a suffix to the name to handle custom features/data_files/config_kwargs
         suffix: Optional[str] = None
-
-        if fingerprint is not None:
-           suffix = fingerprint
-        else:
-            config_kwargs_to_add_to_suffix = config_kwargs.copy()
-            # name and version are already used to build the cache directory
-            config_kwargs_to_add_to_suffix.pop("name", None)
-            config_kwargs_to_add_to_suffix.pop("version", None)
-            # data dir handling (when specified it points to the manually downloaded data):
-            # it was previously ignored before the introduction of config id because we didn't want
-            # to change the config name. Now it's fine to take it into account for the config id.
-            # config_kwargs_to_add_to_suffix.pop("data_dir", None)
-            if "data_dir" in config_kwargs_to_add_to_suffix:
-                if config_kwargs_to_add_to_suffix["data_dir"] is None:
-                    config_kwargs_to_add_to_suffix.pop("data_dir", None)
-                else:
-                    # canonicalize the data dir to avoid two paths to the same location having different
-                    # hashes
-                    data_dir = config_kwargs_to_add_to_suffix["data_dir"]
-                    data_dir = os.path.normpath(data_dir)
-                    config_kwargs_to_add_to_suffix["data_dir"] = data_dir
-            if config_kwargs_to_add_to_suffix:
-                # we don't care about the order of the kwargs
-                config_kwargs_to_add_to_suffix = {
-                    k: config_kwargs_to_add_to_suffix[k] for k in sorted(config_kwargs_to_add_to_suffix)
-                }
-                if all(isinstance(v, (str, bool, int, float)) for v in config_kwargs_to_add_to_suffix.values()):
-                    suffix = ",".join(
-                        str(k) + "=" + urllib.parse.quote_plus(str(v)) for k, v in config_kwargs_to_add_to_suffix.items()
-                    )
-                    if len(suffix) > 32:  # hash if too long
-                        suffix = Hasher.hash(config_kwargs_to_add_to_suffix)
-                else:
+        config_kwargs_to_add_to_suffix = config_kwargs.copy()
+        # name and version are already used to build the cache directory
+        config_kwargs_to_add_to_suffix.pop("name", None)
+        config_kwargs_to_add_to_suffix.pop("version", None)
+        # data dir handling (when specified it points to the manually downloaded data):
+        # it was previously ignored before the introduction of config id because we didn't want
+        # to change the config name. Now it's fine to take it into account for the config id.
+        # config_kwargs_to_add_to_suffix.pop("data_dir", None)
+        if "data_dir" in config_kwargs_to_add_to_suffix:
+            if config_kwargs_to_add_to_suffix["data_dir"] is None:
+                config_kwargs_to_add_to_suffix.pop("data_dir", None)
+            else:
+                # canonicalize the data dir to avoid two paths to the same location having different
+                # hashes
+                data_dir = config_kwargs_to_add_to_suffix["data_dir"]
+                data_dir = os.path.normpath(data_dir)
+                config_kwargs_to_add_to_suffix["data_dir"] = data_dir
+        if config_kwargs_to_add_to_suffix:
+            # we don't care about the order of the kwargs
+            config_kwargs_to_add_to_suffix = {
+                k: config_kwargs_to_add_to_suffix[k] for k in sorted(config_kwargs_to_add_to_suffix)
+            }
+            if all(isinstance(v, (str, bool, int, float)) for v in config_kwargs_to_add_to_suffix.values()):
+                suffix = ",".join(
+                    str(k) + "=" + urllib.parse.quote_plus(str(v)) for k, v in config_kwargs_to_add_to_suffix.items()
+                )
+                if len(suffix) > 32:  # hash if too long
                     suffix = Hasher.hash(config_kwargs_to_add_to_suffix)
+            else:
+                suffix = Hasher.hash(config_kwargs_to_add_to_suffix)
 
-            if custom_features is not None:
-                m = Hasher()
-                if suffix:
-                    m.update(suffix)
-                m.update(custom_features)
-                suffix = m.hexdigest()
+        if custom_features is not None:
+            m = Hasher()
+            if suffix:
+                m.update(suffix)
+            m.update(custom_features)
+            suffix = m.hexdigest()
 
         if suffix:
             config_id = self.name + "-" + suffix
@@ -318,7 +313,7 @@ class DatasetBuilder:
         data_dir: Optional[str] = None,
         storage_options: Optional[dict] = None,
         writer_batch_size: Optional[int] = None,
-        fingerprint: Optional[str] = None,
+        config_id: Optional[str] = None,
         **config_kwargs,
     ):
         # DatasetBuilder name
@@ -349,7 +344,7 @@ class DatasetBuilder:
         self.config, self.config_id = self._create_builder_config(
             config_name=config_name,
             custom_features=features,
-            fingerprint=fingerprint,
+            config_id=config_id,
             **config_kwargs,
         )
 
@@ -540,7 +535,7 @@ class DatasetBuilder:
         return self.get_all_exported_dataset_infos().get(self.config.name, DatasetInfo())
 
     def _create_builder_config(
-        self, config_name=None, custom_features=None, fingerprint=None, **config_kwargs
+        self, config_name=None, custom_features=None, config_id=None, **config_kwargs
     ) -> tuple[BuilderConfig, str]:
         """Create and validate BuilderConfig object as well as a unique config id for this config.
         Raises ValueError if there are multiple builder configs and config_name and DEFAULT_CONFIG_NAME are None.
@@ -608,11 +603,13 @@ class DatasetBuilder:
         )
 
         # compute the config id that is going to be used for caching
-        config_id = builder_config.create_config_id(
-            config_kwargs,
-            custom_features=custom_features,
-            fingerprint=fingerprint,
-        )
+        if config_id is not None:
+            config_id = builder_config.name + "-" + config_id
+        else:
+            config_id = builder_config.create_config_id(
+                config_kwargs,
+                custom_features=custom_features,
+            )
         is_custom = (config_id not in self.builder_configs) and config_id != "default"
         if is_custom:
             logger.info(f"Using custom data configuration {config_id}")

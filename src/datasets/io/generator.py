@@ -33,7 +33,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             generator=generator,
             gen_kwargs=gen_kwargs,
             split=split,
-            fingerprint=fingerprint,
+            config_id=fingerprint,
             **kwargs,
         )
 
