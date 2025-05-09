@@ -5541,14 +5541,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
-        repo_url = api.create_repo(
+        if not api.repo_exists(
             repo_id,
             token=token,
-            repo_type="dataset",
-            private=private,
-            exist_ok=True,
-        )
-        repo_id = repo_url.repo_id
+            repo_type=constants.REPO_TYPE_DATASET,
+        ):
+            repo_url = api.create_repo(
+                repo_id,
+                token=token,
+                repo_type=constants.REPO_TYPE_DATASET,
+                private=private,
+                exist_ok=True,
+            )
+            repo_id = repo_url.repo_id
 
         if revision is not None and not revision.startswith("refs/pr/"):
             # We do not call create_branch for a PR reference: 400 Bad Request
