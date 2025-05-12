@@ -21,12 +21,14 @@ from datasets.features.features import (
     cast_to_python_objects,
     decode_nested_example,
     encode_nested_example,
+    find_non_nullable_fields,
     generate_from_arrow_type,
     generate_from_dict,
     get_nested_type,
     require_decoding,
     require_storage_cast,
     require_storage_embed,
+    restore_non_nullable_fields,
     string_to_arrow,
 )
 from datasets.features.translation import Translation, TranslationVariableLanguages
@@ -996,3 +998,85 @@ def test_visit_with_list_types(feature, expected):
 
     result = _visit(feature, func)
     assert result == expected
+
+
+def test_non_nullable_fields_in_schema():
+    """Test that non-nullable fields are correctly identified in a schema."""
+    schema = pa.schema(
+        [
+            pa.field("nullable", pa.int32(), nullable=True),
+            pa.field("non_nullable", pa.int32(), nullable=False),
+        ]
+    )
+
+    non_nullable = find_non_nullable_fields(schema)
+    assert non_nullable == {"non_nullable"}
+
+    # Test restoring non-nullable fields
+    restored_schema = restore_non_nullable_fields(
+        pa.schema(
+            [
+                pa.field("nullable", pa.int32()),
+                pa.field("non_nullable", pa.int32()),
+            ]
+        ),
+        non_nullable,
+    )
+
+    assert restored_schema.field("nullable").nullable is True
+    assert restored_schema.field("non_nullable").nullable is False
+
+
+def test_nested_non_nullable_fields_in_schema():
+    """Test that non-nullable fields are correctly identified in deeply nested structures."""
+    schema = pa.schema(
+        [
+            pa.field(
+                "top_level",
+                pa.struct(
+                    [
+                        pa.field("nested_nullable", pa.int32(), nullable=True),
+                        pa.field("nested_non_nullable", pa.int32(), nullable=False),
+                    ]
+                ),
+            ),
+            pa.field(
+                "list_field",
+                pa.list_(
+                    pa.field(
+                        "item",
+                        pa.struct(
+                            [
+                                pa.field("deeply_nested_nullable", pa.int32(), nullable=True),
+                                pa.field("deeply_nested_non_nullable", pa.int32(), nullable=False),
+                            ]
+                        ),
+                    )
+                ),
+            ),
+        ]
+    )
+
+    non_nullable = find_non_nullable_fields(schema)
+    expected = {"top_level.nested_non_nullable", "list_field.item.deeply_nested_non_nullable"}
+    assert non_nullable == expected
+
+
+def test_from_arrow_schema_preserves_non_nullable():
+    """Test that from_arrow_schema correctly preserves non-nullable information."""
+    schema = pa.schema(
+        [
+            pa.field("nullable", pa.int32(), nullable=True),
+            pa.field("non_nullable", pa.int32(), nullable=False),
+        ]
+    )
+
+    # Convert to Features and back to schema
+    features = Features.from_arrow_schema(schema)
+    assert "non_nullable" in features.non_nullable_flds
+    assert "nullable" not in features.non_nullable_flds
+
+    # Ensure the schema is preserved when converted back
+    new_schema = features.arrow_schema
+    assert new_schema.field("nullable").nullable is True
+    assert new_schema.field("non_nullable").nullable is False
