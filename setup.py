@@ -185,7 +185,7 @@ TESTS_REQUIRE = [
     "zstandard",
     "polars[timezone]>=0.20.0",
     "torchvision",
-    "pyav",
+    "av",
 ]
 
 
