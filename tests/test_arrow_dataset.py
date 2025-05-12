@@ -1492,6 +1492,91 @@ class BaseDatasetTest(TestCase):
             finally:
                 datasets.enable_caching()
 
+    def test_suffix_template_format(self, in_memory):
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            self._caplog.at_level(INFO, logger=get_logger().name),
+            self._create_dummy_dataset(in_memory, tmp_dir) as dset,
+            self.assertRaises(ValueError) as e,
+            dset.map(lambda x: {"foo": "bar"}, suffix_template="_{}_of_{}"),
+        ):
+            self.assertIn(
+                "suffix_template must contain exactly the fields 'rank' and 'num_proc', got: ",
+                e.exception.args[0],
+            )
+
+    def test_cache_file_name_no_ext_raises_error(self, in_memory):
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            self._caplog.at_level(INFO, logger=get_logger().name),
+            self._create_dummy_dataset(in_memory, tmp_dir) as dset,
+            self.assertRaises(ValueError) as e,
+            dset.map(lambda x: {"foo": "bar"}, cache_file_name=os.path.join(tmp_dir, "train")),
+        ):
+            self.assertIn("Expected cache_file_name to have an extension, but got: ", e.exception.args[0])
+
+    def test_map_caching_reuses_cache_with_different_num_proc(self, in_memory):
+        for dset_test1_num_proc, dset_test2_num_proc in [(1, 2), (2, 1)]:
+            with (
+                tempfile.TemporaryDirectory() as tmp_dir,
+                self._caplog.at_level(INFO, logger=get_logger().name),
+                self._create_dummy_dataset(in_memory, tmp_dir) as dset,
+            ):
+                # cannot mock _map_single here because mock objects aren't picklable
+                # see: https://github.com/python/cpython/issues/100090
+                self._caplog.clear()
+                with dset.map(lambda x: {"foo": "bar"}, num_proc=dset_test1_num_proc) as dset_test1:
+                    dset_test1_data_files = list(dset_test1.cache_files)
+                    self.assertFalse("Loading cached processed dataset" in self._caplog.text)
+
+                self._caplog.clear()
+                with dset.map(lambda x: {"foo": "bar"}, num_proc=dset_test2_num_proc) as dset_test2:
+                    self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                    self.assertEqual(len(dset_test2.cache_files), 0 if in_memory else dset_test1_num_proc)
+                    self.assertTrue(("Loading cached processed dataset" in self._caplog.text) ^ in_memory)
+
+    def test_map_caching_partial_remap(self, in_memory):
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            self._caplog.at_level(INFO, logger=get_logger().name),
+            self._create_dummy_dataset(in_memory, tmp_dir) as dset,
+        ):
+            # cannot mock _map_single here because mock objects aren't picklable
+            # see: https://github.com/python/cpython/issues/100090
+            self._caplog.clear()
+            dset_test1_num_proc = 4
+            with dset.map(lambda x: {"foo": "bar"}, num_proc=dset_test1_num_proc) as dset_test1:
+                dset_test1_data_files = list(dset_test1.cache_files)
+                self.assertFalse("Loading cached processed dataset" in self._caplog.text)
+
+            num_files_to_delete = 2
+            expected_msg = (
+                f"Reprocessing {num_files_to_delete}/{dset_test1_num_proc} shards because some of them "
+                "were missing from the cache."
+            )
+            for cache_file in dset_test1_data_files[num_files_to_delete:]:
+                os.remove(cache_file["filename"])
+
+            self._caplog.clear()
+            dset_test2_num_proc = 1
+            with dset.map(lambda x: {"foo": "bar"}, num_proc=dset_test2_num_proc) as dset_test2:
+                self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                self.assertEqual(len(dset_test2.cache_files), 0 if in_memory else dset_test1_num_proc)
+                self.assertTrue((expected_msg in self._caplog.text) ^ in_memory)
+                self.assertFalse(f"Spawning {dset_test1_num_proc} processes" in self._caplog.text)
+                self.assertFalse(f"Spawning {dset_test2_num_proc} processes" in self._caplog.text)
+
+            for cache_file in dset_test1_data_files[num_files_to_delete:]:
+                os.remove(cache_file["filename"])
+
+            self._caplog.clear()
+            dset_test3_num_proc = 3
+            with dset.map(lambda x: {"foo": "bar"}, num_proc=dset_test3_num_proc) as dset_test3:
+                self.assertEqual(dset_test1_data_files, dset_test3.cache_files)
+                self.assertEqual(len(dset_test3.cache_files), 0 if in_memory else dset_test1_num_proc)
+                self.assertTrue((expected_msg in self._caplog.text) ^ in_memory)
+                self.assertTrue(f"Spawning {dset_test3_num_proc} processes" in self._caplog.text)
+
     def test_map_return_pa_table(self, in_memory):
         def func_return_single_row_pa_table(x):
             return pa.table({"id": [0], "text": ["a"]})
