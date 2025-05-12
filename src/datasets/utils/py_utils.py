@@ -322,6 +322,14 @@ def first_non_null_value(iterable):
     return -1, None
 
 
+def first_non_null_non_empty_value(iterable):
+    """Return the index and the value of the first non-null non-empty value in the iterable. If all values are None or empty, return -1 as index."""
+    for i, value in enumerate(iterable):
+        if value is not None and not (isinstance(value, (dict, list)) and len(value) == 0):
+            return i, value
+    return -1, None
+
+
 def zip_dict(*dicts):
     """Iterate over items of dictionaries grouped by their keys."""
     for key in unique_values(itertools.chain(*dicts)):  # set merge all keys

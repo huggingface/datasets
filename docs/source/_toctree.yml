@@ -84,6 +84,10 @@
       title: Load video data
     - local: video_dataset
       title: Create a video dataset
+    - local: document_load
+      title: Load document data
+    - local: document_dataset
+      title: Create a document dataset
     title: "Vision"
   - sections:
     - local: nlp_load

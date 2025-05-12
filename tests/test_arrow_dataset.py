@@ -127,7 +127,13 @@ class BaseDatasetTest(TestCase):
         self._caplog = caplog
 
     def _create_dummy_dataset(
-        self, in_memory: bool, tmp_dir: str, multiple_columns=False, array_features=False, nested_features=False
+        self,
+        in_memory: bool,
+        tmp_dir: str,
+        multiple_columns=False,
+        array_features=False,
+        nested_features=False,
+        int_to_float=False,
     ) -> Dataset:
         assert int(multiple_columns) + int(array_features) + int(nested_features) < 2
         if multiple_columns:
@@ -151,6 +157,12 @@ class BaseDatasetTest(TestCase):
             data = {"nested": [{"a": i, "x": i * 10, "c": i * 100} for i in range(1, 11)]}
             features = Features({"nested": {"a": Value("int64"), "x": Value("int64"), "c": Value("int64")}})
             dset = Dataset.from_dict(data, features=features)
+        elif int_to_float:
+            data = {
+                "text": ["text1", "text2", "text3", "text4"],
+                "labels": [[1, 1, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 1], [0, 0, 0, 1, 0]],
+            }
+            dset = Dataset.from_dict(data)
         else:
             dset = Dataset.from_dict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
         if not in_memory:
@@ -1123,6 +1135,27 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(sorted(dset_test[0].keys()), ["col_1", "col_1_plus_one"])
                     self.assertListEqual(sorted(dset_test.column_names), ["col_1", "col_1_plus_one", "col_2", "col_3"])
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
+        # casting int labels to float labels
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, int_to_float=True) as dset:
+
+                def _preprocess(examples):
+                    result = {"labels": [list(map(float, labels)) for labels in examples["labels"]]}
+                    return result
+
+                with dset.map(
+                    _preprocess, remove_columns=["labels", "text"], batched=True, try_original_type=True
+                ) as dset_test:
+                    for labels in dset_test["labels"]:
+                        for label in labels:
+                            self.assertIsInstance(label, int)
+
+                with dset.map(
+                    _preprocess, remove_columns=["labels", "text"], batched=True, try_original_type=False
+                ) as dset_test:
+                    for labels in dset_test["labels"]:
+                        for label in labels:
+                            self.assertIsInstance(label, float)
 
     def test_map_multiprocessing(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:  # standard
@@ -3227,12 +3260,11 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(tf_dataset), 2)  # One batch of 3 and one batch of 1
             self.assertEqual(len(tf_dataset_with_drop), 1)  # Incomplete batch of 1 is dropped
         # Test that `NotImplementedError` is raised `batch_size` is None and `num_workers` is > 0
-        if sys.version_info >= (3, 8):
-            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-                with self.assertRaisesRegex(
-                    NotImplementedError, "`batch_size` must be specified when using multiple workers"
-                ):
-                    dset.to_tf_dataset(columns="col_1", batch_size=None, num_workers=2)
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            with self.assertRaisesRegex(
+                NotImplementedError, "`batch_size` must be specified when using multiple workers"
+            ):
+                dset.to_tf_dataset(columns="col_1", batch_size=None, num_workers=2)
         del tf_dataset  # For correct cleanup
         del tf_dataset_with_drop
 

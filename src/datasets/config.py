@@ -141,6 +141,7 @@ IS_MP3_SUPPORTED = importlib.util.find_spec("soundfile") is not None and version
     importlib.import_module("soundfile").__libsndfile_version__
 ) >= version.parse("1.1.0")
 TORCHVISION_AVAILABLE = importlib.util.find_spec("torchvision") is not None
+PDFPLUMBER_AVAILABLE = importlib.util.find_spec("pdfplumber") is not None
 
 # Optional compression tools
 RARFILE_AVAILABLE = importlib.util.find_spec("rarfile") is not None
@@ -264,5 +265,5 @@ PBAR_REFRESH_TIME_INTERVAL = 0.05  # 20 progress updates per sec
 # Maximum number of uploaded files per commit
 UPLOADS_MAX_NUMBER_PER_COMMIT = 50
 
-# Backward compatibiliy
+# Backward compatibility
 MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30
