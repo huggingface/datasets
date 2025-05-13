@@ -91,7 +91,7 @@ class Image:
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, bytes, dict, np.ndarray, "PIL.Image.Image"]) -> dict:
+    def encode_example(self, value: Union[str, bytes, bytearray, dict, np.ndarray, "PIL.Image.Image"]) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
@@ -111,7 +111,7 @@ class Image:
 
         if isinstance(value, str):
             return {"path": value, "bytes": None}
-        elif isinstance(value, bytes):
+        elif isinstance(value, (bytes, bytearray)):
             return {"path": None, "bytes": value}
         elif isinstance(value, np.ndarray):
             # convert the image array to PNG/TIFF bytes
@@ -174,11 +174,10 @@ class Image:
                         if source_url.startswith(config.HF_ENDPOINT)
                         else config.HUB_DATASETS_HFFS_URL
                     )
-                    try:
-                        repo_id = string_to_dict(source_url, pattern)["repo_id"]
-                        token = token_per_repo_id.get(repo_id)
-                    except ValueError:
-                        token = None
+                    source_url_fields = string_to_dict(source_url, pattern)
+                    token = (
+                        token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
+                    )
                     download_config = DownloadConfig(token=token)
                     with xopen(path, "rb", download_config=download_config) as f:
                         bytes_ = BytesIO(f.read())

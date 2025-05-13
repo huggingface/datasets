@@ -24,9 +24,7 @@ from typing import Any, Callable, Dict, Generic, Iterable, Iterator, List, Optio
 import numpy as np
 import pandas as pd
 import pyarrow as pa
-from packaging import version
 
-from .. import config
 from ..features import Features
 from ..features.features import _ArrayXDExtensionType, _is_zero_copy_only, decode_nested_example, pandas_types_mapper
 from ..table import Table
@@ -273,7 +271,7 @@ class LazyDict(MutableMapping):
         self.pa_table = pa_table
         self.formatter = formatter
 
-        self.data = {key: None for key in pa_table.column_names}
+        self.data = dict.fromkeys(pa_table.column_names)
         self.keys_to_format = set(self.data.keys())
 
     def __len__(self) -> int:
@@ -307,49 +305,46 @@ class LazyDict(MutableMapping):
         self._format_all()
         return repr(self.data)
 
-    if config.PY_VERSION >= version.parse("3.9"):
-        # merging with the union ("|") operator is supported in Python 3.9+
+    def __or__(self, other: Union[dict, LazyDict]) -> LazyDict:
+        if isinstance(other, LazyDict):
+            inst = self.copy()
+            other = other.copy()
+            other._format_all()
+            inst.keys_to_format -= other.data.keys()
+            inst.data = inst.data | other.data
+            return inst
+        if isinstance(other, dict):
+            inst = self.copy()
+            inst.keys_to_format -= other.keys()
+            inst.data = inst.data | other
+            return inst
+        return NotImplemented
 
-        def __or__(self, other: Union[dict, LazyDict]) -> LazyDict:
-            if isinstance(other, LazyDict):
-                inst = self.copy()
-                other = other.copy()
-                other._format_all()
-                inst.keys_to_format -= other.data.keys()
-                inst.data = inst.data | other.data
-                return inst
-            if isinstance(other, dict):
-                inst = self.copy()
-                inst.keys_to_format -= other.keys()
-                inst.data = inst.data | other
-                return inst
-            return NotImplemented
+    def __ror__(self, other: Union[dict, LazyDict]) -> LazyDict:
+        if isinstance(other, LazyDict):
+            inst = self.copy()
+            other = other.copy()
+            other._format_all()
+            inst.keys_to_format -= other.data.keys()
+            inst.data = other.data | inst.data
+            return inst
+        if isinstance(other, dict):
+            inst = self.copy()
+            inst.keys_to_format -= other.keys()
+            inst.data = other | inst.data
+            return inst
+        return NotImplemented
 
-        def __ror__(self, other: Union[dict, LazyDict]) -> LazyDict:
-            if isinstance(other, LazyDict):
-                inst = self.copy()
-                other = other.copy()
-                other._format_all()
-                inst.keys_to_format -= other.data.keys()
-                inst.data = other.data | inst.data
-                return inst
-            if isinstance(other, dict):
-                inst = self.copy()
-                inst.keys_to_format -= other.keys()
-                inst.data = other | inst.data
-                return inst
-            return NotImplemented
-
-        def __ior__(self, other: Union[dict, LazyDict]) -> LazyDict:
-            if isinstance(other, LazyDict):
-                other = other.copy()
-                other._format_all()
-                self.keys_to_format -= other.data.keys()
-                self.data |= other.data
-            else:
-                self.keys_to_format -= other.keys()
-                self.data |= other
-            return self
+    def __ior__(self, other: Union[dict, LazyDict]) -> LazyDict:
+        if isinstance(other, LazyDict):
+            other = other.copy()
+            other._format_all()
+            self.keys_to_format -= other.data.keys()
+            self.data |= other.data
+        else:
+            self.keys_to_format -= other.keys()
+            self.data |= other
+        return self
 
     def __copy__(self) -> LazyDict:
         # Identical to `UserDict.__copy__`
@@ -507,7 +502,7 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
     The transform must take as input a batch of data extracted for an arrow table using the python extractor,
     and return a batch.
     If the output batch is not a dict, then output_all_columns won't work.
-    If the ouput batch has several fields, then querying a single column won't work since we don't know which field
+    If the output batch has several fields, then querying a single column won't work since we don't know which field
     to return.
     """
 

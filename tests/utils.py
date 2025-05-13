@@ -190,6 +190,18 @@ def require_torchvision(test_case):
     return test_case
 
 
+def require_pdfplumber(test_case):
+    """
+    Decorator marking a test that requires pdfplumber.
+
+    These tests are skipped when decord isn't installed.
+
+    """
+    if not config.PDFPLUMBER_AVAILABLE:
+        test_case = unittest.skip("test requires pdfplumber")(test_case)
+    return test_case
+
+
 def require_transformers(test_case):
     """
     Decorator marking a test that requires transformers.

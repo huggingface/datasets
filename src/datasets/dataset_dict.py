@@ -7,7 +7,6 @@ import posixpath
 import re
 from collections.abc import Sequence
 from functools import partial
-from io import BytesIO
 from pathlib import Path
 from typing import Callable, Optional, Union
 
@@ -830,6 +829,7 @@ class DatasetDict(dict):
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
         desc: Optional[str] = None,
+        try_original_type: Optional[bool] = True,
     ) -> "DatasetDict":
         """
         Apply a function to all the examples in the table (individually or in batches) and update the table.
@@ -908,6 +908,9 @@ class DatasetDict(dict):
                 use multiprocessing.
             desc (`str`, *optional*, defaults to `None`):
                 Meaningful description to be displayed alongside with the progress bar while mapping examples.
+            try_original_type (`Optional[bool]`, defaults to `True`):
+                Try to keep the types of the original columns (e.g. int32 -> int32).
+                Set to False if you want to always infer new types.
 
         Example:
 
@@ -931,7 +934,7 @@ class DatasetDict(dict):
         """
         self._check_values_type()
         if cache_file_names is None:
-            cache_file_names = {k: None for k in self}
+            cache_file_names = dict.fromkeys(self)
 
         dataset_dict = {}
         for split, dataset in self.items():
@@ -956,6 +959,7 @@ class DatasetDict(dict):
                 fn_kwargs=fn_kwargs,
                 num_proc=num_proc,
                 desc=desc,
+                try_original_type=try_original_type,
             )
 
             if with_split:
@@ -1051,7 +1055,7 @@ class DatasetDict(dict):
         """
         self._check_values_type()
         if cache_file_names is None:
-            cache_file_names = {k: None for k in self}
+            cache_file_names = dict.fromkeys(self)
         return DatasetDict(
             {
                 k: dataset.filter(
@@ -1109,7 +1113,7 @@ class DatasetDict(dict):
         """
         self._check_values_type()
         if cache_file_names is None:
-            cache_file_names = {k: None for k in self}
+            cache_file_names = dict.fromkeys(self)
         return DatasetDict(
             {
                 k: dataset.flatten_indices(
@@ -1176,7 +1180,7 @@ class DatasetDict(dict):
         """
         self._check_values_type()
         if indices_cache_file_names is None:
-            indices_cache_file_names = {k: None for k in self}
+            indices_cache_file_names = dict.fromkeys(self)
         return DatasetDict(
             {
                 k: dataset.sort(
@@ -1254,13 +1258,13 @@ class DatasetDict(dict):
             raise ValueError("Please specify seed or seeds, but not both")
         seeds = seed if seed is not None else seeds
         if seeds is None:
-            seeds = {k: None for k in self}
+            seeds = dict.fromkeys(self)
         elif not isinstance(seeds, dict):
-            seeds = {k: seeds for k in self}
+            seeds = dict.fromkeys(self, seeds)
         if generators is None:
-            generators = {k: None for k in self}
+            generators = dict.fromkeys(self)
         if indices_cache_file_names is None:
-            indices_cache_file_names = {k: None for k in self}
+            indices_cache_file_names = dict.fromkeys(self)
         return DatasetDict(
             {
                 k: dataset.shuffle(
@@ -1326,7 +1330,7 @@ class DatasetDict(dict):
         fs, _ = url_to_fs(dataset_dict_path, **(storage_options or {}))
 
         if num_shards is None:
-            num_shards = {k: None for k in self}
+            num_shards = dict.fromkeys(self)
         elif not isinstance(num_shards, dict):
             raise ValueError(
                 "Please provide one `num_shards` per dataset in the dataset dictionary, e.g. {{'train': 128, 'test': 4}}"
@@ -1696,7 +1700,7 @@ class DatasetDict(dict):
         ```
         """
         if num_shards is None:
-            num_shards = {k: None for k in self}
+            num_shards = dict.fromkeys(self)
         elif not isinstance(num_shards, dict):
             raise ValueError(
                 "Please provide one `num_shards` per dataset in the dataset dictionary, e.g. {{'train': 128, 'test': 4}}"
@@ -1765,8 +1769,8 @@ class DatasetDict(dict):
         # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
         # and delete old split shards (if they exist)
         repo_with_dataset_card, repo_with_dataset_infos = False, False
-        repo_splits = []  # use a list to keep the order of the splits
-        deletions = []
+        repo_splits: list[str] = []  # use a list to keep the order of the splits
+        deletions: list[CommitOperationDelete] = []
         repo_files_to_add = [addition.path_in_repo for addition in additions]
         for repo_file in api.list_repo_tree(
             repo_id=repo_id,
@@ -1790,12 +1794,12 @@ class DatasetDict(dict):
                 repo_file.rfilename,
                 PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
             ):
-                repo_split = string_to_dict(
-                    repo_file.rfilename,
-                    glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED),
-                )["split"]
+                pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
+                assert split_pattern_fields is not None
+                repo_split = split_pattern_fields["split"]
                 if repo_split not in repo_splits:
-                    repo_splits.append(split)
+                    repo_splits.append(repo_split)
 
         # get the info from the README to update them
         if repo_with_dataset_card:
@@ -1848,12 +1852,10 @@ class DatasetDict(dict):
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: dict = json.load(f)
             dataset_infos[config_name] = asdict(info_to_dump)
-            buffer = BytesIO()
-            buffer.write(json.dumps(dataset_infos, indent=4).encode("utf-8"))
             additions.append(
                 CommitOperationAdd(
                     path_in_repo=config.DATASETDICT_INFOS_FILENAME,
-                    path_or_fileobj=buffer,
+                    path_or_fileobj=json.dumps(dataset_infos, indent=4).encode("utf-8"),
                 )
             )
         # push to README

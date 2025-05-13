@@ -7,7 +7,6 @@ from typing import Callable, Optional, Union
 
 import huggingface_hub
 from fsspec.core import url_to_fs
-from fsspec.implementations.http import HTTPFileSystem
 from huggingface_hub import HfFileSystem
 from packaging import version
 from tqdm.contrib.concurrent import thread_map
@@ -19,7 +18,7 @@ from .splits import Split
 from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils.file_utils import _prepare_path_and_storage_options, is_local_path, is_relative_path, xbasename, xjoin
-from .utils.py_utils import glob_pattern_to_regex, string_to_dict
+from .utils.py_utils import string_to_dict
 
 
 SingleOriginMetadata = Union[tuple[str, str], tuple[str], tuple[()]]
@@ -113,7 +112,7 @@ FILES_TO_IGNORE = [
 
 
 def contains_wildcards(pattern: str) -> bool:
-    return any(wilcard_character in pattern for wilcard_character in WILDCARD_CHARACTERS)
+    return any(wildcard_character in pattern for wildcard_character in WILDCARD_CHARACTERS)
 
 
 def sanitize_patterns(patterns: Union[dict, list, str]) -> dict[str, Union[list[str], "DataFilesList"]]:
@@ -156,7 +155,7 @@ def sanitize_patterns(patterns: Union[dict, list, str]) -> dict[str, Union[list[
 
 def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> bool:
     """
-    When a path matches a pattern, we additionnally check if it's inside a special directory
+    When a path matches a pattern, we additionally check if it's inside a special directory
     we ignore by default (if it starts with a double underscore).
 
     Users can still explicitly request a filepath inside such a directory if "__pycache__" is
@@ -179,7 +178,7 @@ def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> b
     >>> _is_inside_unrequested_special_dir("__pycache__/b.txt", "__*/*")
     False
     """
-    # We just need to check if every special directories from the path is present explicly in the pattern.
+    # We just need to check if every special directories from the path is present explicitly in the pattern.
     # Since we assume that the path matches the pattern, it's equivalent to counting that both
     # the parent path and the parent pattern have the same number of special directories.
     data_dirs_to_ignore_in_path = [part for part in PurePath(matched_rel_path).parent.parts if part.startswith("__")]
@@ -189,7 +188,7 @@ def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> b
 
 def _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(matched_rel_path: str, pattern: str) -> bool:
     """
-    When a path matches a pattern, we additionnally check if it's a hidden file or if it's inside
+    When a path matches a pattern, we additionally check if it's a hidden file or if it's inside
     a hidden directory we ignore by default, i.e. if the file name or a parent directory name starts with a dot.
 
     Users can still explicitly request a filepath that is hidden or is inside a hidden directory
@@ -237,7 +236,7 @@ def _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(matched_rel_
     >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/.hidden_file.txt", ".hidden_dir/.*")
     False
     """
-    # We just need to check if every hidden part from the path is present explicly in the pattern.
+    # We just need to check if every hidden part from the path is present explicitly in the pattern.
     # Since we assume that the path matches the pattern, it's equivalent to counting that both
     # the path and the pattern have the same number of hidden parts.
     hidden_directories_in_path = [
@@ -264,14 +263,16 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], list[str]]) -> di
         except FileNotFoundError:
             continue
         if len(data_files) > 0:
-            splits: set[str] = {
-                string_to_dict(xbasename(p), glob_pattern_to_regex(xbasename(split_pattern)))["split"]
-                for p in data_files
-            }
+            splits: set[str] = set()
+            for p in data_files:
+                p_parts = string_to_dict(xbasename(p), xbasename(split_pattern))
+                assert p_parts is not None
+                splits.add(p_parts["split"])
+
             if any(not re.match(_split_re, split) for split in splits):
                 raise ValueError(f"Split name should match '{_split_re}'' but got '{splits}'.")
             sorted_splits = [str(split) for split in DEFAULT_SPLITS if split in splits] + sorted(
-                splits - set(DEFAULT_SPLITS)
+                splits - {str(split) for split in DEFAULT_SPLITS}
             )
             return {split: [split_pattern.format(split=split)] for split in sorted_splits}
     # then check the default patterns based on train/valid/test splits
@@ -316,7 +317,7 @@ def resolve_pattern(
 
     Hidden files and directories (i.e. whose names start with a dot) are ignored, unless they are explicitly requested.
     The same applies to special directories that start with a double underscore like "__pycache__".
-    You can still include one if the pattern explicilty mentions it:
+    You can still include one if the pattern explicitly mentions it:
     - to include a hidden file: "*/.hidden.txt" or "*/.*"
     - to include a hidden directory: ".hidden/*" or ".*/*"
     - to include a special directory: "__special__/*" or "__*/*"
@@ -483,7 +484,7 @@ def _get_single_origin_metadata(
     if isinstance(fs, HfFileSystem):
         resolved_path = fs.resolve_path(data_file)
         return resolved_path.repo_id, resolved_path.revision
-    elif isinstance(fs, HTTPFileSystem) and data_file.startswith(config.HF_ENDPOINT):
+    elif data_file.startswith(config.HF_ENDPOINT):
         hffs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
         data_file = "hf://" + data_file[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
         resolved_path = hffs.resolve_path(data_file)
@@ -595,10 +596,10 @@ class DataFilesList(list[str]):
         self, *, extensions: Optional[list[str]] = None, file_names: Optional[list[str]] = None
     ) -> "DataFilesList":
         patterns = []
-        if extensions is not None:
+        if extensions:
             ext_pattern = "|".join(re.escape(ext) for ext in extensions)
             patterns.append(re.compile(f".*({ext_pattern})(\\..+)?$"))
-        if file_names is not None:
+        if file_names:
             fn_pattern = "|".join(re.escape(fn) for fn in file_names)
             patterns.append(re.compile(rf".*[\/]?({fn_pattern})$"))
         if patterns:

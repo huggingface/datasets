@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, ClassVar, Optional, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Optional, TypedDict, Union
 
 import numpy as np
 import pyarrow as pa
@@ -16,6 +16,11 @@ if TYPE_CHECKING:
     from torchvision.io import VideoReader
 
     from .features import FeatureType
+
+
+class Example(TypedDict):
+    path: Optional[str]
+    bytes: Optional[bytes]
 
 
 @dataclass
@@ -66,7 +71,7 @@ class Video:
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, bytes, dict, np.ndarray, "VideoReader"]) -> dict:
+    def encode_example(self, value: Union[str, bytes, bytearray, Example, np.ndarray, "VideoReader"]) -> Example:
         """Encode example into a format for Arrow.
 
         Args:
@@ -87,26 +92,34 @@ class Video:
 
         if isinstance(value, str):
             return {"path": value, "bytes": None}
-        elif isinstance(value, bytes):
+        elif isinstance(value, (bytes, bytearray)):
             return {"path": None, "bytes": value}
         elif isinstance(value, np.ndarray):
             # convert the video array to bytes
             return encode_np_array(value)
-        elif VideoReader and isinstance(value, VideoReader):
+        elif VideoReader is not None and isinstance(value, VideoReader):
             # convert the torchvision video reader to bytes
             return encode_torchvision_video(value)
-        elif value.get("path") is not None and os.path.isfile(value["path"]):
-            # we set "bytes": None to not duplicate the data if they're already available locally
-            return {"bytes": None, "path": value.get("path")}
-        elif value.get("bytes") is not None or value.get("path") is not None:
-            # store the video bytes, and path is used to infer the video format using the file extension
-            return {"bytes": value.get("bytes"), "path": value.get("path")}
+        elif isinstance(value, dict):
+            path, bytes_ = value.get("path"), value.get("bytes")
+            if path is not None and os.path.isfile(path):
+                # we set "bytes": None to not duplicate the data if they're already available locally
+                return {"bytes": None, "path": path}
+            elif bytes_ is not None or path is not None:
+                # store the video bytes, and path is used to infer the video format using the file extension
+                return {"bytes": bytes_, "path": path}
+            else:
+                raise ValueError(
+                    f"A video sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
+                )
         else:
-            raise ValueError(
-                f"A video sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
-            )
+            raise TypeError(f"Unsupported encode_example type: {type(value)}")
 
-    def decode_example(self, value: dict, token_per_repo_id=None) -> "VideoReader":
+    def decode_example(
+        self,
+        value: Union[str, Example],
+        token_per_repo_id: Optional[dict[str, Union[bool, str]]] = None,
+    ) -> "VideoReader":
         """Decode example video file into video data.
 
         Args:
@@ -136,15 +149,18 @@ class Video:
         if token_per_repo_id is None:
             token_per_repo_id = {}
 
-        path, bytes_ = value["path"], value["bytes"]
+        if isinstance(value, str):
+            path, bytes_ = value, None
+        else:
+            path, bytes_ = value["path"], value["bytes"]
+
         if bytes_ is None:
             if path is None:
                 raise ValueError(f"A video should have one of 'path' or 'bytes' but both are None in {value}.")
+            elif is_local_path(path):
+                video = VideoReader(path)
             else:
-                if is_local_path(path):
-                    video = VideoReader(path)
-                else:
-                    video = hf_video_reader(path, token_per_repo_id=token_per_repo_id)
+                video = hf_video_reader(path, token_per_repo_id=token_per_repo_id)
         else:
             video = VideoReader(bytes_)
         video._hf_encoded = {"path": path, "bytes": bytes_}
@@ -215,7 +231,7 @@ def video_to_bytes(video: "VideoReader") -> bytes:
     raise NotImplementedError()
 
 
-def encode_torchvision_video(video: "VideoReader") -> dict:
+def encode_torchvision_video(video: "VideoReader") -> Example:
     if hasattr(video, "_hf_encoded"):
         return video._hf_encoded
     else:
@@ -224,7 +240,7 @@ def encode_torchvision_video(video: "VideoReader") -> dict:
         )
 
 
-def encode_np_array(array: np.ndarray) -> dict:
+def encode_np_array(array: np.ndarray) -> Example:
     raise NotImplementedError()
 
 
@@ -235,7 +251,7 @@ def encode_np_array(array: np.ndarray) -> dict:
 
 
 def hf_video_reader(
-    path: str, token_per_repo_id: Optional[dict[str, str]] = None, stream: str = "video"
+    path: str, token_per_repo_id: Optional[dict[str, Union[bool, str]]] = None, stream: str = "video"
 ) -> "VideoReader":
     import av
     from torchvision import get_video_backend
@@ -246,11 +262,8 @@ def hf_video_reader(
         token_per_repo_id = {}
     source_url = path.split("::")[-1]
     pattern = config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
-    try:
-        repo_id = string_to_dict(source_url, pattern)["repo_id"]
-        token = token_per_repo_id.get(repo_id)
-    except ValueError:
-        token = None
+    source_url_fields = string_to_dict(source_url, pattern)
+    token = token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
     download_config = DownloadConfig(token=token)
     f = xopen(path, "rb", download_config=download_config)
 

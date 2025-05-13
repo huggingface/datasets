@@ -74,7 +74,7 @@ class Audio:
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, bytes, dict]) -> dict:
+    def encode_example(self, value: Union[str, bytes, bytearray, dict]) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
@@ -90,7 +90,7 @@ class Audio:
             raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
         if isinstance(value, str):
             return {"bytes": None, "path": value}
-        elif isinstance(value, bytes):
+        elif isinstance(value, (bytes, bytearray)):
             return {"bytes": value, "path": None}
         elif "array" in value:
             # convert the audio array to wav bytes
@@ -173,11 +173,8 @@ class Audio:
             pattern = (
                 config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
             )
-            try:
-                repo_id = string_to_dict(source_url, pattern)["repo_id"]
-                token = token_per_repo_id[repo_id]
-            except (ValueError, KeyError):
-                token = None
+            source_url_fields = string_to_dict(source_url, pattern)
+            token = token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
 
             download_config = DownloadConfig(token=token)
             with xopen(path, "rb", download_config=download_config) as f:

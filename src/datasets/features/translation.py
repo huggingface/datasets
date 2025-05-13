@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 @dataclass
 class Translation:
     """`Feature` for translations with fixed languages per example.
-    Here for compatiblity with tfds.
+    Here for compatibility with tfds.
 
     Args:
         languages (`dict`):
@@ -51,7 +51,7 @@ class Translation:
 @dataclass
 class TranslationVariableLanguages:
     """`Feature` for translations with variable languages per example.
-    Here for compatiblity with tfds.
+    Here for compatibility with tfds.
 
     Args:
         languages (`dict`):

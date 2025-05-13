@@ -177,7 +177,7 @@ def glob_pattern_to_regex(pattern: str) -> str:
     )
 
 
-def string_to_dict(string: str, pattern: str) -> dict[str, str]:
+def string_to_dict(string: str, pattern: str) -> Optional[dict[str, str]]:
     """Un-format a string using a python f-string pattern.
     From https://stackoverflow.com/a/36838374
 
@@ -195,15 +195,15 @@ def string_to_dict(string: str, pattern: str) -> dict[str, str]:
         pattern (str): pattern formatted like a python f-string
 
     Returns:
-        dict[str, str]: dictionary of variable -> value, retrieved from the input using the pattern
-
-    Raises:
-        ValueError: if the string doesn't match the pattern
+        Optional[dict[str, str]]: dictionary of variable -> value, retrieved from the input using the pattern, or
+        `None` if the string does not match the pattern.
     """
+    pattern = pattern.encode("unicode_escape").decode("utf-8")  # C:\\Users -> C:\\\\Users for Windows paths
+    pattern = re.sub(r"{([^:}]+)(?::[^}]+)?}", r"{\1}", pattern)  # remove format specifiers, e.g. {rank:05d} -> {rank}
     regex = re.sub(r"{(.+?)}", r"(?P<_\1>.+)", pattern)
     result = re.search(regex, string)
     if result is None:
-        raise ValueError(f"String {string} doesn't match the pattern {pattern}")
+        return None
     values = list(result.groups())
     keys = re.findall(r"{(.+?)}", pattern)
     _dict = dict(zip(keys, values))
@@ -339,6 +339,22 @@ def first_non_null_value(iterable: Iterable) -> tuple[int, Any]:
     """Return the index and the value of the first non-null value in the iterable. If all values are None, return -1 as index."""
     for i, value in enumerate(iterable):
         if value is not None:
+            return i, value
+    return -1, None
+
+
+def first_non_null_non_empty_value(iterable: Iterable) -> tuple[int, Any]:
+    """Return the index and the value of the first non-null non-empty value in the iterable. If all values are None or empty, return -1 as index."""
+    for i, value in enumerate(iterable):
+        if value is not None and not (isinstance(value, (dict, list)) and len(value) == 0):
+            return i, value
+    return -1, None
+
+
+def first_non_null_non_empty_value(iterable) -> tuple[int, Optional[Any]]:
+    """Return the index and the value of the first non-null non-empty value in the iterable. If all values are None or empty, return -1 as index."""
+    for i, value in enumerate(iterable):
+        if value is not None and not (isinstance(value, (dict, list)) and len(value) == 0):
             return i, value
     return -1, None
 
