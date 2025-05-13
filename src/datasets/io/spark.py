@@ -1,8 +1,10 @@
-from typing import Optional
+from __future__ import annotations
+
+from typing import Optional, Union
 
 import pyspark
 
-from .. import Features, NamedSplit
+from .. import Dataset, DatasetDict, Features, IterableDataset, IterableDatasetDict, NamedSplit
 from ..download import DownloadMode
 from ..packaged_modules.spark.spark import Spark
 from .abc import AbstractDatasetReader
@@ -21,13 +23,13 @@ class SparkDatasetReader(AbstractDatasetReader):
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         streaming: bool = True,
-        cache_dir: str = None,
+        cache_dir: Optional[str] = None,
         keep_in_memory: bool = False,
-        working_dir: str = None,
+        working_dir: Optional[str] = None,
         load_from_cache_file: bool = True,
         file_format: str = "arrow",
         **kwargs,
-    ):
+    ) -> None:
         super().__init__(
             split=split,
             features=features,
@@ -46,7 +48,7 @@ class SparkDatasetReader(AbstractDatasetReader):
             **kwargs,
         )
 
-    def read(self):
+    def read(self) -> Union[Dataset, DatasetDict, IterableDatasetDict, IterableDataset]:
         if self.streaming:
             return self.builder.as_streaming_dataset(split=self.split)
         download_mode = None if self._load_from_cache_file else DownloadMode.FORCE_REDOWNLOAD

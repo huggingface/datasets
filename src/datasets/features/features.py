@@ -15,6 +15,8 @@
 # Lint as: python3
 """This class handle features definition in datasets and some utilities to display table type."""
 
+from __future__ import annotations
+
 import copy
 import json
 import re
@@ -25,7 +27,8 @@ from collections.abc import Sequence as Sequence_
 from dataclasses import InitVar, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
-from typing import Any, Callable, ClassVar, Literal, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Dict, List, Literal, Optional, TypeVar, Union
+from typing import Sequence as Sequence_
 
 import numpy as np
 import pandas as pd
@@ -45,6 +48,13 @@ from .image import Image, encode_pil_image
 from .pdf import Pdf, encode_pdfplumber_pdf
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video
+
+
+if TYPE_CHECKING:
+    import jax.numpy as jnp
+    import PIL.Image
+    import tensorflow as tf
+    import torch
 
 
 logger = logging.get_logger(__name__)
@@ -131,7 +141,9 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
         purpose of this function.
     """
 
-    def _dtype_error_msg(dtype, pa_dtype, examples=None, urls=None):
+    def _dtype_error_msg(
+        dtype: str, pa_dtype: pa.DataType, examples: Optional[list] = None, urls: Optional[list] = None
+    ) -> str:
         msg = f"{dtype} is not a validly formatted string representation of the pyarrow {pa_dtype} type."
         if examples:
             examples = ", ".join(examples[:-1]) + " or " + examples[-1] if len(examples) > 1 else examples[0]
@@ -265,7 +277,28 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
     )
 
 
-def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_casting: bool) -> tuple[Any, bool]:
+CastableOjbect = Union[
+    np.ndarray,
+    torch.Tensor,
+    tf.Tensor,
+    jnp.ndarray,
+    PIL.Image.Image,
+    pd.Series,
+    pd.DataFrame,
+    pd.Timestamp,
+    pd.Timedelta,
+    Mapping,
+    dict,
+    list,
+    tuple,
+]
+
+
+def _cast_to_python_objects(
+    obj: CastableOjbect,
+    only_1d_for_numpy: bool,
+    optimize_list_casting: bool,
+) -> tuple[Any, bool]:
     """
     Cast pytorch/tensorflow/pandas objects to python numpy array/lists.
     It works recursively.
@@ -442,7 +475,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         return obj, False
 
 
-def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_casting=True) -> Any:
+def cast_to_python_objects(
+    obj: CastableOjbect, only_1d_for_numpy: bool = False, optimize_list_casting: bool = True
+) -> Any:
     """
     Cast numpy/pytorch/tensorflow/pandas objects to python lists.
     It works recursively.
@@ -517,20 +552,20 @@ class Value:
     dtype: str
     id: Optional[str] = None
     # Automatically constructed
-    pa_type: ClassVar[Any] = None
+    pa_type: Any = None
     _type: str = field(default="Value", init=False, repr=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.dtype == "double":  # fix inferred type
             self.dtype = "float64"
         if self.dtype == "float":  # fix inferred type
             self.dtype = "float32"
         self.pa_type = string_to_arrow(self.dtype)
 
-    def __call__(self):
+    def __call__(self) -> str:
         return self.pa_type
 
-    def encode_example(self, value):
+    def encode_example(self, value: Any) -> Any:
         if pa.types.is_boolean(self.pa_type):
             return bool(value)
         elif pa.types.is_integer(self.pa_type):
@@ -544,14 +579,17 @@ class Value:
 
 
 class _ArrayXD:
-    def __post_init__(self):
+    shape: tuple
+    dtype: str
+
+    def __post_init__(self) -> None:
         self.shape = tuple(self.shape)
 
-    def __call__(self):
+    def __call__(self) -> dict:
         pa_type = globals()[self.__class__.__name__ + "ExtensionType"](self.shape, self.dtype)
         return pa_type
 
-    def encode_example(self, value):
+    def encode_example(self, value: object) -> object:
         return value
 
 
@@ -655,10 +693,13 @@ class Array5D(_ArrayXD):
     _type: str = field(default="Array5D", init=False, repr=False)
 
 
+T_ArrayXDExtensionType = TypeVar("T_ArrayXDExtensionType", bound="_ArrayXDExtensionType")
+
+
 class _ArrayXDExtensionType(pa.ExtensionType):
     ndims: Optional[int] = None
 
-    def __init__(self, shape: tuple, dtype: str):
+    def __init__(self, shape: tuple, dtype: str) -> None:
         if self.ndims is None or self.ndims <= 1:
             raise ValueError("You must instantiate an array type with a value for dim that is > 1")
         if len(shape) != self.ndims:
@@ -671,11 +712,13 @@ class _ArrayXDExtensionType(pa.ExtensionType):
         self.storage_dtype = self._generate_dtype(self.value_type)
         pa.ExtensionType.__init__(self, self.storage_dtype, f"{self.__class__.__module__}.{self.__class__.__name__}")
 
-    def __arrow_ext_serialize__(self):
+    def __arrow_ext_serialize__(self) -> bytes:
         return json.dumps((self.shape, self.value_type)).encode()
 
     @classmethod
-    def __arrow_ext_deserialize__(cls, storage_type, serialized):
+    def __arrow_ext_deserialize__(
+        cls: type[T_ArrayXDExtensionType], storage_type, serialized: Union[str, bytes, bytearray]
+    ) -> T_ArrayXDExtensionType:
         args = json.loads(serialized)
         return cls(*args)
 
@@ -683,13 +726,13 @@ class _ArrayXDExtensionType(pa.ExtensionType):
     def __reduce__(self):
         return self.__arrow_ext_deserialize__, (self.storage_type, self.__arrow_ext_serialize__())
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.__class__, self.shape, self.value_type))
 
-    def __arrow_ext_class__(self):
+    def __arrow_ext_class__(self) -> type[ArrayExtensionArray]:
         return ArrayExtensionArray
 
-    def _generate_dtype(self, dtype):
+    def _generate_dtype(self, dtype: str) -> pa.DataType:
         dtype = string_to_arrow(dtype)
         for d in reversed(self.shape):
             dtype = pa.list_(dtype)
@@ -747,14 +790,14 @@ def _is_zero_copy_only(pa_type: pa.DataType, unnest: bool = False) -> bool:
 
 
 class ArrayExtensionArray(pa.ExtensionArray):
-    def __array__(self):
+    def __array__(self) -> np.ndarray:
         zero_copy_only = _is_zero_copy_only(self.storage.type, unnest=True)
         return self.to_numpy(zero_copy_only=zero_copy_only)
 
     def __getitem__(self, i):
         return self.storage[i]
 
-    def to_numpy(self, zero_copy_only=True):
+    def to_numpy(self, zero_copy_only: bool = True) -> np.ndarray:
         storage: pa.ListArray = self.storage
         null_mask = storage.is_null().to_numpy(zero_copy_only=False)
 
@@ -798,7 +841,7 @@ class ArrayExtensionArray(pa.ExtensionArray):
 
         return numpy_arr
 
-    def to_pylist(self, maps_as_pydicts: Optional[Literal["lossy", "strict"]] = None):
+    def to_pylist(self, maps_as_pydicts: Optional[Literal["lossy", "strict"]] = None) -> list:
         zero_copy_only = _is_zero_copy_only(self.storage.type, unnest=True)
         numpy_arr = self.to_numpy(zero_copy_only=zero_copy_only)
         if self.type.shape[0] is None and numpy_arr.dtype == object:
@@ -810,10 +853,10 @@ class ArrayExtensionArray(pa.ExtensionArray):
 class PandasArrayExtensionDtype(PandasExtensionDtype):
     _metadata = "value_type"
 
-    def __init__(self, value_type: Union["PandasArrayExtensionDtype", np.dtype]):
+    def __init__(self, value_type: Union[PandasArrayExtensionDtype, np.dtype]) -> None:
         self._value_type = value_type
 
-    def __from_arrow__(self, array: Union[pa.Array, pa.ChunkedArray]):
+    def __from_arrow__(self, array: Union[pa.Array, pa.ChunkedArray]) -> PandasArrayExtensionArray:
         if isinstance(array, pa.ChunkedArray):
             array = array.type.wrap_array(pa.concat_arrays([chunk.storage for chunk in array.chunks]))
         zero_copy_only = _is_zero_copy_only(array.storage.type, unnest=True)
@@ -825,7 +868,7 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
         return PandasArrayExtensionArray
 
     @property
-    def type(self) -> type:
+    def type(self) -> type[np.ndarray]:
         return np.ndarray
 
     @property
@@ -1277,7 +1320,7 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
     return schema()
 
 
-def encode_nested_example(schema, obj, level=0):
+def encode_nested_example(schema, obj, level: int = 0):
     """Encode a nested example.
     This is used since some features (in particular ClassLabel) have some logic during encoding.
 
@@ -1449,7 +1492,7 @@ def register_feature(
     _FEATURE_TYPES[feature_type] = feature_cls
 
 
-def generate_from_dict(obj: Any):
+def generate_from_dict(obj: dict):
     """Regenerate the nested feature object from a deserialized dict.
     We use the '_type' fields to get the dataclass name to load.
 
@@ -1783,7 +1826,7 @@ class Features(dict):
         - [`Translation`] or [`TranslationVariableLanguages`] feature specific to Machine Translation.
     """
 
-    def __init__(*args, **kwargs):
+    def __init__(*args, **kwargs) -> None:
         # self not in the signature to allow passing self as a kwarg
         if not args:
             raise TypeError("descriptor '__init__' of 'Features' object needs an argument")
@@ -1801,11 +1844,11 @@ class Features(dict):
     popitem = keep_features_dicts_synced(dict.popitem)
     clear = keep_features_dicts_synced(dict.clear)
 
-    def __reduce__(self):
+    def __reduce__(self) -> tuple[type[Features], tuple[dict]]:
         return Features, (dict(self),)
 
     @property
-    def type(self):
+    def type(self) -> pa.DataType:
         """
         Features field types.
 
@@ -1815,7 +1858,7 @@ class Features(dict):
         return get_nested_type(self)
 
     @property
-    def arrow_schema(self):
+    def arrow_schema(self) -> pa.Schema:
         """
         Features schema.
 
@@ -1826,7 +1869,7 @@ class Features(dict):
         return pa.schema(self.type).with_metadata({"huggingface": json.dumps(hf_metadata)})
 
     @classmethod
-    def from_arrow_schema(cls, pa_schema: pa.Schema) -> "Features":
+    def from_arrow_schema(cls, pa_schema: pa.Schema) -> Features:
         """
         Construct [`Features`] from Arrow Schema.
         It also checks the schema metadata for Hugging Face Datasets features.
@@ -1860,7 +1903,7 @@ class Features(dict):
         return cls(**obj)
 
     @classmethod
-    def from_dict(cls, dic) -> "Features":
+    def from_dict(cls, dic: dict[str, Any]) -> Features:
         """
         Construct [`Features`] from dict.
 
@@ -1966,7 +2009,7 @@ class Features(dict):
         return to_yaml_types(to_yaml_inner(yaml_data)["struct"])
 
     @classmethod
-    def _from_yaml_list(cls, yaml_data: list) -> "Features":
+    def _from_yaml_list(cls, yaml_data: list) -> Features:
         yaml_data = copy.deepcopy(yaml_data)
 
         # we convert the list obtained from YAML data into the dict representation that is used for JSON dump
@@ -2034,7 +2077,7 @@ class Features(dict):
 
         return cls.from_dict(from_yaml_inner(yaml_data))
 
-    def encode_example(self, example):
+    def encode_example(self, example: dict[str, Any]):
         """
         Encode example into a format for Arrow.
 
@@ -2048,7 +2091,7 @@ class Features(dict):
         example = cast_to_python_objects(example)
         return encode_nested_example(self, example)
 
-    def encode_column(self, column, column_name: str):
+    def encode_column(self, column: list, column_name: str) -> list:
         """
         Encode column into a format for Arrow.
 
@@ -2243,7 +2286,7 @@ class Features(dict):
 
         return Features(recursive_reorder(self, other))
 
-    def flatten(self, max_depth=16) -> "Features":
+    def flatten(self, max_depth: int = 16) -> Features:
         """Flatten the features. Every dictionary column is removed and is replaced by
         all the subfields it contains. The new fields are named by concatenating the
         name of the original column and the subfield name like this: `<original>.<subfield>`.
@@ -2298,7 +2341,7 @@ class Features(dict):
 
 def _align_features(features_list: list[Features]) -> list[Features]:
     """Align dictionaries of features so that the keys that are found in multiple dictionaries share the same feature."""
-    name2feature = {}
+    name2feature: dict = {}
     for features in features_list:
         for k, v in features.items():
             if k in name2feature and isinstance(v, dict):
@@ -2310,12 +2353,12 @@ def _align_features(features_list: list[Features]) -> list[Features]:
     return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
 
 
-def _check_if_features_can_be_aligned(features_list: list[Features]):
+def _check_if_features_can_be_aligned(features_list: list[Features]) -> None:
     """Check if the dictionaries of features can be aligned.
 
     Two dictonaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.
     """
-    name2feature = {}
+    name2feature: dict = {}
     for features in features_list:
         for k, v in features.items():
             if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):

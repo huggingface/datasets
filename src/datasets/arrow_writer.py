@@ -139,7 +139,7 @@ class TypedSequence:
         type: Optional[FeatureType] = None,
         try_type: Optional[FeatureType] = None,
         optimized_int_type: Optional[FeatureType] = None,
-    ):
+    ) -> None:
         # assert type is None or try_type is None,
         if type is not None and try_type is not None:
             raise ValueError("You cannot specify both type and try_type")
@@ -359,7 +359,7 @@ class ArrowWriter:
         unit: str = "examples",
         embed_local_files: bool = False,
         storage_options: Optional[dict] = None,
-    ):
+    ) -> None:
         if path is None and stream is None:
             raise ValueError("At least one of path and stream must be provided.")
         if features is not None:
@@ -410,17 +410,17 @@ class ArrowWriter:
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
         self.hkey_record = []
 
-    def __len__(self):
+    def __len__(self)-> int:
         """Return the number of writed and staged examples"""
         return self._num_examples + len(self.current_examples) + len(self.current_rows)
 
-    def __enter__(self):
+    def __enter__(self) -> object:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def close(self):
+    def close(self) -> None:
         # Try closing if opened; if closed: pyarrow.lib.ArrowInvalid: Invalid operation on closed file
         if self.pa_writer:  # it might be None
             try:
@@ -430,7 +430,7 @@ class ArrowWriter:
         if self._closable_stream and not self.stream.closed:
             self.stream.close()  # This also closes self.pa_writer if it is opened
 
-    def _build_writer(self, inferred_schema: pa.Schema):
+    def _build_writer(self, inferred_schema: pa.Schema) -> None:
         schema = self.schema
         inferred_features = Features.from_arrow_schema(inferred_schema)
         if self._features is not None:
@@ -476,7 +476,7 @@ class ArrowWriter:
             metadata["fingerprint"] = fingerprint
         return {"huggingface": json.dumps(metadata)}
 
-    def write_examples_on_file(self):
+    def write_examples_on_file(self) -> None:
         """Write stored examples from the write-pool of examples. It makes a table out of the examples and write it."""
         if not self.current_examples:
             return
@@ -510,7 +510,7 @@ class ArrowWriter:
         self.write_batch(batch_examples=batch_examples)
         self.current_examples = []
 
-    def write_rows_on_file(self):
+    def write_rows_on_file(self) -> None:
         """Write stored rows from the write-pool of rows. It concatenates the single-row tables and it writes the resulting table."""
         if not self.current_rows:
             return
@@ -523,7 +523,7 @@ class ArrowWriter:
         example: dict[str, Any],
         key: Optional[Union[str, int, bytes]] = None,
         writer_batch_size: Optional[int] = None,
-    ):
+    ) -> None:
         """Add a given (Example,Key) pair to the write-pool of examples which is written to file.
 
         Args:
@@ -551,7 +551,7 @@ class ArrowWriter:
 
             self.write_examples_on_file()
 
-    def check_duplicate_keys(self):
+    def check_duplicate_keys(self) -> None:
         """Raises error if duplicates found in a batch"""
         tmp_record = set()
         for hash, key in self.hkey_record:
@@ -566,7 +566,7 @@ class ArrowWriter:
             else:
                 tmp_record.add(hash)
 
-    def write_row(self, row: pa.Table, writer_batch_size: Optional[int] = None):
+    def write_row(self, row: pa.Table, writer_batch_size: Optional[int] = None) -> None:
         """Add a given single-row Table to the write-pool of rows which is written to file.
 
         Args:
@@ -629,7 +629,7 @@ class ArrowWriter:
         pa_table = pa.Table.from_arrays(arrays, schema=schema)
         self.write_table(pa_table, writer_batch_size)
 
-    def write_table(self, pa_table: pa.Table, writer_batch_size: Optional[int] = None):
+    def write_table(self, pa_table: pa.Table, writer_batch_size: Optional[int] = None) -> None:
         """Write a Table to file.
 
         Args:
@@ -647,7 +647,7 @@ class ArrowWriter:
         self._num_examples += pa_table.num_rows
         self.pa_writer.write_table(pa_table, writer_batch_size)
 
-    def finalize(self, close_stream=True):
+    def finalize(self, close_stream: bool = True) -> tuple[int, int]:
         self.write_rows_on_file()
         # In case current_examples < writer_batch_size, but user uses finalize()
         if self._check_duplicates:
