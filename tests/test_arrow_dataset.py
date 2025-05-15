@@ -1890,7 +1890,7 @@ class BaseDatasetTest(TestCase):
                 with pytest.raises(RuntimeError) as excinfo:
                     dset.map(do_crash, num_proc=2)
                 assert str(excinfo.value) == (
-                    "One of the subprocesses has abruptly died during map operation."
+                    "One of the subprocesses has abruptly died during the map operation."
                     "To debug the error, disable multiprocessing."
                 )
 
