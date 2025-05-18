@@ -1945,6 +1945,8 @@ def _maybe_share_with_torch_persistent_workers(value: Union[int, "torch.Tensor"]
 
 
 class IterableColumn:
+    """An iterable for a specific column of an [`IterableDataset`]."""
+
     def __init__(self, source: Union["IterableDataset", "IterableColumn"], column_name: str):
         self.source = source
         self.column_name = column_name
