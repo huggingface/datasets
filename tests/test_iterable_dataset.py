@@ -2,6 +2,7 @@ import asyncio
 import pickle
 import time
 from copy import deepcopy
+from dataclasses import dataclass
 from itertools import chain, cycle, islice
 from unittest.mock import patch
 
@@ -31,6 +32,7 @@ from datasets.iterable_dataset import (
     FormattedExamplesIterable,
     FormattingConfig,
     HorizontallyConcatenatedMultiSourcesExamplesIterable,
+    IterableColumn,
     IterableDataset,
     MappedExamplesIterable,
     RandomlyCyclingMultiSourcesExamplesIterable,
@@ -2487,6 +2489,7 @@ def test_iterable_dataset_batch():
         assert batch["text"] == [f"Text {3 * i}", f"Text {3 * i + 1}", f"Text {3 * i + 2}"]
 
 
+@dataclass
 class DecodableFeature:
     decode_example_num_calls = 0
 
@@ -2497,15 +2500,18 @@ class DecodableFeature:
         type(self).decode_example_num_calls += 1
         return "decoded" if self.decode else example
 
+    def __call__(self):
+        return pa.string()
+
 
 def test_decode():
-    data = [{"i": i} for i in range(10)]
+    data = [{"i": str(i)} for i in range(10)]
     features = Features({"i": DecodableFeature()})
     ds = IterableDataset.from_generator(lambda: (x for x in data), features=features)
     assert next(iter(ds)) == {"i": "decoded"}
     assert DecodableFeature.decode_example_num_calls == 1
     ds = ds.decode(False)
-    assert next(iter(ds)) == {"i": 0}
+    assert next(iter(ds)) == {"i": "0"}
     assert DecodableFeature.decode_example_num_calls == 1
     ds = ds.decode(True)
     assert next(iter(ds)) == {"i": "decoded"}
@@ -2513,3 +2519,56 @@ def test_decode():
     ds = ds.decode(num_threads=1)
     assert next(iter(ds)) == {"i": "decoded"}
     assert DecodableFeature.decode_example_num_calls == 4
+
+
+############################
+#
+#   IterableColumn tests
+#
+############################
+
+
+class TestIterableColumn:
+    def test_simple_getitem(self):
+        def gen():
+            yield {"text": "Good", "label": 0}
+            yield {"text": "Bad", "label": 1}
+
+        ds = IterableDataset.from_generator(gen)
+        texts = ds["text"]
+        assert isinstance(texts, IterableColumn)
+
+        first_pass = list(texts)
+        assert first_pass == ["Good", "Bad"]
+        second_pass = list(texts)
+        assert second_pass == ["Good", "Bad"]
+
+    def test_chained_getitem(self):
+        def gen():
+            yield {"sample": {"text": "Good", "label": 0}}
+            yield {"sample": {"text": "Bad", "label": 1}}
+
+        ds = IterableDataset.from_generator(gen)
+        texts = ds["sample"]["text"]
+        assert isinstance(texts, IterableColumn)
+
+        first_pass = list(texts)
+        assert first_pass == ["Good", "Bad"]
+        second_pass = list(texts)
+        assert second_pass == ["Good", "Bad"]
+
+    def test_getitem_for_batched_dataset(self):
+        data = [
+            {"text": "Good", "label": 0},
+            {"text": "Bad", "label": 1},
+            {"text": "Good again", "label": 0},
+            {"text": "Bad again", "label": 1},
+        ]
+
+        def gen():
+            yield from data
+
+        ds = IterableDataset.from_generator(gen).batch(batch_size=2)
+        texts = ds["text"]
+        assert isinstance(texts, IterableColumn)
+        assert list(texts) == [["Good", "Bad"], ["Good again", "Bad again"]]

@@ -1944,6 +1944,21 @@ def _maybe_share_with_torch_persistent_workers(value: Union[int, "torch.Tensor"]
         return value
 
 
+class IterableColumn:
+    """An iterable for a specific column of an [`IterableDataset`]."""
+
+    def __init__(self, source: Union["IterableDataset", "IterableColumn"], column_name: str):
+        self.source = source
+        self.column_name = column_name
+
+    def __iter__(self) -> Iterator[Any]:
+        for example in self.source:
+            yield example[self.column_name]
+
+    def __getitem__(self, column_name: str) -> "IterableColumn":
+        return IterableColumn(self, column_name)
+
+
 class IterableDataset(DatasetInfoMixin):
     """A Dataset backed by an iterable."""
 
@@ -2194,7 +2209,11 @@ class IterableDataset(DatasetInfoMixin):
         self, batch_size: int = 1, drop_last_batch: bool = False
     ) -> _BaseExamplesIterable:
         ex_iterable = self._ex_iterable
-        if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
+        if (
+            self._formatting
+            and (ex_iterable.iter_arrow or self._formatting.is_table)
+            or (self.features and ex_iterable.features != self.features)
+        ):
             ex_iterable = RebatchedArrowExamplesIterable(
                 ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch
             )
@@ -2301,6 +2320,9 @@ class IterableDataset(DatasetInfoMixin):
             batch = _examples_to_batch(examples)
             # we need to format here in case we need to stack tensors together
             yield format_dict(batch) if format_dict else batch
+
+    def __getitem__(self, column_name: str) -> IterableColumn:
+        return IterableColumn(self, column_name)
 
     @staticmethod
     def from_generator(
