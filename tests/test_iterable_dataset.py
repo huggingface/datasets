@@ -32,6 +32,7 @@ from datasets.iterable_dataset import (
     FormattedExamplesIterable,
     FormattingConfig,
     HorizontallyConcatenatedMultiSourcesExamplesIterable,
+    IterableColumn,
     IterableDataset,
     MappedExamplesIterable,
     RandomlyCyclingMultiSourcesExamplesIterable,
@@ -2518,3 +2519,56 @@ def test_decode():
     ds = ds.decode(num_threads=1)
     assert next(iter(ds)) == {"i": "decoded"}
     assert DecodableFeature.decode_example_num_calls == 4
+
+
+############################
+#
+#   IterableColumn tests
+#
+############################
+
+
+class TestIterableColumn:
+    def test_simple_getitem(self):
+        def gen():
+            yield {"text": "Good", "label": 0}
+            yield {"text": "Bad", "label": 1}
+
+        ds = IterableDataset.from_generator(gen)
+        texts = ds["text"]
+        assert isinstance(texts, IterableColumn)
+
+        first_pass = list(texts)
+        assert first_pass == ["Good", "Bad"]
+        second_pass = list(texts)
+        assert second_pass == ["Good", "Bad"]
+
+    def test_chained_getitem(self):
+        def gen():
+            yield {"sample": {"text": "Good", "label": 0}}
+            yield {"sample": {"text": "Bad", "label": 1}}
+
+        ds = IterableDataset.from_generator(gen)
+        texts = ds["sample"]["text"]
+        assert isinstance(texts, IterableColumn)
+
+        first_pass = list(texts)
+        assert first_pass == ["Good", "Bad"]
+        second_pass = list(texts)
+        assert second_pass == ["Good", "Bad"]
+
+    def test_getitem_for_batched_dataset(self):
+        data = [
+            {"text": "Good", "label": 0},
+            {"text": "Bad", "label": 1},
+            {"text": "Good again", "label": 0},
+            {"text": "Bad again", "label": 1},
+        ]
+
+        def gen():
+            yield from data
+
+        ds = IterableDataset.from_generator(gen).batch(batch_size=2)
+        texts = ds["text"]
+        assert isinstance(texts, IterableColumn)
+        assert list(texts) == [["Good", "Bad"], ["Good again", "Bad again"]]

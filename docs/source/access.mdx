@@ -117,7 +117,9 @@ You can also create an [`IterableDataset`] from an *existing* [`Dataset`], but i
 
 An [`IterableDataset`] progressively iterates over a dataset one example at a time, so you don't have to wait for the whole dataset to download before you can use it. As you can imagine, this is quite useful for large datasets you want to use immediately!
 
-However, this means an [`IterableDataset`]'s behavior is different from a regular [`Dataset`]. You don't get random access to examples in an [`IterableDataset`]. Instead, you should iterate over its elements, for example, by calling `next(iter())` or with a `for` loop to return the next item from the [`IterableDataset`]:
+### Indexing
+
+An [`IterableDataset`]'s behavior is different from a regular [`Dataset`]. You don't get random access to examples in an [`IterableDataset`]. Instead, you should iterate over its elements, for example, by calling `next(iter())` or with a `for` loop to return the next item from the [`IterableDataset`]:
 
 ```py
 >>> next(iter(iterable_dataset))
@@ -129,6 +131,15 @@ However, this means an [`IterableDataset`]'s behavior is different from a regula
 ...     break
 {'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7F7479DE82B0>, 'label': 6}
 ```
+
+But an [`IterableDataset`] supports column indexing that returns an iterable for the column values:
+
+```py
+>>> next(iter(iterable_dataset["label"]))
+6
+```
+
+### Creating a subset
 
 You can return a subset of the dataset with a specific number of examples in it with [`IterableDataset.take`]:
 
