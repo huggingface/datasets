@@ -494,3 +494,13 @@ This can be used with the `StatefulDataLoader` from `torchdata`:
 Resuming returns exactly where the checkpoint was saved except if `.shuffle()` is used: examples from shuffle buffers are lost when resuming and the buffers are refilled with new data.
 
 </Tip>
+
+## Column indexing
+
+Sometimes it is convenient to iterate over values of a specific column. Fortunately, an [`IterableDataset`] supports column indexing:
+```python
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("allenai/c4", "en", streaming=True, split="train")
+>>> print(next(iter(dataset["text"])))
+Beginners BBQ Class Taking Place in Missoula!...
+```
