@@ -1859,9 +1859,9 @@ class DatasetDict(dict):
                 )
             )
         # push to README
-        DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
-        MetadataConfigs({config_name: metadata_config_to_dump}).to_dataset_card_data(dataset_card_data)
-        dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
+        dataset_card = self._create_dataset_card(
+            dataset_card_data, dataset_card, config_name, info_to_dump, metadata_config_to_dump
+        )
         additions.append(
             CommitOperationAdd(
                 path_in_repo=config.REPOCARD_FILENAME,
@@ -1906,6 +1906,21 @@ class DatasetDict(dict):
                     + "."
                 )
         return commit_info
+
+    def _create_dataset_card(
+        self,
+        dataset_card_data: DatasetCardData,
+        dataset_card: Optional[DatasetCard],
+        config_name: str,
+        info_to_dump: DatasetInfo,
+        metadata_config_to_dump: MetadataConfigs,
+    ) -> DatasetCard:
+        if dataset_card:
+            return dataset_card
+
+        DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
+        MetadataConfigs({config_name: metadata_config_to_dump}).to_dataset_card_data(dataset_card_data)
+        return DatasetCard(f"---\n{dataset_card_data}\n---\n")
 
 
 class IterableDatasetDict(dict):
