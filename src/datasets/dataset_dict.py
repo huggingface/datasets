@@ -1240,7 +1240,7 @@ class DatasetDict(dict):
                 Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset dict directory where the dataset dict will be saved to.
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
-                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
+                The maximum size of the dataset shards to be saved to the filesystem. If expressed as a string, needs to be digits followed by a unit
                 (like `"50MB"`).
             num_shards (`Dict[str, int]`, *optional*):
                 Number of shards to write. By default the number of shards depends on `max_shard_size` and `num_proc`.
