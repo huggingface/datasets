@@ -266,7 +266,7 @@ class DatasetDict(dict):
 
     def __repr__(self):
         repr = "\n".join([f"{k}: {v}" for k, v in self.items()])
-        repr = re.sub(r"^", " " * 4, repr, 0, re.M)
+        repr = re.sub(r"^", " " * 4, repr, count=0, flags=re.M)
         return f"DatasetDict({{\n{repr}\n}})"
 
     def cast(self, features: Features) -> "DatasetDict":
@@ -846,7 +846,7 @@ class DatasetDict(dict):
           Note that the last batch may have less than `n` examples.
           A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
 
-        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simulatenous calls.
+        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simultaneous calls.
         It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
 
         Args:
@@ -1911,7 +1911,7 @@ class DatasetDict(dict):
 class IterableDatasetDict(dict):
     def __repr__(self):
         repr = "\n".join([f"{k}: {v}" for k, v in self.items()])
-        repr = re.sub(r"^", " " * 4, repr, 0, re.M)
+        repr = re.sub(r"^", " " * 4, repr, count=0, flags=re.M)
         return f"IterableDatasetDict({{\n{repr}\n}})"
 
     def with_format(
@@ -1988,7 +1988,7 @@ class IterableDatasetDict(dict):
           Note that the last batch may have less than `n` examples.
           A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
 
-        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simulatenous calls.
+        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simultaneous calls.
         It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
 
         Args:
