@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import operator
 from collections.abc import Iterable, Mapping, MutableMapping
 from functools import partial
 
 # Lint as: python3
-from typing import Any, Callable, Generic, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, Generic, Iterable, Iterator, List, Optional, TypeVar, Union
 
 import numpy as np
 import pandas as pd
@@ -30,6 +32,8 @@ from ..utils.py_utils import no_op_if_value_is_null
 
 
 T = TypeVar("T")
+KT = TypeVar("KT")
+VT = TypeVar("VT")
 
 RowFormat = TypeVar("RowFormat")
 ColumnFormat = TypeVar("ColumnFormat")
@@ -40,7 +44,7 @@ def _is_range_contiguous(key: range) -> bool:
     return key.step == 1 and key.stop >= key.start
 
 
-def _raise_bad_key_type(key: Any):
+def _raise_bad_key_type(key: object) -> None:
     raise TypeError(
         f"Wrong key type: '{key}' of type '{type(key)}'. Expected one of int, slice, range, str or Iterable."
     )
@@ -150,7 +154,7 @@ class PythonArrowExtractor(BaseArrowExtractor[dict, list, dict]):
 
 
 class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
-    def __init__(self, **np_array_kwargs):
+    def __init__(self, **np_array_kwargs: Any) -> None:
         self.np_array_kwargs = np_array_kwargs
 
     def extract_row(self, pa_table: pa.Table) -> dict:
@@ -215,7 +219,7 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
 class PythonFeaturesDecoder:
     def __init__(
         self, features: Optional[Features], token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None
-    ):
+    ) -> None:
         self.features = features
         self.token_per_repo_id = token_per_repo_id
 
@@ -230,7 +234,7 @@ class PythonFeaturesDecoder:
 
 
 class PandasFeaturesDecoder:
-    def __init__(self, features: Optional[Features]):
+    def __init__(self, features: Optional[Features]) -> None:
         self.features = features
 
     def decode_row(self, row: pd.DataFrame) -> pd.DataFrame:
@@ -260,18 +264,17 @@ class PandasFeaturesDecoder:
     def decode_batch(self, batch: pd.DataFrame) -> pd.DataFrame:
         return self.decode_row(batch)
 
-
 class LazyDict(MutableMapping):
     """A dictionary backed by Arrow data. The values are formatted on-the-fly when accessing the dictionary."""
 
-    def __init__(self, pa_table: pa.Table, formatter: "Formatter"):
+    def __init__(self, pa_table: pa.Table, formatter: Formatter) -> None:
         self.pa_table = pa_table
         self.formatter = formatter
 
         self.data = dict.fromkeys(pa_table.column_names)
         self.keys_to_format = set(self.data.keys())
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.data)
 
     def __getitem__(self, key):
@@ -282,27 +285,27 @@ class LazyDict(MutableMapping):
             self.keys_to_format.remove(key)
         return value
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value) -> None:
         if key in self.keys_to_format:
             self.keys_to_format.remove(key)
         self.data[key] = value
 
-    def __delitem__(self, key) -> None:
+    def __delitem__(self, key: str) -> None:
         if key in self.keys_to_format:
             self.keys_to_format.remove(key)
         del self.data[key]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return iter(self.data)
 
-    def __contains__(self, key):
+    def __contains__(self, key: str) -> bool:
         return key in self.data
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         self._format_all()
         return repr(self.data)
 
-    def __or__(self, other):
+    def __or__(self, other: Union[dict, LazyDict]) -> LazyDict:
         if isinstance(other, LazyDict):
             inst = self.copy()
             other = other.copy()
@@ -317,7 +320,7 @@ class LazyDict(MutableMapping):
             return inst
         return NotImplemented
 
-    def __ror__(self, other):
+    def __ror__(self, other: Union[dict, LazyDict]) -> LazyDict:
         if isinstance(other, LazyDict):
             inst = self.copy()
             other = other.copy()
@@ -332,7 +335,7 @@ class LazyDict(MutableMapping):
             return inst
         return NotImplemented
 
-    def __ior__(self, other):
+    def __ior__(self, other: Union[dict, LazyDict]) -> LazyDict:
         if isinstance(other, LazyDict):
             other = other.copy()
             other._format_all()
@@ -343,7 +346,7 @@ class LazyDict(MutableMapping):
             self.data |= other
         return self
 
-    def __copy__(self):
+    def __copy__(self) -> LazyDict:
         # Identical to `UserDict.__copy__`
         inst = self.__class__.__new__(self.__class__)
         inst.__dict__.update(self.__dict__)
@@ -352,13 +355,13 @@ class LazyDict(MutableMapping):
         inst.__dict__["keys_to_format"] = self.__dict__["keys_to_format"].copy()
         return inst
 
-    def copy(self):
+    def copy(self) -> object:
         import copy
 
         return copy.copy(self)
 
     @classmethod
-    def fromkeys(cls, iterable, value=None):
+    def fromkeys(cls: type[object], iterable: Iterable, value=None):
         raise NotImplementedError
 
     def format(self, key):
@@ -395,7 +398,7 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
         self,
         features: Optional[Features] = None,
         token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None,
-    ):
+    ) -> None:
         self.features = features
         self.token_per_repo_id = token_per_repo_id
         self.python_features_decoder = PythonFeaturesDecoder(self.features, self.token_per_repo_id)
@@ -420,7 +423,7 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
 
 
 class TensorFormatter(Formatter[RowFormat, ColumnFormat, BatchFormat]):
-    def recursive_tensorize(self, data_struct: dict):
+    def recursive_tensorize(self, data_struct: dict) -> None:
         raise NotImplementedError
 
 
@@ -444,7 +447,12 @@ class ArrowFormatter(TableFormatter[pa.Table, pa.Array, pa.Table]):
 
 
 class PythonFormatter(Formatter[Mapping, list, Mapping]):
-    def __init__(self, features=None, lazy=False, token_per_repo_id=None):
+    def __init__(
+        self,
+        features: Optional[Features] = None,
+        lazy: bool = False,
+        token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
+    ) -> None:
         super().__init__(features, token_per_repo_id)
         self.lazy = lazy
 
@@ -498,7 +506,13 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
     to return.
     """
 
-    def __init__(self, transform: Callable[[dict], dict], features=None, token_per_repo_id=None, **kwargs):
+    def __init__(
+        self,
+        transform: Callable[[dict], dict],
+        features: Optional[Features] = None,
+        token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(features=features, token_per_repo_id=token_per_repo_id)
         self.transform = transform
 
@@ -618,8 +632,8 @@ def format_table(
     key: Union[int, slice, range, str, Iterable],
     formatter: Formatter,
     format_columns: Optional[list] = None,
-    output_all_columns=False,
-):
+    output_all_columns: bool = False,
+) -> Union[Mapping, list]:
     """
     Format a Table depending on the key that was used and a Formatter object.
 

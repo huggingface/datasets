@@ -1066,10 +1066,10 @@ class DatasetBuilder:
 
     def as_dataset(
         self,
-        split: Optional[Split] = None,
-        run_post_process=True,
+        split: Optional[Union[str, Split]] = None,
+        run_post_process: bool = True,
         verification_mode: Optional[Union[VerificationMode, str]] = None,
-        in_memory=False,
+        in_memory: bool = False,
     ) -> Union[Dataset, DatasetDict]:
         """Return a Dataset for the specified split.
 
@@ -1249,7 +1249,7 @@ class DatasetBuilder:
         self,
         split: Optional[str] = None,
         base_path: Optional[str] = None,
-    ) -> Union[dict[str, IterableDataset], IterableDataset]:
+    ) -> Union[IterableDatasetDict, IterableDataset]:
         if is_remote_filesystem(self._fs):
             raise NotImplementedError(
                 f"Loading a streaming dataset cached in a {type(self._fs).__name__} is not supported yet."
@@ -1437,7 +1437,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         self,
         split_generator: SplitGenerator,
         check_duplicate_keys: bool,
-        file_format="arrow",
+        file_format: str = "arrow",
         num_proc: Optional[int] = None,
         max_shard_size: Optional[Union[int, str]] = None,
     ):

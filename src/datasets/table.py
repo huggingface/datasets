@@ -1,9 +1,27 @@
+from __future__ import annotations
+
 import copy
 import os
 from collections.abc import Iterator
 from functools import partial
 from itertools import groupby
-from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Generator,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    OrderedDict,
+    ParamSpec,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 import numpy as np
 import pyarrow as pa
@@ -14,6 +32,8 @@ from .utils.logging import get_logger
 
 
 if TYPE_CHECKING:
+    import pandas as pd
+
     from .features.features import Features, FeatureType
 
 
@@ -21,7 +41,7 @@ logger = get_logger(__name__)
 
 
 def inject_arrow_table_documentation(arrow_table_method):
-    def wrapper(fn):
+    def wrapper(fn: Callable):
         fn.__doc__ = arrow_table_method.__doc__ + (fn.__doc__ if fn.__doc__ is not None else "")
         fn.__doc__ = fn.__doc__.replace("pyarrow.Table", "Table")
         if hasattr(arrow_table_method, "__annotations__"):
@@ -66,7 +86,10 @@ def _memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
     return pa_table
 
 
-def _deepcopy(x, memo: dict):
+T = TypeVar("T")
+
+
+def _deepcopy(x: T, memo: MutableMapping) -> T:
     """deepcopy a regular class instance"""
     cls = x.__class__
     result = cls.__new__(cls)
@@ -76,7 +99,7 @@ def _deepcopy(x, memo: dict):
     return result
 
 
-def _interpolation_search(arr: list[int], x: int) -> int:
+def _interpolation_search(arr: Sequence[int], x: int) -> int:
     """
     Return the position i of a sorted array so that arr[i] <= x < arr[i+1]
 
@@ -103,14 +126,14 @@ def _interpolation_search(arr: list[int], x: int) -> int:
 
 
 class IndexedTableMixin:
-    def __init__(self, table: pa.Table):
+    def __init__(self, table: pa.Table) -> None:
         self._schema: pa.Schema = table.schema
         self._batches: list[pa.RecordBatch] = [
             recordbatch for recordbatch in table.to_batches() if len(recordbatch) > 0
         ]
         self._offsets: np.ndarray = np.cumsum([0] + [len(b) for b in self._batches], dtype=np.int64)
 
-    def fast_gather(self, indices: Union[list[int], np.ndarray]) -> pa.Table:
+    def fast_gather(self, indices: Union[Sequence[int], np.ndarray]) -> pa.Table:
         """
         Create a pa.Table by gathering the records at the records at the specified indices. Should be faster
         than pa.concat_tables(table.fast_slice(int(i) % table.num_rows, 1) for i in indices) since NumPy can compute
@@ -127,7 +150,7 @@ class IndexedTableMixin:
             schema=self._schema,
         )
 
-    def fast_slice(self, offset=0, length=None) -> pa.Table:
+    def fast_slice(self, offset: int = 0, length: Optional[int] = None) -> pa.Table:
         """
         Slice the Table using interpolation search.
         The behavior is the same as `pyarrow.Table.slice` but it's significantly faster.
@@ -163,11 +186,11 @@ class Table(IndexedTableMixin):
     The implementation of these methods differs for the subclasses.
     """
 
-    def __init__(self, table: pa.Table):
+    def __init__(self, table: pa.Table) -> None:
         super().__init__(table)
         self.table = table
 
-    def __deepcopy__(self, memo: dict):
+    def __deepcopy__(self, memo: dict) -> object:
         # arrow tables are immutable, so there's no need to copy self.table
         # moreover calling deepcopy on a pyarrow table seems to make pa.total_allocated_bytes() decrease for some reason
         # by adding it to the memo, self.table won't be copied
@@ -176,7 +199,7 @@ class Table(IndexedTableMixin):
         memo[id(self._batches)] = list(self._batches)
         return _deepcopy(self, memo)
 
-    def validate(self, *args, **kwargs):
+    def validate(self, *args: Any, **kwargs: Any):
         """
         Perform validation checks.  An exception is raised if validation fails.
 
@@ -192,7 +215,7 @@ class Table(IndexedTableMixin):
         """
         return self.table.validate(*args, **kwargs)
 
-    def equals(self, *args, **kwargs):
+    def equals(self, *args: Any, **kwargs: Any) -> bool:
         """
         Check if contents of two tables are equal.
 
@@ -209,7 +232,7 @@ class Table(IndexedTableMixin):
         kwargs = {k: v.table if isinstance(v, Table) else v for k, v in kwargs}
         return self.table.equals(*args, **kwargs)
 
-    def to_batches(self, *args, **kwargs):
+    def to_batches(self, *args: Any, **kwargs: Any) -> list[pyarrow.RecordBatch]:
         """
         Convert Table to list of (contiguous) `RecordBatch` objects.
 
@@ -223,7 +246,7 @@ class Table(IndexedTableMixin):
         """
         return self.table.to_batches(*args, **kwargs)
 
-    def to_pydict(self, *args, **kwargs):
+    def to_pydict(self, *args: Any, **kwargs: Any) -> Union[dict, OrderedDict]:
         """
         Convert the Table to a `dict` or `OrderedDict`.
 
@@ -232,7 +255,7 @@ class Table(IndexedTableMixin):
         """
         return self.table.to_pydict(*args, **kwargs)
 
-    def to_pylist(self, *args, **kwargs):
+    def to_pylist(self, *args: Any, **kwargs: Any) -> list:
         """
         Convert the Table to a list
 
@@ -241,7 +264,7 @@ class Table(IndexedTableMixin):
         """
         return self.table.to_pylist(*args, **kwargs)
 
-    def to_pandas(self, *args, **kwargs):
+    def to_pandas(self, *args: Any, **kwargs: Any) -> Union[pd.Series, pd.DataFrame]:
         """
         Convert to a pandas-compatible NumPy array or DataFrame, as appropriate.
 
@@ -303,10 +326,10 @@ class Table(IndexedTableMixin):
         """
         return self.table.to_pandas(*args, **kwargs)
 
-    def to_string(self, *args, **kwargs):
+    def to_string(self, *args: Any, **kwargs: Any) -> str:
         return self.table.to_string(*args, **kwargs)
 
-    def to_reader(self, max_chunksize: Optional[int] = None):
+    def to_reader(self, max_chunksize: Optional[int] = None) -> pa.RecordBatchReader:
         """
         Convert the Table to a RecordBatchReader.
 
@@ -322,7 +345,7 @@ class Table(IndexedTableMixin):
         """
         return self.table.to_reader(max_chunksize=max_chunksize)
 
-    def field(self, *args, **kwargs):
+    def field(self, *args: Any, **kwargs: Any) -> pa.Field:
         """
         Select a schema field by its column name or numeric index.
 
@@ -335,7 +358,7 @@ class Table(IndexedTableMixin):
         """
         return self.table.field(*args, **kwargs)
 
-    def column(self, *args, **kwargs):
+    def column(self, *args: Any, **kwargs: Any) -> Union[pa.Array, pa.ChunkedArray]:
         """
         Select a column by its column name, or numeric index.
 
@@ -348,7 +371,7 @@ class Table(IndexedTableMixin):
         """
         return self.table.column(*args, **kwargs)
 
-    def itercolumns(self, *args, **kwargs):
+    def itercolumns(self, *args: Any, **kwargs: Any) -> Iterator[pa.ChunkedArray]:
         """
         Iterator over all columns in their numerical order.
 
@@ -358,7 +381,7 @@ class Table(IndexedTableMixin):
         return self.table.itercolumns(*args, **kwargs)
 
     @property
-    def schema(self):
+    def schema(self) -> pa.Schema:
         """
         Schema of the table and its columns.
 
@@ -368,7 +391,7 @@ class Table(IndexedTableMixin):
         return self.table.schema
 
     @property
-    def columns(self):
+    def columns(self) -> list[pa.ChunkedArray]:
         """
         List of all columns in numerical order.
 
@@ -378,7 +401,7 @@ class Table(IndexedTableMixin):
         return self.table.columns
 
     @property
-    def num_columns(self):
+    def num_columns(self) -> int:
         """
         Number of columns in this table.
 
@@ -388,7 +411,7 @@ class Table(IndexedTableMixin):
         return self.table.num_columns
 
     @property
-    def num_rows(self):
+    def num_rows(self) -> int:
         """
         Number of rows in this table.
 
@@ -401,7 +424,7 @@ class Table(IndexedTableMixin):
         return self.table.num_rows
 
     @property
-    def shape(self):
+    def shape(self) -> tuple[int, int]:
         """
         Dimensions of the table: (#rows, #columns).
 
@@ -411,35 +434,35 @@ class Table(IndexedTableMixin):
         return self.table.shape
 
     @property
-    def nbytes(self):
+    def nbytes(self) -> int:
         """
         Total number of bytes consumed by the elements of the table.
         """
         return self.table.nbytes
 
     @property
-    def column_names(self):
+    def column_names(self) -> list[str]:
         """
         Names of the table's columns.
         """
         return self.table.column_names
 
-    def __eq__(self, other):
+    def __eq__(self, other: Table) -> bool:
         return self.equals(other)
 
-    def __getitem__(self, i):
+    def __getitem__(self, i: int) -> pa.ChunkedArray:
         return self.table[i]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.table)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.table.__repr__().replace("pyarrow.Table", self.__class__.__name__)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.table.__str__().replace("pyarrow.Table", self.__class__.__name__)
 
-    def slice(self, *args, **kwargs):
+    def slice(self, *args: Any, **kwargs: Any) -> Table:
         """
         Compute zero-copy slice of this Table.
 
@@ -455,13 +478,13 @@ class Table(IndexedTableMixin):
         """
         raise NotImplementedError()
 
-    def filter(self, *args, **kwargs):
+    def filter(self, *args: Any, **kwargs: Any) -> None:
         """
         Select records from a Table. See `pyarrow.compute.filter` for full usage.
         """
         raise NotImplementedError()
 
-    def flatten(self, *args, **kwargs):
+    def flatten(self, *args: Any, **kwargs: Any) -> Table:
         """
         Flatten this Table.  Each column with a struct type is flattened
         into one column per struct field.  Other columns are left unchanged.
@@ -475,7 +498,7 @@ class Table(IndexedTableMixin):
         """
         raise NotImplementedError()
 
-    def combine_chunks(self, *args, **kwargs):
+    def combine_chunks(self, *args: Any, **kwargs: Any):
         """
         Make a new table by combining the chunks this table has.
 
@@ -491,7 +514,7 @@ class Table(IndexedTableMixin):
         """
         raise NotImplementedError()
 
-    def cast(self, *args, **kwargs):
+    def cast(self, *args: Any, **kwargs: Any):
         """
         Cast table values to another schema.
 
@@ -506,7 +529,7 @@ class Table(IndexedTableMixin):
         """
         raise NotImplementedError()
 
-    def replace_schema_metadata(self, *args, **kwargs):
+    def replace_schema_metadata(self, *args: Any, **kwargs: Any):
         """
         EXPERIMENTAL: Create shallow copy of table by replacing schema
         key-value metadata with the indicated new metadata (which may be None,
@@ -520,7 +543,7 @@ class Table(IndexedTableMixin):
         """
         raise NotImplementedError()
 
-    def add_column(self, *args, **kwargs):
+    def add_column(self, *args: Any, **kwargs: Any):
         """
         Add column to Table at position.
 
@@ -541,7 +564,7 @@ class Table(IndexedTableMixin):
         """
         raise NotImplementedError()
 
-    def append_column(self, *args, **kwargs):
+    def append_column(self, *args: Any, **kwargs: Any):
         """
         Append column at end of columns.
 
@@ -557,7 +580,7 @@ class Table(IndexedTableMixin):
         """
         raise NotImplementedError()
 
-    def remove_column(self, *args, **kwargs):
+    def remove_column(self, *args: Any, **kwargs: Any):
         """
         Create new Table with the indicated column removed.
 
@@ -570,7 +593,7 @@ class Table(IndexedTableMixin):
         """
         raise NotImplementedError()
 
-    def set_column(self, *args, **kwargs):
+    def set_column(self, *args: Any, **kwargs: Any):
         """
         Replace column in Table at position.
 
@@ -588,13 +611,13 @@ class Table(IndexedTableMixin):
         """
         raise NotImplementedError()
 
-    def rename_columns(self, *args, **kwargs):
+    def rename_columns(self, *args: Any, **kwargs: Any):
         """
         Create new table with columns renamed to provided names.
         """
         raise NotImplementedError()
 
-    def drop(self, *args, **kwargs):
+    def drop(self, *args: Any, **kwargs: Any):
         """
         Drop one or more columns and return a new table.
 
@@ -610,7 +633,7 @@ class Table(IndexedTableMixin):
         """
         raise NotImplementedError()
 
-    def select(self, *args, **kwargs):
+    def select(self, *args: Any, **kwargs: Any):
         """
         Select columns of the table.
 
@@ -636,6 +659,9 @@ class TableBlock(Table):
     pass
 
 
+T_InMemoryTable = TypeVar("T_InMemoryTable", bound="InMemoryTable")
+
+
 class InMemoryTable(TableBlock):
     """
     The table is said in-memory when it is loaded into the user's RAM.
@@ -652,17 +678,17 @@ class InMemoryTable(TableBlock):
     """
 
     @classmethod
-    def from_file(cls, filename: str):
+    def from_file(cls: type[T_InMemoryTable], filename: str) -> T_InMemoryTable:
         table = _in_memory_arrow_table_from_file(filename)
         return cls(table)
 
     @classmethod
-    def from_buffer(cls, buffer: pa.Buffer):
+    def from_buffer(cls: type[T_InMemoryTable], buffer: pa.Buffer) -> T_InMemoryTable:
         table = _in_memory_arrow_table_from_buffer(buffer)
         return cls(table)
 
     @classmethod
-    def from_pandas(cls, *args, **kwargs):
+    def from_pandas(cls: type[T_InMemoryTable], *args: Any, **kwargs: Any) -> T_InMemoryTable:
         """
         Convert pandas.DataFrame to an Arrow Table.
 
@@ -720,7 +746,7 @@ class InMemoryTable(TableBlock):
         return cls(pa.Table.from_pandas(*args, **kwargs))
 
     @classmethod
-    def from_arrays(cls, *args, **kwargs):
+    def from_arrays(cls: type[T_InMemoryTable], *args: Any, **kwargs: Any) -> T_InMemoryTable:
         """
         Construct a Table from Arrow arrays.
 
@@ -740,7 +766,7 @@ class InMemoryTable(TableBlock):
         return cls(pa.Table.from_arrays(*args, **kwargs))
 
     @classmethod
-    def from_pydict(cls, *args, **kwargs):
+    def from_pydict(cls: type[T_InMemoryTable], *args: Any, **kwargs: Any) -> T_InMemoryTable:
         """
         Construct a Table from Arrow arrays or columns.
 
@@ -758,12 +784,14 @@ class InMemoryTable(TableBlock):
         return cls(pa.Table.from_pydict(*args, **kwargs))
 
     @classmethod
-    def from_pylist(cls, mapping, *args, **kwargs):
+    def from_pylist(
+        cls: type[T_InMemoryTable], mapping: Sequence[Mapping[str, Any]], *args: Any, **kwargs: Any
+    ) -> T_InMemoryTable:
         """
         Construct a Table from list of rows / dictionaries.
 
         Args:
-            mapping (`List[dict]`):
+            mapping (`Sequence[Mapping[str, Any]]`):
                 A mapping of strings to row values.
             schema (`Schema`, defaults to `None`):
                 If not passed, will be inferred from the Mapping values
@@ -776,7 +804,7 @@ class InMemoryTable(TableBlock):
         return cls(pa.Table.from_pylist(mapping, *args, **kwargs))
 
     @classmethod
-    def from_batches(cls, *args, **kwargs):
+    def from_batches(cls: type[T_InMemoryTable], *args: Any, **kwargs: Any) -> T_InMemoryTable:
         """
         Construct a Table from a sequence or iterator of Arrow `RecordBatches`.
 
@@ -791,7 +819,7 @@ class InMemoryTable(TableBlock):
         """
         return cls(pa.Table.from_batches(*args, **kwargs))
 
-    def slice(self, offset=0, length=None):
+    def slice(self, offset: int = 0, length: Optional[int] = None) -> InMemoryTable:
         """
         Compute zero-copy slice of this Table.
 
@@ -808,13 +836,13 @@ class InMemoryTable(TableBlock):
         # Use fast slicing here
         return InMemoryTable(self.fast_slice(offset=offset, length=length))
 
-    def filter(self, *args, **kwargs):
+    def filter(self, *args: Any, **kwargs: Any) -> InMemoryTable:
         """
         Select records from a Table. See `pyarrow.compute.filter` for full usage.
         """
         return InMemoryTable(self.table.filter(*args, **kwargs))
 
-    def flatten(self, *args, **kwargs):
+    def flatten(self, *args: Any, **kwargs: Any) -> InMemoryTable:
         """
         Flatten this Table.  Each column with a struct type is flattened
         into one column per struct field.  Other columns are left unchanged.
@@ -828,7 +856,7 @@ class InMemoryTable(TableBlock):
         """
         return InMemoryTable(table_flatten(self.table, *args, **kwargs))
 
-    def combine_chunks(self, *args, **kwargs):
+    def combine_chunks(self, *args: Any, **kwargs: Any) -> InMemoryTable:
         """
         Make a new table by combining the chunks this table has.
 
@@ -844,7 +872,7 @@ class InMemoryTable(TableBlock):
         """
         return InMemoryTable(self.table.combine_chunks(*args, **kwargs))
 
-    def cast(self, *args, **kwargs):
+    def cast(self, *args: Any, **kwargs: Any) -> InMemoryTable:
         """
         Cast table values to another schema.
 
@@ -859,7 +887,7 @@ class InMemoryTable(TableBlock):
         """
         return InMemoryTable(table_cast(self.table, *args, **kwargs))
 
-    def replace_schema_metadata(self, *args, **kwargs):
+    def replace_schema_metadata(self, *args: Any, **kwargs: Any) -> InMemoryTable:
         """
         EXPERIMENTAL: Create shallow copy of table by replacing schema
         key-value metadata with the indicated new metadata (which may be `None`,
@@ -873,7 +901,7 @@ class InMemoryTable(TableBlock):
         """
         return InMemoryTable(self.table.replace_schema_metadata(*args, **kwargs))
 
-    def add_column(self, *args, **kwargs):
+    def add_column(self, *args: Any, **kwargs: Any) -> InMemoryTable:
         """
         Add column to Table at position.
 
@@ -894,7 +922,7 @@ class InMemoryTable(TableBlock):
         """
         return InMemoryTable(self.table.add_column(*args, **kwargs))
 
-    def append_column(self, *args, **kwargs):
+    def append_column(self, *args: Any, **kwargs: Any) -> InMemoryTable:
         """
         Append column at end of columns.
 
@@ -911,7 +939,7 @@ class InMemoryTable(TableBlock):
         """
         return InMemoryTable(self.table.append_column(*args, **kwargs))
 
-    def remove_column(self, *args, **kwargs):
+    def remove_column(self, *args: Any, **kwargs: Any) -> InMemoryTable:
         """
         Create new Table with the indicated column removed.
 
@@ -925,7 +953,7 @@ class InMemoryTable(TableBlock):
         """
         return InMemoryTable(self.table.remove_column(*args, **kwargs))
 
-    def set_column(self, *args, **kwargs):
+    def set_column(self, *args: Any, **kwargs: Any) -> InMemoryTable:
         """
         Replace column in Table at position.
 
@@ -944,13 +972,13 @@ class InMemoryTable(TableBlock):
         """
         return InMemoryTable(self.table.set_column(*args, **kwargs))
 
-    def rename_columns(self, *args, **kwargs):
+    def rename_columns(self, *args: Any, **kwargs: Any) -> InMemoryTable:
         """
         Create new table with columns renamed to provided names.
         """
         return InMemoryTable(self.table.rename_columns(*args, **kwargs))
 
-    def drop(self, *args, **kwargs):
+    def drop(self, *args: Any, **kwargs: Any) -> InMemoryTable:
         """
         Drop one or more columns and return a new table.
 
@@ -967,7 +995,7 @@ class InMemoryTable(TableBlock):
         """
         return InMemoryTable(self.table.drop(*args, **kwargs))
 
-    def select(self, *args, **kwargs):
+    def select(self, *args: Any, **kwargs: Any) -> InMemoryTable:
         """
         Select columns of the table.
 
@@ -985,6 +1013,8 @@ class InMemoryTable(TableBlock):
 
 # The MemoryMappedTable needs replays to properly reload tables from the disk
 Replay = tuple[str, tuple, dict]
+
+T_MemoryMappedTable = TypeVar("T_MemoryMappedTable", bound="MemoryMappedTable")
 
 
 class MemoryMappedTable(TableBlock):
@@ -1008,21 +1038,23 @@ class MemoryMappedTable(TableBlock):
     stay low.
     """
 
-    def __init__(self, table: pa.Table, path: str, replays: Optional[list[Replay]] = None):
+    def __init__(self, table: pa.Table, path: str, replays: Optional[list[Replay]] = None) -> None:
         super().__init__(table)
         self.path = os.path.abspath(path)
         self.replays: list[Replay] = replays if replays is not None else []
 
     @classmethod
-    def from_file(cls, filename: str, replays=None):
+    def from_file(
+        cls: type[T_MemoryMappedTable], filename: str, replays: Optional[list[Replay]] = None
+    ) -> T_MemoryMappedTable:
         table = _memory_mapped_arrow_table_from_file(filename)
         table = cls._apply_replays(table, replays)
         return cls(table, filename, replays)
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict[str, Union[list[Replay], str]]:
         return {"path": self.path, "replays": self.replays}
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: Mapping) -> None:
         path = state["path"]
         replays = state["replays"]
         table = _memory_mapped_arrow_table_from_file(path)
@@ -1046,7 +1078,7 @@ class MemoryMappedTable(TableBlock):
         replays.append(replay)
         return replays
 
-    def slice(self, offset=0, length=None):
+    def slice(self, offset: int = 0, length: Optional[int] = None) -> MemoryMappedTable:
         """
         Compute zero-copy slice of this Table.
 
@@ -1060,12 +1092,12 @@ class MemoryMappedTable(TableBlock):
         Returns:
             `datasets.table.Table`
         """
-        replay = ("slice", (offset, length), {})
+        replay: tuple[str, tuple[int, Optional[int]], dict] = ("slice", (offset, length), {})
         replays = self._append_replay(replay)
         # Use fast slicing here
         return MemoryMappedTable(self.fast_slice(offset=offset, length=length), self.path, replays)
 
-    def filter(self, *args, **kwargs):
+    def filter(self, *args: Any, **kwargs: Any) -> MemoryMappedTable:
         """
         Select records from a Table. See `pyarrow.compute.filter` for full usage.
         """
@@ -1073,7 +1105,7 @@ class MemoryMappedTable(TableBlock):
         replays = self._append_replay(replay)
         return MemoryMappedTable(self.table.filter(*args, **kwargs), self.path, replays)
 
-    def flatten(self, *args, **kwargs):
+    def flatten(self, *args: Any, **kwargs: Any) -> MemoryMappedTable:
         """
         Flatten this Table.  Each column with a struct type is flattened
         into one column per struct field.  Other columns are left unchanged.
@@ -1089,7 +1121,7 @@ class MemoryMappedTable(TableBlock):
         replays = self._append_replay(replay)
         return MemoryMappedTable(table_flatten(self.table, *args, **kwargs), self.path, replays)
 
-    def combine_chunks(self, *args, **kwargs):
+    def combine_chunks(self, *args: Any, **kwargs: Any) -> MemoryMappedTable:
         """
         Make a new table by combining the chunks this table has.
 
@@ -1107,7 +1139,7 @@ class MemoryMappedTable(TableBlock):
         replays = self._append_replay(replay)
         return MemoryMappedTable(self.table.combine_chunks(*args, **kwargs), self.path, replays)
 
-    def cast(self, *args, **kwargs):
+    def cast(self, *args: Any, **kwargs: Any) -> MemoryMappedTable:
         """
         Cast table values to another schema
 
@@ -1124,7 +1156,7 @@ class MemoryMappedTable(TableBlock):
         replays = self._append_replay(replay)
         return MemoryMappedTable(table_cast(self.table, *args, **kwargs), self.path, replays)
 
-    def replace_schema_metadata(self, *args, **kwargs):
+    def replace_schema_metadata(self, *args: Any, **kwargs: Any) -> MemoryMappedTable:
         """
         EXPERIMENTAL: Create shallow copy of table by replacing schema
         key-value metadata with the indicated new metadata (which may be None,
@@ -1140,7 +1172,7 @@ class MemoryMappedTable(TableBlock):
         replays = self._append_replay(replay)
         return MemoryMappedTable(self.table.replace_schema_metadata(*args, **kwargs), self.path, replays)
 
-    def add_column(self, *args, **kwargs):
+    def add_column(self, *args: Any, **kwargs: Any) -> MemoryMappedTable:
         """
         Add column to Table at position.
 
@@ -1163,7 +1195,7 @@ class MemoryMappedTable(TableBlock):
         replays = self._append_replay(replay)
         return MemoryMappedTable(self.table.add_column(*args, **kwargs), self.path, replays)
 
-    def append_column(self, *args, **kwargs):
+    def append_column(self, *args: Any, **kwargs: Any) -> MemoryMappedTable:
         """
         Append column at end of columns.
 
@@ -1182,7 +1214,7 @@ class MemoryMappedTable(TableBlock):
         replays = self._append_replay(replay)
         return MemoryMappedTable(self.table.append_column(*args, **kwargs), self.path, replays)
 
-    def remove_column(self, *args, **kwargs):
+    def remove_column(self, *args: Any, **kwargs: Any) -> MemoryMappedTable:
         """
         Create new Table with the indicated column removed.
 
@@ -1198,7 +1230,7 @@ class MemoryMappedTable(TableBlock):
         replays = self._append_replay(replay)
         return MemoryMappedTable(self.table.remove_column(*args, **kwargs), self.path, replays)
 
-    def set_column(self, *args, **kwargs):
+    def set_column(self, *args: Any, **kwargs: Any) -> MemoryMappedTable:
         """
         Replace column in Table at position.
 
@@ -1219,7 +1251,7 @@ class MemoryMappedTable(TableBlock):
         replays = self._append_replay(replay)
         return MemoryMappedTable(self.table.set_column(*args, **kwargs), self.path, replays)
 
-    def rename_columns(self, *args, **kwargs):
+    def rename_columns(self, *args: Any, **kwargs: Any) -> MemoryMappedTable:
         """
         Create new table with columns renamed to provided names.
         """
@@ -1227,7 +1259,7 @@ class MemoryMappedTable(TableBlock):
         replays = self._append_replay(replay)
         return MemoryMappedTable(self.table.rename_columns(*args, **kwargs), self.path, replays)
 
-    def drop(self, *args, **kwargs):
+    def drop(self, *args: Any, **kwargs: Any) -> MemoryMappedTable:
         """
         Drop one or more columns and return a new table.
 
@@ -1246,7 +1278,7 @@ class MemoryMappedTable(TableBlock):
         replays = self._append_replay(replay)
         return MemoryMappedTable(self.table.drop(*args, **kwargs), self.path, replays)
 
-    def select(self, *args, **kwargs):
+    def select(self, *args: Any, **kwargs: Any) -> MemoryMappedTable:
         """
         Select columns of the table.
 
@@ -1268,7 +1300,11 @@ class MemoryMappedTable(TableBlock):
 # The ``blocks`` attributes stores a list of list of blocks.
 # The first axis concatenates the tables along the axis 0 (it appends rows),
 # while the second axis concatenates tables along the axis 1 (it appends columns).
-TableBlockContainer = TypeVar("TableBlockContainer", TableBlock, list[TableBlock], list[list[TableBlock]])
+TableBlockContainer = TypeVar("TableBlockContainer", TableBlock, Iterable[TableBlock], Iterable[Iterable[TableBlock]])
+
+
+Blocks = list[list[TableBlock]]
+T_ConcatenationTable = TypeVar("T_ConcatenationTable", bound="ConcatenationTable")
 
 
 class ConcatenationTable(Table):
@@ -1297,7 +1333,7 @@ class ConcatenationTable(Table):
     and the blocks by accessing the `ConcatenationTable.blocks` attribute.
     """
 
-    def __init__(self, table: pa.Table, blocks: list[list[TableBlock]]):
+    def __init__(self, table: pa.Table, blocks: Iterable[Iterable[TableBlock]]) -> None:
         super().__init__(table)
         self.blocks = blocks
         # Check that all the blocks have the right type.
@@ -1310,10 +1346,10 @@ class ConcatenationTable(Table):
                         f", but got {_short_str(subtable)}."
                     )
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict[str, Union[Iterable[Iterable[TableBlock]], pa.Schema]]:
         return {"blocks": self.blocks, "schema": self.table.schema}
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: Mapping) -> None:
         blocks = state["blocks"]
         schema = state["schema"]
         table = self._concat_blocks_horizontally_and_vertically(blocks)
@@ -1325,7 +1361,7 @@ class ConcatenationTable(Table):
         ConcatenationTable.__init__(self, table, blocks=blocks)
 
     @staticmethod
-    def _concat_blocks(blocks: list[Union[TableBlock, pa.Table]], axis: int = 0) -> pa.Table:
+    def _concat_blocks(blocks: Iterable[TableBlock], axis: int = 0) -> pa.Table:
         pa_tables = [table.table if hasattr(table, "table") else table for table in blocks]
         if axis == 0:
             # We set promote_options="default" to fill missing columns with null values
@@ -1342,7 +1378,9 @@ class ConcatenationTable(Table):
             raise ValueError("'axis' must be either 0 or 1")
 
     @classmethod
-    def _concat_blocks_horizontally_and_vertically(cls, blocks: list[list[TableBlock]]) -> pa.Table:
+    def _concat_blocks_horizontally_and_vertically(
+        cls: type[T_ConcatenationTable], blocks: Iterable[Iterable[TableBlock]]
+    ) -> pa.Table:
         pa_tables_to_concat_vertically = []
         for i, tables in enumerate(blocks):
             if not tables:
@@ -1352,7 +1390,9 @@ class ConcatenationTable(Table):
         return cls._concat_blocks(pa_tables_to_concat_vertically, axis=0)
 
     @classmethod
-    def _merge_blocks(cls, blocks: TableBlockContainer, axis: Optional[int] = None) -> TableBlockContainer:
+    def _merge_blocks(
+        cls: type[T_ConcatenationTable], blocks: Iterable, axis: Optional[int] = None
+    ) -> Union[list, list[list]]:
         if axis is not None:
             merged_blocks = []
             for is_in_memory, block_group in groupby(blocks, key=lambda x: isinstance(x, InMemoryTable)):
@@ -1368,7 +1408,9 @@ class ConcatenationTable(Table):
         return merged_blocks
 
     @classmethod
-    def _consolidate_blocks(cls, blocks: TableBlockContainer) -> TableBlockContainer:
+    def _consolidate_blocks(
+        cls: type[T_ConcatenationTable], blocks: Union[TableBlock, Sequence]
+    ) -> Union[TableBlock, Sequence[TableBlock], Sequence[Sequence[TableBlock]]]:
         if isinstance(blocks, TableBlock):
             return blocks
         elif isinstance(blocks[0], TableBlock):
@@ -1377,7 +1419,10 @@ class ConcatenationTable(Table):
             return cls._merge_blocks(blocks)
 
     @classmethod
-    def from_blocks(cls, blocks: TableBlockContainer) -> "ConcatenationTable":
+    def from_blocks(
+        cls: type[T_ConcatenationTable],
+        blocks: Union[TableBlock, Sequence[TableBlock], Sequence[Sequence[TableBlock]]],
+    ) -> T_ConcatenationTable:
         blocks = cls._consolidate_blocks(blocks)
         if isinstance(blocks, TableBlock):
             table = blocks
@@ -1404,7 +1449,7 @@ class ConcatenationTable(Table):
                 <Added version="1.6.0"/>
         """
 
-        def to_blocks(table: Union[pa.Table, Table]) -> list[list[TableBlock]]:
+        def to_blocks(table: Union[pa.Table, Table]) -> Blocks:
             if isinstance(table, pa.Table):
                 return [[InMemoryTable(table)]]
             elif isinstance(table, ConcatenationTable):
@@ -1480,7 +1525,7 @@ class ConcatenationTable(Table):
             yield (offset, length)
             offset += length
 
-    def slice(self, offset=0, length=None):
+    def slice(self, offset: int = 0, length: Optional[int] = None) -> ConcatenationTable:
         """
         Compute zero-copy slice of this Table.
 
@@ -1511,7 +1556,7 @@ class ConcatenationTable(Table):
                 length, offset = 0, 0
         return ConcatenationTable(table, blocks)
 
-    def filter(self, mask, *args, **kwargs):
+    def filter(self, mask, *args, **kwargs) -> ConcatenationTable:
         """
         Select records from a Table. See `pyarrow.compute.filter` for full usage.
         """
@@ -1522,7 +1567,7 @@ class ConcatenationTable(Table):
             blocks.append([t.filter(submask, *args, **kwargs) for t in tables])
         return ConcatenationTable(table, blocks)
 
-    def flatten(self, *args, **kwargs):
+    def flatten(self, *args, **kwargs) -> ConcatenationTable:
         """
         Flatten this Table.  Each column with a struct type is flattened
         into one column per struct field.  Other columns are left unchanged.
@@ -1540,7 +1585,7 @@ class ConcatenationTable(Table):
             blocks.append([t.flatten(*args, **kwargs) for t in tables])
         return ConcatenationTable(table, blocks)
 
-    def combine_chunks(self, *args, **kwargs):
+    def combine_chunks(self, *args, **kwargs) -> ConcatenationTable:
         """
         Make a new table by combining the chunks this table has.
 
@@ -1560,7 +1605,7 @@ class ConcatenationTable(Table):
             blocks.append([t.combine_chunks(*args, **kwargs) for t in tables])
         return ConcatenationTable(table, blocks)
 
-    def cast(self, target_schema, *args, **kwargs):
+    def cast(self, target_schema, *args, **kwargs) -> ConcatenationTable:
         """
         Cast table values to another schema.
 
@@ -1591,7 +1636,7 @@ class ConcatenationTable(Table):
             blocks.append(new_tables)
         return ConcatenationTable(table, blocks)
 
-    def replace_schema_metadata(self, *args, **kwargs):
+    def replace_schema_metadata(self, *args, **kwargs) -> ConcatenationTable:
         """
         EXPERIMENTAL: Create shallow copy of table by replacing schema
         key-value metadata with the indicated new metadata (which may be `None`,
@@ -1647,7 +1692,7 @@ class ConcatenationTable(Table):
         """
         raise NotImplementedError()
 
-    def remove_column(self, i, *args, **kwargs):
+    def remove_column(self, i, *args, **kwargs) -> ConcatenationTable:
         """
         Create new Table with the indicated column removed.
 
@@ -1690,7 +1735,7 @@ class ConcatenationTable(Table):
         """
         raise NotImplementedError()
 
-    def rename_columns(self, names, *args, **kwargs):
+    def rename_columns(self, names, *args, **kwargs) -> ConcatenationTable:
         """
         Create new table with columns renamed to provided names.
         """
@@ -1703,7 +1748,7 @@ class ConcatenationTable(Table):
             )
         return ConcatenationTable(table, blocks)
 
-    def drop(self, columns, *args, **kwargs):
+    def drop(self, columns, *args, **kwargs) -> ConcatenationTable:
         """
         Drop one or more columns and return a new table.
 
@@ -1724,7 +1769,7 @@ class ConcatenationTable(Table):
             blocks.append([t.drop([c for c in columns if c in t.column_names], *args, **kwargs) for t in tables])
         return ConcatenationTable(table, blocks)
 
-    def select(self, columns, *args, **kwargs):
+    def select(self, columns, *args, **kwargs) -> ConcatenationTable:
         """
         Select columns of the table.
 
@@ -1744,7 +1789,7 @@ class ConcatenationTable(Table):
         return ConcatenationTable(table, blocks)
 
 
-def concat_tables(tables: list[Table], axis: int = 0) -> Table:
+def concat_tables(tables: list[Table], axis: int = 0) -> ConcatenationTable:
     """
     Concatenate tables.
 
@@ -1788,12 +1833,23 @@ def list_table_cache_files(table: Table) -> list[str]:
         return []
 
 
-def _wrap_for_chunked_arrays(func):
+from typing import Concatenate
+
+
+P = ParamSpec("P")
+
+
+def _wrap_for_chunked_arrays(
+    func: Callable[Concatenate[Union[pa.Array, pa.ChunkedArray], P], pa.Array],
+) -> Callable[Concatenate[Union[pa.Array, pa.ChunkedArray], P], Union[pa.Array, pa.ChunkedArray]]:
     """Apply the function on each chunk of a `pyarrow.ChunkedArray`, or on the array directly"""
 
-    def wrapper(array, *args, **kwargs):
+    def wrapper(
+        array: Union[pa.Array, pa.ChunkedArray], *args: P.args, **kwargs: P.kwargs
+    ) -> Union[pa.Array, pa.ChunkedArray]:
         if isinstance(array, pa.ChunkedArray):
             return pa.chunked_array([func(chunk, *args, **kwargs) for chunk in array.chunks])
+
         else:
             return func(array, *args, **kwargs)
 
@@ -1831,7 +1887,7 @@ def _storage_type(type: pa.DataType) -> pa.DataType:
     return type
 
 
-def _short_str(value: Any) -> str:
+def _short_str(value: object) -> str:
     out = str(value)
     if len(out) > 3000:
         out = out[:1500] + "\n...\n" + out[-1500:]
@@ -1953,7 +2009,7 @@ def array_cast(
 
 @_wrap_for_chunked_arrays
 def cast_array_to_feature(
-    array: pa.Array, feature: "FeatureType", allow_primitive_to_str: bool = True, allow_decimal_to_str: bool = True
+    array: pa.Array, feature: FeatureType, allow_primitive_to_str: bool = True, allow_decimal_to_str: bool = True
 ) -> pa.Array:
     """Cast an array to the arrow type that corresponds to the requested feature type.
     For custom features like [`Audio`] or [`Image`], it takes into account the "cast_storage" methods
@@ -2110,7 +2166,7 @@ def cast_array_to_feature(
 
 
 @_wrap_for_chunked_arrays
-def embed_array_storage(array: pa.Array, feature: "FeatureType"):
+def embed_array_storage(array: pa.Array, feature: FeatureType) -> pa.Array:
     """Embed data into an arrays's storage.
     For custom features like Audio or Image, it takes into account the "embed_storage" methods
     they define to embed external data (e.g. an image file) into an array.
@@ -2177,18 +2233,18 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
 class CastError(ValueError):
     """When it's not possible to cast an Arrow table to a specific schema or set of features"""
 
-    def __init__(self, *args, table_column_names: list[str], requested_column_names: list[str]) -> None:
+    def __init__(self, *args: Any, table_column_names: list[str], requested_column_names: list[str]) -> None:
         super().__init__(*args)
         self.table_column_names = table_column_names
         self.requested_column_names = requested_column_names
 
-    def __reduce__(self):
+    def __reduce__(self) -> tuple[partial[CastError], tuple[()]]:
         # Fix unpickling: TypeError: __init__() missing 2 required keyword-only arguments: 'table_column_names' and 'requested_column_names'
         return partial(
             CastError, table_column_names=self.table_column_names, requested_column_names=self.requested_column_names
         ), ()
 
-    def details(self):
+    def details(self) -> str:
         new_columns = set(self.table_column_names) - set(self.requested_column_names)
         missing_columns = set(self.requested_column_names) - set(self.table_column_names)
         if new_columns and missing_columns:
@@ -2199,7 +2255,7 @@ class CastError(ValueError):
             return f"there are {len(missing_columns)} missing columns ({_short_str(missing_columns)})"
 
 
-def cast_table_to_features(table: pa.Table, features: "Features"):
+def cast_table_to_features(table: pa.Table, features: Features) -> pa.Table:
     """Cast a table to the arrow schema that corresponds to the requested features.
 
     Args:
@@ -2221,7 +2277,7 @@ def cast_table_to_features(table: pa.Table, features: "Features"):
     return pa.Table.from_arrays(arrays, schema=features.arrow_schema)
 
 
-def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
+def cast_table_to_schema(table: pa.Table, schema: pa.Schema) -> pa.Table:
     """Cast a table to the arrow schema. Different from `cast_table_to_features`, this method can preserve nullability.
 
     Args:
@@ -2253,7 +2309,7 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
     return pa.Table.from_arrays(arrays, schema=schema)
 
 
-def embed_table_storage(table: pa.Table):
+def embed_table_storage(table: pa.Table) -> pa.Table:
     """Embed external data into a table's storage.
 
     <Added version="2.4.0"/>
@@ -2275,7 +2331,7 @@ def embed_table_storage(table: pa.Table):
     return pa.Table.from_arrays(arrays, schema=features.arrow_schema)
 
 
-def table_cast(table: pa.Table, schema: pa.Schema):
+def table_cast(table: pa.Table, schema: pa.Schema) -> pa.Table:
     """Improved version of `pa.Table.cast`.
 
     It supports casting to feature types stored in the schema metadata.
@@ -2297,7 +2353,7 @@ def table_cast(table: pa.Table, schema: pa.Schema):
         return table
 
 
-def table_flatten(table: pa.Table):
+def table_flatten(table: pa.Table) -> pa.Table:
     """Improved version of `pa.Table.flatten`.
 
     It behaves as `pa.Table.flatten` in a sense it does 1-step flatten of the columns with a struct type into one column per struct field,
@@ -2339,7 +2395,9 @@ def table_flatten(table: pa.Table):
     return flat_table.replace_schema_metadata(flat_features.arrow_schema.metadata)
 
 
-def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
+def table_visitor(
+    table: pa.Table, function: Callable[[pa.Array, FeatureType], None]
+) -> None:
     """Visit all arrays in a table and apply a function to them.
 
     Args:
@@ -2352,7 +2410,7 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
 
     features = Features.from_arrow_schema(table.schema)
 
-    def _visit(array, feature):
+    def _visit(array: pa.Array, feature: FeatureType) -> None:
         if isinstance(array, pa.ChunkedArray):
             for chunk in array.chunks:
                 _visit(chunk, feature)
@@ -2378,7 +2436,7 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
         _visit(table[name], feature)
 
 
-def table_iter(table: Table, batch_size: int, drop_last_batch=False) -> Iterator[pa.Table]:
+def table_iter(table: Table, batch_size: int, drop_last_batch: bool = False) -> Generator[pa.Table]:
     """Iterate over sub-tables of size `batch_size`.
 
     Args:
