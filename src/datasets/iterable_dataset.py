@@ -1674,10 +1674,10 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
         """Shuffle the underlying iterable, then repeat."""
         return RepeatExamplesIterable(self.ex_iterable.shuffle_data_sources(generator), num_times=self.num_times)
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "RepeatExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "RepeatExamplesIterable":
         """Shard, then repeat shards."""
         return RepeatExamplesIterable(
-            self.ex_iterable.shard_data_sources(worker_id, num_workers),
+            self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
             num_times=self.num_times,
         )
 
