@@ -105,6 +105,16 @@ def _is_array_with_nulls(pa_array: pa.Array) -> bool:
     return pa_array.null_count > 0
 
 
+def dict_of_lists_to_list_of_dicts(dict_of_lists: Dict[str, List[T]]) -> List[Dict[str, T]]:
+    # convert to list of dicts
+    list_of_dicts = []
+    keys = dict_of_lists.keys()
+    value_arrays = [dict_of_lists[key] for key in keys]
+    for vals in zip(*value_arrays):
+        list_of_dicts.append(dict(zip(keys, vals)))
+    return list_of_dicts
+
+
 class BaseArrowExtractor(Generic[RowFormat, ColumnFormat, BatchFormat]):
     """
     Arrow extractor are used to extract data from pyarrow tables.
@@ -138,15 +148,60 @@ class SimpleArrowExtractor(BaseArrowExtractor[pa.Table, pa.Array, pa.Table]):
         return pa_table
 
 
+def extract_struct_array(pa_array: pa.StructArray) -> list:
+    """StructArray.to_pylist / to_pydict does not call sub-arrays to_pylist / to_pydict methods so handle them manually."""
+    if isinstance(pa_array, pa.ChunkedArray):
+        batch_chunks = [extract_struct_array(chunk) for chunk in pa_array.chunks]
+        return [item for chunk in batch_chunks for item in chunk]
+
+    batch = {}
+    for field in pa_array.type:
+        if pa.types.is_struct(pa_array.field(field.name).type):
+            batch[field.name] = extract_struct_array(pa_array.field(field.name))
+        else:
+            # use logic from _arrow_array_to_numpy to preserve dtype
+            if isinstance(pa_array.type, _ArrayXDExtensionType):
+                zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
+                batch[field.name] = list(pa_array.to_numpy(zero_copy_only=zero_copy_only))
+            else:
+                batch[field.name] = pa_array.field(field.name).to_pylist()
+    return dict_of_lists_to_list_of_dicts(batch)
+
+
+def extract_array_xdextension_array(pa_array: pa.Array) -> list:
+    print("Extracting array xdextension array")
+    if isinstance(pa_array, pa.ChunkedArray):
+        return [arr for chunk in pa_array.chunks for arr in extract_array_xdextension_array(chunk)]
+    else:
+        zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
+        return list(pa_array.to_numpy(zero_copy_only=zero_copy_only))
+
+
 class PythonArrowExtractor(BaseArrowExtractor[dict, list, dict]):
     def extract_row(self, pa_table: pa.Table) -> dict:
-        return _unnest(pa_table.to_pydict())
+        return _unnest(self.extract_batch(pa_table))
 
     def extract_column(self, pa_table: pa.Table) -> list:
-        return pa_table.column(0).to_pylist()
+        if pa.types.is_struct(pa_table[pa_table.column_names[0]].type):
+            return extract_struct_array(pa_table[pa_table.column_names[0]])
+        # TODO: handle list of struct
+        else:
+            # should work for list of ArrayXD
+            return pa_table.column(0).to_pylist()
 
     def extract_batch(self, pa_table: pa.Table) -> dict:
-        return pa_table.to_pydict()
+        batch = {}
+        for col in pa_table.column_names:
+            if pa.types.is_struct(pa_table[col].type):
+                batch[col] = extract_struct_array(pa_table[col])
+            else:
+                pa_array = pa_table[col]
+                if isinstance(pa_array.type, _ArrayXDExtensionType):
+                    # don't call to_pylist() to preserve dtype of the fixed-size array
+                    batch[col] = extract_array_xdextension_array(pa_array)
+                else:
+                    batch[col] = pa_table[col].to_pylist()
+        return batch
 
 
 class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
