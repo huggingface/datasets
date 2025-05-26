@@ -95,7 +95,7 @@ Note that if any files were formatted by `pre-commit` hooks during committing, y
    git push -u origin a-descriptive-name-for-my-changes
    ```
 
-   Go the webpage of your fork on GitHub. Click on "Pull request" to send your to the project maintainers for review.
+   Go the webpage of your fork on GitHub. Click on "Pull request" to send your changes to the project maintainers for review.
 
 ## Datasets on Hugging Face
 
