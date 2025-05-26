@@ -1830,16 +1830,18 @@ class DatasetDict(dict):
         metadata_config_to_dump = {
             "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
         }
+        configs_to_dump = {config_name: metadata_config_to_dump}
         if set_default and config_name != "default":
             if metadata_configs:
-                default_config_name = metadata_configs.get_default_config_name()
-                if default_config_name == "default":
+                current_default_config_name = metadata_configs.get_default_config_name()
+                if current_default_config_name == "default":
                     raise ValueError(
                         "There exists a configuration named 'default'. To set a different configuration as default, "
                         "rename the 'default' one first."
                     )
-                else:
-                    _ = metadata_configs[default_config_name].pop("default")
+                if current_default_config_name:
+                    _ = metadata_configs[current_default_config_name].pop("default")
+                    configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
             metadata_config_to_dump["default"] = True
         # push to the deprecated dataset_infos.json
         if repo_with_dataset_infos:
@@ -1860,7 +1862,7 @@ class DatasetDict(dict):
             )
         # push to README
         DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
-        MetadataConfigs({config_name: metadata_config_to_dump}).to_dataset_card_data(dataset_card_data)
+        MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
         dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
         additions.append(
             CommitOperationAdd(
