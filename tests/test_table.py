@@ -2,7 +2,7 @@ import copy
 import pickle
 from decimal import Decimal
 from functools import partial
-from typing import List, Union
+from typing import Union
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -40,7 +40,7 @@ def in_memory_pa_table(arrow_file) -> pa.Table:
     return pa.ipc.open_stream(arrow_file).read_all()
 
 
-def _to_testing_blocks(table: TableBlock) -> List[List[TableBlock]]:
+def _to_testing_blocks(table: TableBlock) -> list[list[TableBlock]]:
     assert len(table) > 2
     blocks = [
         [table.slice(0, 2)],
@@ -1049,7 +1049,7 @@ def test_concat_tables(arrow_file, in_memory_pa_table):
     assert isinstance(concatenated_table.blocks[0][2], InMemoryTable)
 
 
-def _interpolation_search_ground_truth(arr: List[int], x: int) -> Union[int, IndexError]:
+def _interpolation_search_ground_truth(arr: list[int], x: int) -> Union[int, IndexError]:
     for i in range(len(arr) - 1):
         if arr[i] <= x < arr[i + 1]:
             return i
