@@ -1066,7 +1066,7 @@ class DatasetBuilder:
 
     def as_dataset(
         self,
-        split: Optional[Split] = None,
+        split: Optional[Union[str, Split, list[str], list[Split]]] = None,
         run_post_process=True,
         verification_mode: Optional[Union[VerificationMode, str]] = None,
         in_memory=False,
