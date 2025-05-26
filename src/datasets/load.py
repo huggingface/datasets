@@ -1840,7 +1840,7 @@ def load_dataset(
     name: Optional[str] = None,
     data_dir: Optional[str] = None,
     data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
-    split: Optional[Union[str, Split]] = None,
+    split: Optional[Union[str, Split, list[str], list[Split]]] = None,
     cache_dir: Optional[str] = None,
     features: Optional[Features] = None,
     download_config: Optional[DownloadConfig] = None,
