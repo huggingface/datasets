@@ -1,3 +1,6 @@
+import json
+import unittest.mock
+
 import fsspec
 import pyarrow.parquet as pq
 import pytest
@@ -197,6 +200,48 @@ def test_parquet_write(dataset, tmp_path):
     pf = pq.ParquetFile(tmp_path / "foo.parquet")
     output_table = pf.read()
     assert dataset.data.table == output_table
+
+
+def test_parquet_write_uses_content_defined_chunking(dataset, tmp_path):
+    assert config.DEFAULT_CDC_OPTIONS == {
+        "min_chunk_size": 256 * 1024,  # 256 KiB
+        "max_chunk_size": 1024 * 1024,  # 1 MiB
+        "norm_level": 0,
+    }
+
+    with unittest.mock.patch("pyarrow.parquet.ParquetWriter") as MockWriter:
+        writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet")
+        writer.write()
+        assert MockWriter.call_count == 1
+        args, kwargs = MockWriter.call_args
+        # Save or check the arguments as needed
+        assert "use_content_defined_chunking" in kwargs
+        assert kwargs["use_content_defined_chunking"] == config.DEFAULT_CDC_OPTIONS
+
+
+custom_cdc_options = {
+    "min_chunk_size": 128 * 1024,  # 128 KiB
+    "max_chunk_size": 512 * 1024,  # 512 KiB
+    "norm_level": 1,
+}
+
+
+@pytest.mark.parametrize(
+    ("cdc_options", "expected_options"), [(None, config.DEFAULT_CDC_OPTIONS), (custom_cdc_options, custom_cdc_options)]
+)
+def test_parquet_writer_persist_cdc_options_as_metadata(dataset, tmp_path, cdc_options, expected_options):
+    # write the dataset to parquet with the default CDC options
+    writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet", cdc_options=cdc_options)
+    assert writer.write() > 0
+
+    # read the parquet KV metadata
+    metadata = pq.read_metadata(tmp_path / "foo.parquet")
+    key_value_metadata = metadata.metadata
+
+    # check that the content defined chunking options are persisted
+    assert b"content_defined_chunking" in key_value_metadata
+    json_encoded_options = key_value_metadata[b"content_defined_chunking"].decode("utf-8")
+    assert json.loads(json_encoded_options) == expected_options
 
 
 def test_dataset_to_parquet_keeps_features(shared_datadir, tmp_path):
