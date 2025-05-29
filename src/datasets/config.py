@@ -185,6 +185,8 @@ USE_PARQUET_EXPORT = True
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 1000
 
+DEFAULT_CDC_OPTIONS = {"min_chunk_size": 256 * 1024, "max_chunk_size": 1024 * 1024, "norm_level": 0}
+
 # Size of the preloaded record batch in `Dataset.__iter__`
 ARROW_READER_BATCH_SIZE_IN_DATASET_ITER = 10
 
