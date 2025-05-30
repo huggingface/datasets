@@ -431,6 +431,7 @@ class ArrowWriter:
 
     def _build_schema(self, inferred_schema: pa.Schema):
         schema = self.schema
+        features = self._features
         inferred_features = Features.from_arrow_schema(inferred_schema)
         if self._features is not None:
             if self.update_features:  # keep original features it they match, or update them
