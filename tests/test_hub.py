@@ -84,7 +84,7 @@ def test_convert_to_parquet(temporary_repo, hf_api, hf_token, ci_hub_config, ci_
           - name: train
             num_bytes: 55
             num_examples: 5
-          download_size: 725
+          download_size: 833
           dataset_size: 55
         {METADATA_CONFIGS_FIELD}:
         - config_name: first
@@ -105,7 +105,7 @@ def test_convert_to_parquet(temporary_repo, hf_api, hf_token, ci_hub_config, ci_
           - name: train
             num_bytes: 60
             num_examples: 5
-          download_size: 731
+          download_size: 839
           dataset_size: 60
         {METADATA_CONFIGS_FIELD}:
         - config_name: second
