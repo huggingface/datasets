@@ -5,9 +5,9 @@ on:
     branches:
       - main
   push:
-    branches:
-      - main
-      - ci-*
+    # branches:
+    #   - main
+    #   - ci-*
 
 env:
   HF_ALLOW_CODE_EVAL: 1
