@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install .[quality]
+          pip install --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple .[quality]
       - name: Check quality
         run: |
           ruff check tests src benchmarks utils setup.py # linter
