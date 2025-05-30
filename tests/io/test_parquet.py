@@ -213,7 +213,7 @@ def test_parquet_write_uses_content_defined_chunking(dataset, tmp_path):
         writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet")
         writer.write()
         assert MockWriter.call_count == 1
-        args, kwargs = MockWriter.call_args
+        _, kwargs = MockWriter.call_args
         # Save or check the arguments as needed
         assert "use_content_defined_chunking" in kwargs
         assert kwargs["use_content_defined_chunking"] == config.DEFAULT_CDC_OPTIONS
