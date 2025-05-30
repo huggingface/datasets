@@ -1,4 +1,5 @@
 import copy
+import json
 import os
 import tempfile
 from unittest import TestCase
@@ -9,6 +10,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
+from datasets import config
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence
 from datasets.features import Array2D, ClassLabel, Features, Image, Value
 from datasets.features.features import Array2DExtensionType, cast_to_python_objects
@@ -332,6 +334,39 @@ def test_parquet_writer_write():
     stream = pa.BufferReader(output.getvalue())
     pa_table: pa.Table = pq.read_table(stream)
     assert pa_table.to_pydict() == {"col_1": ["foo", "bar"], "col_2": [1, 2]}
+
+
+custom_cdc_options = {
+    "min_chunk_size": 128 * 1024,  # 128 KiB
+    "max_chunk_size": 512 * 1024,  # 512 KiB
+    "norm_level": 1,
+}
+
+
+@pytest.mark.parametrize(
+    ("cdc_options", "expected_options"), [(None, config.DEFAULT_CDC_OPTIONS), (custom_cdc_options, custom_cdc_options)]
+)
+def test_parquet_write_uses_content_defined_chunking(cdc_options, expected_options):
+    output = pa.BufferOutputStream()
+    with patch("pyarrow.parquet.ParquetWriter", wraps=pq.ParquetWriter) as MockWriter:
+        with ParquetWriter(stream=output, cdc_options=cdc_options) as writer:
+            writer.write({"col_1": "foo", "col_2": 1})
+            writer.write({"col_1": "bar", "col_2": 2})
+            writer.finalize()
+        assert MockWriter.call_count == 1
+        _, kwargs = MockWriter.call_args
+        assert "use_content_defined_chunking" in kwargs
+        assert kwargs["use_content_defined_chunking"] == expected_options
+
+    # read metadata from the output stream
+    with pa.input_stream(output.getvalue()) as stream:
+        metadata = pq.read_metadata(stream)
+        key_value_metadata = metadata.metadata
+
+    # check that the content defined chunking options are persisted
+    assert b"content_defined_chunking" in key_value_metadata
+    json_encoded_options = key_value_metadata[b"content_defined_chunking"].decode("utf-8")
+    assert json.loads(json_encoded_options) == expected_options
 
 
 @require_pil
