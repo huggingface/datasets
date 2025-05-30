@@ -5,9 +5,9 @@ on:
     branches:
       - main
   push:
-    branches:
-      - main
-      - ci-*
+    # branches:
+    #   - main
+    #   - ci-*
 
 env:
   CI_HEADERS: ${{ secrets.CI_HEADERS }}
