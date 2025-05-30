@@ -58,7 +58,7 @@ jobs:
         run: pip install --upgrade uv
       - name: Install dependencies
         run: |
-          uv pip install --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple "pyarrow>=21.0.0.dev"
+          uv pip install --system --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple "pyarrow>=21.0.0.dev"
           uv pip install --system "datasets[tests] @ ."
       - name: Install dependencies (latest versions)
         if: ${{ matrix.deps_versions == 'deps-latest' }}
@@ -93,7 +93,7 @@ jobs:
         run: pip install --upgrade uv
       - name: Install dependencies
         run: |
-          uv pip install --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple "pyarrow>=21.0.0.dev"
+          uv pip install --system --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple "pyarrow>=21.0.0.dev"
           uv pip install --system "datasets[tests] @ ."
       - name: Test with pytest
         run: |
@@ -122,7 +122,7 @@ jobs:
         run: pip install --upgrade uv
       - name: Install dependencies
         run: |
-          uv pip install --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple "pyarrow>=21.0.0.dev"
+          uv pip install --system --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple "pyarrow>=21.0.0.dev"
           uv pip install --system "datasets[tests_numpy2] @ ."
       - name: Test with pytest
         run: |
