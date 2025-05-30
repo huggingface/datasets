@@ -2,11 +2,11 @@ name: Build documentation
 
 on:
   push:
-    # branches:
-    #   - main
-    #   - doc-builder*
-    #   - v*-release
-    #   - v*-patch
+    branches:
+      - main
+      - doc-builder*
+      - v*-release
+      - v*-patch
 
 jobs:
   build:
