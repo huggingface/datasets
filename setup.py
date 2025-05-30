@@ -111,7 +111,7 @@ REQUIRED_PKGS = [
     "numpy>=1.17",
     # Backend and serialization.
     # Minimum 15.0.0 to be able to cast dictionary types to their underlying types
-    "pyarrow>=21.0.0",
+    "pyarrow>=21.0.0.dev",
     # For smart caching dataset processing
     "dill>=0.3.0,<0.3.9",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
