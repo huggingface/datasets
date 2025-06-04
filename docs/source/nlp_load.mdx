@@ -32,7 +32,7 @@ You can also use grep patterns to load specific files:
 To load remote text files via HTTP, pass the URLs instead:
 
 ```py
->>> dataset = load_dataset("text", data_files="https://huggingface.co/datasets/lhoestq/test/resolve/main/some_text.txt")
+>>> dataset = load_dataset("text", data_files="https://huggingface.co/datasets/hf-internal-testing/dataset_with_data_files/resolve/main/data/train.txt")
 ```
 
 To load XML data you can use the "xml" loader, which is equivalent to "text" with sample_by="document":

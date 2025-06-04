@@ -15,17 +15,12 @@
 # Lint as: python3
 """Access datasets."""
 
-import filecmp
 import glob
 import importlib
 import inspect
 import json
 import os
 import posixpath
-import shutil
-import signal
-import time
-import warnings
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from contextlib import nullcontext
@@ -74,7 +69,6 @@ from .packaged_modules import (
     _MODULE_TO_EXTENSIONS,
     _MODULE_TO_METADATA_FILE_NAMES,
     _PACKAGED_DATASETS_MODULES,
-    _hash_python_lines,
 )
 from .packaged_modules.folder_based_builder.folder_based_builder import FolderBasedBuilder
 from .splits import Split
@@ -83,16 +77,13 @@ from .utils.file_utils import (
     _raise_if_offline_mode_is_enabled,
     cached_path,
     get_datasets_user_agent,
-    init_hf_modules,
     is_relative_path,
     relative_to_absolute_path,
-    url_or_path_join,
 )
 from .utils.hub import hf_dataset_url
 from .utils.info_utils import VerificationMode, is_small_dataset
 from .utils.logging import get_logger
 from .utils.metadata import MetadataConfigs
-from .utils.py_utils import get_imports, lock_importable_file
 from .utils.typing import PathLike
 from .utils.version import Version
 
@@ -100,84 +91,6 @@ from .utils.version import Version
 logger = get_logger(__name__)
 
 ALL_ALLOWED_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + [".zip"]
-
-
-def _raise_timeout_error(signum, frame):
-    raise ValueError(
-        "Loading this dataset requires you to execute custom code contained in the dataset repository on your local "
-        "machine. Please set the option `trust_remote_code=True` to permit loading of this dataset."
-    )
-
-
-def resolve_trust_remote_code(trust_remote_code: Optional[bool], repo_id: str) -> bool:
-    """
-    Copied and adapted from Transformers
-    https://github.com/huggingface/transformers/blob/2098d343cc4b4b9d2aea84b3cf1eb5a1e610deff/src/transformers/dynamic_module_utils.py#L589
-    """
-    trust_remote_code = trust_remote_code if trust_remote_code is not None else config.HF_DATASETS_TRUST_REMOTE_CODE
-    if trust_remote_code is None:
-        if config.TIME_OUT_REMOTE_CODE > 0:
-            try:
-                signal.signal(signal.SIGALRM, _raise_timeout_error)
-                signal.alarm(config.TIME_OUT_REMOTE_CODE)
-                while trust_remote_code is None:
-                    answer = input(
-                        f"The repository for {repo_id} contains custom code which must be executed to correctly "
-                        f"load the dataset. You can inspect the repository content at https://hf.co/datasets/{repo_id}.\n"
-                        f"You can avoid this prompt in future by passing the argument `trust_remote_code=True`.\n\n"
-                        f"Do you wish to run the custom code? [y/N] "
-                    )
-                    if answer.lower() in ["yes", "y", "1"]:
-                        trust_remote_code = True
-                    elif answer.lower() in ["no", "n", "0", ""]:
-                        trust_remote_code = False
-                signal.alarm(0)
-            except Exception:
-                # OS which does not support signal.SIGALRM
-                raise ValueError(
-                    f"The repository for {repo_id} contains custom code which must be executed to correctly "
-                    f"load the dataset. You can inspect the repository content at https://hf.co/datasets/{repo_id}.\n"
-                    f"Please pass the argument `trust_remote_code=True` to allow custom code to be run."
-                )
-        else:
-            # For the CI which might put the timeout at 0
-            _raise_timeout_error(None, None)
-    return trust_remote_code
-
-
-def init_dynamic_modules(
-    name: str = config.MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache: Optional[Union[Path, str]] = None
-):
-    """
-    Create a module with name `name` in which you can add dynamic modules
-    such as datasets. The module can be imported using its name.
-    The module is created in the HF_MODULE_CACHE directory by default (~/.cache/huggingface/modules) but it can
-    be overridden by specifying a path to another directory in `hf_modules_cache`.
-    """
-    hf_modules_cache = init_hf_modules(hf_modules_cache)
-    dynamic_modules_path = os.path.join(hf_modules_cache, name)
-    os.makedirs(dynamic_modules_path, exist_ok=True)
-    if not os.path.exists(os.path.join(dynamic_modules_path, "__init__.py")):
-        with open(os.path.join(dynamic_modules_path, "__init__.py"), "w"):
-            pass
-    return dynamic_modules_path
-
-
-def import_main_class(module_path) -> Optional[type[DatasetBuilder]]:
-    """Import a module at module_path and return its main class: a DatasetBuilder"""
-    module = importlib.import_module(module_path)
-    # Find the main class in our imported module
-    module_main_cls = None
-    for name, obj in module.__dict__.items():
-        if inspect.isclass(obj) and issubclass(obj, DatasetBuilder):
-            if inspect.isabstract(obj):
-                continue
-            module_main_cls = obj
-            obj_module = inspect.getmodule(obj)
-            if obj_module is not None and module == obj_module:
-                break
-
-    return module_main_cls
 
 
 class _InitializeConfiguredDatasetBuilder:
@@ -238,6 +151,23 @@ def configure_builder_class(
     return ConfiguredDatasetBuilder
 
 
+def import_main_class(module_path) -> Optional[type[DatasetBuilder]]:
+    """Import a module at module_path and return its main class: a DatasetBuilder"""
+    module = importlib.import_module(module_path)
+    # Find the main class in our imported module
+    module_main_cls = None
+    for name, obj in module.__dict__.items():
+        if inspect.isclass(obj) and issubclass(obj, DatasetBuilder):
+            if inspect.isabstract(obj):
+                continue
+            module_main_cls = obj
+            obj_module = inspect.getmodule(obj)
+            if obj_module is not None and module == obj_module:
+                break
+
+    return module_main_cls
+
+
 def get_dataset_builder_class(
     dataset_module: "DatasetModule", dataset_name: Optional[str] = None
 ) -> type[DatasetBuilder]:
@@ -260,26 +190,6 @@ def get_dataset_builder_class(
     return builder_cls
 
 
-def files_to_hash(file_paths: list[str]) -> str:
-    """
-    Convert a list of scripts or text files provided in file_paths into a hashed filename in a repeatable way.
-    """
-    # List all python files in directories if directories are supplied as part of external imports
-    to_use_files: list[Union[Path, str]] = []
-    for file_path in file_paths:
-        if os.path.isdir(file_path):
-            to_use_files.extend(list(Path(file_path).rglob("*.[pP][yY]")))
-        else:
-            to_use_files.append(file_path)
-
-    # Get the code from all these files
-    lines = []
-    for file_path in to_use_files:
-        with open(file_path, encoding="utf-8") as f:
-            lines.extend(f.readlines())
-    return _hash_python_lines(lines)
-
-
 def increase_load_count(name: str):
     """Update the download count of a dataset."""
     if not config.HF_HUB_OFFLINE and config.HF_UPDATE_DOWNLOAD_COUNTS:
@@ -291,213 +201,6 @@ def increase_load_count(name: str):
             )
         except Exception:
             pass
-
-
-def _download_additional_modules(
-    name: str, base_path: str, imports: tuple[str, str, str, str], download_config: Optional[DownloadConfig]
-) -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
-    """
-    Download additional module for a module <name>.py at URL (or local path) <base_path>/<name>.py
-    The imports must have been parsed first using ``get_imports``.
-
-    If some modules need to be installed with pip, an error is raised showing how to install them.
-    This function return the list of downloaded modules as tuples (import_name, module_file_path).
-
-    The downloaded modules can then be moved into an importable directory with ``_copy_script_and_other_resources_in_importable_dir``.
-    """
-    local_imports = []
-    library_imports = []
-    download_config = download_config.copy()
-    if download_config.download_desc is None:
-        download_config.download_desc = "Downloading extra modules"
-    for import_type, import_name, import_path, sub_directory in imports:
-        if import_type == "library":
-            library_imports.append((import_name, import_path))  # Import from a library
-            continue
-
-        if import_name == name:
-            raise ValueError(
-                f"Error in the {name} script, importing relative {import_name} module "
-                f"but {import_name} is the name of the script. "
-                f"Please change relative import {import_name} to another name and add a '# From: URL_OR_PATH' "
-                f"comment pointing to the original relative import file path."
-            )
-        if import_type == "internal":
-            url_or_filename = url_or_path_join(base_path, import_path + ".py")
-        elif import_type == "external":
-            url_or_filename = import_path
-        else:
-            raise ValueError("Wrong import_type")
-
-        local_import_path = cached_path(
-            url_or_filename,
-            download_config=download_config,
-        )
-        if sub_directory is not None:
-            local_import_path = os.path.join(local_import_path, sub_directory)
-        local_imports.append((import_name, local_import_path))
-
-    return local_imports, library_imports
-
-
-def _check_library_imports(name: str, library_imports: list[tuple[str, str]]) -> None:
-    # Check library imports
-    needs_to_be_installed = {}
-    for library_import_name, library_import_path in library_imports:
-        try:
-            lib = importlib.import_module(library_import_name)  # noqa F841
-        except ImportError:
-            if library_import_name not in needs_to_be_installed or library_import_path != library_import_name:
-                needs_to_be_installed[library_import_name] = library_import_path
-    if needs_to_be_installed:
-        _dependencies_str = "dependencies" if len(needs_to_be_installed) > 1 else "dependency"
-        _them_str = "them" if len(needs_to_be_installed) > 1 else "it"
-        if "sklearn" in needs_to_be_installed.keys():
-            needs_to_be_installed["sklearn"] = "scikit-learn"
-        if "Bio" in needs_to_be_installed.keys():
-            needs_to_be_installed["Bio"] = "biopython"
-        raise ImportError(
-            f"To be able to use {name}, you need to install the following {_dependencies_str}: "
-            f"{', '.join(needs_to_be_installed)}.\nPlease install {_them_str} using 'pip install "
-            f"{' '.join(needs_to_be_installed.values())}' for instance."
-        )
-
-
-def _copy_script_and_other_resources_in_importable_dir(
-    name: str,
-    importable_directory_path: str,
-    subdirectory_name: str,
-    original_local_path: str,
-    local_imports: list[tuple[str, str]],
-    additional_files: list[tuple[str, str]],
-    download_mode: Optional[Union[DownloadMode, str]],
-) -> str:
-    """Copy a script and its required imports to an importable directory
-
-    Args:
-        name (str): name of the resource to load
-        importable_directory_path (str): path to the loadable folder in the dynamic modules directory
-        subdirectory_name (str): name of the subdirectory in importable_directory_path in which to place the script
-        original_local_path (str): local path to the resource script
-        local_imports (List[Tuple[str, str]]): list of (destination_filename, import_file_to_copy)
-        additional_files (List[Tuple[str, str]]): list of (destination_filename, additional_file_to_copy)
-        download_mode (Optional[Union[DownloadMode, str]]): download mode
-
-    Return:
-        importable_file: path to an importable module with importlib.import_module
-    """
-    # Define a directory with a unique name in our dataset folder
-    # path is: ./datasets/dataset_name/hash_from_code/script.py
-    # we use a hash as subdirectory_name to be able to have multiple versions of a dataset processing file together
-    importable_subdirectory = os.path.join(importable_directory_path, subdirectory_name)
-    importable_file = os.path.join(importable_subdirectory, name + ".py")
-    # Prevent parallel disk operations
-    with lock_importable_file(importable_file):
-        # Create main dataset folder if needed
-        if download_mode == DownloadMode.FORCE_REDOWNLOAD and os.path.exists(importable_directory_path):
-            shutil.rmtree(importable_directory_path)
-        os.makedirs(importable_directory_path, exist_ok=True)
-
-        # add an __init__ file to the main dataset folder if needed
-        init_file_path = os.path.join(importable_directory_path, "__init__.py")
-        if not os.path.exists(init_file_path):
-            with open(init_file_path, "w"):
-                pass
-
-        # Create hash dataset folder if needed
-        os.makedirs(importable_subdirectory, exist_ok=True)
-        # add an __init__ file to the hash dataset folder if needed
-        init_file_path = os.path.join(importable_subdirectory, "__init__.py")
-        if not os.path.exists(init_file_path):
-            with open(init_file_path, "w"):
-                pass
-
-        # Copy dataset.py file in hash folder if needed
-        if not os.path.exists(importable_file):
-            shutil.copyfile(original_local_path, importable_file)
-        # Record metadata associating original dataset path with local unique folder
-        # Use os.path.splitext to split extension from importable_local_file
-        meta_path = os.path.splitext(importable_file)[0] + ".json"
-        if not os.path.exists(meta_path):
-            meta = {"original file path": original_local_path, "local file path": importable_file}
-            # the filename is *.py in our case, so better rename to filename.json instead of filename.py.json
-            with open(meta_path, "w", encoding="utf-8") as meta_file:
-                json.dump(meta, meta_file)
-
-        # Copy all the additional imports
-        for import_name, import_path in local_imports:
-            if os.path.isfile(import_path):
-                full_path_local_import = os.path.join(importable_subdirectory, import_name + ".py")
-                if not os.path.exists(full_path_local_import):
-                    shutil.copyfile(import_path, full_path_local_import)
-            elif os.path.isdir(import_path):
-                full_path_local_import = os.path.join(importable_subdirectory, import_name)
-                if not os.path.exists(full_path_local_import):
-                    shutil.copytree(import_path, full_path_local_import)
-            else:
-                raise ImportError(f"Error with local import at {import_path}")
-
-        # Copy additional files like dataset_infos.json file if needed
-        for file_name, original_path in additional_files:
-            destination_additional_path = os.path.join(importable_subdirectory, file_name)
-            if not os.path.exists(destination_additional_path) or not filecmp.cmp(
-                original_path, destination_additional_path
-            ):
-                shutil.copyfile(original_path, destination_additional_path)
-        return importable_file
-
-
-def _get_importable_file_path(
-    dynamic_modules_path: str,
-    module_namespace: str,
-    subdirectory_name: str,
-    name: str,
-) -> str:
-    importable_directory_path = os.path.join(dynamic_modules_path, module_namespace, name.replace("/", "--"))
-    return os.path.join(importable_directory_path, subdirectory_name, name.split("/")[-1] + ".py")
-
-
-def _create_importable_file(
-    local_path: str,
-    local_imports: list[tuple[str, str]],
-    additional_files: list[tuple[str, str]],
-    dynamic_modules_path: str,
-    module_namespace: str,
-    subdirectory_name: str,
-    name: str,
-    download_mode: DownloadMode,
-) -> None:
-    importable_directory_path = os.path.join(dynamic_modules_path, module_namespace, name.replace("/", "--"))
-    Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
-    (Path(importable_directory_path).parent / "__init__.py").touch(exist_ok=True)
-    importable_local_file = _copy_script_and_other_resources_in_importable_dir(
-        name=name.split("/")[-1],
-        importable_directory_path=importable_directory_path,
-        subdirectory_name=subdirectory_name,
-        original_local_path=local_path,
-        local_imports=local_imports,
-        additional_files=additional_files,
-        download_mode=download_mode,
-    )
-    logger.debug(f"Created importable dataset file at {importable_local_file}")
-
-
-def _load_importable_file(
-    dynamic_modules_path: str,
-    module_namespace: str,
-    subdirectory_name: str,
-    name: str,
-) -> tuple[str, str]:
-    module_path = ".".join(
-        [
-            os.path.basename(dynamic_modules_path),
-            module_namespace,
-            name.replace("/", "--"),
-            subdirectory_name,
-            name.split("/")[-1],
-        ]
-    )
-    return module_path, subdirectory_name
 
 
 def infer_module_for_data_files_list(
@@ -693,91 +396,7 @@ class _DatasetModuleFactory:
         raise NotImplementedError
 
 
-class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
-    """Get the module of a local dataset. The dataset script is loaded from a local script."""
-
-    def __init__(
-        self,
-        path: str,
-        download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[Union[DownloadMode, str]] = None,
-        dynamic_modules_path: Optional[str] = None,
-        trust_remote_code: Optional[bool] = None,
-    ):
-        self.path = path
-        self.name = Path(path).stem
-        self.download_config = download_config or DownloadConfig()
-        self.download_mode = download_mode
-        self.dynamic_modules_path = dynamic_modules_path
-        self.trust_remote_code = trust_remote_code
-
-    def get_module(self) -> DatasetModule:
-        if config.HF_DATASETS_TRUST_REMOTE_CODE and self.trust_remote_code is None:
-            warnings.warn(
-                f"The repository for {self.name} contains custom code which must be executed to correctly "
-                f"load the dataset. You can inspect the repository content at {self.path}\n"
-                f"You can avoid this message in future by passing the argument `trust_remote_code=True`.\n"
-                f"Passing `trust_remote_code=True` will be mandatory to load this dataset from the next major release of `datasets`.",
-                FutureWarning,
-            )
-        # get script and other files
-        dataset_infos_path = Path(self.path).parent / config.DATASETDICT_INFOS_FILENAME
-        dataset_readme_path = Path(self.path).parent / config.REPOCARD_FILENAME
-        imports = get_imports(self.path)
-        local_imports, library_imports = _download_additional_modules(
-            name=self.name,
-            base_path=str(Path(self.path).parent),
-            imports=imports,
-            download_config=self.download_config,
-        )
-        additional_files = []
-        if dataset_infos_path.is_file():
-            additional_files.append((config.DATASETDICT_INFOS_FILENAME, str(dataset_infos_path)))
-        if dataset_readme_path.is_file():
-            additional_files.append((config.REPOCARD_FILENAME, dataset_readme_path))
-        # copy the script and the files in an importable directory
-        dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        hash = files_to_hash([self.path] + [loc[1] for loc in local_imports])
-        importable_file_path = _get_importable_file_path(
-            dynamic_modules_path=dynamic_modules_path,
-            module_namespace="datasets",
-            subdirectory_name=hash,
-            name=self.name,
-        )
-        if not os.path.exists(importable_file_path):
-            trust_remote_code = resolve_trust_remote_code(self.trust_remote_code, self.name)
-            if trust_remote_code:
-                _create_importable_file(
-                    local_path=self.path,
-                    local_imports=local_imports,
-                    additional_files=additional_files,
-                    dynamic_modules_path=dynamic_modules_path,
-                    module_namespace="datasets",
-                    subdirectory_name=hash,
-                    name=self.name,
-                    download_mode=self.download_mode,
-                )
-            else:
-                raise ValueError(
-                    f"Loading {self.name} requires you to execute the dataset script in that"
-                    " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
-                    " set the option `trust_remote_code=True` to remove this error."
-                )
-        _check_library_imports(name=self.name, library_imports=library_imports)
-        module_path, hash = _load_importable_file(
-            dynamic_modules_path=dynamic_modules_path,
-            module_namespace="datasets",
-            subdirectory_name=hash,
-            name=self.name,
-        )
-
-        # make the new module to be noticed by the import system
-        importlib.invalidate_caches()
-        builder_kwargs = {"base_path": str(Path(self.path).parent)}
-        return DatasetModule(module_path, hash, builder_kwargs, importable_file_path=importable_file_path)
-
-
-class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
+class LocalDatasetModuleFactory(_DatasetModuleFactory):
     """Get the module of a dataset loaded from the user's data files. The dataset builder module to use is inferred
     from the data files extensions."""
 
@@ -926,7 +545,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
-class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
+class HubDatasetModuleFactory(_DatasetModuleFactory):
     """
     Get the module of a dataset loaded from data files of a dataset repository.
     The dataset builder module to use is inferred from the data files extensions.
@@ -1168,194 +787,21 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
         )
 
 
-class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
-    """
-    Get the module of a dataset from a dataset repository.
-    The dataset script comes from the script inside the dataset repository.
-    """
-
-    def __init__(
-        self,
-        name: str,
-        commit_hash: str,
-        download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[Union[DownloadMode, str]] = None,
-        dynamic_modules_path: Optional[str] = None,
-        trust_remote_code: Optional[bool] = None,
-    ):
-        self.name = name
-        self.commit_hash = commit_hash
-        self.download_config = download_config or DownloadConfig()
-        self.download_mode = download_mode
-        self.dynamic_modules_path = dynamic_modules_path
-        self.trust_remote_code = trust_remote_code
-        increase_load_count(name)
-
-    def download_loading_script(self) -> str:
-        file_path = hf_dataset_url(self.name, self.name.split("/")[-1] + ".py", revision=self.commit_hash)
-        download_config = self.download_config.copy()
-        if download_config.download_desc is None:
-            download_config.download_desc = "Downloading builder script"
-        return cached_path(file_path, download_config=download_config)
-
-    def download_dataset_infos_file(self) -> str:
-        dataset_infos = hf_dataset_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.commit_hash)
-        # Download the dataset infos file if available
-        download_config = self.download_config.copy()
-        if download_config.download_desc is None:
-            download_config.download_desc = "Downloading metadata"
-        try:
-            return cached_path(
-                dataset_infos,
-                download_config=download_config,
-            )
-        except (FileNotFoundError, ConnectionError):
-            return None
-
-    def download_dataset_readme_file(self) -> str:
-        readme_url = hf_dataset_url(self.name, config.REPOCARD_FILENAME, revision=self.commit_hash)
-        # Download the dataset infos file if available
-        download_config = self.download_config.copy()
-        if download_config.download_desc is None:
-            download_config.download_desc = "Downloading readme"
-        try:
-            return cached_path(
-                readme_url,
-                download_config=download_config,
-            )
-        except (FileNotFoundError, ConnectionError):
-            return None
-
-    def get_module(self) -> DatasetModule:
-        if config.HF_DATASETS_TRUST_REMOTE_CODE and self.trust_remote_code is None:
-            warnings.warn(
-                f"The repository for {self.name} contains custom code which must be executed to correctly "
-                f"load the dataset. You can inspect the repository content at https://hf.co/datasets/{self.name}\n"
-                f"You can avoid this message in future by passing the argument `trust_remote_code=True`.\n"
-                f"Passing `trust_remote_code=True` will be mandatory to load this dataset from the next major release of `datasets`.",
-                FutureWarning,
-            )
-        # get script and other files
-        local_path = self.download_loading_script()
-        dataset_infos_path = self.download_dataset_infos_file()
-        dataset_readme_path = self.download_dataset_readme_file()
-        imports = get_imports(local_path)
-        local_imports, library_imports = _download_additional_modules(
-            name=self.name,
-            base_path=hf_dataset_url(self.name, "", revision=self.commit_hash),
-            imports=imports,
-            download_config=self.download_config,
-        )
-        additional_files = []
-        if dataset_infos_path:
-            additional_files.append((config.DATASETDICT_INFOS_FILENAME, dataset_infos_path))
-        if dataset_readme_path:
-            additional_files.append((config.REPOCARD_FILENAME, dataset_readme_path))
-        # copy the script and the files in an importable directory
-        dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
-        importable_file_path = _get_importable_file_path(
-            dynamic_modules_path=dynamic_modules_path,
-            module_namespace="datasets",
-            subdirectory_name=hash,
-            name=self.name,
-        )
-        if not os.path.exists(importable_file_path):
-            trust_remote_code = resolve_trust_remote_code(self.trust_remote_code, self.name)
-            if trust_remote_code:
-                _create_importable_file(
-                    local_path=local_path,
-                    local_imports=local_imports,
-                    additional_files=additional_files,
-                    dynamic_modules_path=dynamic_modules_path,
-                    module_namespace="datasets",
-                    subdirectory_name=hash,
-                    name=self.name,
-                    download_mode=self.download_mode,
-                )
-            else:
-                raise ValueError(
-                    f"Loading {self.name} requires you to execute the dataset script in that"
-                    " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
-                    " set the option `trust_remote_code=True` to remove this error."
-                )
-        _check_library_imports(name=self.name, library_imports=library_imports)
-        module_path, hash = _load_importable_file(
-            dynamic_modules_path=dynamic_modules_path,
-            module_namespace="datasets",
-            subdirectory_name=hash,
-            name=self.name,
-        )
-        # make the new module to be noticed by the import system
-        importlib.invalidate_caches()
-        builder_kwargs = {
-            "base_path": hf_dataset_url(self.name, "", revision=self.commit_hash).rstrip("/"),
-            "repo_id": self.name,
-        }
-        return DatasetModule(module_path, hash, builder_kwargs, importable_file_path=importable_file_path)
-
-
 class CachedDatasetModuleFactory(_DatasetModuleFactory):
     """
     Get the module of a dataset that has been loaded once already and cached.
-    The script that is loaded from the cache is the most recent one with a matching name.
     """
 
     def __init__(
         self,
         name: str,
         cache_dir: Optional[str] = None,
-        dynamic_modules_path: Optional[str] = None,
     ):
         self.name = name
         self.cache_dir = cache_dir
-        self.dynamic_modules_path = dynamic_modules_path
         assert self.name.count("/") <= 1
 
     def get_module(self) -> DatasetModule:
-        dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        importable_directory_path = os.path.join(dynamic_modules_path, "datasets", self.name.replace("/", "--"))
-        hashes = (
-            [h for h in os.listdir(importable_directory_path) if len(h) == 64]
-            if os.path.isdir(importable_directory_path)
-            else None
-        )
-        if hashes:
-            # get most recent
-            def _get_modification_time(module_hash):
-                return (
-                    (Path(importable_directory_path) / module_hash / (self.name.split("/")[-1] + ".py"))
-                    .stat()
-                    .st_mtime
-                )
-
-            hash = sorted(hashes, key=_get_modification_time)[-1]
-            warning_msg = (
-                f"Using the latest cached version of the module from {os.path.join(importable_directory_path, hash)} "
-                f"(last modified on {time.ctime(_get_modification_time(hash))}) since it "
-                f"couldn't be found locally at {self.name}"
-            )
-            if not config.HF_HUB_OFFLINE:
-                warning_msg += ", or remotely on the Hugging Face Hub."
-            logger.warning(warning_msg)
-            importable_file_path = _get_importable_file_path(
-                dynamic_modules_path=dynamic_modules_path,
-                module_namespace="datasets",
-                subdirectory_name=hash,
-                name=self.name,
-            )
-            module_path, hash = _load_importable_file(
-                dynamic_modules_path=dynamic_modules_path,
-                module_namespace="datasets",
-                subdirectory_name=hash,
-                name=self.name,
-            )
-            # make the new module to be noticed by the import system
-            importlib.invalidate_caches()
-            builder_kwargs = {
-                "repo_id": self.name,
-            }
-            return DatasetModule(module_path, hash, builder_kwargs, importable_file_path=importable_file_path)
         cache_dir = os.path.expanduser(str(self.cache_dir or config.HF_DATASETS_CACHE))
         namespace_and_dataset_name = self.name.split("/")
         namespace_and_dataset_name[-1] = camelcase_to_snakecase(namespace_and_dataset_name[-1])
@@ -1388,13 +834,9 @@ def dataset_module_factory(
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
-    dynamic_modules_path: Optional[str] = None,
     data_dir: Optional[str] = None,
     data_files: Optional[Union[dict, list, str, DataFilesDict]] = None,
     cache_dir: Optional[str] = None,
-    trust_remote_code: Optional[bool] = None,
-    _require_default_config_name=True,
-    _require_custom_configs=False,
     **download_kwargs,
 ) -> DatasetModule:
     """
@@ -1405,34 +847,25 @@ def dataset_module_factory(
     Args:
 
         path (str): Path or name of the dataset.
-            Depending on ``path``, the dataset builder that is used comes from a generic dataset script (JSON, CSV, Parquet, text etc.) or from the dataset script (a python file) inside the dataset directory.
+            Depending on ``path``, the dataset builder that is used comes from one of the generic dataset builders (JSON, CSV, Parquet, text etc.).
 
             For local datasets:
 
             - if ``path`` is a local directory (containing data files only)
               -> load a generic dataset builder (csv, json, text etc.) based on the content of the directory
               e.g. ``'./path/to/directory/with/my/csv/data'``.
-            - if ``path`` is a local dataset script or a directory containing a local dataset script (if the script has the same name as the directory):
-              -> load the dataset builder from the dataset script
-              e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
 
             For datasets on the Hugging Face Hub (list all available datasets with ``huggingface_hub.list_datasets()``)
 
             - if ``path`` is a dataset repository on the HF hub (containing data files only)
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository
               e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing your data files.
-            - if ``path`` is a dataset repository on the HF hub with a dataset script (if the script has the same name as the directory)
-              -> load the dataset builder from the dataset script in the dataset repository
-              e.g. ``glue``, ``squad``, ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
 
-        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load.
+        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset to load.
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode` or :obj:`str`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
-            Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
-            By default, the datasets are stored inside the `datasets_modules` module.
         data_dir (:obj:`str`, optional): Directory with the data files. Used only if `data_files` is not specified,
             in which case it's equal to pass `os.path.join(data_dir, "**")` as `data_files`.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
@@ -1440,18 +873,6 @@ def dataset_module_factory(
             Directory to read/write data. Defaults to `"~/.cache/huggingface/datasets"`.
 
             <Added version="2.16.0"/>
-        trust_remote_code (`bool`, *optional*, defaults to `None`):
-            Whether or not to allow for datasets defined on the Hub using a dataset script. This option
-            should only be set to `True` for repositories you trust and in which you have read the code, as it will
-            execute code present on the Hub on your local machine.
-
-            <Added version="2.16.0"/>
-
-            <Changed version="2.20.0">
-
-            `trust_remote_code` defaults to `False` if not specified.
-
-            </Changed>
 
         **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
             the attributes in download_config if supplied.
@@ -1497,24 +918,11 @@ def dataset_module_factory(
         ).get_module()
     # Try locally
     elif path.endswith(filename):
-        if os.path.isfile(path):
-            return LocalDatasetModuleFactoryWithScript(
-                path,
-                download_mode=download_mode,
-                dynamic_modules_path=dynamic_modules_path,
-                trust_remote_code=trust_remote_code,
-            ).get_module()
-        else:
-            raise FileNotFoundError(f"Couldn't find a dataset script at {relative_to_absolute_path(path)}")
+        raise RuntimeError(f"Dataset scripts are no longer supported, but found {filename}")
     elif os.path.isfile(combined_path):
-        return LocalDatasetModuleFactoryWithScript(
-            combined_path,
-            download_mode=download_mode,
-            dynamic_modules_path=dynamic_modules_path,
-            trust_remote_code=trust_remote_code,
-        ).get_module()
+        raise RuntimeError(f"Dataset scripts are no longer supported, but found {filename}")
     elif os.path.isdir(path):
-        return LocalDatasetModuleFactoryWithoutScript(
+        return LocalDatasetModuleFactory(
             path, data_dir=data_dir, data_files=data_files, download_mode=download_mode
         ).get_module()
     # Try remotely
@@ -1577,48 +985,21 @@ def dataset_module_factory(
             except RepositoryNotFoundError as e:
                 raise DatasetNotFoundError(f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed.") from e
             try:
-                dataset_script_path = api.hf_hub_download(
+                api.hf_hub_download(
                     repo_id=path,
                     filename=filename,
                     repo_type="dataset",
                     revision=commit_hash,
                     proxies=download_config.proxies,
                 )
-                if _require_custom_configs or (revision and revision != "main"):
-                    can_load_config_from_parquet_export = False
-                elif _require_default_config_name:
-                    with open(dataset_script_path, encoding="utf-8") as f:
-                        can_load_config_from_parquet_export = "DEFAULT_CONFIG_NAME" not in f.read()
-                else:
-                    can_load_config_from_parquet_export = True
-                if config.USE_PARQUET_EXPORT and can_load_config_from_parquet_export:
-                    # If the parquet export is ready (parquet files + info available for the current sha), we can use it instead
-                    # This fails when the dataset has multiple configs and a default config and
-                    # the user didn't specify a configuration name (_require_default_config_name=True).
-                    try:
-                        out = HubDatasetModuleFactoryWithParquetExport(
-                            path, download_config=download_config, commit_hash=commit_hash
-                        ).get_module()
-                        logger.info("Loading the dataset from the Parquet export on Hugging Face.")
-                        return out
-                    except _dataset_viewer.DatasetViewerError:
-                        pass
-                # Otherwise we must use the dataset script if the user trusts it
-                return HubDatasetModuleFactoryWithScript(
-                    path,
-                    commit_hash=commit_hash,
-                    download_config=download_config,
-                    download_mode=download_mode,
-                    dynamic_modules_path=dynamic_modules_path,
-                    trust_remote_code=trust_remote_code,
-                ).get_module()
+                raise RuntimeError(f"Dataset scripts are no longer supported, but found {filename}")
             except EntryNotFoundError:
                 # Use the infos from the parquet export except in some cases:
                 if data_dir or data_files or (revision and revision != "main"):
                     use_exported_dataset_infos = False
                 else:
                     use_exported_dataset_infos = True
-                return HubDatasetModuleFactoryWithoutScript(
+                return HubDatasetModuleFactory(
                     path,
                     commit_hash=commit_hash,
                     data_dir=data_dir,
@@ -1641,9 +1022,7 @@ def dataset_module_factory(
         except Exception as e1:
             # All the attempts failed, before raising the error we should check if the module is already cached
             try:
-                return CachedDatasetModuleFactory(
-                    path, dynamic_modules_path=dynamic_modules_path, cache_dir=cache_dir
-                ).get_module()
+                return CachedDatasetModuleFactory(path, cache_dir=cache_dir).get_module()
             except Exception:
                 # If it's not in the cache, then it doesn't exist.
                 if isinstance(e1, OfflineModeIsEnabled):
@@ -1651,21 +1030,11 @@ def dataset_module_factory(
                 if isinstance(e1, (DataFilesNotFoundError, DatasetNotFoundError, EmptyDatasetError)):
                     raise e1 from None
                 if isinstance(e1, FileNotFoundError):
-                    if trust_remote_code:
-                        raise FileNotFoundError(
-                            f"Couldn't find a dataset script at {relative_to_absolute_path(combined_path)} or any data file in the same directory. "
-                            f"Couldn't find '{path}' on the Hugging Face Hub either: {type(e1).__name__}: {e1}"
-                        ) from None
-                    else:
-                        raise FileNotFoundError(
-                            f"Couldn't find any data file at {relative_to_absolute_path(path)}. "
-                            f"Couldn't find '{path}' on the Hugging Face Hub either: {type(e1).__name__}: {e1}"
-                        ) from None
+                    raise FileNotFoundError(
+                        f"Couldn't find any data file at {relative_to_absolute_path(path)}. "
+                        f"Couldn't find '{path}' on the Hugging Face Hub either: {type(e1).__name__}: {e1}"
+                    ) from None
                 raise e1 from None
-    elif trust_remote_code:
-        raise FileNotFoundError(
-            f"Couldn't find a dataset script at {relative_to_absolute_path(combined_path)} or any data file in the same directory."
-        )
     else:
         raise FileNotFoundError(f"Couldn't find any data file at {relative_to_absolute_path(path)}.")
 
@@ -1682,8 +1051,6 @@ def load_dataset_builder(
     revision: Optional[Union[str, Version]] = None,
     token: Optional[Union[bool, str]] = None,
     storage_options: Optional[dict] = None,
-    trust_remote_code: Optional[bool] = None,
-    _require_default_config_name=True,
     **config_kwargs,
 ) -> DatasetBuilder:
     """Load a dataset builder which can be used to:
@@ -1715,7 +1082,6 @@ def load_dataset_builder(
               -> load the dataset builder from the files in `data_files` or `data_dir`
               e.g. `'parquet'`.
 
-            It can also point to a local dataset script but this is not recommended.
         name (`str`, *optional*):
             Defining the name of the dataset configuration.
         data_dir (`str`, *optional*):
@@ -1732,7 +1098,7 @@ def load_dataset_builder(
         download_mode ([`DownloadMode`] or `str`, defaults to `REUSE_DATASET_IF_EXISTS`):
             Download/generate mode.
         revision ([`Version`] or `str`, *optional*):
-            Version of the dataset script to load.
+            Version of the dataset to load.
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
         token (`str` or `bool`, *optional*):
@@ -1742,18 +1108,6 @@ def load_dataset_builder(
             **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
 
             <Added version="2.11.0"/>
-        trust_remote_code (`bool`, *optional*, defaults to `None`):
-            Whether or not to allow for datasets defined on the Hub using a dataset script. This option
-            should only be set to `True` for repositories you trust and in which you have read the code, as it will
-            execute code present on the Hub on your local machine.
-
-            <Added version="2.16.0"/>
-
-            <Changed version="2.20.0">
-
-            `trust_remote_code` defaults to `False` if not specified.
-
-            </Changed>
 
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the [`BuilderConfig`]
@@ -1787,11 +1141,8 @@ def load_dataset_builder(
         data_dir=data_dir,
         data_files=data_files,
         cache_dir=cache_dir,
-        trust_remote_code=trust_remote_code,
-        _require_default_config_name=_require_default_config_name,
-        _require_custom_configs=bool(config_kwargs),
     )
-    # Get dataset builder class from the processing script
+    # Get dataset builder class
     builder_kwargs = dataset_module.builder_kwargs
     data_dir = builder_kwargs.pop("data_dir", data_dir)
     data_files = builder_kwargs.pop("data_files", data_files)
@@ -1853,7 +1204,6 @@ def load_dataset(
     streaming: bool = False,
     num_proc: Optional[int] = None,
     storage_options: Optional[dict] = None,
-    trust_remote_code: Optional[bool] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset from the Hugging Face Hub, or a local dataset.
@@ -1887,9 +1237,6 @@ def load_dataset(
 
         3. Return a dataset built from the requested splits in `split` (default: all).
 
-    It can also use a custom dataset builder if the dataset contains a dataset script, but this feature is mostly for backward compatibility.
-    In this case the dataset script file must be named after the dataset repository or directory and end with ".py".
-
     Args:
 
         path (`str`):
@@ -1908,7 +1255,6 @@ def load_dataset(
               -> load the dataset from the files in `data_files` or `data_dir`
               e.g. `'parquet'`.
 
-            It can also point to a local dataset script but this is not recommended.
         name (`str`, *optional*):
             Defining the name of the dataset configuration.
         data_dir (`str`, *optional*):
@@ -1940,7 +1286,7 @@ def load_dataset(
         save_infos (`bool`, defaults to `False`):
             Save the dataset information (checksums/size/splits/...).
         revision ([`Version`] or `str`, *optional*):
-            Version of the dataset script to load.
+            Version of the dataset to load.
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
         token (`str` or `bool`, *optional*):
@@ -1962,19 +1308,6 @@ def load_dataset(
             **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
 
             <Added version="2.11.0"/>
-        trust_remote_code (`bool`, *optional*, defaults to `None`):
-            Whether or not to allow for datasets defined on the Hub using a dataset script. This option
-            should only be set to `True` for repositories you trust and in which you have read the code, as it will
-            execute code present on the Hub on your local machine.
-
-            <Added version="2.16.0"/>
-
-            <Changed version="2.20.0">
-
-            `trust_remote_code` defaults to `False` if not specified.
-
-            </Changed>
-
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the `BuilderConfig`
             and used in the [`DatasetBuilder`].
@@ -2019,10 +1352,6 @@ def load_dataset(
     # Load a JSON file
     >>> from datasets import load_dataset
     >>> ds = load_dataset('json', data_files='path/to/local/my_dataset.json')
-
-    # Load from a local loading script (not recommended)
-    >>> from datasets import load_dataset
-    >>> ds = load_dataset('path/to/local/loading_script/loading_script.py', split='train')
     ```
 
     Load an [`~datasets.IterableDataset`]:
@@ -2039,6 +1368,13 @@ def load_dataset(
     >>> ds = load_dataset('imagefolder', data_dir='/path/to/images', split='train')
     ```
     """
+    if "trust_remote_code" in config_kwargs:
+        if config_kwargs.pop("trust_remote_code"):
+            logger.error(
+                "`trust_remote_code` is not supported anymore.\n"
+                f"Please check that the Hugging Face dataset '{path}' isn't based on a loading script and remove `trust_remote_code`.\n"
+                "If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet."
+            )
     if data_files is not None and not data_files:
         raise ValueError(f"Empty 'data_files': '{data_files}'. It should be either non-empty or None (default).")
     if Path(path, config.DATASET_STATE_JSON_FILENAME).exists():
@@ -2071,8 +1407,6 @@ def load_dataset(
         revision=revision,
         token=token,
         storage_options=storage_options,
-        trust_remote_code=trust_remote_code,
-        _require_default_config_name=name is None,
         **config_kwargs,
     )
 

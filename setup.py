@@ -4,7 +4,6 @@
 Note:
 
    VERSION needs to be formatted following the MAJOR.MINOR.PATCH convention
-   (we need to follow this convention to be able to retrieve versioned scripts)
 
 Simple check list for release from AllenNLP repo: https://github.com/allenai/allennlp/blob/master/setup.py
 
@@ -119,7 +118,7 @@ REQUIRED_PKGS = [
     "pandas",
     # for downloading datasets over HTTPS
     "requests>=2.32.2",
-    # progress bars in download and scripts
+    # progress bars in downloads and data operations
     "tqdm>=4.66.3",
     # for fast hashing
     "xxhash",

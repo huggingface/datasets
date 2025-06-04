@@ -25,11 +25,7 @@ The following formats are supported: CSV, TSV, JSON, JSON lines, text, Parquet, 
 Many kinds of compressed file types are also supported: GZ, BZ2, LZ4, LZMA or ZSTD.
 For example, your dataset can be made of `.json.gz` files.
 
-On the other hand, if your dataset is not in a supported format or if you want more control over how your dataset is loaded, you can write your own dataset script.
-Note that some feature are not available for datasets defined using a loading scripts, such as the Dataset Viewer. Users also have to pass `trust_remote_code=True` to load the dataset. It is generally recommended for datasets to not rely on a loading script if possible, to benefit from all the Hub's features.
-
 When loading a dataset from the Hub, all the files in the supported formats are loaded, following the [repository structure](./repository_structure).
-However if there's a dataset script, it is downloaded and executed to download and prepare the dataset instead.
 
 For more information on how to load a dataset from the Hub, take a look at the [load a dataset from the Hub](./load_hub) tutorial.
 
@@ -64,7 +60,6 @@ Check your directory to ensure the only files you're uploading are:
 
 - The dataset card `README.md`
 
-- (optional) `your_dataset_name.py` is your dataset loading script (optional if your data files are already in the supported formats csv/jsonl/json/parquet/txt). To create a dataset script, see the [dataset script](dataset_script) page. Note that some feature are not available for datasets defined using a loading scripts, such as the Dataset Viewer. Users also have to pass `trust_remote_code=True` to load the dataset. It is generally recommended for datasets to not rely on a loading script if possible, to benefit from all the Hub's features.
 
 ## huggingface-cli upload
 

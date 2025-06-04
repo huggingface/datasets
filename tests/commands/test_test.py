@@ -21,9 +21,8 @@ _TestCommandArgs = namedtuple(
         "force_redownload",
         "clear_cache",
         "num_proc",
-        "trust_remote_code",
     ],
-    defaults=[None, None, None, False, False, False, False, False, None, None],
+    defaults=[None, None, None, False, False, False, False, False, None],
 )
 
 
@@ -32,15 +31,13 @@ def is_1percent_close(source, target):
 
 
 @pytest.mark.integration
-def test_test_command(dataset_loading_script_dir):
-    args = _TestCommandArgs(
-        dataset=dataset_loading_script_dir, all_configs=True, save_infos=True, trust_remote_code=True
-    )
+def test_test_command(dataset_dir):
+    args = _TestCommandArgs(dataset=dataset_dir, all_configs=True, save_infos=True)
     test_command = TestCommand(*args)
     test_command.run()
-    dataset_readme_path = os.path.join(dataset_loading_script_dir, "README.md")
+    dataset_readme_path = os.path.join(dataset_dir, "README.md")
     assert os.path.exists(dataset_readme_path)
-    dataset_infos = DatasetInfosDict.from_directory(dataset_loading_script_dir)
+    dataset_infos = DatasetInfosDict.from_directory(dataset_dir)
     expected_dataset_infos = DatasetInfosDict(
         {
             "default": DatasetInfo(
