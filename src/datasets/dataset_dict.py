@@ -2369,3 +2369,302 @@ class IterableDatasetDict(dict):
         ```
         """
         return IterableDatasetDict({k: dataset.cast(features=features) for k, dataset in self.items()})
+
+    def push_to_hub(
+        self,
+        repo_id,
+        config_name: str = "default",
+        set_default: Optional[bool] = None,
+        data_dir: Optional[str] = None,
+        commit_message: Optional[str] = None,
+        commit_description: Optional[str] = None,
+        private: Optional[bool] = None,
+        token: Optional[str] = None,
+        revision: Optional[str] = None,
+        create_pr: Optional[bool] = False,
+        # max_shard_size: Optional[Union[int, str]] = None,  # TODO(QL): add arg
+        num_shards: Optional[dict[str, int]] = None,
+        embed_external_files: bool = True,
+    ) -> CommitInfo:
+        """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
+        The [`DatasetDict`] is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
+
+        Each dataset split will be pushed independently. The pushed dataset will keep the original split names.
+
+        The resulting Parquet files are self-contained by default: if your dataset contains [`Image`] or [`Audio`]
+        data, the Parquet files will store the bytes of your images or audio files.
+        You can disable this by setting `embed_external_files` to False.
+
+        Args:
+            repo_id (`str`):
+                The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
+                `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
+                of the logged-in user.
+            config_name (`str`):
+                Configuration name of a dataset. Defaults to "default".
+            set_default (`bool`, *optional*):
+                Whether to set this configuration as the default one. Otherwise, the default configuration is the one
+                named "default".
+            data_dir (`str`, *optional*):
+                Directory name that will contain the uploaded data files. Defaults to the `config_name` if different
+                from "default", else "data".
+
+                <Added version="2.17.0"/>
+            commit_message (`str`, *optional*):
+                Message to commit while pushing. Will default to `"Upload dataset"`.
+            commit_description (`str`, *optional*):
+                Description of the commit that will be created.
+                Additionally, description of the PR if a PR is created (`create_pr` is True).
+
+                <Added version="2.16.0"/>
+            private (`bool`, *optional*):
+                Whether to make the repo private. If `None` (default), the repo will be public unless the
+                organization's default is private. This value is ignored if the repo already exists.
+            token (`str`, *optional*):
+                An optional authentication token for the Hugging Face Hub. If no token is passed, will default
+                to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
+                if no token is passed and the user is not logged-in.
+            revision (`str`, *optional*):
+                Branch to push the uploaded files to. Defaults to the `"main"` branch.
+            create_pr (`bool`, *optional*, defaults to `False`):
+                Whether to create a PR with the uploaded files or directly commit.
+            num_shards (`Dict[str, int]`, *optional*):
+                Number of shards to write. Equals to this dataset's `.num_shards` by default.
+                Use a dictionary to define a different num_shards for each split.
+            embed_external_files (`bool`, defaults to `True`):
+                Whether to embed file bytes in the shards.
+                In particular, this will do the following before the push for the fields of type:
+
+                - [`Audio`] and [`Image`] removes local path information and embed file content in the Parquet files.
+
+        Return:
+            huggingface_hub.CommitInfo
+
+        Example:
+
+        ```python
+        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>")
+        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", private=True)
+        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", max_shard_size="1GB")
+        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", num_shards={"train": 1024, "test": 8})
+        ```
+
+        If you want to add a new configuration (or subset) to a dataset (e.g. if the dataset has multiple tasks/versions/languages):
+
+        ```python
+        >>> english_dataset.push_to_hub("<organization>/<dataset_id>", "en")
+        >>> french_dataset.push_to_hub("<organization>/<dataset_id>", "fr")
+        >>> # later
+        >>> english_dataset = load_dataset("<organization>/<dataset_id>", "en")
+        >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
+        ```
+        """
+        if num_shards is None:
+            num_shards = dict.fromkeys(self)
+        elif not isinstance(num_shards, dict):
+            raise ValueError(
+                "Please provide one `num_shards` per dataset in the dataset dictionary, e.g. {{'train': 128, 'test': 4}}"
+            )
+
+        self._check_values_type()
+        self._check_values_features()
+        total_uploaded_size = 0
+        total_dataset_nbytes = 0
+        info_to_dump: DatasetInfo = next(iter(self.values())).info.copy()
+        info_to_dump.config_name = config_name
+        info_to_dump.splits = SplitDict()
+
+        for split in self.keys():
+            if not re.match(_split_re, split):
+                raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
+
+        api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+
+        repo_url = api.create_repo(
+            repo_id,
+            token=token,
+            repo_type="dataset",
+            private=private,
+            exist_ok=True,
+        )
+        repo_id = repo_url.repo_id
+
+        if revision is not None and not revision.startswith("refs/pr/"):
+            # We do not call create_branch for a PR reference: 400 Bad Request
+            api.create_branch(
+                repo_id,
+                branch=revision,
+                token=token,
+                repo_type="dataset",
+                exist_ok=True,
+            )
+
+        if not data_dir:
+            data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
+
+        additions = []
+        for split in self.keys():
+            logger.info(f"Pushing split {split} to the Hub.")
+            # The split=key needs to be removed before merging
+            split_additions, uploaded_size, dataset_nbytes = self[split]._push_parquet_shards_to_hub(
+                repo_id,
+                data_dir=data_dir,
+                split=split,
+                token=token,
+                revision=revision,
+                create_pr=create_pr,
+                # max_shard_size=max_shard_size,  # TODO(QL): add arg
+                num_shards=num_shards.get(split),
+                embed_external_files=embed_external_files,
+            )
+            additions += split_additions
+            total_uploaded_size += uploaded_size
+            total_dataset_nbytes += dataset_nbytes
+            info_to_dump.splits[split] = SplitInfo(str(split), num_bytes=dataset_nbytes, num_examples=len(self[split]))
+        info_to_dump.download_checksums = None
+        info_to_dump.download_size = total_uploaded_size
+        info_to_dump.dataset_size = total_dataset_nbytes
+        info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
+
+        # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
+        # and delete old split shards (if they exist)
+        repo_with_dataset_card, repo_with_dataset_infos = False, False
+        repo_splits: list[str] = []  # use a list to keep the order of the splits
+        deletions: list[CommitOperationDelete] = []
+        repo_files_to_add = [addition.path_in_repo for addition in additions]
+        for repo_file in api.list_repo_tree(
+            repo_id=repo_id,
+            revision=revision,
+            repo_type="dataset",
+            token=token,
+            recursive=True,
+        ):
+            if not isinstance(repo_file, RepoFile):
+                continue
+            if repo_file.rfilename == config.REPOCARD_FILENAME:
+                repo_with_dataset_card = True
+            elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
+                repo_with_dataset_infos = True
+            elif (
+                repo_file.rfilename.startswith(tuple(f"{data_dir}/{split}-" for split in self.keys()))
+                and repo_file.rfilename not in repo_files_to_add
+            ):
+                deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
+            elif fnmatch.fnmatch(
+                repo_file.rfilename,
+                PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
+            ):
+                pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
+                assert split_pattern_fields is not None
+                repo_split = split_pattern_fields["split"]
+                if repo_split not in repo_splits:
+                    repo_splits.append(repo_split)
+
+        # get the info from the README to update them
+        if repo_with_dataset_card:
+            dataset_card_path = api.hf_hub_download(
+                repo_id,
+                config.REPOCARD_FILENAME,
+                repo_type="dataset",
+                revision=revision,
+            )
+            dataset_card = DatasetCard.load(Path(dataset_card_path))
+            dataset_card_data = dataset_card.data
+            metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
+        # get the deprecated dataset_infos.json to update them
+        elif repo_with_dataset_infos:
+            dataset_card = None
+            dataset_card_data = DatasetCardData()
+            metadata_configs = MetadataConfigs()
+        else:
+            dataset_card = None
+            dataset_card_data = DatasetCardData()
+            metadata_configs = MetadataConfigs()
+        # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
+        if not metadata_configs and repo_splits:
+            default_metadata_configs_to_dump = {
+                "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
+            }
+            MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
+        metadata_config_to_dump = {
+            "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
+        }
+        configs_to_dump = {config_name: metadata_config_to_dump}
+        if set_default and config_name != "default":
+            if metadata_configs:
+                current_default_config_name = metadata_configs.get_default_config_name()
+                if current_default_config_name == "default":
+                    raise ValueError(
+                        "There exists a configuration named 'default'. To set a different configuration as default, "
+                        "rename the 'default' one first."
+                    )
+                if current_default_config_name:
+                    _ = metadata_configs[current_default_config_name].pop("default")
+                    configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
+            metadata_config_to_dump["default"] = True
+        # push to the deprecated dataset_infos.json
+        if repo_with_dataset_infos:
+            dataset_infos_path = api.hf_hub_download(
+                repo_id,
+                config.DATASETDICT_INFOS_FILENAME,
+                repo_type="dataset",
+                revision=revision,
+            )
+            with open(dataset_infos_path, encoding="utf-8") as f:
+                dataset_infos: dict = json.load(f)
+            dataset_infos[config_name] = asdict(info_to_dump)
+            additions.append(
+                CommitOperationAdd(
+                    path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+                    path_or_fileobj=json.dumps(dataset_infos, indent=4).encode("utf-8"),
+                )
+            )
+        # push to README
+        DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
+        MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
+        dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
+        additions.append(
+            CommitOperationAdd(
+                path_in_repo=config.REPOCARD_FILENAME,
+                path_or_fileobj=str(dataset_card).encode(),
+            )
+        )
+
+        commit_message = commit_message if commit_message is not None else "Upload dataset"
+        if len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:
+            commit_info = api.create_commit(
+                repo_id,
+                operations=additions + deletions,
+                commit_message=commit_message,
+                commit_description=commit_description,
+                token=token,
+                repo_type="dataset",
+                revision=revision,
+                create_pr=create_pr,
+            )
+        else:
+            logger.info(
+                f"Number of files to upload is larger than {config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
+            )
+            num_commits = math.ceil(len(additions) / config.UPLOADS_MAX_NUMBER_PER_COMMIT)
+            for i in range(0, num_commits):
+                operations = additions[
+                    i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
+                ] + (deletions if i == 0 else [])
+                commit_info = api.create_commit(
+                    repo_id,
+                    operations=operations,
+                    commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                    commit_description=commit_description,
+                    token=token,
+                    repo_type="dataset",
+                    revision=revision,
+                    create_pr=create_pr,
+                )
+                logger.info(
+                    f"Commit #{i + 1} completed"
+                    + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
+                    + "."
+                )
+        return commit_info

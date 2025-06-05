@@ -2269,7 +2269,9 @@ def embed_table_storage(table: pa.Table, token_per_repo_id=None):
 
     features = Features.from_arrow_schema(table.schema)
     arrays = [
-        embed_array_storage(table[name], feature, token_per_repo_id=token_per_repo_id) if require_storage_embed(feature) else table[name]
+        embed_array_storage(table[name], feature, token_per_repo_id=token_per_repo_id)
+        if require_storage_embed(feature)
+        else table[name]
         for name, feature in features.items()
     ]
     return pa.Table.from_arrays(arrays, schema=features.arrow_schema)
