@@ -2445,7 +2445,6 @@ class IterableDatasetDict(dict):
         ```python
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>")
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", private=True)
-        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", max_shard_size="1GB")
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", num_shards={"train": 1024, "test": 8})
         ```
 

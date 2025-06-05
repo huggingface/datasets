@@ -3600,7 +3600,6 @@ class IterableDataset(DatasetInfoMixin):
         ```python
         >>> dataset.push_to_hub("<organization>/<dataset_id>")
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", private=True)
-        >>> dataset.push_to_hub("<organization>/<dataset_id>", max_shard_size="1GB")
         >>> dataset.push_to_hub("<organization>/<dataset_id>", num_shards=1024)
         ```
 
