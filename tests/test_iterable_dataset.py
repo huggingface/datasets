@@ -1549,7 +1549,7 @@ def test_iterable_dataset_from_hub_torch_dataloader_parallel(num_workers, tmp_pa
     dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=str(tmp_path), streaming=True, split="train")
     dataloader = DataLoader(dataset, batch_size=None, num_workers=num_workers)
     result = list(dataloader)
-    assert len(result) == 2
+    assert len(result) == 10
 
 
 @pytest.mark.parametrize("batch_size", [4, 5])
