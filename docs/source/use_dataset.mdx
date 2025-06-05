@@ -227,8 +227,9 @@ pip install albumentations
 ...     transformed_images = []
 ...     for image in examples["image"]:
 ...         # Convert PIL to numpy array (OpenCV format)
-...         image_np = np.array(image.convert("RGB")) ...         
-
+...         image_np = np.array(image.convert("RGB"))
+...         
+...         # Apply Albumentations transforms
 ...         transformed_image = transform(image=image_np)["image"]
 ...         
 ...         # Convert back to PIL Image
