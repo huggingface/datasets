@@ -336,7 +336,6 @@ class ModuleFactoryTest(TestCase):
         self._sub_data_dir = sub_data_dirs[1]
 
     def setUp(self):
-        self.hf_modules_cache = tempfile.mkdtemp()
         self.cache_dir = tempfile.mkdtemp()
         self.download_config = DownloadConfig(cache_dir=self.cache_dir)
 
@@ -716,7 +715,6 @@ class LoadTest(TestCase):
         self.cache_dir = tempfile.mkdtemp()
 
     def tearDown(self):
-        shutil.rmtree(self.hf_modules_cache)
         shutil.rmtree(self.cache_dir)
 
     def _dummy_module_dir(self, modules_dir, dummy_module_name, dummy_code):
