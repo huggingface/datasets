@@ -259,14 +259,10 @@ class Audio:
         def path_to_bytes(path):
             source_url = path.split("::")[-1]
             pattern = (
-                config.HUB_DATASETS_URL
-                if source_url.startswith(config.HF_ENDPOINT)
-                else config.HUB_DATASETS_HFFS_URL
+                config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
             )
             source_url_fields = string_to_dict(source_url, pattern)
-            token = (
-                token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
-            )
+            token = token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
             download_config = DownloadConfig(token=token)
             with xopen(path, "rb", download_config=download_config) as f:
                 return f.read()
