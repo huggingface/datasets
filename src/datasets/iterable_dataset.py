@@ -1685,10 +1685,6 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
     def num_shards(self) -> int:
         return self.ex_iterable.num_shards
 
-    @property
-    def n_shards(self) -> int:
-        return self.ex_iterable.n_shards
-
 
 class TakeExamplesIterable(_BaseExamplesIterable):
     def __init__(
