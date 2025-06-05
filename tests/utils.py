@@ -556,7 +556,7 @@ def pytest_xdist_worker_id():
     if `-n 1` or `pytest-xdist` isn't being used.
     """
     worker = os.environ.get("PYTEST_XDIST_WORKER", "gw0")
-    worker = re.sub(r"^gw", "", worker, 0, re.M)
+    worker = re.sub(r"^gw", "", worker, count=0, flags=re.M)
     return int(worker)
 
 
