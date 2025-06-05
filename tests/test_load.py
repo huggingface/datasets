@@ -51,32 +51,6 @@ from .utils import (
 )
 
 
-DATASET_LOADING_SCRIPT_NAME = "__dummy_dataset1__"
-
-DATASET_LOADING_SCRIPT_CODE = """
-import os
-
-import datasets
-from datasets import DatasetInfo, Features, Split, SplitGenerator, Value
-
-
-class __DummyDataset1__(datasets.GeneratorBasedBuilder):
-
-    def _info(self) -> DatasetInfo:
-        return DatasetInfo(features=Features({"text": Value("string")}))
-
-    def _split_generators(self, dl_manager):
-        return [
-            SplitGenerator(Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_manager.manual_dir, "train.txt")}),
-            SplitGenerator(Split.TEST, gen_kwargs={"filepath": os.path.join(dl_manager.manual_dir, "test.txt")}),
-        ]
-
-    def _generate_examples(self, filepath, **kwargs):
-        with open(filepath, "r", encoding="utf-8") as f:
-            for i, line in enumerate(f):
-                yield i, {"text": line.strip()}
-"""
-
 SAMPLE_DATASET_IDENTIFIER2 = "hf-internal-testing/dataset_with_data_files"  # only has data files
 SAMPLE_DATASET_IDENTIFIER3 = "hf-internal-testing/multi_dir_dataset"  # has multiple data directories
 SAMPLE_DATASET_IDENTIFIER4 = "hf-internal-testing/imagefolder_with_metadata"  # imagefolder with a metadata file inside the train/test directories
@@ -1231,19 +1205,19 @@ def test_load_dataset_private_zipped_images(hf_private_dataset_repo_zipped_img_d
     assert len(ds_items) == 2
 
 
-def test_load_dataset_then_move_then_reload(dataset_dir, data_dir, tmp_path, caplog):
+def test_load_dataset_then_move_then_reload(data_dir, tmp_path, caplog):
     cache_dir1 = tmp_path / "cache1"
     cache_dir2 = tmp_path / "cache2"
-    dataset = load_dataset(dataset_dir, data_dir=data_dir, split="train", cache_dir=cache_dir1, trust_remote_code=True)
+    dataset = load_dataset(data_dir, split="train", cache_dir=cache_dir1, trust_remote_code=True)
     fingerprint1 = dataset._fingerprint
     del dataset
     os.rename(cache_dir1, cache_dir2)
     caplog.clear()
     with caplog.at_level(INFO, logger=get_logger().name):
-        dataset = load_dataset(dataset_dir, data_dir=data_dir, split="train", cache_dir=cache_dir2)
+        dataset = load_dataset(data_dir, split="train", cache_dir=cache_dir2)
     assert "Found cached dataset" in caplog.text
     assert dataset._fingerprint == fingerprint1, "for the caching mechanism to work, fingerprint should stay the same"
-    dataset = load_dataset(dataset_dir, data_dir=data_dir, split="test", cache_dir=cache_dir2)
+    dataset = load_dataset(data_dir, split="test", cache_dir=cache_dir2)
     assert dataset._fingerprint != fingerprint1
 
 
@@ -1259,19 +1233,8 @@ def test_load_dataset_builder_then_edit_then_load_again(tmp_path: Path):
     assert dataset_builder.cache_dir != edited_dataset_builder.cache_dir
 
 
-def test_load_dataset_readonly(dataset_dir, dataset_dir_readonly, data_dir, tmp_path):
-    cache_dir1 = tmp_path / "cache1"
-    cache_dir2 = tmp_path / "cache2"
-    dataset = load_dataset(dataset_dir, data_dir=data_dir, split="train", cache_dir=cache_dir1)
-    fingerprint1 = dataset._fingerprint
-    del dataset
-    # Load readonly dataset and check that the fingerprint is the same.
-    dataset = load_dataset(dataset_dir_readonly, data_dir=data_dir, split="train", cache_dir=cache_dir2)
-    assert dataset._fingerprint == fingerprint1, "Cannot load a dataset in a readonly folder."
-
-
 @pytest.mark.parametrize("max_in_memory_dataset_size", ["default", 0, 50, 500])
-def test_load_dataset_local_with_default_in_memory(max_in_memory_dataset_size, dataset_dir, data_dir, monkeypatch):
+def test_load_dataset_local_with_default_in_memory(max_in_memory_dataset_size, data_dir, monkeypatch):
     current_dataset_size = 148
     if max_in_memory_dataset_size == "default":
         max_in_memory_dataset_size = 0  # default
@@ -1283,7 +1246,7 @@ def test_load_dataset_local_with_default_in_memory(max_in_memory_dataset_size, d
         expected_in_memory = False
 
     with assert_arrow_memory_increases() if expected_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = load_dataset(dataset_dir, data_dir=data_dir)
+        dataset = load_dataset(data_dir)
     assert (dataset["train"].dataset_size < max_in_memory_dataset_size) is expected_in_memory
 
 
