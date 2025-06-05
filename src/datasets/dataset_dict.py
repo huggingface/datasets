@@ -1840,7 +1840,7 @@ class DatasetDict(dict):
                         "rename the 'default' one first."
                     )
                 if current_default_config_name:
-                    _ = metadata_configs[current_default_config_name].pop("default")
+                    _ = metadata_configs[current_default_config_name].pop("default", None)
                     configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
             metadata_config_to_dump["default"] = True
         # push to the deprecated dataset_infos.json
