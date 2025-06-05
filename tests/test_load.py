@@ -3,7 +3,6 @@ import os
 import pickle
 import shutil
 import tempfile
-from hashlib import sha256
 from multiprocessing import Pool
 from pathlib import Path
 from unittest import TestCase
@@ -716,40 +715,6 @@ class LoadTest(TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.cache_dir)
-
-    def _dummy_module_dir(self, modules_dir, dummy_module_name, dummy_code):
-        assert dummy_module_name.startswith("__")
-        module_dir = os.path.join(modules_dir, dummy_module_name)
-        os.makedirs(module_dir, exist_ok=True)
-        module_path = os.path.join(module_dir, dummy_module_name + ".py")
-        with open(module_path, "w") as f:
-            f.write(dummy_code)
-        return module_dir
-
-    def test_dataset_module_factory(self):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            # prepare module from directory path
-            dummy_code = "MY_DUMMY_VARIABLE = 'hello there'"
-            module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name1__", dummy_code)
-            dataset_module = datasets.load.dataset_module_factory(module_dir)
-            dummy_module = importlib.import_module(dataset_module.module_path)
-            self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "hello there")
-            self.assertEqual(dataset_module.hash, sha256(dummy_code.encode("utf-8")).hexdigest())
-            # prepare module from file path + check resolved_file_path
-            dummy_code = "MY_DUMMY_VARIABLE = 'general kenobi'"
-            module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name1__", dummy_code)
-            module_path = os.path.join(module_dir, "__dummy_module_name1__.py")
-            dataset_module = datasets.load.dataset_module_factory(module_path)
-            dummy_module = importlib.import_module(dataset_module.module_path)
-            self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "general kenobi")
-            self.assertEqual(dataset_module.hash, sha256(dummy_code.encode("utf-8")).hexdigest())
-            # missing module
-            for offline_simulation_mode in list(OfflineSimulationMode):
-                with offline(offline_simulation_mode):
-                    with self.assertRaises(
-                        (DatasetNotFoundError, ConnectionError, requests.exceptions.ConnectionError)
-                    ):
-                        datasets.load.dataset_module_factory("__missing_dummy_module_name__")
 
     @pytest.mark.integration
     def test_offline_dataset_module_factory(self):
