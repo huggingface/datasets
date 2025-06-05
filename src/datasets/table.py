@@ -2110,7 +2110,7 @@ def cast_array_to_feature(
 
 
 @_wrap_for_chunked_arrays
-def embed_array_storage(array: pa.Array, feature: "FeatureType"):
+def embed_array_storage(array: pa.Array, feature: "FeatureType", token_per_repo_id=None):
     """Embed data into an arrays's storage.
     For custom features like Audio or Image, it takes into account the "embed_storage" methods
     they define to embed external data (e.g. an image file) into an array.
@@ -2133,12 +2133,12 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
     """
     from .features import Sequence
 
-    _e = embed_array_storage
+    _e = partial(embed_array_storage, token_per_repo_id=token_per_repo_id)
 
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
     if hasattr(feature, "embed_storage"):
-        return feature.embed_storage(array)
+        return feature.embed_storage(array, token_per_repo_id=token_per_repo_id)
     elif pa.types.is_struct(array.type):
         # feature must be a dict or Sequence(subfeatures_dict)
         if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
