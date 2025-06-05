@@ -2253,7 +2253,7 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
     return pa.Table.from_arrays(arrays, schema=schema)
 
 
-def embed_table_storage(table: pa.Table):
+def embed_table_storage(table: pa.Table, token_per_repo_id=None):
     """Embed external data into a table's storage.
 
     <Added version="2.4.0"/>
@@ -2269,7 +2269,7 @@ def embed_table_storage(table: pa.Table):
 
     features = Features.from_arrow_schema(table.schema)
     arrays = [
-        embed_array_storage(table[name], feature) if require_storage_embed(feature) else table[name]
+        embed_array_storage(table[name], feature, token_per_repo_id=token_per_repo_id) if require_storage_embed(feature) else table[name]
         for name, feature in features.items()
     ]
     return pa.Table.from_arrays(arrays, schema=features.arrow_schema)
