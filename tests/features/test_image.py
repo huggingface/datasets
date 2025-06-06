@@ -1,4 +1,5 @@
 import os
+import shutil
 import tarfile
 import warnings
 from io import BytesIO
@@ -557,66 +558,23 @@ def test_formatted_dataset_with_image_feature(shared_datadir):
         assert column[0].mode == "RGB"
 
 
-# Currently, the JSONL reader doesn't support complex feature types so we create a temporary dataset script
-# to test streaming (without uploading the test dataset to the hub).
-
-DATASET_LOADING_SCRIPT_NAME = "__dummy_dataset__"
-
-DATASET_LOADING_SCRIPT_CODE = """
-import os
-
-import datasets
-from datasets import DatasetInfo, Features, Image, Split, SplitGenerator, Value
-
-
-class __DummyDataset__(datasets.GeneratorBasedBuilder):
-
-    def _info(self) -> DatasetInfo:
-        return DatasetInfo(features=Features({"image": Image(), "caption": Value("string")}))
-
-    def _split_generators(self, dl_manager):
-        return [
-            SplitGenerator(Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_manager.manual_dir, "train.txt")}),
-        ]
-
-    def _generate_examples(self, filepath, **kwargs):
-        with open(filepath, encoding="utf-8") as f:
-            for i, line in enumerate(f):
-                image_path, caption = line.split(",")
-                yield i, {"image": image_path.strip(), "caption": caption.strip()}
-"""
-
-
 @pytest.fixture
-def data_dir(shared_datadir, tmp_path):
-    data_dir = tmp_path / "dummy_dataset_data"
+def img_dataset_dir(shared_datadir, tmp_path):
+    data_dir = tmp_path / "dummy_img_dataset_data"
     data_dir.mkdir()
-    image_path = str(shared_datadir / "test_image_rgb.jpg")
-    with open(data_dir / "train.txt", "w") as f:
-        f.write(f"{image_path},Two cats sleeping\n")
+    shutil.copy(str(shared_datadir / "test_image_rgb.jpg"), str(data_dir / "image_rgb.jpg"))
+    with open(data_dir / "metadata.jsonl", "w") as f:
+        f.write('{"file_name": "image_rgb.jpg", "caption": "Two cats sleeping"}\n')
     return str(data_dir)
-
-
-@pytest.fixture
-def dataset_loading_script_dir(tmp_path):
-    script_name = DATASET_LOADING_SCRIPT_NAME
-    script_dir = tmp_path / script_name
-    script_dir.mkdir()
-    script_path = script_dir / f"{script_name}.py"
-    with open(script_path, "w") as f:
-        f.write(DATASET_LOADING_SCRIPT_CODE)
-    return str(script_dir)
 
 
 @require_pil
 @pytest.mark.parametrize("streaming", [False, True])
-def test_load_dataset_with_image_feature(shared_datadir, data_dir, dataset_loading_script_dir, streaming):
+def test_load_dataset_with_image_feature(shared_datadir, img_dataset_dir, streaming):
     import PIL.Image
 
-    image_path = str(shared_datadir / "test_image_rgb.jpg")
-    dset = load_dataset(
-        dataset_loading_script_dir, split="train", data_dir=data_dir, streaming=streaming, trust_remote_code=True
-    )
+    image_path = os.path.join(img_dataset_dir, "image_rgb.jpg")
+    dset = load_dataset(img_dataset_dir, split="train", streaming=streaming)
     item = dset[0] if not streaming else next(iter(dset))
     assert item.keys() == {"image", "caption"}
     assert isinstance(item["image"], PIL.Image.Image)

@@ -130,9 +130,7 @@ You can find:
 
 # Disclaimers
 
-You can use 🤗 Datasets to load datasets based on Python code defined by the dataset authors to parse certain data formats or structures. For security reasons, this feature is disabled by default and requires passing `trust_remote_code=True`. In this case we also ask users that want to load such datasets to:
-- check the dataset scripts they're going to run beforehand and
-- pin the `revision` of the repositories they use.
+You can use 🤗 Datasets to load datasets based on versioned git repositories maintained by the dataset authors. For reproducibility reasons, we ask users to pin the `revision` of the repositories they use.
 
 If you're a dataset owner and wish to update any part of it (description, citation, license, etc.), or do not want your dataset to be included in the Hugging Face Hub, please get in touch by opening a discussion or a pull request in the Community tab of the dataset page. Thanks for your contribution to the ML community!
 

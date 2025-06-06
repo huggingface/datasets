@@ -28,11 +28,9 @@ from collections.abc import Iterable
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
 from multiprocessing import Manager
-from pathlib import Path
 from queue import Empty
 from shutil import disk_usage
 from typing import Any, Callable, Optional, TypeVar, Union
-from urllib.parse import urlparse
 
 import multiprocess
 import multiprocess.pool
@@ -49,7 +47,6 @@ from ._dill import (  # noqa: F401 # imported for backward compatibility. TODO: 
     dumps,
     pklregister,
 )
-from ._filelock import FileLock
 
 
 try:  # pragma: no branch
@@ -574,107 +571,6 @@ def has_sufficient_disk_space(needed_bytes, directory="."):
     except OSError:
         return True
     return needed_bytes < free_bytes
-
-
-def _convert_github_url(url_path: str) -> tuple[str, Optional[str]]:
-    """Convert a link to a file on a github repo in a link to the raw github object."""
-    parsed = urlparse(url_path)
-    sub_directory = None
-    if parsed.scheme in ("http", "https", "s3") and parsed.netloc == "github.com":
-        if "blob" in url_path:
-            if not url_path.endswith(".py"):
-                raise ValueError(f"External import from github at {url_path} should point to a file ending with '.py'")
-            url_path = url_path.replace("blob", "raw")  # Point to the raw file
-        else:
-            # Parse github url to point to zip
-            github_path = parsed.path[1:]
-            repo_info, branch = github_path.split("/tree/") if "/tree/" in github_path else (github_path, "master")
-            repo_owner, repo_name = repo_info.split("/")
-            url_path = f"https://github.com/{repo_owner}/{repo_name}/archive/{branch}.zip"
-            sub_directory = f"{repo_name}-{branch}"
-    return url_path, sub_directory
-
-
-def lock_importable_file(importable_local_file: str) -> FileLock:
-    # Check the directory with a unique name in our dataset folder
-    # path is: ./datasets/dataset_name/hash_from_code/script.py
-    # we use a hash as subdirectory_name to be able to have multiple versions of a dataset processing file together
-    importable_directory_path = str(Path(importable_local_file).resolve().parent.parent)
-    lock_path = importable_directory_path + ".lock"
-    return FileLock(lock_path)
-
-
-def get_imports(file_path: str) -> tuple[str, str, str, str]:
-    """Find whether we should import or clone additional files for a given processing script.
-        And list the import.
-
-    We allow:
-    - library dependencies,
-    - local dependencies and
-    - external dependencies whose url is specified with a comment starting from "# From:' followed by the raw url to a file, an archive or a github repository.
-        external dependencies will be downloaded (and extracted if needed in the dataset folder).
-        We also add an `__init__.py` to each sub-folder of a downloaded folder so the user can import from them in the script.
-
-    Note that only direct import in the dataset processing script will be handled
-    We don't recursively explore the additional import to download further files.
-
-    Example::
-
-        import tensorflow
-        import .c4_utils
-        import .clicr.dataset-code.build_json_dataset  # From: https://raw.githubusercontent.com/clips/clicr/master/dataset-code/build_json_dataset
-    """
-    lines = []
-    with open(file_path, encoding="utf-8") as f:
-        lines.extend(f.readlines())
-
-    logger.debug(f"Checking {file_path} for additional imports.")
-    imports: list[tuple[str, str, str, Optional[str]]] = []
-    is_in_docstring = False
-    for line in lines:
-        docstr_start_match = re.findall(r'[\s\S]*?"""[\s\S]*?', line)
-
-        if len(docstr_start_match) == 1:
-            # flip True <=> False only if doctstring
-            # starts at line without finishing
-            is_in_docstring = not is_in_docstring
-
-        if is_in_docstring:
-            # import statements in doctstrings should
-            # not be added as required dependencies
-            continue
-
-        match = re.match(r"^import\s+(\.?)([^\s\.]+)[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)", line, flags=re.MULTILINE)
-        if match is None:
-            match = re.match(
-                r"^from\s+(\.?)([^\s\.]+)(?:[^\s]*)\s+import\s+[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)",
-                line,
-                flags=re.MULTILINE,
-            )
-            if match is None:
-                continue
-        if match.group(1):
-            # The import starts with a '.', we will download the relevant file
-            if any(imp[1] == match.group(2) for imp in imports):
-                # We already have this import
-                continue
-            if match.group(3):
-                # The import has a comment with 'From:', we'll retrieve it from the given url
-                url_path = match.group(3)
-                url_path, sub_directory = _convert_github_url(url_path)
-                imports.append(("external", match.group(2), url_path, sub_directory))
-            elif match.group(2):
-                # The import should be at the same place as the file
-                imports.append(("internal", match.group(2), match.group(2), None))
-        else:
-            if match.group(3):
-                # The import has a comment with `From: git+https:...`, asks user to pip install from git.
-                url_path = match.group(3)
-                imports.append(("library", match.group(2), url_path, None))
-            else:
-                imports.append(("library", match.group(2), match.group(2), None))
-
-    return imports
 
 
 def copyfunc(func):

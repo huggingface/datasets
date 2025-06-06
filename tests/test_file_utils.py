@@ -44,8 +44,8 @@ FILE_CONTENT = """\
 
 FILE_PATH = "file"
 
-TEST_URL = "https://huggingface.co/datasets/hf-internal-testing/dataset_with_script/resolve/main/some_text.txt"
-TEST_URL_CONTENT = "foo\nbar\nfoobar"
+TEST_URL = "https://huggingface.co/datasets/hf-internal-testing/dataset_with_data_files/resolve/main/data/train.txt"
+TEST_URL_CONTENT = "foo\n" * 10
 
 TEST_GG_DRIVE_FILENAME = "train.tsv"
 TEST_GG_DRIVE_URL = "https://drive.google.com/uc?export=download&id=17bOgBDc3hRCoPZ89EYtKDzK-yXAWat94"
@@ -159,21 +159,21 @@ def test_fsspec_offline(tmp_path_factory):
     "urlpath, download_config, expected_urlpath, expected_storage_options",
     [
         (
-            "https://huggingface.co/datasets/hf-internal-testing/dataset_with_script/resolve/main/some_text.txt",
+            "https://huggingface.co/datasets/hf-internal-testing/dataset_with_data_files/resolve/main/data/train.txt",
             DownloadConfig(),
-            "hf://datasets/hf-internal-testing/dataset_with_script@main/some_text.txt",
+            "hf://datasets/hf-internal-testing/dataset_with_data_files@main/data/train.txt",
             {"hf": {"endpoint": "https://huggingface.co", "token": None}},
         ),
         (
-            "https://huggingface.co/datasets/hf-internal-testing/dataset_with_script/resolve/main/some_text.txt",
+            "https://huggingface.co/datasets/hf-internal-testing/dataset_with_data_files/resolve/main/data/train.txt",
             DownloadConfig(token="MY-TOKEN"),
-            "hf://datasets/hf-internal-testing/dataset_with_script@main/some_text.txt",
+            "hf://datasets/hf-internal-testing/dataset_with_data_files@main/data/train.txt",
             {"hf": {"endpoint": "https://huggingface.co", "token": "MY-TOKEN"}},
         ),
         (
-            "https://huggingface.co/datasets/hf-internal-testing/dataset_with_script/resolve/main/some_text.txt",
+            "https://huggingface.co/datasets/hf-internal-testing/dataset_with_data_files/resolve/main/data/train.txt",
             DownloadConfig(token="MY-TOKEN", storage_options={"hf": {"on_error": "omit"}}),
-            "hf://datasets/hf-internal-testing/dataset_with_script@main/some_text.txt",
+            "hf://datasets/hf-internal-testing/dataset_with_data_files@main/data/train.txt",
             {"hf": {"endpoint": "https://huggingface.co", "token": "MY-TOKEN", "on_error": "omit"}},
         ),
         (
