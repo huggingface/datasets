@@ -5233,7 +5233,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             k for k, v in self._info.features.items() if require_decoding(v, ignore_decode_attribute=True)
         ]
 
-        if decodable_columns:
+        if decodable_columns and len(self) > 0:
             # Approximate the space needed to store the bytes from the external files by analyzing the first 1000 examples
             extra_nbytes = 0
 
@@ -5252,7 +5252,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             extra_nbytes = extra_nbytes * len(self.data) / len(table)
             dataset_nbytes = dataset_nbytes + extra_nbytes
 
-        if self._indices is not None:
+        if self._indices is not None and len(self) > 0:
             dataset_nbytes = dataset_nbytes * len(self._indices) / len(self.data)
         return dataset_nbytes
 
