@@ -175,6 +175,8 @@ def string_to_dict(string: str, pattern: str) -> Optional[dict[str, str]]:
     Args:
         string (str): input string
         pattern (str): pattern formatted like a python f-string
+            This can be a regex - so in case of un-formatting paths you should use posix paths.
+            Otherwise backslashes for windows paths can cause issues.
 
     Returns:
         Optional[dict[str, str]]: dictionary of variable -> value, retrieved from the input using the pattern, or
