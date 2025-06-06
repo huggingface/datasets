@@ -267,3 +267,6 @@ UPLOADS_MAX_NUMBER_PER_COMMIT = 50
 
 # Backward compatibility
 MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30
+
+# Read dataset
+ALLOW_READ_EMPTY_DATASET = False

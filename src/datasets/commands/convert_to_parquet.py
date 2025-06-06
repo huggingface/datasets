@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from typing import Optional
 
+import datasets.config
 from datasets.commands import BaseDatasetsCLICommand
 from datasets.hub import convert_to_parquet
 
@@ -11,6 +12,7 @@ def _command_factory(args):
         args.token,
         args.revision,
         args.trust_remote_code,
+        args.allow_empty,
     )
 
 
@@ -26,6 +28,7 @@ class ConvertToParquetCommand(BaseDatasetsCLICommand):
         parser.add_argument(
             "--trust_remote_code", action="store_true", help="whether to trust the code execution of the load script"
         )
+        parser.add_argument("--allow_empty", action="store_true", help="whether to allow empty datasets")
         parser.set_defaults(func=_command_factory)
 
     def __init__(
@@ -34,13 +37,16 @@ class ConvertToParquetCommand(BaseDatasetsCLICommand):
         token: Optional[str],
         revision: Optional[str],
         trust_remote_code: bool,
+        allow_empty: bool,
     ):
         self._dataset_id = dataset_id
         self._token = token
         self._revision = revision
         self._trust_remote_code = trust_remote_code
+        self._allow_empty = allow_empty
 
     def run(self) -> None:
+        datasets.config.ALLOW_READ_EMPTY_DATASET = self._allow_empty
         _ = convert_to_parquet(
             self._dataset_id, revision=self._revision, token=self._token, trust_remote_code=self._trust_remote_code
         )

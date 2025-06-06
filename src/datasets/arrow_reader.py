@@ -27,6 +27,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from tqdm.contrib.concurrent import thread_map
 
+from . import config
 from .download.download_config import DownloadConfig  # noqa: F401
 from .naming import _split_re, filenames_for_dataset_split
 from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables
@@ -193,7 +194,7 @@ class BaseReader:
                 skip/take indicates which example read in the file: `ds.slice(skip, take)`
             in_memory (bool, default False): Whether to copy the data in-memory.
         """
-        if len(files) == 0 or not all(isinstance(f, dict) for f in files):
+        if not all(isinstance(f, dict) for f in files):
             raise ValueError("please provide valid file informations")
         files = copy.deepcopy(files)
         for f in files:
@@ -246,7 +247,7 @@ class BaseReader:
         """
 
         files = self.get_file_instructions(name, instructions, split_infos)
-        if not files:
+        if not files and not config.ALLOW_READ_EMPTY_DATASET:
             msg = f'Instruction "{instructions}" corresponds to no data!'
             raise ValueError(msg)
         return self.read_files(files=files, original_instructions=instructions, in_memory=in_memory)
