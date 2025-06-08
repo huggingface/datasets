@@ -350,20 +350,45 @@ class FaissIndex(BaseIndex):
         """Find the nearest examples indices to the query.
 
         Args:
-            query (`np.array`): The query as a numpy array.
+            query (`np.array`): The query as a numpy array. Should be a 1D array or a 2D array with shape (1, N).
             k (`int`): The number of examples to retrieve.
 
         Output:
             scores (`List[List[float]`): The retrieval scores of the retrieved examples.
             indices (`List[List[int]]`): The indices of the retrieved examples.
-        """
-        if len(query.shape) != 1 and (len(query.shape) != 2 or query.shape[0] != 1):
-            raise ValueError("Shape of query is incorrect, it has to be either a 1D array or 2D (1, N)")
 
-        queries = query.reshape(1, -1)
+        Raises:
+            ValueError: If the query shape is invalid or doesn't match the index dimensions.
+        """
+        if not isinstance(query, np.ndarray):
+            raise TypeError(f"Query must be a numpy array, got {type(query).__name__}")
+            
+        if len(query.shape) == 1:
+            queries = query.reshape(1, -1)
+        elif len(query.shape) == 2:
+            if query.shape[0] != 1:
+                raise ValueError(
+                    f"For 2D queries, the first dimension must be 1 (batch size). Got shape {query.shape}"
+                )
+            queries = query
+        else:
+            raise ValueError(
+                f"Query must be 1D or 2D. Got {len(query.shape)}D array with shape {query.shape}"
+            )
+
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
-        scores, indices = self.faiss_index.search(queries, k, **kwargs)
+            
+        try:
+            scores, indices = self.faiss_index.search(queries, k, **kwargs)
+        except RuntimeError as e:
+            if "query size" in str(e).lower() or "dimension" in str(e).lower():
+                raise ValueError(
+                    f"Query dimension mismatch. Expected {self.faiss_index.d} dimensions, "
+                    f"got {queries.shape[1]}. {str(e)}"
+                ) from e
+            raise
+            
         return SearchResults(scores[0], indices[0].astype(int))
 
     def search_batch(self, queries: np.array, k=10, **kwargs) -> BatchedSearchResults:

@@ -413,8 +413,8 @@ def _pct_to_abs_pct1(boundary, num_examples):
     # Using math.trunc here, since -99.5% should give -99%, not -100%.
     if num_examples < 100:
         msg = (
-            'Using "pct1_dropremainder" rounding on a split with less than 100 '
-            "elements is forbidden: it always results in an empty dataset."
+            f'Cannot use "pct1_dropremainder" rounding on a small dataset (size={num_examples} < 100). '
+            'This would result in an empty dataset. Consider using absolute values or a different splitting strategy.'
         )
         raise ValueError(msg)
     return boundary * math.trunc(num_examples / 100.0)
