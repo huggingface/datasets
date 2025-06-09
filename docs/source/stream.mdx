@@ -51,6 +51,17 @@ You can find more details in the [Dataset vs. IterableDataset guide](./about_map
 
 </Tip>
 
+
+## Column indexing
+
+Sometimes it is convenient to iterate over values of a specific column. Fortunately, an [`IterableDataset`] supports column indexing:
+```python
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("allenai/c4", "en", streaming=True, split="train")
+>>> print(next(iter(dataset["text"])))
+Beginners BBQ Class Taking Place in Missoula!...
+```
+
 ## Convert from a Dataset
 
 If you have an existing [`Dataset`] object, you can convert it to an [`IterableDataset`] with the [`~Dataset.to_iterable_dataset`] function. This is actually faster than setting the `streaming=True` argument in [`load_dataset`] because the data is streamed from local files.
@@ -495,12 +506,47 @@ Resuming returns exactly where the checkpoint was saved except if `.shuffle()` i
 
 </Tip>
 
-## Column indexing
 
-Sometimes it is convenient to iterate over values of a specific column. Fortunately, an [`IterableDataset`] supports column indexing:
+## Save
+
+Once your iterable dataset is ready, you can save it as a Hugging Face Dataset in Parquet format and reuse it later with [`load_dataset`].
+
+Save your dataset by providing the name of the dataset repository on Hugging Face you wish to save it to to [`~Dataset.push_to_hub`]. This iterates over the dataset and progressively uploads the data to Hugging Face:
+
 ```python
->>> from datasets import load_dataset
->>> dataset = load_dataset("allenai/c4", "en", streaming=True, split="train")
->>> print(next(iter(dataset["text"])))
-Beginners BBQ Class Taking Place in Missoula!...
+dataset.push_to_hub("username/my_dataset")
+```
+
+Use the [`load_dataset`] function to reload the dataset:
+
+```python
+from datasets import load_dataset
+reloaded_dataset = load_dataset("username/my_dataset")
+```
+
+## Export
+
+🤗 Datasets supports exporting as well so you can work with your dataset in other applications. The following table shows currently supported file formats you can export to:
+
+| File type               | Export method                                                  |
+|-------------------------|----------------------------------------------------------------|
+| CSV                     | [`IterableDataset.to_csv`]                                    |
+| JSON                    | [`IterableDataset.to_json`]                                   |
+| Parquet                 | [`IterableDataset.to_parquet`]                                |
+| SQL                     | [`IterableDataset.to_sql`]                                    |
+| In-memory Python object | [`IterableDataset.to_pandas`], [`IterableDataset.to_polars`] or [`IterableDataset.to_dict`] |
+
+For example, export your dataset to a CSV file like this:
+
+```py
+>>> dataset.to_csv("path/of/my/dataset.csv")
+```
+
+If you have a large dataset, you can save one file per shard, e.g.
+
+```py
+>>> num_shards = dataset.num_shards
+>>> for index in range(num_shards):
+...     shard = dataset.shard(index, num_shards)
+...     shard.to_parquet(f"path/of/my/dataset/data-{index:05d}.parquet")
 ```
