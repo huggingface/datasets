@@ -8,12 +8,10 @@ You can check the available commands:
 usage: datasets-cli <command> [<args>]
 
 positional arguments:
-  {convert,env,test,convert_to_parquet}
+  {env,test,delete_from_hub}
                         datasets-cli command helpers
-    convert             Convert a TensorFlow Datasets dataset to a HuggingFace Datasets dataset.
     env                 Print relevant system environment info.
-    test                Test dataset implementation.
-    convert_to_parquet  Convert dataset to Parquet
+    test                Test dataset loading.
     delete_from_hub     Delete dataset config from the Hub
 
 optional arguments:
@@ -22,7 +20,7 @@ optional arguments:
 
 ## Delete from Hub
 
-Delete a dataset configuration from a [data-only dataset](repository_structure) on the Hub.
+Delete a dataset configuration from a [supported dataset](repository_structure) on the Hub.
 
 ```bash
 >>> datasets-cli delete_from_hub --help
