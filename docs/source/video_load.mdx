@@ -14,7 +14,7 @@ To work with video datasets, you need to have the `torchvision` and `av` package
 
 </Tip>
 
-When you load an video dataset and call the video column, the videos are decoded as `torchvision` Videos:
+When you load a video dataset and call the video column, the videos are decoded as `torchvision` Videos:
 
 ```py
 >>> from datasets import load_dataset, Video
@@ -26,7 +26,7 @@ When you load an video dataset and call the video column, the videos are decoded
 
 <Tip warning={true}>
 
-Index into an video dataset using the row index first and then the `video` column - `dataset[0]["video"]` - to avoid creating all the video objects in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
+Index into a video dataset using the row index first and then the `video` column - `dataset[0]["video"]` - to avoid creating all the video objects in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
 
 </Tip>
 
@@ -136,7 +136,7 @@ To ignore the information in the metadata file, set `drop_metadata=True` in [`lo
 
 If you don't have a metadata file, `VideoFolder` automatically infers the label name from the directory name.
 If you want to drop automatically created labels, set `drop_labels=True`.
-In this case, your dataset will only contain an video column:
+In this case, your dataset will only contain a video column:
 
 ```py
 >>> from datasets import load_dataset

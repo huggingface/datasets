@@ -2128,6 +2128,18 @@ def test_concatenate_datasets_axis_1_with_different_lengths():
     assert list(concatenated_dataset) == [{**x, **y} for x, y in zip(extended_dataset2_list, dataset1)]
 
 
+@require_torch
+@require_tf
+@require_jax
+@pytest.mark.parametrize(
+    "format_type", [None, "torch", "python", "tf", "tensorflow", "np", "numpy", "jax", "arrow", "pd", "pandas"]
+)
+def test_concatenate_datasets_with_format(dataset: IterableDataset, format_type):
+    formatted_dataset = dataset.with_format(format_type)
+    concatenated_dataset = concatenate_datasets([formatted_dataset])
+    assert concatenated_dataset._formatting.format_type == get_format_type_from_alias(format_type)
+
+
 @pytest.mark.parametrize(
     "probas, seed, expected_length, stopping_strategy",
     [

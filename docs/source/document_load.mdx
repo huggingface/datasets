@@ -14,7 +14,7 @@ To work with pdf datasets, you need to have the `pdfplumber` package installed. 
 
 </Tip>
 
-When you load an pdf dataset and call the pdf column, the pdfs are decoded as `pdfplumber` Pdfs:
+When you load a pdf dataset and call the pdf column, the pdfs are decoded as `pdfplumber` Pdfs:
 
 ```py
 >>> from datasets import load_dataset, Pdf
@@ -26,7 +26,7 @@ When you load an pdf dataset and call the pdf column, the pdfs are decoded as `p
 
 <Tip warning={true}>
 
-Index into an pdf dataset using the row index first and then the `pdf` column - `dataset[0]["pdf"]` - to avoid creating all the pdf objects in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
+Index into a pdf dataset using the row index first and then the `pdf` column - `dataset[0]["pdf"]` - to avoid creating all the pdf objects in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
 
 </Tip>
 
@@ -34,7 +34,7 @@ For a guide on how to load any type of dataset, take a look at the <a class="und
 
 ## Read pages
 
-Access pages directly from a pdf using the `PDF` using `.pages`.
+Access pages directly from a pdf using the `.pages` attribute.
 
 Then you can use the `pdfplumber` functions to read texts, tables and images, e.g.:
 
@@ -168,7 +168,7 @@ To ignore the information in the metadata file, set `drop_metadata=True` in [`lo
 
 If you don't have a metadata file, `PdfFolder` automatically infers the label name from the directory name.
 If you want to drop automatically created labels, set `drop_labels=True`.
-In this case, your dataset will only contain an pdf column:
+In this case, your dataset will only contain a pdf column:
 
 ```py
 >>> from datasets import load_dataset
