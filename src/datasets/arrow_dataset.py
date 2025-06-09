@@ -1443,7 +1443,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset directory where the dataset will be saved to.
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
-                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
+                The maximum size of the dataset shards to be saved to the filesystem. If expressed as a string, needs to be digits followed by a unit
                 (like `"50MB"`).
             num_shards (`int`, *optional*):
                 Number of shards to write. By default the number of shards depends on `max_shard_size` and `num_proc`.
@@ -3079,7 +3079,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_file_with_suffix_pattern = cache_file_prefix + suffix_template + cache_file_ext
 
             for cache_file in glob.iglob(f"{cache_file_prefix}*{cache_file_ext}"):
-                suffix_variable_map = string_to_dict(cache_file, cache_file_with_suffix_pattern)
+                suffix_variable_map = string_to_dict(
+                    Path(cache_file).as_posix(), Path(cache_file_with_suffix_pattern).as_posix()
+                )
                 if suffix_variable_map is not None:
                     file_num_proc = int(suffix_variable_map["num_proc"])
                     existing_cache_file_map[file_num_proc].append(cache_file)
@@ -5752,16 +5754,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             }
         else:
             metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
+        configs_to_dump = {config_name: metadata_config_to_dump}
         if set_default and config_name != "default":
             if metadata_configs:
-                default_config_name = metadata_configs.get_default_config_name()
-                if default_config_name == "default":
+                current_default_config_name = metadata_configs.get_default_config_name()
+                if current_default_config_name == "default":
                     raise ValueError(
                         "There exists a configuration named 'default'. To set a different configuration as default, "
                         "rename the 'default' one first."
                     )
-                else:
-                    _ = metadata_configs[default_config_name].pop("default")
+                if current_default_config_name:
+                    _ = metadata_configs[current_default_config_name].pop("default")
+                    configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
             metadata_config_to_dump["default"] = True
         # push to the deprecated dataset_infos.json
         if repo_with_dataset_infos:
@@ -5779,7 +5783,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
         # push to README
         DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
-        MetadataConfigs({config_name: metadata_config_to_dump}).to_dataset_card_data(dataset_card_data)
+        MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
         dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
         additions.append(
             CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())

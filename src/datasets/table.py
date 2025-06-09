@@ -2110,7 +2110,7 @@ def cast_array_to_feature(
 
 
 @_wrap_for_chunked_arrays
-def embed_array_storage(array: pa.Array, feature: "FeatureType"):
+def embed_array_storage(array: pa.Array, feature: "FeatureType", token_per_repo_id=None):
     """Embed data into an arrays's storage.
     For custom features like Audio or Image, it takes into account the "embed_storage" methods
     they define to embed external data (e.g. an image file) into an array.
@@ -2133,12 +2133,12 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
     """
     from .features import Sequence
 
-    _e = embed_array_storage
+    _e = partial(embed_array_storage, token_per_repo_id=token_per_repo_id)
 
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
     if hasattr(feature, "embed_storage"):
-        return feature.embed_storage(array)
+        return feature.embed_storage(array, token_per_repo_id=token_per_repo_id)
     elif pa.types.is_struct(array.type):
         # feature must be a dict or Sequence(subfeatures_dict)
         if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
@@ -2253,7 +2253,7 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
     return pa.Table.from_arrays(arrays, schema=schema)
 
 
-def embed_table_storage(table: pa.Table):
+def embed_table_storage(table: pa.Table, token_per_repo_id=None):
     """Embed external data into a table's storage.
 
     <Added version="2.4.0"/>
@@ -2269,7 +2269,9 @@ def embed_table_storage(table: pa.Table):
 
     features = Features.from_arrow_schema(table.schema)
     arrays = [
-        embed_array_storage(table[name], feature) if require_storage_embed(feature) else table[name]
+        embed_array_storage(table[name], feature, token_per_repo_id=token_per_repo_id)
+        if require_storage_embed(feature)
+        else table[name]
         for name, feature in features.items()
     ]
     return pa.Table.from_arrays(arrays, schema=features.arrow_schema)
