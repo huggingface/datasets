@@ -174,8 +174,8 @@ TESTS_REQUIRE = [
     "sqlalchemy",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
     "protobuf<4.0.0",  # 4.0.0 breaks compatibility with tensorflow<2.12
-    "tensorflow>=2.6.0; python_version<'3.10'",  # numpy-2 is not supported for Python < 3.10
-    "tensorflow>=2.16.0; python_version>='3.10'",  # Pins numpy < 2
+    "tensorflow>=2.6.0; python_version<'3.10' and sys_platform != 'win32'",  # numpy-2 is not supported for Python < 3.10
+    "tensorflow>=2.16.0; python_version>='3.10' and sys_platform != 'win32'",  # Pins numpy < 2
     "tiktoken",
     "torch>=2.0.0",
     "torchdata",
