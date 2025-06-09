@@ -106,8 +106,6 @@
       title: Create a dataset card
     - local: repository_structure
       title: Structure your repository
-    - local: dataset_script
-      title: Create a dataset loading script
     title: "Dataset repository"
   title: "How-to guides"
 - sections:

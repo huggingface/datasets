@@ -113,7 +113,7 @@ class DatasetInfo:
         supervised_keys (`SupervisedKeysData`, *optional*):
             Specifies the input feature and the label for supervised learning if applicable for the dataset (legacy from TFDS).
         builder_name (`str`, *optional*):
-            The name of the `GeneratorBasedBuilder` subclass used to create the dataset. Usually matched to the corresponding script name. It is also the snake_case version of the dataset builder class name.
+            The name of the `GeneratorBasedBuilder` subclass used to create the dataset. It is also the snake_case version of the dataset builder class name.
         config_name (`str`, *optional*):
             The name of the configuration derived from [`BuilderConfig`].
         version (`str` or [`Version`], *optional*):
@@ -134,7 +134,7 @@ class DatasetInfo:
             Keyword arguments to be passed to the [`BuilderConfig`] and used in the [`DatasetBuilder`].
     """
 
-    # Set in the dataset scripts
+    # Set in the dataset builders
     description: str = dataclasses.field(default_factory=str)
     citation: str = dataclasses.field(default_factory=str)
     homepage: str = dataclasses.field(default_factory=str)

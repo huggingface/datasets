@@ -40,14 +40,13 @@ def test_get_dataset_config_info_private(hf_token, hf_private_dataset_repo_txt_d
         ("hf-internal-testing/non-existing-dataset", "default", DatasetNotFoundError),
         ("hf-internal-testing/gated_dataset_with_data_files", "default", DatasetNotFoundError),
         ("hf-internal-testing/private_dataset_with_data_files", "default", DatasetNotFoundError),
-        ("hf-internal-testing/gated_dataset_with_script", "default", DatasetNotFoundError),
-        ("hf-internal-testing/private_dataset_with_script", "default", DatasetNotFoundError),
+        ("hf-internal-testing/gated_dataset_with_data_files", "default", DatasetNotFoundError),
+        ("hf-internal-testing/private_dataset_with_data_files", "default", DatasetNotFoundError),
     ],
 )
 def test_get_dataset_config_info_raises(path, config_name, expected_exception):
-    kwargs = {"trust_remote_code": True} if path.endswith("_with_script") else {}
     with pytest.raises(expected_exception):
-        get_dataset_config_info(path, config_name=config_name, **kwargs)
+        get_dataset_config_info(path, config_name=config_name)
 
 
 @pytest.mark.parametrize(
@@ -55,7 +54,6 @@ def test_get_dataset_config_info_raises(path, config_name, expected_exception):
     [
         ("acronym_identification", ["default"]),
         ("rajpurkar/squad", ["plain_text"]),
-        ("hf-internal-testing/dataset_with_script", ["default"]),
         ("dalle-mini/wit", ["default"]),
         ("hf-internal-testing/librispeech_asr_dummy", ["clean"]),
         ("hf-internal-testing/audiofolder_no_configs_in_metadata", ["default"]),
@@ -64,7 +62,7 @@ def test_get_dataset_config_info_raises(path, config_name, expected_exception):
     ],
 )
 def test_get_dataset_config_names(path, expected):
-    config_names = get_dataset_config_names(path, trust_remote_code=True)
+    config_names = get_dataset_config_names(path)
     assert config_names == expected
 
 
@@ -73,7 +71,6 @@ def test_get_dataset_config_names(path, expected):
     [
         ("acronym_identification", "default"),
         ("rajpurkar/squad", "plain_text"),
-        ("hf-internal-testing/dataset_with_script", "default"),
         ("dalle-mini/wit", "default"),
         ("hf-internal-testing/librispeech_asr_dummy", "clean"),
         ("hf-internal-testing/audiofolder_no_configs_in_metadata", "default"),
@@ -82,7 +79,7 @@ def test_get_dataset_config_names(path, expected):
     ],
 )
 def test_get_dataset_default_config_name(path, expected):
-    default_config_name = get_dataset_default_config_name(path, trust_remote_code=True)
+    default_config_name = get_dataset_default_config_name(path)
     if expected:
         assert default_config_name == expected
     else:

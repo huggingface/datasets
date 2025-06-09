@@ -10,7 +10,6 @@ A dataset is a directory that contains:
 
 - Some data files in generic formats (JSON, CSV, Parquet, text, etc.)
 - A dataset card named `README.md` that contains documentation about the dataset as well as a YAML header to define the datasets tags and configurations
-- An optional dataset script if it requires some code to read the data files. This is sometimes used to load files of specific formats and structures.
 
 The [`load_dataset`] function fetches the requested dataset locally or from the Hugging Face Hub.
 The Hub is a central repository where all the Hugging Face datasets and models are stored.
@@ -27,12 +26,9 @@ Under the hood, 🤗 Datasets will use an appropriate [`DatasetBuilder`] based o
 * [`datasets.packaged_modules.imagefolder.ImageFolder`] for image folders
 * [`datasets.packaged_modules.audiofolder.AudioFolder`] for audio folders
 
-If the dataset has a dataset script, then it downloads and imports it from the Hugging Face Hub. 
-Code in the dataset script defines a custom [`DatasetBuilder`] the dataset information (description, features, URL to the original files, etc.), and tells 🤗 Datasets how to generate and display examples from it.
-
 <Tip>
 
-Read the [Share](./upload_dataset) section to learn more about how to share a dataset. This section also provides a step-by-step guide on how to write your own dataset loading script!
+Read the [Share](./upload_dataset) section to learn more about how to share a dataset.
 
 </Tip>
 
@@ -99,13 +95,7 @@ To ensure a dataset is complete, [`load_dataset`] will perform a series of tests
 - The list of downloaded files.
 - The SHA256 checksums of the downloaded files (disabled by default).
 
-If the dataset doesn't pass the verifications, it is likely that the original host of the dataset made some changes in the data files. 
-
-<Tip>
-
-If it is your own dataset, you'll need to recompute the information above and update the `README.md` file in your dataset repository. Take a look at this [section](dataset_script#optional-generate-dataset-metadata) to learn how to generate and update this metadata.
-
-</Tip>
+If the dataset doesn't pass the verifications, it is likely that the dataset author made some changes in the data files.
 
 In this case, an error is raised to alert that the dataset has changed.
 To ignore the error, one needs to specify `verification_mode="no_checks"` in [`load_dataset`].
@@ -114,7 +104,3 @@ Anytime you see a verification error, feel free to open a discussion or pull req
 ## Security
 
 The dataset repositories on the Hub are scanned for malware, see more information [here](https://huggingface.co/docs/hub/security#malware-scanning).
-
-Moreover the datasets without a namespace (originally contributed on our GitHub repository) have all been reviewed by our maintainers.
-The code of these datasets is considered **safe**.
-It concerns datasets that are not under a namespace, e.g. "rajpurkar/squad" or "nyu-mll/glue", unlike the other datasets that are named "username/dataset_name" or "org/dataset_name".
