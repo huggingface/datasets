@@ -3079,7 +3079,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_file_with_suffix_pattern = cache_file_prefix + suffix_template + cache_file_ext
 
             for cache_file in glob.iglob(f"{cache_file_prefix}*{cache_file_ext}"):
-                suffix_variable_map = string_to_dict(cache_file, cache_file_with_suffix_pattern)
+                suffix_variable_map = string_to_dict(
+                    Path(cache_file).as_posix(), Path(cache_file_with_suffix_pattern).as_posix()
+                )
                 if suffix_variable_map is not None:
                     file_num_proc = int(suffix_variable_map["num_proc"])
                     existing_cache_file_map[file_num_proc].append(cache_file)

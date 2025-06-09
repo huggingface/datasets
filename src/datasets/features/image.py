@@ -250,7 +250,7 @@ class Image:
             )
         return array_cast(storage, self.pa_type)
 
-    def embed_storage(self, storage: pa.StructArray) -> pa.StructArray:
+    def embed_storage(self, storage: pa.StructArray, token_per_repo_id=None) -> pa.StructArray:
         """Embed image files into the Arrow array.
 
         Args:
@@ -261,12 +261,20 @@ class Image:
             `pa.StructArray`: Array in the Image arrow storage type, that is
                 `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
+        if token_per_repo_id is None:
+            token_per_repo_id = {}
 
         @no_op_if_value_is_null
         def path_to_bytes(path):
-            with xopen(path, "rb") as f:
-                bytes_ = f.read()
-            return bytes_
+            source_url = path.split("::")[-1]
+            pattern = (
+                config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
+            )
+            source_url_fields = string_to_dict(source_url, pattern)
+            token = token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
+            download_config = DownloadConfig(token=token)
+            with xopen(path, "rb", download_config=download_config) as f:
+                return f.read()
 
         bytes_array = pa.array(
             [

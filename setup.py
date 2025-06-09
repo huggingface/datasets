@@ -4,7 +4,6 @@
 Note:
 
    VERSION needs to be formatted following the MAJOR.MINOR.PATCH convention
-   (we need to follow this convention to be able to retrieve versioned scripts)
 
 Simple check list for release from AllenNLP repo: https://github.com/allenai/allennlp/blob/master/setup.py
 
@@ -119,7 +118,7 @@ REQUIRED_PKGS = [
     "pandas",
     # for downloading datasets over HTTPS
     "requests>=2.32.2",
-    # progress bars in download and scripts
+    # progress bars in downloads and data operations
     "tqdm>=4.66.3",
     # for fast hashing
     "xxhash",
@@ -175,8 +174,8 @@ TESTS_REQUIRE = [
     "sqlalchemy",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
     "protobuf<4.0.0",  # 4.0.0 breaks compatibility with tensorflow<2.12
-    "tensorflow>=2.6.0; python_version<'3.10'",  # numpy-2 is not supported for Python < 3.10
-    "tensorflow>=2.16.0; python_version>='3.10'",  # Pins numpy < 2
+    "tensorflow>=2.6.0; python_version<'3.10' and sys_platform != 'win32'",  # numpy-2 is not supported for Python < 3.10
+    "tensorflow>=2.16.0; python_version>='3.10' and sys_platform != 'win32'",  # Pins numpy < 2
     "tiktoken",
     "torch>=2.0.0",
     "torchdata",
