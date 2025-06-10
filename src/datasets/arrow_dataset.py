@@ -5494,6 +5494,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[int] = None,
         embed_external_files: bool = True,
+        atomic_commit: bool = True,
     ) -> CommitInfo:
         """Pushes the dataset to the hub as a Parquet dataset.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -5553,6 +5554,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 In particular, this will do the following before the push for the fields of type:
 
                 - [`Audio`] and [`Image`]: remove local path information and embed file content in the Parquet files.
+            atomic_commit (`bool`, defaults to `True`):
+                Whether to use a single, atomic commit when pushing metadata to the hub.
 
         Return:
             huggingface_hub.CommitInfo
@@ -5680,9 +5683,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             {split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)}
         )
         # get the info from the README to update them
+        parent_commit = None
         if repo_with_dataset_card:
+            commits = api.list_repo_commits(repo_id, repo_type="dataset", revision=revision)
+            parent_commit = commits[0].commit_id
             dataset_card_path = api.hf_hub_download(
-                repo_id, config.REPOCARD_FILENAME, repo_type="dataset", revision=revision
+                repo_id, config.REPOCARD_FILENAME, repo_type="dataset", revision=parent_commit
             )
             dataset_card = DatasetCard.load(Path(dataset_card_path))
             dataset_card_data = dataset_card.data
@@ -5793,7 +5799,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
         commit_message = commit_message if commit_message is not None else "Upload dataset"
-        if len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:
+        if atomic_commit or len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:
             commit_info = api.create_commit(
                 repo_id,
                 operations=additions + deletions,
@@ -5803,6 +5809,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 repo_type="dataset",
                 revision=revision,
                 create_pr=create_pr,
+                parent_commit=parent_commit,
             )
         else:
             logger.info(
