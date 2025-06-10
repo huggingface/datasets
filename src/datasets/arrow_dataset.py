@@ -4937,12 +4937,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             **to_csv_kwargs,
         ).write()
 
-    def to_dict(self, batch_size: Optional[int] = None) -> Union[dict, Iterator[dict]]:
+    def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
 
         Args:
             batch_size (`int`, *optional*): The size (number of rows) of the batches if `batched` is `True`.
                 Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            batched (`bool`):
+                Set to `True` to return a generator that yields the dataset as batches
+                of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
 
         Returns:
             `dict` or `Iterator[dict]`
@@ -5045,12 +5048,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Returns the dataset as a `pandas.DataFrame`. Can also return a generator for large datasets.
 
         Args:
-            batched (`bool`):
-                Set to `True` to return a generator that yields the dataset as batches
-                of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
             batch_size (`int`, *optional*):
                 The size (number of rows) of the batches if `batched` is `True`.
                 Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            batched (`bool`):
+                Set to `True` to return a generator that yields the dataset as batches
+                of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
 
         Returns:
             `pandas.DataFrame` or `Iterator[pandas.DataFrame]`
@@ -5088,12 +5091,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Returns the dataset as a `polars.DataFrame`. Can also return a generator for large datasets.
 
         Args:
-            batched (`bool`):
-                Set to `True` to return a generator that yields the dataset as batches
-                of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
             batch_size (`int`, *optional*):
                 The size (number of rows) of the batches if `batched` is `True`.
                 Defaults to `genomicsml.datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            batched (`bool`):
+                Set to `True` to return a generator that yields the dataset as batches
+                of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
             schema_overrides (`dict`, *optional*):
                 Support type specification or override of one or more columns; note that
                 any dtypes inferred from the schema param will be overridden.
