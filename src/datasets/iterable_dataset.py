@@ -2015,6 +2015,38 @@ class IterableDataset(DatasetInfoMixin):
         self._prepare_ex_iterable_for_iteration()  # set state_dict
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)  # subclass of torch IterableDataset
 
+    @property
+    def num_columns(self) -> Optional[int]:
+        """Number of columns in the dataset.
+        This can be None if the dataset has unknown features (e.g. after a map() operation).
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
+        >>> ds.num_columns
+        2
+        ```
+        """
+        return None if self.features is None else len(self.features)
+
+    @property
+    def column_names(self) -> Optional[list[str]]:
+        """Names of the columns in the dataset.
+        This can be None if the dataset has unknown features (e.g. after a map() operation).
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation", streaming=True)
+        >>> ds.column_names
+        ['text', 'label']
+        ```
+        """
+        return None if self.features is None else list(self.features)
+
     def state_dict(self) -> dict:
         """Get the current state_dict of the dataset.
         It corresponds to the state at the latest example it yielded.
@@ -3007,21 +3039,6 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-    @property
-    def column_names(self) -> Optional[list[str]]:
-        """Names of the columns in the dataset.
-
-        Example:
-
-        ```py
-        >>> from datasets import load_dataset
-        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation", streaming=True)
-        >>> ds.column_names
-        ['text', 'label']
-        ```
-        """
-        return list(self._info.features.keys()) if self._info.features is not None else None
-
     def add_column(self, name: str, column: Union[list, np.array]) -> "IterableDataset":
         """Add column to Dataset.
 
@@ -3791,7 +3808,7 @@ class IterableDataset(DatasetInfoMixin):
         num_shards: Optional[int],
         embed_external_files: bool,
         num_proc: Optional[int],
-    ) -> tuple[list[CommitOperationAdd], int, int]:
+    ) -> tuple[list[CommitOperationAdd], int, int, int]:
         """Pushes the dataset shards as Parquet files to the hub.
 
         Returns:
@@ -3841,7 +3858,7 @@ class IterableDataset(DatasetInfoMixin):
             total=num_shards,
             desc=desc,
         )
-        with contextlib.nullcontext() if num_proc is None and num_proc > 1 else Pool(num_proc) as pool:
+        with contextlib.nullcontext() if num_proc is None or num_proc > 1 else Pool(num_proc) as pool:
             update_stream = (
                 IterableDataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
                 if pool is None
