@@ -3858,7 +3858,7 @@ class IterableDataset(DatasetInfoMixin):
             total=num_shards,
             desc=desc,
         )
-        with contextlib.nullcontext() if num_proc is None or num_proc > 1 else Pool(num_proc) as pool:
+        with contextlib.nullcontext() if num_proc is None or num_proc <= 1 else Pool(num_proc) as pool:
             update_stream = (
                 IterableDataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
                 if pool is None
@@ -3875,6 +3875,9 @@ class IterableDataset(DatasetInfoMixin):
                     additions += content[0]
                     dataset_nbytes += content[1]
                     num_examples += content[2]
+            if pool is not None:
+                pool.close()
+                pool.join()
 
         uploaded_size = sum(addition.upload_info.size for addition in additions)
         return additions, uploaded_size, dataset_nbytes, num_examples
