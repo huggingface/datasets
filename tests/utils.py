@@ -189,6 +189,18 @@ def require_torchvision(test_case):
         test_case = unittest.skip("test requires torchvision")(test_case)
     return test_case
 
+def require_torchcodec(test_case):
+    """
+    Decorator marking a test that requires torchvision.
+
+    These tests are skipped when torchvision isn't installed.
+
+    """
+    if not config.TORCHCODEC_AVAILABLE:
+        test_case = unittest.skip("test requires torchvision")(test_case)
+    return test_case
+
+
 
 def require_pdfplumber(test_case):
     """

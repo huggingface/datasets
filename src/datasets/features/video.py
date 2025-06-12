@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, ClassVar, Optional, TypedDict, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Optional, TypedDict, Union, Literal
 
 import numpy as np
 import pyarrow as pa
@@ -13,7 +13,8 @@ from ..utils.py_utils import string_to_dict
 
 
 if TYPE_CHECKING:
-    from torchvision.io import VideoReader
+    import torch
+    from torchcodec.decoders import VideoDecoder
 
     from .features import FeatureType
 
@@ -37,7 +38,7 @@ class Video:
 
       This is useful for archived files with sequential access.
 
-    - A `torchvision.io.VideoReader`: torchvision video reader object.
+    - A `torchcodec.decoders.VideoDecoder`: torchcodec video decoder object.
 
     Args:
         mode (`str`, *optional*):
@@ -54,7 +55,7 @@ class Video:
     >>> ds.features["video"]
     Video(decode=True, id=None)
     >>> ds[0]["video"]
-    <torchvision.io.video_reader.VideoReader object at 0x325b1aae0>
+    <torchcodec.decoders.VideoDecoder object at 0x325b1aae0>
     >>> ds = ds.cast_column('video', Video(decode=False))
     {'bytes': None,
      'path': 'path/to/Screen Recording.mov'}
@@ -63,29 +64,34 @@ class Video:
 
     decode: bool = True
     id: Optional[str] = None
+    stream_index: Optional[int] = None
+    dimension_order: Literal['NCHW', 'NHWC'] = 'NCHW'
+    num_ffmpeg_threads: int = 1
+    device: Optional[Union[str, "torch.device"]] = 'cpu'
+    seek_mode: Literal['exact', 'approximate'] = 'exact'
     # Automatically constructed
-    dtype: ClassVar[str] = "torchvision.io.VideoReader"
+    dtype: ClassVar[str] = "torchcodec.decoders.VideoDecoder"
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
     _type: str = field(default="Video", init=False, repr=False)
 
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, bytes, bytearray, Example, np.ndarray, "VideoReader"]) -> Example:
+    def encode_example(self, value: Union[str, bytes, bytearray, Example, np.ndarray, "VideoDecoder"]) -> Example:
         """Encode example into a format for Arrow.
 
         Args:
-            value (`str`, `np.ndarray`, `VideoReader` or `dict`):
+            value (`str`, `np.ndarray`, `VideoDecoder` or `dict`):
                 Data passed as input to Video feature.
 
         Returns:
             `dict` with "path" and "bytes" fields
         """
-        if config.TORCHVISION_AVAILABLE:
-            from torchvision.io import VideoReader
+        if config.TORCHCODEC_AVAILABLE:
+            from torchcodec.decoders import VideoDecoder
 
         else:
-            VideoReader = None
+            VideoDecoder = None
 
         if isinstance(value, list):
             value = np.array(value)
@@ -97,9 +103,9 @@ class Video:
         elif isinstance(value, np.ndarray):
             # convert the video array to bytes
             return encode_np_array(value)
-        elif VideoReader is not None and isinstance(value, VideoReader):
-            # convert the torchvision video reader to bytes
-            return encode_torchvision_video(value)
+        elif VideoDecoder is not None and isinstance(value, VideoDecoder):
+            # convert the torchcodec video decoder to bytes
+            return encode_torchcodec_video(value)
         elif isinstance(value, dict):
             path, bytes_ = value.get("path"), value.get("bytes")
             if path is not None and os.path.isfile(path):
@@ -119,7 +125,7 @@ class Video:
         self,
         value: Union[str, Example],
         token_per_repo_id: Optional[dict[str, Union[bool, str]]] = None,
-    ) -> "VideoReader":
+    ) -> "VideoDecoder":
         """Decode example video file into video data.
 
         Args:
@@ -135,16 +141,16 @@ class Video:
                 a dictionary repo_id (`str`) -> token (`bool` or `str`).
 
         Returns:
-            `torchvision.io.VideoReader`
+            `torchcodec.decoders.VideoDecoder`
         """
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Video(decode=True) instead.")
 
-        if config.TORCHVISION_AVAILABLE:
-            from torchvision.io import VideoReader
+        if config.TORCHCODEC_AVAILABLE:
+            from torchcodec.decoders import VideoDecoder
 
         else:
-            raise ImportError("To support decoding videos, please install 'torchvision'.")
+            raise ImportError("To support decoding videos, please install 'torchcodec'.")
 
         if token_per_repo_id is None:
             token_per_repo_id = {}
@@ -158,11 +164,32 @@ class Video:
             if path is None:
                 raise ValueError(f"A video should have one of 'path' or 'bytes' but both are None in {value}.")
             elif is_local_path(path):
-                video = VideoReader(path)
+                video = VideoDecoder(
+                        path, 
+                        stream_index = self.stream_index, 
+                        dimension_order=self.dimension_order, 
+                        num_ffmpeg_threads=self.num_ffmpeg_threads, 
+                        device = self.device,
+                        seek_mode = self.seek_mode
+                        )
             else:
-                video = hf_video_reader(path, token_per_repo_id=token_per_repo_id)
+                video = hf_video_reader(
+                        path,
+                        token_per_repo_id=token_per_repo_id,  
+                        dimension_order=self.dimension_order, 
+                        num_ffmpeg_threads=self.num_ffmpeg_threads, 
+                        device = self.device,
+                        seek_mode = self.seek_mode
+                        )
         else:
-            video = VideoReader(bytes_)
+            video = VideoDecoder(
+                    bytes_, 
+                    stream_index = self.stream_index, 
+                    dimension_order=self.dimension_order, 
+                    num_ffmpeg_threads=self.num_ffmpeg_threads, 
+                    device = self.device,
+                    seek_mode = self.seek_mode
+                    )
         video._hf_encoded = {"path": path, "bytes": bytes_}
         return video
 
@@ -226,17 +253,17 @@ class Video:
         return array_cast(storage, self.pa_type)
 
 
-def video_to_bytes(video: "VideoReader") -> bytes:
-    """Convert a torchvision Video object to bytes using native compression if possible"""
+def video_to_bytes(video: "VideoDecoder") -> bytes:
+    """Convert a torchcodec Video object to bytes using native compression if possible"""
     raise NotImplementedError()
 
 
-def encode_torchvision_video(video: "VideoReader") -> Example:
+def encode_torchcodec_video(video: "VideoDecoder") -> Example:
     if hasattr(video, "_hf_encoded"):
         return video._hf_encoded
     else:
         raise NotImplementedError(
-            "Encoding a VideoReader that doesn't come from datasets.Video.decode() is not implemented"
+            "Encoding a VideoDecoder that doesn't come from datasets.Video.decode() is not implemented"
         )
 
 
@@ -244,18 +271,20 @@ def encode_np_array(array: np.ndarray) -> Example:
     raise NotImplementedError()
 
 
-# Patching torchvision a little bit to:
+# No monkey patch needed!
 # 1. store the encoded video data {"path": ..., "bytes": ...} in `video._hf_encoded``
 # 2. add support for hf:// files
-# This doesn't affect the normal usage of torchvision.
-
 
 def hf_video_reader(
-    path: str, token_per_repo_id: Optional[dict[str, Union[bool, str]]] = None, stream: str = "video"
-) -> "VideoReader":
-    import av
-    from torchvision import get_video_backend
-    from torchvision.io import VideoReader
+    path: str, 
+    token_per_repo_id: Optional[dict[str, Union[bool, str]]] = None, 
+    stream: str = "video",
+    dimension_order: Literal['NCHW', 'NHWC'] = 'NCHW',
+    num_ffmpeg_threads: int = 1, 
+    device: Optional[Union[str, "torch.device"]] = 'cpu', 
+    seek_mode: Literal['exact', 'approximate'] = 'exact'
+) -> "VideoDecoder":
+    from torchcodec.decoders import VideoDecoder
 
     # Load the file from HF
     if token_per_repo_id is None:
@@ -267,14 +296,7 @@ def hf_video_reader(
     download_config = DownloadConfig(token=token)
     f = xopen(path, "rb", download_config=download_config)
 
-    # Instantiate the VideoReader
-    vr = object.__new__(VideoReader)
-    vr.backend = get_video_backend()
-    if vr.backend != "pyav":
-        raise RuntimeError(f"Unsupported video backend for VideoReader from HF files: {vr.backend}")
-    vr.container = av.open(f, metadata_errors="ignore")
-    stream_type = stream.split(":")[0]
+    # Instantiate the VideoDecoder
     stream_id = 0 if len(stream.split(":")) == 1 else int(stream.split(":")[1])
-    vr.pyav_stream = {stream_type: stream_id}
-    vr._c = vr.container.decode(**vr.pyav_stream)
-    return vr
+    vd = VideoDecoder(f, stream_index=stream_id, dimension_order = dimension_order, num_ffmpeg_threads = num_ffmpeg_threads, device = device, seek_mode = seek_mode)
+    return vd
