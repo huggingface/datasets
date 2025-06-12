@@ -269,7 +269,7 @@ if config.DILL_VERSION < version.parse("0.3.6"):
                     co_filename,
                     obj.co_name,
                     co_firstlineno,
-                    obj.co_lnotab if sys.version_info < (3, 10) else obj.co_lines,
+                    obj.co_lnotab if sys.version_info < (3, 10) else obj.co_lines(),
                     obj.co_freevars,
                     obj.co_cellvars,
                 )
@@ -287,7 +287,7 @@ if config.DILL_VERSION < version.parse("0.3.6"):
                     co_filename,
                     obj.co_name,
                     co_firstlineno,
-                    obj.co_lnotab if sys.version_info < (3, 10) else obj.co_lines,
+                    obj.co_lnotab if sys.version_info < (3, 10) else obj.co_lines(),
                     obj.co_freevars,
                     obj.co_cellvars,
                 )
@@ -304,7 +304,7 @@ if config.DILL_VERSION < version.parse("0.3.6"):
                 co_filename,
                 obj.co_name,
                 co_firstlineno,
-                obj.co_lnotab if sys.version_info < (3, 10) else obj.co_lines,
+                obj.co_lnotab if sys.version_info < (3, 10) else obj.co_lines(),
                 obj.co_freevars,
                 obj.co_cellvars,
             )
@@ -358,7 +358,7 @@ elif config.DILL_VERSION.release[:3] in [
 
         if hasattr(obj, "co_endlinetable"):  # python 3.11a (20 args)
             args = (
-                obj.co_lnotab if sys.version_info < (3, 10) else obj.co_lines,
+                obj.co_lnotab if sys.version_info < (3, 10) else obj.co_lines(),
                 obj.co_argcount,
                 obj.co_posonlyargcount,
                 obj.co_kwonlyargcount,
@@ -382,7 +382,7 @@ elif config.DILL_VERSION.release[:3] in [
             )
         elif hasattr(obj, "co_exceptiontable"):  # python 3.11 (18 args)
             args = (
-                obj.co_lnotab if sys.version_info < (3, 10) else obj.co_lines,
+                obj.co_lnotab if sys.version_info < (3, 10) else obj.co_lines(),
                 obj.co_argcount,
                 obj.co_posonlyargcount,
                 obj.co_kwonlyargcount,
@@ -404,7 +404,7 @@ elif config.DILL_VERSION.release[:3] in [
             )
         elif hasattr(obj, "co_linetable"):  # python 3.10 (16 args)
             args = (
-                obj.co_lnotab if sys.version_info < (3, 10) else obj.co_lines,
+                obj.co_lnotab if sys.version_info < (3, 10) else obj.co_lines(),
                 obj.co_argcount,
                 obj.co_posonlyargcount,
                 obj.co_kwonlyargcount,
@@ -437,7 +437,7 @@ elif config.DILL_VERSION.release[:3] in [
                 co_filename,  # Modification for huggingface/datasets ############################################
                 obj.co_name,
                 co_firstlineno,  # Modification for huggingface/datasets #########################################
-                obj.co_lnotab if sys.version_info < (3, 10) else obj.co_lines,
+                obj.co_lnotab if sys.version_info < (3, 10) else obj.co_lines(),
                 obj.co_freevars,
                 obj.co_cellvars,
             )
@@ -455,7 +455,7 @@ elif config.DILL_VERSION.release[:3] in [
                 co_filename,  # Modification for huggingface/datasets ############################################
                 obj.co_name,
                 co_firstlineno,  # Modification for huggingface/datasets #########################################
-                obj.co_lnotab if sys.version_info < (3, 10) else obj.co_lines,
+                obj.co_lnotab if sys.version_info < (3, 10) else obj.co_lines(),
                 obj.co_freevars,
                 obj.co_cellvars,
             )
