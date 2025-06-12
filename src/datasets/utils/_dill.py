@@ -359,7 +359,7 @@ elif config.DILL_VERSION.release[:3] in [
 
         if hasattr(obj, "co_endlinetable"):  # python 3.11a (20 args)
             args = (
-                obj.co_linetable,
+                obj.co_linetable,  # Modification for huggingface/datasets ############################################
                 obj.co_argcount,
                 obj.co_posonlyargcount,
                 obj.co_kwonlyargcount,
@@ -383,7 +383,7 @@ elif config.DILL_VERSION.release[:3] in [
             )
         elif hasattr(obj, "co_exceptiontable"):  # python 3.11 (18 args)
             args = (
-                obj.co_linetable,
+                obj.co_linetable,  # Modification for huggingface/datasets #######################################
                 obj.co_argcount,
                 obj.co_posonlyargcount,
                 obj.co_kwonlyargcount,
@@ -405,7 +405,7 @@ elif config.DILL_VERSION.release[:3] in [
             )
         elif hasattr(obj, "co_linetable"):  # python 3.10 (16 args)
             args = (
-                obj.co_linetable,
+                obj.co_linetable,  # Modification for huggingface/datasets #######################################
                 obj.co_argcount,
                 obj.co_posonlyargcount,
                 obj.co_kwonlyargcount,
