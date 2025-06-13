@@ -12,31 +12,6 @@ from datasets.hub import delete_from_hub
 from datasets.utils.hub import hf_dataset_url
 
 
-DUMMY_DATASET_SCRIPT = dedent("""\
-import datasets
-
-
-class NewDataset(datasets.GeneratorBasedBuilder):
-    BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="first"),
-        datasets.BuilderConfig(name="second"),
-    ]
-    DEFAULT_CONFIG_NAME = "first"
-
-    def _info(self):
-        return datasets.DatasetInfo(
-            features=datasets.Features({"text": datasets.Value("string")}),
-        )
-
-    def _split_generators(self, dl_manager):
-        return [datasets.SplitGenerator(name=datasets.Split.TRAIN)]
-
-    def _generate_examples(self):
-        for key in range(5):
-            yield key, {"text": f"{self.config.name}-{key}"}
-""")
-
-
 @pytest.mark.parametrize("repo_id", ["canonical_dataset_name", "org-name/dataset-name"])
 @pytest.mark.parametrize("filename", ["filename.csv", "filename with blanks.csv"])
 @pytest.mark.parametrize("revision", [None, "v2"])
