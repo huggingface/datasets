@@ -1,4 +1,7 @@
+import os
+
 import pytest
+from huggingface_hub.utils._headers import _http_user_agent
 
 import datasets
 import datasets.config
@@ -27,6 +30,15 @@ def set_test_cache_config(tmp_path_factory, monkeypatch):
     test_extracted_datasets_path = test_hf_datasets_cache / "downloads" / "extracted"
     monkeypatch.setattr("datasets.config.EXTRACTED_DATASETS_PATH", str(test_extracted_datasets_path))
 
+
+def _http_ci_user_agent(*args, **kwargs):
+    ua = _http_user_agent(*args, **kwargs)
+    return ua + os.environ.get("CI_HEADERS", "")
+
+
+@pytest.fixture(autouse=True)
+def set_hf_ci_headers(monkeypatch):
+    monkeypatch.setattr("huggingface_hub.utils._headers._http_user_agent", _http_ci_user_agent)
 
 @pytest.fixture(autouse=True)
 def disable_implicit_token(monkeypatch):
