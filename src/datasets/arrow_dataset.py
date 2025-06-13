@@ -662,6 +662,9 @@ class Column(Sequence_):
     def __str__(self):
         return "Column(" + str(list(self[:5])) + ")"
 
+    def __eq__(self, value):
+        return list(self) == value
+
 
 class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     """A Dataset backed by an Arrow table."""
