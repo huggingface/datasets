@@ -9,7 +9,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Dataset, Features, Image, Sequence, Value, concatenate_datasets, load_dataset
+from datasets import Column, Dataset, Features, Image, Sequence, Value, concatenate_datasets, load_dataset
 from datasets.features.image import encode_np_array, image_to_bytes
 
 from ..utils import require_pil
@@ -149,7 +149,7 @@ def test_dataset_with_image_feature(shared_datadir):
     assert batch["image"][0].mode == "RGB"
     column = dset["image"]
     assert len(column) == 1
-    assert isinstance(column, list) and all(isinstance(item, PIL.Image.Image) for item in column)
+    assert isinstance(column, Column) and all(isinstance(item, PIL.Image.Image) for item in column)
     assert os.path.samefile(column[0].filename, image_path)
     assert column[0].format == "JPEG"
     assert column[0].size == (640, 480)
@@ -182,7 +182,7 @@ def test_dataset_with_image_feature_from_pil_image(infer_feature, shared_datadir
     assert batch["image"][0].mode == "RGB"
     column = dset["image"]
     assert len(column) == 1
-    assert isinstance(column, list) and all(isinstance(item, PIL.Image.Image) for item in column)
+    assert isinstance(column, Column) and all(isinstance(item, PIL.Image.Image) for item in column)
     assert os.path.samefile(column[0].filename, image_path)
     assert column[0].format == "JPEG"
     assert column[0].size == (640, 480)
@@ -215,7 +215,7 @@ def test_dataset_with_image_feature_from_np_array():
     assert batch["image"][0].size == (640, 480)
     column = dset["image"]
     assert len(column) == 1
-    assert isinstance(column, list) and all(isinstance(item, PIL.Image.Image) for item in column)
+    assert isinstance(column, Column) and all(isinstance(item, PIL.Image.Image) for item in column)
     np.testing.assert_array_equal(np.array(column[0]), image_array)
     assert column[0].filename == ""
     assert column[0].format in ["PNG", "TIFF"]
@@ -250,7 +250,7 @@ def test_dataset_with_image_feature_tar_jpg(tar_jpg_path):
     assert batch["image"][0].mode == "RGB"
     column = dset["image"]
     assert len(column) == 1
-    assert isinstance(column, list) and all(isinstance(item, PIL.Image.Image) for item in column)
+    assert isinstance(column, Column) and all(isinstance(item, PIL.Image.Image) for item in column)
     assert column[0].filename == ""
     assert column[0].format == "JPEG"
     assert column[0].size == (640, 480)
@@ -271,7 +271,7 @@ def test_dataset_with_image_feature_with_none():
     assert isinstance(batch["image"], list) and all(item is None for item in batch["image"])
     column = dset["image"]
     assert len(column) == 1
-    assert isinstance(column, list) and all(item is None for item in column)
+    assert isinstance(column, Column) and all(item is None for item in column)
 
     # nested tests
 
@@ -527,8 +527,8 @@ def test_formatted_dataset_with_image_feature(shared_datadir):
         assert batch["image"].shape == (1, 480, 640, 3)
         column = dset["image"]
         assert len(column) == 2
-        assert isinstance(column, np.ndarray)
-        assert column.shape == (2, 480, 640, 3)
+        assert isinstance(column[:], np.ndarray)
+        assert column[:].shape == (2, 480, 640, 3)
 
     with dset.formatted_as("pandas"):
         item = dset[0]

@@ -173,7 +173,7 @@ class ArrayXDTest(unittest.TestCase):
         }
 
     def _check_getitem_output_type(self, dataset, shape_1, shape_2, first_matrix):
-        matrix_column = dataset["matrix"]
+        matrix_column = dataset["matrix"][:]
         self.assertIsInstance(matrix_column, list)
         self.assertIsInstance(matrix_column[0], list)
         self.assertIsInstance(matrix_column[0][0], list)
@@ -192,7 +192,7 @@ class ArrayXDTest(unittest.TestCase):
         self.assertTupleEqual(np.array(matrix_field_of_first_two_examples).shape, (2, *shape_2))
 
         with dataset.formatted_as("numpy"):
-            self.assertTupleEqual(dataset["matrix"].shape, (2, *shape_2))
+            self.assertTupleEqual(dataset["matrix"][:].shape, (2, *shape_2))
             self.assertEqual(dataset[0]["matrix"].shape, shape_2)
             self.assertTupleEqual(dataset[:2]["matrix"].shape, (2, *shape_2))
 
