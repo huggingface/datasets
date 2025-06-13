@@ -400,7 +400,7 @@ class BaseDatasetTest(TestCase):
                 self.assertIsInstance(dset[0]["col_1"], np.int64)
                 self.assertEqual(dset[0]["col_1"].item(), 3)
                 self.assertIsInstance(dset["col_1"][:], np.ndarray)
-                self.assertListEqual(list(dset["col_1"].shape), [4])
+                self.assertListEqual(list(dset["col_1"][:].shape), [4])
                 np.testing.assert_array_equal(dset["col_1"][:], np.array([3, 2, 1, 0]))
                 self.assertNotEqual(dset._fingerprint, fingerprint)
 
