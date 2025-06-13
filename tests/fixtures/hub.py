@@ -53,7 +53,12 @@ def _http_ci_user_agent(*args, **kwargs):
 
 @pytest.fixture(autouse=True)
 def set_hf_ci_headers(monkeypatch):
+    old_environ = dict(os.environ)
+    os.environ["TRANSFORMERS_IS_CI"] = "1"
     monkeypatch.setattr("huggingface_hub.utils._headers._http_user_agent", _http_ci_user_agent)
+    yield
+    os.environ.clear()
+    os.environ.update(old_environ)
 
 
 @pytest.fixture(scope="session")
