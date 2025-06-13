@@ -45,7 +45,7 @@ def test_dataset_url(repo_id, filename, revision):
     assert url == f"https://huggingface.co/datasets/{repo_id}/resolve/{revision or 'main'}/{quote(filename)}"
 
 
-def test_delete_from_hub(temporary_repo, hf_api, hf_token, csv_path, ci_hub_config, ci_hfh_hf_hub_url) -> None:
+def test_delete_from_hub(temporary_repo, hf_api, hf_token, csv_path, ci_hub_config) -> None:
     with temporary_repo() as repo_id:
         hf_api.create_repo(repo_id, token=hf_token, repo_type="dataset")
         hf_api.upload_file(
