@@ -9,12 +9,13 @@ import pyarrow as pa
 from .. import config
 from ..download.download_config import DownloadConfig
 from ..table import array_cast
-from ..utils.file_utils import xopen, xsplitext
+from ..utils.file_utils import xopen, is_local_path,xsplitext
 from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
 
 
 if TYPE_CHECKING:
     from .features import FeatureType
+    from torchcodec.decoders import AudioDecoder
 
 
 @dataclass
@@ -66,6 +67,7 @@ class Audio:
     mono: bool = True
     decode: bool = True
     id: Optional[str] = None
+    stream_index: Optional[int] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
@@ -74,11 +76,11 @@ class Audio:
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, bytes, bytearray, dict]) -> dict:
+    def encode_example(self, value: Union[str, bytes, bytearray, dict, "AudioDecoder"]) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
-            value (`str` or `dict`):
+            value (`str`, `bytes`,`bytearray`,`dict`, `AudioDecoder`):
                 Data passed as input to Audio feature.
 
         Returns:
@@ -88,10 +90,22 @@ class Audio:
             import soundfile as sf  # soundfile is a dependency of librosa, needed to decode audio files.
         except ImportError as err:
             raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
+
+        try:
+            from torchcodec.decoders import AudioDecoder
+        except ImportError as err:
+            raise ImportError("To support encoding audio data, please install 'torchcodec'.") from err
+        
         if isinstance(value, str):
             return {"bytes": None, "path": value}
         elif isinstance(value, (bytes, bytearray)):
             return {"bytes": value, "path": None}
+        elif isinstance(value, AudioDecoder):
+            samples = value.get_all_samples()
+            array = samples.data.cpu().numpy().T
+            buffer = BytesIO()
+            sf.write(buffer, array, samples.sample_rate, format="wav")
+            return {"bytes": buffer.getvalue(), "path": None}
         elif "array" in value:
             # convert the audio array to wav bytes
             buffer = BytesIO()
@@ -125,7 +139,7 @@ class Audio:
 
     def decode_example(
         self, value: dict, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None
-    ) -> dict:
+    ) -> "AudioDecoder":
         """Decode example audio file into audio data.
 
         Args:
@@ -142,6 +156,11 @@ class Audio:
         Returns:
             `dict`
         """
+        try:
+            from torchcodec.decoders import AudioDecoder
+        except ImportError as err:
+            raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
+        
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Audio(decode=True) instead.")
 
@@ -149,25 +168,18 @@ class Audio:
         if path is None and file is None:
             raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
 
-        try:
-            import librosa
-            import soundfile as sf
-        except ImportError as err:
-            raise ImportError("To support decoding audio files, please install 'librosa' and 'soundfile'.") from err
-
-        audio_format = xsplitext(path)[1][1:].lower() if path is not None else None
-        if not config.IS_OPUS_SUPPORTED and audio_format == "opus":
-            raise RuntimeError(
-                "Decoding 'opus' files requires system library 'libsndfile'>=1.0.31, "
-                'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
-            )
-        elif not config.IS_MP3_SUPPORTED and audio_format == "mp3":
-            raise RuntimeError(
-                "Decoding 'mp3' files requires system library 'libsndfile'>=1.1.0, "
-                'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
-            )
-
-        if file is None:
+        channels = 1 if self.mono else None
+        if file is None and is_local_path(path):
+            # print("is_local_path")
+            # print("stream_index", self.stream_index)
+            # print("sample_rate", self.sampling_rate)
+            # print("num_channels", channels)
+            ad = AudioDecoder(path, stream_index = self.stream_index, sample_rate = self.sampling_rate, num_channels = channels)
+            # print("ad", ad)
+            # print("ad.metadata", ad.metadata)
+            # print("ad.metadata.sample_rate", ad.metadata.sample_rate)
+          
+        elif file is None:
             token_per_repo_id = token_per_repo_id or {}
             source_url = path.split("::")[-1]
             pattern = (
@@ -178,19 +190,12 @@ class Audio:
 
             download_config = DownloadConfig(token=token)
             with xopen(path, "rb", download_config=download_config) as f:
-                array, sampling_rate = sf.read(f)
+                ad = AudioDecoder(f, stream_index = self.stream_index, sample_rate = self.sampling_rate, num_channels = channels)
 
         else:
-            array, sampling_rate = sf.read(file)
-
-        array = array.T
-        if self.mono:
-            array = librosa.to_mono(array)
-        if self.sampling_rate and self.sampling_rate != sampling_rate:
-            array = librosa.resample(array, orig_sr=sampling_rate, target_sr=self.sampling_rate)
-            sampling_rate = self.sampling_rate
-
-        return {"path": path, "array": array, "sampling_rate": sampling_rate}
+            ad = AudioDecoder(file, stream_index = self.stream_index, sample_rate = self.sampling_rate, num_channels = channels)
+            
+        return ad
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """If in the decodable state, raise an error, otherwise flatten the feature into a dictionary."""

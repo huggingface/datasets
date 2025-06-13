@@ -111,6 +111,11 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
 
             if isinstance(value, VideoReader):
                 return value  # TODO(QL): set output to jax arrays ?
+        if config.TORCHCODEC_AVAILABLE and "torchcodec" in sys.modules:
+            from torchcodec.decoders import VideoDecoder, AudioDecoder
+
+            if isinstance(value, (VideoDecoder, AudioDecoder)):
+                return value  # TODO(QL): set output to jax arrays ?
 
         # using global variable since `jaxlib.xla_extension.Device` is not serializable neither
         # with `pickle` nor with `dill`, so we need to use a global variable instead
