@@ -185,6 +185,7 @@ TESTS_REQUIRE = [
     "polars[timezone]>=0.20.0",
     "torchvision",
     "av",
+    "pandas>=2.2.3",  # to get recent versions of numba and llvmlite for windows ci
 ]
 
 
