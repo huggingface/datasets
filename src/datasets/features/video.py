@@ -46,6 +46,21 @@ class Video:
         decode (`bool`, defaults to `True`):
             Whether to decode the video data. If `False`,
             returns the underlying dictionary in the format `{"path": video_path, "bytes": video_bytes}`.
+        stream_index (`int`, *optional*):
+            The streaming index to use from the file. If `None` defaults to the "best" index.
+        dimension_order (`str`, defaults to `NCHW`): 
+            The dimension order of the decoded frames. 
+            where N is the batch size, C is the number of channels, 
+            H is the height, and W is the width of the frames. 
+        num_ffmpeg_threads (`int`, defaults to `1`):
+            The number of threads to use for decoding the video. (Recommended to keep this at 1)
+        device (`str` or `torch.device`, defaults to `cpu`):
+            The device to use for decoding the video.
+        seek_mode (`str`, defaults to `exact`):
+            Determines if frame access will be “exact” or “approximate”. 
+            Exact guarantees that requesting frame i will always return frame i, but doing so requires an initial scan of the file. 
+            Approximate is faster as it avoids scanning the file, but less accurate as it uses the file's metadata to calculate where i probably is.
+            read more [here](https://docs.pytorch.org/torchcodec/stable/generated_examples/approximate_mode.html#sphx-glr-generated-examples-approximate-mode-py)
 
     Examples:
 
@@ -55,7 +70,7 @@ class Video:
     >>> ds.features["video"]
     Video(decode=True, id=None)
     >>> ds[0]["video"]
-    <torchcodec.decoders.VideoDecoder object at 0x325b1aae0>
+    <torchcodec.decoders._video_decoder.VideoDecoder object at 0x14a61e080>
     >>> ds = ds.cast_column('video', Video(decode=False))
     {'bytes': None,
      'path': 'path/to/Screen Recording.mov'}
@@ -81,7 +96,7 @@ class Video:
         """Encode example into a format for Arrow.
 
         Args:
-            value (`str`, `np.ndarray`, `VideoDecoder` or `dict`):
+            value (`str`, `np.ndarray`, `bytes`, `bytearray`, `VideoDecoder` or `dict`):
                 Data passed as input to Video feature.
 
         Returns:

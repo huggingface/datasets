@@ -279,7 +279,7 @@ def test_data_files_with_metadata_and_single_split(streaming, cache_dir, data_fi
         dataset = list(datasets[split])
         assert len(dataset) == expected_num_of_audios
         # make sure each sample has its own audio and metadata
-        assert len({example["audio"]["path"] for example in dataset}) == expected_num_of_audios
+        assert len({example["audio"].metadata.path for example in dataset}) == expected_num_of_audios
         assert len({example["text"] for example in dataset}) == expected_num_of_audios
         assert all(example["text"] is not None for example in dataset)
 
@@ -298,7 +298,7 @@ def test_data_files_with_metadata_and_multiple_splits(streaming, cache_dir, data
         dataset = list(datasets[split])
         assert len(dataset) == expected_num_of_audios
         # make sure each sample has its own audio and metadata
-        assert len({example["audio"]["path"] for example in dataset}) == expected_num_of_audios
+        assert len({example["audio"].metadata.path for example in dataset}) == expected_num_of_audios
         assert len({example["text"] for example in dataset}) == expected_num_of_audios
         assert all(example["text"] is not None for example in dataset)
 
@@ -318,7 +318,7 @@ def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_
         assert len(dataset) == expected_num_of_audios
         # make sure each sample has its own audio (all arrays are different) and metadata
         assert (
-            sum(np.array_equal(dataset[0]["audio"]["array"], example["audio"]["array"]) for example in dataset[1:])
+            sum(np.array_equal(dataset[0]["audio"].get_all_samples().data.numpy(), example["audio"].get_all_samples().data.numpy()) for example in dataset[1:])
             == 0
         )
         assert len({example["text"] for example in dataset}) == expected_num_of_audios

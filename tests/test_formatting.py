@@ -315,11 +315,11 @@ class FormatterTest(TestCase):
         pa_table = pa.table({"audio": [{"bytes": None, "path": str(AUDIO_PATH_1)}]})
         formatter = NumpyFormatter(features=Features({"audio": Audio()}))
         row = formatter.format_row(pa_table)
-        self.assertEqual(row["audio"]["array"].dtype, np.dtype(np.float32))
+        self.assertEqual(row["audio"].get_all_samples().data.cpu().numpy().dtype, np.dtype(np.float32))
         col = formatter.format_column(pa_table)
-        self.assertEqual(col[0]["array"].dtype, np.float32)
+        self.assertEqual(col[0].get_all_samples().data.cpu().numpy().dtype, np.float32)
         batch = formatter.format_batch(pa_table)
-        self.assertEqual(batch["audio"][0]["array"].dtype, np.dtype(np.float32))
+        self.assertEqual(batch["audio"][0].get_all_samples().data.cpu().numpy().dtype, np.dtype(np.float32))
 
     def test_pandas_formatter(self):
         pa_table = self._create_dummy_table()
@@ -442,11 +442,11 @@ class FormatterTest(TestCase):
         pa_table = pa.table({"audio": [{"bytes": None, "path": str(AUDIO_PATH_1)}]})
         formatter = TorchFormatter(features=Features({"audio": Audio()}))
         row = formatter.format_row(pa_table)
-        self.assertEqual(row["audio"]["array"].dtype, torch.float32)
+        self.assertEqual(row["audio"].get_all_samples().data.dtype, torch.float32)
         col = formatter.format_column(pa_table)
-        self.assertEqual(col[0]["array"].dtype, torch.float32)
+        self.assertEqual(col[0].get_all_samples().data.dtype, torch.float32)
         batch = formatter.format_batch(pa_table)
-        self.assertEqual(batch["audio"][0]["array"].dtype, torch.float32)
+        self.assertEqual(batch["audio"][0].get_all_samples().data.dtype, torch.float32)
 
     @require_tf
     def test_tf_formatter(self):
@@ -535,11 +535,14 @@ class FormatterTest(TestCase):
         pa_table = pa.table({"audio": [{"bytes": None, "path": str(AUDIO_PATH_1)}]})
         formatter = TFFormatter(features=Features({"audio": Audio()}))
         row = formatter.format_row(pa_table)
-        self.assertEqual(row["audio"]["array"].dtype, tf.float32)
+        tf_row = tf.convert_to_tensor(row["audio"].get_all_samples().data.cpu().numpy())
+        self.assertEqual(tf_row.dtype, tf.float32)
         col = formatter.format_column(pa_table)
-        self.assertEqual(col[0]["array"].dtype, tf.float32)
+        tf_col_0 = tf.convert_to_tensor(col[0].get_all_samples().data.cpu().numpy())
+        self.assertEqual(tf_col_0.dtype, tf.float32)
         batch = formatter.format_batch(pa_table)
-        self.assertEqual(batch["audio"][0]["array"].dtype, tf.float32)
+        tf_batch_0 = tf.convert_to_tensor(batch["audio"][0].get_all_samples().data.cpu().numpy())
+        self.assertEqual(tf_batch_0.dtype, tf.float32)
 
     @require_jax
     def test_jax_formatter(self):

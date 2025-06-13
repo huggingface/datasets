@@ -4,8 +4,8 @@ Sometimes, you may need to create a dataset if you're working with your own data
 
 In this tutorial, you'll learn how to use 🤗 Datasets low-code methods for creating all types of datasets:
 
-* Folder-based builders for quickly creating an image or audio dataset
-* `from_` methods for creating datasets from local files
+- Folder-based builders for quickly creating an image or audio dataset
+- `from_` methods for creating datasets from local files
 
 ## File-based builders
 
@@ -24,10 +24,10 @@ To get the list of supported formats and code examples, follow this guide [here]
 
 There are two folder-based builders, [`ImageFolder`] and [`AudioFolder`]. These are low-code methods for quickly creating an image or speech and audio dataset with several thousand examples. They are great for rapidly prototyping computer vision and speech models before scaling to a larger dataset. Folder-based builders takes your data and automatically generates the dataset's features, splits, and labels. Under the hood:
 
-* [`ImageFolder`] uses the [`~datasets.Image`] feature to decode an image file. Many image extension formats are supported, such as jpg and png, but other formats are also supported. You can check the complete [list](https://github.com/huggingface/datasets/blob/b5672a956d5de864e6f5550e493527d962d6ae55/src/datasets/packaged_modules/imagefolder/imagefolder.py#L39) of supported image extensions.
-* [`AudioFolder`] uses the [`~datasets.Audio`] feature to decode an audio file. Audio extensions such as wav and mp3 are supported, and you can check the complete [list](https://github.com/huggingface/datasets/blob/b5672a956d5de864e6f5550e493527d962d6ae55/src/datasets/packaged_modules/audiofolder/audiofolder.py#L39) of supported audio extensions.
+- [`ImageFolder`] uses the [`~datasets.Image`] feature to decode an image file. Many image extension formats are supported, such as jpg and png, but other formats are also supported. You can check the complete [list](https://github.com/huggingface/datasets/blob/b5672a956d5de864e6f5550e493527d962d6ae55/src/datasets/packaged_modules/imagefolder/imagefolder.py#L39) of supported image extensions.
+- [`AudioFolder`] uses the [`~datasets.Audio`] feature to decode an audio file. Extensions such as wav, mp3, and even mp4 are supported, and you can check the complete [list](https://ffmpeg.org/ffmpeg-formats.html) of supported audio extensions. Decoding is done via ffmpeg.
 
-The dataset splits are generated from the repository structure, and the label names are automatically inferred from the directory name. 
+The dataset splits are generated from the repository structure, and the label names are automatically inferred from the directory name.
 
 For example, if your image dataset (it is the same for an audio dataset) is stored like this:
 
@@ -44,7 +44,7 @@ pokemon/test/water/wartortle.png
 Then this is how the folder-based builder generates an example:
 
 <div class="flex justify-center">
-    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/folder-based-builder.png"/>
+  <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/folder-based-builder.png" />
 </div>
 
 Create the image dataset by specifying `imagefolder` in [`load_dataset`]:

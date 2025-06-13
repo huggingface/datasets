@@ -48,6 +48,8 @@ class Audio:
         decode (`bool`, defaults to `True`):
             Whether to decode the audio data. If `False`,
             returns the underlying dictionary in the format `{"path": audio_path, "bytes": audio_bytes}`.
+        stream_index (`int`, *optional*):
+            The streaming index to use from the file. If `None` defaults to the "best" index.
 
     Example:
 
@@ -56,10 +58,7 @@ class Audio:
     >>> ds = load_dataset("PolyAI/minds14", name="en-US", split="train")
     >>> ds = ds.cast_column("audio", Audio(sampling_rate=16000))
     >>> ds[0]["audio"]
-    {'array': array([ 2.3443763e-05,  2.1729663e-04,  2.2145823e-04, ...,
-         3.8356509e-05, -7.3497440e-06, -2.1754686e-05], dtype=float32),
-     'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-US~JOINT_ACCOUNT/602ba55abb1e6d0fbce92065.wav',
-     'sampling_rate': 16000}
+    <torchcodec.decoders._audio_decoder.AudioDecoder object at 0x11642b6a0>
     ```
     """
 
@@ -154,7 +153,7 @@ class Audio:
                 a dictionary repo_id (`str`) -> token (`bool` or `str`)
 
         Returns:
-            `dict`
+            `AudioDecoder`
         """
         try:
             from torchcodec.decoders import AudioDecoder
@@ -170,14 +169,7 @@ class Audio:
 
         channels = 1 if self.mono else None
         if file is None and is_local_path(path):
-            # print("is_local_path")
-            # print("stream_index", self.stream_index)
-            # print("sample_rate", self.sampling_rate)
-            # print("num_channels", channels)
             ad = AudioDecoder(path, stream_index = self.stream_index, sample_rate = self.sampling_rate, num_channels = channels)
-            # print("ad", ad)
-            # print("ad.metadata", ad.metadata)
-            # print("ad.metadata.sample_rate", ad.metadata.sample_rate)
           
         elif file is None:
             token_per_repo_id = token_per_repo_id or {}
@@ -194,7 +186,7 @@ class Audio:
 
         else:
             ad = AudioDecoder(file, stream_index = self.stream_index, sample_rate = self.sampling_rate, num_channels = channels)
-            
+        ad.metadata.path = path
         return ad
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
