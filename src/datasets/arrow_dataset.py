@@ -663,7 +663,10 @@ class Column(Sequence_):
         return "Column(" + str(list(self[:5])) + ")"
 
     def __eq__(self, value):
-        return list(self) == value
+        if isinstance(value, Column):
+            return list(self) == list(value)
+        else:
+            return value == list(self)
 
 
 class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
