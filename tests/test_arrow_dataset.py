@@ -399,9 +399,9 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(len(dset[0]), 1)
                 self.assertIsInstance(dset[0]["col_1"], np.int64)
                 self.assertEqual(dset[0]["col_1"].item(), 3)
-                self.assertIsInstance(dset["col_1"], np.ndarray)
+                self.assertIsInstance(dset["col_1"][:], np.ndarray)
                 self.assertListEqual(list(dset["col_1"].shape), [4])
-                np.testing.assert_array_equal(dset["col_1"], np.array([3, 2, 1, 0]))
+                np.testing.assert_array_equal(dset["col_1"][:], np.array([3, 2, 1, 0]))
                 self.assertNotEqual(dset._fingerprint, fingerprint)
 
                 dset.reset_format()
@@ -409,7 +409,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset[0]), 1)
                     self.assertIsInstance(dset[0]["col_1"], np.int64)
                     self.assertEqual(dset[0]["col_1"].item(), 3)
-                    self.assertIsInstance(dset["col_1"], np.ndarray)
+                    self.assertIsInstance(dset["col_1"][:], np.ndarray)
                     self.assertListEqual(list(dset["col_1"].shape), [4])
                     np.testing.assert_array_equal(dset["col_1"], np.array([3, 2, 1, 0]))
 
@@ -438,7 +438,7 @@ class BaseDatasetTest(TestCase):
                 dset.set_format(type="torch", columns=["col_1"])
                 self.assertEqual(len(dset[0]), 1)
                 self.assertIsInstance(dset[0]["col_1"], torch.Tensor)
-                self.assertIsInstance(dset["col_1"], torch.Tensor)
+                self.assertIsInstance(dset["col_1"][:], torch.Tensor)
                 self.assertListEqual(list(dset[0]["col_1"].shape), [])
                 self.assertEqual(dset[0]["col_1"].item(), 3)
 
@@ -450,13 +450,13 @@ class BaseDatasetTest(TestCase):
                 dset.set_format(type="torch")
                 self.assertEqual(len(dset[0]), 3)
                 self.assertIsInstance(dset[0]["col_1"], torch.Tensor)
-                self.assertIsInstance(dset["col_1"], torch.Tensor)
+                self.assertIsInstance(dset["col_1"][:], torch.Tensor)
                 self.assertListEqual(list(dset[0]["col_1"].shape), [])
                 self.assertEqual(dset[0]["col_1"].item(), 3)
                 self.assertIsInstance(dset[0]["col_2"], str)
                 self.assertEqual(dset[0]["col_2"], "a")
                 self.assertIsInstance(dset[0]["col_3"], torch.Tensor)
-                self.assertIsInstance(dset["col_3"], torch.Tensor)
+                self.assertIsInstance(dset["col_3"][:], torch.Tensor)
                 self.assertListEqual(list(dset[0]["col_3"].shape), [])
 
     @require_tf
@@ -889,7 +889,7 @@ class BaseDatasetTest(TestCase):
                 repeated_dset = dset.repeat(3)
                 column_values_dict = {col: dset[col] for col in dset.column_names}
                 for col, single_values in column_values_dict.items():
-                    self.assertListEqual(repeated_dset[col][:], single_values * 3)
+                    self.assertListEqual(repeated_dset[col][:], single_values[:] * 3)
                 del repeated_dset
 
         with tempfile.TemporaryDirectory() as tmp_dir:

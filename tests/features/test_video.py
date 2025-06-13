@@ -1,6 +1,6 @@
 import pytest
 
-from datasets import Dataset, Features, Video
+from datasets import Column, Dataset, Features, Video
 
 from ..utils import require_torchvision
 
@@ -53,7 +53,7 @@ def test_dataset_with_video_feature(shared_datadir):
     assert isinstance(next(batch["video"][0])["data"], torch.Tensor)
     column = dset["video"]
     assert len(column) == 1
-    assert isinstance(column, list) and all(isinstance(item, VideoReader) for item in column)
+    assert isinstance(column, Column) and all(isinstance(item, VideoReader) for item in column)
     assert next(column[0])["data"].shape == (3, 50, 66)
     assert isinstance(next(column[0])["data"], torch.Tensor)
 

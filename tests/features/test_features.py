@@ -9,7 +9,7 @@ import pyarrow as pa
 import pytest
 
 from datasets import Array2D
-from datasets.arrow_dataset import Dataset
+from datasets.arrow_dataset import Column, Dataset
 from datasets.features import Audio, ClassLabel, Features, Image, LargeList, Sequence, Value
 from datasets.features.features import (
     _align_features,
@@ -492,7 +492,7 @@ def test_dataset_feature_with_none(feature):
     assert isinstance(batch["col"], list) and all(item is None for item in batch["col"])
     column = dset["col"]
     assert len(column) == 1
-    assert isinstance(column, list) and all(item is None for item in column)
+    assert isinstance(column, Column) and all(item is None for item in column)
 
     # nested tests
 
