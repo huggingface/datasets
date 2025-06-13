@@ -1,6 +1,6 @@
 import pytest
 
-from datasets import Dataset, Features, Video, Value
+from datasets import Dataset, Features, Video, Value, Audio, load_dataset
 
 from ..utils import require_torchcodec
 
@@ -91,7 +91,7 @@ def test_dataset_with_video_map_and_formatted(shared_datadir):
     # assert isinstance(example["video"][0], np.ndarray)
 
 
-# Added Test Case
+# Dataset casting and mapping
 def test_dataset_with_video_feature_map_is_decoded(shared_datadir):
     video_path = str(shared_datadir / "test_video_66x50.mov")
     data = {"video": [video_path], "text": ["Hello"]}
@@ -119,3 +119,28 @@ def test_dataset_with_video_feature_map_is_decoded(shared_datadir):
     for item in decoded_dset.cast_column("video", Video(decode=False)):
         assert item.keys() == {"video", "text", "double_begin_stream_seconds"}
         assert item["double_begin_stream_seconds"] == 0.0 
+
+@pytest.fixture
+def jsonl_video_dataset_path(shared_datadir, tmp_path_factory):
+    import json
+
+    video_path = str(shared_datadir / "test_video_66x50.mov")
+    data = [{"video": video_path, "text": "Hello world!"}]
+    path = str(tmp_path_factory.mktemp("data") / "video_dataset.jsonl")
+    with open(path, "w") as f:
+        for item in data:
+            f.write(json.dumps(item) + "\n")
+    return path
+
+@require_torchcodec
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_with_video_feature(streaming, jsonl_video_dataset_path, shared_datadir):
+    from torchcodec.decoders import VideoDecoder
+    video_path = str(shared_datadir / "test_video_66x50.mov")
+    data_files = jsonl_video_dataset_path
+    features = Features({"video": Video(), "text": Value("string")})
+    dset = load_dataset("json", split="train", data_files=data_files, features=features, streaming=streaming)
+    item = dset[0] if not streaming else next(iter(dset))
+    assert item.keys() == {"video", "text"}
+    assert isinstance(item["video"], VideoDecoder)
+    assert item["video"].get_frame_at(0).data.shape == (3, 50, 66)
