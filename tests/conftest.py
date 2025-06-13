@@ -40,6 +40,7 @@ def _http_ci_user_agent(*args, **kwargs):
 def set_hf_ci_headers(monkeypatch):
     monkeypatch.setattr("huggingface_hub.utils._headers._http_user_agent", _http_ci_user_agent)
 
+
 @pytest.fixture(autouse=True)
 def disable_implicit_token(monkeypatch):
     monkeypatch.setattr("huggingface_hub.constants.HF_HUB_DISABLE_IMPLICIT_TOKEN", True)
