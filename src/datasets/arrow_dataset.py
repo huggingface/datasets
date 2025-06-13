@@ -627,6 +627,42 @@ class NonExistentDatasetError(Exception):
     pass
 
 
+class Column(Sequence_):
+    """An iterable for a specific column of an [`Dataset`]."""
+
+    def __init__(self, source: Union["Dataset", "Column"], column_name: str):
+        self.source = source
+        self.column_name = column_name
+        if not isinstance(source.features, dict) or column_name not in source.features:
+            raise ValueError(f"Column '{column_name}' doesn't exist.")
+        self.features = source.features[column_name]
+
+    def __iter__(self) -> Iterator[Any]:
+        if isinstance(self.source, Dataset):
+            source = self.source._fast_select_column(self.column_name)
+        for example in source:
+            yield example[self.column_name]
+
+    def __getitem__(self, key: Union[int, str, list[int]]) -> Any:
+        if isinstance(key, str):
+            return Column(self, key)
+        elif isinstance(self.source, Dataset):
+            return self.source._fast_select_column(self.column_name)[key][self.column_name]
+        elif isinstance(key, int):
+            return self.source[key][self.column_name]
+        else:
+            return [item[self.column_name] for item in self.source[key]]
+
+    def __len__(self) -> int:
+        return len(self.source)
+
+    def __repr__(self):
+        return "Column(" + repr(list(self[:5])) + ")"
+
+    def __str__(self):
+        return "Column(" + str(list(self[:5])) + ")"
+
+
 class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     """A Dataset backed by an Arrow table."""
 
@@ -2354,6 +2390,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
+    @transmit_format
+    def _fast_select_column(self, column_name: str) -> "Dataset":
+        dataset = copy.copy(self)
+        dataset._data = dataset._data.select([column_name])
+        dataset._info = DatasetInfo(features=Features({column_name: self._info.features[column_name]}))
+        return dataset
+
     def __len__(self):
         """Number of rows in the dataset.
 
@@ -2776,6 +2819,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     def __getitem__(self, key):  # noqa: F811
         """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
+        if isinstance(key, str):
+            if self._format_type is None or self._format_type not in ("arrow", "pandas", "polars"):
+                return Column(self, key)
         return self._getitem(key)
 
     def __getitems__(self, keys: list) -> list:
