@@ -8,6 +8,7 @@ import pytest
 import requests
 from huggingface_hub.hf_api import HfApi, RepositoryNotFoundError
 from huggingface_hub.utils import hf_raise_for_status
+from huggingface_hub.utils._headers import _http_user_agent
 
 
 CI_HUB_USER = "__DUMMY_TRANSFORMERS_USER__"
@@ -38,9 +39,20 @@ def set_ci_hub_access_token(ci_hub_config, monkeypatch):
     monkeypatch.setattr("huggingface_hub.constants.HF_HUB_DISABLE_IMPLICIT_TOKEN", False)
     old_environ = dict(os.environ)
     os.environ["HF_TOKEN"] = CI_HUB_USER_TOKEN
+    os.environ["HF_HUB_DISABLE_IMPLICIT_TOKEN"] = "0"
     yield
     os.environ.clear()
     os.environ.update(old_environ)
+
+
+def _http_ci_user_agent(*args, **kwargs):
+    ua = _http_user_agent(*args, **kwargs)
+    return ua + os.environ.get("CI_HEADERS", "")
+
+
+@pytest.fixture(autouse=True)
+def set_hf_ci_headers(monkeypatch):
+    monkeypatch.setattr("huggingface_hub.utils._headers._http_user_agent", _http_ci_user_agent)
 
 
 @pytest.fixture(scope="session")
