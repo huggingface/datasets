@@ -81,14 +81,12 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         if isinstance(k, (str, NamedSplit)) or len(self) == 0:
             return super().__getitem__(k)
         else:
-            available_suggested_splits = [
-                split for split in (Split.TRAIN, Split.TEST, Split.VALIDATION) if split in self
-            ]
-            suggested_split = available_suggested_splits[0] if available_suggested_splits else list(self)[0]
+            available_splits = [f"'{split}'" for split in sorted(self.keys())]
+            available_splits_str = ", ".join(available_splits) if available_splits else 'no available splits'
             raise KeyError(
-                f"Invalid key: {k}. Please first select a split. For example: "
-                f"`my_dataset_dictionary['{suggested_split}'][{k}]`. "
-                f"Available splits: {sorted(self)}"
+                f"Invalid key: '{k}'. Expected a split name (str or NamedSplit). "
+                f"Available splits: {available_splits_str}. "
+                "Please select a split first, e.g. with dataset_dict['train']"
             )
 
     @property

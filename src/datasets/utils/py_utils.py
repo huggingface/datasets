@@ -357,9 +357,18 @@ class NonMutableDict(dict):
             raise ValueError(self._error_msg.format(key=key))
         return super().__setitem__(key, value)
 
-    def update(self, other):
-        if any(k in self for k in other):
-            raise ValueError(self._error_msg.format(key=set(self) & set(other)))
+    def update(self, *args, **kwargs):
+        if args:
+            if len(args) > 1:
+                raise TypeError(f"update expected at most 1 positional argument, got {len(args)}")
+            other = args[0]
+            if not hasattr(other, 'keys'):
+                raise TypeError(f"argument must be a mapping or an iterable of key-value pairs, got {type(other).__name__}")
+            other = dict(other)
+            for key in other:
+                self.__setitem__(key, other[key])
+        for key, value in kwargs.items():
+            self.__setitem__(key, value)
         return super().update(other)
 
 
