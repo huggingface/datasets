@@ -45,7 +45,7 @@ pytestmark = pytest.mark.integration
 
 
 @for_all_test_methods(xfail_if_500_502_http_error)
-@pytest.mark.usefixtures("ci_hub_config", "ci_hfh_hf_hub_url")
+@pytest.mark.usefixtures("ci_hub_config")
 class TestPushToHub:
     _api = HfApi(endpoint=CI_HUB_ENDPOINT)
     _token = CI_HUB_USER_TOKEN
@@ -969,7 +969,7 @@ def text_file_with_metadata(request, tmp_path, text_file):
 
 
 @for_all_test_methods(xfail_if_500_502_http_error)
-@pytest.mark.usefixtures("ci_hub_config", "ci_hfh_hf_hub_url")
+@pytest.mark.usefixtures("ci_hub_config")
 class TestLoadFromHub:
     _api = HfApi(endpoint=CI_HUB_ENDPOINT)
     _token = CI_HUB_USER_TOKEN

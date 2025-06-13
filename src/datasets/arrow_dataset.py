@@ -5517,7 +5517,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             total=num_shards,
             desc=desc,
         )
-        with contextlib.nullcontext() if num_proc is None and num_proc > 1 else Pool(num_proc) as pool:
+        with contextlib.nullcontext() if num_proc is None or num_proc <= 1 else Pool(num_proc) as pool:
             update_stream = (
                 Dataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
                 if pool is None
