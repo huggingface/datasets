@@ -31,6 +31,7 @@ from .arrow_dataset import (
 from .features import Features
 from .features.features import FeatureType
 from .info import DatasetInfo, DatasetInfosDict
+from .iterable_dataset import IterableDataset
 from .naming import _split_re
 from .splits import NamedSplit, Split, SplitDict, SplitInfo
 from .table import Table
@@ -49,7 +50,7 @@ class bind(partial):
         return self.func(*fn_args, *self.args, **fn_kwargs)
 
 
-class DatasetDict(dict):
+class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
     """A dictionary (dict of str: datasets.Dataset) with dataset transforms methods (map, filter, etc.)"""
 
     def _check_values_type(self):
@@ -1616,6 +1617,7 @@ class DatasetDict(dict):
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[dict[str, int]] = None,
         embed_external_files: bool = True,
+        num_proc: Optional[int] = None,
     ) -> CommitInfo:
         """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
         The [`DatasetDict`] is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -1676,6 +1678,12 @@ class DatasetDict(dict):
                 In particular, this will do the following before the push for the fields of type:
 
                 - [`Audio`] and [`Image`] removes local path information and embed file content in the Parquet files.
+            num_proc (`int`, *optional*, defaults to `None`):
+                Number of processes when preparing and uploading the dataset.
+                This is helpful if the dataset is made of many samples or media files to embed.
+                Multiprocessing is disabled by default.
+
+                <Added version="4.0.0"/>
 
         Return:
             huggingface_hub.CommitInfo
@@ -1756,6 +1764,7 @@ class DatasetDict(dict):
                 max_shard_size=max_shard_size,
                 num_shards=num_shards.get(split),
                 embed_external_files=embed_external_files,
+                num_proc=num_proc,
             )
             additions += split_additions
             total_uploaded_size += uploaded_size
@@ -1910,11 +1919,60 @@ class DatasetDict(dict):
         return commit_info
 
 
-class IterableDatasetDict(dict):
+class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
+    def _check_values_type(self):
+        for dataset in self.values():
+            if not isinstance(dataset, IterableDataset):
+                raise TypeError(f"Values in `DatasetDict` should be of type `Dataset` but got type '{type(dataset)}'")
+
+    def _check_values_features(self):
+        items = [(key, dataset._resolve_features()) for key, dataset in self.items()]
+        for item_a, item_b in zip(items[:-1], items[1:]):
+            if item_a[1].features != item_b[1].features:
+                raise ValueError(
+                    f"All datasets in `DatasetDict` should have the same features but features for '{item_a[0]}' and '{item_b[0]}' don't match: {item_a[1].features} != {item_b[1].features}"
+                )
+
     def __repr__(self):
         repr = "\n".join([f"{k}: {v}" for k, v in self.items()])
         repr = re.sub(r"^", " " * 4, repr, count=0, flags=re.M)
         return f"IterableDatasetDict({{\n{repr}\n}})"
+
+    @property
+    def num_columns(self) -> dict[str, Optional[int]]:
+        """Number of columns in each split of the dataset.
+        This can contain None valies if some splits have unknown features (e.g. after a map() operation).
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
+        >>> ds.num_columns
+        {'test': 2, 'train': 2, 'validation': 2}
+        ```
+        """
+        self._check_values_type()
+        return {k: dataset.num_columns for k, dataset in self.items()}
+
+    @property
+    def column_names(self) -> dict[str, Optional[list[str]]]:
+        """Names of the columns in each split of the dataset.
+        This can contain None valies if some splits have unknown features (e.g. after a map() operation).
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
+        >>> ds.column_names
+        {'test': ['text', 'label'],
+         'train': ['text', 'label'],
+         'validation': ['text', 'label']}
+        ```
+        """
+        self._check_values_type()
+        return {k: dataset.column_names for k, dataset in self.items()}
 
     def with_format(
         self,
@@ -2385,6 +2443,7 @@ class IterableDatasetDict(dict):
         # max_shard_size: Optional[Union[int, str]] = None,  # TODO(QL): add arg
         num_shards: Optional[dict[str, int]] = None,
         embed_external_files: bool = True,
+        num_proc: Optional[int] = None,
     ) -> CommitInfo:
         """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
         The [`DatasetDict`] is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -2436,6 +2495,12 @@ class IterableDatasetDict(dict):
                 In particular, this will do the following before the push for the fields of type:
 
                 - [`Audio`] and [`Image`] removes local path information and embed file content in the Parquet files.
+            num_proc (`int`, *optional*, defaults to `None`):
+                Number of processes when preparing and uploading the dataset.
+                This is helpful if the dataset is made of many samples or media files to embed.
+                Multiprocessing is disabled by default.
+
+                <Added version="4.0.0"/>
 
         Return:
             huggingface_hub.CommitInfo
@@ -2505,7 +2570,7 @@ class IterableDatasetDict(dict):
         for split in self.keys():
             logger.info(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
-            split_additions, uploaded_size, dataset_nbytes = self[split]._push_parquet_shards_to_hub(
+            split_additions, uploaded_size, dataset_nbytes, num_examples = self[split]._push_parquet_shards_to_hub(
                 repo_id,
                 data_dir=data_dir,
                 split=split,
@@ -2515,11 +2580,12 @@ class IterableDatasetDict(dict):
                 # max_shard_size=max_shard_size,  # TODO(QL): add arg
                 num_shards=num_shards.get(split),
                 embed_external_files=embed_external_files,
+                num_proc=num_proc,
             )
             additions += split_additions
             total_uploaded_size += uploaded_size
             total_dataset_nbytes += dataset_nbytes
-            info_to_dump.splits[split] = SplitInfo(str(split), num_bytes=dataset_nbytes, num_examples=len(self[split]))
+            info_to_dump.splits[split] = SplitInfo(str(split), num_bytes=dataset_nbytes, num_examples=num_examples)
         info_to_dump.download_checksums = None
         info_to_dump.download_size = total_uploaded_size
         info_to_dump.dataset_size = total_dataset_nbytes

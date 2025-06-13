@@ -8,6 +8,7 @@ import pytest
 import requests
 from huggingface_hub.hf_api import HfApi, RepositoryNotFoundError
 from huggingface_hub.utils import hf_raise_for_status
+from huggingface_hub.utils._headers import _http_user_agent
 
 
 CI_HUB_USER = "__DUMMY_TRANSFORMERS_USER__"
@@ -20,16 +21,17 @@ CI_HFH_HUGGINGFACE_CO_URL_TEMPLATE = CI_HUB_ENDPOINT + "/{repo_id}/resolve/{revi
 
 
 @pytest.fixture
-def ci_hfh_hf_hub_url(monkeypatch):
-    monkeypatch.setattr(
-        "huggingface_hub.file_download.HUGGINGFACE_CO_URL_TEMPLATE", CI_HFH_HUGGINGFACE_CO_URL_TEMPLATE
-    )
-
-
-@pytest.fixture
 def ci_hub_config(monkeypatch):
     monkeypatch.setattr("datasets.config.HF_ENDPOINT", CI_HUB_ENDPOINT)
     monkeypatch.setattr("datasets.config.HUB_DATASETS_URL", CI_HUB_DATASETS_URL)
+    monkeypatch.setattr(
+        "huggingface_hub.file_download.HUGGINGFACE_CO_URL_TEMPLATE", CI_HFH_HUGGINGFACE_CO_URL_TEMPLATE
+    )
+    old_environ = dict(os.environ)
+    os.environ["HF_ENDPOINT"] = CI_HUB_ENDPOINT
+    yield
+    os.environ.clear()
+    os.environ.update(old_environ)
 
 
 @pytest.fixture
@@ -38,6 +40,22 @@ def set_ci_hub_access_token(ci_hub_config, monkeypatch):
     monkeypatch.setattr("huggingface_hub.constants.HF_HUB_DISABLE_IMPLICIT_TOKEN", False)
     old_environ = dict(os.environ)
     os.environ["HF_TOKEN"] = CI_HUB_USER_TOKEN
+    os.environ["HF_HUB_DISABLE_IMPLICIT_TOKEN"] = "0"
+    yield
+    os.environ.clear()
+    os.environ.update(old_environ)
+
+
+def _http_ci_user_agent(*args, **kwargs):
+    ua = _http_user_agent(*args, **kwargs)
+    return ua + os.environ.get("CI_HEADERS", "")
+
+
+@pytest.fixture(autouse=True)
+def set_hf_ci_headers(monkeypatch):
+    old_environ = dict(os.environ)
+    os.environ["TRANSFORMERS_IS_CI"] = "1"
+    monkeypatch.setattr("huggingface_hub.utils._headers._http_user_agent", _http_ci_user_agent)
     yield
     os.environ.clear()
     os.environ.update(old_environ)
@@ -105,7 +123,7 @@ def _hf_gated_dataset_repo_txt_data(hf_api: HfApi, hf_token, text_file_content):
 
 
 @pytest.fixture()
-def hf_gated_dataset_repo_txt_data(_hf_gated_dataset_repo_txt_data, ci_hub_config, ci_hfh_hf_hub_url):
+def hf_gated_dataset_repo_txt_data(_hf_gated_dataset_repo_txt_data, ci_hub_config):
     return _hf_gated_dataset_repo_txt_data
 
 
@@ -129,7 +147,7 @@ def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file_content
 
 
 @pytest.fixture()
-def hf_private_dataset_repo_txt_data(hf_private_dataset_repo_txt_data_, ci_hub_config, ci_hfh_hf_hub_url):
+def hf_private_dataset_repo_txt_data(hf_private_dataset_repo_txt_data_, ci_hub_config):
     return hf_private_dataset_repo_txt_data_
 
 
@@ -153,9 +171,7 @@ def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_wi
 
 
 @pytest.fixture()
-def hf_private_dataset_repo_zipped_txt_data(
-    hf_private_dataset_repo_zipped_txt_data_, ci_hub_config, ci_hfh_hf_hub_url
-):
+def hf_private_dataset_repo_zipped_txt_data(hf_private_dataset_repo_zipped_txt_data_, ci_hub_config):
     return hf_private_dataset_repo_zipped_txt_data_
 
 
@@ -179,7 +195,5 @@ def hf_private_dataset_repo_zipped_img_data_(hf_api: HfApi, hf_token, zip_image_
 
 
 @pytest.fixture()
-def hf_private_dataset_repo_zipped_img_data(
-    hf_private_dataset_repo_zipped_img_data_, ci_hub_config, ci_hfh_hf_hub_url
-):
+def hf_private_dataset_repo_zipped_img_data(hf_private_dataset_repo_zipped_img_data_, ci_hub_config):
     return hf_private_dataset_repo_zipped_img_data_

@@ -808,17 +808,28 @@ The example below uses the [`pydub`](http://pydub.com/) package to open an audio
 
 ## Save
 
-Once you are done processing your dataset, you can save and reuse it later with [`~Dataset.save_to_disk`].
+Once your dataset is ready, you can save it as a Hugging Face Dataset in Parquet format and reuse it later with [`load_dataset`].
 
-Save your dataset by providing the path to the directory you wish to save it to:
+Save your dataset by providing the name of the dataset repository on Hugging Face you wish to save it to to [`~IterableDataset.push_to_hub`]:
+
+```python
+encoded_dataset.push_to_hub("username/my_dataset")
+```
+
+Use the [`load_dataset`] function to reload the dataset (in streaming mode or not):
+
+```python
+from datasets import load_dataset
+reloaded_dataset = load_dataset("username/my_dataset", streaming=True)
+```
+
+Alternatively, you can save it locally in Arrow format on disk. Compared to Parquet, Arrow is uncompressed which makes it much faster to reload which is great for local use on disk and ephemeral caching. But since it's larger and with less metadata, it is slower to upload/download/query than Parquet and less suited for long term storage.
+
+Use the [`~Dataset.save_to_disk`] and [`load_from_disk`] function to reload the dataset from your disk:
 
 ```py
 >>> encoded_dataset.save_to_disk("path/of/my/dataset/directory")
-```
-
-Use the [`load_from_disk`] function to reload the dataset:
-
-```py
+>>> # later
 >>> from datasets import load_from_disk
 >>> reloaded_dataset = load_from_disk("path/of/my/dataset/directory")
 ```

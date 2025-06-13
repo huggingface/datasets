@@ -242,8 +242,8 @@ class DatasetBuilder:
 
             </Added>
         hash (`str`, *optional*):
-            Hash specific to the dataset code. Used to update the caching directory when the
-            dataset loading script code is updated (to avoid reusing old data).
+            Hash specific to the dataset builder code. Used to update the caching directory when the
+            dataset builder code is updated (to avoid reusing old data).
             The typical caching directory (defined in `self._relative_data_dir`) is `name/version/hash/`.
         base_path (`str`, *optional*):
             Base path for relative paths that are used to download files.
@@ -1011,7 +1011,7 @@ class DatasetBuilder:
                 raise DuplicatedKeysError(
                     e.key,
                     e.duplicate_key_indices,
-                    fix_msg=f"To avoid duplicate keys, please fix the dataset script {self.name}.py",
+                    fix_msg=f"To avoid duplicate keys, please fix the dataset splits for {self.name}",
                 ) from None
             dl_manager.manage_extracted_files()
 

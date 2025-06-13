@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import copy
 import fnmatch
 import inspect
@@ -25,6 +26,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from huggingface_hub import CommitInfo, CommitOperationAdd, CommitOperationDelete, DatasetCard, DatasetCardData, HfApi
 from huggingface_hub.hf_api import RepoFile
+from multiprocess import Pool
 
 from . import config
 from .arrow_dataset import PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED, Dataset, DatasetInfoMixin
@@ -54,12 +56,16 @@ from .table import cast_table_to_features, embed_table_storage, read_schema_from
 from .utils import tqdm as hf_tqdm
 from .utils.logging import get_logger
 from .utils.metadata import MetadataConfigs
-from .utils.py_utils import Literal, asdict, glob_pattern_to_regex, string_to_dict
+from .utils.py_utils import Literal, asdict, glob_pattern_to_regex, iflatmap_unordered, string_to_dict
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 from .utils.typing import PathLike
 
 
 if TYPE_CHECKING:
+    import sqlite3
+
+    import polars as pl
+    import sqlalchemy
     import torch
 
 logger = get_logger(__name__)
@@ -1859,7 +1865,10 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         if not self.formatting or self.formatting.is_table:
-            formatter = PythonFormatter(features=self._features if not self.ex_iterable.is_typed else None)
+            formatter = PythonFormatter(
+                features=self._features if not self.ex_iterable.is_typed else None,
+                token_per_repo_id=self.token_per_repo_id,
+            )
         else:
             formatter = get_formatter(
                 self.formatting.format_type,
@@ -2005,6 +2014,38 @@ class IterableDataset(DatasetInfoMixin):
         self._starting_state_dict: Optional[dict] = None
         self._prepare_ex_iterable_for_iteration()  # set state_dict
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)  # subclass of torch IterableDataset
+
+    @property
+    def num_columns(self) -> Optional[int]:
+        """Number of columns in the dataset.
+        This can be None if the dataset has unknown features (e.g. after a map() operation).
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
+        >>> ds.num_columns
+        2
+        ```
+        """
+        return None if self.features is None else len(self.features)
+
+    @property
+    def column_names(self) -> Optional[list[str]]:
+        """Names of the columns in the dataset.
+        This can be None if the dataset has unknown features (e.g. after a map() operation).
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation", streaming=True)
+        >>> ds.column_names
+        ['text', 'label']
+        ```
+        """
+        return None if self.features is None else list(self.features)
 
     def state_dict(self) -> dict:
         """Get the current state_dict of the dataset.
@@ -2998,21 +3039,6 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-    @property
-    def column_names(self) -> Optional[list[str]]:
-        """Names of the columns in the dataset.
-
-        Example:
-
-        ```py
-        >>> from datasets import load_dataset
-        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation", streaming=True)
-        >>> ds.column_names
-        ['text', 'label']
-        ```
-        """
-        return list(self._info.features.keys()) if self._info.features is not None else None
-
     def add_column(self, name: str, column: Union[list, np.array]) -> "IterableDataset":
         """Add column to Dataset.
 
@@ -3408,6 +3434,249 @@ class IterableDataset(DatasetInfoMixin):
             batch_fn, batched=True, batch_size=batch_size, drop_last_batch=drop_last_batch, features=features
         )
 
+    def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
+        """Returns the dataset as a Python dict. Can also return a generator for large datasets.
+
+        Args:
+            batch_size (`int`, *optional*): The size (number of rows) of the batches if `batched` is `True`.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+
+        Returns:
+            `dict` or `Iterator[dict]`
+
+        Example:
+
+        ```py
+        >>> ds.to_dict()
+        ```
+        """
+        if batched:
+            for table in self.with_format("arrow").iter(batch_size=batch_size):
+                yield Dataset(table, fingerprint="unset").to_dict()
+        else:
+            table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+            return Dataset(table, fingerprint="unset").to_dict()
+
+    def to_list(self) -> list:
+        """Returns the dataset as a Python list.
+
+        Returns:
+            `list`
+
+        Example:
+
+        ```py
+        >>> ds.to_list()
+        ```
+        """
+        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+        return Dataset(table, fingerprint="unset").to_list()
+
+    def to_pandas(
+        self, batch_size: Optional[int] = None, batched: bool = False
+    ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
+        """Returns the dataset as a `pandas.DataFrame`. Can also return a generator for large datasets.
+
+        Args:
+            batch_size (`int`, *optional*):
+                The size (number of rows) of the batches if `batched` is `True`.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            batched (`bool`):
+                Set to `True` to return a generator that yields the dataset as batches
+                of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
+
+        Returns:
+            `pandas.DataFrame` or `Iterator[pandas.DataFrame]`
+
+        Example:
+
+        ```py
+        >>> ds.to_pandas()
+        ```
+        """
+        if batched:
+            for table in self.with_format("arrow").iter(batch_size=batch_size):
+                yield Dataset(table, fingerprint="unset").to_pandas()
+        else:
+            table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+            return Dataset(table, fingerprint="unset").to_pandas()
+
+    def to_polars(
+        self,
+        batch_size: Optional[int] = None,
+        batched: bool = False,
+        schema_overrides: Optional[dict] = None,
+        rechunk: bool = True,
+    ) -> Union["pl.DataFrame", Iterator["pl.DataFrame"]]:
+        """Returns the dataset as a `polars.DataFrame`. Can also return a generator for large datasets.
+
+        Args:
+            batch_size (`int`, *optional*):
+                The size (number of rows) of the batches if `batched` is `True`.
+                Defaults to `genomicsml.datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            batched (`bool`):
+                Set to `True` to return a generator that yields the dataset as batches
+                of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
+            schema_overrides (`dict`, *optional*):
+                Support type specification or override of one or more columns; note that
+                any dtypes inferred from the schema param will be overridden.
+            rechunk (`bool`):
+                Make sure that all data is in contiguous memory. Defaults to `True`.
+        Returns:
+            `polars.DataFrame` or `Iterator[polars.DataFrame]`
+
+        Example:
+
+        ```py
+        >>> ds.to_polars()
+        ```
+        """
+        if batched:
+            for table in self.with_format("arrow").iter(batch_size=batch_size):
+                yield Dataset(table, fingerprint="unset").to_polars(schema_overrides=schema_overrides, rechunk=rechunk)
+        else:
+            table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+            return Dataset(table, fingerprint="unset").to_polars(schema_overrides=schema_overrides, rechunk=rechunk)
+
+    def to_csv(
+        self,
+        path_or_buf: Union[PathLike, BinaryIO],
+        batch_size: Optional[int] = None,
+        storage_options: Optional[dict] = None,
+        **to_csv_kwargs,
+    ) -> int:
+        """Exports the dataset to csv.
+
+        This iterates on the dataset and loads it completely in memory before writing it.
+
+        Args:
+            path_or_buf (`PathLike` or `FileOrBuffer`):
+                Either a path to a file (e.g. `file.csv`), a remote URI (e.g. `hf://datasets/username/my_dataset_name/data.csv`),
+                or a BinaryIO, where the dataset will be saved to in the specified format.
+            batch_size (`int`, *optional*):
+                Size of the batch to load in memory and write at once.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+            **to_csv_kwargs (additional keyword arguments):
+                Parameters to pass to pandas's [`pandas.DataFrame.to_csv`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_csv.html).
+                The parameter `index` defaults to `False` if not specified.
+                If you would like to write the index, pass `index=True` and also set a name for the index column by
+                passing `index_label`.
+
+        Returns:
+            `int`: The number of characters or bytes written.
+
+        Example:
+
+        ```py
+        >>> ds.to_csv("path/to/dataset/directory")
+        ```
+        """
+        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+        return Dataset(table, fingerprint="unset").to_csv(
+            path_or_buf,
+            batch_size=batch_size,
+            storage_options=storage_options,
+            **to_csv_kwargs,
+        )
+
+    def to_json(
+        self,
+        path_or_buf: Union[PathLike, BinaryIO],
+        batch_size: Optional[int] = None,
+        storage_options: Optional[dict] = None,
+        **to_json_kwargs,
+    ) -> int:
+        """Export the dataset to JSON Lines or JSON.
+
+        This iterates on the dataset and loads it completely in memory before writing it.
+
+        The default output format is [JSON Lines](https://jsonlines.org/).
+        To export to [JSON](https://www.json.org), pass `lines=False` argument and the desired `orient`.
+
+        Args:
+            path_or_buf (`PathLike` or `FileOrBuffer`):
+                Either a path to a file (e.g. `file.json`), a remote URI (e.g. `hf://datasets/username/my_dataset_name/data.json`),
+                or a BinaryIO, where the dataset will be saved to in the specified format.
+            batch_size (`int`, *optional*):
+                Size of the batch to load in memory and write at once.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+            **to_json_kwargs (additional keyword arguments):
+                Parameters to pass to pandas's [`pandas.DataFrame.to_json`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html).
+                Default arguments are `lines=True` and `orient="records".
+                The parameter `index` defaults to `False` if `orient` is `"split"` or `"table"`.
+                If you would like to write the index, pass `index=True`.
+
+        Returns:
+            `int`: The number of characters or bytes written.
+
+        Example:
+
+        ```py
+        >>> ds.to_json("path/to/dataset/directory/filename.jsonl")
+        ```
+
+        ```py
+        >>> num_shards = dataset.num_shards
+        >>> for index in range(num_shards):
+        ...     shard = dataset.shard(index, num_shards)
+        ...     shard.to_json(f"path/of/my/dataset/data-{index:05d}.jsonl")
+        ```
+
+        """
+        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+        return Dataset(table, fingerprint="unset").to_json(
+            path_or_buf,
+            batch_size=batch_size,
+            storage_options=storage_options,
+            **to_json_kwargs,
+        )
+
+    def to_sql(
+        self,
+        name: str,
+        con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
+        batch_size: Optional[int] = None,
+        **sql_writer_kwargs,
+    ) -> int:
+        """Exports the dataset to a SQL database.
+
+        Args:
+            name (`str`):
+                Name of SQL table.
+            con (`str` or `sqlite3.Connection` or `sqlalchemy.engine.Connection` or `sqlalchemy.engine.Connection`):
+                A [URI string](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls) or a SQLite3/SQLAlchemy connection object used to write to a database.
+            batch_size (`int`, *optional*):
+                Size of the batch to load in memory and write at once.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            **sql_writer_kwargs (additional keyword arguments):
+                Parameters to pass to pandas's [`pandas.DataFrame.to_sql`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_sql.html).
+                The parameter `index` defaults to `False` if not specified.
+                If you would like to write the index, pass `index=True` and also set a name for the index column by
+                passing `index_label`.
+
+
+        Returns:
+            `int`: The number of records written.
+
+        Example:
+
+        ```py
+        >>> # con provided as a connection URI string
+        >>> ds.to_sql("data", "sqlite:///my_own_db.sql")
+        >>> # con provided as a sqlite3 connection object
+        >>> import sqlite3
+        >>> con = sqlite3.connect("my_own_db.sql")
+        >>> with con:
+        ...     ds.to_sql("data", con)
+        ```
+        """
+        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+        return Dataset(table, fingerprint="unset").to_sql(name, con, batch_size=batch_size, **sql_writer_kwargs)
+
     def to_parquet(
         self,
         path_or_buf: Union[PathLike, BinaryIO],
@@ -3439,28 +3708,36 @@ class IterableDataset(DatasetInfoMixin):
         ```py
         >>> ds.to_parquet("path/to/dataset/directory")
         ```
+
+        ```py
+        >>> num_shards = dataset.num_shards
+        >>> for index in range(num_shards):
+        ...     shard = dataset.shard(index, num_shards)
+        ...     shard.to_parquet(f"path/of/my/dataset/data-{index:05d}.parquet")
+        ```
+
         """
-        # Dynamic import to avoid circular dependency
-        from .io.parquet import ParquetDatasetWriter, get_writer_batch_size
+        from .io.parquet import get_writer_batch_size
 
         batch_size = get_writer_batch_size(self.features)
         table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=batch_size)))
-        dataset = Dataset(table, fingerprint="unset")
-        return ParquetDatasetWriter(
-            dataset, path_or_buf, batch_size=batch_size, storage_options=storage_options, **parquet_writer_kwargs
-        ).write()
+        return Dataset(table, fingerprint="unset").to_parquet(
+            path_or_buf, batch_size=batch_size, storage_options=storage_options, **parquet_writer_kwargs
+        )
 
-    def _push_parquet_shards_to_hub(
+    def _push_parquet_shards_to_hub_single(
         self,
+        job_id: int,
+        num_jobs: int,
         repo_id: str,
-        data_dir: str = "data",
-        split: Optional[str] = None,
-        token: Optional[str] = None,
-        revision: Optional[str] = None,
-        create_pr: Optional[bool] = False,
+        data_dir: str,
+        split: str,
+        token: Optional[str],
+        revision: Optional[str],
+        create_pr: Optional[bool],
         # max_shard_size: Optional[Union[int, str]] = None,  # TODO(QL): add arg
-        num_shards: Optional[int] = None,
-        embed_external_files: bool = True,
+        num_shards: int,
+        embed_external_files: bool,
     ) -> tuple[list[CommitOperationAdd], int, int]:
         """Pushes the dataset shards as Parquet files to the hub.
 
@@ -3469,31 +3746,15 @@ class IterableDataset(DatasetInfoMixin):
             uploaded_size (`int`): number of uploaded bytes to the repository
             dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset after uncompression
         """
-        # Find decodable columns, because if there are any, we need to:
-        # embed the bytes from the files in the shards
-        decodable_columns = (
-            [k for k, v in self._info.features.items() if require_decoding(v, ignore_decode_attribute=True)]
-            if embed_external_files
-            else []
+
+        div = num_shards // num_jobs
+        mod = num_shards % num_jobs
+        start = div * job_id + min(job_id, mod)
+        end = start + div + (1 if job_id < mod else 0)
+
+        index_shards = (
+            (start + i, self.shard(num_shards=end - start, index=i, contiguous=True)) for i in range(end - start)
         )
-
-        num_shards = self.num_shards
-        shards = (self.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
-
-        if decodable_columns:
-            from .io.parquet import get_writer_batch_size
-
-            def shards_with_embedded_external_files(shards: Iterator[IterableDataset]) -> Iterator[IterableDataset]:
-                for shard in shards:
-                    shard = shard.with_format("arrow")
-                    shard = shard.map(
-                        partial(embed_table_storage, token_per_repo_id=self._token_per_repo_id),
-                        batched=True,
-                        batch_size=get_writer_batch_size(shard.features),
-                    )
-                    yield shard
-
-            shards = shards_with_embedded_external_files(shards)
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
@@ -3501,11 +3762,16 @@ class IterableDataset(DatasetInfoMixin):
         dataset_nbytes = 0
         num_examples = 0
         additions: list[CommitOperationAdd] = []
-        for index, shard in hf_tqdm(
-            enumerate(shards),
-            desc="Uploading the dataset shards",
-            total=num_shards,
-        ):
+        for index, shard in index_shards:
+            if embed_external_files:
+                from .io.parquet import get_writer_batch_size
+
+                shard = shard.with_format("arrow")
+                shard = shard.map(
+                    partial(embed_table_storage, token_per_repo_id=self._token_per_repo_id),
+                    batched=True,
+                    batch_size=get_writer_batch_size(shard.features),
+                )
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
             buffer = BytesIO()
             shard.to_parquet(buffer)
@@ -3526,7 +3792,94 @@ class IterableDataset(DatasetInfoMixin):
                 create_pr=create_pr,
             )
             additions.append(shard_addition)
+            yield job_id, False, 1
 
+        yield job_id, True, (additions, dataset_nbytes, num_examples)
+
+    def _push_parquet_shards_to_hub(
+        self,
+        repo_id: str,
+        data_dir: str,
+        split: str,
+        token: Optional[str],
+        revision: Optional[str],
+        create_pr: Optional[bool],
+        # max_shard_size: Optional[Union[int, str]],  # TODO(QL): add arg
+        num_shards: Optional[int],
+        embed_external_files: bool,
+        num_proc: Optional[int],
+    ) -> tuple[list[CommitOperationAdd], int, int, int]:
+        """Pushes the dataset shards as Parquet files to the hub.
+
+        Returns:
+            additions (`List[CommitOperation]`): list of the `CommitOperationAdd` of the uploaded shards
+            uploaded_size (`int`): number of uploaded bytes to the repository
+            dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset after uncompression
+            num_examples (`int`): number of examples of the uploaded dataset
+        """
+
+        # Find decodable columns, because if there are any, we need to:
+        # embed the bytes from the files in the shards
+        decodable_columns = (
+            [k for k, v in self._info.features.items() if require_decoding(v, ignore_decode_attribute=True)]
+            if embed_external_files
+            else []
+        )
+        embed_external_files = embed_external_files and bool(decodable_columns)
+
+        if num_shards is None:
+            # TODO(QL): this can depend on max_shard_size later
+            num_shards = self.num_shards
+
+        additions: list[CommitOperationAdd] = []
+        dataset_nbytes = num_examples = 0
+
+        num_jobs = num_proc or 1
+        kwargs_iterable = [
+            {
+                "self": self.shard(num_shards=num_jobs, index=job_id, contiguous=True),
+                "job_id": job_id,
+                "num_jobs": num_jobs,
+                "repo_id": repo_id,
+                "data_dir": data_dir,
+                "split": split,
+                "token": token,
+                "revision": revision,
+                "create_pr": create_pr,
+                "num_shards": num_shards,
+                "embed_external_files": embed_external_files,
+            }
+            for job_id in range(num_jobs)
+        ]
+        desc = "Uploading the dataset shards"
+        desc += f" (num_proc={num_proc})" if num_proc is not None and num_proc > 1 else ""
+        pbar = hf_tqdm(
+            unit=" shards",
+            total=num_shards,
+            desc=desc,
+        )
+        with contextlib.nullcontext() if num_proc is None or num_proc <= 1 else Pool(num_proc) as pool:
+            update_stream = (
+                IterableDataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
+                if pool is None
+                else iflatmap_unordered(
+                    pool,
+                    IterableDataset._push_parquet_shards_to_hub_single,
+                    kwargs_iterable=kwargs_iterable,
+                )
+            )
+            for job_id, done, content in update_stream:
+                if not done:
+                    pbar.update(content)
+                else:
+                    additions += content[0]
+                    dataset_nbytes += content[1]
+                    num_examples += content[2]
+            if pool is not None:
+                pool.close()
+                pool.join()
+
+        uploaded_size = sum(addition.upload_info.size for addition in additions)
         return additions, uploaded_size, dataset_nbytes, num_examples
 
     def push_to_hub(
@@ -3545,6 +3898,7 @@ class IterableDataset(DatasetInfoMixin):
         # max_shard_size: Optional[Union[int, str]] = None,  # TODO(QL): add arg
         num_shards: Optional[int] = None,
         embed_external_files: bool = True,
+        num_proc: Optional[int] = None,
     ) -> CommitInfo:
         """Pushes the dataset to the hub as a Parquet dataset.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -3591,6 +3945,10 @@ class IterableDataset(DatasetInfoMixin):
                 In particular, this will do the following before the push for the fields of type:
 
                 - [`Audio`] and [`Image`]: remove local path information and embed file content in the Parquet files.
+            num_proc (`int`, *optional*, defaults to `None`):
+                Number of processes when preparing and uploading the dataset.
+                This is helpful if the dataset is made of many samples and transformations.
+                Multiprocessing is disabled by default.
 
         Return:
             huggingface_hub.CommitInfo
@@ -3631,6 +3989,18 @@ class IterableDataset(DatasetInfoMixin):
                 "file containing other information like video captions, features or labels. More information "
                 "at https://huggingface.co/docs/datasets/main/en/video_load#videofolder"
             )
+        if num_proc is not None and num_proc > self.num_shards:
+            logger.warning(
+                f"Too many num_proc: {num_proc} (max is dataset.num_shards={self.num_shards}). "
+                f"Stopping {num_proc - self.num_shards} processes."
+            )
+            logger.info(
+                f"To parallelize data loading, we give each process some shards (or data sources) to process. "
+                f"Therefore it's unnecessary to have a number of processes greater than dataset.num_shards={self.num_shards}. "
+                f"To enable more parallelism, please split the dataset in more files than {self.num_shards}."
+            )
+            num_proc = self.num_shards
+
         if config_name == "data":
             raise ValueError("`config_name` cannot be 'data'. Please, choose another name for configuration.")
 
@@ -3673,6 +4043,7 @@ class IterableDataset(DatasetInfoMixin):
             num_shards=num_shards,
             create_pr=create_pr,
             embed_external_files=embed_external_files,
+            num_proc=num_proc,
         )
 
         # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)

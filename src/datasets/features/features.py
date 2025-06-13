@@ -2106,7 +2106,9 @@ class Features(dict):
             )
         }
 
-    def decode_column(self, column: list, column_name: str):
+    def decode_column(
+        self, column: list, column_name: str, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None
+    ):
         """Decode column with custom feature decoding.
 
         Args:
@@ -2119,7 +2121,12 @@ class Features(dict):
             `list[Any]`
         """
         return (
-            [decode_nested_example(self[column_name], value) if value is not None else None for value in column]
+            [
+                decode_nested_example(self[column_name], value, token_per_repo_id=token_per_repo_id)
+                if value is not None
+                else None
+                for value in column
+            ]
             if self._column_requires_decoding[column_name]
             else column
         )

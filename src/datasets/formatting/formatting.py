@@ -223,10 +223,14 @@ class PythonFeaturesDecoder:
         return self.features.decode_example(row, token_per_repo_id=self.token_per_repo_id) if self.features else row
 
     def decode_column(self, column: list, column_name: str) -> list:
-        return self.features.decode_column(column, column_name) if self.features else column
+        return (
+            self.features.decode_column(column, column_name, token_per_repo_id=self.token_per_repo_id)
+            if self.features
+            else column
+        )
 
     def decode_batch(self, batch: dict) -> dict:
-        return self.features.decode_batch(batch) if self.features else batch
+        return self.features.decode_batch(batch, token_per_repo_id=self.token_per_repo_id) if self.features else batch
 
 
 class PandasFeaturesDecoder:
