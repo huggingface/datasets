@@ -1,6 +1,6 @@
 import pytest
 
-from datasets import Dataset, Features, Video, Value, Audio, load_dataset
+from datasets import Dataset, Features, Value, Video, load_dataset
 
 from ..utils import require_torchcodec
 
@@ -106,7 +106,7 @@ def test_dataset_with_video_feature_map_is_decoded(shared_datadir):
     decoded_dset = dset.map(process_audio_sampling_rate_by_example)
     for item in decoded_dset.cast_column("video", Video(decode=False)):
         assert item.keys() == {"video", "text", "double_begin_stream_seconds"}
-        assert item["double_begin_stream_seconds"] == 0.0 
+        assert item["double_begin_stream_seconds"] == 0.0
 
     def process_audio_sampling_rate_by_batch(batch):
         double_fps = []
@@ -118,7 +118,8 @@ def test_dataset_with_video_feature_map_is_decoded(shared_datadir):
     decoded_dset = dset.map(process_audio_sampling_rate_by_batch, batched=True)
     for item in decoded_dset.cast_column("video", Video(decode=False)):
         assert item.keys() == {"video", "text", "double_begin_stream_seconds"}
-        assert item["double_begin_stream_seconds"] == 0.0 
+        assert item["double_begin_stream_seconds"] == 0.0
+
 
 @pytest.fixture
 def jsonl_video_dataset_path(shared_datadir, tmp_path_factory):
@@ -132,10 +133,12 @@ def jsonl_video_dataset_path(shared_datadir, tmp_path_factory):
             f.write(json.dumps(item) + "\n")
     return path
 
+
 @require_torchcodec
 @pytest.mark.parametrize("streaming", [False, True])
 def test_load_dataset_with_video_feature(streaming, jsonl_video_dataset_path, shared_datadir):
     from torchcodec.decoders import VideoDecoder
+
     video_path = str(shared_datadir / "test_video_66x50.mov")
     data_files = jsonl_video_dataset_path
     features = Features({"video": Video(), "text": Value("string")})
@@ -144,3 +147,4 @@ def test_load_dataset_with_video_feature(streaming, jsonl_video_dataset_path, sh
     assert item.keys() == {"video", "text"}
     assert isinstance(item["video"], VideoDecoder)
     assert item["video"].get_frame_at(0).data.shape == (3, 50, 66)
+    assert item["video"].metadata.path == video_path

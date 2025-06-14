@@ -12,7 +12,8 @@ from datasets.hub import delete_from_hub
 from datasets.utils.hub import hf_dataset_url
 
 
-DUMMY_DATASET_SCRIPT = dedent("""\
+DUMMY_DATASET_SCRIPT = dedent(
+    """\
 import datasets
 
 
@@ -34,7 +35,8 @@ class NewDataset(datasets.GeneratorBasedBuilder):
     def _generate_examples(self):
         for key in range(5):
             yield key, {"text": f"{self.config.name}-{key}"}
-""")
+"""
+)
 
 
 @pytest.mark.parametrize("repo_id", ["canonical_dataset_name", "org-name/dataset-name"])
@@ -64,7 +66,8 @@ def test_delete_from_hub(temporary_repo, hf_api, hf_token, csv_path, ci_hub_conf
         )
         hf_api.upload_file(
             token=hf_token,
-            path_or_fileobj=dedent(f"""\
+            path_or_fileobj=dedent(
+                f"""\
             ---
             {METADATA_CONFIGS_FIELD}:
             - config_name: cats
@@ -76,7 +79,8 @@ def test_delete_from_hub(temporary_repo, hf_api, hf_token, csv_path, ci_hub_conf
               - split: train
                 path: dogs/train/*
             ---
-            """).encode(),
+            """
+            ).encode(),
             path_in_repo="README.md",
             repo_id=repo_id,
             repo_type="dataset",
@@ -93,7 +97,8 @@ def test_delete_from_hub(temporary_repo, hf_api, hf_token, csv_path, ci_hub_conf
         CommitOperationDelete(path_in_repo="dogs/train/0000.csv", is_folder=False),
         CommitOperationAdd(
             path_in_repo="README.md",
-            path_or_fileobj=dedent(f"""\
+            path_or_fileobj=dedent(
+                f"""\
             ---
             {METADATA_CONFIGS_FIELD}:
             - config_name: cats
@@ -101,7 +106,8 @@ def test_delete_from_hub(temporary_repo, hf_api, hf_token, csv_path, ci_hub_conf
               - split: train
                 path: cats/train/*
             ---
-            """).encode(),
+            """
+            ).encode(),
         ),
     ]
     assert mock_method.call_args.kwargs.get("operations") == expected_operations

@@ -402,7 +402,10 @@ class TestPushToHub:
                 assert ds.column_names == hub_ds.column_names
                 assert list(ds.features.keys()) == list(hub_ds.features.keys())
                 assert ds.features == hub_ds.features
-                np.testing.assert_equal(ds[0]["x"].get_all_samples().data.cpu().numpy(), hub_ds[0]["x"].get_all_samples().data.cpu().numpy())
+                np.testing.assert_equal(
+                    ds[0]["x"].get_all_samples().data.cpu().numpy(),
+                    hub_ds[0]["x"].get_all_samples().data.cpu().numpy(),
+                )
                 assert ds[1] == hub_ds[1]  # don't test hub_ds[0] since audio decoding might be slightly different
                 hub_ds = hub_ds.cast_column("x", Audio(decode=False))
                 elem = hub_ds[0]["x"]

@@ -9,13 +9,14 @@ import pyarrow as pa
 from .. import config
 from ..download.download_config import DownloadConfig
 from ..table import array_cast
-from ..utils.file_utils import xopen, is_local_path,xsplitext
+from ..utils.file_utils import is_local_path, xopen
 from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
 
 
 if TYPE_CHECKING:
-    from .features import FeatureType
     from torchcodec.decoders import AudioDecoder
+
+    from .features import FeatureType
 
 
 @dataclass
@@ -94,7 +95,7 @@ class Audio:
             from torchcodec.decoders import AudioDecoder
         except ImportError as err:
             raise ImportError("To support encoding audio data, please install 'torchcodec'.") from err
-        
+
         if isinstance(value, str):
             return {"bytes": None, "path": value}
         elif isinstance(value, (bytes, bytearray)):
@@ -159,7 +160,7 @@ class Audio:
             from torchcodec.decoders import AudioDecoder
         except ImportError as err:
             raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
-        
+
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Audio(decode=True) instead.")
 
@@ -169,8 +170,10 @@ class Audio:
 
         channels = 1 if self.mono else None
         if file is None and is_local_path(path):
-            ad = AudioDecoder(path, stream_index = self.stream_index, sample_rate = self.sampling_rate, num_channels = channels)
-          
+            ad = AudioDecoder(
+                path, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
+            )
+
         elif file is None:
             token_per_repo_id = token_per_repo_id or {}
             source_url = path.split("::")[-1]
@@ -182,10 +185,14 @@ class Audio:
 
             download_config = DownloadConfig(token=token)
             with xopen(path, "rb", download_config=download_config) as f:
-                ad = AudioDecoder(f, stream_index = self.stream_index, sample_rate = self.sampling_rate, num_channels = channels)
+                ad = AudioDecoder(
+                    f, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
+                )
 
         else:
-            ad = AudioDecoder(file, stream_index = self.stream_index, sample_rate = self.sampling_rate, num_channels = channels)
+            ad = AudioDecoder(
+                file, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
+            )
         ad.metadata.path = path
         return ad
 

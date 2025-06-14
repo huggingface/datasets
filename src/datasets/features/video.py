@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, ClassVar, Optional, TypedDict, Union, Literal
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, Optional, TypedDict, Union
 
 import numpy as np
 import pyarrow as pa
@@ -48,17 +48,17 @@ class Video:
             returns the underlying dictionary in the format `{"path": video_path, "bytes": video_bytes}`.
         stream_index (`int`, *optional*):
             The streaming index to use from the file. If `None` defaults to the "best" index.
-        dimension_order (`str`, defaults to `NCHW`): 
-            The dimension order of the decoded frames. 
-            where N is the batch size, C is the number of channels, 
-            H is the height, and W is the width of the frames. 
+        dimension_order (`str`, defaults to `NCHW`):
+            The dimension order of the decoded frames.
+            where N is the batch size, C is the number of channels,
+            H is the height, and W is the width of the frames.
         num_ffmpeg_threads (`int`, defaults to `1`):
             The number of threads to use for decoding the video. (Recommended to keep this at 1)
         device (`str` or `torch.device`, defaults to `cpu`):
             The device to use for decoding the video.
         seek_mode (`str`, defaults to `exact`):
-            Determines if frame access will be “exact” or “approximate”. 
-            Exact guarantees that requesting frame i will always return frame i, but doing so requires an initial scan of the file. 
+            Determines if frame access will be “exact” or “approximate”.
+            Exact guarantees that requesting frame i will always return frame i, but doing so requires an initial scan of the file.
             Approximate is faster as it avoids scanning the file, but less accurate as it uses the file's metadata to calculate where i probably is.
             read more [here](https://docs.pytorch.org/torchcodec/stable/generated_examples/approximate_mode.html#sphx-glr-generated-examples-approximate-mode-py)
 
@@ -80,10 +80,10 @@ class Video:
     decode: bool = True
     id: Optional[str] = None
     stream_index: Optional[int] = None
-    dimension_order: Literal['NCHW', 'NHWC'] = 'NCHW'
+    dimension_order: Literal["NCHW", "NHWC"] = "NCHW"
     num_ffmpeg_threads: int = 1
-    device: Optional[Union[str, "torch.device"]] = 'cpu'
-    seek_mode: Literal['exact', 'approximate'] = 'exact'
+    device: Optional[Union[str, "torch.device"]] = "cpu"
+    seek_mode: Literal["exact", "approximate"] = "exact"
     # Automatically constructed
     dtype: ClassVar[str] = "torchcodec.decoders.VideoDecoder"
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
@@ -180,32 +180,33 @@ class Video:
                 raise ValueError(f"A video should have one of 'path' or 'bytes' but both are None in {value}.")
             elif is_local_path(path):
                 video = VideoDecoder(
-                        path, 
-                        stream_index = self.stream_index, 
-                        dimension_order=self.dimension_order, 
-                        num_ffmpeg_threads=self.num_ffmpeg_threads, 
-                        device = self.device,
-                        seek_mode = self.seek_mode
-                        )
+                    path,
+                    stream_index=self.stream_index,
+                    dimension_order=self.dimension_order,
+                    num_ffmpeg_threads=self.num_ffmpeg_threads,
+                    device=self.device,
+                    seek_mode=self.seek_mode,
+                )
             else:
                 video = hf_video_reader(
-                        path,
-                        token_per_repo_id=token_per_repo_id,  
-                        dimension_order=self.dimension_order, 
-                        num_ffmpeg_threads=self.num_ffmpeg_threads, 
-                        device = self.device,
-                        seek_mode = self.seek_mode
-                        )
+                    path,
+                    token_per_repo_id=token_per_repo_id,
+                    dimension_order=self.dimension_order,
+                    num_ffmpeg_threads=self.num_ffmpeg_threads,
+                    device=self.device,
+                    seek_mode=self.seek_mode,
+                )
         else:
             video = VideoDecoder(
-                    bytes_, 
-                    stream_index = self.stream_index, 
-                    dimension_order=self.dimension_order, 
-                    num_ffmpeg_threads=self.num_ffmpeg_threads, 
-                    device = self.device,
-                    seek_mode = self.seek_mode
-                    )
+                bytes_,
+                stream_index=self.stream_index,
+                dimension_order=self.dimension_order,
+                num_ffmpeg_threads=self.num_ffmpeg_threads,
+                device=self.device,
+                seek_mode=self.seek_mode,
+            )
         video._hf_encoded = {"path": path, "bytes": bytes_}
+        video.metadata.path = path
         return video
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
@@ -290,14 +291,15 @@ def encode_np_array(array: np.ndarray) -> Example:
 # 1. store the encoded video data {"path": ..., "bytes": ...} in `video._hf_encoded``
 # 2. add support for hf:// files
 
+
 def hf_video_reader(
-    path: str, 
-    token_per_repo_id: Optional[dict[str, Union[bool, str]]] = None, 
+    path: str,
+    token_per_repo_id: Optional[dict[str, Union[bool, str]]] = None,
     stream: str = "video",
-    dimension_order: Literal['NCHW', 'NHWC'] = 'NCHW',
-    num_ffmpeg_threads: int = 1, 
-    device: Optional[Union[str, "torch.device"]] = 'cpu', 
-    seek_mode: Literal['exact', 'approximate'] = 'exact'
+    dimension_order: Literal["NCHW", "NHWC"] = "NCHW",
+    num_ffmpeg_threads: int = 1,
+    device: Optional[Union[str, "torch.device"]] = "cpu",
+    seek_mode: Literal["exact", "approximate"] = "exact",
 ) -> "VideoDecoder":
     from torchcodec.decoders import VideoDecoder
 
@@ -313,5 +315,12 @@ def hf_video_reader(
 
     # Instantiate the VideoDecoder
     stream_id = 0 if len(stream.split(":")) == 1 else int(stream.split(":")[1])
-    vd = VideoDecoder(f, stream_index=stream_id, dimension_order = dimension_order, num_ffmpeg_threads = num_ffmpeg_threads, device = device, seek_mode = seek_mode)
+    vd = VideoDecoder(
+        f,
+        stream_index=stream_id,
+        dimension_order=dimension_order,
+        num_ffmpeg_threads=num_ffmpeg_threads,
+        device=device,
+        seek_mode=seek_mode,
+    )
     return vd

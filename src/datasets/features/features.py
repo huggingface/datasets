@@ -301,9 +301,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
 
     if config.PDFPLUMBER_AVAILABLE and "pdfplumber" in sys.modules:
         import pdfplumber
-    
+
     if config.TORCHCODEC_AVAILABLE and "torchcodec" in sys.modules:
-        from torchcodec.decoders import VideoDecoder, AudioDecoder
+        from torchcodec.decoders import AudioDecoder, VideoDecoder
 
     if isinstance(obj, np.ndarray):
         if obj.ndim == 0:

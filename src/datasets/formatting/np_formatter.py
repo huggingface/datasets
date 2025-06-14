@@ -69,7 +69,7 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
             if isinstance(value, VideoReader):
                 return value  # TODO(QL): set output to np arrays ?
         if config.TORCHCODEC_AVAILABLE and "torchcodec" in sys.modules:
-            from torchcodec.decoders import VideoDecoder, AudioDecoder
+            from torchcodec.decoders import AudioDecoder, VideoDecoder
 
             if isinstance(value, (VideoDecoder, AudioDecoder)):
                 return value  # TODO(QL): set output to np arrays ?
