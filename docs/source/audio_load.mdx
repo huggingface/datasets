@@ -8,7 +8,6 @@ Audio decoding is based on the [`soundfile`](https://github.com/bastibe/python-s
 To work with audio datasets, you need to have the `audio` dependencies installed.
 Check out the [installation](./installation#audio) guide to learn how to install it.
 
-
 ## Local files
 
 You can load your own dataset using the paths to your audio files. Use the [`~Dataset.cast_column`] function to take a column of audio file paths, and cast it to the [`Audio`] feature:
@@ -16,10 +15,7 @@ You can load your own dataset using the paths to your audio files. Use the [`~Da
 ```py
 >>> audio_dataset = Dataset.from_dict({"audio": ["path/to/audio_1", "path/to/audio_2", ..., "path/to/audio_n"]}).cast_column("audio", Audio())
 >>> audio_dataset[0]["audio"]
-{'array': array([ 0.        ,  0.00024414, -0.00024414, ..., -0.00024414,
-         0.        ,  0.        ], dtype=float32),
- 'path': 'path/to/audio_1',
- 'sampling_rate': 16000}
+<torchcodec.decoders._audio_decoder.AudioDecoder object at 0x11642b6a0>
 ```
 
 ## AudioFolder
@@ -99,7 +95,7 @@ For a guide on how to load any type of dataset, take a look at the <a class="und
 
 ## Audio decoding
 
-By default, audio files are decoded sequentially as NumPy arrays when you iterate on a dataset.
+By default, audio files are decoded sequentially as torchcodec [`AudioDecoder`](https://docs.pytorch.org/torchcodec/stable/generated/torchcodec.decoders.AudioDecoder.html#torchcodec.decoders.AudioDecoder) objects when you iterate on a dataset.
 However it is possible to speed up the dataset significantly using multithreaded decoding:
 
 ```python

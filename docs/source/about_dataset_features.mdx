@@ -53,7 +53,7 @@ See the [flatten](./process#flatten) section to learn how you can extract the ne
 
 </Tip>
 
-The array feature type is useful for creating arrays of various sizes. You can create arrays with two dimensions using [`Array2D`], and even arrays with five dimensions using [`Array5D`]. 
+The array feature type is useful for creating arrays of various sizes. You can create arrays with two dimensions using [`Array2D`], and even arrays with five dimensions using [`Array5D`].
 
 ```py
 >>> features = Features({'a': Array2D(shape=(1, 3), dtype='int32')})
@@ -69,9 +69,9 @@ The array type also allows the first dimension of the array to be dynamic. This 
 
 Audio datasets have a column with type [`Audio`], which contains three important fields:
 
-* `array`: the decoded audio data represented as a 1-dimensional array.
-* `path`: the path to the downloaded audio file.
-* `sampling_rate`: the sampling rate of the audio data.
+- `array`: the decoded audio data represented as a 1-dimensional array.
+- `path`: the path to the downloaded audio file.
+- `sampling_rate`: the sampling rate of the audio data.
 
 When you load an audio dataset and call the audio column, the [`Audio`] feature automatically decodes and resamples the audio file:
 
@@ -80,10 +80,7 @@ When you load an audio dataset and call the audio column, the [`Audio`] feature 
 
 >>> dataset = load_dataset("PolyAI/minds14", "en-US", split="train")
 >>> dataset[0]["audio"]
-{'array': array([ 0.        ,  0.00024414, -0.00024414, ..., -0.00024414,
-         0.        ,  0.        ], dtype=float32),
- 'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-US~JOINT_ACCOUNT/602ba55abb1e6d0fbce92065.wav',
- 'sampling_rate': 8000}
+<torchcodec.decoders._audio_decoder.AudioDecoder object at 0x11642b6a0>
 ```
 
 <Tip warning={true}>
@@ -92,7 +89,7 @@ Index into an audio dataset using the row index first and then the `audio` colum
 
 </Tip>
 
-With `decode=False`, the [`Audio`] type simply gives you the path or the bytes of the audio file, without decoding it into an `array`, 
+With `decode=False`, the [`Audio`] type simply gives you the path or the bytes of the audio file, without decoding it into an torchcodec `AudioDecoder` object,
 
 ```py
 >>> dataset = load_dataset("PolyAI/minds14", "en-US", split="train").cast_column("audio", Audio(decode=False))
@@ -126,7 +123,7 @@ Index into an image dataset using the row index first and then the `image` colum
 
 </Tip>
 
-With `decode=False`, the [`Image`] type simply gives you the path or the bytes of the image file, without decoding it into an `PIL.Image`, 
+With `decode=False`, the [`Image`] type simply gives you the path or the bytes of the image file, without decoding it into an `PIL.Image`,
 
 ```py
 >>> dataset = load_dataset("AI-Lab-Makerere/beans", split="train").cast_column("image", Image(decode=False))
@@ -146,4 +143,4 @@ You can also define a dataset of images from numpy arrays:
 And in this case the numpy arrays are encoded into PNG (or TIFF if the pixels values precision is important).
 
 For multi-channels arrays like RGB or RGBA, only uint8 is supported. If you use a larger precision, you get a warning and the array is downcasted to uint8.
-For gray-scale images you can use the integer or float precision you want as long as it is compatible with `Pillow`. A warning is shown if your image integer or float precision is too high, and in this case the array is downcated: an int64 array is downcasted to int32, and a float64 array is downcasted to float32. 
+For gray-scale images you can use the integer or float precision you want as long as it is compatible with `Pillow`. A warning is shown if your image integer or float precision is too high, and in this case the array is downcated: an int64 array is downcasted to int32, and a float64 array is downcasted to float32.

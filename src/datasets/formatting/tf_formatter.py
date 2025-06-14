@@ -75,6 +75,11 @@ class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
 
             if isinstance(value, VideoReader):
                 return value  # TODO(QL): set output to tf tensors ?
+        if config.TORCHCODEC_AVAILABLE and "torchcodec" in sys.modules:
+            from torchcodec.decoders import AudioDecoder, VideoDecoder
+
+            if isinstance(value, (VideoDecoder, AudioDecoder)):
+                return value  # TODO(QL): set output to jax arrays ?
 
         return tf.convert_to_tensor(value, **{**default_dtype, **self.tf_tensor_kwargs})
 
