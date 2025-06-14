@@ -22,6 +22,7 @@ from datasets import (
     DownloadManager,
     Features,
     Image,
+    IterableDatasetDict,
     Value,
     load_dataset,
     load_dataset_builder,
@@ -44,7 +45,7 @@ pytestmark = pytest.mark.integration
 
 
 @for_all_test_methods(xfail_if_500_502_http_error)
-@pytest.mark.usefixtures("ci_hub_config", "ci_hfh_hf_hub_url")
+@pytest.mark.usefixtures("ci_hub_config")
 class TestPushToHub:
     _api = HfApi(endpoint=CI_HUB_ENDPOINT)
     _token = CI_HUB_USER_TOKEN
@@ -876,6 +877,68 @@ class TestPushToHub:
                 "*/another_config/random-00000-of-00001.parquet",
             )
 
+    def test_push_dataset_dict_to_hub_num_proc(self, temporary_repo, set_ci_hub_access_token):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+
+        local_ds = DatasetDict({"train": ds})
+
+        with temporary_repo() as ds_name:
+            local_ds.push_to_hub(ds_name, num_proc=2)
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "data/train-00000-of-00002.parquet",
+                "data/train-00001-of-00002.parquet",
+            ]
+
+    def test_push_dataset_dict_to_hub_iterable(self, temporary_repo, set_ci_hub_access_token):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]}).to_iterable_dataset()
+
+        local_ds = IterableDatasetDict({"train": ds})
+
+        with temporary_repo() as ds_name:
+            local_ds.push_to_hub(ds_name)
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
+            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
+
+    def test_push_dataset_dict_to_hub_iterable_num_proc(self, temporary_repo, set_ci_hub_access_token):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]}).to_iterable_dataset(num_shards=3)
+
+        local_ds = IterableDatasetDict({"train": ds})
+
+        with temporary_repo() as ds_name:
+            local_ds.push_to_hub(ds_name, num_proc=2)
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "data/train-00000-of-00003.parquet",
+                "data/train-00001-of-00003.parquet",
+                "data/train-00002-of-00003.parquet",
+            ]
+
 
 class DummyFolderBasedBuilder(FolderBasedBuilder):
     BASE_FEATURE = dict
@@ -909,7 +972,7 @@ def text_file_with_metadata(request, tmp_path, text_file):
 
 
 @for_all_test_methods(xfail_if_500_502_http_error)
-@pytest.mark.usefixtures("ci_hub_config", "ci_hfh_hf_hub_url")
+@pytest.mark.usefixtures("ci_hub_config")
 class TestLoadFromHub:
     _api = HfApi(endpoint=CI_HUB_ENDPOINT)
     _token = CI_HUB_USER_TOKEN
