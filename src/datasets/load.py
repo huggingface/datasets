@@ -523,6 +523,16 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name)
 
     def get_module(self) -> DatasetModule:
+        from datasets.packaged_modules.folder_based_builder.folder_based_builder import FolderBasedBuilderConfig
+
+        # ✅ Early validation for folder-based datasets like "audiofolder"
+        if self.builder_cls.BUILDER_CONFIG_CLASS == FolderBasedBuilderConfig:
+            if not self.data_dir and not self.data_files:
+                raise ValueError(
+                    "Folder-based datasets require either `data_dir` or `data_files` to be specified. "
+                    "Neither was provided."
+                )
+        
         base_path = Path(self.data_dir or "").expanduser().resolve().as_posix()
         patterns = (
             sanitize_patterns(self.data_files)
