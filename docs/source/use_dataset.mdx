@@ -177,9 +177,7 @@ Most image models expect the image to be in the RGB mode. The Beans images are a
 
 **3**. Now let's apply data augmentations to your images. 🤗 Datasets works with any augmentation library, and in this example we'll use Albumentations.
 
-### Using Albumentations
-
-[Albumentations](https://albumentations.ai) is a popular image augmentation library that provides a [rich set of transforms](https://albumentations.ai/docs/reference/supported-targets-by-transform/) including spatial-level transforms, pixel-level transforms, and mixing-level transforms. When running on CPU, which is typical for transformers pipelines, Albumentations is [faster than torchvision](https://albumentations.ai/docs/benchmarks/image-benchmarks/).
+[Albumentations](https://albumentations.ai) is a popular image augmentation library that provides a [rich set of transforms](https://albumentations.ai/docs/reference/supported-targets-by-transform/) including spatial-level transforms, pixel-level transforms, and mixing-level transforms.
 
 Install Albumentations:
 
@@ -201,7 +199,7 @@ pip install albumentations
 ... ])
 ```
 
-**5**. Since 🤗 Datasets uses PIL images but Albumentations expects OpenCV format (numpy arrays), you need to convert between formats:
+**5**. Since 🤗 Datasets uses PIL images but Albumentations expects NumPy arrays, you need to convert between formats:
 
 ```py
 >>> def albumentations_transforms(examples):
@@ -222,15 +220,15 @@ pip install albumentations
 ...     return examples
 ```
 
-**6**. Apply the transform using [`~Dataset.set_transform`]:
+**6**. Apply the transform using [`~Dataset.with_transform`]:
 
 ```py
->>> dataset.set_transform(albumentations_transforms)
+>>> dataset = dataset.with_transform(albumentations_transforms)
 >>> dataset[0]["pixel_values"]
 ```
 
 **Key points when using Albumentations with 🤗 Datasets:**
-- Convert PIL images to numpy arrays before applying transforms
+- Convert PIL images to NumPy arrays before applying transforms
 - Albumentations returns a dictionary with the transformed image under the "image" key
 - Convert the result back to PIL format after transformation
 
