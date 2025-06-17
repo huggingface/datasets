@@ -4,7 +4,7 @@ import tarfile
 import pyarrow as pa
 import pytest
 
-from datasets import Dataset, concatenate_datasets, load_dataset
+from datasets import Column, Dataset, concatenate_datasets, load_dataset
 from datasets.features import Audio, Features, Sequence, Value
 
 from ..utils import (
@@ -292,7 +292,7 @@ def test_dataset_with_audio_feature_with_none():
     assert isinstance(batch["audio"], list) and all(item is None for item in batch["audio"])
     column = dset["audio"]
     assert len(column) == 1
-    assert isinstance(column, list) and all(item is None for item in column)
+    assert isinstance(column, Column) and all(item is None for item in column)
 
     # nested tests
 
