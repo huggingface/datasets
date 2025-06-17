@@ -443,7 +443,7 @@ class DatasetDictTest(TestCase):
             dsets_shuffled = dsets.shuffle(
                 seeds=seeds, indices_cache_file_names=indices_cache_file_names, load_from_cache_file=False
             )
-            self.assertListEqual(dsets_shuffled["train"]["filename"], dsets_shuffled["test"]["filename"])
+            self.assertSequenceEqual(dsets_shuffled["train"]["filename"], dsets_shuffled["test"]["filename"])
 
             self.assertEqual(len(dsets_shuffled["train"]), 30)
             self.assertEqual(dsets_shuffled["train"][0]["filename"], "my_name-train_028")
@@ -459,7 +459,7 @@ class DatasetDictTest(TestCase):
             dsets_shuffled_2 = dsets.shuffle(
                 seeds=seeds, indices_cache_file_names=indices_cache_file_names_2, load_from_cache_file=False
             )
-            self.assertListEqual(dsets_shuffled["train"]["filename"], dsets_shuffled_2["train"]["filename"])
+            self.assertSequenceEqual(dsets_shuffled["train"]["filename"], dsets_shuffled_2["train"]["filename"])
 
             seeds = {
                 "train": 1234,
@@ -601,8 +601,8 @@ class DatasetDictTest(TestCase):
             }
         )
         dsets = dsets.align_labels_with_mapping(label2id, "input_labels")
-        self.assertListEqual(train_expected_labels, dsets["train"]["input_labels"])
-        self.assertListEqual(test_expected_labels, dsets["test"]["input_labels"])
+        self.assertListEqual(train_expected_labels, dsets["train"]["input_labels"][:])
+        self.assertListEqual(test_expected_labels, dsets["test"]["input_labels"][:])
         train_aligned_label_names = [
             dsets["train"].features["input_labels"].int2str(idx) for idx in dsets["train"]["input_labels"]
         ]
