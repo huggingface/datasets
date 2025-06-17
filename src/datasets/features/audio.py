@@ -65,7 +65,7 @@ class Audio:
     sampling_rate: Optional[int] = None
     mono: bool = True
     decode: bool = True
-    id: Optional[str] = None
+    id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})

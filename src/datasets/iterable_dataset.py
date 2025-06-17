@@ -1969,7 +1969,25 @@ def _maybe_share_with_torch_persistent_workers(value: Union[int, "torch.Tensor"]
 
 
 class IterableColumn:
-    """An iterable for a specific column of an [`IterableDataset`]."""
+    """
+    An iterable for a specific column of an [`IterableDataset`].
+
+    Example:
+
+    Iterate on the texts of the "text" column of a dataset:
+
+    ```python
+    for text in dataset["text"]:
+        ...
+    ```
+
+    It also works with nested columns:
+
+    ```python
+    for source in dataset["metadata"]["source"]:
+        ...
+    ```
+    """
 
     def __init__(self, source: Union["IterableDataset", "IterableColumn"], column_name: str):
         self.source = source

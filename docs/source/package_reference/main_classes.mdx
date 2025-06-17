@@ -112,6 +112,8 @@ The base class [`Dataset`] implements a Dataset backed by an Apache Arrow table.
 
 [[autodoc]] datasets.is_caching_enabled
 
+[[autodoc]] datasets.Column
+
 ## DatasetDict
 
 Dictionary with split names as keys ('train', 'test' for example), and `Dataset` objects as values.
@@ -199,6 +201,8 @@ The base class [`IterableDataset`] implements an iterable Dataset backed by pyth
     - size_in_bytes
     - supervised_keys
     - version
+
+[[autodoc]] datasets.IterableColumn
 
 ## IterableDatasetDict
 

@@ -628,7 +628,25 @@ class NonExistentDatasetError(Exception):
 
 
 class Column(Sequence_):
-    """An iterable for a specific column of an [`Dataset`]."""
+    """
+    An iterable for a specific column of a [`Dataset`].
+
+    Example:
+
+    Iterate on the texts of the "text" column of a dataset:
+
+    ```python
+    for text in dataset["text"]:
+        ...
+    ```
+
+    It also works with nested columns:
+
+    ```python
+    for source in dataset["metadata"]["source"]:
+        ...
+    ```
+    """
 
     def __init__(self, source: Union["Dataset", "Column"], column_name: str):
         self.source = source
