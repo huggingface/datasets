@@ -13,10 +13,27 @@ from ..utils.file_utils import is_local_path, xopen
 from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
 
 
+def AudioDecoderClsGenerator():
+    import torchcodec.decoders as tcodec
+
+    class AudioDecoder(
+        tcodec.AudioDecoder
+    ):  # NOTE: array and sampling_rate are loaded each call. Maybe better to cache this in the future
+        def __getitem__(self, key: str):
+            if key == "array":
+                return self.get_all_samples().data
+            elif key == "sampling_rate":
+                return self.get_all_samples().sample_rate
+
+    return AudioDecoder
+
+
 if TYPE_CHECKING:
-    from torchcodec.decoders import AudioDecoder
+    import torchcodec.decoders as tcodec
 
     from .features import FeatureType
+
+    AudioDecoder = AudioDecoderClsGenerator()
 
 
 @dataclass
@@ -59,7 +76,7 @@ class Audio:
     >>> ds = load_dataset("PolyAI/minds14", name="en-US", split="train")
     >>> ds = ds.cast_column("audio", Audio(sampling_rate=16000))
     >>> ds[0]["audio"]
-    <torchcodec.decoders._audio_decoder.AudioDecoder object at 0x11642b6a0>
+    <datasets.features.audio.AudioDecoderClsGenerator.<locals>.AudioDecoder object at 0x11642b6a0>
     ```
     """
 
@@ -76,7 +93,7 @@ class Audio:
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, bytes, bytearray, dict, "AudioDecoder"]) -> dict:
+    def encode_example(self, value: Union[str, bytes, bytearray, dict, "tcodec.AudioDecoder", "AudioDecoder"]) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
@@ -91,21 +108,22 @@ class Audio:
         except ImportError as err:
             raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
 
-        try:
-            from torchcodec.decoders import AudioDecoder
-        except ImportError as err:
-            raise ImportError("To support encoding audio data, please install 'torchcodec'.") from err
+        if value is None:
+            raise ValueError("value must be provided")
+
+        if config.TORCHCODEC_AVAILABLE:
+            import torchcodec.decoders as tcodec
+
+            AudioDecoder = AudioDecoderClsGenerator()
+        else:
+            AudioDecoder = None
 
         if isinstance(value, str):
             return {"bytes": None, "path": value}
         elif isinstance(value, (bytes, bytearray)):
             return {"bytes": value, "path": None}
-        elif isinstance(value, AudioDecoder):
-            samples = value.get_all_samples()
-            array = samples.data.cpu().numpy().T
-            buffer = BytesIO()
-            sf.write(buffer, array, samples.sample_rate, format="wav")
-            return {"bytes": buffer.getvalue(), "path": None}
+        elif AudioDecoder is not None and isinstance(value, (AudioDecoder, tcodec.AudioDecoder)):
+            return encode_torchcodec_audio(value, sf)
         elif "array" in value:
             # convert the audio array to wav bytes
             buffer = BytesIO()
@@ -156,25 +174,25 @@ class Audio:
         Returns:
             `AudioDecoder`
         """
-        try:
-            from torchcodec.decoders import AudioDecoder
-        except ImportError as err:
-            raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
+        if config.TORCHCODEC_AVAILABLE:
+            AudioDecoder = AudioDecoderClsGenerator()
+        else:
+            raise ImportError("To support decoding audio data, please install 'torchcodec'.")
 
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Audio(decode=True) instead.")
 
-        path, file = (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
-        if path is None and file is None:
+        path, bytes = (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
+        if path is None and bytes is None:
             raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
 
         channels = 1 if self.mono else None
-        if file is None and is_local_path(path):
+        if bytes is None and is_local_path(path):
             ad = AudioDecoder(
                 path, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
             )
 
-        elif file is None:
+        elif bytes is None:
             token_per_repo_id = token_per_repo_id or {}
             source_url = path.split("::")[-1]
             pattern = (
@@ -185,17 +203,13 @@ class Audio:
 
             download_config = DownloadConfig(token=token)
             f = xopen(path, "rb", download_config=download_config)
-            ad = AudioDecoder(
-                f, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
-            )
-                ad = AudioDecoder(
-                    f, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
-                )
+            ad = AudioDecoder(f, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels)
 
         else:
             ad = AudioDecoder(
-                file, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
+                bytes, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
             )
+        ad._hf_encoded = {"path": path, "bytes": bytes}
         ad.metadata.path = path
         return ad
 
@@ -287,3 +301,14 @@ class Audio:
         )
         storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
         return array_cast(storage, self.pa_type)
+
+
+def encode_torchcodec_audio(audio: "AudioDecoder", sf: Any) -> dict:
+    if hasattr(audio, "_hf_encoded"):
+        return audio._hf_encoded
+    else:
+        samples = audio.get_all_samples()
+        array = samples.data.cpu().numpy().T
+        buffer = BytesIO()
+        sf.write(buffer, array, samples.sample_rate, format="wav")
+        return {"bytes": buffer.getvalue(), "path": None}

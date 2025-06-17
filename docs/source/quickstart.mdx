@@ -118,7 +118,7 @@ Audio datasets are loaded just like text datasets. However, an audio dataset is 
 ```py
 >>> dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
 >>> dataset[0]["audio"]
-<torchcodec.decoders._audio_decoder.AudioDecoder object at 0x11642b6a0>
+<datasets.features.audio.AudioDecoderClsGenerator.<locals>.AudioDecoder object at 0x11642b6a0>
 ```
 
 **4**. Create a function to preprocess the audio `array` with the feature extractor, and truncate and pad the sequences into tidy rectangular tensors. The most important thing to remember is to call the audio `array` in the feature extractor since the `array` - the actual speech signal - is the model input.

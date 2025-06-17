@@ -1,6 +1,6 @@
 import pytest
-from datasets import Column, Dataset, Features, Video
 
+from datasets import Column, Dataset, Features, Value, Video, load_dataset
 
 from ..utils import require_torchcodec
 
@@ -53,10 +53,10 @@ def test_dataset_with_video_feature(shared_datadir):
     assert isinstance(batch["video"][0].get_frame_at(0).data, torch.Tensor)
     column = dset["video"]
     assert len(column) == 1
-    
+
     assert isinstance(column, Column) and all(isinstance(item, VideoDecoder) for item in column)
-    assert next(column[0]).get_frame_at(0).data.shape == (3, 50, 66)
-    assert isinstance(next(column[0]).get_frame_at(0).data, torch.Tensor)
+    assert next(iter(column)).get_frame_at(0).data.shape == (3, 50, 66)
+    assert isinstance(next(iter(column)).get_frame_at(0).data, torch.Tensor)
 
     # from bytes
     with open(video_path, "rb") as f:

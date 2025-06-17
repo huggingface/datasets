@@ -117,7 +117,7 @@ Audio inputs like text datasets need to be divided into discrete data points. Th
 ```py
 >>> ad = dataset[0]["audio"]
 >>> print(ad)
-<torchcodec.decoders._audio_decoder.AudioDecoder object at 0x11642b6a0>
+<datasets.features.audio.AudioDecoderClsGenerator.<locals>.AudioDecoder object at 0x11642b6a0>
 >>> ad.get_all_samples().sample_rate
 8000
 ```
@@ -130,7 +130,7 @@ Use the [`~Dataset.cast_column`] function and set the `sampling_rate` parameter 
 >>> dataset = dataset.cast_column("audio", Audio(sampling_rate=16_000))
 >>> ad = dataset[0]["audio"]
 >>> print(ad)
-<torchcodec.decoders._audio_decoder.AudioDecoder object at 0x11642b6a0>
+<datasets.features.audio.AudioDecoderClsGenerator.<locals>.AudioDecoder object at 0x11642b6a0>
 >>> ad.get_all_samples().sample_rate
 16000
 ```

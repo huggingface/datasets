@@ -178,6 +178,7 @@ def test_audio_decode_example_mp3(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.mp3")
     audio = Audio()
     decoded_example = audio.decode_example(audio.encode_example(audio_path))
+    print("decoded_example", decoded_example)
     assert isinstance(decoded_example, AudioDecoder)
     samples = decoded_example.get_all_samples()
     assert samples.sample_rate == 44100
@@ -237,6 +238,34 @@ def test_audio_resampling_mp3_different_sampling_rates(shared_datadir):
     samples = decoded_example.get_all_samples()
     assert samples.sample_rate == 48000
     assert samples.data.shape == (1, 122688)
+
+
+@require_torchcodec
+@require_sndfile
+def test_backwards_compatibility(shared_datadir):
+    from torchcodec.decoders import AudioDecoder
+
+    audio_path = str(shared_datadir / "test_audio_44100.mp3")
+    audio_path2 = str(shared_datadir / "test_audio_16000.mp3")
+    audio = Audio(sampling_rate=48000)
+
+    decoded_example = audio.decode_example(audio.encode_example(audio_path))
+    assert isinstance(decoded_example, AudioDecoder)
+    samples = decoded_example.get_all_samples()
+    assert decoded_example["sampling_rate"] == samples.sample_rate
+    assert (
+        decoded_example["array"].shape[0] == samples.data.shape[0]
+        and abs(decoded_example["array"].shape[1] - samples.data.shape[1]) < 2
+    )  # can have off by one error
+
+    decoded_example = audio.decode_example(audio.encode_example(audio_path2))
+    assert isinstance(decoded_example, AudioDecoder)
+    samples = decoded_example.get_all_samples()
+    assert decoded_example["sampling_rate"] == samples.sample_rate
+    assert (
+        decoded_example["array"].shape[0] == samples.data.shape[0]
+        and abs(decoded_example["array"].shape[1] - samples.data.shape[1]) < 2
+    )  # can have off by one error
 
 
 # @require_librosa

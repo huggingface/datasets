@@ -102,9 +102,11 @@ class Video:
         Returns:
             `dict` with "path" and "bytes" fields
         """
+        if value is None:
+            raise ValueError("value must be provided")
+
         if config.TORCHCODEC_AVAILABLE:
             from torchcodec.decoders import VideoDecoder
-
         else:
             VideoDecoder = None
 
