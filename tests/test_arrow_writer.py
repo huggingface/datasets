@@ -349,7 +349,7 @@ custom_cdc_options = {
 def test_parquet_write_uses_content_defined_chunking(cdc_options, expected_options):
     output = pa.BufferOutputStream()
     with patch("pyarrow.parquet.ParquetWriter", wraps=pq.ParquetWriter) as MockWriter:
-        with ParquetWriter(stream=output, cdc_options=cdc_options) as writer:
+        with ParquetWriter(stream=output, use_content_defined_chunking=cdc_options) as writer:
             writer.write({"col_1": "foo", "col_2": 1})
             writer.write({"col_1": "bar", "col_2": 2})
             writer.finalize()

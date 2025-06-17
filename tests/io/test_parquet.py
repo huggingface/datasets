@@ -231,7 +231,7 @@ custom_cdc_options = {
 )
 def test_parquet_writer_persist_cdc_options_as_metadata(dataset, tmp_path, cdc_options, expected_options):
     # write the dataset to parquet with the default CDC options
-    writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet", cdc_options=cdc_options)
+    writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet", use_content_defined_chunking=cdc_options)
     assert writer.write() > 0
 
     # read the parquet KV metadata
