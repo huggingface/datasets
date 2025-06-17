@@ -1053,6 +1053,14 @@ def load_dataset_builder(
     storage_options: Optional[dict] = None,
     **config_kwargs,
 ) -> DatasetBuilder:
+    # Error if builder_kwargs and config_kwargs share any keys
+    if "builder_kwargs" in config_kwargs and "config_kwargs" in config_kwargs:
+        bk = config_kwargs["builder_kwargs"]
+        ck = config_kwargs["config_kwargs"]
+        overlap = set(bk) & set(ck)
+        if overlap:
+            raise TypeError(f"Duplicate keys in builder_kwargs and config_kwargs: {overlap}")
+
     """Load a dataset builder which can be used to:
 
     - Inspect general information that is required to build a dataset (cache directory, config, dataset info, features, data files, etc.)
