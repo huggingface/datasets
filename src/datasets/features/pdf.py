@@ -65,7 +65,7 @@ class Pdf:
     """
 
     decode: bool = True
-    id: Optional[str] = None
+    id: Optional[str] = field(default=None, repr=False)
 
     # Automatically constructed
     dtype: ClassVar[str] = "pdfplumber.pdf.PDF"
