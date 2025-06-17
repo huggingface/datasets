@@ -82,7 +82,7 @@ class Image:
 
     mode: Optional[str] = None
     decode: bool = True
-    id: Optional[str] = None
+    id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     dtype: ClassVar[str] = "PIL.Image.Image"
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})

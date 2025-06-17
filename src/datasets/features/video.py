@@ -78,12 +78,12 @@ class Video:
     """
 
     decode: bool = True
-    id: Optional[str] = None
     stream_index: Optional[int] = None
     dimension_order: Literal["NCHW", "NHWC"] = "NCHW"
     num_ffmpeg_threads: int = 1
     device: Optional[Union[str, "torch.device"]] = "cpu"
     seek_mode: Literal["exact", "approximate"] = "exact"
+    id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     dtype: ClassVar[str] = "torchcodec.decoders.VideoDecoder"
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})

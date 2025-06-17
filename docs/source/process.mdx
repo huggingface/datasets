@@ -223,10 +223,10 @@ The [`~Dataset.cast`] function transforms the feature type of one or more column
 
 ```py
 >>> dataset.features
-{'sentence1': Value(dtype='string', id=None),
-'sentence2': Value(dtype='string', id=None),
-'label': ClassLabel(names=['not_equivalent', 'equivalent'], id=None),
-'idx': Value(dtype='int32', id=None)}
+{'sentence1': Value(dtype='string'),
+'sentence2': Value(dtype='string'),
+'label': ClassLabel(names=['not_equivalent', 'equivalent']),
+'idx': Value(dtype='int32')}
 
 >>> from datasets import ClassLabel, Value
 >>> new_features = dataset.features.copy()
@@ -234,10 +234,10 @@ The [`~Dataset.cast`] function transforms the feature type of one or more column
 >>> new_features["idx"] = Value("int64")
 >>> dataset = dataset.cast(new_features)
 >>> dataset.features
-{'sentence1': Value(dtype='string', id=None),
-'sentence2': Value(dtype='string', id=None),
-'label': ClassLabel(names=['negative', 'positive'], id=None),
-'idx': Value(dtype='int64', id=None)}
+{'sentence1': Value(dtype='string'),
+'sentence2': Value(dtype='string'),
+'label': ClassLabel(names=['negative', 'positive']),
+'idx': Value(dtype='int64')}
 ```
 
 <Tip>
@@ -250,11 +250,11 @@ Use the [`~Dataset.cast_column`] function to change the feature type of a single
 
 ```py
 >>> dataset.features
-{'audio': Audio(sampling_rate=44100, mono=True, id=None)}
+{'audio': Audio(sampling_rate=44100, mono=True)}
 
 >>> dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
 >>> dataset.features
-{'audio': Audio(sampling_rate=16000, mono=True, id=None)}
+{'audio': Audio(sampling_rate=16000, mono=True)}
 ```
 
 ### Flatten
@@ -265,11 +265,11 @@ Sometimes a column can be a nested structure of several types. Take a look at th
 >>> from datasets import load_dataset
 >>> dataset = load_dataset("rajpurkar/squad", split="train")
 >>> dataset.features
-{'answers': Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None),
-'context': Value(dtype='string', id=None),
-'id': Value(dtype='string', id=None),
-'question': Value(dtype='string', id=None),
-'title': Value(dtype='string', id=None)}
+{'answers': Sequence(feature={'text': Value(dtype='string'), 'answer_start': Value(dtype='int32')}, length=-1),
+'context': Value(dtype='string'),
+'id': Value(dtype='string'),
+'question': Value(dtype='string'),
+'title': Value(dtype='string')}
 ```
 
 The `answers` field contains two subfields: `text` and `answer_start`. Use the [`~Dataset.flatten`] function to extract the subfields into their own separate columns:
@@ -810,10 +810,16 @@ The example below uses the [`pydub`](http://pydub.com/) package as an alternativ
 
 Once your dataset is ready, you can save it as a Hugging Face Dataset in Parquet format and reuse it later with [`load_dataset`].
 
-Save your dataset by providing the name of the dataset repository on Hugging Face you wish to save it to to [`~IterableDataset.push_to_hub`]:
+Save your dataset by providing the name of the dataset repository on Hugging Face you wish to save it to to [`~Dataset.push_to_hub`]:
 
 ```python
 encoded_dataset.push_to_hub("username/my_dataset")
+```
+
+You can use multiple processes to upload it in parallel. This is especially useful if you want to speed up the process:
+
+```python
+dataset.push_to_hub("username/my_dataset", num_proc=8)
 ```
 
 Use the [`load_dataset`] function to reload the dataset (in streaming mode or not):

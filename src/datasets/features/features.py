@@ -524,7 +524,7 @@ class Value:
     """
 
     dtype: str
-    id: Optional[str] = None
+    id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     pa_type: ClassVar[Any] = None
     _type: str = field(default="Value", init=False, repr=False)
@@ -584,7 +584,7 @@ class Array2D(_ArrayXD):
 
     shape: tuple
     dtype: str
-    id: Optional[str] = None
+    id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     _type: str = field(default="Array2D", init=False, repr=False)
 
@@ -609,7 +609,7 @@ class Array3D(_ArrayXD):
 
     shape: tuple
     dtype: str
-    id: Optional[str] = None
+    id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     _type: str = field(default="Array3D", init=False, repr=False)
 
@@ -634,7 +634,7 @@ class Array4D(_ArrayXD):
 
     shape: tuple
     dtype: str
-    id: Optional[str] = None
+    id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     _type: str = field(default="Array4D", init=False, repr=False)
 
@@ -659,7 +659,7 @@ class Array5D(_ArrayXD):
 
     shape: tuple
     dtype: str
-    id: Optional[str] = None
+    id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     _type: str = field(default="Array5D", init=False, repr=False)
 
@@ -994,7 +994,7 @@ class ClassLabel:
     num_classes: InitVar[Optional[int]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
     names: list[str] = None
     names_file: InitVar[Optional[str]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
-    id: Optional[str] = None
+    id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     dtype: ClassVar[str] = "int64"
     pa_type: ClassVar[Any] = pa.int64()
@@ -1180,7 +1180,7 @@ class Sequence:
 
     feature: Any
     length: int = -1
-    id: Optional[str] = None
+    id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     dtype: ClassVar[str] = "list"
     pa_type: ClassVar[Any] = None
@@ -1199,7 +1199,7 @@ class LargeList:
     """
 
     feature: Any
-    id: Optional[str] = None
+    id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     pa_type: ClassVar[Any] = None
     _type: str = field(default="LargeList", init=False, repr=False)

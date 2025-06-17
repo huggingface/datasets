@@ -32,7 +32,7 @@ class Translation:
     """
 
     languages: list[str]
-    id: Optional[str] = None
+    id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
     pa_type: ClassVar[Any] = None
@@ -83,7 +83,7 @@ class TranslationVariableLanguages:
 
     languages: Optional[list] = None
     num_languages: Optional[int] = None
-    id: Optional[str] = None
+    id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
     pa_type: ClassVar[Any] = None
