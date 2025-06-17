@@ -184,7 +184,10 @@ class Audio:
             token = token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
 
             download_config = DownloadConfig(token=token)
-            with xopen(path, "rb", download_config=download_config) as f:
+            f = xopen(path, "rb", download_config=download_config)
+            ad = AudioDecoder(
+                f, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
+            )
                 ad = AudioDecoder(
                     f, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
                 )
