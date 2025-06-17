@@ -183,7 +183,7 @@ USE_PARQUET_EXPORT = True
 
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
-DEFAULT_MAX_BATCH_SIZE = 1000
+DEFAULT_MAX_BATCH_SIZE = 1024 * 1024
 
 DEFAULT_CDC_OPTIONS = {"min_chunk_size": 256 * 1024, "max_chunk_size": 1024 * 1024, "norm_level": 0}
 
