@@ -679,11 +679,17 @@ class ArrowWriter:
 
 
 class ParquetWriter(ArrowWriter):
-    def __init__(self, *args, cdc_options=None, **kwargs):
+    def __init__(self, *args, use_content_defined_chunking=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.cdc_options = config.DEFAULT_CDC_OPTIONS if cdc_options is None else cdc_options
+        self.use_content_defined_chunking = (
+            config.DEFAULT_CDC_OPTIONS if use_content_defined_chunking is None else use_content_defined_chunking
+        )
 
     def _build_writer(self, inferred_schema: pa.Schema):
         self._schema, self._features = self._build_schema(inferred_schema)
-        self.pa_writer = pq.ParquetWriter(self.stream, self._schema, use_content_defined_chunking=self.cdc_options)
-        self.pa_writer.add_key_value_metadata({"content_defined_chunking": json.dumps(self.cdc_options)})
+        self.pa_writer = pq.ParquetWriter(
+            self.stream, self._schema, use_content_defined_chunking=self.use_content_defined_chunking
+        )
+        self.pa_writer.add_key_value_metadata(
+            {"content_defined_chunking": json.dumps(self.use_content_defined_chunking)}
+        )
