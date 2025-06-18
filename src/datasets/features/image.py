@@ -53,10 +53,12 @@ class Image:
         - `path`: String with relative path of the image file to the archive file.
         - `bytes`: Bytes of the image file.
 
-      This is useful for archived files with sequential access.
+      This is useful for parquet or webdataset files which embed image files.
 
     - An `np.ndarray`: NumPy array representing an image.
     - A `PIL.Image.Image`: PIL image object.
+
+    Output: The Image features output data as `PIL.Image.Image` objects.
 
     Args:
         mode (`str`, *optional*):

@@ -27,7 +27,7 @@ class Example(TypedDict):
 @dataclass
 class Video:
     """
-    **Experimental.** Video [`Feature`] to read video data from a video file.
+    Video [`Feature`] to read video data from a video file.
 
     Input: The Video feature accepts as input:
     - A `str`: Absolute path to the video file (i.e. random access is allowed).
@@ -36,9 +36,11 @@ class Video:
         - `path`: String with relative path of the video file in a dataset repository.
         - `bytes`: Bytes of the video file.
 
-      This is useful for archived files with sequential access.
+      This is useful for parquet or webdataset files which embed video files.
 
     - A `torchcodec.decoders.VideoDecoder`: torchcodec video decoder object.
+
+    Output: The Video features output data as `torchcodec.decoders.VideoDecoder` objects.
 
     Args:
         mode (`str`, *optional*):
@@ -71,7 +73,15 @@ class Video:
     Video(decode=True, id=None)
     >>> ds[0]["video"]
     <torchcodec.decoders._video_decoder.VideoDecoder object at 0x14a61e080>
-    >>> ds = ds.cast_column('video', Video(decode=False))
+    >>> video = ds[0]["video"]
+    >>> video.get_frames_in_range(0, 10)
+    FrameBatch:
+    data (shape): torch.Size([10, 3, 50, 66])
+    pts_seconds: tensor([0.4333, 0.4333, 0.4333, 0.4333, 0.4333, 0.4333, 0.4333, 0.4333, 0.4333,
+            0.4333], dtype=torch.float64)
+    duration_seconds: tensor([0.0167, 0.0167, 0.0167, 0.0167, 0.0167, 0.0167, 0.0167, 0.0167, 0.0167,
+            0.0167], dtype=torch.float64)
+    >>> ds.cast_column('video', Video(decode=False))[0]["video]
     {'bytes': None,
      'path': 'path/to/Screen Recording.mov'}
     ```

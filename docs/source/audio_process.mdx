@@ -24,7 +24,11 @@ Audio files are decoded and resampled on-the-fly, so the next time you access an
 >>> audio = dataset[0]["audio"]
 <datasets.features._torchcodec.AudioDecoder object at 0x11642b6a0>
 >>> audio = audio_dataset[0]["audio"]
->>> audio.get_all_samples().sample_rate
+>>> samples = audio.get_all_samples()
+>>> samples.data
+tensor([[ 0.0000e+00,  0.0000e+00,  0.0000e+00,  ...,  2.3447e-06,
+         -1.9127e-04, -5.3330e-05]]
+>>> samples.sample_rate
 16000
 ```
 

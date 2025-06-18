@@ -30,15 +30,19 @@ class Audio:
         - `path`: String with relative path of the audio file to the archive file.
         - `bytes`: Bytes content of the audio file.
 
-      This is useful for archived files with sequential access.
+      This is useful for parquet or webdataset files which embed audio files.
 
     - A `dict` with the keys:
 
-        - `path`: String with relative path of the audio file to the archive file.
         - `array`: Array containing the audio sample
         - `sampling_rate`: Integer corresponding to the sampling rate of the audio sample.
 
-      This is useful for archived files with sequential access.
+    - A `torchcodec.decoders.AudioDecoder`: torchcodec audio decoder object.
+
+    Output: The Audio features output data as `torchcodec.decoders.AudioDecoder` objects, with additional keys:
+
+    - `array`: Array containing the audio sample
+    - `sampling_rate`: Integer corresponding to the sampling rate of the audio sample.
 
     Args:
         sampling_rate (`int`, *optional*):
@@ -57,9 +61,16 @@ class Audio:
     ```py
     >>> from datasets import load_dataset, Audio
     >>> ds = load_dataset("PolyAI/minds14", name="en-US", split="train")
-    >>> ds = ds.cast_column("audio", Audio(sampling_rate=16000))
+    >>> ds = ds.cast_column("audio", Audio(sampling_rate=44100))
     >>> ds[0]["audio"]
-    <datasets.features.audio.torchcodec.AudioDecoder object at 0x11642b6a0>
+    <datasets.features._torchcodec.AudioDecoder object at 0x11642b6a0>
+    >>> audio = ds[0]["audio"]
+    >>> audio.get_samples_played_in_range(0, 10)
+    AudioSamples:
+        data (shape): torch.Size([2, 110592])
+        pts_seconds: 0.0
+        duration_seconds: 2.507755102040816
+        sample_rate: 44100
     ```
     """
 
@@ -154,7 +165,7 @@ class Audio:
                 a dictionary repo_id (`str`) -> token (`bool` or `str`)
 
         Returns:
-            `AudioDecoder`
+            `torchcodec.decoders.AudioDecoder`
         """
         if config.TORCHCODEC_AVAILABLE:
             from ._torchcodec import AudioDecoder
