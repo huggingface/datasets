@@ -196,7 +196,9 @@ class Audio:
 
             download_config = DownloadConfig(token=token)
             f = xopen(path, "rb", download_config=download_config)
-            audio = AudioDecoder(f, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels)
+            audio = AudioDecoder(
+                f, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
+            )
 
         else:
             audio = AudioDecoder(
