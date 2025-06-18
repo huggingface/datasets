@@ -66,7 +66,6 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
         return datasets.DatasetInfo(features=self.config.features)
 
-
     def _split_generators(self, dl_manager):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
