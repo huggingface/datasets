@@ -1529,9 +1529,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
                             # the content is the number of examples progress update
                             pbar.update(content)
 
-            assert (
-                None not in examples_per_job
-            ), f"Failed to retrieve results from prepare_split: result list {examples_per_job} still contains None - at least one worker failed to return its results"
+            assert None not in examples_per_job, (
+                f"Failed to retrieve results from prepare_split: result list {examples_per_job} still contains None - at least one worker failed to return its results"
+            )
 
         total_shards = sum(shards_per_job)
         total_num_examples = sum(examples_per_job)
@@ -1784,9 +1784,9 @@ class ArrowBasedBuilder(DatasetBuilder):
                             # the content is the number of examples progress update
                             pbar.update(content)
 
-            assert (
-                None not in examples_per_job
-            ), f"Failed to retrieve results from prepare_split: result list {examples_per_job} still contains None - at least one worker failed to return its results"
+            assert None not in examples_per_job, (
+                f"Failed to retrieve results from prepare_split: result list {examples_per_job} still contains None - at least one worker failed to return its results"
+            )
 
         total_shards = sum(shards_per_job)
         total_num_examples = sum(examples_per_job)

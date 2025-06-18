@@ -13,27 +13,10 @@ from ..utils.file_utils import is_local_path, xopen
 from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
 
 
-def AudioDecoderClsGenerator():
-    import torchcodec.decoders as tcodec
-
-    class AudioDecoder(
-        tcodec.AudioDecoder
-    ):  # NOTE: array and sampling_rate are loaded each call. Maybe better to cache this in the future
-        def __getitem__(self, key: str):
-            if key == "array":
-                return self.get_all_samples().data
-            elif key == "sampling_rate":
-                return self.get_all_samples().sample_rate
-
-    return AudioDecoder
-
-
 if TYPE_CHECKING:
-    import torchcodec.decoders as tcodec
+    from torchcodec.decoders import AudioDecoder
 
     from .features import FeatureType
-
-    AudioDecoder = AudioDecoderClsGenerator()
 
 
 @dataclass
@@ -76,7 +59,7 @@ class Audio:
     >>> ds = load_dataset("PolyAI/minds14", name="en-US", split="train")
     >>> ds = ds.cast_column("audio", Audio(sampling_rate=16000))
     >>> ds[0]["audio"]
-    <datasets.features.audio.AudioDecoderClsGenerator.<locals>.AudioDecoder object at 0x11642b6a0>
+    <datasets.features.audio.torchcodec.AudioDecoder object at 0x11642b6a0>
     ```
     """
 
@@ -93,7 +76,7 @@ class Audio:
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, bytes, bytearray, dict, "tcodec.AudioDecoder", "AudioDecoder"]) -> dict:
+    def encode_example(self, value: Union[str, bytes, bytearray, dict, "AudioDecoder"]) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
@@ -112,9 +95,8 @@ class Audio:
             raise ValueError("value must be provided")
 
         if config.TORCHCODEC_AVAILABLE:
-            import torchcodec.decoders as tcodec
+            from torchcodec.decoders import AudioDecoder
 
-            AudioDecoder = AudioDecoderClsGenerator()
         else:
             AudioDecoder = None
 
@@ -122,8 +104,8 @@ class Audio:
             return {"bytes": None, "path": value}
         elif isinstance(value, (bytes, bytearray)):
             return {"bytes": value, "path": None}
-        elif AudioDecoder is not None and isinstance(value, (AudioDecoder, tcodec.AudioDecoder)):
-            return encode_torchcodec_audio(value, sf)
+        elif AudioDecoder is not None and isinstance(value, AudioDecoder):
+            return encode_torchcodec_audio(value)
         elif "array" in value:
             # convert the audio array to wav bytes
             buffer = BytesIO()
@@ -175,7 +157,7 @@ class Audio:
             `AudioDecoder`
         """
         if config.TORCHCODEC_AVAILABLE:
-            AudioDecoder = AudioDecoderClsGenerator()
+            from ._torchcodec import AudioDecoder
         else:
             raise ImportError("To support decoding audio data, please install 'torchcodec'.")
 
@@ -303,10 +285,15 @@ class Audio:
         return array_cast(storage, self.pa_type)
 
 
-def encode_torchcodec_audio(audio: "AudioDecoder", sf: Any) -> dict:
+def encode_torchcodec_audio(audio: "AudioDecoder") -> dict:
     if hasattr(audio, "_hf_encoded"):
         return audio._hf_encoded
     else:
+        try:
+            import soundfile as sf  # soundfile is a dependency of librosa, needed to decode audio files.
+        except ImportError as err:
+            raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
+
         samples = audio.get_all_samples()
         array = samples.data.cpu().numpy().T
         buffer = BytesIO()

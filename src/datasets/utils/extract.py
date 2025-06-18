@@ -52,13 +52,11 @@ class ExtractManager:
 class BaseExtractor(ABC):
     @classmethod
     @abstractmethod
-    def is_extractable(cls, path: Union[Path, str], **kwargs) -> bool:
-        ...
+    def is_extractable(cls, path: Union[Path, str], **kwargs) -> bool: ...
 
     @staticmethod
     @abstractmethod
-    def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
-        ...
+    def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None: ...
 
 
 class MagicNumberBaseExtractor(BaseExtractor, ABC):
