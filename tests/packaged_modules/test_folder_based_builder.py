@@ -285,7 +285,7 @@ def test_default_folder_builder_not_usable(data_files_with_labels_no_metadata, c
 # test that AutoFolder is extended for streaming when it's child class is instantiated:
 # see line 115 in src/datasets/streaming.py
 def test_streaming_patched():
-    _ = DummyFolderBasedBuilder()
+    _ = DummyFolderBasedBuilder(data_dir=".")
     module = importlib.import_module(FolderBasedBuilder.__module__)
     assert hasattr(module, "_patched_for_streaming")
     assert module._patched_for_streaming
