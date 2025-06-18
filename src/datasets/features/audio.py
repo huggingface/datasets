@@ -166,8 +166,9 @@ class Audio:
                 "Decoding 'mp3' files requires system library 'libsndfile'>=1.1.0, "
                 'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
             )
-
-        if file is None:
+        if path is not None and os.path.exists(path):
+            array, sampling_rate = sf.read(path)
+        elif file is None:
             token_per_repo_id = token_per_repo_id or {}
             source_url = path.split("::")[-1]
             pattern = (
