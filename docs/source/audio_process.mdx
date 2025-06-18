@@ -21,10 +21,10 @@ The [`~Dataset.cast_column`] function is used to cast a column to another featur
 Audio files are decoded and resampled on-the-fly, so the next time you access an example, the audio file is resampled to 16kHz:
 
 ```py
->>> ad = dataset[0]["audio"]
-<datasets.features.audio.AudioDecoderClsGenerator.<locals>.AudioDecoder object at 0x11642b6a0>
->>> ad = audio_dataset[0]["audio"]
->>> ad.get_all_samples().sample_rate
+>>> audio = dataset[0]["audio"]
+<datasets.features._torchcodec.AudioDecoder object at 0x11642b6a0>
+>>> audio = audio_dataset[0]["audio"]
+>>> audio.get_all_samples().sample_rate
 16000
 ```
 

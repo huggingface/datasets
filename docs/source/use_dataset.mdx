@@ -115,10 +115,10 @@ Audio inputs like text datasets need to be divided into discrete data points. Th
 **2**. Index into the first row of the dataset. When you call the `audio` column of the dataset, it is automatically decoded and resampled:
 
 ```py
->>> ad = dataset[0]["audio"]
+>>> audio = dataset[0]["audio"]
 >>> print(ad)
-<datasets.features.audio.AudioDecoderClsGenerator.<locals>.AudioDecoder object at 0x11642b6a0>
->>> ad.get_all_samples().sample_rate
+<datasets.features._torchcodec.AudioDecoder object at 0x11642b6a0>
+>>> audio.get_all_samples().sample_rate
 8000
 ```
 
@@ -128,10 +128,10 @@ Use the [`~Dataset.cast_column`] function and set the `sampling_rate` parameter 
 
 ```py
 >>> dataset = dataset.cast_column("audio", Audio(sampling_rate=16_000))
->>> ad = dataset[0]["audio"]
->>> print(ad)
-<datasets.features.audio.AudioDecoderClsGenerator.<locals>.AudioDecoder object at 0x11642b6a0>
->>> ad.get_all_samples().sample_rate
+>>> audio = dataset[0]["audio"]
+>>> print(audio)
+<datasets.features._torchcodec.AudioDecoder object at 0x11642b6a0>
+>>> audio.get_all_samples().sample_rate
 16000
 ```
 

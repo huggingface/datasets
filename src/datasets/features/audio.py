@@ -170,7 +170,7 @@ class Audio:
 
         channels = 1 if self.mono else None
         if bytes is None and is_local_path(path):
-            ad = AudioDecoder(
+            audio = AudioDecoder(
                 path, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
             )
 
@@ -185,15 +185,15 @@ class Audio:
 
             download_config = DownloadConfig(token=token)
             f = xopen(path, "rb", download_config=download_config)
-            ad = AudioDecoder(f, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels)
+            audio = AudioDecoder(f, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels)
 
         else:
-            ad = AudioDecoder(
+            audio = AudioDecoder(
                 bytes, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
             )
-        ad._hf_encoded = {"path": path, "bytes": bytes}
-        ad.metadata.path = path
-        return ad
+        audio._hf_encoded = {"path": path, "bytes": bytes}
+        audio.metadata.path = path
+        return audio
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """If in the decodable state, raise an error, otherwise flatten the feature into a dictionary."""
