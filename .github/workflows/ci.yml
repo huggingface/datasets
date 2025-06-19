@@ -45,13 +45,8 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup FFmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v3
-        id: setup-ffmpeg
-        with:
-          ffmpeg-version: release
-          # As of version 3 of this action, builds are no longer downloaded from GitHub
-          # except on Windows: https://github.com/GyanD/codexffmpeg/releases.
-          github-token: ${{ github.server_url == 'https://github.com' && github.token || '' }}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: sudo apt install -y ffmpeg 
       - name: Set up Python 3.9
         uses: actions/setup-python@v5
         with:
@@ -86,13 +81,8 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup FFmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v3
-        id: setup-ffmpeg
-        with:
-          ffmpeg-version: release
-          # As of version 3 of this action, builds are no longer downloaded from GitHub
-          # except on Windows: https://github.com/GyanD/codexffmpeg/releases.
-          github-token: ${{ github.server_url == 'https://github.com' && github.token || '' }}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: sudo apt install -y ffmpeg 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -121,13 +111,8 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup FFmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v3
-        id: setup-ffmpeg
-        with:
-          ffmpeg-version: release
-          # As of version 3 of this action, builds are no longer downloaded from GitHub
-          # except on Windows: https://github.com/GyanD/codexffmpeg/releases.
-          github-token: ${{ github.server_url == 'https://github.com' && github.token || '' }}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: sudo apt install -y ffmpeg 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
