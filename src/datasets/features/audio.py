@@ -75,7 +75,6 @@ class Audio:
     """
 
     sampling_rate: Optional[int] = None
-    mono: bool = True
     decode: bool = True
     stream_index: Optional[int] = None
     id: Optional[str] = field(default=None, repr=False)
@@ -179,11 +178,8 @@ class Audio:
         if path is None and bytes is None:
             raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
 
-        channels = 1 if self.mono else None
         if bytes is None and is_local_path(path):
-            audio = AudioDecoder(
-                path, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
-            )
+            audio = AudioDecoder(path, stream_index=self.stream_index, sample_rate=self.sampling_rate)
 
         elif bytes is None:
             token_per_repo_id = token_per_repo_id or {}
@@ -196,15 +192,10 @@ class Audio:
 
             download_config = DownloadConfig(token=token)
             f = xopen(path, "rb", download_config=download_config)
-            audio = AudioDecoder(
-                f, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
-            )
+            audio = AudioDecoder(f, stream_index=self.stream_index, sample_rate=self.sampling_rate)
 
         else:
-            audio = AudioDecoder(
-                bytes, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
-            )
-        audio._mono = self.mono
+            audio = AudioDecoder(bytes, stream_index=self.stream_index, sample_rate=self.sampling_rate)
         audio._hf_encoded = {"path": path, "bytes": bytes}
         audio.metadata.path = path
         return audio

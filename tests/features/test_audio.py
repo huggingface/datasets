@@ -244,19 +244,15 @@ def test_backwards_compatibility(shared_datadir):
     assert isinstance(decoded_example, AudioDecoder)
     samples = decoded_example.get_all_samples()
     assert decoded_example["sampling_rate"] == samples.sample_rate
-    assert (
-        decoded_example["array"].shape[0] == samples.data.shape[0]
-        and abs(decoded_example["array"].shape[1] - samples.data.shape[1]) < 2
-    )  # can have off by one error
+    assert decoded_example["array"].ndim == 1  # mono
+    assert abs(decoded_example["array"].shape[0] - samples.data.shape[1]) < 2  # can have off by one error
 
     decoded_example = audio.decode_example(audio.encode_example(audio_path2))
     assert isinstance(decoded_example, AudioDecoder)
     samples = decoded_example.get_all_samples()
     assert decoded_example["sampling_rate"] == samples.sample_rate
-    assert (
-        decoded_example["array"].shape[0] == samples.data.shape[0]
-        and abs(decoded_example["array"].shape[1] - samples.data.shape[1]) < 2
-    )  # can have off by one error
+    assert decoded_example["array"].ndim == 1  # mono
+    assert abs(decoded_example["array"].shape[0] - samples.data.shape[1]) < 2  # can have off by one error
 
 
 @require_torchcodec
