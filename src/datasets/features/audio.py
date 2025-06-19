@@ -204,6 +204,7 @@ class Audio:
             audio = AudioDecoder(
                 bytes, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=channels
             )
+        audio._mono = self.mono
         audio._hf_encoded = {"path": path, "bytes": bytes}
         audio.metadata.path = path
         return audio
