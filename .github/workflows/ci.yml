@@ -46,7 +46,9 @@ jobs:
           fetch-depth: 0
       - name: Setup FFmpeg
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: sudo apt install -y ffmpeg 
+        run: |
+          sudo apt update
+          sudo apt install -y ffmpeg 
       - name: Set up Python 3.9
         uses: actions/setup-python@v5
         with:
@@ -82,7 +84,9 @@ jobs:
           fetch-depth: 0
       - name: Setup FFmpeg
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: sudo apt install -y ffmpeg 
+        run: |
+          sudo apt update
+          sudo apt install -y ffmpeg 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -112,7 +116,9 @@ jobs:
           fetch-depth: 0
       - name: Setup FFmpeg
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: sudo apt install -y ffmpeg 
+        run: |
+          sudo apt update
+          sudo apt install -y ffmpeg 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
