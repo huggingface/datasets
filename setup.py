@@ -184,13 +184,10 @@ TESTS_REQUIRE = [
     "transformers>=4.42.0",  # Pins numpy < 2
     "zstandard",
     "polars[timezone]>=0.20.0",
-    "torchvision",
-    "av",
+    "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
+    "soundfile>=0.12.1",
+    "torchcodec>=0.4.0; sys_platform == 'win32'",  # not available for windows
 ]
-
-
-TESTS_REQUIRE.extend(VISION_REQUIRE)
-TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
     "faiss-cpu",
