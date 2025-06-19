@@ -1139,6 +1139,39 @@ class DatasetBuilder:
             datasets = DatasetDict(datasets)
         return datasets
 
+    
+    def as_iterable_dataset(self, split=None):
+        """
+        Load an IterableDataset from cached Arrow files.
+
+        Args:
+            split (str, optional): Dataset split to stream (e.g., "train", "validation", "train[:1000]")
+
+        Returns:
+            IterableDataset: A streamable dataset loaded from local cache
+        """
+        from datasets.iterable_dataset import IterableDataset, ArrowExamplesIterable
+        from datasets.arrow_reader import ArrowReader
+
+        # Ensure the dataset is prepared (cached arrow files exist)
+        self.download_and_prepare()
+
+        # Use ArrowReader to read the cached Arrow files
+        reader = ArrowReader(self._output_dir)
+
+        # Get instructions for which files/parts to read
+        instructions = reader.get_file_instructions(split)
+
+        # Generator function that yields Arrow tables
+        def gen_tables():
+            for instruction in instructions:
+                yield reader.read_tables([instruction])
+
+        # Wrap in ArrowExamplesIterable to create an iterable dataset
+        examples_iterable = ArrowExamplesIterable(gen_tables)
+
+        return IterableDataset(examples_iterable, info=self.info, split=split)
+
     def _build_single_dataset(
         self,
         split: Union[str, ReadInstruction, Split],
