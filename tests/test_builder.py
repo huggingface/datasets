@@ -304,6 +304,17 @@ class BuilderTest(TestCase):
                         )
                     )
 
+    def test_as_iterable_dataset_from_cache():
+        builder = load_dataset_builder("c4", "en")
+        builder.download_and_prepare()
+        iterable_ds = builder.as_iterable_dataset(split="train[:100]")
+        count = 0
+        for example in iterable_ds:
+            assert "text" in example
+            count += 1
+            if count > 10:
+                break  # Don't iterate full 100 in test
+
     def test_download_and_prepare_with_base_path(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             rel_path = "dummy1.data"
