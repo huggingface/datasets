@@ -93,6 +93,7 @@ def test_dataset_with_video_map_and_formatted(shared_datadir):
 
 
 # Dataset casting and mapping
+@require_torchcodec
 def test_dataset_with_video_feature_map_is_decoded(shared_datadir):
     video_path = str(shared_datadir / "test_video_66x50.mov")
     data = {"video": [video_path], "text": ["Hello"]}

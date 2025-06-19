@@ -549,6 +549,8 @@ def test_dataset_cast_to_audio_features(shared_datadir, build_data):
     assert isinstance(item["audio"], AudioDecoder)
 
 
+@require_torchcodec
+@require_sndfile
 def test_dataset_concatenate_audio_features(shared_datadir):
     # we use a different data structure between 1 and 2 to make sure they are compatible with each other
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -566,6 +568,8 @@ def test_dataset_concatenate_audio_features(shared_datadir):
     )
 
 
+@require_torchcodec
+@require_sndfile
 def test_dataset_concatenate_nested_audio_features(shared_datadir):
     # we use a different data structure between 1 and 2 to make sure they are compatible with each other
     audio_path = str(shared_datadir / "test_audio_44100.wav")

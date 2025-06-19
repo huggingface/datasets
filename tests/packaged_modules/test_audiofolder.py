@@ -150,6 +150,7 @@ def data_files_with_two_splits_and_metadata(request, tmp_path, audio_file):
 @pytest.fixture
 def data_files_with_zip_archives(tmp_path, audio_file):
     import soundfile as sf
+    from torchcodec.decoders import AudioDecoder
 
     data_dir = tmp_path / "audiofolder_data_dir_with_zip_archives"
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -163,7 +164,9 @@ def data_files_with_zip_archives(tmp_path, audio_file):
     audio_filename2 = subdir / "audio_file2.wav"  # in subdir
     # make sure they're two different audios
     # Indeed we won't be able to compare the audio filenames, since the archive is not extracted in streaming mode
-    array, sampling_rate = sf.read(str(audio_filename), sr=16000)  # original sampling rate is 44100
+    audio = AudioDecoder(audio_filename, sample_rate=16000)  # original sampling rate is 44100
+    samples = audio.get_all_samples()
+    array = samples.data
     sf.write(str(audio_filename2), array, samplerate=16000)
 
     audio_metadata_filename = archive_dir / "metadata.jsonl"
