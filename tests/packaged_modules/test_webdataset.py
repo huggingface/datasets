@@ -1,13 +1,18 @@
 import json
 import tarfile
 
-import numpy as np
 import pytest
 
 from datasets import Audio, DownloadManager, Features, Image, Sequence, Value
 from datasets.packaged_modules.webdataset.webdataset import WebDataset
 
-from ..utils import require_librosa, require_numpy1_on_windows, require_pil, require_sndfile, require_torch
+from ..utils import (
+    require_numpy1_on_windows,
+    require_pil,
+    require_sndfile,
+    require_torch,
+    require_torchcodec,
+)
 
 
 @pytest.fixture
@@ -159,9 +164,11 @@ def test_image_webdataset_missing_keys(image_wds_file):
     assert decoded["txt"] is None
 
 
-@require_librosa
+@require_torchcodec
 @require_sndfile
 def test_audio_webdataset(audio_wds_file):
+    from torchcodec.decoders import AudioDecoder
+
     data_files = {"train": [audio_wds_file]}
     webdataset = WebDataset(data_files=data_files)
     split_generators = webdataset._split_generators(DownloadManager())
@@ -187,8 +194,7 @@ def test_audio_webdataset(audio_wds_file):
     decoded = webdataset.info.features.decode_example(encoded)
     assert isinstance(decoded["json"], dict)
     assert isinstance(decoded["json"]["transcript"], str)
-    assert isinstance(decoded["wav"], dict)
-    assert isinstance(decoded["wav"]["array"], np.ndarray)
+    assert isinstance(decoded["wav"], AudioDecoder)
 
 
 def test_webdataset_errors_on_bad_file(bad_wds_file):
