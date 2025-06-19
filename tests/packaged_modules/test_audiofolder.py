@@ -148,10 +148,7 @@ def data_files_with_two_splits_and_metadata(request, tmp_path, audio_file):
 
 
 @pytest.fixture
-def data_files_with_zip_archives(tmp_path, audio_file):
-    import soundfile as sf
-    from torchcodec.decoders import AudioDecoder
-
+def data_files_with_zip_archives(tmp_path, audio_file_44100, audio_file_16000):
     data_dir = tmp_path / "audiofolder_data_dir_with_zip_archives"
     data_dir.mkdir(parents=True, exist_ok=True)
     archive_dir = data_dir / "archive"
@@ -159,21 +156,16 @@ def data_files_with_zip_archives(tmp_path, audio_file):
     subdir = archive_dir / "subdir"
     subdir.mkdir(parents=True, exist_ok=True)
 
-    audio_filename = archive_dir / "audio_file.wav"
-    shutil.copyfile(audio_file, audio_filename)
-    audio_filename2 = subdir / "audio_file2.wav"  # in subdir
-    # make sure they're two different audios
-    # Indeed we won't be able to compare the audio filenames, since the archive is not extracted in streaming mode
-    audio = AudioDecoder(audio_filename, sample_rate=16000)  # original sampling rate is 44100
-    samples = audio.get_all_samples()
-    array = samples.data.cpu().numpy()
-    sf.write(str(audio_filename2), array.T, samplerate=16000)
+    audio_filename = archive_dir / "audio_file.mp3"
+    shutil.copyfile(audio_file_44100, audio_filename)
+    audio_filename2 = subdir / "audio_file2.mp3"  # in subdir
+    shutil.copyfile(audio_file_16000, audio_filename2)
 
     audio_metadata_filename = archive_dir / "metadata.jsonl"
     audio_metadata = textwrap.dedent(
         """\
-        {"file_name": "audio_file.wav", "text": "First audio transcription"}
-        {"file_name": "subdir/audio_file2.wav", "text": "Second audio transcription (in subdir)"}
+        {"file_name": "audio_file.mp3", "text": "First audio transcription"}
+        {"file_name": "subdir/audio_file2.mp3", "text": "Second audio transcription (in subdir)"}
         """
     )
 
