@@ -166,8 +166,8 @@ def data_files_with_zip_archives(tmp_path, audio_file):
     # Indeed we won't be able to compare the audio filenames, since the archive is not extracted in streaming mode
     audio = AudioDecoder(audio_filename, sample_rate=16000)  # original sampling rate is 44100
     samples = audio.get_all_samples()
-    array = samples.data
-    sf.write(str(audio_filename2), array, samplerate=16000)
+    array = samples.data.cpu().numpy()
+    sf.write(str(audio_filename2), array.T, samplerate=16000)
 
     audio_metadata_filename = archive_dir / "metadata.jsonl"
     audio_metadata = textwrap.dedent(

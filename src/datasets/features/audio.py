@@ -119,7 +119,7 @@ class Audio:
         elif "array" in value:
             # convert the audio array to wav bytes
             buffer = BytesIO()
-            sf.write(buffer, value["array"], value["sampling_rate"], format="wav")
+            sf.write(buffer, value["array"].T, value["sampling_rate"], format="wav")
             return {"bytes": buffer.getvalue(), "path": None}
         elif value.get("path") is not None and os.path.isfile(value["path"]):
             # we set "bytes": None to not duplicate the data if they're already available locally
@@ -300,7 +300,7 @@ def encode_torchcodec_audio(audio: "AudioDecoder") -> dict:
             raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
 
         samples = audio.get_all_samples()
-        array = samples.data.cpu().numpy().T
+        array = samples.data.cpu().numpy()
         buffer = BytesIO()
-        sf.write(buffer, array, samples.sample_rate, format="wav")
+        sf.write(buffer, array.T, samples.sample_rate, format="wav")
         return {"bytes": buffer.getvalue(), "path": None}
