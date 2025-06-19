@@ -98,7 +98,7 @@ class Audio:
             `dict`
         """
         try:
-            import soundfile as sf  # soundfile is a dependency of librosa, needed to decode audio files.
+            import soundfile as sf  # needed to write audio files
         except ImportError as err:
             raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
 
@@ -303,7 +303,7 @@ def encode_torchcodec_audio(audio: "AudioDecoder") -> dict:
         return audio._hf_encoded
     else:
         try:
-            import soundfile as sf  # soundfile is a dependency of librosa, needed to decode audio files.
+            import soundfile as sf  # needed to write audio files
         except ImportError as err:
             raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
 

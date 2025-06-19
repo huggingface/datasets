@@ -38,7 +38,7 @@ from datasets.utils.file_utils import cached_path
 from datasets.utils.hub import hf_dataset_url
 
 from .fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
-from .utils import for_all_test_methods, require_librosa, require_pil, require_sndfile, xfail_if_500_502_http_error
+from .utils import for_all_test_methods, require_pil, require_sndfile, require_torchcodec, xfail_if_500_502_http_error
 
 
 pytestmark = pytest.mark.integration
@@ -387,7 +387,7 @@ class TestPushToHub:
             assert ds.features == hub_ds.features
             assert ds[:] == hub_ds[:]
 
-    @require_librosa
+    @require_torchcodec
     @require_sndfile
     def test_push_dataset_to_hub_custom_features_audio(self, temporary_repo):
         audio_path = os.path.join(os.path.dirname(__file__), "features", "data", "test_audio_44100.wav")

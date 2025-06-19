@@ -58,7 +58,6 @@ def test_audio_feature_type_to_arrow():
     assert features.arrow_schema == pa.schema({"sequence_of_audios": pa.list_(Audio().pa_type)})
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 @pytest.mark.parametrize(
@@ -87,7 +86,6 @@ def test_audio_feature_encode_example(shared_datadir, build_example):
     assert isinstance(decoded_example, AudioDecoder)
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 @pytest.mark.parametrize(
@@ -115,7 +113,6 @@ def test_audio_feature_encode_example_pcm(shared_datadir, build_example):
 sample_rates = [16_000, 48_000]
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 @pytest.mark.parametrize(
@@ -136,7 +133,6 @@ def test_audio_feature_encode_example_audiodecoder(shared_datadir, in_sample_rat
     assert isinstance(decoded_example, AudioDecoder)
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 def test_audio_decode_example(shared_datadir):
@@ -154,7 +150,6 @@ def test_audio_decode_example(shared_datadir):
         Audio(decode=False).decode_example(audio_path)
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 def test_audio_resampling(shared_datadir):
@@ -169,7 +164,6 @@ def test_audio_resampling(shared_datadir):
     assert samples.data.shape == (1, 73401)
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 def test_audio_decode_example_mp3(shared_datadir):
@@ -185,7 +179,6 @@ def test_audio_decode_example_mp3(shared_datadir):
     assert samples.data.shape == (1, 110592)
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 def test_audio_decode_example_opus(shared_datadir):
@@ -200,7 +193,6 @@ def test_audio_decode_example_opus(shared_datadir):
     assert samples.data.shape == (1, 48000)
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 @pytest.mark.parametrize("sampling_rate", [16_000, 48_000])
@@ -217,7 +209,6 @@ def test_audio_decode_example_pcm(shared_datadir, sampling_rate):
     assert samples.data.shape == (1, 16208 * sampling_rate // 16_000)
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 def test_audio_resampling_mp3_different_sampling_rates(shared_datadir):
@@ -268,7 +259,6 @@ def test_backwards_compatibility(shared_datadir):
     )  # can have off by one error
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 def test_dataset_with_audio_feature(shared_datadir):
@@ -299,7 +289,6 @@ def test_dataset_with_audio_feature(shared_datadir):
     assert samples.data.shape == (1, 202311)
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 def test_dataset_with_audio_feature_tar_wav(tar_wav_path):
@@ -335,7 +324,6 @@ def test_dataset_with_audio_feature_tar_wav(tar_wav_path):
     assert samples.data.shape == (1, 202311)
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 def test_dataset_with_audio_feature_tar_mp3(tar_mp3_path):
@@ -406,7 +394,6 @@ def test_dataset_with_audio_feature_with_none():
     assert item["nested"]["audio"] is None
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 def test_resampling_at_loading_dataset_with_audio_feature(shared_datadir):
@@ -437,7 +424,6 @@ def test_resampling_at_loading_dataset_with_audio_feature(shared_datadir):
     assert samples.data.shape == (1, 73401)
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 def test_resampling_at_loading_dataset_with_audio_feature_mp3(shared_datadir):
@@ -468,7 +454,6 @@ def test_resampling_at_loading_dataset_with_audio_feature_mp3(shared_datadir):
     assert samples.data.shape == (1, 40124)  # (1, 40125)
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 def test_resampling_after_loading_dataset_with_audio_feature(shared_datadir):
@@ -503,7 +488,6 @@ def test_resampling_after_loading_dataset_with_audio_feature(shared_datadir):
     assert samples.data.shape == (1, 73401)
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 def test_resampling_after_loading_dataset_with_audio_feature_mp3(shared_datadir):
@@ -565,7 +549,6 @@ def test_dataset_cast_to_audio_features(shared_datadir, build_data):
     assert isinstance(item["audio"], AudioDecoder)
 
 
-# @require_librosa
 def test_dataset_concatenate_audio_features(shared_datadir):
     # we use a different data structure between 1 and 2 to make sure they are compatible with each other
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -583,7 +566,6 @@ def test_dataset_concatenate_audio_features(shared_datadir):
     )
 
 
-# @require_librosa
 def test_dataset_concatenate_nested_audio_features(shared_datadir):
     # we use a different data structure between 1 and 2 to make sure they are compatible with each other
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -627,7 +609,6 @@ def test_dataset_with_audio_feature_map_is_not_decoded(shared_datadir):
         assert item == {"audio": expected_audio, "text": "Hello World!"}
 
 
-# @require_librosa
 @require_sndfile
 @require_torchcodec
 def test_dataset_with_audio_feature_map_is_decoded(shared_datadir):
@@ -659,7 +640,6 @@ def test_dataset_with_audio_feature_map_is_decoded(shared_datadir):
         assert item["double_sampling_rate"] == 88200
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 def test_formatted_dataset_with_audio_feature(shared_datadir):
@@ -726,7 +706,6 @@ def jsonl_audio_dataset_path(shared_datadir, tmp_path_factory):
     return path
 
 
-# @require_librosa
 @require_torchcodec
 @require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])

@@ -137,8 +137,7 @@ REQUIRED_PKGS = [
 
 AUDIO_REQUIRE = [
     "soundfile>=0.12.1",
-    "librosa",
-    "soxr>=0.4.0",  # Supports numpy-2
+    "torchcodec>=0.4.0",
 ]
 
 VISION_REQUIRE = [
@@ -195,7 +194,6 @@ TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
     "faiss-cpu",
-    "librosa",  # librosa -> numba-0.60.0 requires numpy < 2.1 (see GH-7111)
     "tensorflow",
 ]
 TESTS_NUMPY2_REQUIRE = [

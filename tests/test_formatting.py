@@ -20,13 +20,13 @@ from datasets.table import InMemoryTable
 
 from .utils import (
     require_jax,
-    require_librosa,
     require_numpy1_on_windows,
     require_pil,
     require_polars,
     require_sndfile,
     require_tf,
     require_torch,
+    require_torchcodec,
 )
 
 
@@ -309,7 +309,7 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["image"][0].dtype, np.uint8)
         self.assertEqual(batch["image"][0].shape, (480, 640, 3))
 
-    @require_librosa
+    @require_torchcodec
     @require_sndfile
     def test_numpy_formatter_audio(self):
         pa_table = pa.table({"audio": [{"bytes": None, "path": str(AUDIO_PATH_1)}]})
@@ -432,7 +432,7 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["image"][0].shape, (3, 480, 640))
 
     @require_torch
-    @require_librosa
+    @require_torchcodec
     @require_sndfile
     def test_torch_formatter_audio(self):
         import torch
@@ -619,7 +619,7 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["image"][0].shape, (480, 640, 3))
 
     @require_jax
-    @require_librosa
+    @require_torchcodec
     @require_sndfile
     def test_jax_formatter_audio(self):
         import jax.numpy as jnp

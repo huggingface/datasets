@@ -10,7 +10,7 @@ from datasets.data_files import DataFilesDict, DataFilesList, get_data_patterns
 from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
 
-from ..utils import require_librosa, require_sndfile
+from ..utils import require_sndfile, require_torchcodec
 
 
 @pytest.fixture
@@ -149,7 +149,6 @@ def data_files_with_two_splits_and_metadata(request, tmp_path, audio_file):
 
 @pytest.fixture
 def data_files_with_zip_archives(tmp_path, audio_file):
-    import librosa
     import soundfile as sf
 
     data_dir = tmp_path / "audiofolder_data_dir_with_zip_archives"
@@ -164,7 +163,7 @@ def data_files_with_zip_archives(tmp_path, audio_file):
     audio_filename2 = subdir / "audio_file2.wav"  # in subdir
     # make sure they're two different audios
     # Indeed we won't be able to compare the audio filenames, since the archive is not extracted in streaming mode
-    array, sampling_rate = librosa.load(str(audio_filename), sr=16000)  # original sampling rate is 44100
+    array, sampling_rate = sf.read(str(audio_filename), sr=16000)  # original sampling rate is 44100
     sf.write(str(audio_filename2), array, samplerate=16000)
 
     audio_metadata_filename = archive_dir / "metadata.jsonl"
@@ -199,7 +198,7 @@ def test_config_raises_when_invalid_data_files(data_files) -> None:
         _ = AudioFolderConfig(name="name", data_files=data_files)
 
 
-@require_librosa
+@require_torchcodec
 @require_sndfile
 # check that labels are inferred correctly from dir names
 def test_generate_examples_with_labels(data_files_with_labels_no_metadata, cache_dir):
@@ -265,7 +264,7 @@ def test_generate_examples_drop_metadata(audio_file_with_metadata, drop_metadata
         assert example[column] is not None
 
 
-@require_librosa
+@require_torchcodec
 @require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_single_split(streaming, cache_dir, data_files_with_one_split_and_metadata):
@@ -284,7 +283,7 @@ def test_data_files_with_metadata_and_single_split(streaming, cache_dir, data_fi
         assert all(example["text"] is not None for example in dataset)
 
 
-@require_librosa
+@require_torchcodec
 @require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_multiple_splits(streaming, cache_dir, data_files_with_two_splits_and_metadata):
@@ -303,7 +302,7 @@ def test_data_files_with_metadata_and_multiple_splits(streaming, cache_dir, data
         assert all(example["text"] is not None for example in dataset)
 
 
-@require_librosa
+@require_torchcodec
 @require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_with_zip_archives):
