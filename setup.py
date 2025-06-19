@@ -185,7 +185,7 @@ TESTS_REQUIRE = [
     "polars[timezone]>=0.20.0",
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
     "soundfile>=0.12.1",
-    "torchcodec>=0.4.0; sys_platform == 'win32'",  # not available for windows
+    "torchcodec>=0.4.0; sys_platform != 'win32'",  # not available for windows
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
