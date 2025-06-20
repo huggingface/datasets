@@ -341,8 +341,6 @@ class OptimizedTypedSequence(TypedSequence):
 class ArrowWriter:
     """Shuffles and writes Examples to Arrow files."""
 
-    _WRITER_CLASS = pa.RecordBatchStreamWriter
-
     def __init__(
         self,
         schema: Optional[pa.Schema] = None,
@@ -430,8 +428,9 @@ class ArrowWriter:
         if self._closable_stream and not self.stream.closed:
             self.stream.close()  # This also closes self.pa_writer if it is opened
 
-    def _build_writer(self, inferred_schema: pa.Schema):
+    def _build_schema(self, inferred_schema: pa.Schema):
         schema = self.schema
+        features = self._features
         inferred_features = Features.from_arrow_schema(inferred_schema)
         if self._features is not None:
             if self.update_features:  # keep original features it they match, or update them
@@ -441,19 +440,24 @@ class ArrowWriter:
                     if name in fields:
                         if inferred_field == fields[name]:
                             inferred_features[name] = self._features[name]
-                self._features = inferred_features
+                features = inferred_features
                 schema: pa.Schema = inferred_schema
         else:
-            self._features = inferred_features
+            features = inferred_features
             schema: pa.Schema = inferred_features.arrow_schema
+
         if self.disable_nullable:
             schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in schema)
         if self.with_metadata:
-            schema = schema.with_metadata(self._build_metadata(DatasetInfo(features=self._features), self.fingerprint))
+            schema = schema.with_metadata(self._build_metadata(DatasetInfo(features=features), self.fingerprint))
         else:
             schema = schema.with_metadata({})
-        self._schema = schema
-        self.pa_writer = self._WRITER_CLASS(self.stream, schema)
+
+        return schema, features
+
+    def _build_writer(self, inferred_schema: pa.Schema):
+        self._schema, self._features = self._build_schema(inferred_schema)
+        self.pa_writer = pa.RecordBatchStreamWriter(self.stream, self._schema)
 
     @property
     def schema(self):
@@ -674,4 +678,17 @@ class ArrowWriter:
 
 
 class ParquetWriter(ArrowWriter):
-    _WRITER_CLASS = pq.ParquetWriter
+    def __init__(self, *args, use_content_defined_chunking=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.use_content_defined_chunking = (
+            config.DEFAULT_CDC_OPTIONS if use_content_defined_chunking is None else use_content_defined_chunking
+        )
+
+    def _build_writer(self, inferred_schema: pa.Schema):
+        self._schema, self._features = self._build_schema(inferred_schema)
+        self.pa_writer = pq.ParquetWriter(
+            self.stream, self._schema, use_content_defined_chunking=self.use_content_defined_chunking
+        )
+        self.pa_writer.add_key_value_metadata(
+            {"content_defined_chunking": json.dumps(self.use_content_defined_chunking)}
+        )
