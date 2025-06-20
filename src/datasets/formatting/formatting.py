@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numbers
 import operator
 from collections.abc import Iterable, Mapping, MutableMapping
 from functools import partial
@@ -565,7 +566,7 @@ def _check_valid_index_key(key: Union[int, slice, range, Iterable], size: int) -
 
 
 def key_to_query_type(key: Union[int, slice, range, str, Iterable]) -> str:
-    if isinstance(key, int):
+    if isinstance(key, numbers.Integral):
         return "row"
     elif isinstance(key, str):
         return "column"
