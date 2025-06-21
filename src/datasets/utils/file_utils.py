@@ -30,6 +30,8 @@ import fsspec
 import huggingface_hub
 import huggingface_hub.errors
 import requests
+from .file_utils import get_datasets_user_agent  # If needed
+from ..download.download_config import DownloadConfig
 from fsspec.core import strip_protocol, url_to_fs
 from fsspec.utils import can_be_local
 from huggingface_hub.utils import EntryNotFoundError, get_session, insecure_hashlib
@@ -894,6 +896,13 @@ def _prepare_single_hop_path_and_storage_options(
         # streaming with block_size=0 is only implemented in 0.21 (see https://github.com/huggingface/huggingface_hub/pull/1967)
         if config.HF_HUB_VERSION < version.parse("0.21.0"):
             storage_options["block_size"] = "default"
+
+    if download_config is not None:
+        user_agent = get_datasets_user_agent(download_config.user_agent)
+        if protocol in {"http", "https", "hf"}:
+            storage_options.setdefault("headers", {})
+            storage_options["headers"]["user-agent"] = user_agent
+            
     if storage_options:
         storage_options = {protocol: storage_options}
     return urlpath, storage_options
