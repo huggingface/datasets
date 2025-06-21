@@ -3325,6 +3325,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             logger.info(f"Concatenating {num_shards} shards")
             result = _concatenate_map_style_datasets(all_transformed_shards)
 
+        # Reuse unchanged columns from original dataset if input_columns are known
+        if input_columns is not None:
+            import pyarrow as pa
+
+            untouched_columns = [
+                col for col in self.column_names
+                if col not in input_columns and col not in (remove_columns or [])
+            ]
+
+            if untouched_columns:
+                reused_table = self.data.select(untouched_columns)
+                result_table = pa.concat_tables([reused_table, result.data], promote=True)
+                result = Dataset(
+                    result_table,
+                    info=result.info,
+                    split=result.split,
+                    fingerprint=result._fingerprint,
+                )
+
         # update fingerprint if the dataset changed
         result._fingerprint = (
             new_fingerprint
