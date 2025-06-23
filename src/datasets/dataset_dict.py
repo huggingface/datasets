@@ -201,11 +201,12 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rajpurkar/squad")
         >>> ds["train"].features
-        {'answers': Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None),
-         'context': Value(dtype='string', id=None),
-         'id': Value(dtype='string', id=None),
-         'question': Value(dtype='string', id=None),
-         'title': Value(dtype='string', id=None)}
+        {'id': Value(dtype='string'),
+         'title': Value(dtype='string'),
+         'context': Value(dtype='string'),
+         'question': Value(dtype='string'),
+         'answers.text': List(feature=Value(dtype='string'), length=-1),
+         'answers.answer_start': List(feature=Value(dtype='int32'), length=-1)}
         >>> ds.flatten()
         DatasetDict({
             train: Dataset({

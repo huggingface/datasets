@@ -1157,34 +1157,30 @@ class ClassLabel:
             return [name.strip() for name in f.read().split("\n") if name.strip()]  # Filter empty names
 
 
+def Sequence(feature, length=-1):
+    if isinstance(feature, dict):
+        return {key: List(value, length=length) for key, value in feature.items()}
+    else:
+        return List(feature, length=length)
+
+
 @dataclass
-class Sequence:
-    """Construct a list of feature from a single type or a dict of types.
-    Mostly here for compatiblity with tfds.
+class List:
+    """Feature type for large list data composed of child feature data type.
+
+    It is backed by `pyarrow.ListType`, which uses 32-bit offsets or a fixed length.
 
     Args:
         feature ([`FeatureType`]):
-            A list of features of a single type or a dictionary of types.
-        length (`int`):
-            Length of the sequence.
-
-    Example:
-
-    ```py
-    >>> from datasets import Features, Sequence, Value, ClassLabel
-    >>> features = Features({'post': Sequence(feature={'text': Value(dtype='string'), 'upvotes': Value(dtype='int32'), 'label': ClassLabel(num_classes=2, names=['hot', 'cold'])})})
-    >>> features
-    {'post': Sequence(feature={'text': Value(dtype='string', id=None), 'upvotes': Value(dtype='int32', id=None), 'label': ClassLabel(names=['hot', 'cold'], id=None)}, length=-1, id=None)}
-    ```
+            Child feature data type of each item within the large list.
     """
 
     feature: Any
     length: int = -1
     id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
-    dtype: ClassVar[str] = "list"
     pa_type: ClassVar[Any] = None
-    _type: str = field(default="Sequence", init=False, repr=False)
+    _type: str = field(default="List", init=False, repr=False)
 
 
 @dataclass
@@ -1214,7 +1210,7 @@ FeatureType = Union[
     Translation,
     TranslationVariableLanguages,
     LargeList,
-    Sequence,
+    List,
     Array2D,
     Array3D,
     Array4D,
@@ -1233,7 +1229,7 @@ def _check_non_null_non_empty_recursive(obj, schema: Optional[FeatureType] = Non
     """
     if obj is None:
         return False
-    elif isinstance(obj, (list, tuple)) and (schema is None or isinstance(schema, (list, tuple, LargeList, Sequence))):
+    elif isinstance(obj, (list, tuple)) and (schema is None or isinstance(schema, (list, tuple, LargeList, List))):
         if len(obj) > 0:
             if schema is None:
                 pass
@@ -1273,14 +1269,9 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
     elif isinstance(schema, LargeList):
         value_type = get_nested_type(schema.feature)
         return pa.large_list(value_type)
-    elif isinstance(schema, Sequence):
+    elif isinstance(schema, List):
         value_type = get_nested_type(schema.feature)
-        # We allow to reverse list of dict => dict of list for compatibility with tfds
-        if isinstance(schema.feature, dict):
-            data_type = pa.struct({f.name: pa.list_(f.type, schema.length) for f in value_type})
-        else:
-            data_type = pa.list_(value_type, schema.length)
-        return data_type
+        return pa.list_(value_type, schema.length)
 
     # Other objects are callable which returns their data type (ClassLabel, Array2D, Translation, Arrow datatype creation methods)
     return schema()
@@ -1317,7 +1308,7 @@ def encode_nested_example(schema, obj, level=0):
                 if encode_nested_example(sub_schema, first_elmt, level=level + 1) != first_elmt:
                     return [encode_nested_example(sub_schema, o, level=level + 1) for o in obj]
             return list(obj)
-    elif isinstance(schema, LargeList):
+    elif isinstance(schema, (LargeList, List)):
         if obj is None:
             return None
         else:
@@ -1328,42 +1319,6 @@ def encode_nested_example(schema, obj, level=0):
                         break
                 if encode_nested_example(sub_schema, first_elmt, level=level + 1) != first_elmt:
                     return [encode_nested_example(sub_schema, o, level=level + 1) for o in obj]
-            return list(obj)
-    elif isinstance(schema, Sequence):
-        if obj is None:
-            return None
-        # We allow to reverse list of dict => dict of list for compatibility with tfds
-        if isinstance(schema.feature, dict):
-            # dict of list to fill
-            list_dict = {}
-            if isinstance(obj, (list, tuple)):
-                # obj is a list of dict
-                for k in schema.feature:
-                    list_dict[k] = [encode_nested_example(schema.feature[k], o.get(k), level=level + 1) for o in obj]
-                return list_dict
-            else:
-                # obj is a single dict
-                for k in schema.feature:
-                    list_dict[k] = (
-                        [encode_nested_example(schema.feature[k], o, level=level + 1) for o in obj[k]]
-                        if k in obj
-                        else None
-                    )
-                return list_dict
-        # schema.feature is not a dict
-        if isinstance(obj, str):  # don't interpret a string as a list
-            raise ValueError(f"Got a string but expected a list instead: '{obj}'")
-        else:
-            if len(obj) > 0:
-                for first_elmt in obj:
-                    if _check_non_null_non_empty_recursive(first_elmt, schema.feature):
-                        break
-                # be careful when comparing tensors here
-                if (
-                    not (isinstance(first_elmt, list) or np.isscalar(first_elmt))
-                    or encode_nested_example(schema.feature, first_elmt, level=level + 1) != first_elmt
-                ):
-                    return [encode_nested_example(schema.feature, o, level=level + 1) for o in obj]
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
@@ -1399,7 +1354,7 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Uni
                 if decode_nested_example(sub_schema, first_elmt) != first_elmt:
                     return [decode_nested_example(sub_schema, o) for o in obj]
             return list(obj)
-    elif isinstance(schema, LargeList):
+    elif isinstance(schema, (LargeList, List)):
         if obj is None:
             return None
         else:
@@ -1411,12 +1366,6 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Uni
                 if decode_nested_example(sub_schema, first_elmt) != first_elmt:
                     return [decode_nested_example(sub_schema, o) for o in obj]
             return list(obj)
-    elif isinstance(schema, Sequence):
-        # We allow to reverse list of dict => dict of list for compatibility with tfds
-        if isinstance(schema.feature, dict):
-            return {k: decode_nested_example([schema.feature[k]], obj[k]) for k in schema.feature}
-        else:
-            return decode_nested_example([schema.feature], obj)
     # Object with special decoding:
     elif hasattr(schema, "decode_example") and getattr(schema, "decode", True):
         # we pass the token to read and decode files from private repositories in streaming mode
@@ -1430,7 +1379,7 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     Translation.__name__: Translation,
     TranslationVariableLanguages.__name__: TranslationVariableLanguages,
     LargeList.__name__: LargeList,
-    Sequence.__name__: Sequence,
+    List.__name__: List,
     Array2D.__name__: Array2D,
     Array3D.__name__: Array3D,
     Array4D.__name__: Array4D,
@@ -1485,7 +1434,10 @@ def generate_from_dict(obj: Any):
     if class_type == LargeList:
         feature = obj.pop("feature")
         return LargeList(feature=generate_from_dict(feature), **obj)
-    if class_type == Sequence:
+    if class_type == List:
+        feature = obj.pop("feature")
+        return List(feature=generate_from_dict(feature), **obj)
+    if class_type == Sequence:  # backward compatibility, this translates to a List or a dict
         feature = obj.pop("feature")
         return Sequence(feature=generate_from_dict(feature), **obj)
 
@@ -1506,15 +1458,11 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
     if isinstance(pa_type, pa.StructType):
         return {field.name: generate_from_arrow_type(field.type) for field in pa_type}
     elif isinstance(pa_type, pa.FixedSizeListType):
-        return Sequence(feature=generate_from_arrow_type(pa_type.value_type), length=pa_type.list_size)
+        return List(feature=generate_from_arrow_type(pa_type.value_type), length=pa_type.list_size)
     elif isinstance(pa_type, pa.ListType):
-        feature = generate_from_arrow_type(pa_type.value_type)
-        if isinstance(feature, (dict, tuple, list)):
-            return [feature]
-        return Sequence(feature=feature)
+        return List(feature=generate_from_arrow_type(pa_type.value_type))
     elif isinstance(pa_type, pa.LargeListType):
-        feature = generate_from_arrow_type(pa_type.value_type)
-        return LargeList(feature=feature)
+        return LargeList(feature=generate_from_arrow_type(pa_type.value_type))
     elif isinstance(pa_type, _ArrayXDExtensionType):
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
@@ -1596,7 +1544,7 @@ def to_pyarrow_listarray(data: Any, pa_type: _ArrayXDExtensionType) -> pa.Array:
     """Convert to PyArrow ListArray.
 
     Args:
-        data (Any): Sequence, iterable, np.ndarray or pd.Series.
+        data (Any): List, iterable, np.ndarray or pd.Series.
         pa_type (_ArrayXDExtensionType): Any of the ArrayNDExtensionType.
 
     Returns:
@@ -1624,8 +1572,8 @@ def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureT
         out = func([_visit(feature[0], func)])
     elif isinstance(feature, LargeList):
         out = func(LargeList(_visit(feature.feature, func)))
-    elif isinstance(feature, Sequence):
-        out = func(Sequence(_visit(feature.feature, func), length=feature.length))
+    elif isinstance(feature, List):
+        out = func(List(_visit(feature.feature, func), length=feature.length))
     else:
         out = func(feature)
     return feature if out is None else out
@@ -1653,19 +1601,12 @@ def _visit_with_path(
     Returns:
         `FeatureType`: the visited feature.
     """
-    if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
-        feature = {k: [f] for k, f in feature.feature.items()}
-        # ^ Sequence of dicts is special, it must be converted to a dict of lists (see https://huggingface.co/docs/datasets/v2.16.1/en/package_reference/main_classes#datasets.Features)
     if isinstance(feature, Features):
         out = func(Features({k: _visit_with_path(f, func, visit_path + [k]) for k, f in feature.items()}), visit_path)
     elif isinstance(feature, dict):
         out = func({k: _visit_with_path(f, func, visit_path + [k]) for k, f in feature.items()}, visit_path)
-    elif isinstance(feature, (list, tuple)):
-        out = func([_visit_with_path(feature[0], func, visit_path + [0])], visit_path)
-    elif isinstance(feature, Sequence):
-        out = func(
-            Sequence(_visit_with_path(feature.feature, func, visit_path + [0]), length=feature.length), visit_path
-        )
+    elif isinstance(feature, List):
+        out = func(List(_visit_with_path(feature.feature, func, visit_path + [0]), length=feature.length), visit_path)
     elif isinstance(feature, LargeList):
         out = func(LargeList(_visit_with_path(feature.feature, func, visit_path + [0])), visit_path)
     else:
@@ -1689,7 +1630,7 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
         return require_decoding(feature[0])
     elif isinstance(feature, LargeList):
         return require_decoding(feature.feature)
-    elif isinstance(feature, Sequence):
+    elif isinstance(feature, List):
         return require_decoding(feature.feature)
     else:
         return hasattr(feature, "decode_example") and (
@@ -1707,11 +1648,9 @@ def require_storage_cast(feature: FeatureType) -> bool:
     """
     if isinstance(feature, dict):
         return any(require_storage_cast(f) for f in feature.values())
-    elif isinstance(feature, (list, tuple)):
-        return require_storage_cast(feature[0])
     elif isinstance(feature, LargeList):
         return require_storage_cast(feature.feature)
-    elif isinstance(feature, Sequence):
+    elif isinstance(feature, List):
         return require_storage_cast(feature.feature)
     else:
         return hasattr(feature, "cast_storage")
@@ -1727,11 +1666,9 @@ def require_storage_embed(feature: FeatureType) -> bool:
     """
     if isinstance(feature, dict):
         return any(require_storage_cast(f) for f in feature.values())
-    elif isinstance(feature, (list, tuple)):
-        return require_storage_cast(feature[0])
     elif isinstance(feature, LargeList):
         return require_storage_cast(feature.feature)
-    elif isinstance(feature, Sequence):
+    elif isinstance(feature, List):
         return require_storage_cast(feature.feature)
     else:
         return hasattr(feature, "embed_storage")
@@ -1771,14 +1708,14 @@ class Features(dict):
           will be stored as integers in the dataset.
         - Python `dict` specifies a composite feature containing a mapping of sub-fields to sub-features.
           It's possible to have nested fields of nested fields in an arbitrary manner.
-        - Python `list`, [`LargeList`] or [`Sequence`] specifies a composite feature containing a sequence of
+        - [`List`] or [`LargeList`] specifies a composite feature containing a sequence of
           sub-features, all of the same feature type.
 
           <Tip>
 
-           A [`Sequence`] with an internal dictionary feature will be automatically converted into a dictionary of
+           A `Sequence` is deprecated and automatically converts internal dictionary feature into a dictionary of
            lists. This behavior is implemented to have a compatibility layer with the TensorFlow Datasets library but may be
-           un-wanted in some cases. If you don't want this behavior, you can use a Python `list` or a [`LargeList`]
+           un-wanted in some cases. If you don't want this behavior, you can use a [`List`] or a [`LargeList`]
            instead of the [`Sequence`].
 
           </Tip>
@@ -1944,9 +1881,9 @@ class Features(dict):
                 if _type == "LargeList":
                     _feature = obj.pop("feature")
                     return simplify({"large_list": to_yaml_inner(_feature), **obj})
-                elif _type == "Sequence":
+                elif _type == "List":
                     _feature = obj.pop("feature")
-                    return simplify({"sequence": to_yaml_inner(_feature), **obj})
+                    return simplify({"list": to_yaml_inner(_feature), **obj})
                 elif _type == "Value":
                     return obj
                 elif _type and not obj:
@@ -2013,13 +1950,20 @@ class Features(dict):
                     return {}
                 _type = next(iter(obj))
                 if _type == "large_list":
-                    _feature = unsimplify(obj).pop(_type)
-                    return {"feature": from_yaml_inner(_feature), **obj, "_type": "LargeList"}
+                    _feature = from_yaml_inner(unsimplify(obj).pop(_type))
+                    return {"feature": _feature, **obj, "_type": "LargeList"}
                 if _type == "sequence":
-                    _feature = unsimplify(obj).pop(_type)
-                    return {"feature": from_yaml_inner(_feature), **obj, "_type": "Sequence"}
+                    _feature = from_yaml_inner(unsimplify(obj).pop(_type))
+                    if isinstance(_feature, dict):
+                        return {
+                            name: {"feature": _subfeature, **obj, "_type": "List"}
+                            for name, _subfeature in _feature.items()
+                        }
+                    else:
+                        return {"feature": _feature, **obj, "_type": "List"}
                 if _type == "list":
-                    return [from_yaml_inner(unsimplify(obj)[_type])]
+                    _feature = from_yaml_inner(unsimplify(obj).pop(_type))
+                    return {"feature": _feature, **obj, "_type": "List"}
                 if _type == "struct":
                     return from_yaml_inner(obj["struct"])
                 elif _type == "dtype":
@@ -2203,37 +2147,20 @@ class Features(dict):
 
         Example::
 
-            >>> from datasets import Features, Sequence, Value
+            >>> from datasets import Features, List, Value
             >>> # let's say we have two features with a different order of nested fields (for a and b for example)
-            >>> f1 = Features({"root": Sequence({"a": Value("string"), "b": Value("string")})})
-            >>> f2 = Features({"root": {"b": Sequence(Value("string")), "a": Sequence(Value("string"))}})
+            >>> f1 = Features({"root": {"a": Value("string"), "b": Value("string")}})
+            >>> f2 = Features({"root": {"b": Value("string"), "a": Value("string")}})
             >>> assert f1.type != f2.type
-            >>> # re-ordering keeps the base structure (here Sequence is defined at the root level), but makes the fields order match
+            >>> # re-ordering keeps the base structure (here List is defined at the root level), but makes the fields order match
             >>> f1.reorder_fields_as(f2)
-            {'root': Sequence(feature={'b': Value(dtype='string', id=None), 'a': Value(dtype='string', id=None)}, length=-1, id=None)}
+            {'root': List(feature={'b': Value(dtype='string'), 'a': Value(dtype='string')}, length=-1)}
             >>> assert f1.reorder_fields_as(f2).type == f2.type
         """
 
         def recursive_reorder(source, target, stack=""):
             stack_position = " at " + stack[1:] if stack else ""
-            if isinstance(target, Sequence):
-                target = target.feature
-                if isinstance(target, dict):
-                    target = {k: [v] for k, v in target.items()}
-                else:
-                    target = [target]
-            if isinstance(source, Sequence):
-                sequence_kwargs = vars(source).copy()
-                source = sequence_kwargs.pop("feature")
-                if isinstance(source, dict):
-                    source = {k: [v] for k, v in source.items()}
-                    reordered = recursive_reorder(source, target, stack)
-                    return Sequence({k: v[0] for k, v in reordered.items()}, **sequence_kwargs)
-                else:
-                    source = [source]
-                    reordered = recursive_reorder(source, target, stack)
-                    return Sequence(reordered[0], **sequence_kwargs)
-            elif isinstance(source, dict):
+            if isinstance(source, dict):
                 if not isinstance(target, dict):
                     raise ValueError(f"Type mismatch: between {source} and {target}" + stack_position)
                 if sorted(source) != sorted(target):
@@ -2244,16 +2171,14 @@ class Features(dict):
                     )
                     raise ValueError(message)
                 return {key: recursive_reorder(source[key], target[key], stack + f".{key}") for key in target}
-            elif isinstance(source, list):
-                if not isinstance(target, list):
+            elif isinstance(source, List):
+                if not isinstance(target, List):
                     raise ValueError(f"Type mismatch: between {source} and {target}" + stack_position)
-                if len(source) != len(target):
-                    raise ValueError(f"Length mismatch: between {source} and {target}" + stack_position)
-                return [recursive_reorder(source[i], target[i], stack + ".<list>") for i in range(len(target))]
+                return List(recursive_reorder(source.feature, target.feature, stack + ".<list>"), length=source.length)
             elif isinstance(source, LargeList):
                 if not isinstance(target, LargeList):
                     raise ValueError(f"Type mismatch: between {source} and {target}" + stack_position)
-                return LargeList(recursive_reorder(source.feature, target.feature, stack))
+                return LargeList(recursive_reorder(source.feature, target.feature, stack + ".<list>"))
             else:
                 return source
 
@@ -2277,8 +2202,8 @@ class Features(dict):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rajpurkar/squad", split="train")
         >>> ds.features.flatten()
-        {'answers.answer_start': Sequence(feature=Value(dtype='int32', id=None), length=-1, id=None),
-         'answers.text': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None),
+        {'answers.answer_start': List(feature=Value(dtype='int32', id=None), length=-1, id=None),
+         'answers.text': List(feature=Value(dtype='string', id=None), length=-1, id=None),
          'context': Value(dtype='string', id=None),
          'id': Value(dtype='string', id=None),
          'question': Value(dtype='string', id=None),
@@ -2292,15 +2217,6 @@ class Features(dict):
                 if isinstance(subfeature, dict):
                     no_change = False
                     flattened.update({f"{column_name}.{k}": v for k, v in subfeature.items()})
-                    del flattened[column_name]
-                elif isinstance(subfeature, Sequence) and isinstance(subfeature.feature, dict):
-                    no_change = False
-                    flattened.update(
-                        {
-                            f"{column_name}.{k}": Sequence(v) if not isinstance(v, dict) else [v]
-                            for k, v in subfeature.feature.items()
-                        }
-                    )
                     del flattened[column_name]
                 elif hasattr(subfeature, "flatten") and subfeature.flatten() != subfeature:
                     no_change = False

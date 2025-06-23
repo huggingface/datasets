@@ -9,7 +9,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Column, Dataset, Features, Image, Sequence, Value, concatenate_datasets, load_dataset
+from datasets import Column, Dataset, Features, Image, Value, concatenate_datasets, load_dataset
 from datasets.features.image import encode_np_array, image_to_bytes
 
 from ..utils import require_pil
@@ -45,7 +45,7 @@ def test_image_feature_type_to_arrow():
     assert features.arrow_schema == pa.schema({"image": Image().pa_type})
     features = Features({"struct_containing_an_image": {"image": Image()}})
     assert features.arrow_schema == pa.schema({"struct_containing_an_image": pa.struct({"image": Image().pa_type})})
-    features = Features({"sequence_of_images": Sequence(Image())})
+    features = Features({"sequence_of_images": List(Image())})
     assert features.arrow_schema == pa.schema({"sequence_of_images": pa.list_(Image().pa_type)})
 
 
@@ -276,7 +276,7 @@ def test_dataset_with_image_feature_with_none():
     # nested tests
 
     data = {"images": [[None]]}
-    features = Features({"images": Sequence(Image())})
+    features = Features({"images": List(Image())})
     dset = Dataset.from_dict(data, features=features)
     item = dset[0]
     assert item.keys() == {"images"}

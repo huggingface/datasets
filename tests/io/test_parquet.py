@@ -2,7 +2,7 @@ import fsspec
 import pyarrow.parquet as pq
 import pytest
 
-from datasets import Audio, Dataset, DatasetDict, Features, IterableDatasetDict, NamedSplit, Sequence, Value, config
+from datasets import Audio, Dataset, DatasetDict, Features, IterableDatasetDict, NamedSplit, Value, config
 from datasets.features.image import Image
 from datasets.info import DatasetInfo
 from datasets.io.parquet import ParquetDatasetReader, ParquetDatasetWriter, get_writer_batch_size
@@ -219,7 +219,7 @@ def test_dataset_to_parquet_keeps_features(shared_datadir, tmp_path):
     [
         (Features({"foo": Value("int32")}), None),
         (Features({"image": Image(), "foo": Value("int32")}), config.PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS),
-        (Features({"nested": Sequence(Audio())}), config.PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS),
+        (Features({"nested": List(Audio())}), config.PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS),
     ],
 )
 def test_get_writer_batch_size(feature, expected):

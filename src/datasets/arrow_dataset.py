@@ -76,7 +76,7 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .data_files import sanitize_patterns
 from .download.streaming_download_manager import xgetsize
-from .features import Audio, ClassLabel, Features, Image, Sequence, Value, Video
+from .features import Audio, ClassLabel, Features, Image, List, Value, Video
 from .features.features import (
     FeatureType,
     _align_features,
@@ -2028,11 +2028,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rajpurkar/squad", split="train")
         >>> ds.features
-        {'answers': Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None),
-         'context': Value(dtype='string', id=None),
-         'id': Value(dtype='string', id=None),
-         'question': Value(dtype='string', id=None),
-         'title': Value(dtype='string', id=None)}
+        {'id': Value(dtype='string'),
+         'title': Value(dtype='string'),
+         'context': Value(dtype='string'),
+         'question': Value(dtype='string'),
+         'answers': {'text': List(feature=Value(dtype='string'), length=-1),
+         'answer_start': List(feature=Value(dtype='int32'), length=-1)}}
         >>> ds.flatten()
         Dataset({
             features: ['id', 'title', 'context', 'question', 'answers.text', 'answers.answer_start'],
@@ -6350,7 +6351,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features[label_column] = (
             ClassLabel(num_classes=len(label_names), names=label_names)
             if isinstance(label_feature, ClassLabel)
-            else Sequence(ClassLabel(num_classes=len(label_names), names=label_names))
+            else List(ClassLabel(num_classes=len(label_names), names=label_names))
         )
         return self.map(process_label_ids, features=features, batched=True, desc="Aligning the labels")
 

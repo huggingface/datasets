@@ -3,7 +3,7 @@ from collections import namedtuple
 
 import pytest
 
-from datasets import ClassLabel, Features, Sequence, Value
+from datasets import ClassLabel, Features, Value
 from datasets.commands.test import TestCommand
 from datasets.info import DatasetInfo, DatasetInfosDict
 
@@ -43,12 +43,12 @@ def test_test_command(dataset_dir):
             "default": DatasetInfo(
                 features=Features(
                     {
-                        "tokens": Sequence(Value("string")),
-                        "ner_tags": Sequence(
+                        "tokens": List(Value("string")),
+                        "ner_tags": List(
                             ClassLabel(names=["O", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC"])
                         ),
-                        "langs": Sequence(Value("string")),
-                        "spans": Sequence(Value("string")),
+                        "langs": List(Value("string")),
+                        "spans": List(Value("string")),
                     }
                 ),
                 splits=[
