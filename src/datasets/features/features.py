@@ -1158,6 +1158,7 @@ class ClassLabel:
 
 
 def Sequence(feature, length=-1):
+    """deprecated, please use List instead"""
     if isinstance(feature, dict):
         return {key: List(value, length=length) for key, value in feature.items()}
     else:

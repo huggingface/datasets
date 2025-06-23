@@ -265,11 +265,12 @@ Sometimes a column can be a nested structure of several types. Take a look at th
 >>> from datasets import load_dataset
 >>> dataset = load_dataset("rajpurkar/squad", split="train")
 >>> dataset.features
-{'answers': Sequence(feature={'text': Value(dtype='string'), 'answer_start': Value(dtype='int32')}, length=-1),
-'context': Value(dtype='string'),
-'id': Value(dtype='string'),
-'question': Value(dtype='string'),
-'title': Value(dtype='string')}
+{'id': Value(dtype='string'),
+ 'title': Value(dtype='string'),
+ 'context': Value(dtype='string'),
+ 'question': Value(dtype='string'),
+ 'answers': {'text': List(feature=Value(dtype='string'), length=-1),
+  'answer_start': List(feature=Value(dtype='int32'), length=-1)}}
 ```
 
 The `answers` field contains two subfields: `text` and `answer_start`. Use the [`~Dataset.flatten`] function to extract the subfields into their own separate columns:

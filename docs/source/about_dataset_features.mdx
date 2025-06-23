@@ -32,20 +32,21 @@ Refer to [`Value`] for a full list of supported data types.
 
 The [`ClassLabel`] feature informs 🤗 Datasets the `label` column contains two classes. The classes are labeled `not_equivalent` and `equivalent`. Labels are stored as integers in the dataset. When you retrieve the labels, [`ClassLabel.int2str`] and [`ClassLabel.str2int`] carries out the conversion from integer value to label name, and vice versa.
 
-If your data type contains a list of objects, then you want to use the [`Sequence`] feature. Remember the SQuAD dataset?
+If your data type contains a list of objects, then you want to use the [`List`] feature. Remember the SQuAD dataset?
 
 ```py
 >>> from datasets import load_dataset
 >>> dataset = load_dataset('rajpurkar/squad', split='train')
 >>> dataset.features
-{'answers': Sequence(feature={'text': Value(dtype='string'), 'answer_start': Value(dtype='int32')}, length=-1),
-'context': Value(dtype='string'),
-'id': Value(dtype='string'),
-'question': Value(dtype='string'),
-'title': Value(dtype='string')}
+{'id': Value(dtype='string'),
+ 'title': Value(dtype='string'),
+ 'context': Value(dtype='string'),
+ 'question': Value(dtype='string'),
+ 'answers': {'text': List(feature=Value(dtype='string'), length=-1),
+  'answer_start': List(feature=Value(dtype='int32'), length=-1)}}
 ```
 
-The `answers` field is constructed using the [`Sequence`] feature because it contains two subfields, `text` and `answer_start`, which are lists of `string` and `int32`, respectively.
+The `answers` field is constructed using the dict of features because and contains two subfields, `text` and `answer_start`, which are lists of `string` and `int32`, respectively.
 
 <Tip>
 
