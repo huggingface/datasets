@@ -1294,21 +1294,6 @@ def encode_nested_example(schema, obj, level=0):
             if obj is not None
             else None
         )
-
-    elif isinstance(schema, (list, tuple)):
-        sub_schema = schema[0]
-        if obj is None:
-            return None
-        elif isinstance(obj, np.ndarray):
-            return encode_nested_example(schema, obj.tolist())
-        else:
-            if len(obj) > 0:
-                for first_elmt in obj:
-                    if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
-                        break
-                if encode_nested_example(sub_schema, first_elmt, level=level + 1) != first_elmt:
-                    return [encode_nested_example(sub_schema, o, level=level + 1) for o in obj]
-            return list(obj)
     elif isinstance(schema, (LargeList, List)):
         if obj is None:
             return None
@@ -1318,7 +1303,11 @@ def encode_nested_example(schema, obj, level=0):
                 for first_elmt in obj:
                     if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
                         break
-                if encode_nested_example(sub_schema, first_elmt, level=level + 1) != first_elmt:
+                try:
+                    changed = bool(encode_nested_example(sub_schema, first_elmt, level=level + 1) != first_elmt)
+                except ValueError:  # can happen when comparing arrays
+                    changed = False
+                if changed:
                     return [encode_nested_example(sub_schema, o, level=level + 1) for o in obj]
             return list(obj)
     # Object with special encoding:

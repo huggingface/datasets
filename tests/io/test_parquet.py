@@ -2,7 +2,7 @@ import fsspec
 import pyarrow.parquet as pq
 import pytest
 
-from datasets import Audio, Dataset, DatasetDict, Features, IterableDatasetDict, NamedSplit, Value, config
+from datasets import Audio, Dataset, DatasetDict, Features, IterableDatasetDict, List, NamedSplit, Value, config
 from datasets.features.image import Image
 from datasets.info import DatasetInfo
 from datasets.io.parquet import ParquetDatasetReader, ParquetDatasetWriter, get_writer_batch_size

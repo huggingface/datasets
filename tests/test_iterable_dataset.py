@@ -19,6 +19,7 @@ from datasets.features import (
     ClassLabel,
     Features,
     Image,
+    List,
     Value,
 )
 from datasets.formatting import Formatter, get_format_type_from_alias
@@ -1766,7 +1767,7 @@ def test_iterable_dataset_features_cast_to_python():
         {
             "id": Value("int64"),
             "timestamp": Value("timestamp[us]"),
-            "array": [Value("int64")],
+            "array": List(Value("int64")),
         }
     )
     dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))

@@ -2,14 +2,14 @@ import copy
 import pickle
 from decimal import Decimal
 from functools import partial
-from typing import List, Union
+from typing import Union
 from unittest.mock import MagicMock
 
 import numpy as np
 import pyarrow as pa
 import pytest
 
-from datasets.features import Array2D, ClassLabel, Features, Image, LargeList, Value
+from datasets.features import Array2D, ClassLabel, Features, Image, LargeList, List, Value
 from datasets.features.features import Array2DExtensionType, get_nested_type
 from datasets.table import (
     ConcatenationTable,
@@ -40,7 +40,7 @@ def in_memory_pa_table(arrow_file) -> pa.Table:
     return pa.ipc.open_stream(arrow_file).read_all()
 
 
-def _to_testing_blocks(table: TableBlock) -> List[List[TableBlock]]:
+def _to_testing_blocks(table: TableBlock) -> list[list[TableBlock]]:
     assert len(table) > 2
     blocks = [
         [table.slice(0, 2)],
@@ -1049,7 +1049,7 @@ def test_concat_tables(arrow_file, in_memory_pa_table):
     assert isinstance(concatenated_table.blocks[0][2], InMemoryTable)
 
 
-def _interpolation_search_ground_truth(arr: List[int], x: int) -> Union[int, IndexError]:
+def _interpolation_search_ground_truth(arr: list[int], x: int) -> Union[int, IndexError]:
     for i in range(len(arr) - 1):
         if arr[i] <= x < arr[i + 1]:
             return i
@@ -1154,7 +1154,7 @@ def test_cast_array_to_feature_with_struct_with_missing_fields(array_list, expec
 
 def test_cast_array_to_features_nested():
     arr = pa.array([[{"foo": [0]}]])
-    assert cast_array_to_feature(arr, [{"foo": List(Value("string"))}]).type == pa.list_(
+    assert cast_array_to_feature(arr, List({"foo": List(Value("string"))})).type == pa.list_(
         pa.struct({"foo": pa.list_(pa.string())})
     )
 
@@ -1168,12 +1168,12 @@ def test_cast_array_to_features_to_nested_with_no_fields():
 def test_cast_array_to_features_nested_with_nulls():
     # same type
     arr = pa.array([{"foo": [None, [0]]}], pa.struct({"foo": pa.list_(pa.list_(pa.int64()))}))
-    casted_array = cast_array_to_feature(arr, {"foo": [[Value("int64")]]})
+    casted_array = cast_array_to_feature(arr, {"foo": List(List(Value("int64")))})
     assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int64()))})
     assert casted_array.to_pylist() == arr.to_pylist()
     # different type
     arr = pa.array([{"foo": [None, [0]]}], pa.struct({"foo": pa.list_(pa.list_(pa.int64()))}))
-    casted_array = cast_array_to_feature(arr, {"foo": [[Value("int32")]]})
+    casted_array = cast_array_to_feature(arr, {"foo": List(List(Value("int32")))})
     assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int32()))})
     assert casted_array.to_pylist() == [{"foo": [None, [0]]}]
 
@@ -1243,8 +1243,8 @@ def test_cast_fixed_size_list_array_to_features_sequence(arr, slice, target_valu
     casted_array = cast_array_to_feature(arr, List(target_value_feature))
     assert casted_array.type == get_nested_type(List(target_value_feature))
     assert casted_array.to_pylist() == arr.to_pylist()
-    casted_array = cast_array_to_feature(arr, [target_value_feature])
-    assert casted_array.type == get_nested_type([target_value_feature])
+    casted_array = cast_array_to_feature(arr, List(target_value_feature))
+    assert casted_array.type == get_nested_type(List(target_value_feature))
     assert casted_array.to_pylist() == arr.to_pylist()
 
 
@@ -1262,8 +1262,8 @@ def test_cast_list_array_to_features_sequence(arr, slice, target_value_feature):
     casted_array = cast_array_to_feature(arr, List(target_value_feature))
     assert casted_array.type == get_nested_type(List(target_value_feature))
     assert casted_array.to_pylist() == arr.to_pylist()
-    casted_array = cast_array_to_feature(arr, [target_value_feature])
-    assert casted_array.type == get_nested_type([target_value_feature])
+    casted_array = cast_array_to_feature(arr, List(target_value_feature))
+    assert casted_array.type == get_nested_type(List(target_value_feature))
     assert casted_array.to_pylist() == arr.to_pylist()
     # Fixed size list
     list_size = arr.value_lengths().drop_null()[0].as_py() if arr.value_lengths().drop_null() else 2
@@ -1278,6 +1278,11 @@ def test_cast_list_array_to_features_sequence(arr, slice, target_value_feature):
 def test_cast_array_to_feature_with_list_array_and_sequence_feature(
     list_within_struct, from_list_type, sequence_feature_dtype
 ):
+    list_feature = {
+        "list": List,
+        "fixed_size_list": partial(List, length=2),
+        "large_list": LargeList,
+    }
     list_type = {
         "list": pa.list_,
         "fixed_size_list": partial(pa.list_, list_size=2),
@@ -1290,14 +1295,17 @@ def test_cast_array_to_feature_with_list_array_and_sequence_feature(
     to_type = "list"
     array_data = [0, 1]
     array_type = list_type[from_list_type](pa.int64())
-    sequence_feature = Value(sequence_feature_dtype)
-    expected_array_type = list_type[to_type](primitive_type[sequence_feature_dtype])
+    sequence_feature = list_feature[from_list_type](Value(sequence_feature_dtype))
+    expected_array_type = list_type[from_list_type](primitive_type[sequence_feature_dtype])
     if list_within_struct:
         array_data = {"col_1": array_data}
         array_type = pa.struct({"col_1": array_type})
         sequence_feature = {"col_1": sequence_feature}
         expected_array_type = pa.struct({"col_1": expected_array_type})
-    feature = List(sequence_feature)
+    array_data = [array_data] * 2
+    array_type = list_type[from_list_type](array_type)
+    feature = list_feature[to_type](sequence_feature)
+    expected_array_type = list_type[to_type](expected_array_type)
     array = pa.array([array_data], type=array_type)
     cast_array = cast_array_to_feature(array, feature)
     assert cast_array.type == expected_array_type
@@ -1364,18 +1372,13 @@ def test_embed_array_storage_nested(image_file):
     [
         (
             pa.array([[{"path": "image_path"}]], type=pa.list_(Image.pa_type)),
-            [Image()],
+            List(Image()),
             pa.types.is_list,
         ),
         (
             pa.array([[{"path": "image_path"}]], type=pa.large_list(Image.pa_type)),
             LargeList(Image()),
             pa.types.is_large_list,
-        ),
-        (
-            pa.array([[{"path": "image_path"}]], type=pa.list_(Image.pa_type)),
-            List(Image()),
-            pa.types.is_list,
         ),
     ],
 )
