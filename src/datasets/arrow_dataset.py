@@ -81,6 +81,7 @@ from .features.features import (
     FeatureType,
     _align_features,
     _check_if_features_can_be_aligned,
+    _fix_for_backward_compatible_features,
     generate_from_arrow_type,
     pandas_types_mapper,
     require_decoding,
@@ -2118,6 +2119,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"as the columns in the dataset: {self._data.column_names}"
             )
 
+        features = _fix_for_backward_compatible_features(features)
         schema = features.arrow_schema
         format = self.format
         dataset = self.with_format("arrow")
@@ -2167,6 +2169,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
          'text': Value(dtype='string', id=None)}
         ```
         """
+        feature = _fix_for_backward_compatible_features(feature)
         if hasattr(feature, "decode_example"):
             dataset = copy.deepcopy(self)
             dataset._info.features[column] = feature
@@ -3082,6 +3085,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if fn_kwargs is None:
             fn_kwargs = {}
+
+        if features is not None:
+            features = _fix_for_backward_compatible_features(features)
 
         if num_proc is not None and num_proc > len(self):
             num_proc = len(self)

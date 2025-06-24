@@ -9,7 +9,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Column, Dataset, Features, Image, Value, concatenate_datasets, load_dataset
+from datasets import Column, Dataset, Features, Image, List, Value, concatenate_datasets, load_dataset
 from datasets.features.image import encode_np_array, image_to_bytes
 
 from ..utils import require_pil
@@ -336,7 +336,7 @@ def test_dataset_concatenate_image_features(shared_datadir):
 def test_dataset_concatenate_nested_image_features(shared_datadir):
     # we use a different data structure between 1 and 2 to make sure they are compatible with each other
     image_path = str(shared_datadir / "test_image_rgb.jpg")
-    features = Features({"list_of_structs_of_images": [{"image": Image()}]})
+    features = Features({"list_of_structs_of_images": List({"image": Image()})})
     data1 = {"list_of_structs_of_images": [[{"image": image_path}]]}
     dset1 = Dataset.from_dict(data1, features=features)
     data2 = {"list_of_structs_of_images": [[{"image": {"bytes": open(image_path, "rb").read()}}]]}

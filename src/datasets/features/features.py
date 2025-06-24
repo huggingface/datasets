@@ -1158,7 +1158,24 @@ class ClassLabel:
 
 
 def Sequence(feature, length=-1):
-    """deprecated, please use List instead"""
+    """
+    A `Sequence` is a utility that automatically converts internal dictionary feature into a dictionary of
+    lists. This behavior is implemented to have a compatibility layer with the TensorFlow Datasets library but may be
+    un-wanted in some cases. If you don't want this behavior, you can use a [`List`] or a [`LargeList`]
+    instead of the [`Sequence`].
+
+    Args:
+        feature ([`FeatureType`]):
+            Child feature data type of each item within the large list.
+        length (optional `int`, default to -1):
+            Length of the list if it is fixed.
+            Defaults to -1 which means an arbitrary length.
+
+        Returns:
+            [`List`] of the specified feature, except `dict` of sub-features
+            which are converted to `dict` of lists of sub-features for compatibility with TFDS.
+
+    """
     if isinstance(feature, dict):
         return {key: List(value, length=length) for key, value in feature.items()}
     else:
@@ -1174,6 +1191,9 @@ class List:
     Args:
         feature ([`FeatureType`]):
             Child feature data type of each item within the large list.
+        length (optional `int`, default to -1):
+            Length of the list if it is fixed.
+            Defaults to -1 which means an arbitrary length.
     """
 
     feature: Any
@@ -1558,8 +1578,6 @@ def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureT
         out = func(Features({k: _visit(f, func) for k, f in feature.items()}))
     elif isinstance(feature, dict):
         out = func({k: _visit(f, func) for k, f in feature.items()})
-    elif isinstance(feature, (list, tuple)):
-        out = func([_visit(feature[0], func)])
     elif isinstance(feature, LargeList):
         out = func(LargeList(_visit(feature.feature, func)))
     elif isinstance(feature, List):
@@ -1700,22 +1718,19 @@ class Features(dict):
           It's possible to have nested fields of nested fields in an arbitrary manner.
         - [`List`] or [`LargeList`] specifies a composite feature containing a sequence of
           sub-features, all of the same feature type.
-
-          <Tip>
-
-           A `Sequence` is deprecated and automatically converts internal dictionary feature into a dictionary of
-           lists. This behavior is implemented to have a compatibility layer with the TensorFlow Datasets library but may be
-           un-wanted in some cases. If you don't want this behavior, you can use a [`List`] or a [`LargeList`]
-           instead of the [`Sequence`].
-
-          </Tip>
-
         - [`Array2D`], [`Array3D`], [`Array4D`] or [`Array5D`] feature for multidimensional arrays.
         - [`Audio`] feature to store the absolute path to an audio file or a dictionary with the relative path
-          to an audio file ("path" key) and its bytes content ("bytes" key). This feature extracts the audio data.
+          to an audio file ("path" key) and its bytes content ("bytes" key).
+          This feature loads the audio lazily with a decoder.
         - [`Image`] feature to store the absolute path to an image file, an `np.ndarray` object, a `PIL.Image.Image` object
           or a dictionary with the relative path to an image file ("path" key) and its bytes content ("bytes" key).
           This feature extracts the image data.
+        - [`Video`] feature to store the absolute path to a video file, a `torchcodec.decoders.VideoDecoder` object
+          or a dictionary with the relative path to a video file ("path" key) and its bytes content ("bytes" key).
+          This feature loads the video lazily with a decoder.
+        - [`Pdf`] feature to store the absolute path to a PDF file, a `pdfplumber.pdf.PDF` object
+          or a dictionary with the relative path to a PDF file ("path" key) and its bytes content ("bytes" key).
+          This feature loads the PDF lazily with a PDF reader.
         - [`Translation`] or [`TranslationVariableLanguages`] feature specific to Machine Translation.
     """
 
@@ -2252,3 +2267,12 @@ def _check_if_features_can_be_aligned(features_list: list[Features]):
                 raise ValueError(
                     f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
                 )
+
+
+def _fix_for_backward_compatible_features(feature: Any) -> FeatureType:
+    def _fix_old_list(feature):
+        if isinstance(feature, list):
+            return List(_fix_for_backward_compatible_features(feature[0]))
+        return feature
+
+    return _visit(feature, _fix_old_list)

@@ -7,7 +7,7 @@ import pyarrow as pa
 import pytest
 
 from datasets import Column, Dataset, concatenate_datasets, load_dataset
-from datasets.features import Audio, Features, Value
+from datasets.features import Audio, Features, List, Value
 
 from ..utils import require_sndfile, require_torchcodec
 

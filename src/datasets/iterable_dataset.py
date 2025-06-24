@@ -37,6 +37,7 @@ from .features.features import (
     Value,
     _align_features,
     _check_if_features_can_be_aligned,
+    _fix_for_backward_compatible_features,
     _visit,
     cast_to_python_objects,
     require_decoding,
@@ -2661,6 +2662,8 @@ class IterableDataset(DatasetInfoMixin):
             function = identity_func
         if fn_kwargs is None:
             fn_kwargs = {}
+        if features is not None:
+            features = _fix_for_backward_compatible_features(features)
 
         ex_iterable = self._ex_iterable
         # no need to apply features if ex_iterable is typed and if there was no cast_column()
@@ -3244,6 +3247,7 @@ class IterableDataset(DatasetInfoMixin):
          'transcription': Value(dtype='string', id=None)}
         ```
         """
+        feature = _fix_for_backward_compatible_features(feature)
         info = self._info.copy()
         info.features[column] = feature
         return IterableDataset(
@@ -3290,6 +3294,7 @@ class IterableDataset(DatasetInfoMixin):
          'text': Value(dtype='large_string', id=None)}
         ```
         """
+        features = _fix_for_backward_compatible_features(features)
         info = self._info.copy()
         info.features = features
         return IterableDataset(
