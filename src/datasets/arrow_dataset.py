@@ -898,6 +898,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
             )
         features = features if features is not None else info.features if info is not None else None
+        if features is not None:
+            features = _fix_for_backward_compatible_features(features)
         if info is None:
             info = DatasetInfo()
         info.features = features
@@ -943,6 +945,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
             )
         features = features if features is not None else info.features if info is not None else None
+        if features is not None:
+            features = _fix_for_backward_compatible_features(features)
         if info is None:
             info = DatasetInfo()
         info.features = features
@@ -988,6 +992,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
             )
         features = features if features is not None else info.features if info is not None else None
+        if features is not None:
+            features = _fix_for_backward_compatible_features(features)
         arrow_typed_mapping = {}
         for col, data in mapping.items():
             if isinstance(data, (pa.Array, pa.ChunkedArray)):

@@ -1957,14 +1957,15 @@ class Features(dict):
                 if _type == "large_list":
                     _feature = from_yaml_inner(unsimplify(obj).pop(_type))
                     return {"feature": _feature, **obj, "_type": "LargeList"}
-                if _type == "sequence":
-                    _feature = from_yaml_inner(unsimplify(obj).pop(_type))
-                    if isinstance(_feature, dict):
+                if _type == "sequence":  # backward compatibility
+                    if isinstance(obj[_type], list):
+                        _feature = from_yaml_inner(unsimplify(obj).pop(_type))
                         return {
                             name: {"feature": _subfeature, **obj, "_type": "List"}
                             for name, _subfeature in _feature.items()
                         }
                     else:
+                        _feature = from_yaml_inner(unsimplify(obj).pop(_type))
                         return {"feature": _feature, **obj, "_type": "List"}
                 if _type == "list":
                     _feature = from_yaml_inner(unsimplify(obj).pop(_type))

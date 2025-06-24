@@ -3,7 +3,7 @@ from collections import namedtuple
 
 import pytest
 
-from datasets import ClassLabel, Features, Value
+from datasets import ClassLabel, Features, List, Value
 from datasets.commands.test import TestCommand
 from datasets.info import DatasetInfo, DatasetInfosDict
 
