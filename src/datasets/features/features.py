@@ -476,7 +476,7 @@ def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_cast
     )[0]
 
 
-@dataclass
+@dataclass(repr=False)
 class Value:
     """
     Scalar feature value of a particular data type.
@@ -550,6 +550,9 @@ class Value:
             return str(value)
         else:
             return value
+
+    def __repr__(self):
+        return f"{type(self).__name__}('{self.dtype}')"
 
 
 class _ArrayXD:
@@ -1182,7 +1185,7 @@ def Sequence(feature, length=-1):
         return List(feature, length=length)
 
 
-@dataclass
+@dataclass(repr=False)
 class List:
     """Feature type for large list data composed of child feature data type.
 
@@ -1203,8 +1206,14 @@ class List:
     pa_type: ClassVar[Any] = None
     _type: str = field(default="List", init=False, repr=False)
 
+    def __repr__(self):
+        if self.length != -1:
+            return f"{type(self).__name__}({self.feature}, length={self.length})"
+        else:
+            return f"{type(self).__name__}({self.feature})"
 
-@dataclass
+
+@dataclass(repr=False)
 class LargeList:
     """Feature type for large list data composed of child feature data type.
 
@@ -1220,6 +1229,12 @@ class LargeList:
     # Automatically constructed
     pa_type: ClassVar[Any] = None
     _type: str = field(default="LargeList", init=False, repr=False)
+
+    def __repr__(self):
+        if self.length != -1:
+            return f"{type(self).__name__}({self.feature}, length={self.length})"
+        else:
+            return f"{type(self).__name__}({self.feature})"
 
 
 FeatureType = Union[
