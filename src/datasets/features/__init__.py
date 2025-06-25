@@ -1,4 +1,5 @@
 __all__ = [
+    "Array1D",
     "Audio",
     "Array2D",
     "Array3D",
@@ -16,7 +17,7 @@ __all__ = [
     "Pdf",
 ]
 from .audio import Audio
-from .features import Array2D, Array3D, Array4D, Array5D, ClassLabel, Features, LargeList, Sequence, Value
+from .features import Array1D, Array2D, Array3D, Array4D, Array5D, ClassLabel, Features, LargeList, Sequence, Value
 from .image import Image
 from .pdf import Pdf
 from .translation import Translation, TranslationVariableLanguages
