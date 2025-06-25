@@ -517,9 +517,9 @@ class Value:
 
     ```py
     >>> from datasets import Features
-    >>> features = Features({'stars': Value(dtype='int32')})
+    >>> features = Features({'stars': Value('int32')})
     >>> features
-    {'stars': Value(dtype='int32')}
+    {'stars': Value('int32')}
     ```
     """
 
@@ -1160,7 +1160,7 @@ class ClassLabel:
             return [name.strip() for name in f.read().split("\n") if name.strip()]  # Filter empty names
 
 
-def Sequence(feature, length=-1):
+def Sequence(feature):
     """
     A `Sequence` is a utility that automatically converts internal dictionary feature into a dictionary of
     lists. This behavior is implemented to have a compatibility layer with the TensorFlow Datasets library but may be
@@ -1458,10 +1458,10 @@ def generate_from_dict(obj: Any):
 
     if class_type == LargeList:
         feature = obj.pop("feature")
-        return LargeList(feature=generate_from_dict(feature), **obj)
+        return LargeList(generate_from_dict(feature), **obj)
     if class_type == List:
         feature = obj.pop("feature")
-        return List(feature=generate_from_dict(feature), **obj)
+        return List(generate_from_dict(feature), **obj)
     if class_type == Sequence:  # backward compatibility, this translates to a List or a dict
         feature = obj.pop("feature")
         return Sequence(feature=generate_from_dict(feature), **obj)
@@ -1483,11 +1483,11 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
     if isinstance(pa_type, pa.StructType):
         return {field.name: generate_from_arrow_type(field.type) for field in pa_type}
     elif isinstance(pa_type, pa.FixedSizeListType):
-        return List(feature=generate_from_arrow_type(pa_type.value_type), length=pa_type.list_size)
+        return List(generate_from_arrow_type(pa_type.value_type), length=pa_type.list_size)
     elif isinstance(pa_type, pa.ListType):
-        return List(feature=generate_from_arrow_type(pa_type.value_type))
+        return List(generate_from_arrow_type(pa_type.value_type))
     elif isinstance(pa_type, pa.LargeListType):
-        return LargeList(feature=generate_from_arrow_type(pa_type.value_type))
+        return LargeList(generate_from_arrow_type(pa_type.value_type))
     elif isinstance(pa_type, _ArrayXDExtensionType):
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
@@ -1849,7 +1849,7 @@ class Features(dict):
 
         Example::
             >>> Features.from_dict({'_type': {'dtype': 'string', 'id': None, '_type': 'Value'}})
-            {'_type': Value(dtype='string')}
+            {'_type': Value('string')}
         """
         obj = generate_from_dict(dic)
         return cls(**obj)
@@ -2147,7 +2147,7 @@ class Features(dict):
         >>> copy_of_features = ds.features.copy()
         >>> copy_of_features
         {'label': ClassLabel(names=['neg', 'pos']),
-         'text': Value(dtype='string')}
+         'text': Value('string')}
         ```
         """
         return copy.deepcopy(self)
@@ -2175,7 +2175,7 @@ class Features(dict):
             >>> assert f1.type != f2.type
             >>> # re-ordering keeps the base structure (here List is defined at the root level), but makes the fields order match
             >>> f1.reorder_fields_as(f2)
-            {'root': List(feature={'b': Value(dtype='string'), 'a': Value(dtype='string')}, length=-1)}
+            {'root': List({'b': Value('string'), 'a': Value('string')})}
             >>> assert f1.reorder_fields_as(f2).type == f2.type
         """
 
@@ -2223,12 +2223,12 @@ class Features(dict):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rajpurkar/squad", split="train")
         >>> ds.features.flatten()
-        {'answers.answer_start': List(feature=Value(dtype='int32'), length=-1, id=None),
-         'answers.text': List(feature=Value(dtype='string'), length=-1, id=None),
-         'context': Value(dtype='string'),
-         'id': Value(dtype='string'),
-         'question': Value(dtype='string'),
-         'title': Value(dtype='string')}
+        {'answers.answer_start': List(Value('int32'), id=None),
+         'answers.text': List(Value('string'), id=None),
+         'context': Value('string'),
+         'id': Value('string'),
+         'question': Value('string'),
+         'title': Value('string')}
         ```
         """
         for depth in range(1, max_depth):

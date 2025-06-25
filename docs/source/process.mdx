@@ -223,10 +223,10 @@ The [`~Dataset.cast`] function transforms the feature type of one or more column
 
 ```py
 >>> dataset.features
-{'sentence1': Value(dtype='string'),
-'sentence2': Value(dtype='string'),
+{'sentence1': Value('string'),
+'sentence2': Value('string'),
 'label': ClassLabel(names=['not_equivalent', 'equivalent']),
-'idx': Value(dtype='int32')}
+'idx': Value('int32')}
 
 >>> from datasets import ClassLabel, Value
 >>> new_features = dataset.features.copy()
@@ -234,10 +234,10 @@ The [`~Dataset.cast`] function transforms the feature type of one or more column
 >>> new_features["idx"] = Value("int64")
 >>> dataset = dataset.cast(new_features)
 >>> dataset.features
-{'sentence1': Value(dtype='string'),
-'sentence2': Value(dtype='string'),
+{'sentence1': Value('string'),
+'sentence2': Value('string'),
 'label': ClassLabel(names=['negative', 'positive']),
-'idx': Value(dtype='int64')}
+'idx': Value('int64')}
 ```
 
 <Tip>
@@ -265,12 +265,12 @@ Sometimes a column can be a nested structure of several types. Take a look at th
 >>> from datasets import load_dataset
 >>> dataset = load_dataset("rajpurkar/squad", split="train")
 >>> dataset.features
-{'id': Value(dtype='string'),
- 'title': Value(dtype='string'),
- 'context': Value(dtype='string'),
- 'question': Value(dtype='string'),
- 'answers': {'text': List(feature=Value(dtype='string'), length=-1),
-  'answer_start': List(feature=Value(dtype='int32'), length=-1)}}
+{'id': Value('string'),
+ 'title': Value('string'),
+ 'context': Value('string'),
+ 'question': Value('string'),
+ 'answers': {'text': List(Value('string')),
+  'answer_start': List(Value('int32'))}}
 ```
 
 The `answers` field contains two subfields: `text` and `answer_start`. Use the [`~Dataset.flatten`] function to extract the subfields into their own separate columns:

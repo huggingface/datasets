@@ -1117,7 +1117,7 @@ def load_dataset_builder(
     >>> ds_builder = load_dataset_builder('cornell-movie-review-data/rotten_tomatoes')
     >>> ds_builder.info.features
     {'label': ClassLabel(names=['neg', 'pos']),
-     'text': Value(dtype='string')}
+     'text': Value('string')}
     ```
     """
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)

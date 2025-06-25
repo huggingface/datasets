@@ -149,7 +149,7 @@ class BaseDatasetTest(TestCase):
                 {
                     "col_1": Array2D(shape=(2, 2), dtype="bool"),
                     "col_2": Array3D(shape=(2, 2, 2), dtype="string"),
-                    "col_3": List(feature=Value("int64")),
+                    "col_3": List(Value("int64")),
                 }
             )
             dset = Dataset.from_dict(data, features=features)
@@ -205,7 +205,7 @@ class BaseDatasetTest(TestCase):
                         {
                             "col_1": Array2D(shape=(2, 2), dtype="bool"),
                             "col_2": Array3D(shape=(2, 2, 2), dtype="string"),
-                            "col_3": List(feature=Value("int64")),
+                            "col_3": List(Value("int64")),
                         }
                     ),
                 )

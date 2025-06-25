@@ -1957,14 +1957,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("boolq", split="validation")
         >>> ds.features
-        {'answer': Value(dtype='bool'),
-         'passage': Value(dtype='string'),
-         'question': Value(dtype='string')}
+        {'answer': Value('bool'),
+         'passage': Value('string'),
+         'question': Value('string')}
         >>> ds = ds.class_encode_column('answer')
         >>> ds.features
         {'answer': ClassLabel(num_classes=2, names=['False', 'True']),
-         'passage': Value(dtype='string'),
-         'question': Value(dtype='string')}
+         'passage': Value('string'),
+         'question': Value('string')}
         ```
         """
         # Sanity checks
@@ -2035,12 +2035,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rajpurkar/squad", split="train")
         >>> ds.features
-        {'id': Value(dtype='string'),
-         'title': Value(dtype='string'),
-         'context': Value(dtype='string'),
-         'question': Value(dtype='string'),
-         'answers': {'text': List(feature=Value(dtype='string'), length=-1),
-         'answer_start': List(feature=Value(dtype='int32'), length=-1)}}
+        {'id': Value('string'),
+         'title': Value('string'),
+         'context': Value('string'),
+         'question': Value('string'),
+         'answers': {'text': List(Value('string')),
+         'answer_start': List(Value('int32'))}}
         >>> ds.flatten()
         Dataset({
             features: ['id', 'title', 'context', 'question', 'answers.text', 'answers.answer_start'],
@@ -2109,14 +2109,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.features
         {'label': ClassLabel(names=['neg', 'pos']),
-         'text': Value(dtype='string')}
+         'text': Value('string')}
         >>> new_features = ds.features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
         >>> ds = ds.cast(new_features)
         >>> ds.features
         {'label': ClassLabel(names=['bad', 'good']),
-         'text': Value(dtype='large_string')}
+         'text': Value('large_string')}
         ```
         """
         if sorted(features) != sorted(self._data.column_names):
@@ -2168,11 +2168,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.features
         {'label': ClassLabel(names=['neg', 'pos']),
-         'text': Value(dtype='string')}
+         'text': Value('string')}
         >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
         >>> ds.features
         {'label': ClassLabel(names=['bad', 'good']),
-         'text': Value(dtype='string')}
+         'text': Value('string')}
         ```
         """
         feature = _fix_for_backward_compatible_features(feature)
