@@ -52,7 +52,7 @@ def test_get_dataset_config_info_raises(path, config_name, expected_exception):
 @pytest.mark.parametrize(
     "path, expected",
     [
-        ("acronym_identification", ["default"]),
+        ("amirveyseh/acronym_identification", ["default"]),
         ("rajpurkar/squad", ["plain_text"]),
         ("dalle-mini/wit", ["default"]),
         ("hf-internal-testing/librispeech_asr_dummy", ["clean"]),
@@ -69,7 +69,7 @@ def test_get_dataset_config_names(path, expected):
 @pytest.mark.parametrize(
     "path, expected",
     [
-        ("acronym_identification", "default"),
+        ("amirveyseh/acronym_identification", "default"),
         ("rajpurkar/squad", "plain_text"),
         ("dalle-mini/wit", "default"),
         ("hf-internal-testing/librispeech_asr_dummy", "clean"),

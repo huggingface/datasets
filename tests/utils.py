@@ -191,13 +191,13 @@ def require_torchvision(test_case):
 
 def require_torchcodec(test_case):
     """
-    Decorator marking a test that requires torchvision.
+    Decorator marking a test that requires torchcodec.
 
-    These tests are skipped when torchvision isn't installed.
+    These tests are skipped when torchcodec isn't installed.
 
     """
     if not config.TORCHCODEC_AVAILABLE:
-        test_case = unittest.skip("test requires torchvision")(test_case)
+        test_case = unittest.skip("test requires torchcodec")(test_case)
     return test_case
 
 

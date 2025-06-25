@@ -34,9 +34,11 @@ from .data_files import sanitize_patterns
 from .features import Features
 from .features.features import (
     FeatureType,
+    List,
     Value,
     _align_features,
     _check_if_features_can_be_aligned,
+    _fix_for_backward_compatible_features,
     _visit,
     cast_to_python_objects,
     require_decoding,
@@ -2661,6 +2663,8 @@ class IterableDataset(DatasetInfoMixin):
             function = identity_func
         if fn_kwargs is None:
             fn_kwargs = {}
+        if features is not None:
+            features = _fix_for_backward_compatible_features(features)
 
         ex_iterable = self._ex_iterable
         # no need to apply features if ex_iterable is typed and if there was no cast_column()
@@ -3229,21 +3233,22 @@ class IterableDataset(DatasetInfoMixin):
         >>> ds = load_dataset("PolyAI/minds14", name="en-US", split="train", streaming=True)
         >>> ds.features
         {'audio': Audio(sampling_rate=8000, mono=True, decode=True, id=None),
-         'english_transcription': Value(dtype='string', id=None),
-         'intent_class': ClassLabel(num_classes=14, names=['abroad', 'address', 'app_error', 'atm_limit', 'balance', 'business_loan',  'card_issues', 'cash_deposit', 'direct_debit', 'freeze', 'high_value_payment', 'joint_account', 'latest_transactions', 'pay_bill'], id=None),
-         'lang_id': ClassLabel(num_classes=14, names=['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR',  'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN'], id=None),
-         'path': Value(dtype='string', id=None),
-         'transcription': Value(dtype='string', id=None)}
+         'english_transcription': Value(dtype='string'),
+         'intent_class': ClassLabel(num_classes=14, names=['abroad', 'address', 'app_error', 'atm_limit', 'balance', 'business_loan',  'card_issues', 'cash_deposit', 'direct_debit', 'freeze', 'high_value_payment', 'joint_account', 'latest_transactions', 'pay_bill']),
+         'lang_id': ClassLabel(num_classes=14, names=['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR',  'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN']),
+         'path': Value(dtype='string'),
+         'transcription': Value(dtype='string')}
         >>> ds = ds.cast_column("audio", Audio(sampling_rate=16000))
         >>> ds.features
         {'audio': Audio(sampling_rate=16000, mono=True, decode=True, id=None),
-         'english_transcription': Value(dtype='string', id=None),
-         'intent_class': ClassLabel(num_classes=14, names=['abroad', 'address', 'app_error', 'atm_limit', 'balance', 'business_loan',  'card_issues', 'cash_deposit', 'direct_debit', 'freeze', 'high_value_payment', 'joint_account', 'latest_transactions', 'pay_bill'], id=None),
-         'lang_id': ClassLabel(num_classes=14, names=['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR',  'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN'], id=None),
-         'path': Value(dtype='string', id=None),
-         'transcription': Value(dtype='string', id=None)}
+         'english_transcription': Value(dtype='string'),
+         'intent_class': ClassLabel(num_classes=14, names=['abroad', 'address', 'app_error', 'atm_limit', 'balance', 'business_loan',  'card_issues', 'cash_deposit', 'direct_debit', 'freeze', 'high_value_payment', 'joint_account', 'latest_transactions', 'pay_bill']),
+         'lang_id': ClassLabel(num_classes=14, names=['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR',  'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN']),
+         'path': Value(dtype='string'),
+         'transcription': Value(dtype='string')}
         ```
         """
+        feature = _fix_for_backward_compatible_features(feature)
         info = self._info.copy()
         info.features[column] = feature
         return IterableDataset(
@@ -3279,17 +3284,18 @@ class IterableDataset(DatasetInfoMixin):
         >>> from datasets import load_dataset, ClassLabel, Value
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> ds.features
-        {'label': ClassLabel(names=['neg', 'pos'], id=None),
-         'text': Value(dtype='string', id=None)}
+        {'label': ClassLabel(names=['neg', 'pos']),
+         'text': Value(dtype='string')}
         >>> new_features = ds.features.copy()
         >>> new_features["label"] = ClassLabel(names=["bad", "good"])
         >>> new_features["text"] = Value("large_string")
         >>> ds = ds.cast(new_features)
         >>> ds.features
-        {'label': ClassLabel(names=['bad', 'good'], id=None),
-         'text': Value(dtype='large_string', id=None)}
+        {'label': ClassLabel(names=['bad', 'good']),
+         'text': Value(dtype='large_string')}
         ```
         """
+        features = _fix_for_backward_compatible_features(features)
         info = self._info.copy()
         info.features = features
         return IterableDataset(
@@ -3342,7 +3348,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> ds = ds.decode(False)
         >>> ds.features
         {'image': Image(mode=None, decode=False, id=None),
-        'text': Value(dtype='string', id=None)}
+        'text': Value(dtype='string')}
         >>> next(iter(ds))
         {
           'image': {
@@ -3445,7 +3451,7 @@ class IterableDataset(DatasetInfoMixin):
             return {k: [v] for k, v in unbatched.items()}
 
         if self.features:
-            features = Features({col: [feature] for col, feature in self.features.items()})
+            features = Features({col: List(feature) for col, feature in self.features.items()})
         else:
             features = None
         return self.map(

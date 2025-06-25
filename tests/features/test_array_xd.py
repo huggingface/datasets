@@ -421,11 +421,11 @@ def test_array_xd_with_np(seq_type, dtype, shape, feature_class):
     data = np.zeros(shape, dtype=dtype)
     expected = data.tolist()
     if seq_type == "sequence":
-        feature = datasets.Sequence(feature)
+        feature = datasets.List(feature)
         data = [data]
         expected = [expected]
     elif seq_type == "sequence_of_sequence":
-        feature = datasets.Sequence(datasets.Sequence(feature))
+        feature = datasets.List(datasets.List(feature))
         data = [[data]]
         expected = [[expected]]
     ds = datasets.Dataset.from_dict({"col": [data]}, features=datasets.Features({"col": feature}))

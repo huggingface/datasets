@@ -26,7 +26,7 @@ from datasets.builder import (
 from datasets.data_files import DataFilesList
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.download.download_manager import DownloadMode
-from datasets.features import Features, Value
+from datasets.features import Features, List, Value
 from datasets.info import DatasetInfo, PostProcessedInfo
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import configure_builder_class
@@ -346,7 +346,7 @@ class BuilderTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             builder = DummyBuilder(cache_dir=tmp_dir)
             builder.info.post_processed = PostProcessedInfo(
-                features=Features({"text": Value("string"), "tokens": [Value("string")]})
+                features=Features({"text": Value("string"), "tokens": List(Value("string"))})
             )
             builder._post_process = types.MethodType(_post_process, builder)
             builder._post_processing_resources = types.MethodType(_post_processing_resources, builder)
@@ -366,7 +366,7 @@ class BuilderTest(TestCase):
 
                 with ArrowWriter(
                     path=os.path.join(builder.cache_dir, f"tokenized_dataset-{split}.arrow"),
-                    features=Features({"text": Value("string"), "tokens": [Value("string")]}),
+                    features=Features({"text": Value("string"), "tokens": List(Value("string"))}),
                 ) as writer:
                     writer.write_batch({"text": ["foo"] * 10, "tokens": [list("foo")] * 10})
                     writer.finalize()
@@ -377,10 +377,10 @@ class BuilderTest(TestCase):
             self.assertEqual(len(dsets["train"]), 10)
             self.assertEqual(len(dsets["test"]), 10)
             self.assertDictEqual(
-                dsets["train"].features, Features({"text": Value("string"), "tokens": [Value("string")]})
+                dsets["train"].features, Features({"text": Value("string"), "tokens": List(Value("string"))})
             )
             self.assertDictEqual(
-                dsets["test"].features, Features({"text": Value("string"), "tokens": [Value("string")]})
+                dsets["test"].features, Features({"text": Value("string"), "tokens": List(Value("string"))})
             )
             self.assertListEqual(dsets["train"].column_names, ["text", "tokens"])
             self.assertListEqual(dsets["test"].column_names, ["text", "tokens"])
@@ -390,7 +390,7 @@ class BuilderTest(TestCase):
             self.assertIsInstance(dset, Dataset)
             self.assertEqual(dset.split, "train")
             self.assertEqual(len(dset), 10)
-            self.assertDictEqual(dset.features, Features({"text": Value("string"), "tokens": [Value("string")]}))
+            self.assertDictEqual(dset.features, Features({"text": Value("string"), "tokens": List(Value("string"))}))
             self.assertListEqual(dset.column_names, ["text", "tokens"])
             self.assertGreater(builder.info.post_processing_size, 0)
             self.assertGreater(
@@ -402,7 +402,7 @@ class BuilderTest(TestCase):
             self.assertIsInstance(dset, Dataset)
             self.assertEqual(dset.split, "train+test[:30%]")
             self.assertEqual(len(dset), 13)
-            self.assertDictEqual(dset.features, Features({"text": Value("string"), "tokens": [Value("string")]}))
+            self.assertDictEqual(dset.features, Features({"text": Value("string"), "tokens": List(Value("string"))}))
             self.assertListEqual(dset.column_names, ["text", "tokens"])
             del dset
 
@@ -410,7 +410,7 @@ class BuilderTest(TestCase):
             self.assertIsInstance(dset, Dataset)
             self.assertEqual(dset.split, "train+test")
             self.assertEqual(len(dset), 20)
-            self.assertDictEqual(dset.features, Features({"text": Value("string"), "tokens": [Value("string")]}))
+            self.assertDictEqual(dset.features, Features({"text": Value("string"), "tokens": List(Value("string"))}))
             self.assertListEqual(dset.column_names, ["text", "tokens"])
             del dset
 
@@ -555,7 +555,7 @@ class BuilderTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             builder = DummyBuilder(cache_dir=tmp_dir)
             builder.info.post_processed = PostProcessedInfo(
-                features=Features({"text": Value("string"), "tokens": [Value("string")]})
+                features=Features({"text": Value("string"), "tokens": List(Value("string"))})
             )
             builder._post_process = types.MethodType(_post_process, builder)
             builder._post_processing_resources = types.MethodType(_post_processing_resources, builder)
@@ -570,7 +570,7 @@ class BuilderTest(TestCase):
             self.assertDictEqual(builder.info.features, Features({"text": Value("string")}))
             self.assertDictEqual(
                 builder.info.post_processed.features,
-                Features({"text": Value("string"), "tokens": [Value("string")]}),
+                Features({"text": Value("string"), "tokens": List(Value("string"))}),
             )
             self.assertEqual(builder.info.splits["train"].num_examples, 100)
             self.assertTrue(
