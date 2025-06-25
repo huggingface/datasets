@@ -1160,7 +1160,7 @@ class ClassLabel:
             return [name.strip() for name in f.read().split("\n") if name.strip()]  # Filter empty names
 
 
-def Sequence(feature):
+def Sequence(feature, length=-1):
     """
     A `Sequence` is a utility that automatically converts internal dictionary feature into a dictionary of
     lists. This behavior is implemented to have a compatibility layer with the TensorFlow Datasets library but may be
