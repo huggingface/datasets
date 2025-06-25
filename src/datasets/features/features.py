@@ -519,7 +519,7 @@ class Value:
     >>> from datasets import Features
     >>> features = Features({'stars': Value(dtype='int32')})
     >>> features
-    {'stars': Value(dtype='int32', id=None)}
+    {'stars': Value(dtype='int32')}
     ```
     """
 
@@ -1834,7 +1834,7 @@ class Features(dict):
 
         Example::
             >>> Features.from_dict({'_type': {'dtype': 'string', 'id': None, '_type': 'Value'}})
-            {'_type': Value(dtype='string', id=None)}
+            {'_type': Value(dtype='string')}
         """
         obj = generate_from_dict(dic)
         return cls(**obj)
@@ -2132,7 +2132,7 @@ class Features(dict):
         >>> copy_of_features = ds.features.copy()
         >>> copy_of_features
         {'label': ClassLabel(names=['neg', 'pos'], id=None),
-         'text': Value(dtype='string', id=None)}
+         'text': Value(dtype='string')}
         ```
         """
         return copy.deepcopy(self)
@@ -2208,12 +2208,12 @@ class Features(dict):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rajpurkar/squad", split="train")
         >>> ds.features.flatten()
-        {'answers.answer_start': List(feature=Value(dtype='int32', id=None), length=-1, id=None),
-         'answers.text': List(feature=Value(dtype='string', id=None), length=-1, id=None),
-         'context': Value(dtype='string', id=None),
-         'id': Value(dtype='string', id=None),
-         'question': Value(dtype='string', id=None),
-         'title': Value(dtype='string', id=None)}
+        {'answers.answer_start': List(feature=Value(dtype='int32'), length=-1, id=None),
+         'answers.text': List(feature=Value(dtype='string'), length=-1, id=None),
+         'context': Value(dtype='string'),
+         'id': Value(dtype='string'),
+         'question': Value(dtype='string'),
+         'title': Value(dtype='string')}
         ```
         """
         for depth in range(1, max_depth):

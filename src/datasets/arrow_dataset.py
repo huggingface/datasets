@@ -1957,14 +1957,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("boolq", split="validation")
         >>> ds.features
-        {'answer': Value(dtype='bool', id=None),
-         'passage': Value(dtype='string', id=None),
-         'question': Value(dtype='string', id=None)}
+        {'answer': Value(dtype='bool'),
+         'passage': Value(dtype='string'),
+         'question': Value(dtype='string')}
         >>> ds = ds.class_encode_column('answer')
         >>> ds.features
         {'answer': ClassLabel(num_classes=2, names=['False', 'True'], id=None),
-         'passage': Value(dtype='string', id=None),
-         'question': Value(dtype='string', id=None)}
+         'passage': Value(dtype='string'),
+         'question': Value(dtype='string')}
         ```
         """
         # Sanity checks
@@ -2109,14 +2109,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.features
         {'label': ClassLabel(names=['neg', 'pos'], id=None),
-         'text': Value(dtype='string', id=None)}
+         'text': Value(dtype='string')}
         >>> new_features = ds.features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
         >>> ds = ds.cast(new_features)
         >>> ds.features
         {'label': ClassLabel(names=['bad', 'good'], id=None),
-         'text': Value(dtype='large_string', id=None)}
+         'text': Value(dtype='large_string')}
         ```
         """
         if sorted(features) != sorted(self._data.column_names):
@@ -2168,11 +2168,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.features
         {'label': ClassLabel(names=['neg', 'pos'], id=None),
-         'text': Value(dtype='string', id=None)}
+         'text': Value(dtype='string')}
         >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
         >>> ds.features
         {'label': ClassLabel(names=['bad', 'good'], id=None),
-         'text': Value(dtype='string', id=None)}
+         'text': Value(dtype='string')}
         ```
         """
         feature = _fix_for_backward_compatible_features(feature)
