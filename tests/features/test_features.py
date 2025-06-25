@@ -397,7 +397,7 @@ def test_class_label_to_and_from_dict(class_label_arg, tmp_path_factory):
 
 @pytest.mark.parametrize(
     "schema",
-    [[Audio()], LargeList(Audio()), List(Audio())],
+    [LargeList(Audio()), List(Audio())],
 )
 def test_decode_nested_example_with_list_types(schema, monkeypatch):
     mock_decode_example = MagicMock()

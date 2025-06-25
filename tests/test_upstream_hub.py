@@ -454,7 +454,7 @@ class TestPushToHub:
                 assert list(ds.features.keys()) == list(hub_ds.features.keys())
                 assert ds.features == hub_ds.features
                 assert ds[:] == hub_ds[:]
-                hub_ds = hub_ds.cast_column("x", [Image(decode=False)])
+                hub_ds = hub_ds.cast_column("x", List(Image(decode=False)))
                 elem = hub_ds[0]["x"][0]
                 path, bytes_ = elem["path"], elem["bytes"]
                 assert isinstance(path, str)

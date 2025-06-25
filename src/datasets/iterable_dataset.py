@@ -34,6 +34,7 @@ from .data_files import sanitize_patterns
 from .features import Features
 from .features.features import (
     FeatureType,
+    List,
     Value,
     _align_features,
     _check_if_features_can_be_aligned,
@@ -3450,7 +3451,7 @@ class IterableDataset(DatasetInfoMixin):
             return {k: [v] for k, v in unbatched.items()}
 
         if self.features:
-            features = Features({col: [feature] for col, feature in self.features.items()})
+            features = Features({col: List(feature) for col, feature in self.features.items()})
         else:
             features = None
         return self.map(
