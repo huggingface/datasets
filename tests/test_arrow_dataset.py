@@ -4605,12 +4605,22 @@ def test_filter_async():
     assert len(out) == 1
 
 
+def test_dataset_getitem_int_np_equivalence():
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+
+    assert ds[1] == ds[np.int64(1)]
+
+
 def test_dataset_getitem_raises():
     ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
     with pytest.raises(TypeError):
         ds[False]
     with pytest.raises(TypeError):
         ds._getitem(True)
+    with pytest.raises(TypeError):
+        ds[np.bool_(True)]
+    with pytest.raises(TypeError):
+        ds[1.0]
 
 
 def test_categorical_dataset(tmpdir):
