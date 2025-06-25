@@ -51,7 +51,7 @@ if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VA
     if TORCH_AVAILABLE:
         try:
             TORCH_VERSION = version.parse(importlib.metadata.version("torch"))
-            logger.info(f"PyTorch version {TORCH_VERSION} available.")
+            logger.debug(f"PyTorch version {TORCH_VERSION} available.")
         except importlib.metadata.PackageNotFoundError:
             pass
 else:
@@ -63,7 +63,7 @@ POLARS_AVAILABLE = importlib.util.find_spec("polars") is not None
 if POLARS_AVAILABLE:
     try:
         POLARS_VERSION = version.parse(importlib.metadata.version("polars"))
-        logger.info(f"Polars version {POLARS_VERSION} available.")
+        logger.debug(f"Polars version {POLARS_VERSION} available.")
     except importlib.metadata.PackageNotFoundError:
         pass
 
@@ -74,7 +74,7 @@ DUCKDB_AVAILABLE = importlib.util.find_spec("duckdb") is not None
 if DUCKDB_AVAILABLE:
     try:
         DUCKDB_VERSION = version.parse(importlib.metadata.version("duckdb"))
-        logger.info(f"Duckdb version {DUCKDB_VERSION} available.")
+        logger.debug(f"Duckdb version {DUCKDB_VERSION} available.")
     except importlib.metadata.PackageNotFoundError:
         pass
 

@@ -1160,7 +1160,7 @@ class ClassLabel:
             return [name.strip() for name in f.read().split("\n") if name.strip()]  # Filter empty names
 
 
-def Sequence(feature, length=-1):
+class Sequence:
     """
     A `Sequence` is a utility that automatically converts internal dictionary feature into a dictionary of
     lists. This behavior is implemented to have a compatibility layer with the TensorFlow Datasets library but may be
@@ -1179,14 +1179,18 @@ def Sequence(feature, length=-1):
             which are converted to `dict` of lists of sub-features for compatibility with TFDS.
 
     """
-    if isinstance(feature, dict):
-        return {key: List(value, length=length) for key, value in feature.items()}
-    else:
-        return List(feature, length=length)
+
+    def __new__(cls, feature=None, length=-1, **kwargs):
+        # useful to still get isinstance(Sequence(Value("int64")), Sequence)
+        if isinstance(feature, dict):
+            out = {key: List(value, length=length, **kwargs) for key, value in feature.items()}
+        else:
+            out = super().__new__(List)
+        return out
 
 
 @dataclass(repr=False)
-class List:
+class List(Sequence):
     """Feature type for large list data composed of child feature data type.
 
     It is backed by `pyarrow.ListType`, which uses 32-bit offsets or a fixed length.
