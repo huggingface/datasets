@@ -289,14 +289,14 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         >>> from datasets import load_dataset, ClassLabel, Value
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds["train"].features
-        {'label': ClassLabel(names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos']),
          'text': Value(dtype='string')}
         >>> new_features = ds["train"].features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
         >>> ds = ds.cast(new_features)
         >>> ds["train"].features
-        {'label': ClassLabel(names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good']),
          'text': Value(dtype='large_string')}
         ```
         """
@@ -321,11 +321,11 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         >>> from datasets import load_dataset, ClassLabel
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes")
         >>> ds["train"].features
-        {'label': ClassLabel(names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos']),
          'text': Value(dtype='string')}
         >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
         >>> ds["train"].features
-        {'label': ClassLabel(names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good']),
          'text': Value(dtype='string')}
         ```
         """
@@ -518,7 +518,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
          'question': Value(dtype='string')}
         >>> ds = ds.class_encode_column("answer")
         >>> ds["train"].features
-        {'answer': ClassLabel(num_classes=2, names=['False', 'True'], id=None),
+        {'answer': ClassLabel(num_classes=2, names=['False', 'True']),
          'passage': Value(dtype='string'),
          'question': Value(dtype='string')}
         ```
@@ -2380,11 +2380,11 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         >>> from datasets import load_dataset, ClassLabel
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", streaming=True)
         >>> ds["train"].features
-        {'label': ClassLabel(names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos']),
          'text': Value(dtype='string')}
         >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
         >>> ds["train"].features
-        {'label': ClassLabel(names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good']),
          'text': Value(dtype='string')}
         ```
         """
@@ -2416,14 +2416,14 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", streaming=True)
         >>> ds["train"].features
-        {'label': ClassLabel(names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos']),
          'text': Value(dtype='string')}
         >>> new_features = ds["train"].features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
         >>> ds = ds.cast(new_features)
         >>> ds["train"].features
-        {'label': ClassLabel(names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good']),
          'text': Value(dtype='large_string')}
         ```
         """

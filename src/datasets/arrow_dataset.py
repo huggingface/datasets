@@ -1962,7 +1962,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
          'question': Value(dtype='string')}
         >>> ds = ds.class_encode_column('answer')
         >>> ds.features
-        {'answer': ClassLabel(num_classes=2, names=['False', 'True'], id=None),
+        {'answer': ClassLabel(num_classes=2, names=['False', 'True']),
          'passage': Value(dtype='string'),
          'question': Value(dtype='string')}
         ```
@@ -2108,14 +2108,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset, ClassLabel, Value
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.features
-        {'label': ClassLabel(names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos']),
          'text': Value(dtype='string')}
         >>> new_features = ds.features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
         >>> ds = ds.cast(new_features)
         >>> ds.features
-        {'label': ClassLabel(names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good']),
          'text': Value(dtype='large_string')}
         ```
         """
@@ -2167,11 +2167,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset, ClassLabel
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.features
-        {'label': ClassLabel(names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos']),
          'text': Value(dtype='string')}
         >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
         >>> ds.features
-        {'label': ClassLabel(names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good']),
          'text': Value(dtype='string')}
         ```
         """

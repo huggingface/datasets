@@ -987,7 +987,7 @@ class ClassLabel:
     >>> from datasets import Features, ClassLabel
     >>> features = Features({'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'])})
     >>> features
-    {'label': ClassLabel(names=['bad', 'ok', 'good'], id=None)}
+    {'label': ClassLabel(names=['bad', 'ok', 'good'])}
     ```
     """
 
@@ -2131,7 +2131,7 @@ class Features(dict):
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
         >>> copy_of_features = ds.features.copy()
         >>> copy_of_features
-        {'label': ClassLabel(names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos']),
          'text': Value(dtype='string')}
         ```
         """

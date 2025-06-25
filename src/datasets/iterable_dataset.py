@@ -3234,16 +3234,16 @@ class IterableDataset(DatasetInfoMixin):
         >>> ds.features
         {'audio': Audio(sampling_rate=8000, mono=True, decode=True, id=None),
          'english_transcription': Value(dtype='string'),
-         'intent_class': ClassLabel(num_classes=14, names=['abroad', 'address', 'app_error', 'atm_limit', 'balance', 'business_loan',  'card_issues', 'cash_deposit', 'direct_debit', 'freeze', 'high_value_payment', 'joint_account', 'latest_transactions', 'pay_bill'], id=None),
-         'lang_id': ClassLabel(num_classes=14, names=['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR',  'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN'], id=None),
+         'intent_class': ClassLabel(num_classes=14, names=['abroad', 'address', 'app_error', 'atm_limit', 'balance', 'business_loan',  'card_issues', 'cash_deposit', 'direct_debit', 'freeze', 'high_value_payment', 'joint_account', 'latest_transactions', 'pay_bill']),
+         'lang_id': ClassLabel(num_classes=14, names=['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR',  'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN']),
          'path': Value(dtype='string'),
          'transcription': Value(dtype='string')}
         >>> ds = ds.cast_column("audio", Audio(sampling_rate=16000))
         >>> ds.features
         {'audio': Audio(sampling_rate=16000, mono=True, decode=True, id=None),
          'english_transcription': Value(dtype='string'),
-         'intent_class': ClassLabel(num_classes=14, names=['abroad', 'address', 'app_error', 'atm_limit', 'balance', 'business_loan',  'card_issues', 'cash_deposit', 'direct_debit', 'freeze', 'high_value_payment', 'joint_account', 'latest_transactions', 'pay_bill'], id=None),
-         'lang_id': ClassLabel(num_classes=14, names=['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR',  'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN'], id=None),
+         'intent_class': ClassLabel(num_classes=14, names=['abroad', 'address', 'app_error', 'atm_limit', 'balance', 'business_loan',  'card_issues', 'cash_deposit', 'direct_debit', 'freeze', 'high_value_payment', 'joint_account', 'latest_transactions', 'pay_bill']),
+         'lang_id': ClassLabel(num_classes=14, names=['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR',  'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN']),
          'path': Value(dtype='string'),
          'transcription': Value(dtype='string')}
         ```
@@ -3284,14 +3284,14 @@ class IterableDataset(DatasetInfoMixin):
         >>> from datasets import load_dataset, ClassLabel, Value
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> ds.features
-        {'label': ClassLabel(names=['neg', 'pos'], id=None),
+        {'label': ClassLabel(names=['neg', 'pos']),
          'text': Value(dtype='string')}
         >>> new_features = ds.features.copy()
         >>> new_features["label"] = ClassLabel(names=["bad", "good"])
         >>> new_features["text"] = Value("large_string")
         >>> ds = ds.cast(new_features)
         >>> ds.features
-        {'label': ClassLabel(names=['bad', 'good'], id=None),
+        {'label': ClassLabel(names=['bad', 'good']),
          'text': Value(dtype='large_string')}
         ```
         """
