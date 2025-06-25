@@ -84,6 +84,10 @@ class Image:
 
     mode: Optional[str] = None
     decode: bool = True
+    
+    # addition - 1
+    ignore_decode_errors: bool = False
+
     id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     dtype: ClassVar[str] = "PIL.Image.Image"
@@ -132,23 +136,10 @@ class Image:
                 f"An image sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
             )
 
-    def decode_example(self, value: dict, token_per_repo_id=None) -> "PIL.Image.Image":
+    def decode_example(self, value: dict, token_per_repo_id=None) -> Optional["PIL.Image.Image"]:
         """Decode example image file into image data.
 
-        Args:
-            value (`str` or `dict`):
-                A string with the absolute image file path, a dictionary with
-                keys:
-
-                - `path`: String with absolute or relative image file path.
-                - `bytes`: The bytes of the image file.
-            token_per_repo_id (`dict`, *optional*):
-                To access and decode
-                image files from private repositories on the Hub, you can pass
-                a dictionary repo_id (`str`) -> token (`bool` or `str`).
-
-        Returns:
-            `PIL.Image.Image`
+        Returns None if `ignore_decode_errors=True` and decoding fails.
         """
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Image(decode=True) instead.")
@@ -159,14 +150,15 @@ class Image:
         else:
             raise ImportError("To support decoding images, please install 'Pillow'.")
 
-        if token_per_repo_id is None:
-            token_per_repo_id = {}
+        try:
+            if token_per_repo_id is None:
+                token_per_repo_id = {}
 
-        path, bytes_ = value["path"], value["bytes"]
-        if bytes_ is None:
-            if path is None:
-                raise ValueError(f"An image should have one of 'path' or 'bytes' but both are None in {value}.")
-            else:
+            path, bytes_ = value["path"], value["bytes"]
+
+            if bytes_ is None:
+                if path is None:
+                    raise ValueError(f"An image should have one of 'path' or 'bytes' but both are None in {value}.")
                 if is_local_path(path):
                     image = PIL.Image.open(path)
                 else:
@@ -178,20 +170,34 @@ class Image:
                     )
                     source_url_fields = string_to_dict(source_url, pattern)
                     token = (
-                        token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
+                        token_per_repo_id.get(source_url_fields["repo_id"])
+                        if source_url_fields is not None else None
                     )
                     download_config = DownloadConfig(token=token)
                     with xopen(path, "rb", download_config=download_config) as f:
                         bytes_ = BytesIO(f.read())
                     image = PIL.Image.open(bytes_)
-        else:
-            image = PIL.Image.open(BytesIO(bytes_))
-        image.load()  # to avoid "Too many open files" errors
-        if image.getexif().get(PIL.Image.ExifTags.Base.Orientation) is not None:
-            image = PIL.ImageOps.exif_transpose(image)
-        if self.mode and self.mode != image.mode:
-            image = image.convert(self.mode)
-        return image
+            else:
+                image = PIL.Image.open(BytesIO(bytes_))
+
+            image.load()  # to avoid "Too many open files" errors
+
+            if image.getexif().get(PIL.Image.ExifTags.Base.Orientation) is not None:
+                image = PIL.ImageOps.exif_transpose(image)
+
+            if self.mode and self.mode != image.mode:
+                image = image.convert(self.mode)
+
+            return image
+
+        except Exception as e:
+            if self.ignore_decode_errors:
+                warnings.warn(f"[Image.decode_example] Skipped corrupted image: {e}")
+                return None
+            else:
+                raise
+
+
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """If in the decodable state, return the feature itself, otherwise flatten the feature into a dictionary."""
