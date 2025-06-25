@@ -271,7 +271,7 @@ class DatasetInfo:
         """
         fs: fsspec.AbstractFileSystem
         fs, *_ = url_to_fs(dataset_info_dir, **(storage_options or {}))
-        logger.info(f"Loading Dataset info from {dataset_info_dir}")
+        logger.debug(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
         with fs.open(posixpath.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
@@ -352,7 +352,7 @@ class DatasetInfosDict(dict[str, DatasetInfo]):
 
     @classmethod
     def from_directory(cls, dataset_infos_dir) -> "DatasetInfosDict":
-        logger.info(f"Loading Dataset Infos from {dataset_infos_dir}")
+        logger.debug(f"Loading Dataset Infos from {dataset_infos_dir}")
         # Load the info from the YAML part of README.md
         if os.path.exists(os.path.join(dataset_infos_dir, config.REPOCARD_FILENAME)):
             dataset_card_data = DatasetCard.load(Path(dataset_infos_dir) / config.REPOCARD_FILENAME).data
