@@ -1358,7 +1358,7 @@ def test_embed_array_storage(image_file):
 
 def test_embed_array_storage_nested(image_file):
     array = pa.array([[{"bytes": None, "path": image_file}]], type=pa.list_(Image.pa_type))
-    embedded_images_array = embed_array_storage(array, [Image()])
+    embedded_images_array = embed_array_storage(array, List(Image()))
     assert isinstance(embedded_images_array.to_pylist()[0][0]["path"], str)
     assert isinstance(embedded_images_array.to_pylist()[0][0]["bytes"], bytes)
     array = pa.array([{"foo": {"bytes": None, "path": image_file}}], type=pa.struct({"foo": Image.pa_type}))
