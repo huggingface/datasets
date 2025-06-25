@@ -1050,15 +1050,6 @@ class DatasetBuilder:
         with file_lock:
             self.info.write_to_directory(self._output_dir, storage_options=self._fs.storage_options)
 
-    def _save_infos(self):
-        file_lock = (
-            FileLock(self._output_dir + "_infos.lock")
-            if not is_remote_filesystem(self._fs)
-            else contextlib.nullcontext()
-        )
-        with file_lock:
-            DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
-
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
         """Get kwargs for `self._split_generators()` from `prepare_split_kwargs`."""
         del prepare_split_kwargs

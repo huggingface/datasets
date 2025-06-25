@@ -1279,8 +1279,6 @@ def load_dataset(
             Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
             nonzero. See more details in the [improve performance](../cache#improve-performance) section.
-        save_infos (`bool`, defaults to `False`):
-            Save the dataset information (checksums/size/splits/...).
         revision ([`Version`] or `str`, *optional*):
             Version of the dataset to load.
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
@@ -1424,8 +1422,6 @@ def load_dataset(
         keep_in_memory if keep_in_memory is not None else is_small_dataset(builder_instance.info.dataset_size)
     )
     ds = builder_instance.as_dataset(split=split, verification_mode=verification_mode, in_memory=keep_in_memory)
-    if save_infos:
-        builder_instance._save_infos()
 
     return ds
 
