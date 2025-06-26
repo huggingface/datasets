@@ -277,3 +277,27 @@ my_dataset_repository/
         ├── shard_0.csv
         └── shard_1.csv
 ```
+
+#### Automatic Subset Grouping
+
+When using folder-based datasets, `datasets` will automatically group files by subset if their names only differ by trailing digits or standard sharding patterns.
+
+For example:
+
+```bash
+train0.jsonl
+train1.jsonl
+train2.jsonl
+animals.jsonl
+metadata.jsonl
+```
+
+will be grouped into:
+
+* `"train"` subset → `train0.jsonl`, `train1.jsonl`, `train2.jsonl`
+* `"animals"` subset → `animals.jsonl`
+* `"metadata"` subset → `metadata.jsonl`
+
+This logic enables users to provide multiple logical subsets per split name without needing a nested folder structure. It's especially useful for datasets that are sharded or organized by topic.
+
+This grouping is enabled by default in all builders that inherit from `FolderBasedBuilder`.
