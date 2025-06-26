@@ -15,7 +15,7 @@ import datasets
 from datasets import config
 from datasets.features.features import FeatureType, _visit, _visit_with_path, _VisitPath, require_storage_cast
 from datasets.utils.file_utils import readline
-
+from datasets.data_files import group_files_by_subset
 
 logger = datasets.utils.logging.get_logger(__name__)
 
@@ -120,51 +120,57 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
         data_files = self.config.data_files
         splits = []
         for split_name, files in data_files.items():
-            if isinstance(files, str):
-                files = [files]
-            files, archives = self._split_files_and_archives(files)
-            downloaded_files = dl_manager.download(files)
-            downloaded_dirs = dl_manager.download_and_extract(archives)
-            if do_analyze:  # drop_metadata is None or False, drop_labels is None or False
-                logger.info(f"Searching for labels and/or metadata files in {split_name} data files...")
-                analyze(files, downloaded_files, split_name)
-                analyze(archives, downloaded_dirs, split_name)
+                if isinstance(files, str):
+                        files = [files]
+                files, archives = self._split_files_and_archives(files)
+                downloaded_files = dl_manager.download(files)
+                downloaded_dirs = dl_manager.download_and_extract(archives)
 
-                if metadata_files:
-                    # add metadata if `metadata_files` are found and `drop_metadata` is None (default) or False
-                    add_metadata = not self.config.drop_metadata
-                    # if `metadata_files` are found, don't add labels
-                    add_labels = False
+                if do_analyze:
+                        logger.info(f"Searching for labels and/or metadata files in {split_name} data files...")
+                        analyze(files, downloaded_files, split_name)
+                        analyze(archives, downloaded_dirs, split_name)
+
+                        if metadata_files:
+                                add_metadata = not self.config.drop_metadata
+                                add_labels = False
+                        else:
+                                add_metadata = False
+                                add_labels = (
+                                        (len(labels) > 1 and len(path_depths) == 1)
+                                        if self.config.drop_labels is None
+                                        else not self.config.drop_labels
+                                )
+
+                        if add_labels:
+                                logger.info("Adding the labels inferred from data directories to the dataset's features...")
+                        if add_metadata:
+                                logger.info("Adding metadata to the dataset...")
                 else:
-                    # if `metadata_files` are not found, don't add metadata
-                    add_metadata = False
-                    # if `metadata_files` are not found and `drop_labels` is None (default) -
-                    # add labels if files are on the same level in directory hierarchy and there is more than one label
-                    add_labels = (
-                        (len(labels) > 1 and len(path_depths) == 1)
-                        if self.config.drop_labels is None
-                        else not self.config.drop_labels
-                    )
+                        add_labels, add_metadata, metadata_files = False, False, {}
 
-                if add_labels:
-                    logger.info("Adding the labels inferred from data directories to the dataset's features...")
-                if add_metadata:
-                    logger.info("Adding metadata to the dataset...")
-            else:
-                add_labels, add_metadata, metadata_files = False, False, {}
+                grouped = group_files_by_subset(files)
+                for subset_name, grouped_files in grouped.items():
+                        grouped_downloaded_files = [
+                                downloaded_files[files.index(original)] for original in grouped_files if original in files
+                        ]
 
-            splits.append(
-                datasets.SplitGenerator(
-                    name=split_name,
-                    gen_kwargs={
-                        "files": tuple(zip(files, downloaded_files))
-                        + tuple((None, dl_manager.iter_files(downloaded_dir)) for downloaded_dir in downloaded_dirs),
-                        "metadata_files": metadata_files.get(split_name, []),
-                        "add_labels": add_labels,
-                        "add_metadata": add_metadata,
-                    },
-                )
-            )
+                        split_id = (
+                                f"{split_name}_{subset_name}" if subset_name != split_name else split_name
+                        )
+
+                        splits.append(
+                                datasets.SplitGenerator(
+                                        name=split_id,
+                                        gen_kwargs={
+                                                "files": tuple(zip(grouped_files, grouped_downloaded_files))
+                                                + tuple((None, dl_manager.iter_files(downloaded_dir)) for downloaded_dir in downloaded_dirs),
+                                                "metadata_files": metadata_files.get(split_name, []),
+                                                "add_labels": add_labels,
+                                                "add_metadata": add_metadata,
+                                        },
+                                )
+                        )
 
         if add_metadata:
             # Verify that:
