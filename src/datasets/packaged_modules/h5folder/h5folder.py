@@ -1,6 +1,6 @@
-import os
-import h5py
 import datasets
+import h5py
+import os
 
 logger = datasets.logging.get_logger(__name__)
 
