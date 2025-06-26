@@ -1863,6 +1863,9 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: dict = json.load(f)
+            legacy_default_config_name = repo_id.replace("/", "--")
+            if config_name == "default" and legacy_default_config_name in dataset_infos:
+                dataset_infos.pop(legacy_default_config_name)
             dataset_infos[config_name] = asdict(info_to_dump)
             additions.append(
                 CommitOperationAdd(
