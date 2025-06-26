@@ -34,7 +34,7 @@ from datasets.features import (
     Features,
     Image,
     LargeList,
-    Sequence,
+    List,
     Translation,
     TranslationVariableLanguages,
     Value,
@@ -143,13 +143,13 @@ class BaseDatasetTest(TestCase):
             data = {
                 "col_1": [[[True, False], [False, True]]] * 4,  # 2D
                 "col_2": [[[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]]] * 4,  # 3D array
-                "col_3": [[3, 2, 1, 0]] * 4,  # Sequence
+                "col_3": [[3, 2, 1, 0]] * 4,  # List
             }
             features = Features(
                 {
                     "col_1": Array2D(shape=(2, 2), dtype="bool"),
                     "col_2": Array3D(shape=(2, 2, 2), dtype="string"),
-                    "col_3": Sequence(feature=Value("int64")),
+                    "col_3": List(Value("int64")),
                 }
             )
             dset = Dataset.from_dict(data, features=features)
@@ -205,7 +205,7 @@ class BaseDatasetTest(TestCase):
                         {
                             "col_1": Array2D(shape=(2, 2), dtype="bool"),
                             "col_2": Array3D(shape=(2, 2, 2), dtype="string"),
-                            "col_3": Sequence(feature=Value("int64")),
+                            "col_3": List(Value("int64")),
                         }
                     ),
                 )
@@ -913,7 +913,7 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
                 {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
-                features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
+                features=Features({"a": {"b": {"c": List(Value("string"))}}, "foo": Value("int64")}),
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
                     fingerprint = dset._fingerprint
@@ -921,7 +921,7 @@ class BaseDatasetTest(TestCase):
                         self.assertListEqual(sorted(dset.column_names), ["a.b.c", "foo"])
                         self.assertListEqual(sorted(dset.features.keys()), ["a.b.c", "foo"])
                         self.assertDictEqual(
-                            dset.features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
+                            dset.features, Features({"a.b.c": List(Value("string")), "foo": Value("int64")})
                         )
                         self.assertNotEqual(dset._fingerprint, fingerprint)
                         assert_arrow_metadata_are_synced_with_dataset_features(dset)
@@ -962,8 +962,8 @@ class BaseDatasetTest(TestCase):
                             dset.features,
                             Features(
                                 {
-                                    "a.language": Sequence(Value("string")),
-                                    "a.translation": Sequence(Value("string")),
+                                    "a.language": List(Value("string")),
+                                    "a.translation": List(Value("string")),
                                     "foo": Value("int64"),
                                 }
                             ),
@@ -1729,7 +1729,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(
                         dset_test.features,
-                        Features({"filename": Value("string"), "tensor": Sequence(Value("float32"))}),
+                        Features({"filename": Value("string"), "tensor": List(Value("float32"))}),
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
@@ -1746,7 +1746,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(
                         dset_test.features,
-                        Features({"filename": Value("string"), "tensor": Sequence(Value("float32"))}),
+                        Features({"filename": Value("string"), "tensor": List(Value("float32"))}),
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
@@ -1763,7 +1763,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(
                         dset_test.features,
-                        Features({"filename": Value("string"), "tensor": Sequence(Value("float32"))}),
+                        Features({"filename": Value("string"), "tensor": List(Value("float32"))}),
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
@@ -1777,7 +1777,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(
                         dset_test.features,
-                        Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))}),
+                        Features({"filename": Value("string"), "tensor": List(Value("float64"))}),
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
@@ -1795,7 +1795,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(
                         dset_test.features,
-                        Features({"filename": Value("string"), "tensor": Sequence(Value("float32"))}),
+                        Features({"filename": Value("string"), "tensor": List(Value("float32"))}),
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
@@ -2019,8 +2019,8 @@ class BaseDatasetTest(TestCase):
     def test_keep_features_after_transform_specified(self, in_memory):
         features = Features(
             {
-                "tokens": Sequence(Value("string")),
-                "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+                "tokens": List(Value("string")),
+                "labels": List(ClassLabel(names=["negative", "positive"])),
             }
         )
 
@@ -2040,8 +2040,8 @@ class BaseDatasetTest(TestCase):
     def test_keep_features_after_transform_unspecified(self, in_memory):
         features = Features(
             {
-                "tokens": Sequence(Value("string")),
-                "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+                "tokens": List(Value("string")),
+                "labels": List(ClassLabel(names=["negative", "positive"])),
             }
         )
 
@@ -2061,8 +2061,8 @@ class BaseDatasetTest(TestCase):
     def test_keep_features_after_transform_to_file(self, in_memory):
         features = Features(
             {
-                "tokens": Sequence(Value("string")),
-                "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+                "tokens": List(Value("string")),
+                "labels": List(ClassLabel(names=["negative", "positive"])),
             }
         )
 
@@ -2083,8 +2083,8 @@ class BaseDatasetTest(TestCase):
     def test_keep_features_after_transform_to_memory(self, in_memory):
         features = Features(
             {
-                "tokens": Sequence(Value("string")),
-                "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+                "tokens": List(Value("string")),
+                "labels": List(ClassLabel(names=["negative", "positive"])),
             }
         )
 
@@ -2103,8 +2103,8 @@ class BaseDatasetTest(TestCase):
     def test_keep_features_after_loading_from_cache(self, in_memory):
         features = Features(
             {
-                "tokens": Sequence(Value("string")),
-                "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+                "tokens": List(Value("string")),
+                "labels": List(ClassLabel(names=["negative", "positive"])),
             }
         )
 
@@ -2129,8 +2129,8 @@ class BaseDatasetTest(TestCase):
     def test_keep_features_with_new_features(self, in_memory):
         features = Features(
             {
-                "tokens": Sequence(Value("string")),
-                "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+                "tokens": List(Value("string")),
+                "labels": List(ClassLabel(names=["negative", "positive"])),
             }
         )
 
@@ -2139,9 +2139,9 @@ class BaseDatasetTest(TestCase):
 
         expected_features = Features(
             {
-                "tokens": Sequence(Value("string")),
-                "labels": Sequence(ClassLabel(names=["negative", "positive"])),
-                "labels2": Sequence(Value("int64")),
+                "tokens": List(Value("string")),
+                "labels": List(ClassLabel(names=["negative", "positive"])),
+                "labels2": List(Value("int64")),
             }
         )
 
@@ -2875,9 +2875,7 @@ class BaseDatasetTest(TestCase):
             for col in columns:
                 self.assertIsInstance(dset[0][col], (str, list))
                 self.assertIsInstance(dset[:2][col], list)
-            self.assertDictEqual(
-                dset.features, Features({"filename": Value("string"), "vec": Sequence(Value("float64"))})
-            )
+            self.assertDictEqual(dset.features, Features({"filename": Value("string"), "vec": List(Value("float64"))}))
 
             dset.set_format("tensorflow")
             self.assertIsNotNone(dset[0])
@@ -2930,9 +2928,7 @@ class BaseDatasetTest(TestCase):
             for col in columns:
                 self.assertIsInstance(dset[0][col], (str, list))
                 self.assertIsInstance(dset[:2][col], list)
-            self.assertDictEqual(
-                dset.features, Features({"filename": Value("string"), "vec": Sequence(Value("float64"))})
-            )
+            self.assertDictEqual(dset.features, Features({"filename": Value("string"), "vec": List(Value("float64"))}))
 
             dset.set_format("tensorflow")
             self.assertIsNotNone(dset[0])
@@ -2986,7 +2982,7 @@ class BaseDatasetTest(TestCase):
             dset.map(lambda ex: {"nested": [{"foo": np.ones(3)}] * len(ex["filename"])}, batched=True) as dset,
         ):
             self.assertDictEqual(
-                dset.features, Features({"filename": Value("string"), "nested": {"foo": Sequence(Value("float64"))}})
+                dset.features, Features({"filename": Value("string"), "nested": {"foo": List(Value("float64"))}})
             )
 
             dset.set_format("tensorflow")
@@ -3293,7 +3289,7 @@ class MiscellaneousDatasetTest(TestCase):
             self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
             self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
 
-        features = Features({"col_1": Sequence(Value("string")), "col_2": Value("string")})
+        features = Features({"col_1": List(Value("string")), "col_2": Value("string")})
         self.assertRaises(TypeError, Dataset.from_pandas, df, features=features)
 
     @require_polars
@@ -3322,7 +3318,7 @@ class MiscellaneousDatasetTest(TestCase):
             self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
             self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("large_string")}))
 
-        features = Features({"col_1": Sequence(Value("string")), "col_2": Value("large_string")})
+        features = Features({"col_1": List(Value("string")), "col_2": Value("large_string")})
         self.assertRaises(TypeError, Dataset.from_polars, df, features=features)
 
     def test_from_dict(self):
@@ -3417,8 +3413,8 @@ class MiscellaneousDatasetTest(TestCase):
 
 
 def test_cast_with_sliced_list():
-    old_features = Features({"foo": Sequence(Value("int64"))})
-    new_features = Features({"foo": Sequence(Value("int32"))})
+    old_features = Features({"foo": List(Value("int64"))})
+    new_features = Features({"foo": List(Value("int32"))})
     dataset = Dataset.from_dict({"foo": [[i] * (i % 3) for i in range(20)]}, features=old_features)
     casted_dataset = dataset.cast(new_features, batch_size=2)  # small batch size to slice the ListArray
     assert dataset["foo"] == casted_dataset["foo"]
@@ -4263,14 +4259,12 @@ def test_dataset_to_json(dataset, tmp_path):
             {
                 "features": Features(
                     {
-                        "tokens": Sequence(Value("string")),
-                        "labels": Sequence(Value("int16")),
-                        "answers": Sequence(
-                            {
-                                "text": Value("string"),
-                                "answer_start": Value("int32"),
-                            }
-                        ),
+                        "tokens": List(Value("string")),
+                        "labels": List(Value("int16")),
+                        "answers": {
+                            "text": List(Value("string")),
+                            "answer_start": List(Value("int32")),
+                        },
                         "id": Value("int32"),
                     }
                 )
@@ -4436,7 +4430,7 @@ def test_dataset_format_with_unformatted_image():
 
     ds = Dataset.from_dict(
         {"a": [np.arange(4 * 4 * 3).reshape(4, 4, 3)] * 10, "b": [[0, 1]] * 10},
-        Features({"a": Image(), "b": Sequence(Value("int64"))}),
+        Features({"a": Image(), "b": List(Value("int64"))}),
     )
     ds.set_format("np", columns=["b"], output_all_columns=True)
     assert isinstance(ds[0]["a"], PIL.Image.Image)

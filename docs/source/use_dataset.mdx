@@ -1,6 +1,6 @@
 # Preprocess
 
-In addition to loading datasets, 🤗 Datasets other main goal is to offer a diverse set of preprocessing functions to get a dataset into an appropriate format for training with your machine learning framework. 
+In addition to loading datasets, 🤗 Datasets other main goal is to offer a diverse set of preprocessing functions to get a dataset into an appropriate format for training with your machine learning framework.
 
 There are many possible ways to preprocess a dataset, and it all depends on your specific dataset. Sometimes you may need to rename a column, and other times you might need to unflatten nested fields. 🤗 Datasets provides a way to do most of these things. But in nearly all preprocessing cases, depending on your dataset modality, you'll need to:
 
@@ -20,7 +20,7 @@ Grab a dataset of your choice and follow along!
 
 ## Tokenize text
 
-Models cannot process raw text, so you'll need to convert the text into numbers. Tokenization provides a way to do this by dividing text into individual words called *tokens*. Tokens are finally converted to numbers.
+Models cannot process raw text, so you'll need to convert the text into numbers. Tokenization provides a way to do this by dividing text into individual words called _tokens_. Tokens are finally converted to numbers.
 
 <Tip>
 
@@ -42,8 +42,8 @@ Check out the [Tokenizers](https://huggingface.co/course/chapter2/4?fw=pt) secti
 
 ```py
 >>> tokenizer(dataset[0]["text"])
-{'input_ids': [101, 1103, 2067, 1110, 17348, 1106, 1129, 1103, 6880, 1432, 112, 188, 1207, 107, 14255, 1389, 107, 1105, 1115, 1119, 112, 188, 1280, 1106, 1294, 170, 24194, 1256, 3407, 1190, 170, 11791, 5253, 188, 1732, 7200, 10947, 12606, 2895, 117, 179, 7766, 118, 172, 15554, 1181, 3498, 6961, 3263, 1137, 188, 1566, 7912, 14516, 6997, 119, 102], 
- 'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+{'input_ids': [101, 1103, 2067, 1110, 17348, 1106, 1129, 1103, 6880, 1432, 112, 188, 1207, 107, 14255, 1389, 107, 1105, 1115, 1119, 112, 188, 1280, 1106, 1294, 170, 24194, 1256, 3407, 1190, 170, 11791, 5253, 188, 1732, 7200, 10947, 12606, 2895, 117, 179, 7766, 118, 172, 15554, 1181, 3498, 6961, 3263, 1137, 188, 1566, 7912, 14516, 6997, 119, 102],
+ 'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
  'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]}
 ```
 
@@ -75,6 +75,7 @@ Use the [`~Dataset.set_format`] function to set the dataset format to be compati
 >>> dataset.format['type']
 'torch'
 ```
+
 </pt>
 <tf>
 Use the [`~Dataset.to_tf_dataset`] function to set the dataset format to be compatible with TensorFlow. You'll also need to import a [data collator](https://huggingface.co/docs/transformers/main_classes/data_collator#transformers.DataCollatorWithPadding) from 🤗 Transformers to combine the varying sequence lengths into a single batch of equal lengths:
@@ -91,6 +92,7 @@ Use the [`~Dataset.to_tf_dataset`] function to set the dataset format to be comp
 ...     shuffle=True
 ... )
 ```
+
 </tf>
 </frameworkcontent>
 
@@ -98,7 +100,7 @@ Use the [`~Dataset.to_tf_dataset`] function to set the dataset format to be comp
 
 ## Resample audio signals
 
-Audio inputs like text datasets need to be divided into discrete data points. This is known as *sampling*; the sampling rate tells you how much of the speech signal is captured per second. It is important to make sure the sampling rate of your dataset matches the sampling rate of the data used to pretrain the model you're using. If the sampling rates are different, the pretrained model may perform poorly on your dataset because it doesn't recognize the differences in the sampling rate.
+Audio inputs like text datasets need to be divided into discrete data points. This is known as _sampling_; the sampling rate tells you how much of the speech signal is captured per second. It is important to make sure the sampling rate of your dataset matches the sampling rate of the data used to pretrain the model you're using. If the sampling rates are different, the pretrained model may perform poorly on your dataset because it doesn't recognize the differences in the sampling rate.
 
 **1**. Start by loading the [MInDS-14](https://huggingface.co/datasets/PolyAI/minds14) dataset, the [`Audio`] feature, and the feature extractor corresponding to a pretrained [Wav2Vec2](https://huggingface.co/facebook/wav2vec2-base-960h) model:
 
@@ -113,11 +115,11 @@ Audio inputs like text datasets need to be divided into discrete data points. Th
 **2**. Index into the first row of the dataset. When you call the `audio` column of the dataset, it is automatically decoded and resampled:
 
 ```py
->>> dataset[0]["audio"]
-{'array': array([ 0.        ,  0.00024414, -0.00024414, ..., -0.00024414,
-         0.        ,  0.        ], dtype=float32),
- 'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-US~JOINT_ACCOUNT/602ba55abb1e6d0fbce92065.wav',
- 'sampling_rate': 8000}
+>>> audio = dataset[0]["audio"]
+>>> print(audio)
+<datasets.features._torchcodec.AudioDecoder object at 0x11642b6a0>
+>>> audio.get_all_samples().sample_rate
+8000
 ```
 
 **3**. Reading a dataset card is incredibly useful and can give you a lot of information about the dataset. A quick look at the MInDS-14 dataset card tells you the sampling rate is 8kHz. Likewise, you can get many details about a model from its model card. The Wav2Vec2 model card says it was sampled on 16kHz speech audio. This means you'll need to upsample the MInDS-14 dataset to match the sampling rate of the model.
@@ -126,18 +128,18 @@ Use the [`~Dataset.cast_column`] function and set the `sampling_rate` parameter 
 
 ```py
 >>> dataset = dataset.cast_column("audio", Audio(sampling_rate=16_000))
->>> dataset[0]["audio"]
-{'array': array([ 2.3443763e-05,  2.1729663e-04,  2.2145823e-04, ...,
-         3.8356509e-05, -7.3497440e-06, -2.1754686e-05], dtype=float32),
- 'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-US~JOINT_ACCOUNT/602ba55abb1e6d0fbce92065.wav',
- 'sampling_rate': 16000}
+>>> audio = dataset[0]["audio"]
+>>> print(audio)
+<datasets.features._torchcodec.AudioDecoder object at 0x11642b6a0>
+>>> audio.get_all_samples().sample_rate
+16000
 ```
 
 **4**. Use the [`~Dataset.map`] function to resample the entire dataset to 16kHz. This function speeds up resampling by applying the feature extractor to batches of examples instead of individual examples. Set the `batched` parameter to `True`:
 
 ```py
 >>> def preprocess_function(examples):
-...     audio_arrays = [x["array"] for x in examples["audio"]]
+...     audio_arrays = [x.get_all_samples().data for x in examples["audio"]]
 ...     inputs = feature_extractor(
 ...         audio_arrays, sampling_rate=feature_extractor.sampling_rate, max_length=16000, truncation=True
 ...     )
@@ -150,7 +152,7 @@ Use the [`~Dataset.cast_column`] function and set the `sampling_rate` parameter 
 
 ## Apply data augmentations
 
-The most common preprocessing you'll do with image datasets is *data augmentation*, a process that introduces random variations to an image without changing the meaning of the data. This can mean changing the color properties of an image or randomly cropping an image. You are free to use any data augmentation library you like, and 🤗 Datasets will help you apply your data augmentations to your dataset.
+The most common preprocessing you'll do with image datasets is _data augmentation_, a process that introduces random variations to an image without changing the meaning of the data. This can mean changing the color properties of an image or randomly cropping an image. You are free to use any data augmentation library you like, and 🤗 Datasets will help you apply your data augmentations to your dataset.
 
 **1**. Start by loading the [Beans](https://huggingface.co/datasets/beans) dataset, the `Image` feature, and the feature extractor corresponding to a pretrained [ViT](https://huggingface.co/google/vit-base-patch16-224-in21k) model:
 

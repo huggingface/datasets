@@ -2,13 +2,13 @@ import logging
 import os
 from argparse import ArgumentParser
 from collections.abc import Generator
-from pathlib import Path
-from shutil import copyfile, rmtree
+from shutil import rmtree
 
 import datasets.config
 from datasets.builder import DatasetBuilder
 from datasets.commands import BaseDatasetsCLICommand
 from datasets.download.download_manager import DownloadMode
+from datasets.info import DatasetInfosDict
 from datasets.load import dataset_module_factory, get_dataset_builder_class
 from datasets.utils.info_utils import VerificationMode
 from datasets.utils.logging import ERROR, get_logger
@@ -157,35 +157,15 @@ class TestCommand(BaseDatasetsCLICommand):
                 num_proc=self._num_proc,
             )
             builder.as_dataset()
-            if self._save_infos:
-                builder._save_infos()
 
-            # If save_infos=True, the dataset card (README.md) is created next to the loaded module file.
+            # If save_infos=True, we create the dataset card (README.md)
             # The dataset_infos are saved in the YAML part of the README.md
-
-            # Let's move it to the original directory of the dataset, to allow the user to
-            # upload them on HF at the same time afterwards.
+            # This is to allow the user to upload them on HF afterwards.
             if self._save_infos:
-                dataset_readme_path = os.path.join(
-                    builder_cls.get_imported_module_dir(), datasets.config.REPOCARD_FILENAME
-                )
-                name = Path(path).name + ".py"
-                combined_path = os.path.join(path, name)
-                if os.path.isfile(path):
-                    dataset_dir = os.path.dirname(path)
-                elif os.path.isfile(combined_path):
-                    dataset_dir = path
-                elif os.path.isdir(path):  # for local directories containing only data files
-                    dataset_dir = path
-                else:  # in case of a remote dataset
-                    dataset_dir = None
-                    print(f"Dataset card saved at {dataset_readme_path}")
-
-                # Move dataset_info back to the user
-                if dataset_dir is not None:
-                    user_dataset_readme_path = os.path.join(dataset_dir, datasets.config.REPOCARD_FILENAME)
-                    copyfile(dataset_readme_path, user_dataset_readme_path)
-                    print(f"Dataset card saved at {user_dataset_readme_path}")
+                save_infos_dir = os.path.basename(path) if not os.path.isdir(path) else path
+                os.makedirs(save_infos_dir, exist_ok=True)
+                DatasetInfosDict(**{builder.config.name: builder.info}).write_to_directory(save_infos_dir)
+                print(f"Dataset card saved at {os.path.join(save_infos_dir, datasets.config.REPOCARD_FILENAME)}")
 
             # If clear_cache=True, the download folder and the dataset builder cache directory are deleted
             if self._clear_cache:

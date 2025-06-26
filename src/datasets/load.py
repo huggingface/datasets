@@ -23,7 +23,6 @@ import os
 import posixpath
 from collections import Counter
 from collections.abc import Mapping, Sequence
-from contextlib import nullcontext
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional, Union
@@ -60,6 +59,7 @@ from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager, xbasename, xglob, xjoin
 from .exceptions import DataFilesNotFoundError, DatasetNotFoundError
 from .features import Features
+from .features.features import _fix_for_backward_compatible_features
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
@@ -171,12 +171,7 @@ def import_main_class(module_path) -> Optional[type[DatasetBuilder]]:
 def get_dataset_builder_class(
     dataset_module: "DatasetModule", dataset_name: Optional[str] = None
 ) -> type[DatasetBuilder]:
-    with (
-        lock_importable_file(dataset_module.importable_file_path)
-        if dataset_module.importable_file_path
-        else nullcontext()
-    ):
-        builder_cls = import_main_class(dataset_module.module_path)
+    builder_cls = import_main_class(dataset_module.module_path)
     if dataset_module.builder_configs_parameters.builder_configs:
         dataset_name = dataset_name or dataset_module.builder_kwargs.get("dataset_name")
         if dataset_name is None:
@@ -388,7 +383,6 @@ class DatasetModule:
     builder_kwargs: dict
     builder_configs_parameters: BuilderConfigsParameters = field(default_factory=BuilderConfigsParameters)
     dataset_infos: Optional[DatasetInfosDict] = None
-    importable_file_path: Optional[str] = None
 
 
 class _DatasetModuleFactory:
@@ -1122,8 +1116,8 @@ def load_dataset_builder(
     >>> from datasets import load_dataset_builder
     >>> ds_builder = load_dataset_builder('cornell-movie-review-data/rotten_tomatoes')
     >>> ds_builder.info.features
-    {'label': ClassLabel(names=['neg', 'pos'], id=None),
-     'text': Value(dtype='string', id=None)}
+    {'label': ClassLabel(names=['neg', 'pos']),
+     'text': Value('string')}
     ```
     """
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
@@ -1133,6 +1127,8 @@ def load_dataset_builder(
     if storage_options is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
         download_config.storage_options.update(storage_options)
+    if features is not None:
+        features = _fix_for_backward_compatible_features(features)
     dataset_module = dataset_module_factory(
         path,
         revision=revision,
@@ -1283,8 +1279,6 @@ def load_dataset(
             Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
             nonzero. See more details in the [improve performance](../cache#improve-performance) section.
-        save_infos (`bool`, defaults to `False`):
-            Save the dataset information (checksums/size/splits/...).
         revision ([`Version`] or `str`, *optional*):
             Version of the dataset to load.
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
@@ -1428,8 +1422,6 @@ def load_dataset(
         keep_in_memory if keep_in_memory is not None else is_small_dataset(builder_instance.info.dataset_size)
     )
     ds = builder_instance.as_dataset(split=split, verification_mode=verification_mode, in_memory=keep_in_memory)
-    if save_infos:
-        builder_instance._save_infos()
 
     return ds
 

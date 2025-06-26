@@ -56,7 +56,7 @@ from .filesystems import (
     rename,
 )
 from .fingerprint import Hasher
-from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
+from .info import DatasetInfo, PostProcessedInfo
 from .iterable_dataset import ArrowExamplesIterable, ExamplesIterable, IterableDataset
 from .keyhash import DuplicatedKeysError
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
@@ -349,9 +349,7 @@ class DatasetBuilder:
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
         if info is None:
-            # TODO FOR PACKAGED MODULES IT IMPORTS DATA FROM src/packaged_modules which doesn't make sense
-            info = self.get_exported_dataset_info()
-            info.update(self._info())
+            info = self._info()
         info.builder_name = self.name
         info.dataset_name = self.dataset_name
         info.config_name = self.config.name
@@ -391,7 +389,7 @@ class DatasetBuilder:
                 if os.path.exists(self._cache_dir):  # check if data exist
                     if len(os.listdir(self._cache_dir)) > 0:
                         if os.path.exists(os.path.join(self._cache_dir, config.DATASET_INFO_FILENAME)):
-                            logger.info("Overwrite dataset info from restored data version if exists.")
+                            logger.debug("Overwrite dataset info from restored data version if exists.")
                             self.info = DatasetInfo.from_directory(self._cache_dir)
                     else:  # dir exists but no data, remove the empty dir as data aren't available anymore
                         logger.warning(
@@ -502,35 +500,6 @@ class DatasetBuilder:
             legacy_cache_dir = posixpath.join(self._cache_dir_root, legacy_relative_data_dir)
             if os.path.isdir(legacy_cache_dir):
                 return legacy_relative_data_dir
-
-    @classmethod
-    def get_all_exported_dataset_infos(cls) -> DatasetInfosDict:
-        """Empty dict if doesn't exist
-
-        Example:
-
-        ```py
-        >>> from datasets import load_dataset_builder
-        >>> ds_builder = load_dataset_builder('vivos')
-        >>> ds_builder.get_all_exported_dataset_infos()
-        {'default': DatasetInfo(description='', citation='', homepage='', license='', features={'speaker_id': Value(dtype='string', id=None), 'path': Value(dtype='string', id=None), 'audio': Audio(sampling_rate=16000, mono=True, decode=True, id=None), 'sentence': Value(dtype='string', id=None)}, post_processed=None, supervised_keys=None, builder_name=None, dataset_name=None, config_name='default', version=None, splits={'train': SplitInfo(name='train', num_bytes=1722002133, num_examples=11660, shard_lengths=None, dataset_name=None), 'test': SplitInfo(name='test', num_bytes=86120227, num_examples=760, shard_lengths=None, dataset_name=None)}, download_checksums=None, download_size=1475540500, post_processing_size=None, dataset_size=1808122360, size_in_bytes=None)}
-        ```
-        """
-        return DatasetInfosDict.from_directory(cls.get_imported_module_dir())
-
-    def get_exported_dataset_info(self) -> DatasetInfo:
-        """Empty `DatasetInfo` if doesn't exist
-
-        Example:
-
-        ```py
-        >>> from datasets import load_dataset_builder
-        >>> ds_builder = load_dataset_builder('cornell-movie-review-data/rotten_tomatoes')
-        >>> ds_builder.get_exported_dataset_info()
-        DatasetInfo(description='', citation='', homepage='', license='', features={'speaker_id': Value(dtype='string', id=None), 'path': Value(dtype='string', id=None), 'audio': Audio(sampling_rate=16000, mono=True, decode=True, id=None), 'sentence': Value(dtype='string', id=None)}, post_processed=None, supervised_keys=None, builder_name=None, dataset_name=None, config_name='default', version=None, splits={'train': SplitInfo(name='train', num_bytes=1722002133, num_examples=11660, shard_lengths=None, dataset_name=None), 'test': SplitInfo(name='test', num_bytes=86120227, num_examples=760, shard_lengths=None, dataset_name=None)}, download_checksums=None, download_size=1475540500, post_processing_size=None, dataset_size=1808122360, size_in_bytes=None)
-        ```
-        """
-        return self.get_all_exported_dataset_infos().get(self.config.name, DatasetInfo())
 
     def _create_builder_config(
         self, config_name=None, custom_features=None, **config_kwargs
@@ -1049,15 +1018,6 @@ class DatasetBuilder:
         )
         with file_lock:
             self.info.write_to_directory(self._output_dir, storage_options=self._fs.storage_options)
-
-    def _save_infos(self):
-        file_lock = (
-            FileLock(self._output_dir + "_infos.lock")
-            if not is_remote_filesystem(self._fs)
-            else contextlib.nullcontext()
-        )
-        with file_lock:
-            DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
         """Get kwargs for `self._split_generators()` from `prepare_split_kwargs`."""

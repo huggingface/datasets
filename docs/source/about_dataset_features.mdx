@@ -10,10 +10,10 @@ Let's have a look at the features of the MRPC dataset from the GLUE benchmark:
 >>> from datasets import load_dataset
 >>> dataset = load_dataset('nyu-mll/glue', 'mrpc', split='train')
 >>> dataset.features
-{'idx': Value(dtype='int32'),
+{'idx': Value('int32'),
  'label': ClassLabel(names=['not_equivalent', 'equivalent']),
- 'sentence1': Value(dtype='string'),
- 'sentence2': Value(dtype='string'),
+ 'sentence1': Value('string'),
+ 'sentence2': Value('string'),
 }
 ```
 
@@ -32,20 +32,21 @@ Refer to [`Value`] for a full list of supported data types.
 
 The [`ClassLabel`] feature informs 🤗 Datasets the `label` column contains two classes. The classes are labeled `not_equivalent` and `equivalent`. Labels are stored as integers in the dataset. When you retrieve the labels, [`ClassLabel.int2str`] and [`ClassLabel.str2int`] carries out the conversion from integer value to label name, and vice versa.
 
-If your data type contains a list of objects, then you want to use the [`Sequence`] feature. Remember the SQuAD dataset?
+If your data type contains a list of objects, then you want to use the [`List`] feature. Remember the SQuAD dataset?
 
 ```py
 >>> from datasets import load_dataset
 >>> dataset = load_dataset('rajpurkar/squad', split='train')
 >>> dataset.features
-{'answers': Sequence(feature={'text': Value(dtype='string'), 'answer_start': Value(dtype='int32')}, length=-1),
-'context': Value(dtype='string'),
-'id': Value(dtype='string'),
-'question': Value(dtype='string'),
-'title': Value(dtype='string')}
+{'id': Value('string'),
+ 'title': Value('string'),
+ 'context': Value('string'),
+ 'question': Value('string'),
+ 'answers': {'text': List(Value('string')),
+  'answer_start': List(Value('int32'))}}
 ```
 
-The `answers` field is constructed using the [`Sequence`] feature because it contains two subfields, `text` and `answer_start`, which are lists of `string` and `int32`, respectively.
+The `answers` field is constructed using the dict of features because and contains two subfields, `text` and `answer_start`, which are lists of `string` and `int32`, respectively.
 
 <Tip>
 
@@ -53,7 +54,7 @@ See the [flatten](./process#flatten) section to learn how you can extract the ne
 
 </Tip>
 
-The array feature type is useful for creating arrays of various sizes. You can create arrays with two dimensions using [`Array2D`], and even arrays with five dimensions using [`Array5D`]. 
+The array feature type is useful for creating arrays of various sizes. You can create arrays with two dimensions using [`Array2D`], and even arrays with five dimensions using [`Array5D`].
 
 ```py
 >>> features = Features({'a': Array2D(shape=(1, 3), dtype='int32')})
@@ -69,9 +70,9 @@ The array type also allows the first dimension of the array to be dynamic. This 
 
 Audio datasets have a column with type [`Audio`], which contains three important fields:
 
-* `array`: the decoded audio data represented as a 1-dimensional array.
-* `path`: the path to the downloaded audio file.
-* `sampling_rate`: the sampling rate of the audio data.
+- `array`: the decoded audio data represented as a 1-dimensional array.
+- `path`: the path to the downloaded audio file.
+- `sampling_rate`: the sampling rate of the audio data.
 
 When you load an audio dataset and call the audio column, the [`Audio`] feature automatically decodes and resamples the audio file:
 
@@ -80,10 +81,7 @@ When you load an audio dataset and call the audio column, the [`Audio`] feature 
 
 >>> dataset = load_dataset("PolyAI/minds14", "en-US", split="train")
 >>> dataset[0]["audio"]
-{'array': array([ 0.        ,  0.00024414, -0.00024414, ..., -0.00024414,
-         0.        ,  0.        ], dtype=float32),
- 'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-US~JOINT_ACCOUNT/602ba55abb1e6d0fbce92065.wav',
- 'sampling_rate': 8000}
+<datasets.features._torchcodec.AudioDecoder object at 0x11642b6a0>
 ```
 
 <Tip warning={true}>
@@ -92,7 +90,7 @@ Index into an audio dataset using the row index first and then the `audio` colum
 
 </Tip>
 
-With `decode=False`, the [`Audio`] type simply gives you the path or the bytes of the audio file, without decoding it into an `array`, 
+With `decode=False`, the [`Audio`] type simply gives you the path or the bytes of the audio file, without decoding it into an torchcodec `AudioDecoder` object,
 
 ```py
 >>> dataset = load_dataset("PolyAI/minds14", "en-US", split="train").cast_column("audio", Audio(decode=False))
@@ -126,7 +124,7 @@ Index into an image dataset using the row index first and then the `image` colum
 
 </Tip>
 
-With `decode=False`, the [`Image`] type simply gives you the path or the bytes of the image file, without decoding it into an `PIL.Image`, 
+With `decode=False`, the [`Image`] type simply gives you the path or the bytes of the image file, without decoding it into an `PIL.Image`,
 
 ```py
 >>> dataset = load_dataset("AI-Lab-Makerere/beans", split="train").cast_column("image", Image(decode=False))
@@ -146,4 +144,4 @@ You can also define a dataset of images from numpy arrays:
 And in this case the numpy arrays are encoded into PNG (or TIFF if the pixels values precision is important).
 
 For multi-channels arrays like RGB or RGBA, only uint8 is supported. If you use a larger precision, you get a warning and the array is downcasted to uint8.
-For gray-scale images you can use the integer or float precision you want as long as it is compatible with `Pillow`. A warning is shown if your image integer or float precision is too high, and in this case the array is downcated: an int64 array is downcasted to int32, and a float64 array is downcasted to float32. 
+For gray-scale images you can use the integer or float precision you want as long as it is compatible with `Pillow`. A warning is shown if your image integer or float precision is too high, and in this case the array is downcated: an int64 array is downcasted to int32, and a float64 array is downcasted to float32.

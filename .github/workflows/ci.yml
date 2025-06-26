@@ -44,15 +44,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Setup FFmpeg
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          sudo apt update
+          sudo apt install -y ffmpeg 
       - name: Set up Python 3.9
         uses: actions/setup-python@v5
         with:
           python-version: "3.9"
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
-      - name: Pin setuptools-scm
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: echo "installing pinned version of setuptools-scm to fix seqeval installation on 3.7" && pip install "setuptools-scm==6.4.2"
       - name: Install uv
         run: pip install --upgrade uv
       - name: Install dependencies
@@ -80,6 +82,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Setup FFmpeg
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          sudo apt update
+          sudo apt install -y ffmpeg 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -107,6 +114,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Setup FFmpeg
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          sudo apt update
+          sudo apt install -y ffmpeg 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
