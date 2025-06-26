@@ -1074,6 +1074,16 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 )
         # to enable graceful ends
         self._owned_loops_and_tasks: list[tuple[asyncio.AbstractEventLoop, list[asyncio.Task]]] = []
+        
+    def state_dict(self) -> dict:
+        if not hasattr(self, "_state_dict"):
+            self._init_state_dict()
+
+        # Recursively include state from inner iterable
+        self._state_dict["examples_iterable"] = (
+            self.ex_iterable.state_dict() if hasattr(self.ex_iterable, "state_dict") else {}
+        )
+        return self._state_dict
 
     @property
     def iter_arrow(self):
