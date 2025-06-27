@@ -5538,6 +5538,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         yield job_id, True, additions
 
+
     def _push_parquet_shards_to_hub(
         self,
         repo_id: str,
@@ -5600,24 +5601,26 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             total=num_shards,
             desc=desc,
         )
-        with contextlib.nullcontext() if num_proc is None or num_proc <= 1 else Pool(num_proc) as pool:
-            update_stream = (
-                Dataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
-                if pool is None
-                else iflatmap_unordered(
+
+        if num_proc is None or num_proc <= 1:
+            update_stream = Dataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
+        else:
+            with Pool(num_proc) as pool:
+                update_stream = iflatmap_unordered(
                     pool,
                     Dataset._push_parquet_shards_to_hub_single,
                     kwargs_iterable=kwargs_iterable,
                 )
-            )
-            for job_id, done, content in update_stream:
-                if not done:
-                    pbar.update(content)
-                else:
-                    additions += content
+
+        for job_id, done, content in update_stream:
+            if not done:
+                pbar.update(content)
+            else:
+                additions += content
 
         uploaded_size = sum(addition.upload_info.size for addition in additions)
         return additions, uploaded_size, dataset_nbytes
+
 
     def push_to_hub(
         self,
