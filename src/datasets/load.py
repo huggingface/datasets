@@ -1200,6 +1200,7 @@ def load_dataset(
     streaming: bool = False,
     num_proc: Optional[int] = None,
     storage_options: Optional[dict] = None,
+    columns: Optional[List[str]] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset from the Hugging Face Hub, or a local dataset.
@@ -1388,6 +1389,8 @@ def load_dataset(
         (verification_mode or VerificationMode.BASIC_CHECKS) if not save_infos else VerificationMode.ALL_CHECKS
     )
 
+    if path == "json" and columns is not None:
+        config_kwargs["columns"] = columns
     # Create a dataset builder
     builder_instance = load_dataset_builder(
         path=path,
