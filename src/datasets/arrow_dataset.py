@@ -6005,7 +6005,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> more_text = ds["text"]
-        >>> ds.add_column(name="text_2", column=more_text)
+        >>> ds = ds.add_column(name="text_2", column=more_text)
+        >>> ds
         Dataset({
             features: ['text', 'label', 'text_2'],
             num_rows: 1066
