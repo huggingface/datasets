@@ -55,7 +55,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS: FolderBasedBuilderConfig
     EXTENSIONS: list[str]
 
-    METADATA_FILENAMES: list[str] = ["metadata.csv", "metadata.jsonl", "metadata.parquet"]
+    METADATA_FILENAMES: list[str] = ["metadata.csv", "metadata.jsonl", "metadata.parquet", "dataset_info.json", "state.json"]
 
     def _info(self):
         if not self.config.data_dir and not self.config.data_files:
