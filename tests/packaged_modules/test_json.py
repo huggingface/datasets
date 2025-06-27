@@ -1,8 +1,14 @@
+# Standard library
+import json
+import tempfile
 import textwrap
 
-import pyarrow as pa
+# Third-party
 import pytest
+import pyarrow as pa
 
+# First-party (datasets)
+from datasets import load_dataset
 from datasets import Features, Value
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
@@ -265,3 +271,14 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
     generator = builder._generate_tables([[request.getfixturevalue(file_fixture)]])
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.column_names == ["ID", "Language", "Topic"]
+
+def test_load_dataset_json_with_columns_filtering():
+    sample = {"a": 1, "b": 2, "c": 3}
+
+    with tempfile.NamedTemporaryFile("w+", suffix=".jsonl", delete=False) as f:
+        f.write(json.dumps(sample) + "\n")
+        f.write(json.dumps(sample) + "\n")
+        path = f.name
+
+    dataset = load_dataset("json", data_files=path, columns=["a", "c"])
+    assert set(dataset["train"].column_names) == {"a", "c"}
