@@ -1185,6 +1185,7 @@ def load_dataset_builder(
 def load_dataset(
     path: str,
     name: Optional[str] = None,
+    subset_name: Optional[str] = None,  # <-- New alias parameter
     data_dir: Optional[str] = None,
     data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
     split: Optional[Union[str, Split, list[str], list[Split]]] = None,
@@ -1202,6 +1203,10 @@ def load_dataset(
     storage_options: Optional[dict] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
+    if name and subset_name and name != subset_name:
+        raise ValueError("'name' and 'subset_name' cannot both be set with different values.")
+    name = name or subset_name  # Prefer 'name', fallback to 'subset_name'
+    
     """Load a dataset from the Hugging Face Hub, or a local dataset.
 
     You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
@@ -1388,7 +1393,6 @@ def load_dataset(
         (verification_mode or VerificationMode.BASIC_CHECKS) if not save_infos else VerificationMode.ALL_CHECKS
     )
 
-    # Create a dataset builder
     builder_instance = load_dataset_builder(
         path=path,
         name=name,
@@ -1404,11 +1408,9 @@ def load_dataset(
         **config_kwargs,
     )
 
-    # Return iterable dataset in case of streaming
     if streaming:
         return builder_instance.as_streaming_dataset(split=split)
 
-    # Download and prepare data
     builder_instance.download_and_prepare(
         download_config=download_config,
         download_mode=download_mode,
@@ -1417,7 +1419,6 @@ def load_dataset(
         storage_options=storage_options,
     )
 
-    # Build dataset for splits
     keep_in_memory = (
         keep_in_memory if keep_in_memory is not None else is_small_dataset(builder_instance.info.dataset_size)
     )
