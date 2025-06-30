@@ -2713,7 +2713,8 @@ class IterableDataset(DatasetInfoMixin):
             features=features,
         )
         info = self.info.copy()
-        info.features = features
+        if features is not None:
+            info.features = features
         return IterableDataset(
             ex_iterable=ex_iterable,
             info=info,
