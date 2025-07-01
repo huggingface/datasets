@@ -973,7 +973,7 @@ class ClassLabel:
      * `names_file`: File containing the list of labels.
 
     Under the hood the labels are stored as integers.
-    You can use negative integers to represent unknown/missing labels.
+    You can use -1 to represent unknown/missing labels.
 
     Args:
         num_classes (`int`, *optional*):
