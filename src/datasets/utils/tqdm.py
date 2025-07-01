@@ -106,9 +106,13 @@ class SafeDelLockMeta:
     Class for fixing `del tqdm_class._lock`: https://github.com/huggingface/datasets/issues/7660
     """
     def __delattr__(cls, name):
-        if name == "_lock":
-            return  
-        return super().__delattr__(name)
+        if name == '_lock':
+            try:
+                super().__delattr__(name)
+            except AttributeError:
+                pass 
+        else:
+            super().__delattr__(name)
 
 
 class tqdm(old_tqdm, metaclass=SafeDelLockMeta):
