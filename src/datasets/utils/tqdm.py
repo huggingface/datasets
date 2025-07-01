@@ -101,7 +101,7 @@ def are_progress_bars_disabled() -> bool:
     return _hf_datasets_progress_bars_disabled
 
 
-class SafeDelLockMeta:
+class SafeDelLockMeta(type):
     """
     Class for fixing `del tqdm_class._lock`: https://github.com/huggingface/datasets/issues/7660
     """
