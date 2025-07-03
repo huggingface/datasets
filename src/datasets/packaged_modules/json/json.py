@@ -111,8 +111,10 @@ class Json(datasets.ArrowBasedBuilder):
 
                 # Filter only selected columns if specified
                 if self.config.columns is not None:
-                    keep_cols = [col for col in self.config.columns if col in pa_table.column_names]
-                    pa_table = pa_table.select(keep_cols)
+                    missing_cols = [col for col in self.config.columns if col not in pa_table.column_names]
+                    for col in missing_cols:
+                        pa_table = pa_table.append_column(col, pa.array([None] * pa_table.num_rows))
+                    pa_table = pa_table.select(self.config.columns)
 
                 yield file_idx, self._cast_table(pa_table)
 
@@ -141,8 +143,10 @@ class Json(datasets.ArrowBasedBuilder):
                                         io.BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
                                     )
                                     if self.config.columns is not None:
-                                        keep_cols = [col for col in self.config.columns if col in pa_table.column_names]
-                                        pa_table = pa_table.select(keep_cols)
+                                        missing_cols = [col for col in self.config.columns if col not in pa_table.column_names]
+                                        for col in missing_cols:
+                                            pa_table = pa_table.append_column(col, pa.array([None] * pa_table.num_rows))
+                                        pa_table = pa_table.select(self.config.columns)
                                     yield (file_idx, batch_idx), self._cast_table(pa_table)
                                     break
                                 except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
@@ -171,8 +175,10 @@ class Json(datasets.ArrowBasedBuilder):
                             try:
                                 pa_table = pa.Table.from_pandas(df, preserve_index=False)
                                 if self.config.columns is not None:
-                                    keep_cols = [col for col in self.config.columns if col in pa_table.column_names]
-                                    pa_table = pa_table.select(keep_cols)
+                                    missing_cols = [col for col in self.config.columns if col not in pa_table.column_names]
+                                    for col in missing_cols:
+                                        pa_table = pa_table.append_column(col, pa.array([None] * pa_table.num_rows))
+                                    pa_table = pa_table.select(self.config.columns)
                                 yield (file_idx, batch_idx), self._cast_table(pa_table)
                             except pa.ArrowInvalid as e:
                                 logger.error(
