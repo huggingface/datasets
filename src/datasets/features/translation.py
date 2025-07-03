@@ -121,9 +121,9 @@ class TranslationVariableLanguages:
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """Flatten the TranslationVariableLanguages feature into a dictionary."""
-        from .features import Sequence, Value
+        from .features import List, Value
 
         return {
-            "language": Sequence(Value("string")),
-            "translation": Sequence(Value("string")),
+            "language": List(Value("string")),
+            "translation": List(Value("string")),
         }

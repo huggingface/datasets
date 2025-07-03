@@ -31,6 +31,7 @@ class FolderBasedBuilderConfig(datasets.BuilderConfig):
     features: Optional[datasets.Features] = None
     drop_labels: bool = None
     drop_metadata: bool = None
+    metadata_filenames: list[str] = None
     filters: Optional[Union[ds.Expression, list[tuple], list[list[tuple]]]] = None
 
     def __post_init__(self):
@@ -76,6 +77,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
         do_analyze = not self.config.drop_labels or not self.config.drop_metadata
         labels, path_depths = set(), set()
         metadata_files = collections.defaultdict(set)
+        metadata_filenames = self.config.metadata_filenames or self.METADATA_FILENAMES
 
         def analyze(files_or_archives, downloaded_files_or_dirs, split):
             if len(downloaded_files_or_dirs) == 0:
@@ -91,12 +93,12 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         if not self.config.drop_labels:
                             labels.add(os.path.basename(os.path.dirname(original_file)))
                             path_depths.add(count_path_segments(original_file))
-                    elif os.path.basename(original_file) in self.METADATA_FILENAMES:
+                    elif os.path.basename(original_file) in metadata_filenames:
                         metadata_files[split].add((original_file, downloaded_file))
                     else:
                         original_file_name = os.path.basename(original_file)
                         logger.debug(
-                            f"The file '{original_file_name}' was ignored: it is not a {self.BASE_COLUMN_NAME}, and is not {self.METADATA_FILENAMES} either."
+                            f"The file '{original_file_name}' was ignored: it is not a {self.BASE_COLUMN_NAME}, and is not {metadata_filenames} either."
                         )
             else:
                 archives, downloaded_dirs = files_or_archives, downloaded_files_or_dirs
@@ -108,13 +110,13 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                             if not self.config.drop_labels:
                                 labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
                                 path_depths.add(count_path_segments(downloaded_dir_file))
-                        elif os.path.basename(downloaded_dir_file) in self.METADATA_FILENAMES:
+                        elif os.path.basename(downloaded_dir_file) in metadata_filenames:
                             metadata_files[split].add((None, downloaded_dir_file))
                         else:
                             archive_file_name = os.path.basename(archive)
                             original_file_name = os.path.basename(downloaded_dir_file)
                             logger.debug(
-                                f"The file '{original_file_name}' from the archive '{archive_file_name}' was ignored: it is not a {self.BASE_COLUMN_NAME}, and is not {self.METADATA_FILENAMES} either."
+                                f"The file '{original_file_name}' from the archive '{archive_file_name}' was ignored: it is not a {self.BASE_COLUMN_NAME}, and is not {metadata_filenames} either."
                             )
 
         data_files = self.config.data_files
@@ -212,11 +214,11 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                             key = key[: -len("_file_name")] or self.BASE_COLUMN_NAME
                             out[key] = self.BASE_FEATURE()
                             feature_not_found = False
-                        elif (key == "file_names" or key.endswith("_file_names")) and feature[
-                            key
-                        ] == datasets.Sequence(datasets.Value("string")):
+                        elif (key == "file_names" or key.endswith("_file_names")) and feature[key] == datasets.List(
+                            datasets.Value("string")
+                        ):
                             key = key[: -len("_file_names")] or (self.BASE_COLUMN_NAME + "s")
-                            out[key] = datasets.Sequence(self.BASE_FEATURE())
+                            out[key] = datasets.List(self.BASE_FEATURE())
                             feature_not_found = False
                         elif (key == "file_names" or key.endswith("_file_names")) and feature[key] == [
                             datasets.Value("string")
@@ -257,11 +259,12 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
     def _split_files_and_archives(self, data_files):
         files, archives = [], []
+        metadata_filenames = self.config.metadata_filenames or self.METADATA_FILENAMES
         for data_file in data_files:
             _, data_file_ext = os.path.splitext(data_file)
             if data_file_ext.lower() in self.EXTENSIONS:
                 files.append(data_file)
-            elif os.path.basename(data_file) in self.METADATA_FILENAMES:
+            elif os.path.basename(data_file) in metadata_filenames:
                 files.append(data_file)
             else:
                 archives.append(data_file)

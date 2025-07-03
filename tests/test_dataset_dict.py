@@ -9,7 +9,7 @@ import pytest
 from datasets import load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
-from datasets.features import ClassLabel, Features, Sequence, Value
+from datasets.features import ClassLabel, Features, List, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.splits import NamedSplit
 
@@ -71,15 +71,13 @@ class DatasetDictTest(TestCase):
     def test_flatten(self):
         dset_split = Dataset.from_dict(
             {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
-            features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
+            features=Features({"a": {"b": {"c": List(Value("string"))}}, "foo": Value("int64")}),
         )
         dset = DatasetDict({"train": dset_split, "test": dset_split})
         dset = dset.flatten()
         self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
         self.assertListEqual(sorted(dset["train"].features.keys()), ["a.b.c", "foo"])
-        self.assertDictEqual(
-            dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
-        )
+        self.assertDictEqual(dset["train"].features, Features({"a.b.c": List(Value("string")), "foo": Value("int64")}))
         del dset
 
     def test_set_format_numpy(self):

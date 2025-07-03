@@ -24,14 +24,12 @@ def dataset():
     n = 10
     features = datasets.Features(
         {
-            "tokens": datasets.Sequence(datasets.Value("string")),
-            "labels": datasets.Sequence(datasets.ClassLabel(names=["negative", "positive"])),
-            "answers": datasets.Sequence(
-                {
-                    "text": datasets.Value("string"),
-                    "answer_start": datasets.Value("int32"),
-                }
-            ),
+            "tokens": datasets.List(datasets.Value("string")),
+            "labels": datasets.List(datasets.ClassLabel(names=["negative", "positive"])),
+            "answers": {
+                "text": datasets.List(datasets.Value("string")),
+                "answer_start": datasets.List(datasets.Value("int32")),
+            },
             "id": datasets.Value("int64"),
         }
     )

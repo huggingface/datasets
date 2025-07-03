@@ -7,7 +7,7 @@ import pyarrow as pa
 import pytest
 
 from datasets import Column, Dataset, concatenate_datasets, load_dataset
-from datasets.features import Audio, Features, Sequence, Value
+from datasets.features import Audio, Features, List, Value
 
 from ..utils import require_sndfile, require_torchcodec
 
@@ -54,7 +54,7 @@ def test_audio_feature_type_to_arrow():
     assert features.arrow_schema == pa.schema({"audio": Audio().pa_type})
     features = Features({"struct_containing_an_audio": {"audio": Audio()}})
     assert features.arrow_schema == pa.schema({"struct_containing_an_audio": pa.struct({"audio": Audio().pa_type})})
-    features = Features({"sequence_of_audios": Sequence(Audio())})
+    features = Features({"sequence_of_audios": List(Audio())})
     assert features.arrow_schema == pa.schema({"sequence_of_audios": pa.list_(Audio().pa_type)})
 
 
@@ -375,7 +375,7 @@ def test_dataset_with_audio_feature_with_none():
     # nested tests
 
     data = {"audio": [[None]]}
-    features = Features({"audio": Sequence(Audio())})
+    features = Features({"audio": List(Audio())})
     dset = Dataset.from_dict(data, features=features)
     item = dset[0]
     assert item.keys() == {"audio"}

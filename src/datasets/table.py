@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar, Union
 import numpy as np
 import pyarrow as pa
 import pyarrow.compute as pc
-import pyarrow.types
 
 from .utils.logging import get_logger
 
@@ -1982,7 +1981,7 @@ def cast_array_to_feature(
     Returns:
         array (`pyarrow.Array`): the casted array
     """
-    from .features.features import LargeList, Sequence, get_nested_type
+    from .features.features import LargeList, List, get_nested_type
 
     _c = partial(
         cast_array_to_feature,
@@ -1995,12 +1994,8 @@ def cast_array_to_feature(
     if hasattr(feature, "cast_storage"):
         return feature.cast_storage(array)
 
-    elif pa.types.is_struct(array.type):
-        # feature must be a dict or Sequence(subfeatures_dict)
-        if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
-            sequence_kwargs = vars(feature).copy()
-            feature = sequence_kwargs.pop("feature")
-            feature = {name: Sequence(subfeature, **sequence_kwargs) for name, subfeature in feature.items()}
+    if pa.types.is_struct(array.type):
+        # feature must be a dict
         if isinstance(feature, dict) and (array_fields := {field.name for field in array.type}) <= set(feature):
             null_array = pa.array([None] * len(array))
             arrays = [
@@ -2009,17 +2004,8 @@ def cast_array_to_feature(
             ]
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
     elif pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
-        # feature must be either [subfeature] or LargeList(subfeature) or Sequence(subfeature)
-        if isinstance(feature, list):
-            casted_array_values = _c(array.values, feature[0])
-            if pa.types.is_list(array.type) and casted_array_values.type == array.values.type:
-                # Both array and feature have equal list type and values (within the list) type
-                return array
-            else:
-                # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
-                array_offsets = _combine_list_array_offsets_with_mask(array)
-                return pa.ListArray.from_arrays(array_offsets, casted_array_values)
-        elif isinstance(feature, LargeList):
+        # feature must be either List(subfeature) or LargeList(subfeature)
+        if isinstance(feature, LargeList):
             casted_array_values = _c(array.values, feature.feature)
             if pa.types.is_large_list(array.type) and casted_array_values.type == array.values.type:
                 # Both array and feature have equal large_list type and values (within the list) type
@@ -2028,7 +2014,7 @@ def cast_array_to_feature(
                 # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
                 array_offsets = _combine_list_array_offsets_with_mask(array)
                 return pa.LargeListArray.from_arrays(array_offsets, casted_array_values)
-        elif isinstance(feature, Sequence):
+        elif isinstance(feature, List):
             if feature.length > -1:
                 if _are_list_values_of_length(array, feature.length):
                     if array.null_count > 0:
@@ -2072,16 +2058,13 @@ def cast_array_to_feature(
                     array_offsets = _combine_list_array_offsets_with_mask(array)
                     return pa.ListArray.from_arrays(array_offsets, casted_array_values)
     elif pa.types.is_fixed_size_list(array.type):
-        # feature must be either [subfeature] or Sequence(subfeature)
-        if isinstance(feature, list):
-            array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
-            return pa.ListArray.from_arrays(array_offsets, _c(array.values, feature[0]), mask=array.is_null())
-        elif isinstance(feature, LargeList):
+        # feature must be List(subfeature)
+        if isinstance(feature, LargeList):
             array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
             return pa.LargeListArray.from_arrays(
                 array_offsets, _c(array.values, feature.feature), mask=array.is_null()
             )
-        elif isinstance(feature, Sequence):
+        elif isinstance(feature, List):
             if feature.length > -1:
                 if feature.length == array.type.list_size:
                     array_values = array.values[
@@ -2099,7 +2082,7 @@ def cast_array_to_feature(
             allow_primitive_to_str=allow_primitive_to_str,
             allow_decimal_to_str=allow_decimal_to_str,
         )
-    elif not isinstance(feature, (Sequence, dict, list, tuple)):
+    elif not isinstance(feature, (List, LargeList, dict)):
         return array_cast(
             array,
             feature(),
@@ -2131,7 +2114,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType", token_per_repo_
     Returns:
          array (`pyarrow.Array`): the casted array
     """
-    from .features import Sequence
+    from .features import LargeList, List
 
     _e = partial(embed_array_storage, token_per_repo_id=token_per_repo_id)
 
@@ -2140,21 +2123,15 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType", token_per_repo_
     if hasattr(feature, "embed_storage"):
         return feature.embed_storage(array, token_per_repo_id=token_per_repo_id)
     elif pa.types.is_struct(array.type):
-        # feature must be a dict or Sequence(subfeatures_dict)
-        if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
-            feature = {
-                name: Sequence(subfeature, length=feature.length) for name, subfeature in feature.feature.items()
-            }
+        # feature must be a dict
         if isinstance(feature, dict):
             arrays = [_e(array.field(name), subfeature) for name, subfeature in feature.items()]
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
     elif pa.types.is_list(array.type):
-        # feature must be either [subfeature] or Sequence(subfeature)
+        # feature must be either List(subfeature)
         # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
         array_offsets = _combine_list_array_offsets_with_mask(array)
-        if isinstance(feature, list):
-            return pa.ListArray.from_arrays(array_offsets, _e(array.values, feature[0]))
-        if isinstance(feature, Sequence) and feature.length == -1:
+        if isinstance(feature, List) and feature.length == -1:
             return pa.ListArray.from_arrays(array_offsets, _e(array.values, feature.feature))
     elif pa.types.is_large_list(array.type):
         # feature must be LargeList(subfeature)
@@ -2162,14 +2139,14 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType", token_per_repo_
         array_offsets = _combine_list_array_offsets_with_mask(array)
         return pa.LargeListArray.from_arrays(array_offsets, _e(array.values, feature.feature))
     elif pa.types.is_fixed_size_list(array.type):
-        # feature must be Sequence(subfeature)
-        if isinstance(feature, Sequence) and feature.length > -1:
+        # feature must be List(subfeature)
+        if isinstance(feature, List) and feature.length > -1:
             array_values = array.values[
                 array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
             ]
             embedded_array_values = _e(array_values, feature.feature)
             return pa.FixedSizeListArray.from_arrays(embedded_array_values, feature.length, mask=array.is_null())
-    if not isinstance(feature, (Sequence, dict, list, tuple)):
+    if not isinstance(feature, (List, LargeList, dict)):
         return array
     raise TypeError(f"Couldn't embed array of type\n{_short_str(array.type)}\nwith\n{_short_str(feature)}")
 
@@ -2350,7 +2327,7 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
         function (`Callable[[pa.Array], None]`):
             Function to apply to each array.
     """
-    from .features import Features, Sequence
+    from .features import Features, LargeList, List
 
     features = Features.from_arrow_schema(table.schema)
 
@@ -2363,17 +2340,10 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
                 array = array.storage
             function(array, feature)
             if pa.types.is_struct(array.type) and not hasattr(feature, "cast_storage"):
-                if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
-                    feature = {
-                        name: Sequence(subfeature, length=feature.length)
-                        for name, subfeature in feature.feature.items()
-                    }
                 for name, subfeature in feature.items():
                     _visit(array.field(name), subfeature)
             elif pa.types.is_list(array.type):
-                if isinstance(feature, list):
-                    _visit(array.values, feature[0])
-                elif isinstance(feature, Sequence):
+                if isinstance(feature, (LargeList, List)):
                     _visit(array.values, feature.feature)
 
     for name, feature in features.items():

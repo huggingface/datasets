@@ -3,7 +3,7 @@ import tarfile
 
 import pytest
 
-from datasets import Audio, DownloadManager, Features, Image, Sequence, Value
+from datasets import Audio, DownloadManager, Features, Image, List, Value
 from datasets.packaged_modules.webdataset.webdataset import WebDataset
 
 from ..utils import (
@@ -245,7 +245,7 @@ def test_tensor_webdataset(tensor_wds_file):
             "__key__": Value("string"),
             "__url__": Value("string"),
             "json": {"text": Value("string")},
-            "pth": Sequence(Value("float32")),
+            "pth": List(Value("float32")),
         }
     )
     assert len(split_generators) == 1
