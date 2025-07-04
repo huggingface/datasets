@@ -182,8 +182,15 @@ class Image:
 
             image.load()  # to avoid "Too many open files" errors
 
-            if image.getexif().get(PIL.Image.ExifTags.Base.Orientation) is not None:
-                image = PIL.ImageOps.exif_transpose(image)
+            try:
+                exif = image.getexif()
+                if exif.get(PIL.Image.ExifTags.Base.Orientation) is not None:
+                    image = PIL.ImageOps.exif_transpose(image)
+            except Exception as exif_err:
+                if self.ignore_decode_errors:
+                    warnings.warn(f"[Image.decode_example] Skipped EXIF metadata: {exif_err}")
+                else:
+                    raise
 
             if self.mode and self.mode != image.mode:
                 image = image.convert(self.mode)
