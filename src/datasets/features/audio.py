@@ -174,7 +174,7 @@ class Audio:
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Audio(decode=True) instead.")
 
-        path, bytes = (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
+        path, bytes = (value["path"], value["bytes"]) if value["bytes"] is not None else (value["path"], None)
         if path is None and bytes is None:
             raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
 

@@ -1759,9 +1759,19 @@ class Features(dict):
             raise TypeError("descriptor '__init__' of 'Features' object needs an argument")
         self, *args = args
         super(Features, self).__init__(*args, **kwargs)
+        # keep track of columns which require decoding
         self._column_requires_decoding: dict[str, bool] = {
             col: require_decoding(feature) for col, feature in self.items()
         }
+
+        # backward compatibility with datasets<4 : [feature] -> List(feature)
+        def _check_old_list(feature):
+            if isinstance(feature, list):
+                return List(_visit(feature[0], _check_old_list))
+            return feature
+
+        for column_name, feature in self.items():
+            self[column_name] = _visit(feature, _check_old_list)
 
     __setitem__ = keep_features_dicts_synced(dict.__setitem__)
     __delitem__ = keep_features_dicts_synced(dict.__delitem__)
