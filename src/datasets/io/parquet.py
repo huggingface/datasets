@@ -1,3 +1,4 @@
+import json
 import os
 from typing import BinaryIO, Optional, Union
 
@@ -77,6 +78,7 @@ class ParquetDatasetWriter:
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
         storage_options: Optional[dict] = None,
+        use_content_defined_chunking: Optional[dict] = None,
         **parquet_writer_kwargs,
     ):
         self.dataset = dataset
@@ -84,18 +86,34 @@ class ParquetDatasetWriter:
         self.batch_size = batch_size or get_writer_batch_size(dataset.features)
         self.storage_options = storage_options or {}
         self.parquet_writer_kwargs = parquet_writer_kwargs
+        self.use_content_defined_chunking = use_content_defined_chunking
 
     def write(self) -> int:
         batch_size = self.batch_size if self.batch_size else config.DEFAULT_MAX_BATCH_SIZE
+        use_content_defined_chunking = (
+            self.use_content_defined_chunking if self.use_content_defined_chunking else config.DEFAULT_CDC_OPTIONS
+        )
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
             with fsspec.open(self.path_or_buf, "wb", **(self.storage_options or {})) as buffer:
-                written = self._write(file_obj=buffer, batch_size=batch_size, **self.parquet_writer_kwargs)
+                written = self._write(
+                    file_obj=buffer,
+                    batch_size=batch_size,
+                    use_content_defined_chunking=use_content_defined_chunking,
+                    **self.parquet_writer_kwargs,
+                )
         else:
-            written = self._write(file_obj=self.path_or_buf, batch_size=batch_size, **self.parquet_writer_kwargs)
+            written = self._write(
+                file_obj=self.path_or_buf,
+                batch_size=batch_size,
+                use_content_defined_chunking=use_content_defined_chunking,
+                **self.parquet_writer_kwargs,
+            )
         return written
 
-    def _write(self, file_obj: BinaryIO, batch_size: int, **parquet_writer_kwargs) -> int:
+    def _write(
+        self, file_obj: BinaryIO, batch_size: int, use_content_defined_chunking: bool | dict, **parquet_writer_kwargs
+    ) -> int:
         """Writes the pyarrow table as Parquet to a binary file handle.
 
         Caller is responsible for opening and closing the handle.
@@ -104,7 +122,9 @@ class ParquetDatasetWriter:
         _ = parquet_writer_kwargs.pop("path_or_buf", None)
         schema = self.dataset.features.arrow_schema
 
-        writer = pq.ParquetWriter(file_obj, schema=schema, **parquet_writer_kwargs)
+        writer = pq.ParquetWriter(
+            file_obj, schema=schema, use_content_defined_chunking=use_content_defined_chunking, **parquet_writer_kwargs
+        )
 
         for offset in hf_tqdm(
             range(0, len(self.dataset), batch_size),
@@ -118,5 +138,8 @@ class ParquetDatasetWriter:
             )
             writer.write_table(batch)
             written += batch.nbytes
+
+        # TODO(kszucs): we may want to persist multiple parameters
+        writer.add_key_value_metadata({"content_defined_chunking": json.dumps(use_content_defined_chunking)})
         writer.close()
         return written
