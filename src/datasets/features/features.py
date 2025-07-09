@@ -1182,7 +1182,11 @@ class Sequence:
 
     def __new__(cls, feature=None, length=-1, **kwargs):
         # useful to still get isinstance(Sequence(Value("int64")), Sequence)
-        if cls is Sequence and isinstance(feature, dict) and any(not isinstance(subfeature, List) for subfeature in feature.values()):
+        if (
+            cls is Sequence
+            and isinstance(feature, dict)
+            and any(not isinstance(subfeature, List) for subfeature in feature.values())
+        ):
             out = {key: List(value, length=length, **kwargs) for key, value in feature.items()}
         else:
             out = super().__new__(List)
