@@ -138,6 +138,7 @@ REQUIRED_PKGS = [
 AUDIO_REQUIRE = [
     "soundfile>=0.12.1",
     "torchcodec>=0.4.0",
+    "torch>=2.7.0",
 ]
 
 VISION_REQUIRE = [
