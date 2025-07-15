@@ -461,12 +461,18 @@ BASE_KNOWN_EXTENSIONS = [
 ]
 COMPRESSION_EXTENSION_TO_PROTOCOL = {
     # single file compression
-    **{fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS},
+    **{
+        extension.lstrip("."): fs_class.protocol
+        for fs_class in COMPRESSION_FILESYSTEMS
+        for extension in fs_class.extensions
+    },
     # archive compression
     "zip": "zip",
 }
 SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL = {
-    fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS
+    extension.lstrip("."): fs_class.protocol
+    for fs_class in COMPRESSION_FILESYSTEMS
+    for extension in fs_class.extensions
 }
 SINGLE_FILE_COMPRESSION_PROTOCOLS = {fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS}
 SINGLE_SLASH_AFTER_PROTOCOL_PATTERN = re.compile(r"(?<!:):/")
