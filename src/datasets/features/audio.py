@@ -236,7 +236,9 @@ class Audio:
             path_array = pa.array([None] * len(storage), type=pa.string())
             storage = pa.StructArray.from_arrays([storage, path_array], ["bytes", "path"], mask=storage.is_null())
         elif pa.types.is_struct(storage.type) and storage.type.get_all_field_indices("array"):
-            storage = pa.array([Audio().encode_example(x) if x is not None else None for x in storage.to_pylist()])
+            storage = pa.array(
+                [Audio().encode_example(x) if x is not None else None for x in storage.to_numpy(zero_copy_only=False)]
+            )
         elif pa.types.is_struct(storage.type):
             if storage.type.get_field_index("bytes") >= 0:
                 bytes_array = storage.field("bytes")
