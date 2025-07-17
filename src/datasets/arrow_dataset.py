@@ -2041,7 +2041,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
          'question': Value('string'),
          'answers': {'text': List(Value('string')),
          'answer_start': List(Value('int32'))}}
-        >>> # Note: this method returns a new dataset and does not modify in-place
         >>> ds = ds.flatten()
         >>> ds
         Dataset({
@@ -2401,7 +2400,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
-        >>> # Note: this method returns a new dataset and does not modify in-place
         >>> ds = ds.select_columns(['text'])
         >>> ds
         Dataset({
@@ -3873,7 +3871,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
-        >>> # Note: this method returns a new dataset and does not modify in-place
         >>> ds = ds.filter(lambda x: x["label"] == 1)
         >>> ds
         Dataset({
@@ -4048,7 +4045,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
-        >>> # Note: this method returns a new dataset and does not modify in-place
         >>> ds = ds.select(range(4))
         >>> ds
         Dataset({
@@ -4945,7 +4941,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features: ['text', 'label'],
             num_rows: 1066
         })
-        >>> # Note: this method returns a new dataset and does not modify in-place
         >>> ds = ds.shard(num_shards=2, index=0)
         >>> ds
         Dataset({
