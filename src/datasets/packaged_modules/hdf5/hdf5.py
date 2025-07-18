@@ -7,6 +7,7 @@ import numpy as np
 import pyarrow as pa
 
 import datasets
+from datasets.features.features import LargeList, Sequence, _ArrayXD
 from datasets.table import table_cast
 
 
@@ -75,7 +76,9 @@ class HDF5(datasets.ArrowBasedBuilder):
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.info.features is not None:
-            pa_table = table_cast(pa_table, self.info.features.arrow_schema)
+            has_zero_dims = any(has_zero_dimensions(feature) for feature in self.info.features.values())
+            if not has_zero_dims:
+                pa_table = table_cast(pa_table, self.info.features.arrow_schema)
         return pa_table
 
     def _generate_tables(self, files):
@@ -169,8 +172,8 @@ def _infer_feature_from_dataset(dset: h5py.Dataset):
     dtype_str = _dtype_to_dataset_dtype(dset.dtype)
     value_shape = dset.shape[1:]
 
-    # Reject ragged datasets (variable-length or zero/None dims)
-    if dset.dtype.kind == "O" or any(s is None or s == 0 for s in value_shape):
+    # Reject ragged datasets (variable-length or None dims)
+    if dset.dtype.kind == "O" or any(s is None for s in value_shape):
         raise ValueError(f"Ragged dataset {dset.name} with shape {value_shape} and dtype {dset.dtype} not supported")
 
     if dset.dtype.kind not in {"b", "i", "u", "f", "S", "a"}:
@@ -190,3 +193,12 @@ def _infer_feature_from_dataset(dset: h5py.Dataset):
         return hfd.Sequence(length=shape[0], feature=_build_feature(shape[1:]))
 
     return _build_feature(value_shape)
+
+
+def has_zero_dimensions(feature: _ArrayXD | Sequence | LargeList):
+    if isinstance(feature, _ArrayXD):
+        return any(dim == 0 for dim in feature.shape)
+    elif isinstance(feature, (Sequence, LargeList)):
+        return feature.length == 0 or has_zero_dimensions(feature.feature)
+    else:
+        return False
