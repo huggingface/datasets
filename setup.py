@@ -19,7 +19,7 @@ Steps to make a release:
      - In `transformers`, use `datasets @ git+https://github.com/huggingface/datasets@main#egg=datasets`
        Add a step to install `datasets@main` after `save_cache` in .circleci/create_circleci_config.py:
        ```
-       steps.append({"run": {"name": "Install `datasets@main`", "command": 'pip uninstall datasets -y && pip install "datasets @ git+https://github.com/huggingface/datasets@main#egg=datasets"'}})
+       {"run": {"name": "Install `datasets@main`", "command": 'pip uninstall datasets -y && pip install "datasets @ git+https://github.com/huggingface/datasets@main#egg=datasets"'}}
        ```
      - and then run the CI
 
@@ -138,6 +138,7 @@ REQUIRED_PKGS = [
 AUDIO_REQUIRE = [
     "soundfile>=0.12.1",
     "torchcodec>=0.4.0",
+    "torch>=2.7.0",
 ]
 
 VISION_REQUIRE = [
@@ -228,7 +229,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="4.0.0.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="4.0.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

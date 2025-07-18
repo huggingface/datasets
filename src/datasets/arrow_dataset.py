@@ -2041,7 +2041,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
          'question': Value('string'),
          'answers': {'text': List(Value('string')),
          'answer_start': List(Value('int32'))}}
-        >>> ds.flatten()
+        >>> ds = ds.flatten()
+        >>> ds
         Dataset({
             features: ['id', 'title', 'context', 'question', 'answers.text', 'answers.answer_start'],
             num_rows: 87599
@@ -2399,7 +2400,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
-        >>> ds.select_columns(['text'])
+        >>> ds = ds.select_columns(['text'])
+        >>> ds
         Dataset({
             features: ['text'],
             num_rows: 1066
@@ -3869,12 +3871,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
-        >>> ds.filter(lambda x: x["label"] == 1)
+        >>> ds = ds.filter(lambda x: x["label"] == 1)
+        >>> ds
         Dataset({
             features: ['text', 'label'],
             num_rows: 533
         })
         ```
+
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -4041,7 +4045,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
-        >>> ds.select(range(4))
+        >>> ds = ds.select(range(4))
+        >>> ds
         Dataset({
             features: ['text', 'label'],
             num_rows: 4
@@ -4936,7 +4941,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features: ['text', 'label'],
             num_rows: 1066
         })
-        >>> ds.shard(num_shards=2, index=0)
+        >>> ds = ds.shard(num_shards=2, index=0)
+        >>> ds
         Dataset({
             features: ['text', 'label'],
             num_rows: 533
@@ -6005,7 +6011,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> more_text = ds["text"]
-        >>> ds.add_column(name="text_2", column=more_text)
+        >>> ds = ds.add_column(name="text_2", column=more_text)
+        >>> ds
         Dataset({
             features: ['text', 'label', 'text_2'],
             num_rows: 1066
