@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pyarrow as pa
@@ -72,9 +72,32 @@ class HDF5(datasets.ArrowBasedBuilder):
                     with h5py.File(first_file, "r") as h5:
                         dataset_map = _traverse_datasets(h5)
                         features_dict = {}
+
+                        def _check_column_collisions(new_columns, source_dataset_path):
+                            """Check for column name collisions and raise informative errors."""
+                            for new_col in new_columns:
+                                if new_col in features_dict:
+                                    raise ValueError(
+                                        f"Column name collision detected: '{new_col}' from dataset '{source_dataset_path}' "
+                                        f"conflicts with existing column. Consider renaming datasets in the HDF5 file."
+                                    )
+
                         for path, dset in dataset_map.items():
-                            feat = _infer_feature_from_dataset(dset)
-                            features_dict[path] = feat
+                            if _is_complex_dtype(dset.dtype):
+                                complex_features = _create_complex_features(path, dset)
+                                _check_column_collisions(complex_features.keys(), path)
+                                features_dict.update(complex_features)
+                            elif _is_compound_dtype(dset.dtype):
+                                compound_features = _create_compound_features(path, dset)
+                                _check_column_collisions(compound_features.keys(), path)
+                                features_dict.update(compound_features)
+                            elif _is_vlen_string_dtype(dset.dtype):
+                                _check_column_collisions([path], path)
+                                features_dict[path] = Value("string")
+                            else:
+                                _check_column_collisions([path], path)
+                                feat = _infer_feature_from_dataset(dset)
+                                features_dict[path] = feat
                         self.info.features = datasets.Features(features_dict)
                     break
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
@@ -86,7 +109,11 @@ class HDF5(datasets.ArrowBasedBuilder):
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.info.features is not None:
-            has_zero_dims = any(_has_zero_dimensions(feature) for feature in self.info.features.values())
+            relevant_features = {
+                col: self.info.features[col] for col in pa_table.column_names if col in self.info.features
+            }
+            has_zero_dims = any(_has_zero_dimensions(feature) for feature in relevant_features.values())
+            # FIXME: pyarrow.lib.ArrowInvalid: list_size needs to be a strict positive integer
             if not has_zero_dims:
                 pa_table = table_cast(pa_table, self.info.features.arrow_schema)
         return pa_table
@@ -94,149 +121,228 @@ class HDF5(datasets.ArrowBasedBuilder):
     def _generate_tables(self, files):
         batch_size_cfg = self.config.batch_size
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
-            with h5py.File(file, "r") as h5:
-                dataset_map = _traverse_datasets(h5)
-                if not dataset_map:
-                    logger.warning(f"File '{file}' contains no datasets, skipping…")
-                    continue
-                first_dset = next(iter(dataset_map.values()))
-                num_rows = first_dset.shape[0]
-                # Sanity-check lengths
-                for path, dset in dataset_map.items():
-                    if dset.shape[0] != num_rows:
-                        raise ValueError(
-                            f"Dataset '{path}' length {dset.shape[0]} differs from {num_rows} in file '{file}'"
-                        )
-                effective_batch = batch_size_cfg or self._writer_batch_size or num_rows
-                for start in range(0, num_rows, effective_batch):
-                    end = min(start + effective_batch, num_rows)
-                    batch_dict = {}
+            try:
+                with h5py.File(file, "r") as h5:
+                    dataset_map = _traverse_datasets(h5)
+                    if not dataset_map:
+                        logger.warning(f"File '{file}' contains no data, skipping...")
+                        continue
+                    first_dset = next(iter(dataset_map.values()))
+                    num_rows = first_dset.shape[0]
+                    # Sanity-check lengths
                     for path, dset in dataset_map.items():
-                        if self.config.columns is not None and path not in self.config.columns:
-                            continue
-                        arr = dset[start:end]
-                        if _is_ragged_dataset(dset):
-                            if _is_variable_length_string(dset):
-                                pa_arr = _variable_length_string_to_pyarrow(arr, dset)
+                        if dset.shape[0] != num_rows:
+                            raise ValueError(
+                                f"Dataset '{path}' length {dset.shape[0]} differs from {num_rows} in file '{file}'"
+                            )
+                    effective_batch = batch_size_cfg or self._writer_batch_size or num_rows
+                    for start in range(0, num_rows, effective_batch):
+                        end = min(start + effective_batch, num_rows)
+                        batch_dict = {}
+                        for path, dset in dataset_map.items():
+                            if self.config.columns is not None and path not in self.config.columns:
+                                continue
+                            arr = dset[start:end]
+
+                            # Handle variable-length arrays
+                            if _is_vlen_string_dtype(dset.dtype):
+                                logger.debug(
+                                    f"Converting variable-length string data for '{path}' (shape: {arr.shape})"
+                                )
+                                batch_dict[path] = _convert_vlen_string_to_array(arr)
+                            elif (
+                                hasattr(dset.dtype, "metadata")
+                                and dset.dtype.metadata
+                                and "vlen" in dset.dtype.metadata
+                            ):
+                                # Handle other variable-length types (non-strings)
+                                pa_arr = datasets.features.features.numpy_to_pyarrow_listarray(arr)
+                                batch_dict[path] = pa_arr
+                            elif _is_complex_dtype(dset.dtype):
+                                batch_dict.update(_convert_complex_to_separate_columns(path, arr, dset))
+                            elif _is_compound_dtype(dset.dtype):
+                                batch_dict.update(_convert_compound_to_separate_columns(path, arr, dset))
+                            elif dset.dtype.kind == "O":
+                                raise ValueError(
+                                    f"Object dtype dataset '{path}' is not supported. "
+                                    f"For variable-length data, please use h5py.vlen_dtype() "
+                                    f"when creating the HDF5 file. "
+                                    f"See: https://docs.h5py.org/en/stable/special.html#variable-length-strings"
+                                )
                             else:
-                                pa_arr = _ragged_array_to_pyarrow_largelist(arr, dset)
-                        else:
-                            pa_arr = datasets.features.features.numpy_to_pyarrow_listarray(arr)  # NOTE: type=None
-                        batch_dict[path] = pa_arr
-                    pa_table = pa.Table.from_pydict(batch_dict)
-                    yield f"{file_idx}_{start}", self._cast_table(pa_table)
+                                pa_arr = datasets.features.features.numpy_to_pyarrow_listarray(arr)
+                                batch_dict[path] = pa_arr
+                        pa_table = pa.Table.from_pydict(batch_dict)
+                        yield f"{file_idx}_{start}", self._cast_table(pa_table)
+            except ValueError as e:
+                logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                raise
 
 
 def _traverse_datasets(h5_obj, prefix: str = "") -> Dict[str, h5py.Dataset]:
     mapping: Dict[str, h5py.Dataset] = {}
-    for key in h5_obj:
-        item = h5_obj[key]
-        sub_path = f"{prefix}{key}"
-        if isinstance(item, h5py.Dataset):
-            mapping[sub_path] = item
-        elif isinstance(item, h5py.Group):
-            mapping.update(_traverse_datasets(item, prefix=f"{sub_path}/"))
+
+    def collect_datasets(name, obj):
+        if isinstance(obj, h5py.Dataset):
+            full_path = f"{prefix}{name}" if prefix else name
+            mapping[full_path] = obj
+
+    h5_obj.visititems(collect_datasets)
     return mapping
 
 
-def _base_dtype(dtype):
+# ┌───────────┐
+# │  Complex  │
+# └───────────┘
+
+
+def _is_complex_dtype(dtype: np.dtype) -> bool:
+    """Check if dtype is a complex number type."""
+    return dtype.kind == "c"
+
+
+def _create_complex_features(base_path: str, dset: h5py.Dataset) -> Dict[str, Value]:
+    """Create separate features for real and imaginary parts of complex data.
+
+    NOTE: Always uses float64 for the real and imaginary parts.
+    """
+    logger.info(
+        f"Complex dataset '{base_path}' (dtype: {dset.dtype}) split into '{base_path}_real' and '{base_path}_imag'"
+    )
+    return {f"{base_path}_real": Value("float64"), f"{base_path}_imag": Value("float64")}
+
+
+def _convert_complex_to_separate_columns(base_path: str, arr: np.ndarray, dset: h5py.Dataset) -> Dict[str, pa.Array]:
+    """Convert complex array to separate real and imaginary columns."""
+    result = {}
+    result[f"{base_path}_real"] = datasets.features.features.numpy_to_pyarrow_listarray(arr.real)
+    result[f"{base_path}_imag"] = datasets.features.features.numpy_to_pyarrow_listarray(arr.imag)
+    return result
+
+
+# ┌────────────┐
+# │  Compound  │
+# └────────────┘
+
+
+def _is_compound_dtype(dtype: np.dtype) -> bool:
+    """Check if dtype is a compound/structured type."""
+    return dtype.names is not None
+
+
+class _MockDataset:
+    def __init__(self, dtype):
+        self.dtype = dtype
+        self.names = dtype.names
+
+
+def _create_compound_features(base_path: str, dset: h5py.Dataset) -> Dict[str, Any]:
+    """Create separate features for each field in compound data."""
+    field_names = list(dset.dtype.names)
+    logger.info(
+        f"Compound dataset '{base_path}' (dtype: {dset.dtype}) flattened into {len(field_names)} columns: {field_names}"
+    )
+
+    features = {}
+    for field_name in field_names:
+        field_dtype = dset.dtype[field_name]
+        field_path = f"{base_path}_{field_name}"
+
+        if _is_complex_dtype(field_dtype):
+            features[f"{field_path}_real"] = Value("float64")
+            features[f"{field_path}_imag"] = Value("float64")
+        elif _is_compound_dtype(field_dtype):
+            mock_dset = _MockDataset(field_dtype)
+            nested_features = _create_compound_features(field_path, mock_dset)
+            features.update(nested_features)
+        else:
+            value_feature = _np_to_pa_to_hf_value(field_dtype)
+            features[field_path] = value_feature
+
+    return features
+
+
+def _convert_compound_to_separate_columns(base_path: str, arr: np.ndarray, dset: h5py.Dataset) -> Dict[str, pa.Array]:
+    """Convert compound array to separate columns for each field."""
+    result = {}
+    for field_name in list(dset.dtype.names):
+        field_dtype = dset.dtype[field_name]
+        field_path = f"{base_path}_{field_name}"
+        field_data = arr[field_name]
+
+        if _is_complex_dtype(field_dtype):
+            result[f"{field_path}_real"] = datasets.features.features.numpy_to_pyarrow_listarray(field_data.real)
+            result[f"{field_path}_imag"] = datasets.features.features.numpy_to_pyarrow_listarray(field_data.imag)
+        elif _is_compound_dtype(field_dtype):
+            mock_dset = _MockDataset(field_dtype)
+            nested_result = _convert_compound_to_separate_columns(field_path, field_data, mock_dset)
+            result.update(nested_result)
+        else:
+            result[field_path] = datasets.features.features.numpy_to_pyarrow_listarray(field_data)
+
+    return result
+
+
+# ┌───────────────────────────┐
+# │  Variable-Length Strings  │
+# └───────────────────────────┘
+
+
+def _is_vlen_string_dtype(dtype: np.dtype) -> bool:
+    """Check if dtype is a variable-length string type."""
     if hasattr(dtype, "metadata") and dtype.metadata and "vlen" in dtype.metadata:
-        return dtype.metadata["vlen"]
-    if hasattr(dtype, "subdtype") and dtype.subdtype is not None:
-        return _base_dtype(dtype.subdtype[0])
-    return dtype
+        vlen_dtype = dtype.metadata["vlen"]
+        return vlen_dtype in (str, bytes)
+    return False
 
 
-def _ragged_array_to_pyarrow_largelist(arr: np.ndarray, dset: h5py.Dataset) -> pa.Array:
-    if _is_variable_length_string(dset):
-        list_of_strings = []
-        for item in arr:
-            if item is None:
-                list_of_strings.append(None)
-            else:
-                if isinstance(item, bytes):
-                    item = item.decode("utf-8")
-                list_of_strings.append(item)
-        return datasets.features.features.list_of_pa_arrays_to_pyarrow_listarray(
-            [pa.array([item]) if item is not None else None for item in list_of_strings]
-        )
-    else:
-        return _convert_nested_ragged_array_recursive(arr, dset.dtype)
+def _convert_vlen_string_to_array(arr: np.ndarray) -> pa.Array:
+    list_of_items = []
+    for item in arr:
+        if isinstance(item, bytes):
+            logger.info("Assuming variable-length bytes are utf-8 encoded strings")
+            list_of_items.append(item.decode("utf-8"))
+        elif isinstance(item, str):
+            list_of_items.append(item)
+        else:
+            raise ValueError(f"Unsupported variable-length string type: {type(item)}")
+    return pa.array(list_of_items)
 
 
-def _convert_nested_ragged_array_recursive(arr: np.ndarray, dtype):
-    if hasattr(dtype, "subdtype") and dtype.subdtype is not None:
-        inner_dtype = dtype.subdtype[0]
-        list_of_arrays = []
-        for item in arr:
-            if item is None:
-                list_of_arrays.append(None)
-            else:
-                inner_array = _convert_nested_ragged_array_recursive(item, inner_dtype)
-                list_of_arrays.append(inner_array)
-        return datasets.features.features.list_of_pa_arrays_to_pyarrow_listarray(
-            [pa.array(item) if item is not None else None for item in list_of_arrays]
-        )
-    else:
-        list_of_arrays = []
-        for item in arr:
-            if item is None:
-                list_of_arrays.append(None)
-            else:
-                if not isinstance(item, np.ndarray):
-                    item = np.array(item, dtype=dtype)
-                list_of_arrays.append(item)
-        return datasets.features.features.list_of_pa_arrays_to_pyarrow_listarray(
-            [pa.array(item) if item is not None else None for item in list_of_arrays]
-        )
+# ┌───────────┐
+# │  Generic  │
+# └───────────┘
 
 
 def _infer_feature_from_dataset(dset: h5py.Dataset):
-    if _is_variable_length_string(dset):
-        return Value("string")  # FIXME: large_string?
-
-    if _is_ragged_dataset(dset):
-        return _infer_nested_feature_recursive(dset.dtype, dset)
+    # non-string varlen
+    if hasattr(dset.dtype, "metadata") and dset.dtype.metadata and "vlen" in dset.dtype.metadata:
+        vlen_dtype = dset.dtype.metadata["vlen"]
+        inner_feature = _np_to_pa_to_hf_value(vlen_dtype)
+        return Sequence(inner_feature)
 
     value_feature = _np_to_pa_to_hf_value(dset.dtype)
     dtype_str = value_feature.dtype
     value_shape = dset.shape[1:]
-
-    if dset.dtype.kind not in {"b", "i", "u", "f", "S", "a"}:
-        raise TypeError(f"Unsupported dtype {dset.dtype} for dataset {dset.name}")
 
     rank = len(value_shape)
     if rank == 0:
         return value_feature
     elif rank == 1:
         return Sequence(value_feature, length=value_shape[0])
-    elif 2 <= rank <= 5:
+    elif rank <= 5:
         return _sized_arrayxd(rank)(shape=value_shape, dtype=dtype_str)
     else:
-        raise TypeError(f"Array{rank}D not supported. Only up to 5D arrays are supported.")
-
-
-def _infer_nested_feature_recursive(dtype, dset: h5py.Dataset):
-    if hasattr(dtype, "subdtype") and dtype.subdtype is not None:
-        inner_dtype = dtype.subdtype[0]
-        inner_feature = _infer_nested_feature_recursive(inner_dtype, dset)
-        return Sequence(inner_feature)
-    else:
-        if hasattr(dtype, "kind") and dtype.kind == "O":
-            if _is_variable_length_string(dset):
-                base_dtype = np.dtype("S1")
-            else:
-                base_dtype = _base_dtype(dset.dtype)
-            return Sequence(_np_to_pa_to_hf_value(base_dtype))
-        else:
-            return _np_to_pa_to_hf_value(dtype)
+        raise TypeError(f"Array{rank}D not supported. Maximum 5 dimensions allowed.")
 
 
 def _has_zero_dimensions(feature):
     if isinstance(feature, _ArrayXD):
         return any(dim == 0 for dim in feature.shape)
-    elif isinstance(feature, (Sequence, LargeList)):
+    elif isinstance(feature, Sequence):  # also gets regular List
         return feature.length == 0 or _has_zero_dimensions(feature.feature)
+    elif isinstance(feature, LargeList):
+        return _has_zero_dimensions(feature.feature)
     else:
         return False
 
@@ -247,29 +353,3 @@ def _sized_arrayxd(rank: int):
 
 def _np_to_pa_to_hf_value(numpy_dtype: np.dtype) -> Value:
     return Value(dtype=_arrow_to_datasets_dtype(pa.from_numpy_dtype(numpy_dtype)))
-
-
-def _is_ragged_dataset(dset: h5py.Dataset) -> bool:
-    return dset.dtype.kind == "O" and hasattr(dset.dtype, "subdtype")
-
-
-def _is_variable_length_string(dset: h5py.Dataset) -> bool:
-    if not _is_ragged_dataset(dset) or dset.shape[0] == 0:
-        return False
-    num_samples = min(3, dset.shape[0])
-    for i in range(num_samples):
-        try:
-            if isinstance(dset[i], (str, bytes)):
-                return True
-        except (IndexError, TypeError):
-            continue
-    return False
-
-
-def _variable_length_string_to_pyarrow(arr: np.ndarray, dset: h5py.Dataset) -> pa.Array:
-    list_of_strings = []
-    for item in arr:
-        if isinstance(item, bytes):
-            item = item.decode("utf-8")
-        list_of_strings.append(item)
-    return pa.array(list_of_strings)

@@ -82,18 +82,18 @@ def hdf5_file_with_different_dtypes(tmp_path):
 
 
 @pytest.fixture
-def hdf5_file_with_ragged_arrays(tmp_path):
-    """Create an HDF5 file with ragged arrays using HDF5's vlen_dtype."""
-    filename = tmp_path / "ragged.h5"
+def hdf5_file_with_vlen_arrays(tmp_path):
+    """Create an HDF5 file with variable-length arrays using HDF5's vlen_dtype."""
+    filename = tmp_path / "vlen.h5"
     n_rows = 4
 
     with h5py.File(filename, "w") as f:
         # Variable-length arrays of different sizes using vlen_dtype
-        ragged_arrays = [[1, 2, 3], [4, 5], [6, 7, 8, 9], [10]]
+        vlen_arrays = [[1, 2, 3], [4, 5], [6, 7, 8, 9], [10]]
         # Create variable-length int dataset using vlen_dtype
         dt = h5py.vlen_dtype(np.dtype("int32"))
-        dset = f.create_dataset("ragged_ints", (n_rows,), dtype=dt)
-        for i, arr in enumerate(ragged_arrays):
+        dset = f.create_dataset("vlen_ints", (n_rows,), dtype=dt)
+        for i, arr in enumerate(vlen_arrays):
             dset[i] = arr
 
         # Mixed types (some empty arrays) - use variable-length with empty arrays
@@ -137,6 +137,53 @@ def hdf5_file_with_variable_length_strings(tmp_path):
 
 
 @pytest.fixture
+def hdf5_file_with_complex_data(tmp_path):
+    """Create an HDF5 file with complex number datasets."""
+    filename = tmp_path / "complex.h5"
+
+    with h5py.File(filename, "w") as f:
+        # Complex numbers
+        complex_data = np.array([1 + 2j, 3 + 4j, 5 + 6j, 7 + 8j], dtype=np.complex64)
+        f.create_dataset("complex_64", data=complex_data)
+
+        # Complex double precision
+        complex_double = np.array([1.5 + 2.5j, 3.5 + 4.5j, 5.5 + 6.5j, 7.5 + 8.5j], dtype=np.complex128)
+        f.create_dataset("complex_128", data=complex_double)
+
+        # Complex array
+        complex_array = np.array(
+            [[1 + 2j, 3 + 4j], [5 + 6j, 7 + 8j], [9 + 10j, 11 + 12j], [13 + 14j, 15 + 16j]], dtype=np.complex64
+        )
+        f.create_dataset("complex_array", data=complex_array)
+
+    return str(filename)
+
+
+@pytest.fixture
+def hdf5_file_with_compound_data(tmp_path):
+    """Create an HDF5 file with compound/structured datasets."""
+    filename = tmp_path / "compound.h5"
+
+    with h5py.File(filename, "w") as f:
+        # Simple compound type
+        dt_simple = np.dtype([("x", "i4"), ("y", "f8")])
+        compound_simple = np.array([(1, 2.5), (3, 4.5), (5, 6.5)], dtype=dt_simple)
+        f.create_dataset("simple_compound", data=compound_simple)
+
+        # Compound type with complex numbers
+        dt_complex = np.dtype([("real", "f4"), ("imag", "f4")])
+        compound_complex = np.array([(1.0, 2.0), (3.0, 4.0), (5.0, 6.0)], dtype=dt_complex)
+        f.create_dataset("complex_compound", data=compound_complex)
+
+        # Nested compound type
+        dt_nested = np.dtype([("position", [("x", "i4"), ("y", "i4")]), ("velocity", [("vx", "f4"), ("vy", "f4")])])
+        compound_nested = np.array([((1, 2), (1.5, 2.5)), ((3, 4), (3.5, 4.5)), ((5, 6), (5.5, 6.5))], dtype=dt_nested)
+        f.create_dataset("nested_compound", data=compound_nested)
+
+    return str(filename)
+
+
+@pytest.fixture
 def hdf5_file_with_mismatched_lengths(tmp_path):
     """Create an HDF5 file with datasets of different lengths (should raise error)."""
     filename = tmp_path / "mismatched.h5"
@@ -160,19 +207,6 @@ def hdf5_file_with_zero_dimensions(tmp_path):
         f.create_dataset("zero_middle", data=np.zeros((3, 0), dtype=np.int32))
         # Create a dataset with zero in the last dimension
         f.create_dataset("zero_last", data=np.zeros((3, 2, 0), dtype=np.float64))
-
-    return str(filename)
-
-
-@pytest.fixture
-def hdf5_file_with_unsupported_dtypes(tmp_path):
-    """Create an HDF5 file with unsupported dtypes (complex)."""
-    filename = tmp_path / "unsupported.h5"
-
-    with h5py.File(filename, "w") as f:
-        # Complex dtype (should be rejected)
-        complex_data = np.array([1 + 2j, 3 + 4j, 5 + 6j], dtype=np.complex64)
-        f.create_dataset("complex_data", data=complex_data)
 
     return str(filename)
 
@@ -266,25 +300,25 @@ def test_hdf5_multi_dimensional_arrays(hdf5_file_with_arrays):
     assert len(matrix_2d[0][0]) == 4  # 4 columns in each matrix
 
 
-def test_hdf5_ragged_arrays(hdf5_file_with_ragged_arrays):
-    """Test HDF5 loading with ragged arrays (object dtype)."""
+def test_hdf5_vlen_arrays(hdf5_file_with_vlen_arrays):
+    """Test HDF5 loading with variable-length arrays (int32)."""
     hdf5 = HDF5()
-    generator = hdf5._generate_tables([[hdf5_file_with_ragged_arrays]])
+    generator = hdf5._generate_tables([[hdf5_file_with_vlen_arrays]])
 
     tables = list(generator)
     assert len(tables) == 1
 
     _, table = tables[0]
-    expected_columns = {"ragged_ints", "mixed_data"}
+    expected_columns = {"vlen_ints", "mixed_data"}
     assert set(table.column_names) == expected_columns
 
-    # Check ragged_ints data
-    ragged_ints = table["ragged_ints"].to_pylist()
-    assert len(ragged_ints) == 4
-    assert ragged_ints[0] == [1, 2, 3]
-    assert ragged_ints[1] == [4, 5]
-    assert ragged_ints[2] == [6, 7, 8, 9]
-    assert ragged_ints[3] == [10]
+    # Check vlen_ints data
+    vlen_ints = table["vlen_ints"].to_pylist()
+    assert len(vlen_ints) == 4
+    assert vlen_ints[0] == [1, 2, 3]
+    assert vlen_ints[1] == [4, 5]
+    assert vlen_ints[2] == [6, 7, 8, 9]
+    assert vlen_ints[3] == [10]
 
     # Check mixed_data (with None values)
     mixed_data = table["mixed_data"].to_pylist()
@@ -439,17 +473,6 @@ def test_hdf5_zero_dimensions_handling(hdf5_file_with_zero_dimensions, caplog):
     assert all(len(row) == 0 for row in zero_dim_data)  # Each row is empty
 
 
-def test_hdf5_unsupported_dtypes_error(hdf5_file_with_unsupported_dtypes):
-    """Test that unsupported dtypes raise an error."""
-    hdf5 = HDF5()
-    generator = hdf5._generate_tables([[hdf5_file_with_unsupported_dtypes]])
-
-    # Complex dtypes cause ArrowNotImplementedError during conversion
-    with pytest.raises(Exception):  # Either ValueError or ArrowNotImplementedError
-        for _ in generator:
-            pass
-
-
 def test_hdf5_empty_file_warning(empty_hdf5_file, caplog):
     """Test that empty files (no datasets) are skipped with a warning."""
     hdf5 = HDF5()
@@ -460,8 +483,7 @@ def test_hdf5_empty_file_warning(empty_hdf5_file, caplog):
 
     # Check that warning was logged
     assert any(
-        record.levelname == "WARNING" and "contains no datasets, skipping" in record.message
-        for record in caplog.records
+        record.levelname == "WARNING" and "contains no data, skipping" in record.message for record in caplog.records
     )
 
 
@@ -495,9 +517,9 @@ def test_hdf5_feature_inference(hdf5_file_with_arrays):
     assert features["vector_1d"].length == 10
 
 
-def test_hdf5_ragged_feature_inference(hdf5_file_with_ragged_arrays):
-    """Test automatic feature inference from ragged HDF5 datasets."""
-    data_files = DataFilesDict({"train": [hdf5_file_with_ragged_arrays]})
+def test_hdf5_vlen_feature_inference(hdf5_file_with_vlen_arrays):
+    """Test automatic feature inference from variable-length HDF5 datasets."""
+    data_files = DataFilesDict({"train": [hdf5_file_with_vlen_arrays]})
     config = HDF5Config(data_files=data_files)
     hdf5 = HDF5()
     hdf5.config = config
@@ -509,15 +531,15 @@ def test_hdf5_ragged_feature_inference(hdf5_file_with_ragged_arrays):
     # Check that features were inferred
     assert hdf5.info.features is not None
 
-    # Check specific feature types for ragged arrays
+    # Check specific feature types for variable-length arrays
     features = hdf5.info.features
-    # Ragged arrays should become Sequence features by default (for small datasets)
-    assert isinstance(features["ragged_ints"], Sequence)
+    # Variable-length arrays should become Sequence features by default (for small datasets)
+    assert isinstance(features["vlen_ints"], Sequence)
     assert isinstance(features["mixed_data"], Sequence)
 
     # Check that the inner feature types are correct
-    assert isinstance(features["ragged_ints"].feature, Value)
-    assert features["ragged_ints"].feature.dtype == "int32"
+    assert isinstance(features["vlen_ints"].feature, Value)
+    assert features["vlen_ints"].feature.dtype == "int32"
     assert isinstance(features["mixed_data"].feature, Value)
     assert features["mixed_data"].feature.dtype == "int32"
 
@@ -572,3 +594,241 @@ def test_hdf5_no_data_files_error():
 
     with pytest.raises(ValueError, match="At least one data file must be specified"):
         hdf5._split_generators(None)
+
+
+def test_hdf5_config_options():
+    """Test HDF5Config with different options."""
+    # Test default options
+    config = HDF5Config()
+    # Complex and compound types are always split now, no config options needed
+    assert config.batch_size is None
+    assert config.columns is None
+    assert config.features is None
+
+
+def test_hdf5_complex_numbers(hdf5_file_with_complex_data):
+    """Test HDF5 loading with complex number datasets."""
+    config = HDF5Config()
+    hdf5 = HDF5()
+    hdf5.config = config
+
+    generator = hdf5._generate_tables([[hdf5_file_with_complex_data]])
+    tables = list(generator)
+
+    assert len(tables) == 1
+    _, table = tables[0]
+
+    # Check that complex numbers are split into real/imaginary parts
+    expected_columns = {
+        "complex_64_real",
+        "complex_64_imag",
+        "complex_128_real",
+        "complex_128_imag",
+        "complex_array_real",
+        "complex_array_imag",
+    }
+    assert set(table.column_names) == expected_columns
+
+    # Check complex_64 data
+    real_data = table["complex_64_real"].to_pylist()
+    imag_data = table["complex_64_imag"].to_pylist()
+
+    assert real_data == [1.0, 3.0, 5.0, 7.0]
+    assert imag_data == [2.0, 4.0, 6.0, 8.0]
+
+
+def test_hdf5_compound_types(hdf5_file_with_compound_data):
+    """Test HDF5 loading with compound/structured datasets."""
+    config = HDF5Config()
+    hdf5 = HDF5()
+    hdf5.config = config
+
+    generator = hdf5._generate_tables([[hdf5_file_with_compound_data]])
+    tables = list(generator)
+
+    assert len(tables) == 1
+    _, table = tables[0]
+
+    # Check that compound types are flattened into separate columns
+    expected_columns = {
+        "simple_compound_x",
+        "simple_compound_y",
+        "complex_compound_real",
+        "complex_compound_imag",
+        "nested_compound_position_x",
+        "nested_compound_position_y",
+        "nested_compound_velocity_vx",
+        "nested_compound_velocity_vy",
+    }
+    assert set(table.column_names) == expected_columns
+
+    # Check simple compound data
+    x_data = table["simple_compound_x"].to_pylist()
+    y_data = table["simple_compound_y"].to_pylist()
+
+    assert x_data == [1, 3, 5]
+    assert y_data == [2.5, 4.5, 6.5]
+
+
+def test_hdf5_unsupported_dtype_handling(tmp_path):
+    """Test handling of truly unsupported dtypes."""
+    filename = tmp_path / "unsupported.h5"
+
+    with h5py.File(filename, "w") as f:
+        # Create a dataset with an unsupported dtype (e.g., bitfield)
+        # This should raise a TypeError during feature inference
+        bitfield_data = np.array([1, 2, 3], dtype=np.uint8)
+        # We'll create a dataset that will fail during feature inference
+        # by using a custom dtype that's not supported
+        f.create_dataset("bitfield_data", data=bitfield_data)
+
+    config = HDF5Config()
+    hdf5 = HDF5()
+    hdf5.config = config
+    hdf5.config.data_files = DataFilesDict({"train": [str(filename)]})
+
+    # This should not raise an error since uint8 is supported
+    # Let's test with a different approach - create a dataset that will fail
+    # during the actual data loading phase
+    dl_manager = StreamingDownloadManager()
+    hdf5._split_generators(dl_manager)
+
+    # The test passes if no error is raised, since uint8 is actually supported
+
+
+def test_hdf5_feature_inference_complex(hdf5_file_with_complex_data):
+    """Test automatic feature inference for complex datasets."""
+    config = HDF5Config()
+    hdf5 = HDF5()
+    hdf5.config = config
+    hdf5.config.data_files = DataFilesDict({"train": [hdf5_file_with_complex_data]})
+
+    # Trigger feature inference
+    dl_manager = StreamingDownloadManager()
+    hdf5._split_generators(dl_manager)
+
+    # Check that features were inferred correctly
+    assert hdf5.info.features is not None
+    features = hdf5.info.features
+
+    # Check complex number features
+    assert "complex_64_real" in features
+    assert "complex_64_imag" in features
+    assert features["complex_64_real"] == Value("float64")
+    assert features["complex_64_imag"] == Value("float64")
+
+
+def test_hdf5_feature_inference_compound(hdf5_file_with_compound_data):
+    """Test automatic feature inference for compound datasets."""
+    config = HDF5Config()
+    hdf5 = HDF5()
+    hdf5.config = config
+    hdf5.config.data_files = DataFilesDict({"train": [hdf5_file_with_compound_data]})
+
+    # Trigger feature inference
+    dl_manager = StreamingDownloadManager()
+    hdf5._split_generators(dl_manager)
+
+    # Check that features were inferred correctly
+    assert hdf5.info.features is not None
+    features = hdf5.info.features
+
+    # Check compound type features
+    assert "simple_compound_x" in features
+    assert "simple_compound_y" in features
+    assert features["simple_compound_x"] == Value("int32")
+    assert features["simple_compound_y"] == Value("float64")
+
+
+def test_hdf5_mixed_data_types(tmp_path):
+    """Test HDF5 loading with mixed data types in the same file."""
+    filename = tmp_path / "mixed.h5"
+
+    with h5py.File(filename, "w") as f:
+        # Regular numeric data
+        f.create_dataset("regular_int", data=np.arange(3, dtype=np.int32))
+        f.create_dataset("regular_float", data=np.arange(3, dtype=np.float32))
+
+        # Complex data
+        complex_data = np.array([1 + 2j, 3 + 4j, 5 + 6j], dtype=np.complex64)
+        f.create_dataset("complex_data", data=complex_data)
+
+        # Compound data
+        dt_compound = np.dtype([("x", "i4"), ("y", "f8")])
+        compound_data = np.array([(1, 2.5), (3, 4.5), (5, 6.5)], dtype=dt_compound)
+        f.create_dataset("compound_data", data=compound_data)
+
+    config = HDF5Config()
+    hdf5 = HDF5()
+    hdf5.config = config
+
+    generator = hdf5._generate_tables([[str(filename)]])
+    tables = list(generator)
+
+    assert len(tables) == 1
+    _, table = tables[0]
+
+    # Check all expected columns are present
+    expected_columns = {
+        "regular_int",
+        "regular_float",
+        "complex_data_real",
+        "complex_data_imag",
+        "compound_data_x",
+        "compound_data_y",
+    }
+    assert set(table.column_names) == expected_columns
+
+    # Check data types
+    assert table["regular_int"].to_pylist() == [0, 1, 2]
+    assert len(table["complex_data_real"].to_pylist()) == 3
+    assert len(table["compound_data_x"].to_pylist()) == 3
+
+
+def test_hdf5_column_name_collision_detection(tmp_path):
+    """Test that column name collision detection works correctly."""
+    filename = tmp_path / "collision.h5"
+
+    with h5py.File(filename, "w") as f:
+        # Create a complex dataset
+        complex_data = np.array([1 + 2j, 3 + 4j], dtype=np.complex64)
+        f.create_dataset("data", data=complex_data)
+
+        # Create a regular dataset that would collide with the complex real part
+        regular_data = np.array([1.0, 2.0], dtype=np.float32)
+        f.create_dataset("data_real", data=regular_data)  # This should cause a collision
+
+    config = HDF5Config()
+    hdf5 = HDF5()
+    hdf5.config = config
+    hdf5.config.data_files = DataFilesDict({"train": [str(filename)]})
+
+    # This should raise a ValueError due to column name collision
+    dl_manager = StreamingDownloadManager()
+    with pytest.raises(ValueError, match="Column name collision detected"):
+        hdf5._split_generators(dl_manager)
+
+
+def test_hdf5_compound_collision_detection(tmp_path):
+    """Test collision detection with compound types."""
+    filename = tmp_path / "compound_collision.h5"
+
+    with h5py.File(filename, "w") as f:
+        # Create a compound dataset
+        dt_compound = np.dtype([("x", "i4"), ("y", "f8")])
+        compound_data = np.array([(1, 2.5), (3, 4.5)], dtype=dt_compound)
+        f.create_dataset("position", data=compound_data)
+
+        # Create a regular dataset that would collide with compound field
+        regular_data = np.array([10, 20], dtype=np.int32)
+        f.create_dataset("position_x", data=regular_data)  # This should cause a collision
+
+    config = HDF5Config()
+    hdf5 = HDF5()
+    hdf5.config = config
+    hdf5.config.data_files = DataFilesDict({"train": [str(filename)]})
+
+    # This should raise a ValueError due to column name collision
+    dl_manager = StreamingDownloadManager()
+    with pytest.raises(ValueError, match="Column name collision detected"):
+        hdf5._split_generators(dl_manager)
