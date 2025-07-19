@@ -133,9 +133,21 @@ class HDF5(datasets.ArrowBasedBuilder):
                     if not dataset_map:
                         logger.warning(f"File '{file}' contains no data, skipping...")
                         continue
+
+                    if self.config.columns is not None:
+                        filtered_dataset_map = {
+                            path: dset for path, dset in dataset_map.items() if path in self.config.columns
+                        }
+                        if not filtered_dataset_map:
+                            logger.warning(
+                                f"No datasets match the specified columns {self.config.columns}, skipping..."
+                            )
+                            continue
+                        dataset_map = filtered_dataset_map
+
+                    # Sanity-check lengths for selected datasets
                     first_dset = next(iter(dataset_map.values()))
                     num_rows = first_dset.shape[0]
-                    # Sanity-check lengths
                     for path, dset in dataset_map.items():
                         if dset.shape[0] != num_rows:
                             raise ValueError(
@@ -146,8 +158,6 @@ class HDF5(datasets.ArrowBasedBuilder):
                         end = min(start + effective_batch, num_rows)
                         batch_dict = {}
                         for path, dset in dataset_map.items():
-                            if self.config.columns is not None and path not in self.config.columns:
-                                continue
                             arr = dset[start:end]
 
                             # Handle variable-length arrays

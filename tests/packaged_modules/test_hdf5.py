@@ -190,7 +190,16 @@ def hdf5_file_with_mismatched_lengths(tmp_path):
 
     with h5py.File(filename, "w") as f:
         f.create_dataset("data1", data=np.arange(5, dtype=np.int32))
-        f.create_dataset("data2", data=np.arange(3, dtype=np.int32))  # Different length
+        # Dataset with 3 rows (mismatched)
+        f.create_dataset("data2", data=np.arange(3, dtype=np.int32))
+        f.create_dataset("data3", data=np.random.randn(5, 3, 4).astype(np.float32))
+        f.create_dataset("data4", data=np.arange(5, dtype=np.float64) / 10.0)
+        f.create_dataset("data5", data=np.array([True, False, True, False, True]))
+        var_strings = ["short", "medium length", "very long string", "tiny", "another string"]
+        dt = h5py.vlen_dtype(str)
+        dset = f.create_dataset("data6", (5,), dtype=dt)
+        for i, s in enumerate(var_strings):
+            dset[i] = s
 
     return str(filename)
 
@@ -815,3 +824,57 @@ def test_hdf5_compound_collision_detection(hdf5_file_with_compound_collision):
     dl_manager = StreamingDownloadManager()
     with pytest.raises(ValueError, match="Column name collision detected"):
         hdf5._split_generators(dl_manager)
+
+
+def test_hdf5_mismatched_lengths_with_column_filtering(hdf5_file_with_mismatched_lengths):
+    """Test that mismatched dataset lengths are ignored when the mismatched dataset is excluded via columns config."""
+    config = HDF5Config(columns=["data1"])
+    hdf5 = HDF5()
+    hdf5.config = config
+
+    generator = hdf5._generate_tables([[hdf5_file_with_mismatched_lengths]])
+    tables = list(generator)
+
+    # Should work without error since we're only including the first dataset
+    assert len(tables) == 1
+    _, table = tables[0]
+
+    # Check that only the specified column is present
+    expected_columns = {"data1"}
+    assert set(table.column_names) == expected_columns
+    assert "data2" not in table.column_names
+
+    # Check the data
+    data1_values = table["data1"].to_pylist()
+    assert data1_values == [0, 1, 2, 3, 4]
+
+    # Test 2: Include multiple compatible datasets (all with 5 rows)
+    config2 = HDF5Config(columns=["data1", "data3", "data4", "data5", "data6"])
+    hdf5.config = config2
+
+    generator2 = hdf5._generate_tables([[hdf5_file_with_mismatched_lengths]])
+    tables2 = list(generator2)
+
+    # Should work without error since we're excluding the mismatched dataset
+    assert len(tables2) == 1
+    _, table2 = tables2[0]
+
+    # Check that all specified columns are present
+    expected_columns2 = {"data1", "data3", "data4", "data5", "data6"}
+    assert set(table2.column_names) == expected_columns2
+    assert "data2" not in table2.column_names
+
+    # Check data types and values
+    assert table2["data1"].to_pylist() == [0, 1, 2, 3, 4]  # int32
+    assert len(table2["data3"].to_pylist()) == 5  # Array2D
+    assert len(table2["data3"].to_pylist()[0]) == 3  # 3 rows in each 2D array
+    assert len(table2["data3"].to_pylist()[0][0]) == 4  # 4 columns in each 2D array
+    np.testing.assert_allclose(table2["data4"].to_pylist(), [0.0, 0.1, 0.2, 0.3, 0.4], rtol=1e-6)  # float64
+    assert table2["data5"].to_pylist() == [True, False, True, False, True]  # boolean
+    assert table2["data6"].to_pylist() == [
+        "short",
+        "medium length",
+        "very long string",
+        "tiny",
+        "another string",
+    ]  # vlen string
