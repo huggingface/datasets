@@ -1,7 +1,7 @@
-import h5py
 import numpy as np
 import pytest
 
+import h5py
 from datasets import Array2D, Array3D, Array4D, Features, Sequence, Value
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesDict, DataFilesList
@@ -77,6 +77,61 @@ def hdf5_file_with_different_dtypes(tmp_path):
         f.create_dataset("float16", data=np.arange(n_rows, dtype=np.float16) / 10.0)
         f.create_dataset("float64", data=np.arange(n_rows, dtype=np.float64) / 10.0)
         f.create_dataset("bytes", data=np.array([b"row_%d" % i for i in range(n_rows)], dtype="S10"))
+
+    return str(filename)
+
+
+@pytest.fixture
+def hdf5_file_with_ragged_arrays(tmp_path):
+    """Create an HDF5 file with ragged arrays using HDF5's vlen_dtype."""
+    filename = tmp_path / "ragged.h5"
+    n_rows = 4
+
+    with h5py.File(filename, "w") as f:
+        # Variable-length arrays of different sizes using vlen_dtype
+        ragged_arrays = [[1, 2, 3], [4, 5], [6, 7, 8, 9], [10]]
+        # Create variable-length int dataset using vlen_dtype
+        dt = h5py.vlen_dtype(np.dtype("int32"))
+        dset = f.create_dataset("ragged_ints", (n_rows,), dtype=dt)
+        for i, arr in enumerate(ragged_arrays):
+            dset[i] = arr
+
+        # Mixed types (some empty arrays) - use variable-length with empty arrays
+        mixed_data = [
+            [1, 2, 3],
+            [],  # Empty array
+            [4, 5],
+            [6],
+        ]
+        dt_mixed = h5py.vlen_dtype(np.dtype("int32"))
+        dset_mixed = f.create_dataset("mixed_data", (n_rows,), dtype=dt_mixed)
+        for i, arr in enumerate(mixed_data):
+            dset_mixed[i] = arr
+
+    return str(filename)
+
+
+@pytest.fixture
+def hdf5_file_with_variable_length_strings(tmp_path):
+    """Create an HDF5 file with variable-length string datasets."""
+    filename = tmp_path / "var_strings.h5"
+    n_rows = 4
+
+    with h5py.File(filename, "w") as f:
+        # Variable-length string dataset
+        var_strings = ["short", "medium length string", "very long string with many characters", "tiny"]
+        # Create variable-length string dataset using vlen_dtype
+        dt = h5py.vlen_dtype(str)
+        dset = f.create_dataset("var_strings", (n_rows,), dtype=dt)
+        for i, s in enumerate(var_strings):
+            dset[i] = s
+
+        # Variable-length bytes dataset
+        var_bytes = [b"short", b"medium length bytes", b"very long bytes with many characters", b"tiny"]
+        dt_bytes = h5py.vlen_dtype(bytes)
+        dset_bytes = f.create_dataset("var_bytes", (n_rows,), dtype=dt_bytes)
+        for i, b in enumerate(var_bytes):
+            dset_bytes[i] = b
 
     return str(filename)
 
@@ -209,6 +264,64 @@ def test_hdf5_multi_dimensional_arrays(hdf5_file_with_arrays):
     assert len(matrix_2d) == 4  # 4 rows
     assert len(matrix_2d[0]) == 3  # 3 rows in each matrix
     assert len(matrix_2d[0][0]) == 4  # 4 columns in each matrix
+
+
+def test_hdf5_ragged_arrays(hdf5_file_with_ragged_arrays):
+    """Test HDF5 loading with ragged arrays (object dtype)."""
+    hdf5 = HDF5()
+    generator = hdf5._generate_tables([[hdf5_file_with_ragged_arrays]])
+
+    tables = list(generator)
+    assert len(tables) == 1
+
+    _, table = tables[0]
+    expected_columns = {"ragged_ints", "mixed_data"}
+    assert set(table.column_names) == expected_columns
+
+    # Check ragged_ints data
+    ragged_ints = table["ragged_ints"].to_pylist()
+    assert len(ragged_ints) == 4
+    assert ragged_ints[0] == [1, 2, 3]
+    assert ragged_ints[1] == [4, 5]
+    assert ragged_ints[2] == [6, 7, 8, 9]
+    assert ragged_ints[3] == [10]
+
+    # Check mixed_data (with None values)
+    mixed_data = table["mixed_data"].to_pylist()
+    assert len(mixed_data) == 4
+    assert mixed_data[0] == [1, 2, 3]
+    assert mixed_data[1] == []  # Empty array instead of None
+    assert mixed_data[2] == [4, 5]
+    assert mixed_data[3] == [6]
+
+
+def test_hdf5_variable_length_strings(hdf5_file_with_variable_length_strings):
+    """Test HDF5 loading with variable-length string datasets."""
+    hdf5 = HDF5()
+    generator = hdf5._generate_tables([[hdf5_file_with_variable_length_strings]])
+
+    tables = list(generator)
+    assert len(tables) == 1
+
+    _, table = tables[0]
+    expected_columns = {"var_strings", "var_bytes"}
+    assert set(table.column_names) == expected_columns
+
+    # Check variable-length strings (converted to strings for usability)
+    var_strings = table["var_strings"].to_pylist()
+    assert len(var_strings) == 4
+    assert var_strings[0] == "short"
+    assert var_strings[1] == "medium length string"
+    assert var_strings[2] == "very long string with many characters"
+    assert var_strings[3] == "tiny"
+
+    # Check variable-length bytes (converted to strings for usability)
+    var_bytes = table["var_bytes"].to_pylist()
+    assert len(var_bytes) == 4
+    assert var_bytes[0] == "short"
+    assert var_bytes[1] == "medium length bytes"
+    assert var_bytes[2] == "very long bytes with many characters"
+    assert var_bytes[3] == "tiny"
 
 
 def test_hdf5_different_dtypes(hdf5_file_with_different_dtypes):
@@ -380,6 +493,58 @@ def test_hdf5_feature_inference(hdf5_file_with_arrays):
     # (n_rows, 10) -> Sequence of length 10
     assert isinstance(features["vector_1d"], Sequence)
     assert features["vector_1d"].length == 10
+
+
+def test_hdf5_ragged_feature_inference(hdf5_file_with_ragged_arrays):
+    """Test automatic feature inference from ragged HDF5 datasets."""
+    data_files = DataFilesDict({"train": [hdf5_file_with_ragged_arrays]})
+    config = HDF5Config(data_files=data_files)
+    hdf5 = HDF5()
+    hdf5.config = config
+
+    # Trigger feature inference
+    dl_manager = StreamingDownloadManager()
+    hdf5._split_generators(dl_manager)
+
+    # Check that features were inferred
+    assert hdf5.info.features is not None
+
+    # Check specific feature types for ragged arrays
+    features = hdf5.info.features
+    # Ragged arrays should become Sequence features by default (for small datasets)
+    assert isinstance(features["ragged_ints"], Sequence)
+    assert isinstance(features["mixed_data"], Sequence)
+
+    # Check that the inner feature types are correct
+    assert isinstance(features["ragged_ints"].feature, Value)
+    assert features["ragged_ints"].feature.dtype == "int32"
+    assert isinstance(features["mixed_data"].feature, Value)
+    assert features["mixed_data"].feature.dtype == "int32"
+
+
+def test_hdf5_variable_string_feature_inference(hdf5_file_with_variable_length_strings):
+    """Test automatic feature inference from variable-length string datasets."""
+    data_files = DataFilesDict({"train": [hdf5_file_with_variable_length_strings]})
+    config = HDF5Config(data_files=data_files)
+    hdf5 = HDF5()
+    hdf5.config = config
+
+    # Trigger feature inference
+    dl_manager = StreamingDownloadManager()
+    hdf5._split_generators(dl_manager)
+
+    # Check that features were inferred
+    assert hdf5.info.features is not None
+
+    # Check specific feature types for variable-length strings
+    features = hdf5.info.features
+    # Variable-length strings should become Value("string") features
+    assert isinstance(features["var_strings"], Value)
+    assert isinstance(features["var_bytes"], Value)
+
+    # Check that the feature types are correct
+    assert features["var_strings"].dtype == "string"
+    assert features["var_bytes"].dtype == "string"
 
 
 def test_hdf5_columns_features_mismatch():
