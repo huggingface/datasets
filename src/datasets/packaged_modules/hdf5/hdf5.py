@@ -1,12 +1,11 @@
 import itertools
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 import numpy as np
 import pyarrow as pa
 
 import datasets
-import h5py
 from datasets.features.features import (
     Array2D,
     Array3D,
@@ -20,6 +19,9 @@ from datasets.features.features import (
 )
 from datasets.table import table_cast
 
+
+if TYPE_CHECKING:
+    import h5py
 
 logger = datasets.utils.logging.get_logger(__name__)
 
@@ -56,6 +58,8 @@ class HDF5(datasets.ArrowBasedBuilder):
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
+        import h5py
+
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         dl_manager.download_config.extract_on_the_fly = True
@@ -119,6 +123,8 @@ class HDF5(datasets.ArrowBasedBuilder):
         return pa_table
 
     def _generate_tables(self, files):
+        import h5py
+
         batch_size_cfg = self.config.batch_size
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             try:
@@ -179,7 +185,9 @@ class HDF5(datasets.ArrowBasedBuilder):
                 raise
 
 
-def _traverse_datasets(h5_obj, prefix: str = "") -> Dict[str, h5py.Dataset]:
+def _traverse_datasets(h5_obj, prefix: str = "") -> Dict[str, "h5py.Dataset"]:
+    import h5py
+
     mapping: Dict[str, h5py.Dataset] = {}
 
     def collect_datasets(name, obj):
@@ -201,7 +209,7 @@ def _is_complex_dtype(dtype: np.dtype) -> bool:
     return dtype.kind == "c"
 
 
-def _create_complex_features(base_path: str, dset: h5py.Dataset) -> Dict[str, Value]:
+def _create_complex_features(base_path: str, dset: "h5py.Dataset") -> Dict[str, Value]:
     """Create separate features for real and imaginary parts of complex data.
 
     NOTE: Always uses float64 for the real and imaginary parts.
@@ -212,7 +220,7 @@ def _create_complex_features(base_path: str, dset: h5py.Dataset) -> Dict[str, Va
     return {f"{base_path}_real": Value("float64"), f"{base_path}_imag": Value("float64")}
 
 
-def _convert_complex_to_separate_columns(base_path: str, arr: np.ndarray, dset: h5py.Dataset) -> Dict[str, pa.Array]:
+def _convert_complex_to_separate_columns(base_path: str, arr: np.ndarray, dset: "h5py.Dataset") -> Dict[str, pa.Array]:
     """Convert complex array to separate real and imaginary columns."""
     result = {}
     result[f"{base_path}_real"] = datasets.features.features.numpy_to_pyarrow_listarray(arr.real)
@@ -236,7 +244,7 @@ class _MockDataset:
         self.names = dtype.names
 
 
-def _create_compound_features(base_path: str, dset: h5py.Dataset) -> Dict[str, Any]:
+def _create_compound_features(base_path: str, dset: "h5py.Dataset") -> Dict[str, Any]:
     """Create separate features for each field in compound data."""
     field_names = list(dset.dtype.names)
     logger.info(
@@ -262,7 +270,9 @@ def _create_compound_features(base_path: str, dset: h5py.Dataset) -> Dict[str, A
     return features
 
 
-def _convert_compound_to_separate_columns(base_path: str, arr: np.ndarray, dset: h5py.Dataset) -> Dict[str, pa.Array]:
+def _convert_compound_to_separate_columns(
+    base_path: str, arr: np.ndarray, dset: "h5py.Dataset"
+) -> Dict[str, pa.Array]:
     """Convert compound array to separate columns for each field."""
     result = {}
     for field_name in list(dset.dtype.names):
@@ -314,7 +324,7 @@ def _convert_vlen_string_to_array(arr: np.ndarray) -> pa.Array:
 # └───────────┘
 
 
-def _infer_feature_from_dataset(dset: h5py.Dataset):
+def _infer_feature_from_dataset(dset: "h5py.Dataset"):
     # non-string varlen
     if hasattr(dset.dtype, "metadata") and dset.dtype.metadata and "vlen" in dset.dtype.metadata:
         vlen_dtype = dset.dtype.metadata["vlen"]
