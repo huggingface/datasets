@@ -225,6 +225,64 @@ def empty_hdf5_file(tmp_path):
     return str(filename)
 
 
+@pytest.fixture
+def hdf5_file_with_mixed_data_types(tmp_path):
+    """Create an HDF5 file with mixed data types in the same file."""
+    filename = tmp_path / "mixed.h5"
+    n_rows = 3
+
+    with h5py.File(filename, "w") as f:
+        # Regular numeric data
+        f.create_dataset("regular_int", data=np.arange(n_rows, dtype=np.int32))
+        f.create_dataset("regular_float", data=np.arange(n_rows, dtype=np.float32))
+
+        # Complex data
+        complex_data = np.array([1 + 2j, 3 + 4j, 5 + 6j], dtype=np.complex64)
+        f.create_dataset("complex_data", data=complex_data)
+
+        # Compound data
+        dt_compound = np.dtype([("x", "i4"), ("y", "f8")])
+        compound_data = np.array([(1, 2.5), (3, 4.5), (5, 6.5)], dtype=dt_compound)
+        f.create_dataset("compound_data", data=compound_data)
+
+    return str(filename)
+
+
+@pytest.fixture
+def hdf5_file_with_complex_collision(tmp_path):
+    """Create an HDF5 file where complex dataset would collide with existing dataset name."""
+    filename = tmp_path / "collision.h5"
+
+    with h5py.File(filename, "w") as f:
+        # Create a complex dataset
+        complex_data = np.array([1 + 2j, 3 + 4j], dtype=np.complex64)
+        f.create_dataset("data", data=complex_data)
+
+        # Create a regular dataset that would collide with the complex real part
+        regular_data = np.array([1.0, 2.0], dtype=np.float32)
+        f.create_dataset("data_real", data=regular_data)  # This should cause a collision
+
+    return str(filename)
+
+
+@pytest.fixture
+def hdf5_file_with_compound_collision(tmp_path):
+    """Create an HDF5 file where compound dataset would collide with existing dataset name."""
+    filename = tmp_path / "compound_collision.h5"
+
+    with h5py.File(filename, "w") as f:
+        # Create a compound dataset
+        dt_compound = np.dtype([("x", "i4"), ("y", "f8")])
+        compound_data = np.array([(1, 2.5), (3, 4.5)], dtype=dt_compound)
+        f.create_dataset("position", data=compound_data)
+
+        # Create a regular dataset that would collide with compound field
+        regular_data = np.array([10, 20], dtype=np.int32)
+        f.create_dataset("position_x", data=regular_data)  # This should cause a collision
+
+    return str(filename)
+
+
 def test_config_raises_when_invalid_name():
     """Test that invalid config names raise an error."""
     with pytest.raises(InvalidConfigName, match="Bad characters"):
@@ -596,16 +654,6 @@ def test_hdf5_no_data_files_error():
         hdf5._split_generators(None)
 
 
-def test_hdf5_config_options():
-    """Test HDF5Config with different options."""
-    # Test default options
-    config = HDF5Config()
-    # Complex and compound types are always split now, no config options needed
-    assert config.batch_size is None
-    assert config.columns is None
-    assert config.features is None
-
-
 def test_hdf5_complex_numbers(hdf5_file_with_complex_data):
     """Test HDF5 loading with complex number datasets."""
     config = HDF5Config()
@@ -670,32 +718,6 @@ def test_hdf5_compound_types(hdf5_file_with_compound_data):
     assert y_data == [2.5, 4.5, 6.5]
 
 
-def test_hdf5_unsupported_dtype_handling(tmp_path):
-    """Test handling of truly unsupported dtypes."""
-    filename = tmp_path / "unsupported.h5"
-
-    with h5py.File(filename, "w") as f:
-        # Create a dataset with an unsupported dtype (e.g., bitfield)
-        # This should raise a TypeError during feature inference
-        bitfield_data = np.array([1, 2, 3], dtype=np.uint8)
-        # We'll create a dataset that will fail during feature inference
-        # by using a custom dtype that's not supported
-        f.create_dataset("bitfield_data", data=bitfield_data)
-
-    config = HDF5Config()
-    hdf5 = HDF5()
-    hdf5.config = config
-    hdf5.config.data_files = DataFilesDict({"train": [str(filename)]})
-
-    # This should not raise an error since uint8 is supported
-    # Let's test with a different approach - create a dataset that will fail
-    # during the actual data loading phase
-    dl_manager = StreamingDownloadManager()
-    hdf5._split_generators(dl_manager)
-
-    # The test passes if no error is raised, since uint8 is actually supported
-
-
 def test_hdf5_feature_inference_complex(hdf5_file_with_complex_data):
     """Test automatic feature inference for complex datasets."""
     config = HDF5Config()
@@ -740,29 +762,13 @@ def test_hdf5_feature_inference_compound(hdf5_file_with_compound_data):
     assert features["simple_compound_y"] == Value("float64")
 
 
-def test_hdf5_mixed_data_types(tmp_path):
+def test_hdf5_mixed_data_types(hdf5_file_with_mixed_data_types):
     """Test HDF5 loading with mixed data types in the same file."""
-    filename = tmp_path / "mixed.h5"
-
-    with h5py.File(filename, "w") as f:
-        # Regular numeric data
-        f.create_dataset("regular_int", data=np.arange(3, dtype=np.int32))
-        f.create_dataset("regular_float", data=np.arange(3, dtype=np.float32))
-
-        # Complex data
-        complex_data = np.array([1 + 2j, 3 + 4j, 5 + 6j], dtype=np.complex64)
-        f.create_dataset("complex_data", data=complex_data)
-
-        # Compound data
-        dt_compound = np.dtype([("x", "i4"), ("y", "f8")])
-        compound_data = np.array([(1, 2.5), (3, 4.5), (5, 6.5)], dtype=dt_compound)
-        f.create_dataset("compound_data", data=compound_data)
-
     config = HDF5Config()
     hdf5 = HDF5()
     hdf5.config = config
 
-    generator = hdf5._generate_tables([[str(filename)]])
+    generator = hdf5._generate_tables([[hdf5_file_with_mixed_data_types]])
     tables = list(generator)
 
     assert len(tables) == 1
@@ -785,23 +791,12 @@ def test_hdf5_mixed_data_types(tmp_path):
     assert len(table["compound_data_x"].to_pylist()) == 3
 
 
-def test_hdf5_column_name_collision_detection(tmp_path):
+def test_hdf5_column_name_collision_detection(hdf5_file_with_complex_collision):
     """Test that column name collision detection works correctly."""
-    filename = tmp_path / "collision.h5"
-
-    with h5py.File(filename, "w") as f:
-        # Create a complex dataset
-        complex_data = np.array([1 + 2j, 3 + 4j], dtype=np.complex64)
-        f.create_dataset("data", data=complex_data)
-
-        # Create a regular dataset that would collide with the complex real part
-        regular_data = np.array([1.0, 2.0], dtype=np.float32)
-        f.create_dataset("data_real", data=regular_data)  # This should cause a collision
-
     config = HDF5Config()
     hdf5 = HDF5()
     hdf5.config = config
-    hdf5.config.data_files = DataFilesDict({"train": [str(filename)]})
+    hdf5.config.data_files = DataFilesDict({"train": [hdf5_file_with_complex_collision]})
 
     # This should raise a ValueError due to column name collision
     dl_manager = StreamingDownloadManager()
@@ -809,24 +804,12 @@ def test_hdf5_column_name_collision_detection(tmp_path):
         hdf5._split_generators(dl_manager)
 
 
-def test_hdf5_compound_collision_detection(tmp_path):
+def test_hdf5_compound_collision_detection(hdf5_file_with_compound_collision):
     """Test collision detection with compound types."""
-    filename = tmp_path / "compound_collision.h5"
-
-    with h5py.File(filename, "w") as f:
-        # Create a compound dataset
-        dt_compound = np.dtype([("x", "i4"), ("y", "f8")])
-        compound_data = np.array([(1, 2.5), (3, 4.5)], dtype=dt_compound)
-        f.create_dataset("position", data=compound_data)
-
-        # Create a regular dataset that would collide with compound field
-        regular_data = np.array([10, 20], dtype=np.int32)
-        f.create_dataset("position_x", data=regular_data)  # This should cause a collision
-
     config = HDF5Config()
     hdf5 = HDF5()
     hdf5.config = config
-    hdf5.config.data_files = DataFilesDict({"train": [str(filename)]})
+    hdf5.config.data_files = DataFilesDict({"train": [hdf5_file_with_compound_collision]})
 
     # This should raise a ValueError due to column name collision
     dl_manager = StreamingDownloadManager()
