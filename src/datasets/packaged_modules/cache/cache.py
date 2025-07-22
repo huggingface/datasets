@@ -4,7 +4,7 @@ import os
 import shutil
 import time
 from pathlib import Path
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 import pyarrow as pa
 

@@ -325,6 +325,7 @@ class ArrowReader(BaseReader):
         Returns:
             pyarrow.Table
         """
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
         table_cls = InMemoryTable if in_memory else MemoryMappedTable
         return table_cls.from_file(filename)
 

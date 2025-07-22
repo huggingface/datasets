@@ -19,7 +19,9 @@ import abc
 import contextlib
 import copy
 import fnmatch
+import hashlib
 import inspect
+import json
 import os
 import posixpath
 import shutil
@@ -89,7 +91,6 @@ from .utils.py_utils import (
 from .utils.sharding import _number_of_shards_in_gen_kwargs, _split_gen_kwargs
 from .utils.track import tracked_list
 
-
 if TYPE_CHECKING:
     from .load import DatasetModule
 
@@ -97,6 +98,19 @@ if TYPE_CHECKING:
 logger = logging.get_logger(__name__)
 
 
+def hash_dict(d):
+    """Hash a dictionary into a short hex string (8 characters)."""
+    def sanitize(obj):
+        if isinstance(obj, dict):
+            return {str(k): sanitize(v) for k, v in obj.items()}
+        elif isinstance(obj, (list, tuple)):
+            return [sanitize(i) for i in obj]
+        else:
+            return str(obj)
+    normalized = json.dumps(sanitize(d), sort_keys=True)
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:8]
+
+    
 class InvalidConfigName(ValueError):
     pass
 
@@ -391,7 +405,7 @@ class DatasetBuilder:
         if not is_remote_url(self._cache_dir_root):
             os.makedirs(self._cache_dir_root, exist_ok=True)
             lock_path = os.path.join(
-                self._cache_dir_root, Path(self._cache_dir).as_posix().replace("/", "_") + ".lock"
+                self._cache_dir_root, Path(self._relative_data_dir()).as_posix().replace("/", "_") + ".lock"
             )
             with FileLock(lock_path):
                 if os.path.exists(self._cache_dir):  # check if data exist
@@ -577,11 +591,27 @@ class DatasetBuilder:
             download_config=DownloadConfig(token=self.token, storage_options=self.storage_options),
         )
 
-        # compute the config id that is going to be used for caching
+        runtime_only_config_keys = {"drop_metadata", "drop_labels", "drop_audio", "drop_text", "drop_images"}
+        hashable_config_kwargs = {k: v for k, v in config_kwargs.items() if k not in runtime_only_config_keys}
+
         config_id = builder_config.create_config_id(
-            config_kwargs,
+            hashable_config_kwargs,
             custom_features=custom_features,
         )
+
+        if (
+            builder_config.name in self.builder_configs
+            and builder_config != self.builder_configs[builder_config.name]
+        ):
+            builder_config.name = f"custom-{hash_dict(hashable_config_kwargs)}"
+            while builder_config.name in self.builder_configs:
+                builder_config.name += "-x"
+            config_id = builder_config.create_config_id(
+                hashable_config_kwargs,
+                custom_features=custom_features,
+            )
+            logger.info(f"Renamed conflicting config to: {builder_config.name}")
+
         is_custom = (config_id not in self.builder_configs) and config_id != "default"
         if is_custom:
             logger.info(f"Using custom data configuration {config_id}")
@@ -1659,15 +1689,19 @@ class GeneratorBasedBuilder(DatasetBuilder):
         shard_id = 0
         num_examples_progress_update = 0
         try:
+            path = fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}")
+            logger.debug("Creating directory: %s", os.path.dirname(path))
+            os.makedirs(os.path.dirname(path), exist_ok=True)
             writer = writer_class(
                 features=self.info.features,
-                path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                path=path,
                 writer_batch_size=self._writer_batch_size,
                 hash_salt=split_info.name,
                 check_duplicates=check_duplicate_keys,
                 storage_options=self._fs.storage_options,
                 embed_local_files=embed_local_files,
             )
+            
             try:
                 _time = time.time()
                 for key, record in generator:
@@ -1678,9 +1712,12 @@ class GeneratorBasedBuilder(DatasetBuilder):
                         total_num_examples += num_examples
                         total_num_bytes += num_bytes
                         shard_id += 1
+                        path = fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}")
+                        logger.debug("Creating directory: %s", os.path.dirname(path))
+                        os.makedirs(os.path.dirname(path), exist_ok=True)
                         writer = writer_class(
                             features=writer._features,
-                            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                            path=path,
                             writer_batch_size=self._writer_batch_size,
                             hash_salt=split_info.name,
                             check_duplicates=check_duplicate_keys,
@@ -1908,9 +1945,12 @@ class ArrowBasedBuilder(DatasetBuilder):
         shard_id = 0
         num_examples_progress_update = 0
         try:
+            path = fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}")
+            logger.debug("Creating directory: %s", os.path.dirname(path))
+            os.makedirs(os.path.dirname(path), exist_ok=True)
             writer = writer_class(
                 features=self.info.features,
-                path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                path=path,
                 writer_batch_size=self._writer_batch_size,
                 storage_options=self._fs.storage_options,
                 embed_local_files=embed_local_files,
@@ -1925,9 +1965,12 @@ class ArrowBasedBuilder(DatasetBuilder):
                         total_num_examples += num_examples
                         total_num_bytes += num_bytes
                         shard_id += 1
+                        path = fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}")
+                        logger.debug("Creating directory: %s", os.path.dirname(path))
+                        os.makedirs(os.path.dirname(path), exist_ok=True)
                         writer = writer_class(
                             features=writer._features,
-                            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                            path=path,
                             writer_batch_size=self._writer_batch_size,
                             storage_options=self._fs.storage_options,
                             embed_local_files=embed_local_files,

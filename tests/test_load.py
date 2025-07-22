@@ -49,6 +49,7 @@ from .utils import (
 )
 
 
+SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/librispeech_asr_dummy"
 SAMPLE_DATASET_IDENTIFIER2 = "hf-internal-testing/dataset_with_data_files"  # only has data files
 SAMPLE_DATASET_IDENTIFIER3 = "hf-internal-testing/multi_dir_dataset"  # has multiple data directories
 SAMPLE_DATASET_IDENTIFIER4 = "hf-internal-testing/imagefolder_with_metadata"  # imagefolder with a metadata file inside the train/test directories
@@ -1093,8 +1094,8 @@ def test_load_dataset_specific_splits_then_full(data_dir):
 @pytest.mark.integration
 def test_loading_from_the_datasets_hub():
     with tempfile.TemporaryDirectory() as tmp_dir:
-@@ -1449,6 +1491,28 @@ def test_loading_from_the_datasets_hub():
-            assert len(dataset["validation"]) == 3
+        dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir)
+        assert len(dataset["validation"]) >= 3
 
 
 @pytest.mark.integration

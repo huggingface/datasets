@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 import pyarrow as pa
 import pyarrow.dataset as ds
