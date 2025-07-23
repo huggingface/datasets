@@ -49,6 +49,7 @@ from .utils import (
 )
 
 
+SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/librispeech_asr_dummy"
 SAMPLE_DATASET_IDENTIFIER2 = "hf-internal-testing/dataset_with_data_files"  # only has data files
 SAMPLE_DATASET_IDENTIFIER3 = "hf-internal-testing/multi_dir_dataset"  # has multiple data directories
 SAMPLE_DATASET_IDENTIFIER4 = "hf-internal-testing/imagefolder_with_metadata"  # imagefolder with a metadata file inside the train/test directories
@@ -1046,6 +1047,77 @@ def test_load_dataset_with_unsupported_extensions(text_dir_with_unsupported_exte
     data_files = str(text_dir_with_unsupported_extension)
     ds = load_dataset("text", split="train", data_files=data_files)
     assert ds.num_rows == 4
+
+
+def test_load_dataset_specific_splits(data_dir):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        with load_dataset(data_dir, split="train", cache_dir=tmp_dir) as dataset:
+            assert isinstance(dataset, Dataset)
+            assert len(dataset) > 0
+
+        processed_dataset_dir = load_dataset_builder(data_dir, cache_dir=tmp_dir).cache_dir
+        arrow_files = Path(processed_dataset_dir).glob("*.arrow")
+        assert all(arrow_file.name.split("-", 1)[1].startswith("train") for arrow_file in arrow_files)
+
+        with load_dataset(data_dir, split="test", cache_dir=tmp_dir) as dataset:
+            assert isinstance(dataset, Dataset)
+            assert len(dataset) > 0
+
+        arrow_files = Path(processed_dataset_dir).glob("*.arrow")
+        assert all(arrow_file.name.split("-", 1)[1].startswith(("train", "test")) for arrow_file in arrow_files)
+
+        with pytest.raises(ValueError):
+            load_dataset(data_dir, split="non-existing-split", cache_dir=tmp_dir)
+
+
+def test_load_dataset_specific_splits_then_full(data_dir):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        with load_dataset(data_dir, split="train", cache_dir=tmp_dir) as dataset:
+            assert isinstance(dataset, Dataset)
+            assert len(dataset) > 0
+
+        processed_dataset_dir = load_dataset_builder(data_dir, cache_dir=tmp_dir).cache_dir
+        arrow_files = Path(processed_dataset_dir).glob("*.arrow")
+        assert all(arrow_file.name.split("-", 1)[1].startswith("train") for arrow_file in arrow_files)
+
+        with load_dataset(data_dir, cache_dir=tmp_dir) as dataset:
+            assert isinstance(dataset, DatasetDict)
+            assert len(dataset) > 0
+            assert "train" in dataset
+            assert "test" in dataset
+            dataset_splits = list(dataset)
+
+        arrow_files = Path(processed_dataset_dir).glob("*.arrow")
+        assert all(arrow_file.name.split("-", 1)[1].startswith(tuple(dataset_splits)) for arrow_file in arrow_files)
+
+
+@pytest.mark.integration
+def test_loading_from_the_datasets_hub():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir)
+        assert len(dataset["validation"]) >= 3
+
+
+@pytest.mark.integration
+def test_loading_from_dataset_from_hub_specific_splits():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        with load_dataset(SAMPLE_DATASET_IDENTIFIER2, split="train", cache_dir=tmp_dir) as dataset:
+            assert isinstance(dataset, Dataset)
+            assert len(dataset) > 0
+
+        processed_dataset_dir = load_dataset_builder(SAMPLE_DATASET_IDENTIFIER2, cache_dir=tmp_dir).cache_dir
+        arrow_files = Path(processed_dataset_dir).glob("*.arrow")
+        assert all(arrow_file.name.split("-", 1)[1].startswith("train") for arrow_file in arrow_files)
+
+        with load_dataset(SAMPLE_DATASET_IDENTIFIER2, split="test", cache_dir=tmp_dir) as dataset:
+            assert isinstance(dataset, Dataset)
+            assert len(dataset) > 0
+
+        arrow_files = Path(processed_dataset_dir).glob("*.arrow")
+        assert all(arrow_file.name.split("-", 1)[1].startswith(("train", "test")) for arrow_file in arrow_files)
+
+        with pytest.raises(ValueError):
+            load_dataset(SAMPLE_DATASET_IDENTIFIER2, split="non-existing-split", cache_dir=tmp_dir)
 
 
 @pytest.mark.integration

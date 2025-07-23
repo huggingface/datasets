@@ -120,7 +120,7 @@ def make_file_instructions(
             dataset_name=name,
             split=info.name,
             filetype_suffix=filetype_suffix,
-            shard_lengths=name2shard_lengths[info.name],
+            num_shards=len(name2shard_lengths[info.name] or ()),
         )
         for info in split_infos
     }
@@ -325,6 +325,7 @@ class ArrowReader(BaseReader):
         Returns:
             pyarrow.Table
         """
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
         table_cls = InMemoryTable if in_memory else MemoryMappedTable
         return table_cls.from_file(filename)
 

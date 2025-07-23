@@ -1161,8 +1161,11 @@ def load_dataset_builder(
             error_msg += f'\nFor example `data_files={{"train": "path/to/data/train/*.{example_extensions[0]}"}}`'
         raise ValueError(error_msg)
 
+    runtime_only_config_keys = {"drop_metadata", "drop_labels", "drop_audio", "drop_text", "drop_images"}
+    hashable_config_kwargs = {k: v for k, v in config_kwargs.items() if k not in runtime_only_config_keys}
+    full_config_kwargs = config_kwargs.copy()
+    config_kwargs_for_config = hashable_config_kwargs.copy()
     builder_cls = get_dataset_builder_class(dataset_module, dataset_name=dataset_name)
-    # Instantiate the dataset builder
     builder_instance: DatasetBuilder = builder_cls(
         cache_dir=cache_dir,
         dataset_name=dataset_name,
@@ -1175,7 +1178,7 @@ def load_dataset_builder(
         token=token,
         storage_options=storage_options,
         **builder_kwargs,
-        **config_kwargs,
+        **full_config_kwargs,
     )
     builder_instance._use_legacy_cache_dir_if_possible(dataset_module)
 
@@ -1410,6 +1413,7 @@ def load_dataset(
 
     # Download and prepare data
     builder_instance.download_and_prepare(
+        split=split,
         download_config=download_config,
         download_mode=download_mode,
         verification_mode=verification_mode,
