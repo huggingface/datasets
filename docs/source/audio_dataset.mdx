@@ -10,10 +10,9 @@ dataset = load_dataset("<username>/my_dataset")
 
 There are several methods for creating and sharing an audio dataset:
 
-* Create an audio dataset from local files in python with [`Dataset.push_to_hub`]. This is an easy way that requires only a few steps in python.
+- Create an audio dataset from local files in python with [`Dataset.push_to_hub`]. This is an easy way that requires only a few steps in python.
 
-* Create an audio dataset repository with the `AudioFolder` builder. This is a no-code solution for quickly creating an audio dataset with several thousand audio files.
-
+- Create an audio dataset repository with the `AudioFolder` builder. This is a no-code solution for quickly creating an audio dataset with several thousand audio files.
 
 <Tip>
 
@@ -28,10 +27,7 @@ You can load your own dataset using the paths to your audio files. Use the [`~Da
 ```py
 >>> audio_dataset = Dataset.from_dict({"audio": ["path/to/audio_1", "path/to/audio_2", ..., "path/to/audio_n"]}).cast_column("audio", Audio())
 >>> audio_dataset[0]["audio"]
-{'array': array([ 0.        ,  0.00024414, -0.00024414, ..., -0.00024414,
-         0.        ,  0.        ], dtype=float32),
- 'path': 'path/to/audio_1',
- 'sampling_rate': 16000}
+<datasets.features._torchcodec.AudioDecoder object at 0x11642b6a0>
 ```
 
 Then upload the dataset to the Hugging Face Hub using [`Dataset.push_to_hub`]:
@@ -50,7 +46,6 @@ my_dataset/
 ```
 
 ## AudioFolder
-
 
 The `AudioFolder` is a dataset builder designed to quickly load an audio dataset with several thousand audio files without requiring you to write any code.
 
@@ -100,7 +95,6 @@ folder/test/cat/bengal.mp3
 If all audio files are contained in a single directory or if they are not on the same level of directory structure, `label` column won't be added automatically. If you need it, set `drop_labels=False` explicitly.
 
 </Tip>
-
 
 If there is additional information you'd like to include about your dataset, like text captions or bounding boxes, add it as a `metadata.csv` file in your folder. This lets you quickly create datasets for different computer vision tasks like text captioning or object detection. You can also use a JSONL file `metadata.jsonl` or a Parquet file `metadata.parquet`.
 

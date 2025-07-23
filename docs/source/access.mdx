@@ -54,7 +54,7 @@ You can combine row and column name indexing to return a specific value at a pos
 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'
 ```
 
-But it is important to remember that indexing order matters, especially when working with large audio and image datasets. Indexing by the column name returns all the values in the column first, then loads the value at that position. For large datasets, it may be slower to index by the column name first.
+Indexing order doesn't matter. Indexing by the column name first returns a [`Column`] object that you can index as usual with row indices:
 
 ```py
 >>> import time
@@ -69,7 +69,7 @@ Elapsed time: 0.0031 seconds
 >>> text = dataset["text"][0]
 >>> end_time = time.time()
 >>> print(f"Elapsed time: {end_time - start_time:.4f} seconds")
-Elapsed time: 0.0094 seconds
+Elapsed time: 0.0042 seconds
 ```
 
 ### Slicing

@@ -241,10 +241,10 @@ When you need to remove one or more columns, give [`IterableDataset.remove_colum
 >>> from datasets import load_dataset
 >>> dataset = load_dataset('nyu-mll/glue', 'mrpc', split='train', streaming=True)
 >>> dataset.features
-{'sentence1': Value(dtype='string', id=None),
-'sentence2': Value(dtype='string', id=None),
-'label': ClassLabel(names=['not_equivalent', 'equivalent'], id=None),
-'idx': Value(dtype='int32', id=None)}
+{'sentence1': Value('string'),
+'sentence2': Value('string'),
+'label': ClassLabel(names=['not_equivalent', 'equivalent']),
+'idx': Value('int32')}
 
 >>> from datasets import ClassLabel, Value
 >>> new_features = dataset.features.copy()
@@ -252,10 +252,10 @@ When you need to remove one or more columns, give [`IterableDataset.remove_colum
 >>> new_features["idx"] = Value('int64')
 >>> dataset = dataset.cast(new_features)
 >>> dataset.features
-{'sentence1': Value(dtype='string', id=None),
-'sentence2': Value(dtype='string', id=None),
-'label': ClassLabel(names=['negative', 'positive'], id=None),
-'idx': Value(dtype='int64', id=None)}
+{'sentence1': Value('string'),
+'sentence2': Value('string'),
+'label': ClassLabel(names=['negative', 'positive']),
+'idx': Value('int64')}
 ```
 
 <Tip>
@@ -268,11 +268,11 @@ Use [`IterableDataset.cast_column`] to change the feature type of just one colum
 
 ```py
 >>> dataset.features
-{'audio': Audio(sampling_rate=44100, mono=True, id=None)}
+{'audio': Audio(sampling_rate=44100, mono=True)}
 
 >>> dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
 >>> dataset.features
-{'audio': Audio(sampling_rate=16000, mono=True, id=None)}
+{'audio': Audio(sampling_rate=16000, mono=True)}
 ```
 
 ## Map
@@ -515,6 +515,12 @@ Save your dataset by providing the name of the dataset repository on Hugging Fac
 
 ```python
 dataset.push_to_hub("username/my_dataset")
+```
+
+If the dataset consists of multiple shards (`dataset.num_shards > 1`), you can use multiple processes to upload it in parallel. This is especially useful if you applied `map()` or `filter()` steps since they will run faster in parallel:
+
+```python
+dataset.push_to_hub("username/my_dataset", num_proc=8)
 ```
 
 Use the [`load_dataset`] function to reload the dataset:

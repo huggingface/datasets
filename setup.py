@@ -19,7 +19,7 @@ Steps to make a release:
      - In `transformers`, use `datasets @ git+https://github.com/huggingface/datasets@main#egg=datasets`
        Add a step to install `datasets@main` after `save_cache` in .circleci/create_circleci_config.py:
        ```
-       steps.append({"run": {"name": "Install `datasets@main`", "command": 'pip uninstall datasets -y && pip install "datasets @ git+https://github.com/huggingface/datasets@main#egg=datasets"'}})
+       {"run": {"name": "Install `datasets@main`", "command": 'pip uninstall datasets -y && pip install "datasets @ git+https://github.com/huggingface/datasets@main#egg=datasets"'}}
        ```
      - and then run the CI
 
@@ -137,8 +137,8 @@ REQUIRED_PKGS = [
 
 AUDIO_REQUIRE = [
     "soundfile>=0.12.1",
-    "librosa",
-    "soxr>=0.4.0",  # Supports numpy-2
+    "torchcodec>=0.4.0",
+    "torch>=2.7.0",
 ]
 
 VISION_REQUIRE = [
@@ -174,7 +174,6 @@ TESTS_REQUIRE = [
     "py7zr",
     "rarfile>=4.0",
     "sqlalchemy",
-    "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
     "protobuf<4.0.0",  # 4.0.0 breaks compatibility with tensorflow<2.12
     "tensorflow>=2.6.0; python_version<'3.10' and sys_platform != 'win32'",  # numpy-2 is not supported for Python < 3.10
     "tensorflow>=2.16.0; python_version>='3.10' and sys_platform != 'win32'",  # Pins numpy < 2
@@ -185,17 +184,13 @@ TESTS_REQUIRE = [
     "transformers>=4.42.0",  # Pins numpy < 2
     "zstandard",
     "polars[timezone]>=0.20.0",
-    "torchvision",
-    "av",
+    "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
+    "soundfile>=0.12.1",
+    "torchcodec>=0.4.0; sys_platform != 'win32'",  # not available for windows
 ]
-
-
-TESTS_REQUIRE.extend(VISION_REQUIRE)
-TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
     "faiss-cpu",
-    "librosa",  # librosa -> numba-0.60.0 requires numpy < 2.1 (see GH-7111)
     "tensorflow",
 ]
 TESTS_NUMPY2_REQUIRE = [
@@ -205,8 +200,6 @@ TESTS_NUMPY2_REQUIRE = [
 QUALITY_REQUIRE = ["ruff>=0.3.0"]
 
 DOCS_REQUIRE = [
-    # Might need to add doc-builder and some specific deps in the future
-    "s3fs",
     # Following dependencies are required for the Python reference to be built properly
     "transformers",
     "torch",
@@ -224,7 +217,6 @@ EXTRAS_REQUIRE = {
     "tensorflow_gpu": ["tensorflow>=2.6.0"],
     "torch": ["torch"],
     "jax": ["jax>=0.3.14", "jaxlib>=0.3.14"],
-    "s3": ["s3fs"],
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
     "tests": TESTS_REQUIRE,
@@ -237,7 +229,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="3.6.0.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="4.0.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

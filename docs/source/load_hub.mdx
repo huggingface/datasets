@@ -20,8 +20,8 @@ Movie Review Dataset. This is a dataset of containing 5,331 positive and 5,331 n
 
 # Inspect dataset features
 >>> ds_builder.info.features
-{'label': ClassLabel(names=['neg', 'pos'], id=None),
- 'text': Value(dtype='string', id=None)}
+{'label': ClassLabel(names=['neg', 'pos']),
+ 'text': Value('string')}
 ```
 
 If you're happy with the dataset, then load it with [`load_dataset`]:

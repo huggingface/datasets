@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from datasets import Sequence, Value
+from datasets import List, Value
 from datasets.arrow_dataset import Dataset
 
 
@@ -39,7 +39,7 @@ class DatasetListTest(TestCase):
     def test_variable_list_records(self):  # checks if the type can be inferred from the second record
         list_records = [{"col_1": []}, {"col_1": [1, 2]}]
         dset = Dataset.from_list(list_records)
-        self.assertEqual(dset.info.features["col_1"], Sequence(Value("int64")))
+        self.assertEqual(dset.info.features["col_1"], List(Value("int64")))
 
     def test_create_empty(self):
         dset = Dataset.from_list([])

@@ -23,6 +23,7 @@ from datasets import (
     Features,
     Image,
     IterableDatasetDict,
+    List,
     Value,
     load_dataset,
     load_dataset_builder,
@@ -38,7 +39,7 @@ from datasets.utils.file_utils import cached_path
 from datasets.utils.hub import hf_dataset_url
 
 from .fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
-from .utils import for_all_test_methods, require_librosa, require_pil, require_sndfile, xfail_if_500_502_http_error
+from .utils import for_all_test_methods, require_pil, require_sndfile, require_torchcodec, xfail_if_500_502_http_error
 
 
 pytestmark = pytest.mark.integration
@@ -387,7 +388,7 @@ class TestPushToHub:
             assert ds.features == hub_ds.features
             assert ds[:] == hub_ds[:]
 
-    @require_librosa
+    @require_torchcodec
     @require_sndfile
     def test_push_dataset_to_hub_custom_features_audio(self, temporary_repo):
         audio_path = os.path.join(os.path.dirname(__file__), "features", "data", "test_audio_44100.wav")
@@ -403,7 +404,10 @@ class TestPushToHub:
                 assert ds.column_names == hub_ds.column_names
                 assert list(ds.features.keys()) == list(hub_ds.features.keys())
                 assert ds.features == hub_ds.features
-                np.testing.assert_equal(ds[0]["x"]["array"], hub_ds[0]["x"]["array"])
+                np.testing.assert_equal(
+                    ds[0]["x"].get_all_samples().data.cpu().numpy(),
+                    hub_ds[0]["x"].get_all_samples().data.cpu().numpy(),
+                )
                 assert ds[1] == hub_ds[1]  # don't test hub_ds[0] since audio decoding might be slightly different
                 hub_ds = hub_ds.cast_column("x", Audio(decode=False))
                 elem = hub_ds[0]["x"]
@@ -438,7 +442,7 @@ class TestPushToHub:
     def test_push_dataset_to_hub_custom_features_image_list(self, temporary_repo):
         image_path = os.path.join(os.path.dirname(__file__), "features", "data", "test_image_rgb.jpg")
         data = {"x": [[image_path], [image_path, image_path]], "y": [0, -1]}
-        features = Features({"x": [Image()], "y": Value("int32")})
+        features = Features({"x": List(Image()), "y": Value("int32")})
         ds = Dataset.from_dict(data, features=features)
 
         for embed_external_files in [True, False]:
@@ -450,7 +454,7 @@ class TestPushToHub:
                 assert list(ds.features.keys()) == list(hub_ds.features.keys())
                 assert ds.features == hub_ds.features
                 assert ds[:] == hub_ds[:]
-                hub_ds = hub_ds.cast_column("x", [Image(decode=False)])
+                hub_ds = hub_ds.cast_column("x", List(Image(decode=False)))
                 elem = hub_ds[0]["x"][0]
                 path, bytes_ = elem["path"], elem["bytes"]
                 assert isinstance(path, str)

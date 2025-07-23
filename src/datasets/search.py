@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, NamedTuple, Optional, Union
 import fsspec
 import numpy as np
 
-from .features import Sequence
+from .features import List
 from .utils import logging
 from .utils import tqdm as hf_tqdm
 
@@ -266,7 +266,7 @@ class FaissIndex(BaseIndex):
         """
         import faiss  # noqa: F811
 
-        if column and not isinstance(vectors.features[column], Sequence):
+        if column and not isinstance(vectors.features[column], List):
             raise ValueError(
                 f"Wrong feature type for column '{column}'. Expected 1d array, got {vectors.features[column]}"
             )

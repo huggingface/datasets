@@ -76,11 +76,12 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .data_files import sanitize_patterns
 from .download.streaming_download_manager import xgetsize
-from .features import Audio, ClassLabel, Features, Image, Sequence, Value, Video
+from .features import Audio, ClassLabel, Features, Image, List, Value, Video
 from .features.features import (
     FeatureType,
     _align_features,
     _check_if_features_can_be_aligned,
+    _fix_for_backward_compatible_features,
     generate_from_arrow_type,
     pandas_types_mapper,
     require_decoding,
@@ -627,6 +628,66 @@ class NonExistentDatasetError(Exception):
     pass
 
 
+class Column(Sequence_):
+    """
+    An iterable for a specific column of a [`Dataset`].
+
+    Example:
+
+    Iterate on the texts of the "text" column of a dataset:
+
+    ```python
+    for text in dataset["text"]:
+        ...
+    ```
+
+    It also works with nested columns:
+
+    ```python
+    for source in dataset["metadata"]["source"]:
+        ...
+    ```
+    """
+
+    def __init__(self, source: Union["Dataset", "Column"], column_name: str):
+        self.source = source
+        self.column_name = column_name
+        if not isinstance(source.features, dict) or column_name not in source.features:
+            raise ValueError(f"Column '{column_name}' doesn't exist.")
+        self.features = source.features[column_name]
+
+    def __iter__(self) -> Iterator[Any]:
+        if isinstance(self.source, Dataset):
+            source = self.source._fast_select_column(self.column_name)
+        for example in source:
+            yield example[self.column_name]
+
+    def __getitem__(self, key: Union[int, str, list[int]]) -> Any:
+        if isinstance(key, str):
+            return Column(self, key)
+        elif isinstance(self.source, Dataset):
+            return self.source._fast_select_column(self.column_name)[key][self.column_name]
+        elif isinstance(key, int):
+            return self.source[key][self.column_name]
+        else:
+            return [item[self.column_name] for item in self.source[key]]
+
+    def __len__(self) -> int:
+        return len(self.source)
+
+    def __repr__(self):
+        return "Column(" + repr(list(self[:5])) + ")"
+
+    def __str__(self):
+        return "Column(" + str(list(self[:5])) + ")"
+
+    def __eq__(self, value):
+        if isinstance(value, Column):
+            return list(self) == list(value)
+        else:
+            return value == list(self)
+
+
 class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     """A Dataset backed by an Arrow table."""
 
@@ -837,6 +898,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
             )
         features = features if features is not None else info.features if info is not None else None
+        if features is not None:
+            features = _fix_for_backward_compatible_features(features)
         if info is None:
             info = DatasetInfo()
         info.features = features
@@ -882,6 +945,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
             )
         features = features if features is not None else info.features if info is not None else None
+        if features is not None:
+            features = _fix_for_backward_compatible_features(features)
         if info is None:
             info = DatasetInfo()
         info.features = features
@@ -927,6 +992,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
             )
         features = features if features is not None else info.features if info is not None else None
+        if features is not None:
+            features = _fix_for_backward_compatible_features(features)
         arrow_typed_mapping = {}
         for col, data in mapping.items():
             if isinstance(data, (pa.Array, pa.ChunkedArray)):
@@ -1890,14 +1957,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("boolq", split="validation")
         >>> ds.features
-        {'answer': Value(dtype='bool', id=None),
-         'passage': Value(dtype='string', id=None),
-         'question': Value(dtype='string', id=None)}
+        {'answer': Value('bool'),
+         'passage': Value('string'),
+         'question': Value('string')}
         >>> ds = ds.class_encode_column('answer')
         >>> ds.features
-        {'answer': ClassLabel(num_classes=2, names=['False', 'True'], id=None),
-         'passage': Value(dtype='string', id=None),
-         'question': Value(dtype='string', id=None)}
+        {'answer': ClassLabel(num_classes=2, names=['False', 'True']),
+         'passage': Value('string'),
+         'question': Value('string')}
         ```
         """
         # Sanity checks
@@ -1968,12 +2035,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rajpurkar/squad", split="train")
         >>> ds.features
-        {'answers': Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None),
-         'context': Value(dtype='string', id=None),
-         'id': Value(dtype='string', id=None),
-         'question': Value(dtype='string', id=None),
-         'title': Value(dtype='string', id=None)}
-        >>> ds.flatten()
+        {'id': Value('string'),
+         'title': Value('string'),
+         'context': Value('string'),
+         'question': Value('string'),
+         'answers': {'text': List(Value('string')),
+         'answer_start': List(Value('int32'))}}
+        >>> ds = ds.flatten()
+        >>> ds
         Dataset({
             features: ['id', 'title', 'context', 'question', 'answers.text', 'answers.answer_start'],
             num_rows: 87599
@@ -2040,15 +2109,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset, ClassLabel, Value
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.features
-        {'label': ClassLabel(names=['neg', 'pos'], id=None),
-         'text': Value(dtype='string', id=None)}
+        {'label': ClassLabel(names=['neg', 'pos']),
+         'text': Value('string')}
         >>> new_features = ds.features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
         >>> ds = ds.cast(new_features)
         >>> ds.features
-        {'label': ClassLabel(names=['bad', 'good'], id=None),
-         'text': Value(dtype='large_string', id=None)}
+        {'label': ClassLabel(names=['bad', 'good']),
+         'text': Value('large_string')}
         ```
         """
         if sorted(features) != sorted(self._data.column_names):
@@ -2057,6 +2126,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"as the columns in the dataset: {self._data.column_names}"
             )
 
+        features = _fix_for_backward_compatible_features(features)
         schema = features.arrow_schema
         format = self.format
         dataset = self.with_format("arrow")
@@ -2098,14 +2168,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset, ClassLabel
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> ds.features
-        {'label': ClassLabel(names=['neg', 'pos'], id=None),
-         'text': Value(dtype='string', id=None)}
+        {'label': ClassLabel(names=['neg', 'pos']),
+         'text': Value('string')}
         >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
         >>> ds.features
-        {'label': ClassLabel(names=['bad', 'good'], id=None),
-         'text': Value(dtype='string', id=None)}
+        {'label': ClassLabel(names=['bad', 'good']),
+         'text': Value('string')}
         ```
         """
+        feature = _fix_for_backward_compatible_features(feature)
         if hasattr(feature, "decode_example"):
             dataset = copy.deepcopy(self)
             dataset._info.features[column] = feature
@@ -2329,7 +2400,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
-        >>> ds.select_columns(['text'])
+        >>> ds = ds.select_columns(['text'])
+        >>> ds
         Dataset({
             features: ['text'],
             num_rows: 1066
@@ -2352,6 +2424,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._info.features = Features({col: self._info.features[col] for col in dataset._data.column_names})
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         dataset._fingerprint = new_fingerprint
+        return dataset
+
+    @transmit_format
+    def _fast_select_column(self, column_name: str) -> "Dataset":
+        dataset = copy.copy(self)
+        dataset._data = dataset._data.select([column_name])
+        dataset._info = DatasetInfo(features=Features({column_name: self._info.features[column_name]}))
         return dataset
 
     def __len__(self):
@@ -2776,6 +2855,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     def __getitem__(self, key):  # noqa: F811
         """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
+        if isinstance(key, str):
+            if self._format_type is None or self._format_type not in ("arrow", "pandas", "polars"):
+                return Column(self, key)
         return self._getitem(key)
 
     def __getitems__(self, keys: list) -> list:
@@ -3011,6 +3093,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if fn_kwargs is None:
             fn_kwargs = {}
+
+        if features is not None:
+            features = _fix_for_backward_compatible_features(features)
 
         if num_proc is not None and num_proc > len(self):
             num_proc = len(self)
@@ -3786,12 +3871,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
-        >>> ds.filter(lambda x: x["label"] == 1)
+        >>> ds = ds.filter(lambda x: x["label"] == 1)
+        >>> ds
         Dataset({
             features: ['text', 'label'],
             num_rows: 533
         })
         ```
+
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -3958,7 +4045,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
-        >>> ds.select(range(4))
+        >>> ds = ds.select(range(4))
+        >>> ds
         Dataset({
             features: ['text', 'label'],
             num_rows: 4
@@ -4853,7 +4941,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features: ['text', 'label'],
             num_rows: 1066
         })
-        >>> ds.shard(num_shards=2, index=0)
+        >>> ds = ds.shard(num_shards=2, index=0)
+        >>> ds
         Dataset({
             features: ['text', 'label'],
             num_rows: 533
@@ -5922,7 +6011,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
         >>> more_text = ds["text"]
-        >>> ds.add_column(name="text_2", column=more_text)
+        >>> ds = ds.add_column(name="text_2", column=more_text)
+        >>> ds
         Dataset({
             features: ['text', 'label', 'text_2'],
             num_rows: 1066
@@ -6280,7 +6370,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features[label_column] = (
             ClassLabel(num_classes=len(label_names), names=label_names)
             if isinstance(label_feature, ClassLabel)
-            else Sequence(ClassLabel(num_classes=len(label_names), names=label_names))
+            else List(ClassLabel(num_classes=len(label_names), names=label_names))
         )
         return self.map(process_label_ids, features=features, batched=True, desc="Aligning the labels")
 

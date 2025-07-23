@@ -10,7 +10,7 @@ from datasets.data_files import DataFilesDict, DataFilesList, get_data_patterns
 from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
 
-from ..utils import require_librosa, require_sndfile
+from ..utils import require_sndfile, require_torchcodec
 
 
 @pytest.fixture
@@ -148,10 +148,7 @@ def data_files_with_two_splits_and_metadata(request, tmp_path, audio_file):
 
 
 @pytest.fixture
-def data_files_with_zip_archives(tmp_path, audio_file):
-    import librosa
-    import soundfile as sf
-
+def data_files_with_zip_archives(tmp_path, audio_file_44100, audio_file_16000):
     data_dir = tmp_path / "audiofolder_data_dir_with_zip_archives"
     data_dir.mkdir(parents=True, exist_ok=True)
     archive_dir = data_dir / "archive"
@@ -159,19 +156,16 @@ def data_files_with_zip_archives(tmp_path, audio_file):
     subdir = archive_dir / "subdir"
     subdir.mkdir(parents=True, exist_ok=True)
 
-    audio_filename = archive_dir / "audio_file.wav"
-    shutil.copyfile(audio_file, audio_filename)
-    audio_filename2 = subdir / "audio_file2.wav"  # in subdir
-    # make sure they're two different audios
-    # Indeed we won't be able to compare the audio filenames, since the archive is not extracted in streaming mode
-    array, sampling_rate = librosa.load(str(audio_filename), sr=16000)  # original sampling rate is 44100
-    sf.write(str(audio_filename2), array, samplerate=16000)
+    audio_filename = archive_dir / "audio_file.mp3"
+    shutil.copyfile(audio_file_44100, audio_filename)
+    audio_filename2 = subdir / "audio_file2.mp3"  # in subdir
+    shutil.copyfile(audio_file_16000, audio_filename2)
 
     audio_metadata_filename = archive_dir / "metadata.jsonl"
     audio_metadata = textwrap.dedent(
         """\
-        {"file_name": "audio_file.wav", "text": "First audio transcription"}
-        {"file_name": "subdir/audio_file2.wav", "text": "Second audio transcription (in subdir)"}
+        {"file_name": "audio_file.mp3", "text": "First audio transcription"}
+        {"file_name": "subdir/audio_file2.mp3", "text": "Second audio transcription (in subdir)"}
         """
     )
 
@@ -199,7 +193,7 @@ def test_config_raises_when_invalid_data_files(data_files) -> None:
         _ = AudioFolderConfig(name="name", data_files=data_files)
 
 
-@require_librosa
+@require_torchcodec
 @require_sndfile
 # check that labels are inferred correctly from dir names
 def test_generate_examples_with_labels(data_files_with_labels_no_metadata, cache_dir):
@@ -265,7 +259,7 @@ def test_generate_examples_drop_metadata(audio_file_with_metadata, drop_metadata
         assert example[column] is not None
 
 
-@require_librosa
+@require_torchcodec
 @require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_single_split(streaming, cache_dir, data_files_with_one_split_and_metadata):
@@ -279,12 +273,12 @@ def test_data_files_with_metadata_and_single_split(streaming, cache_dir, data_fi
         dataset = list(datasets[split])
         assert len(dataset) == expected_num_of_audios
         # make sure each sample has its own audio and metadata
-        assert len({example["audio"]["path"] for example in dataset}) == expected_num_of_audios
+        assert len({example["audio"].metadata.path for example in dataset}) == expected_num_of_audios
         assert len({example["text"] for example in dataset}) == expected_num_of_audios
         assert all(example["text"] is not None for example in dataset)
 
 
-@require_librosa
+@require_torchcodec
 @require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_multiple_splits(streaming, cache_dir, data_files_with_two_splits_and_metadata):
@@ -298,12 +292,12 @@ def test_data_files_with_metadata_and_multiple_splits(streaming, cache_dir, data
         dataset = list(datasets[split])
         assert len(dataset) == expected_num_of_audios
         # make sure each sample has its own audio and metadata
-        assert len({example["audio"]["path"] for example in dataset}) == expected_num_of_audios
+        assert len({example["audio"].metadata.path for example in dataset}) == expected_num_of_audios
         assert len({example["text"] for example in dataset}) == expected_num_of_audios
         assert all(example["text"] is not None for example in dataset)
 
 
-@require_librosa
+@require_torchcodec
 @require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_with_zip_archives):
@@ -318,7 +312,12 @@ def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_
         assert len(dataset) == expected_num_of_audios
         # make sure each sample has its own audio (all arrays are different) and metadata
         assert (
-            sum(np.array_equal(dataset[0]["audio"]["array"], example["audio"]["array"]) for example in dataset[1:])
+            sum(
+                np.array_equal(
+                    dataset[0]["audio"].get_all_samples().data.numpy(), example["audio"].get_all_samples().data.numpy()
+                )
+                for example in dataset[1:]
+            )
             == 0
         )
         assert len({example["text"] for example in dataset}) == expected_num_of_audios

@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = "3.6.0.dev0"
+__version__ = "4.0.1.dev0"
 
-from .arrow_dataset import Dataset
+from .arrow_dataset import Column, Dataset
 from .arrow_reader import ReadInstruction
 from .builder import ArrowBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from .combine import concatenate_datasets, interleave_datasets
@@ -30,7 +30,7 @@ from .inspect import (
     get_dataset_infos,
     get_dataset_split_names,
 )
-from .iterable_dataset import IterableDataset
+from .iterable_dataset import IterableColumn, IterableDataset
 from .load import load_dataset, load_dataset_builder, load_from_disk
 from .splits import (
     NamedSplit,
