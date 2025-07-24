@@ -8,6 +8,7 @@ from .arrow import arrow
 from .audiofolder import audiofolder
 from .cache import cache
 from .csv import csv
+from .hdf5 import hdf5
 from .imagefolder import imagefolder
 from .json import json
 from .pandas import pandas
@@ -47,6 +48,7 @@ _PACKAGED_DATASETS_MODULES = {
     "pdffolder": (pdffolder.__name__, _hash_python_lines(inspect.getsource(pdffolder).splitlines())),
     "webdataset": (webdataset.__name__, _hash_python_lines(inspect.getsource(webdataset).splitlines())),
     "xml": (xml.__name__, _hash_python_lines(inspect.getsource(xml).splitlines())),
+    "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -85,6 +87,8 @@ _EXTENSION_TO_MODULE.update({ext: ("videofolder", {}) for ext in videofolder.Vid
 _EXTENSION_TO_MODULE.update({ext.upper(): ("videofolder", {}) for ext in videofolder.VideoFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("pdffolder", {}) for ext in pdffolder.PdfFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("pdffolder", {}) for ext in pdffolder.PdfFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext: ("hdf5", {}) for ext in hdf5.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext.upper(): ("hdf5", {}) for ext in hdf5.EXTENSIONS})
 
 # Used to filter data files based on extensions given a module name
 _MODULE_TO_EXTENSIONS: dict[str, list[str]] = {}
