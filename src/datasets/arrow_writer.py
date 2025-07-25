@@ -690,6 +690,7 @@ class ParquetWriter(ArrowWriter):
         self.pa_writer = pq.ParquetWriter(
             self.stream, self._schema, use_content_defined_chunking=self.use_content_defined_chunking
         )
-        self.pa_writer.add_key_value_metadata(
-            {"content_defined_chunking": json.dumps(self.use_content_defined_chunking)}
-        )
+        if self.use_content_defined_chunking is not False:
+            self.pa_writer.add_key_value_metadata(
+                {"content_defined_chunking": json.dumps(self.use_content_defined_chunking)}
+            )

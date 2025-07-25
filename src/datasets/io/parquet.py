@@ -91,7 +91,9 @@ class ParquetDatasetWriter:
     def write(self) -> int:
         batch_size = self.batch_size if self.batch_size else config.DEFAULT_MAX_BATCH_SIZE
         use_content_defined_chunking = (
-            self.use_content_defined_chunking if self.use_content_defined_chunking else config.DEFAULT_CDC_OPTIONS
+            config.DEFAULT_CDC_OPTIONS
+            if self.use_content_defined_chunking is None
+            else self.use_content_defined_chunking
         )
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
@@ -140,6 +142,8 @@ class ParquetDatasetWriter:
             written += batch.nbytes
 
         # TODO(kszucs): we may want to persist multiple parameters
-        writer.add_key_value_metadata({"content_defined_chunking": json.dumps(use_content_defined_chunking)})
+        if use_content_defined_chunking is not False:
+            writer.add_key_value_metadata({"content_defined_chunking": json.dumps(use_content_defined_chunking)})
+
         writer.close()
         return written
