@@ -5,9 +5,9 @@ on:
     branches:
       - main
   push:
-    # branches:
-    #   - main
-    #   - ci-*
+    branches:
+      - main
+      - ci-*
 
 env:
   CI_HEADERS: ${{ secrets.CI_HEADERS }}
@@ -25,7 +25,6 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple "pyarrow>=21.0.0.dev"
           pip install .[quality]
       - name: Check quality
         run: |
@@ -59,15 +58,13 @@ jobs:
       - name: Install uv
         run: pip install --upgrade uv
       - name: Install dependencies
-        run: |
-          uv pip install --system --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple "pyarrow>=21.0.0.dev"
-          uv pip install --system "datasets[tests] @ ."
+        run: uv pip install --system "datasets[tests] @ ."
       - name: Install dependencies (latest versions)
         if: ${{ matrix.deps_versions == 'deps-latest' }}
-        run: uv pip install --system --upgrade huggingface-hub "dill<0.3.9"
+        run: uv pip install --system --upgrade pyarrow huggingface-hub "dill<0.3.9"
       - name: Install dependencies (minimum versions)
         if: ${{ matrix.deps_versions != 'deps-latest' }}
-        run: uv pip install --system huggingface-hub==0.24.7 transformers dill==0.3.1.1
+        run: uv pip install --system pyarrow==15.0.0 huggingface-hub==0.24.7 transformers dill==0.3.1.1
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
@@ -99,9 +96,7 @@ jobs:
       - name: Install uv
         run: pip install --upgrade uv
       - name: Install dependencies
-        run: |
-          uv pip install --system --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple "pyarrow>=21.0.0.dev"
-          uv pip install --system "datasets[tests] @ ."
+        run: uv pip install --system "datasets[tests] @ ."
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
@@ -133,9 +128,7 @@ jobs:
       - name: Install uv
         run: pip install --upgrade uv
       - name: Install dependencies
-        run: |
-          uv pip install --system --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple "pyarrow>=21.0.0.dev"
-          uv pip install --system "datasets[tests_numpy2] @ ."
+        run: uv pip install --system "datasets[tests_numpy2] @ ."
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/

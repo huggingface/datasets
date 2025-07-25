@@ -15,7 +15,6 @@ jobs:
       commit_sha: ${{ github.sha }}
       package: datasets
       notebook_folder: datasets_doc
-      additional_args: --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
     secrets:
       token: ${{ secrets.HUGGINGFACE_PUSH }}
       hf_token: ${{ secrets.HF_DOC_BUILD_PUSH }}
