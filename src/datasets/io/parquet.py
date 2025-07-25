@@ -78,7 +78,7 @@ class ParquetDatasetWriter:
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
         storage_options: Optional[dict] = None,
-        use_content_defined_chunking: bool | dict = True,
+        use_content_defined_chunking: Union[bool, dict] = True,
         **parquet_writer_kwargs,
     ):
         self.dataset = dataset
