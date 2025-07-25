@@ -336,37 +336,65 @@ def test_parquet_writer_write():
     assert pa_table.to_pydict() == {"col_1": ["foo", "bar"], "col_2": [1, 2]}
 
 
-custom_cdc_options = {
-    "min_chunk_size": 128 * 1024,  # 128 KiB
-    "max_chunk_size": 512 * 1024,  # 512 KiB
-    "norm_level": 1,
-}
+def test_parquet_writer_uses_content_defined_chunking():
+    def write_and_get_argument_and_metadata(**kwargs):
+        output = pa.BufferOutputStream()
+        with patch("pyarrow.parquet.ParquetWriter", wraps=pq.ParquetWriter) as MockWriter:
+            with ParquetWriter(stream=output, **kwargs) as writer:
+                writer.write({"col_1": "foo", "col_2": 1})
+                writer.write({"col_1": "bar", "col_2": 2})
+                writer.finalize()
+            assert MockWriter.call_count == 1
+            _, kwargs = MockWriter.call_args
+            assert "use_content_defined_chunking" in kwargs
 
+        # read metadata from the output stream
+        with pa.input_stream(output.getvalue()) as stream:
+            metadata = pq.read_metadata(stream)
+            key_value_metadata = metadata.metadata
 
-@pytest.mark.parametrize(
-    ("cdc_options", "expected_options"), [(None, config.DEFAULT_CDC_OPTIONS), (custom_cdc_options, custom_cdc_options)]
-)
-def test_parquet_write_uses_content_defined_chunking(cdc_options, expected_options):
-    output = pa.BufferOutputStream()
-    with patch("pyarrow.parquet.ParquetWriter", wraps=pq.ParquetWriter) as MockWriter:
-        with ParquetWriter(stream=output, use_content_defined_chunking=cdc_options) as writer:
-            writer.write({"col_1": "foo", "col_2": 1})
-            writer.write({"col_1": "bar", "col_2": 2})
-            writer.finalize()
-        assert MockWriter.call_count == 1
-        _, kwargs = MockWriter.call_args
-        assert "use_content_defined_chunking" in kwargs
-        assert kwargs["use_content_defined_chunking"] == expected_options
+        return kwargs["use_content_defined_chunking"], key_value_metadata
 
-    # read metadata from the output stream
-    with pa.input_stream(output.getvalue()) as stream:
-        metadata = pq.read_metadata(stream)
-        key_value_metadata = metadata.metadata
-
-    # check that the content defined chunking options are persisted
+    # not passing the use_content_defined_chunking argument, using the default
+    passed_arg, key_value_metadata = write_and_get_argument_and_metadata()
+    assert passed_arg == config.DEFAULT_CDC_OPTIONS
     assert b"content_defined_chunking" in key_value_metadata
     json_encoded_options = key_value_metadata[b"content_defined_chunking"].decode("utf-8")
-    assert json.loads(json_encoded_options) == expected_options
+    assert json.loads(json_encoded_options) == config.DEFAULT_CDC_OPTIONS
+
+    # passing True, using the default options
+    passed_arg, key_value_metadata = write_and_get_argument_and_metadata(use_content_defined_chunking=True)
+    assert passed_arg == config.DEFAULT_CDC_OPTIONS
+    assert b"content_defined_chunking" in key_value_metadata
+    json_encoded_options = key_value_metadata[b"content_defined_chunking"].decode("utf-8")
+    assert json.loads(json_encoded_options) == config.DEFAULT_CDC_OPTIONS
+
+    # passing False, not using content defined chunking
+    passed_arg, key_value_metadata = write_and_get_argument_and_metadata(use_content_defined_chunking=False)
+    assert passed_arg is False
+    assert b"content_defined_chunking" not in key_value_metadata
+
+    # passing custom options, using the custom options
+    custom_cdc_options = {
+        "min_chunk_size": 128 * 1024,  # 128 KiB
+        "max_chunk_size": 512 * 1024,  # 512 KiB
+        "norm_level": 1,
+    }
+    passed_arg, key_value_metadata = write_and_get_argument_and_metadata(
+        use_content_defined_chunking=custom_cdc_options
+    )
+    assert passed_arg == custom_cdc_options
+    assert b"content_defined_chunking" in key_value_metadata
+    json_encoded_options = key_value_metadata[b"content_defined_chunking"].decode("utf-8")
+    assert json.loads(json_encoded_options) == custom_cdc_options
+
+    # passing None or wrong options raise by pyarrow
+    with pytest.raises(TypeError):
+        write_and_get_argument_and_metadata(use_content_defined_chunking=None)
+    with pytest.raises(TypeError):
+        write_and_get_argument_and_metadata(use_content_defined_chunking="invalid_options")
+    with pytest.raises(ValueError):
+        write_and_get_argument_and_metadata(use_content_defined_chunking={"invalid_option": 1})
 
 
 @require_pil

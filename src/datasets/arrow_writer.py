@@ -679,11 +679,11 @@ class ArrowWriter:
 
 
 class ParquetWriter(ArrowWriter):
-    def __init__(self, *args, use_content_defined_chunking=None, **kwargs):
+    def __init__(self, *args, use_content_defined_chunking=True, **kwargs):
         super().__init__(*args, **kwargs)
-        self.use_content_defined_chunking = (
-            config.DEFAULT_CDC_OPTIONS if use_content_defined_chunking is None else use_content_defined_chunking
-        )
+        if use_content_defined_chunking is True:
+            use_content_defined_chunking = config.DEFAULT_CDC_OPTIONS
+        self.use_content_defined_chunking = use_content_defined_chunking
 
     def _build_writer(self, inferred_schema: pa.Schema):
         self._schema, self._features = self._build_schema(inferred_schema)
