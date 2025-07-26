@@ -232,26 +232,19 @@ to this dataset.
 
 The syntax for Example docstrings can look as follows:
 
-```
-    Example:
+Example:
 
-    ```py
+   ``` python
     >>> from datasets import load_dataset
+    >>> from transformers import AutoTokenizer
     >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
     >>> def add_prefix(example):
     ...     example["text"] = "Review: " + example["text"]
     ...     return example
     >>> ds = ds.map(add_prefix)
-    >>> ds[0:3]["text"]
-    ['Review: compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children .',
-        'Review: the soundtrack alone is worth the price of admission .',
-        'Review: rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .']
-
-    # process a batch of examples
-    >>> ds = ds.map(lambda example: tokenizer(example["text"]), batched=True)
-    # set number of processors
-    >>> ds = ds.map(add_prefix, num_proc=4)
-    ```
+    >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+    >>> ds_tokenized = ds.map(lambda example: tokenizer(example["text"]), batched=True)
+    
 ```
 
 The docstring should give a minimal, clear example of how the respective class or function is to be used in practice and also include the expected (ideally sensible) output.
