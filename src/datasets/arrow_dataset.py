@@ -3007,8 +3007,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             fn_kwargs (`Dict`, *optional*, defaults to `None`):
                 Keyword arguments to be passed to `function`.
             num_proc (`int`, *optional*, defaults to `None`):
-                Max number of processes when generating cache. Already cached shards are loaded sequentially.
-            suffix_template (`str`):
+                    The number of processes to use for multiprocessing.  
+                    - If `None` or `1`, no multiprocessing is used and the operation runs in the main process.  
+                    - If greater than `1`, multiple worker processes are used to process data in parallel.  
+                    - Setting `num_proc=0` is not supported and will raise a `ValueError`.
+                     Note: The function passed to `map()` must be picklable for multiprocessing to work correctly (i.e., defined at the top level of a module, not inside another function or class).
+                           suffix_template (`str`):
                 If `cache_file_name` is specified, then this suffix
                 will be added at the end of the base name of each. Defaults to `"_{rank:05d}_of_{num_proc:05d}"`. For example, if `cache_file_name` is "processed.arrow", then for
                 `rank=1` and `num_proc=4`, the resulting file would be `"processed_00001_of_00004.arrow"` for the default suffix.
@@ -3044,8 +3048,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if keep_in_memory and cache_file_name is not None:
             raise ValueError("Please use either `keep_in_memory` or `cache_file_name` but not both.")
 
-        if num_proc is not None and num_proc <= 0:
-            raise ValueError("num_proc must be an integer > 0.")
+        if num_proc == 0:
+            num_proc = None
+        elif num_proc is not None and num_proc < 0:
+            raise ValueError("num_proc must be >= 0 or None.")
 
         string_formatter = string.Formatter()
         fields = {field_name for _, field_name, _, _ in string_formatter.parse(suffix_template) if field_name}
