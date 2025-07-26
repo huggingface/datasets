@@ -3048,8 +3048,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if keep_in_memory and cache_file_name is not None:
             raise ValueError("Please use either `keep_in_memory` or `cache_file_name` but not both.")
 
-        if num_proc is not None and num_proc <= 0:
-            raise ValueError("num_proc must be an integer > 0.")
+        if num_proc == 0:
+            num_proc = None
+        elif num_proc is not None and num_proc < 0:
+            raise ValueError("num_proc must be >= 0 or None.")
 
         string_formatter = string.Formatter()
         fields = {field_name for _, field_name, _, _ in string_formatter.parse(suffix_template) if field_name}
