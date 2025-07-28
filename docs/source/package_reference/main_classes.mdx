@@ -1,0 +1,280 @@
+# Main classes
+
+
+## DatasetInfo
+
+[[autodoc]] datasets.DatasetInfo
+
+## Dataset
+
+The base class [`Dataset`] implements a Dataset backed by an Apache Arrow table.
+
+[[autodoc]] datasets.Dataset
+    - add_column
+    - add_item
+    - from_file
+    - from_buffer
+    - from_pandas
+    - from_dict
+    - from_generator
+    - data
+    - cache_files
+    - num_columns
+    - num_rows
+    - column_names
+    - shape
+    - unique
+    - flatten
+    - cast
+    - cast_column
+    - remove_columns
+    - rename_column
+    - rename_columns
+    - select_columns
+    - class_encode_column
+    - __len__
+    - __iter__
+    - iter
+    - formatted_as
+    - set_format
+    - set_transform
+    - reset_format
+    - with_format
+    - with_transform
+    - __getitem__
+    - cleanup_cache_files
+    - map
+    - filter
+    - select
+    - sort
+    - shuffle
+    - skip
+    - take
+    - train_test_split
+    - shard
+    - repeat
+    - to_tf_dataset
+    - push_to_hub
+    - save_to_disk
+    - load_from_disk
+    - flatten_indices
+    - to_csv
+    - to_pandas
+    - to_dict
+    - to_json
+    - to_parquet
+    - to_sql
+    - to_iterable_dataset
+    - add_faiss_index
+    - add_faiss_index_from_external_arrays
+    - save_faiss_index
+    - load_faiss_index
+    - add_elasticsearch_index
+    - load_elasticsearch_index
+    - list_indexes
+    - get_index
+    - drop_index
+    - search
+    - search_batch
+    - get_nearest_examples
+    - get_nearest_examples_batch
+    - info
+    - split
+    - builder_name
+    - citation
+    - config_name
+    - dataset_size
+    - description
+    - download_checksums
+    - download_size
+    - features
+    - homepage
+    - license
+    - size_in_bytes
+    - supervised_keys
+    - version
+    - from_csv
+    - from_json
+    - from_parquet
+    - from_text
+    - from_sql
+    - align_labels_with_mapping
+
+[[autodoc]] datasets.concatenate_datasets
+
+[[autodoc]] datasets.interleave_datasets
+
+[[autodoc]] datasets.distributed.split_dataset_by_node
+
+[[autodoc]] datasets.enable_caching
+
+[[autodoc]] datasets.disable_caching
+
+[[autodoc]] datasets.is_caching_enabled
+
+[[autodoc]] datasets.Column
+
+## DatasetDict
+
+Dictionary with split names as keys ('train', 'test' for example), and `Dataset` objects as values.
+It also has dataset transform methods like map or filter, to process all the splits at once.
+
+[[autodoc]] datasets.DatasetDict
+    - data
+    - cache_files
+    - num_columns
+    - num_rows
+    - column_names
+    - shape
+    - unique
+    - cleanup_cache_files
+    - map
+    - filter
+    - sort
+    - shuffle
+    - set_format
+    - reset_format
+    - formatted_as
+    - with_format
+    - with_transform
+    - flatten
+    - cast
+    - cast_column
+    - remove_columns
+    - rename_column
+    - rename_columns
+    - select_columns
+    - class_encode_column
+    - push_to_hub
+    - save_to_disk
+    - load_from_disk
+    - from_csv
+    - from_json
+    - from_parquet
+    - from_text
+
+<a id='package_reference_features'></a>
+
+## IterableDataset
+
+The base class [`IterableDataset`] implements an iterable Dataset backed by python generators.
+
+[[autodoc]] datasets.IterableDataset
+    - from_generator
+    - remove_columns
+    - select_columns
+    - cast_column
+    - cast
+    - decode
+    - __iter__
+    - iter
+    - map
+    - rename_column
+    - filter
+    - shuffle
+    - batch
+    - skip
+    - take
+    - shard
+    - repeat
+    - to_csv
+    - to_pandas
+    - to_dict
+    - to_json
+    - to_parquet
+    - to_sql
+    - push_to_hub
+    - load_state_dict
+    - state_dict
+    - info
+    - split
+    - builder_name
+    - citation
+    - config_name
+    - dataset_size
+    - description
+    - download_checksums
+    - download_size
+    - features
+    - homepage
+    - license
+    - size_in_bytes
+    - supervised_keys
+    - version
+
+[[autodoc]] datasets.IterableColumn
+
+## IterableDatasetDict
+
+Dictionary with split names as keys ('train', 'test' for example), and `IterableDataset` objects as values.
+
+[[autodoc]] datasets.IterableDatasetDict
+    - map
+    - filter
+    - shuffle
+    - with_format
+    - cast
+    - cast_column
+    - remove_columns
+    - rename_column
+    - rename_columns
+    - select_columns
+    - push_to_hub
+
+## Features
+
+[[autodoc]] datasets.Features
+
+### Scalar
+
+[[autodoc]] datasets.Value
+
+[[autodoc]] datasets.ClassLabel
+
+### Composite
+
+[[autodoc]] datasets.LargeList
+
+[[autodoc]] datasets.List
+
+[[autodoc]] datasets.Sequence
+
+### Translation
+
+[[autodoc]] datasets.Translation
+
+[[autodoc]] datasets.TranslationVariableLanguages
+
+### Arrays
+
+[[autodoc]] datasets.Array2D
+
+[[autodoc]] datasets.Array3D
+
+[[autodoc]] datasets.Array4D
+
+[[autodoc]] datasets.Array5D
+
+### Audio
+
+[[autodoc]] datasets.Audio
+
+### Image
+
+[[autodoc]] datasets.Image
+
+### Video
+
+[[autodoc]] datasets.Video
+
+### Pdf
+
+[[autodoc]] datasets.Pdf
+
+## Filesystems
+
+[[autodoc]] datasets.filesystems.is_remote_filesystem
+
+## Fingerprint
+
+[[autodoc]] datasets.fingerprint.Hasher

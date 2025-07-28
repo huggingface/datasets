@@ -1,0 +1,150 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "huggingface/datasets"
+authors:
+- family-names: Lhoest
+  given-names: Quentin
+- family-names: Villanova del Moral
+  given-names: Albert
+  orcid: "https://orcid.org/0000-0003-1727-1045"
+- family-names: von Platen
+  given-names: Patrick
+- family-names: Wolf
+  given-names: Thomas
+- family-names: Šaško
+  given-names: Mario
+- family-names: Jernite
+  given-names: Yacine
+- family-names: Thakur
+  given-names: Abhishek
+- family-names: Tunstall
+  given-names: Lewis
+- family-names: Patil
+  given-names: Suraj
+- family-names: Drame
+  given-names: Mariama
+- family-names: Chaumond
+  given-names: Julien
+- family-names: Plu
+  given-names: Julien
+- family-names: Davison
+  given-names: Joe
+- family-names: Brandeis
+  given-names: Simon
+- family-names: Sanh
+  given-names: Victor
+- family-names: Le Scao
+  given-names: Teven
+- family-names: Canwen Xu
+  given-names: Kevin
+- family-names: Patry
+  given-names: Nicolas
+- family-names: Liu
+  given-names: Steven
+- family-names: McMillan-Major
+  given-names: Angelina
+- family-names: Schmid
+  given-names: Philipp
+- family-names: Gugger
+  given-names: Sylvain
+- family-names: Raw
+  given-names: Nathan
+- family-names: Lesage
+  given-names: Sylvain
+- family-names: Lozhkov
+  given-names: Anton
+- family-names: Carrigan
+  given-names: Matthew
+- family-names: Matussière
+  given-names: Théo
+- family-names: von Werra
+  given-names: Leandro
+- family-names: Debut
+  given-names: Lysandre
+- family-names: Bekman
+  given-names: Stas
+- family-names: Delangue
+  given-names: Clément
+doi: 10.5281/zenodo.4817768
+repository-code: "https://github.com/huggingface/datasets"
+license: Apache-2.0
+preferred-citation:
+  type: conference-paper
+  title: "Datasets: A Community Library for Natural Language Processing"
+  authors:
+  - family-names: Lhoest
+    given-names: Quentin
+  - family-names: Villanova del Moral
+    given-names: Albert
+    orcid: "https://orcid.org/0000-0003-1727-1045"
+  - family-names: von Platen
+    given-names: Patrick
+  - family-names: Wolf
+    given-names: Thomas
+  - family-names: Šaško
+    given-names: Mario
+  - family-names: Jernite
+    given-names: Yacine
+  - family-names: Thakur
+    given-names: Abhishek
+  - family-names: Tunstall
+    given-names: Lewis
+  - family-names: Patil
+    given-names: Suraj
+  - family-names: Drame
+    given-names: Mariama
+  - family-names: Chaumond
+    given-names: Julien
+  - family-names: Plu
+    given-names: Julien
+  - family-names: Davison
+    given-names: Joe
+  - family-names: Brandeis
+    given-names: Simon
+  - family-names: Sanh
+    given-names: Victor
+  - family-names: Le Scao
+    given-names: Teven
+  - family-names: Canwen Xu
+    given-names: Kevin
+  - family-names: Patry
+    given-names: Nicolas
+  - family-names: Liu
+    given-names: Steven
+  - family-names: McMillan-Major
+    given-names: Angelina
+  - family-names: Schmid
+    given-names: Philipp
+  - family-names: Gugger
+    given-names: Sylvain
+  - family-names: Raw
+    given-names: Nathan
+  - family-names: Lesage
+    given-names: Sylvain
+  - family-names: Lozhkov
+    given-names: Anton
+  - family-names: Carrigan
+    given-names: Matthew
+  - family-names: Matussière
+    given-names: Théo
+  - family-names: von Werra
+    given-names: Leandro
+  - family-names: Debut
+    given-names: Lysandre
+  - family-names: Bekman
+    given-names: Stas
+  - family-names: Delangue
+    given-names: Clément
+  collection-title: "Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing: System Demonstrations"
+  collection-type: proceedings
+  month: 11
+  year: 2021
+  publisher:
+    name: "Association for Computational Linguistics"
+  url: "https://aclanthology.org/2021.emnlp-demo.21"
+  start: 175
+  end: 184
+  identifiers:
+    - type: other
+      value: "arXiv:2109.02846"
+      description: "The arXiv preprint of the paper"

@@ -1,0 +1,7 @@
+contact_links:
+  - name: Datasets on the Hugging Face Hub
+    url: https://huggingface.co/datasets
+    about: Please use the "Community" tab of the dataset on the Hugging Face Hub to open a discussion or a pull request
+  - name: Forum
+    url: https://discuss.huggingface.co/c/datasets/10
+    about: Please ask and answer questions here, and engage with other community members

@@ -1,0 +1,130 @@
+{
+    "license": "Apache-2.0",
+    "creators": [
+        {
+            "affiliation": "Hugging Face",
+            "name": "Quentin Lhoest"
+        },
+        {
+            "orcid": "0000-0003-1727-1045",
+            "affiliation": "Hugging Face",
+            "name": "Albert Villanova del Moral"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Patrick von Platen"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Thomas Wolf"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Mario Šaško"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Yacine Jernite"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Abhishek Thakur"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Lewis Tunstall"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Suraj Patil"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Mariama Drame"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Julien Chaumond"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Julien Plu"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Joe Davison"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Simon Brandeis"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Victor Sanh"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Teven Le Scao"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Kevin Canwen Xu"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Nicolas Patry"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Steven Liu"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Angelina McMillan-Major"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Philipp Schmid"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Sylvain Gugger"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Nathan Raw"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Sylvain Lesage"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Anton Lozhkov"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Matthew Carrigan"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Th\u00e9o Matussi\u00e8re"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Leandro von Werra"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Lysandre Debut"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Stas Bekman"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Cl\u00e9ment Delangue"
+        }
+    ]
+}

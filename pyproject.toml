@@ -1,0 +1,27 @@
+[tool.ruff]
+line-length = 119
+
+[tool.ruff.lint]
+# Ignored rules:
+#   "E501" -> line length violation
+#   "F821" -> undefined named in type annotation (e.g. Literal["something"])
+#   "C901" -> `function_name` is too complex
+ignore = ["E501", "F821", "C901"]
+select = ["C", "E", "F", "I", "W"]
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+known-first-party = ["datasets"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401", "F403", "F405"]
+
+[tool.pytest.ini_options]
+# Test fails if a FutureWarning is thrown by `huggingface_hub`
+filterwarnings = [
+    "error::FutureWarning:huggingface_hub*",
+]
+markers = [
+    "unit: unit test",
+    "integration: integration test",
+]

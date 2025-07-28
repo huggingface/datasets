@@ -1,0 +1,60 @@
+# Locked files
+*.lock
+!dvc.lock
+
+# Extracted dummy data
+datasets/**/dummy_data-zip-extracted/
+
+# Compiled python modules.
+*.pyc
+
+# Byte-compiled
+_pycache__/
+.cache/
+
+# Python egg metadata, regenerated from source files by setuptools.
+*.egg-info
+.eggs/
+
+# PyPI distribution artifacts.
+build/
+dist/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# pyenv
+.python-version
+
+# Tests
+.pytest_cache/
+
+# Other
+*.DS_Store
+
+# PyCharm/vscode
+.idea
+.vscode
+
+# Vim
+.*.swp
+
+# playground
+/playground
+
+# Sphinx documentation
+docs/_build/
+docs/source/_build/
+
+# Benchmark results
+report.json
+report.md
+
+# Ruff
+.ruff_cache
