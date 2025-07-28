@@ -2,7 +2,7 @@ import io
 import json
 import re
 from itertools import islice
-from typing import Any, Callable
+from typing import Any, Callable, Dict, List, Optional
 
 import fsspec
 import numpy as np
@@ -59,12 +59,18 @@ class WebDataset(datasets.GeneratorBasedBuilder):
     def _info(self) -> datasets.DatasetInfo:
         return datasets.DatasetInfo()
 
-    def _split_generators(self, dl_manager):
+    def _available_splits(self) -> Optional[List[str]]:
+        return [str(split) for split in self.config.data_files] if isinstance(self.config.data_files, dict) else None
+
+    def _split_generators(self, dl_manager, splits: Optional[List[str]] = None):
         """We handle string, list and dicts in datafiles"""
         # Download the data files
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
-        data_files = dl_manager.download(self.config.data_files)
+        data_files = self.config.data_files
+        if splits and isinstance(data_files, dict):
+            data_files = {split: data_files[split] for split in splits}
+        data_files = dl_manager.download(data_files)
         splits = []
         for split_name, tar_paths in data_files.items():
             if isinstance(tar_paths, str):

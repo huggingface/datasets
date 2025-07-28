@@ -1,4 +1,5 @@
 import os
+import posixpath
 import tempfile
 from pathlib import Path
 from unittest import TestCase
@@ -103,8 +104,8 @@ class BaseReaderTest(TestCase):
             reader = ReaderTest(tmp_dir, info)
 
             files = [
-                {"filename": os.path.join(tmp_dir, "train")},
-                {"filename": os.path.join(tmp_dir, "test"), "skip": 10, "take": 10},
+                {"filename": posixpath.join(tmp_dir, "train")},
+                {"filename": posixpath.join(tmp_dir, "test"), "skip": 10, "take": 10},
             ]
             dset = Dataset(**reader.read_files(files, original_instructions="train+test[10:20]"))
             self.assertEqual(dset.num_rows, 110)
@@ -169,7 +170,7 @@ def test_make_file_instructions_basic():
     assert isinstance(file_instructions, FileInstructions)
     assert file_instructions.num_examples == 33
     assert file_instructions.file_instructions == [
-        {"filename": os.path.join(prefix_path, f"{name}-train.arrow"), "skip": 0, "take": 33}
+        {"filename": posixpath.join(prefix_path, f"{name}-train.arrow"), "skip": 0, "take": 33}
     ]
 
     split_infos = [SplitInfo(name="train", num_examples=100, shard_lengths=[10] * 10)]
@@ -177,10 +178,10 @@ def test_make_file_instructions_basic():
     assert isinstance(file_instructions, FileInstructions)
     assert file_instructions.num_examples == 33
     assert file_instructions.file_instructions == [
-        {"filename": os.path.join(prefix_path, f"{name}-train-00000-of-00010.arrow"), "skip": 0, "take": -1},
-        {"filename": os.path.join(prefix_path, f"{name}-train-00001-of-00010.arrow"), "skip": 0, "take": -1},
-        {"filename": os.path.join(prefix_path, f"{name}-train-00002-of-00010.arrow"), "skip": 0, "take": -1},
-        {"filename": os.path.join(prefix_path, f"{name}-train-00003-of-00010.arrow"), "skip": 0, "take": 3},
+        {"filename": posixpath.join(prefix_path, f"{name}-train-00000-of-00010.arrow"), "skip": 0, "take": -1},
+        {"filename": posixpath.join(prefix_path, f"{name}-train-00001-of-00010.arrow"), "skip": 0, "take": -1},
+        {"filename": posixpath.join(prefix_path, f"{name}-train-00002-of-00010.arrow"), "skip": 0, "take": -1},
+        {"filename": posixpath.join(prefix_path, f"{name}-train-00003-of-00010.arrow"), "skip": 0, "take": 3},
     ]
 
 
@@ -217,7 +218,7 @@ def test_make_file_instructions(split_name, instruction, shard_lengths, read_ran
         if not isinstance(shard_lengths, list):
             assert file_instructions.file_instructions == [
                 {
-                    "filename": os.path.join(prefix_path, f"{name}-{split_name}.arrow"),
+                    "filename": posixpath.join(prefix_path, f"{name}-{split_name}.arrow"),
                     "skip": read_range[0],
                     "take": read_range[1] - read_range[0],
                 }
@@ -226,7 +227,9 @@ def test_make_file_instructions(split_name, instruction, shard_lengths, read_ran
             file_instructions_list = []
             shard_offset = 0
             for i, shard_length in enumerate(shard_lengths):
-                filename = os.path.join(prefix_path, f"{name}-{split_name}-{i:05d}-of-{len(shard_lengths):05d}.arrow")
+                filename = posixpath.join(
+                    prefix_path, f"{name}-{split_name}-{i:05d}-of-{len(shard_lengths):05d}.arrow"
+                )
                 if shard_offset <= read_range[0] < shard_offset + shard_length:
                     file_instructions_list.append(
                         {
