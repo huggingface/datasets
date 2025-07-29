@@ -26,6 +26,7 @@ import json
 import math
 import os
 import posixpath
+import random
 import re
 import shutil
 import string
@@ -67,7 +68,7 @@ from huggingface_hub import (
     DatasetCardData,
     HfApi,
 )
-from huggingface_hub.errors import HfHubHTTPError
+from huggingface_hub.errors import HfHubHTTPError, RepositoryNotFoundError
 from huggingface_hub.hf_api import RepoFile
 from multiprocess import Pool
 from tqdm.contrib.concurrent import thread_map
@@ -5765,18 +5766,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
-        repo_url = api.create_repo(
-            repo_id,
-            token=token,
-            repo_type="dataset",
-            private=private,
-            exist_ok=True,
-        )
-        repo_id = repo_url.repo_id
+        try:
+            repo_id = api.repo_info(repo_id, repo_type="dataset").id
+        except RepositoryNotFoundError:
+            repo_url = api.create_repo(
+                repo_id,
+                repo_type="dataset",
+                private=private,
+                exist_ok=True,
+            )
+            repo_id = repo_url.repo_id
 
         if revision is not None and not revision.startswith("refs/pr/"):
             # We do not call create_branch for a PR reference: 400 Bad Request
-            api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
+            api.create_branch(repo_id, branch=revision, repo_type="dataset", exist_ok=True)
 
         if not data_dir:
             data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
@@ -5837,6 +5840,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
         def get_new_dataset_card_data() -> tuple[str, str, Optional[str]]:
+            nonlocal info_to_dump
             parent_commit = api.repo_info(repo_id, repo_type="dataset", revision=revision).sha
             # get the info from the README to update them
             if repo_with_dataset_card:
@@ -5938,6 +5942,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     dataset_infos: dict = json.load(f)
                 dataset_infos[config_name] = asdict(info_to_dump)
                 new_dataset_infos = json.dumps(dataset_infos, indent=4)
+            else:
+                new_dataset_infos = None
             # push to README
             DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
             MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
@@ -5961,7 +5967,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     operations=operations,
                     commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
                     commit_description=commit_description,
-                    token=token,
                     repo_type="dataset",
                     revision=revision,
                     create_pr=create_pr,
@@ -5973,8 +5978,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
             additions = deletions = []
 
-        while True:
+        for sleep_time in itertools.chain(range(10), itertools.repeat(30)):
             # We need to retry if there was a commit in between in case it touched the dataset card data
+            sleep_time *= 1 + random.random()
             parent_commit, dataset_card, dataset_infos = get_new_dataset_card_data()
             dataset_card_additions = []
             if dataset_infos:
@@ -5993,7 +5999,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     operations=additions + dataset_card_additions + deletions,
                     commit_message=commit_message,
                     commit_description=commit_description,
-                    token=token,
                     repo_type="dataset",
                     revision=revision,
                     create_pr=create_pr,
@@ -6002,6 +6007,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             except HfHubHTTPError as err:
                 if "Precondition Failed" in str(err):
                     print("RETRY")
+                    time.sleep(sleep_time)
                     continue
                 else:
                     raise
