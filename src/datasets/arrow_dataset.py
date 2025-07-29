@@ -5844,7 +5844,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # get the info from the README to update them
             if repo_with_dataset_card:
                 dataset_card_path = api.hf_hub_download(
-                    repo_id, config.REPOCARD_FILENAME, repo_type="dataset", revision=revision
+                    repo_id, config.REPOCARD_FILENAME, repo_type="dataset", revision=parent_commit
                 )
                 dataset_card = DatasetCard.load(Path(dataset_card_path))
                 dataset_card_data = dataset_card.data
@@ -5860,7 +5860,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 dataset_card_data = DatasetCardData()
                 metadata_configs = MetadataConfigs()
                 dataset_infos_path = api.hf_hub_download(
-                    repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=revision
+                    repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=parent_commit
                 )
                 with open(dataset_infos_path, encoding="utf-8") as f:
                     dataset_infos: dict = json.load(f)
@@ -5935,7 +5935,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # push to the deprecated dataset_infos.json
             if repo_with_dataset_infos:
                 dataset_infos_path = api.hf_hub_download(
-                    repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=revision
+                    repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=parent_commit
                 )
                 with open(dataset_infos_path, encoding="utf-8") as f:
                     dataset_infos: dict = json.load(f)
@@ -5975,9 +5975,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
-            additions = deletions = []
+            additions = []
+            deletions = []
 
-        for sleep_time in itertools.chain(range(10), itertools.repeat(30)):
+        for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
             # We need to retry if there was a commit in between in case it touched the dataset card data
             sleep_time *= 1 + random.random()
             parent_commit, dataset_card, dataset_infos = get_new_dataset_card_data()
@@ -6005,8 +6006,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
             except HfHubHTTPError as err:
                 if "Precondition Failed" in str(err):
-                    print("RETRY")
                     time.sleep(sleep_time)
+                    logger.warning(f"Retry #{retry} for {repo_id}, {config_name}")
                     continue
                 else:
                     raise
