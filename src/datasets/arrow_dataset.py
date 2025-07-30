@@ -70,6 +70,7 @@ from huggingface_hub import (
 )
 from huggingface_hub.hf_api import HfHubHTTPError, RepoFile, RepositoryNotFoundError
 from multiprocess import Pool
+from requests import HTTPError
 from tqdm.contrib.concurrent import thread_map
 
 from . import config
@@ -6005,9 +6006,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     parent_commit=parent_commit,
                 )
             except HfHubHTTPError as err:
-                if "Precondition Failed" in str(err):
+                if (
+                    err.__context__
+                    and isinstance(err.__context__, HTTPError)
+                    and err.__context__.response.status_code in (412, 409)
+                ):
+                    # 412 is Precondition failed (parent_commit isn't satisfied)
+                    # 409 is Conflict (another commit is in progress)
                     time.sleep(sleep_time)
-                    logger.warning(f"Retry #{retry} for {repo_id}, {config_name}")
+                    logger.info(
+                        f"Retrying commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
+                    )
                     continue
                 else:
                     raise
