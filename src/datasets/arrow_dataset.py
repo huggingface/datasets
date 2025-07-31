@@ -3010,7 +3010,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                  The number of processes to use for multiprocessing.  
                 - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.  
                 - If greater than `1`, one or multiple worker processes are used to process data in parallel.  
-                 Note: The function passed to `map()` must be picklable for multiprocessing to work correctly (i.e., prefer functions defined at the top level of a module, not inside another function or class).
+                 Note: The function passed to `map()` must be picklable for multiprocessing to work correctly
+                 (i.e., prefer functions defined at the top level of a module, not inside another function or class).
              suffix_template (`str`):
                 If `cache_file_name` is specified, then this suffix
                 will be added at the end of the base name of each. Defaults to `"_{rank:05d}_of_{num_proc:05d}"`. For example, if `cache_file_name` is "processed.arrow", then for
@@ -3308,7 +3309,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         assert isinstance(content, int)
                         pbar.update(content)
 
-                if num_proc is not None and num_proc > 1:
+                if num_proc is not None and num_proc >= 1:
                     with Pool(num_proc) as pool:
                         os.environ = prev_env
                         logger.info(f"Spawning {num_proc} processes")
@@ -3857,9 +3858,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
             fn_kwargs (`dict`, *optional*):
                 Keyword arguments to be passed to `function`.
-            num_proc (`int`, *optional*):
-                Number of processes for multiprocessing. By default it doesn't
-                use multiprocessing.
+            num_proc (`int`, *optional*, defaults to `None`):
+                 The number of processes to use for multiprocessing.  
+                - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.  
+                - If greater than `1`, one or multiple worker processes are used to process data in parallel.  
+                 Note: The function passed to `map()` must be picklable for multiprocessing to work correctly
+                 (i.e., prefer functions defined at the top level of a module, not inside another function or class).
             suffix_template (`str`):
                 If `cache_file_name` is specified, then this suffix will be added at the end of the base name of each.
                 For example, if `cache_file_name` is `"processed.arrow"`, then for `rank = 1` and `num_proc = 4`,
