@@ -4076,7 +4076,7 @@ class IterableDataset(DatasetInfoMixin):
             num_proc=num_proc,
         )
 
-        def get_deletions_and_dataset_card():
+        def get_deletions_and_dataset_card() -> tuple[str, list[CommitOperationDelete], str, Optional[str]]:
             parent_commit = api.repo_info(repo_id, repo_type="dataset", revision=revision).sha
 
             # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
@@ -4260,7 +4260,9 @@ class IterableDataset(DatasetInfoMixin):
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
-            additions = []
+            last_commit_additions = []
+        else:
+            last_commit_additions = additions
 
         for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
             # We need to retry if there was a commit in between in case it touched the dataset card data
@@ -4280,7 +4282,7 @@ class IterableDataset(DatasetInfoMixin):
             try:
                 commit_info = api.create_commit(
                     repo_id,
-                    operations=additions + dataset_card_additions + deletions,
+                    operations=last_commit_additions + dataset_card_additions + deletions,
                     commit_message=commit_message,
                     commit_description=commit_description,
                     repo_type="dataset",
