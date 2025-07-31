@@ -5797,51 +5797,52 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_proc=num_proc,
         )
 
-        # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
-        # and delete old split shards (if they exist)
-        repo_with_dataset_card, repo_with_dataset_infos = False, False
-        deletions: list[CommitOperationDelete] = []
-        deleted_size = 0
-        repo_splits: list[str] = []  # use a list to keep the order of the splits
-        repo_files_to_add = [addition.path_in_repo for addition in additions]
-        for repo_file in api.list_repo_tree(
-            repo_id=repo_id, revision=revision, repo_type="dataset", token=token, recursive=True
-        ):
-            if not isinstance(repo_file, RepoFile):
-                continue
-            if repo_file.rfilename == config.REPOCARD_FILENAME:
-                repo_with_dataset_card = True
-            elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
-                repo_with_dataset_infos = True
-            elif (
-                repo_file.rfilename.startswith(f"{data_dir}/{split}-") and repo_file.rfilename not in repo_files_to_add
-            ):
-                deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
-                deleted_size += repo_file.size
-            elif fnmatch.fnmatch(
-                repo_file.rfilename, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*")
-            ):
-                pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
-                split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
-                assert split_pattern_fields is not None
-                repo_split = split_pattern_fields["split"]
-                if repo_split not in repo_splits:
-                    repo_splits.append(repo_split)
-
-        organization, dataset_name = repo_id.split("/") if "/" in repo_id else (None, repo_id)
-        info_to_dump = self.info.copy()
-        info_to_dump.download_checksums = None
-        info_to_dump.download_size = uploaded_size
-        info_to_dump.dataset_size = dataset_nbytes
-        info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
-        info_to_dump.config_name = config_name
-        info_to_dump.splits = SplitDict(
-            {split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)}
-        )
-
-        def get_new_dataset_card_data() -> tuple[str, str, Optional[str]]:
-            nonlocal info_to_dump
+        def get_deletions_and_dataset_card() -> tuple[str, str, Optional[str]]:
             parent_commit = api.repo_info(repo_id, repo_type="dataset", revision=revision).sha
+
+            # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
+            # and delete old split shards (if they exist)
+            repo_with_dataset_card, repo_with_dataset_infos = False, False
+            deletions: list[CommitOperationDelete] = []
+            deleted_size = 0
+            repo_splits: list[str] = []  # use a list to keep the order of the splits
+            repo_files_to_add = [addition.path_in_repo for addition in additions]
+            for repo_file in api.list_repo_tree(
+                repo_id=repo_id, revision=parent_commit, repo_type="dataset", token=token, recursive=True
+            ):
+                if not isinstance(repo_file, RepoFile):
+                    continue
+                if repo_file.rfilename == config.REPOCARD_FILENAME:
+                    repo_with_dataset_card = True
+                elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
+                    repo_with_dataset_infos = True
+                elif (
+                    repo_file.rfilename.startswith(f"{data_dir}/{split}-")
+                    and repo_file.rfilename not in repo_files_to_add
+                ):
+                    deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
+                    deleted_size += repo_file.size
+                elif fnmatch.fnmatch(
+                    repo_file.rfilename,
+                    PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
+                ):
+                    pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                    split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
+                    assert split_pattern_fields is not None
+                    repo_split = split_pattern_fields["split"]
+                    if repo_split not in repo_splits:
+                        repo_splits.append(repo_split)
+
+            organization, dataset_name = repo_id.split("/") if "/" in repo_id else (None, repo_id)
+            info_to_dump = self.info.copy()
+            info_to_dump.download_checksums = None
+            info_to_dump.download_size = uploaded_size
+            info_to_dump.dataset_size = dataset_nbytes
+            info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
+            info_to_dump.config_name = config_name
+            info_to_dump.splits = SplitDict(
+                {split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)}
+            )
             # get the info from the README to update them
             if repo_with_dataset_card:
                 dataset_card_path = api.hf_hub_download(
@@ -5950,7 +5951,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             new_dataset_card = (
                 DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
             )
-            return parent_commit, new_dataset_card, new_dataset_infos
+            return parent_commit, deletions, new_dataset_card, new_dataset_infos
 
         commit_message = commit_message if commit_message is not None else "Upload dataset"
         if len(additions) > config.UPLOADS_MAX_NUMBER_PER_COMMIT:
@@ -5961,7 +5962,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for i in range(0, num_commits):
                 operations = additions[
                     i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
-                ] + (deletions if i == 0 else [])
+                ]
                 commit_info = api.create_commit(
                     repo_id,
                     operations=operations,
@@ -5977,12 +5978,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     + "."
                 )
             additions = []
-            deletions = []
 
         for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
             # We need to retry if there was a commit in between in case it touched the dataset card data
             sleep_time *= 1 + random.random()
-            parent_commit, dataset_card, dataset_infos = get_new_dataset_card_data()
+            parent_commit, deletions, dataset_card, dataset_infos = get_deletions_and_dataset_card()
             dataset_card_additions = []
             if dataset_infos:
                 dataset_card_additions.append(
