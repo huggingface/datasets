@@ -3007,9 +3007,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             fn_kwargs (`Dict`, *optional*, defaults to `None`):
                 Keyword arguments to be passed to `function`.
             num_proc (`int`, *optional*, defaults to `None`):
-                 The number of processes to use for multiprocessing.  
-                - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.  
-                - If greater than `1`, one or multiple worker processes are used to process data in parallel.  
+                 The number of processes to use for multiprocessing.
+                - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.
+                - If greater than `1`, one or multiple worker processes are used to process data in parallel.
                  Note: The function passed to `map()` must be picklable for multiprocessing to work correctly
                  (i.e., prefer functions defined at the top level of a module, not inside another function or class).
              suffix_template (`str`):
@@ -3859,9 +3859,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             fn_kwargs (`dict`, *optional*):
                 Keyword arguments to be passed to `function`.
             num_proc (`int`, *optional*, defaults to `None`):
-                 The number of processes to use for multiprocessing.  
-                - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.  
-                - If greater than `1`, one or multiple worker processes are used to process data in parallel.  
+                 The number of processes to use for multiprocessing.
+                - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.
+                - If greater than `1`, one or multiple worker processes are used to process data in parallel.
                  Note: The function passed to `map()` must be picklable for multiprocessing to work correctly
                  (i.e., prefer functions defined at the top level of a module, not inside another function or class).
             suffix_template (`str`):
