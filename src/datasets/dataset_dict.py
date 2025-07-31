@@ -1909,7 +1909,9 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
-            additions = []
+            last_commit_additions = []
+        else:
+            last_commit_additions = additions
 
         for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
             # We need to retry if there was a commit in between in case it touched the dataset card data
@@ -1929,7 +1931,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             try:
                 commit_info = api.create_commit(
                     repo_id,
-                    operations=additions + dataset_card_additions + deletions,
+                    operations=last_commit_additions + dataset_card_additions + deletions,
                     commit_message=commit_message,
                     commit_description=commit_description,
                     repo_type="dataset",
@@ -2757,7 +2759,9 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
-            additions = []
+            last_commit_additions = []
+        else:
+            last_commit_additions = additions
 
         for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
             # We need to retry if there was a commit in between in case it touched the dataset card data
@@ -2777,7 +2781,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
             try:
                 commit_info = api.create_commit(
                     repo_id,
-                    operations=additions + dataset_card_additions + deletions,
+                    operations=last_commit_additions + dataset_card_additions + deletions,
                     commit_message=commit_message,
                     commit_description=commit_description,
                     repo_type="dataset",
