@@ -4076,7 +4076,7 @@ class IterableDataset(DatasetInfoMixin):
             num_proc=num_proc,
         )
 
-        def get_deletions_and_dataset_card():
+        def get_deletions_and_dataset_card() -> tuple[str, list[CommitOperationDelete], str, Optional[str]]:
             parent_commit = api.repo_info(repo_id, repo_type="dataset", revision=revision).sha
 
             # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
