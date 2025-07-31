@@ -1,3 +1,6 @@
+import json
+import unittest.mock
+
 import fsspec
 import pyarrow.parquet as pq
 import pytest
@@ -197,6 +200,57 @@ def test_parquet_write(dataset, tmp_path):
     pf = pq.ParquetFile(tmp_path / "foo.parquet")
     output_table = pf.read()
     assert dataset.data.table == output_table
+
+
+def test_parquet_write_uses_content_defined_chunking(dataset, tmp_path):
+    assert config.DEFAULT_CDC_OPTIONS == {
+        "min_chunk_size": 256 * 1024,  # 256 KiB
+        "max_chunk_size": 1024 * 1024,  # 1 MiB
+        "norm_level": 0,
+    }
+
+    with unittest.mock.patch("pyarrow.parquet.ParquetWriter") as MockWriter:
+        writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet")
+        writer.write()
+        assert MockWriter.call_count == 1
+        _, kwargs = MockWriter.call_args
+        # Save or check the arguments as needed
+        assert "use_content_defined_chunking" in kwargs
+        assert kwargs["use_content_defined_chunking"] == config.DEFAULT_CDC_OPTIONS
+
+
+def test_parquet_writer_persist_cdc_options_as_metadata(dataset, tmp_path):
+    def write_and_get_metadata(**kwargs):
+        # write the dataset to parquet with the default CDC options
+        writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet", **kwargs)
+        assert writer.write() > 0
+
+        # read the parquet KV metadata
+        metadata = pq.read_metadata(tmp_path / "foo.parquet")
+        key_value_metadata = metadata.metadata
+
+        return key_value_metadata
+
+    # by default no arguments are passed, same as passing True using the default options
+    for key_value_metadata in [write_and_get_metadata(), write_and_get_metadata(use_content_defined_chunking=True)]:
+        assert b"content_defined_chunking" in key_value_metadata
+        json_encoded_options = key_value_metadata[b"content_defined_chunking"].decode("utf-8")
+        assert json.loads(json_encoded_options) == config.DEFAULT_CDC_OPTIONS
+
+    # passing False disables the content defined chunking and doesn't persist the options in metadata
+    key_value_metadata = write_and_get_metadata(use_content_defined_chunking=False)
+    assert b"content_defined_chunking" not in key_value_metadata
+
+    # passing custom options, using the custom options
+    custom_cdc_options = {
+        "min_chunk_size": 128 * 1024,  # 128 KiB
+        "max_chunk_size": 512 * 1024,  # 512 KiB
+        "norm_level": 1,
+    }
+    key_value_metadata = write_and_get_metadata(use_content_defined_chunking=custom_cdc_options)
+    assert b"content_defined_chunking" in key_value_metadata
+    json_encoded_options = key_value_metadata[b"content_defined_chunking"].decode("utf-8")
+    assert json.loads(json_encoded_options) == custom_cdc_options
 
 
 def test_dataset_to_parquet_keeps_features(shared_datadir, tmp_path):
