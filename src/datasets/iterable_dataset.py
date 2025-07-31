@@ -3880,13 +3880,13 @@ class IterableDataset(DatasetInfoMixin):
             for job_id in range(num_jobs)
         ]
         desc = "Uploading the dataset shards"
-        desc += f" (num_proc={num_proc})" if num_proc is not None and num_proc > 1 else ""
+        desc += f" (num_proc={num_proc})" if num_proc is not None and num_proc >= 1 else ""
         pbar = hf_tqdm(
             unit=" shards",
             total=num_shards,
             desc=desc,
         )
-        with contextlib.nullcontext() if num_proc is None or num_proc <= 1 else Pool(num_proc) as pool:
+        with contextlib.nullcontext() if num_proc is None or num_proc < 1 else Pool(num_proc) as pool:
             update_stream = (
                 IterableDataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
                 if pool is None

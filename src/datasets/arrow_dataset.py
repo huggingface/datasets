@@ -1609,7 +1609,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         shard_lengths = [None] * num_shards
         shard_sizes = [None] * num_shards
-        if num_proc > 1:
+        if num_proc >= 1:
             with Pool(num_proc) as pool:
                 with pbar:
                     for job_id, done, content in iflatmap_unordered(
@@ -3009,8 +3009,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             fn_kwargs (`Dict`, *optional*, defaults to `None`):
                 Keyword arguments to be passed to `function`.
             num_proc (`int`, *optional*, defaults to `None`):
-                Max number of processes when generating cache. Already cached shards are loaded sequentially.
-            suffix_template (`str`):
+                 The number of processes to use for multiprocessing.
+                - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.
+                - If greater than `1`, one or multiple worker processes are used to process data in parallel.
+                 Note: The function passed to `map()` must be picklable for multiprocessing to work correctly
+                 (i.e., prefer functions defined at the top level of a module, not inside another function or class).
+             suffix_template (`str`):
                 If `cache_file_name` is specified, then this suffix
                 will be added at the end of the base name of each. Defaults to `"_{rank:05d}_of_{num_proc:05d}"`. For example, if `cache_file_name` is "processed.arrow", then for
                 `rank=1` and `num_proc=4`, the resulting file would be `"processed_00001_of_00004.arrow"` for the default suffix.
@@ -3046,8 +3050,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if keep_in_memory and cache_file_name is not None:
             raise ValueError("Please use either `keep_in_memory` or `cache_file_name` but not both.")
 
-        if num_proc is not None and num_proc <= 0:
-            raise ValueError("num_proc must be an integer > 0.")
+        if num_proc == 0:
+            num_proc = None
+        elif num_proc is not None and num_proc < 0:
+            raise ValueError("num_proc must be >= 0 or None.")
 
         string_formatter = string.Formatter()
         fields = {field_name for _, field_name, _, _ in string_formatter.parse(suffix_template) if field_name}
@@ -3223,7 +3229,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             validate_fingerprint(new_fingerprint)
             return new_fingerprint
 
-        if num_proc is not None and num_proc > 1:
+        if num_proc is not None and num_proc >= 1:
             prev_env = deepcopy(os.environ)
             # check if parallelism if off
             # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
@@ -3290,7 +3296,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 unit=" examples",
                 initial=pbar_initial,
                 total=pbar_total,
-                desc=(desc or "Map") + (f" (num_proc={num_proc})" if num_proc is not None and num_proc > 1 else ""),
+                desc=(desc or "Map") + (f" (num_proc={num_proc})" if num_proc is not None and num_proc >= 1 else ""),
             ) as pbar:
                 shards_done = 0
 
@@ -3305,7 +3311,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         assert isinstance(content, int)
                         pbar.update(content)
 
-                if num_proc is not None and num_proc > 1:
+                if num_proc is not None and num_proc >= 1:
                     with Pool(num_proc) as pool:
                         os.environ = prev_env
                         logger.info(f"Spawning {num_proc} processes")
@@ -3854,9 +3860,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
             fn_kwargs (`dict`, *optional*):
                 Keyword arguments to be passed to `function`.
-            num_proc (`int`, *optional*):
-                Number of processes for multiprocessing. By default it doesn't
-                use multiprocessing.
+            num_proc (`int`, *optional*, defaults to `None`):
+                 The number of processes to use for multiprocessing.
+                - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.
+                - If greater than `1`, one or multiple worker processes are used to process data in parallel.
+                 Note: The function passed to `map()` must be picklable for multiprocessing to work correctly
+                 (i.e., prefer functions defined at the top level of a module, not inside another function or class).
             suffix_template (`str`):
                 If `cache_file_name` is specified, then this suffix will be added at the end of the base name of each.
                 For example, if `cache_file_name` is `"processed.arrow"`, then for `rank = 1` and `num_proc = 4`,
@@ -5602,13 +5611,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for job_id in range(num_jobs)
         ]
         desc = "Uploading the dataset shards"
-        desc += f" (num_proc={num_proc})" if num_proc is not None and num_proc > 1 else ""
+        desc += f" (num_proc={num_proc})" if num_proc is not None and num_proc >= 1 else ""
         pbar = hf_tqdm(
             unit=" shards",
             total=num_shards,
             desc=desc,
         )
-        with contextlib.nullcontext() if num_proc is None or num_proc <= 1 else Pool(num_proc) as pool:
+        with contextlib.nullcontext() if num_proc is None or num_proc < 1 else Pool(num_proc) as pool:
             update_stream = (
                 Dataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
                 if pool is None
