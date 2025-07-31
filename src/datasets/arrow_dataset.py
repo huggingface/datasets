@@ -3008,7 +3008,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Keyword arguments to be passed to `function`.
             num_proc (`int`, *optional*, defaults to `None`):
                     The number of processes to use for multiprocessing.  
-                    - If `None` or `1`, no multiprocessing is used and the operation runs in the main process.  
+                    - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.  
                     - If greater than `1`, multiple worker processes are used to process data in parallel.  
                     - Setting `num_proc=0` is not supported and will raise a `ValueError`.
                      Note: The function passed to `map()` must be picklable for multiprocessing to work correctly (i.e., defined at the top level of a module, not inside another function or class).
