@@ -1607,7 +1607,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         shard_lengths = [None] * num_shards
         shard_sizes = [None] * num_shards
-        if num_proc > 1:
+        if num_proc >= 1:
             with Pool(num_proc) as pool:
                 with pbar:
                     for job_id, done, content in iflatmap_unordered(
@@ -3227,7 +3227,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             validate_fingerprint(new_fingerprint)
             return new_fingerprint
 
-        if num_proc is not None and num_proc > 1:
+        if num_proc is not None and num_proc >= 1:
             prev_env = deepcopy(os.environ)
             # check if parallelism if off
             # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
@@ -3294,7 +3294,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 unit=" examples",
                 initial=pbar_initial,
                 total=pbar_total,
-                desc=(desc or "Map") + (f" (num_proc={num_proc})" if num_proc is not None and num_proc > 1 else ""),
+                desc=(desc or "Map") + (f" (num_proc={num_proc})" if num_proc is not None and num_proc >= 1 else ""),
             ) as pbar:
                 shards_done = 0
 
@@ -5609,7 +5609,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for job_id in range(num_jobs)
         ]
         desc = "Uploading the dataset shards"
-        desc += f" (num_proc={num_proc})" if num_proc is not None and num_proc > 1 else ""
+        desc += f" (num_proc={num_proc})" if num_proc is not None and num_proc >= 1 else ""
         pbar = hf_tqdm(
             unit=" shards",
             total=num_shards,
