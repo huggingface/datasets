@@ -906,8 +906,11 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             fn_kwargs (`Dict`, *optional*, defaults to `None`):
                 Keyword arguments to be passed to `function`
             num_proc (`int`, *optional*, defaults to `None`):
-                Number of processes for multiprocessing. By default it doesn't
-                use multiprocessing.
+                 The number of processes to use for multiprocessing.
+                - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.
+                - If greater than `1`, one or multiple worker processes are used to process data in parallel.
+                 Note: The function passed to `map()` must be picklable for multiprocessing to work correctly
+                 (i.e., prefer functions defined at the top level of a module, not inside another function or class).
             desc (`str`, *optional*, defaults to `None`):
                 Meaningful description to be displayed alongside with the progress bar while mapping examples.
             try_original_type (`Optional[bool]`, defaults to `True`):
@@ -1028,8 +1031,11 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             fn_kwargs (`Dict`, *optional*, defaults to `None`):
                 Keyword arguments to be passed to `function`
             num_proc (`int`, *optional*, defaults to `None`):
-                Number of processes for multiprocessing. By default it doesn't
-                use multiprocessing.
+                 The number of processes to use for multiprocessing.
+                - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.
+                - If greater than `1`, one or multiple worker processes are used to process data in parallel.
+                 Note: The function passed to `map()` must be picklable for multiprocessing to work correctly
+                 (i.e., prefer functions defined at the top level of a module, not inside another function or class).
             desc (`str`, *optional*, defaults to `None`):
                 Meaningful description to be displayed alongside with the progress bar while filtering examples.
 
