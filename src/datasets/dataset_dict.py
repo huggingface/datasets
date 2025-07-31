@@ -2642,7 +2642,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
             repo_files_to_add = [addition.path_in_repo for addition in additions]
             for repo_file in api.list_repo_tree(
                 repo_id=repo_id,
-                revision=revision,
+                revision=parent_commit,
                 repo_type="dataset",
                 token=token,
                 recursive=True,
@@ -2675,7 +2675,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                     repo_id,
                     config.REPOCARD_FILENAME,
                     repo_type="dataset",
-                    revision=revision,
+                    revision=parent_commit,
                 )
                 dataset_card = DatasetCard.load(Path(dataset_card_path))
                 dataset_card_data = dataset_card.data
@@ -2717,7 +2717,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                     repo_id,
                     config.DATASETDICT_INFOS_FILENAME,
                     repo_type="dataset",
-                    revision=revision,
+                    revision=parent_commit,
                 )
                 with open(dataset_infos_path, encoding="utf-8") as f:
                     dataset_infos: dict = json.load(f)
