@@ -39,7 +39,7 @@ The dataset has two fields:
 
 Here the depth maps are using TIFF format as it supports a wide range of data types, including `float32` data.
 However it is mention-worthy that JPEG/PNG format can only store `uint8` or `uint16` data.
-Therefore you have depth maps saved as JPEG/PNG, use the `Image(mode="F")` type to load them as single channel `float32` like normal depth maps:
+Therefore if you have depth maps saved as JPEG/PNG, use the `Image(mode="F")` type to load them as single channel `float32` like normal depth maps:
 
 ```python
 >>> from datasets import Image
