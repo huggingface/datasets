@@ -19,7 +19,30 @@ from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils.file_utils import _prepare_path_and_storage_options, is_local_path, is_relative_path, xbasename, xjoin
 from .utils.py_utils import string_to_dict
+import re
+from collections import defaultdict
+from pathlib import Path
 
+def group_files_by_subset(filepaths):
+    """
+    Groups files by subset according to a heuristic:
+    - Files whose names only differ by digits or shard suffixes are grouped together.
+    - Others are placed in separate groups.
+    """
+    def normalize(filename):
+        # Remove trailing numbers or known sharding conventions
+        name = Path(filename).stem
+        # Remove patterns like -00000-of-00003
+        name = re.sub(r'(-\d{5,}-of-\d{5,})$', '', name)
+        # Remove trailing digits, underscores, or hyphens
+        name = re.sub(r'[\d_]+$', '', name)
+        return name
+
+    groups = defaultdict(list)
+    for path in filepaths:
+        key = normalize(path)
+        groups[key].append(path)
+    return dict(groups)
 
 SingleOriginMetadata = Union[tuple[str, str], tuple[str], tuple[()]]
 
