@@ -110,8 +110,8 @@ REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 15.0.0 to be able to cast dictionary types to their underlying types
-    "pyarrow>=15.0.0",
+    # Minimum 16.0.0 to support string views
+    "pyarrow>=16.0.0",
     # For smart caching dataset processing
     "dill>=0.3.0,<0.3.9",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
