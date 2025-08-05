@@ -31,7 +31,6 @@ class WebDataset(datasets.GeneratorBasedBuilder):
         streaming_download_manager = datasets.StreamingDownloadManager()
         for filename, f in tar_iterator:
             example_key, field_name = base_plus_ext(filename)
-            field_name_lower = field_name.lower()
             if example_key is None:
                 continue
             if current_example and current_example["__key__"] != example_key:
@@ -42,18 +41,18 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                 current_example = {}
             current_example["__key__"] = example_key
             current_example["__url__"] = tar_path
-            current_example[field_name_lower] = f.read()
-            if field_name_lower.split(".")[-1] in SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL:
-                fs.write_bytes(filename, current_example[field_name_lower])
+            current_example[field_name] = f.read()
+            if field_name.split(".")[-1].lower() in SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL:
+                fs.write_bytes(filename, current_example[field_name])
                 extracted_file_path = streaming_download_manager.extract(f"memory://{filename}")
                 with fsspec.open(extracted_file_path) as f:
-                    current_example[field_name_lower] = f.read()
+                    current_example[field_name] = f.read()
                 fs.delete(filename)
-                data_extension = xbasename(extracted_file_path).split(".")[-1]
+                data_extension = xbasename(extracted_file_path).split(".")[-1].lower()
             else:
-                data_extension = field_name_lower.split(".")[-1]
+                data_extension = field_name.split(".")[-1].lower()
             if data_extension in cls.DECODERS:
-                current_example[field_name_lower] = cls.DECODERS[data_extension](current_example[field_name_lower])
+                current_example[field_name] = cls.DECODERS[data_extension](current_example[field_name])
         if current_example:
             yield current_example
 
@@ -92,19 +91,15 @@ class WebDataset(datasets.GeneratorBasedBuilder):
             inferred_arrow_schema = pa.concat_tables(pa_tables, promote_options="default").schema
             features = datasets.Features.from_arrow_schema(inferred_arrow_schema)
 
-            # Set Image types
             for field_name in first_examples[0]:
-                extension = field_name.rsplit(".", 1)[-1]
+                extension = field_name.rsplit(".", 1)[-1].lower()
+                # Set Image types
                 if extension in self.IMAGE_EXTENSIONS:
                     features[field_name] = datasets.Image()
-            # Set Audio types
-            for field_name in first_examples[0]:
-                extension = field_name.rsplit(".", 1)[-1]
+                # Set Audio types
                 if extension in self.AUDIO_EXTENSIONS:
                     features[field_name] = datasets.Audio()
-            # Set Video types
-            for field_name in first_examples[0]:
-                extension = field_name.rsplit(".", 1)[-1]
+                # Set Video types
                 if extension in self.VIDEO_EXTENSIONS:
                     features[field_name] = datasets.Video()
             self.info.features = features
