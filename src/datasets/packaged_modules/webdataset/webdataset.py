@@ -31,6 +31,7 @@ class WebDataset(datasets.GeneratorBasedBuilder):
         streaming_download_manager = datasets.StreamingDownloadManager()
         for filename, f in tar_iterator:
             example_key, field_name = base_plus_ext(filename)
+            field_name_lower = field_name.lower()
             if example_key is None:
                 continue
             if current_example and current_example["__key__"] != example_key:
@@ -41,18 +42,18 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                 current_example = {}
             current_example["__key__"] = example_key
             current_example["__url__"] = tar_path
-            current_example[field_name.lower()] = f.read()
-            if field_name.split(".")[-1] in SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL:
-                fs.write_bytes(filename, current_example[field_name.lower()])
+            current_example[field_name_lower] = f.read()
+            if field_name_lower.split(".")[-1] in SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL:
+                fs.write_bytes(filename, current_example[field_name_lower])
                 extracted_file_path = streaming_download_manager.extract(f"memory://{filename}")
                 with fsspec.open(extracted_file_path) as f:
-                    current_example[field_name.lower()] = f.read()
+                    current_example[field_name_lower] = f.read()
                 fs.delete(filename)
                 data_extension = xbasename(extracted_file_path).split(".")[-1]
             else:
-                data_extension = field_name.split(".")[-1]
+                data_extension = field_name_lower.split(".")[-1]
             if data_extension in cls.DECODERS:
-                current_example[field_name] = cls.DECODERS[data_extension](current_example[field_name])
+                current_example[field_name_lower] = cls.DECODERS[data_extension](current_example[field_name_lower])
         if current_example:
             yield current_example
 
