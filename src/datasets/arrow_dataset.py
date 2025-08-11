@@ -4647,13 +4647,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         This method is similar to scikit-learn `train_test_split`.
 
         Args:
-            test_size (`numpy.random.Generator`, *optional*):
+            test_size (`Union[float, int, None]`, *optional*):
                 Size of the test split
                 If `float`, should be between `0.0` and `1.0` and represent the proportion of the dataset to include in the test split.
                 If `int`, represents the absolute number of test samples.
                 If `None`, the value is set to the complement of the train size.
                 If `train_size` is also `None`, it will be set to `0.25`.
-            train_size (`numpy.random.Generator`, *optional*):
+            train_size (`Union[float, int, None]`, *optional*):
                 Size of the train split
                 If `float`, should be between `0.0` and `1.0` and represent the proportion of the dataset to include in the train split.
                 If `int`, represents the absolute number of train samples.
