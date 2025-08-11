@@ -12,7 +12,7 @@ from datasets.features.features import (
     Array4D,
     Array5D,
     LargeList,
-    Sequence,
+    List,
     Value,
     _ArrayXD,
     _arrow_to_datasets_dtype,
@@ -339,7 +339,7 @@ def _infer_feature_from_dataset(dset: "h5py.Dataset"):
     if hasattr(dset.dtype, "metadata") and dset.dtype.metadata and "vlen" in dset.dtype.metadata:
         vlen_dtype = dset.dtype.metadata["vlen"]
         inner_feature = _np_to_pa_to_hf_value(vlen_dtype)
-        return Sequence(inner_feature)
+        return List(inner_feature)
 
     value_feature = _np_to_pa_to_hf_value(dset.dtype)
     dtype_str = value_feature.dtype
@@ -349,7 +349,7 @@ def _infer_feature_from_dataset(dset: "h5py.Dataset"):
     if rank == 0:
         return value_feature
     elif rank == 1:
-        return Sequence(value_feature, length=value_shape[0])
+        return List(value_feature, length=value_shape[0])
     elif rank <= 5:
         return _sized_arrayxd(rank)(shape=value_shape, dtype=dtype_str)
     else:
@@ -359,7 +359,7 @@ def _infer_feature_from_dataset(dset: "h5py.Dataset"):
 def _has_zero_dimensions(feature):
     if isinstance(feature, _ArrayXD):
         return any(dim == 0 for dim in feature.shape)
-    elif isinstance(feature, Sequence):  # also gets regular List
+    elif isinstance(feature, List):  # also gets regular List
         return feature.length == 0 or _has_zero_dimensions(feature.feature)
     elif isinstance(feature, LargeList):
         return _has_zero_dimensions(feature.feature)
