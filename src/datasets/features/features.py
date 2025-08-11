@@ -1239,10 +1239,7 @@ class LargeList:
     _type: str = field(default="LargeList", init=False, repr=False)
 
     def __repr__(self):
-        if self.length != -1:
-            return f"{type(self).__name__}({self.feature}, length={self.length})"
-        else:
-            return f"{type(self).__name__}({self.feature})"
+        return f"{type(self).__name__}({self.feature})"
 
 
 FeatureType = Union[
