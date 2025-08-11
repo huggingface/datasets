@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List as ListT, Optional
 
 import numpy as np
 import pyarrow as pa
@@ -33,7 +33,7 @@ class HDF5Config(datasets.BuilderConfig):
     """BuilderConfig for HDF5."""
 
     batch_size: Optional[int] = None
-    columns: Optional[List[str]] = None
+    columns: Optional[ListT[str]] = None
     features: Optional[datasets.Features] = None
 
     def __post_init__(self):
