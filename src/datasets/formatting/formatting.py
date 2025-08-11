@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numbers
 import operator
 from collections.abc import Iterable, Mapping, MutableMapping
 from functools import partial
@@ -223,10 +224,14 @@ class PythonFeaturesDecoder:
         return self.features.decode_example(row, token_per_repo_id=self.token_per_repo_id) if self.features else row
 
     def decode_column(self, column: list, column_name: str) -> list:
-        return self.features.decode_column(column, column_name) if self.features else column
+        return (
+            self.features.decode_column(column, column_name, token_per_repo_id=self.token_per_repo_id)
+            if self.features
+            else column
+        )
 
     def decode_batch(self, batch: dict) -> dict:
-        return self.features.decode_batch(batch) if self.features else batch
+        return self.features.decode_batch(batch, token_per_repo_id=self.token_per_repo_id) if self.features else batch
 
 
 class PandasFeaturesDecoder:
@@ -561,7 +566,7 @@ def _check_valid_index_key(key: Union[int, slice, range, Iterable], size: int) -
 
 
 def key_to_query_type(key: Union[int, slice, range, str, Iterable]) -> str:
-    if isinstance(key, int):
+    if isinstance(key, numbers.Integral):
         return "row"
     elif isinstance(key, str):
         return "column"

@@ -223,10 +223,10 @@ The [`~Dataset.cast`] function transforms the feature type of one or more column
 
 ```py
 >>> dataset.features
-{'sentence1': Value(dtype='string', id=None),
-'sentence2': Value(dtype='string', id=None),
-'label': ClassLabel(names=['not_equivalent', 'equivalent'], id=None),
-'idx': Value(dtype='int32', id=None)}
+{'sentence1': Value('string'),
+'sentence2': Value('string'),
+'label': ClassLabel(names=['not_equivalent', 'equivalent']),
+'idx': Value('int32')}
 
 >>> from datasets import ClassLabel, Value
 >>> new_features = dataset.features.copy()
@@ -234,10 +234,10 @@ The [`~Dataset.cast`] function transforms the feature type of one or more column
 >>> new_features["idx"] = Value("int64")
 >>> dataset = dataset.cast(new_features)
 >>> dataset.features
-{'sentence1': Value(dtype='string', id=None),
-'sentence2': Value(dtype='string', id=None),
-'label': ClassLabel(names=['negative', 'positive'], id=None),
-'idx': Value(dtype='int64', id=None)}
+{'sentence1': Value('string'),
+'sentence2': Value('string'),
+'label': ClassLabel(names=['negative', 'positive']),
+'idx': Value('int64')}
 ```
 
 <Tip>
@@ -250,11 +250,11 @@ Use the [`~Dataset.cast_column`] function to change the feature type of a single
 
 ```py
 >>> dataset.features
-{'audio': Audio(sampling_rate=44100, mono=True, id=None)}
+{'audio': Audio(sampling_rate=44100, mono=True)}
 
 >>> dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
 >>> dataset.features
-{'audio': Audio(sampling_rate=16000, mono=True, id=None)}
+{'audio': Audio(sampling_rate=16000, mono=True)}
 ```
 
 ### Flatten
@@ -265,11 +265,12 @@ Sometimes a column can be a nested structure of several types. Take a look at th
 >>> from datasets import load_dataset
 >>> dataset = load_dataset("rajpurkar/squad", split="train")
 >>> dataset.features
-{'answers': Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None),
-'context': Value(dtype='string', id=None),
-'id': Value(dtype='string', id=None),
-'question': Value(dtype='string', id=None),
-'title': Value(dtype='string', id=None)}
+{'id': Value('string'),
+ 'title': Value('string'),
+ 'context': Value('string'),
+ 'question': Value('string'),
+ 'answers': {'text': List(Value('string')),
+  'answer_start': List(Value('int32'))}}
 ```
 
 The `answers` field contains two subfields: `text` and `answer_start`. Use the [`~Dataset.flatten`] function to extract the subfields into their own separate columns:
@@ -289,7 +290,7 @@ Notice how the subfields are now their own independent columns: `answers.text` a
 
 Some of the more powerful applications of 🤗 Datasets come from using the [`~Dataset.map`] function. The primary purpose of [`~Dataset.map`] is to speed up processing functions. It allows you to apply a processing function to each example in a dataset, independently or in batches. This function can even create new rows and columns.
 
-In the following example, prefix each `sentence1` value in the dataset with `'My sentence: '`. 
+In the following example, prefix each `sentence1` value in the dataset with `'My sentence: '`.
 
 Start by creating a function that adds `'My sentence: '` to the beginning of each sentence. The function needs to accept and output a `dict`:
 
@@ -348,18 +349,18 @@ Multiprocessing significantly speeds up processing by parallelizing processes on
 >>> updated_dataset = dataset.map(lambda example, idx: {"sentence2": f"{idx}: " + example["sentence2"]}, with_indices=True, num_proc=4)
 ```
 
-The [`~Dataset.map`] also works with the rank of the process if you set `with_rank=True`. This is analogous to the `with_indices` parameter. The `with_rank` parameter in the mapped function goes after the `index` one if it is already present. 
+The [`~Dataset.map`] also works with the rank of the process if you set `with_rank=True`. This is analogous to the `with_indices` parameter. The `with_rank` parameter in the mapped function goes after the `index` one if it is already present.
 
 ```py
 >>> import torch
 >>> from multiprocess import set_start_method
->>> from transformers import AutoTokenizer, AutoModelForCausalLM 
+>>> from transformers import AutoTokenizer, AutoModelForCausalLM
 >>> from datasets import load_dataset
->>> 
+>>>
 >>> # Get an example dataset
 >>> dataset = load_dataset("fka/awesome-chatgpt-prompts", split="train")
->>> 
->>> # Get an example model and its tokenizer 
+>>>
+>>> # Get an example model and its tokenizer
 >>> model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen1.5-0.5B-Chat").eval()
 >>> tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen1.5-0.5B-Chat")
 >>>
@@ -367,7 +368,7 @@ The [`~Dataset.map`] also works with the rank of the process if you set `with_ra
 ...     # Move the model on the right GPU if it's not there already
 ...     device = f"cuda:{(rank or 0) % torch.cuda.device_count()}"
 ...     model.to(device)
-...     
+...
 ...     # Your big GPU call goes here, for example:
 ...     chats = [[
 ...         {"role": "system", "content": "You are a helpful assistant."},
@@ -395,7 +396,7 @@ The [`~Dataset.map`] also works with the rank of the process if you set `with_ra
 ...     )
 ```
 
-The main use-case for rank is to parallelize computation across several GPUs. This requires setting `multiprocess.set_start_method("spawn")`. If you don't you'll receive the following CUDA error: 
+The main use-case for rank is to parallelize computation across several GPUs. This requires setting `multiprocess.set_start_method("spawn")`. If you don't you'll receive the following CUDA error:
 
 ```bash
 RuntimeError: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method.
@@ -528,7 +529,7 @@ Note the presence of a `Semaphore`: it sets the maximum number of queries that c
 
 Let's use it to call the [microsoft/Phi-3-mini-4k-instruct](https://huggingface.co/microsoft/Phi-3-mini-4k-instruct) model and ask it to return the main topic of each math problem in the [Maxwell-Jia/AIME_2024](https://huggingface.co/Maxwell-Jia/AIME_2024) dataset:
 
-```python
+````python
 >>> from datasets import load_dataset
 >>> ds = load_dataset("Maxwell-Jia/AIME_2024", split="train")
 >>> model = "microsoft/Phi-3-mini-4k-instruct"
@@ -542,7 +543,7 @@ Let's use it to call the [microsoft/Phi-3-mini-4k-instruct](https://huggingface.
  'Solution': 'Denote $\\log_2(x) = a$, $\\log_2(y) = b$, and...,
  'Answer': 33,
  'Output': 'The main topic is Logarithms.'}
-```
+````
 
 Here, [`Dataset.map`] runs many `get_topic` function asynchronously so it doesn't have to wait for every single model response which would take a lot of time to do sequentially.
 
@@ -644,7 +645,7 @@ You can also concatenate two datasets horizontally by setting `axis=1` as long a
 
 ### Interleave
 
-You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as *interleaving*, which is enabled by the [`interleave_datasets`] function. Both [`interleave_datasets`] and [`concatenate_datasets`] work with regular [`Dataset`] and [`IterableDataset`] objects.
+You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as _interleaving_, which is enabled by the [`interleave_datasets`] function. Both [`interleave_datasets`] and [`concatenate_datasets`] work with regular [`Dataset`] and [`IterableDataset`] objects.
 Refer to the [Stream](./stream#interleave) guide for an example of how to interleave [`IterableDataset`] objects.
 
 You can define sampling probabilities for each of the original datasets to specify how to interleave the datasets.
@@ -779,9 +780,9 @@ The [`~Dataset.with_transform`] function applies a custom formatting transform o
 
 There is also [`~Dataset.set_transform`] which does the same but runs in-place.
 
-You can also use the [`~Dataset.with_transform`] function to decode formats not supported by [`Features`]. For example, the [`Audio`] feature uses [`soundfile`](https://python-soundfile.readthedocs.io/en/0.11.0/) - a fast and simple library to install - but it does not provide support for less common audio formats. Here is where you can use [`~Dataset.set_transform`] to apply a custom decoding transform on the fly. You're free to use any library you like to decode the audio files.
+You can also use the [`~Dataset.with_transform`] function for custom decoding on [`Features`].
 
-The example below uses the [`pydub`](http://pydub.com/) package to open an audio format not supported by `soundfile`:
+The example below uses the [`pydub`](http://pydub.com/) package as an alternative to `torchcodec` decoding:
 
 ```py
 >>> import numpy as np
@@ -808,17 +809,34 @@ The example below uses the [`pydub`](http://pydub.com/) package to open an audio
 
 ## Save
 
-Once you are done processing your dataset, you can save and reuse it later with [`~Dataset.save_to_disk`].
+Once your dataset is ready, you can save it as a Hugging Face Dataset in Parquet format and reuse it later with [`load_dataset`].
 
-Save your dataset by providing the path to the directory you wish to save it to:
+Save your dataset by providing the name of the dataset repository on Hugging Face you wish to save it to to [`~Dataset.push_to_hub`]:
+
+```python
+encoded_dataset.push_to_hub("username/my_dataset")
+```
+
+You can use multiple processes to upload it in parallel. This is especially useful if you want to speed up the process:
+
+```python
+dataset.push_to_hub("username/my_dataset", num_proc=8)
+```
+
+Use the [`load_dataset`] function to reload the dataset (in streaming mode or not):
+
+```python
+from datasets import load_dataset
+reloaded_dataset = load_dataset("username/my_dataset", streaming=True)
+```
+
+Alternatively, you can save it locally in Arrow format on disk. Compared to Parquet, Arrow is uncompressed which makes it much faster to reload which is great for local use on disk and ephemeral caching. But since it's larger and with less metadata, it is slower to upload/download/query than Parquet and less suited for long term storage.
+
+Use the [`~Dataset.save_to_disk`] and [`load_from_disk`] function to reload the dataset from your disk:
 
 ```py
 >>> encoded_dataset.save_to_disk("path/of/my/dataset/directory")
-```
-
-Use the [`load_from_disk`] function to reload the dataset:
-
-```py
+>>> # later
 >>> from datasets import load_from_disk
 >>> reloaded_dataset = load_from_disk("path/of/my/dataset/directory")
 ```
@@ -827,12 +845,12 @@ Use the [`load_from_disk`] function to reload the dataset:
 
 🤗 Datasets supports exporting as well so you can work with your dataset in other applications. The following table shows currently supported file formats you can export to:
 
-| File type               | Export method                                                  |
-|-------------------------|----------------------------------------------------------------|
-| CSV                     | [`Dataset.to_csv`]                                    |
-| JSON                    | [`Dataset.to_json`]                                   |
-| Parquet                 | [`Dataset.to_parquet`]                                |
-| SQL                     | [`Dataset.to_sql`]                                    |
+| File type               | Export method                                                       |
+| ----------------------- | ------------------------------------------------------------------- |
+| CSV                     | [`Dataset.to_csv`]                                                  |
+| JSON                    | [`Dataset.to_json`]                                                 |
+| Parquet                 | [`Dataset.to_parquet`]                                              |
+| SQL                     | [`Dataset.to_sql`]                                                  |
 | In-memory Python object | [`Dataset.to_pandas`], [`Dataset.to_polars`] or [`Dataset.to_dict`] |
 
 For example, export your dataset to a CSV file like this:

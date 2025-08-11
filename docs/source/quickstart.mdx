@@ -19,20 +19,44 @@ This quickstart is intended for developers who are ready to dive into the code a
 Each dataset is unique, and depending on the task, some datasets may require additional steps to prepare it for training. But you can always use 🤗 Datasets tools to load and process a dataset. The fastest and easiest way to get started is by loading an existing dataset from the [Hugging Face Hub](https://huggingface.co/datasets). There are thousands of datasets to choose from, spanning many tasks. Choose the type of dataset you want to work with, and let's get started!
 
 <div class="mt-4">
-   <div class="w-full flex flex-col space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-y-4 md:gap-x-5">
-      <a class="!no-underline border dark:border-gray-700 p-5 rounded-lg shadow hover:shadow-lg" href="#audio"
-         ><div class="w-full text-center bg-gradient-to-r from-violet-300 via-sky-400 to-green-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">Audio</div>
-         <p class="text-gray-700">Resample an audio dataset and get it ready for a model to classify what type of banking issue a speaker is calling about.</p>
-      </a>
-      <a class="!no-underline border dark:border-gray-700 p-5 rounded-lg shadow hover:shadow-lg" href="#vision"
-         ><div class="w-full text-center bg-gradient-to-r from-pink-400 via-purple-400 to-blue-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">Vision</div>
-         <p class="text-gray-700">Apply data augmentation to an image dataset and get it ready for a model to diagnose disease in bean plants.</p>
-      </a>
-      <a class="!no-underline border dark:border-gray-700 p-5 rounded-lg shadow hover:shadow-lg" href="#nlp"
-         ><div class="w-full text-center bg-gradient-to-r from-orange-300 via-red-400 to-violet-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">NLP</div>
-         <p class="text-gray-700">Tokenize a dataset and get it ready for a model to determine whether a pair of sentences have the same meaning.</p>
-      </a>
-   </div>
+  <div class="w-full flex flex-col space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-y-4 md:gap-x-5">
+    <a
+      class="!no-underline border dark:border-gray-700 p-5 rounded-lg shadow hover:shadow-lg"
+      href="#audio"
+    >
+      <div class="w-full text-center bg-gradient-to-r from-violet-300 via-sky-400 to-green-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">
+        Audio
+      </div>
+      <p class="text-gray-700">
+        Resample an audio dataset and get it ready for a model to classify what
+        type of banking issue a speaker is calling about.
+      </p>
+    </a>
+    <a
+      class="!no-underline border dark:border-gray-700 p-5 rounded-lg shadow hover:shadow-lg"
+      href="#vision"
+    >
+      <div class="w-full text-center bg-gradient-to-r from-pink-400 via-purple-400 to-blue-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">
+        Vision
+      </div>
+      <p class="text-gray-700">
+        Apply data augmentation to an image dataset and get it ready for a model
+        to diagnose disease in bean plants.
+      </p>
+    </a>
+    <a
+      class="!no-underline border dark:border-gray-700 p-5 rounded-lg shadow hover:shadow-lg"
+      href="#nlp"
+    >
+      <div class="w-full text-center bg-gradient-to-r from-orange-300 via-red-400 to-violet-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">
+        NLP
+      </div>
+      <p class="text-gray-700">
+        Tokenize a dataset and get it ready for a model to determine whether a
+        pair of sentences have the same meaning.
+      </p>
+    </a>
+  </div>
 </div>
 
 <Tip>
@@ -49,31 +73,23 @@ pip install datasets
 
 🤗 Datasets also support audio and image data formats:
 
-* To work with audio datasets, install the [`Audio`] feature:
+- To work with audio datasets, install the [`Audio`] feature:
 
-   ```bash
-   pip install datasets[audio]
-   ```
+  ```bash
+  pip install datasets[audio]
+  ```
 
-* To work with image datasets, install the [`Image`] feature:
+- To work with image datasets, install the [`Image`] feature:
 
-   ```bash
-   pip install datasets[vision]
-   ```
+  ```bash
+  pip install datasets[vision]
+  ```
 
 Besides 🤗 Datasets, make sure your preferred machine learning framework is installed:
 
 <frameworkcontent>
-<pt>
-```bash
-pip install torch
-```
-</pt>
-<tf>
-```bash
-pip install tensorflow
-```
-</tf>
+  <pt>```bash pip install torch ```</pt>
+  <tf>```bash pip install tensorflow ```</tf>
 </frameworkcontent>
 
 ## Audio
@@ -102,10 +118,7 @@ Audio datasets are loaded just like text datasets. However, an audio dataset is 
 ```py
 >>> dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
 >>> dataset[0]["audio"]
-{'array': array([ 2.3443763e-05,  2.1729663e-04,  2.2145823e-04, ...,
-         3.8356509e-05, -7.3497440e-06, -2.1754686e-05], dtype=float32),
- 'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-US~JOINT_ACCOUNT/602ba55abb1e6d0fbce92065.wav',
- 'sampling_rate': 16000}
+<datasets.features._torchcodec.AudioDecoder object at 0x11642b6a0>
 ```
 
 **4**. Create a function to preprocess the audio `array` with the feature extractor, and truncate and pad the sequences into tidy rectangular tensors. The most important thing to remember is to call the audio `array` in the feature extractor since the `array` - the actual speech signal - is the model input.
@@ -114,7 +127,7 @@ Once you have a preprocessing function, use the [`~Dataset.map`] function to spe
 
 ```py
 >>> def preprocess_function(examples):
-...     audio_arrays = [x["array"] for x in examples["audio"]]
+...     audio_arrays = [x.get_all_samples().data for x in examples["audio"]]
 ...     inputs = feature_extractor(
 ...         audio_arrays,
 ...         sampling_rate=16000,
@@ -145,12 +158,13 @@ Use the [`~Dataset.set_format`] function to set the dataset format to `torch` an
 >>> dataset.set_format(type="torch", columns=["input_values", "labels"])
 >>> dataloader = DataLoader(dataset, batch_size=4)
 ```
+
 </pt>
 <tf>
 
 Use the [`~transformers.TFPreTrainedModel.prepare_tf_dataset`] method from 🤗 Transformers to prepare the dataset to be compatible with
 TensorFlow, and ready to train/fine-tune a model, as it wraps a HuggingFace [`~datasets.Dataset`] as a `tf.data.Dataset`
-with collation and batching, so one can pass it directly to Keras methods like `fit()` without further modification. 
+with collation and batching, so one can pass it directly to Keras methods like `fit()` without further modification.
 
 ```py
 >>> import tensorflow as tf
@@ -161,6 +175,7 @@ with collation and batching, so one can pass it directly to Keras methods like `
 ...     shuffle=True,
 ... )
 ```
+
 </tf>
 </frameworkcontent>
 
@@ -225,12 +240,13 @@ Wrap the dataset in [`torch.utils.data.DataLoader`](https://alband.github.io/doc
 ...     for example in examples:
 ...         images.append((example["pixel_values"]))
 ...         labels.append(example["labels"])
-...         
+...
 ...     pixel_values = torch.stack(images)
 ...     labels = torch.tensor(labels)
 ...     return {"pixel_values": pixel_values, "labels": labels}
 >>> dataloader = DataLoader(dataset, collate_fn=collate_fn, batch_size=4)
 ```
+
 </pt>
 <tf>
 
@@ -267,6 +283,7 @@ pip install -U albumentations opencv-python
 ...     shuffle=True,
 ... )
 ```
+
 </tf>
 </frameworkcontent>
 
@@ -312,9 +329,9 @@ Use the [`~Dataset.map`] function to speed up processing by applying your tokeni
 'sentence2': 'Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .',
 'label': 1,
 'idx': 0,
-'input_ids': array([  101,  7277,  2180,  5303,  4806,  1117,  1711,   117,  2292, 1119,  1270,   107,  1103,  7737,   107,   117,  1104,  9938, 4267, 12223, 21811,  1117,  2554,   119,   102, 11336,  6732, 3384,  1106,  1140,  1112,  1178,   107,  1103,  7737,   107, 117,  7277,  2180,  5303,  4806,  1117,  1711,  1104,  9938, 4267, 12223, 21811,  1117,  2554,   119,   102]),
-'token_type_ids': array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
-'attention_mask': array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])}
+'input_ids': [  101,  7277,  2180,  5303,  4806,  1117,  1711,   117,  2292, 1119,  1270,   107,  1103,  7737,   107,   117,  1104,  9938, 4267, 12223, 21811,  1117,  2554,   119,   102, 11336,  6732, 3384,  1106,  1140,  1112,  1178,   107,  1103,  7737,   107, 117,  7277,  2180,  5303,  4806,  1117,  1711,  1104,  9938, 4267, 12223, 21811,  1117,  2554,   119,   102, 0, 0, ...],
+'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, ...],
+'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, ...]}
 ```
 
 **4**. Rename the `label` column to `labels`, which is the expected input name in [BertForSequenceClassification](https://huggingface.co/docs/transformers/main/en/model_doc/bert#transformers.BertForSequenceClassification):
@@ -327,20 +344,22 @@ Use the [`~Dataset.map`] function to speed up processing by applying your tokeni
 
 <frameworkcontent>
 <pt>
-Use the [`~Dataset.set_format`] function to set the dataset format to `torch` and specify the columns you want to format. This function applies formatting on-the-fly. After converting to PyTorch tensors, wrap the dataset in [`torch.utils.data.DataLoader`](https://alband.github.io/doc_view/data.html?highlight=torch%20utils%20data%20dataloader#torch.utils.data.DataLoader):
+Use the [`~Dataset.with_format`] function to set the dataset format to `torch` and specify the columns you want to format. This function applies formatting on-the-fly. After converting to PyTorch tensors, wrap the dataset in [`torch.utils.data.DataLoader`](https://alband.github.io/doc_view/data.html?highlight=torch%20utils%20data%20dataloader#torch.utils.data.DataLoader):
 
 ```py
 >>> import torch
 
->>> dataset.set_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "labels"])
+>>> dataset = dataset.select_columns(["input_ids", "token_type_ids", "attention_mask", "labels"])
+>>> dataset = dataset.with_format(type="torch")
 >>> dataloader = torch.utils.data.DataLoader(dataset, batch_size=32)
 ```
+
 </pt>
 <tf>
 
 Use the [`~transformers.TFPreTrainedModel.prepare_tf_dataset`] method from 🤗 Transformers to prepare the dataset to be compatible with
 TensorFlow, and ready to train/fine-tune a model, as it wraps a HuggingFace [`~datasets.Dataset`] as a `tf.data.Dataset`
-with collation and batching, so one can pass it directly to Keras methods like `fit()` without further modification. 
+with collation and batching, so one can pass it directly to Keras methods like `fit()` without further modification.
 
 ```py
 >>> import tensorflow as tf
@@ -351,6 +370,7 @@ with collation and batching, so one can pass it directly to Keras methods like `
 ...     shuffle=True,
 ... )
 ```
+
 </tf>
 </frameworkcontent>
 

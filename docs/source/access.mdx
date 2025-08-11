@@ -54,7 +54,7 @@ You can combine row and column name indexing to return a specific value at a pos
 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'
 ```
 
-But it is important to remember that indexing order matters, especially when working with large audio and image datasets. Indexing by the column name returns all the values in the column first, then loads the value at that position. For large datasets, it may be slower to index by the column name first.
+Indexing order doesn't matter. Indexing by the column name first returns a [`Column`] object that you can index as usual with row indices:
 
 ```py
 >>> import time
@@ -69,7 +69,7 @@ Elapsed time: 0.0031 seconds
 >>> text = dataset["text"][0]
 >>> end_time = time.time()
 >>> print(f"Elapsed time: {end_time - start_time:.4f} seconds")
-Elapsed time: 0.0094 seconds
+Elapsed time: 0.0042 seconds
 ```
 
 ### Slicing
@@ -117,7 +117,9 @@ You can also create an [`IterableDataset`] from an *existing* [`Dataset`], but i
 
 An [`IterableDataset`] progressively iterates over a dataset one example at a time, so you don't have to wait for the whole dataset to download before you can use it. As you can imagine, this is quite useful for large datasets you want to use immediately!
 
-However, this means an [`IterableDataset`]'s behavior is different from a regular [`Dataset`]. You don't get random access to examples in an [`IterableDataset`]. Instead, you should iterate over its elements, for example, by calling `next(iter())` or with a `for` loop to return the next item from the [`IterableDataset`]:
+### Indexing
+
+An [`IterableDataset`]'s behavior is different from a regular [`Dataset`]. You don't get random access to examples in an [`IterableDataset`]. Instead, you should iterate over its elements, for example, by calling `next(iter())` or with a `for` loop to return the next item from the [`IterableDataset`]:
 
 ```py
 >>> next(iter(iterable_dataset))
@@ -129,6 +131,15 @@ However, this means an [`IterableDataset`]'s behavior is different from a regula
 ...     break
 {'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7F7479DE82B0>, 'label': 6}
 ```
+
+But an [`IterableDataset`] supports column indexing that returns an iterable for the column values:
+
+```py
+>>> next(iter(iterable_dataset["label"]))
+6
+```
+
+### Creating a subset
 
 You can return a subset of the dataset with a specific number of examples in it with [`IterableDataset.take`]:
 

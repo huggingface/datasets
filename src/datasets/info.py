@@ -113,7 +113,7 @@ class DatasetInfo:
         supervised_keys (`SupervisedKeysData`, *optional*):
             Specifies the input feature and the label for supervised learning if applicable for the dataset (legacy from TFDS).
         builder_name (`str`, *optional*):
-            The name of the `GeneratorBasedBuilder` subclass used to create the dataset. Usually matched to the corresponding script name. It is also the snake_case version of the dataset builder class name.
+            The name of the `GeneratorBasedBuilder` subclass used to create the dataset. It is also the snake_case version of the dataset builder class name.
         config_name (`str`, *optional*):
             The name of the configuration derived from [`BuilderConfig`].
         version (`str` or [`Version`], *optional*):
@@ -134,7 +134,7 @@ class DatasetInfo:
             Keyword arguments to be passed to the [`BuilderConfig`] and used in the [`DatasetBuilder`].
     """
 
-    # Set in the dataset scripts
+    # Set in the dataset builders
     description: str = dataclasses.field(default_factory=str)
     citation: str = dataclasses.field(default_factory=str)
     homepage: str = dataclasses.field(default_factory=str)
@@ -271,7 +271,7 @@ class DatasetInfo:
         """
         fs: fsspec.AbstractFileSystem
         fs, *_ = url_to_fs(dataset_info_dir, **(storage_options or {}))
-        logger.info(f"Loading Dataset info from {dataset_info_dir}")
+        logger.debug(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
         with fs.open(posixpath.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
@@ -352,7 +352,7 @@ class DatasetInfosDict(dict[str, DatasetInfo]):
 
     @classmethod
     def from_directory(cls, dataset_infos_dir) -> "DatasetInfosDict":
-        logger.info(f"Loading Dataset Infos from {dataset_infos_dir}")
+        logger.debug(f"Loading Dataset Infos from {dataset_infos_dir}")
         # Load the info from the YAML part of README.md
         if os.path.exists(os.path.join(dataset_infos_dir, config.REPOCARD_FILENAME)):
             dataset_card_data = DatasetCard.load(Path(dataset_infos_dir) / config.REPOCARD_FILENAME).data

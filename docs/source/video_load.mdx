@@ -6,7 +6,7 @@ Video support is experimental and is subject to change.
 
 </Tip>
 
-Video datasets have [`Video`] type columns, which contain `torchvision` objects. 
+Video datasets have [`Video`] type columns, which contain `torchvision` objects.
 
 <Tip>
 
@@ -14,19 +14,19 @@ To work with video datasets, you need to have the `torchvision` and `av` package
 
 </Tip>
 
-When you load an video dataset and call the video column, the videos are decoded as `torchvision` Videos:
+When you load a video dataset and call the video column, the videos are decoded as `torchvision` Videos:
 
 ```py
 >>> from datasets import load_dataset, Video
 
 >>> dataset = load_dataset("path/to/video/folder", split="train")
 >>> dataset[0]["video"]
-<torchvision.io.video_reader.VideoReader at 0x1652284c0>
+<torchcodec.decoders._video_decoder.VideoDecoder object at 0x14a61d5a0>
 ```
 
 <Tip warning={true}>
 
-Index into an video dataset using the row index first and then the `video` column - `dataset[0]["video"]` - to avoid creating all the video objects in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
+Index into a video dataset using the row index first and then the `video` column - `dataset[0]["video"]` - to avoid creating all the video objects in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
 
 </Tip>
 
@@ -38,43 +38,41 @@ Access frames directly from a video using the `VideoReader` using `next()`:
 
 ```python
 >>> video = dataset[0]["video"]
->>> first_frame = next(video)
->>> first_frame["data"].shape
+>>> first_frame = video.get_frame_at(0)
+>>> first_frame.data.shape
 (3, 240, 320)
->>> first_frame["pts"]  # timestamp
+>>> first_frame.pts_seconds  # timestamp
 0.0
 ```
 
-To get multiple frames at once, you need to iterate on the `VideoReader`. This is the efficient way to obtain a long list of frames:
+To get multiple frames at once, you can call `.get_frames_in_range(start: int, stop: int, step: int)`. This will return a frame batch.
+This is the efficient way to obtain a long list of frames refer to the [torchcodec docs](https://docs.pytorch.org/torchcodec/stable/generated/torchcodec.decoders.VideoDecoder.html) to see more functions for effiently accessing the data:
 
 ```python
 >>> import torch
->>> import itertools
->>> frames = torch.stack([frame["data"] for frame in islice(video, 5)])
->>> frames.shape
-(5, 3, 240, 320)
+>>> frames = video.get_frames_in_range(0, 6, 1)
+>>> frames.data.shape
+torch.Size([5, 3, 240, 320])
 ```
 
-There is also `.seek()` if you need to set the current timestamp of the video:
+There is also `.get_frames_played_in_range(start_seconds: float, stop_seconds: float)` to access all frames played whithin a certain time range.
 
 ```python
->>> video.get_metadata()
-{'video': {'fps': [10.0], 'duration': [16.1]}}
->>> video = video.seek(8.0, keyframes_only=True)
->>> frame = next(video)
->>> first_frame["data"].shape
-(3, 240, 320)
+>>> frames = video.get_frames_played_in_range(.5, 1.2)
+>>> frames.data.shape
+torch.Size([42, 3, 240, 320])
 ```
 
 ## Local files
 
-You can load a dataset from the video path. Use the [`~Dataset.cast_column`] function to accept a column of video file paths, and decode it into a `torchvision` video with the [`Video`] feature:
+You can load a dataset from the video path. Use the [`~Dataset.cast_column`] function to accept a column of video file paths, and decode it into a `torchcodec` video with the [`Video`] feature:
+
 ```py
 >>> from datasets import Dataset, Video
 
 >>> dataset = Dataset.from_dict({"video": ["path/to/video_1", "path/to/video_2", ..., "path/to/video_n"]}).cast_column("video", Video())
 >>> dataset[0]["video"]
-<torchvision.io.video_reader.VideoReader at 0x1657d0280>
+<torchcodec.decoders._video_decoder.VideoDecoder object at 0x14a61e080>
 ```
 
 If you only want to load the underlying path to the video dataset without decoding the video object, set `decode=False` in the [`Video`] feature:
@@ -116,14 +114,14 @@ For local datasets, this is equivalent to passing `videofolder` manually in [`lo
 >>> dataset = load_dataset("videofolder", data_dir="/path/to/folder")
 ```
 
-Then you can access the videos as `torchvision.io.video_reader.VideoReader` objects:
+Then you can access the videos as `torchcodec.decoders._video_decoder.VideoDecoder` objects:
 
 ```
 >>> dataset["train"][0]
-{"video": <torchvision.io.video_reader.VideoReader at 0x161715e50>, "label": 0}
+{"video": <torchcodec.decoders._video_decoder.VideoDecoder object at 0x14a61e080>, "label": 0}
 
 >>> dataset["train"][-1]
-{"video": <torchvision.io.video_reader.VideoReader at 0x16170bd90>, "label": 1}
+{"video": <torchcodec.decoders._video_decoder.VideoDecoder object at 0x14a61e090>, "label": 1}
 ```
 
 To ignore the information in the metadata file, set `drop_metadata=True` in [`load_dataset`]:
@@ -136,7 +134,7 @@ To ignore the information in the metadata file, set `drop_metadata=True` in [`lo
 
 If you don't have a metadata file, `VideoFolder` automatically infers the label name from the directory name.
 If you want to drop automatically created labels, set `drop_labels=True`.
-In this case, your dataset will only contain an video column:
+In this case, your dataset will only contain a video column:
 
 ```py
 >>> from datasets import load_dataset

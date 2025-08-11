@@ -2,15 +2,14 @@ import logging
 import os
 from argparse import ArgumentParser
 from collections.abc import Generator
-from pathlib import Path
-from shutil import copyfile, rmtree
-from typing import Optional
+from shutil import rmtree
 
 import datasets.config
 from datasets.builder import DatasetBuilder
 from datasets.commands import BaseDatasetsCLICommand
 from datasets.download.download_manager import DownloadMode
-from datasets.load import dataset_module_factory, import_main_class
+from datasets.info import DatasetInfosDict
+from datasets.load import dataset_module_factory, get_dataset_builder_class
 from datasets.utils.info_utils import VerificationMode
 from datasets.utils.logging import ERROR, get_logger
 
@@ -30,7 +29,6 @@ def _test_command_factory(args):
         args.force_redownload,
         args.clear_cache,
         args.num_proc,
-        args.trust_remote_code,
     )
 
 
@@ -39,7 +37,7 @@ class TestCommand(BaseDatasetsCLICommand):
 
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
-        test_parser = parser.add_parser("test", help="Test dataset implementation.")
+        test_parser = parser.add_parser("test", help="Test dataset loading.")
         test_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
         test_parser.add_argument(
             "--cache_dir",
@@ -69,9 +67,6 @@ class TestCommand(BaseDatasetsCLICommand):
             help="Remove downloaded files and cached datasets after each config test",
         )
         test_parser.add_argument("--num_proc", type=int, default=None, help="Number of processes")
-        test_parser.add_argument(
-            "--trust_remote_code", action="store_true", help="whether to trust the code execution of the load script"
-        )
         # aliases
         test_parser.add_argument("--save_infos", action="store_true", help="alias to save_info")
         test_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
@@ -89,7 +84,6 @@ class TestCommand(BaseDatasetsCLICommand):
         force_redownload: bool,
         clear_cache: bool,
         num_proc: int,
-        trust_remote_code: Optional[bool],
     ):
         self._dataset = dataset
         self._name = name
@@ -101,12 +95,11 @@ class TestCommand(BaseDatasetsCLICommand):
         self._force_redownload = force_redownload
         self._clear_cache = clear_cache
         self._num_proc = num_proc
-        self._trust_remote_code = trust_remote_code
         if clear_cache and not cache_dir:
             print(
                 "When --clear_cache is used, specifying a cache directory is mandatory.\n"
                 "The 'download' folder of the cache directory and the dataset builder cache will be deleted after each configuration test.\n"
-                "Please provide a --cache_dir that will be used to test the dataset script."
+                "Please provide a --cache_dir that will be used to test the dataset."
             )
             exit(1)
         if save_infos:
@@ -118,8 +111,8 @@ class TestCommand(BaseDatasetsCLICommand):
             print("Both parameters `config` and `all_configs` can't be used at once.")
             exit(1)
         path, config_name = self._dataset, self._name
-        module = dataset_module_factory(path, trust_remote_code=self._trust_remote_code)
-        builder_cls = import_main_class(module.module_path)
+        module = dataset_module_factory(path)
+        builder_cls = get_dataset_builder_class(module)
         n_builders = len(builder_cls.BUILDER_CONFIGS) if self._all_configs and builder_cls.BUILDER_CONFIGS else 1
 
         def get_builders() -> Generator[DatasetBuilder, None, None]:
@@ -164,35 +157,15 @@ class TestCommand(BaseDatasetsCLICommand):
                 num_proc=self._num_proc,
             )
             builder.as_dataset()
-            if self._save_infos:
-                builder._save_infos()
 
-            # If save_infos=True, the dataset card (README.md) is created next to the loaded module file.
+            # If save_infos=True, we create the dataset card (README.md)
             # The dataset_infos are saved in the YAML part of the README.md
-
-            # Let's move it to the original directory of the dataset script, to allow the user to
-            # upload them on S3 at the same time afterwards.
+            # This is to allow the user to upload them on HF afterwards.
             if self._save_infos:
-                dataset_readme_path = os.path.join(
-                    builder_cls.get_imported_module_dir(), datasets.config.REPOCARD_FILENAME
-                )
-                name = Path(path).name + ".py"
-                combined_path = os.path.join(path, name)
-                if os.path.isfile(path):
-                    dataset_dir = os.path.dirname(path)
-                elif os.path.isfile(combined_path):
-                    dataset_dir = path
-                elif os.path.isdir(path):  # for local directories containing only data files
-                    dataset_dir = path
-                else:  # in case of a remote dataset
-                    dataset_dir = None
-                    print(f"Dataset card saved at {dataset_readme_path}")
-
-                # Move dataset_info back to the user
-                if dataset_dir is not None:
-                    user_dataset_readme_path = os.path.join(dataset_dir, datasets.config.REPOCARD_FILENAME)
-                    copyfile(dataset_readme_path, user_dataset_readme_path)
-                    print(f"Dataset card saved at {user_dataset_readme_path}")
+                save_infos_dir = os.path.basename(path) if not os.path.isdir(path) else path
+                os.makedirs(save_infos_dir, exist_ok=True)
+                DatasetInfosDict(**{builder.config.name: builder.info}).write_to_directory(save_infos_dir)
+                print(f"Dataset card saved at {os.path.join(save_infos_dir, datasets.config.REPOCARD_FILENAME)}")
 
             # If clear_cache=True, the download folder and the dataset builder cache directory are deleted
             if self._clear_cache:

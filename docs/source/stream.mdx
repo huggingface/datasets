@@ -51,6 +51,17 @@ You can find more details in the [Dataset vs. IterableDataset guide](./about_map
 
 </Tip>
 
+
+## Column indexing
+
+Sometimes it is convenient to iterate over values of a specific column. Fortunately, an [`IterableDataset`] supports column indexing:
+```python
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("allenai/c4", "en", streaming=True, split="train")
+>>> print(next(iter(dataset["text"])))
+Beginners BBQ Class Taking Place in Missoula!...
+```
+
 ## Convert from a Dataset
 
 If you have an existing [`Dataset`] object, you can convert it to an [`IterableDataset`] with the [`~Dataset.to_iterable_dataset`] function. This is actually faster than setting the `streaming=True` argument in [`load_dataset`] because the data is streamed from local files.
@@ -190,7 +201,7 @@ Define sampling probabilities from each of the original datasets for more contro
  {'text': 'Chevrolet Cavalier Usados en Bogota - Carros en Vent...'}]
 ```
 
-Around 80% of the final dataset is made of the `en_dataset`, and 20% of the `fr_dataset`.
+Around 80% of the final dataset is made of the `es_dataset`, and 20% of the `fr_dataset`.
 
 You can also specify the `stopping_strategy`. The default strategy, `first_exhausted`, is a subsampling strategy, i.e the dataset construction is stopped as soon one of the dataset runs out of samples.
 You can specify `stopping_strategy=all_exhausted` to execute an oversampling strategy. In this case, the dataset construction is stopped as soon as every samples in every dataset has been added at least once. In practice, it means that if a dataset is exhausted, it will return to the beginning of this dataset until the stop criterion has been reached.
@@ -230,10 +241,10 @@ When you need to remove one or more columns, give [`IterableDataset.remove_colum
 >>> from datasets import load_dataset
 >>> dataset = load_dataset('nyu-mll/glue', 'mrpc', split='train', streaming=True)
 >>> dataset.features
-{'sentence1': Value(dtype='string', id=None),
-'sentence2': Value(dtype='string', id=None),
-'label': ClassLabel(names=['not_equivalent', 'equivalent'], id=None),
-'idx': Value(dtype='int32', id=None)}
+{'sentence1': Value('string'),
+'sentence2': Value('string'),
+'label': ClassLabel(names=['not_equivalent', 'equivalent']),
+'idx': Value('int32')}
 
 >>> from datasets import ClassLabel, Value
 >>> new_features = dataset.features.copy()
@@ -241,10 +252,10 @@ When you need to remove one or more columns, give [`IterableDataset.remove_colum
 >>> new_features["idx"] = Value('int64')
 >>> dataset = dataset.cast(new_features)
 >>> dataset.features
-{'sentence1': Value(dtype='string', id=None),
-'sentence2': Value(dtype='string', id=None),
-'label': ClassLabel(names=['negative', 'positive'], id=None),
-'idx': Value(dtype='int64', id=None)}
+{'sentence1': Value('string'),
+'sentence2': Value('string'),
+'label': ClassLabel(names=['negative', 'positive']),
+'idx': Value('int64')}
 ```
 
 <Tip>
@@ -257,11 +268,11 @@ Use [`IterableDataset.cast_column`] to change the feature type of just one colum
 
 ```py
 >>> dataset.features
-{'audio': Audio(sampling_rate=44100, mono=True, id=None)}
+{'audio': Audio(sampling_rate=44100, mono=True)}
 
 >>> dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
 >>> dataset.features
-{'audio': Audio(sampling_rate=16000, mono=True, id=None)}
+{'audio': Audio(sampling_rate=16000, mono=True)}
 ```
 
 ## Map
@@ -494,3 +505,54 @@ This can be used with the `StatefulDataLoader` from `torchdata`:
 Resuming returns exactly where the checkpoint was saved except if `.shuffle()` is used: examples from shuffle buffers are lost when resuming and the buffers are refilled with new data.
 
 </Tip>
+
+
+## Save
+
+Once your iterable dataset is ready, you can save it as a Hugging Face Dataset in Parquet format and reuse it later with [`load_dataset`].
+
+Save your dataset by providing the name of the dataset repository on Hugging Face you wish to save it to to [`~Dataset.push_to_hub`]. This iterates over the dataset and progressively uploads the data to Hugging Face:
+
+```python
+dataset.push_to_hub("username/my_dataset")
+```
+
+If the dataset consists of multiple shards (`dataset.num_shards > 1`), you can use multiple processes to upload it in parallel. This is especially useful if you applied `map()` or `filter()` steps since they will run faster in parallel:
+
+```python
+dataset.push_to_hub("username/my_dataset", num_proc=8)
+```
+
+Use the [`load_dataset`] function to reload the dataset:
+
+```python
+from datasets import load_dataset
+reloaded_dataset = load_dataset("username/my_dataset")
+```
+
+## Export
+
+🤗 Datasets supports exporting as well so you can work with your dataset in other applications. The following table shows currently supported file formats you can export to:
+
+| File type               | Export method                                                  |
+|-------------------------|----------------------------------------------------------------|
+| CSV                     | [`IterableDataset.to_csv`]                                    |
+| JSON                    | [`IterableDataset.to_json`]                                   |
+| Parquet                 | [`IterableDataset.to_parquet`]                                |
+| SQL                     | [`IterableDataset.to_sql`]                                    |
+| In-memory Python object | [`IterableDataset.to_pandas`], [`IterableDataset.to_polars`] or [`IterableDataset.to_dict`] |
+
+For example, export your dataset to a CSV file like this:
+
+```py
+>>> dataset.to_csv("path/of/my/dataset.csv")
+```
+
+If you have a large dataset, you can save one file per shard, e.g.
+
+```py
+>>> num_shards = dataset.num_shards
+>>> for index in range(num_shards):
+...     shard = dataset.shard(index, num_shards)
+...     shard.to_parquet(f"path/of/my/dataset/data-{index:05d}.parquet")
+```

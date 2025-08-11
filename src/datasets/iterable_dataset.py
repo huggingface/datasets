@@ -1,32 +1,51 @@
 import asyncio
+import contextlib
 import copy
+import fnmatch
 import inspect
 import itertools
+import json
+import math
 import multiprocessing.pool
+import random
+import re
 import sys
+import time
 from collections import Counter
 from collections.abc import Iterable, Iterator
 from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
+from io import BytesIO
 from itertools import cycle, islice
-from typing import TYPE_CHECKING, Any, Callable, Optional, Union
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Optional, Union
 
 import fsspec.asyn
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+import pyarrow.parquet as pq
+from huggingface_hub import CommitInfo, CommitOperationAdd, CommitOperationDelete, DatasetCard, DatasetCardData, HfApi
+from huggingface_hub.hf_api import RepoFile
+from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
+from multiprocess import Pool
+from requests import HTTPError
 
 from . import config
-from .arrow_dataset import Dataset, DatasetInfoMixin
+from .arrow_dataset import PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED, Dataset, DatasetInfoMixin
+from .data_files import sanitize_patterns
 from .features import Features
 from .features.features import (
     FeatureType,
+    List,
     Value,
     _align_features,
     _check_if_features_can_be_aligned,
+    _fix_for_backward_compatible_features,
     _visit,
     cast_to_python_objects,
+    require_decoding,
 )
 from .formatting import (
     ArrowFormatter,
@@ -36,15 +55,23 @@ from .formatting import (
     get_format_type_from_alias,
     get_formatter,
 )
-from .info import DatasetInfo
-from .splits import NamedSplit, Split
-from .table import cast_table_to_features, read_schema_from_file, table_cast
+from .info import DatasetInfo, DatasetInfosDict
+from .naming import _split_re
+from .splits import NamedSplit, Split, SplitDict, SplitInfo
+from .table import cast_table_to_features, embed_table_storage, read_schema_from_file, table_cast
+from .utils import tqdm as hf_tqdm
 from .utils.logging import get_logger
-from .utils.py_utils import Literal
+from .utils.metadata import MetadataConfigs
+from .utils.py_utils import Literal, asdict, glob_pattern_to_regex, iflatmap_unordered, string_to_dict
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
+from .utils.typing import PathLike
 
 
 if TYPE_CHECKING:
+    import sqlite3
+
+    import polars as pl
+    import sqlalchemy
     import torch
 
 logger = get_logger(__name__)
@@ -1674,16 +1701,16 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
         """Shuffle the underlying iterable, then repeat."""
         return RepeatExamplesIterable(self.ex_iterable.shuffle_data_sources(generator), num_times=self.num_times)
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "RepeatExamplesIterable":
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "RepeatExamplesIterable":
         """Shard, then repeat shards."""
         return RepeatExamplesIterable(
-            self.ex_iterable.shard_data_sources(worker_id, num_workers),
+            self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
             num_times=self.num_times,
         )
 
     @property
-    def n_shards(self) -> int:
-        return self.ex_iterable.n_shards
+    def num_shards(self) -> int:
+        return self.ex_iterable.num_shards
 
 
 class TakeExamplesIterable(_BaseExamplesIterable):
@@ -1844,7 +1871,10 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         if not self.formatting or self.formatting.is_table:
-            formatter = PythonFormatter(features=self._features if not self.ex_iterable.is_typed else None)
+            formatter = PythonFormatter(
+                features=self._features if not self.ex_iterable.is_typed else None,
+                token_per_repo_id=self.token_per_repo_id,
+            )
         else:
             formatter = get_formatter(
                 self.formatting.format_type,
@@ -1944,6 +1974,39 @@ def _maybe_share_with_torch_persistent_workers(value: Union[int, "torch.Tensor"]
         return value
 
 
+class IterableColumn:
+    """
+    An iterable for a specific column of an [`IterableDataset`].
+
+    Example:
+
+    Iterate on the texts of the "text" column of a dataset:
+
+    ```python
+    for text in dataset["text"]:
+        ...
+    ```
+
+    It also works with nested columns:
+
+    ```python
+    for source in dataset["metadata"]["source"]:
+        ...
+    ```
+    """
+
+    def __init__(self, source: Union["IterableDataset", "IterableColumn"], column_name: str):
+        self.source = source
+        self.column_name = column_name
+
+    def __iter__(self) -> Iterator[Any]:
+        for example in self.source:
+            yield example[self.column_name]
+
+    def __getitem__(self, column_name: str) -> "IterableColumn":
+        return IterableColumn(self, column_name)
+
+
 class IterableDataset(DatasetInfoMixin):
     """A Dataset backed by an iterable."""
 
@@ -1975,6 +2038,38 @@ class IterableDataset(DatasetInfoMixin):
         self._starting_state_dict: Optional[dict] = None
         self._prepare_ex_iterable_for_iteration()  # set state_dict
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)  # subclass of torch IterableDataset
+
+    @property
+    def num_columns(self) -> Optional[int]:
+        """Number of columns in the dataset.
+        This can be None if the dataset has unknown features (e.g. after a map() operation).
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation")
+        >>> ds.num_columns
+        2
+        ```
+        """
+        return None if self.features is None else len(self.features)
+
+    @property
+    def column_names(self) -> Optional[list[str]]:
+        """Names of the columns in the dataset.
+        This can be None if the dataset has unknown features (e.g. after a map() operation).
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation", streaming=True)
+        >>> ds.column_names
+        ['text', 'label']
+        ```
+        """
+        return None if self.features is None else list(self.features)
 
     def state_dict(self) -> dict:
         """Get the current state_dict of the dataset.
@@ -2306,6 +2401,9 @@ class IterableDataset(DatasetInfoMixin):
             # we need to format here in case we need to stack tensors together
             yield format_dict(batch) if format_dict else batch
 
+    def __getitem__(self, column_name: str) -> IterableColumn:
+        return IterableColumn(self, column_name)
+
     @staticmethod
     def from_generator(
         generator: Callable,
@@ -2569,6 +2667,8 @@ class IterableDataset(DatasetInfoMixin):
             function = identity_func
         if fn_kwargs is None:
             fn_kwargs = {}
+        if features is not None:
+            features = _fix_for_backward_compatible_features(features)
 
         ex_iterable = self._ex_iterable
         # no need to apply features if ex_iterable is typed and if there was no cast_column()
@@ -2965,21 +3065,6 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-    @property
-    def column_names(self) -> Optional[list[str]]:
-        """Names of the columns in the dataset.
-
-        Example:
-
-        ```py
-        >>> from datasets import load_dataset
-        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation", streaming=True)
-        >>> ds.column_names
-        ['text', 'label']
-        ```
-        """
-        return list(self._info.features.keys()) if self._info.features is not None else None
-
     def add_column(self, name: str, column: Union[list, np.array]) -> "IterableDataset":
         """Add column to Dataset.
 
@@ -3152,21 +3237,22 @@ class IterableDataset(DatasetInfoMixin):
         >>> ds = load_dataset("PolyAI/minds14", name="en-US", split="train", streaming=True)
         >>> ds.features
         {'audio': Audio(sampling_rate=8000, mono=True, decode=True, id=None),
-         'english_transcription': Value(dtype='string', id=None),
-         'intent_class': ClassLabel(num_classes=14, names=['abroad', 'address', 'app_error', 'atm_limit', 'balance', 'business_loan',  'card_issues', 'cash_deposit', 'direct_debit', 'freeze', 'high_value_payment', 'joint_account', 'latest_transactions', 'pay_bill'], id=None),
-         'lang_id': ClassLabel(num_classes=14, names=['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR',  'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN'], id=None),
-         'path': Value(dtype='string', id=None),
-         'transcription': Value(dtype='string', id=None)}
+         'english_transcription': Value('string'),
+         'intent_class': ClassLabel(num_classes=14, names=['abroad', 'address', 'app_error', 'atm_limit', 'balance', 'business_loan',  'card_issues', 'cash_deposit', 'direct_debit', 'freeze', 'high_value_payment', 'joint_account', 'latest_transactions', 'pay_bill']),
+         'lang_id': ClassLabel(num_classes=14, names=['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR',  'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN']),
+         'path': Value('string'),
+         'transcription': Value('string')}
         >>> ds = ds.cast_column("audio", Audio(sampling_rate=16000))
         >>> ds.features
         {'audio': Audio(sampling_rate=16000, mono=True, decode=True, id=None),
-         'english_transcription': Value(dtype='string', id=None),
-         'intent_class': ClassLabel(num_classes=14, names=['abroad', 'address', 'app_error', 'atm_limit', 'balance', 'business_loan',  'card_issues', 'cash_deposit', 'direct_debit', 'freeze', 'high_value_payment', 'joint_account', 'latest_transactions', 'pay_bill'], id=None),
-         'lang_id': ClassLabel(num_classes=14, names=['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR',  'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN'], id=None),
-         'path': Value(dtype='string', id=None),
-         'transcription': Value(dtype='string', id=None)}
+         'english_transcription': Value('string'),
+         'intent_class': ClassLabel(num_classes=14, names=['abroad', 'address', 'app_error', 'atm_limit', 'balance', 'business_loan',  'card_issues', 'cash_deposit', 'direct_debit', 'freeze', 'high_value_payment', 'joint_account', 'latest_transactions', 'pay_bill']),
+         'lang_id': ClassLabel(num_classes=14, names=['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR',  'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN']),
+         'path': Value('string'),
+         'transcription': Value('string')}
         ```
         """
+        feature = _fix_for_backward_compatible_features(feature)
         info = self._info.copy()
         info.features[column] = feature
         return IterableDataset(
@@ -3202,17 +3288,18 @@ class IterableDataset(DatasetInfoMixin):
         >>> from datasets import load_dataset, ClassLabel, Value
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> ds.features
-        {'label': ClassLabel(names=['neg', 'pos'], id=None),
-         'text': Value(dtype='string', id=None)}
+        {'label': ClassLabel(names=['neg', 'pos']),
+         'text': Value('string')}
         >>> new_features = ds.features.copy()
         >>> new_features["label"] = ClassLabel(names=["bad", "good"])
         >>> new_features["text"] = Value("large_string")
         >>> ds = ds.cast(new_features)
         >>> ds.features
-        {'label': ClassLabel(names=['bad', 'good'], id=None),
-         'text': Value(dtype='large_string', id=None)}
+        {'label': ClassLabel(names=['bad', 'good']),
+         'text': Value('large_string')}
         ```
         """
+        features = _fix_for_backward_compatible_features(features)
         info = self._info.copy()
         info.features = features
         return IterableDataset(
@@ -3265,7 +3352,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> ds = ds.decode(False)
         >>> ds.features
         {'image': Image(mode=None, decode=False, id=None),
-        'text': Value(dtype='string', id=None)}
+        'text': Value('string')}
         >>> next(iter(ds))
         {
           'image': {
@@ -3368,12 +3455,878 @@ class IterableDataset(DatasetInfoMixin):
             return {k: [v] for k, v in unbatched.items()}
 
         if self.features:
-            features = Features({col: [feature] for col, feature in self.features.items()})
+            features = Features({col: List(feature) for col, feature in self.features.items()})
         else:
             features = None
         return self.map(
             batch_fn, batched=True, batch_size=batch_size, drop_last_batch=drop_last_batch, features=features
         )
+
+    def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
+        """Returns the dataset as a Python dict. Can also return a generator for large datasets.
+
+        Args:
+            batch_size (`int`, *optional*): The size (number of rows) of the batches if `batched` is `True`.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+
+        Returns:
+            `dict` or `Iterator[dict]`
+
+        Example:
+
+        ```py
+        >>> ds.to_dict()
+        ```
+        """
+        if batched:
+            for table in self.with_format("arrow").iter(batch_size=batch_size):
+                yield Dataset(table, fingerprint="unset").to_dict()
+        else:
+            table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+            return Dataset(table, fingerprint="unset").to_dict()
+
+    def to_list(self) -> list:
+        """Returns the dataset as a Python list.
+
+        Returns:
+            `list`
+
+        Example:
+
+        ```py
+        >>> ds.to_list()
+        ```
+        """
+        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+        return Dataset(table, fingerprint="unset").to_list()
+
+    def to_pandas(
+        self, batch_size: Optional[int] = None, batched: bool = False
+    ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
+        """Returns the dataset as a `pandas.DataFrame`. Can also return a generator for large datasets.
+
+        Args:
+            batch_size (`int`, *optional*):
+                The size (number of rows) of the batches if `batched` is `True`.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            batched (`bool`):
+                Set to `True` to return a generator that yields the dataset as batches
+                of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
+
+        Returns:
+            `pandas.DataFrame` or `Iterator[pandas.DataFrame]`
+
+        Example:
+
+        ```py
+        >>> ds.to_pandas()
+        ```
+        """
+        if batched:
+            for table in self.with_format("arrow").iter(batch_size=batch_size):
+                yield Dataset(table, fingerprint="unset").to_pandas()
+        else:
+            table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+            return Dataset(table, fingerprint="unset").to_pandas()
+
+    def to_polars(
+        self,
+        batch_size: Optional[int] = None,
+        batched: bool = False,
+        schema_overrides: Optional[dict] = None,
+        rechunk: bool = True,
+    ) -> Union["pl.DataFrame", Iterator["pl.DataFrame"]]:
+        """Returns the dataset as a `polars.DataFrame`. Can also return a generator for large datasets.
+
+        Args:
+            batch_size (`int`, *optional*):
+                The size (number of rows) of the batches if `batched` is `True`.
+                Defaults to `genomicsml.datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            batched (`bool`):
+                Set to `True` to return a generator that yields the dataset as batches
+                of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
+            schema_overrides (`dict`, *optional*):
+                Support type specification or override of one or more columns; note that
+                any dtypes inferred from the schema param will be overridden.
+            rechunk (`bool`):
+                Make sure that all data is in contiguous memory. Defaults to `True`.
+        Returns:
+            `polars.DataFrame` or `Iterator[polars.DataFrame]`
+
+        Example:
+
+        ```py
+        >>> ds.to_polars()
+        ```
+        """
+        if batched:
+            for table in self.with_format("arrow").iter(batch_size=batch_size):
+                yield Dataset(table, fingerprint="unset").to_polars(schema_overrides=schema_overrides, rechunk=rechunk)
+        else:
+            table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+            return Dataset(table, fingerprint="unset").to_polars(schema_overrides=schema_overrides, rechunk=rechunk)
+
+    def to_csv(
+        self,
+        path_or_buf: Union[PathLike, BinaryIO],
+        batch_size: Optional[int] = None,
+        storage_options: Optional[dict] = None,
+        **to_csv_kwargs,
+    ) -> int:
+        """Exports the dataset to csv.
+
+        This iterates on the dataset and loads it completely in memory before writing it.
+
+        Args:
+            path_or_buf (`PathLike` or `FileOrBuffer`):
+                Either a path to a file (e.g. `file.csv`), a remote URI (e.g. `hf://datasets/username/my_dataset_name/data.csv`),
+                or a BinaryIO, where the dataset will be saved to in the specified format.
+            batch_size (`int`, *optional*):
+                Size of the batch to load in memory and write at once.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+            **to_csv_kwargs (additional keyword arguments):
+                Parameters to pass to pandas's [`pandas.DataFrame.to_csv`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_csv.html).
+                The parameter `index` defaults to `False` if not specified.
+                If you would like to write the index, pass `index=True` and also set a name for the index column by
+                passing `index_label`.
+
+        Returns:
+            `int`: The number of characters or bytes written.
+
+        Example:
+
+        ```py
+        >>> ds.to_csv("path/to/dataset/directory")
+        ```
+        """
+        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+        return Dataset(table, fingerprint="unset").to_csv(
+            path_or_buf,
+            batch_size=batch_size,
+            storage_options=storage_options,
+            **to_csv_kwargs,
+        )
+
+    def to_json(
+        self,
+        path_or_buf: Union[PathLike, BinaryIO],
+        batch_size: Optional[int] = None,
+        storage_options: Optional[dict] = None,
+        **to_json_kwargs,
+    ) -> int:
+        """Export the dataset to JSON Lines or JSON.
+
+        This iterates on the dataset and loads it completely in memory before writing it.
+
+        The default output format is [JSON Lines](https://jsonlines.org/).
+        To export to [JSON](https://www.json.org), pass `lines=False` argument and the desired `orient`.
+
+        Args:
+            path_or_buf (`PathLike` or `FileOrBuffer`):
+                Either a path to a file (e.g. `file.json`), a remote URI (e.g. `hf://datasets/username/my_dataset_name/data.json`),
+                or a BinaryIO, where the dataset will be saved to in the specified format.
+            batch_size (`int`, *optional*):
+                Size of the batch to load in memory and write at once.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+            **to_json_kwargs (additional keyword arguments):
+                Parameters to pass to pandas's [`pandas.DataFrame.to_json`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html).
+                Default arguments are `lines=True` and `orient="records".
+                The parameter `index` defaults to `False` if `orient` is `"split"` or `"table"`.
+                If you would like to write the index, pass `index=True`.
+
+        Returns:
+            `int`: The number of characters or bytes written.
+
+        Example:
+
+        ```py
+        >>> ds.to_json("path/to/dataset/directory/filename.jsonl")
+        ```
+
+        ```py
+        >>> num_shards = dataset.num_shards
+        >>> for index in range(num_shards):
+        ...     shard = dataset.shard(index, num_shards)
+        ...     shard.to_json(f"path/of/my/dataset/data-{index:05d}.jsonl")
+        ```
+
+        """
+        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+        return Dataset(table, fingerprint="unset").to_json(
+            path_or_buf,
+            batch_size=batch_size,
+            storage_options=storage_options,
+            **to_json_kwargs,
+        )
+
+    def to_sql(
+        self,
+        name: str,
+        con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
+        batch_size: Optional[int] = None,
+        **sql_writer_kwargs,
+    ) -> int:
+        """Exports the dataset to a SQL database.
+
+        Args:
+            name (`str`):
+                Name of SQL table.
+            con (`str` or `sqlite3.Connection` or `sqlalchemy.engine.Connection` or `sqlalchemy.engine.Connection`):
+                A [URI string](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls) or a SQLite3/SQLAlchemy connection object used to write to a database.
+            batch_size (`int`, *optional*):
+                Size of the batch to load in memory and write at once.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            **sql_writer_kwargs (additional keyword arguments):
+                Parameters to pass to pandas's [`pandas.DataFrame.to_sql`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_sql.html).
+                The parameter `index` defaults to `False` if not specified.
+                If you would like to write the index, pass `index=True` and also set a name for the index column by
+                passing `index_label`.
+
+
+        Returns:
+            `int`: The number of records written.
+
+        Example:
+
+        ```py
+        >>> # con provided as a connection URI string
+        >>> ds.to_sql("data", "sqlite:///my_own_db.sql")
+        >>> # con provided as a sqlite3 connection object
+        >>> import sqlite3
+        >>> con = sqlite3.connect("my_own_db.sql")
+        >>> with con:
+        ...     ds.to_sql("data", con)
+        ```
+        """
+        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+        return Dataset(table, fingerprint="unset").to_sql(name, con, batch_size=batch_size, **sql_writer_kwargs)
+
+    def to_parquet(
+        self,
+        path_or_buf: Union[PathLike, BinaryIO],
+        batch_size: Optional[int] = None,
+        storage_options: Optional[dict] = None,
+        **parquet_writer_kwargs,
+    ) -> int:
+        """Exports the dataset to parquet
+
+        Args:
+            path_or_buf (`PathLike` or `FileOrBuffer`):
+                Either a path to a file (e.g. `file.parquet`), a remote URI (e.g. `hf://datasets/username/my_dataset_name/data.parquet`),
+                or a BinaryIO, where the dataset will be saved to in the specified format.
+            batch_size (`int`, *optional*):
+                Size of the batch to load in memory and write at once.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+
+                <Added version="2.19.0"/>
+            **parquet_writer_kwargs (additional keyword arguments):
+                Parameters to pass to PyArrow's `pyarrow.parquet.ParquetWriter`.
+
+        Returns:
+            `int`: The number of characters or bytes written.
+
+        Example:
+
+        ```py
+        >>> ds.to_parquet("path/to/dataset/directory")
+        ```
+
+        ```py
+        >>> num_shards = dataset.num_shards
+        >>> for index in range(num_shards):
+        ...     shard = dataset.shard(index, num_shards)
+        ...     shard.to_parquet(f"path/of/my/dataset/data-{index:05d}.parquet")
+        ```
+
+        """
+        from .io.parquet import get_writer_batch_size
+
+        batch_size = get_writer_batch_size(self.features)
+        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=batch_size)))
+        return Dataset(table, fingerprint="unset").to_parquet(
+            path_or_buf, batch_size=batch_size, storage_options=storage_options, **parquet_writer_kwargs
+        )
+
+    def _push_parquet_shards_to_hub_single(
+        self,
+        job_id: int,
+        num_jobs: int,
+        repo_id: str,
+        data_dir: str,
+        split: str,
+        token: Optional[str],
+        revision: Optional[str],
+        create_pr: Optional[bool],
+        # max_shard_size: Optional[Union[int, str]] = None,  # TODO(QL): add arg
+        num_shards: int,
+        embed_external_files: bool,
+    ) -> tuple[list[CommitOperationAdd], int, int]:
+        """Pushes the dataset shards as Parquet files to the hub.
+
+        Returns:
+            additions (`List[CommitOperation]`): list of the `CommitOperationAdd` of the uploaded shards
+            uploaded_size (`int`): number of uploaded bytes to the repository
+            dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset after uncompression
+        """
+
+        div = num_shards // num_jobs
+        mod = num_shards % num_jobs
+        start = div * job_id + min(job_id, mod)
+        end = start + div + (1 if job_id < mod else 0)
+
+        index_shards = (
+            (start + i, self.shard(num_shards=end - start, index=i, contiguous=True)) for i in range(end - start)
+        )
+
+        api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+
+        uploaded_size = 0
+        dataset_nbytes = 0
+        num_examples = 0
+        additions: list[CommitOperationAdd] = []
+        for index, shard in index_shards:
+            if embed_external_files:
+                from .io.parquet import get_writer_batch_size
+
+                shard = shard.with_format("arrow")
+                shard = shard.map(
+                    partial(embed_table_storage, token_per_repo_id=self._token_per_repo_id),
+                    batched=True,
+                    batch_size=get_writer_batch_size(shard.features),
+                )
+            shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
+            buffer = BytesIO()
+            shard.to_parquet(buffer)
+            parquet_metadata = pq.read_metadata(buffer)
+            num_examples += parquet_metadata.num_rows
+            dataset_nbytes += sum(
+                parquet_metadata.row_group(i).total_byte_size for i in range(parquet_metadata.num_row_groups)
+            )
+            parquet_content = buffer.getvalue()
+            uploaded_size += len(parquet_content)
+            del buffer
+            shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=parquet_content)
+            api.preupload_lfs_files(
+                repo_id=repo_id,
+                additions=[shard_addition],
+                repo_type="dataset",
+                revision=revision,
+                create_pr=create_pr,
+            )
+            additions.append(shard_addition)
+            yield job_id, False, 1
+
+        yield job_id, True, (additions, dataset_nbytes, num_examples)
+
+    def _push_parquet_shards_to_hub(
+        self,
+        repo_id: str,
+        data_dir: str,
+        split: str,
+        token: Optional[str],
+        revision: Optional[str],
+        create_pr: Optional[bool],
+        # max_shard_size: Optional[Union[int, str]],  # TODO(QL): add arg
+        num_shards: Optional[int],
+        embed_external_files: bool,
+        num_proc: Optional[int],
+    ) -> tuple[list[CommitOperationAdd], int, int, int]:
+        """Pushes the dataset shards as Parquet files to the hub.
+
+        Returns:
+            additions (`List[CommitOperation]`): list of the `CommitOperationAdd` of the uploaded shards
+            uploaded_size (`int`): number of uploaded bytes to the repository
+            dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset after uncompression
+            num_examples (`int`): number of examples of the uploaded dataset
+        """
+
+        # Find decodable columns, because if there are any, we need to:
+        # embed the bytes from the files in the shards
+        decodable_columns = (
+            [k for k, v in self._info.features.items() if require_decoding(v, ignore_decode_attribute=True)]
+            if embed_external_files
+            else []
+        )
+        embed_external_files = embed_external_files and bool(decodable_columns)
+
+        if num_shards is None:
+            # TODO(QL): this can depend on max_shard_size later
+            num_shards = self.num_shards
+
+        additions: list[CommitOperationAdd] = []
+        dataset_nbytes = num_examples = 0
+
+        num_jobs = num_proc or 1
+        kwargs_iterable = [
+            {
+                "self": self.shard(num_shards=num_jobs, index=job_id, contiguous=True),
+                "job_id": job_id,
+                "num_jobs": num_jobs,
+                "repo_id": repo_id,
+                "data_dir": data_dir,
+                "split": split,
+                "token": token,
+                "revision": revision,
+                "create_pr": create_pr,
+                "num_shards": num_shards,
+                "embed_external_files": embed_external_files,
+            }
+            for job_id in range(num_jobs)
+        ]
+        desc = "Uploading the dataset shards"
+        desc += f" (num_proc={num_proc})" if num_proc is not None and num_proc >= 1 else ""
+        pbar = hf_tqdm(
+            unit=" shards",
+            total=num_shards,
+            desc=desc,
+        )
+        with contextlib.nullcontext() if num_proc is None or num_proc < 1 else Pool(num_proc) as pool:
+            update_stream = (
+                IterableDataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
+                if pool is None
+                else iflatmap_unordered(
+                    pool,
+                    IterableDataset._push_parquet_shards_to_hub_single,
+                    kwargs_iterable=kwargs_iterable,
+                )
+            )
+            for job_id, done, content in update_stream:
+                if not done:
+                    pbar.update(content)
+                else:
+                    additions += content[0]
+                    dataset_nbytes += content[1]
+                    num_examples += content[2]
+            if pool is not None:
+                pool.close()
+                pool.join()
+
+        uploaded_size = sum(addition.upload_info.size for addition in additions)
+        return additions, uploaded_size, dataset_nbytes, num_examples
+
+    def push_to_hub(
+        self,
+        repo_id: str,
+        config_name: str = "default",
+        set_default: Optional[bool] = None,
+        split: Optional[str] = None,
+        data_dir: Optional[str] = None,
+        commit_message: Optional[str] = None,
+        commit_description: Optional[str] = None,
+        private: Optional[bool] = None,
+        token: Optional[str] = None,
+        revision: Optional[str] = None,
+        create_pr: Optional[bool] = False,
+        # max_shard_size: Optional[Union[int, str]] = None,  # TODO(QL): add arg
+        num_shards: Optional[int] = None,
+        embed_external_files: bool = True,
+        num_proc: Optional[int] = None,
+    ) -> CommitInfo:
+        """Pushes the dataset to the hub as a Parquet dataset.
+        The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
+
+        The resulting Parquet files are self-contained by default. If your dataset contains [`Image`], [`Audio`] or [`Video`]
+        data, the Parquet files will store the bytes of your images or audio files.
+        You can disable this by setting `embed_external_files` to `False`.
+
+        Args:
+            repo_id (`str`):
+                The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
+                `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
+                of the logged-in user.
+            config_name (`str`, defaults to "default"):
+                The configuration name (or subset) of a dataset. Defaults to "default".
+            set_default (`bool`, *optional*):
+                Whether to set this configuration as the default one. Otherwise, the default configuration is the one
+                named "default".
+            split (`str`, *optional*):
+                The name of the split that will be given to that dataset. Defaults to `self.split`.
+            data_dir (`str`, *optional*):
+                Directory name that will contain the uploaded data files. Defaults to the `config_name` if different
+                from "default", else "data".
+            commit_message (`str`, *optional*):
+                Message to commit while pushing. Will default to `"Upload dataset"`.
+            commit_description (`str`, *optional*):
+                Description of the commit that will be created.
+                Additionally, description of the PR if a PR is created (`create_pr` is True).
+            private (`bool`, *optional*):
+                Whether to make the repo private. If `None` (default), the repo will be public unless the
+                organization's default is private. This value is ignored if the repo already exists.
+            token (`str`, *optional*):
+                An optional authentication token for the Hugging Face Hub. If no token is passed, will default
+                to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
+                if no token is passed and the user is not logged-in.
+            revision (`str`, *optional*):
+                Branch to push the uploaded files to. Defaults to the `"main"` branch.
+            create_pr (`bool`, *optional*, defaults to `False`):
+                Whether to create a PR with the uploaded files or directly commit.
+            num_shards (`int`, *optional*):
+                Number of shards to write. Equals to this dataset's `.num_shards` by default.
+            embed_external_files (`bool`, defaults to `True`):
+                Whether to embed file bytes in the shards.
+                In particular, this will do the following before the push for the fields of type:
+
+                - [`Audio`] and [`Image`]: remove local path information and embed file content in the Parquet files.
+            num_proc (`int`, *optional*, defaults to `None`):
+                Number of processes when preparing and uploading the dataset.
+                This is helpful if the dataset is made of many samples and transformations.
+                Multiprocessing is disabled by default.
+
+        Return:
+            huggingface_hub.CommitInfo
+
+        Example:
+
+        ```python
+        >>> dataset.push_to_hub("<organization>/<dataset_id>")
+        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", private=True)
+        >>> dataset.push_to_hub("<organization>/<dataset_id>", num_shards=1024)
+        ```
+
+        If your dataset has multiple splits (e.g. train/validation/test):
+
+        ```python
+        >>> train_dataset.push_to_hub("<organization>/<dataset_id>", split="train")
+        >>> val_dataset.push_to_hub("<organization>/<dataset_id>", split="validation")
+        >>> # later
+        >>> dataset = load_dataset("<organization>/<dataset_id>")
+        >>> train_dataset = dataset["train"]
+        >>> val_dataset = dataset["validation"]
+        ```
+
+        If you want to add a new configuration (or subset) to a dataset (e.g. if the dataset has multiple tasks/versions/languages):
+
+        ```python
+        >>> english_dataset.push_to_hub("<organization>/<dataset_id>", "en")
+        >>> french_dataset.push_to_hub("<organization>/<dataset_id>", "fr")
+        >>> # later
+        >>> english_dataset = load_dataset("<organization>/<dataset_id>", "en")
+        >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
+        ```
+        """
+        if "Video(" in str(self.features):
+            raise NotImplementedError(
+                "push_to_hub is not implemented for video datasets, instead you should upload the video files "
+                "using e.g. the huggingface_hub library and optionally upload a metadata.csv or metadata.jsonl "
+                "file containing other information like video captions, features or labels. More information "
+                "at https://huggingface.co/docs/datasets/main/en/video_load#videofolder"
+            )
+        if num_proc is not None and num_proc > self.num_shards:
+            logger.warning(
+                f"Too many num_proc: {num_proc} (max is dataset.num_shards={self.num_shards}). "
+                f"Stopping {num_proc - self.num_shards} processes."
+            )
+            logger.info(
+                f"To parallelize data loading, we give each process some shards (or data sources) to process. "
+                f"Therefore it's unnecessary to have a number of processes greater than dataset.num_shards={self.num_shards}. "
+                f"To enable more parallelism, please split the dataset in more files than {self.num_shards}."
+            )
+            num_proc = self.num_shards
+
+        if config_name == "data":
+            raise ValueError("`config_name` cannot be 'data'. Please, choose another name for configuration.")
+
+        # if max_shard_size is not None and num_shards is not None:
+        #     raise ValueError(
+        #         "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
+        #     )
+
+        if split is None:
+            split = str(self.split) if self.split is not None else "train"
+
+        if not re.match(_split_re, split):
+            raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
+
+        api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+
+        try:
+            repo_id = api.repo_info(repo_id, repo_type="dataset").id
+        except RepositoryNotFoundError:
+            repo_url = api.create_repo(
+                repo_id,
+                repo_type="dataset",
+                private=private,
+                exist_ok=True,
+            )
+            repo_id = repo_url.repo_id
+
+        if revision is not None and not revision.startswith("refs/pr/"):
+            # We do not call create_branch for a PR reference: 400 Bad Request
+            api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
+
+        if not data_dir:
+            data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
+
+        additions, uploaded_size, dataset_nbytes, num_examples = self._push_parquet_shards_to_hub(
+            repo_id=repo_id,
+            data_dir=data_dir,
+            split=split,
+            token=token,
+            revision=revision,
+            # max_shard_size=max_shard_size,  # TODO(QL): add arg
+            num_shards=num_shards,
+            create_pr=create_pr,
+            embed_external_files=embed_external_files,
+            num_proc=num_proc,
+        )
+
+        def get_deletions_and_dataset_card() -> tuple[str, list[CommitOperationDelete], str, Optional[str]]:
+            parent_commit = api.repo_info(repo_id, repo_type="dataset", revision=revision).sha
+
+            # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
+            # and delete old split shards (if they exist)
+            repo_with_dataset_card, repo_with_dataset_infos = False, False
+            deletions: list[CommitOperationDelete] = []
+            deleted_size = 0
+            repo_splits: list[str] = []  # use a list to keep the order of the splits
+            repo_files_to_add = [addition.path_in_repo for addition in additions]
+            for repo_file in api.list_repo_tree(
+                repo_id=repo_id, revision=parent_commit, repo_type="dataset", token=token, recursive=True
+            ):
+                if not isinstance(repo_file, RepoFile):
+                    continue
+                if repo_file.rfilename == config.REPOCARD_FILENAME:
+                    repo_with_dataset_card = True
+                elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
+                    repo_with_dataset_infos = True
+                elif (
+                    repo_file.rfilename.startswith(f"{data_dir}/{split}-")
+                    and repo_file.rfilename not in repo_files_to_add
+                ):
+                    deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
+                    deleted_size += repo_file.size
+                elif fnmatch.fnmatch(
+                    repo_file.rfilename,
+                    PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
+                ):
+                    pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                    split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
+                    assert split_pattern_fields is not None
+                    repo_split = split_pattern_fields["split"]
+                    if repo_split not in repo_splits:
+                        repo_splits.append(repo_split)
+
+            organization, dataset_name = repo_id.split("/") if "/" in repo_id else (None, repo_id)
+            info_to_dump = self.info.copy()
+            info_to_dump.download_checksums = None
+            info_to_dump.download_size = uploaded_size
+            info_to_dump.dataset_size = dataset_nbytes
+            info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
+            info_to_dump.config_name = config_name
+            info_to_dump.splits = SplitDict(
+                {
+                    split: SplitInfo(
+                        split, num_bytes=dataset_nbytes, num_examples=num_examples, dataset_name=dataset_name
+                    )
+                }
+            )
+            # get the info from the README to update them
+            if repo_with_dataset_card:
+                dataset_card_path = api.hf_hub_download(
+                    repo_id, config.REPOCARD_FILENAME, repo_type="dataset", revision=parent_commit
+                )
+                dataset_card = DatasetCard.load(Path(dataset_card_path))
+                dataset_card_data = dataset_card.data
+                metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
+                dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
+                if dataset_infos and config_name in dataset_infos:
+                    repo_info = dataset_infos[config_name]
+                else:
+                    repo_info = None
+            # get the deprecated dataset_infos.json to update them
+            elif repo_with_dataset_infos:
+                dataset_card = None
+                dataset_card_data = DatasetCardData()
+                metadata_configs = MetadataConfigs()
+                dataset_infos_path = api.hf_hub_download(
+                    repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=parent_commit
+                )
+                with open(dataset_infos_path, encoding="utf-8") as f:
+                    dataset_infos: dict = json.load(f)
+                    dataset_info = dataset_infos.get(config_name, None) if dataset_infos else None
+                    repo_info = DatasetInfo.from_dict(dataset_info) if dataset_info else None
+            else:
+                dataset_card = None
+                dataset_card_data = DatasetCardData()
+                metadata_configs = MetadataConfigs()
+                repo_info = None
+            # update the total info to dump from existing info
+            if repo_info is not None:
+                logger.info("Updating downloaded metadata with the new split.")
+                if repo_info.splits and list(repo_info.splits) != [split]:
+                    if self._info.features != repo_info.features:
+                        raise ValueError(
+                            f"Features of the new split don't match the features of the existing splits on the hub: {self._info.features} != {repo_info.features}"
+                        )
+
+                    if split in repo_info.splits:
+                        repo_info.download_size -= deleted_size
+                        repo_info.dataset_size -= repo_info.splits.get(split, SplitInfo()).num_bytes or 0
+
+                    repo_info.download_checksums = None
+                    repo_info.download_size = (repo_info.download_size or 0) + uploaded_size
+                    repo_info.dataset_size = (repo_info.dataset_size or 0) + dataset_nbytes
+                    repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
+                    repo_info.splits.pop(split, None)
+                    repo_info.splits[split] = SplitInfo(
+                        split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
+                    )
+                    info_to_dump = repo_info
+            # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
+            if not metadata_configs and repo_splits:
+                default_metadata_configs_to_dump = {
+                    "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
+                }
+                MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
+            # update the metadata configs
+            if config_name in metadata_configs:
+                metadata_config = metadata_configs[config_name]
+                if "data_files" in metadata_config:
+                    data_files_to_dump = sanitize_patterns(metadata_config["data_files"])
+                else:
+                    data_files_to_dump = {}
+                # add the new split
+                data_files_to_dump[split] = [f"{data_dir}/{split}-*"]
+                metadata_config_to_dump = {
+                    "data_files": [
+                        {
+                            "split": _split,
+                            "path": _pattern[0] if len(_pattern) == 1 else _pattern,
+                        }
+                        for _split, _pattern in data_files_to_dump.items()
+                    ]
+                }
+            else:
+                metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
+            configs_to_dump = {config_name: metadata_config_to_dump}
+            if set_default and config_name != "default":
+                if metadata_configs:
+                    current_default_config_name = metadata_configs.get_default_config_name()
+                    if current_default_config_name == "default":
+                        raise ValueError(
+                            "There exists a configuration named 'default'. To set a different configuration as default, "
+                            "rename the 'default' one first."
+                        )
+                    if current_default_config_name:
+                        _ = metadata_configs[current_default_config_name].pop("default")
+                        configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
+                metadata_config_to_dump["default"] = True
+            # push to the deprecated dataset_infos.json
+            if repo_with_dataset_infos:
+                dataset_infos_path = api.hf_hub_download(
+                    repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=parent_commit
+                )
+                with open(dataset_infos_path, encoding="utf-8") as f:
+                    dataset_infos: dict = json.load(f)
+                dataset_infos[config_name] = asdict(info_to_dump)
+                new_dataset_infos = json.dumps(dataset_infos, indent=4)
+            else:
+                new_dataset_infos = None
+            # push to README
+            DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
+            MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
+            new_dataset_card = (
+                DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
+            )
+            return parent_commit, deletions, new_dataset_card, new_dataset_infos
+
+        commit_message = commit_message if commit_message is not None else "Upload dataset"
+        if len(additions) > config.UPLOADS_MAX_NUMBER_PER_COMMIT:
+            logger.info(
+                f"Number of files to upload is larger than {config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
+            )
+            num_commits = math.ceil(len(additions) / config.UPLOADS_MAX_NUMBER_PER_COMMIT)
+            for i in range(0, num_commits):
+                operations = additions[
+                    i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
+                ]
+                for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+                    # We need to retry if another commit happens at the same time
+                    sleep_time *= 1 + random.random()
+                    try:
+                        commit_info = api.create_commit(
+                            repo_id,
+                            operations=operations,
+                            commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                            commit_description=commit_description,
+                            repo_type="dataset",
+                            revision=revision,
+                            create_pr=create_pr,
+                        )
+                    except HfHubHTTPError as err:
+                        if (
+                            err.__context__
+                            and isinstance(err.__context__, HTTPError)
+                            and err.__context__.response.status_code == 409
+                        ):
+                            # 409 is Conflict (another commit is in progress)
+                            time.sleep(sleep_time)
+                            logger.info(
+                                f"Retrying intermediate commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
+                            )
+                            continue
+                        else:
+                            raise
+                    break
+                logger.info(
+                    f"Commit #{i + 1} completed"
+                    + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
+                    + "."
+                )
+            last_commit_additions = []
+        else:
+            last_commit_additions = additions
+
+        for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+            # We need to retry if there was a commit in between in case it touched the dataset card data
+            sleep_time *= 1 + random.random()
+            parent_commit, deletions, dataset_card, dataset_infos = get_deletions_and_dataset_card()
+            dataset_card_additions = []
+            if dataset_infos:
+                dataset_card_additions.append(
+                    CommitOperationAdd(
+                        path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+                        path_or_fileobj=dataset_infos.encode("utf-8"),
+                    )
+                )
+            dataset_card_additions.append(
+                CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
+            )
+            try:
+                commit_info = api.create_commit(
+                    repo_id,
+                    operations=last_commit_additions + dataset_card_additions + deletions,
+                    commit_message=commit_message,
+                    commit_description=commit_description,
+                    repo_type="dataset",
+                    revision=revision,
+                    create_pr=create_pr,
+                    parent_commit=parent_commit,
+                )
+            except HfHubHTTPError as err:
+                if (
+                    err.__context__
+                    and isinstance(err.__context__, HTTPError)
+                    and err.__context__.response.status_code in (412, 409)
+                ):
+                    # 412 is Precondition failed (parent_commit isn't satisfied)
+                    # 409 is Conflict (another commit is in progress)
+                    time.sleep(sleep_time)
+                    logger.info(
+                        f"Retrying commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
+                    )
+                    continue
+                else:
+                    raise
+            break
+
+        return commit_info
 
 
 def _concatenate_iterable_datasets(
@@ -3412,6 +4365,25 @@ def _concatenate_iterable_datasets(
     else:
         _check_column_names([col_name for dset in dsets for col_name in dset.features])
 
+    # Check format is consistent; if so, will set format for concatenated dataset
+    if all(dset._formatting is None for dset in dsets):
+        formatting = None
+    elif any(dset._formatting is None for dset in dsets):
+        formatting = None
+        logger.info(
+            "Some of the datasets have disparate format or format not set. Resetting the format of the concatenated dataset."
+        )
+    else:
+        format_type_set = {dset._formatting.format_type for dset in dsets}
+        if len(format_type_set) == 1:
+            format_type = format_type_set.pop()
+            formatting = FormattingConfig(format_type=format_type)
+        else:
+            formatting = None
+            logger.info(
+                "Some of the datasets have disparate format or format not set. Resetting the format of the concatenated dataset."
+            )
+
     # TODO: improve this to account for a mix of ClassLabel and Value for example
     # right now it would keep the type of the first dataset in the list
     features = Features(
@@ -3433,7 +4405,13 @@ def _concatenate_iterable_datasets(
     # Get all the auth tokens per repository - in case the datasets come from different private repositories
     token_per_repo_id = {repo_id: token for dataset in dsets for repo_id, token in dataset._token_per_repo_id.items()}
     # Return new daset
-    return IterableDataset(ex_iterable=ex_iterable, info=info, split=split, token_per_repo_id=token_per_repo_id)
+    return IterableDataset(
+        ex_iterable=ex_iterable,
+        info=info,
+        split=split,
+        token_per_repo_id=token_per_repo_id,
+        formatting=formatting,
+    )
 
 
 def _interleave_iterable_datasets(

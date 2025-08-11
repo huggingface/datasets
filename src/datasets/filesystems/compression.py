@@ -14,7 +14,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
         None  # protocol passed in prefix to the url. ex: "gzip", for gzip://file.txt::http://foo.bar/file.txt.gz
     )
     compression: str = None  # compression type in fsspec. ex: "gzip"
-    extension: str = None  # extension of the filename to strip. ex: "".gz" to get file.txt from file.txt.gz
+    extensions: list[str] = None  # extensions of the filename to strip. ex: ".gz" to get file.txt from file.txt.gz
 
     def __init__(
         self, fo: str = "", target_protocol: Optional[str] = None, target_options: Optional[dict] = None, **kwargs
@@ -90,7 +90,7 @@ class Bz2FileSystem(BaseCompressedFileFileSystem):
 
     protocol = "bz2"
     compression = "bz2"
-    extension = ".bz2"
+    extensions = [".bz2"]
 
 
 class GzipFileSystem(BaseCompressedFileFileSystem):
@@ -98,7 +98,7 @@ class GzipFileSystem(BaseCompressedFileFileSystem):
 
     protocol = "gzip"
     compression = "gzip"
-    extension = ".gz"
+    extensions = [".gz", ".gzip"]
 
 
 class Lz4FileSystem(BaseCompressedFileFileSystem):
@@ -106,7 +106,7 @@ class Lz4FileSystem(BaseCompressedFileFileSystem):
 
     protocol = "lz4"
     compression = "lz4"
-    extension = ".lz4"
+    extensions = [".lz4"]
 
 
 class XzFileSystem(BaseCompressedFileFileSystem):
@@ -114,7 +114,7 @@ class XzFileSystem(BaseCompressedFileFileSystem):
 
     protocol = "xz"
     compression = "xz"
-    extension = ".xz"
+    extensions = [".xz"]
 
 
 class ZstdFileSystem(BaseCompressedFileFileSystem):
@@ -124,4 +124,4 @@ class ZstdFileSystem(BaseCompressedFileFileSystem):
 
     protocol = "zstd"
     compression = "zstd"
-    extension = ".zst"
+    extensions = [".zst", ".zstd"]

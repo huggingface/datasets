@@ -13,7 +13,6 @@ import os
 import posixpath
 import re
 import shutil
-import sys
 import tarfile
 import time
 import xml.dom.minidom
@@ -60,25 +59,6 @@ logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 INCOMPLETE_SUFFIX = ".incomplete"
 
 T = TypeVar("T", str, Path)
-
-
-def init_hf_modules(hf_modules_cache: Optional[Union[Path, str]] = None) -> str:
-    """
-    Add hf_modules_cache to the python path.
-    By default hf_modules_cache='~/.cache/huggingface/modules'.
-    It can also be set with the environment variable HF_MODULES_CACHE.
-    This is used to add modules such as `datasets_modules`
-    """
-    hf_modules_cache = hf_modules_cache if hf_modules_cache is not None else config.HF_MODULES_CACHE
-    hf_modules_cache = str(hf_modules_cache)
-    if hf_modules_cache not in sys.path:
-        sys.path.append(hf_modules_cache)
-
-        os.makedirs(hf_modules_cache, exist_ok=True)
-        if not os.path.exists(os.path.join(hf_modules_cache, "__init__.py")):
-            with open(os.path.join(hf_modules_cache, "__init__.py"), "w"):
-                pass
-    return hf_modules_cache
 
 
 def is_remote_url(url_or_filename: str) -> bool:
@@ -481,12 +461,18 @@ BASE_KNOWN_EXTENSIONS = [
 ]
 COMPRESSION_EXTENSION_TO_PROTOCOL = {
     # single file compression
-    **{fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS},
+    **{
+        extension.lstrip("."): fs_class.protocol
+        for fs_class in COMPRESSION_FILESYSTEMS
+        for extension in fs_class.extensions
+    },
     # archive compression
     "zip": "zip",
 }
 SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL = {
-    fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS
+    extension.lstrip("."): fs_class.protocol
+    for fs_class in COMPRESSION_FILESYSTEMS
+    for extension in fs_class.extensions
 }
 SINGLE_FILE_COMPRESSION_PROTOCOLS = {fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS}
 SINGLE_SLASH_AFTER_PROTOCOL_PATTERN = re.compile(r"(?<!:):/")

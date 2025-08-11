@@ -112,6 +112,8 @@ The base class [`Dataset`] implements a Dataset backed by an Apache Arrow table.
 
 [[autodoc]] datasets.is_caching_enabled
 
+[[autodoc]] datasets.Column
+
 ## DatasetDict
 
 Dictionary with split names as keys ('train', 'test' for example), and `Dataset` objects as values.
@@ -175,6 +177,13 @@ The base class [`IterableDataset`] implements an iterable Dataset backed by pyth
     - take
     - shard
     - repeat
+    - to_csv
+    - to_pandas
+    - to_dict
+    - to_json
+    - to_parquet
+    - to_sql
+    - push_to_hub
     - load_state_dict
     - state_dict
     - info
@@ -193,6 +202,8 @@ The base class [`IterableDataset`] implements an iterable Dataset backed by pyth
     - supervised_keys
     - version
 
+[[autodoc]] datasets.IterableColumn
+
 ## IterableDatasetDict
 
 Dictionary with split names as keys ('train', 'test' for example), and `IterableDataset` objects as values.
@@ -208,6 +219,7 @@ Dictionary with split names as keys ('train', 'test' for example), and `Iterable
     - rename_column
     - rename_columns
     - select_columns
+    - push_to_hub
 
 ## Features
 
@@ -222,6 +234,8 @@ Dictionary with split names as keys ('train', 'test' for example), and `Iterable
 ### Composite
 
 [[autodoc]] datasets.LargeList
+
+[[autodoc]] datasets.List
 
 [[autodoc]] datasets.Sequence
 

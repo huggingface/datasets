@@ -19,6 +19,7 @@ from datasets.features import (
     ClassLabel,
     Features,
     Image,
+    List,
     Value,
 )
 from datasets.formatting import Formatter, get_format_type_from_alias
@@ -32,6 +33,7 @@ from datasets.iterable_dataset import (
     FormattedExamplesIterable,
     FormattingConfig,
     HorizontallyConcatenatedMultiSourcesExamplesIterable,
+    IterableColumn,
     IterableDataset,
     MappedExamplesIterable,
     RandomlyCyclingMultiSourcesExamplesIterable,
@@ -66,11 +68,11 @@ from .utils import (
 )
 
 
+SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/dataset_with_data_files"
+
 DEFAULT_N_EXAMPLES = 20
 DEFAULT_BATCH_SIZE = 4
 DEFAULT_FILEPATH = "file.txt"
-
-SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/dataset_with_script"  # has dataset script
 
 
 def generate_examples_fn(**kwargs):
@@ -1548,7 +1550,7 @@ def test_iterable_dataset_from_hub_torch_dataloader_parallel(num_workers, tmp_pa
     dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=str(tmp_path), streaming=True, split="train")
     dataloader = DataLoader(dataset, batch_size=None, num_workers=num_workers)
     result = list(dataloader)
-    assert len(result) == 2
+    assert len(result) == 10
 
 
 @pytest.mark.parametrize("batch_size", [4, 5])
@@ -1765,7 +1767,7 @@ def test_iterable_dataset_features_cast_to_python():
         {
             "id": Value("int64"),
             "timestamp": Value("timestamp[us]"),
-            "array": [Value("int64")],
+            "array": List(Value("int64")),
         }
     )
     dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
@@ -2125,6 +2127,18 @@ def test_concatenate_datasets_axis_1_with_different_lengths():
     # change order
     concatenated_dataset = concatenate_datasets([dataset2, dataset1], axis=1)
     assert list(concatenated_dataset) == [{**x, **y} for x, y in zip(extended_dataset2_list, dataset1)]
+
+
+@require_torch
+@require_tf
+@require_jax
+@pytest.mark.parametrize(
+    "format_type", [None, "torch", "python", "tf", "tensorflow", "np", "numpy", "jax", "arrow", "pd", "pandas"]
+)
+def test_concatenate_datasets_with_format(dataset: IterableDataset, format_type):
+    formatted_dataset = dataset.with_format(format_type)
+    concatenated_dataset = concatenate_datasets([formatted_dataset])
+    assert concatenated_dataset._formatting.format_type == get_format_type_from_alias(format_type)
 
 
 @pytest.mark.parametrize(
@@ -2518,3 +2532,56 @@ def test_decode():
     ds = ds.decode(num_threads=1)
     assert next(iter(ds)) == {"i": "decoded"}
     assert DecodableFeature.decode_example_num_calls == 4
+
+
+############################
+#
+#   IterableColumn tests
+#
+############################
+
+
+class TestIterableColumn:
+    def test_simple_getitem(self):
+        def gen():
+            yield {"text": "Good", "label": 0}
+            yield {"text": "Bad", "label": 1}
+
+        ds = IterableDataset.from_generator(gen)
+        texts = ds["text"]
+        assert isinstance(texts, IterableColumn)
+
+        first_pass = list(texts)
+        assert first_pass == ["Good", "Bad"]
+        second_pass = list(texts)
+        assert second_pass == ["Good", "Bad"]
+
+    def test_chained_getitem(self):
+        def gen():
+            yield {"sample": {"text": "Good", "label": 0}}
+            yield {"sample": {"text": "Bad", "label": 1}}
+
+        ds = IterableDataset.from_generator(gen)
+        texts = ds["sample"]["text"]
+        assert isinstance(texts, IterableColumn)
+
+        first_pass = list(texts)
+        assert first_pass == ["Good", "Bad"]
+        second_pass = list(texts)
+        assert second_pass == ["Good", "Bad"]
+
+    def test_getitem_for_batched_dataset(self):
+        data = [
+            {"text": "Good", "label": 0},
+            {"text": "Bad", "label": 1},
+            {"text": "Good again", "label": 0},
+            {"text": "Bad again", "label": 1},
+        ]
+
+        def gen():
+            yield from data
+
+        ds = IterableDataset.from_generator(gen).batch(batch_size=2)
+        texts = ds["text"]
+        assert isinstance(texts, IterableColumn)
+        assert list(texts) == [["Good", "Bad"], ["Good again", "Bad again"]]

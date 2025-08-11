@@ -48,7 +48,6 @@ require_py7zr = pytest.mark.skipif(not config.PY7ZR_AVAILABLE, reason="test requ
 require_zstandard = pytest.mark.skipif(not config.ZSTANDARD_AVAILABLE, reason="test requires zstandard")
 
 # Audio
-require_librosa = pytest.mark.skipif(find_spec("librosa") is None, reason="test requires librosa")
 require_sndfile = pytest.mark.skipif(
     # On Windows and OS X, soundfile installs sndfile
     find_spec("soundfile") is None or version.parse(importlib.metadata.version("soundfile")) < version.parse("0.12.0"),
@@ -187,6 +186,18 @@ def require_torchvision(test_case):
     """
     if not config.TORCHVISION_AVAILABLE:
         test_case = unittest.skip("test requires torchvision")(test_case)
+    return test_case
+
+
+def require_torchcodec(test_case):
+    """
+    Decorator marking a test that requires torchcodec.
+
+    These tests are skipped when torchcodec isn't installed.
+
+    """
+    if not config.TORCHCODEC_AVAILABLE:
+        test_case = unittest.skip("test requires torchcodec")(test_case)
     return test_case
 
 
@@ -556,7 +567,7 @@ def pytest_xdist_worker_id():
     if `-n 1` or `pytest-xdist` isn't being used.
     """
     worker = os.environ.get("PYTEST_XDIST_WORKER", "gw0")
-    worker = re.sub(r"^gw", "", worker, 0, re.M)
+    worker = re.sub(r"^gw", "", worker, count=0, flags=re.M)
     return int(worker)
 
 

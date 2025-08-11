@@ -9,7 +9,6 @@ This guide will show you how to load a dataset from:
 - In-memory data
 - Offline
 - A specific slice of a split
-- Local loading script (legacy)
 
 For more details specific to loading other dataset modalities, take a look at the <a class="underline decoration-pink-400 decoration-2 font-semibold" href="./audio_load">load audio dataset guide</a>, the <a class="underline decoration-yellow-400 decoration-2 font-semibold" href="./image_load">load image dataset guide</a>, the <a class="underline decoration-blue-400 decoration-2 font-semibold" href="./video_load">load video dataset guide</a>, or the <a class="underline decoration-green-400 decoration-2 font-semibold" href="./nlp_load">load text dataset guide</a>.
 
@@ -17,7 +16,7 @@ For more details specific to loading other dataset modalities, take a look at th
 
 ## Hugging Face Hub
 
-Datasets are loaded from a dataset loading script that downloads and generates the dataset. However, you can also load a dataset from any dataset repository on the Hub without a loading script! Begin by [creating a dataset repository](share#create-the-repository) and upload your data files. Now you can use the [`load_dataset`] function to load the dataset. 
+You can also load a dataset from any dataset repository on the Hub! Begin by [creating a dataset repository](share#create-the-repository) and upload your data files. Now you can use the [`load_dataset`] function to load the dataset. 
 
 For example, try loading the files from this [demo repository](https://huggingface.co/datasets/lhoestq/demo1) by providing the repository namespace and dataset name. This dataset repository contains CSV files, and the code below loads the dataset from the CSV files:
 
@@ -41,7 +40,7 @@ Refer to the [Upload a dataset to the Hub](./upload_dataset) tutorial for more d
 
 </Tip>
 
-A dataset without a loading script by default loads all the data into the `train` split. Use the `data_files` parameter to map data files to splits like `train`, `validation` and `test`:
+A dataset loads by default all the data into the `train` split, or checks for mentions or split names in the data files names (e.g. "train", "test" and "validation"). Use the `data_files` parameter to map data files to splits like `train`, `validation` and `test`:
 
 ```py
 >>> data_files = {"train": "train.csv", "test": "test.csv"}
@@ -418,20 +417,6 @@ Now when you look at your dataset features, you can see it uses the custom label
 
 ```py
 >>> dataset['train'].features
-{'text': Value(dtype='string', id=None),
-'label': ClassLabel(names=['sadness', 'joy', 'love', 'anger', 'fear', 'surprise'], id=None)}
-```
-
-## (Legacy) Local loading script
-
-You may have a 🤗 Datasets loading script locally on your computer. In this case, load the dataset by passing one of the following paths to [`load_dataset`]:
-
-- The local path to the loading script file.
-- The local path to the directory containing the loading script file (only if the script file has the same name as the directory).
-
-Pass `trust_remote_code=True` to allow 🤗 Datasets to execute the loading script:
-
-```py
->>> dataset = load_dataset("path/to/local/loading_script/loading_script.py", split="train", trust_remote_code=True)
->>> dataset = load_dataset("path/to/local/loading_script", split="train", trust_remote_code=True)  # equivalent because the file has the same name as the directory
+{'text': Value('string'),
+'label': ClassLabel(names=['sadness', 'joy', 'love', 'anger', 'fear', 'surprise'])}
 ```

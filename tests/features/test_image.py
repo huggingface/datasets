@@ -1,4 +1,5 @@
 import os
+import shutil
 import tarfile
 import warnings
 from io import BytesIO
@@ -8,7 +9,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Dataset, Features, Image, Sequence, Value, concatenate_datasets, load_dataset
+from datasets import Column, Dataset, Features, Image, List, Value, concatenate_datasets, load_dataset
 from datasets.features.image import encode_np_array, image_to_bytes
 
 from ..utils import require_pil
@@ -44,7 +45,7 @@ def test_image_feature_type_to_arrow():
     assert features.arrow_schema == pa.schema({"image": Image().pa_type})
     features = Features({"struct_containing_an_image": {"image": Image()}})
     assert features.arrow_schema == pa.schema({"struct_containing_an_image": pa.struct({"image": Image().pa_type})})
-    features = Features({"sequence_of_images": Sequence(Image())})
+    features = Features({"sequence_of_images": List(Image())})
     assert features.arrow_schema == pa.schema({"sequence_of_images": pa.list_(Image().pa_type)})
 
 
@@ -148,7 +149,7 @@ def test_dataset_with_image_feature(shared_datadir):
     assert batch["image"][0].mode == "RGB"
     column = dset["image"]
     assert len(column) == 1
-    assert isinstance(column, list) and all(isinstance(item, PIL.Image.Image) for item in column)
+    assert isinstance(column, Column) and all(isinstance(item, PIL.Image.Image) for item in column)
     assert os.path.samefile(column[0].filename, image_path)
     assert column[0].format == "JPEG"
     assert column[0].size == (640, 480)
@@ -181,7 +182,7 @@ def test_dataset_with_image_feature_from_pil_image(infer_feature, shared_datadir
     assert batch["image"][0].mode == "RGB"
     column = dset["image"]
     assert len(column) == 1
-    assert isinstance(column, list) and all(isinstance(item, PIL.Image.Image) for item in column)
+    assert isinstance(column, Column) and all(isinstance(item, PIL.Image.Image) for item in column)
     assert os.path.samefile(column[0].filename, image_path)
     assert column[0].format == "JPEG"
     assert column[0].size == (640, 480)
@@ -214,7 +215,7 @@ def test_dataset_with_image_feature_from_np_array():
     assert batch["image"][0].size == (640, 480)
     column = dset["image"]
     assert len(column) == 1
-    assert isinstance(column, list) and all(isinstance(item, PIL.Image.Image) for item in column)
+    assert isinstance(column, Column) and all(isinstance(item, PIL.Image.Image) for item in column)
     np.testing.assert_array_equal(np.array(column[0]), image_array)
     assert column[0].filename == ""
     assert column[0].format in ["PNG", "TIFF"]
@@ -249,7 +250,7 @@ def test_dataset_with_image_feature_tar_jpg(tar_jpg_path):
     assert batch["image"][0].mode == "RGB"
     column = dset["image"]
     assert len(column) == 1
-    assert isinstance(column, list) and all(isinstance(item, PIL.Image.Image) for item in column)
+    assert isinstance(column, Column) and all(isinstance(item, PIL.Image.Image) for item in column)
     assert column[0].filename == ""
     assert column[0].format == "JPEG"
     assert column[0].size == (640, 480)
@@ -270,12 +271,12 @@ def test_dataset_with_image_feature_with_none():
     assert isinstance(batch["image"], list) and all(item is None for item in batch["image"])
     column = dset["image"]
     assert len(column) == 1
-    assert isinstance(column, list) and all(item is None for item in column)
+    assert isinstance(column, Column) and all(item is None for item in column)
 
     # nested tests
 
     data = {"images": [[None]]}
-    features = Features({"images": Sequence(Image())})
+    features = Features({"images": List(Image())})
     dset = Dataset.from_dict(data, features=features)
     item = dset[0]
     assert item.keys() == {"images"}
@@ -335,7 +336,7 @@ def test_dataset_concatenate_image_features(shared_datadir):
 def test_dataset_concatenate_nested_image_features(shared_datadir):
     # we use a different data structure between 1 and 2 to make sure they are compatible with each other
     image_path = str(shared_datadir / "test_image_rgb.jpg")
-    features = Features({"list_of_structs_of_images": [{"image": Image()}]})
+    features = Features({"list_of_structs_of_images": List({"image": Image()})})
     data1 = {"list_of_structs_of_images": [[{"image": image_path}]]}
     dset1 = Dataset.from_dict(data1, features=features)
     data2 = {"list_of_structs_of_images": [[{"image": {"bytes": open(image_path, "rb").read()}}]]}
@@ -526,8 +527,8 @@ def test_formatted_dataset_with_image_feature(shared_datadir):
         assert batch["image"].shape == (1, 480, 640, 3)
         column = dset["image"]
         assert len(column) == 2
-        assert isinstance(column, np.ndarray)
-        assert column.shape == (2, 480, 640, 3)
+        assert isinstance(column[:], np.ndarray)
+        assert column[:].shape == (2, 480, 640, 3)
 
     with dset.formatted_as("pandas"):
         item = dset[0]
@@ -557,66 +558,23 @@ def test_formatted_dataset_with_image_feature(shared_datadir):
         assert column[0].mode == "RGB"
 
 
-# Currently, the JSONL reader doesn't support complex feature types so we create a temporary dataset script
-# to test streaming (without uploading the test dataset to the hub).
-
-DATASET_LOADING_SCRIPT_NAME = "__dummy_dataset__"
-
-DATASET_LOADING_SCRIPT_CODE = """
-import os
-
-import datasets
-from datasets import DatasetInfo, Features, Image, Split, SplitGenerator, Value
-
-
-class __DummyDataset__(datasets.GeneratorBasedBuilder):
-
-    def _info(self) -> DatasetInfo:
-        return DatasetInfo(features=Features({"image": Image(), "caption": Value("string")}))
-
-    def _split_generators(self, dl_manager):
-        return [
-            SplitGenerator(Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_manager.manual_dir, "train.txt")}),
-        ]
-
-    def _generate_examples(self, filepath, **kwargs):
-        with open(filepath, encoding="utf-8") as f:
-            for i, line in enumerate(f):
-                image_path, caption = line.split(",")
-                yield i, {"image": image_path.strip(), "caption": caption.strip()}
-"""
-
-
 @pytest.fixture
-def data_dir(shared_datadir, tmp_path):
-    data_dir = tmp_path / "dummy_dataset_data"
+def img_dataset_dir(shared_datadir, tmp_path):
+    data_dir = tmp_path / "dummy_img_dataset_data"
     data_dir.mkdir()
-    image_path = str(shared_datadir / "test_image_rgb.jpg")
-    with open(data_dir / "train.txt", "w") as f:
-        f.write(f"{image_path},Two cats sleeping\n")
+    shutil.copy(str(shared_datadir / "test_image_rgb.jpg"), str(data_dir / "image_rgb.jpg"))
+    with open(data_dir / "metadata.jsonl", "w") as f:
+        f.write('{"file_name": "image_rgb.jpg", "caption": "Two cats sleeping"}\n')
     return str(data_dir)
-
-
-@pytest.fixture
-def dataset_loading_script_dir(tmp_path):
-    script_name = DATASET_LOADING_SCRIPT_NAME
-    script_dir = tmp_path / script_name
-    script_dir.mkdir()
-    script_path = script_dir / f"{script_name}.py"
-    with open(script_path, "w") as f:
-        f.write(DATASET_LOADING_SCRIPT_CODE)
-    return str(script_dir)
 
 
 @require_pil
 @pytest.mark.parametrize("streaming", [False, True])
-def test_load_dataset_with_image_feature(shared_datadir, data_dir, dataset_loading_script_dir, streaming):
+def test_load_dataset_with_image_feature(shared_datadir, img_dataset_dir, streaming):
     import PIL.Image
 
-    image_path = str(shared_datadir / "test_image_rgb.jpg")
-    dset = load_dataset(
-        dataset_loading_script_dir, split="train", data_dir=data_dir, streaming=streaming, trust_remote_code=True
-    )
+    image_path = os.path.join(img_dataset_dir, "image_rgb.jpg")
+    dset = load_dataset(img_dataset_dir, split="train", streaming=streaming)
     item = dset[0] if not streaming else next(iter(dset))
     assert item.keys() == {"image", "caption"}
     assert isinstance(item["image"], PIL.Image.Image)
