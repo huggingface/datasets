@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 from typing import List as ListT
 
 import numpy as np
@@ -208,7 +208,7 @@ def _is_complex_dtype(dtype: np.dtype) -> bool:
     return dtype.kind == "c"
 
 
-def _create_complex_features(base_path: str, dset: "h5py.Dataset") -> Dict[str, Any]:
+def _create_complex_features(base_path: str, dset: "h5py.Dataset") -> Dict[str, Features]:
     """Create Features for complex data with real and imaginary parts `real` and `imag`.
 
     NOTE: Always uses float64 for the real and imaginary parts.
@@ -257,7 +257,7 @@ class _MockDataset:
         self.names = dtype.names
 
 
-def _create_compound_features(base_path: str, dset: "h5py.Dataset") -> Dict[str, Any]:
+def _create_compound_features(base_path: str, dset: "h5py.Dataset") -> Dict[str, Features]:
     """Create nested features for compound data with field names as keys."""
     field_names = list(dset.dtype.names)
     logger.info(
