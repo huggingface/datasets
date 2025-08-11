@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import h5py
-from datasets import Array2D, Array3D, Array4D, Features, Sequence, Value
+from datasets import Array2D, Array3D, Array4D, Features, List, Value
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesDict, DataFilesList
 from datasets.download.streaming_download_manager import StreamingDownloadManager
@@ -579,8 +579,8 @@ def test_hdf5_feature_inference(hdf5_file_with_arrays):
     # (n_rows, 2, 3, 4, 5) -> Array4D with shape (2, 3, 4, 5)
     assert isinstance(features["tensor_4d"], Array4D)
     assert features["tensor_4d"].shape == (2, 3, 4, 5)
-    # (n_rows, 10) -> Sequence of length 10
-    assert isinstance(features["vector_1d"], Sequence)
+    # (n_rows, 10) -> List of length 10
+    assert isinstance(features["vector_1d"], List)
     assert features["vector_1d"].length == 10
 
 
@@ -600,9 +600,9 @@ def test_hdf5_vlen_feature_inference(hdf5_file_with_vlen_arrays):
 
     # Check specific feature types for variable-length arrays
     features = hdf5.info.features
-    # Variable-length arrays should become Sequence features by default (for small datasets)
-    assert isinstance(features["vlen_ints"], Sequence)
-    assert isinstance(features["mixed_data"], Sequence)
+    # Variable-length arrays should become List features by default (for small datasets)
+    assert isinstance(features["vlen_ints"], List)
+    assert isinstance(features["mixed_data"], List)
 
     # Check that the inner feature types are correct
     assert isinstance(features["vlen_ints"].feature, Value)
