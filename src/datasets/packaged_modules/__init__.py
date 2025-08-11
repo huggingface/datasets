@@ -78,6 +78,8 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".txt": ("text", {}),
     ".tar": ("webdataset", {}),
     ".xml": ("xml", {}),
+    ".hdf5": ("hdf5", {}),
+    ".h5": ("hdf5", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
@@ -87,8 +89,6 @@ _EXTENSION_TO_MODULE.update({ext: ("videofolder", {}) for ext in videofolder.Vid
 _EXTENSION_TO_MODULE.update({ext.upper(): ("videofolder", {}) for ext in videofolder.VideoFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("pdffolder", {}) for ext in pdffolder.PdfFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("pdffolder", {}) for ext in pdffolder.PdfFolder.EXTENSIONS})
-_EXTENSION_TO_MODULE.update({ext: ("hdf5", {}) for ext in hdf5.EXTENSIONS})
-_EXTENSION_TO_MODULE.update({ext.upper(): ("hdf5", {}) for ext in hdf5.EXTENSIONS})
 
 # Used to filter data files based on extensions given a module name
 _MODULE_TO_EXTENSIONS: dict[str, list[str]] = {}
