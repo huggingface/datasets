@@ -4114,6 +4114,14 @@ def test_dataset_from_generator_split(split, data_generator, tmp_path):
     _check_generator_dataset(dataset, expected_features, expected_split)
 
 
+@pytest.mark.parametrize("fingerprint", [None, "test-dataset"])
+def test_dataset_from_generator_fingerprint(fingerprint, data_generator, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    dataset = Dataset.from_generator(data_generator, cache_dir=cache_dir, fingerprint=fingerprint)
+    _check_generator_dataset(dataset, expected_features, NamedSplit("train"))
+
+
 @require_not_windows
 @require_dill_gt_0_3_2
 @require_pyspark
