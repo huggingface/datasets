@@ -1,6 +1,7 @@
 import itertools
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, List as ListT, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import List as ListT
 
 import numpy as np
 import pyarrow as pa
@@ -11,6 +12,7 @@ from datasets.features.features import (
     Array3D,
     Array4D,
     Array5D,
+    Features,
     LargeList,
     List,
     Value,
@@ -77,29 +79,16 @@ class HDF5(datasets.ArrowBasedBuilder):
                         dataset_map = _traverse_datasets(h5)
                         features_dict = {}
 
-                        def _check_column_collisions(new_columns, source_dataset_path):
-                            """Check for column name collisions and raise informative errors."""
-                            for new_col in new_columns:
-                                if new_col in features_dict:
-                                    raise ValueError(
-                                        f"Column name collision detected: '{new_col}' from dataset '{source_dataset_path}' "
-                                        f"conflicts with existing column. Consider renaming datasets in the HDF5 file."
-                                    )
-
                         for path, dset in dataset_map.items():
                             if _is_complex_dtype(dset.dtype):
                                 complex_features = _create_complex_features(path, dset)
-                                _check_column_collisions(complex_features.keys(), path)
                                 features_dict.update(complex_features)
                             elif _is_compound_dtype(dset.dtype):
                                 compound_features = _create_compound_features(path, dset)
-                                _check_column_collisions(compound_features.keys(), path)
                                 features_dict.update(compound_features)
                             elif _is_vlen_string_dtype(dset.dtype):
-                                _check_column_collisions([path], path)
                                 features_dict[path] = Value("string")
                             else:
-                                _check_column_collisions([path], path)
                                 feat = _infer_feature_from_dataset(dset)
                                 features_dict[path] = feat
                         self.info.features = datasets.Features(features_dict)
@@ -175,9 +164,9 @@ class HDF5(datasets.ArrowBasedBuilder):
                                 pa_arr = datasets.features.features.numpy_to_pyarrow_listarray(arr)
                                 batch_dict[path] = pa_arr
                             elif _is_complex_dtype(dset.dtype):
-                                batch_dict.update(_convert_complex_to_separate_columns(path, arr, dset))
+                                batch_dict.update(_convert_complex_to_nested(path, arr, dset))
                             elif _is_compound_dtype(dset.dtype):
-                                batch_dict.update(_convert_compound_to_separate_columns(path, arr, dset))
+                                batch_dict.update(_convert_compound_to_nested(path, arr, dset))
                             elif dset.dtype.kind == "O":
                                 raise ValueError(
                                     f"Object dtype dataset '{path}' is not supported. "
@@ -219,22 +208,36 @@ def _is_complex_dtype(dtype: np.dtype) -> bool:
     return dtype.kind == "c"
 
 
-def _create_complex_features(base_path: str, dset: "h5py.Dataset") -> Dict[str, Value]:
-    """Create separate features for real and imaginary parts of complex data.
+def _create_complex_features(base_path: str, dset: "h5py.Dataset") -> Dict[str, Any]:
+    """Create Features for complex data with real and imaginary parts `real` and `imag`.
 
     NOTE: Always uses float64 for the real and imaginary parts.
     """
     logger.info(
-        f"Complex dataset '{base_path}' (dtype: {dset.dtype}) split into '{base_path}_real' and '{base_path}_imag'"
+        f"Complex dataset '{base_path}' (dtype: {dset.dtype}) represented as nested structure with 'real' and 'imag' fields"
     )
-    return {f"{base_path}_real": Value("float64"), f"{base_path}_imag": Value("float64")}
+    nested_features = Features(
+        {
+            "real": Value("float64"),
+            "imag": Value("float64"),
+        }
+    )
+    return {base_path: nested_features}
 
 
-def _convert_complex_to_separate_columns(base_path: str, arr: np.ndarray, dset: "h5py.Dataset") -> Dict[str, pa.Array]:
-    """Convert complex array to separate real and imaginary columns."""
+def _convert_complex_to_nested(base_path: str, arr: np.ndarray, dset: "h5py.Dataset") -> Dict[str, pa.Array]:
+    """Convert complex to Features with real and imaginary parts `real` and `imag`."""
     result = {}
-    result[f"{base_path}_real"] = datasets.features.features.numpy_to_pyarrow_listarray(arr.real)
-    result[f"{base_path}_imag"] = datasets.features.features.numpy_to_pyarrow_listarray(arr.imag)
+
+    def _convert_complex_scalar(complex_val):
+        """Convert a complex scalar to a dictionary."""
+        if complex_val.size == 1:
+            return {"real": float(complex_val.item().real), "imag": float(complex_val.item().imag)}
+        else:
+            # For multi-dimensional arrays, convert to list
+            return {"real": complex_val.real.tolist(), "imag": complex_val.imag.tolist()}
+
+    result[base_path] = pa.array([_convert_complex_scalar(complex_val) for complex_val in arr])
     return result
 
 
@@ -255,51 +258,56 @@ class _MockDataset:
 
 
 def _create_compound_features(base_path: str, dset: "h5py.Dataset") -> Dict[str, Any]:
-    """Create separate features for each field in compound data."""
+    """Create nested features for compound data with field names as keys."""
     field_names = list(dset.dtype.names)
     logger.info(
-        f"Compound dataset '{base_path}' (dtype: {dset.dtype}) flattened into {len(field_names)} columns: {field_names}"
+        f"Compound dataset '{base_path}' (dtype: {dset.dtype}) represented as nested Features with fields: {field_names}"
     )
 
-    features = {}
+    nested_features_dict = {}
     for field_name in field_names:
         field_dtype = dset.dtype[field_name]
-        field_path = f"{base_path}_{field_name}"
 
         if _is_complex_dtype(field_dtype):
-            features[f"{field_path}_real"] = Value("float64")
-            features[f"{field_path}_imag"] = Value("float64")
+            nested_features_dict[field_name] = Features(
+                {
+                    "real": Value("float64"),
+                    "imag": Value("float64"),
+                }
+            )
         elif _is_compound_dtype(field_dtype):
             mock_dset = _MockDataset(field_dtype)
-            nested_features = _create_compound_features(field_path, mock_dset)
-            features.update(nested_features)
+            nested_features_dict[field_name] = _create_compound_features(field_name, mock_dset)[field_name]
         else:
-            value_feature = _np_to_pa_to_hf_value(field_dtype)
-            features[field_path] = value_feature
+            nested_features_dict[field_name] = _np_to_pa_to_hf_value(field_dtype)
 
-    return features
+    nested_features = Features(nested_features_dict)
+    return {base_path: nested_features}
 
 
-def _convert_compound_to_separate_columns(
-    base_path: str, arr: np.ndarray, dset: "h5py.Dataset"
-) -> Dict[str, pa.Array]:
-    """Convert compound array to separate columns for each field."""
+def _convert_compound_to_nested(base_path: str, arr: np.ndarray, dset: "h5py.Dataset") -> Dict[str, pa.Array]:
+    """Convert compound array to nested structure with field names as keys."""
     result = {}
-    for field_name in list(dset.dtype.names):
-        field_dtype = dset.dtype[field_name]
-        field_path = f"{base_path}_{field_name}"
-        field_data = arr[field_name]
 
-        if _is_complex_dtype(field_dtype):
-            result[f"{field_path}_real"] = datasets.features.features.numpy_to_pyarrow_listarray(field_data.real)
-            result[f"{field_path}_imag"] = datasets.features.features.numpy_to_pyarrow_listarray(field_data.imag)
-        elif _is_compound_dtype(field_dtype):
-            mock_dset = _MockDataset(field_dtype)
-            nested_result = _convert_compound_to_separate_columns(field_path, field_data, mock_dset)
-            result.update(nested_result)
-        else:
-            result[field_path] = datasets.features.features.numpy_to_pyarrow_listarray(field_data)
+    def _convert_compound_recursive(compound_arr, compound_dtype):
+        """Recursively convert compound array to nested structure."""
+        nested_data = []
+        for row in compound_arr:
+            row_dict = {}
+            for field_name in compound_dtype.names:
+                field_dtype = compound_dtype[field_name]
+                field_data = row[field_name]
 
+                if _is_complex_dtype(field_dtype):
+                    row_dict[field_name] = {"real": float(field_data.real), "imag": float(field_data.imag)}
+                elif _is_compound_dtype(field_dtype):
+                    row_dict[field_name] = _convert_compound_recursive([field_data], field_dtype)[0]
+                else:
+                    row_dict[field_name] = field_data.item() if field_data.size == 1 else field_data.tolist()
+            nested_data.append(row_dict)
+        return nested_data
+
+    result[base_path] = pa.array(_convert_compound_recursive(arr, dset.dtype))
     return result
 
 

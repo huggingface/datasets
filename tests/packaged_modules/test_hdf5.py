@@ -1,7 +1,7 @@
+import h5py
 import numpy as np
 import pytest
 
-import h5py
 from datasets import Array2D, Array3D, Array4D, Features, List, Value
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesDict, DataFilesList
@@ -253,41 +253,6 @@ def hdf5_file_with_mixed_data_types(tmp_path):
         dt_compound = np.dtype([("x", "i4"), ("y", "f8")])
         compound_data = np.array([(1, 2.5), (3, 4.5), (5, 6.5)], dtype=dt_compound)
         f.create_dataset("compound_data", data=compound_data)
-
-    return str(filename)
-
-
-@pytest.fixture
-def hdf5_file_with_complex_collision(tmp_path):
-    """Create an HDF5 file where complex dataset would collide with existing dataset name."""
-    filename = tmp_path / "collision.h5"
-
-    with h5py.File(filename, "w") as f:
-        # Create a complex dataset
-        complex_data = np.array([1 + 2j, 3 + 4j], dtype=np.complex64)
-        f.create_dataset("data", data=complex_data)
-
-        # Create a regular dataset that would collide with the complex real part
-        regular_data = np.array([1.0, 2.0], dtype=np.float32)
-        f.create_dataset("data_real", data=regular_data)  # This should cause a collision
-
-    return str(filename)
-
-
-@pytest.fixture
-def hdf5_file_with_compound_collision(tmp_path):
-    """Create an HDF5 file where compound dataset would collide with existing dataset name."""
-    filename = tmp_path / "compound_collision.h5"
-
-    with h5py.File(filename, "w") as f:
-        # Create a compound dataset
-        dt_compound = np.dtype([("x", "i4"), ("y", "f8")])
-        compound_data = np.array([(1, 2.5), (3, 4.5)], dtype=dt_compound)
-        f.create_dataset("position", data=compound_data)
-
-        # Create a regular dataset that would collide with compound field
-        regular_data = np.array([10, 20], dtype=np.int32)
-        f.create_dataset("position_x", data=regular_data)  # This should cause a collision
 
     return str(filename)
 
@@ -675,23 +640,21 @@ def test_hdf5_complex_numbers(hdf5_file_with_complex_data):
     assert len(tables) == 1
     _, table = tables[0]
 
-    # Check that complex numbers are split into real/imaginary parts
+    # Check that complex numbers are represented as nested Features
     expected_columns = {
-        "complex_64_real",
-        "complex_64_imag",
-        "complex_128_real",
-        "complex_128_imag",
-        "complex_array_real",
-        "complex_array_imag",
+        "complex_64",
+        "complex_128",
+        "complex_array",
     }
     assert set(table.column_names) == expected_columns
 
     # Check complex_64 data
-    real_data = table["complex_64_real"].to_pylist()
-    imag_data = table["complex_64_imag"].to_pylist()
-
-    assert real_data == [1.0, 3.0, 5.0, 7.0]
-    assert imag_data == [2.0, 4.0, 6.0, 8.0]
+    complex_64_data = table["complex_64"].to_pylist()
+    assert len(complex_64_data) == 4
+    assert complex_64_data[0] == {"real": 1.0, "imag": 2.0}
+    assert complex_64_data[1] == {"real": 3.0, "imag": 4.0}
+    assert complex_64_data[2] == {"real": 5.0, "imag": 6.0}
+    assert complex_64_data[3] == {"real": 7.0, "imag": 8.0}
 
 
 def test_hdf5_compound_types(hdf5_file_with_compound_data):
@@ -706,25 +669,20 @@ def test_hdf5_compound_types(hdf5_file_with_compound_data):
     assert len(tables) == 1
     _, table = tables[0]
 
-    # Check that compound types are flattened into separate columns
+    # Check that compound types are represented as nested structures
     expected_columns = {
-        "simple_compound_x",
-        "simple_compound_y",
-        "complex_compound_real",
-        "complex_compound_imag",
-        "nested_compound_position_x",
-        "nested_compound_position_y",
-        "nested_compound_velocity_vx",
-        "nested_compound_velocity_vy",
+        "simple_compound",
+        "complex_compound",
+        "nested_compound",
     }
     assert set(table.column_names) == expected_columns
 
     # Check simple compound data
-    x_data = table["simple_compound_x"].to_pylist()
-    y_data = table["simple_compound_y"].to_pylist()
-
-    assert x_data == [1, 3, 5]
-    assert y_data == [2.5, 4.5, 6.5]
+    simple_compound_data = table["simple_compound"].to_pylist()
+    assert len(simple_compound_data) == 3
+    assert simple_compound_data[0] == {"x": 1, "y": 2.5}
+    assert simple_compound_data[1] == {"x": 3, "y": 4.5}
+    assert simple_compound_data[2] == {"x": 5, "y": 6.5}
 
 
 def test_hdf5_feature_inference_complex(hdf5_file_with_complex_data):
@@ -743,10 +701,10 @@ def test_hdf5_feature_inference_complex(hdf5_file_with_complex_data):
     features = hdf5.info.features
 
     # Check complex number features
-    assert "complex_64_real" in features
-    assert "complex_64_imag" in features
-    assert features["complex_64_real"] == Value("float64")
-    assert features["complex_64_imag"] == Value("float64")
+    assert "complex_64" in features
+    assert isinstance(features["complex_64"], Features)
+    assert features["complex_64"]["real"] == Value("float64")
+    assert features["complex_64"]["imag"] == Value("float64")
 
 
 def test_hdf5_feature_inference_compound(hdf5_file_with_compound_data):
@@ -765,10 +723,10 @@ def test_hdf5_feature_inference_compound(hdf5_file_with_compound_data):
     features = hdf5.info.features
 
     # Check compound type features
-    assert "simple_compound_x" in features
-    assert "simple_compound_y" in features
-    assert features["simple_compound_x"] == Value("int32")
-    assert features["simple_compound_y"] == Value("float64")
+    assert "simple_compound" in features
+    assert isinstance(features["simple_compound"], Features)
+    assert features["simple_compound"]["x"] == Value("int32")
+    assert features["simple_compound"]["y"] == Value("float64")
 
 
 def test_hdf5_mixed_data_types(hdf5_file_with_mixed_data_types):
@@ -787,43 +745,15 @@ def test_hdf5_mixed_data_types(hdf5_file_with_mixed_data_types):
     expected_columns = {
         "regular_int",
         "regular_float",
-        "complex_data_real",
-        "complex_data_imag",
-        "compound_data_x",
-        "compound_data_y",
+        "complex_data",
+        "compound_data",
     }
     assert set(table.column_names) == expected_columns
 
     # Check data types
     assert table["regular_int"].to_pylist() == [0, 1, 2]
-    assert len(table["complex_data_real"].to_pylist()) == 3
-    assert len(table["compound_data_x"].to_pylist()) == 3
-
-
-def test_hdf5_column_name_collision_detection(hdf5_file_with_complex_collision):
-    """Test that column name collision detection works correctly."""
-    config = HDF5Config()
-    hdf5 = HDF5()
-    hdf5.config = config
-    hdf5.config.data_files = DataFilesDict({"train": [hdf5_file_with_complex_collision]})
-
-    # This should raise a ValueError due to column name collision
-    dl_manager = StreamingDownloadManager()
-    with pytest.raises(ValueError, match="Column name collision detected"):
-        hdf5._split_generators(dl_manager)
-
-
-def test_hdf5_compound_collision_detection(hdf5_file_with_compound_collision):
-    """Test collision detection with compound types."""
-    config = HDF5Config()
-    hdf5 = HDF5()
-    hdf5.config = config
-    hdf5.config.data_files = DataFilesDict({"train": [hdf5_file_with_compound_collision]})
-
-    # This should raise a ValueError due to column name collision
-    dl_manager = StreamingDownloadManager()
-    with pytest.raises(ValueError, match="Column name collision detected"):
-        hdf5._split_generators(dl_manager)
+    assert len(table["complex_data"].to_pylist()) == 3
+    assert len(table["compound_data"].to_pylist()) == 3
 
 
 def test_hdf5_mismatched_lengths_with_column_filtering(hdf5_file_with_mismatched_lengths):
