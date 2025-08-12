@@ -57,8 +57,7 @@ def iter_sql_file(sqlite_path):
     with contextlib.closing(sqlite3.connect(sqlite_path)) as con:
         cur = con.cursor()
         cur.execute("SELECT * FROM dataset")
-        for row in cur:
-            yield row
+        yield from cur
 
 
 @require_sqlalchemy
