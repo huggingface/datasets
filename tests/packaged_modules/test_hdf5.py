@@ -2,7 +2,7 @@ import h5py
 import numpy as np
 import pytest
 
-from datasets import Array2D, Array3D, Array4D, Features, List, Value
+from datasets import Array2D, Array3D, Array4D, Features, List, Value, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesDict, DataFilesList
 from datasets.download.streaming_download_manager import StreamingDownloadManager
@@ -503,6 +503,23 @@ def test_hdf5_zero_dimensions_handling(hdf5_file_with_zero_dimensions, caplog):
     zero_dim_data = table["zero_dim"].to_pylist()
     assert len(zero_dim_data) == 3  # 3 rows
     assert all(len(row) == 0 for row in zero_dim_data)  # Each row is empty
+
+    # Check that shape info is lost
+    caplog.clear()
+    ds = load_dataset("hdf5", data_files=[hdf5_file_with_zero_dimensions], split="train")
+    assert all(isinstance(col, List) and col.length == -1 for col in ds.features.values())
+
+    # Check for the warnings
+    assert (
+        len(
+            [
+                record.message
+                for record in caplog.records
+                if record.levelname == "WARNING" and "dimension with size 0" in record.message
+            ]
+        )
+        == 3
+    )
 
 
 def test_hdf5_empty_file_warning(empty_hdf5_file, caplog):

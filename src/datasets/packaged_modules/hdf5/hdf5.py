@@ -102,13 +102,7 @@ class HDF5(datasets.ArrowBasedBuilder):
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.info.features is not None:
-            relevant_features = {
-                col: self.info.features[col] for col in pa_table.column_names if col in self.info.features
-            }
-            has_zero_dims = any(_has_zero_dimensions(feature) for feature in relevant_features.values())
-            # FIXME: pyarrow.lib.ArrowInvalid: list_size needs to be a strict positive integer
-            if not has_zero_dims:
-                pa_table = table_cast(pa_table, self.info.features.arrow_schema)
+            pa_table = table_cast(pa_table, self.info.features.arrow_schema)
         return pa_table
 
     def _generate_tables(self, files):
@@ -175,7 +169,13 @@ class HDF5(datasets.ArrowBasedBuilder):
                                     f"See: https://docs.h5py.org/en/stable/special.html#variable-length-strings"
                                 )
                             else:
-                                pa_arr = datasets.features.features.numpy_to_pyarrow_listarray(arr)
+                                # If any non-batch dimension is zero, emit an unsized pa.list_
+                                # to avoid creating FixedSizeListArray with list_size=0.
+                                if any(dim == 0 for dim in dset.shape[1:]):
+                                    inner_type = pa.from_numpy_dtype(dset.dtype)
+                                    pa_arr = pa.array([[] for _ in arr], type=pa.list_(inner_type))
+                                else:
+                                    pa_arr = datasets.features.features.numpy_to_pyarrow_listarray(arr)
                                 batch_dict[path] = pa_arr
                         pa_table = pa.Table.from_pydict(batch_dict)
                         yield f"{file_idx}_{start}", self._cast_table(pa_table)
@@ -351,15 +351,21 @@ def _infer_feature_from_dataset(dset: "h5py.Dataset"):
 
     value_feature = _np_to_pa_to_hf_value(dset.dtype)
     dtype_str = value_feature.dtype
-    value_shape = dset.shape[1:]
 
-    rank = len(value_shape)
+    dset_shape = dset.shape[1:]
+    if any(dim == 0 for dim in dset_shape):
+        logger.warning(
+            f"HDF5 to Arrow: Found a dataset named '{dset.name}' with shape {dset_shape} and dtype {dtype_str} that has a dimension with size 0. Shape information will be lost in the conversion to List({value_feature})."
+        )
+        return List(value_feature)
+
+    rank = len(dset_shape)
     if rank == 0:
         return value_feature
     elif rank == 1:
-        return List(value_feature, length=value_shape[0])
+        return List(value_feature, length=dset_shape[0])
     elif rank <= 5:
-        return _sized_arrayxd(rank)(shape=value_shape, dtype=dtype_str)
+        return _sized_arrayxd(rank)(shape=dset_shape, dtype=dtype_str)
     else:
         raise TypeError(f"Array{rank}D not supported. Maximum 5 dimensions allowed.")
 
