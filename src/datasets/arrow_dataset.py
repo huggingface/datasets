@@ -2858,7 +2858,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def __getitem__(self, key):  # noqa: F811
         """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
         if isinstance(key, str):
-            if self._format_type is None or self._format_type not in ("arrow", "pandas", "polars"):
+            if self._format_type is not None and self._format_type not in ("arrow", "pandas", "polars"):
                 return Column(self, key)
         return self._getitem(key)
 
