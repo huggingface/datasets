@@ -44,7 +44,7 @@ For example, here’s how to duplicate every row in the dataset by overwriting c
 ```py
 >>> from datasets import Dataset
 >>> dataset = Dataset.from_dict({"a": [0, 1, 2]})
-# Overwrites the existing "a" column with duplicated values
+# overwrites the existing "a" column with duplicated values
 >>> duplicated_dataset = dataset.map(
 ...     lambda batch: {"a": [x for x in batch["a"] for _ in range(2)]},
 ...     batched=True
