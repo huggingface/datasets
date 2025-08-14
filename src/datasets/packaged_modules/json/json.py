@@ -1,7 +1,7 @@
 import io
 import itertools
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional
 
 import pandas as pd
 import pyarrow as pa
