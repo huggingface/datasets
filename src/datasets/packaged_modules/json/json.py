@@ -91,6 +91,20 @@ class Json(datasets.ArrowBasedBuilder):
             for column_name in set(self.config.features) - set(pa_table.column_names):
                 type = self.config.features.arrow_schema.field(column_name).type
                 pa_table = pa_table.append_column(column_name, pa.array([None] * len(pa_table), type=type))
+            # convert to string when needed
+            for i, column_name in enumerate(pa_table.column_names):
+                if pa.types.is_struct(pa_table[column_name].type) and self.config.features.get(
+                    column_name, None
+                ) == datasets.Value("string"):
+                    jsonl = (
+                        pa_table[column_name]
+                        .to_pandas(types_mapper=pd.ArrowDtype)
+                        .to_json(orient="records", lines=True)
+                    )
+                    string_array = pa.array(
+                        ("{" + x.rstrip() for x in ("\n" + jsonl).split("\n{") if x), type=pa.string()
+                    )
+                    pa_table = pa_table.set_column(i, column_name, string_array)
             # more expensive cast to support nested structures with keys in a different order
             # allows str <-> int/float or str to Audio for example
             pa_table = table_cast(pa_table, self.config.features.arrow_schema)

@@ -1558,13 +1558,25 @@ class BaseDatasetTest(TestCase):
                 os.remove(cache_file["filename"])
 
             self._caplog.clear()
-            dset_test2_num_proc = 1
+            dset_test2_num_proc = None
             with dset.map(lambda x: {"foo": "bar"}, num_proc=dset_test2_num_proc) as dset_test2:
                 self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
                 self.assertEqual(len(dset_test2.cache_files), 0 if in_memory else dset_test1_num_proc)
                 self.assertTrue((expected_msg in self._caplog.text) ^ in_memory)
                 self.assertFalse(f"Spawning {dset_test1_num_proc} processes" in self._caplog.text)
                 self.assertFalse(f"Spawning {dset_test2_num_proc} processes" in self._caplog.text)
+
+            for cache_file in dset_test1_data_files[num_files_to_delete:]:
+                os.remove(cache_file["filename"])
+
+            self._caplog.clear()
+            dset_test2_num_proc = 1
+            with dset.map(lambda x: {"foo": "bar"}, num_proc=dset_test2_num_proc) as dset_test2:
+                self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                self.assertEqual(len(dset_test2.cache_files), 0 if in_memory else dset_test1_num_proc)
+                self.assertTrue((expected_msg in self._caplog.text) ^ in_memory)
+                self.assertFalse(f"Spawning {dset_test1_num_proc} process" in self._caplog.text)
+                self.assertTrue(f"Spawning {dset_test2_num_proc} process" in self._caplog.text)
 
             for cache_file in dset_test1_data_files[num_files_to_delete:]:
                 os.remove(cache_file["filename"])
@@ -4605,12 +4617,22 @@ def test_filter_async():
     assert len(out) == 1
 
 
+def test_dataset_getitem_int_np_equivalence():
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+
+    assert ds[1] == ds[np.int64(1)]
+
+
 def test_dataset_getitem_raises():
     ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
     with pytest.raises(TypeError):
         ds[False]
     with pytest.raises(TypeError):
         ds._getitem(True)
+    with pytest.raises(TypeError):
+        ds[np.bool_(True)]
+    with pytest.raises(TypeError):
+        ds[1.0]
 
 
 def test_categorical_dataset(tmpdir):

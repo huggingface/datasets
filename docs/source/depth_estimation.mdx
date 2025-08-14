@@ -37,7 +37,15 @@ The dataset has two fields:
 * `image`: a PIL PNG image object with `uint8` data type.
 * `depth_map`: a PIL Tiff image object with `float32` data type which is the depth map of the image.
 
-It is mention-worthy that JPEG/PNG format can only store `uint8` or `uint16` data. As the depth map is `float32` data, it can't be stored using PNG/JPEG. However, we can save the depth map using TIFF format as it supports a wider range of data types, including `float32` data.
+Here the depth maps are using TIFF format as it supports a wide range of data types, including `float32` data.
+However it is mention-worthy that JPEG/PNG format can only store `uint8` or `uint16` data.
+Therefore if you have depth maps saved as JPEG/PNG, use the `Image(mode="F")` type to load them as single channel `float32` like normal depth maps:
+
+```python
+>>> from datasets import Image
+
+>>> train_dataset = train_dataset.cast_column("depth_map", Image(mode="F"))
+```
 
 Next, check out an image with:
 

@@ -174,7 +174,7 @@ class Audio:
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Audio(decode=True) instead.")
 
-        path, bytes = (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
+        path, bytes = (value["path"], value["bytes"]) if value["bytes"] is not None else (value["path"], None)
         if path is None and bytes is None:
             raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
 
@@ -236,7 +236,9 @@ class Audio:
             path_array = pa.array([None] * len(storage), type=pa.string())
             storage = pa.StructArray.from_arrays([storage, path_array], ["bytes", "path"], mask=storage.is_null())
         elif pa.types.is_struct(storage.type) and storage.type.get_all_field_indices("array"):
-            storage = pa.array([Audio().encode_example(x) if x is not None else None for x in storage.to_pylist()])
+            storage = pa.array(
+                [Audio().encode_example(x) if x is not None else None for x in storage.to_numpy(zero_copy_only=False)]
+            )
         elif pa.types.is_struct(storage.type):
             if storage.type.get_field_index("bytes") >= 0:
                 bytes_array = storage.field("bytes")

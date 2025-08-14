@@ -1182,7 +1182,11 @@ class Sequence:
 
     def __new__(cls, feature=None, length=-1, **kwargs):
         # useful to still get isinstance(Sequence(Value("int64")), Sequence)
-        if cls is Sequence and isinstance(feature, dict):
+        if (
+            cls is Sequence
+            and isinstance(feature, dict)
+            and any(not isinstance(subfeature, List) for subfeature in feature.values())
+        ):
             out = {key: List(value, length=length, **kwargs) for key, value in feature.items()}
         else:
             out = super().__new__(List)
@@ -1235,10 +1239,7 @@ class LargeList:
     _type: str = field(default="LargeList", init=False, repr=False)
 
     def __repr__(self):
-        if self.length != -1:
-            return f"{type(self).__name__}({self.feature}, length={self.length})"
-        else:
-            return f"{type(self).__name__}({self.feature})"
+        return f"{type(self).__name__}({self.feature})"
 
 
 FeatureType = Union[
@@ -1759,9 +1760,19 @@ class Features(dict):
             raise TypeError("descriptor '__init__' of 'Features' object needs an argument")
         self, *args = args
         super(Features, self).__init__(*args, **kwargs)
+        # keep track of columns which require decoding
         self._column_requires_decoding: dict[str, bool] = {
             col: require_decoding(feature) for col, feature in self.items()
         }
+
+        # backward compatibility with datasets<4 : [feature] -> List(feature)
+        def _check_old_list(feature):
+            if isinstance(feature, list):
+                return List(_visit(feature[0], _check_old_list))
+            return feature
+
+        for column_name, feature in self.items():
+            self[column_name] = _visit(feature, _check_old_list)
 
     __setitem__ = keep_features_dicts_synced(dict.__setitem__)
     __delitem__ = keep_features_dicts_synced(dict.__delitem__)
