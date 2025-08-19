@@ -38,7 +38,8 @@ def image_wds_file(tmp_path, image_file):
             f.add(image_file, f"{example_idx:05d}.jpg")
     return str(filename)
 
-@pytest.fixture 
+
+@pytest.fixture
 def upper_lower_case_file(tmp_path):
     tar_path = tmp_path / "file.tar"
     num_examples = 3
@@ -46,7 +47,7 @@ def upper_lower_case_file(tmp_path):
         ("INFO1", "json"),
         ("info2", "json"),
         ("info3", "JSON"),
-        ("info3", "json"), # should probably remove if testing on a case insensitive filesystem
+        ("info3", "json"),  # should probably remove if testing on a case insensitive filesystem
     ]
     with tarfile.open(tar_path, "w") as tar:
         for example_idx in range(num_examples):
@@ -57,6 +58,7 @@ def upper_lower_case_file(tmp_path):
                 caption_path.write_text(json.dumps(caption_text), encoding="utf-8")
                 tar.add(caption_path, arcname=f"{example_name}.{tag}.{ext}")
     return str(tar_path)
+
 
 @pytest.fixture
 def audio_wds_file(tmp_path, audio_file):
@@ -172,18 +174,18 @@ def test_upper_lower_case(upper_lower_case_file):
             **{k: {"caption": Value("string")} for k in variant_keys},
         }
     )
-    
+
     assert len(split_generators) == 1
     split_generator = split_generators[0]
     assert split_generator.name == "train"
     generator = webdataset._generate_examples(**split_generator.gen_kwargs)
     _, examples = zip(*generator)
-    
+
     assert len(examples) == 3
     for example_idx, example in enumerate(examples):
         example_name = example["__key__"]
         expected_example_name = f"{example_idx:05d}_{'a' if example_idx % 2 else 'A'}"
-        
+
         assert example_name == expected_example_name
         for key in variant_keys:
             assert isinstance(example[key], dict)
@@ -193,6 +195,7 @@ def test_upper_lower_case(upper_lower_case_file):
         decoded = webdataset.info.features.decode_example(encoded)
         for key in variant_keys:
             assert decoded[key]["caption"] == example[key]["caption"]
+
 
 @require_pil
 def test_image_webdataset_missing_keys(image_wds_file):
