@@ -184,6 +184,52 @@ def hdf5_file_with_compound_data(tmp_path):
 
 
 @pytest.fixture
+def hdf5_file_with_compound_complex_arrays(tmp_path):
+    """Create an HDF5 file with compound datasets containing complex arrays."""
+    filename = tmp_path / "compound_complex_arrays.h5"
+
+    with h5py.File(filename, "w") as f:
+        # Compound type with complex arrays
+        dt_complex_arrays = np.dtype(
+            [
+                ("position", [("x", "i4"), ("y", "i4")]),
+                ("complex_field", "c8"),
+                ("complex_array", "c8", (2, 3)),
+                ("nested_complex", [("real", "f4"), ("imag", "f4")]),
+            ]
+        )
+
+        # Create data with complex numbers
+        compound_data = np.array(
+            [
+                (
+                    (1, 2),
+                    1.0 + 2.0j,
+                    [[1.0 + 2.0j, 3.0 + 4.0j, 5.0 + 6.0j], [7.0 + 8.0j, 9.0 + 10.0j, 11.0 + 12.0j]],
+                    (1.5, 2.5),
+                ),
+                (
+                    (3, 4),
+                    3.0 + 4.0j,
+                    [[13.0 + 14.0j, 15.0 + 16.0j, 17.0 + 18.0j], [19.0 + 20.0j, 21.0 + 22.0j, 23.0 + 24.0j]],
+                    (3.5, 4.5),
+                ),
+                (
+                    (5, 6),
+                    5.0 + 6.0j,
+                    [[25.0 + 26.0j, 27.0 + 28.0j, 29.0 + 30.0j], [31.0 + 32.0j, 33.0 + 34.0j, 35.0 + 36.0j]],
+                    (5.5, 6.5),
+                ),
+            ],
+            dtype=dt_complex_arrays,
+        )
+
+        f.create_dataset("compound_with_complex", data=compound_data)
+
+    return str(filename)
+
+
+@pytest.fixture
 def hdf5_file_with_mismatched_lengths(tmp_path):
     """Create an HDF5 file with datasets of different lengths (should raise error)."""
     filename = tmp_path / "mismatched.h5"
@@ -306,15 +352,17 @@ def test_hdf5_nested_groups(hdf5_file_with_groups):
     assert set(table.column_names) == expected_columns
 
     group1_columns_expected = {"group_data", "subgroup"}
-    assert set(fi.name for fi in table["group1"].type.fields) == group1_columns_expected
+    assert {fi.name for fi in table["group1"].type.fields} == group1_columns_expected
 
     # Check data
     root_data = table["root_data"].to_pylist()
     group_data = table["group1"].to_pylist()
     assert root_data == [0, 1, 2]
-    assert group_data == [{'group_data': 0.0, 'subgroup': {'sub_data': 0}},
-                          {'group_data': 1.0, 'subgroup': {'sub_data': 1}},
-                          {'group_data': 2.0, 'subgroup': {'sub_data': 2}}]
+    assert group_data == [
+        {"group_data": 0.0, "subgroup": {"sub_data": 0}},
+        {"group_data": 1.0, "subgroup": {"sub_data": 1}},
+        {"group_data": 2.0, "subgroup": {"sub_data": 2}},
+    ]
 
 
 def test_hdf5_multi_dimensional_arrays(hdf5_file_with_arrays):
@@ -436,9 +484,7 @@ def test_hdf5_batch_processing(hdf5_file):
 
 def test_hdf5_column_filtering(hdf5_file_with_groups):
     """Test HDF5 loading with column filtering."""
-    # config = HDF5Config()
     hdf5 = HDF5(features=Features({"root_data": Value("int32"), "group1": Features({"group_data": Value("float32")})}))
-    # hdf5.config = config
     generator = hdf5._generate_tables([[hdf5_file_with_groups]])
 
     tables = list(generator)
@@ -448,7 +494,7 @@ def test_hdf5_column_filtering(hdf5_file_with_groups):
     expected_columns = {"root_data", "group1"}
     assert set(table.column_names) == expected_columns
     expected_group1_columns = {"group_data"}
-    assert set(fi.name for fi in table["group1"].type.fields) == expected_group1_columns
+    assert {fi.name for fi in table["group1"].type.fields} == expected_group1_columns
 
 
 def test_hdf5_feature_specification(hdf5_file):
@@ -780,10 +826,7 @@ def test_hdf5_mixed_data_types(hdf5_file_with_mixed_data_types):
 
 def test_hdf5_mismatched_lengths_with_column_filtering(hdf5_file_with_mismatched_lengths):
     """Test that mismatched dataset lengths are ignored when the mismatched dataset is excluded via columns config."""
-    # config = HDF5Config(columns=["data1"])
-    # hdf5 = HDF5(columns=["data1"])
     hdf5 = HDF5(features=Features({"data1": Value("int32")}))
-    # hdf5.config = config
 
     generator = hdf5._generate_tables([[hdf5_file_with_mismatched_lengths]])
     tables = list(generator)
@@ -802,15 +845,17 @@ def test_hdf5_mismatched_lengths_with_column_filtering(hdf5_file_with_mismatched
     assert data1_values == [0, 1, 2, 3, 4]
 
     # Test 2: Include multiple compatible datasets (all with 5 rows)
-    # config2 = HDF5Config(columns=["data1", "data3", "data4", "data5", "data6"])
-    hdf5 = HDF5(features=Features({
-        "data1": Value("int32"),
-        "data3": Array2D(shape=(3, 4), dtype="float32"),
-        "data4": Value("float64"),
-        "data5": Value("bool"),
-        "data6": Value("string"),
-    }))
-    # hdf5.config = config2
+    hdf5 = HDF5(
+        features=Features(
+            {
+                "data1": Value("int32"),
+                "data3": Array2D(shape=(3, 4), dtype="float32"),
+                "data4": Value("float64"),
+                "data5": Value("bool"),
+                "data6": Value("string"),
+            }
+        )
+    )
 
     generator2 = hdf5._generate_tables([[hdf5_file_with_mismatched_lengths]])
     tables2 = list(generator2)
@@ -838,3 +883,93 @@ def test_hdf5_mismatched_lengths_with_column_filtering(hdf5_file_with_mismatched
         "tiny",
         "another string",
     ]  # vlen string
+
+
+def test_hdf5_compound_with_complex_arrays(hdf5_file_with_compound_complex_arrays):
+    """Test HDF5 loading with compound datasets containing complex arrays."""
+    config = HDF5Config()
+    hdf5 = HDF5()
+    hdf5.config = config
+
+    generator = hdf5._generate_tables([[hdf5_file_with_compound_complex_arrays]])
+    tables = list(generator)
+
+    assert len(tables) == 1
+    _, table = tables[0]
+
+    # Check that compound types with complex arrays are represented as nested structures
+    expected_columns = {"compound_with_complex"}
+    assert set(table.column_names) == expected_columns
+
+    # Check compound data with complex arrays
+    compound_data = table["compound_with_complex"].to_pylist()
+    assert len(compound_data) == 3
+
+    # Check first row
+    first_row = compound_data[0]
+    assert first_row["position"]["x"] == 1
+    assert first_row["position"]["y"] == 2
+
+    # Check complex field (should be represented as real/imag structure)
+    assert first_row["complex_field"]["real"] == 1.0
+    assert first_row["complex_field"]["imag"] == 2.0
+
+    # Check complex array (should be represented as nested real/imag structures)
+    complex_array = first_row["complex_array"]
+    assert len(complex_array["real"]) == 2  # 2 rows
+    assert len(complex_array["real"][0]) == 3  # 3 columns
+
+    # Check first element of complex array
+    assert complex_array["real"][0][0] == 1.0
+    assert complex_array["imag"][0][0] == 2.0
+
+    # Check nested complex field
+    assert first_row["nested_complex"]["real"] == 1.5
+    assert first_row["nested_complex"]["imag"] == 2.5
+
+
+def test_hdf5_feature_inference_compound_complex_arrays(hdf5_file_with_compound_complex_arrays):
+    """Test automatic feature inference for compound datasets with complex arrays."""
+    config = HDF5Config()
+    hdf5 = HDF5()
+    hdf5.config = config
+    hdf5.config.data_files = DataFilesDict({"train": [hdf5_file_with_compound_complex_arrays]})
+
+    # Trigger feature inference
+    dl_manager = StreamingDownloadManager()
+    hdf5._split_generators(dl_manager)
+
+    # Check that features were inferred correctly
+    assert hdf5.info.features is not None
+    features = hdf5.info.features
+
+    # Check compound type features with complex arrays
+    assert "compound_with_complex" in features
+    assert isinstance(features["compound_with_complex"], Features)
+
+    # Check nested structure
+    compound_features = features["compound_with_complex"]
+    assert "position" in compound_features
+    assert "complex_field" in compound_features
+    assert "complex_array" in compound_features
+    assert "nested_complex" in compound_features
+
+    # Check position field (nested compound)
+    assert isinstance(compound_features["position"], Features)
+    assert compound_features["position"]["x"] == Value("int32")
+    assert compound_features["position"]["y"] == Value("int32")
+
+    # Check complex field (should be real/imag structure)
+    assert isinstance(compound_features["complex_field"], Features)
+    assert compound_features["complex_field"]["real"] == Value("float64")
+    assert compound_features["complex_field"]["imag"] == Value("float64")
+
+    # Check complex array (should be nested real/imag structures)
+    assert isinstance(compound_features["complex_array"], Features)
+    assert compound_features["complex_array"]["real"] == Array2D(shape=(2, 3), dtype="float64")
+    assert compound_features["complex_array"]["imag"] == Array2D(shape=(2, 3), dtype="float64")
+
+    # Check nested complex field
+    assert isinstance(compound_features["nested_complex"], Features)
+    assert compound_features["nested_complex"]["real"] == Value("float32")
+    assert compound_features["nested_complex"]["imag"] == Value("float32")
