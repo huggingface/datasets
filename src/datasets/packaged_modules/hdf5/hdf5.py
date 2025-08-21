@@ -38,9 +38,6 @@ class HDF5Config(datasets.BuilderConfig):
     columns: Optional[ListT[str]] = None
     features: Optional[datasets.Features] = None
 
-    def __post_init__(self):
-        super().__post_init__()
-
 
 class HDF5(datasets.ArrowBasedBuilder):
     """ArrowBasedBuilder that converts HDF5 files to Arrow tables using the HF extension types."""
