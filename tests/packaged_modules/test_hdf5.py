@@ -477,15 +477,11 @@ def test_hdf5_feature_specification(hdf5_file):
 
 def test_hdf5_mismatched_lengths_error(hdf5_file_with_mismatched_lengths):
     """Test that mismatched dataset lengths raise an error."""
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(DatasetGenerationError) as exc_info:
         load_dataset("hdf5", data_files=[hdf5_file_with_mismatched_lengths], split="train")
 
-    # The error can be either ValueError or DatasetGenerationError
-    error_str = str(exc_info.value)
-    if hasattr(exc_info.value, "__cause__") and exc_info.value.__cause__:
-        error_str += str(exc_info.value.__cause__)
-
-    assert any(error_type in error_str for error_type in ["length", "Dataset 'data2' has length 3 but expected 5"])
+    assert isinstance(exc_info.value.__cause__, ValueError)
+    assert "3 but expected 5" in str(exc_info.value.__cause__)
 
 
 def test_hdf5_zero_dimensions_handling(hdf5_file_with_zero_dimensions, caplog):
