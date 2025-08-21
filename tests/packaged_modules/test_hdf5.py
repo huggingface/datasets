@@ -626,9 +626,9 @@ def test_hdf5_complex_numbers(hdf5_file_with_complex_data):
     assert complex_64_data[2] == {"real": 5.0, "imag": 6.0}
     assert complex_64_data[3] == {"real": 7.0, "imag": 8.0}
     assert np.asarray(dataset.data["complex_64"].flatten()[0]).dtype == np.float32
-    assert np.asarray(dataset.data["complex_64"].flatten()[0]).dtype == np.float32
+    assert np.asarray(dataset.data["complex_64"].flatten()[1]).dtype == np.float32
     assert np.asarray(dataset.data["complex_128"].flatten()[0]).dtype == np.float64
-    assert np.asarray(dataset.data["complex_128"].flatten()[0]).dtype == np.float64
+    assert np.asarray(dataset.data["complex_128"].flatten()[1]).dtype == np.float64
 
 
 def test_hdf5_compound_types(hdf5_file_with_compound_data):
