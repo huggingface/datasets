@@ -217,9 +217,13 @@ def _recursive_infer_features(h5_obj) -> Features:
     features_dict = {}
     for path, dset in h5_obj.items():
         if _is_group(dset):
-            features_dict[path] = _recursive_infer_features(dset)
+            features = _recursive_infer_features(dset)
+            if features:
+                features_dict[path] = features
         elif _is_dataset(dset):
-            features_dict[path] = _infer_feature(dset)
+            features = _infer_feature(dset)
+            if features:
+                features_dict[path] = features
 
     return Features(features_dict)
 
@@ -326,7 +330,7 @@ def _first_dataset(h5_obj, features: Features, prefix=""):
         if path not in features:
             continue
         if _is_group(dset):
-            found = _first_dataset(dset, features[path], prefix=f"{path}/")
+            found = _first_dataset(dset, features[path], prefix=f"{prefix}{path}/")
             if found is not None:
                 return found
         elif _is_dataset(dset):
