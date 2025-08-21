@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Optional
 from typing import List as ListT
 
 import numpy as np
