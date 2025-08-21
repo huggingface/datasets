@@ -82,11 +82,6 @@ class HDF5(datasets.ArrowBasedBuilder):
             )
         return splits
 
-    def _cast_table(self, pa_table: pa.Table) -> pa.Table:
-        if self.info.features is not None:
-            pa_table = table_cast(pa_table, self.info.features.arrow_schema)
-        return pa_table
-
     def _generate_tables(self, files):
         import h5py
 
@@ -104,7 +99,7 @@ class HDF5(datasets.ArrowBasedBuilder):
                     for start in range(0, num_rows, effective_batch):
                         end = min(start + effective_batch, num_rows)
                         pa_table = _recursive_load_arrays(h5, self.info.features, start, end)
-                        yield f"{file_idx}_{start}", self._cast_table(pa_table)
+                        yield f"{file_idx}_{start}", table_cast(pa_table, self.info.features.arrow_schema)
             except ValueError as e:
                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                 raise
