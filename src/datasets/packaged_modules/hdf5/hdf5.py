@@ -204,32 +204,23 @@ def _convert_compound_to_nested(arr, dset) -> pa.StructArray:
 # └───────────────────────────┘
 
 
-def _is_vlen_string_dtype(dtype: np.dtype) -> bool:
+def _is_vlen_dtype(dtype: np.dtype) -> bool:
     """Check if dtype is a variable-length string type."""
     if hasattr(dtype, "metadata") and dtype.metadata and "vlen" in dtype.metadata:
-        vlen_dtype = dtype.metadata["vlen"]
-        return vlen_dtype in (str, bytes)
+        return True
     return False
 
 
-def _is_vlen_not_string_dtype(dtype: np.dtype) -> bool:
-    if hasattr(dtype, "metadata") and dtype.metadata and "vlen" in dtype.metadata:
-        vlen_dtype = dtype.metadata["vlen"]
-        return vlen_dtype not in (str, bytes)
-    return False
+def _create_vlen_features(dset) -> Features:
+    vlen_dtype = dset.dtype.metadata["vlen"]
+    if vlen_dtype in (str, bytes):
+        return Value("string")
+    inner_feature = _np_to_pa_to_hf_value(vlen_dtype)
+    return List(inner_feature)
 
 
-def _convert_vlen_string_to_array(arr: np.ndarray) -> pa.Array:
-    list_of_items = []
-    for item in arr:
-        if isinstance(item, bytes):
-            logger.info("Assuming variable-length bytes are utf-8 encoded strings")
-            list_of_items.append(item.decode("utf-8"))
-        elif isinstance(item, str):
-            list_of_items.append(item)
-        else:
-            raise ValueError(f"Unsupported variable-length string type: {type(item)}")
-    return pa.array(list_of_items)
+def _convert_vlen_to_array(arr: np.ndarray) -> pa.Array:
+    return datasets.features.features.numpy_to_pyarrow_listarray(arr)
 
 
 # ┌───────────┐
@@ -253,22 +244,16 @@ def _infer_feature(dset):
         return _create_complex_features(dset)
     elif _is_compound_dtype(dset.dtype) or dset.dtype.kind == "V":
         return _create_compound_features(dset)
-    elif _is_vlen_string_dtype(dset.dtype):
-        return Value("string")
-    elif _is_vlen_not_string_dtype(dset.dtype):
-        vlen_dtype = dset.dtype.metadata["vlen"]
-        inner_feature = _np_to_pa_to_hf_value(vlen_dtype)
-        return List(inner_feature)
+    elif _is_vlen_dtype(dset.dtype):
+        return _create_vlen_features(dset)
     return _create_sized_feature(dset)
 
 
 def _load_array(dset, path: str, start: int, end: int) -> Dict[str, any]:
     arr = dset[start:end]
 
-    if _is_vlen_string_dtype(dset.dtype):
-        return _convert_vlen_string_to_array(arr)
-    elif _is_vlen_not_string_dtype(dset.dtype):
-        return datasets.features.features.numpy_to_pyarrow_listarray(arr)
+    if _is_vlen_dtype(dset.dtype):
+        return _convert_vlen_to_array(arr)
     elif _is_complex_dtype(dset.dtype):
         return _convert_complex_to_nested(arr)
     elif _is_compound_dtype(dset.dtype):
