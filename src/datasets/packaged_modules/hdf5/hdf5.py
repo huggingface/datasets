@@ -106,7 +106,7 @@ class HDF5(datasets.ArrowBasedBuilder):
                     effective_batch = batch_size_cfg or self._writer_batch_size or num_rows
                     for start in range(0, num_rows, effective_batch):
                         end = min(start + effective_batch, num_rows)
-                        pa_table = _recursive_load_data(h5, self.info.features, start, end)
+                        pa_table = _recursive_load_arrays(h5, self.info.features, start, end)
                         yield f"{file_idx}_{start}", self._cast_table(pa_table)
             except ValueError as e:
                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
@@ -196,7 +196,7 @@ def _create_compound_features(dset) -> Features:
 def _convert_compound_to_nested(arr, dset) -> pa.StructArray:
     mock_group = _CompoundGroup(dset, data=arr)
     features = _create_compound_features(dset)
-    return _recursive_load_data(mock_group, features, 0, len(arr))
+    return _recursive_load_arrays(mock_group, features, 0, len(arr))
 
 
 # ┌───────────────────────────┐
@@ -275,13 +275,13 @@ def _load_array(dset, path: str, start: int, end: int) -> Dict[str, any]:
             return datasets.features.features.numpy_to_pyarrow_listarray(arr)
 
 
-def _recursive_load_data(h5_obj, features: Features, start: int, end: int):
+def _recursive_load_arrays(h5_obj, features: Features, start: int, end: int):
     batch_dict = {}
     for path, dset in h5_obj.items():
         if path not in features:
             continue
         if _is_group(dset):
-            batch_dict[path] = _recursive_load_data(dset, features[path], start, end)
+            batch_dict[path] = _recursive_load_arrays(dset, features[path], start, end)
         elif _is_dataset(dset):
             batch_dict[path] = _load_array(dset, path, start, end)
 
