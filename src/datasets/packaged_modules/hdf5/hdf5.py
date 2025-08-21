@@ -89,6 +89,7 @@ class HDF5(datasets.ArrowBasedBuilder):
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             try:
                 with h5py.File(file, "r") as h5:
+                    # Infer features and lengths from first file
                     if self.info.features is None:
                         self.info.features = _recursive_infer_features(h5)
                     num_rows = _check_dataset_lengths(h5, self.info.features)
@@ -111,7 +112,6 @@ class HDF5(datasets.ArrowBasedBuilder):
 
 
 def _is_complex_dtype(dtype: np.dtype) -> bool:
-    """Check if dtype is a complex number or array of complex numbers."""
     if dtype.kind == "c":
         return True
     if dtype.subdtype is not None:
@@ -119,20 +119,27 @@ def _is_complex_dtype(dtype: np.dtype) -> bool:
     return False
 
 
-def _create_complex_features(dset) -> Dict[str, Features]:
-    """Create Features for complex data with real and imaginary parts `real` and `imag`.
-
-    NOTE: Always uses float64 for the real and imaginary parts.
-    """
+def _create_complex_features(dset) -> Features:
     if dset.dtype.subdtype is not None:
-        data_shape = dset.dtype.subdtype[1]
+        dtype, data_shape = dset.dtype.subdtype
     else:
         data_shape = dset.shape[1:]
+        dtype = dset.dtype
+
+    if dtype == np.complex64:
+        # two float32s
+        value_type = Value("float32")
+    elif dtype == np.complex128:
+        # two float64s
+        value_type = Value("float64")
+    else:
+        logger.warning(f"Found complex dtype {dtype} that is not supported. Converting to float64...")
+        value_type = Value("float64")
 
     return Features(
         {
-            "real": _create_sized_feature_impl(data_shape, Value("float64")),
-            "imag": _create_sized_feature_impl(data_shape, Value("float64")),
+            "real": _create_sized_feature_impl(data_shape, value_type),
+            "imag": _create_sized_feature_impl(data_shape, value_type),
         }
     )
 
@@ -151,7 +158,6 @@ def _convert_complex_to_nested(arr: np.ndarray) -> pa.StructArray:
 
 
 def _is_compound_dtype(dtype: np.dtype) -> bool:
-    """Check if dtype is a compound/structured type."""
     return dtype.kind == "V"
 
 
@@ -197,7 +203,6 @@ def _convert_compound_to_nested(arr, dset) -> pa.StructArray:
 
 
 def _is_vlen_dtype(dtype: np.dtype) -> bool:
-    """Check if dtype is a variable-length string type."""
     if hasattr(dtype, "metadata") and dtype.metadata and "vlen" in dtype.metadata:
         return True
     return False
@@ -241,7 +246,7 @@ def _infer_feature(dset):
     return _create_sized_feature(dset)
 
 
-def _load_array(dset, path: str, start: int, end: int) -> Dict[str, any]:
+def _load_array(dset, path: str, start: int, end: int) -> pa.Array:
     arr = dset[start:end]
 
     if _is_vlen_dtype(dset.dtype):
@@ -321,7 +326,7 @@ def _np_to_pa_to_hf_value(numpy_dtype: np.dtype) -> Value:
     return Value(dtype=_arrow_to_datasets_dtype(pa.from_numpy_dtype(numpy_dtype)))
 
 
-def _first_nongroup_dataset(h5_obj, features: Features, prefix="") -> str:
+def _first_nongroup_dataset(h5_obj, features: Features, prefix=""):
     for path, dset in h5_obj.items():
         if path not in features:
             continue
@@ -367,7 +372,7 @@ def _is_file(h5_obj) -> bool:
 def _has_zero_dimensions(feature):
     if isinstance(feature, _ArrayXD):
         return any(dim == 0 for dim in feature.shape)
-    elif isinstance(feature, List):  # also gets regular List
+    elif isinstance(feature, List):
         return feature.length == 0 or _has_zero_dimensions(feature.feature)
     elif isinstance(feature, LargeList):
         return _has_zero_dimensions(feature.feature)

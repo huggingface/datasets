@@ -724,6 +724,11 @@ def test_hdf5_complex_numbers(hdf5_file_with_complex_data):
     assert complex_64_data[2] == {"real": 5.0, "imag": 6.0}
     assert complex_64_data[3] == {"real": 7.0, "imag": 8.0}
 
+    assert hdf5.info.features["complex_64"]["real"].dtype == "float32"
+    assert hdf5.info.features["complex_64"]["imag"].dtype == "float32"
+    assert hdf5.info.features["complex_128"]["real"].dtype == "float64"
+    assert hdf5.info.features["complex_128"]["imag"].dtype == "float64"
+
 
 def test_hdf5_compound_types(hdf5_file_with_compound_data):
     """Test HDF5 loading with compound/structured datasets."""
@@ -771,8 +776,8 @@ def test_hdf5_feature_inference_complex(hdf5_file_with_complex_data):
     # Check complex number features
     assert "complex_64" in features
     assert isinstance(features["complex_64"], Features)
-    assert features["complex_64"]["real"] == Value("float64")
-    assert features["complex_64"]["imag"] == Value("float64")
+    assert features["complex_64"]["real"] == Value("float32")
+    assert features["complex_64"]["imag"] == Value("float32")
 
 
 def test_hdf5_feature_inference_compound(hdf5_file_with_compound_data):
@@ -961,13 +966,13 @@ def test_hdf5_feature_inference_compound_complex_arrays(hdf5_file_with_compound_
 
     # Check complex field (should be real/imag structure)
     assert isinstance(compound_features["complex_field"], Features)
-    assert compound_features["complex_field"]["real"] == Value("float64")
-    assert compound_features["complex_field"]["imag"] == Value("float64")
+    assert compound_features["complex_field"]["real"] == Value("float32")
+    assert compound_features["complex_field"]["imag"] == Value("float32")
 
     # Check complex array (should be nested real/imag structures)
     assert isinstance(compound_features["complex_array"], Features)
-    assert compound_features["complex_array"]["real"] == Array2D(shape=(2, 3), dtype="float64")
-    assert compound_features["complex_array"]["imag"] == Array2D(shape=(2, 3), dtype="float64")
+    assert compound_features["complex_array"]["real"] == Array2D(shape=(2, 3), dtype="float32")
+    assert compound_features["complex_array"]["imag"] == Array2D(shape=(2, 3), dtype="float32")
 
     # Check nested complex field
     assert isinstance(compound_features["nested_complex"], Features)
