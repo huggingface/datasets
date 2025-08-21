@@ -625,10 +625,16 @@ def test_hdf5_complex_numbers(hdf5_file_with_complex_data):
     assert complex_64_data[1] == {"real": 3.0, "imag": 4.0}
     assert complex_64_data[2] == {"real": 5.0, "imag": 6.0}
     assert complex_64_data[3] == {"real": 7.0, "imag": 8.0}
+
     assert np.asarray(dataset.data["complex_64"].flatten()[0]).dtype == np.float32
     assert np.asarray(dataset.data["complex_64"].flatten()[1]).dtype == np.float32
+    assert (np.asarray(dataset.data["complex_64"].flatten()[0]) == np.array([1, 3, 5, 7], dtype=np.float32)).all()
+    assert (np.asarray(dataset.data["complex_64"].flatten()[1]) == np.array([2, 4, 6, 8], dtype=np.float32)).all()
+
     assert np.asarray(dataset.data["complex_128"].flatten()[0]).dtype == np.float64
     assert np.asarray(dataset.data["complex_128"].flatten()[1]).dtype == np.float64
+    assert (np.asarray(dataset.data["complex_128"].flatten()[0]) == np.array([1.5, 3.5, 5.5, 7.5], dtype=np.float64)).all()
+    assert (np.asarray(dataset.data["complex_128"].flatten()[1]) == np.array([2.5, 4.5, 6.5, 8.5], dtype=np.float64)).all()
 
 
 def test_hdf5_compound_types(hdf5_file_with_compound_data):
