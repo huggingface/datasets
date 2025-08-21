@@ -283,8 +283,17 @@ def _recursive_load_arrays(h5_obj, features: Features, start: int, end: int):
         return pa.Table.from_pydict(batch_dict)
 
     if batch_dict:
-        keys, values = zip(*batch_dict.items())
-        return pa.StructArray.from_arrays(values, names=keys)
+        should_chunk, keys, values = False, [], []
+        for k, v in batch_dict.items():
+            if isinstance(v, pa.ChunkedArray):
+                should_chunk = True
+                v = v.combine_chunks()
+            keys.append(k)
+            values.append(v)
+
+        sarr = pa.StructArray.from_arrays(values, names=keys)
+        return pa.chunked_array(sarr) if should_chunk else sarr
+    
 
 
 # ┌─────────────┐
