@@ -1,7 +1,6 @@
 import itertools
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional
-from typing import List as ListT
 
 import numpy as np
 import pyarrow as pa
@@ -19,7 +18,7 @@ from datasets.features.features import (
     _ArrayXD,
     _arrow_to_datasets_dtype,
 )
-from datasets.table import table_cast
+from datasets.table import cast_table_to_features
 
 
 if TYPE_CHECKING:
@@ -35,7 +34,6 @@ class HDF5Config(datasets.BuilderConfig):
     """BuilderConfig for HDF5."""
 
     batch_size: Optional[int] = None
-    columns: Optional[ListT[str]] = None
     features: Optional[datasets.Features] = None
 
 
@@ -45,15 +43,6 @@ class HDF5(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = HDF5Config
 
     def _info(self):
-        if (
-            self.config.columns is not None
-            and self.config.features is not None
-            and set(self.config.columns) != set(self.config.features)
-        ):
-            raise ValueError(
-                "The columns and features argument must contain the same columns, but got ",
-                f"{self.config.columns} and {self.config.features}",
-            )
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
@@ -76,10 +65,6 @@ class HDF5(datasets.ArrowBasedBuilder):
                         self.info.features = _recursive_infer_features(h5)
                     break
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
-        if self.config.columns is not None and set(self.config.columns) != set(self.info.features):
-            self.info.features = datasets.Features(
-                {col: feat for col, feat in self.info.features.items() if col in self.config.columns}
-            )
         return splits
 
     def _generate_tables(self, files):
@@ -100,7 +85,10 @@ class HDF5(datasets.ArrowBasedBuilder):
                     for start in range(0, num_rows, effective_batch):
                         end = min(start + effective_batch, num_rows)
                         pa_table = _recursive_load_arrays(h5, self.info.features, start, end)
-                        yield f"{file_idx}_{start}", table_cast(pa_table, self.info.features.arrow_schema)
+                        if pa_table is None:
+                            logger.warning(f"File {file} contains no data, skipping...")
+                            continue
+                        yield f"{file_idx}_{start}", cast_table_to_features(pa_table, self.info.features)
             except ValueError as e:
                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                 raise
@@ -278,14 +266,21 @@ def _recursive_load_arrays(h5_obj, features: Features, start: int, end: int):
         if path not in features:
             continue
         if _is_group(dset):
-            batch_dict[path] = _recursive_load_arrays(dset, features[path], start, end)
+            arr = _recursive_load_arrays(dset, features[path], start, end)
         elif _is_dataset(dset):
-            batch_dict[path] = _load_array(dset, path, start, end)
+            arr = _load_array(dset, path, start, end)
+        else:
+            raise ValueError(f"Unexpected type {type(dset)}")
+
+        if arr is not None:
+            batch_dict[path] = arr
 
     if _is_file(h5_obj):
         return pa.Table.from_pydict(batch_dict)
 
-    return pa.StructArray.from_arrays(batch_dict.values(), names=batch_dict.keys())
+    if batch_dict:
+        keys, values = zip(*batch_dict.items())
+        return pa.StructArray.from_arrays(values, names=keys)
 
 
 # ┌─────────────┐
@@ -331,7 +326,9 @@ def _first_nongroup_dataset(h5_obj, features: Features, prefix=""):
         if path not in features:
             continue
         if _is_group(dset):
-            return _first_nongroup_dataset(dset, features[path], prefix=f"{path}/")
+            found = _first_nongroup_dataset(dset, features[path], prefix=f"{path}/")
+            if found is not None:
+                return found
         elif _is_dataset(dset):
             return f"{prefix}{path}"
 
