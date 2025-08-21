@@ -185,9 +185,9 @@ def _convert_compound_to_nested(arr, dset) -> pa.StructArray:
     return _recursive_load_arrays(mock_group, features, 0, len(arr))
 
 
-# ┌───────────────────────────┐
-# │  Variable-Length Strings  │
-# └───────────────────────────┘
+# ┌───────────────────┐
+# │  Variable-Length  │
+# └───────────────────┘
 
 
 def _is_vlen_dtype(dtype: np.dtype) -> bool:
