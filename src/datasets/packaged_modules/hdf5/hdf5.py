@@ -321,12 +321,12 @@ def _np_to_pa_to_hf_value(numpy_dtype: np.dtype) -> Value:
     return Value(dtype=_arrow_to_datasets_dtype(pa.from_numpy_dtype(numpy_dtype)))
 
 
-def _first_nongroup_dataset(h5_obj, features: Features, prefix=""):
+def _first_dataset(h5_obj, features: Features, prefix=""):
     for path, dset in h5_obj.items():
         if path not in features:
             continue
         if _is_group(dset):
-            found = _first_nongroup_dataset(dset, features[path], prefix=f"{path}/")
+            found = _first_dataset(dset, features[path], prefix=f"{path}/")
             if found is not None:
                 return found
         elif _is_dataset(dset):
@@ -334,7 +334,7 @@ def _first_nongroup_dataset(h5_obj, features: Features, prefix=""):
 
 
 def _check_dataset_lengths(h5_obj, features: Features) -> int:
-    first_path = _first_nongroup_dataset(h5_obj, features)
+    first_path = _first_dataset(h5_obj, features)
     if first_path is None:
         return None
 
