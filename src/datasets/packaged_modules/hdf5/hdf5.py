@@ -76,22 +76,7 @@ class HDF5(datasets.ArrowBasedBuilder):
             if self.info.features is None:
                 for first_file in itertools.chain.from_iterable(files):
                     with h5py.File(first_file, "r") as h5:
-                        dataset_map = _traverse_datasets(h5)
-                        features_dict = {}
-
-                        for path, dset in dataset_map.items():
-                            if _is_complex_dtype(dset.dtype):
-                                complex_features = _create_complex_features(path, dset)
-                                features_dict.update(complex_features)
-                            elif _is_compound_dtype(dset.dtype):
-                                compound_features = _create_compound_features(path, dset)
-                                features_dict.update(compound_features)
-                            elif _is_vlen_string_dtype(dset.dtype):
-                                features_dict[path] = Value("string")
-                            else:
-                                feat = _infer_feature_from_dataset(dset)
-                                features_dict[path] = feat
-                        self.info.features = datasets.Features(features_dict)
+                        self.info.features = _recursive_infer_features(h5)
                     break
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         if self.config.columns is not None and set(self.config.columns) != set(self.info.features):
@@ -112,90 +97,20 @@ class HDF5(datasets.ArrowBasedBuilder):
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             try:
                 with h5py.File(file, "r") as h5:
-                    dataset_map = _traverse_datasets(h5)
-                    if not dataset_map:
-                        logger.warning(f"File '{file}' contains no data, skipping...")
+                    if self.info.features is None:
+                        self.info.features = _recursive_infer_features(h5)
+                    num_rows = _check_dataset_lengths(h5, self.info.features)
+                    if num_rows is None:
+                        logger.warning(f"File {file} contains no data, skipping...")
                         continue
-
-                    if self.config.columns is not None:
-                        filtered_dataset_map = {
-                            path: dset for path, dset in dataset_map.items() if path in self.config.columns
-                        }
-                        if not filtered_dataset_map:
-                            logger.warning(
-                                f"No datasets match the specified columns {self.config.columns}, skipping..."
-                            )
-                            continue
-                        dataset_map = filtered_dataset_map
-
-                    # Sanity-check lengths for selected datasets
-                    first_dset = next(iter(dataset_map.values()))
-                    num_rows = first_dset.shape[0]
-                    for path, dset in dataset_map.items():
-                        if dset.shape[0] != num_rows:
-                            raise ValueError(
-                                f"Dataset '{path}' length {dset.shape[0]} differs from {num_rows} in file '{file}'"
-                            )
                     effective_batch = batch_size_cfg or self._writer_batch_size or num_rows
                     for start in range(0, num_rows, effective_batch):
                         end = min(start + effective_batch, num_rows)
-                        batch_dict = {}
-                        for path, dset in dataset_map.items():
-                            arr = dset[start:end]
-
-                            # Handle variable-length arrays
-                            if _is_vlen_string_dtype(dset.dtype):
-                                logger.debug(
-                                    f"Converting variable-length string data for '{path}' (shape: {arr.shape})"
-                                )
-                                batch_dict[path] = _convert_vlen_string_to_array(arr)
-                            elif (
-                                hasattr(dset.dtype, "metadata")
-                                and dset.dtype.metadata
-                                and "vlen" in dset.dtype.metadata
-                            ):
-                                # Handle other variable-length types (non-strings)
-                                pa_arr = datasets.features.features.numpy_to_pyarrow_listarray(arr)
-                                batch_dict[path] = pa_arr
-                            elif _is_complex_dtype(dset.dtype):
-                                batch_dict.update(_convert_complex_to_nested(path, arr, dset))
-                            elif _is_compound_dtype(dset.dtype):
-                                batch_dict.update(_convert_compound_to_nested(path, arr, dset))
-                            elif dset.dtype.kind == "O":
-                                raise ValueError(
-                                    f"Object dtype dataset '{path}' is not supported. "
-                                    f"For variable-length data, please use h5py.vlen_dtype() "
-                                    f"when creating the HDF5 file. "
-                                    f"See: https://docs.h5py.org/en/stable/special.html#variable-length-strings"
-                                )
-                            else:
-                                # If any non-batch dimension is zero, emit an unsized pa.list_
-                                # to avoid creating FixedSizeListArray with list_size=0.
-                                if any(dim == 0 for dim in dset.shape[1:]):
-                                    inner_type = pa.from_numpy_dtype(dset.dtype)
-                                    pa_arr = pa.array([[] for _ in arr], type=pa.list_(inner_type))
-                                else:
-                                    pa_arr = datasets.features.features.numpy_to_pyarrow_listarray(arr)
-                                batch_dict[path] = pa_arr
-                        pa_table = pa.Table.from_pydict(batch_dict)
+                        pa_table = _recursive_load_data(h5, self.info.features, start, end)
                         yield f"{file_idx}_{start}", self._cast_table(pa_table)
             except ValueError as e:
                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                 raise
-
-
-def _traverse_datasets(h5_obj, prefix: str = "") -> Dict[str, "h5py.Dataset"]:
-    import h5py
-
-    mapping: Dict[str, h5py.Dataset] = {}
-
-    def collect_datasets(name, obj):
-        if isinstance(obj, h5py.Dataset):
-            full_path = f"{prefix}{name}" if prefix else name
-            mapping[full_path] = obj
-
-    h5_obj.visititems(collect_datasets)
-    return mapping
 
 
 # ┌───────────┐
@@ -208,37 +123,46 @@ def _is_complex_dtype(dtype: np.dtype) -> bool:
     return dtype.kind == "c"
 
 
-def _create_complex_features(base_path: str, dset: "h5py.Dataset") -> Dict[str, Features]:
+def _create_complex_features(dset: "h5py.Dataset") -> Dict[str, Features]:
     """Create Features for complex data with real and imaginary parts `real` and `imag`.
 
     NOTE: Always uses float64 for the real and imaginary parts.
     """
     logger.info(
-        f"Complex dataset '{base_path}' (dtype: {dset.dtype}) represented as nested structure with 'real' and 'imag' fields"
+        f"Complex dataset '{dset.name}' (dtype: {dset.dtype}) represented as nested structure with 'real' and 'imag' fields"
     )
-    nested_features = Features(
-        {
-            "real": Value("float64"),
-            "imag": Value("float64"),
-        }
-    )
-    return {base_path: nested_features}
+    
+    dset_shape = dset.shape[1:]
+    rank = len(dset_shape)
+
+    if rank == 0:
+        return Features({"real": Value("float64"), "imag": Value("float64")})
+    elif rank == 1:
+        return Features({
+            "real": List(Value("float64"), length=dset_shape[0]),
+            "imag": List(Value("float64"), length=dset_shape[0])
+        })
+    elif rank <= 5:
+        array_feature = _sized_arrayxd(rank)
+        return Features({
+            "real": array_feature(shape=dset_shape, dtype="float64"),
+            "imag": array_feature(shape=dset_shape, dtype="float64")
+        })
+    else:
+        raise TypeError(f"Complex Array{rank}D not supported. Maximum 5 dimensions allowed.")
 
 
-def _convert_complex_to_nested(base_path: str, arr: np.ndarray, dset: "h5py.Dataset") -> Dict[str, pa.Array]:
+def _convert_complex_to_nested(arr: np.ndarray) -> Dict[str, pa.Array]:
     """Convert complex to Features with real and imaginary parts `real` and `imag`."""
-    result = {}
+    if arr.size > 1:
+        data = {
+            "real": datasets.features.features.numpy_to_pyarrow_listarray(arr.real),
+            "imag": datasets.features.features.numpy_to_pyarrow_listarray(arr.imag)
+        }
+    else:
+        data = {"real": float(arr.item().real), "imag": float(arr.item().imag)}
 
-    def _convert_complex_scalar(complex_val):
-        """Convert a complex scalar to a dictionary."""
-        if complex_val.size == 1:
-            return {"real": float(complex_val.item().real), "imag": float(complex_val.item().imag)}
-        else:
-            # For multi-dimensional arrays, convert to list
-            return {"real": complex_val.real.tolist(), "imag": complex_val.imag.tolist()}
-
-    result[base_path] = pa.array([_convert_complex_scalar(complex_val) for complex_val in arr])
-    return result
+    return pa.StructArray.from_arrays(data.values(), names=data.keys())
 
 
 # ┌────────────┐
@@ -252,16 +176,16 @@ def _is_compound_dtype(dtype: np.dtype) -> bool:
 
 
 class _MockDataset:
-    def __init__(self, dtype):
+    def __init__(self, dtype, name):
         self.dtype = dtype
-        self.names = dtype.names
+        self.name = name
 
 
-def _create_compound_features(base_path: str, dset: "h5py.Dataset") -> Dict[str, Features]:
+def _create_compound_features(dset: "h5py.Dataset") -> Dict[str, Features]:
     """Create nested features for compound data with field names as keys."""
     field_names = list(dset.dtype.names)
     logger.info(
-        f"Compound dataset '{base_path}' (dtype: {dset.dtype}) represented as nested Features with fields: {field_names}"
+        f"Compound dataset '{dset.name}' (dtype: {dset.dtype}) represented as nested Features with fields: {field_names}"
     )
 
     nested_features_dict = {}
@@ -276,19 +200,16 @@ def _create_compound_features(base_path: str, dset: "h5py.Dataset") -> Dict[str,
                 }
             )
         elif _is_compound_dtype(field_dtype):
-            mock_dset = _MockDataset(field_dtype)
-            nested_features_dict[field_name] = _create_compound_features(field_name, mock_dset)[field_name]
+            mock_dset = _MockDataset(field_dtype, f"subfield {field_name} of {dset.name}")
+            nested_features_dict[field_name] = _create_compound_features(mock_dset)
         else:
             nested_features_dict[field_name] = _np_to_pa_to_hf_value(field_dtype)
 
-    nested_features = Features(nested_features_dict)
-    return {base_path: nested_features}
+    return Features(nested_features_dict)
 
 
-def _convert_compound_to_nested(base_path: str, arr: np.ndarray, dset: "h5py.Dataset") -> Dict[str, pa.Array]:
+def _convert_compound_to_nested(arr: np.ndarray, dset: "h5py.Dataset") -> Dict[str, pa.Array]:
     """Convert compound array to nested structure with field names as keys."""
-    result = {}
-
     def _convert_compound_recursive(compound_arr, compound_dtype):
         """Recursively convert compound array to nested structure."""
         nested_data = []
@@ -306,9 +227,7 @@ def _convert_compound_to_nested(base_path: str, arr: np.ndarray, dset: "h5py.Dat
                     row_dict[field_name] = field_data.item() if field_data.size == 1 else field_data.tolist()
             nested_data.append(row_dict)
         return nested_data
-
-    result[base_path] = pa.array(_convert_compound_recursive(arr, dset.dtype))
-    return result
+    return pa.array(_convert_compound_recursive(arr, dset.dtype))
 
 
 # ┌───────────────────────────┐
@@ -321,6 +240,13 @@ def _is_vlen_string_dtype(dtype: np.dtype) -> bool:
     if hasattr(dtype, "metadata") and dtype.metadata and "vlen" in dtype.metadata:
         vlen_dtype = dtype.metadata["vlen"]
         return vlen_dtype in (str, bytes)
+    return False
+
+
+def _is_vlen_not_string_dtype(dtype: np.dtype) -> bool:
+    if hasattr(dtype, "metadata") and dtype.metadata and "vlen" in dtype.metadata:
+        vlen_dtype = dtype.metadata["vlen"]
+        return vlen_dtype not in (str, bytes)
     return False
 
 
@@ -342,9 +268,25 @@ def _convert_vlen_string_to_array(arr: np.ndarray) -> pa.Array:
 # └───────────┘
 
 
-def _infer_feature_from_dataset(dset: "h5py.Dataset"):
-    # non-string varlen
-    if hasattr(dset.dtype, "metadata") and dset.dtype.metadata and "vlen" in dset.dtype.metadata:
+def _recursive_infer_features(h5_obj) -> Features:
+    import h5py
+
+    features_dict = {}
+    for path, dset in h5_obj.items():
+        if isinstance(dset, h5py.Group):
+            features_dict[path] = _recursive_infer_features(dset)
+        elif isinstance(dset, h5py.Dataset):
+            features_dict[path] = _infer_feature(dset)
+    return Features(features_dict)
+
+def _infer_feature(dset: "h5py.Dataset"):
+    if _is_complex_dtype(dset.dtype):
+        return _create_complex_features(dset)
+    elif _is_compound_dtype(dset.dtype):
+        return _create_compound_features(dset)
+    elif _is_vlen_string_dtype(dset.dtype):
+        return Value("string")
+    elif _is_vlen_not_string_dtype(dset.dtype):
         vlen_dtype = dset.dtype.metadata["vlen"]
         inner_feature = _np_to_pa_to_hf_value(vlen_dtype)
         return List(inner_feature)
@@ -370,6 +312,61 @@ def _infer_feature_from_dataset(dset: "h5py.Dataset"):
         raise TypeError(f"Array{rank}D not supported. Maximum 5 dimensions allowed.")
 
 
+def _load_array(dset: "h5py.Dataset", path: str, start: int, end: int) -> Dict[str, any]:
+    arr = dset[start:end]
+
+    if _is_vlen_string_dtype(dset.dtype):
+        logger.debug(
+            f"Converting variable-length string data for '{path}' (shape: {arr.shape})"
+        )
+        return _convert_vlen_string_to_array(arr)
+    elif _is_vlen_not_string_dtype(dset.dtype):
+        return datasets.features.features.numpy_to_pyarrow_listarray(arr)
+    elif _is_complex_dtype(dset.dtype):
+        return _convert_complex_to_nested(arr)
+    elif _is_compound_dtype(dset.dtype):
+        return _convert_compound_to_nested(arr, dset)
+    elif dset.dtype.kind == "O":
+        raise ValueError(
+            f"Object dtype dataset '{path}' is not supported. "
+            f"For variable-length data, please use h5py.vlen_dtype() "
+            f"when creating the HDF5 file. "
+            f"See: https://docs.h5py.org/en/stable/special.html#variable-length-strings"
+        )
+    else:
+        # If any non-batch dimension is zero, emit an unsized pa.list_
+        # to avoid creating FixedSizeListArray with list_size=0.
+        if any(dim == 0 for dim in dset.shape[1:]):
+            inner_type = pa.from_numpy_dtype(dset.dtype)
+            return pa.array([[] for _ in arr], type=pa.list_(inner_type))
+        else:
+            return datasets.features.features.numpy_to_pyarrow_listarray(arr)
+
+def _recursive_load_data(h5_obj, features: Features, start: int, end: int):
+    import h5py
+
+    batch_dict = {}
+    for path, dset in h5_obj.items():
+        if path not in features:
+            print(f"skipping {path} not in features: {features}")
+            continue
+        else:
+            print(f"checked {path} in features: {features}")
+        if isinstance(dset, h5py.Group):
+            batch_dict[path] = _recursive_load_data(dset, features[path], start, end)
+        elif isinstance(dset, h5py.Dataset):
+            batch_dict[path] = _load_array(dset, path, start, end)
+
+    if isinstance(h5_obj, h5py.File):
+        return pa.Table.from_pydict(batch_dict)
+    else:
+        return pa.StructArray.from_arrays(batch_dict.values(), names=batch_dict.keys())
+
+
+# ┌─────────────┐
+# │  Utilities  │
+# └─────────────┘
+
 def _has_zero_dimensions(feature):
     if isinstance(feature, _ArrayXD):
         return any(dim == 0 for dim in feature.shape)
@@ -387,3 +384,30 @@ def _sized_arrayxd(rank: int):
 
 def _np_to_pa_to_hf_value(numpy_dtype: np.dtype) -> Value:
     return Value(dtype=_arrow_to_datasets_dtype(pa.from_numpy_dtype(numpy_dtype)))
+
+def _first_nongroup_dataset(h5_obj, features: Features, prefix="") -> str:
+    import h5py
+    
+    for path, dset in h5_obj.items():
+        if path not in features:
+            continue
+        if isinstance(dset, h5py.Group):
+            return _first_nongroup_dataset(dset, features[path], prefix=f"{path}/")
+        elif isinstance(dset, h5py.Dataset):
+            return f"{prefix}{path}"
+
+def _check_dataset_lengths(h5_obj, features: Features) -> int:
+    import h5py
+
+    first_path = _first_nongroup_dataset(h5_obj, features)
+    if first_path is None:
+        return None
+
+    num_rows = h5_obj[first_path].shape[0]
+    for path, dset in h5_obj.items():
+        if path not in features:
+            continue
+        if isinstance(dset, h5py.Dataset):
+            if dset.shape[0] != num_rows:
+                raise ValueError(f"Dataset '{path}' has length {dset.shape[0]} but expected {num_rows}")
+    return num_rows

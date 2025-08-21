@@ -301,16 +301,20 @@ def test_hdf5_nested_groups(hdf5_file_with_groups):
     assert len(tables) == 1
 
     _, table = tables[0]
-    expected_columns = {"root_data", "group1/group_data", "group1/subgroup/sub_data"}
+
+    expected_columns = {"root_data", "group1"}
     assert set(table.column_names) == expected_columns
+
+    group1_columns_expected = {"group_data", "subgroup"}
+    assert set(fi.name for fi in table["group1"].type.fields) == group1_columns_expected
 
     # Check data
     root_data = table["root_data"].to_pylist()
+    group_data = table["group1"].to_pylist()
     assert root_data == [0, 1, 2]
-
-    group_data = table["group1/group_data"].to_pylist()
-    expected_group_data = [0.0, 1.0, 2.0]
-    np.testing.assert_allclose(group_data, expected_group_data, rtol=1e-6)
+    assert group_data == [{'group_data': 0.0, 'subgroup': {'sub_data': 0}},
+                          {'group_data': 1.0, 'subgroup': {'sub_data': 1}},
+                          {'group_data': 2.0, 'subgroup': {'sub_data': 2}}]
 
 
 def test_hdf5_multi_dimensional_arrays(hdf5_file_with_arrays):
@@ -432,18 +436,19 @@ def test_hdf5_batch_processing(hdf5_file):
 
 def test_hdf5_column_filtering(hdf5_file_with_groups):
     """Test HDF5 loading with column filtering."""
-    config = HDF5Config(columns=["root_data", "group1/group_data"])
-    hdf5 = HDF5()
-    hdf5.config = config
+    # config = HDF5Config()
+    hdf5 = HDF5(features=Features({"root_data": Value("int32"), "group1": Features({"group_data": Value("float32")})}))
+    # hdf5.config = config
     generator = hdf5._generate_tables([[hdf5_file_with_groups]])
 
     tables = list(generator)
     assert len(tables) == 1
 
     _, table = tables[0]
-    expected_columns = {"root_data", "group1/group_data"}
+    expected_columns = {"root_data", "group1"}
     assert set(table.column_names) == expected_columns
-    assert "group1/subgroup/sub_data" not in table.column_names
+    expected_group1_columns = {"group_data"}
+    assert set(fi.name for fi in table["group1"].type.fields) == expected_group1_columns
 
 
 def test_hdf5_feature_specification(hdf5_file):
@@ -470,7 +475,7 @@ def test_hdf5_mismatched_lengths_error(hdf5_file_with_mismatched_lengths):
     hdf5 = HDF5()
     generator = hdf5._generate_tables([[hdf5_file_with_mismatched_lengths]])
 
-    with pytest.raises(ValueError, match="length.*differs from"):
+    with pytest.raises(ValueError, match="length.*but expected"):
         for _ in generator:
             pass
 
@@ -775,9 +780,10 @@ def test_hdf5_mixed_data_types(hdf5_file_with_mixed_data_types):
 
 def test_hdf5_mismatched_lengths_with_column_filtering(hdf5_file_with_mismatched_lengths):
     """Test that mismatched dataset lengths are ignored when the mismatched dataset is excluded via columns config."""
-    config = HDF5Config(columns=["data1"])
-    hdf5 = HDF5()
-    hdf5.config = config
+    # config = HDF5Config(columns=["data1"])
+    # hdf5 = HDF5(columns=["data1"])
+    hdf5 = HDF5(features=Features({"data1": Value("int32")}))
+    # hdf5.config = config
 
     generator = hdf5._generate_tables([[hdf5_file_with_mismatched_lengths]])
     tables = list(generator)
@@ -796,8 +802,15 @@ def test_hdf5_mismatched_lengths_with_column_filtering(hdf5_file_with_mismatched
     assert data1_values == [0, 1, 2, 3, 4]
 
     # Test 2: Include multiple compatible datasets (all with 5 rows)
-    config2 = HDF5Config(columns=["data1", "data3", "data4", "data5", "data6"])
-    hdf5.config = config2
+    # config2 = HDF5Config(columns=["data1", "data3", "data4", "data5", "data6"])
+    hdf5 = HDF5(features=Features({
+        "data1": Value("int32"),
+        "data3": Array2D(shape=(3, 4), dtype="float32"),
+        "data4": Value("float64"),
+        "data5": Value("bool"),
+        "data6": Value("string"),
+    }))
+    # hdf5.config = config2
 
     generator2 = hdf5._generate_tables([[hdf5_file_with_mismatched_lengths]])
     tables2 = list(generator2)
