@@ -203,7 +203,7 @@ def _convert_compound_to_nested(arr, dset) -> pa.StructArray:
 
 
 def _is_vlen_dtype(dtype: np.dtype) -> bool:
-    if hasattr(dtype, "metadata") and dtype.metadata and "vlen" in dtype.metadata:
+    if dtype.metadata and "vlen" in dtype.metadata:
         return True
     return False
 
