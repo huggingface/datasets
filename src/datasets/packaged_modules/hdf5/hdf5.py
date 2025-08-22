@@ -293,7 +293,6 @@ def _recursive_load_arrays(h5_obj, features: Features, start: int, end: int):
 
         sarr = pa.StructArray.from_arrays(values, names=keys)
         return pa.chunked_array(sarr) if should_chunk else sarr
-    
 
 
 # ┌─────────────┐
