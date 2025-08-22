@@ -512,10 +512,9 @@ def test_hdf5_zero_dimensions_handling(hdf5_file_with_zero_dimensions, caplog):
     )
 
 
-def test_hdf5_empty_file_warning(empty_hdf5_file, caplog):
+def test_hdf5_empty_file_warning(empty_hdf5_file, hdf5_file_with_arrays, caplog):
     """Test that empty files (no datasets) are skipped with a warning."""
-    with pytest.raises(ValueError, match="corresponds to no data"):
-        load_dataset("hdf5", data_files=[empty_hdf5_file], split="train")
+    load_dataset("hdf5", data_files=[hdf5_file_with_arrays, empty_hdf5_file], split="train")
 
     # Check that warning was logged
     assert any(
