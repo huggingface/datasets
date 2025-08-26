@@ -60,7 +60,7 @@ class _TempCacheDir:
                 shutil.rmtree(self.name)
             except Exception as e:
                 raise OSError(
-                    f"An error occured while trying to delete temporary cache directory {self.name}. Please delete it manually."
+                    f"An error occurred while trying to delete temporary cache directory {self.name}. Please delete it manually."
                 ) from e
 
     def cleanup(self):
