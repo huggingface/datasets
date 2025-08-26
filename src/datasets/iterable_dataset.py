@@ -1519,10 +1519,17 @@ class FilteredExamplesIterable(MappedExamplesIterable):
 
 
 class BufferShuffledExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterable: _BaseExamplesIterable, buffer_size: int, generator: np.random.Generator):
+    def __init__(
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        buffer_size: int,
+        stateful: bool,
+        generator: np.random.Generator
+    ):
         super().__init__()
         self.ex_iterable = ex_iterable
         self.buffer_size = buffer_size
+        self.stateful = stateful
         self.generator = generator
         # TODO(QL): implement iter_arrow
 
@@ -1536,12 +1543,17 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
 
     def _init_state_dict(self) -> dict:
         self._state_dict = self.ex_iterable._init_state_dict()
-        self._original_state_dict = self.state_dict()
+        self._state_dict['mem_buffer'] = ([],)
+        self._state_dict['bit_generator_state'] = self.generator.bit_generator.state
+        self._state_dict['bit_generator_index_offset'] = 0
+        self._state_dict['bit_generator_index_offset_shuffle'] = 0
+        if not self.stateful:
+            self._original_state_dict = self.state_dict()
         return self._state_dict
 
     def load_state_dict(self, state_dict: dict) -> dict:
         if self._state_dict:
-            if state_dict != self._original_state_dict:
+            if not self.stateful and state_dict != self._original_state_dict:
                 logger.warning(
                     "Loading a state dict of a shuffle buffer of a dataset without the buffer content."
                     "The shuffle buffer will be refilled before starting to yield new examples."
@@ -1556,24 +1568,53 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     def __iter__(self):
         buffer_size = self.buffer_size
         rng = deepcopy(self.generator)
-        indices_iterator = self._iter_random_indices(rng, buffer_size)
-        # this is the shuffle buffer that we keep in memory
-        mem_buffer = []
+        if self.stateful and self._state_dict:
+            # this is the shuffle buffer that we keep in memory
+            mem_buffer = self._state_dict['mem_buffer'][0]
+            # this is an infinite iterator that randomly samples the index of the source to pick examples from
+            index_offset = self._state_dict["bit_generator_index_offset"]
+            rng.bit_generator.state = self._state_dict["bit_generator_state"]
+        else:
+            mem_buffer = []
+            index_offset = 0
+
+        indices_iterator = self._iter_random_indices(rng, buffer_size, random_batch_size=buffer_size)
+        # skip already consumed ones
+        for _ in range(index_offset):
+            i = next(indices_iterator)
+
         for x in self.ex_iterable:
-            if len(mem_buffer) == buffer_size:  # if the buffer is full, pick and example from it
-                i = next(indices_iterator)
-                yield mem_buffer[i]
-                mem_buffer[i] = x  # replace the picked example by a new one
-            else:  # otherwise, keep filling the buffer
+            if len(mem_buffer) < buffer_size:  # if the buffer is not full, keep filling the buffer
                 mem_buffer.append(x)
+            else:  # otherwise, pick an example from it
+                i = next(indices_iterator)
+                index_offset = (index_offset + 1) % buffer_size
+                if self.stateful and self._state_dict:
+                    self._state_dict["bit_generator_index_offset"] = index_offset
+                    if index_offset == 0:
+                        self._state_dict["bit_generator_state"] = rng.bit_generator.state
+                selected = mem_buffer[i]
+                mem_buffer[i] = x  # replace the picked example by a new one
+                yield selected
+
+        index_offset = self._state_dict["bit_generator_index_offset_shuffle"] if self._state_dict else 0
+        if self.stateful and self._state_dict:
+            rng.bit_generator.state = self._state_dict["bit_generator_state"]
+
         # when we run out of examples, we shuffle the remaining examples in the buffer and yield them
-        rng.shuffle(mem_buffer)
-        yield from mem_buffer
+        for i in rng.permutation(len(mem_buffer))[index_offset:].tolist():
+            index_offset = index_offset + 1
+            if self.stateful and self._state_dict:
+                self._state_dict["bit_generator_index_offset_shuffle"] = index_offset
+            yield mem_buffer[i]
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "BufferShuffledExamplesIterable":
         """Shuffle the wrapped examples iterable as well as the shuffling buffer."""
         return BufferShuffledExamplesIterable(
-            self.ex_iterable.shuffle_data_sources(generator), buffer_size=self.buffer_size, generator=generator
+            self.ex_iterable.shuffle_data_sources(generator),
+            buffer_size=self.buffer_size,
+            stateful=self.stateful,
+            generator=generator,
         )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "BufferShuffledExamplesIterable":
@@ -1581,6 +1622,7 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         return BufferShuffledExamplesIterable(
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
             buffer_size=self.buffer_size,
+            stateful=self.stateful,
             generator=self.generator,
         )
 
@@ -2815,7 +2857,11 @@ class IterableDataset(DatasetInfoMixin):
         )
 
     def shuffle(
-        self, seed=None, generator: Optional[np.random.Generator] = None, buffer_size: int = 1000
+        self,
+        seed=None,
+        generator: Optional[np.random.Generator] = None,
+        buffer_size: int = 1000,
+        stateful: bool = False
     ) -> "IterableDataset":
         """
         Randomly shuffles the elements of this dataset.
@@ -2842,6 +2888,9 @@ class IterableDataset(DatasetInfoMixin):
                 If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
             buffer_size (`int`, defaults to `1000`):
                 Size of the buffer.
+            stateful (`bool`, defaults to `False`):
+                Whether to make the shuffling stateful.
+                If `stateful=True`, this will incur additional memory overhead to preserve the shuffling states across epochs.
 
         Example:
 
@@ -2871,7 +2920,10 @@ class IterableDataset(DatasetInfoMixin):
         shuffling = ShufflingConfig(generator=generator, _original_seed=seed)
         return IterableDataset(
             ex_iterable=BufferShuffledExamplesIterable(
-                self._ex_iterable, buffer_size=buffer_size, generator=generator
+                self._ex_iterable,
+                buffer_size=buffer_size,
+                stateful=stateful,
+                generator=generator
             ),
             info=self._info.copy(),
             split=self._split,
