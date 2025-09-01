@@ -187,7 +187,7 @@ For now only the Arrow streaming format is supported. The Arrow IPC file format 
 >>> dataset = load_dataset("hdf5", data_files="data.h5")
 ```
 
-Note that the HDF5 loader assumes that all datasets in the file have rows on their first dimension. Groups are flattened, i.e. the syntax `h5py.File("data.h5")["group"]["key"]` becomes `load_dataset("hdf5", data_files="data.h5")["group/key"]`.
+Note that the HDF5 loader assumes that the file has "tabular" structure, i.e. that all datasets in the file have (the same number of) rows on their first dimension.
 
 ### SQL
 
