@@ -183,21 +183,30 @@ USE_PARQUET_EXPORT = True
 
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
-DEFAULT_MAX_BATCH_SIZE = 1024 * 1024
+DEFAULT_MAX_BATCH_SIZE = 1000
 
 DEFAULT_CDC_OPTIONS = {"min_chunk_size": 256 * 1024, "max_chunk_size": 1024 * 1024, "norm_level": 0}
 
 # Size of the preloaded record batch in `Dataset.__iter__`
 ARROW_READER_BATCH_SIZE_IN_DATASET_ITER = 10
 
-# Max shard size in bytes (e.g. to shard parquet datasets in push_to_hub or download_and_prepare)
+# Max uncompressed shard size in bytes (e.g. to shard parquet datasets in push_to_hub or download_and_prepare)
 MAX_SHARD_SIZE = "500MB"
 
+# Max uncompressed row group size in bytes (e.g. for parquet files in push_to_hub or download_and_prepare)
+MAX_ROW_GROUP_SIZE = "100MB"
+
 # Parquet configuration
-PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS = 100
-PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS = 100
-PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS = 100
-PARQUET_ROW_GROUP_SIZE_FOR_VIDEO_DATASETS = 10
+PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS = None
+PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS = None
+PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS = None
+PARQUET_ROW_GROUP_SIZE_FOR_VIDEO_DATASETS = None
+
+# Arrow configuration
+ARROW_RECORD_BATCH_SIZE_FOR_AUDIO_DATASETS = 100
+ARROW_RECORD_BATCH_SIZE_FOR_AUDIO_DATASETS_SIZE_FOR_IMAGE_DATASETS = 100
+ARROW_RECORD_BATCH_SIZE_FOR_AUDIO_DATASETS_SIZE_FOR_BINARY_DATASETS = 100
+ARROW_RECORD_BATCH_SIZE_FOR_AUDIO_DATASETS_SIZE_FOR_VIDEO_DATASETS = 10
 
 # Offline mode
 _offline = os.environ.get("HF_DATASETS_OFFLINE")

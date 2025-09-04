@@ -8,7 +8,7 @@ import pytest
 from datasets import Audio, Dataset, DatasetDict, Features, IterableDatasetDict, List, NamedSplit, Value, config
 from datasets.features.image import Image
 from datasets.info import DatasetInfo
-from datasets.io.parquet import ParquetDatasetReader, ParquetDatasetWriter, get_writer_batch_size
+from datasets.io.parquet import ParquetDatasetReader, ParquetDatasetWriter, get_arrow_writer_batch_size_from_features
 
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
 
@@ -276,8 +276,8 @@ def test_dataset_to_parquet_keeps_features(shared_datadir, tmp_path):
         (Features({"nested": List(Audio())}), config.PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS),
     ],
 )
-def test_get_writer_batch_size(feature, expected):
-    assert get_writer_batch_size(feature) == expected
+def test_get_arrow_writer_batch_size_from_features(feature, expected):
+    assert get_arrow_writer_batch_size_from_features(feature) == expected
 
 
 def test_dataset_to_parquet_fsspec(dataset, mockfs):

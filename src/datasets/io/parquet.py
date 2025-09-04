@@ -6,7 +6,7 @@ import fsspec
 import pyarrow.parquet as pq
 
 from .. import Dataset, Features, NamedSplit, config
-from ..arrow_writer import get_writer_batch_size
+from ..arrow_writer import get_writer_batch_size_from_data_size, get_writer_batch_size_from_features
 from ..formatting import query_table
 from ..packaged_modules import _PACKAGED_DATASETS_MODULES
 from ..packaged_modules.parquet.parquet import Parquet
@@ -83,7 +83,11 @@ class ParquetDatasetWriter:
     ):
         self.dataset = dataset
         self.path_or_buf = path_or_buf
-        self.batch_size = batch_size or get_writer_batch_size(dataset.features)
+        self.batch_size = (
+            batch_size
+            or get_writer_batch_size_from_features(dataset.features)
+            or get_writer_batch_size_from_data_size(len(dataset), dataset._estimate_nbytes())
+        )
         self.storage_options = storage_options or {}
         self.parquet_writer_kwargs = parquet_writer_kwargs
         if use_content_defined_chunking is True:
@@ -91,19 +95,17 @@ class ParquetDatasetWriter:
         self.use_content_defined_chunking = use_content_defined_chunking
 
     def write(self) -> int:
-        batch_size = self.batch_size if self.batch_size else config.DEFAULT_MAX_BATCH_SIZE
-
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
             with fsspec.open(self.path_or_buf, "wb", **(self.storage_options or {})) as buffer:
                 written = self._write(
                     file_obj=buffer,
-                    batch_size=batch_size,
+                    batch_size=self.batch_size,
                     **self.parquet_writer_kwargs,
                 )
         else:
             written = self._write(
                 file_obj=self.path_or_buf,
-                batch_size=batch_size,
+                batch_size=self.batch_size,
                 **self.parquet_writer_kwargs,
             )
         return written
