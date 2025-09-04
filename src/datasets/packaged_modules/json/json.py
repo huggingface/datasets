@@ -110,11 +110,12 @@ class Json(datasets.ArrowBasedBuilder):
             pa_table = table_cast(pa_table, self.config.features.arrow_schema)
         return pa_table
 
-    def _generate_tables(self, files: List[str]) -> Generator:
-        for file_idx, file in enumerate(files):
+    def _generate_tables(self, files):
+        for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             if self.config.field is not None:
                 # Load JSON with field selection
                 try:
+                    import ijson
                     for batch_idx, json_obj in enumerate(
                         ijson.items(
                             open(
@@ -126,63 +127,50 @@ class Json(datasets.ArrowBasedBuilder):
                         )
                     ):
                         pa_table = pa.Table.from_pandas(pd.DataFrame(json_obj))
-
+                        # Apply columns filtering if requested
                         if self.config.columns is not None:
-                            missing_cols = set(self.config.columns) - set(
-                                pa_table.column_names
-                            )
+                            missing_cols = set(self.config.columns) - set(pa_table.column_names)
                             for col in missing_cols:
-                                pa_table = pa_table.append_column(
-                                    col, pa.array([None] * pa_table.num_rows)
-                                )
+                                pa_table = pa_table.append_column(col, pa.array([None] * pa_table.num_rows))
                             pa_table = pa_table.select(self.config.columns)
-
                         yield (file_idx, batch_idx), self._cast_table(pa_table)
 
                 except Exception as e:
-                    raise DatasetGenerationError(
+                    raise datasets.DatasetGenerationError(
                         f"Failed to parse JSON with field {self.config.field}: {e}"
                     ) from e
 
             else:
                 # Load JSON line by line
                 batch_idx = 0
-                while True:
-                    try:
-                        pa_table = paj.read_json(
-                            file,
-                            read_options=paj.ReadOptions(
-                                use_threads=True,
-                                block_size=1 << 20,
-                            ),
-                            parse_options=paj.ParseOptions(explicit_schema=None),
-                        )
-                        break
-
-                    except pa.ArrowInvalid:
-                        # Pandas fallback only if Arrow fails
-                        with open(
-                            file,
-                            encoding=self.config.encoding,
-                            errors=self.config.encoding_errors,
-                        ) as f:
-                            df = pandas_read_json(f)
-                        pa_table = pa.Table.from_pandas(df)
-                        break
-
-                    except StopIteration:
-                        # End of file
-                        return
-
-                # Apply columns selection after table is ready
-                if self.config.columns is not None:
-                    missing_cols = set(self.config.columns) - set(
-                        pa_table.column_names
+                try:
+                    pa_table = paj.read_json(
+                        file,
+                        read_options=paj.ReadOptions(
+                            use_threads=True,
+                            block_size=1 << 20,  # 1MB default
+                        ),
+                        parse_options=paj.ParseOptions(explicit_schema=None),
                     )
+                except pa.ArrowInvalid:
+                    # Pandas fallback only if Arrow fails
+                    with open(
+                        file,
+                        encoding=self.config.encoding,
+                        errors=self.config.encoding_errors,
+                    ) as f:
+                        df = pandas_read_json(f)
+                    pa_table = pa.Table.from_pandas(df)
+                except StopIteration:
+                    # End of file
+                    return
+
+                # Apply columns filtering if requested
+                if self.config.columns is not None:
+                    missing_cols = set(self.config.columns) - set(pa_table.column_names)
                     for col in missing_cols:
-                        pa_table = pa_table.append_column(
-                            col, pa.array([None] * pa_table.num_rows)
-                        )
+                        pa_table = pa_table.append_column(col, pa.array([None] * pa_table.num_rows))
                     pa_table = pa_table.select(self.config.columns)
 
                 yield (file_idx, batch_idx), self._cast_table(pa_table)
+
