@@ -282,3 +282,20 @@ def test_load_dataset_json_with_columns_filtering():
 
     dataset = load_dataset("json", data_files=path, columns=["a", "c"])
     assert set(dataset["train"].column_names) == {"a", "c"}
+
+def test_load_dataset_json_with_missing_columns():
+    sample = {"x": 1}
+    with tempfile.NamedTemporaryFile("w+", suffix=".jsonl", delete=False) as f:
+        f.write(json.dumps(sample) + "\n")
+        f.write(json.dumps(sample) + "\n")
+        path = f.name
+
+    dataset = load_dataset("json", data_files=path, columns=["x", "y"])
+    assert set(dataset["train"].column_names) == {"x", "y"}
+    # "y" should be filled with None
+    assert dataset["train"]["y"] == [None, None]
+
+def test_load_dataset_json_without_columns_filtering(jsonl_file):
+    dataset = load_dataset("json", data_files=jsonl_file)
+    # Original behavior: no columns filter → all keys are present
+    assert set(dataset["train"].column_names) == {"col_1", "col_2"}
