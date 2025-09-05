@@ -1,6 +1,7 @@
 import os
 import tarfile
 from itertools import product
+from pathlib import Path
 
 import numpy as np
 import pyarrow as pa
@@ -64,6 +65,7 @@ def test_audio_feature_type_to_arrow():
     "build_example",
     [
         lambda audio_path: audio_path,
+        lambda audio_path: Path(audio_path),
         lambda audio_path: open(audio_path, "rb").read(),
         lambda audio_path: {"path": audio_path},
         lambda audio_path: {"path": audio_path, "bytes": None},
