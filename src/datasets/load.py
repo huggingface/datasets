@@ -1387,7 +1387,12 @@ def load_dataset(
     verification_mode = VerificationMode(
         (verification_mode or VerificationMode.BASIC_CHECKS) if not save_infos else VerificationMode.ALL_CHECKS
     )
-
+    
+    # `use_auth_token` has been deprecated and removed from config definitions (replaced by `token`)
+    if "use_auth_token" in config_kwargs:
+        logger.warning("The 'use_auth_token' argument is deprecated. Please use 'token' instead.")
+        config_kwargs.pop("use_auth_token")
+        
     # Create a dataset builder
     builder_instance = load_dataset_builder(
         path=path,
