@@ -6,9 +6,10 @@ import pyarrow.parquet as pq
 import pytest
 
 from datasets import Audio, Dataset, DatasetDict, Features, IterableDatasetDict, List, NamedSplit, Value, config
+from datasets.arrow_writer import get_arrow_writer_batch_size_from_features
 from datasets.features.image import Image
 from datasets.info import DatasetInfo
-from datasets.io.parquet import ParquetDatasetReader, ParquetDatasetWriter, get_arrow_writer_batch_size_from_features
+from datasets.io.parquet import ParquetDatasetReader, ParquetDatasetWriter
 
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
 
@@ -272,8 +273,8 @@ def test_dataset_to_parquet_keeps_features(shared_datadir, tmp_path):
     "feature, expected",
     [
         (Features({"foo": Value("int32")}), None),
-        (Features({"image": Image(), "foo": Value("int32")}), config.PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS),
-        (Features({"nested": List(Audio())}), config.PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS),
+        (Features({"image": Image(), "foo": Value("int32")}), config.ARROW_RECORD_BATCH_SIZE_FOR_IMAGE_DATASETS),
+        (Features({"nested": List(Audio())}), config.ARROW_RECORD_BATCH_SIZE_FOR_AUDIO_DATASETS),
     ],
 )
 def test_get_arrow_writer_batch_size_from_features(feature, expected):

@@ -5344,7 +5344,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             table = self.with_format("arrow")[:1000]
             table_visitor(table, extra_nbytes_visitor)
 
-            extra_nbytes = extra_nbytes * len(self.data) / len(table)
+            extra_nbytes = extra_nbytes * len(self.data) // len(table)
             dataset_nbytes = dataset_nbytes + extra_nbytes
 
         if self._indices is not None:
