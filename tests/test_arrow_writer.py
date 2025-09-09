@@ -1,4 +1,5 @@
 import copy
+import json
 import os
 import tempfile
 from unittest import TestCase
@@ -9,6 +10,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
+from datasets import config
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence
 from datasets.features import Array2D, ClassLabel, Features, Image, Value
 from datasets.features.features import Array2DExtensionType, cast_to_python_objects
@@ -332,6 +334,80 @@ def test_parquet_writer_write():
     stream = pa.BufferReader(output.getvalue())
     pa_table: pa.Table = pq.read_table(stream)
     assert pa_table.to_pydict() == {"col_1": ["foo", "bar"], "col_2": [1, 2]}
+
+
+def test_parquet_writer_uses_content_defined_chunking():
+    def write_and_get_argument_and_metadata(**kwargs):
+        output = pa.BufferOutputStream()
+        with patch("pyarrow.parquet.ParquetWriter", wraps=pq.ParquetWriter) as MockWriter:
+            with ParquetWriter(stream=output, **kwargs) as writer:
+                writer.write({"col_1": "foo", "col_2": 1})
+                writer.write({"col_1": "bar", "col_2": 2})
+                writer.finalize()
+            assert MockWriter.call_count == 1
+            _, kwargs = MockWriter.call_args
+            assert "use_content_defined_chunking" in kwargs
+
+        # read metadata from the output stream
+        with pa.input_stream(output.getvalue()) as stream:
+            metadata = pq.read_metadata(stream)
+            key_value_metadata = metadata.metadata
+
+        return kwargs["use_content_defined_chunking"], key_value_metadata
+
+    # not passing the use_content_defined_chunking argument, using the default
+    passed_arg, key_value_metadata = write_and_get_argument_and_metadata()
+    assert passed_arg == config.DEFAULT_CDC_OPTIONS
+    assert b"content_defined_chunking" in key_value_metadata
+    json_encoded_options = key_value_metadata[b"content_defined_chunking"].decode("utf-8")
+    assert json.loads(json_encoded_options) == config.DEFAULT_CDC_OPTIONS
+
+    # passing True, using the default options
+    passed_arg, key_value_metadata = write_and_get_argument_and_metadata(use_content_defined_chunking=True)
+    assert passed_arg == config.DEFAULT_CDC_OPTIONS
+    assert b"content_defined_chunking" in key_value_metadata
+    json_encoded_options = key_value_metadata[b"content_defined_chunking"].decode("utf-8")
+    assert json.loads(json_encoded_options) == config.DEFAULT_CDC_OPTIONS
+
+    # passing False, not using content defined chunking
+    passed_arg, key_value_metadata = write_and_get_argument_and_metadata(use_content_defined_chunking=False)
+    assert passed_arg is False
+    assert b"content_defined_chunking" not in key_value_metadata
+
+    # passing custom options, using the custom options
+    custom_cdc_options = {
+        "min_chunk_size": 128 * 1024,  # 128 KiB
+        "max_chunk_size": 512 * 1024,  # 512 KiB
+        "norm_level": 1,
+    }
+    passed_arg, key_value_metadata = write_and_get_argument_and_metadata(
+        use_content_defined_chunking=custom_cdc_options
+    )
+    assert passed_arg == custom_cdc_options
+    assert b"content_defined_chunking" in key_value_metadata
+    json_encoded_options = key_value_metadata[b"content_defined_chunking"].decode("utf-8")
+    assert json.loads(json_encoded_options) == custom_cdc_options
+
+    # passing None or wrong options raise by pyarrow
+    with pytest.raises(TypeError):
+        write_and_get_argument_and_metadata(use_content_defined_chunking=None)
+    with pytest.raises(TypeError):
+        write_and_get_argument_and_metadata(use_content_defined_chunking="invalid_options")
+    with pytest.raises(ValueError):
+        write_and_get_argument_and_metadata(use_content_defined_chunking={"invalid_option": 1})
+
+
+def test_parquet_writer_writes_page_index():
+    output = pa.BufferOutputStream()
+    with patch("pyarrow.parquet.ParquetWriter", wraps=pq.ParquetWriter) as MockWriter:
+        with ParquetWriter(stream=output) as writer:
+            writer.write({"col_1": "foo", "col_2": 1})
+            writer.write({"col_1": "bar", "col_2": 2})
+            writer.finalize()
+        assert MockWriter.call_count == 1
+        _, kwargs = MockWriter.call_args
+        assert "write_page_index" in kwargs
+        assert kwargs["write_page_index"]
 
 
 @require_pil

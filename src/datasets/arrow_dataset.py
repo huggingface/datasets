@@ -5256,7 +5256,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 or a BinaryIO, where the dataset will be saved to in the specified format.
             batch_size (`int`, *optional*):
                 Size of the batch to load in memory and write at once.
-                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+                By default it aims for row groups with maximum uncompressed byte size of "100MB",
+                defined by `datasets.config.MAX_ROW_GROUP_SIZE`.
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
 
@@ -5354,11 +5355,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             table = self.with_format("arrow")[:1000]
             table_visitor(table, extra_nbytes_visitor)
 
-            extra_nbytes = extra_nbytes * len(self.data) / len(table)
+            extra_nbytes = extra_nbytes * len(self.data) // len(table)
             dataset_nbytes = dataset_nbytes + extra_nbytes
 
         if self._indices is not None:
-            dataset_nbytes = dataset_nbytes * len(self._indices) / len(self.data)
+            dataset_nbytes = dataset_nbytes * len(self._indices) // len(self.data)
         return dataset_nbytes
 
     @staticmethod
@@ -5509,6 +5510,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         create_pr: Optional[bool],
         num_shards: int,
         embed_external_files: bool,
+        writer_batch_size: int,
     ):
         div = num_shards // num_jobs
         mod = num_shards % num_jobs
@@ -5525,20 +5527,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         additions: list[CommitOperationAdd] = []
         for index, shard in index_shards:
             if embed_external_files:
-                from .io.parquet import get_writer_batch_size
-
                 format = shard.format
                 shard = shard.with_format("arrow")
                 shard = shard.map(
                     embed_table_storage,
                     batched=True,
-                    batch_size=get_writer_batch_size(shard.features),
+                    batch_size=writer_batch_size,
                     keep_in_memory=True,
                 )
                 shard = shard.with_format(**format)
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
             buffer = BytesIO()
-            shard.to_parquet(buffer)
+            shard.to_parquet(buffer, batch_size=writer_batch_size)
             parquet_content = buffer.getvalue()
             uploaded_size += len(parquet_content)
             del buffer
@@ -5575,7 +5575,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             uploaded_size (`int`): number of uploaded bytes to the repository
             dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset after uncompression
         """
+        from .arrow_writer import get_writer_batch_size_from_data_size, get_writer_batch_size_from_features
+
         dataset_nbytes = self._estimate_nbytes()
+        writer_batch_size = get_writer_batch_size_from_features(self.features) or get_writer_batch_size_from_data_size(
+            len(self), dataset_nbytes
+        )
 
         # Find decodable columns, because if there are any, we need to:
         # embed the bytes from the files in the shards
@@ -5607,6 +5612,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "create_pr": create_pr,
                 "num_shards": num_shards,
                 "embed_external_files": embed_external_files,
+                "writer_batch_size": writer_batch_size,
             }
             for job_id in range(num_jobs)
         ]
