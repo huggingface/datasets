@@ -79,6 +79,7 @@ class ParquetDatasetWriter:
         batch_size: Optional[int] = None,
         storage_options: Optional[dict] = None,
         use_content_defined_chunking: Union[bool, dict] = True,
+        write_page_index: bool = True,
         **parquet_writer_kwargs,
     ):
         self.dataset = dataset
@@ -93,6 +94,7 @@ class ParquetDatasetWriter:
         if use_content_defined_chunking is True:
             use_content_defined_chunking = config.DEFAULT_CDC_OPTIONS
         self.use_content_defined_chunking = use_content_defined_chunking
+        self.write_page_index = write_page_index
 
     def write(self) -> int:
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
@@ -123,6 +125,7 @@ class ParquetDatasetWriter:
             file_obj,
             schema=schema,
             use_content_defined_chunking=self.use_content_defined_chunking,
+            write_page_index=self.write_page_index,
             **parquet_writer_kwargs,
         )
 
