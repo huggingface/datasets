@@ -229,9 +229,10 @@ WebDataset.IMAGE_EXTENSIONS = IMAGE_EXTENSIONS
 # # .opus decoding is supported if libsndfile >= 1.0.31:
 # AUDIO_EXTENSIONS.extend([".mp3", ".opus"])
 # ```
-# We intentionally do not run this code on launch because:
-# (1) Soundfile is an optional dependency, so importing it in global namespace is not allowed
+# We intentionally did not run this code on launch because:
+# (1) Soundfile was an optional dependency, so importing it in global namespace is not allowed
 # (2) To ensure the list of supported extensions is deterministic
+# (3) We use TorchCodec now anyways instead of Soundfile
 AUDIO_EXTENSIONS = [
     "aiff",
     "au",
