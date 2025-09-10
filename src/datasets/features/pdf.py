@@ -95,7 +95,7 @@ class Pdf:
         if isinstance(value, str):
             return {"path": value, "bytes": None}
         elif isinstance(value, Path):
-            return {"path": str(value.absolute), "bytes": None}
+            return {"path": str(value.absolute()), "bytes": None}
         elif isinstance(value, (bytes, bytearray)):
             return {"path": None, "bytes": value}
         elif pdfplumber is not None and isinstance(value, pdfplumber.pdf.PDF):

@@ -128,7 +128,7 @@ class Video:
         if isinstance(value, str):
             return {"path": value, "bytes": None}
         elif isinstance(value, Path):
-            return {"path": str(value.absolute), "bytes": None}
+            return {"path": str(value.absolute()), "bytes": None}
         elif isinstance(value, (bytes, bytearray)):
             return {"path": None, "bytes": value}
         elif isinstance(value, np.ndarray):
