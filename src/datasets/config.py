@@ -134,12 +134,8 @@ SQLALCHEMY_AVAILABLE = importlib.util.find_spec("sqlalchemy") is not None
 
 # Optional tools for feature decoding
 PIL_AVAILABLE = importlib.util.find_spec("PIL") is not None
-IS_OPUS_SUPPORTED = importlib.util.find_spec("soundfile") is not None and version.parse(
-    importlib.import_module("soundfile").__libsndfile_version__
-) >= version.parse("1.0.31")
-IS_MP3_SUPPORTED = importlib.util.find_spec("soundfile") is not None and version.parse(
-    importlib.import_module("soundfile").__libsndfile_version__
-) >= version.parse("1.1.0")
+IS_OPUS_SUPPORTED = True
+IS_MP3_SUPPORTED = True
 TORCHCODEC_AVAILABLE = importlib.util.find_spec("torchcodec") is not None
 TORCHVISION_AVAILABLE = importlib.util.find_spec("torchvision") is not None
 PDFPLUMBER_AVAILABLE = importlib.util.find_spec("pdfplumber") is not None

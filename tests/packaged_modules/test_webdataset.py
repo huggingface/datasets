@@ -9,7 +9,6 @@ from datasets.packaged_modules.webdataset.webdataset import WebDataset
 from ..utils import (
     require_numpy1_on_windows,
     require_pil,
-    require_sndfile,
     require_torch,
     require_torchcodec,
 )
@@ -229,7 +228,6 @@ def test_image_webdataset_missing_keys(image_wds_file):
 
 
 @require_torchcodec
-@require_sndfile
 def test_audio_webdataset(audio_wds_file):
     from torchcodec.decoders import AudioDecoder
 

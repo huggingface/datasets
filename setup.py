@@ -136,9 +136,8 @@ REQUIRED_PKGS = [
 ]
 
 AUDIO_REQUIRE = [
-    "soundfile>=0.12.1",
-    "torchcodec>=0.4.0",
-    "torch>=2.7.0",
+    "torchcodec>=0.6.0",
+    "torch>=2.8.0",
 ]
 
 VISION_REQUIRE = [
@@ -179,15 +178,13 @@ TESTS_REQUIRE = [
     "tensorflow>=2.6.0; python_version<'3.10' and sys_platform != 'win32'",  # numpy-2 is not supported for Python < 3.10
     "tensorflow>=2.16.0; python_version>='3.10' and sys_platform != 'win32'",  # Pins numpy < 2
     "tiktoken",
-    "torch>=2.0.0",
+    "torch>=2.8.0",
     "torchdata",
-    "soundfile>=0.12.1",
     "transformers>=4.42.0",  # Pins numpy < 2
     "zstandard",
     "polars[timezone]>=0.20.0",
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
-    "soundfile>=0.12.1",
-    "torchcodec>=0.4.0; sys_platform != 'win32'",  # not available for windows
+    "torchcodec>=0.6.0; sys_platform != 'win32'",  # not available for windows
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [

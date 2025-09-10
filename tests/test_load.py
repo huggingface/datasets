@@ -44,7 +44,7 @@ from .utils import (
     assert_arrow_memory_increases,
     offline,
     require_pil,
-    require_sndfile,
+    require_torchcodec,
     set_current_working_directory_to_temp_dir,
 )
 
@@ -1091,7 +1091,7 @@ def test_load_dataset_config_kwargs_passed_as_arguments():
     assert list(ds_custom["train"].features) == ["image"]
 
 
-@require_sndfile
+@require_torchcodec
 @pytest.mark.integration
 def test_load_hub_dataset_with_single_config_in_metadata():
     # load the same dataset but with no configurations (=with default parameters)
@@ -1112,7 +1112,7 @@ def test_load_hub_dataset_with_single_config_in_metadata():
         _ = load_dataset(SAMPLE_DATASET_SINGLE_CONFIG_IN_METADATA, "default")
 
 
-@require_sndfile
+@require_torchcodec
 @pytest.mark.integration
 def test_load_hub_dataset_with_two_config_in_metadata():
     ds = load_dataset(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "v1")
@@ -1140,7 +1140,7 @@ def test_load_hub_dataset_with_two_config_in_metadata():
     assert len(ds_with_default["train"]) == len(ds["train"]) and len(ds_with_default["test"]) == len(ds["test"])
 
 
-@require_sndfile
+@require_torchcodec
 @pytest.mark.integration
 def test_load_hub_dataset_with_metadata_config_in_parallel():
     # assert it doesn't fail (pickling of dynamically created class works)
