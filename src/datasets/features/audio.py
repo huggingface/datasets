@@ -1,6 +1,7 @@
 import os
 from dataclasses import dataclass, field
 from io import BytesIO
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Union
 
 import numpy as np
@@ -25,6 +26,7 @@ class Audio:
 
     Input: The Audio feature accepts as input:
     - A `str`: Absolute path to the audio file (i.e. random access is allowed).
+    - A `pathlib.Path`: path to the audio file (i.e. random access is allowed).
     - A `dict` with the keys:
 
         - `path`: String with relative path of the audio file to the archive file.
@@ -113,6 +115,8 @@ class Audio:
 
         if isinstance(value, str):
             return {"bytes": None, "path": value}
+        elif isinstance(value, Path):
+            return {"bytes": None, "path": str(value.absolute())}
         elif isinstance(value, (bytes, bytearray)):
             return {"bytes": value, "path": None}
         elif AudioDecoder is not None and isinstance(value, AudioDecoder):
