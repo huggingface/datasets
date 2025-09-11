@@ -745,12 +745,15 @@ class ArrowWriter:
 
 
 class ParquetWriter(ArrowWriter):
-    def __init__(self, *args, use_content_defined_chunking=True, write_page_index=True, **kwargs):
+    def __init__(
+        self, *args, use_content_defined_chunking=True, write_page_index=True, data_page_version="2.0", **kwargs
+    ):
         super().__init__(*args, **kwargs)
         if use_content_defined_chunking is True:
             use_content_defined_chunking = config.DEFAULT_CDC_OPTIONS
         self.use_content_defined_chunking = use_content_defined_chunking
         self.write_page_index = write_page_index
+        self.data_page_version = data_page_version
 
     def _build_writer(self, inferred_schema: pa.Schema):
         self._schema, self._features = self._build_schema(inferred_schema)
@@ -759,6 +762,7 @@ class ParquetWriter(ArrowWriter):
             self._schema,
             use_content_defined_chunking=self.use_content_defined_chunking,
             write_page_index=self.write_page_index,
+            data_page_version=self.data_page_version,
         )
         if self.use_content_defined_chunking is not False:
             self.pa_writer.add_key_value_metadata(

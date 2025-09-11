@@ -80,6 +80,7 @@ class ParquetDatasetWriter:
         storage_options: Optional[dict] = None,
         use_content_defined_chunking: Union[bool, dict] = True,
         write_page_index: bool = True,
+        data_page_version: str = "2.0",
         **parquet_writer_kwargs,
     ):
         self.dataset = dataset
@@ -95,6 +96,7 @@ class ParquetDatasetWriter:
             use_content_defined_chunking = config.DEFAULT_CDC_OPTIONS
         self.use_content_defined_chunking = use_content_defined_chunking
         self.write_page_index = write_page_index
+        self.data_page_version = data_page_version
 
     def write(self) -> int:
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
@@ -126,7 +128,7 @@ class ParquetDatasetWriter:
             schema=schema,
             use_content_defined_chunking=self.use_content_defined_chunking,
             write_page_index=self.write_page_index,
-            **parquet_writer_kwargs,
+            data_page_version=self.data_page_version**parquet_writer_kwargs,
         )
 
         for offset in hf_tqdm(
