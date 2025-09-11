@@ -98,6 +98,16 @@ def pklregister(t):
     return proxy
 
 
+def _is_supported_dill_version():
+    """Check if the current dill version is in the supported range."""
+    return config.DILL_VERSION.release[:3] in [
+        version.parse("0.3.6").release,
+        version.parse("0.3.7").release,
+        version.parse("0.3.8").release,
+        version.parse("0.3.9").release,
+    ]
+
+
 def dump(obj, file):
     """Pickle an object to a file."""
     Pickler(file, recurse=True).dump(obj)
@@ -115,11 +125,7 @@ if config.DILL_VERSION < version.parse("0.3.6"):
     def log(pickler, msg):
         dill._dill.log.info(msg)
 
-elif config.DILL_VERSION.release[:3] in [
-    version.parse("0.3.6").release,
-    version.parse("0.3.7").release,
-    version.parse("0.3.8").release,
-]:
+elif _is_supported_dill_version():
 
     def log(pickler, msg):
         dill._dill.logger.trace(pickler, msg)
@@ -312,11 +318,7 @@ if config.DILL_VERSION < version.parse("0.3.6"):
         dill._dill.log.info("# Co")
         return
 
-elif config.DILL_VERSION.release[:3] in [
-    version.parse("0.3.6").release,
-    version.parse("0.3.7").release,
-    version.parse("0.3.8").release,
-]:
+elif _is_supported_dill_version():
     # From: https://github.com/uqfoundation/dill/blob/dill-0.3.6/dill/_dill.py#L1104
     @pklregister(CodeType)
     def save_code(pickler, obj):
