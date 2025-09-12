@@ -105,6 +105,7 @@ def _is_supported_dill_version():
         version.parse("0.3.7").release,
         version.parse("0.3.8").release,
         version.parse("0.3.9").release,
+        version.parse("0.4.0").release,
     ]
 
 
