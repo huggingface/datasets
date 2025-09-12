@@ -53,6 +53,17 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.9"
+      - name: Setup conda env (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          miniconda-version: "latest"
+          activate-environment: test
+          python-version: "3.9"
+      - name: Setup FFmpeg (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: conda install "ffmpeg=7.0.1" -c conda-forge
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
       - name: Install uv
@@ -86,11 +97,22 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt update
-          sudo apt install -y ffmpeg 
+          sudo apt install -y ffmpeg
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Setup conda env (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          miniconda-version: "latest"
+          activate-environment: test
+          python-version: "3.11"
+      - name: Setup FFmpeg (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: conda install "ffmpeg=7.0.1" -c conda-forge
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
       - name: Install uv
@@ -123,6 +145,17 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Setup conda env (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          miniconda-version: "latest"
+          activate-environment: test
+          python-version: "3.11"
+      - name: Setup FFmpeg (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: conda install "ffmpeg=7.0.1" -c conda-forge
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
       - name: Install uv

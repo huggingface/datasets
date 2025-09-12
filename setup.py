@@ -126,7 +126,7 @@ REQUIRED_PKGS = [
     "multiprocess<0.70.17",  # to align with dill<0.3.9 (see above)
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0,<=2025.7.0",
+    "fsspec[http]>=2023.1.0,<=2025.9.0",
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface-hub>=0.24.0",
     # Utilities from PyPA to e.g., compare versions
@@ -184,7 +184,7 @@ TESTS_REQUIRE = [
     "zstandard",
     "polars[timezone]>=0.20.0",
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
-    "torchcodec>=0.6.0; sys_platform != 'win32'",  # not available for windows
+    "torchcodec>=0.7.0",  # minium version to get windows support
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [

@@ -1549,9 +1549,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_shards = int(dataset_nbytes / max_shard_size) + 1
             num_shards = max(num_shards, num_proc or 1)
 
-        num_proc = num_proc if num_proc is not None else 1
-        num_shards = num_shards if num_shards is not None else num_proc
-
         fs: fsspec.AbstractFileSystem
         fs, _ = url_to_fs(dataset_path, **(storage_options or {}))
 
@@ -1609,7 +1606,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         shard_lengths = [None] * num_shards
         shard_sizes = [None] * num_shards
-        if num_proc >= 1:
+        if num_proc is not None and num_proc >= 1:
             with Pool(num_proc) as pool:
                 with pbar:
                     for job_id, done, content in iflatmap_unordered(
