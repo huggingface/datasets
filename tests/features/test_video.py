@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from datasets import Column, Dataset, Features, Value, Video, load_dataset
@@ -10,6 +12,7 @@ from ..utils import require_torchcodec
     "build_example",
     [
         lambda video_path: video_path,
+        lambda video_path: Path(video_path),
         lambda video_path: open(video_path, "rb").read(),
         lambda video_path: {"path": video_path},
         lambda video_path: {"path": video_path, "bytes": None},

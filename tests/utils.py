@@ -47,13 +47,6 @@ require_lz4 = pytest.mark.skipif(not config.LZ4_AVAILABLE, reason="test requires
 require_py7zr = pytest.mark.skipif(not config.PY7ZR_AVAILABLE, reason="test requires py7zr")
 require_zstandard = pytest.mark.skipif(not config.ZSTANDARD_AVAILABLE, reason="test requires zstandard")
 
-# Audio
-require_sndfile = pytest.mark.skipif(
-    # On Windows and OS X, soundfile installs sndfile
-    find_spec("soundfile") is None or version.parse(importlib.metadata.version("soundfile")) < version.parse("0.12.0"),
-    reason="test requires sndfile>=0.12.1: 'pip install \"soundfile>=0.12.1\"'; ",
-)
-
 # Dill-cloudpickle compatibility
 require_dill_gt_0_3_2 = pytest.mark.skipif(
     config.DILL_VERSION <= version.parse("0.3.2"),

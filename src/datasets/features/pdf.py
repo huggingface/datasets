@@ -1,6 +1,7 @@
 import os
 from dataclasses import dataclass, field
 from io import BytesIO
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
 
 import pyarrow as pa
@@ -34,6 +35,7 @@ class Pdf:
 
     Input: The Pdf feature accepts as input:
     - A `str`: Absolute path to the pdf file (i.e. random access is allowed).
+    - A `pathlib.Path`: path to the pdf file (i.e. random access is allowed).
     - A `dict` with the keys:
         - `path`: String with relative path of the pdf file in a dataset repository.
         - `bytes`: Bytes of the pdf file.
@@ -92,6 +94,8 @@ class Pdf:
 
         if isinstance(value, str):
             return {"path": value, "bytes": None}
+        elif isinstance(value, Path):
+            return {"path": str(value.absolute()), "bytes": None}
         elif isinstance(value, (bytes, bytearray)):
             return {"path": None, "bytes": value}
         elif pdfplumber is not None and isinstance(value, pdfplumber.pdf.PDF):

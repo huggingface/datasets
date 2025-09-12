@@ -38,3 +38,22 @@ To make it valid, you have to drop one of the columns:
 >>> len(dataset_with_duplicates)
 6
 ```
+Alternatively, you can overwrite the existing column to achieve the same result.
+For example, here’s how to duplicate every row in the dataset by overwriting column `"a"`:
+
+```py
+>>> from datasets import Dataset
+>>> dataset = Dataset.from_dict({"a": [0, 1, 2]})
+# overwrites the existing "a" column with duplicated values
+>>> duplicated_dataset = dataset.map(
+...     lambda batch: {"a": [x for x in batch["a"] for _ in range(2)]},
+...     batched=True
+... )
+>>> duplicated_dataset
+Dataset({
+    features: ['a'],
+    num_rows: 6
+})
+>>> duplicated_dataset["a"]
+[0, 0, 1, 1, 2, 2]
+```

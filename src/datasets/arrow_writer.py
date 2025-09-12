@@ -43,7 +43,7 @@ from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .table import array_cast, cast_array_to_feature, embed_table_storage, table_cast
 from .utils import logging
-from .utils.py_utils import asdict, first_non_null_non_empty_value
+from .utils.py_utils import asdict, convert_file_size_to_int, first_non_null_non_empty_value
 
 
 logger = logging.get_logger(__name__)
@@ -51,15 +51,11 @@ logger = logging.get_logger(__name__)
 type_ = type  # keep python's type function
 
 
-def get_writer_batch_size(features: Optional[Features]) -> Optional[int]:
+def get_arrow_writer_batch_size_from_features(features: Optional[Features]) -> Optional[int]:
     """
-    Get the writer_batch_size that defines the maximum row group size in the parquet files.
-    The default in `datasets` is 1,000 but we lower it to 100 for image/audio datasets and 10 for videos.
-    This allows to optimize random access to parquet file, since accessing 1 row requires
-    to read its entire row group.
-
-    This can be improved to get optimized size for querying/iterating
-    but at least it matches the dataset viewer expectations on HF.
+    Get the writer_batch_size that defines the maximum record batch size in the arrow files based on configuration values.
+    The default value is 100 for image/audio datasets and 10 for videos.
+    This allows to avoid overflows in arrow buffers.
 
     Args:
         features (`datasets.Features` or `None`):
@@ -67,7 +63,7 @@ def get_writer_batch_size(features: Optional[Features]) -> Optional[int]:
     Returns:
         writer_batch_size (`Optional[int]`):
             Writer batch size to pass to a dataset builder.
-            If `None`, then it will use the `datasets` default.
+            If `None`, then it will use the `datasets` default, i.e. `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
     """
     if not features:
         return None
@@ -76,18 +72,86 @@ def get_writer_batch_size(features: Optional[Features]) -> Optional[int]:
 
     def set_batch_size(feature: FeatureType) -> None:
         nonlocal batch_size
-        if isinstance(feature, Image):
+        if isinstance(feature, Image) and config.ARROW_RECORD_BATCH_SIZE_FOR_IMAGE_DATASETS is not None:
+            batch_size = min(batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_IMAGE_DATASETS)
+        elif isinstance(feature, Audio) and config.ARROW_RECORD_BATCH_SIZE_FOR_AUDIO_DATASETS is not None:
+            batch_size = min(batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_AUDIO_DATASETS)
+        elif isinstance(feature, Video) and config.ARROW_RECORD_BATCH_SIZE_FOR_VIDEO_DATASETS is not None:
+            batch_size = min(batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_VIDEO_DATASETS)
+        elif (
+            isinstance(feature, Value)
+            and feature.dtype == "binary"
+            and config.ARROW_RECORD_BATCH_SIZE_FOR_BINARY_DATASETS is not None
+        ):
+            batch_size = min(batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_BINARY_DATASETS)
+
+    _visit(features, set_batch_size)
+
+    return None if batch_size is np.inf else batch_size
+
+
+def get_writer_batch_size_from_features(features: Optional[Features]) -> Optional[int]:
+    """
+    Get the writer_batch_size that defines the maximum row group size in the parquet files based on configuration values.
+    By default these are not set, but it can be helpful to hard set those values in some cases.
+    This allows to optimize random access to parquet file, since accessing 1 row requires
+    to read its entire row group.
+
+    Args:
+        features (`datasets.Features` or `None`):
+            Dataset Features from `datasets`.
+    Returns:
+        writer_batch_size (`Optional[int]`):
+            Writer batch size to pass to a parquet writer.
+            If `None`, then it will use the `datasets` default, i.e. aiming for row groups of 100MB.
+    """
+    if not features:
+        return None
+
+    batch_size = np.inf
+
+    def set_batch_size(feature: FeatureType) -> None:
+        nonlocal batch_size
+        if isinstance(feature, Image) and config.PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS is not None:
             batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS)
-        elif isinstance(feature, Audio):
+        elif isinstance(feature, Audio) and config.PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS is not None:
             batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS)
-        elif isinstance(feature, Video):
+        elif isinstance(feature, Video) and config.PARQUET_ROW_GROUP_SIZE_FOR_VIDEO_DATASETS is not None:
             batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_VIDEO_DATASETS)
-        elif isinstance(feature, Value) and feature.dtype == "binary":
+        elif (
+            isinstance(feature, Value)
+            and feature.dtype == "binary"
+            and config.PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS is not None
+        ):
             batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS)
 
     _visit(features, set_batch_size)
 
     return None if batch_size is np.inf else batch_size
+
+
+def get_writer_batch_size_from_data_size(num_rows: int, num_bytes: int) -> int:
+    """
+    Get the writer_batch_size that defines the maximum row group size in the parquet files.
+    The default in `datasets` is aiming for row groups of maximum 100MB uncompressed.
+    This allows to optimize random access to parquet file, since accessing 1 row requires
+    to read its entire row group.
+
+    This can be improved to get optimized size for querying/iterating
+    but at least it matches the dataset viewer expectations on HF.
+
+    Args:
+        num_rows (`int`):
+            Number of rows in the dataset.
+        num_bytes (`int`):
+            Number of bytes in the dataset.
+            For dataset with external files to embed (image, audio, videos), this can also be an
+            estimate from `dataset._estimate_nbytes()`.
+    Returns:
+        writer_batch_size (`Optional[int]`):
+            Writer batch size to pass to a parquet writer.
+    """
+    return max(10, num_rows * convert_file_size_to_int(config.MAX_ROW_GROUP_SIZE) // num_bytes)
 
 
 class SchemaInferenceError(ValueError):
@@ -342,8 +406,6 @@ class OptimizedTypedSequence(TypedSequence):
 class ArrowWriter:
     """Shuffles and writes Examples to Arrow files."""
 
-    _WRITER_CLASS = pa.RecordBatchStreamWriter
-
     def __init__(
         self,
         schema: Optional[pa.Schema] = None,
@@ -397,7 +459,9 @@ class ArrowWriter:
         self.fingerprint = fingerprint
         self.disable_nullable = disable_nullable
         self.writer_batch_size = (
-            writer_batch_size or get_writer_batch_size(self._features) or config.DEFAULT_MAX_BATCH_SIZE
+            writer_batch_size
+            or get_arrow_writer_batch_size_from_features(self._features)
+            or config.DEFAULT_MAX_BATCH_SIZE
         )
         self.update_features = update_features
         self.with_metadata = with_metadata
@@ -431,8 +495,9 @@ class ArrowWriter:
         if self._closable_stream and not self.stream.closed:
             self.stream.close()  # This also closes self.pa_writer if it is opened
 
-    def _build_writer(self, inferred_schema: pa.Schema):
+    def _build_schema(self, inferred_schema: pa.Schema):
         schema = self.schema
+        features = self._features
         inferred_features = Features.from_arrow_schema(inferred_schema)
         if self._features is not None:
             if self.update_features:  # keep original features it they match, or update them
@@ -442,19 +507,24 @@ class ArrowWriter:
                     if name in fields:
                         if inferred_field == fields[name]:
                             inferred_features[name] = self._features[name]
-                self._features = inferred_features
+                features = inferred_features
                 schema: pa.Schema = inferred_schema
         else:
-            self._features = inferred_features
+            features = inferred_features
             schema: pa.Schema = inferred_features.arrow_schema
+
         if self.disable_nullable:
             schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in schema)
         if self.with_metadata:
-            schema = schema.with_metadata(self._build_metadata(DatasetInfo(features=self._features), self.fingerprint))
+            schema = schema.with_metadata(self._build_metadata(DatasetInfo(features=features), self.fingerprint))
         else:
             schema = schema.with_metadata({})
-        self._schema = schema
-        self.pa_writer = self._WRITER_CLASS(self.stream, schema)
+
+        return schema, features
+
+    def _build_writer(self, inferred_schema: pa.Schema):
+        self._schema, self._features = self._build_schema(inferred_schema)
+        self.pa_writer = pa.RecordBatchStreamWriter(self.stream, self._schema)
 
     @property
     def schema(self):
@@ -675,4 +745,22 @@ class ArrowWriter:
 
 
 class ParquetWriter(ArrowWriter):
-    _WRITER_CLASS = pq.ParquetWriter
+    def __init__(self, *args, use_content_defined_chunking=True, write_page_index=True, **kwargs):
+        super().__init__(*args, **kwargs)
+        if use_content_defined_chunking is True:
+            use_content_defined_chunking = config.DEFAULT_CDC_OPTIONS
+        self.use_content_defined_chunking = use_content_defined_chunking
+        self.write_page_index = write_page_index
+
+    def _build_writer(self, inferred_schema: pa.Schema):
+        self._schema, self._features = self._build_schema(inferred_schema)
+        self.pa_writer = pq.ParquetWriter(
+            self.stream,
+            self._schema,
+            use_content_defined_chunking=self.use_content_defined_chunking,
+            write_page_index=self.write_page_index,
+        )
+        if self.use_content_defined_chunking is not False:
+            self.pa_writer.add_key_value_metadata(
+                {"content_defined_chunking": json.dumps(self.use_content_defined_chunking)}
+            )
