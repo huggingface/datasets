@@ -1274,10 +1274,10 @@ def load_dataset(
             Download/generate mode.
         verification_mode ([`VerificationMode`] or `str`, defaults to `BASIC_CHECKS`):
             Verification mode determining the checks to run on the downloaded/processed dataset information (checksums/size/splits/...).
-        dl_manager (`DownloadManager`, *optional*):
-            Specific `DownloadManger` to use.
 
             <Added version="2.9.1"/>
+        dl_manager (`DownloadManager`, *optional*):
+            Specific `DownloadManger` to use.
         keep_in_memory (`bool`, defaults to `None`):
             Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
