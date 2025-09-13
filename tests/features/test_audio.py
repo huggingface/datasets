@@ -1,6 +1,7 @@
 import os
 import tarfile
 from itertools import product
+from pathlib import Path
 
 import numpy as np
 import pyarrow as pa
@@ -9,7 +10,7 @@ import pytest
 from datasets import Column, Dataset, concatenate_datasets, load_dataset
 from datasets.features import Audio, Features, List, Value
 
-from ..utils import require_sndfile, require_torchcodec
+from ..utils import require_torchcodec
 
 
 @pytest.fixture()
@@ -59,11 +60,11 @@ def test_audio_feature_type_to_arrow():
 
 
 @require_torchcodec
-@require_sndfile
 @pytest.mark.parametrize(
     "build_example",
     [
         lambda audio_path: audio_path,
+        lambda audio_path: Path(audio_path),
         lambda audio_path: open(audio_path, "rb").read(),
         lambda audio_path: {"path": audio_path},
         lambda audio_path: {"path": audio_path, "bytes": None},
@@ -87,7 +88,6 @@ def test_audio_feature_encode_example(shared_datadir, build_example):
 
 
 @require_torchcodec
-@require_sndfile
 @pytest.mark.parametrize(
     "build_example",
     [
@@ -114,7 +114,6 @@ sample_rates = [16_000, 48_000]
 
 
 @require_torchcodec
-@require_sndfile
 @pytest.mark.parametrize(
     "in_sample_rate,out_sample_rate",
     list(product(sample_rates, sample_rates)),
@@ -134,7 +133,6 @@ def test_audio_feature_encode_example_audiodecoder(shared_datadir, in_sample_rat
 
 
 @require_torchcodec
-@require_sndfile
 def test_audio_decode_example(shared_datadir):
     from torchcodec.decoders import AudioDecoder
 
@@ -151,7 +149,6 @@ def test_audio_decode_example(shared_datadir):
 
 
 @require_torchcodec
-@require_sndfile
 def test_audio_resampling(shared_datadir):
     from torchcodec.decoders import AudioDecoder
 
@@ -165,7 +162,6 @@ def test_audio_resampling(shared_datadir):
 
 
 @require_torchcodec
-@require_sndfile
 def test_audio_decode_example_mp3(shared_datadir):
     from torchcodec.decoders import AudioDecoder
 
@@ -180,7 +176,6 @@ def test_audio_decode_example_mp3(shared_datadir):
 
 
 @require_torchcodec
-@require_sndfile
 def test_audio_decode_example_opus(shared_datadir):
     from torchcodec.decoders import AudioDecoder
 
@@ -194,7 +189,6 @@ def test_audio_decode_example_opus(shared_datadir):
 
 
 @require_torchcodec
-@require_sndfile
 @pytest.mark.parametrize("sampling_rate", [16_000, 48_000])
 def test_audio_decode_example_pcm(shared_datadir, sampling_rate):
     from torchcodec.decoders import AudioDecoder
@@ -210,7 +204,6 @@ def test_audio_decode_example_pcm(shared_datadir, sampling_rate):
 
 
 @require_torchcodec
-@require_sndfile
 def test_audio_resampling_mp3_different_sampling_rates(shared_datadir):
     from torchcodec.decoders import AudioDecoder
 
@@ -232,7 +225,6 @@ def test_audio_resampling_mp3_different_sampling_rates(shared_datadir):
 
 
 @require_torchcodec
-@require_sndfile
 def test_backwards_compatibility(shared_datadir):
     from torchcodec.decoders import AudioDecoder
 
@@ -256,7 +248,6 @@ def test_backwards_compatibility(shared_datadir):
 
 
 @require_torchcodec
-@require_sndfile
 def test_dataset_with_audio_feature(shared_datadir):
     from torchcodec.decoders import AudioDecoder
 
@@ -286,7 +277,6 @@ def test_dataset_with_audio_feature(shared_datadir):
 
 
 @require_torchcodec
-@require_sndfile
 def test_dataset_with_audio_feature_tar_wav(tar_wav_path):
     from torchcodec.decoders import AudioDecoder
 
@@ -321,7 +311,6 @@ def test_dataset_with_audio_feature_tar_wav(tar_wav_path):
 
 
 @require_torchcodec
-@require_sndfile
 def test_dataset_with_audio_feature_tar_mp3(tar_mp3_path):
     from torchcodec.decoders import AudioDecoder
 
@@ -356,7 +345,6 @@ def test_dataset_with_audio_feature_tar_mp3(tar_mp3_path):
 
 
 @require_torchcodec
-@require_sndfile
 def test_dataset_with_audio_feature_with_none():
     data = {"audio": [None]}
     features = Features({"audio": Audio()})
@@ -391,7 +379,6 @@ def test_dataset_with_audio_feature_with_none():
 
 
 @require_torchcodec
-@require_sndfile
 def test_resampling_at_loading_dataset_with_audio_feature(shared_datadir):
     from torchcodec.decoders import AudioDecoder
 
@@ -421,7 +408,6 @@ def test_resampling_at_loading_dataset_with_audio_feature(shared_datadir):
 
 
 @require_torchcodec
-@require_sndfile
 def test_resampling_at_loading_dataset_with_audio_feature_mp3(shared_datadir):
     from torchcodec.decoders import AudioDecoder
 
@@ -451,7 +437,6 @@ def test_resampling_at_loading_dataset_with_audio_feature_mp3(shared_datadir):
 
 
 @require_torchcodec
-@require_sndfile
 def test_resampling_after_loading_dataset_with_audio_feature(shared_datadir):
     from torchcodec.decoders import AudioDecoder
 
@@ -485,7 +470,6 @@ def test_resampling_after_loading_dataset_with_audio_feature(shared_datadir):
 
 
 @require_torchcodec
-@require_sndfile
 def test_resampling_after_loading_dataset_with_audio_feature_mp3(shared_datadir):
     from torchcodec.decoders import AudioDecoder
 
@@ -546,7 +530,6 @@ def test_dataset_cast_to_audio_features(shared_datadir, build_data):
 
 
 @require_torchcodec
-@require_sndfile
 def test_dataset_concatenate_audio_features(shared_datadir):
     # we use a different data structure between 1 and 2 to make sure they are compatible with each other
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -565,7 +548,6 @@ def test_dataset_concatenate_audio_features(shared_datadir):
 
 
 @require_torchcodec
-@require_sndfile
 def test_dataset_concatenate_nested_audio_features(shared_datadir):
     # we use a different data structure between 1 and 2 to make sure they are compatible with each other
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -586,7 +568,6 @@ def test_dataset_concatenate_nested_audio_features(shared_datadir):
     )
 
 
-@require_sndfile
 @require_torchcodec
 def test_dataset_with_audio_feature_map_is_not_decoded(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -609,7 +590,6 @@ def test_dataset_with_audio_feature_map_is_not_decoded(shared_datadir):
         assert item == {"audio": expected_audio, "text": "Hello World!"}
 
 
-@require_sndfile
 @require_torchcodec
 def test_dataset_with_audio_feature_map_is_decoded(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -641,7 +621,6 @@ def test_dataset_with_audio_feature_map_is_decoded(shared_datadir):
 
 
 @require_torchcodec
-@require_sndfile
 def test_formatted_dataset_with_audio_feature(shared_datadir):
     from torchcodec.decoders import AudioDecoder
 
@@ -707,7 +686,6 @@ def jsonl_audio_dataset_path(shared_datadir, tmp_path_factory):
 
 
 @require_torchcodec
-@require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
 def test_load_dataset_with_audio_feature(streaming, jsonl_audio_dataset_path, shared_datadir):
     from torchcodec.decoders import AudioDecoder
@@ -725,7 +703,7 @@ def test_load_dataset_with_audio_feature(streaming, jsonl_audio_dataset_path, sh
     assert item["audio"].metadata.path == audio_path
 
 
-@require_sndfile
+@require_torchcodec
 @pytest.mark.integration
 def test_dataset_with_audio_feature_loaded_from_cache():
     # load first time

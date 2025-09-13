@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from datasets import Dataset, Features, Pdf
@@ -10,6 +12,7 @@ from ..utils import require_pdfplumber
     "build_example",
     [
         lambda pdf_path: pdf_path,
+        lambda pdf_path: Path(pdf_path),
         lambda pdf_path: open(pdf_path, "rb").read(),
         lambda pdf_path: {"path": pdf_path},
         lambda pdf_path: {"path": pdf_path, "bytes": None},
