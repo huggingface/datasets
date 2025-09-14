@@ -693,6 +693,10 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
     def features(self):
         return self.ex_iterables[0].features
 
+    @property
+    def iter_arrow(self):
+        return self.__iter__ if all(ex_iterable.iter_arrow for ex_iterable in self.ex_iterables) else None
+
     def _get_indices_iterator(self):
         # this is an infinite iterator to keep track of which iterator we want to pick examples from
         ex_iterable_idx = self._state_dict["ex_iterable_idx"] if self._state_dict else 0
@@ -720,7 +724,10 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             for i in range(len(self.ex_iterables)):
                 if self._state_dict["previous_states"][i] is not None:
                     self.ex_iterables[i].load_state_dict(self._state_dict["previous_states"][i])
-        iterators = [iter(ex_iterable) for ex_iterable in self.ex_iterables]
+        iterators = [
+            ex_iterable._iter_arrow() if self.iter_arrow() is not None else iter(ex_iterable)
+            for ex_iterable in self.ex_iterables
+        ]
 
         indices_iterator = self._get_indices_iterator()
 
@@ -1524,7 +1531,6 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         self.ex_iterable = ex_iterable
         self.buffer_size = buffer_size
         self.generator = generator
-        # TODO(QL): implement iter_arrow
 
     @property
     def is_typed(self):
@@ -1533,6 +1539,10 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     @property
     def features(self):
         return self.ex_iterable.features
+
+    @property
+    def iter_arrow(self):
+        return self.__iter__ if self.ex_iterable.iter_arrow else None
 
     def _init_state_dict(self) -> dict:
         self._state_dict = self.ex_iterable._init_state_dict()
@@ -1559,7 +1569,8 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         indices_iterator = self._iter_random_indices(rng, buffer_size)
         # this is the shuffle buffer that we keep in memory
         mem_buffer = []
-        for x in self.ex_iterable:
+        ex_iterable = self.ex_iterable if self.iter_arrow is None else self.ex_iterable._iter_arrow()
+        for x in ex_iterable:
             if len(mem_buffer) == buffer_size:  # if the buffer is full, pick and example from it
                 i = next(indices_iterator)
                 yield mem_buffer[i]
@@ -2870,8 +2881,12 @@ class IterableDataset(DatasetInfoMixin):
             generator = deepcopy(generator)
         shuffling = ShufflingConfig(generator=generator, _original_seed=seed)
         return IterableDataset(
-            ex_iterable=BufferShuffledExamplesIterable(
-                self._ex_iterable, buffer_size=buffer_size, generator=generator
+            BufferShuffledExamplesIterable(
+                RebatchedArrowExamplesIterable(self._ex_iterable, batch_size=1)
+                if self._ex_iterable.iter_arrow
+                else self._ex_iterable,
+                buffer_size=buffer_size,
+                generator=generator,
             ),
             info=self._info.copy(),
             split=self._split,
@@ -4458,7 +4473,8 @@ def _interleave_iterable_datasets(
     )
 
     ex_iterables = [copy.deepcopy(d._ex_iterable) for d in datasets]
-
+    if all(ex_iterable.iter_arrow for ex_iterable in ex_iterables):
+        ex_iterables = [RebatchedArrowExamplesIterable(ex_iterable, batch_size=1) for ex_iterable in ex_iterables]
     # Use cycling or random cycling of sources
     if probabilities is None:
         ex_iterable = CyclingMultiSourcesExamplesIterable(ex_iterables, stopping_strategy=stopping_strategy)
