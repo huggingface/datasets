@@ -23,7 +23,6 @@ from .utils import (
     require_numpy1_on_windows,
     require_pil,
     require_polars,
-    require_sndfile,
     require_tf,
     require_torch,
     require_torchcodec,
@@ -310,7 +309,6 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["image"][0].shape, (480, 640, 3))
 
     @require_torchcodec
-    @require_sndfile
     def test_numpy_formatter_audio(self):
         pa_table = pa.table({"audio": [{"bytes": None, "path": str(AUDIO_PATH_1)}]})
         formatter = NumpyFormatter(features=Features({"audio": Audio()}))
@@ -433,7 +431,6 @@ class FormatterTest(TestCase):
 
     @require_torch
     @require_torchcodec
-    @require_sndfile
     def test_torch_formatter_audio(self):
         import torch
 
@@ -526,7 +523,6 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["image"][0].shape, (480, 640, 3))
 
     @require_tf
-    @require_sndfile
     def test_tf_formatter_audio(self):
         import tensorflow as tf
 
@@ -620,7 +616,6 @@ class FormatterTest(TestCase):
 
     @require_jax
     @require_torchcodec
-    @require_sndfile
     def test_jax_formatter_audio(self):
         import jax.numpy as jnp
 

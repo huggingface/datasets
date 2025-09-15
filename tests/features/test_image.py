@@ -3,6 +3,7 @@ import shutil
 import tarfile
 import warnings
 from io import BytesIO
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -54,6 +55,7 @@ def test_image_feature_type_to_arrow():
     "build_example",
     [
         lambda image_path: image_path,
+        lambda image_path: Path(image_path),
         lambda image_path: open(image_path, "rb").read(),
         lambda image_path: {"path": image_path},
         lambda image_path: {"path": image_path, "bytes": None},

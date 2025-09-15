@@ -110,6 +110,8 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
         return "string"
     elif pyarrow.types.is_large_string(arrow_type):
         return "large_string"
+    elif pyarrow.types.is_string_view(arrow_type):
+        return "string_view"
     elif pyarrow.types.is_dictionary(arrow_type):
         return _arrow_to_datasets_dtype(arrow_type.value_type)
     else:
@@ -508,6 +510,7 @@ class Value:
     - `large_binary`
     - `string`
     - `large_string`
+    - `string_view`
 
     Args:
         dtype (`str`):
@@ -547,6 +550,10 @@ class Value:
         elif pa.types.is_floating(self.pa_type):
             return float(value)
         elif pa.types.is_string(self.pa_type):
+            return str(value)
+        elif pa.types.is_large_string(self.pa_type):
+            return str(value)
+        elif pa.types.is_string_view(self.pa_type):
             return str(value)
         else:
             return value
@@ -1239,10 +1246,7 @@ class LargeList:
     _type: str = field(default="LargeList", init=False, repr=False)
 
     def __repr__(self):
-        if self.length != -1:
-            return f"{type(self).__name__}({self.feature}, length={self.length})"
-        else:
-            return f"{type(self).__name__}({self.feature})"
+        return f"{type(self).__name__}({self.feature})"
 
 
 FeatureType = Union[

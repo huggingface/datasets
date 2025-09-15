@@ -1,6 +1,7 @@
 import os
 from dataclasses import dataclass, field
 from io import BytesIO
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Union
 
 import numpy as np
@@ -25,6 +26,7 @@ class Audio:
 
     Input: The Audio feature accepts as input:
     - A `str`: Absolute path to the audio file (i.e. random access is allowed).
+    - A `pathlib.Path`: path to the audio file (i.e. random access is allowed).
     - A `dict` with the keys:
 
         - `path`: String with relative path of the audio file to the archive file.
@@ -97,9 +99,10 @@ class Audio:
             `dict`
         """
         try:
-            import soundfile as sf  # needed to write audio files
+            import torch
+            from torchcodec.encoders import AudioEncoder  # needed to write audio files
         except ImportError as err:
-            raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
+            raise ImportError("To support encoding audio data, please install 'torchcodec'.") from err
 
         if value is None:
             raise ValueError("value must be provided")
@@ -112,6 +115,8 @@ class Audio:
 
         if isinstance(value, str):
             return {"bytes": None, "path": value}
+        elif isinstance(value, Path):
+            return {"bytes": None, "path": str(value.absolute())}
         elif isinstance(value, (bytes, bytearray)):
             return {"bytes": value, "path": None}
         elif AudioDecoder is not None and isinstance(value, AudioDecoder):
@@ -119,7 +124,9 @@ class Audio:
         elif "array" in value:
             # convert the audio array to wav bytes
             buffer = BytesIO()
-            sf.write(buffer, value["array"].T, value["sampling_rate"], format="wav")
+            AudioEncoder(
+                torch.from_numpy(value["array"].astype(np.float32)), sample_rate=value["sampling_rate"]
+            ).to_file_like(buffer, format="wav")
             return {"bytes": buffer.getvalue(), "path": None}
         elif value.get("path") is not None and os.path.isfile(value["path"]):
             # we set "bytes": None to not duplicate the data if they're already available locally
@@ -134,8 +141,10 @@ class Audio:
                 else:
                     bytes_value = np.memmap(value["path"], dtype="h", mode="r").astype(np.float32) / 32767
 
-                buffer = BytesIO(b"")
-                sf.write(buffer, bytes_value, value["sampling_rate"], format="wav")
+                buffer = BytesIO()
+                AudioEncoder(torch.from_numpy(bytes_value), sample_rate=value["sampling_rate"]).to_file_like(
+                    buffer, format="wav"
+                )
                 return {"bytes": buffer.getvalue(), "path": None}
             else:
                 return {"bytes": None, "path": value.get("path")}
@@ -297,12 +306,11 @@ def encode_torchcodec_audio(audio: "AudioDecoder") -> dict:
         return audio._hf_encoded
     else:
         try:
-            import soundfile as sf  # needed to write audio files
+            from torchcodec.encoders import AudioEncoder  # needed to write audio files
         except ImportError as err:
-            raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
+            raise ImportError("To support encoding audio data, please install 'torchcodec'.") from err
 
         samples = audio.get_all_samples()
-        array = samples.data.cpu().numpy()
         buffer = BytesIO()
-        sf.write(buffer, array.T, samples.sample_rate, format="wav")
+        AudioEncoder(samples.data.cpu(), sample_rate=samples.sample_rate).to_file_like(buffer, format="wav")
         return {"bytes": buffer.getvalue(), "path": None}

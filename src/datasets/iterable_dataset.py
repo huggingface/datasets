@@ -3745,12 +3745,12 @@ class IterableDataset(DatasetInfoMixin):
         ```
 
         """
-        from .io.parquet import get_writer_batch_size
+        from .arrow_writer import get_arrow_writer_batch_size_from_features
 
-        batch_size = get_writer_batch_size(self.features)
+        batch_size = get_arrow_writer_batch_size_from_features(self.features) or config.DEFAULT_MAX_BATCH_SIZE
         table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=batch_size)))
         return Dataset(table, fingerprint="unset").to_parquet(
-            path_or_buf, batch_size=batch_size, storage_options=storage_options, **parquet_writer_kwargs
+            path_or_buf, storage_options=storage_options, **parquet_writer_kwargs
         )
 
     def _push_parquet_shards_to_hub_single(
@@ -3766,7 +3766,7 @@ class IterableDataset(DatasetInfoMixin):
         # max_shard_size: Optional[Union[int, str]] = None,  # TODO(QL): add arg
         num_shards: int,
         embed_external_files: bool,
-    ) -> tuple[list[CommitOperationAdd], int, int]:
+    ) -> Iterable[tuple[list[CommitOperationAdd], int, int]]:
         """Pushes the dataset shards as Parquet files to the hub.
 
         Returns:
@@ -3792,13 +3792,13 @@ class IterableDataset(DatasetInfoMixin):
         additions: list[CommitOperationAdd] = []
         for index, shard in index_shards:
             if embed_external_files:
-                from .io.parquet import get_writer_batch_size
+                from .arrow_writer import get_arrow_writer_batch_size_from_features
 
                 shard = shard.with_format("arrow")
                 shard = shard.map(
                     partial(embed_table_storage, token_per_repo_id=self._token_per_repo_id),
                     batched=True,
-                    batch_size=get_writer_batch_size(shard.features),
+                    batch_size=get_arrow_writer_batch_size_from_features(shard.features),
                 )
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
             buffer = BytesIO()
