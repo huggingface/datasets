@@ -661,6 +661,8 @@ class Column(Sequence_):
     def __iter__(self) -> Iterator[Any]:
         if isinstance(self.source, Dataset):
             source = self.source._fast_select_column(self.column_name)
+        else:
+            source = self.source
         for example in source:
             yield example[self.column_name]
 
