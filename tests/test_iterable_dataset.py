@@ -315,16 +315,27 @@ def test_rebatched_arrow_examples_iterable(tables, batch_size, drop_last_batch):
 
 
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
-def test_buffer_shuffled_examples_iterable(seed):
+@pytest.mark.parametrize("stateful", [False, True])
+def test_buffer_shuffled_examples_iterable(seed, stateful):
     n, buffer_size = 100, 30
     generator = np.random.default_rng(seed)
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
-    ex_iterable = BufferShuffledExamplesIterable(base_ex_iterable, buffer_size=buffer_size, generator=generator)
+    ex_iterable = BufferShuffledExamplesIterable(
+        base_ex_iterable,
+        buffer_size=buffer_size,
+        stateful=stateful,
+        generator=generator
+    )
 
     rng = deepcopy(generator)
-    expected_indices_used_for_shuffling = list(
-        islice(BufferShuffledExamplesIterable._iter_random_indices(rng, buffer_size=buffer_size), n - buffer_size)
-    )
+    expected_indices_used_for_shuffling = list(islice(
+        BufferShuffledExamplesIterable._iter_random_indices(
+            rng=rng,
+            buffer_size=buffer_size,
+            random_batch_size=buffer_size,
+        ),
+        n - buffer_size
+    ))
     # indices to pick in the shuffle buffer should all be in the right range
     assert all(0 <= index_to_pick < buffer_size for index_to_pick in expected_indices_used_for_shuffling)
     # it should be random indices
@@ -1314,7 +1325,8 @@ def test_horizontally_concatenated_examples_iterable():
         MappedExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), lambda x: x),
         FilteredExamplesIterable(ExamplesIterable(generate_examples_fn, {}), lambda x: True),
         FilteredExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), lambda x: True),
-        BufferShuffledExamplesIterable(ExamplesIterable(generate_examples_fn, {}), 10, np.random.default_rng(42)),
+        BufferShuffledExamplesIterable(ExamplesIterable(generate_examples_fn, {}), 10, False, np.random.default_rng(42)),
+        BufferShuffledExamplesIterable(ExamplesIterable(generate_examples_fn, {}), 10, True, np.random.default_rng(42)),
         SkipExamplesIterable(ExamplesIterable(generate_examples_fn, {}), 10),
         TakeExamplesIterable(ExamplesIterable(generate_examples_fn, {}), 10),
         FormattedExamplesIterable(
@@ -1324,7 +1336,7 @@ def test_horizontally_concatenated_examples_iterable():
 )
 def test_no_iter_arrow(ex_iterable: _BaseExamplesIterable):
     assert ex_iterable.iter_arrow is None
-    if not isinstance(ex_iterable, BufferShuffledExamplesIterable):
+    if not isinstance(ex_iterable, BufferShuffledExamplesIterable) or ex_iterable.stateful:
         assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
@@ -1704,11 +1716,12 @@ def test_iterable_dataset_filter(dataset: IterableDataset) -> None:
 
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
 @pytest.mark.parametrize("epoch", [None, 0, 1])
-def test_iterable_dataset_shuffle(dataset: IterableDataset, seed, epoch):
+@pytest.mark.parametrize("stateful", [False, True])
+def test_iterable_dataset_shuffle(dataset: IterableDataset, seed, epoch, stateful):
     buffer_size = 3
     dataset = deepcopy(dataset)
     dataset._ex_iterable.kwargs["filepaths"] = ["0.txt", "1.txt"]
-    dataset = dataset.shuffle(seed, buffer_size=buffer_size)
+    dataset = dataset.shuffle(seed, buffer_size=buffer_size, stateful=stateful)
     assert isinstance(dataset._shuffling, ShufflingConfig)
     assert isinstance(dataset._shuffling.generator, np.random.Generator)
     assert is_rng_equal(dataset._shuffling.generator, np.random.default_rng(seed))
@@ -1719,9 +1732,13 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, seed, epoch):
         dataset.set_epoch(epoch)
         effective_seed = np.random.default_rng(seed).integers(0, 1 << 63) - epoch
     # Shuffling adds a shuffle buffer
-    expected_first_example_index = next(
-        iter(BufferShuffledExamplesIterable._iter_random_indices(np.random.default_rng(effective_seed), buffer_size))
-    )
+    expected_first_example_index = next(iter(
+        BufferShuffledExamplesIterable._iter_random_indices(
+            rng=np.random.default_rng(effective_seed),
+            buffer_size=buffer_size,
+            random_batch_size=buffer_size
+        )
+    ))
     assert isinstance(dataset._ex_iterable, BufferShuffledExamplesIterable)
     # It also shuffles the underlying examples iterable
     expected_ex_iterable = ExamplesIterable(
