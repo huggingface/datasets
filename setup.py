@@ -113,7 +113,7 @@ REQUIRED_PKGS = [
     # Minimum 21.0.0 to support `use_content_defined_chunking` in ParquetWriter
     "pyarrow>=21.0.0",
     # For smart caching dataset processing
-    "dill>=0.3.0,<0.3.9",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
+    "dill>=0.3.0,<0.4.1",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
@@ -227,7 +227,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="4.0.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="4.1.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
