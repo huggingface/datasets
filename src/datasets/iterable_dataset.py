@@ -683,7 +683,6 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
         # if undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted
         # if oversampling ("all_exhausted"), we stop as soons as every dataset is exhausted, i.e as soon as every samples of every dataset has been visited at least once
         self.bool_strategy_func = np.all if (stopping_strategy == "all_exhausted") else np.any
-        # TODO(QL): implement iter_arrow
 
     @property
     def is_typed(self):
@@ -695,7 +694,8 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
     @property
     def iter_arrow(self):
-        return self.__iter__ if all(ex_iterable.iter_arrow for ex_iterable in self.ex_iterables) else None
+        # Can iterate on arrow tables if all ex_iterables can iterate
+        return self._iter_arrow if all(ex_iterable.iter_arrow for ex_iterable in self.ex_iterables) else None
 
     def _get_indices_iterator(self):
         # this is an infinite iterator to keep track of which iterator we want to pick examples from
@@ -715,6 +715,51 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             "type": self.__class__.__name__,
         }
         return self._state_dict
+
+    def _iter_arrow(self):
+        # we use this to buffer one example of each iterator to know if an iterator is exhausted
+        nexts = [None] * len(self.ex_iterables)
+        # because of that, we need to rewind 1 example when reloading the state dict
+        if self._state_dict:
+            for i in range(len(self.ex_iterables)):
+                if self._state_dict["previous_states"][i] is not None:
+                    self.ex_iterables[i].load_state_dict(self._state_dict["previous_states"][i])
+        iterators = [
+            ex_iterable._iter_arrow() if self.iter_arrow() is not None else iter(ex_iterable)
+            for ex_iterable in self.ex_iterables
+        ]
+
+        indices_iterator = self._get_indices_iterator()
+
+        is_exhausted = (
+            np.array(self._state_dict["is_exhausted"]) if self._state_dict else np.full(len(self.ex_iterables), False)
+        )
+        for i in indices_iterator:
+            # if the stopping criteria is met, break the main for loop
+            if self.bool_strategy_func(is_exhausted):
+                break
+            # let's pick one example from the iterator at index i
+            if nexts[i] is None:
+                nexts[i] = next(iterators[i], False)
+            result = nexts[i]
+            if self._state_dict:
+                self._state_dict["previous_states"][i] = deepcopy(self._state_dict["ex_iterables"][i])
+            nexts[i] = next(iterators[i], False)
+
+            # the iterator is exhausted
+            if nexts[i] is False:
+                is_exhausted[i] = True
+                if self._state_dict:
+                    self._state_dict["is_exhausted"][i] = True
+                # we reset it in case the stopping crtieria isn't met yet
+                nexts[i] = None
+                if self._state_dict:
+                    self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
+                    self._state_dict["previous_states"][i] = None
+                iterators[i] = iter(self.ex_iterables[i])
+
+            if result is not False:
+                yield result
 
     def __iter__(self):
         # we use this to buffer one example of each iterator to know if an iterator is exhausted
@@ -1542,7 +1587,7 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
 
     @property
     def iter_arrow(self):
-        return self.__iter__ if self.ex_iterable.iter_arrow else None
+        return self._iter_arrow if self.ex_iterable.iter_arrow else None
 
     def _init_state_dict(self) -> dict:
         self._state_dict = self.ex_iterable._init_state_dict()
@@ -1569,14 +1614,30 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         indices_iterator = self._iter_random_indices(rng, buffer_size)
         # this is the shuffle buffer that we keep in memory
         mem_buffer = []
-        ex_iterable = self.ex_iterable if self.iter_arrow is None else self.ex_iterable._iter_arrow()
-        for x in ex_iterable:
+        for x in self.ex_iterable:
             if len(mem_buffer) == buffer_size:  # if the buffer is full, pick and example from it
                 i = next(indices_iterator)
                 yield mem_buffer[i]
                 mem_buffer[i] = x  # replace the picked example by a new one
             else:  # otherwise, keep filling the buffer
                 mem_buffer.append(x)
+        # when we run out of examples, we shuffle the remaining examples in the buffer and yield them
+        rng.shuffle(mem_buffer)
+        yield from mem_buffer
+
+    def _iter_arrow(self):
+        buffer_size = self.buffer_size
+        rng = deepcopy(self.generator)
+        indices_iterator = self._iter_random_indices(rng, buffer_size)
+        # this is the shuffle buffer that we keep in memory
+        mem_buffer = []
+        for key, pa_table in self.ex_iterable._iter_arrow():
+            if len(mem_buffer) == buffer_size:  # if the buffer is full, pick and example from it
+                i = next(indices_iterator)
+                yield mem_buffer[i]
+                mem_buffer[i] = (key, pa_table)  # replace the picked example by a new one
+            else:  # otherwise, keep filling the buffer
+                mem_buffer.append((key, pa_table))
         # when we run out of examples, we shuffle the remaining examples in the buffer and yield them
         rng.shuffle(mem_buffer)
         yield from mem_buffer
