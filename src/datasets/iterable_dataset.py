@@ -724,10 +724,7 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             for i in range(len(self.ex_iterables)):
                 if self._state_dict["previous_states"][i] is not None:
                     self.ex_iterables[i].load_state_dict(self._state_dict["previous_states"][i])
-        iterators = [
-            ex_iterable._iter_arrow() if self.iter_arrow() is not None else iter(ex_iterable)
-            for ex_iterable in self.ex_iterables
-        ]
+        iterators = [ex_iterable._iter_arrow() for ex_iterable in self.ex_iterables]
 
         indices_iterator = self._get_indices_iterator()
 
@@ -756,7 +753,7 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
                 if self._state_dict:
                     self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
                     self._state_dict["previous_states"][i] = None
-                iterators[i] = iter(self.ex_iterables[i])
+                iterators[i] = self.ex_iterables[i]._iter_arrow()
 
             if result is not False:
                 yield result
