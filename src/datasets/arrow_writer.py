@@ -151,7 +151,7 @@ def get_writer_batch_size_from_data_size(num_rows: int, num_bytes: int) -> int:
         writer_batch_size (`Optional[int]`):
             Writer batch size to pass to a parquet writer.
     """
-    return max(10, num_rows * convert_file_size_to_int(config.MAX_ROW_GROUP_SIZE) // num_bytes)
+    return max(10, num_rows * convert_file_size_to_int(config.MAX_ROW_GROUP_SIZE) // num_bytes) if num_bytes > 0 else 1
 
 
 class SchemaInferenceError(ValueError):
