@@ -55,6 +55,7 @@ from typing import (
 )
 
 import fsspec
+import multiprocessing as mp
 import numpy as np
 import pandas as pd
 import pyarrow as pa
@@ -69,7 +70,6 @@ from huggingface_hub import (
     HfApi,
 )
 from huggingface_hub.hf_api import HfHubHTTPError, RepoFile, RepositoryNotFoundError
-from multiprocess import Pool
 from requests import HTTPError
 from tqdm.contrib.concurrent import thread_map
 
@@ -149,6 +149,12 @@ if TYPE_CHECKING:
     from .iterable_dataset import IterableDataset
 
 logger = logging.get_logger(__name__)
+
+# Prefer spawn-based Pool on platforms where fork can be problematic
+try:
+    Pool = mp.get_context("spawn").Pool  # type: ignore[assignment]
+except Exception:
+    Pool = mp.Pool  # type: ignore[assignment]
 
 PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED = (
     "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.parquet"
