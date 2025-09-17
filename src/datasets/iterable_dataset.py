@@ -724,7 +724,7 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             for i in range(len(self.ex_iterables)):
                 if self._state_dict["previous_states"][i] is not None:
                     self.ex_iterables[i].load_state_dict(self._state_dict["previous_states"][i])
-        iterators = [ex_iterable._iter_arrow() for ex_iterable in self.ex_iterables]
+        iterators = [ex_iterable.iter_arrow() for ex_iterable in self.ex_iterables]
 
         indices_iterator = self._get_indices_iterator()
 
@@ -753,7 +753,7 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
                 if self._state_dict:
                     self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
                     self._state_dict["previous_states"][i] = None
-                iterators[i] = self.ex_iterables[i]._iter_arrow()
+                iterators[i] = self.ex_iterables[i].iter_arrow()
 
             if result is not False:
                 yield result
@@ -1625,7 +1625,7 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         indices_iterator = self._iter_random_indices(rng, buffer_size)
         # this is the shuffle buffer that we keep in memory
         mem_buffer = []
-        for key, pa_table in self.ex_iterable._iter_arrow():
+        for key, pa_table in self.ex_iterable.iter_arrow():
             if len(mem_buffer) == buffer_size:  # if the buffer is full, pick and example from it
                 i = next(indices_iterator)
                 yield mem_buffer[i]
