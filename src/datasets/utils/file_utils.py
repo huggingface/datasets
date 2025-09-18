@@ -4,7 +4,6 @@ This file is adapted from the AllenNLP library at https://github.com/allenai/all
 Copyright by the AllenNLP authors.
 """
 
-import asyncio
 import glob
 import io
 import json
