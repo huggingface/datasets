@@ -4,6 +4,7 @@ This file is adapted from the AllenNLP library at https://github.com/allenai/all
 Copyright by the AllenNLP authors.
 """
 
+import asyncio
 import glob
 import io
 import json
@@ -29,6 +30,7 @@ import fsspec
 import httpx
 import huggingface_hub
 import huggingface_hub.errors
+import requests
 from fsspec.core import strip_protocol, url_to_fs
 from fsspec.utils import can_be_local
 from huggingface_hub.utils import get_session, insecure_hashlib
@@ -811,7 +813,13 @@ def _add_retries_to_file_obj_read_method(file_obj):
             try:
                 out = read(*args, **kwargs)
                 break
-            except httpx.RequestError as err:
+            except (
+                _AiohttpClientError,
+                asyncio.TimeoutError,
+                requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout,
+                httpx.RequestError,
+            ) as err:
                 disconnect_err = err
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"

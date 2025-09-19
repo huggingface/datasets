@@ -117,6 +117,7 @@ REQUIRED_PKGS = [
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
+    "requests>=2.32.2",
     "httpx<1.0.0",
     # progress bars in downloads and data operations
     "tqdm>=4.66.3",
