@@ -181,7 +181,7 @@ TESTS_REQUIRE = [
     "tiktoken",
     "torch>=2.8.0",
     "torchdata",
-    "transformers>=4.42.0",  # Pins numpy < 2
+    "git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc0",  # Pins numpy < 2
     "zstandard",
     "polars[timezone]>=0.20.0",
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
@@ -200,7 +200,7 @@ QUALITY_REQUIRE = ["ruff>=0.3.0"]
 
 DOCS_REQUIRE = [
     # Following dependencies are required for the Python reference to be built properly
-    "transformers",
+    "git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc0",
     "torch",
     "tensorflow>=2.6.0",
 ]
