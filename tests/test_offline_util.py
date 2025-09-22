@@ -2,6 +2,7 @@ from tempfile import NamedTemporaryFile
 
 import httpx
 import pytest
+from huggingface_hub.errors import OfflineModeIsEnabled
 
 from datasets.utils.file_utils import fsspec_get, fsspec_head
 
@@ -32,7 +33,7 @@ def test_offline_with_connection_error():
 
 def test_offline_with_datasets_offline_mode_enabled():
     with offline(OfflineSimulationMode.HF_HUB_OFFLINE_SET_TO_1):
-        with pytest.raises(httpx.ConnectTimeout):
+        with pytest.raises(OfflineModeIsEnabled):
             fsspec_head("hf://dummy")
-        with pytest.raises(httpx.ConnectTimeout), NamedTemporaryFile() as temp_file:
+        with pytest.raises(OfflineModeIsEnabled), NamedTemporaryFile() as temp_file:
             fsspec_get("hf://dummy", temp_file=temp_file)
