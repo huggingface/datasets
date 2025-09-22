@@ -13,7 +13,6 @@ env:
   CI_HEADERS: ${{ secrets.CI_HEADERS }}
 
 jobs:
-
   check_code_quality:
     runs-on: ubuntu-latest
     steps:
@@ -26,6 +25,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install .[quality]
+          pip install git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc0
       - name: Check quality
         run: |
           ruff check tests src benchmarks utils setup.py # linter
@@ -35,7 +35,7 @@ jobs:
     needs: check_code_quality
     strategy:
       matrix:
-        test: ['unit', 'integration']
+        test: ["unit", "integration"]
         os: [ubuntu-latest, windows-latest]
         deps_versions: [deps-latest, deps-minimum]
     continue-on-error: ${{ matrix.test == 'integration' }}
@@ -48,7 +48,7 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt update
-          sudo apt install -y ffmpeg 
+          sudo apt install -y ffmpeg
       - name: Set up Python 3.9
         uses: actions/setup-python@v5
         with:
@@ -73,6 +73,10 @@ jobs:
       - name: Install dependencies (latest versions)
         if: ${{ matrix.deps_versions == 'deps-latest' }}
         run: uv pip install --system --upgrade pyarrow huggingface-hub "dill<0.3.9"
+      - name: Install transformers from source (latest versions)
+        if: ${{ matrix.deps_versions == 'deps-latest' }}
+        run: uv pip install --system git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc0
+
       - name: Install dependencies (minimum versions)
         if: ${{ matrix.deps_versions != 'deps-latest' }}
         run: uv pip install --system pyarrow==21.0.0 huggingface-hub==0.24.7 transformers dill==0.3.1.1
@@ -84,7 +88,7 @@ jobs:
     needs: check_code_quality
     strategy:
       matrix:
-        test: ['unit']
+        test: ["unit"]
         os: [ubuntu-latest, windows-latest]
         deps_versions: [deps-latest]
     continue-on-error: false
@@ -119,6 +123,9 @@ jobs:
         run: pip install --upgrade uv
       - name: Install dependencies
         run: uv pip install --system "datasets[tests] @ ."
+      - name: Install transformers from source
+        run: uv pip install --system git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc0
+
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
@@ -127,7 +134,7 @@ jobs:
     needs: check_code_quality
     strategy:
       matrix:
-        test: ['unit']
+        test: ["unit"]
         os: [ubuntu-latest, windows-latest]
         deps_versions: [deps-latest]
     continue-on-error: false
@@ -140,7 +147,7 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt update
-          sudo apt install -y ffmpeg 
+          sudo apt install -y ffmpeg
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -162,6 +169,9 @@ jobs:
         run: pip install --upgrade uv
       - name: Install dependencies
         run: uv pip install --system "datasets[tests_numpy2] @ ."
+      - name: Install transformers from source
+        run: uv pip install --system git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc0
+
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
