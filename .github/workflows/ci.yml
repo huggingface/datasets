@@ -38,7 +38,7 @@ jobs:
         test: ["unit", "integration"]
         os: [ubuntu-latest, windows-latest]
         deps_versions: [deps-latest, deps-minimum]
-    continue-on-error: ${{ matrix.test == 'integration' }}
+    # continue-on-error: ${{ matrix.test == 'integration' }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -91,7 +91,7 @@ jobs:
         test: ["unit"]
         os: [ubuntu-latest, windows-latest]
         deps_versions: [deps-latest]
-    continue-on-error: false
+    # continue-on-error: false
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -137,7 +137,7 @@ jobs:
         test: ["unit"]
         os: [ubuntu-latest, windows-latest]
         deps_versions: [deps-latest]
-    continue-on-error: false
+    # continue-on-error: false
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
