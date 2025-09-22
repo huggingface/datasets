@@ -3,6 +3,7 @@ import sys
 import warnings
 from dataclasses import dataclass, field
 from io import BytesIO
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Union
 
 import numpy as np
@@ -48,6 +49,7 @@ class Image:
 
     Input: The Image feature accepts as input:
     - A `str`: Absolute path to the image file (i.e. random access is allowed).
+    - A `pathlib.Path`: path to the image file (i.e. random access is allowed).
     - A `dict` with the keys:
 
         - `path`: String with relative path of the image file to the archive file.
@@ -113,6 +115,8 @@ class Image:
 
         if isinstance(value, str):
             return {"path": value, "bytes": None}
+        elif isinstance(value, Path):
+            return {"path": str(value.absolute()), "bytes": None}
         elif isinstance(value, (bytes, bytearray)):
             return {"path": None, "bytes": value}
         elif isinstance(value, np.ndarray):

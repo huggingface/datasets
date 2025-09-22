@@ -10,7 +10,7 @@ from datasets.data_files import DataFilesDict, DataFilesList, get_data_patterns
 from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
 
-from ..utils import require_sndfile, require_torchcodec
+from ..utils import require_torchcodec
 
 
 @pytest.fixture
@@ -194,7 +194,6 @@ def test_config_raises_when_invalid_data_files(data_files) -> None:
 
 
 @require_torchcodec
-@require_sndfile
 # check that labels are inferred correctly from dir names
 def test_generate_examples_with_labels(data_files_with_labels_no_metadata, cache_dir):
     # there are no metadata.jsonl files in this test case
@@ -208,7 +207,7 @@ def test_generate_examples_with_labels(data_files_with_labels_no_metadata, cache
     assert dataset[1]["label"] == label_feature._str2int["uk"]
 
 
-@require_sndfile
+@require_torchcodec
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
 def test_generate_examples_drop_labels(data_files_with_labels_no_metadata, drop_metadata, drop_labels):
@@ -232,7 +231,7 @@ def test_generate_examples_drop_labels(data_files_with_labels_no_metadata, drop_
         )
 
 
-@require_sndfile
+@require_torchcodec
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
 def test_generate_examples_drop_metadata(audio_file_with_metadata, drop_metadata, drop_labels):
@@ -260,7 +259,6 @@ def test_generate_examples_drop_metadata(audio_file_with_metadata, drop_metadata
 
 
 @require_torchcodec
-@require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_single_split(streaming, cache_dir, data_files_with_one_split_and_metadata):
     data_files = data_files_with_one_split_and_metadata
@@ -279,7 +277,6 @@ def test_data_files_with_metadata_and_single_split(streaming, cache_dir, data_fi
 
 
 @require_torchcodec
-@require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_multiple_splits(streaming, cache_dir, data_files_with_two_splits_and_metadata):
     data_files = data_files_with_two_splits_and_metadata
@@ -298,7 +295,6 @@ def test_data_files_with_metadata_and_multiple_splits(streaming, cache_dir, data
 
 
 @require_torchcodec
-@require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_with_zip_archives):
     audiofolder = AudioFolder(data_files=data_files_with_zip_archives, cache_dir=cache_dir)
@@ -324,7 +320,7 @@ def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_
         assert all(example["text"] is not None for example in dataset)
 
 
-@require_sndfile
+@require_torchcodec
 def test_data_files_with_wrong_metadata_file_name(cache_dir, tmp_path, audio_file):
     data_dir = tmp_path / "data_dir_with_bad_metadata"
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -346,7 +342,7 @@ def test_data_files_with_wrong_metadata_file_name(cache_dir, tmp_path, audio_fil
     assert "text" not in dataset.column_names
 
 
-@require_sndfile
+@require_torchcodec
 def test_data_files_with_custom_audio_file_name_column_in_metadata_file(cache_dir, tmp_path, audio_file):
     data_dir = tmp_path / "data_dir_with_custom_file_name_metadata"
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -368,7 +364,7 @@ def test_data_files_with_custom_audio_file_name_column_in_metadata_file(cache_di
     assert "speech_file_name" not in dataset.features
 
 
-@require_sndfile
+@require_torchcodec
 def test_data_files_with_with_metadata_in_different_formats(cache_dir, tmp_path, audio_file):
     data_dir = tmp_path / "data_dir_with_metadata_in_different_format"
     data_dir.mkdir(parents=True, exist_ok=True)

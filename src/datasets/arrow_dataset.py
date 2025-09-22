@@ -26,6 +26,7 @@ import json
 import math
 import os
 import posixpath
+import random
 import re
 import shutil
 import string
@@ -67,8 +68,9 @@ from huggingface_hub import (
     DatasetCardData,
     HfApi,
 )
-from huggingface_hub.hf_api import RepoFile
+from huggingface_hub.hf_api import HfHubHTTPError, RepoFile, RepositoryNotFoundError
 from multiprocess import Pool
+from requests import HTTPError
 from tqdm.contrib.concurrent import thread_map
 
 from . import config
@@ -659,6 +661,8 @@ class Column(Sequence_):
     def __iter__(self) -> Iterator[Any]:
         if isinstance(self.source, Dataset):
             source = self.source._fast_select_column(self.column_name)
+        else:
+            source = self.source
         for example in source:
             yield example[self.column_name]
 
@@ -1547,9 +1551,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_shards = int(dataset_nbytes / max_shard_size) + 1
             num_shards = max(num_shards, num_proc or 1)
 
-        num_proc = num_proc if num_proc is not None else 1
-        num_shards = num_shards if num_shards is not None else num_proc
-
         fs: fsspec.AbstractFileSystem
         fs, _ = url_to_fs(dataset_path, **(storage_options or {}))
 
@@ -1607,7 +1608,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         shard_lengths = [None] * num_shards
         shard_sizes = [None] * num_shards
-        if num_proc > 1:
+        if num_proc is not None and num_proc >= 1:
             with Pool(num_proc) as pool:
                 with pbar:
                     for job_id, done, content in iflatmap_unordered(
@@ -3007,8 +3008,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             fn_kwargs (`Dict`, *optional*, defaults to `None`):
                 Keyword arguments to be passed to `function`.
             num_proc (`int`, *optional*, defaults to `None`):
-                Max number of processes when generating cache. Already cached shards are loaded sequentially.
-            suffix_template (`str`):
+                 The number of processes to use for multiprocessing.
+                - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.
+                - If greater than `1`, one or multiple worker processes are used to process data in parallel.
+                 Note: The function passed to `map()` must be picklable for multiprocessing to work correctly
+                 (i.e., prefer functions defined at the top level of a module, not inside another function or class).
+             suffix_template (`str`):
                 If `cache_file_name` is specified, then this suffix
                 will be added at the end of the base name of each. Defaults to `"_{rank:05d}_of_{num_proc:05d}"`. For example, if `cache_file_name` is "processed.arrow", then for
                 `rank=1` and `num_proc=4`, the resulting file would be `"processed_00001_of_00004.arrow"` for the default suffix.
@@ -3044,8 +3049,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if keep_in_memory and cache_file_name is not None:
             raise ValueError("Please use either `keep_in_memory` or `cache_file_name` but not both.")
 
-        if num_proc is not None and num_proc <= 0:
-            raise ValueError("num_proc must be an integer > 0.")
+        if num_proc == 0:
+            num_proc = None
+        elif num_proc is not None and num_proc < 0:
+            raise ValueError("num_proc must be >= 0 or None.")
 
         string_formatter = string.Formatter()
         fields = {field_name for _, field_name, _, _ in string_formatter.parse(suffix_template) if field_name}
@@ -3221,7 +3228,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             validate_fingerprint(new_fingerprint)
             return new_fingerprint
 
-        if num_proc is not None and num_proc > 1:
+        if num_proc is not None and num_proc >= 1:
             prev_env = deepcopy(os.environ)
             # check if parallelism if off
             # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
@@ -3288,7 +3295,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 unit=" examples",
                 initial=pbar_initial,
                 total=pbar_total,
-                desc=(desc or "Map") + (f" (num_proc={num_proc})" if num_proc is not None and num_proc > 1 else ""),
+                desc=(desc or "Map") + (f" (num_proc={num_proc})" if num_proc is not None and num_proc >= 1 else ""),
             ) as pbar:
                 shards_done = 0
 
@@ -3303,7 +3310,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         assert isinstance(content, int)
                         pbar.update(content)
 
-                if num_proc is not None and num_proc > 1:
+                if num_proc is not None and num_proc >= 1:
                     with Pool(num_proc) as pool:
                         os.environ = prev_env
                         logger.info(f"Spawning {num_proc} processes")
@@ -3852,9 +3859,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
             fn_kwargs (`dict`, *optional*):
                 Keyword arguments to be passed to `function`.
-            num_proc (`int`, *optional*):
-                Number of processes for multiprocessing. By default it doesn't
-                use multiprocessing.
+            num_proc (`int`, *optional*, defaults to `None`):
+                 The number of processes to use for multiprocessing.
+                - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.
+                - If greater than `1`, one or multiple worker processes are used to process data in parallel.
+                 Note: The function passed to `map()` must be picklable for multiprocessing to work correctly
+                 (i.e., prefer functions defined at the top level of a module, not inside another function or class).
             suffix_template (`str`):
                 If `cache_file_name` is specified, then this suffix will be added at the end of the base name of each.
                 For example, if `cache_file_name` is `"processed.arrow"`, then for `rank = 1` and `num_proc = 4`,
@@ -4636,13 +4646,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         This method is similar to scikit-learn `train_test_split`.
 
         Args:
-            test_size (`numpy.random.Generator`, *optional*):
+            test_size (`Union[float, int, None]`, *optional*):
                 Size of the test split
                 If `float`, should be between `0.0` and `1.0` and represent the proportion of the dataset to include in the test split.
                 If `int`, represents the absolute number of test samples.
                 If `None`, the value is set to the complement of the train size.
                 If `train_size` is also `None`, it will be set to `0.25`.
-            train_size (`numpy.random.Generator`, *optional*):
+            train_size (`Union[float, int, None]`, *optional*):
                 Size of the train split
                 If `float`, should be between `0.0` and `1.0` and represent the proportion of the dataset to include in the train split.
                 If `int`, represents the absolute number of train samples.
@@ -5245,7 +5255,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 or a BinaryIO, where the dataset will be saved to in the specified format.
             batch_size (`int`, *optional*):
                 Size of the batch to load in memory and write at once.
-                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+                By default it aims for row groups with maximum uncompressed byte size of "100MB",
+                defined by `datasets.config.MAX_ROW_GROUP_SIZE`.
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
 
@@ -5343,11 +5354,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             table = self.with_format("arrow")[:1000]
             table_visitor(table, extra_nbytes_visitor)
 
-            extra_nbytes = extra_nbytes * len(self.data) / len(table)
+            extra_nbytes = extra_nbytes * len(self.data) // len(table)
             dataset_nbytes = dataset_nbytes + extra_nbytes
 
         if self._indices is not None:
-            dataset_nbytes = dataset_nbytes * len(self._indices) / len(self.data)
+            dataset_nbytes = dataset_nbytes * len(self._indices) // len(self.data)
         return dataset_nbytes
 
     @staticmethod
@@ -5498,6 +5509,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         create_pr: Optional[bool],
         num_shards: int,
         embed_external_files: bool,
+        writer_batch_size: int,
     ):
         div = num_shards // num_jobs
         mod = num_shards % num_jobs
@@ -5514,20 +5526,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         additions: list[CommitOperationAdd] = []
         for index, shard in index_shards:
             if embed_external_files:
-                from .io.parquet import get_writer_batch_size
-
                 format = shard.format
                 shard = shard.with_format("arrow")
                 shard = shard.map(
                     embed_table_storage,
                     batched=True,
-                    batch_size=get_writer_batch_size(shard.features),
+                    batch_size=writer_batch_size,
                     keep_in_memory=True,
                 )
                 shard = shard.with_format(**format)
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
             buffer = BytesIO()
-            shard.to_parquet(buffer)
+            shard.to_parquet(buffer, batch_size=writer_batch_size)
             parquet_content = buffer.getvalue()
             uploaded_size += len(parquet_content)
             del buffer
@@ -5564,7 +5574,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             uploaded_size (`int`): number of uploaded bytes to the repository
             dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset after uncompression
         """
+        from .arrow_writer import get_writer_batch_size_from_data_size, get_writer_batch_size_from_features
+
         dataset_nbytes = self._estimate_nbytes()
+        writer_batch_size = get_writer_batch_size_from_features(self.features) or get_writer_batch_size_from_data_size(
+            len(self), dataset_nbytes
+        )
 
         # Find decodable columns, because if there are any, we need to:
         # embed the bytes from the files in the shards
@@ -5596,17 +5611,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "create_pr": create_pr,
                 "num_shards": num_shards,
                 "embed_external_files": embed_external_files,
+                "writer_batch_size": writer_batch_size,
             }
             for job_id in range(num_jobs)
         ]
         desc = "Uploading the dataset shards"
-        desc += f" (num_proc={num_proc})" if num_proc is not None and num_proc > 1 else ""
+        desc += f" (num_proc={num_proc})" if num_proc is not None and num_proc >= 1 else ""
         pbar = hf_tqdm(
             unit=" shards",
             total=num_shards,
             desc=desc,
         )
-        with contextlib.nullcontext() if num_proc is None or num_proc <= 1 else Pool(num_proc) as pool:
+        with contextlib.nullcontext() if num_proc is None or num_proc < 1 else Pool(num_proc) as pool:
             update_stream = (
                 Dataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
                 if pool is None
@@ -5764,18 +5780,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
-        repo_url = api.create_repo(
-            repo_id,
-            token=token,
-            repo_type="dataset",
-            private=private,
-            exist_ok=True,
-        )
-        repo_id = repo_url.repo_id
+        try:
+            repo_id = api.repo_info(repo_id, repo_type="dataset").id
+        except RepositoryNotFoundError:
+            repo_url = api.create_repo(
+                repo_id,
+                repo_type="dataset",
+                private=private,
+                exist_ok=True,
+            )
+            repo_id = repo_url.repo_id
 
         if revision is not None and not revision.startswith("refs/pr/"):
             # We do not call create_branch for a PR reference: 400 Bad Request
-            api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
+            api.create_branch(repo_id, branch=revision, repo_type="dataset", exist_ok=True)
 
         if not data_dir:
             data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
@@ -5793,173 +5811,164 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_proc=num_proc,
         )
 
-        # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
-        # and delete old split shards (if they exist)
-        repo_with_dataset_card, repo_with_dataset_infos = False, False
-        deletions: list[CommitOperationDelete] = []
-        deleted_size = 0
-        repo_splits: list[str] = []  # use a list to keep the order of the splits
-        repo_files_to_add = [addition.path_in_repo for addition in additions]
-        for repo_file in api.list_repo_tree(
-            repo_id=repo_id, revision=revision, repo_type="dataset", token=token, recursive=True
-        ):
-            if not isinstance(repo_file, RepoFile):
-                continue
-            if repo_file.rfilename == config.REPOCARD_FILENAME:
-                repo_with_dataset_card = True
-            elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
-                repo_with_dataset_infos = True
-            elif (
-                repo_file.rfilename.startswith(f"{data_dir}/{split}-") and repo_file.rfilename not in repo_files_to_add
-            ):
-                deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
-                deleted_size += repo_file.size
-            elif fnmatch.fnmatch(
-                repo_file.rfilename, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*")
-            ):
-                pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
-                split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
-                assert split_pattern_fields is not None
-                repo_split = split_pattern_fields["split"]
-                if repo_split not in repo_splits:
-                    repo_splits.append(repo_split)
+        def get_deletions_and_dataset_card() -> tuple[str, list[CommitOperationDelete], str, Optional[str]]:
+            parent_commit = api.repo_info(repo_id, repo_type="dataset", revision=revision).sha
 
-        organization, dataset_name = repo_id.split("/") if "/" in repo_id else (None, repo_id)
-        info_to_dump = self.info.copy()
-        info_to_dump.download_checksums = None
-        info_to_dump.download_size = uploaded_size
-        info_to_dump.dataset_size = dataset_nbytes
-        info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
-        info_to_dump.config_name = config_name
-        info_to_dump.splits = SplitDict(
-            {split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)}
-        )
-        # get the info from the README to update them
-        if repo_with_dataset_card:
-            dataset_card_path = api.hf_hub_download(
-                repo_id, config.REPOCARD_FILENAME, repo_type="dataset", revision=revision
+            # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
+            # and delete old split shards (if they exist)
+            repo_with_dataset_card, repo_with_dataset_infos = False, False
+            deletions: list[CommitOperationDelete] = []
+            deleted_size = 0
+            repo_splits: list[str] = []  # use a list to keep the order of the splits
+            repo_files_to_add = [addition.path_in_repo for addition in additions]
+            for repo_file in api.list_repo_tree(
+                repo_id=repo_id, revision=parent_commit, repo_type="dataset", token=token, recursive=True
+            ):
+                if not isinstance(repo_file, RepoFile):
+                    continue
+                if repo_file.rfilename == config.REPOCARD_FILENAME:
+                    repo_with_dataset_card = True
+                elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
+                    repo_with_dataset_infos = True
+                elif (
+                    repo_file.rfilename.startswith(f"{data_dir}/{split}-")
+                    and repo_file.rfilename not in repo_files_to_add
+                ):
+                    deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
+                    deleted_size += repo_file.size
+                elif fnmatch.fnmatch(
+                    repo_file.rfilename,
+                    PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
+                ):
+                    pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                    split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
+                    assert split_pattern_fields is not None
+                    repo_split = split_pattern_fields["split"]
+                    if repo_split not in repo_splits:
+                        repo_splits.append(repo_split)
+
+            organization, dataset_name = repo_id.split("/") if "/" in repo_id else (None, repo_id)
+            info_to_dump = self.info.copy()
+            info_to_dump.download_checksums = None
+            info_to_dump.download_size = uploaded_size
+            info_to_dump.dataset_size = dataset_nbytes
+            info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
+            info_to_dump.config_name = config_name
+            info_to_dump.splits = SplitDict(
+                {split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)}
             )
-            dataset_card = DatasetCard.load(Path(dataset_card_path))
-            dataset_card_data = dataset_card.data
-            metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
-            dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
-            if dataset_infos and config_name in dataset_infos:
-                repo_info = dataset_infos[config_name]
+            # get the info from the README to update them
+            if repo_with_dataset_card:
+                dataset_card_path = api.hf_hub_download(
+                    repo_id, config.REPOCARD_FILENAME, repo_type="dataset", revision=parent_commit
+                )
+                dataset_card = DatasetCard.load(Path(dataset_card_path))
+                dataset_card_data = dataset_card.data
+                metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
+                dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
+                if dataset_infos and config_name in dataset_infos:
+                    repo_info = dataset_infos[config_name]
+                else:
+                    repo_info = None
+            # get the deprecated dataset_infos.json to update them
+            elif repo_with_dataset_infos:
+                dataset_card = None
+                dataset_card_data = DatasetCardData()
+                metadata_configs = MetadataConfigs()
+                dataset_infos_path = api.hf_hub_download(
+                    repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=parent_commit
+                )
+                with open(dataset_infos_path, encoding="utf-8") as f:
+                    dataset_infos: dict = json.load(f)
+                    dataset_info = dataset_infos.get(config_name, None) if dataset_infos else None
+                    repo_info = DatasetInfo.from_dict(dataset_info) if dataset_info else None
             else:
+                dataset_card = None
+                dataset_card_data = DatasetCardData()
+                metadata_configs = MetadataConfigs()
                 repo_info = None
-        # get the deprecated dataset_infos.json to update them
-        elif repo_with_dataset_infos:
-            dataset_card = None
-            dataset_card_data = DatasetCardData()
-            metadata_configs = MetadataConfigs()
-            dataset_infos_path = api.hf_hub_download(
-                repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=revision
-            )
-            with open(dataset_infos_path, encoding="utf-8") as f:
-                dataset_infos: dict = json.load(f)
-                dataset_info = dataset_infos.get(config_name, None) if dataset_infos else None
-                repo_info = DatasetInfo.from_dict(dataset_info) if dataset_info else None
-        else:
-            dataset_card = None
-            dataset_card_data = DatasetCardData()
-            metadata_configs = MetadataConfigs()
-            repo_info = None
-        # update the total info to dump from existing info
-        if repo_info is not None:
-            logger.info("Updating downloaded metadata with the new split.")
-            if repo_info.splits and list(repo_info.splits) != [split]:
-                if self._info.features != repo_info.features:
-                    raise ValueError(
-                        f"Features of the new split don't match the features of the existing splits on the hub: {self._info.features} != {repo_info.features}"
+            # update the total info to dump from existing info
+            if repo_info is not None:
+                logger.info("Updating downloaded metadata with the new split.")
+                if repo_info.splits and list(repo_info.splits) != [split]:
+                    if self._info.features != repo_info.features:
+                        raise ValueError(
+                            f"Features of the new split don't match the features of the existing splits on the hub: {self._info.features} != {repo_info.features}"
+                        )
+
+                    if split in repo_info.splits:
+                        repo_info.download_size -= deleted_size
+                        repo_info.dataset_size -= repo_info.splits.get(split, SplitInfo()).num_bytes or 0
+
+                    repo_info.download_checksums = None
+                    repo_info.download_size = (repo_info.download_size or 0) + uploaded_size
+                    repo_info.dataset_size = (repo_info.dataset_size or 0) + dataset_nbytes
+                    repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
+                    repo_info.splits.pop(split, None)
+                    repo_info.splits[split] = SplitInfo(
+                        split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
                     )
-
-                if split in repo_info.splits:
-                    repo_info.download_size -= deleted_size
-                    repo_info.dataset_size -= repo_info.splits.get(split, SplitInfo()).num_bytes or 0
-
-                repo_info.download_checksums = None
-                repo_info.download_size = (repo_info.download_size or 0) + uploaded_size
-                repo_info.dataset_size = (repo_info.dataset_size or 0) + dataset_nbytes
-                repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
-                repo_info.splits.pop(split, None)
-                repo_info.splits[split] = SplitInfo(
-                    split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
-                )
-                info_to_dump = repo_info
-        # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
-        if not metadata_configs and repo_splits:
-            default_metadata_configs_to_dump = {
-                "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
-            }
-            MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
-        # update the metadata configs
-        if config_name in metadata_configs:
-            metadata_config = metadata_configs[config_name]
-            if "data_files" in metadata_config:
-                data_files_to_dump = sanitize_patterns(metadata_config["data_files"])
+                    info_to_dump = repo_info
+            # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
+            if not metadata_configs and repo_splits:
+                default_metadata_configs_to_dump = {
+                    "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
+                }
+                MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
+            # update the metadata configs
+            if config_name in metadata_configs:
+                metadata_config = metadata_configs[config_name]
+                if "data_files" in metadata_config:
+                    data_files_to_dump = sanitize_patterns(metadata_config["data_files"])
+                else:
+                    data_files_to_dump = {}
+                # add the new split
+                data_files_to_dump[split] = [f"{data_dir}/{split}-*"]
+                metadata_config_to_dump = {
+                    "data_files": [
+                        {
+                            "split": _split,
+                            "path": _pattern[0] if len(_pattern) == 1 else _pattern,
+                        }
+                        for _split, _pattern in data_files_to_dump.items()
+                    ]
+                }
             else:
-                data_files_to_dump = {}
-            # add the new split
-            data_files_to_dump[split] = [f"{data_dir}/{split}-*"]
-            metadata_config_to_dump = {
-                "data_files": [
-                    {
-                        "split": _split,
-                        "path": _pattern[0] if len(_pattern) == 1 else _pattern,
-                    }
-                    for _split, _pattern in data_files_to_dump.items()
-                ]
-            }
-        else:
-            metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
-        configs_to_dump = {config_name: metadata_config_to_dump}
-        if set_default and config_name != "default":
-            if metadata_configs:
-                current_default_config_name = metadata_configs.get_default_config_name()
-                if current_default_config_name == "default":
-                    raise ValueError(
-                        "There exists a configuration named 'default'. To set a different configuration as default, "
-                        "rename the 'default' one first."
-                    )
-                if current_default_config_name:
-                    _ = metadata_configs[current_default_config_name].pop("default")
-                    configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
-            metadata_config_to_dump["default"] = True
-        # push to the deprecated dataset_infos.json
-        if repo_with_dataset_infos:
-            dataset_infos_path = api.hf_hub_download(
-                repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=revision
-            )
-            with open(dataset_infos_path, encoding="utf-8") as f:
-                dataset_infos: dict = json.load(f)
-            dataset_infos[config_name] = asdict(info_to_dump)
-            additions.append(
-                CommitOperationAdd(
-                    path_in_repo=config.DATASETDICT_INFOS_FILENAME,
-                    path_or_fileobj=json.dumps(dataset_infos, indent=4).encode("utf-8"),
+                metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
+            configs_to_dump = {config_name: metadata_config_to_dump}
+            if set_default and config_name != "default":
+                if metadata_configs:
+                    current_default_config_name = metadata_configs.get_default_config_name()
+                    if current_default_config_name == "default":
+                        raise ValueError(
+                            "There exists a configuration named 'default'. To set a different configuration as default, "
+                            "rename the 'default' one first."
+                        )
+                    if current_default_config_name:
+                        _ = metadata_configs[current_default_config_name].pop("default")
+                        configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
+                metadata_config_to_dump["default"] = True
+            # push to the deprecated dataset_infos.json
+            if repo_with_dataset_infos:
+                dataset_infos_path = api.hf_hub_download(
+                    repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=parent_commit
                 )
+                with open(dataset_infos_path, encoding="utf-8") as f:
+                    dataset_infos: dict = json.load(f)
+                dataset_infos[config_name] = asdict(info_to_dump)
+                new_dataset_infos = json.dumps(dataset_infos, indent=4)
+            else:
+                new_dataset_infos = None
+            # push to README
+            DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
+            MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
+            new_dataset_card = (
+                DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
             )
-        # push to README
-        DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
-        MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
-        dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
-        additions.append(
-            CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
-        )
+            return parent_commit, deletions, new_dataset_card, new_dataset_infos
 
         commit_message = commit_message if commit_message is not None else "Upload dataset"
-        if len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:
-            commit_info = api.create_commit(
-                repo_id,
-                operations=additions + deletions,
-                commit_message=commit_message,
-                commit_description=commit_description,
-                token=token,
-                repo_type="dataset",
-                revision=revision,
-                create_pr=create_pr,
-            )
-        else:
+        if len(additions) > config.UPLOADS_MAX_NUMBER_PER_COMMIT:
             logger.info(
                 f"Number of files to upload is larger than {config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
             )
@@ -5967,22 +5976,87 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for i in range(0, num_commits):
                 operations = additions[
                     i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
-                ] + (deletions if i == 0 else [])
-                commit_info = api.create_commit(
-                    repo_id,
-                    operations=operations,
-                    commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
-                    commit_description=commit_description,
-                    token=token,
-                    repo_type="dataset",
-                    revision=revision,
-                    create_pr=create_pr,
-                )
+                ]
+                for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+                    # We need to retry if another commit happens at the same time
+                    sleep_time *= 1 + random.random()
+                    try:
+                        commit_info = api.create_commit(
+                            repo_id,
+                            operations=operations,
+                            commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                            commit_description=commit_description,
+                            repo_type="dataset",
+                            revision=revision,
+                            create_pr=create_pr,
+                        )
+                    except HfHubHTTPError as err:
+                        if (
+                            err.__context__
+                            and isinstance(err.__context__, HTTPError)
+                            and err.__context__.response.status_code == 409
+                        ):
+                            # 409 is Conflict (another commit is in progress)
+                            time.sleep(sleep_time)
+                            logger.info(
+                                f"Retrying intermediate commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
+                            )
+                            continue
+                        else:
+                            raise
+                    break
                 logger.info(
                     f"Commit #{i + 1} completed"
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
+            last_commit_additions = []
+        else:
+            last_commit_additions = additions
+
+        for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+            # We need to retry if there was a commit in between in case it touched the dataset card data
+            sleep_time *= 1 + random.random()
+            parent_commit, deletions, dataset_card, dataset_infos = get_deletions_and_dataset_card()
+            dataset_card_additions = []
+            if dataset_infos:
+                dataset_card_additions.append(
+                    CommitOperationAdd(
+                        path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+                        path_or_fileobj=dataset_infos.encode("utf-8"),
+                    )
+                )
+            dataset_card_additions.append(
+                CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
+            )
+            try:
+                commit_info = api.create_commit(
+                    repo_id,
+                    operations=last_commit_additions + dataset_card_additions + deletions,
+                    commit_message=commit_message,
+                    commit_description=commit_description,
+                    repo_type="dataset",
+                    revision=revision,
+                    create_pr=create_pr,
+                    parent_commit=parent_commit,
+                )
+            except HfHubHTTPError as err:
+                if (
+                    err.__context__
+                    and isinstance(err.__context__, HTTPError)
+                    and err.__context__.response.status_code in (412, 409)
+                ):
+                    # 412 is Precondition failed (parent_commit isn't satisfied)
+                    # 409 is Conflict (another commit is in progress)
+                    time.sleep(sleep_time)
+                    logger.info(
+                        f"Retrying commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
+                    )
+                    continue
+                else:
+                    raise
+            break
+
         return commit_info
 
     @transmit_format

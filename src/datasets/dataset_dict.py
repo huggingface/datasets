@@ -1,10 +1,13 @@
 import contextlib
 import copy
 import fnmatch
+import itertools
 import json
 import math
 import posixpath
+import random
 import re
+import time
 from collections.abc import Sequence
 from functools import partial
 from pathlib import Path
@@ -22,6 +25,8 @@ from huggingface_hub import (
     HfApi,
 )
 from huggingface_hub.hf_api import RepoFile
+from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
+from requests import HTTPError
 
 from . import config
 from .arrow_dataset import (
@@ -906,8 +911,11 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             fn_kwargs (`Dict`, *optional*, defaults to `None`):
                 Keyword arguments to be passed to `function`
             num_proc (`int`, *optional*, defaults to `None`):
-                Number of processes for multiprocessing. By default it doesn't
-                use multiprocessing.
+                 The number of processes to use for multiprocessing.
+                - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.
+                - If greater than `1`, one or multiple worker processes are used to process data in parallel.
+                 Note: The function passed to `map()` must be picklable for multiprocessing to work correctly
+                 (i.e., prefer functions defined at the top level of a module, not inside another function or class).
             desc (`str`, *optional*, defaults to `None`):
                 Meaningful description to be displayed alongside with the progress bar while mapping examples.
             try_original_type (`Optional[bool]`, defaults to `True`):
@@ -1028,8 +1036,11 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             fn_kwargs (`Dict`, *optional*, defaults to `None`):
                 Keyword arguments to be passed to `function`
             num_proc (`int`, *optional*, defaults to `None`):
-                Number of processes for multiprocessing. By default it doesn't
-                use multiprocessing.
+                 The number of processes to use for multiprocessing.
+                - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.
+                - If greater than `1`, one or multiple worker processes are used to process data in parallel.
+                 Note: The function passed to `map()` must be picklable for multiprocessing to work correctly
+                 (i.e., prefer functions defined at the top level of a module, not inside another function or class).
             desc (`str`, *optional*, defaults to `None`):
                 Meaningful description to be displayed alongside with the progress bar while filtering examples.
 
@@ -1729,14 +1740,16 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
-        repo_url = api.create_repo(
-            repo_id,
-            token=token,
-            repo_type="dataset",
-            private=private,
-            exist_ok=True,
-        )
-        repo_id = repo_url.repo_id
+        try:
+            repo_id = api.repo_info(repo_id, repo_type="dataset").id
+        except RepositoryNotFoundError:
+            repo_url = api.create_repo(
+                repo_id,
+                repo_type="dataset",
+                private=private,
+                exist_ok=True,
+            )
+            repo_id = repo_url.repo_id
 
         if revision is not None and not revision.startswith("refs/pr/"):
             # We do not call create_branch for a PR reference: 400 Bad Request
@@ -1776,124 +1789,110 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         info_to_dump.dataset_size = total_dataset_nbytes
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
-        # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
-        # and delete old split shards (if they exist)
-        repo_with_dataset_card, repo_with_dataset_infos = False, False
-        repo_splits: list[str] = []  # use a list to keep the order of the splits
-        deletions: list[CommitOperationDelete] = []
-        repo_files_to_add = [addition.path_in_repo for addition in additions]
-        for repo_file in api.list_repo_tree(
-            repo_id=repo_id,
-            revision=revision,
-            repo_type="dataset",
-            token=token,
-            recursive=True,
-        ):
-            if not isinstance(repo_file, RepoFile):
-                continue
-            if repo_file.rfilename == config.REPOCARD_FILENAME:
-                repo_with_dataset_card = True
-            elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
-                repo_with_dataset_infos = True
-            elif (
-                repo_file.rfilename.startswith(tuple(f"{data_dir}/{split}-" for split in self.keys()))
-                and repo_file.rfilename not in repo_files_to_add
-            ):
-                deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
-            elif fnmatch.fnmatch(
-                repo_file.rfilename,
-                PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
-            ):
-                pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
-                split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
-                assert split_pattern_fields is not None
-                repo_split = split_pattern_fields["split"]
-                if repo_split not in repo_splits:
-                    repo_splits.append(repo_split)
+        def get_deletions_and_dataset_card() -> tuple[str, list[CommitOperationDelete], str, Optional[str]]:
+            parent_commit = api.repo_info(repo_id, repo_type="dataset", revision=revision).sha
 
-        # get the info from the README to update them
-        if repo_with_dataset_card:
-            dataset_card_path = api.hf_hub_download(
-                repo_id,
-                config.REPOCARD_FILENAME,
+            # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
+            # and delete old split shards (if they exist)
+            repo_with_dataset_card, repo_with_dataset_infos = False, False
+            repo_splits: list[str] = []  # use a list to keep the order of the splits
+            deletions: list[CommitOperationDelete] = []
+            repo_files_to_add = [addition.path_in_repo for addition in additions]
+            for repo_file in api.list_repo_tree(
+                repo_id=repo_id,
+                revision=parent_commit,
                 repo_type="dataset",
-                revision=revision,
-            )
-            dataset_card = DatasetCard.load(Path(dataset_card_path))
-            dataset_card_data = dataset_card.data
-            metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
-        # get the deprecated dataset_infos.json to update them
-        elif repo_with_dataset_infos:
-            dataset_card = None
-            dataset_card_data = DatasetCardData()
-            metadata_configs = MetadataConfigs()
-        else:
-            dataset_card = None
-            dataset_card_data = DatasetCardData()
-            metadata_configs = MetadataConfigs()
-        # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
-        if not metadata_configs and repo_splits:
-            default_metadata_configs_to_dump = {
-                "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
-            }
-            MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
-        metadata_config_to_dump = {
-            "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
-        }
-        configs_to_dump = {config_name: metadata_config_to_dump}
-        if set_default and config_name != "default":
-            if metadata_configs:
-                current_default_config_name = metadata_configs.get_default_config_name()
-                if current_default_config_name == "default":
-                    raise ValueError(
-                        "There exists a configuration named 'default'. To set a different configuration as default, "
-                        "rename the 'default' one first."
-                    )
-                if current_default_config_name:
-                    _ = metadata_configs[current_default_config_name].pop("default")
-                    configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
-            metadata_config_to_dump["default"] = True
-        # push to the deprecated dataset_infos.json
-        if repo_with_dataset_infos:
-            dataset_infos_path = api.hf_hub_download(
-                repo_id,
-                config.DATASETDICT_INFOS_FILENAME,
-                repo_type="dataset",
-                revision=revision,
-            )
-            with open(dataset_infos_path, encoding="utf-8") as f:
-                dataset_infos: dict = json.load(f)
-            dataset_infos[config_name] = asdict(info_to_dump)
-            additions.append(
-                CommitOperationAdd(
-                    path_in_repo=config.DATASETDICT_INFOS_FILENAME,
-                    path_or_fileobj=json.dumps(dataset_infos, indent=4).encode("utf-8"),
+                token=token,
+                recursive=True,
+            ):
+                if not isinstance(repo_file, RepoFile):
+                    continue
+                if repo_file.rfilename == config.REPOCARD_FILENAME:
+                    repo_with_dataset_card = True
+                elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
+                    repo_with_dataset_infos = True
+                elif (
+                    repo_file.rfilename.startswith(tuple(f"{data_dir}/{split}-" for split in self.keys()))
+                    and repo_file.rfilename not in repo_files_to_add
+                ):
+                    deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
+                elif fnmatch.fnmatch(
+                    repo_file.rfilename,
+                    PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
+                ):
+                    pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                    split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
+                    assert split_pattern_fields is not None
+                    repo_split = split_pattern_fields["split"]
+                    if repo_split not in repo_splits:
+                        repo_splits.append(repo_split)
+
+            # get the info from the README to update them
+            if repo_with_dataset_card:
+                dataset_card_path = api.hf_hub_download(
+                    repo_id,
+                    config.REPOCARD_FILENAME,
+                    repo_type="dataset",
+                    revision=parent_commit,
                 )
+                dataset_card = DatasetCard.load(Path(dataset_card_path))
+                dataset_card_data = dataset_card.data
+                metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
+            # get the deprecated dataset_infos.json to update them
+            elif repo_with_dataset_infos:
+                dataset_card = None
+                dataset_card_data = DatasetCardData()
+                metadata_configs = MetadataConfigs()
+            else:
+                dataset_card = None
+                dataset_card_data = DatasetCardData()
+                metadata_configs = MetadataConfigs()
+            # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
+            if not metadata_configs and repo_splits:
+                default_metadata_configs_to_dump = {
+                    "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
+                }
+                MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
+            metadata_config_to_dump = {
+                "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
+            }
+            configs_to_dump = {config_name: metadata_config_to_dump}
+            if set_default and config_name != "default":
+                if metadata_configs:
+                    current_default_config_name = metadata_configs.get_default_config_name()
+                    if current_default_config_name == "default":
+                        raise ValueError(
+                            "There exists a configuration named 'default'. To set a different configuration as default, "
+                            "rename the 'default' one first."
+                        )
+                    if current_default_config_name:
+                        _ = metadata_configs[current_default_config_name].pop("default")
+                        configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
+                metadata_config_to_dump["default"] = True
+            # push to the deprecated dataset_infos.json
+            if repo_with_dataset_infos:
+                dataset_infos_path = api.hf_hub_download(
+                    repo_id,
+                    config.DATASETDICT_INFOS_FILENAME,
+                    repo_type="dataset",
+                    revision=parent_commit,
+                )
+                with open(dataset_infos_path, encoding="utf-8") as f:
+                    dataset_infos: dict = json.load(f)
+                dataset_infos[config_name] = asdict(info_to_dump)
+                new_dataset_infos = json.dumps(dataset_infos, indent=4)
+            else:
+                new_dataset_infos = None
+            # push to README
+            DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
+            MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
+            new_dataset_card = (
+                DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
             )
-        # push to README
-        DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
-        MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
-        dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
-        additions.append(
-            CommitOperationAdd(
-                path_in_repo=config.REPOCARD_FILENAME,
-                path_or_fileobj=str(dataset_card).encode(),
-            )
-        )
+            return parent_commit, deletions, new_dataset_card, new_dataset_infos
 
         commit_message = commit_message if commit_message is not None else "Upload dataset"
-        if len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:
-            commit_info = api.create_commit(
-                repo_id,
-                operations=additions + deletions,
-                commit_message=commit_message,
-                commit_description=commit_description,
-                token=token,
-                repo_type="dataset",
-                revision=revision,
-                create_pr=create_pr,
-            )
-        else:
+        if len(additions) > config.UPLOADS_MAX_NUMBER_PER_COMMIT:
             logger.info(
                 f"Number of files to upload is larger than {config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
             )
@@ -1901,22 +1900,87 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             for i in range(0, num_commits):
                 operations = additions[
                     i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
-                ] + (deletions if i == 0 else [])
-                commit_info = api.create_commit(
-                    repo_id,
-                    operations=operations,
-                    commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
-                    commit_description=commit_description,
-                    token=token,
-                    repo_type="dataset",
-                    revision=revision,
-                    create_pr=create_pr,
-                )
+                ]
+                for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+                    # We need to retry if another commit happens at the same time
+                    sleep_time *= 1 + random.random()
+                    try:
+                        commit_info = api.create_commit(
+                            repo_id,
+                            operations=operations,
+                            commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                            commit_description=commit_description,
+                            repo_type="dataset",
+                            revision=revision,
+                            create_pr=create_pr,
+                        )
+                    except HfHubHTTPError as err:
+                        if (
+                            err.__context__
+                            and isinstance(err.__context__, HTTPError)
+                            and err.__context__.response.status_code == 409
+                        ):
+                            # 409 is Conflict (another commit is in progress)
+                            time.sleep(sleep_time)
+                            logger.info(
+                                f"Retrying intermediate commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
+                            )
+                            continue
+                        else:
+                            raise
+                    break
                 logger.info(
                     f"Commit #{i + 1} completed"
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
+            last_commit_additions = []
+        else:
+            last_commit_additions = additions
+
+        for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+            # We need to retry if there was a commit in between in case it touched the dataset card data
+            sleep_time *= 1 + random.random()
+            parent_commit, deletions, dataset_card, dataset_infos = get_deletions_and_dataset_card()
+            dataset_card_additions = []
+            if dataset_infos:
+                dataset_card_additions.append(
+                    CommitOperationAdd(
+                        path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+                        path_or_fileobj=dataset_infos.encode("utf-8"),
+                    )
+                )
+            dataset_card_additions.append(
+                CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
+            )
+            try:
+                commit_info = api.create_commit(
+                    repo_id,
+                    operations=last_commit_additions + dataset_card_additions + deletions,
+                    commit_message=commit_message,
+                    commit_description=commit_description,
+                    repo_type="dataset",
+                    revision=revision,
+                    create_pr=create_pr,
+                    parent_commit=parent_commit,
+                )
+            except HfHubHTTPError as err:
+                if (
+                    err.__context__
+                    and isinstance(err.__context__, HTTPError)
+                    and err.__context__.response.status_code in (412, 409)
+                ):
+                    # 412 is Precondition failed (parent_commit isn't satisfied)
+                    # 409 is Conflict (another commit is in progress)
+                    time.sleep(sleep_time)
+                    logger.info(
+                        f"Retrying commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
+                    )
+                    continue
+                else:
+                    raise
+            break
+
         return commit_info
 
 
@@ -2545,14 +2609,16 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
-        repo_url = api.create_repo(
-            repo_id,
-            token=token,
-            repo_type="dataset",
-            private=private,
-            exist_ok=True,
-        )
-        repo_id = repo_url.repo_id
+        try:
+            repo_id = api.repo_info(repo_id, repo_type="dataset").id
+        except RepositoryNotFoundError:
+            repo_url = api.create_repo(
+                repo_id,
+                repo_type="dataset",
+                private=private,
+                exist_ok=True,
+            )
+            repo_id = repo_url.repo_id
 
         if revision is not None and not revision.startswith("refs/pr/"):
             # We do not call create_branch for a PR reference: 400 Bad Request
@@ -2592,124 +2658,110 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         info_to_dump.dataset_size = total_dataset_nbytes
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
-        # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
-        # and delete old split shards (if they exist)
-        repo_with_dataset_card, repo_with_dataset_infos = False, False
-        repo_splits: list[str] = []  # use a list to keep the order of the splits
-        deletions: list[CommitOperationDelete] = []
-        repo_files_to_add = [addition.path_in_repo for addition in additions]
-        for repo_file in api.list_repo_tree(
-            repo_id=repo_id,
-            revision=revision,
-            repo_type="dataset",
-            token=token,
-            recursive=True,
-        ):
-            if not isinstance(repo_file, RepoFile):
-                continue
-            if repo_file.rfilename == config.REPOCARD_FILENAME:
-                repo_with_dataset_card = True
-            elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
-                repo_with_dataset_infos = True
-            elif (
-                repo_file.rfilename.startswith(tuple(f"{data_dir}/{split}-" for split in self.keys()))
-                and repo_file.rfilename not in repo_files_to_add
-            ):
-                deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
-            elif fnmatch.fnmatch(
-                repo_file.rfilename,
-                PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
-            ):
-                pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
-                split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
-                assert split_pattern_fields is not None
-                repo_split = split_pattern_fields["split"]
-                if repo_split not in repo_splits:
-                    repo_splits.append(repo_split)
+        def get_deletions_and_dataset_card() -> tuple[str, list[CommitOperationDelete], str, Optional[str]]:
+            parent_commit = api.repo_info(repo_id, repo_type="dataset", revision=revision).sha
 
-        # get the info from the README to update them
-        if repo_with_dataset_card:
-            dataset_card_path = api.hf_hub_download(
-                repo_id,
-                config.REPOCARD_FILENAME,
+            # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
+            # and delete old split shards (if they exist)
+            repo_with_dataset_card, repo_with_dataset_infos = False, False
+            repo_splits: list[str] = []  # use a list to keep the order of the splits
+            deletions: list[CommitOperationDelete] = []
+            repo_files_to_add = [addition.path_in_repo for addition in additions]
+            for repo_file in api.list_repo_tree(
+                repo_id=repo_id,
+                revision=parent_commit,
                 repo_type="dataset",
-                revision=revision,
-            )
-            dataset_card = DatasetCard.load(Path(dataset_card_path))
-            dataset_card_data = dataset_card.data
-            metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
-        # get the deprecated dataset_infos.json to update them
-        elif repo_with_dataset_infos:
-            dataset_card = None
-            dataset_card_data = DatasetCardData()
-            metadata_configs = MetadataConfigs()
-        else:
-            dataset_card = None
-            dataset_card_data = DatasetCardData()
-            metadata_configs = MetadataConfigs()
-        # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
-        if not metadata_configs and repo_splits:
-            default_metadata_configs_to_dump = {
-                "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
-            }
-            MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
-        metadata_config_to_dump = {
-            "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
-        }
-        configs_to_dump = {config_name: metadata_config_to_dump}
-        if set_default and config_name != "default":
-            if metadata_configs:
-                current_default_config_name = metadata_configs.get_default_config_name()
-                if current_default_config_name == "default":
-                    raise ValueError(
-                        "There exists a configuration named 'default'. To set a different configuration as default, "
-                        "rename the 'default' one first."
-                    )
-                if current_default_config_name:
-                    _ = metadata_configs[current_default_config_name].pop("default")
-                    configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
-            metadata_config_to_dump["default"] = True
-        # push to the deprecated dataset_infos.json
-        if repo_with_dataset_infos:
-            dataset_infos_path = api.hf_hub_download(
-                repo_id,
-                config.DATASETDICT_INFOS_FILENAME,
-                repo_type="dataset",
-                revision=revision,
-            )
-            with open(dataset_infos_path, encoding="utf-8") as f:
-                dataset_infos: dict = json.load(f)
-            dataset_infos[config_name] = asdict(info_to_dump)
-            additions.append(
-                CommitOperationAdd(
-                    path_in_repo=config.DATASETDICT_INFOS_FILENAME,
-                    path_or_fileobj=json.dumps(dataset_infos, indent=4).encode("utf-8"),
+                token=token,
+                recursive=True,
+            ):
+                if not isinstance(repo_file, RepoFile):
+                    continue
+                if repo_file.rfilename == config.REPOCARD_FILENAME:
+                    repo_with_dataset_card = True
+                elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
+                    repo_with_dataset_infos = True
+                elif (
+                    repo_file.rfilename.startswith(tuple(f"{data_dir}/{split}-" for split in self.keys()))
+                    and repo_file.rfilename not in repo_files_to_add
+                ):
+                    deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
+                elif fnmatch.fnmatch(
+                    repo_file.rfilename,
+                    PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
+                ):
+                    pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                    split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
+                    assert split_pattern_fields is not None
+                    repo_split = split_pattern_fields["split"]
+                    if repo_split not in repo_splits:
+                        repo_splits.append(repo_split)
+
+            # get the info from the README to update them
+            if repo_with_dataset_card:
+                dataset_card_path = api.hf_hub_download(
+                    repo_id,
+                    config.REPOCARD_FILENAME,
+                    repo_type="dataset",
+                    revision=parent_commit,
                 )
+                dataset_card = DatasetCard.load(Path(dataset_card_path))
+                dataset_card_data = dataset_card.data
+                metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
+            # get the deprecated dataset_infos.json to update them
+            elif repo_with_dataset_infos:
+                dataset_card = None
+                dataset_card_data = DatasetCardData()
+                metadata_configs = MetadataConfigs()
+            else:
+                dataset_card = None
+                dataset_card_data = DatasetCardData()
+                metadata_configs = MetadataConfigs()
+            # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
+            if not metadata_configs and repo_splits:
+                default_metadata_configs_to_dump = {
+                    "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
+                }
+                MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
+            metadata_config_to_dump = {
+                "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
+            }
+            configs_to_dump = {config_name: metadata_config_to_dump}
+            if set_default and config_name != "default":
+                if metadata_configs:
+                    current_default_config_name = metadata_configs.get_default_config_name()
+                    if current_default_config_name == "default":
+                        raise ValueError(
+                            "There exists a configuration named 'default'. To set a different configuration as default, "
+                            "rename the 'default' one first."
+                        )
+                    if current_default_config_name:
+                        _ = metadata_configs[current_default_config_name].pop("default")
+                        configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
+                metadata_config_to_dump["default"] = True
+            # push to the deprecated dataset_infos.json
+            if repo_with_dataset_infos:
+                dataset_infos_path = api.hf_hub_download(
+                    repo_id,
+                    config.DATASETDICT_INFOS_FILENAME,
+                    repo_type="dataset",
+                    revision=parent_commit,
+                )
+                with open(dataset_infos_path, encoding="utf-8") as f:
+                    dataset_infos: dict = json.load(f)
+                dataset_infos[config_name] = asdict(info_to_dump)
+                new_dataset_infos = json.dumps(dataset_infos, indent=4)
+            else:
+                new_dataset_infos = None
+            # push to README
+            DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
+            MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
+            new_dataset_card = (
+                DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
             )
-        # push to README
-        DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
-        MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
-        dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
-        additions.append(
-            CommitOperationAdd(
-                path_in_repo=config.REPOCARD_FILENAME,
-                path_or_fileobj=str(dataset_card).encode(),
-            )
-        )
+            return parent_commit, deletions, new_dataset_card, new_dataset_infos
 
         commit_message = commit_message if commit_message is not None else "Upload dataset"
-        if len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:
-            commit_info = api.create_commit(
-                repo_id,
-                operations=additions + deletions,
-                commit_message=commit_message,
-                commit_description=commit_description,
-                token=token,
-                repo_type="dataset",
-                revision=revision,
-                create_pr=create_pr,
-            )
-        else:
+        if len(additions) > config.UPLOADS_MAX_NUMBER_PER_COMMIT:
             logger.info(
                 f"Number of files to upload is larger than {config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
             )
@@ -2717,20 +2769,85 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
             for i in range(0, num_commits):
                 operations = additions[
                     i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
-                ] + (deletions if i == 0 else [])
-                commit_info = api.create_commit(
-                    repo_id,
-                    operations=operations,
-                    commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
-                    commit_description=commit_description,
-                    token=token,
-                    repo_type="dataset",
-                    revision=revision,
-                    create_pr=create_pr,
-                )
+                ]
+                for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+                    # We need to retry if another commit happens at the same time
+                    sleep_time *= 1 + random.random()
+                    try:
+                        commit_info = api.create_commit(
+                            repo_id,
+                            operations=operations,
+                            commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                            commit_description=commit_description,
+                            repo_type="dataset",
+                            revision=revision,
+                            create_pr=create_pr,
+                        )
+                    except HfHubHTTPError as err:
+                        if (
+                            err.__context__
+                            and isinstance(err.__context__, HTTPError)
+                            and err.__context__.response.status_code == 409
+                        ):
+                            # 409 is Conflict (another commit is in progress)
+                            time.sleep(sleep_time)
+                            logger.info(
+                                f"Retrying intermediate commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
+                            )
+                            continue
+                        else:
+                            raise
+                    break
                 logger.info(
                     f"Commit #{i + 1} completed"
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
+            last_commit_additions = []
+        else:
+            last_commit_additions = additions
+
+        for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+            # We need to retry if there was a commit in between in case it touched the dataset card data
+            sleep_time *= 1 + random.random()
+            parent_commit, deletions, dataset_card, dataset_infos = get_deletions_and_dataset_card()
+            dataset_card_additions = []
+            if dataset_infos:
+                dataset_card_additions.append(
+                    CommitOperationAdd(
+                        path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+                        path_or_fileobj=dataset_infos.encode("utf-8"),
+                    )
+                )
+            dataset_card_additions.append(
+                CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
+            )
+            try:
+                commit_info = api.create_commit(
+                    repo_id,
+                    operations=last_commit_additions + dataset_card_additions + deletions,
+                    commit_message=commit_message,
+                    commit_description=commit_description,
+                    repo_type="dataset",
+                    revision=revision,
+                    create_pr=create_pr,
+                    parent_commit=parent_commit,
+                )
+            except HfHubHTTPError as err:
+                if (
+                    err.__context__
+                    and isinstance(err.__context__, HTTPError)
+                    and err.__context__.response.status_code in (412, 409)
+                ):
+                    # 412 is Precondition failed (parent_commit isn't satisfied)
+                    # 409 is Conflict (another commit is in progress)
+                    time.sleep(sleep_time)
+                    logger.info(
+                        f"Retrying commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
+                    )
+                    continue
+                else:
+                    raise
+            break
+
         return commit_info

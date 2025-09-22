@@ -60,7 +60,7 @@ class _TempCacheDir:
                 shutil.rmtree(self.name)
             except Exception as e:
                 raise OSError(
-                    f"An error occured while trying to delete temporary cache directory {self.name}. Please delete it manually."
+                    f"An error occurred while trying to delete temporary cache directory {self.name}. Please delete it manually."
                 ) from e
 
     def cleanup(self):
@@ -237,7 +237,7 @@ def update_fingerprint(fingerprint, transform, transform_args):
                     f"Transform {transform} couldn't be hashed properly, a random hash was used instead. "
                     "Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work. "
                     "If you reuse this transform, the caching mechanism will consider it to be different from the previous calls and recompute everything. "
-                    "This warning is only showed once. Subsequent hashing failures won't be showed."
+                    "This warning is only shown once. Subsequent hashing failures won't be shown."
                 )
                 fingerprint_warnings["update_fingerprint_transform_hash_failed"] = True
             else:
@@ -259,7 +259,7 @@ def update_fingerprint(fingerprint, transform, transform_args):
                         f"Parameter '{key}'={transform_args[key]} of the transform {transform} couldn't be hashed properly, a random hash was used instead. "
                         "Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work. "
                         "If you reuse this transform, the caching mechanism will consider it to be different from the previous calls and recompute everything. "
-                        "This warning is only showed once. Subsequent hashing failures won't be showed."
+                        "This warning is only shown once. Subsequent hashing failures won't be shown."
                     )
                     fingerprint_warnings["update_fingerprint_transform_hash_failed"] = True
                 else:
