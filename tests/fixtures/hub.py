@@ -23,9 +23,7 @@ CI_HFH_HUGGINGFACE_CO_URL_TEMPLATE = CI_HUB_ENDPOINT + "/{repo_id}/resolve/{revi
 def ci_hub_config(monkeypatch):
     monkeypatch.setattr("datasets.config.HF_ENDPOINT", CI_HUB_ENDPOINT)
     monkeypatch.setattr("datasets.config.HUB_DATASETS_URL", CI_HUB_DATASETS_URL)
-    monkeypatch.setattr(
-        "huggingface_hub.file_download.HUGGINGFACE_CO_URL_TEMPLATE", CI_HFH_HUGGINGFACE_CO_URL_TEMPLATE
-    )
+    monkeypatch.setattr("huggingface_hub.constants.HUGGINGFACE_CO_URL_TEMPLATE", CI_HFH_HUGGINGFACE_CO_URL_TEMPLATE)
     old_environ = dict(os.environ)
     os.environ["HF_ENDPOINT"] = CI_HUB_ENDPOINT
     yield
