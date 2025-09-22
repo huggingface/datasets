@@ -34,6 +34,7 @@ jobs:
   test:
     needs: check_code_quality
     strategy:
+      fail-fast: false
       matrix:
         test: ["unit", "integration"]
         os: [ubuntu-latest, windows-latest]
@@ -87,6 +88,7 @@ jobs:
   test_py311:
     needs: check_code_quality
     strategy:
+      fail-fast: false
       matrix:
         test: ["unit"]
         os: [ubuntu-latest, windows-latest]
@@ -133,6 +135,7 @@ jobs:
   test_py311_numpy2:
     needs: check_code_quality
     strategy:
+      fail-fast: false
       matrix:
         test: ["unit"]
         os: [ubuntu-latest, windows-latest]
