@@ -47,9 +47,6 @@ class Audio:
     Args:
         sampling_rate (`int`, *optional*):
             Target sampling rate. If `None`, the native sampling rate is used.
-        mono (`bool`, defaults to `True`):
-            Whether to convert the audio signal to mono by averaging samples across
-            channels.
         decode (`bool`, defaults to `True`):
             Whether to decode the audio data. If `False`,
             returns the underlying dictionary in the format `{"path": audio_path, "bytes": audio_bytes}`.
