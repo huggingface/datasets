@@ -141,7 +141,7 @@ def cached_path(
         ConnectionError: in case of unreachable url
             and no cache on disk
         ValueError: if it couldn't parse the url or filename correctly
-        httpx.NetworkError: in case of internet connection issue
+        httpx.NetworkError or requests.exceptions.ConnectionError: in case of internet connection issue
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
@@ -184,10 +184,10 @@ def cached_path(
                     proxies=download_config.proxies,
                 )
             except (
-                huggingface_hub.errors.RepositoryNotFoundError,
-                huggingface_hub.errors.EntryNotFoundError,
-                huggingface_hub.errors.RevisionNotFoundError,
-                huggingface_hub.errors.GatedRepoError,
+                huggingface_hub.utils.RepositoryNotFoundError,
+                huggingface_hub.utils.EntryNotFoundError,
+                huggingface_hub.utils.RevisionNotFoundError,
+                huggingface_hub.utils.GatedRepoError,
             ) as e:
                 raise FileNotFoundError(str(e)) from e
         # Download external files
@@ -754,7 +754,7 @@ def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
         fs, *_ = fs, *_ = url_to_fs(path, **storage_options)
         try:
             size = fs.size(main_hop)
-        except huggingface_hub.errors.EntryNotFoundError:
+        except huggingface_hub.utils.EntryNotFoundError:
             raise FileNotFoundError(f"No such file: {path}")
         if size is None:
             # use xopen instead of fs.open to make data fetching more robust

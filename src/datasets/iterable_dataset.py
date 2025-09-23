@@ -27,8 +27,8 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 from huggingface_hub import CommitInfo, CommitOperationAdd, CommitOperationDelete, DatasetCard, DatasetCardData, HfApi
-from huggingface_hub.errors import HfHubHTTPError, RepositoryNotFoundError
 from huggingface_hub.hf_api import RepoFile
+from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 from multiprocess import Pool
 
 from . import config

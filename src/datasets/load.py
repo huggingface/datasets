@@ -29,18 +29,19 @@ from typing import Any, Optional, Union
 
 import fsspec
 import httpx
+import requests
 import yaml
 from fsspec.core import url_to_fs
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi
-from huggingface_hub.errors import (
+from huggingface_hub.utils import (
     EntryNotFoundError,
     GatedRepoError,
     LocalEntryNotFoundError,
     OfflineModeIsEnabled,
     RepositoryNotFoundError,
     RevisionNotFoundError,
+    get_session,
 )
-from huggingface_hub.utils import get_session
 
 from . import __version__, config
 from .arrow_dataset import Dataset
@@ -944,7 +945,13 @@ def dataset_module_factory(
             except LocalEntryNotFoundError as e:
                 if isinstance(
                     e.__cause__,
-                    (OfflineModeIsEnabled, httpx.ConnectError, httpx.TimeoutException),
+                    (
+                        OfflineModeIsEnabled,
+                        requests.exceptions.Timeout,
+                        requests.exceptions.ConnectionError,
+                        httpx.ConnectError,
+                        httpx.TimeoutException,
+                    ),
                 ):
                     raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
                 else:
@@ -955,7 +962,13 @@ def dataset_module_factory(
                     revision=revision,
                     timeout=100.0,
                 ).sha
-            except (OfflineModeIsEnabled, httpx.ConnectError, httpx.TimeoutException) as e:
+            except (
+                OfflineModeIsEnabled,
+                requests.exceptions.Timeout,
+                requests.exceptions.ConnectionError,
+                httpx.ConnectError,
+                httpx.TimeoutException,
+            ) as e:
                 raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
             except GatedRepoError as e:
                 message = f"Dataset '{path}' is a gated dataset on the Hub."

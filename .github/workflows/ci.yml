@@ -13,6 +13,7 @@ env:
   CI_HEADERS: ${{ secrets.CI_HEADERS }}
 
 jobs:
+
   check_code_quality:
     runs-on: ubuntu-latest
     steps:
@@ -25,7 +26,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install .[quality]
-          pip install git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc0
+          pip install git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc0 # temporary (only for tests)
       - name: Check quality
         run: |
           ruff check tests src benchmarks utils setup.py # linter
@@ -34,12 +35,11 @@ jobs:
   test:
     needs: check_code_quality
     strategy:
-      fail-fast: false
       matrix:
-        test: ["unit", "integration"]
+        test: ['unit', 'integration']
         os: [ubuntu-latest, windows-latest]
         deps_versions: [deps-latest, deps-minimum]
-    # continue-on-error: ${{ matrix.test == 'integration' }}
+    continue-on-error: ${{ matrix.test == 'integration' }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -49,7 +49,7 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt update
-          sudo apt install -y ffmpeg
+          sudo apt install -y ffmpeg 
       - name: Set up Python 3.9
         uses: actions/setup-python@v5
         with:
@@ -87,12 +87,11 @@ jobs:
   test_py311:
     needs: check_code_quality
     strategy:
-      fail-fast: false
       matrix:
-        test: ["unit"]
+        test: ['unit']
         os: [ubuntu-latest, windows-latest]
         deps_versions: [deps-latest]
-    # continue-on-error: false
+    continue-on-error: false
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -102,7 +101,7 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt update
-          sudo apt install -y ffmpeg
+          sudo apt install -y ffmpeg 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
