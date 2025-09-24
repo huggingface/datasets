@@ -22,6 +22,7 @@ def interleave_datasets(
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
     stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+    sample_with_replacement: bool = True,
 ) -> DatasetType:
     """
     Interleave several datasets (sources) into a single dataset.
@@ -151,7 +152,13 @@ def interleave_datasets(
         )
     else:
         return _interleave_iterable_datasets(
-            datasets, probabilities, seed, info=info, split=split, stopping_strategy=stopping_strategy
+            datasets,
+            probabilities,
+            seed,
+            info=info,
+            split=split,
+            stopping_strategy=stopping_strategy,
+            sample_with_replacement=sample_with_replacement,
         )
 
 

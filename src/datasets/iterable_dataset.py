@@ -675,10 +675,12 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
         self,
         ex_iterables: list[_BaseExamplesIterable],
         stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+        sample_with_replacement: bool = True,
     ):
         super().__init__()
         self.ex_iterables = ex_iterables
         self.stopping_strategy = stopping_strategy
+        self.sample_with_replacement = sample_with_replacement
 
         # if undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted
         # if oversampling ("all_exhausted"), we stop as soons as every dataset is exhausted, i.e as soon as every samples of every dataset has been visited at least once
@@ -735,6 +737,9 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             # if the stopping criteria is met, break the main for loop
             if self.bool_strategy_func(is_exhausted):
                 break
+            # Skip exhausted iterators
+            if is_exhausted[i] and not self.sample_with_replacement:
+                continue
             # let's pick one example from the iterator at index i
             if nexts[i] is None:
                 nexts[i] = next(iterators[i], False)
@@ -749,11 +754,12 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
                 if self._state_dict:
                     self._state_dict["is_exhausted"][i] = True
                 # we reset it in case the stopping crtieria isn't met yet
-                nexts[i] = None
-                if self._state_dict:
-                    self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
-                    self._state_dict["previous_states"][i] = None
-                iterators[i] = self.ex_iterables[i].iter_arrow()
+                if self.sample_with_replacement:
+                    nexts[i] = None
+                    if self._state_dict:
+                        self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
+                        self._state_dict["previous_states"][i] = None
+                    iterators[i] = self.ex_iterables[i]._iter_arrow()
 
             if result is not False:
                 yield result
@@ -989,8 +995,9 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         generator: np.random.Generator,
         probabilities: Optional[list[float]] = None,
         stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+        sample_with_replacement: bool = True,
     ):
-        super().__init__(ex_iterables, stopping_strategy)
+        super().__init__(ex_iterables, stopping_strategy, sample_with_replacement)
         self.generator = deepcopy(generator)
         self.probabilities = probabilities
         # TODO(QL): implement iter_arrow
@@ -4491,6 +4498,7 @@ def _interleave_iterable_datasets(
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
     stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+    sample_with_replacement: bool = True,
 ) -> IterableDataset:
     """
     Interleave several iterable datasets (sources) into a single iterable dataset.
@@ -4532,11 +4540,17 @@ def _interleave_iterable_datasets(
         ex_iterables = [RebatchedArrowExamplesIterable(ex_iterable, batch_size=1) for ex_iterable in ex_iterables]
     # Use cycling or random cycling of sources
     if probabilities is None:
-        ex_iterable = CyclingMultiSourcesExamplesIterable(ex_iterables, stopping_strategy=stopping_strategy)
+        ex_iterable = CyclingMultiSourcesExamplesIterable(
+            ex_iterables, stopping_strategy=stopping_strategy, sample_with_replacement=sample_with_replacement
+        )
     else:
         generator = np.random.default_rng(seed)
         ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
-            ex_iterables, generator=generator, probabilities=probabilities, stopping_strategy=stopping_strategy
+            ex_iterables,
+            generator=generator,
+            probabilities=probabilities,
+            stopping_strategy=stopping_strategy,
+            sample_with_replacement=sample_with_replacement,
         )
     # Set new info - we update the features
     # setting the features also ensures to fill missing columns with None
