@@ -4,6 +4,7 @@ A tabular dataset is a generic dataset used to describe any data stored in rows 
 
 - CSV files
 - Pandas DataFrames
+- HDF5 files
 - Databases
 
 ## CSV files
@@ -62,6 +63,17 @@ Use the `splits` parameter to specify the name of the dataset split:
 ```
 
 If the dataset doesn't look as expected, you should explicitly [specify your dataset features](loading#specify-features). A [pandas.Series](https://pandas.pydata.org/docs/reference/api/pandas.Series.html) may not always carry enough information for Arrow to automatically infer a data type. For example, if a DataFrame is of length `0` or if the Series only contains `None/NaN` objects, the type is set to `null`.
+
+## HDF5 files
+
+[HDF5](https://www.hdfgroup.org/solutions/hdf5/) files are commonly used for storing large amounts of numerical data in scientific computing and machine learning. Loading HDF5 files with 🤗 Datasets is similar to loading CSV files:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("hdf5", data_files="data.h5")
+```
+
+Note that the HDF5 loader assumes that the file has "tabular" structure, i.e. that all datasets in the file have (the same number of) rows on their first dimension.
 
 ## Databases
 
