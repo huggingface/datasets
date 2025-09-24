@@ -131,14 +131,14 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
                     else:
                         # Fallback to safe conversion via Python ints
                         kwargs = self.torch_tensor_kwargs.copy()
-                        kwargs.setdefault('dtype', target_dtype)
+                        kwargs.setdefault("dtype", target_dtype)
                         return torch.tensor(value, **kwargs)
                 else:
                     # Use zero-copy conversion for compatible integer types
                     if value.dtype != np.int64:
                         # Need dtype conversion, use as_tensor for efficiency
                         kwargs = self.torch_tensor_kwargs.copy()
-                        kwargs.setdefault('dtype', target_dtype)
+                        kwargs.setdefault("dtype", target_dtype)
                         return torch.as_tensor(value, **kwargs)
                     else:
                         # Perfect match, zero-copy conversion
@@ -149,7 +149,7 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
                 if value.dtype != np.float32:
                     # Need dtype conversion
                     kwargs = self.torch_tensor_kwargs.copy()
-                    kwargs.setdefault('dtype', torch.float32)
+                    kwargs.setdefault("dtype", torch.float32)
                     return torch.as_tensor(value, **kwargs)
                 else:
                     # Zero-copy conversion
@@ -163,11 +163,11 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
             if np.issubdtype(value.dtype, np.integer):
                 # Use torch.as_tensor for scalar conversion with dtype control
                 kwargs = self.torch_tensor_kwargs.copy()
-                kwargs.setdefault('dtype', torch.int64)
+                kwargs.setdefault("dtype", torch.int64)
                 return torch.as_tensor(value, **kwargs)
             elif np.issubdtype(value.dtype, np.floating):
                 kwargs = self.torch_tensor_kwargs.copy()
-                kwargs.setdefault('dtype', torch.float32)
+                kwargs.setdefault("dtype", torch.float32)
                 return torch.as_tensor(value, **kwargs)
             else:
                 return torch.as_tensor(value, **self.torch_tensor_kwargs)
