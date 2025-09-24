@@ -784,6 +784,8 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             if self.bool_strategy_func(is_exhausted):
                 break
             # let's pick one example from the iterator at index i
+            if is_exhausted[i] and not self.sample_with_replacement:
+                continue
             if nexts[i] is None:
                 nexts[i] = next(iterators[i], False)
             result = nexts[i]
@@ -797,12 +799,12 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
                 if self._state_dict:
                     self._state_dict["is_exhausted"][i] = True
                 # we reset it in case the stopping crtieria isn't met yet
-                nexts[i] = None
-                if self._state_dict:
-                    self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
-                    self._state_dict["previous_states"][i] = None
-                iterators[i] = iter(self.ex_iterables[i])
-
+                if self.sample_with_replacement:
+                    nexts[i] = None
+                    if self._state_dict:
+                        self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
+                        self._state_dict["previous_states"][i] = None
+                    iterators[i] = iter(self.ex_iterables[i])
             if result is not False:
                 yield result
 
