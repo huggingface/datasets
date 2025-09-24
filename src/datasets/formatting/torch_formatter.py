@@ -116,61 +116,71 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
         if isinstance(value, np.ndarray):
             # Handle integer types with smart casting
             if np.issubdtype(value.dtype, np.integer):
-                target_dtype = torch.int64
+                # Check if user specified a dtype, otherwise default to int64
+                kwargs = self.torch_tensor_kwargs.copy()
+                target_dtype = kwargs.get("dtype", torch.int64)
 
                 # Safe casting for unsigned types
                 if value.dtype in (np.uint16, np.uint32):
                     # Cast to int64 in numpy (fast) then convert to torch
                     value = value.astype(np.int64)
-                    return torch.from_numpy(value)
+                    if target_dtype == torch.int64:
+                        return torch.from_numpy(value)
+                    else:
+                        kwargs.setdefault("dtype", target_dtype)
+                        return torch.as_tensor(value, **kwargs)
                 elif value.dtype == np.uint64:
                     # Check if values fit in int64 range
                     if np.all(value <= np.iinfo(np.int64).max):
                         value = value.astype(np.int64)
-                        return torch.from_numpy(value)
+                        if target_dtype == torch.int64:
+                            return torch.from_numpy(value)
+                        else:
+                            kwargs.setdefault("dtype", target_dtype)
+                            return torch.as_tensor(value, **kwargs)
                     else:
                         # Fallback to safe conversion via Python ints
-                        kwargs = self.torch_tensor_kwargs.copy()
                         kwargs.setdefault("dtype", target_dtype)
                         return torch.tensor(value, **kwargs)
                 else:
                     # Use zero-copy conversion for compatible integer types
-                    if value.dtype != np.int64:
-                        # Need dtype conversion, use as_tensor for efficiency
-                        kwargs = self.torch_tensor_kwargs.copy()
-                        kwargs.setdefault("dtype", target_dtype)
-                        return torch.as_tensor(value, **kwargs)
-                    else:
+                    if value.dtype == np.int64 and target_dtype == torch.int64:
                         # Perfect match, zero-copy conversion
                         return torch.from_numpy(value)
+                    else:
+                        # Need dtype conversion, use as_tensor for efficiency
+                        kwargs.setdefault("dtype", target_dtype)
+                        return torch.as_tensor(value, **kwargs)
 
             # Handle floating point types
             elif np.issubdtype(value.dtype, np.floating):
-                if value.dtype != np.float32:
-                    # Need dtype conversion
-                    kwargs = self.torch_tensor_kwargs.copy()
-                    kwargs.setdefault("dtype", torch.float32)
-                    return torch.as_tensor(value, **kwargs)
-                else:
+                # Check if user specified a dtype, otherwise default to float32
+                kwargs = self.torch_tensor_kwargs.copy()
+                target_dtype = kwargs.get("dtype", torch.float32)
+
+                if value.dtype == np.float32 and target_dtype == torch.float32:
                     # Zero-copy conversion
                     return torch.from_numpy(value)
+                else:
+                    # Need dtype conversion
+                    kwargs.setdefault("dtype", target_dtype)
+                    return torch.as_tensor(value, **kwargs)
             else:
                 # Other numpy types, use zero-copy when possible
                 return torch.from_numpy(value)
 
         # Handle numpy scalars
         elif isinstance(value, np.number):
+            kwargs = self.torch_tensor_kwargs.copy()
             if np.issubdtype(value.dtype, np.integer):
                 # Use torch.as_tensor for scalar conversion with dtype control
-                kwargs = self.torch_tensor_kwargs.copy()
                 kwargs.setdefault("dtype", torch.int64)
                 return torch.as_tensor(value, **kwargs)
             elif np.issubdtype(value.dtype, np.floating):
-                kwargs = self.torch_tensor_kwargs.copy()
                 kwargs.setdefault("dtype", torch.float32)
                 return torch.as_tensor(value, **kwargs)
             else:
-                return torch.as_tensor(value, **self.torch_tensor_kwargs)
+                return torch.as_tensor(value, **kwargs)
 
         # Handle Python lists/tuples of numbers efficiently
         elif isinstance(value, (list, tuple)):
