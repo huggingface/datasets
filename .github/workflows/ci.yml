@@ -26,7 +26,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install .[quality]
-          pip install git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc1 # temporary (only for tests)
+          pip install git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc0 # temporary (only for tests)
       - name: Check quality
         run: |
           ruff check tests src benchmarks utils setup.py # linter
@@ -75,7 +75,7 @@ jobs:
         if: ${{ matrix.deps_versions == 'deps-latest' }}
         run: uv pip install --system --upgrade pyarrow huggingface-hub "dill<0.3.9"
       - name: Install transformers from source (latest versions)
-        run: uv pip install --system git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc1 # temporary (only for tests)
+        run: uv pip install --system git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc0 # temporary (only for tests)
 
       - name: Install dependencies (minimum versions)
         if: ${{ matrix.deps_versions != 'deps-latest' }}
@@ -126,7 +126,7 @@ jobs:
       - name: Install dependencies
         run: uv pip install --system "datasets[tests] @ ."
       - name: Install transformers from source
-        run: uv pip install --system git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc1 # temporary (only for tests)
+        run: uv pip install --system git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc0 # temporary (only for tests)
       - name: Print dependencies
         run: uv pip list
       - name: Test with pytest
@@ -174,7 +174,7 @@ jobs:
       - name: Install dependencies
         run: uv pip install --system "datasets[tests_numpy2] @ ."
       - name: Install transformers from source
-        run: uv pip install --system git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc1
+        run: uv pip install --system git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc0
       - name: Print dependencies
         run: pip list
 
