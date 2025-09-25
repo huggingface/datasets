@@ -93,6 +93,9 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
                 # Ensure contiguous for zero-copy conversion
                 if not arr.flags.c_contiguous:
                     arr = np.ascontiguousarray(arr)
+                # Ensure array is writable for torch conversion
+                if not arr.flags.writeable:
+                    arr = arr.copy()
                 return torch.from_numpy(arr)
 
         # Video/Audio decoder passthrough
@@ -125,8 +128,12 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
                     # Cast to int64 in numpy (fast) then convert to torch
                     value = value.astype(np.int64)
                     if target_dtype == torch.int64:
+                        if not value.flags.writeable:
+                            value = value.copy()
                         return torch.from_numpy(value)
                     else:
+                        if not value.flags.writeable:
+                            value = value.copy()
                         kwargs.setdefault("dtype", target_dtype)
                         return torch.as_tensor(value, **kwargs)
                 elif value.dtype == np.uint64:
@@ -134,8 +141,12 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
                     if np.all(value <= np.iinfo(np.int64).max):
                         value = value.astype(np.int64)
                         if target_dtype == torch.int64:
+                            if not value.flags.writeable:
+                                value = value.copy()
                             return torch.from_numpy(value)
                         else:
+                            if not value.flags.writeable:
+                                value = value.copy()
                             kwargs.setdefault("dtype", target_dtype)
                             return torch.as_tensor(value, **kwargs)
                     else:
@@ -146,9 +157,13 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
                     # Use zero-copy conversion for compatible integer types
                     if value.dtype == np.int64 and target_dtype == torch.int64:
                         # Perfect match, zero-copy conversion
+                        if not value.flags.writeable:
+                            value = value.copy()
                         return torch.from_numpy(value)
                     else:
                         # Need dtype conversion, use as_tensor for efficiency
+                        if not value.flags.writeable:
+                            value = value.copy()
                         kwargs.setdefault("dtype", target_dtype)
                         return torch.as_tensor(value, **kwargs)
 
@@ -159,14 +174,20 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
                 target_dtype = kwargs.get("dtype", torch.float32)
 
                 if value.dtype == np.float32 and target_dtype == torch.float32:
-                    # Zero-copy conversion
+                    # Zero-copy conversion, but ensure array is writable
+                    if not value.flags.writeable:
+                        value = value.copy()
                     return torch.from_numpy(value)
                 else:
                     # Need dtype conversion
+                    if not value.flags.writeable:
+                        value = value.copy()
                     kwargs.setdefault("dtype", target_dtype)
                     return torch.as_tensor(value, **kwargs)
             else:
                 # Other numpy types, use zero-copy when possible
+                if not value.flags.writeable:
+                    value = value.copy()
                 return torch.from_numpy(value)
 
         # Handle numpy scalars
