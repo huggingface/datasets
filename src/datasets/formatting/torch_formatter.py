@@ -21,7 +21,6 @@ import numpy as np
 import pyarrow as pa
 
 from .. import config
-
 from .formatting import TensorFormatter
 
 
