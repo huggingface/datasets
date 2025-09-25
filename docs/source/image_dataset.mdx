@@ -6,21 +6,15 @@ There are two methods for creating and sharing an image dataset. This guide will
 
 * Create an image dataset with `ImageFolder` and some metadata. This is a no-code solution for quickly creating an image dataset with several thousand images.
 
-<Tip>
-
-You can control access to your dataset by requiring users to share their contact information first. Check out the [Gated datasets](https://huggingface.co/docs/hub/datasets-gated) guide for more information about how to enable this feature on the Hub.
-
-</Tip>
+> [!TIP]
+> You can control access to your dataset by requiring users to share their contact information first. Check out the [Gated datasets](https://huggingface.co/docs/hub/datasets-gated) guide for more information about how to enable this feature on the Hub.
 
 ## ImageFolder
 
 The `ImageFolder` is a dataset builder designed to quickly load an image dataset with several thousand images without requiring you to write any code.
 
-<Tip>
-
-💡 Take a look at the [Split pattern hierarchy](repository_structure#split-pattern-hierarchy) to learn more about how `ImageFolder` creates dataset splits based on your dataset repository structure.
-
-</Tip>
+> [!TIP]
+> 💡 Take a look at the [Split pattern hierarchy](repository_structure#split-pattern-hierarchy) to learn more about how `ImageFolder` creates dataset splits based on your dataset repository structure.
 
 `ImageFolder` automatically infers the class labels of your dataset based on the directory name. Store your dataset in a directory structure like:
 
@@ -57,11 +51,8 @@ folder/test/dog/german_shepherd.png
 folder/test/cat/bengal.png
 ```
 
-<Tip warning={true}>
-
-If all image files are contained in a single directory or if they are not on the same level of directory structure, `label` column won't be added automatically. If you need it, set `drop_labels=False` explicitly.
-
-</Tip>
+> [!WARNING]
+> If all image files are contained in a single directory or if they are not on the same level of directory structure, `label` column won't be added automatically. If you need it, set `drop_labels=False` explicitly.
 
 
 If there is additional information you'd like to include about your dataset, like text captions or bounding boxes, add it as a `metadata.csv` file in your folder. This lets you quickly create datasets for different computer vision tasks like text captioning or object detection. You can also use a JSONL file `metadata.jsonl` or a Parquet file `metadata.parquet`.

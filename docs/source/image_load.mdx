@@ -2,11 +2,8 @@
 
 Image datasets have [`Image`] type columns, which contain PIL objects. 
 
-<Tip>
-
-To work with image datasets, you need to have the `vision` dependency installed. Check out the [installation](./installation#vision) guide to learn how to install it.
-
-</Tip>
+> [!TIP]
+> To work with image datasets, you need to have the `vision` dependency installed. Check out the [installation](./installation#vision) guide to learn how to install it.
 
 When you load an image dataset and call the image column, the images are decoded as PIL Images:
 
@@ -17,11 +14,8 @@ When you load an image dataset and call the image column, the images are decoded
 >>> dataset[0]["image"]
 ```
 
-<Tip warning={true}>
-
-Index into an image dataset using the row index first and then the `image` column - `dataset[0]["image"]` - to avoid decoding and resampling all the image objects in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
-
-</Tip>
+> [!WARNING]
+> Index into an image dataset using the row index first and then the `image` column - `dataset[0]["image"]` - to avoid decoding and resampling all the image objects in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
 
 For a guide on how to load any type of dataset, take a look at the <a class="underline decoration-sky-400 decoration-2 font-semibold" href="./loading">general loading guide</a>.
 
@@ -119,11 +113,8 @@ Finally the `filters` argument lets you load only a subset of the dataset, based
 >>> dataset = load_dataset("username/dataset_name", streaming=True, filters=filters)
 ```
 
-<Tip>
-
-For more information about creating your own `ImageFolder` dataset, take a look at the [Create an image dataset](./image_dataset) guide.
-
-</Tip>
+> [!TIP]
+> For more information about creating your own `ImageFolder` dataset, take a look at the [Create an image dataset](./image_dataset) guide.
 
 
 ## WebDataset

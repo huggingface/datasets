@@ -96,16 +96,13 @@ def get_verbosity() -> int:
     Returns:
         Logging level, e.g., `datasets.logging.DEBUG` and `datasets.logging.INFO`.
 
-    <Tip>
-
-        HuggingFace datasets library has following logging levels:
-        - `datasets.logging.CRITICAL`, `datasets.logging.FATAL`
-        - `datasets.logging.ERROR`
-        - `datasets.logging.WARNING`, `datasets.logging.WARN`
-        - `datasets.logging.INFO`
-        - `datasets.logging.DEBUG`
-
-    </Tip>
+    > [!TIP]
+    > HuggingFace datasets library has following logging levels:
+    >     - `datasets.logging.CRITICAL`, `datasets.logging.FATAL`
+    >     - `datasets.logging.ERROR`
+    >     - `datasets.logging.WARNING`, `datasets.logging.WARN`
+    >     - `datasets.logging.INFO`
+    >     - `datasets.logging.DEBUG`
     """
     return _get_library_root_logger().getEffectiveLevel()
 
