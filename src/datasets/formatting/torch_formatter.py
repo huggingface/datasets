@@ -22,7 +22,6 @@ import pyarrow as pa
 
 from .. import config
 
-# from ..utils.py_utils import map_nested
 from .formatting import TensorFormatter
 
 
