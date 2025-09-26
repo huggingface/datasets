@@ -2,6 +2,7 @@ import asyncio
 import importlib.metadata
 import os
 import re
+import socket
 import sys
 import tempfile
 import unittest
@@ -11,11 +12,11 @@ from distutils.util import strtobool
 from enum import Enum
 from importlib.util import find_spec
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
+import httpx
 import pyarrow as pa
 import pytest
-import requests
 from packaging import version
 
 from datasets import config
@@ -372,19 +373,20 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
     """
     Simulate offline mode.
 
-    There are three offline simulatiom modes:
+    There are three offline simulation modes:
 
     CONNECTION_FAILS (default mode): a ConnectionError is raised for each network call.
         Connection errors are created by mocking socket.socket
     CONNECTION_TIMES_OUT: the connection hangs until it times out.
         The default timeout value is low (1e-16) to speed up the tests.
-        Timeout errors are created by mocking requests.request
-    HF_HUB_OFFLINE_SET_TO_1: the HF_HUB_OFFLINE environment variable is set to 1.
-        This makes the http/ftp calls of the library instantly fail and raise an OfflineModeEmabled error.
+        Timeout errors are created by mocking httpx.request
+    HF_HUB_OFFLINE_SET_TO_1: the HF_HUB_OFFLINE_SET_TO_1 environment variable is set to 1.
+        This makes the http/ftp calls of the library instantly fail and raise an OfflineModeEnabled error.
     """
-    online_request = requests.Session().request
+    # Store the original httpx.request to avoid recursion
+    original_httpx_request = httpx.request
 
-    def timeout_request(session, method, url, **kwargs):
+    def timeout_request(method, url, **kwargs):
         # Change the url to an invalid url so that the connection hangs
         invalid_url = "https://10.255.255.1"
         if kwargs.get("timeout") is None:
@@ -393,25 +395,57 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
             )
         kwargs["timeout"] = timeout
         try:
-            return online_request(method, invalid_url, **kwargs)
+            return original_httpx_request(method, invalid_url, **kwargs)
         except Exception as e:
             # The following changes in the error are just here to make the offline timeout error prettier
-            e.request.url = url
-            max_retry_error = e.args[0]
-            max_retry_error.args = (max_retry_error.args[0].replace("10.255.255.1", f"OfflineMock[{url}]"),)
-            e.args = (max_retry_error,)
+            if hasattr(e, "request"):
+                e.request.url = url
+            if hasattr(e, "args") and e.args:
+                max_retry_error = e.args[0]
+                if hasattr(max_retry_error, "args"):
+                    max_retry_error.args = (max_retry_error.args[0].replace("10.255.255.1", f"OfflineMock[{url}]"),)
+                e.args = (max_retry_error,)
             raise
 
-    def raise_connection_error(session, prepared_request, **kwargs):
-        raise requests.ConnectionError("Offline mode is enabled.", request=prepared_request)
+    def offline_socket(*args, **kwargs):
+        raise socket.error("Offline mode is enabled.")
 
     if mode is OfflineSimulationMode.CONNECTION_FAILS:
-        with patch("requests.Session.send", raise_connection_error):
-            yield
+        # inspired from https://stackoverflow.com/a/18601897
+        with patch("socket.socket", offline_socket):
+            with patch("huggingface_hub.utils._http.get_session") as get_session_mock:
+                mock_client = Mock()
+
+                # Mock the request method to raise connection error
+                def mock_request(*args, **kwargs):
+                    raise httpx.ConnectError("Connection failed")
+
+                # Mock the stream method to raise connection error
+                def mock_stream(*args, **kwargs):
+                    raise httpx.ConnectError("Connection failed")
+
+                mock_client.request = mock_request
+                mock_client.stream = mock_stream
+                get_session_mock.return_value = mock_client
+                yield
     elif mode is OfflineSimulationMode.CONNECTION_TIMES_OUT:
         # inspired from https://stackoverflow.com/a/904609
-        with patch("requests.Session.request", timeout_request):
-            yield
+        with patch("httpx.request", timeout_request):
+            with patch("huggingface_hub.utils._http._GLOBAL_CLIENT_FACTORY") as session_factory_mock:
+                mock_client = Mock()
+                mock_client.get = lambda *args, **kwargs: timeout_request("GET", *args, **kwargs)
+                mock_client.post = lambda *args, **kwargs: timeout_request("POST", *args, **kwargs)
+                mock_client.put = lambda *args, **kwargs: timeout_request("PUT", *args, **kwargs)
+                mock_client.delete = lambda *args, **kwargs: timeout_request("DELETE", *args, **kwargs)
+                mock_client.request = timeout_request
+
+                # Mock the stream method to raise timeout
+                def mock_stream(*args, **kwargs):
+                    raise httpx.ConnectTimeout("Connection timed out")
+
+                mock_client.stream = mock_stream
+                session_factory_mock.return_value = mock_client
+                yield
     elif mode is OfflineSimulationMode.HF_HUB_OFFLINE_SET_TO_1:
         with patch("datasets.config.HF_HUB_OFFLINE", True):
             yield
@@ -456,12 +490,11 @@ def is_rng_equal(rng1, rng2):
 
 def xfail_if_500_502_http_error(func):
     import decorator
-    from requests.exceptions import HTTPError
 
     def _wrapper(func, *args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except HTTPError as err:
+        except httpx.HTTPError as err:
             if str(err).startswith("500") or str(err).startswith("502"):
                 pytest.xfail(str(err))
             raise err
