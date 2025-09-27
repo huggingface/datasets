@@ -11,7 +11,48 @@ from datasets.table import table_cast
 
 
 logger = datasets.utils.logging.get_logger(__name__)
+def _is_nested_type(pa_type):
+    """Check if a PyArrow type contains nested structures."""
+    return (
+        pa.types.is_list(pa_type) or 
+        pa.types.is_large_list(pa_type) or
+        pa.types.is_struct(pa_type) or
+        pa.types.is_map(pa_type) or
+        pa.types.is_union(pa_type)
+    )
 
+
+def _handle_nested_chunked_conversion(pa_table):
+    """Handle PyArrow nested data conversion issues by combining chunks selectively."""
+    try:
+        # Check if any columns have multiple chunks with nested data
+        needs_combining = False
+        for column_name in pa_table.column_names:
+            column = pa_table.column(column_name)
+            if isinstance(column, pa.ChunkedArray) and column.num_chunks > 1:
+                # Check if column contains nested types
+                if _is_nested_type(column.type):
+                    needs_combining = True
+                    break
+        
+        if needs_combining:
+            # Combine chunks only for problematic columns to minimize memory impact
+            combined_columns = {}
+            for column_name in pa_table.column_names:
+                column = pa_table.column(column_name)
+                if isinstance(column, pa.ChunkedArray) and column.num_chunks > 1 and _is_nested_type(column.type):
+                    combined_columns[column_name] = column.combine_chunks()
+                else:
+                    combined_columns[column_name] = column
+            
+            return pa.table(combined_columns)
+        
+        return pa_table
+        
+    except Exception as e:
+        # Fallback: combine all chunks if selective approach fails
+        logger.warning(f"Selective chunk combining failed, using full combine_chunks(): {e}")
+        return pa_table.combine_chunks()
 
 @dataclass
 class ParquetConfig(datasets.BuilderConfig):
@@ -104,6 +145,25 @@ class Parquet(datasets.ArrowBasedBuilder):
                             # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                             # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                             yield f"{file_idx}_{batch_idx}", self._cast_table(pa_table)
+                    except pa.ArrowNotImplementedError as e:
+                        if "Nested data conversions not implemented for chunked array outputs" in str(e):
+                            # Fallback for nested data: read entire table then split manually
+                            logger.warning(f"Using fallback for nested data in file '{file}': {e}")
+                            full_table = parquet_fragment.to_table(
+                                columns=self.config.columns,
+                                filter=filter_expr,
+                            )
+                            if full_table.num_rows > 0:
+                                # Handle chunked arrays in nested data
+                                full_table = _handle_nested_chunked_conversion(full_table)
+                                # Split into batches manually
+                                for batch_idx in range(0, full_table.num_rows, batch_size):
+                                    end_idx = min(batch_idx + batch_size, full_table.num_rows)
+                                    batch_table = full_table.slice(batch_idx, end_idx - batch_idx)
+                                    yield f"{file_idx}_{batch_idx // batch_size}", self._cast_table(batch_table)
+                        else:
+                            # Re-raise if it's a different Arrow error
+                            raise
                     except ValueError as e:
                         logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                         raise
