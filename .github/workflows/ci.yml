@@ -168,9 +168,10 @@ jobs:
       - name: Install uv
         run: pip install --upgrade uv
       - name: Install dependencies
-        run: uv pip install --system "datasets[tests_numpy2] @ ."
-      - name: Install transformers from source
-        run: uv pip install --system git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc0
+        run:
+          uv pip install --system "datasets[tests_numpy2] @ ."
+          uv pip uninstall transformers huggingface_hub  # temporary (only for tests)
+          uv pip install --prerelease=allow git+https://github.com/huggingface/transformers.git  # temporary (only for tests)
       - name: Print dependencies
         run: pip list
 
