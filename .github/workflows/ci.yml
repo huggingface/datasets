@@ -74,7 +74,7 @@ jobs:
         if: ${{ matrix.deps_versions == 'deps-latest' }}
         run:
           uv pip install --system --upgrade pyarrow huggingface-hub "dill<0.3.9"
-          uv pip uninstall -y transformers && uv pip uninstall -y huggingface_hub  # temporary (only for tests)
+          uv pip uninstall transformers huggingface_hub  # temporary (only for tests)
           uv pip install --prerelease=allow git+https://github.com/huggingface/transformers.git  # temporary (only for tests)
       - name: Install dependencies (minimum versions)
         if: ${{ matrix.deps_versions != 'deps-latest' }}
@@ -102,7 +102,7 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt update
-          sudo apt install -y ffmpeg 
+          sudo apt install -y ffmpeg
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
