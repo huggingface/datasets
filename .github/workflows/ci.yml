@@ -147,7 +147,7 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt update
-          sudo apt install -y ffmpeg
+          sudo apt install -y ffmpeg 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
