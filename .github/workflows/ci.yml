@@ -134,7 +134,7 @@ jobs:
     needs: check_code_quality
     strategy:
       matrix:
-        test: ["unit"]
+        test: ['unit']
         os: [ubuntu-latest, windows-latest]
         deps_versions: [deps-latest]
     continue-on-error: false
