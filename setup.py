@@ -129,7 +129,7 @@ REQUIRED_PKGS = [
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
     "fsspec[http]>=2023.1.0,<=2025.9.0",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface-hub==1.0.0.rc1",
+    "huggingface-hub>=0.24.0,<2.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -181,7 +181,7 @@ TESTS_REQUIRE = [
     "tiktoken",
     "torch>=2.8.0",
     "torchdata",
-    # "git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc0",  # Pins numpy < 2
+    "transformers>=4.42.0",  # Pins numpy < 2
     "zstandard",
     "polars[timezone]>=0.20.0",
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
@@ -200,7 +200,7 @@ QUALITY_REQUIRE = ["ruff>=0.3.0"]
 
 DOCS_REQUIRE = [
     # Following dependencies are required for the Python reference to be built properly
-    # "git+https://github.com/huggingface/transformers.git@ci-test-huggingface-hub-v1.0.0.rc0",
+    "transformers",
     "torch",
     "tensorflow>=2.6.0",
 ]
