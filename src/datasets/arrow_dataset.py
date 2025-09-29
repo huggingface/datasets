@@ -68,8 +68,9 @@ from huggingface_hub import (
     DatasetCardData,
     HfApi,
 )
-from huggingface_hub.errors import HfHubHTTPError, RepositoryNotFoundError
+from huggingface_hub.errors import RepositoryNotFoundError
 from huggingface_hub.hf_api import RepoFile
+from huggingface_hub.utils import HfHubHTTPError
 from multiprocess import Pool
 from tqdm.contrib.concurrent import thread_map
 
