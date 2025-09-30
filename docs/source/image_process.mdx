@@ -41,11 +41,8 @@ Both parameter values default to 1000, which can be expensive if you are storing
 
 🤗 Datasets applies data augmentations from any library or package to your dataset. Transforms can be applied on-the-fly on batches of data with [`~Dataset.set_transform`], which consumes less disk space.
 
-<Tip>
-
-The following example uses [torchvision](https://pytorch.org/vision/stable/index.html), but feel free to use other data augmentation libraries like [Albumentations](https://albumentations.ai/docs/), [Kornia](https://kornia.readthedocs.io/en/latest/), and [imgaug](https://imgaug.readthedocs.io/en/latest/).
-
-</Tip>
+> [!TIP]
+> The following example uses [torchvision](https://pytorch.org/vision/stable/index.html), but feel free to use other data augmentation libraries like [Albumentations](https://albumentations.ai/docs/), [Kornia](https://kornia.readthedocs.io/en/latest/), and [imgaug](https://imgaug.readthedocs.io/en/latest/).
 
 For example, if you'd like to change the color properties of an image randomly:
 

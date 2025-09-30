@@ -1458,11 +1458,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = Dataset.from_sql(stmt, "postgres:///db_name")
         ```
 
-        <Tip>
-
-        The returned dataset can only be cached if `con` is specified as URI string.
-
-        </Tip>
+        > [!TIP]
+        > The returned dataset can only be cached if `con` is specified as URI string.
         """
         from .io.sql import SqlDatasetReader
 

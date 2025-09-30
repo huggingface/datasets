@@ -1,18 +1,12 @@
 # Load pdf data
 
-<Tip warning={true}>
-
-Pdf support is experimental and is subject to change.
-
-</Tip>
+> [!WARNING]
+> Pdf support is experimental and is subject to change.
 
 Pdf datasets have [`Pdf`] type columns, which contain `pdfplumber` objects. 
 
-<Tip>
-
-To work with pdf datasets, you need to have the `pdfplumber` package installed. Check out the [installation](https://github.com/jsvine/pdfplumber#installation) guide to learn how to install it.
-
-</Tip>
+> [!TIP]
+> To work with pdf datasets, you need to have the `pdfplumber` package installed. Check out the [installation](https://github.com/jsvine/pdfplumber#installation) guide to learn how to install it.
 
 When you load a pdf dataset and call the pdf column, the pdfs are decoded as `pdfplumber` Pdfs:
 
@@ -24,11 +18,8 @@ When you load a pdf dataset and call the pdf column, the pdfs are decoded as `pd
 <pdfplumber.pdf.PDF at 0x1075bc320>
 ```
 
-<Tip warning={true}>
-
-Index into a pdf dataset using the row index first and then the `pdf` column - `dataset[0]["pdf"]` - to avoid creating all the pdf objects in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
-
-</Tip>
+> [!WARNING]
+> Index into a pdf dataset using the row index first and then the `pdf` column - `dataset[0]["pdf"]` - to avoid creating all the pdf objects in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
 
 For a guide on how to load any type of dataset, take a look at the <a class="underline decoration-sky-400 decoration-2 font-semibold" href="./loading">general loading guide</a>.
 
@@ -183,11 +174,8 @@ Finally the `filters` argument lets you load only a subset of the dataset, based
 >>> dataset = load_dataset("username/dataset_name", streaming=True, filters=filters)
 ```
 
-<Tip>
-
-For more information about creating your own `PdfFolder` dataset, take a look at the [Create a pdf dataset](./document_dataset) guide.
-
-</Tip>
+> [!TIP]
+> For more information about creating your own `PdfFolder` dataset, take a look at the [Create a pdf dataset](./document_dataset) guide.
 
 ## Pdf decoding
 
