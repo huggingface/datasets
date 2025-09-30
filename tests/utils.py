@@ -371,7 +371,7 @@ class OfflineSimulationMode(Enum):
 
 
 @contextmanager
-def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
+def offline(mode: OfflineSimulationMode):
     """
     Simulate offline mode.
 

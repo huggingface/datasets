@@ -9,7 +9,6 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import dill
-import httpx
 import pyarrow as pa
 import pytest
 
@@ -1047,19 +1046,16 @@ def test_load_dataset_with_unsupported_extensions(text_dir_with_unsupported_exte
 
 @pytest.mark.integration
 def test_loading_from_the_datasets_hub_with_token():
-    true_request = httpx.Client().request
+    class CustomException(Exception):
+        pass
 
-    def assert_auth(method, url, *args, headers, **kwargs):
-        assert headers["authorization"] == "Bearer foo"
-        return true_request(method, url, *args, headers=headers, **kwargs)
-
-    with patch("httpx.Client.request") as mock_request:
-        mock_request.side_effect = assert_auth
+    with patch("huggingface_hub.file_download.http_backoff") as mock_request:
+        mock_request.side_effect = CustomException()
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with offline():
-                with pytest.raises(ConnectionError):
-                    load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, token="foo")
-        mock_request.assert_called()
+            with pytest.raises(CustomException):
+                load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, token="foo")
+        mock_request.assert_called_once()
+        assert mock_request.call_args_list[0][1]["headers"]["authorization"] == "Bearer foo"
 
 
 @pytest.mark.integration
