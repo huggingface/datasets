@@ -553,14 +553,9 @@ def _check_valid_index_key(key: Union[int, slice, range, Iterable], size: int) -
         return
     elif isinstance(key, slice):
         pass
-    elif isinstance(key, range):
-        if len(key) > 0:
-            _check_valid_index_key(max(key), size=size)
-            _check_valid_index_key(min(key), size=size)
-    elif isinstance(key, Iterable):
-        if len(key) > 0:
-            _check_valid_index_key(int(max(key)), size=size)
-            _check_valid_index_key(int(min(key)), size=size)
+    elif isinstance(key, (range, Iterable)):
+        _check_valid_index_key(int(max(key)), size=size)
+        _check_valid_index_key(int(min(key)), size=size)
     else:
         _raise_bad_key_type(key)
 
