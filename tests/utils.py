@@ -17,6 +17,7 @@ from unittest.mock import Mock, patch
 import httpx
 import pyarrow as pa
 import pytest
+import requests
 from packaging import version
 
 from datasets import config
@@ -67,6 +68,8 @@ require_numpy1_on_windows = pytest.mark.skipif(
     version.parse(importlib.metadata.version("numpy")) >= version.parse("2.0.0") and sys.platform == "win32",
     reason="test requires numpy < 2.0 on windows",
 )
+
+IS_HF_HUB_1_x = config.HF_HUB_VERSION >= version.parse("0.99")  # clunky but works with pre-releases
 
 
 def require_regex(test_case):
@@ -376,81 +379,48 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
     There are three offline simulation modes:
 
     CONNECTION_FAILS (default mode): a ConnectionError is raised for each network call.
-        Connection errors are created by mocking socket.socket
-    CONNECTION_TIMES_OUT: the connection hangs until it times out.
-        The default timeout value is low (1e-16) to speed up the tests.
-        Timeout errors are created by mocking httpx.request
+    CONNECTION_TIMES_OUT: a ReadTimeout or ConnectTimeout is raised for each network call.
     HF_HUB_OFFLINE_SET_TO_1: the HF_HUB_OFFLINE_SET_TO_1 environment variable is set to 1.
         This makes the http/ftp calls of the library instantly fail and raise an OfflineModeEnabled error.
+
+    The raised exceptions are either from the `requests` library (if `huggingface_hub<1.0.0`)
+    or from the `httpx` library (if `huggingface_hub>=1.0.0`).
     """
-    # Store the original httpx.request to avoid recursion
-    original_httpx_request = httpx.request
-
-    def timeout_request(method, url, **kwargs):
-        # Change the url to an invalid url so that the connection hangs
-        invalid_url = "https://10.255.255.1"
-        if kwargs.get("timeout") is None:
-            raise RequestWouldHangIndefinitelyError(
-                f"Tried a call to {url} in offline mode with no timeout set. Please set a timeout."
-            )
-        kwargs["timeout"] = timeout
-        try:
-            return original_httpx_request(method, invalid_url, **kwargs)
-        except Exception as e:
-            # The following changes in the error are just here to make the offline timeout error prettier
-            if hasattr(e, "request"):
-                e.request.url = url
-            if hasattr(e, "args") and e.args:
-                max_retry_error = e.args[0]
-                if hasattr(max_retry_error, "args"):
-                    max_retry_error.args = (max_retry_error.args[0].replace("10.255.255.1", f"OfflineMock[{url}]"),)
-                e.args = (max_retry_error,)
-            raise
-
-    def offline_socket(*args, **kwargs):
-        raise socket.error("Offline mode is enabled.")
-
-    if mode is OfflineSimulationMode.CONNECTION_FAILS:
-        # inspired from https://stackoverflow.com/a/18601897
-        with patch("socket.socket", offline_socket):
-            with patch("huggingface_hub.utils._http.get_session") as get_session_mock:
-                mock_client = Mock()
-
-                # Mock the request method to raise connection error
-                def mock_request(*args, **kwargs):
-                    raise httpx.ConnectError("Connection failed")
-
-                # Mock the stream method to raise connection error
-                def mock_stream(*args, **kwargs):
-                    raise httpx.ConnectError("Connection failed")
-
-                mock_client.request = mock_request
-                mock_client.stream = mock_stream
-                get_session_mock.return_value = mock_client
-                yield
-    elif mode is OfflineSimulationMode.CONNECTION_TIMES_OUT:
-        # inspired from https://stackoverflow.com/a/904609
-        with patch("httpx.request", timeout_request):
-            with patch("huggingface_hub.utils._http._GLOBAL_CLIENT_FACTORY") as session_factory_mock:
-                mock_client = Mock()
-                mock_client.get = lambda *args, **kwargs: timeout_request("GET", *args, **kwargs)
-                mock_client.post = lambda *args, **kwargs: timeout_request("POST", *args, **kwargs)
-                mock_client.put = lambda *args, **kwargs: timeout_request("PUT", *args, **kwargs)
-                mock_client.delete = lambda *args, **kwargs: timeout_request("DELETE", *args, **kwargs)
-                mock_client.request = timeout_request
-
-                # Mock the stream method to raise timeout
-                def mock_stream(*args, **kwargs):
-                    raise httpx.ConnectTimeout("Connection timed out")
-
-                mock_client.stream = mock_stream
-                session_factory_mock.return_value = mock_client
-                yield
-    elif mode is OfflineSimulationMode.HF_HUB_OFFLINE_SET_TO_1:
+    # Enable offline mode
+    if mode is OfflineSimulationMode.HF_HUB_OFFLINE_SET_TO_1:
         with patch("datasets.config.HF_HUB_OFFLINE", True):
             yield
+        return
+
+    # Determine which exception to raise based on mode
+    if mode is OfflineSimulationMode.CONNECTION_FAILS:
+        exc = httpx.ConnectError if IS_HF_HUB_1_x else requests.ConnectionError
+        error_msg = "Connection failed"
+    elif mode is OfflineSimulationMode.CONNECTION_TIMES_OUT:
+        exc = httpx.ReadTimeout if IS_HF_HUB_1_x else requests.ConnectTimeout
+        error_msg = "Connection timed out"
     else:
         raise ValueError("Please use a value from the OfflineSimulationMode enum.")
+
+    def error_response(*args, **kwargs):
+        raise exc(error_msg)
+
+    # Patch all client methods to raise the appropriate error
+    client_mock = Mock()
+    for method in ["head", "get", "post", "put", "delete", "request", "stream"]:
+        setattr(client_mock, method, Mock(side_effect=error_response))
+
+    # Patching is slightly different depending on hfh internals
+    patch_target = (
+        {"target": "huggingface_hub.utils._http._GLOBAL_CLIENT", "new": client_mock}
+        if IS_HF_HUB_1_x
+        else {
+            "target": "huggingface_hub.utils._http._get_session_from_cache",
+            "return_value": client_mock,
+        }
+    )
+    with patch(**patch_target):
+        yield
 
 
 @contextmanager

@@ -767,10 +767,7 @@ class LoadTest(TestCase):
     def test_load_dataset_namespace(self):
         with self.assertRaises(DatasetNotFoundError) as context:
             datasets.load_dataset("hf-internal-testing/_dummy")
-        self.assertIn(
-            "hf-internal-testing/_dummy",
-            str(context.exception),
-        )
+        self.assertIn("hf-internal-testing/_dummy", str(context.exception))
         for offline_simulation_mode in list(OfflineSimulationMode):
             with offline(offline_simulation_mode):
                 with self.assertRaises(ConnectionError) as context:
