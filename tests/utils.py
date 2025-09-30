@@ -392,17 +392,19 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
         return
 
     # Determine which exception to raise based on mode
-    if mode is OfflineSimulationMode.CONNECTION_FAILS:
-        exc = httpx.ConnectError if IS_HF_HUB_1_x else requests.ConnectionError
-        error_msg = "Connection failed"
-    elif mode is OfflineSimulationMode.CONNECTION_TIMES_OUT:
-        exc = httpx.ReadTimeout if IS_HF_HUB_1_x else requests.ConnectTimeout
-        error_msg = "Connection timed out"
-    else:
-        raise ValueError("Please use a value from the OfflineSimulationMode enum.")
 
     def error_response(*args, **kwargs):
-        raise exc(error_msg)
+        if mode is OfflineSimulationMode.CONNECTION_FAILS:
+            exc = httpx.ConnectError if IS_HF_HUB_1_x else requests.ConnectionError
+        elif mode is OfflineSimulationMode.CONNECTION_TIMES_OUT:
+            if kwargs.get("timeout") is None:
+                raise RequestWouldHangIndefinitelyError(
+                    "Tried an HTTP call in offline mode with no timeout set. Please set a timeout."
+                )
+            exc = httpx.ReadTimeout if IS_HF_HUB_1_x else requests.ConnectTimeout
+        else:
+            raise ValueError("Please use a value from the OfflineSimulationMode enum.")
+        raise exc(f"Offline mode {mode}")
 
     # Patch all client methods to raise the appropriate error
     client_mock = Mock()
