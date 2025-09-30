@@ -2,7 +2,6 @@ import asyncio
 import importlib.metadata
 import os
 import re
-import socket
 import sys
 import tempfile
 import unittest
