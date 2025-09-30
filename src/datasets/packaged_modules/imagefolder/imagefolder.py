@@ -75,6 +75,7 @@ IMAGE_EXTENSIONS = [
     ".jpe",
     ".jpg",
     ".jpeg",
+    ".jxl",
     ".mpg",
     ".mpeg",
     ".msp",
