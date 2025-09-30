@@ -78,7 +78,7 @@ jobs:
           uv pip install --system --prerelease=allow git+https://github.com/huggingface/transformers.git  # temporary (only for tests)
       - name: Install dependencies (minimum versions)
         if: ${{ matrix.deps_versions != 'deps-latest' }}
-        run: uv pip install --system pyarrow==21.0.0 huggingface-hub==0.24.7 transformers dill==0.3.1.1
+        run: uv pip install --system pyarrow==21.0.0 huggingface-hub==0.25.0 transformers dill==0.3.1.1
       - name: Print dependencies
         run: uv pip list
       - name: Test with pytest
