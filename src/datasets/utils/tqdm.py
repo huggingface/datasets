@@ -101,7 +101,21 @@ def are_progress_bars_disabled() -> bool:
     return _hf_datasets_progress_bars_disabled
 
 
-class tqdm(old_tqdm):
+class SafeDelLockMeta(type):
+    """
+    Class for fixing `del tqdm_class._lock`: https://github.com/huggingface/datasets/issues/7660
+    """
+    def __delattr__(cls, name):
+        if name == '_lock':
+            try:
+                super().__delattr__(name)
+            except AttributeError:
+                pass 
+        else:
+            super().__delattr__(name)
+
+
+class tqdm(old_tqdm, metaclass=SafeDelLockMeta):
     """
     Class to override `disable` argument in case progress bars are globally disabled.
 
@@ -112,14 +126,6 @@ class tqdm(old_tqdm):
         if are_progress_bars_disabled():
             kwargs["disable"] = True
         super().__init__(*args, **kwargs)
-
-    def __delattr__(self, attr: str) -> None:
-        """Fix for https://github.com/huggingface/datasets/issues/6066"""
-        try:
-            super().__delattr__(attr)
-        except AttributeError:
-            if attr != "_lock":
-                raise
 
 
 # backward compatibility
