@@ -1049,7 +1049,7 @@ def test_loading_from_the_datasets_hub_with_token():
     class CustomException(Exception):
         pass
 
-    with patch("huggingface_hub.file_download.http_backoff") as mock_request:
+    with patch("huggingface_hub.file_download._get_metadata_or_catch_error") as mock_request:
         mock_request.side_effect = CustomException()
         with tempfile.TemporaryDirectory() as tmp_dir:
             with pytest.raises(CustomException):
