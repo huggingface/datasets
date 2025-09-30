@@ -465,7 +465,7 @@ def xfail_if_500_502_http_error(func):
     def _wrapper(func, *args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except httpx.HTTPError as err:
+        except (requests.HTTPError, httpx.HTTPError) as err:
             if str(err).startswith("500") or str(err).startswith("502"):
                 pytest.xfail(str(err))
             raise err
