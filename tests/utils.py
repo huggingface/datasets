@@ -11,8 +11,9 @@ from distutils.util import strtobool
 from enum import Enum
 from importlib.util import find_spec
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
+import httpx
 import pyarrow as pa
 import pytest
 import requests
@@ -75,6 +76,8 @@ require_numpy1_on_windows = pytest.mark.skipif(
     and sys.platform == "win32",
     reason="test requires numpy < 2.0 on windows",
 )
+
+IS_HF_HUB_1_x = config.HF_HUB_VERSION >= version.parse("0.99")  # clunky but works with pre-releases
 
 
 def require_regex(test_case):
@@ -377,59 +380,59 @@ class OfflineSimulationMode(Enum):
 
 
 @contextmanager
-def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
+def offline(mode: OfflineSimulationMode):
     """
     Simulate offline mode.
 
-    There are three offline simulatiom modes:
+    There are three offline simulation modes:
 
     CONNECTION_FAILS (default mode): a ConnectionError is raised for each network call.
-        Connection errors are created by mocking socket.socket
-    CONNECTION_TIMES_OUT: the connection hangs until it times out.
-        The default timeout value is low (1e-16) to speed up the tests.
-        Timeout errors are created by mocking requests.request
-    HF_HUB_OFFLINE_SET_TO_1: the HF_HUB_OFFLINE environment variable is set to 1.
-        This makes the http/ftp calls of the library instantly fail and raise an OfflineModeEmabled error.
+
+    CONNECTION_TIMES_OUT: a ReadTimeout or ConnectTimeout is raised for each network call.
+    HF_HUB_OFFLINE_SET_TO_1: the HF_HUB_OFFLINE_SET_TO_1 environment variable is set to 1.
+        This makes the http/ftp calls of the library instantly fail and raise an OfflineModeEnabled error.
+
+    The raised exceptions are either from the `requests` library (if `huggingface_hub<1.0.0`)
+    or from the `httpx` library (if `huggingface_hub>=1.0.0`).
     """
-    online_request = requests.Session().request
+    # Enable offline mode
+    if mode is OfflineSimulationMode.HF_HUB_OFFLINE_SET_TO_1:
 
-    def timeout_request(session, method, url, **kwargs):
-        # Change the url to an invalid url so that the connection hangs
-        invalid_url = "https://10.255.255.1"
-        if kwargs.get("timeout") is None:
-            raise RequestWouldHangIndefinitelyError(
-                f"Tried a call to {url} in offline mode with no timeout set. Please set a timeout."
-            )
-        kwargs["timeout"] = timeout
-        try:
-            return online_request(method, invalid_url, **kwargs)
-        except Exception as e:
-            # The following changes in the error are just here to make the offline timeout error prettier
-            e.request.url = url
-            max_retry_error = e.args[0]
-            max_retry_error.args = (
-                max_retry_error.args[0].replace("10.255.255.1", f"OfflineMock[{url}]"),
-            )
-            e.args = (max_retry_error,)
-            raise
-
-    def raise_connection_error(session, prepared_request, **kwargs):
-        raise requests.ConnectionError(
-            "Offline mode is enabled.", request=prepared_request
-        )
-
-    if mode is OfflineSimulationMode.CONNECTION_FAILS:
-        with patch("requests.Session.send", raise_connection_error):
-            yield
-    elif mode is OfflineSimulationMode.CONNECTION_TIMES_OUT:
-        # inspired from https://stackoverflow.com/a/904609
-        with patch("requests.Session.request", timeout_request):
-            yield
-    elif mode is OfflineSimulationMode.HF_HUB_OFFLINE_SET_TO_1:
         with patch("datasets.config.HF_HUB_OFFLINE", True):
             yield
-    else:
-        raise ValueError("Please use a value from the OfflineSimulationMode enum.")
+        return
+
+    # Determine which exception to raise based on mode
+
+    def error_response(*args, **kwargs):
+        if mode is OfflineSimulationMode.CONNECTION_FAILS:
+            exc = httpx.ConnectError if IS_HF_HUB_1_x else requests.ConnectionError
+        elif mode is OfflineSimulationMode.CONNECTION_TIMES_OUT:
+            if kwargs.get("timeout") is None:
+                raise RequestWouldHangIndefinitelyError(
+                    "Tried an HTTP call in offline mode with no timeout set. Please set a timeout."
+                )
+            exc = httpx.ReadTimeout if IS_HF_HUB_1_x else requests.ConnectTimeout
+        else:
+            raise ValueError("Please use a value from the OfflineSimulationMode enum.")
+        raise exc(f"Offline mode {mode}")
+
+    # Patch all client methods to raise the appropriate error
+    client_mock = Mock()
+    for method in ["head", "get", "post", "put", "delete", "request", "stream"]:
+        setattr(client_mock, method, Mock(side_effect=error_response))
+
+    # Patching is slightly different depending on hfh internals
+    patch_target = (
+        {"target": "huggingface_hub.utils._http._GLOBAL_CLIENT", "new": client_mock}
+        if IS_HF_HUB_1_x
+        else {
+            "target": "huggingface_hub.utils._http._get_session_from_cache",
+            "return_value": client_mock,
+        }
+    )
+    with patch(**patch_target):
+        yield
 
 
 @contextmanager
@@ -476,12 +479,11 @@ def is_rng_equal(rng1, rng2):
 
 def xfail_if_500_502_http_error(func):
     import decorator
-    from requests.exceptions import HTTPError
 
     def _wrapper(func, *args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except HTTPError as err:
+        except (requests.HTTPError, httpx.HTTPError) as err:
             if str(err).startswith("500") or str(err).startswith("502"):
                 pytest.xfail(str(err))
             raise err

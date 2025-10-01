@@ -37,7 +37,6 @@ from huggingface_hub import (
 from huggingface_hub.hf_api import RepoFile
 from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 from multiprocess import Pool
-from requests import HTTPError
 
 from . import config
 from .arrow_dataset import (
@@ -4983,7 +4982,7 @@ class IterableDataset(DatasetInfoMixin):
                     except HfHubHTTPError as err:
                         if (
                             err.__context__
-                            and isinstance(err.__context__, HTTPError)
+                            and isinstance(err.__context__, HfHubHTTPError)
                             and err.__context__.response.status_code == 409
                         ):
                             # 409 is Conflict (another commit is in progress)
@@ -5046,7 +5045,7 @@ class IterableDataset(DatasetInfoMixin):
             except HfHubHTTPError as err:
                 if (
                     err.__context__
-                    and isinstance(err.__context__, HTTPError)
+                    and isinstance(err.__context__, HfHubHTTPError)
                     and err.__context__.response.status_code in (412, 409)
                 ):
                     # 412 is Precondition failed (parent_commit isn't satisfied)

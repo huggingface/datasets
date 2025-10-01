@@ -5,9 +5,8 @@ from contextlib import contextmanager
 from typing import Optional
 
 import pytest
-import requests
-from huggingface_hub.hf_api import HfApi, RepositoryNotFoundError
-from huggingface_hub.utils import hf_raise_for_status
+from huggingface_hub.hf_api import HfApi
+from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 from huggingface_hub.utils._headers import _http_user_agent
 
 
@@ -26,10 +25,14 @@ CI_HFH_HUGGINGFACE_CO_URL_TEMPLATE = (
 def ci_hub_config(monkeypatch):
     monkeypatch.setattr("datasets.config.HF_ENDPOINT", CI_HUB_ENDPOINT)
     monkeypatch.setattr("datasets.config.HUB_DATASETS_URL", CI_HUB_DATASETS_URL)
-    monkeypatch.setattr(
-        "huggingface_hub.file_download.HUGGINGFACE_CO_URL_TEMPLATE",
-        CI_HFH_HUGGINGFACE_CO_URL_TEMPLATE,
-    )
+    monkeypatch.setattr("huggingface_hub.constants.HUGGINGFACE_CO_URL_TEMPLATE", CI_HFH_HUGGINGFACE_CO_URL_TEMPLATE)
+    try:
+        # for backward compatibility with huggingface_hub 0.x
+        monkeypatch.setattr(
+            "huggingface_hub.file_download.HUGGINGFACE_CO_URL_TEMPLATE", CI_HFH_HUGGINGFACE_CO_URL_TEMPLATE
+        )
+    except AttributeError:
+        pass
     old_environ = dict(os.environ)
     os.environ["HF_ENDPOINT"] = CI_HUB_ENDPOINT
     yield
@@ -117,21 +120,12 @@ def _hf_gated_dataset_repo_txt_data(hf_api: HfApi, hf_token, text_file_content):
         repo_id=repo_id,
         repo_type="dataset",
     )
-    path = f"{hf_api.endpoint}/api/datasets/{repo_id}/settings"
-    repo_settings = {"gated": "auto"}
-    r = requests.put(
-        path,
-        headers={"authorization": f"Bearer {hf_token}"},
-        json=repo_settings,
-    )
-    hf_raise_for_status(r)
+    hf_api.update_repo_settings(repo_id, token=hf_token, repo_type="dataset", gated="auto")
     yield repo_id
     try:
         hf_api.delete_repo(repo_id, token=hf_token, repo_type="dataset")
-    except (
-        requests.exceptions.HTTPError,
-        ValueError,
-    ):  # catch http error and token invalid error
+
+    except (HfHubHTTPError, ValueError):  # catch http error and token invalid error
         pass
 
 
@@ -155,10 +149,8 @@ def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file_content
     yield repo_id
     try:
         hf_api.delete_repo(repo_id, token=hf_token, repo_type="dataset")
-    except (
-        requests.exceptions.HTTPError,
-        ValueError,
-    ):  # catch http error and token invalid error
+
+    except (HfHubHTTPError, ValueError):  # catch http error and token invalid error
         pass
 
 
@@ -184,10 +176,8 @@ def hf_private_dataset_repo_zipped_txt_data_(
     yield repo_id
     try:
         hf_api.delete_repo(repo_id, token=hf_token, repo_type="dataset")
-    except (
-        requests.exceptions.HTTPError,
-        ValueError,
-    ):  # catch http error and token invalid error
+
+    except (HfHubHTTPError, ValueError):  # catch http error and token invalid error
         pass
 
 
@@ -213,10 +203,9 @@ def hf_private_dataset_repo_zipped_img_data_(hf_api: HfApi, hf_token, zip_image_
     yield repo_id
     try:
         hf_api.delete_repo(repo_id, token=hf_token, repo_type="dataset")
-    except (
-        requests.exceptions.HTTPError,
-        ValueError,
-    ):  # catch http error and token invalid error
+
+    except (HfHubHTTPError, ValueError):  # catch http error and token invalid error
+
         pass
 
 

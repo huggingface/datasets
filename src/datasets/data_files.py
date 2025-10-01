@@ -402,7 +402,7 @@ def resolve_pattern(
     protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[0]
     protocol_prefix = protocol + "://" if protocol != "file" else ""
     glob_kwargs = {}
-    if protocol == "hf" and config.HF_HUB_VERSION >= version.parse("0.20.0"):
+    if protocol == "hf":
         # 10 times faster glob with detail=True (ignores costly info like lastCommit)
         glob_kwargs["expand_info"] = False
     matched_paths = [

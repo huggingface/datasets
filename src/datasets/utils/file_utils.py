@@ -27,12 +27,13 @@ from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
 import fsspec
+import httpx
 import huggingface_hub
 import huggingface_hub.errors
 import requests
 from fsspec.core import strip_protocol, url_to_fs
 from fsspec.utils import can_be_local
-from huggingface_hub.utils import EntryNotFoundError, get_session, insecure_hashlib
+from huggingface_hub.utils import get_session, insecure_hashlib
 from packaging import version
 
 from .. import __version__, config
@@ -147,7 +148,7 @@ def cached_path(
         ConnectionError: in case of unreachable url
             and no cache on disk
         ValueError: if it couldn't parse the url or filename correctly
-        requests.exceptions.ConnectionError: in case of internet connection issue
+        httpx.NetworkError or requests.exceptions.ConnectionError: in case of internet connection issue
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
@@ -263,7 +264,7 @@ def cached_path(
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
     ua = f"datasets/{__version__}"
     ua += f"; python/{config.PY_VERSION}"
-    ua += f"; huggingface_hub/{huggingface_hub.__version__}"
+    ua += f"; hf_hub/{huggingface_hub.__version__}"
     ua += f"; pyarrow/{config.PYARROW_VERSION}"
     if config.TORCH_AVAILABLE:
         ua += f"; torch/{config.TORCH_VERSION}"
@@ -819,7 +820,7 @@ def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
         fs, *_ = fs, *_ = url_to_fs(path, **storage_options)
         try:
             size = fs.size(main_hop)
-        except EntryNotFoundError:
+        except huggingface_hub.utils.EntryNotFoundError:
             raise FileNotFoundError(f"No such file: {path}")
         if size is None:
             # use xopen instead of fs.open to make data fetching more robust
@@ -893,6 +894,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
                 asyncio.TimeoutError,
                 requests.exceptions.ConnectionError,
                 requests.exceptions.Timeout,
+                httpx.RequestError,
             ) as err:
                 disconnect_err = err
                 logger.warning(
@@ -982,9 +984,6 @@ def _prepare_single_hop_path_and_storage_options(
             "endpoint": config.HF_ENDPOINT,
             **storage_options,
         }
-        # streaming with block_size=0 is only implemented in 0.21 (see https://github.com/huggingface/huggingface_hub/pull/1967)
-        if config.HF_HUB_VERSION < version.parse("0.21.0"):
-            storage_options["block_size"] = "default"
     if storage_options:
         storage_options = {protocol: storage_options}
     return urlpath, storage_options
