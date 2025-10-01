@@ -106,6 +106,8 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
         return "binary"
     elif pyarrow.types.is_large_binary(arrow_type):
         return "large_binary"
+    elif pyarrow.types.is_binary_view(arrow_type):
+        return "binary_view"
     elif pyarrow.types.is_string(arrow_type):
         return "string"
     elif pyarrow.types.is_large_string(arrow_type):
@@ -508,6 +510,7 @@ class Value:
     - `decimal256(precision, scale)`
     - `binary`
     - `large_binary`
+    - `binary_view`
     - `string`
     - `large_string`
     - `string_view`
