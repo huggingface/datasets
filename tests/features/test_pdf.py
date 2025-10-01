@@ -48,10 +48,14 @@ def test_dataset_with_pdf_feature(shared_datadir):
     batch = dset[:1]
     assert len(batch) == 1
     assert batch.keys() == {"pdf"}
-    assert isinstance(batch["pdf"], list) and all(isinstance(item, pdfplumber.pdf.PDF) for item in batch["pdf"])
+    assert isinstance(batch["pdf"], list) and all(
+        isinstance(item, pdfplumber.pdf.PDF) for item in batch["pdf"]
+    )
     column = dset["pdf"]
     assert len(column) == 1
-    assert isinstance(column, list) and all(isinstance(item, pdfplumber.pdf.PDF) for item in column)
+    assert isinstance(column, list) and all(
+        isinstance(item, pdfplumber.pdf.PDF) for item in column
+    )
 
     # from bytes
     with open(pdf_path, "rb") as f:

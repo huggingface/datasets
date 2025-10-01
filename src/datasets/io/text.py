@@ -28,7 +28,11 @@ class TextDatasetReader(AbstractDatasetReader):
             num_proc=num_proc,
             **kwargs,
         )
-        path_or_paths = path_or_paths if isinstance(path_or_paths, dict) else {self.split: path_or_paths}
+        path_or_paths = (
+            path_or_paths
+            if isinstance(path_or_paths, dict)
+            else {self.split: path_or_paths}
+        )
         self.builder = Text(
             cache_dir=cache_dir,
             data_files=path_or_paths,
@@ -55,6 +59,8 @@ class TextDatasetReader(AbstractDatasetReader):
                 num_proc=self.num_proc,
             )
             dataset = self.builder.as_dataset(
-                split=self.split, verification_mode=verification_mode, in_memory=self.keep_in_memory
+                split=self.split,
+                verification_mode=verification_mode,
+                in_memory=self.keep_in_memory,
             )
         return dataset

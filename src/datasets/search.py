@@ -118,18 +118,25 @@ class ElasticSearchIndex(BaseIndex):
                 "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch==7.7.1 for example`"
             )
         if es_client is not None and (host is not None or port is not None):
-            raise ValueError("Please specify either `es_client` or `(host, port)`, but not both.")
+            raise ValueError(
+                "Please specify either `es_client` or `(host, port)`, but not both."
+            )
         host = host or "localhost"
         port = port or 9200
 
         import elasticsearch.helpers  # noqa: F401 - need this to properly load all the es features
         from elasticsearch import Elasticsearch  # noqa: F811
 
-        self.es_client = es_client if es_client is not None else Elasticsearch([{"host": host, "port": str(port)}])
+        self.es_client = (
+            es_client
+            if es_client is not None
+            else Elasticsearch([{"host": host, "port": str(port)}])
+        )
         self.es_index_name = (
             es_index_name
             if es_index_name is not None
-            else "huggingface_datasets_" + os.path.basename(tempfile.NamedTemporaryFile().name)
+            else "huggingface_datasets_"
+            + os.path.basename(tempfile.NamedTemporaryFile().name)
         )
         self.es_index_config = (
             es_index_config
@@ -137,13 +144,30 @@ class ElasticSearchIndex(BaseIndex):
             else {
                 "settings": {
                     "number_of_shards": 1,
-                    "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+                    "analysis": {
+                        "analyzer": {
+                            "stop_standard": {
+                                "type": "standard",
+                                " stopwords": "_english_",
+                            }
+                        }
+                    },
                 },
-                "mappings": {"properties": {"text": {"type": "text", "analyzer": "standard", "similarity": "BM25"}}},
+                "mappings": {
+                    "properties": {
+                        "text": {
+                            "type": "text",
+                            "analyzer": "standard",
+                            "similarity": "BM25",
+                        }
+                    }
+                },
             }
         )
 
-    def add_documents(self, documents: Union[list[str], "Dataset"], column: Optional[str] = None):
+    def add_documents(
+        self, documents: Union[list[str], "Dataset"], column: Optional[str] = None
+    ):
         """
         Add documents to the index.
         If the documents are inside a certain column, you can specify it using the `column` argument.
@@ -192,24 +216,42 @@ class ElasticSearchIndex(BaseIndex):
         """
         response = self.es_client.search(
             index=self.es_index_name,
-            body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}}, "size": k},
+            body={
+                "query": {
+                    "multi_match": {
+                        "query": query,
+                        "fields": ["text"],
+                        "type": "cross_fields",
+                    }
+                },
+                "size": k,
+            },
             **kwargs,
         )
         hits = response["hits"]["hits"]
-        return SearchResults([hit["_score"] for hit in hits], [int(hit["_id"]) for hit in hits])
+        return SearchResults(
+            [hit["_score"] for hit in hits], [int(hit["_id"]) for hit in hits]
+        )
 
-    def search_batch(self, queries, k: int = 10, max_workers=10, **kwargs) -> BatchedSearchResults:
+    def search_batch(
+        self, queries, k: int = 10, max_workers=10, **kwargs
+    ) -> BatchedSearchResults:
         import concurrent.futures
 
         total_scores, total_indices = [None] * len(queries), [None] * len(queries)
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            future_to_index = {executor.submit(self.search, query, k, **kwargs): i for i, query in enumerate(queries)}
+            future_to_index = {
+                executor.submit(self.search, query, k, **kwargs): i
+                for i, query in enumerate(queries)
+            }
             for future in concurrent.futures.as_completed(future_to_index):
                 index = future_to_index[future]
                 results: SearchResults = future.result()
                 total_scores[index] = results.scores
                 total_indices[index] = results.indices
-        return BatchedSearchResults(total_indices=total_indices, total_scores=total_scores)
+        return BatchedSearchResults(
+            total_indices=total_indices, total_scores=total_scores
+        )
 
 
 class FaissIndex(BaseIndex):
@@ -235,7 +277,9 @@ class FaissIndex(BaseIndex):
         - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
         """
         if string_factory is not None and custom_index is not None:
-            raise ValueError("Please specify either `string_factory` or `custom_index` but not both.")
+            raise ValueError(
+                "Please specify either `string_factory` or `custom_index` but not both."
+            )
         if device is not None and custom_index is not None:
             raise ValueError(
                 "Cannot pass both 'custom_index' and 'device'. "
@@ -278,7 +322,9 @@ class FaissIndex(BaseIndex):
                 if self.metric_type is None:
                     index = faiss.index_factory(size, self.string_factory)
                 else:
-                    index = faiss.index_factory(size, self.string_factory, self.metric_type)
+                    index = faiss.index_factory(
+                        size, self.string_factory, self.metric_type
+                    )
             else:
                 if self.metric_type is None:
                     index = faiss.IndexFlat(size)
@@ -291,29 +337,48 @@ class FaissIndex(BaseIndex):
         # Set verbosity level
         if faiss_verbose is not None:
             self.faiss_index.verbose = faiss_verbose
-            if hasattr(self.faiss_index, "index") and self.faiss_index.index is not None:
+            if (
+                hasattr(self.faiss_index, "index")
+                and self.faiss_index.index is not None
+            ):
                 self.faiss_index.index.verbose = faiss_verbose
-            if hasattr(self.faiss_index, "quantizer") and self.faiss_index.quantizer is not None:
+            if (
+                hasattr(self.faiss_index, "quantizer")
+                and self.faiss_index.quantizer is not None
+            ):
                 self.faiss_index.quantizer.verbose = faiss_verbose
-            if hasattr(self.faiss_index, "clustering_index") and self.faiss_index.clustering_index is not None:
+            if (
+                hasattr(self.faiss_index, "clustering_index")
+                and self.faiss_index.clustering_index is not None
+            ):
                 self.faiss_index.clustering_index.verbose = faiss_verbose
 
         # Train
         if train_size is not None:
-            train_vecs = vectors[:train_size] if column is None else vectors[:train_size][column]
+            train_vecs = (
+                vectors[:train_size] if column is None else vectors[:train_size][column]
+            )
             logger.info(f"Training the index with the first {len(train_vecs)} vectors")
             self.faiss_index.train(train_vecs)
         else:
-            logger.info("Ignored the training step of the faiss index as `train_size` is None.")
+            logger.info(
+                "Ignored the training step of the faiss index as `train_size` is None."
+            )
 
         # Add vectors
         logger.info(f"Adding {len(vectors)} vectors to the faiss index")
         for i in hf_tqdm(range(0, len(vectors), batch_size)):
-            vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
+            vecs = (
+                vectors[i : i + batch_size]
+                if column is None
+                else vectors[i : i + batch_size][column]
+            )
             self.faiss_index.add(vecs)
 
     @staticmethod
-    def _faiss_index_to_device(index: "faiss.Index", device: Optional[Union[int, list[int]]] = None) -> "faiss.Index":
+    def _faiss_index_to_device(
+        index: "faiss.Index", device: Optional[Union[int, list[int]]] = None
+    ) -> "faiss.Index":
         """
         Sends a faiss index to a device.
         A device can either be a positive integer (GPU id), a negative integer (all GPUs),
@@ -358,7 +423,9 @@ class FaissIndex(BaseIndex):
             indices (`List[List[int]]`): The indices of the retrieved examples.
         """
         if len(query.shape) != 1 and (len(query.shape) != 2 or query.shape[0] != 1):
-            raise ValueError("Shape of query is incorrect, it has to be either a 1D array or 2D (1, N)")
+            raise ValueError(
+                "Shape of query is incorrect, it has to be either a 1D array or 2D (1, N)"
+            )
 
         queries = query.reshape(1, -1)
         if not queries.flags.c_contiguous:
@@ -394,7 +461,9 @@ class FaissIndex(BaseIndex):
             index = self.faiss_index
 
         with fsspec.open(str(file), "wb", **(storage_options or {})) as f:
-            faiss.write_index(index, faiss.BufferedIOWriter(faiss.PyCallbackIOWriter(f.write)))
+            faiss.write_index(
+                index, faiss.BufferedIOWriter(faiss.PyCallbackIOWriter(f.write))
+            )
 
     @classmethod
     def load(
@@ -409,8 +478,12 @@ class FaissIndex(BaseIndex):
         # Instances of FaissIndex is essentially just a wrapper for faiss indices.
         faiss_index = cls(device=device)
         with fsspec.open(str(file), "rb", **(storage_options or {})) as f:
-            index = faiss.read_index(faiss.BufferedIOReader(faiss.PyCallbackIOReader(f.read)))
-        faiss_index.faiss_index = faiss_index._faiss_index_to_device(index, faiss_index.device)
+            index = faiss.read_index(
+                faiss.BufferedIOReader(faiss.PyCallbackIOReader(f.read))
+            )
+        faiss_index.faiss_index = faiss_index._faiss_index_to_device(
+            index, faiss_index.device
+        )
         return faiss_index
 
 
@@ -485,10 +558,17 @@ class IndexableMixin:
         """
         index_name = index_name if index_name is not None else column
         faiss_index = FaissIndex(
-            device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index
+            device=device,
+            string_factory=string_factory,
+            metric_type=metric_type,
+            custom_index=custom_index,
         )
         faiss_index.add_vectors(
-            self, column=column, batch_size=batch_size, train_size=train_size, faiss_verbose=faiss_verbose
+            self,
+            column=column,
+            batch_size=batch_size,
+            train_size=train_size,
+            faiss_verbose=faiss_verbose,
         )
         self._indexes[index_name] = faiss_index
 
@@ -525,14 +605,26 @@ class IndexableMixin:
             faiss_verbose (`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
         faiss_index = FaissIndex(
-            device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index
+            device=device,
+            string_factory=string_factory,
+            metric_type=metric_type,
+            custom_index=custom_index,
         )
         faiss_index.add_vectors(
-            external_arrays, column=None, batch_size=batch_size, train_size=train_size, faiss_verbose=faiss_verbose
+            external_arrays,
+            column=None,
+            batch_size=batch_size,
+            train_size=train_size,
+            faiss_verbose=faiss_verbose,
         )
         self._indexes[index_name] = faiss_index
 
-    def save_faiss_index(self, index_name: str, file: Union[str, PurePath], storage_options: Optional[dict] = None):
+    def save_faiss_index(
+        self,
+        index_name: str,
+        file: Union[str, PurePath],
+        storage_options: Optional[dict] = None,
+    ):
         """Save a FaissIndex on disk.
 
         Args:
@@ -546,7 +638,9 @@ class IndexableMixin:
         """
         index = self.get_index(index_name)
         if not isinstance(index, FaissIndex):
-            raise ValueError(f"Index '{index_name}' is not a FaissIndex but a '{type(index)}'")
+            raise ValueError(
+                f"Index '{index_name}' is not a FaissIndex but a '{type(index)}'"
+            )
         index.save(file, storage_options=storage_options)
         logger.info(f"Saved FaissIndex {index_name} at {file}")
 
@@ -629,7 +723,11 @@ class IndexableMixin:
         """
         index_name = index_name if index_name is not None else column
         es_index = ElasticSearchIndex(
-            host=host, port=port, es_client=es_client, es_index_name=es_index_name, es_index_config=es_index_config
+            host=host,
+            port=port,
+            es_client=es_client,
+            es_index_name=es_index_name,
+            es_index_config=es_index_config,
         )
         es_index.add_documents(self, column=column)
         self._indexes[index_name] = es_index
@@ -678,7 +776,11 @@ class IndexableMixin:
                     ```
         """
         self._indexes[index_name] = ElasticSearchIndex(
-            host=host, port=port, es_client=es_client, es_index_name=es_index_name, es_index_config=es_index_config
+            host=host,
+            port=port,
+            es_client=es_client,
+            es_index_name=es_index_name,
+            es_index_config=es_index_config,
         )
 
     def drop_index(self, index_name: str):
@@ -690,7 +792,9 @@ class IndexableMixin:
         """
         del self._indexes[index_name]
 
-    def search(self, index_name: str, query: Union[str, np.array], k: int = 10, **kwargs) -> SearchResults:
+    def search(
+        self, index_name: str, query: Union[str, np.array], k: int = 10, **kwargs
+    ) -> SearchResults:
         """Find the nearest examples indices in the dataset to the query.
 
         Args:
@@ -711,7 +815,11 @@ class IndexableMixin:
         return self._indexes[index_name].search(query, k, **kwargs)
 
     def search_batch(
-        self, index_name: str, queries: Union[list[str], np.array], k: int = 10, **kwargs
+        self,
+        index_name: str,
+        queries: Union[list[str], np.array],
+        k: int = 10,
+        **kwargs,
     ) -> BatchedSearchResults:
         """Find the nearest examples indices in the dataset to the query.
 
@@ -757,7 +865,11 @@ class IndexableMixin:
         return NearestExamplesResults(scores[: len(top_indices)], self[top_indices])
 
     def get_nearest_examples_batch(
-        self, index_name: str, queries: Union[list[str], np.array], k: int = 10, **kwargs
+        self,
+        index_name: str,
+        queries: Union[list[str], np.array],
+        k: int = 10,
+        **kwargs,
     ) -> BatchedNearestExamplesResults:
         """Find the nearest examples in the dataset to the query.
 
@@ -776,10 +888,14 @@ class IndexableMixin:
                 - **total_examples** (`List[dict]`): the retrieved examples per query
         """
         self._check_index_is_initialized(index_name)
-        total_scores, total_indices = self.search_batch(index_name, queries, k, **kwargs)
+        total_scores, total_indices = self.search_batch(
+            index_name, queries, k, **kwargs
+        )
         total_scores = [
             scores_i[: len([i for i in indices_i if i >= 0])]
             for scores_i, indices_i in zip(total_scores, total_indices)
         ]
-        total_samples = [self[[i for i in indices if i >= 0]] for indices in total_indices]
+        total_samples = [
+            self[[i for i in indices if i >= 0]] for indices in total_indices
+        ]
         return BatchedNearestExamplesResults(total_scores, total_samples)

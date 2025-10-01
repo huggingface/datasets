@@ -36,48 +36,77 @@ def _find_hash_in_cache(
         config_id = None
     cache_dir = os.path.expanduser(str(cache_dir or datasets.config.HF_DATASETS_CACHE))
     namespace_and_dataset_name = dataset_name.split("/")
-    namespace_and_dataset_name[-1] = camelcase_to_snakecase(namespace_and_dataset_name[-1])
+    namespace_and_dataset_name[-1] = camelcase_to_snakecase(
+        namespace_and_dataset_name[-1]
+    )
     cached_relative_path = "___".join(namespace_and_dataset_name)
     cached_datasets_directory_path_root = os.path.join(cache_dir, cached_relative_path)
     cached_directory_paths = [
         cached_directory_path
         for cached_directory_path in glob.glob(
-            os.path.join(cached_datasets_directory_path_root, config_id or "*", "*", "*")
+            os.path.join(
+                cached_datasets_directory_path_root, config_id or "*", "*", "*"
+            )
         )
         if os.path.isdir(cached_directory_path)
         and (
             config_kwargs
             or custom_features
-            or json.loads(Path(cached_directory_path, "dataset_info.json").read_text(encoding="utf-8"))["config_name"]
-            == Path(cached_directory_path).parts[-3]  # no extra params => config_id == config_name
+            or json.loads(
+                Path(cached_directory_path, "dataset_info.json").read_text(
+                    encoding="utf-8"
+                )
+            )["config_name"]
+            == Path(cached_directory_path).parts[
+                -3
+            ]  # no extra params => config_id == config_name
         )
     ]
     if not cached_directory_paths:
         cached_directory_paths = [
             cached_directory_path
-            for cached_directory_path in glob.glob(os.path.join(cached_datasets_directory_path_root, "*", "*", "*"))
+            for cached_directory_path in glob.glob(
+                os.path.join(cached_datasets_directory_path_root, "*", "*", "*")
+            )
             if os.path.isdir(cached_directory_path)
         ]
         available_configs = sorted(
-            {Path(cached_directory_path).parts[-3] for cached_directory_path in cached_directory_paths}
+            {
+                Path(cached_directory_path).parts[-3]
+                for cached_directory_path in cached_directory_paths
+            }
         )
         raise ValueError(
             f"Couldn't find cache for {dataset_name}"
             + (f" for config '{config_id}'" if config_id else "")
-            + (f"\nAvailable configs in the cache: {available_configs}" if available_configs else "")
+            + (
+                f"\nAvailable configs in the cache: {available_configs}"
+                if available_configs
+                else ""
+            )
         )
     # get most recent
-    cached_directory_path = Path(sorted(cached_directory_paths, key=_get_modification_time)[-1])
+    cached_directory_path = Path(
+        sorted(cached_directory_paths, key=_get_modification_time)[-1]
+    )
     version, hash = cached_directory_path.parts[-2:]
     other_configs = [
         Path(_cached_directory_path).parts[-3]
-        for _cached_directory_path in glob.glob(os.path.join(cached_datasets_directory_path_root, "*", version, hash))
+        for _cached_directory_path in glob.glob(
+            os.path.join(cached_datasets_directory_path_root, "*", version, hash)
+        )
         if os.path.isdir(_cached_directory_path)
         and (
             config_kwargs
             or custom_features
-            or json.loads(Path(_cached_directory_path, "dataset_info.json").read_text(encoding="utf-8"))["config_name"]
-            == Path(_cached_directory_path).parts[-3]  # no extra params => config_id == config_name
+            or json.loads(
+                Path(_cached_directory_path, "dataset_info.json").read_text(
+                    encoding="utf-8"
+                )
+            )["config_name"]
+            == Path(_cached_directory_path).parts[
+                -3
+            ]  # no extra params => config_id == config_name
         )
     ]
     if not config_id and len(other_configs) > 1:
@@ -108,14 +137,18 @@ class Cache(datasets.ArrowBasedBuilder):
         features: Optional[datasets.Features] = None,
         token: Optional[Union[bool, str]] = None,
         repo_id: Optional[str] = None,
-        data_files: Optional[Union[str, list, dict, datasets.data_files.DataFilesDict]] = None,
+        data_files: Optional[
+            Union[str, list, dict, datasets.data_files.DataFilesDict]
+        ] = None,
         data_dir: Optional[str] = None,
         storage_options: Optional[dict] = None,
         writer_batch_size: Optional[int] = None,
         **config_kwargs,
     ):
         if repo_id is None and dataset_name is None:
-            raise ValueError("repo_id or dataset_name is required for the Cache dataset builder")
+            raise ValueError(
+                "repo_id or dataset_name is required for the Cache dataset builder"
+            )
         if data_files is not None:
             config_kwargs["data_files"] = data_files
         if data_dir is not None:
@@ -129,7 +162,9 @@ class Cache(datasets.ArrowBasedBuilder):
                 custom_features=features,
             )
         elif hash == "auto" or version == "auto":
-            raise NotImplementedError("Pass both hash='auto' and version='auto' instead")
+            raise NotImplementedError(
+                "Pass both hash='auto' and version='auto' instead"
+            )
         super().__init__(
             cache_dir=cache_dir,
             dataset_name=dataset_name,
@@ -149,7 +184,9 @@ class Cache(datasets.ArrowBasedBuilder):
 
     def download_and_prepare(self, output_dir: Optional[str] = None, *args, **kwargs):
         if not os.path.exists(self.cache_dir):
-            raise ValueError(f"Cache directory for {self.dataset_name} doesn't exist at {self.cache_dir}")
+            raise ValueError(
+                f"Cache directory for {self.dataset_name} doesn't exist at {self.cache_dir}"
+            )
         if output_dir is not None and output_dir != self.cache_dir:
             shutil.copytree(self.cache_dir, output_dir)
 
@@ -158,7 +195,9 @@ class Cache(datasets.ArrowBasedBuilder):
         if isinstance(self.info.splits, datasets.SplitDict):
             split_infos: list[datasets.SplitInfo] = list(self.info.splits.values())
         else:
-            raise ValueError(f"Missing splits info for {self.dataset_name} in cache directory {self.cache_dir}")
+            raise ValueError(
+                f"Missing splits info for {self.dataset_name} in cache directory {self.cache_dir}"
+            )
         return [
             datasets.SplitGenerator(
                 name=split_info.name,
@@ -187,5 +226,7 @@ class Cache(datasets.ArrowBasedBuilder):
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                         yield f"{file_idx}_{batch_idx}", pa_table
                 except ValueError as e:
-                    logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                    logger.error(
+                        f"Failed to read file '{file}' with error {type(e)}: {e}"
+                    )
                     raise

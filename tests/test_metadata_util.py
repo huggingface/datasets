@@ -15,8 +15,17 @@ from datasets.utils.metadata import MetadataConfigs
 
 
 def _dedent(string: str) -> str:
-    indent_level = min(re.search("^ +", t).end() if t.startswith(" ") else 0 for t in string.splitlines())
-    return "\n".join([line[indent_level:] for line in string.splitlines() if indent_level < len(line)])
+    indent_level = min(
+        re.search("^ +", t).end() if t.startswith(" ") else 0
+        for t in string.splitlines()
+    )
+    return "\n".join(
+        [
+            line[indent_level:]
+            for line in string.splitlines()
+            if indent_level < len(line)
+        ]
+    )
 
 
 README_YAML = """\
@@ -121,7 +130,11 @@ EXPECTED_METADATA_TWO_CONFIGS_DEFAULT_NAME = {
 EXPECTED_METADATA_WITH_FEATURES = {
     "default": {
         "features": Features(
-            {"id": Value(dtype="int64"), "name": Value(dtype="string"), "score": Value(dtype="float64")}
+            {
+                "id": Value(dtype="int64"),
+                "name": Value(dtype="string"),
+                "score": Value(dtype="float64"),
+            }
         )
     }
 }
@@ -151,7 +164,8 @@ class TestMetadataUtils(unittest.TestCase):
                 readme_file.write(README_YAML)
             dataset_card_data = DatasetCard.load(path).data
             self.assertDictEqual(
-                dataset_card_data.to_dict(), {"language": ["zh", "en"], "task_ids": ["sentiment-classification"]}
+                dataset_card_data.to_dict(),
+                {"language": ["zh", "en"], "task_ids": ["sentiment-classification"]},
             )
 
             with open(path, "w+") as readme_file:
@@ -241,15 +255,25 @@ class TestMetadataUtils(unittest.TestCase):
               I agree to use this model for non-commerical use ONLY: checkbox
             """
         )
-        assert DatasetCardData(**yaml.safe_load(valid_yaml_with_optional_keys)).to_dict()
+        assert DatasetCardData(
+            **yaml.safe_load(valid_yaml_with_optional_keys)
+        ).to_dict()
 
 
 @pytest.mark.parametrize(
     "readme_content, expected_metadata_configs_dict, expected_default_config_name",
     [
         (README_METADATA_SINGLE_CONFIG, EXPECTED_METADATA_SINGLE_CONFIG, "custom"),
-        (README_METADATA_TWO_CONFIGS_WITH_DEFAULT_FLAG, EXPECTED_METADATA_TWO_CONFIGS_DEFAULT_FLAG, "v2"),
-        (README_METADATA_TWO_CONFIGS_WITH_DEFAULT_NAME, EXPECTED_METADATA_TWO_CONFIGS_DEFAULT_NAME, "default"),
+        (
+            README_METADATA_TWO_CONFIGS_WITH_DEFAULT_FLAG,
+            EXPECTED_METADATA_TWO_CONFIGS_DEFAULT_FLAG,
+            "v2",
+        ),
+        (
+            README_METADATA_TWO_CONFIGS_WITH_DEFAULT_NAME,
+            EXPECTED_METADATA_TWO_CONFIGS_DEFAULT_NAME,
+            "default",
+        ),
         (README_METADATA_WITH_FEATURES, EXPECTED_METADATA_WITH_FEATURES, "default"),
     ],
 )
@@ -261,9 +285,14 @@ def test_metadata_configs_dataset_card_data(
         with open(path, "w+") as readme_file:
             readme_file.write(readme_content)
         dataset_card_data = DatasetCard.load(path).data
-        metadata_configs_dict = MetadataConfigs.from_dataset_card_data(dataset_card_data)
+        metadata_configs_dict = MetadataConfigs.from_dataset_card_data(
+            dataset_card_data
+        )
         assert metadata_configs_dict == expected_metadata_configs_dict
-        assert metadata_configs_dict.get_default_config_name() == expected_default_config_name
+        assert (
+            metadata_configs_dict.get_default_config_name()
+            == expected_default_config_name
+        )
 
 
 def test_metadata_configs_incorrect_yaml():
@@ -354,5 +383,7 @@ def test_split_order_in_metadata_configs_from_exported_parquet_files_and_dataset
     metadata_configs = MetadataConfigs._from_exported_parquet_files_and_dataset_infos(
         "123", exported_parquet_files, dataset_infos
     )
-    split_names = [data_file["split"] for data_file in metadata_configs["default"]["data_files"]]
+    split_names = [
+        data_file["split"] for data_file in metadata_configs["default"]["data_files"]
+    ]
     assert split_names == ["train", "validation", "test"]

@@ -6,7 +6,10 @@ import fsspec
 import pyarrow.parquet as pq
 
 from .. import Dataset, Features, NamedSplit, config
-from ..arrow_writer import get_writer_batch_size_from_data_size, get_writer_batch_size_from_features
+from ..arrow_writer import (
+    get_writer_batch_size_from_data_size,
+    get_writer_batch_size_from_features,
+)
 from ..formatting import query_table
 from ..packaged_modules import _PACKAGED_DATASETS_MODULES
 from ..packaged_modules.parquet.parquet import Parquet
@@ -37,7 +40,11 @@ class ParquetDatasetReader(AbstractDatasetReader):
             num_proc=num_proc,
             **kwargs,
         )
-        path_or_paths = path_or_paths if isinstance(path_or_paths, dict) else {self.split: path_or_paths}
+        path_or_paths = (
+            path_or_paths
+            if isinstance(path_or_paths, dict)
+            else {self.split: path_or_paths}
+        )
         hash = _PACKAGED_DATASETS_MODULES["parquet"][1]
         self.builder = Parquet(
             cache_dir=cache_dir,
@@ -66,7 +73,9 @@ class ParquetDatasetReader(AbstractDatasetReader):
                 num_proc=self.num_proc,
             )
             dataset = self.builder.as_dataset(
-                split=self.split, verification_mode=verification_mode, in_memory=self.keep_in_memory
+                split=self.split,
+                verification_mode=verification_mode,
+                in_memory=self.keep_in_memory,
             )
         return dataset
 
@@ -87,7 +96,9 @@ class ParquetDatasetWriter:
         self.batch_size = (
             batch_size
             or get_writer_batch_size_from_features(dataset.features)
-            or get_writer_batch_size_from_data_size(len(dataset), dataset._estimate_nbytes())
+            or get_writer_batch_size_from_data_size(
+                len(dataset), dataset._estimate_nbytes()
+            )
         )
         self.storage_options = storage_options or {}
         self.parquet_writer_kwargs = parquet_writer_kwargs
@@ -98,7 +109,9 @@ class ParquetDatasetWriter:
 
     def write(self) -> int:
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
-            with fsspec.open(self.path_or_buf, "wb", **(self.storage_options or {})) as buffer:
+            with fsspec.open(
+                self.path_or_buf, "wb", **(self.storage_options or {})
+            ) as buffer:
                 written = self._write(
                     file_obj=buffer,
                     batch_size=self.batch_size,
@@ -112,7 +125,9 @@ class ParquetDatasetWriter:
             )
         return written
 
-    def _write(self, file_obj: BinaryIO, batch_size: int, **parquet_writer_kwargs) -> int:
+    def _write(
+        self, file_obj: BinaryIO, batch_size: int, **parquet_writer_kwargs
+    ) -> int:
         """Writes the pyarrow table as Parquet to a binary file handle.
 
         Caller is responsible for opening and closing the handle.
@@ -144,7 +159,13 @@ class ParquetDatasetWriter:
 
         # TODO(kszucs): we may want to persist multiple parameters
         if self.use_content_defined_chunking is not False:
-            writer.add_key_value_metadata({"content_defined_chunking": json.dumps(self.use_content_defined_chunking)})
+            writer.add_key_value_metadata(
+                {
+                    "content_defined_chunking": json.dumps(
+                        self.use_content_defined_chunking
+                    )
+                }
+            )
 
         writer.close()
         return written

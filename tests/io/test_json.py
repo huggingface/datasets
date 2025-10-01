@@ -23,8 +23,14 @@ def _check_json_dataset(dataset, expected_features):
 def test_dataset_from_json_keep_in_memory(keep_in_memory, jsonl_path, tmp_path):
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
-    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = JsonDatasetReader(jsonl_path, cache_dir=cache_dir, keep_in_memory=keep_in_memory).read()
+    with (
+        assert_arrow_memory_increases()
+        if keep_in_memory
+        else assert_arrow_memory_doesnt_increase()
+    ):
+        dataset = JsonDatasetReader(
+            jsonl_path, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        ).read()
     _check_json_dataset(dataset, expected_features)
 
 
@@ -40,12 +46,20 @@ def test_dataset_from_json_keep_in_memory(keep_in_memory, jsonl_path, tmp_path):
 )
 def test_dataset_from_json_features(features, jsonl_path, tmp_path):
     cache_dir = tmp_path / "cache"
-    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    default_expected_features = {
+        "col_1": "string",
+        "col_2": "int64",
+        "col_3": "float64",
+    }
     expected_features = features.copy() if features else default_expected_features
     features = (
-        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+        Features({feature: Value(dtype) for feature, dtype in features.items()})
+        if features is not None
+        else None
     )
-    dataset = JsonDatasetReader(jsonl_path, features=features, cache_dir=cache_dir).read()
+    dataset = JsonDatasetReader(
+        jsonl_path, features=features, cache_dir=cache_dir
+    ).read()
     _check_json_dataset(dataset, expected_features)
 
 
@@ -56,14 +70,24 @@ def test_dataset_from_json_features(features, jsonl_path, tmp_path):
         {"col_3": "float64", "col_1": "string", "col_2": "int64"},
     ],
 )
-def test_dataset_from_json_with_unsorted_column_names(features, jsonl_312_path, tmp_path):
+def test_dataset_from_json_with_unsorted_column_names(
+    features, jsonl_312_path, tmp_path
+):
     cache_dir = tmp_path / "cache"
-    default_expected_features = {"col_3": "float64", "col_1": "string", "col_2": "int64"}
+    default_expected_features = {
+        "col_3": "float64",
+        "col_1": "string",
+        "col_2": "int64",
+    }
     expected_features = features.copy() if features else default_expected_features
     features = (
-        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+        Features({feature: Value(dtype) for feature, dtype in features.items()})
+        if features is not None
+        else None
     )
-    dataset = JsonDatasetReader(jsonl_312_path, features=features, cache_dir=cache_dir).read()
+    dataset = JsonDatasetReader(
+        jsonl_312_path, features=features, cache_dir=cache_dir
+    ).read()
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 2
     assert dataset.num_columns == 3
@@ -77,10 +101,14 @@ def test_dataset_from_json_with_mismatched_features(jsonl_312_path, tmp_path):
     features = {"col_2": "int64", "col_3": "float64", "col_1": "string"}
     expected_features = features.copy()
     features = (
-        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+        Features({feature: Value(dtype) for feature, dtype in features.items()})
+        if features is not None
+        else None
     )
     cache_dir = tmp_path / "cache"
-    dataset = JsonDatasetReader(jsonl_312_path, features=features, cache_dir=cache_dir).read()
+    dataset = JsonDatasetReader(
+        jsonl_312_path, features=features, cache_dir=cache_dir
+    ).read()
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 2
     assert dataset.num_columns == 3
@@ -125,8 +153,14 @@ def _check_json_datasetdict(dataset_dict, expected_features, splits=("train",)):
 def test_datasetdict_from_json_keep_in_memory(keep_in_memory, jsonl_path, tmp_path):
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
-    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = JsonDatasetReader({"train": jsonl_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory).read()
+    with (
+        assert_arrow_memory_increases()
+        if keep_in_memory
+        else assert_arrow_memory_doesnt_increase()
+    ):
+        dataset = JsonDatasetReader(
+            {"train": jsonl_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        ).read()
     _check_json_datasetdict(dataset, expected_features)
 
 
@@ -142,12 +176,20 @@ def test_datasetdict_from_json_keep_in_memory(keep_in_memory, jsonl_path, tmp_pa
 )
 def test_datasetdict_from_json_features(features, jsonl_path, tmp_path):
     cache_dir = tmp_path / "cache"
-    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    default_expected_features = {
+        "col_1": "string",
+        "col_2": "int64",
+        "col_3": "float64",
+    }
     expected_features = features.copy() if features else default_expected_features
     features = (
-        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+        Features({feature: Value(dtype) for feature, dtype in features.items()})
+        if features is not None
+        else None
     )
-    dataset = JsonDatasetReader({"train": jsonl_path}, features=features, cache_dir=cache_dir).read()
+    dataset = JsonDatasetReader(
+        {"train": jsonl_path}, features=features, cache_dir=cache_dir
+    ).read()
     _check_json_datasetdict(dataset, expected_features)
 
 
@@ -174,7 +216,9 @@ def load_json_lines(buffer):
 
 
 class TestJsonDatasetWriter:
-    @pytest.mark.parametrize("lines, load_json_function", [(True, load_json_lines), (False, load_json)])
+    @pytest.mark.parametrize(
+        "lines, load_json_function", [(True, load_json_lines), (False, load_json)]
+    )
     def test_dataset_to_json_lines(self, lines, load_json_function, dataset):
         with io.BytesIO() as buffer:
             JsonDatasetWriter(dataset, buffer, lines=lines).write()
@@ -207,13 +251,17 @@ class TestJsonDatasetWriter:
             else:
                 assert exported_content[0].keys() == keys
         else:
-            assert not hasattr(exported_content, "keys") and not hasattr(exported_content[0], "keys")
+            assert not hasattr(exported_content, "keys") and not hasattr(
+                exported_content[0], "keys"
+            )
         if len_at:
             assert len(exported_content[len_at]) == 10
         else:
             assert len(exported_content) == 10
 
-    @pytest.mark.parametrize("lines, load_json_function", [(True, load_json_lines), (False, load_json)])
+    @pytest.mark.parametrize(
+        "lines, load_json_function", [(True, load_json_lines), (False, load_json)]
+    )
     def test_dataset_to_json_lines_multiproc(self, lines, load_json_function, dataset):
         with io.BytesIO() as buffer:
             JsonDatasetWriter(dataset, buffer, lines=lines, num_proc=2).write()
@@ -234,9 +282,13 @@ class TestJsonDatasetWriter:
             ("table", dict, {"schema", "data"}, "data"),
         ],
     )
-    def test_dataset_to_json_orient_multiproc(self, orient, container, keys, len_at, dataset):
+    def test_dataset_to_json_orient_multiproc(
+        self, orient, container, keys, len_at, dataset
+    ):
         with io.BytesIO() as buffer:
-            JsonDatasetWriter(dataset, buffer, lines=False, orient=orient, num_proc=2).write()
+            JsonDatasetWriter(
+                dataset, buffer, lines=False, orient=orient, num_proc=2
+            ).write()
             buffer.seek(0)
             exported_content = load_json(buffer)
         assert isinstance(exported_content, container)
@@ -246,7 +298,9 @@ class TestJsonDatasetWriter:
             else:
                 assert exported_content[0].keys() == keys
         else:
-            assert not hasattr(exported_content, "keys") and not hasattr(exported_content[0], "keys")
+            assert not hasattr(exported_content, "keys") and not hasattr(
+                exported_content[0], "keys"
+            )
         if len_at:
             assert len(exported_content[len_at]) == 10
         else:
@@ -257,8 +311,12 @@ class TestJsonDatasetWriter:
             with io.BytesIO() as buffer:
                 JsonDatasetWriter(dataset, buffer, num_proc=0)
 
-    @pytest.mark.parametrize("compression, extension", [("gzip", "gz"), ("bz2", "bz2"), ("xz", "xz")])
-    def test_dataset_to_json_compression(self, shared_datadir, tmp_path_factory, extension, compression, dataset):
+    @pytest.mark.parametrize(
+        "compression, extension", [("gzip", "gz"), ("bz2", "bz2"), ("xz", "xz")]
+    )
+    def test_dataset_to_json_compression(
+        self, shared_datadir, tmp_path_factory, extension, compression, dataset
+    ):
         path = tmp_path_factory.mktemp("data") / f"test.json.{extension}"
         original_path = str(shared_datadir / f"test_file.json.{extension}")
         JsonDatasetWriter(dataset, path, compression=compression).write()
@@ -271,7 +329,9 @@ class TestJsonDatasetWriter:
 
     def test_dataset_to_json_fsspec(self, dataset, mockfs):
         dataset_path = "mock://my_dataset.json"
-        writer = JsonDatasetWriter(dataset, dataset_path, storage_options=mockfs.storage_options)
+        writer = JsonDatasetWriter(
+            dataset, dataset_path, storage_options=mockfs.storage_options
+        )
         assert writer.write() > 0
         assert mockfs.isfile(dataset_path)
 

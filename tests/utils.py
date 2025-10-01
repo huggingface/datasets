@@ -45,8 +45,12 @@ _run_packaged_tests = parse_flag_from_env("RUN_PACKAGED", default=True)
 
 # Compression
 require_lz4 = pytest.mark.skipif(not config.LZ4_AVAILABLE, reason="test requires lz4")
-require_py7zr = pytest.mark.skipif(not config.PY7ZR_AVAILABLE, reason="test requires py7zr")
-require_zstandard = pytest.mark.skipif(not config.ZSTANDARD_AVAILABLE, reason="test requires zstandard")
+require_py7zr = pytest.mark.skipif(
+    not config.PY7ZR_AVAILABLE, reason="test requires py7zr"
+)
+require_zstandard = pytest.mark.skipif(
+    not config.ZSTANDARD_AVAILABLE, reason="test requires zstandard"
+)
 
 # Dill-cloudpickle compatibility
 require_dill_gt_0_3_2 = pytest.mark.skipif(
@@ -61,10 +65,15 @@ require_not_windows = pytest.mark.skipif(
 )
 
 
-require_faiss = pytest.mark.skipif(find_spec("faiss") is None or sys.platform == "win32", reason="test requires faiss")
-require_moto = pytest.mark.skipif(find_spec("moto") is None, reason="test requires moto")
+require_faiss = pytest.mark.skipif(
+    find_spec("faiss") is None or sys.platform == "win32", reason="test requires faiss"
+)
+require_moto = pytest.mark.skipif(
+    find_spec("moto") is None, reason="test requires moto"
+)
 require_numpy1_on_windows = pytest.mark.skipif(
-    version.parse(importlib.metadata.version("numpy")) >= version.parse("2.0.0") and sys.platform == "win32",
+    version.parse(importlib.metadata.version("numpy")) >= version.parse("2.0.0")
+    and sys.platform == "win32",
     reason="test requires numpy < 2.0 on windows",
 )
 
@@ -378,6 +387,7 @@ def offline(mode: OfflineSimulationMode):
     There are three offline simulation modes:
 
     CONNECTION_FAILS (default mode): a ConnectionError is raised for each network call.
+
     CONNECTION_TIMES_OUT: a ReadTimeout or ConnectTimeout is raised for each network call.
     HF_HUB_OFFLINE_SET_TO_1: the HF_HUB_OFFLINE_SET_TO_1 environment variable is set to 1.
         This makes the http/ftp calls of the library instantly fail and raise an OfflineModeEnabled error.
@@ -387,6 +397,7 @@ def offline(mode: OfflineSimulationMode):
     """
     # Enable offline mode
     if mode is OfflineSimulationMode.HF_HUB_OFFLINE_SET_TO_1:
+
         with patch("datasets.config.HF_HUB_OFFLINE", True):
             yield
         return
@@ -442,7 +453,9 @@ def assert_arrow_memory_increases():
     gc.collect()
     previous_allocated_memory = pa.total_allocated_bytes()
     yield
-    assert pa.total_allocated_bytes() - previous_allocated_memory > 0, "Arrow memory didn't increase."
+    assert (
+        pa.total_allocated_bytes() - previous_allocated_memory > 0
+    ), "Arrow memory didn't increase."
 
 
 @contextmanager
@@ -452,11 +465,16 @@ def assert_arrow_memory_doesnt_increase():
     gc.collect()
     previous_allocated_memory = pa.total_allocated_bytes()
     yield
-    assert pa.total_allocated_bytes() - previous_allocated_memory <= 0, "Arrow memory wasn't expected to increase."
+    assert (
+        pa.total_allocated_bytes() - previous_allocated_memory <= 0
+    ), "Arrow memory wasn't expected to increase."
 
 
 def is_rng_equal(rng1, rng2):
-    return deepcopy(rng1).integers(0, 100, 10).tolist() == deepcopy(rng2).integers(0, 100, 10).tolist()
+    return (
+        deepcopy(rng1).integers(0, 100, 10).tolist()
+        == deepcopy(rng2).integers(0, 100, 10).tolist()
+    )
 
 
 def xfail_if_500_502_http_error(func):
@@ -495,7 +513,9 @@ async def _read_stream(stream, callback):
             break
 
 
-async def _stream_subprocess(cmd, env=None, stdin=None, timeout=None, quiet=False, echo=False) -> _RunOutput:
+async def _stream_subprocess(
+    cmd, env=None, stdin=None, timeout=None, quiet=False, echo=False
+) -> _RunOutput:
     if echo:
         print("\nRunning: ", " ".join(cmd))
 
@@ -528,18 +548,26 @@ async def _stream_subprocess(cmd, env=None, stdin=None, timeout=None, quiet=Fals
     # XXX: the timeout doesn't seem to make any difference here
     await asyncio.wait(
         [
-            _read_stream(p.stdout, lambda line: tee(line, out, sys.stdout, label="stdout:")),
-            _read_stream(p.stderr, lambda line: tee(line, err, sys.stderr, label="stderr:")),
+            _read_stream(
+                p.stdout, lambda line: tee(line, out, sys.stdout, label="stdout:")
+            ),
+            _read_stream(
+                p.stderr, lambda line: tee(line, err, sys.stderr, label="stderr:")
+            ),
         ],
         timeout=timeout,
     )
     return _RunOutput(await p.wait(), out, err)
 
 
-def execute_subprocess_async(cmd, env=None, stdin=None, timeout=180, quiet=False, echo=True) -> _RunOutput:
+def execute_subprocess_async(
+    cmd, env=None, stdin=None, timeout=180, quiet=False, echo=True
+) -> _RunOutput:
     loop = asyncio.get_event_loop()
     result = loop.run_until_complete(
-        _stream_subprocess(cmd, env=env, stdin=stdin, timeout=timeout, quiet=quiet, echo=echo)
+        _stream_subprocess(
+            cmd, env=env, stdin=stdin, timeout=timeout, quiet=quiet, echo=echo
+        )
     )
 
     cmd_str = " ".join(cmd)

@@ -23,8 +23,14 @@ def _check_csv_dataset(dataset, expected_features):
 def test_dataset_from_csv_keep_in_memory(keep_in_memory, csv_path, tmp_path):
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
-    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = CsvDatasetReader(csv_path, cache_dir=cache_dir, keep_in_memory=keep_in_memory).read()
+    with (
+        assert_arrow_memory_increases()
+        if keep_in_memory
+        else assert_arrow_memory_doesnt_increase()
+    ):
+        dataset = CsvDatasetReader(
+            csv_path, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        ).read()
     _check_csv_dataset(dataset, expected_features)
 
 
@@ -44,7 +50,9 @@ def test_dataset_from_csv_features(features, csv_path, tmp_path):
     default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = (
-        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+        Features({feature: Value(dtype) for feature, dtype in features.items()})
+        if features is not None
+        else None
     )
     dataset = CsvDatasetReader(csv_path, features=features, cache_dir=cache_dir).read()
     _check_csv_dataset(dataset, expected_features)
@@ -86,8 +94,14 @@ def _check_csv_datasetdict(dataset_dict, expected_features, splits=("train",)):
 def test_csv_datasetdict_reader_keep_in_memory(keep_in_memory, csv_path, tmp_path):
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
-    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = CsvDatasetReader({"train": csv_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory).read()
+    with (
+        assert_arrow_memory_increases()
+        if keep_in_memory
+        else assert_arrow_memory_doesnt_increase()
+    ):
+        dataset = CsvDatasetReader(
+            {"train": csv_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        ).read()
     _check_csv_datasetdict(dataset, expected_features)
 
 
@@ -107,9 +121,13 @@ def test_csv_datasetdict_reader_features(features, csv_path, tmp_path):
     default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = (
-        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+        Features({feature: Value(dtype) for feature, dtype in features.items()})
+        if features is not None
+        else None
     )
-    dataset = CsvDatasetReader({"train": csv_path}, features=features, cache_dir=cache_dir).read()
+    dataset = CsvDatasetReader(
+        {"train": csv_path}, features=features, cache_dir=cache_dir
+    ).read()
     _check_csv_datasetdict(dataset, expected_features)
 
 
@@ -167,7 +185,9 @@ def test_dataset_to_csv_invalidproc(csv_path, tmp_path):
 
 def test_dataset_to_csv_fsspec(dataset, mockfs):
     dataset_path = "mock://my_dataset.csv"
-    writer = CsvDatasetWriter(dataset, dataset_path, storage_options=mockfs.storage_options)
+    writer = CsvDatasetWriter(
+        dataset, dataset_path, storage_options=mockfs.storage_options
+    )
     assert writer.write() > 0
     assert mockfs.isfile(dataset_path)
 

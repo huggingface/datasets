@@ -40,11 +40,16 @@ class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
 
         if isinstance(column, list) and column:
             if all(
-                isinstance(x, tf.Tensor) and x.shape == column[0].shape and x.dtype == column[0].dtype for x in column
+                isinstance(x, tf.Tensor)
+                and x.shape == column[0].shape
+                and x.dtype == column[0].dtype
+                for x in column
             ):
                 return tf.stack(column)
             elif all(
-                isinstance(x, (tf.Tensor, tf.RaggedTensor)) and x.ndim == 1 and x.dtype == column[0].dtype
+                isinstance(x, (tf.Tensor, tf.RaggedTensor))
+                and x.ndim == 1
+                and x.dtype == column[0].dtype
                 for x in column
             ):
                 # only rag 1-D tensors, otherwise some dimensions become ragged even though they were consolidated
@@ -60,9 +65,13 @@ class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
 
         default_dtype = {}
 
-        if isinstance(value, (np.number, np.ndarray)) and np.issubdtype(value.dtype, np.integer):
+        if isinstance(value, (np.number, np.ndarray)) and np.issubdtype(
+            value.dtype, np.integer
+        ):
             default_dtype = {"dtype": tf.int64}
-        elif isinstance(value, (np.number, np.ndarray)) and np.issubdtype(value.dtype, np.floating):
+        elif isinstance(value, (np.number, np.ndarray)) and np.issubdtype(
+            value.dtype, np.floating
+        ):
             default_dtype = {"dtype": tf.float32}
 
         if config.PIL_AVAILABLE and "PIL" in sys.modules:
@@ -96,10 +105,16 @@ class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
             data_struct = data_struct.__array__()
         # support for nested types like struct of list of struct
         if isinstance(data_struct, np.ndarray):
-            if data_struct.dtype == object:  # tf tensors cannot be instantied from an array of objects
-                return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
+            if (
+                data_struct.dtype == object
+            ):  # tf tensors cannot be instantied from an array of objects
+                return self._consolidate(
+                    [self.recursive_tensorize(substruct) for substruct in data_struct]
+                )
         elif isinstance(data_struct, (list, tuple)):
-            return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
+            return self._consolidate(
+                [self.recursive_tensorize(substruct) for substruct in data_struct]
+            )
         return self._tensorize(data_struct)
 
     def recursive_tensorize(self, data_struct: dict):
@@ -112,7 +127,9 @@ class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
 
     def format_column(self, pa_table: pa.Table) -> "tf.Tensor":
         column = self.numpy_arrow_extractor().extract_column(pa_table)
-        column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
+        column = self.python_features_decoder.decode_column(
+            column, pa_table.column_names[0]
+        )
         column = self.recursive_tensorize(column)
         column = self._consolidate(column)
         return column

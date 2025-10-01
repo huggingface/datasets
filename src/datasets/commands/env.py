@@ -17,7 +17,9 @@ def info_command_factory(_):
 class EnvironmentCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
-        download_parser = parser.add_parser("env", help="Print relevant system environment info.")
+        download_parser = parser.add_parser(
+            "env", help="Print relevant system environment info."
+        )
         download_parser.set_defaults(func=info_command_factory)
 
     def run(self):

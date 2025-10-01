@@ -30,16 +30,23 @@ def get_exported_parquet_files(
     Get the dataset exported parquet files
     Docs: https://huggingface.co/docs/datasets-server/parquet
     """
-    dataset_viewer_parquet_url = config.HF_ENDPOINT.replace("://", "://datasets-server.") + "/parquet?dataset="
+    dataset_viewer_parquet_url = (
+        config.HF_ENDPOINT.replace("://", "://datasets-server.") + "/parquet?dataset="
+    )
     try:
         parquet_data_files_response = get_session().get(
             url=dataset_viewer_parquet_url + dataset,
-            headers=get_authentication_headers_for_url(config.HF_ENDPOINT + f"datasets/{dataset}", token=token),
+            headers=get_authentication_headers_for_url(
+                config.HF_ENDPOINT + f"datasets/{dataset}", token=token
+            ),
             timeout=100.0,
         )
         parquet_data_files_response.raise_for_status()
         if "X-Revision" in parquet_data_files_response.headers:
-            if parquet_data_files_response.headers["X-Revision"] == commit_hash or commit_hash is None:
+            if (
+                parquet_data_files_response.headers["X-Revision"] == commit_hash
+                or commit_hash is None
+            ):
                 parquet_data_files_response_json = parquet_data_files_response.json()
                 if (
                     parquet_data_files_response_json.get("partial") is False
@@ -49,13 +56,19 @@ def get_exported_parquet_files(
                 ):
                     return parquet_data_files_response_json["parquet_files"]
                 else:
-                    logger.debug(f"Parquet export for {dataset} is not completely ready yet.")
+                    logger.debug(
+                        f"Parquet export for {dataset} is not completely ready yet."
+                    )
             else:
                 logger.debug(
                     f"Parquet export for {dataset} is available but outdated (commit_hash='{parquet_data_files_response.headers['X-Revision']}')"
                 )
-    except Exception as e:  # noqa catch any exception of the dataset viewer API and consider the parquet export doesn't exist
-        logger.debug(f"No parquet export for {dataset} available ({type(e).__name__}: {e})")
+    except (
+        Exception
+    ) as e:  # noqa catch any exception of the dataset viewer API and consider the parquet export doesn't exist
+        logger.debug(
+            f"No parquet export for {dataset} available ({type(e).__name__}: {e})"
+        )
     raise DatasetViewerError("No exported Parquet files available.")
 
 
@@ -66,16 +79,23 @@ def get_exported_dataset_infos(
     Get the dataset information, can be useful to get e.g. the dataset features.
     Docs: https://huggingface.co/docs/datasets-server/info
     """
-    dataset_viewer_info_url = config.HF_ENDPOINT.replace("://", "://datasets-server.") + "/info?dataset="
+    dataset_viewer_info_url = (
+        config.HF_ENDPOINT.replace("://", "://datasets-server.") + "/info?dataset="
+    )
     try:
         info_response = get_session().get(
             url=dataset_viewer_info_url + dataset,
-            headers=get_authentication_headers_for_url(config.HF_ENDPOINT + f"datasets/{dataset}", token=token),
+            headers=get_authentication_headers_for_url(
+                config.HF_ENDPOINT + f"datasets/{dataset}", token=token
+            ),
             timeout=100.0,
         )
         info_response.raise_for_status()
         if "X-Revision" in info_response.headers:
-            if info_response.headers["X-Revision"] == commit_hash or commit_hash is None:
+            if (
+                info_response.headers["X-Revision"] == commit_hash
+                or commit_hash is None
+            ):
                 info_response = info_response.json()
                 if (
                     info_response.get("partial") is False
@@ -85,11 +105,17 @@ def get_exported_dataset_infos(
                 ):
                     return info_response["dataset_info"]
                 else:
-                    logger.debug(f"Dataset info for {dataset} is not completely ready yet.")
+                    logger.debug(
+                        f"Dataset info for {dataset} is not completely ready yet."
+                    )
             else:
                 logger.debug(
                     f"Dataset info for {dataset} is available but outdated (commit_hash='{info_response.headers['X-Revision']}')"
                 )
-    except Exception as e:  # noqa catch any exception of the dataset viewer API and consider the dataset info doesn't exist
-        logger.debug(f"No dataset info for {dataset} available ({type(e).__name__}: {e})")
+    except (
+        Exception
+    ) as e:  # noqa catch any exception of the dataset viewer API and consider the dataset info doesn't exist
+        logger.debug(
+            f"No dataset info for {dataset} available ({type(e).__name__}: {e})"
+        )
     raise DatasetViewerError("No exported dataset infos available.")

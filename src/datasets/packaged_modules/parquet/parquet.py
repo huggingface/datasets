@@ -44,7 +44,9 @@ class Parquet(datasets.ArrowBasedBuilder):
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
         if not self.config.data_files:
-            raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
+            raise ValueError(
+                f"At least one data file must be specified, but got data_files={self.config.data_files}"
+            )
         dl_manager.download_config.extract_on_the_fly = True
         data_files = dl_manager.download_and_extract(self.config.data_files)
         splits = []
@@ -57,12 +59,22 @@ class Parquet(datasets.ArrowBasedBuilder):
             if self.info.features is None:
                 for file in itertools.chain.from_iterable(files):
                     with open(file, "rb") as f:
-                        self.info.features = datasets.Features.from_arrow_schema(pq.read_schema(f))
+                        self.info.features = datasets.Features.from_arrow_schema(
+                            pq.read_schema(f)
+                        )
                     break
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
-        if self.config.columns is not None and set(self.config.columns) != set(self.info.features):
+            splits.append(
+                datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files})
+            )
+        if self.config.columns is not None and set(self.config.columns) != set(
+            self.info.features
+        ):
             self.info.features = datasets.Features(
-                {col: feat for col, feat in self.info.features.items() if col in self.config.columns}
+                {
+                    col: feat
+                    for col, feat in self.info.features.items()
+                    if col in self.config.columns
+                }
             )
         return splits
 
@@ -75,7 +87,9 @@ class Parquet(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self, files):
         if self.config.features is not None and self.config.columns is not None:
-            if sorted(field.name for field in self.info.features.arrow_schema) != sorted(self.config.columns):
+            if sorted(
+                field.name for field in self.info.features.arrow_schema
+            ) != sorted(self.config.columns):
                 raise ValueError(
                     f"Tried to load parquet data with columns '{self.config.columns}' with mismatching features '{self.info.features}'"
                 )
@@ -88,7 +102,10 @@ class Parquet(datasets.ArrowBasedBuilder):
             with open(file, "rb") as f:
                 parquet_fragment = ds.ParquetFileFormat().make_fragment(f)
                 if parquet_fragment.row_groups:
-                    batch_size = self.config.batch_size or parquet_fragment.row_groups[0].num_rows
+                    batch_size = (
+                        self.config.batch_size
+                        or parquet_fragment.row_groups[0].num_rows
+                    )
                     try:
                         for batch_idx, record_batch in enumerate(
                             parquet_fragment.to_batches(
@@ -105,5 +122,7 @@ class Parquet(datasets.ArrowBasedBuilder):
                             # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                             yield f"{file_idx}_{batch_idx}", self._cast_table(pa_table)
                     except ValueError as e:
-                        logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                        logger.error(
+                            f"Failed to read file '{file}' with error {type(e)}: {e}"
+                        )
                         raise

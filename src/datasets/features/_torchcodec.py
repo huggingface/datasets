@@ -12,4 +12,6 @@ class AudioDecoder(_AudioDecoder):
         elif hasattr(super(), "__getitem__"):
             return super().__getitem__(key)
         else:
-            raise TypeError("'torchcodec.decoders.AudioDecoder' object is not subscriptable")
+            raise TypeError(
+                "'torchcodec.decoders.AudioDecoder' object is not subscriptable"
+            )

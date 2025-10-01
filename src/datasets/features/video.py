@@ -104,7 +104,9 @@ class Video:
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, bytes, bytearray, Example, np.ndarray, "VideoDecoder"]) -> Example:
+    def encode_example(
+        self, value: Union[str, bytes, bytearray, Example, np.ndarray, "VideoDecoder"]
+    ) -> Example:
         """Encode example into a format for Arrow.
 
         Args:
@@ -175,13 +177,17 @@ class Video:
             `torchcodec.decoders.VideoDecoder`
         """
         if not self.decode:
-            raise RuntimeError("Decoding is disabled for this feature. Please use Video(decode=True) instead.")
+            raise RuntimeError(
+                "Decoding is disabled for this feature. Please use Video(decode=True) instead."
+            )
 
         if config.TORCHCODEC_AVAILABLE:
             from torchcodec.decoders import VideoDecoder
 
         else:
-            raise ImportError("To support decoding videos, please install 'torchcodec'.")
+            raise ImportError(
+                "To support decoding videos, please install 'torchcodec'."
+            )
 
         if token_per_repo_id is None:
             token_per_repo_id = {}
@@ -193,7 +199,9 @@ class Video:
 
         if bytes_ is None:
             if path is None:
-                raise ValueError(f"A video should have one of 'path' or 'bytes' but both are None in {value}.")
+                raise ValueError(
+                    f"A video should have one of 'path' or 'bytes' but both are None in {value}."
+                )
             elif is_local_path(path):
                 video = VideoDecoder(
                     path,
@@ -238,7 +246,9 @@ class Video:
             }
         )
 
-    def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray, pa.ListArray]) -> pa.StructArray:
+    def cast_storage(
+        self, storage: Union[pa.StringArray, pa.StructArray, pa.ListArray]
+    ) -> pa.StructArray:
         """Cast an Arrow array to the Video arrow storage type.
         The Arrow types that can be converted to the Video pyarrow storage type are:
 
@@ -259,10 +269,14 @@ class Video:
         """
         if pa.types.is_string(storage.type):
             bytes_array = pa.array([None] * len(storage), type=pa.binary())
-            storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"], mask=storage.is_null())
+            storage = pa.StructArray.from_arrays(
+                [bytes_array, storage], ["bytes", "path"], mask=storage.is_null()
+            )
         elif pa.types.is_binary(storage.type):
             path_array = pa.array([None] * len(storage), type=pa.string())
-            storage = pa.StructArray.from_arrays([storage, path_array], ["bytes", "path"], mask=storage.is_null())
+            storage = pa.StructArray.from_arrays(
+                [storage, path_array], ["bytes", "path"], mask=storage.is_null()
+            )
         elif pa.types.is_struct(storage.type):
             if storage.type.get_field_index("bytes") >= 0:
                 bytes_array = storage.field("bytes")
@@ -272,10 +286,15 @@ class Video:
                 path_array = storage.field("path")
             else:
                 path_array = pa.array([None] * len(storage), type=pa.string())
-            storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
+            storage = pa.StructArray.from_arrays(
+                [bytes_array, path_array], ["bytes", "path"], mask=storage.is_null()
+            )
         elif pa.types.is_list(storage.type):
             bytes_array = pa.array(
-                [encode_np_array(np.array(arr))["bytes"] if arr is not None else None for arr in storage.to_pylist()],
+                [
+                    encode_np_array(np.array(arr))["bytes"] if arr is not None else None
+                    for arr in storage.to_pylist()
+                ],
                 type=pa.binary(),
             )
             path_array = pa.array([None] * len(storage), type=pa.string())
@@ -323,9 +342,17 @@ def hf_video_reader(
     if token_per_repo_id is None:
         token_per_repo_id = {}
     source_url = path.split("::")[-1]
-    pattern = config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
+    pattern = (
+        config.HUB_DATASETS_URL
+        if source_url.startswith(config.HF_ENDPOINT)
+        else config.HUB_DATASETS_HFFS_URL
+    )
     source_url_fields = string_to_dict(source_url, pattern)
-    token = token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
+    token = (
+        token_per_repo_id.get(source_url_fields["repo_id"])
+        if source_url_fields is not None
+        else None
+    )
     download_config = DownloadConfig(token=token)
     f = xopen(path, "rb", download_config=download_config)
 

@@ -29,7 +29,9 @@ def generate_examples(features: dict, num_examples=100, seq_shapes=None):
                 data = np.random.rand(*v.shape).astype(v.dtype)
             elif isinstance(v, datasets.Value):
                 if v.dtype == "string":
-                    data = "The small grey turtle was surprisingly fast when challenged."
+                    data = (
+                        "The small grey turtle was surprisingly fast when challenged."
+                    )
                 else:
                     data = np.random.randint(10, size=1).astype(v.dtype).item()
             elif isinstance(v, datasets.Sequence):
@@ -45,7 +47,9 @@ def generate_examples(features: dict, num_examples=100, seq_shapes=None):
 
 
 def generate_example_dataset(dataset_path, features, num_examples=100, seq_shapes=None):
-    dummy_data = generate_examples(features, num_examples=num_examples, seq_shapes=seq_shapes)
+    dummy_data = generate_examples(
+        features, num_examples=num_examples, seq_shapes=seq_shapes
+    )
 
     with ArrowWriter(features=features, path=dataset_path) as writer:
         for key, record in dummy_data:
@@ -59,6 +63,8 @@ def generate_example_dataset(dataset_path, features, num_examples=100, seq_shape
             f"Error writing the dataset, wrote {num_final_examples} examples but should have written {num_examples}."
         )
 
-    dataset = datasets.Dataset.from_file(filename=dataset_path, info=datasets.DatasetInfo(features=features))
+    dataset = datasets.Dataset.from_file(
+        filename=dataset_path, info=datasets.DatasetInfo(features=features)
+    )
 
     return dataset

@@ -10,11 +10,17 @@ from huggingface_hub import constants
 from packaging import version
 
 
-logger = logging.getLogger(__name__.split(".", 1)[0])  # to avoid circular import from .utils.logging
+logger = logging.getLogger(
+    __name__.split(".", 1)[0]
+)  # to avoid circular import from .utils.logging
 
 # Datasets
-S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets"
-CLOUDFRONT_DATASETS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/datasets"
+S3_DATASETS_BUCKET_PREFIX = (
+    "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets"
+)
+CLOUDFRONT_DATASETS_DISTRIB_PREFIX = (
+    "https://cdn-datasets.huggingface.co/datasets/datasets"
+)
 REPO_DATASETS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{revision}/datasets/{path}/{name}"
 
 # Hub
@@ -106,7 +112,9 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
             TF_AVAILABLE = False
     if TF_AVAILABLE:
         if TF_VERSION.major < 2:
-            logger.info(f"TensorFlow found but with version {TF_VERSION}. `datasets` requires version 2 minimum.")
+            logger.info(
+                f"TensorFlow found but with version {TF_VERSION}. `datasets` requires version 2 minimum."
+            )
             TF_AVAILABLE = False
         else:
             logger.info(f"TensorFlow version {TF_VERSION} available.")
@@ -118,7 +126,10 @@ JAX_VERSION = "N/A"
 JAX_AVAILABLE = False
 
 if USE_JAX in ENV_VARS_TRUE_AND_AUTO_VALUES:
-    JAX_AVAILABLE = importlib.util.find_spec("jax") is not None and importlib.util.find_spec("jaxlib") is not None
+    JAX_AVAILABLE = (
+        importlib.util.find_spec("jax") is not None
+        and importlib.util.find_spec("jaxlib") is not None
+    )
     if JAX_AVAILABLE:
         try:
             JAX_VERSION = version.parse(importlib.metadata.version("jax"))
@@ -159,16 +170,25 @@ DEFAULT_HF_MODULES_CACHE = os.path.join(HF_CACHE_HOME, "modules")
 HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", DEFAULT_HF_MODULES_CACHE))
 
 DOWNLOADED_DATASETS_DIR = "downloads"
-DEFAULT_DOWNLOADED_DATASETS_PATH = os.path.join(HF_DATASETS_CACHE, DOWNLOADED_DATASETS_DIR)
-DOWNLOADED_DATASETS_PATH = Path(os.getenv("HF_DATASETS_DOWNLOADED_DATASETS_PATH", DEFAULT_DOWNLOADED_DATASETS_PATH))
+DEFAULT_DOWNLOADED_DATASETS_PATH = os.path.join(
+    HF_DATASETS_CACHE, DOWNLOADED_DATASETS_DIR
+)
+DOWNLOADED_DATASETS_PATH = Path(
+    os.getenv("HF_DATASETS_DOWNLOADED_DATASETS_PATH", DEFAULT_DOWNLOADED_DATASETS_PATH)
+)
 
 EXTRACTED_DATASETS_DIR = "extracted"
-DEFAULT_EXTRACTED_DATASETS_PATH = os.path.join(DEFAULT_DOWNLOADED_DATASETS_PATH, EXTRACTED_DATASETS_DIR)
-EXTRACTED_DATASETS_PATH = Path(os.getenv("HF_DATASETS_EXTRACTED_DATASETS_PATH", DEFAULT_EXTRACTED_DATASETS_PATH))
+DEFAULT_EXTRACTED_DATASETS_PATH = os.path.join(
+    DEFAULT_DOWNLOADED_DATASETS_PATH, EXTRACTED_DATASETS_DIR
+)
+EXTRACTED_DATASETS_PATH = Path(
+    os.getenv("HF_DATASETS_EXTRACTED_DATASETS_PATH", DEFAULT_EXTRACTED_DATASETS_PATH)
+)
 
 # Download count for the website
 HF_UPDATE_DOWNLOAD_COUNTS = (
-    os.environ.get("HF_UPDATE_DOWNLOAD_COUNTS", "AUTO").upper() in ENV_VARS_TRUE_AND_AUTO_VALUES
+    os.environ.get("HF_UPDATE_DOWNLOAD_COUNTS", "AUTO").upper()
+    in ENV_VARS_TRUE_AND_AUTO_VALUES
 )
 
 # For downloads and to check remote files metadata
@@ -181,7 +201,11 @@ USE_PARQUET_EXPORT = True
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 1000
 
-DEFAULT_CDC_OPTIONS = {"min_chunk_size": 256 * 1024, "max_chunk_size": 1024 * 1024, "norm_level": 0}
+DEFAULT_CDC_OPTIONS = {
+    "min_chunk_size": 256 * 1024,
+    "max_chunk_size": 1024 * 1024,
+    "norm_level": 0,
+}
 
 # Size of the preloaded record batch in `Dataset.__iter__`
 ARROW_READER_BATCH_SIZE_IN_DATASET_ITER = 10
@@ -206,7 +230,11 @@ ARROW_RECORD_BATCH_SIZE_FOR_VIDEO_DATASETS = 10
 
 # Offline mode
 _offline = os.environ.get("HF_DATASETS_OFFLINE")
-HF_HUB_OFFLINE = constants.HF_HUB_OFFLINE if _offline is None else _offline.upper() in ENV_VARS_TRUE_VALUES
+HF_HUB_OFFLINE = (
+    constants.HF_HUB_OFFLINE
+    if _offline is None
+    else _offline.upper() in ENV_VARS_TRUE_VALUES
+)
 HF_DATASETS_OFFLINE = HF_HUB_OFFLINE  # kept for backward-compatibility
 
 # Here, `True` will disable progress bars globally without possibility of enabling it
@@ -214,7 +242,9 @@ HF_DATASETS_OFFLINE = HF_HUB_OFFLINE  # kept for backward-compatibility
 # If environment variable is not set (None), then the user is free to enable/disable
 # them programmatically.
 # TL;DR: env variable has priority over code
-__HF_DATASETS_DISABLE_PROGRESS_BARS = os.environ.get("HF_DATASETS_DISABLE_PROGRESS_BARS")
+__HF_DATASETS_DISABLE_PROGRESS_BARS = os.environ.get(
+    "HF_DATASETS_DISABLE_PROGRESS_BARS"
+)
 HF_DATASETS_DISABLE_PROGRESS_BARS: Optional[bool] = (
     __HF_DATASETS_DISABLE_PROGRESS_BARS.upper() in ENV_VARS_TRUE_VALUES
     if __HF_DATASETS_DISABLE_PROGRESS_BARS is not None
@@ -223,7 +253,9 @@ HF_DATASETS_DISABLE_PROGRESS_BARS: Optional[bool] = (
 
 # In-memory
 DEFAULT_IN_MEMORY_MAX_SIZE = 0  # Disabled
-IN_MEMORY_MAX_SIZE = float(os.environ.get("HF_DATASETS_IN_MEMORY_MAX_SIZE", DEFAULT_IN_MEMORY_MAX_SIZE))
+IN_MEMORY_MAX_SIZE = float(
+    os.environ.get("HF_DATASETS_IN_MEMORY_MAX_SIZE", DEFAULT_IN_MEMORY_MAX_SIZE)
+)
 
 # File names
 DATASET_ARROW_FILENAME = "dataset.arrow"

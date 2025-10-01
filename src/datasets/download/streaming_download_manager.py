@@ -123,11 +123,15 @@ class StreamingDownloadManager:
 
     def _extract(self, urlpath: str) -> str:
         urlpath = str(urlpath)
-        protocol = _get_extraction_protocol(urlpath, download_config=self.download_config)
+        protocol = _get_extraction_protocol(
+            urlpath, download_config=self.download_config
+        )
         # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
         path = urlpath.split("::")[0]
         extension = _get_path_extension(path)
-        if extension in ["tgz", "tar"] or path.endswith((".tar.gz", ".tar.bz2", ".tar.xz")):
+        if extension in ["tgz", "tar"] or path.endswith(
+            (".tar.gz", ".tar.bz2", ".tar.xz")
+        ):
             raise NotImplementedError(
                 f"Extraction protocol for TAR archives like '{urlpath}' is not implemented in streaming mode. "
                 f"Please use `dl_manager.iter_archive` instead.\n\n"
@@ -143,7 +147,11 @@ class StreamingDownloadManager:
         elif protocol in SINGLE_FILE_COMPRESSION_PROTOCOLS:
             # there is one single file which is the uncompressed file
             inner_file = os.path.basename(urlpath.split("::")[0])
-            inner_file = inner_file[: inner_file.rindex(".")] if "." in inner_file else inner_file
+            inner_file = (
+                inner_file[: inner_file.rindex(".")]
+                if "." in inner_file
+                else inner_file
+            )
             return f"{protocol}://{inner_file}::{urlpath}"
         else:
             return f"{protocol}://::{urlpath}"
@@ -168,7 +176,9 @@ class StreamingDownloadManager:
         """
         return self.extract(self.download(url_or_urls))
 
-    def iter_archive(self, urlpath_or_buf: Union[str, io.BufferedReader]) -> Iterable[tuple]:
+    def iter_archive(
+        self, urlpath_or_buf: Union[str, io.BufferedReader]
+    ) -> Iterable[tuple]:
         """Iterate over files within an archive.
 
         Args:
@@ -191,7 +201,9 @@ class StreamingDownloadManager:
         if hasattr(urlpath_or_buf, "read"):
             return ArchiveIterable.from_buf(urlpath_or_buf)
         else:
-            return ArchiveIterable.from_urlpath(urlpath_or_buf, download_config=self.download_config)
+            return ArchiveIterable.from_urlpath(
+                urlpath_or_buf, download_config=self.download_config
+            )
 
     def iter_files(self, urlpaths: Union[str, list[str]]) -> Iterable[str]:
         """Iterate over files.
@@ -210,7 +222,9 @@ class StreamingDownloadManager:
         >>> files = dl_manager.iter_files(files)
         ```
         """
-        return FilesIterable.from_urlpaths(urlpaths, download_config=self.download_config)
+        return FilesIterable.from_urlpaths(
+            urlpaths, download_config=self.download_config
+        )
 
     def manage_extracted_files(self):
         pass

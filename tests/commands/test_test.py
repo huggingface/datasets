@@ -45,7 +45,17 @@ def test_test_command(dataset_dir):
                     {
                         "tokens": List(Value("string")),
                         "ner_tags": List(
-                            ClassLabel(names=["O", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC"])
+                            ClassLabel(
+                                names=[
+                                    "O",
+                                    "B-PER",
+                                    "I-PER",
+                                    "B-ORG",
+                                    "I-ORG",
+                                    "B-LOC",
+                                    "I-LOC",
+                                ]
+                            )
                         ),
                         "langs": List(Value("string")),
                         "spans": List(Value("string")),
@@ -70,7 +80,9 @@ def test_test_command(dataset_dir):
     )
     assert dataset_infos.keys() == expected_dataset_infos.keys()
     for key in DatasetInfo._INCLUDED_INFO_IN_YAML:
-        result, expected = getattr(dataset_infos["default"], key), getattr(expected_dataset_infos["default"], key)
+        result, expected = getattr(dataset_infos["default"], key), getattr(
+            expected_dataset_infos["default"], key
+        )
         if key == "num_bytes":
             assert is_1percent_close(result, expected)
         elif key == "splits":
@@ -78,6 +90,8 @@ def test_test_command(dataset_dir):
             for split in result:
                 assert result[split].name == expected[split].name
                 assert result[split].num_examples == expected[split].num_examples
-                assert is_1percent_close(result[split].num_bytes, expected[split].num_bytes)
+                assert is_1percent_close(
+                    result[split].num_bytes, expected[split].num_bytes
+                )
         else:
             result == expected

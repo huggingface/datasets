@@ -20,8 +20,13 @@ COMPRESSION_FILESYSTEMS: list[compression.BaseCompressedFileFileSystem] = [
 
 # Register custom filesystems
 for fs_class in COMPRESSION_FILESYSTEMS:
-    if fs_class.protocol in fsspec.registry and fsspec.registry[fs_class.protocol] is not fs_class:
-        warnings.warn(f"A filesystem protocol was already set for {fs_class.protocol} and will be overwritten.")
+    if (
+        fs_class.protocol in fsspec.registry
+        and fsspec.registry[fs_class.protocol] is not fs_class
+    ):
+        warnings.warn(
+            f"A filesystem protocol was already set for {fs_class.protocol} and will be overwritten."
+        )
     fsspec.register_implementation(fs_class.protocol, fs_class, clobber=True)
 
 

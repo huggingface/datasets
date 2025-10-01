@@ -60,20 +60,26 @@ class Json(datasets.ArrowBasedBuilder):
 
     def _info(self):
         if self.config.block_size is not None:
-            logger.warning("The JSON loader parameter `block_size` is deprecated. Please use `chunksize` instead")
+            logger.warning(
+                "The JSON loader parameter `block_size` is deprecated. Please use `chunksize` instead"
+            )
             self.config.chunksize = self.config.block_size
         if self.config.use_threads is not True:
             logger.warning(
                 "The JSON loader parameter `use_threads` is deprecated and doesn't have any effect anymore."
             )
         if self.config.newlines_in_values is not None:
-            raise ValueError("The JSON loader parameter `newlines_in_values` is no longer supported")
+            raise ValueError(
+                "The JSON loader parameter `newlines_in_values` is no longer supported"
+            )
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
         if not self.config.data_files:
-            raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
+            raise ValueError(
+                f"At least one data file must be specified, but got data_files={self.config.data_files}"
+            )
         dl_manager.download_config.extract_on_the_fly = True
         data_files = dl_manager.download_and_extract(self.config.data_files)
         splits = []
@@ -81,7 +87,9 @@ class Json(datasets.ArrowBasedBuilder):
             if isinstance(files, str):
                 files = [files]
             files = [dl_manager.iter_files(file) for file in files]
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
+            splits.append(
+                datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files})
+            )
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
@@ -89,19 +97,24 @@ class Json(datasets.ArrowBasedBuilder):
             # adding missing columns
             for column_name in set(self.config.features) - set(pa_table.column_names):
                 type = self.config.features.arrow_schema.field(column_name).type
-                pa_table = pa_table.append_column(column_name, pa.array([None] * len(pa_table), type=type))
+                pa_table = pa_table.append_column(
+                    column_name, pa.array([None] * len(pa_table), type=type)
+                )
             # convert to string when needed
             for i, column_name in enumerate(pa_table.column_names):
-                if pa.types.is_struct(pa_table[column_name].type) and self.config.features.get(
-                    column_name, None
-                ) == datasets.Value("string"):
+                if pa.types.is_struct(
+                    pa_table[column_name].type
+                ) and self.config.features.get(column_name, None) == datasets.Value(
+                    "string"
+                ):
                     jsonl = (
                         pa_table[column_name]
                         .to_pandas(types_mapper=pd.ArrowDtype)
                         .to_json(orient="records", lines=True)
                     )
                     string_array = pa.array(
-                        ("{" + x.rstrip() for x in ("\n" + jsonl).split("\n{") if x), type=pa.string()
+                        ("{" + x.rstrip() for x in ("\n" + jsonl).split("\n{") if x),
+                        type=pa.string(),
                     )
                     pa_table = pa_table.set_column(i, column_name, string_array)
             # more expensive cast to support nested structures with keys in a different order
@@ -113,13 +126,19 @@ class Json(datasets.ArrowBasedBuilder):
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             # If the file is one json object and if we need to look at the items in one specific field
             if self.config.field is not None:
-                with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
+                with open(
+                    file,
+                    encoding=self.config.encoding,
+                    errors=self.config.encoding_errors,
+                ) as f:
                     dataset = ujson_loads(f.read())
                 # We keep only the field we are interested in
                 dataset = dataset[self.config.field]
                 df = pandas_read_json(io.StringIO(ujson_dumps(dataset)))
                 if df.columns.tolist() == [0]:
-                    df.columns = list(self.config.features) if self.config.features else ["text"]
+                    df.columns = (
+                        list(self.config.features) if self.config.features else ["text"]
+                    )
                 pa_table = pa.Table.from_pandas(df, preserve_index=False)
                 yield file_idx, self._cast_table(pa_table)
 
@@ -131,7 +150,9 @@ class Json(datasets.ArrowBasedBuilder):
                     # Set a default minimum value of 16kB if the chunk size is really small
                     block_size = max(self.config.chunksize // 32, 16 << 10)
                     encoding_errors = (
-                        self.config.encoding_errors if self.config.encoding_errors is not None else "strict"
+                        self.config.encoding_errors
+                        if self.config.encoding_errors is not None
+                        else "strict"
                     )
                     while True:
                         batch = f.read(self.config.chunksize)
@@ -144,15 +165,23 @@ class Json(datasets.ArrowBasedBuilder):
                             batch += readline(f)
                         # PyArrow only accepts utf-8 encoded bytes
                         if self.config.encoding != "utf-8":
-                            batch = batch.decode(self.config.encoding, errors=encoding_errors).encode("utf-8")
+                            batch = batch.decode(
+                                self.config.encoding, errors=encoding_errors
+                            ).encode("utf-8")
                         try:
                             while True:
                                 try:
                                     pa_table = paj.read_json(
-                                        io.BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
+                                        io.BytesIO(batch),
+                                        read_options=paj.ReadOptions(
+                                            block_size=block_size
+                                        ),
                                     )
                                     break
-                                except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
+                                except (
+                                    pa.ArrowInvalid,
+                                    pa.ArrowNotImplementedError,
+                                ) as e:
                                     if (
                                         isinstance(e, pa.ArrowInvalid)
                                         and "straddling" not in str(e)
@@ -169,16 +198,26 @@ class Json(datasets.ArrowBasedBuilder):
                         except pa.ArrowInvalid as e:
                             try:
                                 with open(
-                                    file, encoding=self.config.encoding, errors=self.config.encoding_errors
+                                    file,
+                                    encoding=self.config.encoding,
+                                    errors=self.config.encoding_errors,
                                 ) as f:
                                     df = pandas_read_json(f)
                             except ValueError:
-                                logger.error(f"Failed to load JSON from file '{file}' with error {type(e)}: {e}")
+                                logger.error(
+                                    f"Failed to load JSON from file '{file}' with error {type(e)}: {e}"
+                                )
                                 raise e
                             if df.columns.tolist() == [0]:
-                                df.columns = list(self.config.features) if self.config.features else ["text"]
+                                df.columns = (
+                                    list(self.config.features)
+                                    if self.config.features
+                                    else ["text"]
+                                )
                             try:
-                                pa_table = pa.Table.from_pandas(df, preserve_index=False)
+                                pa_table = pa.Table.from_pandas(
+                                    df, preserve_index=False
+                                )
                             except pa.ArrowInvalid as e:
                                 logger.error(
                                     f"Failed to convert pandas DataFrame to Arrow Table from file '{file}' with error {type(e)}: {e}"

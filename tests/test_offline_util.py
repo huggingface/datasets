@@ -9,7 +9,9 @@ from huggingface_hub.errors import OfflineModeIsEnabled
 from datasets.utils.file_utils import fsspec_get, fsspec_head
 
 from .utils import (
+
     IS_HF_HUB_1_x,
+
     OfflineSimulationMode,
     RequestWouldHangIndefinitelyError,
     offline,
@@ -23,12 +25,14 @@ def test_offline_with_timeout():
     expected_exception = httpx.ReadTimeout if IS_HF_HUB_1_x else requests.ConnectTimeout
     with offline(OfflineSimulationMode.CONNECTION_TIMES_OUT):
         with pytest.raises(RequestWouldHangIndefinitelyError):
+
             get_session().request("GET", "https://huggingface.co")
 
         with pytest.raises(expected_exception):
             get_session().request("GET", "https://huggingface.co", timeout=1.0)
 
         with pytest.raises(expected_exception), NamedTemporaryFile() as temp_file:
+
             fsspec_get("hf://dummy", temp_file=temp_file)
 
 
@@ -37,10 +41,12 @@ def test_offline_with_timeout():
 def test_offline_with_connection_error():
     expected_exception = httpx.ConnectError if IS_HF_HUB_1_x else requests.ConnectionError
     with offline(OfflineSimulationMode.CONNECTION_FAILS):
+
         with pytest.raises(expected_exception):
             get_session().request("GET", "https://huggingface.co")
 
         with pytest.raises(expected_exception), NamedTemporaryFile() as temp_file:
+
             fsspec_get("hf://dummy", temp_file=temp_file)
 
 

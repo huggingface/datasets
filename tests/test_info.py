@@ -119,7 +119,9 @@ def test_dataset_info_to_yaml_dict_empty():
         ),
     ],
 )
-def test_dataset_infos_dict_dump_and_reload(tmp_path, dataset_infos_dict: DatasetInfosDict):
+def test_dataset_infos_dict_dump_and_reload(
+    tmp_path, dataset_infos_dict: DatasetInfosDict
+):
     tmp_path = str(tmp_path)
     dataset_infos_dict.write_to_directory(tmp_path)
     reloaded = DatasetInfosDict.from_directory(tmp_path)
@@ -129,7 +131,9 @@ def test_dataset_infos_dict_dump_and_reload(tmp_path, dataset_infos_dict: Datase
         dataset_info.config_name = config_name
         # the yaml representation doesn't include fields like description or citation
         # so we just test that we can recover what we can from the yaml
-        dataset_infos_dict[config_name] = DatasetInfo._from_yaml_dict(dataset_info._to_yaml_dict())
+        dataset_infos_dict[config_name] = DatasetInfo._from_yaml_dict(
+            dataset_info._to_yaml_dict()
+        )
     assert dataset_infos_dict == reloaded
 
     if dataset_infos_dict:
@@ -170,7 +174,12 @@ def test_dataset_info_from_dict_with_large_list():
     dataset_info_dict = {
         "citation": "",
         "description": "",
-        "features": {"col_1": {"feature": {"dtype": "int64", "_type": "Value"}, "_type": "LargeList"}},
+        "features": {
+            "col_1": {
+                "feature": {"dtype": "int64", "_type": "Value"},
+                "_type": "LargeList",
+            }
+        },
         "homepage": "",
         "license": "",
     }

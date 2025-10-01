@@ -29,10 +29,15 @@ def deprecated(help_message: Optional[str] = None):
             deprecated_function = deprecated_class_or_function
             name = deprecated_function.__name__
             # Support deprecating __init__ class method: class name instead
-            name = name if name != "__init__" else deprecated_function.__qualname__.split(".")[-2]
+            name = (
+                name
+                if name != "__init__"
+                else deprecated_function.__qualname__.split(".")[-2]
+            )
 
         warning_msg = (
-            f"{name} is deprecated and will be removed in the next major version of datasets." + f" {help_message}"
+            f"{name} is deprecated and will be removed in the next major version of datasets."
+            + f" {help_message}"
             if help_message
             else ""
         )
@@ -73,8 +78,12 @@ class OnAccess(enum.EnumMeta):
             member._on_access()
         return member
 
-    def __call__(cls, value, names=None, *, module=None, qualname=None, type=None, start=1):
-        obj = super().__call__(value, names, module=module, qualname=qualname, type=type, start=start)
+    def __call__(
+        cls, value, names=None, *, module=None, qualname=None, type=None, start=1
+    ):
+        obj = super().__call__(
+            value, names, module=module, qualname=qualname, type=type, start=start
+        )
         if isinstance(obj, enum.Enum) and obj._on_access:
             obj._on_access()
         return obj

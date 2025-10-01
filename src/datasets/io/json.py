@@ -36,7 +36,11 @@ class JsonDatasetReader(AbstractDatasetReader):
             **kwargs,
         )
         self.field = field
-        path_or_paths = path_or_paths if isinstance(path_or_paths, dict) else {self.split: path_or_paths}
+        path_or_paths = (
+            path_or_paths
+            if isinstance(path_or_paths, dict)
+            else {self.split: path_or_paths}
+        )
         self.builder = Json(
             cache_dir=cache_dir,
             data_files=path_or_paths,
@@ -64,7 +68,9 @@ class JsonDatasetReader(AbstractDatasetReader):
                 num_proc=self.num_proc,
             )
             dataset = self.builder.as_dataset(
-                split=self.split, verification_mode=verification_mode, in_memory=self.keep_in_memory
+                split=self.split,
+                verification_mode=verification_mode,
+                in_memory=self.keep_in_memory,
             )
         return dataset
 
@@ -98,11 +104,15 @@ class JsonDatasetWriter:
             self.to_json_kwargs["index"] = False
 
         # Determine the default compression value based on self.path_or_buf type
-        default_compression = "infer" if isinstance(self.path_or_buf, (str, bytes, os.PathLike)) else None
+        default_compression = (
+            "infer" if isinstance(self.path_or_buf, (str, bytes, os.PathLike)) else None
+        )
         compression = self.to_json_kwargs.pop("compression", default_compression)
 
         if compression not in [None, "infer", "gzip", "bz2", "xz"]:
-            raise NotImplementedError(f"`datasets` currently does not support {compression} compression")
+            raise NotImplementedError(
+                f"`datasets` currently does not support {compression} compression"
+            )
 
         if not lines and self.batch_size < self.dataset.num_rows:
             raise NotImplementedError(
@@ -111,16 +121,26 @@ class JsonDatasetWriter:
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
             with fsspec.open(
-                self.path_or_buf, "wb", compression=compression, **(self.storage_options or {})
+                self.path_or_buf,
+                "wb",
+                compression=compression,
+                **(self.storage_options or {}),
             ) as buffer:
-                written = self._write(file_obj=buffer, orient=orient, lines=lines, **self.to_json_kwargs)
+                written = self._write(
+                    file_obj=buffer, orient=orient, lines=lines, **self.to_json_kwargs
+                )
         else:
             if compression:
                 raise NotImplementedError(
                     f"The compression parameter is not supported when writing to a buffer, but compression={compression}"
                     " was passed. Please provide a local path instead."
                 )
-            written = self._write(file_obj=self.path_or_buf, orient=orient, lines=lines, **self.to_json_kwargs)
+            written = self._write(
+                file_obj=self.path_or_buf,
+                orient=orient,
+                lines=lines,
+                **self.to_json_kwargs,
+            )
         return written
 
     def _batch_json(self, args):
@@ -131,7 +151,9 @@ class JsonDatasetWriter:
             key=slice(offset, offset + self.batch_size),
             indices=self.dataset._indices,
         )
-        json_str = batch.to_pandas().to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
+        json_str = batch.to_pandas().to_json(
+            path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs
+        )
         if not json_str.endswith("\n"):
             json_str += "\n"
         return json_str.encode(self.encoding)
@@ -163,9 +185,16 @@ class JsonDatasetWriter:
                 for json_str in hf_tqdm(
                     pool.imap(
                         self._batch_json,
-                        [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
+                        [
+                            (offset, orient, lines, to_json_kwargs)
+                            for offset in range(0, num_rows, batch_size)
+                        ],
                     ),
-                    total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
+                    total=(
+                        (num_rows // batch_size) + 1
+                        if num_rows % batch_size
+                        else num_rows // batch_size
+                    ),
                     unit="ba",
                     desc="Creating json from Arrow format",
                 ):

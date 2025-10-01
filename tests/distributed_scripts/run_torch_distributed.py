@@ -48,7 +48,9 @@ def main():
 
     local_size = sum(1 for _ in dataloader)
     if local_size != expected_local_size:
-        raise FailedTestError(f"local_size {local_size} != expected_local_size {expected_local_size}")
+        raise FailedTestError(
+            f"local_size {local_size} != expected_local_size {expected_local_size}"
+        )
 
 
 if __name__ == "__main__":

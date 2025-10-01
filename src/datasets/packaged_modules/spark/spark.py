@@ -38,7 +38,9 @@ class SparkConfig(datasets.BuilderConfig):
         super().__post_init__()
 
 
-def _reorder_dataframe_by_partition(df: "pyspark.sql.DataFrame", new_partition_order: list[int]):
+def _reorder_dataframe_by_partition(
+    df: "pyspark.sql.DataFrame", new_partition_order: list[int]
+):
     df_combined = df.select("*").where(f"part_id = {new_partition_order[0]}")
     for partition_id in new_partition_order[1:]:
         partition_df = df.select("*").where(f"part_id = {partition_id}")
@@ -53,9 +55,13 @@ def _generate_iterable_examples(
 ):
     import pyspark
 
-    df_with_partition_id = df.select("*", pyspark.sql.functions.spark_partition_id().alias("part_id"))
+    df_with_partition_id = df.select(
+        "*", pyspark.sql.functions.spark_partition_id().alias("part_id")
+    )
     partition_idx_start = state_dict["partition_idx"] if state_dict else 0
-    partition_df = _reorder_dataframe_by_partition(df_with_partition_id, partition_order[partition_idx_start:])
+    partition_df = _reorder_dataframe_by_partition(
+        df_with_partition_id, partition_order[partition_idx_start:]
+    )
     # pipeline next partition in parallel to hide latency
     rows = partition_df.toLocalIterator(prefetchPartitions=True)
     curr_partition = None
@@ -94,15 +100,23 @@ class SparkExamplesIterable(_BaseExamplesIterable):
         return super().load_state_dict(state_dict)
 
     def __iter__(self):
-        yield from _generate_iterable_examples(self.df, self.partition_order, self._state_dict)
+        yield from _generate_iterable_examples(
+            self.df, self.partition_order, self._state_dict
+        )
 
-    def shuffle_data_sources(self, generator: np.random.Generator) -> "SparkExamplesIterable":
+    def shuffle_data_sources(
+        self, generator: np.random.Generator
+    ) -> "SparkExamplesIterable":
         partition_order = list(range(self.df.rdd.getNumPartitions()))
         generator.shuffle(partition_order)
         return SparkExamplesIterable(self.df, partition_order=partition_order)
 
-    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "SparkExamplesIterable":
-        partition_order = self.split_shard_indices_by_worker(num_shards=num_shards, index=index, contiguous=contiguous)
+    def shard_data_sources(
+        self, num_shards: int, index: int, contiguous=True
+    ) -> "SparkExamplesIterable":
+        partition_order = self.split_shard_indices_by_worker(
+            num_shards=num_shards, index=index, contiguous=contiguous
+        )
         return SparkExamplesIterable(self.df, partition_order=partition_order)
 
     @property
@@ -156,7 +170,9 @@ class Spark(datasets.DatasetBuilder):
         # TODO: Stream batches to the driver using ArrowCollectSerializer instead of throwing an error.
         if self._cache_dir:
             probe = (
-                self._spark.sparkContext.parallelize(range(1), 1).mapPartitions(create_cache_and_write_probe).collect()
+                self._spark.sparkContext.parallelize(range(1), 1)
+                .mapPartitions(create_cache_and_write_probe)
+                .collect()
             )
             if os.path.isfile(probe[0]):
                 return
@@ -168,7 +184,9 @@ class Spark(datasets.DatasetBuilder):
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
 
-    def _split_generators(self, dl_manager: datasets.download.download_manager.DownloadManager):
+    def _split_generators(
+        self, dl_manager: datasets.download.download_manager.DownloadManager
+    ):
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN)]
 
     def _repartition_df_if_needed(self, max_shard_size):
@@ -193,7 +211,9 @@ class Spark(datasets.DatasetBuilder):
         approx_total_size = approx_bytes_per_row * df_num_rows
         if approx_total_size > max_shard_size:
             # Make sure there is at least one row per partition.
-            new_num_partitions = min(df_num_rows, int(approx_total_size / max_shard_size))
+            new_num_partitions = min(
+                df_num_rows, int(approx_total_size / max_shard_size)
+            )
             self.df = self.df.repartition(new_num_partitions)
 
     def _prepare_split_single(
@@ -205,7 +225,11 @@ class Spark(datasets.DatasetBuilder):
         import pyspark
 
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
-        working_fpath = os.path.join(self._working_dir, os.path.basename(fpath)) if self._working_dir else fpath
+        working_fpath = (
+            os.path.join(self._working_dir, os.path.basename(fpath))
+            if self._working_dir
+            else fpath
+        )
         embed_local_files = file_format == "parquet"
 
         # Define these so that we don't reference self in write_arrow, which will result in a pickling error due to
@@ -227,7 +251,9 @@ class Spark(datasets.DatasetBuilder):
             shard_id = 0
             writer = writer_class(
                 features=features,
-                path=working_fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
+                path=working_fpath.replace("SSSSS", f"{shard_id:05d}").replace(
+                    "TTTTT", f"{task_id:05d}"
+                ),
                 writer_batch_size=writer_batch_size,
                 storage_options=storage_options,
                 embed_local_files=embed_local_files,
@@ -245,7 +271,9 @@ class Spark(datasets.DatasetBuilder):
                     shard_id += 1
                     writer = writer_class(
                         features=writer._features,
-                        path=working_fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
+                        path=working_fpath.replace("SSSSS", f"{shard_id:05d}").replace(
+                            "TTTTT", f"{task_id:05d}"
+                        ),
                         writer_batch_size=writer_batch_size,
                         storage_options=storage_options,
                         embed_local_files=embed_local_files,
@@ -267,18 +295,27 @@ class Spark(datasets.DatasetBuilder):
                     shutil.move(file, dest)
 
         stats = (
-            self.df.mapInArrow(write_arrow, "task_id: long, num_examples: long, num_bytes: long")
+            self.df.mapInArrow(
+                write_arrow, "task_id: long, num_examples: long, num_bytes: long"
+            )
             .groupBy("task_id")
             .agg(
                 pyspark.sql.functions.sum("num_examples").alias("total_num_examples"),
                 pyspark.sql.functions.sum("num_bytes").alias("total_num_bytes"),
                 pyspark.sql.functions.count("num_bytes").alias("num_shards"),
-                pyspark.sql.functions.collect_list("num_examples").alias("shard_lengths"),
+                pyspark.sql.functions.collect_list("num_examples").alias(
+                    "shard_lengths"
+                ),
             )
             .collect()
         )
         for row in stats:
-            yield row.task_id, (row.total_num_examples, row.total_num_bytes, row.num_shards, row.shard_lengths)
+            yield row.task_id, (
+                row.total_num_examples,
+                row.total_num_bytes,
+                row.num_shards,
+                row.shard_lengths,
+            )
 
     def _prepare_split(
         self,
@@ -305,7 +342,9 @@ class Spark(datasets.DatasetBuilder):
         task_id_and_num_shards = []
         all_shard_lengths = []
 
-        for task_id, content in self._prepare_split_single(fpath, file_format, max_shard_size):
+        for task_id, content in self._prepare_split_single(
+            fpath, file_format, max_shard_size
+        ):
             (
                 num_examples,
                 num_bytes,
@@ -339,8 +378,12 @@ class Spark(datasets.DatasetBuilder):
             ):
                 rename(
                     fs,
-                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
-                    fpath.replace("TTTTT-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
+                    fpath.replace("SSSSS", f"{shard_id:05d}").replace(
+                        "TTTTT", f"{task_id:05d}"
+                    ),
+                    fpath.replace("TTTTT-SSSSS", f"{global_shard_id:05d}").replace(
+                        "NNNNN", f"{total_shards:05d}"
+                    ),
                 )
 
             args = []
@@ -350,13 +393,17 @@ class Spark(datasets.DatasetBuilder):
                 for shard_id in range(num_shards):
                     args.append([task_id, shard_id, global_shard_id])
                     global_shard_id += 1
-            self._spark.sparkContext.parallelize(args, len(args)).map(lambda args: _rename_shard(*args)).collect()
+            self._spark.sparkContext.parallelize(args, len(args)).map(
+                lambda args: _rename_shard(*args)
+            ).collect()
         else:
             # don't use any pattern
             shard_id = 0
             task_id = task_id_and_num_shards[0][0]
             self._rename(
-                fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
+                fpath.replace("SSSSS", f"{shard_id:05d}").replace(
+                    "TTTTT", f"{task_id:05d}"
+                ),
                 fpath.replace(SUFFIX, ""),
             )
 

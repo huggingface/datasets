@@ -19,8 +19,14 @@ import packaging.version
 
 
 REPLACE_PATTERNS = {
-    "init": (re.compile(r'^__version__\s+=\s+"([^"]+)"\s*$', re.MULTILINE), '__version__ = "VERSION"\n'),
-    "setup": (re.compile(r'^(\s*)version\s*=\s*"[^"]+",', re.MULTILINE), r'\1version="VERSION",'),
+    "init": (
+        re.compile(r'^__version__\s+=\s+"([^"]+)"\s*$', re.MULTILINE),
+        '__version__ = "VERSION"\n',
+    ),
+    "setup": (
+        re.compile(r'^(\s*)version\s*=\s*"[^"]+",', re.MULTILINE),
+        r'\1version="VERSION",',
+    ),
 }
 REPLACE_FILES = {
     "init": "src/datasets/__init__.py",
@@ -58,7 +64,9 @@ def pre_release_work(patch=False):
     # First let's get the default version: base version if we are in dev, bump minor otherwise.
     default_version = get_version()
     if patch and default_version.is_devrelease:
-        raise ValueError("Can't create a patch version from the dev branch, checkout a released version!")
+        raise ValueError(
+            "Can't create a patch version from the dev branch, checkout a released version!"
+        )
     if default_version.is_devrelease:
         default_version = default_version.base_version
     elif patch:
@@ -93,8 +101,14 @@ def post_release_work():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--post_release", action="store_true", help="Whether or not this is post release.")
-    parser.add_argument("--patch", action="store_true", help="Whether or not this is a patch release.")
+    parser.add_argument(
+        "--post_release",
+        action="store_true",
+        help="Whether or not this is post release.",
+    )
+    parser.add_argument(
+        "--patch", action="store_true", help="Whether or not this is a patch release."
+    )
     args = parser.parse_args()
     if not args.post_release:
         pre_release_work(patch=args.patch)

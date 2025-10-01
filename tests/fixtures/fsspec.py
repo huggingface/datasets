@@ -3,7 +3,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from fsspec.implementations.local import AbstractFileSystem, LocalFileSystem, stringify_path
+from fsspec.implementations.local import (
+    AbstractFileSystem,
+    LocalFileSystem,
+    stringify_path,
+)
 from fsspec.registry import _registry as _fsspec_registry
 
 
@@ -31,7 +35,10 @@ class MockFileSystem(AbstractFileSystem):
         path = posixpath.join(self.local_root_dir, self._strip_protocol(path))
         out = self._fs.ls(path, detail=detail, *args, **kwargs)
         if detail:
-            return [{**info, "name": info["name"][len(self.local_root_dir) :]} for info in out]
+            return [
+                {**info, "name": info["name"][len(self.local_root_dir) :]}
+                for info in out
+            ]
         else:
             return [name[len(self.local_root_dir) :] for name in out]
 

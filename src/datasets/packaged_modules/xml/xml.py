@@ -34,7 +34,9 @@ class Xml(datasets.ArrowBasedBuilder):
         If dict, then keys should be from the `datasets.Split` enum.
         """
         if not self.config.data_files:
-            raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
+            raise ValueError(
+                f"At least one data file must be specified, but got data_files={self.config.data_files}"
+            )
         dl_manager.download_config.extract_on_the_fly = True
         data_files = dl_manager.download_and_extract(self.config.data_files)
         splits = []
@@ -42,13 +44,18 @@ class Xml(datasets.ArrowBasedBuilder):
             if isinstance(files, str):
                 files = [files]
             files = [dl_manager.iter_files(file) for file in files]
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
+            splits.append(
+                datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files})
+            )
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.config.features is not None:
             schema = self.config.features.arrow_schema
-            if all(not require_storage_cast(feature) for feature in self.config.features.values()):
+            if all(
+                not require_storage_cast(feature)
+                for feature in self.config.features.values()
+            ):
                 # cheaper cast
                 pa_table = pa_table.cast(schema)
             else:
@@ -59,10 +66,14 @@ class Xml(datasets.ArrowBasedBuilder):
             return pa_table.cast(pa.schema({"xml": pa.string()}))
 
     def _generate_tables(self, files):
-        pa_table_names = list(self.config.features) if self.config.features is not None else ["xml"]
+        pa_table_names = (
+            list(self.config.features) if self.config.features is not None else ["xml"]
+        )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             # open in text mode, by default translates universal newlines ("\n", "\r\n" and "\r") into "\n"
-            with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
+            with open(
+                file, encoding=self.config.encoding, errors=self.config.encoding_errors
+            ) as f:
                 xml = f.read()
                 pa_table = pa.Table.from_arrays([pa.array([xml])], names=pa_table_names)
                 yield file_idx, self._cast_table(pa_table)

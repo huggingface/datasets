@@ -61,7 +61,9 @@ def _register_formatter(
 
 
 def _register_unavailable_formatter(
-    unavailable_error: Exception, format_type: Optional[str], aliases: Optional[list[str]] = None
+    unavailable_error: Exception,
+    format_type: Optional[str],
+    aliases: Optional[list[str]] = None,
 ):
     """
     Register an unavailable Formatter object using a name and optional aliases.
@@ -84,7 +86,9 @@ if config.POLARS_AVAILABLE:
 
     _register_formatter(PolarsFormatter, "polars", aliases=["pl"])
 else:
-    _polars_error = ValueError("Polars needs to be installed to be able to return Polars dataframes.")
+    _polars_error = ValueError(
+        "Polars needs to be installed to be able to return Polars dataframes."
+    )
     _register_unavailable_formatter(_polars_error, "polars", aliases=["pl"])
 
 if config.TORCH_AVAILABLE:
@@ -92,7 +96,9 @@ if config.TORCH_AVAILABLE:
 
     _register_formatter(TorchFormatter, "torch", aliases=["pt", "pytorch"])
 else:
-    _torch_error = ValueError("PyTorch needs to be installed to be able to return PyTorch tensors.")
+    _torch_error = ValueError(
+        "PyTorch needs to be installed to be able to return PyTorch tensors."
+    )
     _register_unavailable_formatter(_torch_error, "torch", aliases=["pt", "pytorch"])
 
 if config.TF_AVAILABLE:
@@ -100,7 +106,9 @@ if config.TF_AVAILABLE:
 
     _register_formatter(TFFormatter, "tensorflow", aliases=["tf"])
 else:
-    _tf_error = ValueError("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
+    _tf_error = ValueError(
+        "Tensorflow needs to be installed to be able to return Tensorflow tensors."
+    )
     _register_unavailable_formatter(_tf_error, "tensorflow", aliases=["tf"])
 
 if config.JAX_AVAILABLE:
@@ -108,7 +116,9 @@ if config.JAX_AVAILABLE:
 
     _register_formatter(JaxFormatter, "jax", aliases=[])
 else:
-    _jax_error = ValueError("JAX needs to be installed to be able to return JAX arrays.")
+    _jax_error = ValueError(
+        "JAX needs to be installed to be able to return JAX arrays."
+    )
     _register_unavailable_formatter(_jax_error, "jax", aliases=[])
 
 
@@ -133,4 +143,6 @@ def get_formatter(format_type: Optional[str], **format_kwargs) -> Formatter:
     if format_type in _FORMAT_TYPES_ALIASES_UNAVAILABLE:
         raise _FORMAT_TYPES_ALIASES_UNAVAILABLE[format_type]
     else:
-        raise ValueError(f"Format type should be one of {list(_FORMAT_TYPES.keys())}, but got '{format_type}'")
+        raise ValueError(
+            f"Format type should be one of {list(_FORMAT_TYPES.keys())}, but got '{format_type}'"
+        )

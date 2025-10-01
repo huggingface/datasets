@@ -59,21 +59,24 @@ class DatasetGenerationCastError(DatasetGenerationError):
         gen_kwargs: dict[str, Any],
         token: Optional[Union[bool, str]],
     ) -> "DatasetGenerationCastError":
-        explanation_message = (
-            f"\n\nAll the data files must have the same columns, but at some point {cast_error.details()}"
-        )
+        explanation_message = f"\n\nAll the data files must have the same columns, but at some point {cast_error.details()}"
         formatted_tracked_gen_kwargs: list[str] = []
         for gen_kwarg in gen_kwargs.values():
-            if not isinstance(gen_kwarg, (tracked_str, tracked_list, TrackedIterableFromGenerator)):
+            if not isinstance(
+                gen_kwarg, (tracked_str, tracked_list, TrackedIterableFromGenerator)
+            ):
                 continue
             while (
-                isinstance(gen_kwarg, (tracked_list, TrackedIterableFromGenerator)) and gen_kwarg.last_item is not None
+                isinstance(gen_kwarg, (tracked_list, TrackedIterableFromGenerator))
+                and gen_kwarg.last_item is not None
             ):
                 gen_kwarg = gen_kwarg.last_item
             if isinstance(gen_kwarg, tracked_str):
                 gen_kwarg = gen_kwarg.get_origin()
             if isinstance(gen_kwarg, str) and gen_kwarg.startswith("hf://"):
-                resolved_path = HfFileSystem(endpoint=config.HF_ENDPOINT, token=token).resolve_path(gen_kwarg)
+                resolved_path = HfFileSystem(
+                    endpoint=config.HF_ENDPOINT, token=token
+                ).resolve_path(gen_kwarg)
                 gen_kwarg = "hf://" + resolved_path.unresolve()
                 if "@" + resolved_path.revision in gen_kwarg:
                     gen_kwarg = (
@@ -84,7 +87,11 @@ class DatasetGenerationCastError(DatasetGenerationError):
         if formatted_tracked_gen_kwargs:
             explanation_message += f"\n\nThis happened while the {builder_name} dataset builder was generating data using\n\n{', '.join(formatted_tracked_gen_kwargs)}"
         help_message = "\n\nPlease either edit the data files to have matching columns, or separate them into different configurations (see docs at https://hf.co/docs/hub/datasets-manual-configuration#multiple-configurations)"
-        return cls("An error occurred while generating the dataset" + explanation_message + help_message)
+        return cls(
+            "An error occurred while generating the dataset"
+            + explanation_message
+            + help_message
+        )
 
 
 class ChecksumVerificationError(DatasetsError):

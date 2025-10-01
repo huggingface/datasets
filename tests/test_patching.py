@@ -145,7 +145,11 @@ def test_patch_submodule_successive():
 
 def test_patch_submodule_doesnt_exist():
     mock = "__test_patch_submodule_doesnt_exist_mock__"
-    with patch_submodule(_test_patching, "__module_that_doesn_exist__.__attribute_that_doesn_exist__", mock):
+    with patch_submodule(
+        _test_patching,
+        "__module_that_doesn_exist__.__attribute_that_doesn_exist__",
+        mock,
+    ):
         pass
     with patch_submodule(_test_patching, "os.__attribute_that_doesn_exist__", mock):
         pass

@@ -83,7 +83,13 @@ def size_str(size_in_bytes):
     if not size_in_bytes:
         return "Unknown size"
 
-    _NAME_LIST = [("PiB", 2**50), ("TiB", 2**40), ("GiB", 2**30), ("MiB", 2**20), ("KiB", 2**10)]
+    _NAME_LIST = [
+        ("PiB", 2**50),
+        ("TiB", 2**40),
+        ("GiB", 2**30),
+        ("MiB", 2**20),
+        ("KiB", 2**10),
+    ]
 
     size_in_bytes = float(size_in_bytes)
     for name, size_bytes in _NAME_LIST:
@@ -134,7 +140,9 @@ def convert_file_size_to_int(size: Union[int, str]) -> int:
     if size.upper().endswith("KB"):
         int_size = int(size[:-2]) * (10**3)
         return int_size // 8 if size.endswith("b") else int_size
-    raise ValueError(f"`size={size}` is not in a valid format. Use an integer followed by the unit, e.g., '5GB'.")
+    raise ValueError(
+        f"`size={size}` is not in a valid format. Use an integer followed by the unit, e.g., '5GB'."
+    )
 
 
 def glob_pattern_to_regex(pattern):
@@ -179,7 +187,9 @@ def string_to_dict(string: str, pattern: str) -> Optional[dict[str, str]]:
         Optional[dict[str, str]]: dictionary of variable -> value, retrieved from the input using the pattern, or
         `None` if the string does not match the pattern.
     """
-    pattern = re.sub(r"{([^:}]+)(?::[^}]+)?}", r"{\1}", pattern)  # remove format specifiers, e.g. {rank:05d} -> {rank}
+    pattern = re.sub(
+        r"{([^:}]+)(?::[^}]+)?}", r"{\1}", pattern
+    )  # remove format specifiers, e.g. {rank:05d} -> {rank}
     regex = re.sub(r"{(.+?)}", r"(?P<_\1>.+)", pattern)
     result = re.search(regex, string)
     if result is None:
@@ -207,7 +217,11 @@ def asdict(obj):
             result = {}
             for f in fields(obj):
                 value = _asdict_inner(getattr(obj, f.name))
-                if not f.init or value != f.default or f.metadata.get("include_in_asdict_even_if_is_default", False):
+                if (
+                    not f.init
+                    or value != f.default
+                    or f.metadata.get("include_in_asdict_even_if_is_default", False)
+                ):
                     result[f.name] = value
             return result
         elif isinstance(obj, tuple) and hasattr(obj, "_fields"):
@@ -265,7 +279,9 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
         tf.random.set_global_generator(temp_gen)
 
         if not tf.executing_eagerly():
-            raise ValueError("Setting random seed for TensorFlow is only available in eager mode")
+            raise ValueError(
+                "Setting random seed for TensorFlow is only available in eager mode"
+            )
 
         tf_context = tfpycontext.context()  # eager mode context
         tf_seed = tf_context._seed
@@ -323,7 +339,9 @@ def first_non_null_value(iterable):
 def first_non_null_non_empty_value(iterable):
     """Return the index and the value of the first non-null non-empty value in the iterable. If all values are None or empty, return -1 as index."""
     for i, value in enumerate(iterable):
-        if value is not None and not (isinstance(value, (dict, list)) and len(value) == 0):
+        if value is not None and not (
+            isinstance(value, (dict, list)) and len(value) == 0
+        ):
             return i, value
     return -1, None
 
@@ -386,26 +404,50 @@ def _single_map_nested(args):
         and isinstance(data_struct, types)
         and all(not isinstance(v, (dict, types)) for v in data_struct)
     ):
-        return [mapped_item for batch in iter_batched(data_struct, batch_size) for mapped_item in function(batch)]
+        return [
+            mapped_item
+            for batch in iter_batched(data_struct, batch_size)
+            for mapped_item in function(batch)
+        ]
 
     # Reduce logging to keep things readable in multiprocessing with tqdm
     if rank is not None and logging.get_verbosity() < logging.WARNING:
         logging.set_verbosity_warning()
     # Print at least one thing to fix tqdm in notebooks in multiprocessing
     # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
-    if rank is not None and not disable_tqdm and any("notebook" in tqdm_cls.__name__ for tqdm_cls in tqdm.__mro__):
+    if (
+        rank is not None
+        and not disable_tqdm
+        and any("notebook" in tqdm_cls.__name__ for tqdm_cls in tqdm.__mro__)
+    ):
         print(" ", end="", flush=True)
 
     # Loop over single examples or batches and write to buffer/file if examples are to be updated
-    pbar_iterable = data_struct.items() if isinstance(data_struct, dict) else data_struct
-    pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
-    with hf_tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc) as pbar:
+    pbar_iterable = (
+        data_struct.items() if isinstance(data_struct, dict) else data_struct
+    )
+    pbar_desc = (
+        (desc + " " if desc is not None else "") + "#" + str(rank)
+        if rank is not None
+        else desc
+    )
+    with hf_tqdm(
+        pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc
+    ) as pbar:
         if isinstance(data_struct, dict):
             return {
-                k: _single_map_nested((function, v, batched, batch_size, types, None, True, None)) for k, v in pbar
+                k: _single_map_nested(
+                    (function, v, batched, batch_size, types, None, True, None)
+                )
+                for k, v in pbar
             }
         else:
-            mapped = [_single_map_nested((function, v, batched, batch_size, types, None, True, None)) for v in pbar]
+            mapped = [
+                _single_map_nested(
+                    (function, v, batched, batch_size, types, None, True, None)
+                )
+                for v in pbar
+            ]
             if isinstance(data_struct, list):
                 return mapped
             elif isinstance(data_struct, tuple):
@@ -495,7 +537,9 @@ def map_nested(
             mapped = mapped[0]
         return mapped
 
-    iterable = list(data_struct.values()) if isinstance(data_struct, dict) else data_struct
+    iterable = (
+        list(data_struct.values()) if isinstance(data_struct, dict) else data_struct
+    )
 
     if num_proc is None:
         num_proc = 1
@@ -515,14 +559,20 @@ def map_nested(
     elif num_proc != -1 and num_proc <= 1 or len(iterable) < parallel_min_length:
         if batched:
             if batch_size is None or batch_size <= 0:
-                batch_size = max(len(iterable) // num_proc + int(len(iterable) % num_proc > 0), 1)
+                batch_size = max(
+                    len(iterable) // num_proc + int(len(iterable) % num_proc > 0), 1
+                )
             iterable = list(iter_batched(iterable, batch_size))
         mapped = [
-            _single_map_nested((function, obj, batched, batch_size, types, None, True, None))
+            _single_map_nested(
+                (function, obj, batched, batch_size, types, None, True, None)
+            )
             for obj in hf_tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
         if batched:
-            mapped = [mapped_item for mapped_batch in mapped for mapped_item in mapped_batch]
+            mapped = [
+                mapped_item for mapped_batch in mapped for mapped_item in mapped_batch
+            ]
     else:
         with warnings.catch_warnings():
             warnings.filterwarnings(
@@ -532,13 +582,27 @@ def map_nested(
             )
             if batched:
                 if batch_size is None or batch_size <= 0:
-                    batch_size = len(iterable) // num_proc + int(len(iterable) % num_proc > 0)
+                    batch_size = len(iterable) // num_proc + int(
+                        len(iterable) % num_proc > 0
+                    )
                 iterable = list(iter_batched(iterable, batch_size))
             mapped = parallel_map(
-                function, iterable, num_proc, batched, batch_size, types, disable_tqdm, desc, _single_map_nested
+                function,
+                iterable,
+                num_proc,
+                batched,
+                batch_size,
+                types,
+                disable_tqdm,
+                desc,
+                _single_map_nested,
             )
             if batched:
-                mapped = [mapped_item for mapped_batch in mapped for mapped_item in mapped_batch]
+                mapped = [
+                    mapped_item
+                    for mapped_batch in mapped
+                    for mapped_item in mapped_batch
+                ]
 
     if isinstance(data_struct, dict):
         return dict(zip(data_struct.keys(), mapped))
@@ -574,7 +638,13 @@ def has_sufficient_disk_space(needed_bytes, directory="."):
 
 
 def copyfunc(func):
-    result = types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
+    result = types.FunctionType(
+        func.__code__,
+        func.__globals__,
+        func.__name__,
+        func.__defaults__,
+        func.__closure__,
+    )
     result.__kwdefaults__ = func.__kwdefaults__
     return result
 
@@ -582,13 +652,17 @@ def copyfunc(func):
 Y = TypeVar("Y")
 
 
-def _write_generator_to_queue(queue: queue.Queue, func: Callable[..., Iterable[Y]], kwargs: dict) -> int:
+def _write_generator_to_queue(
+    queue: queue.Queue, func: Callable[..., Iterable[Y]], kwargs: dict
+) -> int:
     for i, result in enumerate(func(**kwargs)):
         queue.put(result)
     return i
 
 
-def _get_pool_pid(pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool]) -> set[int]:
+def _get_pool_pid(
+    pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool],
+) -> set[int]:
     return {f.pid for f in pool._pool}
 
 
@@ -600,18 +674,24 @@ def iflatmap_unordered(
 ) -> Iterable[Y]:
     initial_pool_pid = _get_pool_pid(pool)
     pool_changed = False
-    manager_cls = Manager if isinstance(pool, multiprocessing.pool.Pool) else multiprocess.Manager
+    manager_cls = (
+        Manager if isinstance(pool, multiprocessing.pool.Pool) else multiprocess.Manager
+    )
     with manager_cls() as manager:
         queue = manager.Queue()
         async_results = [
-            pool.apply_async(_write_generator_to_queue, (queue, func, kwargs)) for kwargs in kwargs_iterable
+            pool.apply_async(_write_generator_to_queue, (queue, func, kwargs))
+            for kwargs in kwargs_iterable
         ]
         try:
             while True:
                 try:
                     yield queue.get(timeout=0.05)
                 except Empty:
-                    if all(async_result.ready() for async_result in async_results) and queue.empty():
+                    if (
+                        all(async_result.ready() for async_result in async_results)
+                        and queue.empty()
+                    ):
                         break
                 if _get_pool_pid(pool) != initial_pool_pid:
                     pool_changed = True

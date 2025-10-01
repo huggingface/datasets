@@ -39,7 +39,9 @@ if TYPE_CHECKING:
     from .builder import DatasetBuilder
 
 
-def extend_module_for_streaming(module_path, download_config: Optional[DownloadConfig] = None):
+def extend_module_for_streaming(
+    module_path, download_config: Optional[DownloadConfig] = None
+):
     """Extend the module to support streaming.
 
     We patch some functions in the module to use `fsspec` to support data streaming:
@@ -64,7 +66,9 @@ def extend_module_for_streaming(module_path, download_config: Optional[DownloadC
     if hasattr(module, "_patched_for_streaming") and module._patched_for_streaming:
         if isinstance(module._patched_for_streaming, DownloadConfig):
             module._patched_for_streaming.token = download_config.token
-            module._patched_for_streaming.storage_options = download_config.storage_options
+            module._patched_for_streaming.storage_options = (
+                download_config.storage_options
+            )
         return
 
     def wrap_auth(function):
@@ -96,14 +100,27 @@ def extend_module_for_streaming(module_path, download_config: Optional[DownloadC
     # file readers
     patch_submodule(module, "gzip.open", wrap_auth(xgzip_open)).start()
     patch_submodule(module, "numpy.load", wrap_auth(xnumpy_load)).start()
-    patch_submodule(module, "pandas.read_csv", wrap_auth(xpandas_read_csv), attrs=["__version__"]).start()
-    patch_submodule(module, "pandas.read_excel", wrap_auth(xpandas_read_excel), attrs=["__version__"]).start()
-    patch_submodule(module, "scipy.io.loadmat", wrap_auth(xsio_loadmat), attrs=["__version__"]).start()
+    patch_submodule(
+        module, "pandas.read_csv", wrap_auth(xpandas_read_csv), attrs=["__version__"]
+    ).start()
+    patch_submodule(
+        module,
+        "pandas.read_excel",
+        wrap_auth(xpandas_read_excel),
+        attrs=["__version__"],
+    ).start()
+    patch_submodule(
+        module, "scipy.io.loadmat", wrap_auth(xsio_loadmat), attrs=["__version__"]
+    ).start()
     patch_submodule(module, "xml.etree.ElementTree.parse", wrap_auth(xet_parse)).start()
-    patch_submodule(module, "xml.dom.minidom.parse", wrap_auth(xxml_dom_minidom_parse)).start()
+    patch_submodule(
+        module, "xml.dom.minidom.parse", wrap_auth(xxml_dom_minidom_parse)
+    ).start()
     # pyarrow: do not patch pyarrow attribute in packaged modules
     if not module.__name__.startswith("datasets.packaged_modules."):
-        patch_submodule(module, "pyarrow.parquet.read_table", wrap_auth(xpyarrow_parquet_read_table)).start()
+        patch_submodule(
+            module, "pyarrow.parquet.read_table", wrap_auth(xpyarrow_parquet_read_table)
+        ).start()
     module._patched_for_streaming = download_config
 
 
@@ -114,7 +131,9 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
         builder (:class:`DatasetBuilder`): Dataset builder instance.
     """
     # this extends the open and os.path.join functions for data streaming
-    download_config = DownloadConfig(storage_options=builder.storage_options, token=builder.token)
+    download_config = DownloadConfig(
+        storage_options=builder.storage_options, token=builder.token
+    )
     extend_module_for_streaming(builder.__module__, download_config=download_config)
 
     # builders can inherit from other builders that might use streaming functionality
@@ -124,8 +143,11 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
 
     parent_builder_modules = [
         cls.__module__
-        for cls in type(builder).__mro__[1:]  # make sure it's not the same module we've already patched
-        if issubclass(cls, DatasetBuilder) and cls.__module__ != DatasetBuilder.__module__
+        for cls in type(builder).__mro__[
+            1:
+        ]  # make sure it's not the same module we've already patched
+        if issubclass(cls, DatasetBuilder)
+        and cls.__module__ != DatasetBuilder.__module__
     ]  # check it's not a standard builder from datasets.builder
     for module in parent_builder_modules:
         extend_module_for_streaming(module, download_config=download_config)

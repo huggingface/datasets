@@ -17,7 +17,13 @@ from .naming import _split_re
 from .splits import Split
 from .utils import logging
 from .utils import tqdm as hf_tqdm
-from .utils.file_utils import _prepare_path_and_storage_options, is_local_path, is_relative_path, xbasename, xjoin
+from .utils.file_utils import (
+    _prepare_path_and_storage_options,
+    is_local_path,
+    is_relative_path,
+    xbasename,
+    xjoin,
+)
 from .utils.py_utils import string_to_dict
 
 
@@ -38,7 +44,9 @@ class EmptyDatasetError(FileNotFoundError):
     pass
 
 
-SPLIT_PATTERN_SHARDED = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
+SPLIT_PATTERN_SHARDED = (
+    "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
+)
 
 SPLIT_KEYWORDS = {
     Split.TRAIN: ["train", "training"],
@@ -47,7 +55,10 @@ SPLIT_KEYWORDS = {
 }
 NON_WORDS_CHARS = "-._ 0-9"
 if config.FSSPEC_VERSION < version.parse("2023.9.0"):
-    KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
+    KEYWORDS_IN_FILENAME_BASE_PATTERNS = [
+        "**[{sep}/]{keyword}[{sep}]*",
+        "{keyword}[{sep}]*",
+    ]
     KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = [
         "{keyword}/**",
         "{keyword}[{sep}]*/**",
@@ -55,7 +66,10 @@ if config.FSSPEC_VERSION < version.parse("2023.9.0"):
         "**[{sep}/]{keyword}[{sep}]*/**",
     ]
 elif config.FSSPEC_VERSION < version.parse("2023.12.0"):
-    KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**/*[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
+    KEYWORDS_IN_FILENAME_BASE_PATTERNS = [
+        "**/*[{sep}/]{keyword}[{sep}]*",
+        "{keyword}[{sep}]*",
+    ]
     KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = [
         "{keyword}/**/*",
         "{keyword}[{sep}]*/**/*",
@@ -63,7 +77,10 @@ elif config.FSSPEC_VERSION < version.parse("2023.12.0"):
         "**/*[{sep}/]{keyword}[{sep}]*/**/*",
     ]
 else:
-    KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**/{keyword}[{sep}]*", "**/*[{sep}]{keyword}[{sep}]*"]
+    KEYWORDS_IN_FILENAME_BASE_PATTERNS = [
+        "**/{keyword}[{sep}]*",
+        "**/*[{sep}]{keyword}[{sep}]*",
+    ]
     KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = [
         "**/{keyword}/**",
         "**/{keyword}[{sep}]*/**",
@@ -112,10 +129,14 @@ FILES_TO_IGNORE = [
 
 
 def contains_wildcards(pattern: str) -> bool:
-    return any(wildcard_character in pattern for wildcard_character in WILDCARD_CHARACTERS)
+    return any(
+        wildcard_character in pattern for wildcard_character in WILDCARD_CHARACTERS
+    )
 
 
-def sanitize_patterns(patterns: Union[dict, list, str]) -> dict[str, Union[list[str], "DataFilesList"]]:
+def sanitize_patterns(
+    patterns: Union[dict, list, str],
+) -> dict[str, Union[list[str], "DataFilesList"]]:
     """
     Take the data_files patterns from the user, and format them into a dictionary.
     Each key is the name of the split, and each value is a list of data files patterns (paths or urls).
@@ -125,7 +146,10 @@ def sanitize_patterns(patterns: Union[dict, list, str]) -> dict[str, Union[list[
         patterns: dictionary of split_name -> list of patterns
     """
     if isinstance(patterns, dict):
-        return {str(key): value if isinstance(value, list) else [value] for key, value in patterns.items()}
+        return {
+            str(key): value if isinstance(value, list) else [value]
+            for key, value in patterns.items()
+        }
     elif isinstance(patterns, str):
         return {SANITIZED_DEFAULT_SPLIT: [patterns]}
     elif isinstance(patterns, list):
@@ -144,7 +168,11 @@ def sanitize_patterns(patterns: Union[dict, list, str]) -> dict[str, Union[list[
             if len(set(splits)) != len(splits):
                 raise ValueError(f"Some splits are duplicated in data_files: {splits}")
             return {
-                str(pattern["split"]): pattern["path"] if isinstance(pattern["path"], list) else [pattern["path"]]
+                str(pattern["split"]): (
+                    pattern["path"]
+                    if isinstance(pattern["path"], list)
+                    else [pattern["path"]]
+                )
                 for pattern in patterns
             }
         else:
@@ -181,12 +209,20 @@ def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> b
     # We just need to check if every special directories from the path is present explicitly in the pattern.
     # Since we assume that the path matches the pattern, it's equivalent to counting that both
     # the parent path and the parent pattern have the same number of special directories.
-    data_dirs_to_ignore_in_path = [part for part in PurePath(matched_rel_path).parent.parts if part.startswith("__")]
-    data_dirs_to_ignore_in_pattern = [part for part in PurePath(pattern).parent.parts if part.startswith("__")]
+    data_dirs_to_ignore_in_path = [
+        part
+        for part in PurePath(matched_rel_path).parent.parts
+        if part.startswith("__")
+    ]
+    data_dirs_to_ignore_in_pattern = [
+        part for part in PurePath(pattern).parent.parts if part.startswith("__")
+    ]
     return len(data_dirs_to_ignore_in_path) != len(data_dirs_to_ignore_in_pattern)
 
 
-def _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(matched_rel_path: str, pattern: str) -> bool:
+def _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(
+    matched_rel_path: str, pattern: str
+) -> bool:
     """
     When a path matches a pattern, we additionally check if it's a hidden file or if it's inside
     a hidden directory we ignore by default, i.e. if the file name or a parent directory name starts with a dot.
@@ -240,15 +276,21 @@ def _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(matched_rel_
     # Since we assume that the path matches the pattern, it's equivalent to counting that both
     # the path and the pattern have the same number of hidden parts.
     hidden_directories_in_path = [
-        part for part in PurePath(matched_rel_path).parts if part.startswith(".") and not set(part) == {"."}
+        part
+        for part in PurePath(matched_rel_path).parts
+        if part.startswith(".") and not set(part) == {"."}
     ]
     hidden_directories_in_pattern = [
-        part for part in PurePath(pattern).parts if part.startswith(".") and not set(part) == {"."}
+        part
+        for part in PurePath(pattern).parts
+        if part.startswith(".") and not set(part) == {"."}
     ]
     return len(hidden_directories_in_path) != len(hidden_directories_in_pattern)
 
 
-def _get_data_files_patterns(pattern_resolver: Callable[[str], list[str]]) -> dict[str, list[str]]:
+def _get_data_files_patterns(
+    pattern_resolver: Callable[[str], list[str]],
+) -> dict[str, list[str]]:
     """
     Get the default pattern from a directory or repository by testing all the supported patterns.
     The first patterns to return a non-empty list of data files is returned.
@@ -270,11 +312,15 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], list[str]]) -> di
                 splits.add(p_parts["split"])
 
             if any(not re.match(_split_re, split) for split in splits):
-                raise ValueError(f"Split name should match '{_split_re}'' but got '{splits}'.")
-            sorted_splits = [str(split) for split in DEFAULT_SPLITS if split in splits] + sorted(
-                splits - {str(split) for split in DEFAULT_SPLITS}
-            )
-            return {split: [split_pattern.format(split=split)] for split in sorted_splits}
+                raise ValueError(
+                    f"Split name should match '{_split_re}'' but got '{splits}'."
+                )
+            sorted_splits = [
+                str(split) for split in DEFAULT_SPLITS if split in splits
+            ] + sorted(splits - {str(split) for split in DEFAULT_SPLITS})
+            return {
+                split: [split_pattern.format(split=split)] for split in sorted_splits
+            }
     # then check the default patterns based on train/valid/test splits
     for patterns_dict in ALL_DEFAULT_PATTERNS:
         non_empty_splits = []
@@ -289,7 +335,9 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], list[str]]) -> di
                     break
         if non_empty_splits:
             return {split: patterns_dict[split] for split in non_empty_splits}
-    raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
+    raise FileNotFoundError(
+        f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}"
+    )
 
 
 def resolve_pattern(
@@ -346,7 +394,9 @@ def resolve_pattern(
         base_path = os.path.splitdrive(pattern)[0] + os.sep
     else:
         base_path = ""
-    pattern, storage_options = _prepare_path_and_storage_options(pattern, download_config=download_config)
+    pattern, storage_options = _prepare_path_and_storage_options(
+        pattern, download_config=download_config
+    )
     fs, fs_pattern = url_to_fs(pattern, **storage_options)
     files_to_ignore = set(FILES_TO_IGNORE) - {xbasename(pattern)}
     protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[0]
@@ -358,16 +408,24 @@ def resolve_pattern(
     matched_paths = [
         filepath if filepath.startswith(protocol_prefix) else protocol_prefix + filepath
         for filepath, info in fs.glob(pattern, detail=True, **glob_kwargs).items()
-        if (info["type"] == "file" or (info.get("islink") and os.path.isfile(os.path.realpath(filepath))))
+        if (
+            info["type"] == "file"
+            or (info.get("islink") and os.path.isfile(os.path.realpath(filepath)))
+        )
         and (xbasename(filepath) not in files_to_ignore)
         and not _is_inside_unrequested_special_dir(filepath, fs_pattern)
-        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(filepath, fs_pattern)
+        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(
+            filepath, fs_pattern
+        )
     ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [
             filepath
             for filepath in matched_paths
-            if any("." + suffix in allowed_extensions for suffix in xbasename(filepath).split(".")[1:])
+            if any(
+                "." + suffix in allowed_extensions
+                for suffix in xbasename(filepath).split(".")[1:]
+            )
         ]
         if len(out) < len(matched_paths):
             invalid_matched_files = list(set(matched_paths) - set(out))
@@ -384,7 +442,9 @@ def resolve_pattern(
     return out
 
 
-def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] = None) -> dict[str, list[str]]:
+def get_data_patterns(
+    base_path: str, download_config: Optional[DownloadConfig] = None
+) -> dict[str, list[str]]:
     """
     Get the default pattern from a directory testing all the supported patterns.
     The first patterns to return a non-empty list of data files is returned.
@@ -468,25 +528,33 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
     """
-    resolver = partial(resolve_pattern, base_path=base_path, download_config=download_config)
+    resolver = partial(
+        resolve_pattern, base_path=base_path, download_config=download_config
+    )
     try:
         return _get_data_files_patterns(resolver)
     except FileNotFoundError:
-        raise EmptyDatasetError(f"The directory at {base_path} doesn't contain any data files") from None
+        raise EmptyDatasetError(
+            f"The directory at {base_path} doesn't contain any data files"
+        ) from None
 
 
 def _get_single_origin_metadata(
     data_file: str,
     download_config: Optional[DownloadConfig] = None,
 ) -> SingleOriginMetadata:
-    data_file, storage_options = _prepare_path_and_storage_options(data_file, download_config=download_config)
+    data_file, storage_options = _prepare_path_and_storage_options(
+        data_file, download_config=download_config
+    )
     fs, *_ = url_to_fs(data_file, **storage_options)
     if isinstance(fs, HfFileSystem):
         resolved_path = fs.resolve_path(data_file)
         return resolved_path.repo_id, resolved_path.revision
     elif data_file.startswith(config.HF_ENDPOINT):
         hffs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
-        data_file = "hf://" + data_file[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
+        data_file = "hf://" + data_file[len(config.HF_ENDPOINT) + 1 :].replace(
+            "/resolve/", "@", 1
+        )
         resolved_path = hffs.resolve_path(data_file)
         return resolved_path.repo_id, resolved_path.revision
     info = fs.info(data_file)
@@ -502,7 +570,11 @@ def _get_origin_metadata(
     download_config: Optional[DownloadConfig] = None,
     max_workers: Optional[int] = None,
 ) -> list[SingleOriginMetadata]:
-    max_workers = max_workers if max_workers is not None else config.HF_DATASETS_MULTITHREADING_MAX_WORKERS
+    max_workers = (
+        max_workers
+        if max_workers is not None
+        else config.HF_DATASETS_MULTITHREADING_MAX_WORKERS
+    )
     return thread_map(
         partial(_get_single_origin_metadata, download_config=download_config),
         data_files,
@@ -532,12 +604,16 @@ class DataFilesList(list[str]):
     This is useful for caching Dataset objects that are obtained from a list of data files.
     """
 
-    def __init__(self, data_files: list[str], origin_metadata: list[SingleOriginMetadata]) -> None:
+    def __init__(
+        self, data_files: list[str], origin_metadata: list[SingleOriginMetadata]
+    ) -> None:
         super().__init__(data_files)
         self.origin_metadata = origin_metadata
 
     def __add__(self, other: "DataFilesList") -> "DataFilesList":
-        return DataFilesList([*self, *other], self.origin_metadata + other.origin_metadata)
+        return DataFilesList(
+            [*self, *other], self.origin_metadata + other.origin_metadata
+        )
 
     @classmethod
     def from_hf_repo(
@@ -548,9 +624,14 @@ class DataFilesList(list[str]):
         allowed_extensions: Optional[list[str]] = None,
         download_config: Optional[DownloadConfig] = None,
     ) -> "DataFilesList":
-        base_path = f"hf://datasets/{dataset_info.id}@{dataset_info.sha}/{base_path or ''}".rstrip("/")
+        base_path = f"hf://datasets/{dataset_info.id}@{dataset_info.sha}/{base_path or ''}".rstrip(
+            "/"
+        )
         return cls.from_patterns(
-            patterns, base_path=base_path, allowed_extensions=allowed_extensions, download_config=download_config
+            patterns,
+            base_path=base_path,
+            allowed_extensions=allowed_extensions,
+            download_config=download_config,
         )
 
     @classmethod
@@ -563,7 +644,10 @@ class DataFilesList(list[str]):
     ) -> "DataFilesList":
         base_path = base_path if base_path is not None else Path().resolve().as_posix()
         return cls.from_patterns(
-            patterns, base_path=base_path, allowed_extensions=allowed_extensions, download_config=download_config
+            patterns,
+            base_path=base_path,
+            allowed_extensions=allowed_extensions,
+            download_config=download_config,
         )
 
     @classmethod
@@ -589,11 +673,16 @@ class DataFilesList(list[str]):
             except FileNotFoundError:
                 if not has_magic(pattern):
                     raise
-        origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
+        origin_metadata = _get_origin_metadata(
+            data_files, download_config=download_config
+        )
         return cls(data_files, origin_metadata)
 
     def filter(
-        self, *, extensions: Optional[list[str]] = None, file_names: Optional[list[str]] = None
+        self,
+        *,
+        extensions: Optional[list[str]] = None,
+        file_names: Optional[list[str]] = None,
     ) -> "DataFilesList":
         patterns = []
         if extensions:
@@ -604,7 +693,11 @@ class DataFilesList(list[str]):
             patterns.append(re.compile(rf".*[\/]?({fn_pattern})$"))
         if patterns:
             return DataFilesList(
-                [data_file for data_file in self if any(pattern.match(data_file) for pattern in patterns)],
+                [
+                    data_file
+                    for data_file in self
+                    if any(pattern.match(data_file) for pattern in patterns)
+                ],
                 origin_metadata=self.origin_metadata,
             )
         else:
@@ -696,11 +789,16 @@ class DataFilesDict(dict[str, DataFilesList]):
         return out
 
     def filter(
-        self, *, extensions: Optional[list[str]] = None, file_names: Optional[list[str]] = None
+        self,
+        *,
+        extensions: Optional[list[str]] = None,
+        file_names: Optional[list[str]] = None,
     ) -> "DataFilesDict":
         out = type(self)()
         for key, data_files_list in self.items():
-            out[key] = data_files_list.filter(extensions=extensions, file_names=file_names)
+            out[key] = data_files_list.filter(
+                extensions=extensions, file_names=file_names
+            )
         return out
 
 
@@ -720,7 +818,9 @@ class DataFilesPatternsList(list[str]):
         self.allowed_extensions = allowed_extensions
 
     def __add__(self, other):
-        return DataFilesList([*self, *other], self.allowed_extensions + other.allowed_extensions)
+        return DataFilesList(
+            [*self, *other], self.allowed_extensions + other.allowed_extensions
+        )
 
     @classmethod
     def from_patterns(
@@ -748,12 +848,18 @@ class DataFilesPatternsList(list[str]):
             except FileNotFoundError:
                 if not has_magic(pattern):
                     raise
-        origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
+        origin_metadata = _get_origin_metadata(
+            data_files, download_config=download_config
+        )
         return DataFilesList(data_files, origin_metadata)
 
     def filter_extensions(self, extensions: list[str]) -> "DataFilesPatternsList":
         return DataFilesPatternsList(
-            self, [allowed_extensions + extensions for allowed_extensions in self.allowed_extensions]
+            self,
+            [
+                allowed_extensions + extensions
+                for allowed_extensions in self.allowed_extensions
+            ],
         )
 
 
@@ -764,7 +870,9 @@ class DataFilesPatternsDict(dict[str, DataFilesPatternsList]):
 
     @classmethod
     def from_patterns(
-        cls, patterns: dict[str, list[str]], allowed_extensions: Optional[list[str]] = None
+        cls,
+        patterns: dict[str, list[str]],
+        allowed_extensions: Optional[list[str]] = None,
     ) -> "DataFilesPatternsDict":
         out = cls()
         for key, patterns_for_key in patterns.items():

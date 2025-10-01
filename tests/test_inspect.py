@@ -28,7 +28,9 @@ def test_get_dataset_config_info(path, config_name, expected_splits):
 
 
 def test_get_dataset_config_info_private(hf_token, hf_private_dataset_repo_txt_data):
-    info = get_dataset_config_info(hf_private_dataset_repo_txt_data, config_name="default", token=hf_token)
+    info = get_dataset_config_info(
+        hf_private_dataset_repo_txt_data, config_name="default", token=hf_token
+    )
     assert list(info.splits.keys()) == ["train"]
 
 
@@ -38,10 +40,26 @@ def test_get_dataset_config_info_private(hf_token, hf_private_dataset_repo_txt_d
         ("paws", None, ValueError),
         # non-existing, gated, private:
         ("hf-internal-testing/non-existing-dataset", "default", DatasetNotFoundError),
-        ("hf-internal-testing/gated_dataset_with_data_files", "default", DatasetNotFoundError),
-        ("hf-internal-testing/private_dataset_with_data_files", "default", DatasetNotFoundError),
-        ("hf-internal-testing/gated_dataset_with_data_files", "default", DatasetNotFoundError),
-        ("hf-internal-testing/private_dataset_with_data_files", "default", DatasetNotFoundError),
+        (
+            "hf-internal-testing/gated_dataset_with_data_files",
+            "default",
+            DatasetNotFoundError,
+        ),
+        (
+            "hf-internal-testing/private_dataset_with_data_files",
+            "default",
+            DatasetNotFoundError,
+        ),
+        (
+            "hf-internal-testing/gated_dataset_with_data_files",
+            "default",
+            DatasetNotFoundError,
+        ),
+        (
+            "hf-internal-testing/private_dataset_with_data_files",
+            "default",
+            DatasetNotFoundError,
+        ),
     ],
 )
 def test_get_dataset_config_info_raises(path, config_name, expected_exception):
@@ -91,7 +109,11 @@ def test_get_dataset_default_config_name(path, expected):
     [
         ("rajpurkar/squad", ["plain_text"], ["train", "validation"]),
         ("dalle-mini/wit", ["default"], ["train"]),
-        ("paws", ["labeled_final", "labeled_swap", "unlabeled_final"], ["train", "test", "validation"]),
+        (
+            "paws",
+            ["labeled_final", "labeled_swap", "unlabeled_final"],
+            ["train", "test", "validation"],
+        ),
     ],
 )
 def test_get_dataset_info(path, expected_configs, expected_splits_in_first_config):

@@ -13,7 +13,9 @@ SPEED_TEST_N_EXAMPLES = 100_000_000_000
 SPEED_TEST_CHUNK_SIZE = 10_000
 
 RESULTS_BASEPATH, RESULTS_FILENAME = os.path.split(__file__)
-RESULTS_FILE_PATH = os.path.join(RESULTS_BASEPATH, "results", RESULTS_FILENAME.replace(".py", ".json"))
+RESULTS_FILE_PATH = os.path.join(
+    RESULTS_BASEPATH, "results", RESULTS_FILENAME.replace(".py", ".json")
+)
 
 
 def generate_100B_dataset(num_examples: int, chunk_size: int) -> datasets.Dataset:
@@ -31,7 +33,9 @@ class RandIter:
 
     def __post_init__(self):
         rng = np.random.default_rng(self.seed)
-        self._sampled_values = rng.integers(low=self.low, high=self.high, size=self.size).tolist()
+        self._sampled_values = rng.integers(
+            low=self.low, high=self.high, size=self.size
+        ).tolist()
 
     def __iter__(self):
         return iter(self._sampled_values)
@@ -62,9 +66,16 @@ def get_batch_of_1024_random_rows(dataset: datasets.Dataset):
 
 def benchmark_table_100B():
     times = {"num examples": SPEED_TEST_N_EXAMPLES}
-    functions = (get_first_row, get_last_row, get_batch_of_1024_rows, get_batch_of_1024_random_rows)
+    functions = (
+        get_first_row,
+        get_last_row,
+        get_batch_of_1024_rows,
+        get_batch_of_1024_random_rows,
+    )
     print("generating dataset")
-    dataset = generate_100B_dataset(num_examples=SPEED_TEST_N_EXAMPLES, chunk_size=SPEED_TEST_CHUNK_SIZE)
+    dataset = generate_100B_dataset(
+        num_examples=SPEED_TEST_N_EXAMPLES, chunk_size=SPEED_TEST_CHUNK_SIZE
+    )
     print("Functions")
     for func in functions:
         print(func.__name__)

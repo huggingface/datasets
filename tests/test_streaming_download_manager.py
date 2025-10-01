@@ -16,9 +16,15 @@ from .utils import require_lz4, require_zstandard, slow
 
 
 TEST_GG_DRIVE_FILENAME = "train.tsv"
-TEST_GG_DRIVE_URL = "https://drive.google.com/uc?export=download&id=17bOgBDc3hRCoPZ89EYtKDzK-yXAWat94"
-TEST_GG_DRIVE_GZIPPED_URL = "https://drive.google.com/uc?export=download&id=1Bt4Garpf0QLiwkJhHJzXaVa0I0H5Qhwz"
-TEST_GG_DRIVE_ZIPPED_URL = "https://drive.google.com/uc?export=download&id=1k92sUfpHxKq8PXWRr7Y5aNHXwOCNUmqh"
+TEST_GG_DRIVE_URL = (
+    "https://drive.google.com/uc?export=download&id=17bOgBDc3hRCoPZ89EYtKDzK-yXAWat94"
+)
+TEST_GG_DRIVE_GZIPPED_URL = (
+    "https://drive.google.com/uc?export=download&id=1Bt4Garpf0QLiwkJhHJzXaVa0I0H5Qhwz"
+)
+TEST_GG_DRIVE_ZIPPED_URL = (
+    "https://drive.google.com/uc?export=download&id=1k92sUfpHxKq8PXWRr7Y5aNHXwOCNUmqh"
+)
 TEST_GG_DRIVE_CONTENT = """\
 pokemon_name, type
 Charmander, fire
@@ -26,7 +32,9 @@ Squirtle, water
 Bulbasaur, grass"""
 
 
-@pytest.mark.parametrize("urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"])
+@pytest.mark.parametrize(
+    "urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"]
+)
 def test_streaming_dl_manager_download_dummy_path(urlpath):
     dl_manager = StreamingDownloadManager()
     assert dl_manager.download(urlpath) == urlpath
@@ -50,11 +58,15 @@ def test_streaming_dl_manager_download(text_path):
     dl_manager = StreamingDownloadManager()
     out = dl_manager.download(text_path)
     assert out == text_path
-    with xopen(out, encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
+    with xopen(out, encoding="utf-8") as f, open(
+        text_path, encoding="utf-8"
+    ) as expected_file:
         assert f.read() == expected_file.read()
 
 
-@pytest.mark.parametrize("urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"])
+@pytest.mark.parametrize(
+    "urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"]
+)
 def test_streaming_dl_manager_download_and_extract_no_extraction(urlpath):
     dl_manager = StreamingDownloadManager()
     assert dl_manager.download_and_extract(urlpath) == urlpath
@@ -71,7 +83,9 @@ def test_streaming_dl_manager_extract(text_gz_path, text_path):
         assert f.read() == expected_file.read()
 
 
-def test_streaming_dl_manager_download_and_extract_with_extraction(text_gz_path, text_path):
+def test_streaming_dl_manager_download_and_extract_with_extraction(
+    text_gz_path, text_path
+):
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.download_and_extract(text_gz_path)
     path = os.path.basename(text_gz_path)
@@ -84,9 +98,17 @@ def test_streaming_dl_manager_download_and_extract_with_extraction(text_gz_path,
 
 @pytest.mark.parametrize(
     "input_path, filename, expected_path",
-    [("https://domain.org/archive.zip", "filename.jsonl", "zip://filename.jsonl::https://domain.org/archive.zip")],
+    [
+        (
+            "https://domain.org/archive.zip",
+            "filename.jsonl",
+            "zip://filename.jsonl::https://domain.org/archive.zip",
+        )
+    ],
 )
-def test_streaming_dl_manager_download_and_extract_with_join(input_path, filename, expected_path):
+def test_streaming_dl_manager_download_and_extract_with_join(
+    input_path, filename, expected_path
+):
     dl_manager = StreamingDownloadManager()
     extracted_path = dl_manager.download_and_extract(input_path)
     output_path = xjoin(extracted_path, filename)
@@ -97,7 +119,13 @@ def test_streaming_dl_manager_download_and_extract_with_join(input_path, filenam
 def test_streaming_dl_manager_extract_all_supported_single_file_compression_types(
     compression_fs_class, gz_file, xz_file, zstd_file, bz2_file, lz4_file, text_file
 ):
-    input_paths = {"gzip": gz_file, "xz": xz_file, "zstd": zstd_file, "bz2": bz2_file, "lz4": lz4_file}
+    input_paths = {
+        "gzip": gz_file,
+        "xz": xz_file,
+        "zstd": zstd_file,
+        "bz2": bz2_file,
+        "lz4": lz4_file,
+    }
     input_path = input_paths[compression_fs_class.protocol]
     if input_path is None:
         reason = f"for '{compression_fs_class.protocol}' compression protocol, "
@@ -167,21 +195,27 @@ def test_iter_archive_path(archive_jsonl, request):
     assert num_jsonl == 2
 
 
-@pytest.mark.parametrize("archive_nested_jsonl", ["tar_nested_jsonl_path", "zip_nested_jsonl_path"])
+@pytest.mark.parametrize(
+    "archive_nested_jsonl", ["tar_nested_jsonl_path", "zip_nested_jsonl_path"]
+)
 def test_iter_archive_file(archive_nested_jsonl, request):
     archive_nested_jsonl_path = request.getfixturevalue(archive_nested_jsonl)
     dl_manager = StreamingDownloadManager()
     files_iterable = dl_manager.iter_archive(archive_nested_jsonl_path)
     num_tar, num_jsonl = 0, 0
     for num_tar, (path, file) in enumerate(files_iterable, start=1):
-        for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
+        for num_jsonl, (subpath, subfile) in enumerate(
+            dl_manager.iter_archive(file), start=1
+        ):
             _test_jsonl(subpath, subfile)
     assert num_tar == 1
     assert num_jsonl == 2
     # do it twice to make sure it's reset correctly
     num_tar, num_jsonl = 0, 0
     for num_tar, (path, file) in enumerate(files_iterable, start=1):
-        for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
+        for num_jsonl, (subpath, subfile) in enumerate(
+            dl_manager.iter_archive(file), start=1
+        ):
             _test_jsonl(subpath, subfile)
     assert num_tar == 1
     assert num_jsonl == 2
@@ -189,6 +223,8 @@ def test_iter_archive_file(archive_nested_jsonl, request):
 
 def test_iter_files(data_dir_with_hidden_files):
     dl_manager = StreamingDownloadManager()
-    for num_file, file in enumerate(dl_manager.iter_files(data_dir_with_hidden_files), start=1):
+    for num_file, file in enumerate(
+        dl_manager.iter_files(data_dir_with_hidden_files), start=1
+    ):
         assert os.path.basename(file) == ("test.txt" if num_file == 1 else "train.txt")
     assert num_file == 2

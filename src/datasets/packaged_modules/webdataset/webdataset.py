@@ -10,7 +10,10 @@ import pyarrow as pa
 
 import datasets
 from datasets.features.features import cast_to_python_objects
-from datasets.utils.file_utils import SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL, xbasename
+from datasets.utils.file_utils import (
+    SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL,
+    xbasename,
+)
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -42,9 +45,14 @@ class WebDataset(datasets.GeneratorBasedBuilder):
             current_example["__key__"] = example_key
             current_example["__url__"] = tar_path
             current_example[field_name] = f.read()
-            if field_name.split(".")[-1].lower() in SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL:
+            if (
+                field_name.split(".")[-1].lower()
+                in SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL
+            ):
                 fs.write_bytes(filename, current_example[field_name])
-                extracted_file_path = streaming_download_manager.extract(f"memory://{filename}")
+                extracted_file_path = streaming_download_manager.extract(
+                    f"memory://{filename}"
+                )
                 with fsspec.open(extracted_file_path) as f:
                     current_example[field_name] = f.read()
                 fs.delete(filename)
@@ -52,7 +60,9 @@ class WebDataset(datasets.GeneratorBasedBuilder):
             else:
                 data_extension = field_name.split(".")[-1].lower()
             if data_extension in cls.DECODERS:
-                current_example[field_name] = cls.DECODERS[data_extension](current_example[field_name])
+                current_example[field_name] = cls.DECODERS[data_extension](
+                    current_example[field_name]
+                )
         if current_example:
             yield current_example
 
@@ -63,32 +73,45 @@ class WebDataset(datasets.GeneratorBasedBuilder):
         """We handle string, list and dicts in datafiles"""
         # Download the data files
         if not self.config.data_files:
-            raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
+            raise ValueError(
+                f"At least one data file must be specified, but got data_files={self.config.data_files}"
+            )
         data_files = dl_manager.download(self.config.data_files)
         splits = []
         for split_name, tar_paths in data_files.items():
             if isinstance(tar_paths, str):
                 tar_paths = [tar_paths]
-            tar_iterators = [dl_manager.iter_archive(tar_path) for tar_path in tar_paths]
+            tar_iterators = [
+                dl_manager.iter_archive(tar_path) for tar_path in tar_paths
+            ]
             splits.append(
                 datasets.SplitGenerator(
-                    name=split_name, gen_kwargs={"tar_paths": tar_paths, "tar_iterators": tar_iterators}
+                    name=split_name,
+                    gen_kwargs={"tar_paths": tar_paths, "tar_iterators": tar_iterators},
                 )
             )
         if not self.info.features:
             # Get one example to get the feature types
             pipeline = self._get_pipeline_from_tar(tar_paths[0], tar_iterators[0])
-            first_examples = list(islice(pipeline, self.NUM_EXAMPLES_FOR_FEATURES_INFERENCE))
-            if any(example.keys() != first_examples[0].keys() for example in first_examples):
+            first_examples = list(
+                islice(pipeline, self.NUM_EXAMPLES_FOR_FEATURES_INFERENCE)
+            )
+            if any(
+                example.keys() != first_examples[0].keys() for example in first_examples
+            ):
                 raise ValueError(
                     "The TAR archives of the dataset should be in WebDataset format, "
                     "but the files in the archive don't share the same prefix or the same types."
                 )
             pa_tables = [
-                pa.Table.from_pylist(cast_to_python_objects([example], only_1d_for_numpy=True))
+                pa.Table.from_pylist(
+                    cast_to_python_objects([example], only_1d_for_numpy=True)
+                )
                 for example in first_examples
             ]
-            inferred_arrow_schema = pa.concat_tables(pa_tables, promote_options="default").schema
+            inferred_arrow_schema = pa.concat_tables(
+                pa_tables, promote_options="default"
+            ).schema
             features = datasets.Features.from_arrow_schema(inferred_arrow_schema)
 
             for field_name in first_examples[0]:
@@ -108,14 +131,22 @@ class WebDataset(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, tar_paths, tar_iterators):
         image_field_names = [
-            field_name for field_name, feature in self.info.features.items() if isinstance(feature, datasets.Image)
+            field_name
+            for field_name, feature in self.info.features.items()
+            if isinstance(feature, datasets.Image)
         ]
         audio_field_names = [
-            field_name for field_name, feature in self.info.features.items() if isinstance(feature, datasets.Audio)
+            field_name
+            for field_name, feature in self.info.features.items()
+            if isinstance(feature, datasets.Audio)
         ]
         all_field_names = list(self.info.features.keys())
-        for tar_idx, (tar_path, tar_iterator) in enumerate(zip(tar_paths, tar_iterators)):
-            for example_idx, example in enumerate(self._get_pipeline_from_tar(tar_path, tar_iterator)):
+        for tar_idx, (tar_path, tar_iterator) in enumerate(
+            zip(tar_paths, tar_iterators)
+        ):
+            for example_idx, example in enumerate(
+                self._get_pipeline_from_tar(tar_path, tar_iterator)
+            ):
                 for field_name in all_field_names:
                     if field_name not in example:
                         example[field_name] = None

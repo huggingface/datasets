@@ -27,16 +27,22 @@ class DatasetListTest(TestCase):
     def test_list_dict_equivalent(self):
         example_records = self._create_example_records()
         dset = Dataset.from_list(example_records)
-        dset_from_dict = Dataset.from_dict({k: [r[k] for r in example_records] for k in example_records[0]})
+        dset_from_dict = Dataset.from_dict(
+            {k: [r[k] for r in example_records] for k in example_records[0]}
+        )
         self.assertEqual(dset.info, dset_from_dict.info)
 
     def test_uneven_records(self):  # checks what happens with missing columns
         uneven_records = [{"col_1": 1}, {"col_2": "x"}]
         dset = Dataset.from_list(uneven_records)
         self.assertDictEqual(dset[0], {"col_1": 1})
-        self.assertDictEqual(dset[1], {"col_1": None})  # NB: first record is used for columns
+        self.assertDictEqual(
+            dset[1], {"col_1": None}
+        )  # NB: first record is used for columns
 
-    def test_variable_list_records(self):  # checks if the type can be inferred from the second record
+    def test_variable_list_records(
+        self,
+    ):  # checks if the type can be inferred from the second record
         list_records = [{"col_1": []}, {"col_1": [1, 2]}]
         dset = Dataset.from_list(list_records)
         self.assertEqual(dset.info.features["col_1"], List(Value("int64")))

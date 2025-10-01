@@ -30,9 +30,15 @@ from .utils.py_utils import NonMutableDict, asdict
 
 @dataclass
 class SplitInfo:
-    name: str = dataclasses.field(default="", metadata={"include_in_asdict_even_if_is_default": True})
-    num_bytes: int = dataclasses.field(default=0, metadata={"include_in_asdict_even_if_is_default": True})
-    num_examples: int = dataclasses.field(default=0, metadata={"include_in_asdict_even_if_is_default": True})
+    name: str = dataclasses.field(
+        default="", metadata={"include_in_asdict_even_if_is_default": True}
+    )
+    num_bytes: int = dataclasses.field(
+        default=0, metadata={"include_in_asdict_even_if_is_default": True}
+    )
+    num_examples: int = dataclasses.field(
+        default=0, metadata={"include_in_asdict_even_if_is_default": True}
+    )
     shard_lengths: Optional[list[int]] = None
 
     # Deprecated
@@ -129,7 +135,9 @@ class SplitBase(metaclass=abc.ABCMeta):
         """Equality: datasets.Split.TRAIN == 'train'."""
         if isinstance(other, (NamedSplit, str)):
             return False
-        raise NotImplementedError("Equality is not implemented between merged/sub splits.")
+        raise NotImplementedError(
+            "Equality is not implemented between merged/sub splits."
+        )
 
     def __ne__(self, other):
         """InEquality: datasets.Split.TRAIN != 'test'."""
@@ -139,7 +147,9 @@ class SplitBase(metaclass=abc.ABCMeta):
         """Merging: datasets.Split.TRAIN + datasets.Split.TEST."""
         return _SplitMerged(self, other)
 
-    def subsplit(self, arg=None, k=None, percent=None, weighted=None):  # pylint: disable=redefined-outer-name
+    def subsplit(
+        self, arg=None, k=None, percent=None, weighted=None
+    ):  # pylint: disable=redefined-outer-name
         """Divides this split into subsplits.
 
         There are 3 ways to define subsplits, which correspond to the 3
@@ -208,7 +218,9 @@ class SplitBase(metaclass=abc.ABCMeta):
 
         def assert_slices_coverage(slices):
             # Ensure that the expended slices cover all percents.
-            assert sum((list(range(*s.indices(100))) for s in slices), []) == list(range(100))
+            assert sum((list(range(*s.indices(100))) for s in slices), []) == list(
+                range(100)
+            )
 
         if k:
             if not 0 < k <= 100:
@@ -253,7 +265,9 @@ class SplitBase(metaclass=abc.ABCMeta):
 class PercentSliceMeta(type):
     def __getitem__(cls, slice_value):
         if not isinstance(slice_value, slice):
-            raise ValueError(f"datasets.percent should only be called with slice, not {slice_value}")
+            raise ValueError(
+                f"datasets.percent should only be called with slice, not {slice_value}"
+            )
         return slice_value
 
 
@@ -356,10 +370,14 @@ class NamedSplit(SplitBase):
 
     def __init__(self, name):
         self._name = name
-        split_names_from_instruction = [split_instruction.split("[")[0] for split_instruction in name.split("+")]
+        split_names_from_instruction = [
+            split_instruction.split("[")[0] for split_instruction in name.split("+")
+        ]
         for split_name in split_names_from_instruction:
             if not re.match(_split_re, split_name):
-                raise ValueError(f"Split name should match '{_split_re}' but got '{split_name}'.")
+                raise ValueError(
+                    f"Split name should match '{_split_re}' but got '{split_name}'."
+                )
 
     def __str__(self):
         return self._name
@@ -478,7 +496,9 @@ class SplitReadInstruction:
     """
 
     def __init__(self, split_info=None):
-        self._splits = NonMutableDict(error_msg="Overlap between splits. Split {key} has been added with itself.")
+        self._splits = NonMutableDict(
+            error_msg="Overlap between splits. Split {key} has been added with itself."
+        )
 
         if split_info:
             self.add(SlicedSplitInfo(split_info=split_info, slice_value=None))
@@ -496,8 +516,12 @@ class SplitReadInstruction:
         # TODO(epot): If a split is already added but there is no overlap between
         # the slices, should merge the slices (ex: [:10] + [80:])
         split_instruction = SplitReadInstruction()
-        split_instruction._splits.update(self._splits)  # pylint: disable=protected-access
-        split_instruction._splits.update(other._splits)  # pylint: disable=protected-access
+        split_instruction._splits.update(
+            self._splits
+        )  # pylint: disable=protected-access
+        split_instruction._splits.update(
+            other._splits
+        )  # pylint: disable=protected-access
         return split_instruction
 
     def __getitem__(self, slice_value):
@@ -506,7 +530,9 @@ class SplitReadInstruction:
         split_instruction = SplitReadInstruction()
         for v in self._splits.values():
             if v.slice_value is not None:
-                raise ValueError(f"Trying to slice Split {v.split_info.name} which has already been sliced")
+                raise ValueError(
+                    f"Trying to slice Split {v.split_info.name} which has already been sliced"
+                )
             v = v._asdict()
             v["slice_value"] = slice_value
             split_instruction.add(SlicedSplitInfo(**v))
@@ -538,7 +564,9 @@ class SplitDict(dict):
 
     def __setitem__(self, key: Union[SplitBase, str], value: SplitInfo):
         if key != value.name:
-            raise ValueError(f"Cannot add elem. (key mismatch: '{key}' != '{value.name}')")
+            raise ValueError(
+                f"Cannot add elem. (key mismatch: '{key}' != '{value.name}')"
+            )
         super().__setitem__(key, value)
 
     def add(self, split_info: SplitInfo):
@@ -554,7 +582,9 @@ class SplitDict(dict):
         return sum(s.num_examples for s in self.values())
 
     @classmethod
-    def from_split_dict(cls, split_infos: Union[list, dict], dataset_name: Optional[str] = None):
+    def from_split_dict(
+        cls, split_infos: Union[list, dict], dataset_name: Optional[str] = None
+    ):
         """Returns a new SplitDict initialized from a Dict or List of `split_infos`."""
         if isinstance(split_infos, dict):
             split_infos = list(split_infos.values())

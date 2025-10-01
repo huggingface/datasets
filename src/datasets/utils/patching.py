@@ -15,7 +15,9 @@ class _PatchedModuleObj:
             for key in module.__dict__:
                 if key in attrs or not key.startswith("__"):
                     setattr(self, key, getattr(module, key))
-        self._original_module = module._original_module if isinstance(module, _PatchedModuleObj) else module
+        self._original_module = (
+            module._original_module if isinstance(module, _PatchedModuleObj) else module
+        )
 
 
 class patch_submodule:
@@ -63,15 +65,24 @@ class patch_submodule:
                 # We don't check for the name of the global, but rather if its value *is* "os" or "os.path".
                 # This allows to patch renamed modules like "from os import path as ospath".
                 if obj_attr is submodule or (
-                    isinstance(obj_attr, _PatchedModuleObj) and obj_attr._original_module is submodule
+                    isinstance(obj_attr, _PatchedModuleObj)
+                    and obj_attr._original_module is submodule
                 ):
                     self.original[attr] = obj_attr
                     # patch at top level
-                    setattr(self.obj, attr, _PatchedModuleObj(obj_attr, attrs=self.attrs))
+                    setattr(
+                        self.obj, attr, _PatchedModuleObj(obj_attr, attrs=self.attrs)
+                    )
                     patched = getattr(self.obj, attr)
                     # construct lower levels patches
                     for key in submodules[i + 1 :]:
-                        setattr(patched, key, _PatchedModuleObj(getattr(patched, key, None), attrs=self.attrs))
+                        setattr(
+                            patched,
+                            key,
+                            _PatchedModuleObj(
+                                getattr(patched, key, None), attrs=self.attrs
+                            ),
+                        )
                         patched = getattr(patched, key)
                     # finally set the target attribute
                     setattr(patched, target_attr, self.new)
@@ -97,7 +108,9 @@ class patch_submodule:
             self.original[target_attr] = globals()["__builtins__"][target_attr]
             setattr(self.obj, target_attr, self.new)
         else:
-            raise RuntimeError(f"Tried to patch attribute {target_attr} instead of a submodule.")
+            raise RuntimeError(
+                f"Tried to patch attribute {target_attr} instead of a submodule."
+            )
 
     def __exit__(self, *exc_info):
         for attr in list(self.original):

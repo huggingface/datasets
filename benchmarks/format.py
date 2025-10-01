@@ -26,9 +26,13 @@ def format_json_to_md(input_json_file, output_md_file):
             val_str = f" {new_val:f}" if isinstance(new_val, (int, float)) else "None"
 
             if old_val is not None:
-                val_str += f" / {old_val:f}" if isinstance(old_val, (int, float)) else "None"
+                val_str += (
+                    f" / {old_val:f}" if isinstance(old_val, (int, float)) else "None"
+                )
             if dif_val is not None:
-                val_str += f" ({dif_val:f})" if isinstance(dif_val, (int, float)) else "None"
+                val_str += (
+                    f" ({dif_val:f})" if isinstance(dif_val, (int, float)) else "None"
+                )
 
             title += " " + metric_name + " |"
             lines += "---|"

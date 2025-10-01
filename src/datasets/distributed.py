@@ -7,7 +7,9 @@ from .iterable_dataset import IterableDataset, _split_by_node_iterable_dataset
 DatasetType = TypeVar("DatasetType", Dataset, IterableDataset)
 
 
-def split_dataset_by_node(dataset: DatasetType, rank: int, world_size: int) -> DatasetType:
+def split_dataset_by_node(
+    dataset: DatasetType, rank: int, world_size: int
+) -> DatasetType:
     """
     Split a dataset for the node at rank `rank` in a pool of nodes of size `world_size`.
 
@@ -34,6 +36,10 @@ def split_dataset_by_node(dataset: DatasetType, rank: int, world_size: int) -> D
         [`Dataset`] or [`IterableDataset`]: The dataset to be used on the node at rank `rank`.
     """
     if isinstance(dataset, Dataset):
-        return _split_by_node_map_style_dataset(dataset, rank=rank, world_size=world_size)
+        return _split_by_node_map_style_dataset(
+            dataset, rank=rank, world_size=world_size
+        )
     else:
-        return _split_by_node_iterable_dataset(dataset, rank=rank, world_size=world_size)
+        return _split_by_node_iterable_dataset(
+            dataset, rank=rank, world_size=world_size
+        )

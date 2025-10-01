@@ -101,7 +101,12 @@ from .fingerprint import (
     update_fingerprint,
     validate_fingerprint,
 )
-from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
+from .formatting import (
+    format_table,
+    get_format_type_from_alias,
+    get_formatter,
+    query_table,
+)
 from .formatting.formatting import LazyDict, _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
@@ -134,7 +139,11 @@ from .utils.py_utils import (
     string_to_dict,
 )
 from .utils.stratify import stratified_shuffle_split_generate_indices
-from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
+from .utils.tf_utils import (
+    dataset_to_tf,
+    minimal_tf_collate_fn,
+    multiprocess_dataset_to_tf,
+)
 from .utils.typing import ListLike, PathLike
 
 
@@ -263,24 +272,37 @@ class TensorflowDatasetMixin:
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
-            raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
+            raise ImportError(
+                "Called a Tensorflow-specific function but Tensorflow is not installed."
+            )
 
         if len(dataset) == 0:
-            raise ValueError("Unable to get the output signature because the dataset is empty.")
+            raise ValueError(
+                "Unable to get the output signature because the dataset is empty."
+            )
         if batch_size is not None:
             batch_size = min(len(dataset), batch_size)
         test_batch_size = 1
 
         if cols_to_retain is not None:
-            cols_to_retain = list(set(cols_to_retain + ["label_ids", "label", "labels"]))
+            cols_to_retain = list(
+                set(cols_to_retain + ["label_ids", "label", "labels"])
+            )
 
         test_batches = []
         for _ in range(num_test_batches):
             indices = sample(range(len(dataset)), test_batch_size)
             test_batch = dataset[indices]
             if cols_to_retain is not None:
-                test_batch = {key: value for key, value in test_batch.items() if key in cols_to_retain}
-            test_batch = [{key: value[i] for key, value in test_batch.items()} for i in range(test_batch_size)]
+                test_batch = {
+                    key: value
+                    for key, value in test_batch.items()
+                    if key in cols_to_retain
+                }
+            test_batch = [
+                {key: value[i] for key, value in test_batch.items()}
+                for i in range(test_batch_size)
+            ]
             test_batch = collate_fn(test_batch, **collate_fn_args)
             test_batches.append(test_batch)
 
@@ -298,7 +320,10 @@ class TensorflowDatasetMixin:
                 else:
                     np_arrays.append(np.array(array))
 
-            if np.issubdtype(np_arrays[0].dtype, np.integer) or np_arrays[0].dtype == bool:
+            if (
+                np.issubdtype(np_arrays[0].dtype, np.integer)
+                or np_arrays[0].dtype == bool
+            ):
                 tf_dtype = tf.int64
                 np_dtype = np.int64
             elif np.issubdtype(np_arrays[0].dtype, np.number):
@@ -323,7 +348,9 @@ class TensorflowDatasetMixin:
                     static_shape.append(sizes.pop())
                 else:  # Use None for variable dimensions
                     static_shape.append(None)
-            tf_columns_to_signatures[column] = tf.TensorSpec(shape=static_shape, dtype=tf_dtype)
+            tf_columns_to_signatures[column] = tf.TensorSpec(
+                shape=static_shape, dtype=tf_dtype
+            )
             np_columns_to_dtypes[column] = np_dtype
 
         return tf_columns_to_signatures, np_columns_to_dtypes
@@ -397,7 +424,9 @@ class TensorflowDatasetMixin:
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
-            raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
+            raise ImportError(
+                "Called a Tensorflow-specific function but Tensorflow is not installed."
+            )
 
         if (isinstance(columns, list) and len(columns) == 1) or (
             isinstance(label_cols, list) and len(label_cols) == 1
@@ -461,10 +490,18 @@ class TensorflowDatasetMixin:
         )
 
         if "labels" in output_signature:
-            if ("label_ids" in columns or "label" in columns) and "labels" not in columns:
-                columns = [col for col in columns if col not in ["label_ids", "label"]] + ["labels"]
-            if ("label_ids" in label_cols or "label" in label_cols) and "labels" not in label_cols:
-                label_cols = [col for col in label_cols if col not in ["label_ids", "label"]] + ["labels"]
+            if (
+                "label_ids" in columns or "label" in columns
+            ) and "labels" not in columns:
+                columns = [
+                    col for col in columns if col not in ["label_ids", "label"]
+                ] + ["labels"]
+            if (
+                "label_ids" in label_cols or "label" in label_cols
+            ) and "labels" not in label_cols:
+                label_cols = [
+                    col for col in label_cols if col not in ["label_ids", "label"]
+                ] + ["labels"]
 
         for col in columns:
             if col not in output_signature:
@@ -509,8 +546,12 @@ class TensorflowDatasetMixin:
 
         def split_features_and_labels(input_batch):
             # TODO(Matt, QL): deprecate returning the dict content when there's only one key
-            features = {key: tensor for key, tensor in input_batch.items() if key in columns}
-            labels = {key: tensor for key, tensor in input_batch.items() if key in label_cols}
+            features = {
+                key: tensor for key, tensor in input_batch.items() if key in columns
+            }
+            labels = {
+                key: tensor for key, tensor in input_batch.items() if key in label_cols
+            }
             if len(features) == 1:
                 features = list(features.values())[0]
             if len(labels) == 1:
@@ -560,17 +601,27 @@ def transmit_format(func):
         }
         # apply actual function
         out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
-        datasets: list["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
+        datasets: list["Dataset"] = (
+            list(out.values()) if isinstance(out, dict) else [out]
+        )
         # re-apply format to the output
         for dataset in datasets:
             new_format = self_format.copy()
-            if new_format["columns"] is not None:  # new formatted columns = (columns - previously unformatted columns)
+            if (
+                new_format["columns"] is not None
+            ):  # new formatted columns = (columns - previously unformatted columns)
                 # sort the columns to have a deterministic list of columns that we can compare with `out_format`
-                new_format["columns"] = sorted(set(dataset.column_names) - unformatted_columns)
+                new_format["columns"] = sorted(
+                    set(dataset.column_names) - unformatted_columns
+                )
             out_format = {
                 "type": dataset._format_type,
                 "format_kwargs": dataset._format_kwargs,
-                "columns": sorted(dataset._format_columns) if dataset._format_columns is not None else None,
+                "columns": (
+                    sorted(dataset._format_columns)
+                    if dataset._format_columns is not None
+                    else None
+                ),
                 "output_all_columns": dataset._output_all_columns,
             }
             if out_format != new_format:
@@ -585,7 +636,9 @@ def transmit_format(func):
 
 def update_metadata_with_features(table: Table, features: Features):
     """To be used in dataset transforms that modify the features of the dataset, in order to update the features stored in the metadata of its schema."""
-    features = Features({col_name: features[col_name] for col_name in table.column_names})
+    features = Features(
+        {col_name: features[col_name] for col_name in table.column_names}
+    )
     if table.schema.metadata is None or b"huggingface" not in table.schema.metadata:
         pa_metadata = ArrowWriter._build_metadata(DatasetInfo(features=features))
     else:
@@ -593,7 +646,9 @@ def update_metadata_with_features(table: Table, features: Features):
         if "info" not in metadata:
             metadata["info"] = asdict(DatasetInfo(features=features))
         else:
-            metadata["info"]["features"] = asdict(DatasetInfo(features=features))["features"]
+            metadata["info"]["features"] = asdict(DatasetInfo(features=features))[
+                "features"
+            ]
         pa_metadata = {"huggingface": json.dumps(metadata)}
     table = table.replace_schema_metadata(pa_metadata)
     return table
@@ -608,7 +663,9 @@ def _check_table(table) -> Table:
     elif isinstance(table, Table):
         return table
     else:
-        raise TypeError(f"Expected a pyarrow.Table or a datasets.table.Table object, but got {table}.")
+        raise TypeError(
+            f"Expected a pyarrow.Table or a datasets.table.Table object, but got {table}."
+        )
 
 
 def _check_column_names(column_names: list[str]):
@@ -616,7 +673,9 @@ def _check_column_names(column_names: list[str]):
     counter = Counter(column_names)
     if not all(count == 1 for count in counter.values()):
         duplicated_columns = [col for col in counter if counter[col] > 1]
-        raise ValueError(f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated.")
+        raise ValueError(
+            f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated."
+        )
 
 
 def _check_valid_indices_value(index, size):
@@ -670,7 +729,9 @@ class Column(Sequence_):
         if isinstance(key, str):
             return Column(self, key)
         elif isinstance(self.source, Dataset):
-            return self.source._fast_select_column(self.column_name)[key][self.column_name]
+            return self.source._fast_select_column(self.column_name)[key][
+                self.column_name
+            ]
         elif isinstance(key, int):
             return self.source[key][self.column_name]
         else:
@@ -708,7 +769,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         IndexableMixin.__init__(self)
 
         self._data: Table = _check_table(arrow_table)
-        self._indices: Optional[Table] = _check_table(indices_table) if indices_table is not None else None
+        self._indices: Optional[Table] = (
+            _check_table(indices_table) if indices_table is not None else None
+        )
         maybe_register_dataset_for_temp_dir_deletion(self)
 
         self._format_type: Optional[str] = None
@@ -719,7 +782,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # Read metadata
 
-        if self._data.schema.metadata is not None and b"huggingface" in self._data.schema.metadata:
+        if (
+            self._data.schema.metadata is not None
+            and b"huggingface" in self._data.schema.metadata
+        ):
             metadata = json.loads(self._data.schema.metadata[b"huggingface"].decode())
             if (
                 "fingerprint" in metadata and self._fingerprint is None
@@ -732,7 +798,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             self.info.features = inferred_features
         else:  # make sure the nested columns are in the right order
             try:
-                self.info.features = self.info.features.reorder_fields_as(inferred_features)
+                self.info.features = self.info.features.reorder_fields_as(
+                    inferred_features
+                )
             except ValueError as e:
                 raise ValueError(
                     f"{e}\nThe 'source' features come from dataset_info.json, and the 'target' ones are those of the dataset arrow file."
@@ -804,7 +872,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         table = ArrowReader.read_table(filename, in_memory=in_memory)
 
         if indices_filename is not None:
-            indices_pa_table = ArrowReader.read_table(indices_filename, in_memory=in_memory)
+            indices_pa_table = ArrowReader.read_table(
+                indices_filename, in_memory=in_memory
+            )
         else:
             indices_pa_table = None
 
@@ -901,7 +971,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise ValueError(
                 f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
             )
-        features = features if features is not None else info.features if info is not None else None
+        features = (
+            features
+            if features is not None
+            else info.features if info is not None else None
+        )
         if features is not None:
             features = _fix_for_backward_compatible_features(features)
         if info is None:
@@ -948,7 +1022,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise ValueError(
                 f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
             )
-        features = features if features is not None else info.features if info is not None else None
+        features = (
+            features
+            if features is not None
+            else info.features if info is not None else None
+        )
         if features is not None:
             features = _fix_for_backward_compatible_features(features)
         if info is None:
@@ -995,13 +1073,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise ValueError(
                 f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
             )
-        features = features if features is not None else info.features if info is not None else None
+        features = (
+            features
+            if features is not None
+            else info.features if info is not None else None
+        )
         if features is not None:
             features = _fix_for_backward_compatible_features(features)
         arrow_typed_mapping = {}
         for col, data in mapping.items():
             if isinstance(data, (pa.Array, pa.ChunkedArray)):
-                data = cast_array_to_feature(data, features[col]) if features is not None else data
+                data = (
+                    cast_array_to_feature(data, features[col])
+                    if features is not None
+                    else data
+                )
             else:
                 data = OptimizedTypedSequence(
                     features.encode_column(data, col) if features is not None else data,
@@ -1017,9 +1103,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if info.features is None:
             info.features = Features(
                 {
-                    col: generate_from_arrow_type(data.type)
-                    if isinstance(data, (pa.Array, pa.ChunkedArray))
-                    else data.get_inferred_type()
+                    col: (
+                        generate_from_arrow_type(data.type)
+                        if isinstance(data, (pa.Array, pa.ChunkedArray))
+                        else data.get_inferred_type()
+                    )
                     for col, data in mapping.items()
                 }
             )
@@ -1055,7 +1143,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             [`Dataset`]
         """
         # for simplicity and consistency wrt OptimizedTypedSequence we do not use InMemoryTable.from_pylist here
-        mapping = {k: [r.get(k) for r in mapping] for k in mapping[0]} if mapping else {}
+        mapping = (
+            {k: [r.get(k) for r in mapping] for k in mapping[0]} if mapping else {}
+        )
         return cls.from_dict(mapping, features, info, split)
 
     @staticmethod
@@ -1420,7 +1510,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @staticmethod
     def from_sql(
         sql: Union[str, "sqlalchemy.sql.Selectable"],
-        con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
+        con: Union[
+            str,
+            "sqlalchemy.engine.Connection",
+            "sqlalchemy.engine.Engine",
+            "sqlite3.Connection",
+        ],
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
@@ -1540,11 +1635,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
             )
         if self.list_indexes():
-            raise ValueError("please remove all the indexes using `dataset.drop_index` before saving a dataset")
+            raise ValueError(
+                "please remove all the indexes using `dataset.drop_index` before saving a dataset"
+            )
 
         if num_shards is None:
             dataset_nbytes = self._estimate_nbytes()
-            max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+            max_shard_size = convert_file_size_to_int(
+                max_shard_size or config.MAX_SHARD_SIZE
+            )
             num_shards = int(dataset_nbytes / max_shard_size) + 1
             num_shards = max(num_shards, num_proc or 1)
 
@@ -1553,7 +1652,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if not is_remote_filesystem(fs):
             parent_cache_files_paths = {
-                Path(cache_filename["filename"]).resolve().parent for cache_filename in self.cache_files
+                Path(cache_filename["filename"]).resolve().parent
+                for cache_filename in self.cache_files
             }
             # Check that the dataset doesn't overwrite itself. It can cause a permission error on Windows and a segfault on linux.
             if Path(dataset_path).expanduser().resolve() in parent_cache_files_paths:
@@ -1576,14 +1676,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         }
         state["_split"] = str(self.split) if self.split is not None else self.split
         state["_data_files"] = [
-            {"filename": f"data-{shard_idx:05d}-of-{num_shards:05d}.arrow"} for shard_idx in range(num_shards)
+            {"filename": f"data-{shard_idx:05d}-of-{num_shards:05d}.arrow"}
+            for shard_idx in range(num_shards)
         ]
         for k in state["_format_kwargs"].keys():
             try:
                 json.dumps(state["_format_kwargs"][k])
             except TypeError as e:
                 raise TypeError(
-                    str(e) + f"\nThe format kwargs must be JSON serializable, but key '{k}' isn't."
+                    str(e)
+                    + f"\nThe format kwargs must be JSON serializable, but key '{k}' isn't."
                 ) from None
         # Get json serializable dataset info
         dataset_info = asdict(self._info)
@@ -1597,8 +1699,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         kwargs_per_job = (
             {
                 "job_id": shard_idx,
-                "shard": self.shard(num_shards=num_shards, index=shard_idx, contiguous=True),
-                "fpath": posixpath.join(dataset_path, f"data-{shard_idx:05d}-of-{num_shards:05d}.arrow"),
+                "shard": self.shard(
+                    num_shards=num_shards, index=shard_idx, contiguous=True
+                ),
+                "fpath": posixpath.join(
+                    dataset_path, f"data-{shard_idx:05d}-of-{num_shards:05d}.arrow"
+                ),
                 "storage_options": storage_options,
             }
             for shard_idx in range(num_shards)
@@ -1609,12 +1715,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             with Pool(num_proc) as pool:
                 with pbar:
                     for job_id, done, content in iflatmap_unordered(
-                        pool, Dataset._save_to_disk_single, kwargs_iterable=kwargs_per_job
+                        pool,
+                        Dataset._save_to_disk_single,
+                        kwargs_iterable=kwargs_per_job,
                     ):
                         if done:
                             shards_done += 1
-                            pbar.set_description(f"Saving the dataset ({shards_done}/{num_shards} shards)")
-                            logger.debug(f"Finished writing shard number {job_id} of {num_shards}.")
+                            pbar.set_description(
+                                f"Saving the dataset ({shards_done}/{num_shards} shards)"
+                            )
+                            logger.debug(
+                                f"Finished writing shard number {job_id} of {num_shards}."
+                            )
                             shard_lengths[job_id], shard_sizes[job_id] = content
                         else:
                             pbar.update(content)
@@ -1624,24 +1736,36 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     for job_id, done, content in Dataset._save_to_disk_single(**kwargs):
                         if done:
                             shards_done += 1
-                            pbar.set_description(f"Saving the dataset ({shards_done}/{num_shards} shards)")
-                            logger.debug(f"Finished writing shard number {job_id} of {num_shards}.")
+                            pbar.set_description(
+                                f"Saving the dataset ({shards_done}/{num_shards} shards)"
+                            )
+                            logger.debug(
+                                f"Finished writing shard number {job_id} of {num_shards}."
+                            )
                             shard_lengths[job_id], shard_sizes[job_id] = content
                         else:
                             pbar.update(content)
         with fs.open(
-            posixpath.join(dataset_path, config.DATASET_STATE_JSON_FILENAME), "w", encoding="utf-8"
+            posixpath.join(dataset_path, config.DATASET_STATE_JSON_FILENAME),
+            "w",
+            encoding="utf-8",
         ) as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
         with fs.open(
-            posixpath.join(dataset_path, config.DATASET_INFO_FILENAME), "w", encoding="utf-8"
+            posixpath.join(dataset_path, config.DATASET_INFO_FILENAME),
+            "w",
+            encoding="utf-8",
         ) as dataset_info_file:
             # Sort only the first level of keys, or we might shuffle fields of nested features if we use sort_keys=True
-            sorted_keys_dataset_info = {key: dataset_info[key] for key in sorted(dataset_info)}
+            sorted_keys_dataset_info = {
+                key: dataset_info[key] for key in sorted(dataset_info)
+            }
             json.dump(sorted_keys_dataset_info, dataset_info_file, indent=2)
 
     @staticmethod
-    def _save_to_disk_single(job_id: int, shard: "Dataset", fpath: str, storage_options: Optional[dict]):
+    def _save_to_disk_single(
+        job_id: int, shard: "Dataset", fpath: str, storage_options: Optional[dict]
+    ):
         batch_size = config.DEFAULT_MAX_BATCH_SIZE
 
         num_examples_progress_update = 0
@@ -1723,9 +1847,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         fs, dataset_path = url_to_fs(dataset_path, **(storage_options or {}))
 
         dest_dataset_path = dataset_path
-        dataset_dict_json_path = posixpath.join(dest_dataset_path, config.DATASETDICT_JSON_FILENAME)
-        dataset_state_json_path = posixpath.join(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME)
-        dataset_info_path = posixpath.join(dest_dataset_path, config.DATASET_INFO_FILENAME)
+        dataset_dict_json_path = posixpath.join(
+            dest_dataset_path, config.DATASETDICT_JSON_FILENAME
+        )
+        dataset_state_json_path = posixpath.join(
+            dest_dataset_path, config.DATASET_STATE_JSON_FILENAME
+        )
+        dataset_info_path = posixpath.join(
+            dest_dataset_path, config.DATASET_INFO_FILENAME
+        )
 
         dataset_dict_is_file = fs.isfile(dataset_dict_json_path)
         dataset_info_is_file = fs.isfile(dataset_info_path)
@@ -1760,8 +1890,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             src_dataset_path = dest_dataset_path
             dest_dataset_path = Dataset._build_local_temp_path(src_dataset_path)
             fs.download(src_dataset_path, dest_dataset_path.as_posix(), recursive=True)
-            dataset_state_json_path = posixpath.join(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME)
-            dataset_info_path = posixpath.join(dest_dataset_path, config.DATASET_INFO_FILENAME)
+            dataset_state_json_path = posixpath.join(
+                dest_dataset_path, config.DATASET_STATE_JSON_FILENAME
+            )
+            dataset_info_path = posixpath.join(
+                dest_dataset_path, config.DATASET_INFO_FILENAME
+            )
 
         with open(dataset_state_json_path, encoding="utf-8") as state_file:
             state = json.load(state_file)
@@ -1769,15 +1903,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
 
         dataset_size = estimate_dataset_size(
-            Path(dest_dataset_path, data_file["filename"]) for data_file in state["_data_files"]
+            Path(dest_dataset_path, data_file["filename"])
+            for data_file in state["_data_files"]
         )
-        keep_in_memory = keep_in_memory if keep_in_memory is not None else is_small_dataset(dataset_size)
+        keep_in_memory = (
+            keep_in_memory
+            if keep_in_memory is not None
+            else is_small_dataset(dataset_size)
+        )
         table_cls = InMemoryTable if keep_in_memory else MemoryMappedTable
 
         arrow_table = concat_tables(
             thread_map(
                 table_cls.from_file,
-                [posixpath.join(dest_dataset_path, data_file["filename"]) for data_file in state["_data_files"]],
+                [
+                    posixpath.join(dest_dataset_path, data_file["filename"])
+                    for data_file in state["_data_files"]
+                ],
                 tqdm_class=hf_tqdm,
                 desc="Loading dataset from disk",
                 # set `disable=None` rather than `disable=False` by default to disable progress bar when no TTY attached
@@ -1929,7 +2071,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         if column not in self._data.column_names:
-            raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
+            raise ValueError(
+                f"Column ({column}) not in table columns ({self._data.column_names})."
+            )
 
         if self._indices is not None and self._indices.num_rows != self._data.num_rows:
             dataset = self.flatten_indices()
@@ -1938,7 +2082,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return dataset._data.column(column).unique().to_pylist()
 
-    def class_encode_column(self, column: str, include_nulls: bool = False) -> "Dataset":
+    def class_encode_column(
+        self, column: str, include_nulls: bool = False
+    ) -> "Dataset":
         """Casts the given column as [`~datasets.features.ClassLabel`] and updates the table.
 
         Args:
@@ -1967,18 +2113,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         # Sanity checks
         if column not in self._data.column_names:
-            raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
+            raise ValueError(
+                f"Column ({column}) not in table columns ({self._data.column_names})."
+            )
         src_feat = self._info.features[column]
         if not isinstance(src_feat, Value):
             raise ValueError(
                 f"Class encoding is only supported for {Value.__name__} column, and column {column} is {type(src_feat).__name__}."
             )
 
-        if src_feat.dtype != "string" or (include_nulls and None in self.unique(column)):
+        if src_feat.dtype != "string" or (
+            include_nulls and None in self.unique(column)
+        ):
 
             def stringify_column(batch):
                 batch[column] = [
-                    str(sample) if include_nulls or sample is not None else None for sample in batch[column]
+                    str(sample) if include_nulls or sample is not None else None
+                    for sample in batch[column]
                 ]
                 return batch
 
@@ -1991,12 +2142,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dset = self
 
         # Create the new feature
-        class_names = sorted(str(sample) for sample in dset.unique(column) if include_nulls or sample is not None)
+        class_names = sorted(
+            str(sample)
+            for sample in dset.unique(column)
+            if include_nulls or sample is not None
+        )
         dst_feat = ClassLabel(names=class_names)
 
         def cast_to_class_labels(batch):
             batch[column] = [
-                dst_feat.str2int(str(sample)) if include_nulls or sample is not None else None
+                (
+                    dst_feat.str2int(str(sample))
+                    if include_nulls or sample is not None
+                    else None
+                )
                 for sample in batch[column]
             ]
             return batch
@@ -2049,14 +2208,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         dataset = copy.deepcopy(self)
         for depth in range(1, max_depth):
-            if any(isinstance(field.type, pa.StructType) for field in dataset._data.schema):
+            if any(
+                isinstance(field.type, pa.StructType) for field in dataset._data.schema
+            ):
                 dataset._data = dataset._data.flatten()
             else:
                 break
         dataset.info.features = self._info.features.flatten(max_depth=max_depth)
-        dataset.info.features = Features({col: dataset.info.features[col] for col in dataset.data.column_names})
+        dataset.info.features = Features(
+            {col: dataset.info.features[col] for col in dataset.data.column_names}
+        )
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
-        logger.info(f"Flattened dataset from depth {depth} to depth {1 if depth + 1 < max_depth else 'unknown'}.")
+        logger.info(
+            f"Flattened dataset from depth {depth} to depth {1 if depth + 1 < max_depth else 'unknown'}."
+        )
         dataset._fingerprint = new_fingerprint
         return dataset
 
@@ -2145,7 +2310,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset
 
     @fingerprint_transform(inplace=False)
-    def cast_column(self, column: str, feature: FeatureType, new_fingerprint: Optional[str] = None) -> "Dataset":
+    def cast_column(
+        self, column: str, feature: FeatureType, new_fingerprint: Optional[str] = None
+    ) -> "Dataset":
         """Cast column to feature for decoding.
 
         Args:
@@ -2180,7 +2347,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset._info.features[column] = feature
             dataset._fingerprint = new_fingerprint
             dataset._data = dataset._data.cast(dataset.features.arrow_schema)
-            dataset._data = update_metadata_with_features(dataset._data, dataset.features)
+            dataset._data = update_metadata_with_features(
+                dataset._data, dataset.features
+            )
             return dataset
         else:
             features = self.features
@@ -2189,7 +2358,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(inplace=False)
-    def remove_columns(self, column_names: Union[str, list[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
+    def remove_columns(
+        self, column_names: Union[str, list[str]], new_fingerprint: Optional[str] = None
+    ) -> "Dataset":
         """
         Remove one or several column(s) in the dataset and the features associated to them.
 
@@ -2244,7 +2415,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @fingerprint_transform(inplace=False)
     def rename_column(
-        self, original_column_name: str, new_column_name: str, new_fingerprint: Optional[str] = None
+        self,
+        original_column_name: str,
+        new_column_name: str,
+        new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """
         Rename a column in the dataset, and move the features associated to the original column under the new column
@@ -2290,7 +2464,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise ValueError("New column name is empty.")
 
         def rename(columns):
-            return [new_column_name if col == original_column_name else col for col in columns]
+            return [
+                new_column_name if col == original_column_name else col
+                for col in columns
+            ]
 
         new_column_names = rename(self._data.column_names)
         if self._format_columns is not None:
@@ -2309,7 +2486,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset
 
     @fingerprint_transform(inplace=False)
-    def rename_columns(self, column_mapping: dict[str, str], new_fingerprint: Optional[str] = None) -> "Dataset":
+    def rename_columns(
+        self, column_mapping: dict[str, str], new_fingerprint: Optional[str] = None
+    ) -> "Dataset":
         """
         Rename several columns in the dataset, and move the features associated to the original columns under
         the new column names.
@@ -2345,19 +2524,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"Current columns in the dataset: {dataset._data.column_names}"
             )
 
-        number_of_duplicates_in_new_columns = len(column_mapping.values()) - len(set(column_mapping.values()))
+        number_of_duplicates_in_new_columns = len(column_mapping.values()) - len(
+            set(column_mapping.values())
+        )
         if number_of_duplicates_in_new_columns != 0:
             raise ValueError(
                 "New column names must all be different, but this column mapping "
                 f"has {number_of_duplicates_in_new_columns} duplicates"
             )
 
-        empty_new_columns = [new_col for new_col in column_mapping.values() if not new_col]
+        empty_new_columns = [
+            new_col for new_col in column_mapping.values() if not new_col
+        ]
         if empty_new_columns:
             raise ValueError(f"New column names {empty_new_columns} are empty.")
 
         def rename(columns):
-            return [column_mapping[col] if col in column_mapping else col for col in columns]
+            return [
+                column_mapping[col] if col in column_mapping else col for col in columns
+            ]
 
         new_column_names = rename(self._data.column_names)
         if self._format_columns is not None:
@@ -2377,7 +2562,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(inplace=False)
-    def select_columns(self, column_names: Union[str, list[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
+    def select_columns(
+        self, column_names: Union[str, list[str]], new_fingerprint: Optional[str] = None
+    ) -> "Dataset":
         """Select one or several column(s) in the dataset and the features
         associated to them.
 
@@ -2419,7 +2606,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         dataset = copy.deepcopy(self)
         dataset._data = dataset._data.select(column_names)
-        dataset._info.features = Features({col: self._info.features[col] for col in dataset._data.column_names})
+        dataset._info.features = Features(
+            {col: self._info.features[col] for col in dataset._data.column_names}
+        )
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         dataset._fingerprint = new_fingerprint
         return dataset
@@ -2428,7 +2617,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def _fast_select_column(self, column_name: str) -> "Dataset":
         dataset = copy.copy(self)
         dataset._data = dataset._data.select([column_name])
-        dataset._info = DatasetInfo(features=Features({column_name: self._info.features[column_name]}))
+        dataset._info = DatasetInfo(
+            features=Features({column_name: self._info.features[column_name]})
+        )
         return dataset
 
     def __len__(self):
@@ -2457,8 +2648,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if self._indices is None:
             # Fast iteration
             # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
-            format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
-            formatter = get_formatter(self._format_type, features=self._info.features, **format_kwargs)
+            format_kwargs = (
+                self._format_kwargs if self._format_kwargs is not None else {}
+            )
+            formatter = get_formatter(
+                self._format_type, features=self._info.features, **format_kwargs
+            )
             batch_size = config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER
             for pa_subtable in table_iter(self.data, batch_size=batch_size):
                 for i in range(pa_subtable.num_rows):
@@ -2491,9 +2686,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if self._indices is None:
             # Fast iteration
             # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
-            format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
-            formatter = get_formatter(self._format_type, features=self._info.features, **format_kwargs)
-            for pa_subtable in table_iter(self.data, batch_size=batch_size, drop_last_batch=drop_last_batch):
+            format_kwargs = (
+                self._format_kwargs if self._format_kwargs is not None else {}
+            )
+            formatter = get_formatter(
+                self._format_type, features=self._info.features, **format_kwargs
+            )
+            for pa_subtable in table_iter(
+                self.data, batch_size=batch_size, drop_last_batch=drop_last_batch
+            ):
                 formatted_batch = format_table(
                     pa_subtable,
                     range(pa_subtable.num_rows),
@@ -2503,7 +2704,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
                 yield formatted_batch
         else:
-            num_rows = self.num_rows if not drop_last_batch else self.num_rows // batch_size * batch_size
+            num_rows = (
+                self.num_rows
+                if not drop_last_batch
+                else self.num_rows // batch_size * batch_size
+            )
             for i in range(0, num_rows, batch_size):
                 yield self._getitem(
                     slice(i, i + batch_size),
@@ -2517,7 +2722,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return {
             "type": self._format_type,
             "format_kwargs": self._format_kwargs,
-            "columns": self.column_names if self._format_columns is None else self._format_columns,
+            "columns": (
+                self.column_names
+                if self._format_columns is None
+                else self._format_columns
+            ),
             "output_all_columns": self._output_all_columns,
         }
 
@@ -2551,7 +2760,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             self.set_format(type, columns, output_all_columns, **format_kwargs)
             yield
         finally:
-            self.set_format(old_format_type, old_format_columns, old_output_all_columns, **old_format_kwargs)
+            self.set_format(
+                old_format_type,
+                old_format_columns,
+                old_output_all_columns,
+                **old_format_kwargs,
+            )
 
     @fingerprint_transform(inplace=True)
     def set_format(
@@ -2600,7 +2814,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         'output_all_columns': False}
         ```
         """
-        format_kwargs.update(format_kwargs.pop("format_kwargs", {}))  # allow to use self.set_format(**self.format)
+        format_kwargs.update(
+            format_kwargs.pop("format_kwargs", {})
+        )  # allow to use self.set_format(**self.format)
 
         # Check that the format_type and format_kwargs are valid and make it possible to have a Formatter
         type = get_format_type_from_alias(type)
@@ -2618,7 +2834,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"Columns {list(missing_columns)} not in the dataset. Current columns in the dataset: {self._data.column_names}"
                 )
         if columns is not None:
-            columns = columns.copy()  # Ensures modifications made to the list after this call don't cause bugs
+            columns = (
+                columns.copy()
+            )  # Ensures modifications made to the list after this call don't cause bugs
 
         self._format_type = type
         self._format_kwargs = format_kwargs
@@ -2702,7 +2920,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                  0, 0])}
         ```
         """
-        self.set_format("custom", columns=columns, output_all_columns=output_all_columns, transform=transform)
+        self.set_format(
+            "custom",
+            columns=columns,
+            output_all_columns=output_all_columns,
+            transform=transform,
+        )
 
     def with_format(
         self,
@@ -2772,7 +2995,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         dataset = copy.deepcopy(self)
-        dataset.set_format(type=type, columns=columns, output_all_columns=output_all_columns, **format_kwargs)
+        dataset.set_format(
+            type=type,
+            columns=columns,
+            output_all_columns=output_all_columns,
+            **format_kwargs,
+        )
         return dataset
 
     def with_transform(
@@ -2820,26 +3048,50 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         dataset = copy.deepcopy(self)
-        dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
+        dataset.set_transform(
+            transform=transform, columns=columns, output_all_columns=output_all_columns
+        )
         return dataset
 
-    def _getitem(self, key: Union[int, slice, str, ListLike[int]], **kwargs) -> Union[dict, list]:
+    def _getitem(
+        self, key: Union[int, slice, str, ListLike[int]], **kwargs
+    ) -> Union[dict, list]:
         """
         Can be used to index columns (by string names) or rows (by integer, slice, or list-like of integer indices)
         """
         if isinstance(key, bool):
-            raise TypeError("dataset index must be int, str, slice or collection of int, not bool")
-        format_type = kwargs["format_type"] if "format_type" in kwargs else self._format_type
-        format_columns = kwargs["format_columns"] if "format_columns" in kwargs else self._format_columns
-        output_all_columns = (
-            kwargs["output_all_columns"] if "output_all_columns" in kwargs else self._output_all_columns
+            raise TypeError(
+                "dataset index must be int, str, slice or collection of int, not bool"
+            )
+        format_type = (
+            kwargs["format_type"] if "format_type" in kwargs else self._format_type
         )
-        format_kwargs = kwargs["format_kwargs"] if "format_kwargs" in kwargs else self._format_kwargs
+        format_columns = (
+            kwargs["format_columns"]
+            if "format_columns" in kwargs
+            else self._format_columns
+        )
+        output_all_columns = (
+            kwargs["output_all_columns"]
+            if "output_all_columns" in kwargs
+            else self._output_all_columns
+        )
+        format_kwargs = (
+            kwargs["format_kwargs"]
+            if "format_kwargs" in kwargs
+            else self._format_kwargs
+        )
         format_kwargs = format_kwargs if format_kwargs is not None else {}
-        formatter = get_formatter(format_type, features=self._info.features, **format_kwargs)
+        formatter = get_formatter(
+            format_type, features=self._info.features, **format_kwargs
+        )
         pa_subtable = query_table(self._data, key, indices=self._indices)
         formatted_output = format_table(
-            pa_subtable, key, formatter=formatter, format_columns=format_columns, output_all_columns=output_all_columns
+            pa_subtable,
+            key,
+            formatter=formatter,
+            format_columns=format_columns,
+            output_all_columns=output_all_columns,
         )
         return formatted_output
 
@@ -2854,7 +3106,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def __getitem__(self, key):  # noqa: F811
         """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
         if isinstance(key, str):
-            if self._format_type is None or self._format_type not in ("arrow", "pandas", "polars"):
+            if self._format_type is None or self._format_type not in (
+                "arrow",
+                "pandas",
+                "polars",
+            ):
                 return Column(self, key)
         return self._getitem(key)
 
@@ -2862,7 +3118,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Can be used to get a batch using a list of integers indices."""
         batch = self.__getitem__(keys)
         n_examples = len(batch[next(iter(batch))])
-        return [{col: array[i] for col, array in batch.items()} for i in range(n_examples)]
+        return [
+            {col: array[i] for col, array in batch.items()} for i in range(n_examples)
+        ]
 
     def cleanup_cache_files(self) -> int:
         """Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is
@@ -2882,7 +3140,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         10
         ```
         """
-        current_cache_files = [os.path.abspath(cache_file["filename"]) for cache_file in self.cache_files]
+        current_cache_files = [
+            os.path.abspath(cache_file["filename"]) for cache_file in self.cache_files
+        ]
         if not current_cache_files:
             return 0
         cache_directory = os.path.dirname(current_cache_files[0])
@@ -3044,7 +3304,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         if keep_in_memory and cache_file_name is not None:
-            raise ValueError("Please use either `keep_in_memory` or `cache_file_name` but not both.")
+            raise ValueError(
+                "Please use either `keep_in_memory` or `cache_file_name` but not both."
+            )
 
         if num_proc == 0:
             num_proc = None
@@ -3052,9 +3314,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise ValueError("num_proc must be >= 0 or None.")
 
         string_formatter = string.Formatter()
-        fields = {field_name for _, field_name, _, _ in string_formatter.parse(suffix_template) if field_name}
+        fields = {
+            field_name
+            for _, field_name, _, _ in string_formatter.parse(suffix_template)
+            if field_name
+        }
         if fields != {"rank", "num_proc"}:
-            raise ValueError(f"suffix_template must contain exactly the fields 'rank' and 'num_proc', got: {fields}")
+            raise ValueError(
+                f"suffix_template must contain exactly the fields 'rank' and 'num_proc', got: {fields}"
+            )
 
         # If the array is empty we do nothing (but we make sure to handle an empty indices mapping and remove the requested columns anyway)
         if len(self) == 0:
@@ -3093,7 +3361,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"Column to remove {list(missing_columns)} not in the dataset. Current columns in the dataset: {self._data.column_names}"
                 )
 
-        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
+        load_from_cache_file = (
+            load_from_cache_file
+            if load_from_cache_file is not None
+            else is_caching_enabled()
+        )
 
         if fn_kwargs is None:
             fn_kwargs = {}
@@ -3129,9 +3401,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # we create a unique hash from the function,
             # current dataset file and the mapping args
             transform = format_transform_for_fingerprint(Dataset._map_single)
-            kwargs_for_fingerprint = format_kwargs_for_fingerprint(Dataset._map_single, (), dataset_kwargs)
+            kwargs_for_fingerprint = format_kwargs_for_fingerprint(
+                Dataset._map_single, (), dataset_kwargs
+            )
             kwargs_for_fingerprint["fingerprint_name"] = "new_fingerprint"
-            new_fingerprint = update_fingerprint(self._fingerprint, transform, kwargs_for_fingerprint)
+            new_fingerprint = update_fingerprint(
+                self._fingerprint, transform, kwargs_for_fingerprint
+            )
         else:
             validate_fingerprint(new_fingerprint)
         dataset_kwargs["new_fingerprint"] = new_fingerprint
@@ -3144,7 +3420,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if cache_file_name is not None:
             cache_file_prefix, cache_file_ext = os.path.splitext(cache_file_name)
             if not cache_file_ext:
-                raise ValueError(f"Expected cache_file_name to have an extension, but got: {cache_file_name}")
+                raise ValueError(
+                    f"Expected cache_file_name to have an extension, but got: {cache_file_name}"
+                )
         else:
             cache_file_prefix = cache_file_ext = None
 
@@ -3153,10 +3431,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shard = shard_kwargs["shard"]
             # Check if we've already cached this computation (indexed by a hash)
             if shard_kwargs["cache_file_name"] is not None:
-                if os.path.exists(shard_kwargs["cache_file_name"]) and load_from_cache_file:
+                if (
+                    os.path.exists(shard_kwargs["cache_file_name"])
+                    and load_from_cache_file
+                ):
                     info = shard.info.copy()
                     info.features = features
-                    return Dataset.from_file(shard_kwargs["cache_file_name"], info=info, split=shard.split)
+                    return Dataset.from_file(
+                        shard_kwargs["cache_file_name"], info=info, split=shard.split
+                    )
             raise NonExistentDatasetError
 
         existing_cache_file_map: dict[int, list[str]] = defaultdict(list)
@@ -3165,11 +3448,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 existing_cache_file_map[1] = [cache_file_name]
 
             assert cache_file_prefix is not None and cache_file_ext is not None
-            cache_file_with_suffix_pattern = cache_file_prefix + suffix_template + cache_file_ext
+            cache_file_with_suffix_pattern = (
+                cache_file_prefix + suffix_template + cache_file_ext
+            )
 
             for cache_file in glob.iglob(f"{cache_file_prefix}*{cache_file_ext}"):
                 suffix_variable_map = string_to_dict(
-                    Path(cache_file).as_posix(), Path(cache_file_with_suffix_pattern).as_posix()
+                    Path(cache_file).as_posix(),
+                    Path(cache_file_with_suffix_pattern).as_posix(),
                 )
                 if suffix_variable_map is not None:
                     file_num_proc = int(suffix_variable_map["num_proc"])
@@ -3181,7 +3467,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # what was used originally
 
             def select_existing_cache_files(mapped_num_proc: int) -> tuple[float, ...]:
-                percent_missing = (mapped_num_proc - len(existing_cache_file_map[mapped_num_proc])) / mapped_num_proc
+                percent_missing = (
+                    mapped_num_proc - len(existing_cache_file_map[mapped_num_proc])
+                ) / mapped_num_proc
                 num_shards_diff = abs(mapped_num_proc - num_shards)
                 return (
                     percent_missing,  # choose the most complete set of existing cache files
@@ -3204,24 +3492,32 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             if isinstance(rank, int):
                 cache_file_name = (
-                    cache_file_prefix + suffix_template.format(rank=rank, num_proc=num_shards) + cache_file_ext
+                    cache_file_prefix
+                    + suffix_template.format(rank=rank, num_proc=num_shards)
+                    + cache_file_ext
                 )
                 if not os.path.exists(cache_file_name):
                     process_name = (
-                        "Main process" if num_proc is None or num_proc == 1 else f"Process #{rank % num_shards + 1}"
+                        "Main process"
+                        if num_proc is None or num_proc == 1
+                        else f"Process #{rank % num_shards + 1}"
                     )
                     logger.info(f"{process_name} will write at {cache_file_name}")
             else:
                 # TODO: this assumes the format_spec of rank in suffix_template
                 cache_file_name = (
                     cache_file_prefix
-                    + suffix_template.replace("{rank:05d}", "{rank}").format(rank=rank, num_proc=num_shards)
+                    + suffix_template.replace("{rank:05d}", "{rank}").format(
+                        rank=rank, num_proc=num_shards
+                    )
                     + cache_file_ext
                 )
             return cache_file_name
 
         def format_new_fingerprint(new_fingerprint: str, rank: int) -> str:
-            new_fingerprint = new_fingerprint + suffix_template.format(rank=rank, num_proc=num_shards)
+            new_fingerprint = new_fingerprint + suffix_template.format(
+                rank=rank, num_proc=num_shards
+            )
             validate_fingerprint(new_fingerprint)
             return new_fingerprint
 
@@ -3238,7 +3534,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "n",
                 "0",
             ):
-                logger.warning("Setting TOKENIZERS_PARALLELISM=false for forked processes.")
+                logger.warning(
+                    "Setting TOKENIZERS_PARALLELISM=false for forked processes."
+                )
             os.environ["TOKENIZERS_PARALLELISM"] = "false"
         else:
             prev_env = os.environ
@@ -3249,7 +3547,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             kwargs_per_job = [dataset_kwargs]
         else:
             shards = [
-                self.shard(num_shards=num_shards, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
+                self.shard(
+                    num_shards=num_shards,
+                    index=rank,
+                    contiguous=True,
+                    keep_in_memory=keep_in_memory,
+                )
                 for rank in range(num_shards)
             ]
             kwargs_per_job = [
@@ -3274,7 +3577,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             except NonExistentDatasetError:
                 pass
 
-        if unprocessed_kwargs_per_job := [kwargs for kwargs in kwargs_per_job if kwargs is not None]:
+        if unprocessed_kwargs_per_job := [
+            kwargs for kwargs in kwargs_per_job if kwargs is not None
+        ]:
             if len(unprocessed_kwargs_per_job) != num_shards:
                 logger.info(
                     f"Reprocessing {len(unprocessed_kwargs_per_job)}/{num_shards} shards because some of them were "
@@ -3285,22 +3590,35 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             pbar_initial = len(existing_cache_files) * pbar_total // num_shards
             if batched and drop_last_batch:
                 batch_size = batch_size or 1
-                pbar_initial = pbar_initial // num_shards // batch_size * num_shards * batch_size
-                pbar_total = pbar_total // num_shards // batch_size * num_shards * batch_size
+                pbar_initial = (
+                    pbar_initial // num_shards // batch_size * num_shards * batch_size
+                )
+                pbar_total = (
+                    pbar_total // num_shards // batch_size * num_shards * batch_size
+                )
 
             with hf_tqdm(
                 unit=" examples",
                 initial=pbar_initial,
                 total=pbar_total,
-                desc=(desc or "Map") + (f" (num_proc={num_proc})" if num_proc is not None and num_proc >= 1 else ""),
+                desc=(desc or "Map")
+                + (
+                    f" (num_proc={num_proc})"
+                    if num_proc is not None and num_proc >= 1
+                    else ""
+                ),
             ) as pbar:
                 shards_done = 0
 
-                def check_if_shard_done(rank: Optional[int], done: bool, content: Union[Dataset, int]) -> None:
+                def check_if_shard_done(
+                    rank: Optional[int], done: bool, content: Union[Dataset, int]
+                ) -> None:
                     nonlocal shards_done
                     if done:
                         shards_done += 1
-                        logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
+                        logger.debug(
+                            f"Finished processing shard number {rank} of {num_shards}."
+                        )
                         assert isinstance(content, Dataset)
                         transformed_shards[rank or 0] = content
                     else:
@@ -3313,7 +3631,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         logger.info(f"Spawning {num_proc} processes")
 
                         for rank, done, content in iflatmap_unordered(
-                            pool, Dataset._map_single, kwargs_iterable=unprocessed_kwargs_per_job
+                            pool,
+                            Dataset._map_single,
+                            kwargs_iterable=unprocessed_kwargs_per_job,
                         ):
                             check_if_shard_done(rank, done, content)
 
@@ -3321,7 +3641,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         pool.join()
                 else:
                     for unprocessed_kwargs in unprocessed_kwargs_per_job:
-                        for rank, done, content in Dataset._map_single(**unprocessed_kwargs):
+                        for rank, done, content in Dataset._map_single(
+                            **unprocessed_kwargs
+                        ):
                             check_if_shard_done(rank, done, content)
 
             # Avoids PermissionError on Windows (the error: https://github.com/huggingface/datasets/actions/runs/4026734820/jobs/6921621805)
@@ -3329,9 +3651,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if "shard" in job_kwargs:
                     del job_kwargs["shard"]
         else:
-            logger.info(f"Loading cached processed dataset at {format_cache_file_name(cache_file_name, '*')}")
+            logger.info(
+                f"Loading cached processed dataset at {format_cache_file_name(cache_file_name, '*')}"
+            )
 
-        all_transformed_shards = [shard for shard in transformed_shards if shard is not None]
+        all_transformed_shards = [
+            shard for shard in transformed_shards if shard is not None
+        ]
         if len(transformed_shards) != len(all_transformed_shards):
             raise ValueError(
                 f"Failed to retrieve results from map: result list {transformed_shards} still contains None - "
@@ -3454,7 +3780,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 import polars as pl
 
                 allowed_processed_inputs_types += (pl.DataFrame,)
-            if processed_inputs is not None and not isinstance(processed_inputs, allowed_processed_inputs_types):
+            if processed_inputs is not None and not isinstance(
+                processed_inputs, allowed_processed_inputs_types
+            ):
                 raise TypeError(
                     f"Provided `function` which is applied to all elements of table returns a variable of type {type(processed_inputs)}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects."
                 )
@@ -3477,7 +3805,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                     allowed_batch_return_types += (jnp.ndarray,)
                 all_dict_values_are_lists = all(
-                    isinstance(value, allowed_batch_return_types) for value in processed_inputs.values()
+                    isinstance(value, allowed_batch_return_types)
+                    for value in processed_inputs.values()
                 )
                 if all_dict_values_are_lists is False:
                     raise TypeError(
@@ -3492,11 +3821,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 format_columns=input_columns,
                 formatter=input_formatter,
             )
-            fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
+            fn_args = (
+                [inputs]
+                if input_columns is None
+                else [inputs[col] for col in input_columns]
+            )
             if offset == 0:
                 effective_indices = indices
             else:
-                effective_indices = [i + offset for i in indices] if isinstance(indices, list) else indices + offset
+                effective_indices = (
+                    [i + offset for i in indices]
+                    if isinstance(indices, list)
+                    else indices + offset
+                )
             additional_args = ()
             if with_indices:
                 additional_args += (effective_indices,)
@@ -3510,7 +3847,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 return None
             if isinstance(processed_inputs, LazyDict):
                 processed_inputs = {
-                    k: v for k, v in processed_inputs.data.items() if k not in processed_inputs.keys_to_format
+                    k: v
+                    for k, v in processed_inputs.data.items()
+                    if k not in processed_inputs.keys_to_format
                 }
                 returned_lazy_dict = True
             else:
@@ -3518,10 +3857,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             validate_function_output(processed_inputs)
             if shard._format_type or input_columns:
                 # TODO(QL, MS): ideally the behavior should be the same even if the dataset is formatted (may require major release)
-                inputs_to_merge = dict(zip(pa_inputs.column_names, pa_inputs.itercolumns()))
+                inputs_to_merge = dict(
+                    zip(pa_inputs.column_names, pa_inputs.itercolumns())
+                )
             elif isinstance(inputs, LazyDict):
                 inputs_to_merge = {
-                    k: (v if k not in inputs.keys_to_format else pa_inputs[k]) for k, v in inputs.data.items()
+                    k: (v if k not in inputs.keys_to_format else pa_inputs[k])
+                    for k, v in inputs.data.items()
                 }
             else:
                 inputs_to_merge = inputs
@@ -3534,7 +3876,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         processed_inputs.pop(column)
             if check_same_num_examples:
                 input_num_examples = len(pa_inputs)
-                processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
+                processed_inputs_num_examples = len(
+                    processed_inputs[next(iter(processed_inputs.keys()))]
+                )
                 if input_num_examples != processed_inputs_num_examples:
                     raise DatasetTransformationNotAllowedError(
                         "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
@@ -3549,13 +3893,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         def apply_function(pa_inputs, indices, offset=0):
             """Utility to apply the function on a selection of columns."""
-            inputs, fn_args, additional_args, fn_kwargs = prepare_inputs(pa_inputs, indices, offset=offset)
+            inputs, fn_args, additional_args, fn_kwargs = prepare_inputs(
+                pa_inputs, indices, offset=offset
+            )
             processed_inputs = function(*fn_args, *additional_args, **fn_kwargs)
             return prepare_outputs(pa_inputs, inputs, processed_inputs)
 
         async def async_apply_function(pa_inputs, indices, offset=0):
             """Utility to apply the function on a selection of columns. Same code but async"""
-            inputs, fn_args, additional_args, fn_kwargs = prepare_inputs(pa_inputs, indices, offset=offset)
+            inputs, fn_args, additional_args, fn_kwargs = prepare_inputs(
+                pa_inputs, indices, offset=offset
+            )
             processed_inputs = await function(*fn_args, *additional_args, **fn_kwargs)
             return prepare_outputs(pa_inputs, inputs, processed_inputs)
 
@@ -3583,7 +3931,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 logger.info(f"Caching processed dataset at {cache_file_name}")
                 cache_dir = os.path.dirname(cache_file_name)
                 os.makedirs(cache_dir, exist_ok=True)
-                tmp_file = tempfile.NamedTemporaryFile("wb", dir=cache_dir, delete=False)
+                tmp_file = tempfile.NamedTemporaryFile(
+                    "wb", dir=cache_dir, delete=False
+                )
                 writer = ArrowWriter(
                     features=writer_features,
                     path=tmp_file.name,
@@ -3609,13 +3959,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 indices: Union[list[int], list[list[int]]] = []
                 for i, example in shard_iterable:
                     indices.append(i)
-                    tasks.append(loop.create_task(async_apply_function(example, i, offset=offset)))
+                    tasks.append(
+                        loop.create_task(
+                            async_apply_function(example, i, offset=offset)
+                        )
+                    )
                     # keep the total active tasks under a certain number
-                    if len(tasks) >= config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL:
+                    if (
+                        len(tasks)
+                        >= config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL
+                    ):
                         done, pending = loop.run_until_complete(
                             asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
                         )
-                        while tasks and len(pending) >= config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL:
+                        while (
+                            tasks
+                            and len(pending)
+                            >= config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL
+                        ):
                             done, pending = loop.run_until_complete(
                                 asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
                             )
@@ -3646,10 +4007,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if not batched:
                     shard_iterable = enumerate(arrow_formatted_shard)
                 else:
-                    num_rows = len(shard) if not drop_last_batch else len(shard) // batch_size * batch_size
+                    num_rows = (
+                        len(shard)
+                        if not drop_last_batch
+                        else len(shard) // batch_size * batch_size
+                    )
                     shard_iterable = zip(
-                        (list(range(i, min(i + batch_size, num_rows))) for i in range(0, num_rows, batch_size)),
-                        arrow_formatted_shard.iter(batch_size, drop_last_batch=drop_last_batch),
+                        (
+                            list(range(i, min(i + batch_size, num_rows)))
+                            for i in range(0, num_rows, batch_size)
+                        ),
+                        arrow_formatted_shard.iter(
+                            batch_size, drop_last_batch=drop_last_batch
+                        ),
                     )
                 if not batched:
                     _time = time.time()
@@ -3688,11 +4058,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             elif isinstance(batch, pd.DataFrame):
                                 writer.write_table(pa.Table.from_pandas(batch))
                             elif (
-                                config.POLARS_AVAILABLE and "polars" in sys.modules and isinstance(batch, pl.DataFrame)
+                                config.POLARS_AVAILABLE
+                                and "polars" in sys.modules
+                                and isinstance(batch, pl.DataFrame)
                             ):
                                 writer.write_table(batch.to_arrow())
                             else:
-                                writer.write_batch(batch, try_original_type=try_original_type)
+                                writer.write_batch(
+                                    batch, try_original_type=try_original_type
+                                )
                         num_examples_progress_update += num_examples_in_batch
                         if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                             _time = time.time()
@@ -3732,9 +4106,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             info = shard.info.copy()
             info.features = writer._features
             if buf_writer is None:
-                yield rank, True, Dataset.from_file(cache_file_name, info=info, split=shard.split)
+                yield rank, True, Dataset.from_file(
+                    cache_file_name, info=info, split=shard.split
+                )
             else:
-                yield rank, True, Dataset.from_buffer(buf_writer.getvalue(), info=info, split=shard.split)
+                yield rank, True, Dataset.from_buffer(
+                    buf_writer.getvalue(), info=info, split=shard.split
+                )
         else:
             yield rank, True, shard
 
@@ -3791,7 +4169,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(
-        inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc"], version="2.0.1"
+        inplace=False,
+        ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc"],
+        version="2.0.1",
     )
     def filter(
         self,
@@ -3905,9 +4285,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         indices = self.map(
             function=partial(
-                async_get_indices_from_mask_function
-                if inspect.iscoroutinefunction(function)
-                else get_indices_from_mask_function,
+                (
+                    async_get_indices_from_mask_function
+                    if inspect.iscoroutinefunction(function)
+                    else get_indices_from_mask_function
+                ),
                 function,
                 batched,
                 with_indices,
@@ -3996,10 +4378,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
 
         if indices_cache_file_name is None and indices_buffer is None:
-            raise ValueError("At least one of indices_cache_file_name or indices_buffer must be provided.")
+            raise ValueError(
+                "At least one of indices_cache_file_name or indices_buffer must be provided."
+            )
 
         if fingerprint is None:
-            raise ValueError("please specify a fingerprint for the dataset with indices")
+            raise ValueError(
+                "please specify a fingerprint for the dataset with indices"
+            )
 
         if indices_cache_file_name is not None:
             indices_table = MemoryMappedTable.from_file(indices_cache_file_name)
@@ -4061,7 +4447,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         if keep_in_memory and indices_cache_file_name is not None:
-            raise ValueError("Please use either `keep_in_memory` or `indices_cache_file_name` but not both.")
+            raise ValueError(
+                "Please use either `keep_in_memory` or `indices_cache_file_name` but not both."
+            )
 
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -4084,7 +4472,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if isinstance(indices, range):
             if _is_range_contiguous(indices) and indices.start >= 0:
                 start, length = indices.start, indices.stop - indices.start
-                return self._select_contiguous(start, length, new_fingerprint=new_fingerprint)
+                return self._select_contiguous(
+                    start, length, new_fingerprint=new_fingerprint
+                )
         else:
             try:
                 start = next(iter(indices))
@@ -4095,7 +4485,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 counter_from_start = itertools.count(start=start)
                 if all(i == j for i, j in zip(indices, counter_from_start)):
                     length = next(counter_from_start) - start
-                    return self._select_contiguous(start, length, new_fingerprint=new_fingerprint)
+                    return self._select_contiguous(
+                        start, length, new_fingerprint=new_fingerprint
+                    )
 
         # If not contiguous, we need to create a new indices mapping
         return self._select_with_indices_mapping(
@@ -4199,7 +4591,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         if keep_in_memory and indices_cache_file_name is not None:
-            raise ValueError("Please use either `keep_in_memory` or `indices_cache_file_name` but not both.")
+            raise ValueError(
+                "Please use either `keep_in_memory` or `indices_cache_file_name` but not both."
+            )
 
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -4215,7 +4609,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             buf_writer = pa.BufferOutputStream()
             tmp_file = None
             writer = ArrowWriter(
-                stream=buf_writer, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
+                stream=buf_writer,
+                writer_batch_size=writer_batch_size,
+                fingerprint=new_fingerprint,
+                unit="indices",
             )
         else:
             buf_writer = None
@@ -4224,7 +4621,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             os.makedirs(cache_dir, exist_ok=True)
             tmp_file = tempfile.NamedTemporaryFile("wb", dir=cache_dir, delete=False)
             writer = ArrowWriter(
-                path=tmp_file.name, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
+                path=tmp_file.name,
+                writer_batch_size=writer_batch_size,
+                fingerprint=new_fingerprint,
+                unit="indices",
             )
 
         indices = indices if isinstance(indices, list) else list(indices)
@@ -4264,10 +4664,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Return new Dataset object
         if buf_writer is None:
             return self._new_dataset_with_indices(
-                indices_cache_file_name=indices_cache_file_name, fingerprint=new_fingerprint
+                indices_cache_file_name=indices_cache_file_name,
+                fingerprint=new_fingerprint,
             )
         else:
-            return self._new_dataset_with_indices(indices_buffer=buf_writer.getvalue(), fingerprint=new_fingerprint)
+            return self._new_dataset_with_indices(
+                indices_buffer=buf_writer.getvalue(), fingerprint=new_fingerprint
+            )
 
     def skip(self, n: int) -> "Dataset":
         """
@@ -4329,7 +4732,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         if num_times is None:
             raise ValueError("Map style datasets do not support indefinite repetition.")
-        return _concatenate_map_style_datasets([self] * num_times) if num_times > 0 else self.select([])
+        return (
+            _concatenate_map_style_datasets([self] * num_times)
+            if num_times > 0
+            else self.select([])
+        )
 
     def take(self, n: int) -> "Dataset":
         """
@@ -4355,7 +4762,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return self.select(range(n))
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"])
+    @fingerprint_transform(
+        inplace=False, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"]
+    )
     def sort(
         self,
         column_names: Union[str, Sequence_[str]],
@@ -4449,7 +4858,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"null_placement '{null_placement}' is an invalid parameter value. Must be either 'last', 'at_end', 'first' or 'at_start'."
                 )
 
-        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
+        load_from_cache_file = (
+            load_from_cache_file
+            if load_from_cache_file is not None
+            else is_caching_enabled()
+        )
 
         # Check if we've already cached this computation (indexed by a hash)
         if self.cache_files:
@@ -4457,9 +4870,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 # we create a unique hash from the function, current dataset file and the mapping args
                 indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
             if os.path.exists(indices_cache_file_name) and load_from_cache_file:
-                logger.info(f"Loading cached sorted indices for dataset at {indices_cache_file_name}")
+                logger.info(
+                    f"Loading cached sorted indices for dataset at {indices_cache_file_name}"
+                )
                 return self._new_dataset_with_indices(
-                    fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
+                    fingerprint=new_fingerprint,
+                    indices_cache_file_name=indices_cache_file_name,
                 )
 
         sort_table = query_table(
@@ -4469,10 +4885,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
         sort_keys = [
-            (col, "ascending" if not col_reverse else "descending") for col, col_reverse in zip(column_names, reverse)
+            (col, "ascending" if not col_reverse else "descending")
+            for col, col_reverse in zip(column_names, reverse)
         ]
 
-        indices = pc.sort_indices(sort_table, sort_keys=sort_keys, null_placement=null_placement)
+        indices = pc.sort_indices(
+            sort_table, sort_keys=sort_keys, null_placement=null_placement
+        )
 
         return self.select(
             indices=indices,
@@ -4484,7 +4903,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(
-        inplace=False, randomized_function=True, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"]
+        inplace=False,
+        randomized_function=True,
+        ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"],
     )
     def shuffle(
         self,
@@ -4576,15 +4997,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return self
 
         if keep_in_memory and indices_cache_file_name is not None:
-            raise ValueError("Please use either `keep_in_memory` or `indices_cache_file_name` but not both.")
+            raise ValueError(
+                "Please use either `keep_in_memory` or `indices_cache_file_name` but not both."
+            )
 
         if seed is not None and generator is not None:
-            raise ValueError("Both `seed` and `generator` were provided. Please specify just one of them.")
+            raise ValueError(
+                "Both `seed` and `generator` were provided. Please specify just one of them."
+            )
 
         if generator is not None and not isinstance(generator, np.random.Generator):
-            raise ValueError("The provided generator must be an instance of numpy.random.Generator")
+            raise ValueError(
+                "The provided generator must be an instance of numpy.random.Generator"
+            )
 
-        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
+        load_from_cache_file = (
+            load_from_cache_file
+            if load_from_cache_file is not None
+            else is_caching_enabled()
+        )
 
         if generator is None:
             if seed is None:
@@ -4599,9 +5030,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 # we create a unique hash from the function, current dataset file and the mapping args
                 indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
             if os.path.exists(indices_cache_file_name) and load_from_cache_file:
-                logger.info(f"Loading cached shuffled indices for dataset at {indices_cache_file_name}")
+                logger.info(
+                    f"Loading cached shuffled indices for dataset at {indices_cache_file_name}"
+                )
                 return self._new_dataset_with_indices(
-                    fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
+                    fingerprint=new_fingerprint,
+                    indices_cache_file_name=indices_cache_file_name,
                 )
 
         permutation = generator.permutation(len(self))
@@ -4609,7 +5043,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return self.select(
             indices=permutation,
             keep_in_memory=keep_in_memory,
-            indices_cache_file_name=indices_cache_file_name if not keep_in_memory else None,
+            indices_cache_file_name=(
+                indices_cache_file_name if not keep_in_memory else None
+            ),
             writer_batch_size=writer_batch_size,
             new_fingerprint=new_fingerprint,
         )
@@ -4619,7 +5055,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         inplace=False,
         randomized_function=True,
         fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"],
-        ignore_kwargs=["load_from_cache_file", "train_indices_cache_file_name", "test_indices_cache_file_name"],
+        ignore_kwargs=[
+            "load_from_cache_file",
+            "train_indices_cache_file_name",
+            "test_indices_cache_file_name",
+        ],
     )
     def train_test_split(
         self,
@@ -4726,7 +5166,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         })
         ```
         """
-        from .dataset_dict import DatasetDict  # import here because of circular dependency
+        from .dataset_dict import (
+            DatasetDict,
+        )  # import here because of circular dependency
 
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -4765,11 +5207,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
 
         if train_size is not None and not isinstance(train_size, (int, float)):
-            raise ValueError(f"Invalid value for train_size: {train_size} of type {type(train_size)}")
+            raise ValueError(
+                f"Invalid value for train_size: {train_size} of type {type(train_size)}"
+            )
         if test_size is not None and not isinstance(test_size, (int, float)):
-            raise ValueError(f"Invalid value for test_size: {test_size} of type {type(test_size)}")
+            raise ValueError(
+                f"Invalid value for test_size: {test_size} of type {type(test_size)}"
+            )
 
-        if isinstance(train_size, float) and isinstance(test_size, float) and train_size + test_size > 1:
+        if (
+            isinstance(train_size, float)
+            and isinstance(test_size, float)
+            and train_size + test_size > 1
+        ):
             raise ValueError(
                 f"The sum of test_size and train_size = {train_size + test_size}, should be in the (0, 1)"
                 " range. Reduce test_size and/or train_size."
@@ -4807,7 +5257,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "aforementioned parameters."
             )
 
-        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
+        load_from_cache_file = (
+            load_from_cache_file
+            if load_from_cache_file is not None
+            else is_caching_enabled()
+        )
 
         if generator is None and shuffle is True:
             if seed is None:
@@ -4818,13 +5272,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # Check if we've already cached this computation (indexed by a hash)
         if self.cache_files:
-            if train_indices_cache_file_name is None or test_indices_cache_file_name is None:
+            if (
+                train_indices_cache_file_name is None
+                or test_indices_cache_file_name is None
+            ):
                 # we create a unique hash from the function, current dataset file and the mapping args
 
                 if train_indices_cache_file_name is None:
-                    train_indices_cache_file_name = self._get_cache_file_path(train_new_fingerprint)
+                    train_indices_cache_file_name = self._get_cache_file_path(
+                        train_new_fingerprint
+                    )
                 if test_indices_cache_file_name is None:
-                    test_indices_cache_file_name = self._get_cache_file_path(test_new_fingerprint)
+                    test_indices_cache_file_name = self._get_cache_file_path(
+                        test_new_fingerprint
+                    )
             if (
                 os.path.exists(train_indices_cache_file_name)
                 and os.path.exists(test_indices_cache_file_name)
@@ -4836,23 +5297,29 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 return DatasetDict(
                     {
                         "train": self._new_dataset_with_indices(
-                            fingerprint=train_new_fingerprint, indices_cache_file_name=train_indices_cache_file_name
+                            fingerprint=train_new_fingerprint,
+                            indices_cache_file_name=train_indices_cache_file_name,
                         ),
                         "test": self._new_dataset_with_indices(
-                            fingerprint=test_new_fingerprint, indices_cache_file_name=test_indices_cache_file_name
+                            fingerprint=test_new_fingerprint,
+                            indices_cache_file_name=test_indices_cache_file_name,
                         ),
                     }
                 )
         if not shuffle:
             if stratify_by_column is not None:
-                raise ValueError("Stratified train/test split is not implemented for `shuffle=False`")
+                raise ValueError(
+                    "Stratified train/test split is not implemented for `shuffle=False`"
+                )
             train_indices = np.arange(n_train)
             test_indices = np.arange(n_train, n_train + n_test)
         else:
             # stratified partition
             if stratify_by_column is not None:
                 if stratify_by_column not in self._info.features.keys():
-                    raise ValueError(f"Key {stratify_by_column} not found in {self._info.features.keys()}")
+                    raise ValueError(
+                        f"Key {stratify_by_column} not found in {self._info.features.keys()}"
+                    )
                 if not isinstance(self._info.features[stratify_by_column], ClassLabel):
                     raise ValueError(
                         f"Stratifying by column is only supported for {ClassLabel.__name__} column, and column {stratify_by_column} is {type(self._info.features[stratify_by_column]).__name__}."
@@ -4860,7 +5327,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 try:
                     train_indices, test_indices = next(
                         stratified_shuffle_split_generate_indices(
-                            self.with_format("numpy")[stratify_by_column], n_train, n_test, rng=generator
+                            self.with_format("numpy")[stratify_by_column],
+                            n_train,
+                            n_test,
+                            rng=generator,
                         )
                     )
                 except Exception as error:
@@ -5033,7 +5503,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             **to_csv_kwargs,
         ).write()
 
-    def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
+    def to_dict(
+        self, batch_size: Optional[int] = None, batched: bool = False
+    ) -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
 
         Args:
@@ -5227,7 +5699,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         query_table(
                             table=self._data,
                             key=slice(offset, offset + batch_size),
-                            indices=self._indices if self._indices is not None else None,
+                            indices=(
+                                self._indices if self._indices is not None else None
+                            ),
                         ),
                         schema_overrides=schema_overrides,
                         rechunk=rechunk,
@@ -5235,7 +5709,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     for offset in range(0, len(self), batch_size)
                 )
         else:
-            raise ValueError("Polars needs to be installed to be able to return Polars dataframes.")
+            raise ValueError(
+                "Polars needs to be installed to be able to return Polars dataframes."
+            )
 
     def to_parquet(
         self,
@@ -5274,13 +5750,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .io.parquet import ParquetDatasetWriter
 
         return ParquetDatasetWriter(
-            self, path_or_buf, batch_size=batch_size, storage_options=storage_options, **parquet_writer_kwargs
+            self,
+            path_or_buf,
+            batch_size=batch_size,
+            storage_options=storage_options,
+            **parquet_writer_kwargs,
         ).write()
 
     def to_sql(
         self,
         name: str,
-        con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
+        con: Union[
+            str,
+            "sqlalchemy.engine.Connection",
+            "sqlalchemy.engine.Engine",
+            "sqlite3.Connection",
+        ],
         batch_size: Optional[int] = None,
         **sql_writer_kwargs,
     ) -> int:
@@ -5324,7 +5809,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.sql import SqlDatasetWriter
 
-        return SqlDatasetWriter(self, name, con, batch_size=batch_size, **sql_writer_kwargs).write()
+        return SqlDatasetWriter(
+            self, name, con, batch_size=batch_size, **sql_writer_kwargs
+        ).write()
 
     def _estimate_nbytes(self) -> int:
         dataset_nbytes = self.data.nbytes
@@ -5332,7 +5819,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Find decodable columns, because if there are any, we need to
         # adjust the dataset size computation (needed for sharding) to account for possible external files
         decodable_columns = [
-            k for k, v in self._info.features.items() if require_decoding(v, ignore_decode_attribute=True)
+            k
+            for k, v in self._info.features.items()
+            if require_decoding(v, ignore_decode_attribute=True)
         ]
 
         if decodable_columns:
@@ -5343,7 +5832,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 nonlocal extra_nbytes
                 if isinstance(feature, (Audio, Image, Video)):
                     for x in array.to_pylist():
-                        if x is not None and x["bytes"] is None and x["path"] is not None:
+                        if (
+                            x is not None
+                            and x["bytes"] is None
+                            and x["path"] is not None
+                        ):
                             size = xgetsize(x["path"])
                             extra_nbytes += size
                     extra_nbytes -= array.field("path").nbytes
@@ -5366,7 +5859,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def _generate_tables_from_cache_file(filename: str):
-        for batch_idx, batch in enumerate(_memory_mapped_record_batch_reader_from_file(filename)):
+        for batch_idx, batch in enumerate(
+            _memory_mapped_record_batch_reader_from_file(filename)
+        ):
             yield batch_idx, pa.Table.from_batches([batch])
 
     def to_iterable_dataset(self, num_shards: Optional[int] = 1) -> "IterableDataset":
@@ -5464,7 +5959,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if self._format_type is not None:
             if self._format_kwargs or (
-                self._format_columns is not None and set(self._format_columns) != set(self.column_names)
+                self._format_columns is not None
+                and set(self._format_columns) != set(self.column_names)
             ):
                 raise NotImplementedError(
                     "Converting a formatted dataset with kwargs or selected columns to a formatted iterable dataset is not implemented yet. Please run `my_dataset = my_dataset.with_format(None)` before calling to_iterable_dataset"
@@ -5482,7 +5978,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             [copy.deepcopy(self)]
             if num_shards == 1
             else [
-                self.shard(num_shards=num_shards, index=shard_idx, contiguous=True) for shard_idx in range(num_shards)
+                self.shard(num_shards=num_shards, index=shard_idx, contiguous=True)
+                for shard_idx in range(num_shards)
             ]
         )
         ex_iterable = ArrowExamplesIterable(
@@ -5514,7 +6011,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         end = start + div + (1 if job_id < mod else 0)
 
         index_shards = (
-            (start + i, self.shard(num_shards=end - start, index=i, contiguous=True)) for i in range(end - start)
+            (start + i, self.shard(num_shards=end - start, index=i, contiguous=True))
+            for i in range(end - start)
         )
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
@@ -5532,13 +6030,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     keep_in_memory=True,
                 )
                 shard = shard.with_format(**format)
-            shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
+            shard_path_in_repo = (
+                f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
+            )
             buffer = BytesIO()
             shard.to_parquet(buffer, batch_size=writer_batch_size)
             parquet_content = buffer.getvalue()
             uploaded_size += len(parquet_content)
             del buffer
-            shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=parquet_content)
+            shard_addition = CommitOperationAdd(
+                path_in_repo=shard_path_in_repo, path_or_fileobj=parquet_content
+            )
             api.preupload_lfs_files(
                 repo_id=repo_id,
                 additions=[shard_addition],
@@ -5571,24 +6073,33 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             uploaded_size (`int`): number of uploaded bytes to the repository
             dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset after uncompression
         """
-        from .arrow_writer import get_writer_batch_size_from_data_size, get_writer_batch_size_from_features
+        from .arrow_writer import (
+            get_writer_batch_size_from_data_size,
+            get_writer_batch_size_from_features,
+        )
 
         dataset_nbytes = self._estimate_nbytes()
-        writer_batch_size = get_writer_batch_size_from_features(self.features) or get_writer_batch_size_from_data_size(
-            len(self), dataset_nbytes
-        )
+        writer_batch_size = get_writer_batch_size_from_features(
+            self.features
+        ) or get_writer_batch_size_from_data_size(len(self), dataset_nbytes)
 
         # Find decodable columns, because if there are any, we need to:
         # embed the bytes from the files in the shards
         decodable_columns = (
-            [k for k, v in self._info.features.items() if require_decoding(v, ignore_decode_attribute=True)]
+            [
+                k
+                for k, v in self._info.features.items()
+                if require_decoding(v, ignore_decode_attribute=True)
+            ]
             if embed_external_files
             else []
         )
         embed_external_files = embed_external_files and bool(decodable_columns)
 
         if num_shards is None:
-            max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+            max_shard_size = convert_file_size_to_int(
+                max_shard_size or config.MAX_SHARD_SIZE
+            )
             num_shards = int(dataset_nbytes / max_shard_size) + 1
             num_shards = max(num_shards, num_proc or 1)
 
@@ -5613,13 +6124,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for job_id in range(num_jobs)
         ]
         desc = "Uploading the dataset shards"
-        desc += f" (num_proc={num_proc})" if num_proc is not None and num_proc >= 1 else ""
+        desc += (
+            f" (num_proc={num_proc})" if num_proc is not None and num_proc >= 1 else ""
+        )
         pbar = hf_tqdm(
             unit=" shards",
             total=num_shards,
             desc=desc,
         )
-        with contextlib.nullcontext() if num_proc is None or num_proc < 1 else Pool(num_proc) as pool:
+        with (
+            contextlib.nullcontext()
+            if num_proc is None or num_proc < 1
+            else Pool(num_proc)
+        ) as pool:
             update_stream = (
                 Dataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
                 if pool is None
@@ -5762,7 +6279,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "at https://huggingface.co/docs/datasets/main/en/video_load#videofolder"
             )
         if config_name == "data":
-            raise ValueError("`config_name` cannot be 'data'. Please, choose another name for configuration.")
+            raise ValueError(
+                "`config_name` cannot be 'data'. Please, choose another name for configuration."
+            )
 
         if max_shard_size is not None and num_shards is not None:
             raise ValueError(
@@ -5773,7 +6292,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             split = str(self.split) if self.split is not None else "train"
 
         if not re.match(_split_re, split):
-            raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
+            raise ValueError(
+                f"Split name should match '{_split_re}' but got '{split}'."
+            )
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
@@ -5790,10 +6311,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if revision is not None and not revision.startswith("refs/pr/"):
             # We do not call create_branch for a PR reference: 400 Bad Request
-            api.create_branch(repo_id, branch=revision, repo_type="dataset", exist_ok=True)
+            api.create_branch(
+                repo_id, branch=revision, repo_type="dataset", exist_ok=True
+            )
 
         if not data_dir:
-            data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
+            data_dir = (
+                config_name if config_name != "default" else "data"
+            )  # for backward compatibility
 
         additions, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
@@ -5808,8 +6333,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_proc=num_proc,
         )
 
-        def get_deletions_and_dataset_card() -> tuple[str, list[CommitOperationDelete], str, Optional[str]]:
-            parent_commit = api.repo_info(repo_id, repo_type="dataset", revision=revision).sha
+        def get_deletions_and_dataset_card() -> (
+            tuple[str, list[CommitOperationDelete], str, Optional[str]]
+        ):
+            parent_commit = api.repo_info(
+                repo_id, repo_type="dataset", revision=revision
+            ).sha
 
             # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
             # and delete old split shards (if they exist)
@@ -5819,7 +6348,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             repo_splits: list[str] = []  # use a list to keep the order of the splits
             repo_files_to_add = [addition.path_in_repo for addition in additions]
             for repo_file in api.list_repo_tree(
-                repo_id=repo_id, revision=parent_commit, repo_type="dataset", token=token, recursive=True
+                repo_id=repo_id,
+                revision=parent_commit,
+                repo_type="dataset",
+                token=token,
+                recursive=True,
             ):
                 if not isinstance(repo_file, RepoFile):
                     continue
@@ -5831,20 +6364,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     repo_file.rfilename.startswith(f"{data_dir}/{split}-")
                     and repo_file.rfilename not in repo_files_to_add
                 ):
-                    deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
+                    deletions.append(
+                        CommitOperationDelete(path_in_repo=repo_file.rfilename)
+                    )
                     deleted_size += repo_file.size
                 elif fnmatch.fnmatch(
                     repo_file.rfilename,
-                    PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
+                    PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace(
+                        "{split}", "*"
+                    ),
                 ):
-                    pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                    pattern = glob_pattern_to_regex(
+                        PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED
+                    )
                     split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
                     assert split_pattern_fields is not None
                     repo_split = split_pattern_fields["split"]
                     if repo_split not in repo_splits:
                         repo_splits.append(repo_split)
 
-            organization, dataset_name = repo_id.split("/") if "/" in repo_id else (None, repo_id)
+            organization, dataset_name = (
+                repo_id.split("/") if "/" in repo_id else (None, repo_id)
+            )
             info_to_dump = self.info.copy()
             info_to_dump.download_checksums = None
             info_to_dump.download_size = uploaded_size
@@ -5852,17 +6393,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
             info_to_dump.config_name = config_name
             info_to_dump.splits = SplitDict(
-                {split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)}
+                {
+                    split: SplitInfo(
+                        split,
+                        num_bytes=dataset_nbytes,
+                        num_examples=len(self),
+                        dataset_name=dataset_name,
+                    )
+                }
             )
             # get the info from the README to update them
             if repo_with_dataset_card:
                 dataset_card_path = api.hf_hub_download(
-                    repo_id, config.REPOCARD_FILENAME, repo_type="dataset", revision=parent_commit
+                    repo_id,
+                    config.REPOCARD_FILENAME,
+                    repo_type="dataset",
+                    revision=parent_commit,
                 )
                 dataset_card = DatasetCard.load(Path(dataset_card_path))
                 dataset_card_data = dataset_card.data
-                metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
-                dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
+                metadata_configs = MetadataConfigs.from_dataset_card_data(
+                    dataset_card_data
+                )
+                dataset_infos: DatasetInfosDict = (
+                    DatasetInfosDict.from_dataset_card_data(dataset_card_data)
+                )
                 if dataset_infos and config_name in dataset_infos:
                     repo_info = dataset_infos[config_name]
                 else:
@@ -5873,12 +6428,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 dataset_card_data = DatasetCardData()
                 metadata_configs = MetadataConfigs()
                 dataset_infos_path = api.hf_hub_download(
-                    repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=parent_commit
+                    repo_id,
+                    config.DATASETDICT_INFOS_FILENAME,
+                    repo_type="dataset",
+                    revision=parent_commit,
                 )
                 with open(dataset_infos_path, encoding="utf-8") as f:
                     dataset_infos: dict = json.load(f)
-                    dataset_info = dataset_infos.get(config_name, None) if dataset_infos else None
-                    repo_info = DatasetInfo.from_dict(dataset_info) if dataset_info else None
+                    dataset_info = (
+                        dataset_infos.get(config_name, None) if dataset_infos else None
+                    )
+                    repo_info = (
+                        DatasetInfo.from_dict(dataset_info) if dataset_info else None
+                    )
             else:
                 dataset_card = None
                 dataset_card_data = DatasetCardData()
@@ -5895,28 +6457,46 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                     if split in repo_info.splits:
                         repo_info.download_size -= deleted_size
-                        repo_info.dataset_size -= repo_info.splits.get(split, SplitInfo()).num_bytes or 0
+                        repo_info.dataset_size -= (
+                            repo_info.splits.get(split, SplitInfo()).num_bytes or 0
+                        )
 
                     repo_info.download_checksums = None
-                    repo_info.download_size = (repo_info.download_size or 0) + uploaded_size
-                    repo_info.dataset_size = (repo_info.dataset_size or 0) + dataset_nbytes
-                    repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
+                    repo_info.download_size = (
+                        repo_info.download_size or 0
+                    ) + uploaded_size
+                    repo_info.dataset_size = (
+                        repo_info.dataset_size or 0
+                    ) + dataset_nbytes
+                    repo_info.size_in_bytes = (
+                        repo_info.download_size + repo_info.dataset_size
+                    )
                     repo_info.splits.pop(split, None)
                     repo_info.splits[split] = SplitInfo(
-                        split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
+                        split,
+                        num_bytes=dataset_nbytes,
+                        num_examples=len(self),
+                        dataset_name=dataset_name,
                     )
                     info_to_dump = repo_info
             # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
             if not metadata_configs and repo_splits:
                 default_metadata_configs_to_dump = {
-                    "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
+                    "data_files": [
+                        {"split": split, "path": f"data/{split}-*"}
+                        for split in repo_splits
+                    ]
                 }
-                MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
+                MetadataConfigs(
+                    {"default": default_metadata_configs_to_dump}
+                ).to_dataset_card_data(dataset_card_data)
             # update the metadata configs
             if config_name in metadata_configs:
                 metadata_config = metadata_configs[config_name]
                 if "data_files" in metadata_config:
-                    data_files_to_dump = sanitize_patterns(metadata_config["data_files"])
+                    data_files_to_dump = sanitize_patterns(
+                        metadata_config["data_files"]
+                    )
                 else:
                     data_files_to_dump = {}
                 # add the new split
@@ -5931,11 +6511,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     ]
                 }
             else:
-                metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
+                metadata_config_to_dump = {
+                    "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]
+                }
             configs_to_dump = {config_name: metadata_config_to_dump}
             if set_default and config_name != "default":
                 if metadata_configs:
-                    current_default_config_name = metadata_configs.get_default_config_name()
+                    current_default_config_name = (
+                        metadata_configs.get_default_config_name()
+                    )
                     if current_default_config_name == "default":
                         raise ValueError(
                             "There exists a configuration named 'default'. To set a different configuration as default, "
@@ -5943,12 +6527,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         )
                     if current_default_config_name:
                         _ = metadata_configs[current_default_config_name].pop("default")
-                        configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
+                        configs_to_dump[current_default_config_name] = metadata_configs[
+                            current_default_config_name
+                        ]
                 metadata_config_to_dump["default"] = True
             # push to the deprecated dataset_infos.json
             if repo_with_dataset_infos:
                 dataset_infos_path = api.hf_hub_download(
-                    repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=parent_commit
+                    repo_id,
+                    config.DATASETDICT_INFOS_FILENAME,
+                    repo_type="dataset",
+                    revision=parent_commit,
                 )
                 with open(dataset_infos_path, encoding="utf-8") as f:
                     dataset_infos: dict = json.load(f)
@@ -5957,31 +6546,44 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             else:
                 new_dataset_infos = None
             # push to README
-            DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
+            DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(
+                dataset_card_data
+            )
             MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
             new_dataset_card = (
-                DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
+                DatasetCard(f"---\n{dataset_card_data}\n---\n")
+                if dataset_card is None
+                else dataset_card
             )
             return parent_commit, deletions, new_dataset_card, new_dataset_infos
 
-        commit_message = commit_message if commit_message is not None else "Upload dataset"
+        commit_message = (
+            commit_message if commit_message is not None else "Upload dataset"
+        )
         if len(additions) > config.UPLOADS_MAX_NUMBER_PER_COMMIT:
             logger.info(
                 f"Number of files to upload is larger than {config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
             )
-            num_commits = math.ceil(len(additions) / config.UPLOADS_MAX_NUMBER_PER_COMMIT)
+            num_commits = math.ceil(
+                len(additions) / config.UPLOADS_MAX_NUMBER_PER_COMMIT
+            )
             for i in range(0, num_commits):
                 operations = additions[
-                    i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
+                    i
+                    * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1)
+                    * config.UPLOADS_MAX_NUMBER_PER_COMMIT
                 ]
-                for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+                for retry, sleep_time in enumerate(
+                    itertools.chain(range(10), itertools.repeat(30)), start=1
+                ):
                     # We need to retry if another commit happens at the same time
                     sleep_time *= 1 + random.random()
                     try:
                         commit_info = api.create_commit(
                             repo_id,
                             operations=operations,
-                            commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                            commit_message=commit_message
+                            + f" (part {i:05d}-of-{num_commits:05d})",
                             commit_description=commit_description,
                             repo_type="dataset",
                             revision=revision,
@@ -6004,17 +6606,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     break
                 logger.info(
                     f"Commit #{i + 1} completed"
-                    + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
+                    + (
+                        f" (still {num_commits - i - 1} to go)"
+                        if num_commits - i - 1
+                        else ""
+                    )
                     + "."
                 )
             last_commit_additions = []
         else:
             last_commit_additions = additions
 
-        for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+        for retry, sleep_time in enumerate(
+            itertools.chain(range(10), itertools.repeat(30)), start=1
+        ):
             # We need to retry if there was a commit in between in case it touched the dataset card data
             sleep_time *= 1 + random.random()
-            parent_commit, deletions, dataset_card, dataset_infos = get_deletions_and_dataset_card()
+            parent_commit, deletions, dataset_card, dataset_infos = (
+                get_deletions_and_dataset_card()
+            )
             dataset_card_additions = []
             if dataset_infos:
                 dataset_card_additions.append(
@@ -6024,12 +6634,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     )
                 )
             dataset_card_additions.append(
-                CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
+                CommitOperationAdd(
+                    path_in_repo=config.REPOCARD_FILENAME,
+                    path_or_fileobj=str(dataset_card).encode(),
+                )
             )
             try:
                 commit_info = api.create_commit(
                     repo_id,
-                    operations=last_commit_additions + dataset_card_additions + deletions,
+                    operations=last_commit_additions
+                    + dataset_card_additions
+                    + deletions,
                     commit_message=commit_message,
                     commit_description=commit_description,
                     repo_type="dataset",
@@ -6059,7 +6674,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @transmit_format
     @fingerprint_transform(inplace=False)
     def add_column(
-        self, name: str, column: Union[list, np.ndarray], new_fingerprint: str, feature: Optional[FeatureType] = None
+        self,
+        name: str,
+        column: Union[list, np.ndarray],
+        new_fingerprint: str,
+        feature: Optional[FeatureType] = None,
     ):
         """Add column to Dataset.
 
@@ -6105,7 +6724,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         info = dataset.info.copy()
         info.features.update(Features.from_arrow_schema(column_table.schema))
         table = update_metadata_with_features(table, info.features)
-        return Dataset(table, info=info, split=self.split, indices_table=None, fingerprint=new_fingerprint)
+        return Dataset(
+            table,
+            info=info,
+            split=self.split,
+            indices_table=None,
+            fingerprint=new_fingerprint,
+        )
 
     def add_faiss_index(
         self,
@@ -6347,7 +6972,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Cast to align the schemas of the tables and concatenate the tables
         table = concat_tables(
             [
-                self._data.cast(dset_features.arrow_schema) if self._info.features != dset_features else self._data,
+                (
+                    self._data.cast(dset_features.arrow_schema)
+                    if self._info.features != dset_features
+                    else self._data
+                ),
                 item_table.cast(item_features.arrow_schema),
             ]
         )
@@ -6355,7 +6984,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             indices_table = None
         else:
             item_indices_array = pa.array([len(self._data)], type=pa.uint64())
-            item_indices_table = InMemoryTable.from_arrays([item_indices_array], names=["indices"])
+            item_indices_table = InMemoryTable.from_arrays(
+                [item_indices_array], names=["indices"]
+            )
             indices_table = concat_tables([self._indices, item_indices_table])
         info = self.info.copy()
         info.features.update(item_features)
@@ -6392,12 +7023,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         # Sanity checks
         if label_column not in self._data.column_names:
-            raise ValueError(f"Column ({label_column}) not in table columns ({self._data.column_names}).")
+            raise ValueError(
+                f"Column ({label_column}) not in table columns ({self._data.column_names})."
+            )
 
         label_feature = self._info.features[label_column]
         if not (
             isinstance(label_feature, ClassLabel)
-            or (isinstance(label_feature, Sequence) and isinstance(label_feature.feature, ClassLabel))
+            or (
+                isinstance(label_feature, Sequence)
+                and isinstance(label_feature.feature, ClassLabel)
+            )
         ):
             raise ValueError(
                 f"Aligning labels with a mapping is only supported for {ClassLabel.__name__} column or {Sequence.__name__} column with the inner type {ClassLabel.__name__}, and column {label_feature} is of type {type(label_feature).__name__}."
@@ -6409,7 +7045,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Some label mappings use uppercase label names so we lowercase them during alignment
         label2id = {k.lower(): v for k, v in label2id.items()}
         int2str_function = (
-            label_feature.int2str if isinstance(label_feature, ClassLabel) else label_feature.feature.int2str
+            label_feature.int2str
+            if isinstance(label_feature, ClassLabel)
+            else label_feature.feature.int2str
         )
 
         if isinstance(label_feature, ClassLabel):
@@ -6420,7 +7058,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     for label_id in batch[label_column]
                 ]
                 batch[label_column] = [
-                    label2id[label_name] if label_name is not None else None for label_name in dset_label_names
+                    label2id[label_name] if label_name is not None else None
+                    for label_name in dset_label_names
                 ]
                 return batch
 
@@ -6428,11 +7067,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             def process_label_ids(batch):
                 dset_label_names = [
-                    [int2str_function(label_id).lower() if label_id is not None else None for label_id in seq]
+                    [
+                        (
+                            int2str_function(label_id).lower()
+                            if label_id is not None
+                            else None
+                        )
+                        for label_id in seq
+                    ]
                     for seq in batch[label_column]
                 ]
                 batch[label_column] = [
-                    [label2id[label_name] if label_name is not None else None for label_name in seq]
+                    [
+                        label2id[label_name] if label_name is not None else None
+                        for label_name in seq
+                    ]
                     for seq in dset_label_names
                 ]
                 return batch
@@ -6443,7 +7092,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if isinstance(label_feature, ClassLabel)
             else List(ClassLabel(num_classes=len(label_names), names=label_names))
         )
-        return self.map(process_label_ids, features=features, batched=True, desc="Aligning the labels")
+        return self.map(
+            process_label_ids,
+            features=features,
+            batched=True,
+            desc="Aligning the labels",
+        )
 
 
 def _concatenate_map_style_datasets(
@@ -6485,13 +7139,17 @@ def _concatenate_map_style_datasets(
     else:
         if not all(dset.num_rows == dsets[0].num_rows for dset in dsets):
             raise ValueError("Number of rows must match for all datasets")
-        _check_column_names([col_name for dset in dsets for col_name in dset._data.column_names])
+        _check_column_names(
+            [col_name for dset in dsets for col_name in dset._data.column_names]
+        )
 
     # Find common format or reset format
     format = dsets[0].format
     if any(dset.format != format for dset in dsets):
         format = {}
-        logger.info("Some of the datasets have disparate format. Resetting the format of the concatenated dataset.")
+        logger.info(
+            "Some of the datasets have disparate format. Resetting the format of the concatenated dataset."
+        )
 
     def apply_offset_to_indices_table(table, offset):
         if offset == 0:
@@ -6509,13 +7167,17 @@ def _concatenate_map_style_datasets(
             indices_tables = []
             for i in range(len(dsets)):
                 if dsets[i]._indices is None:
-                    dsets[i] = dsets[i]._select_with_indices_mapping(range(len(dsets[i])))
+                    dsets[i] = dsets[i]._select_with_indices_mapping(
+                        range(len(dsets[i]))
+                    )
                 indices_tables.append(dsets[i]._indices)
 
             # An offset needs to be applied to the indices before concatenating
             offset = 0
             for i in range(len(dsets)):
-                indices_tables[i] = apply_offset_to_indices_table(indices_tables[i], offset)
+                indices_tables[i] = apply_offset_to_indices_table(
+                    indices_tables[i], offset
+                )
                 offset += len(dsets[i]._data)
 
             # Concatenate indices
@@ -6523,7 +7185,9 @@ def _concatenate_map_style_datasets(
             if indices_tables:
                 indices_table = concat_tables(indices_tables)
             else:
-                indices_table = InMemoryTable.from_batches([], schema=pa.schema({"indices": pa.int64()}))
+                indices_table = InMemoryTable.from_batches(
+                    [], schema=pa.schema({"indices": pa.int64()})
+                )
         else:
             if len(dsets) == 1:
                 indices_table = dsets[0]._indices
@@ -6539,13 +7203,17 @@ def _concatenate_map_style_datasets(
         features_list = _align_features([dset.features for dset in dsets])
     else:
         features_list = [dset.features for dset in dsets]
-    table = update_metadata_with_features(table, {k: v for features in features_list for k, v in features.items()})
+    table = update_metadata_with_features(
+        table, {k: v for features in features_list for k, v in features.items()}
+    )
 
     # Concatenate infos
     if info is None:
         info = DatasetInfo.from_merge([dset.info for dset in dsets])
     fingerprint = update_fingerprint(
-        "".join(dset._fingerprint for dset in dsets), _concatenate_map_style_datasets, {"info": info, "split": split}
+        "".join(dset._fingerprint for dset in dsets),
+        _concatenate_map_style_datasets,
+        {"info": info, "split": split},
     )
 
     # Make final concatenated dataset
@@ -6600,7 +7268,9 @@ def _interleave_map_style_datasets(
         )
 
     # To interleave the datasets, we concatenate them and then we re-order the indices
-    concatenated_datasets = _concatenate_map_style_datasets(datasets, info=info, split=split)
+    concatenated_datasets = _concatenate_map_style_datasets(
+        datasets, info=info, split=split
+    )
 
     # Let's now build the indices to pass to .select()
     lengths = [len(dset) for dset in datasets]
@@ -6618,7 +7288,11 @@ def _interleave_map_style_datasets(
         # Reasoning behind the following operation: keeping the min_length first indices of each dataset
         # while offsetting in order to correspond to the right indices of the concatenated dataset
         # and flattening to effectively interleave the datasets
-        indices = (offsets.reshape(1, -1) + np.arange(min(lengths)).reshape(-1, 1)).flatten().tolist()
+        indices = (
+            (offsets.reshape(1, -1) + np.arange(min(lengths)).reshape(-1, 1))
+            .flatten()
+            .tolist()
+        )
     elif probabilities is None:
         # Oversampling situation with cycling between each sources
         # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 5, 9, 0, 6, 10, 1, 3, 11]
@@ -6626,7 +7300,9 @@ def _interleave_map_style_datasets(
 
         # Reasoning behind the following operation: for each dataset indices (i.e column) repeat the indices to have max_length indices per dataset
         # For example, if the max_length is 5 and the i-th dataset has 3 samples, the i-th column will be [0,1,2,0,1]
-        indices = np.mod(np.arange(max(lengths)).reshape(-1, 1), np.array(lengths).reshape(1, -1))
+        indices = np.mod(
+            np.arange(max(lengths)).reshape(-1, 1), np.array(lengths).reshape(1, -1)
+        )
 
         # We have to keep the indices to their respective dataset offsets and to flatten to effectively interleave the datasets
         indices = (indices + offsets).flatten().tolist()
@@ -6643,7 +7319,10 @@ def _interleave_map_style_datasets(
             """Get an infinite iterator that randomly samples the index of the source to pick examples from."""
             rng = np.random.default_rng(seed)
             while True:
-                yield from (int(i) for i in rng.choice(len(datasets), size=1000, p=probabilities))
+                yield from (
+                    int(i)
+                    for i in rng.choice(len(datasets), size=1000, p=probabilities)
+                )
 
         current_index = [0] * len(datasets)
         indices = []
@@ -6666,7 +7345,9 @@ def _interleave_map_style_datasets(
     return concatenated_datasets.select(indices, **kwargs)
 
 
-def _split_by_node_map_style_dataset(dataset: Dataset, rank: int, world_size: int) -> Dataset:
+def _split_by_node_map_style_dataset(
+    dataset: Dataset, rank: int, world_size: int
+) -> Dataset:
     """
     Split a dataset for the node at rank `rank` in a pool of nodes of size `world_size`.
     Each node is assigned a chunk of data, e.g. rank 0 is given the first chunk of the dataset.

@@ -74,7 +74,9 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
             return value
 
         # Handle string arrays
-        if isinstance(value, (np.character, np.ndarray)) and np.issubdtype(value.dtype, np.character):
+        if isinstance(value, (np.character, np.ndarray)) and np.issubdtype(
+            value.dtype, np.character
+        ):
             return value.tolist()
 
         # PIL Image fast path - avoid extra copies
@@ -224,7 +226,9 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
     def _recursive_tensorize(self, data_struct):
         """Optimized recursive walker with reduced Python overhead."""
         # Handle tensor-like objects with __array__ interface
-        if hasattr(data_struct, "__array__") and not isinstance(data_struct, torch.Tensor):
+        if hasattr(data_struct, "__array__") and not isinstance(
+            data_struct, torch.Tensor
+        ):
             data_struct = data_struct.__array__()
 
         # Handle object arrays (nested structures)
@@ -239,7 +243,10 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
             return self._consolidate(result)
         # Handle dictionaries
         elif isinstance(data_struct, dict):
-            return {key: self._recursive_tensorize(value) for key, value in data_struct.items()}
+            return {
+                key: self._recursive_tensorize(value)
+                for key, value in data_struct.items()
+            }
 
         # Base case: tensorize the leaf value
         return self._tensorize(data_struct)
@@ -255,7 +262,9 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
 
     def format_column(self, pa_table: pa.Table) -> "torch.Tensor":
         column = self.numpy_arrow_extractor().extract_column(pa_table)
-        column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
+        column = self.python_features_decoder.decode_column(
+            column, pa_table.column_names[0]
+        )
         column = self.recursive_tensorize(column)
         column = self._consolidate(column)
         return column

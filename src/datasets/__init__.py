@@ -16,7 +16,12 @@ __version__ = "4.1.2.dev0"
 
 from .arrow_dataset import Column, Dataset
 from .arrow_reader import ReadInstruction
-from .builder import ArrowBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
+from .builder import (
+    ArrowBasedBuilder,
+    BuilderConfig,
+    DatasetBuilder,
+    GeneratorBasedBuilder,
+)
 from .combine import concatenate_datasets, interleave_datasets
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download import *

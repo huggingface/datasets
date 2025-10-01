@@ -166,9 +166,13 @@ def get_dataset_config_names(
         data_files=data_files,
         **download_kwargs,
     )
-    builder_cls = get_dataset_builder_class(dataset_module, dataset_name=os.path.basename(path))
+    builder_cls = get_dataset_builder_class(
+        dataset_module, dataset_name=os.path.basename(path)
+    )
     return list(builder_cls.builder_configs.keys()) or [
-        dataset_module.builder_kwargs.get("config_name", builder_cls.DEFAULT_CONFIG_NAME or "default")
+        dataset_module.builder_kwargs.get(
+            "config_name", builder_cls.DEFAULT_CONFIG_NAME or "default"
+        )
     ]
 
 
@@ -225,7 +229,9 @@ def get_dataset_default_config_name(
         data_files=data_files,
         **download_kwargs,
     )
-    builder_cls = get_dataset_builder_class(dataset_module, dataset_name=os.path.basename(path))
+    builder_cls = get_dataset_builder_class(
+        dataset_module, dataset_name=os.path.basename(path)
+    )
     builder_configs = list(builder_cls.builder_configs.keys())
     if builder_configs:
         default_config_name = builder_configs[0] if len(builder_configs) == 1 else None
@@ -237,7 +243,9 @@ def get_dataset_default_config_name(
 def get_dataset_config_info(
     path: str,
     config_name: Optional[str] = None,
-    data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
+    data_files: Optional[
+        Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]
+    ] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
@@ -277,28 +285,41 @@ def get_dataset_config_info(
     )
     info = builder.info
     if info.splits is None:
-        download_config = download_config.copy() if download_config else DownloadConfig()
+        download_config = (
+            download_config.copy() if download_config else DownloadConfig()
+        )
         if token is not None:
             download_config.token = token
         builder._check_manual_download(
-            StreamingDownloadManager(base_path=builder.base_path, download_config=download_config)
+            StreamingDownloadManager(
+                base_path=builder.base_path, download_config=download_config
+            )
         )
         try:
             info.splits = {
-                split_generator.name: {"name": split_generator.name, "dataset_name": path}
+                split_generator.name: {
+                    "name": split_generator.name,
+                    "dataset_name": path,
+                }
                 for split_generator in builder._split_generators(
-                    StreamingDownloadManager(base_path=builder.base_path, download_config=download_config)
+                    StreamingDownloadManager(
+                        base_path=builder.base_path, download_config=download_config
+                    )
                 )
             }
         except Exception as err:
-            raise SplitsNotFoundError("The split names could not be parsed from the dataset config.") from err
+            raise SplitsNotFoundError(
+                "The split names could not be parsed from the dataset config."
+            ) from err
     return info
 
 
 def get_dataset_split_names(
     path: str,
     config_name: Optional[str] = None,
-    data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
+    data_files: Optional[
+        Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]
+    ] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,

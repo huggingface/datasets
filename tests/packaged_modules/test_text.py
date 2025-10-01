@@ -46,7 +46,9 @@ def test_config_raises_when_invalid_name() -> None:
         _ = TextConfig(name="name-with-*-invalid-character")
 
 
-@pytest.mark.parametrize("data_files", ["str_path", ["str_path"], DataFilesList(["str_path"], [()])])
+@pytest.mark.parametrize(
+    "data_files", ["str_path", ["str_path"], DataFilesList(["str_path"], [()])]
+)
 def test_config_raises_when_invalid_data_files(data_files) -> None:
     with pytest.raises(ValueError, match="Expected a DataFilesDict"):
         _ = TextConfig(name="name", data_files=data_files)
@@ -58,7 +60,9 @@ def test_text_linebreaks(text_file, keep_linebreaks):
         expected_content = f.read().splitlines(keepends=keep_linebreaks)
     text = Text(keep_linebreaks=keep_linebreaks, encoding="utf-8")
     generator = text._generate_tables([[text_file]])
-    generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()["text"]
+    generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()[
+        "text"
+    ]
     assert generated_content == expected_content
 
 
@@ -86,5 +90,7 @@ def test_text_sample_by(sample_by, text_file):
         expected_content = [expected_content]
     text = Text(sample_by=sample_by, encoding="utf-8", chunksize=100)
     generator = text._generate_tables([[text_file]])
-    generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()["text"]
+    generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()[
+        "text"
+    ]
     assert generated_content == expected_content

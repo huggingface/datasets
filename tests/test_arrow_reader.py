@@ -7,7 +7,13 @@ import pyarrow as pa
 import pytest
 
 from datasets.arrow_dataset import Dataset
-from datasets.arrow_reader import ArrowReader, BaseReader, FileInstructions, ReadInstruction, make_file_instructions
+from datasets.arrow_reader import (
+    ArrowReader,
+    BaseReader,
+    FileInstructions,
+    ReadInstruction,
+    make_file_instructions,
+)
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit, Split, SplitDict, SplitInfo
 
@@ -59,8 +65,12 @@ class BaseReaderTest(TestCase):
             instructions1 = ["train", "test[:33%]"]
             instructions2 = [Split.TRAIN, ReadInstruction.from_spec("test[:33%]")]
             for instructions in [instructions1, instructions2]:
-                datasets_kwargs = [reader.read(name, instr, split_infos) for instr in instructions]
-                train_dset, test_dset = (Dataset(**dataset_kwargs) for dataset_kwargs in datasets_kwargs)
+                datasets_kwargs = [
+                    reader.read(name, instr, split_infos) for instr in instructions
+                ]
+                train_dset, test_dset = (
+                    Dataset(**dataset_kwargs) for dataset_kwargs in datasets_kwargs
+                )
                 self.assertEqual(train_dset["filename"][0], f"{name}-train")
                 self.assertEqual(train_dset.num_rows, 100)
                 self.assertEqual(train_dset.num_columns, 1)
@@ -75,7 +85,9 @@ class BaseReaderTest(TestCase):
 
     def test_read_sharded(self):
         name = "my_name"
-        train_info = SplitInfo(name="train", num_examples=1000, shard_lengths=[100] * 10)
+        train_info = SplitInfo(
+            name="train", num_examples=1000, shard_lengths=[100] * 10
+        )
         split_infos = [train_info]
         split_dict = SplitDict()
         split_dict.add(train_info)
@@ -106,7 +118,9 @@ class BaseReaderTest(TestCase):
                 {"filename": os.path.join(tmp_dir, "train")},
                 {"filename": os.path.join(tmp_dir, "test"), "skip": 10, "take": 10},
             ]
-            dset = Dataset(**reader.read_files(files, original_instructions="train+test[10:20]"))
+            dset = Dataset(
+                **reader.read_files(files, original_instructions="train+test[10:20]")
+            )
             self.assertEqual(dset.num_rows, 110)
             self.assertEqual(dset.num_columns, 1)
             del dset
@@ -115,29 +129,46 @@ class BaseReaderTest(TestCase):
 @pytest.mark.parametrize("in_memory", [False, True])
 def test_read_table(in_memory, dataset, arrow_file):
     filename = arrow_file
-    with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
+    with (
+        assert_arrow_memory_increases()
+        if in_memory
+        else assert_arrow_memory_doesnt_increase()
+    ):
         table = ArrowReader.read_table(filename, in_memory=in_memory)
     assert table.shape == dataset.data.shape
     assert set(table.column_names) == set(dataset.data.column_names)
-    assert dict(table.to_pydict()) == dict(dataset.data.to_pydict())  # to_pydict returns OrderedDict
+    assert dict(table.to_pydict()) == dict(
+        dataset.data.to_pydict()
+    )  # to_pydict returns OrderedDict
 
 
 @pytest.mark.parametrize("in_memory", [False, True])
 def test_read_files(in_memory, dataset, arrow_file):
     filename = arrow_file
     reader = ArrowReader("", None)
-    with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
-        dataset_kwargs = reader.read_files([{"filename": filename}], in_memory=in_memory)
+    with (
+        assert_arrow_memory_increases()
+        if in_memory
+        else assert_arrow_memory_doesnt_increase()
+    ):
+        dataset_kwargs = reader.read_files(
+            [{"filename": filename}], in_memory=in_memory
+        )
     assert dataset_kwargs.keys() == {"arrow_table", "info", "split"}
     table = dataset_kwargs["arrow_table"]
     assert table.shape == dataset.data.shape
     assert set(table.column_names) == set(dataset.data.column_names)
-    assert dict(table.to_pydict()) == dict(dataset.data.to_pydict())  # to_pydict returns OrderedDict
+    assert dict(table.to_pydict()) == dict(
+        dataset.data.to_pydict()
+    )  # to_pydict returns OrderedDict
 
 
 def test_read_instruction_spec():
     assert ReadInstruction("train", to=10, unit="abs").to_spec() == "train[:10]"
-    assert ReadInstruction("train", from_=-80, to=10, unit="%").to_spec() == "train[-80%:10%]"
+    assert (
+        ReadInstruction("train", from_=-80, to=10, unit="%").to_spec()
+        == "train[-80%:10%]"
+    )
 
     spec_train_test = "train+test"
     assert ReadInstruction.from_spec(spec_train_test).to_spec() == spec_train_test
@@ -152,10 +183,18 @@ def test_read_instruction_spec():
     assert ReadInstruction.from_spec(spec_train_pct_rounding).to_spec() == "train[:10%]"
 
     spec_train_pct_rounding = "train[:10%](pct1_dropremainder)"
-    assert ReadInstruction.from_spec(spec_train_pct_rounding).to_spec() == spec_train_pct_rounding
+    assert (
+        ReadInstruction.from_spec(spec_train_pct_rounding).to_spec()
+        == spec_train_pct_rounding
+    )
 
-    spec_train_test_pct_rounding = "train[:10%](pct1_dropremainder)+test[-10%:](pct1_dropremainder)"
-    assert ReadInstruction.from_spec(spec_train_test_pct_rounding).to_spec() == spec_train_test_pct_rounding
+    spec_train_test_pct_rounding = (
+        "train[:10%](pct1_dropremainder)+test[-10%:](pct1_dropremainder)"
+    )
+    assert (
+        ReadInstruction.from_spec(spec_train_test_pct_rounding).to_spec()
+        == spec_train_test_pct_rounding
+    )
 
 
 def test_make_file_instructions_basic():
@@ -165,22 +204,46 @@ def test_make_file_instructions_basic():
     filetype_suffix = "arrow"
     prefix_path = "prefix"
 
-    file_instructions = make_file_instructions(name, split_infos, instruction, filetype_suffix, prefix_path)
+    file_instructions = make_file_instructions(
+        name, split_infos, instruction, filetype_suffix, prefix_path
+    )
     assert isinstance(file_instructions, FileInstructions)
     assert file_instructions.num_examples == 33
     assert file_instructions.file_instructions == [
-        {"filename": os.path.join(prefix_path, f"{name}-train.arrow"), "skip": 0, "take": 33}
+        {
+            "filename": os.path.join(prefix_path, f"{name}-train.arrow"),
+            "skip": 0,
+            "take": 33,
+        }
     ]
 
     split_infos = [SplitInfo(name="train", num_examples=100, shard_lengths=[10] * 10)]
-    file_instructions = make_file_instructions(name, split_infos, instruction, filetype_suffix, prefix_path)
+    file_instructions = make_file_instructions(
+        name, split_infos, instruction, filetype_suffix, prefix_path
+    )
     assert isinstance(file_instructions, FileInstructions)
     assert file_instructions.num_examples == 33
     assert file_instructions.file_instructions == [
-        {"filename": os.path.join(prefix_path, f"{name}-train-00000-of-00010.arrow"), "skip": 0, "take": -1},
-        {"filename": os.path.join(prefix_path, f"{name}-train-00001-of-00010.arrow"), "skip": 0, "take": -1},
-        {"filename": os.path.join(prefix_path, f"{name}-train-00002-of-00010.arrow"), "skip": 0, "take": -1},
-        {"filename": os.path.join(prefix_path, f"{name}-train-00003-of-00010.arrow"), "skip": 0, "take": 3},
+        {
+            "filename": os.path.join(prefix_path, f"{name}-train-00000-of-00010.arrow"),
+            "skip": 0,
+            "take": -1,
+        },
+        {
+            "filename": os.path.join(prefix_path, f"{name}-train-00001-of-00010.arrow"),
+            "skip": 0,
+            "take": -1,
+        },
+        {
+            "filename": os.path.join(prefix_path, f"{name}-train-00002-of-00010.arrow"),
+            "skip": 0,
+            "take": -1,
+        },
+        {
+            "filename": os.path.join(prefix_path, f"{name}-train-00003-of-00010.arrow"),
+            "skip": 0,
+            "take": 3,
+        },
     ]
 
 
@@ -202,15 +265,23 @@ def test_make_file_instructions(split_name, instruction, shard_lengths, read_ran
     split_infos = split_infos = [
         SplitInfo(
             name="train",
-            num_examples=shard_lengths if not isinstance(shard_lengths, list) else sum(shard_lengths),
+            num_examples=(
+                shard_lengths
+                if not isinstance(shard_lengths, list)
+                else sum(shard_lengths)
+            ),
             shard_lengths=shard_lengths if isinstance(shard_lengths, list) else None,
         )
     ]
     filetype_suffix = "arrow"
     prefix_path = "prefix"
-    file_instructions = make_file_instructions(name, split_infos, instruction, filetype_suffix, prefix_path)
+    file_instructions = make_file_instructions(
+        name, split_infos, instruction, filetype_suffix, prefix_path
+    )
     assert isinstance(file_instructions, FileInstructions)
-    assert file_instructions.num_examples == (read_range[1] - read_range[0] if read_range is not None else 0)
+    assert file_instructions.num_examples == (
+        read_range[1] - read_range[0] if read_range is not None else 0
+    )
     if read_range is None:
         assert file_instructions.file_instructions == []
     else:
@@ -226,15 +297,20 @@ def test_make_file_instructions(split_name, instruction, shard_lengths, read_ran
             file_instructions_list = []
             shard_offset = 0
             for i, shard_length in enumerate(shard_lengths):
-                filename = os.path.join(prefix_path, f"{name}-{split_name}-{i:05d}-of-{len(shard_lengths):05d}.arrow")
+                filename = os.path.join(
+                    prefix_path,
+                    f"{name}-{split_name}-{i:05d}-of-{len(shard_lengths):05d}.arrow",
+                )
                 if shard_offset <= read_range[0] < shard_offset + shard_length:
                     file_instructions_list.append(
                         {
                             "filename": filename,
                             "skip": read_range[0] - shard_offset,
-                            "take": read_range[1] - read_range[0]
-                            if read_range[1] < shard_offset + shard_length
-                            else -1,
+                            "take": (
+                                read_range[1] - read_range[0]
+                                if read_range[1] < shard_offset + shard_length
+                                else -1
+                            ),
                         }
                     )
                 elif shard_offset < read_range[1] <= shard_offset + shard_length:
@@ -242,12 +318,17 @@ def test_make_file_instructions(split_name, instruction, shard_lengths, read_ran
                         {
                             "filename": filename,
                             "skip": 0,
-                            "take": read_range[1] - shard_offset
-                            if read_range[1] < shard_offset + shard_length
-                            else -1,
+                            "take": (
+                                read_range[1] - shard_offset
+                                if read_range[1] < shard_offset + shard_length
+                                else -1
+                            ),
                         }
                     )
-                elif read_range[0] < shard_offset and read_range[1] > shard_offset + shard_length:
+                elif (
+                    read_range[0] < shard_offset
+                    and read_range[1] > shard_offset + shard_length
+                ):
                     file_instructions_list.append(
                         {
                             "filename": filename,
@@ -259,11 +340,15 @@ def test_make_file_instructions(split_name, instruction, shard_lengths, read_ran
             assert file_instructions.file_instructions == file_instructions_list
 
 
-@pytest.mark.parametrize("name, expected_exception", [(None, TypeError), ("", ValueError)])
+@pytest.mark.parametrize(
+    "name, expected_exception", [(None, TypeError), ("", ValueError)]
+)
 def test_make_file_instructions_raises(name, expected_exception):
     split_infos = [SplitInfo(name="train", num_examples=100)]
     instruction = "train"
     filetype_suffix = "arrow"
     prefix_path = "prefix_path"
     with pytest.raises(expected_exception):
-        _ = make_file_instructions(name, split_infos, instruction, filetype_suffix, prefix_path)
+        _ = make_file_instructions(
+            name, split_infos, instruction, filetype_suffix, prefix_path
+        )

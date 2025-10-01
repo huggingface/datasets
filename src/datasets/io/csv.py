@@ -34,7 +34,11 @@ class CsvDatasetReader(AbstractDatasetReader):
             num_proc=num_proc,
             **kwargs,
         )
-        path_or_paths = path_or_paths if isinstance(path_or_paths, dict) else {self.split: path_or_paths}
+        path_or_paths = (
+            path_or_paths
+            if isinstance(path_or_paths, dict)
+            else {self.split: path_or_paths}
+        )
         self.builder = Csv(
             cache_dir=cache_dir,
             data_files=path_or_paths,
@@ -61,7 +65,9 @@ class CsvDatasetReader(AbstractDatasetReader):
                 num_proc=self.num_proc,
             )
             dataset = self.builder.as_dataset(
-                split=self.split, verification_mode=verification_mode, in_memory=self.keep_in_memory
+                split=self.split,
+                verification_mode=verification_mode,
+                in_memory=self.keep_in_memory,
             )
         return dataset
 
@@ -93,10 +99,19 @@ class CsvDatasetWriter:
         index = self.to_csv_kwargs.pop("index", False)
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
-            with fsspec.open(self.path_or_buf, "wb", **(self.storage_options or {})) as buffer:
-                written = self._write(file_obj=buffer, header=header, index=index, **self.to_csv_kwargs)
+            with fsspec.open(
+                self.path_or_buf, "wb", **(self.storage_options or {})
+            ) as buffer:
+                written = self._write(
+                    file_obj=buffer, header=header, index=index, **self.to_csv_kwargs
+                )
         else:
-            written = self._write(file_obj=self.path_or_buf, header=header, index=index, **self.to_csv_kwargs)
+            written = self._write(
+                file_obj=self.path_or_buf,
+                header=header,
+                index=index,
+                **self.to_csv_kwargs,
+            )
         return written
 
     def _batch_csv(self, args):
@@ -108,7 +123,10 @@ class CsvDatasetWriter:
             indices=self.dataset._indices,
         )
         csv_str = batch.to_pandas().to_csv(
-            path_or_buf=None, header=header if (offset == 0) else False, index=index, **to_csv_kwargs
+            path_or_buf=None,
+            header=header if (offset == 0) else False,
+            index=index,
+            **to_csv_kwargs,
         )
         return csv_str.encode(self.encoding)
 
@@ -134,9 +152,16 @@ class CsvDatasetWriter:
                 for csv_str in hf_tqdm(
                     pool.imap(
                         self._batch_csv,
-                        [(offset, header, index, to_csv_kwargs) for offset in range(0, num_rows, batch_size)],
+                        [
+                            (offset, header, index, to_csv_kwargs)
+                            for offset in range(0, num_rows, batch_size)
+                        ],
                     ),
-                    total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
+                    total=(
+                        (num_rows // batch_size) + 1
+                        if num_rows % batch_size
+                        else num_rows // batch_size
+                    ),
                     unit="ba",
                     desc="Creating CSV from Arrow format",
                 ):

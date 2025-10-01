@@ -9,7 +9,16 @@ import pytest
 
 from datasets import Array2D
 from datasets.arrow_dataset import Column, Dataset
-from datasets.features import Audio, ClassLabel, Features, Image, LargeList, List, Sequence, Value
+from datasets.features import (
+    Audio,
+    ClassLabel,
+    Features,
+    Image,
+    LargeList,
+    List,
+    Sequence,
+    Value,
+)
 from datasets.features.features import (
     _align_features,
     _arrow_to_datasets_dtype,
@@ -42,7 +51,9 @@ def list_with(item):
 class FeaturesTest(TestCase):
     def test_from_arrow_schema_simple(self):
         data = {"a": [{"b": {"c": "text"}}] * 10, "foo": [1] * 10}
-        original_features = Features({"a": {"b": {"c": Value("string")}}, "foo": Value("int64")})
+        original_features = Features(
+            {"a": {"b": {"c": Value("string")}}, "foo": Value("int64")}
+        )
         dset = Dataset.from_dict(data, features=original_features)
         new_features = dset.features
         new_dset = Dataset.from_dict(data, features=new_features)
@@ -52,7 +63,9 @@ class FeaturesTest(TestCase):
 
     def test_from_arrow_schema_with_sequence(self):
         data = {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10}
-        original_features = Features({"a": {"b": {"c": List(Value("string"))}}, "foo": Value("int64")})
+        original_features = Features(
+            {"a": {"b": {"c": List(Value("string"))}}, "foo": Value("int64")}
+        )
         dset = Dataset.from_dict(data, features=original_features)
         new_features = dset.features
         new_dset = Dataset.from_dict(data, features=new_features)
@@ -144,7 +157,10 @@ class FeaturesTest(TestCase):
                     "title": Value("string"),
                     "url": Value("string"),
                     "html": Value("string"),
-                    "tokens": {"token": List(Value("string")), "is_html": List(Value("bool"))},
+                    "tokens": {
+                        "token": List(Value("string")),
+                        "is_html": List(Value("bool")),
+                    },
                 },
                 "question": {
                     "text": Value("string"),
@@ -178,7 +194,10 @@ class FeaturesTest(TestCase):
             {
                 "id": Value("string"),
                 "document": {
-                    "tokens": {"token": List(Value("string")), "is_html": List(Value("bool"))},
+                    "tokens": {
+                        "token": List(Value("string")),
+                        "is_html": List(Value("bool")),
+                    },
                     "title": Value("string"),
                     "url": Value("string"),
                     "html": Value("string"),
@@ -215,7 +234,10 @@ class FeaturesTest(TestCase):
             {
                 "id": Value("string"),
                 "document": {
-                    "tokens": {"token": List(Value("string")), "is_html": List(Value("bool"))},
+                    "tokens": {
+                        "token": List(Value("string")),
+                        "is_html": List(Value("bool")),
+                    },
                     "title": Value("string"),
                     "url": Value("string"),
                     "html": Value("string"),
@@ -255,18 +277,27 @@ class FeaturesTest(TestCase):
         self.assertNotEqual(reordered_features.type, features.type)
 
     def test_flatten(self):
-        features = Features({"foo": {"bar1": Value("int32"), "bar2": {"foobar": Value("string")}}})
+        features = Features(
+            {"foo": {"bar1": Value("int32"), "bar2": {"foobar": Value("string")}}}
+        )
         _features = features.copy()
         flattened_features = features.flatten()
-        assert flattened_features == {"foo.bar1": Value("int32"), "foo.bar2.foobar": Value("string")}
-        assert features == _features, "calling flatten shouldn't alter the current features"
+        assert flattened_features == {
+            "foo.bar1": Value("int32"),
+            "foo.bar2.foobar": Value("string"),
+        }
+        assert (
+            features == _features
+        ), "calling flatten shouldn't alter the current features"
 
     def test_flatten_with_sequence(self):
         features = Features({"foo": {"bar": List({"my_value": Value("int32")})}})
         _features = features.copy()
         flattened_features = features.flatten()
         assert flattened_features == {"foo.bar": List({"my_value": Value("int32")})}
-        assert features == _features, "calling flatten shouldn't alter the current features"
+        assert (
+            features == _features
+        ), "calling flatten shouldn't alter the current features"
 
     def test_features_dicts_are_synced(self):
         def assert_features_dicts_are_synced(features: Features):
@@ -305,7 +336,9 @@ def test_classlabel_init(tmp_path_factory):
     classlabel = ClassLabel(num_classes=len(names), names=names)
     assert classlabel.names == names and classlabel.num_classes == len(names)
     classlabel = ClassLabel(num_classes=len(names))
-    assert classlabel.names == [str(i) for i in range(len(names))] and classlabel.num_classes == len(names)
+    assert classlabel.names == [
+        str(i) for i in range(len(names))
+    ] and classlabel.num_classes == len(names)
     with pytest.raises(ValueError):
         classlabel = ClassLabel(num_classes=len(names) + 1, names=names)
     with pytest.raises(ValueError):
@@ -429,9 +462,21 @@ def test_encode_nested_example_sequence_with_none(inner_type):
     "features_dict, example, expected_encoded_example",
     [
         ({"col_1": ClassLabel(names=["a", "b"])}, {"col_1": "b"}, {"col_1": 1}),
-        ({"col_1": List(ClassLabel(names=["a", "b"]))}, {"col_1": ["b"]}, {"col_1": [1]}),
-        ({"col_1": LargeList(ClassLabel(names=["a", "b"]))}, {"col_1": ["b"]}, {"col_1": [1]}),
-        ({"col_1": List(ClassLabel(names=["a", "b"]))}, {"col_1": ["b"]}, {"col_1": [1]}),
+        (
+            {"col_1": List(ClassLabel(names=["a", "b"]))},
+            {"col_1": ["b"]},
+            {"col_1": [1]},
+        ),
+        (
+            {"col_1": LargeList(ClassLabel(names=["a", "b"]))},
+            {"col_1": ["b"]},
+            {"col_1": [1]},
+        ),
+        (
+            {"col_1": List(ClassLabel(names=["a", "b"]))},
+            {"col_1": ["b"]},
+            {"col_1": [1]},
+        ),
     ],
 )
 def test_encode_example(features_dict, example, expected_encoded_example):
@@ -519,10 +564,14 @@ def iternumpy(key1, value1, value2):
 def dict_diff(d1: dict, d2: dict):  # check if 2 dictionaries are equal
     np.testing.assert_equal(d1, d2)  # sanity check if dict values are equal or not
 
-    for (k1, v1), (k2, v2) in zip(d1.items(), d2.items()):  # check if their values have same dtype or not
+    for (k1, v1), (k2, v2) in zip(
+        d1.items(), d2.items()
+    ):  # check if their values have same dtype or not
         if isinstance(v1, dict):  # nested dictionary case
             dict_diff(v1, v2)
-        elif isinstance(v1, np.ndarray):  # checks if dtype and value of np.ndarray is equal
+        elif isinstance(
+            v1, np.ndarray
+        ):  # checks if dtype and value of np.ndarray is equal
             iternumpy(k1, v1, v2)
         elif isinstance(v1, list):
             for element1, element2 in zip(v1, v2):  # iterates over all elements of list
@@ -534,19 +583,34 @@ def dict_diff(d1: dict, d2: dict):  # check if 2 dictionaries are equal
 
 class CastToPythonObjectsTest(TestCase):
     def test_cast_to_python_objects_list(self):
-        obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
-        expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
+        obj = {
+            "col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3,
+            "col_2": [[1, 2], [3, 4], [5, 6]],
+        }
+        expected_obj = {
+            "col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3,
+            "col_2": [[1, 2], [3, 4], [5, 6]],
+        }
         casted_obj = cast_to_python_objects(obj)
         self.assertDictEqual(casted_obj, expected_obj)
 
     def test_cast_to_python_objects_tuple(self):
-        obj = {"col_1": [{"vec": (1, 2, 3), "txt": "foo"}] * 3, "col_2": [(1, 2), (3, 4), (5, 6)]}
-        expected_obj = {"col_1": [{"vec": (1, 2, 3), "txt": "foo"}] * 3, "col_2": [(1, 2), (3, 4), (5, 6)]}
+        obj = {
+            "col_1": [{"vec": (1, 2, 3), "txt": "foo"}] * 3,
+            "col_2": [(1, 2), (3, 4), (5, 6)],
+        }
+        expected_obj = {
+            "col_1": [{"vec": (1, 2, 3), "txt": "foo"}] * 3,
+            "col_2": [(1, 2), (3, 4), (5, 6)],
+        }
         casted_obj = cast_to_python_objects(obj)
         self.assertDictEqual(casted_obj, expected_obj)
 
     def test_cast_to_python_or_numpy(self):
-        obj = {"col_1": [{"vec": np.arange(1, 4), "txt": "foo"}] * 3, "col_2": np.arange(1, 7).reshape(3, 2)}
+        obj = {
+            "col_1": [{"vec": np.arange(1, 4), "txt": "foo"}] * 3,
+            "col_2": np.arange(1, 7).reshape(3, 2),
+        }
         expected_obj = {
             "col_1": [{"vec": np.array([1, 2, 3]), "txt": "foo"}] * 3,
             "col_2": np.array([[1, 2], [3, 4], [5, 6]]),
@@ -559,13 +623,24 @@ class CastToPythonObjectsTest(TestCase):
             "col_1": pd.Series([{"vec": [1, 2, 3], "txt": "foo"}] * 3),
             "col_2": pd.Series([[1, 2], [3, 4], [5, 6]]),
         }
-        expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
+        expected_obj = {
+            "col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3,
+            "col_2": [[1, 2], [3, 4], [5, 6]],
+        }
         casted_obj = cast_to_python_objects(obj)
         self.assertDictEqual(casted_obj, expected_obj)
 
     def test_cast_to_python_objects_dataframe(self):
-        obj = pd.DataFrame({"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]})
-        expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
+        obj = pd.DataFrame(
+            {
+                "col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3,
+                "col_2": [[1, 2], [3, 4], [5, 6]],
+            }
+        )
+        expected_obj = {
+            "col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3,
+            "col_2": [[1, 2], [3, 4], [5, 6]],
+        }
         casted_obj = cast_to_python_objects(obj)
         self.assertDictEqual(casted_obj, expected_obj)
 
@@ -636,7 +711,10 @@ class CastToPythonObjectsTest(TestCase):
         casted_obj = cast_to_python_objects(obj)
         dict_diff(casted_obj, expected_obj)
 
-    @patch("datasets.features.features._cast_to_python_objects", side_effect=_cast_to_python_objects)
+    @patch(
+        "datasets.features.features._cast_to_python_objects",
+        side_effect=_cast_to_python_objects,
+    )
     def test_dont_iterate_over_each_element_in_a_list(self, mocked_cast):
         obj = {"col_1": [[1, 2], [3, 4], [5, 6]]}
         cast_to_python_objects(obj)
@@ -681,7 +759,10 @@ NESTED_CUSTOM_FEATURES = [
 ]
 
 
-@pytest.mark.parametrize("features", SIMPLE_FEATURES + CUSTOM_FEATURES + NESTED_FEATURES + NESTED_CUSTOM_FEATURES)
+@pytest.mark.parametrize(
+    "features",
+    SIMPLE_FEATURES + CUSTOM_FEATURES + NESTED_FEATURES + NESTED_CUSTOM_FEATURES,
+)
 def test_features_to_dict_and_from_dict_round_trip(features: Features):
     features_dict = features.to_dict()
     assert isinstance(features_dict, dict)
@@ -689,7 +770,10 @@ def test_features_to_dict_and_from_dict_round_trip(features: Features):
     assert features == reloaded
 
 
-@pytest.mark.parametrize("features", SIMPLE_FEATURES + CUSTOM_FEATURES + NESTED_FEATURES + NESTED_CUSTOM_FEATURES)
+@pytest.mark.parametrize(
+    "features",
+    SIMPLE_FEATURES + CUSTOM_FEATURES + NESTED_FEATURES + NESTED_CUSTOM_FEATURES,
+)
 def test_features_to_yaml_list(features: Features):
     features_yaml_list = features._to_yaml_list()
     assert isinstance(features_yaml_list, list)
@@ -700,9 +784,18 @@ def test_features_to_yaml_list(features: Features):
 @pytest.mark.parametrize(
     "features_dict, expected_features_dict",
     [
-        ({"col": [{"sub_col": Value("int32")}]}, {"col": [{"sub_col": Value("int32")}]}),
-        ({"col": LargeList({"sub_col": Value("int32")})}, {"col": LargeList({"sub_col": Value("int32")})}),
-        ({"col": {"sub_col": List(Value("int32"))}}, {"col.sub_col": List(Value("int32"))}),
+        (
+            {"col": [{"sub_col": Value("int32")}]},
+            {"col": [{"sub_col": Value("int32")}]},
+        ),
+        (
+            {"col": LargeList({"sub_col": Value("int32")})},
+            {"col": LargeList({"sub_col": Value("int32")})},
+        ),
+        (
+            {"col": {"sub_col": List(Value("int32"))}},
+            {"col.sub_col": List(Value("int32"))},
+        ),
     ],
 )
 def test_features_flatten_with_list_types(features_dict, expected_features_dict):
@@ -719,24 +812,46 @@ def test_features_flatten_with_list_types(features_dict, expected_features_dict)
             {"col": List(Value("int32"))},
         ),
         (
-            {"col": {"feature": {"dtype": "int32", "_type": "Value"}, "_type": "LargeList"}},
+            {
+                "col": {
+                    "feature": {"dtype": "int32", "_type": "Value"},
+                    "_type": "LargeList",
+                }
+            },
             {"col": LargeList(Value("int32"))},
         ),
         (
-            {"col": {"feature": {"sub_col": {"dtype": "int32", "_type": "Value"}}, "_type": "List"}},
+            {
+                "col": {
+                    "feature": {"sub_col": {"dtype": "int32", "_type": "Value"}},
+                    "_type": "List",
+                }
+            },
             {"col": List({"sub_col": Value("int32")})},
         ),
         (
-            {"col": {"feature": {"sub_col": {"dtype": "int32", "_type": "Value"}}, "_type": "LargeList"}},
+            {
+                "col": {
+                    "feature": {"sub_col": {"dtype": "int32", "_type": "Value"}},
+                    "_type": "LargeList",
+                }
+            },
             {"col": LargeList({"sub_col": Value("int32")})},
         ),
         (
-            {"col": {"feature": {"sub_col": {"dtype": "int32", "_type": "Value"}}, "_type": "Sequence"}},
+            {
+                "col": {
+                    "feature": {"sub_col": {"dtype": "int32", "_type": "Value"}},
+                    "_type": "Sequence",
+                }
+            },
             {"col": {"sub_col": List(Value("int32"))}},
         ),
     ],
 )
-def test_features_from_dict_with_list_types(deserialized_features_dict, expected_features_dict):
+def test_features_from_dict_with_list_types(
+    deserialized_features_dict, expected_features_dict
+):
     features = Features.from_dict(deserialized_features_dict)
     assert features == Features(expected_features_dict)
 
@@ -753,20 +868,33 @@ def test_features_from_dict_with_list_types(deserialized_features_dict, expected
             List(Value("int32")),
         ),
         (
-            {"feature": {"sub_col": {"dtype": "int32", "_type": "Value"}}, "_type": "List"},
+            {
+                "feature": {"sub_col": {"dtype": "int32", "_type": "Value"}},
+                "_type": "List",
+            },
             List({"sub_col": Value("int32")}),
         ),
         (
-            {"feature": {"sub_col": {"dtype": "int32", "_type": "Value"}}, "_type": "LargeList"},
+            {
+                "feature": {"sub_col": {"dtype": "int32", "_type": "Value"}},
+                "_type": "LargeList",
+            },
             LargeList({"sub_col": Value("int32")}),
         ),
         (
-            {"sub_col": {"feature": {"dtype": "int32", "_type": "Value"}, "_type": "List"}},
+            {
+                "sub_col": {
+                    "feature": {"dtype": "int32", "_type": "Value"},
+                    "_type": "List",
+                }
+            },
             {"sub_col": List(Value("int32"))},
         ),
     ],
 )
-def test_generate_from_dict_with_list_types(deserialized_feature_dict, expected_feature):
+def test_generate_from_dict_with_list_types(
+    deserialized_feature_dict, expected_feature
+):
     feature = generate_from_dict(deserialized_feature_dict)
     assert feature == expected_feature
 
@@ -781,7 +909,9 @@ def test_generate_from_dict_with_list_types(deserialized_feature_dict, expected_
         ),
     ],
 )
-def test_features_to_yaml_list_with_large_list(features_dict, expected_features_yaml_list):
+def test_features_to_yaml_list_with_large_list(
+    features_dict, expected_features_yaml_list
+):
     features = Features(features_dict)
     features_yaml_list = features._to_yaml_list()
     assert features_yaml_list == expected_features_yaml_list
@@ -797,12 +927,17 @@ def test_features_to_yaml_list_with_large_list(features_dict, expected_features_
         ),
     ],
 )
-def test_features_from_yaml_list_with_large_list(features_yaml_list, expected_features_dict):
+def test_features_from_yaml_list_with_large_list(
+    features_yaml_list, expected_features_dict
+):
     features = Features._from_yaml_list(features_yaml_list)
     assert features == Features(expected_features_dict)
 
 
-@pytest.mark.parametrize("features", SIMPLE_FEATURES + CUSTOM_FEATURES + NESTED_FEATURES + NESTED_CUSTOM_FEATURES)
+@pytest.mark.parametrize(
+    "features",
+    SIMPLE_FEATURES + CUSTOM_FEATURES + NESTED_FEATURES + NESTED_CUSTOM_FEATURES,
+)
 def test_features_to_arrow_schema(features: Features):
     arrow_schema = features.arrow_schema
     assert isinstance(arrow_schema, pa.Schema)
@@ -812,12 +947,24 @@ def test_features_to_arrow_schema(features: Features):
 
 NESTED_COMPARISON = [
     [
-        [Features({"email": Value(dtype="string", id=None)}), Features({"email": Value(dtype="string", id=None)})],
-        [Features({"email": Value(dtype="string", id=None)}), Features({"email": Value(dtype="string", id=None)})],
+        [
+            Features({"email": Value(dtype="string", id=None)}),
+            Features({"email": Value(dtype="string", id=None)}),
+        ],
+        [
+            Features({"email": Value(dtype="string", id=None)}),
+            Features({"email": Value(dtype="string", id=None)}),
+        ],
     ],
     [
-        [Features({"email": Value(dtype="string", id=None)}), Features({"email": Value(dtype="null", id=None)})],
-        [Features({"email": Value(dtype="string", id=None)}), Features({"email": Value(dtype="string", id=None)})],
+        [
+            Features({"email": Value(dtype="string", id=None)}),
+            Features({"email": Value(dtype="null", id=None)}),
+        ],
+        [
+            Features({"email": Value(dtype="string", id=None)}),
+            Features({"email": Value(dtype="string", id=None)}),
+        ],
     ],
     [
         [
@@ -845,7 +992,9 @@ NESTED_COMPARISON = [
 @pytest.mark.parametrize("features", NESTED_COMPARISON)
 def test_features_alignment(features: tuple[list[Features], list[Features]]):
     inputs, expected = features
-    _check_if_features_can_be_aligned(inputs)  # Check that we can align, will raise otherwise.
+    _check_if_features_can_be_aligned(
+        inputs
+    )  # Check that we can align, will raise otherwise.
     assert _align_features(inputs) == expected
 
 
@@ -890,7 +1039,8 @@ def test_features_reorder_fields_as_with_list_types(feature, other_feature):
 
 
 @pytest.mark.parametrize(
-    "feature, expected_arrow_data_type", [(Value("int64"), pa.int64), (Value("string"), pa.string)]
+    "feature, expected_arrow_data_type",
+    [(Value("int64"), pa.int64), (Value("string"), pa.string)],
 )
 def test_get_nested_type_with_scalar_feature(feature, expected_arrow_data_type):
     arrow_data_type = get_nested_type(feature)
@@ -898,37 +1048,51 @@ def test_get_nested_type_with_scalar_feature(feature, expected_arrow_data_type):
 
 
 @pytest.mark.parametrize(
-    "scalar_feature, expected_arrow_primitive_data_type", [(Value("int64"), pa.int64), (Value("string"), pa.string)]
+    "scalar_feature, expected_arrow_primitive_data_type",
+    [(Value("int64"), pa.int64), (Value("string"), pa.string)],
 )
 @pytest.mark.parametrize(
     "list_feature, expected_arrow_nested_data_type",
     [(list_with, pa.list_), (LargeList, pa.large_list), (Sequence, pa.list_)],
 )
 def test_get_nested_type_with_list_feature(
-    list_feature, expected_arrow_nested_data_type, scalar_feature, expected_arrow_primitive_data_type
+    list_feature,
+    expected_arrow_nested_data_type,
+    scalar_feature,
+    expected_arrow_primitive_data_type,
 ):
     feature = list_feature(scalar_feature)
     arrow_data_type = get_nested_type(feature)
-    assert arrow_data_type == expected_arrow_nested_data_type(expected_arrow_primitive_data_type())
+    assert arrow_data_type == expected_arrow_nested_data_type(
+        expected_arrow_primitive_data_type()
+    )
 
 
 @pytest.mark.parametrize(
-    "arrow_primitive_data_type, expected_feature", [(pa.int32, Value("int32")), (pa.string, Value("string"))]
+    "arrow_primitive_data_type, expected_feature",
+    [(pa.int32, Value("int32")), (pa.string, Value("string"))],
 )
-def test_generate_from_arrow_type_with_arrow_primitive_data_type(arrow_primitive_data_type, expected_feature):
+def test_generate_from_arrow_type_with_arrow_primitive_data_type(
+    arrow_primitive_data_type, expected_feature
+):
     arrow_data_type = arrow_primitive_data_type()
     feature = generate_from_arrow_type(arrow_data_type)
     assert feature == expected_feature
 
 
 @pytest.mark.parametrize(
-    "arrow_primitive_data_type, expected_scalar_feature", [(pa.int32, Value("int32")), (pa.string, Value("string"))]
+    "arrow_primitive_data_type, expected_scalar_feature",
+    [(pa.int32, Value("int32")), (pa.string, Value("string"))],
 )
 @pytest.mark.parametrize(
-    "arrow_nested_data_type, expected_list_feature", [(pa.list_, Sequence), (pa.large_list, LargeList)]
+    "arrow_nested_data_type, expected_list_feature",
+    [(pa.list_, Sequence), (pa.large_list, LargeList)],
 )
 def test_generate_from_arrow_type_with_arrow_nested_data_type(
-    arrow_nested_data_type, expected_list_feature, arrow_primitive_data_type, expected_scalar_feature
+    arrow_nested_data_type,
+    expected_list_feature,
+    arrow_primitive_data_type,
+    expected_scalar_feature,
 ):
     arrow_data_type = arrow_nested_data_type(arrow_primitive_data_type())
     feature = generate_from_arrow_type(arrow_data_type)
@@ -938,7 +1102,11 @@ def test_generate_from_arrow_type_with_arrow_nested_data_type(
 
 @pytest.mark.parametrize(
     "schema",
-    [[ClassLabel(names=["a", "b"])], LargeList(ClassLabel(names=["a", "b"])), List(ClassLabel(names=["a", "b"]))],
+    [
+        [ClassLabel(names=["a", "b"])],
+        LargeList(ClassLabel(names=["a", "b"])),
+        List(ClassLabel(names=["a", "b"])),
+    ],
 )
 def test_check_non_null_non_empty_recursive_with_list_types(schema):
     assert _check_non_null_non_empty_recursive([], schema) is False
@@ -973,7 +1141,11 @@ def test_require_storage_embed_with_list_types(feature):
 
 @pytest.mark.parametrize(
     "feature, expected",
-    [(List(Value("int32")), List(1)), (LargeList(Value("int32")), LargeList(1)), (List(Value("int32")), List(1))],
+    [
+        (List(Value("int32")), List(1)),
+        (LargeList(Value("int32")), LargeList(1)),
+        (List(Value("int32")), List(1)),
+    ],
 )
 def test_visit_with_list_types(feature, expected):
     def func(x):

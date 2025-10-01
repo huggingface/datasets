@@ -25,7 +25,12 @@ import pandas as pd
 import pyarrow as pa
 
 from ..features import Features
-from ..features.features import _ArrayXDExtensionType, _is_zero_copy_only, decode_nested_example, pandas_types_mapper
+from ..features.features import (
+    _ArrayXDExtensionType,
+    _is_zero_copy_only,
+    decode_nested_example,
+    pandas_types_mapper,
+)
 from ..table import Table
 from ..utils.py_utils import no_op_if_value_is_null
 
@@ -64,7 +69,13 @@ def _query_table_with_indices_mapping(
     if isinstance(key, range):
         if _is_range_contiguous(key) and key.start >= 0:
             return _query_table(
-                table, [i.as_py() for i in indices.fast_slice(key.start, key.stop - key.start).column(0)]
+                table,
+                [
+                    i.as_py()
+                    for i in indices.fast_slice(key.start, key.stop - key.start).column(
+                        0
+                    )
+                ],
             )
         else:
             pass  # treat as an iterable
@@ -72,12 +83,16 @@ def _query_table_with_indices_mapping(
         table = table.select([key])
         return _query_table(table, indices.column(0).to_pylist())
     if isinstance(key, Iterable):
-        return _query_table(table, [indices.fast_slice(i, 1).column(0)[0].as_py() for i in key])
+        return _query_table(
+            table, [indices.fast_slice(i, 1).column(0)[0].as_py() for i in key]
+        )
 
     _raise_bad_key_type(key)
 
 
-def _query_table(table: Table, key: Union[int, slice, range, str, Iterable]) -> pa.Table:
+def _query_table(
+    table: Table, key: Union[int, slice, range, str, Iterable]
+) -> pa.Table:
     """
     Query a pyarrow Table to extract the subtable that correspond to the given key.
     """
@@ -91,7 +106,9 @@ def _query_table(table: Table, key: Union[int, slice, range, str, Iterable]) -> 
         else:
             pass  # treat as an iterable
     if isinstance(key, str):
-        return table.table.drop([column for column in table.column_names if column != key])
+        return table.table.drop(
+            [column for column in table.column_names if column != key]
+        )
     if isinstance(key, Iterable):
         key = np.fromiter(key, np.int64)
         if len(key) == 0:
@@ -161,35 +178,51 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
         return self._arrow_array_to_numpy(pa_table[pa_table.column_names[0]])
 
     def extract_batch(self, pa_table: pa.Table) -> dict:
-        return {col: self._arrow_array_to_numpy(pa_table[col]) for col in pa_table.column_names}
+        return {
+            col: self._arrow_array_to_numpy(pa_table[col])
+            for col in pa_table.column_names
+        }
 
     def _arrow_array_to_numpy(self, pa_array: pa.Array) -> np.ndarray:
         if isinstance(pa_array, pa.ChunkedArray):
             if isinstance(pa_array.type, _ArrayXDExtensionType):
                 # don't call to_pylist() to preserve dtype of the fixed-size array
-                zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
+                zero_copy_only = _is_zero_copy_only(
+                    pa_array.type.storage_dtype, unnest=True
+                )
                 array: list = [
-                    row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
+                    row
+                    for chunk in pa_array.chunks
+                    for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
                 ]
             else:
                 zero_copy_only = _is_zero_copy_only(pa_array.type) and all(
                     not _is_array_with_nulls(chunk) for chunk in pa_array.chunks
                 )
                 array: list = [
-                    row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
+                    row
+                    for chunk in pa_array.chunks
+                    for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
                 ]
         else:
             if isinstance(pa_array.type, _ArrayXDExtensionType):
                 # don't call to_pylist() to preserve dtype of the fixed-size array
-                zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
+                zero_copy_only = _is_zero_copy_only(
+                    pa_array.type.storage_dtype, unnest=True
+                )
                 array: list = pa_array.to_numpy(zero_copy_only=zero_copy_only)
             else:
-                zero_copy_only = _is_zero_copy_only(pa_array.type) and not _is_array_with_nulls(pa_array)
+                zero_copy_only = _is_zero_copy_only(
+                    pa_array.type
+                ) and not _is_array_with_nulls(pa_array)
                 array: list = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
 
         if len(array) > 0:
             if any(
-                (isinstance(x, np.ndarray) and (x.dtype == object or x.shape != array[0].shape))
+                (
+                    isinstance(x, np.ndarray)
+                    and (x.dtype == object or x.shape != array[0].shape)
+                )
                 or (isinstance(x, float) and np.isnan(x))
                 for x in array
             ):
@@ -207,7 +240,9 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
         return pa_table.slice(length=1).to_pandas(types_mapper=pandas_types_mapper)
 
     def extract_column(self, pa_table: pa.Table) -> pd.Series:
-        return pa_table.select([0]).to_pandas(types_mapper=pandas_types_mapper)[pa_table.column_names[0]]
+        return pa_table.select([0]).to_pandas(types_mapper=pandas_types_mapper)[
+            pa_table.column_names[0]
+        ]
 
     def extract_batch(self, pa_table: pa.Table) -> pd.DataFrame:
         return pa_table.to_pandas(types_mapper=pandas_types_mapper)
@@ -215,23 +250,35 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
 
 class PythonFeaturesDecoder:
     def __init__(
-        self, features: Optional[Features], token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None
+        self,
+        features: Optional[Features],
+        token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None,
     ):
         self.features = features
         self.token_per_repo_id = token_per_repo_id
 
     def decode_row(self, row: dict) -> dict:
-        return self.features.decode_example(row, token_per_repo_id=self.token_per_repo_id) if self.features else row
+        return (
+            self.features.decode_example(row, token_per_repo_id=self.token_per_repo_id)
+            if self.features
+            else row
+        )
 
     def decode_column(self, column: list, column_name: str) -> list:
         return (
-            self.features.decode_column(column, column_name, token_per_repo_id=self.token_per_repo_id)
+            self.features.decode_column(
+                column, column_name, token_per_repo_id=self.token_per_repo_id
+            )
             if self.features
             else column
         )
 
     def decode_batch(self, batch: dict) -> dict:
-        return self.features.decode_batch(batch, token_per_repo_id=self.token_per_repo_id) if self.features else batch
+        return (
+            self.features.decode_batch(batch, token_per_repo_id=self.token_per_repo_id)
+            if self.features
+            else batch
+        )
 
 
 class PandasFeaturesDecoder:
@@ -241,7 +288,9 @@ class PandasFeaturesDecoder:
     def decode_row(self, row: pd.DataFrame) -> pd.DataFrame:
         decode = (
             {
-                column_name: no_op_if_value_is_null(partial(decode_nested_example, feature))
+                column_name: no_op_if_value_is_null(
+                    partial(decode_nested_example, feature)
+                )
                 for column_name, feature in self.features.items()
                 if self.features._column_requires_decoding[column_name]
             }
@@ -254,8 +303,12 @@ class PandasFeaturesDecoder:
 
     def decode_column(self, column: pd.Series, column_name: str) -> pd.Series:
         decode = (
-            no_op_if_value_is_null(partial(decode_nested_example, self.features[column_name]))
-            if self.features and column_name in self.features and self.features._column_requires_decoding[column_name]
+            no_op_if_value_is_null(
+                partial(decode_nested_example, self.features[column_name])
+            )
+            if self.features
+            and column_name in self.features
+            and self.features._column_requires_decoding[column_name]
             else None
         )
         if decode:
@@ -403,10 +456,14 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     ):
         self.features = features
         self.token_per_repo_id = token_per_repo_id
-        self.python_features_decoder = PythonFeaturesDecoder(self.features, self.token_per_repo_id)
+        self.python_features_decoder = PythonFeaturesDecoder(
+            self.features, self.token_per_repo_id
+        )
         self.pandas_features_decoder = PandasFeaturesDecoder(self.features)
 
-    def __call__(self, pa_table: pa.Table, query_type: str) -> Union[RowFormat, ColumnFormat, BatchFormat]:
+    def __call__(
+        self, pa_table: pa.Table, query_type: str
+    ) -> Union[RowFormat, ColumnFormat, BatchFormat]:
         if query_type == "row":
             return self.format_row(pa_table)
         elif query_type == "column":
@@ -462,7 +519,9 @@ class PythonFormatter(Formatter[Mapping, list, Mapping]):
 
     def format_column(self, pa_table: pa.Table) -> list:
         column = self.python_arrow_extractor().extract_column(pa_table)
-        column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
+        column = self.python_features_decoder.decode_column(
+            column, pa_table.column_names[0]
+        )
         return column
 
     def format_batch(self, pa_table: pa.Table) -> Mapping:
@@ -484,7 +543,9 @@ class PandasFormatter(TableFormatter[pd.DataFrame, pd.Series, pd.DataFrame]):
 
     def format_column(self, pa_table: pa.Table) -> pd.Series:
         column = self.pandas_arrow_extractor().extract_column(pa_table)
-        column = self.pandas_features_decoder.decode_column(column, pa_table.column_names[0])
+        column = self.pandas_features_decoder.decode_column(
+            column, pa_table.column_names[0]
+        )
         return column
 
     def format_batch(self, pa_table: pa.Table) -> pd.DataFrame:
@@ -503,7 +564,13 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
     to return.
     """
 
-    def __init__(self, transform: Callable[[dict], dict], features=None, token_per_repo_id=None, **kwargs):
+    def __init__(
+        self,
+        transform: Callable[[dict], dict],
+        features=None,
+        token_per_repo_id=None,
+        **kwargs,
+    ):
         super().__init__(features=features, token_per_repo_id=token_per_repo_id)
         self.transform = transform
 
@@ -543,7 +610,9 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
 
 def _check_valid_column_key(key: str, columns: list[str]) -> None:
     if key not in columns:
-        raise KeyError(f"Column {key} not in the dataset. Current columns in the dataset: {columns}")
+        raise KeyError(
+            f"Column {key} not in the dataset. Current columns in the dataset: {columns}"
+        )
 
 
 def _check_valid_index_key(key: Union[int, slice, range, Iterable], size: int) -> None:
@@ -662,14 +731,18 @@ def format_table(
         else:
             return python_formatter(pa_table, query_type=query_type)
     else:
-        pa_table_to_format = pa_table.drop(col for col in pa_table.column_names if col not in format_columns)
+        pa_table_to_format = pa_table.drop(
+            col for col in pa_table.column_names if col not in format_columns
+        )
         formatted_output = formatter(pa_table_to_format, query_type=query_type)
         if output_all_columns:
             if isinstance(formatted_output, MutableMapping):
                 pa_table_with_remaining_columns = pa_table.drop(
                     col for col in pa_table.column_names if col in format_columns
                 )
-                remaining_columns_dict = python_formatter(pa_table_with_remaining_columns, query_type=query_type)
+                remaining_columns_dict = python_formatter(
+                    pa_table_with_remaining_columns, query_type=query_type
+                )
                 formatted_output.update(remaining_columns_dict)
             else:
                 raise TypeError(

@@ -81,14 +81,19 @@ def maybe_register_dataset_for_temp_dir_deletion(dataset):
     if _DATASETS_WITH_TABLE_IN_TEMP_DIR is None:
         _DATASETS_WITH_TABLE_IN_TEMP_DIR = weakref.WeakSet()
     if any(
-        Path(_TEMP_DIR_FOR_TEMP_CACHE_FILES.name) in Path(cache_file["filename"]).parents
+        Path(_TEMP_DIR_FOR_TEMP_CACHE_FILES.name)
+        in Path(cache_file["filename"]).parents
         for cache_file in dataset.cache_files
     ):
         _DATASETS_WITH_TABLE_IN_TEMP_DIR.add(dataset)
 
 
 def get_datasets_with_cache_file_in_temp_dir():
-    return list(_DATASETS_WITH_TABLE_IN_TEMP_DIR) if _DATASETS_WITH_TABLE_IN_TEMP_DIR is not None else []
+    return (
+        list(_DATASETS_WITH_TABLE_IN_TEMP_DIR)
+        if _DATASETS_WITH_TABLE_IN_TEMP_DIR is not None
+        else []
+    )
 
 
 def enable_caching():
@@ -232,7 +237,9 @@ def update_fingerprint(fingerprint, transform, transform_args):
         hasher.update(transform)
     except:  # noqa various errors might raise here from pickle or dill
         if _CACHING_ENABLED:
-            if not fingerprint_warnings.get("update_fingerprint_transform_hash_failed", False):
+            if not fingerprint_warnings.get(
+                "update_fingerprint_transform_hash_failed", False
+            ):
                 logger.warning(
                     f"Transform {transform} couldn't be hashed properly, a random hash was used instead. "
                     "Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work. "
@@ -241,7 +248,9 @@ def update_fingerprint(fingerprint, transform, transform_args):
                 )
                 fingerprint_warnings["update_fingerprint_transform_hash_failed"] = True
             else:
-                logger.info(f"Transform {transform} couldn't be hashed properly, a random hash was used instead.")
+                logger.info(
+                    f"Transform {transform} couldn't be hashed properly, a random hash was used instead."
+                )
         else:
             logger.info(
                 f"Transform {transform} couldn't be hashed properly, a random hash was used instead. This doesn't affect caching since it's disabled."
@@ -254,14 +263,18 @@ def update_fingerprint(fingerprint, transform, transform_args):
             hasher.update(transform_args[key])
         except:  # noqa various errors might raise here from pickle or dill
             if _CACHING_ENABLED:
-                if not fingerprint_warnings.get("update_fingerprint_transform_hash_failed", False):
+                if not fingerprint_warnings.get(
+                    "update_fingerprint_transform_hash_failed", False
+                ):
                     logger.warning(
                         f"Parameter '{key}'={transform_args[key]} of the transform {transform} couldn't be hashed properly, a random hash was used instead. "
                         "Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work. "
                         "If you reuse this transform, the caching mechanism will consider it to be different from the previous calls and recompute everything. "
                         "This warning is only shown once. Subsequent hashing failures won't be shown."
                     )
-                    fingerprint_warnings["update_fingerprint_transform_hash_failed"] = True
+                    fingerprint_warnings["update_fingerprint_transform_hash_failed"] = (
+                        True
+                    )
                 else:
                     logger.info(
                         f"Parameter '{key}'={transform_args[key]} of the transform {transform} couldn't be hashed properly, a random hash was used instead."
@@ -280,7 +293,9 @@ def validate_fingerprint(fingerprint: str, max_length=64):
     so that the fingerprint can be used to name cache files without issues.
     """
     if not isinstance(fingerprint, str) or not fingerprint:
-        raise ValueError(f"Invalid fingerprint '{fingerprint}': it should be a non-empty string.")
+        raise ValueError(
+            f"Invalid fingerprint '{fingerprint}': it should be a non-empty string."
+        )
     for invalid_char in INVALID_WINDOWS_CHARACTERS_IN_PATH:
         if invalid_char in fingerprint:
             raise ValueError(
@@ -294,7 +309,9 @@ def validate_fingerprint(fingerprint: str, max_length=64):
         )
 
 
-def format_transform_for_fingerprint(func: Callable, version: Optional[str] = None) -> str:
+def format_transform_for_fingerprint(
+    func: Callable, version: Optional[str] = None
+) -> str:
     """
     Format a transform to the format that will be used to update the fingerprint.
     """
@@ -317,7 +334,11 @@ def format_kwargs_for_fingerprint(
     """
     kwargs_for_fingerprint = kwargs.copy()
     if args:
-        params = [p.name for p in inspect.signature(func).parameters.values() if p != p.VAR_KEYWORD]
+        params = [
+            p.name
+            for p in inspect.signature(func).parameters.values()
+            if p != p.VAR_KEYWORD
+        ]
         args = args[1:]  # assume the first argument is the dataset
         params = params[1:]
         kwargs_for_fingerprint.update(zip(params, args))
@@ -329,11 +350,20 @@ def format_kwargs_for_fingerprint(
     # keep the right kwargs to be hashed to generate the fingerprint
 
     if use_kwargs:
-        kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k in use_kwargs}
+        kwargs_for_fingerprint = {
+            k: v for k, v in kwargs_for_fingerprint.items() if k in use_kwargs
+        }
     if ignore_kwargs:
-        kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k not in ignore_kwargs}
-    if randomized_function:  # randomized functions have `seed` and `generator` parameters
-        if kwargs_for_fingerprint.get("seed") is None and kwargs_for_fingerprint.get("generator") is None:
+        kwargs_for_fingerprint = {
+            k: v for k, v in kwargs_for_fingerprint.items() if k not in ignore_kwargs
+        }
+    if (
+        randomized_function
+    ):  # randomized functions have `seed` and `generator` parameters
+        if (
+            kwargs_for_fingerprint.get("seed") is None
+            and kwargs_for_fingerprint.get("generator") is None
+        ):
             _, seed, pos, *_ = np.random.get_state()
             seed = seed[pos] if pos < 624 else seed[0]
             kwargs_for_fingerprint["generator"] = np.random.default_rng(seed)
@@ -341,10 +371,15 @@ def format_kwargs_for_fingerprint(
     # remove kwargs that are the default values
 
     default_values = {
-        p.name: p.default for p in inspect.signature(func).parameters.values() if p.default != inspect._empty
+        p.name: p.default
+        for p in inspect.signature(func).parameters.values()
+        if p.default != inspect._empty
     }
     for default_varname, default_value in default_values.items():
-        if default_varname in kwargs_for_fingerprint and kwargs_for_fingerprint[default_varname] == default_value:
+        if (
+            default_varname in kwargs_for_fingerprint
+            and kwargs_for_fingerprint[default_varname] == default_value
+        ):
             kwargs_for_fingerprint.pop(default_varname)
     return kwargs_for_fingerprint
 
@@ -388,18 +423,28 @@ def fingerprint_transform(
         raise ValueError(f"use_kwargs is supposed to be a list, not {type(use_kwargs)}")
 
     if ignore_kwargs is not None and not isinstance(ignore_kwargs, list):
-        raise ValueError(f"ignore_kwargs is supposed to be a list, not {type(use_kwargs)}")
+        raise ValueError(
+            f"ignore_kwargs is supposed to be a list, not {type(use_kwargs)}"
+        )
 
     if inplace and fingerprint_names:
         raise ValueError("fingerprint_names are only used when inplace is False")
 
-    fingerprint_names = fingerprint_names if fingerprint_names is not None else ["new_fingerprint"]
+    fingerprint_names = (
+        fingerprint_names if fingerprint_names is not None else ["new_fingerprint"]
+    )
 
     def _fingerprint(func):
-        if not inplace and not all(name in func.__code__.co_varnames for name in fingerprint_names):
-            raise ValueError(f"function {func} is missing parameters {fingerprint_names} in signature")
+        if not inplace and not all(
+            name in func.__code__.co_varnames for name in fingerprint_names
+        ):
+            raise ValueError(
+                f"function {func} is missing parameters {fingerprint_names} in signature"
+            )
 
-        if randomized_function:  # randomized function have seed and generator parameters
+        if (
+            randomized_function
+        ):  # randomized function have seed and generator parameters
             if "seed" not in func.__code__.co_varnames:
                 raise ValueError(f"'seed' must be in {func}'s signature")
             if "generator" not in func.__code__.co_varnames:
@@ -422,13 +467,21 @@ def fingerprint_transform(
                 dataset: Dataset = args[0]
                 args = args[1:]
             else:
-                dataset: Dataset = kwargs.pop(next(iter(inspect.signature(func).parameters)))
+                dataset: Dataset = kwargs.pop(
+                    next(iter(inspect.signature(func).parameters))
+                )
 
             # compute new_fingerprint and add it to the args of not in-place transforms
             if inplace:
-                new_fingerprint = update_fingerprint(dataset._fingerprint, transform, kwargs_for_fingerprint)
+                new_fingerprint = update_fingerprint(
+                    dataset._fingerprint, transform, kwargs_for_fingerprint
+                )
             else:
-                for fingerprint_name in fingerprint_names:  # transforms like `train_test_split` have several hashes
+                for (
+                    fingerprint_name
+                ) in (
+                    fingerprint_names
+                ):  # transforms like `train_test_split` have several hashes
                     if kwargs.get(fingerprint_name) is None:
                         kwargs_for_fingerprint["fingerprint_name"] = fingerprint_name
                         kwargs[fingerprint_name] = update_fingerprint(
@@ -443,7 +496,9 @@ def fingerprint_transform(
 
             # Update fingerprint of in-place transforms + update in-place history of transforms
 
-            if inplace:  # update after calling func so that the fingerprint doesn't change if the function fails
+            if (
+                inplace
+            ):  # update after calling func so that the fingerprint doesn't change if the function fails
                 dataset._fingerprint = new_fingerprint
 
             return out

@@ -1,7 +1,14 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union
 
-from .. import Dataset, DatasetDict, Features, IterableDataset, IterableDatasetDict, NamedSplit
+from .. import (
+    Dataset,
+    DatasetDict,
+    Features,
+    IterableDataset,
+    IterableDatasetDict,
+    NamedSplit,
+)
 from ..utils.typing import NestedDataStructureLike, PathLike
 
 

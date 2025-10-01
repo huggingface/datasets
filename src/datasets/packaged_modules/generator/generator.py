@@ -27,7 +27,11 @@ class Generator(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
-        return [datasets.SplitGenerator(name=self.config.split, gen_kwargs=self.config.gen_kwargs)]
+        return [
+            datasets.SplitGenerator(
+                name=self.config.split, gen_kwargs=self.config.gen_kwargs
+            )
+        ]
 
     def _generate_examples(self, **gen_kwargs):
         yield from enumerate(self.config.generator(**gen_kwargs))

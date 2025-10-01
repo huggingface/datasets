@@ -38,7 +38,9 @@ class TestCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
         test_parser = parser.add_parser("test", help="Test dataset loading.")
-        test_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
+        test_parser.add_argument(
+            "--name", type=str, default=None, help="Dataset processing name"
+        )
         test_parser.add_argument(
             "--cache_dir",
             type=str,
@@ -51,25 +53,37 @@ class TestCommand(BaseDatasetsCLICommand):
             default=None,
             help="Can be used to specify a manual directory to get the files from.",
         )
-        test_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
         test_parser.add_argument(
-            "--save_info", action="store_true", help="Save the dataset infos in the dataset card (README.md)"
+            "--all_configs", action="store_true", help="Test all dataset configurations"
+        )
+        test_parser.add_argument(
+            "--save_info",
+            action="store_true",
+            help="Save the dataset infos in the dataset card (README.md)",
         )
         test_parser.add_argument(
             "--ignore_verifications",
             action="store_true",
             help="Run the test without checksums and splits checks.",
         )
-        test_parser.add_argument("--force_redownload", action="store_true", help="Force dataset redownload")
+        test_parser.add_argument(
+            "--force_redownload", action="store_true", help="Force dataset redownload"
+        )
         test_parser.add_argument(
             "--clear_cache",
             action="store_true",
             help="Remove downloaded files and cached datasets after each config test",
         )
-        test_parser.add_argument("--num_proc", type=int, default=None, help="Number of processes")
+        test_parser.add_argument(
+            "--num_proc", type=int, default=None, help="Number of processes"
+        )
         # aliases
-        test_parser.add_argument("--save_infos", action="store_true", help="alias to save_info")
-        test_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
+        test_parser.add_argument(
+            "--save_infos", action="store_true", help="alias to save_info"
+        )
+        test_parser.add_argument(
+            "dataset", type=str, help="Name of the dataset to download"
+        )
         test_parser.set_defaults(func=_test_command_factory)
 
     def __init__(
@@ -113,7 +127,11 @@ class TestCommand(BaseDatasetsCLICommand):
         path, config_name = self._dataset, self._name
         module = dataset_module_factory(path)
         builder_cls = get_dataset_builder_class(module)
-        n_builders = len(builder_cls.BUILDER_CONFIGS) if self._all_configs and builder_cls.BUILDER_CONFIGS else 1
+        n_builders = (
+            len(builder_cls.BUILDER_CONFIGS)
+            if self._all_configs and builder_cls.BUILDER_CONFIGS
+            else 1
+        )
 
         def get_builders() -> Generator[DatasetBuilder, None, None]:
             if self._all_configs and builder_cls.BUILDER_CONFIGS:
@@ -133,7 +151,11 @@ class TestCommand(BaseDatasetsCLICommand):
                         )
             else:
                 if "config_name" in module.builder_kwargs:
-                    yield builder_cls(cache_dir=self._cache_dir, data_dir=self._data_dir, **module.builder_kwargs)
+                    yield builder_cls(
+                        cache_dir=self._cache_dir,
+                        data_dir=self._data_dir,
+                        **module.builder_kwargs,
+                    )
                 else:
                     yield builder_cls(
                         config_name=config_name,
@@ -145,15 +167,22 @@ class TestCommand(BaseDatasetsCLICommand):
         for j, builder in enumerate(get_builders()):
             print(f"Testing builder '{builder.config.name}' ({j + 1}/{n_builders})")
             builder._record_infos = os.path.exists(
-                os.path.join(builder.get_imported_module_dir(), datasets.config.DATASETDICT_INFOS_FILENAME)
+                os.path.join(
+                    builder.get_imported_module_dir(),
+                    datasets.config.DATASETDICT_INFOS_FILENAME,
+                )
             )  # record checksums only if we need to update a (deprecated) dataset_infos.json
             builder.download_and_prepare(
-                download_mode=DownloadMode.REUSE_CACHE_IF_EXISTS
-                if not self._force_redownload
-                else DownloadMode.FORCE_REDOWNLOAD,
-                verification_mode=VerificationMode.NO_CHECKS
-                if self._ignore_verifications
-                else VerificationMode.ALL_CHECKS,
+                download_mode=(
+                    DownloadMode.REUSE_CACHE_IF_EXISTS
+                    if not self._force_redownload
+                    else DownloadMode.FORCE_REDOWNLOAD
+                ),
+                verification_mode=(
+                    VerificationMode.NO_CHECKS
+                    if self._ignore_verifications
+                    else VerificationMode.ALL_CHECKS
+                ),
                 num_proc=self._num_proc,
             )
             builder.as_dataset()
@@ -162,17 +191,25 @@ class TestCommand(BaseDatasetsCLICommand):
             # The dataset_infos are saved in the YAML part of the README.md
             # This is to allow the user to upload them on HF afterwards.
             if self._save_infos:
-                save_infos_dir = os.path.basename(path) if not os.path.isdir(path) else path
+                save_infos_dir = (
+                    os.path.basename(path) if not os.path.isdir(path) else path
+                )
                 os.makedirs(save_infos_dir, exist_ok=True)
-                DatasetInfosDict(**{builder.config.name: builder.info}).write_to_directory(save_infos_dir)
-                print(f"Dataset card saved at {os.path.join(save_infos_dir, datasets.config.REPOCARD_FILENAME)}")
+                DatasetInfosDict(
+                    **{builder.config.name: builder.info}
+                ).write_to_directory(save_infos_dir)
+                print(
+                    f"Dataset card saved at {os.path.join(save_infos_dir, datasets.config.REPOCARD_FILENAME)}"
+                )
 
             # If clear_cache=True, the download folder and the dataset builder cache directory are deleted
             if self._clear_cache:
                 if os.path.isdir(builder._cache_dir):
                     logger.warning(f"Clearing cache at {builder._cache_dir}")
                     rmtree(builder._cache_dir)
-                download_dir = os.path.join(self._cache_dir, datasets.config.DOWNLOADED_DATASETS_DIR)
+                download_dir = os.path.join(
+                    self._cache_dir, datasets.config.DOWNLOADED_DATASETS_DIR
+                )
                 if os.path.isdir(download_dir):
                     logger.warning(f"Clearing cache at {download_dir}")
                     rmtree(download_dir)
