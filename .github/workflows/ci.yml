@@ -72,10 +72,16 @@ jobs:
         run: uv pip install --system "datasets[tests] @ ."
       - name: Install dependencies (latest versions)
         if: ${{ matrix.deps_versions == 'deps-latest' }}
-        run: uv pip install --system --upgrade pyarrow huggingface-hub "dill<0.3.9"
+        run: |
+          uv pip install --system --upgrade pyarrow huggingface-hub "dill<0.3.9"
+          # TODO: remove once transformers v5 / huggingface_hub v1 are released officially
+          uv pip uninstall --system transformers huggingface_hub
+          uv pip install --system --prerelease=allow git+https://github.com/huggingface/transformers.git
       - name: Install dependencies (minimum versions)
         if: ${{ matrix.deps_versions != 'deps-latest' }}
-        run: uv pip install --system pyarrow==21.0.0 huggingface-hub==0.24.7 transformers dill==0.3.1.1
+        run: uv pip install --system pyarrow==21.0.0 huggingface-hub==0.25.0 transformers dill==0.3.1.1
+      - name: Print dependencies
+        run: uv pip list
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
@@ -119,6 +125,8 @@ jobs:
         run: pip install --upgrade uv
       - name: Install dependencies
         run: uv pip install --system "datasets[tests] @ ."
+      - name: Print dependencies
+        run: uv pip list
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
@@ -161,7 +169,14 @@ jobs:
       - name: Install uv
         run: pip install --upgrade uv
       - name: Install dependencies
-        run: uv pip install --system "datasets[tests_numpy2] @ ."
+        run: |
+          uv pip install --system "datasets[tests_numpy2] @ ."
+          # TODO: remove once transformers v5 / huggingface_hub v1 are released officially
+          uv pip uninstall --system transformers huggingface_hub
+          uv pip install --system --prerelease=allow git+https://github.com/huggingface/transformers.git
+      - name: Print dependencies
+        run: pip list
+
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
