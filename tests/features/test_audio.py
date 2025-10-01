@@ -54,9 +54,13 @@ def test_audio_feature_type_to_arrow():
     features = Features({"audio": Audio()})
     assert features.arrow_schema == pa.schema({"audio": Audio().pa_type})
     features = Features({"struct_containing_an_audio": {"audio": Audio()}})
-    assert features.arrow_schema == pa.schema({"struct_containing_an_audio": pa.struct({"audio": Audio().pa_type})})
+    assert features.arrow_schema == pa.schema(
+        {"struct_containing_an_audio": pa.struct({"audio": Audio().pa_type})}
+    )
     features = Features({"sequence_of_audios": List(Audio())})
-    assert features.arrow_schema == pa.schema({"sequence_of_audios": pa.list_(Audio().pa_type)})
+    assert features.arrow_schema == pa.schema(
+        {"sequence_of_audios": pa.list_(Audio().pa_type)}
+    )
 
 
 @require_torchcodec
@@ -71,7 +75,10 @@ def test_audio_feature_type_to_arrow():
         lambda audio_path: {"path": audio_path, "bytes": open(audio_path, "rb").read()},
         lambda audio_path: {"path": None, "bytes": open(audio_path, "rb").read()},
         lambda audio_path: {"bytes": open(audio_path, "rb").read()},
-        lambda audio_path: {"array": np.array([0.1, 0.2, 0.3]), "sampling_rate": 16_000},
+        lambda audio_path: {
+            "array": np.array([0.1, 0.2, 0.3]),
+            "sampling_rate": 16_000,
+        },
     ],
 )
 def test_audio_feature_encode_example(shared_datadir, build_example):
@@ -93,8 +100,15 @@ def test_audio_feature_encode_example(shared_datadir, build_example):
     [
         lambda audio_path: {"path": audio_path, "sampling_rate": 16_000},
         lambda audio_path: {"path": audio_path, "bytes": None, "sampling_rate": 16_000},
-        lambda audio_path: {"path": audio_path, "bytes": open(audio_path, "rb").read(), "sampling_rate": 16_000},
-        lambda audio_path: {"array": np.array([0.1, 0.2, 0.3]), "sampling_rate": 16_000},
+        lambda audio_path: {
+            "path": audio_path,
+            "bytes": open(audio_path, "rb").read(),
+            "sampling_rate": 16_000,
+        },
+        lambda audio_path: {
+            "array": np.array([0.1, 0.2, 0.3]),
+            "sampling_rate": 16_000,
+        },
     ],
 )
 def test_audio_feature_encode_example_pcm(shared_datadir, build_example):
@@ -118,7 +132,9 @@ sample_rates = [16_000, 48_000]
     "in_sample_rate,out_sample_rate",
     list(product(sample_rates, sample_rates)),
 )
-def test_audio_feature_encode_example_audiodecoder(shared_datadir, in_sample_rate, out_sample_rate):
+def test_audio_feature_encode_example_audiodecoder(
+    shared_datadir, in_sample_rate, out_sample_rate
+):
     from torchcodec.decoders import AudioDecoder
 
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -237,14 +253,18 @@ def test_backwards_compatibility(shared_datadir):
     samples = decoded_example.get_all_samples()
     assert decoded_example["sampling_rate"] == samples.sample_rate
     assert decoded_example["array"].ndim == 1  # mono
-    assert abs(decoded_example["array"].shape[0] - samples.data.shape[1]) < 2  # can have off by one error
+    assert (
+        abs(decoded_example["array"].shape[0] - samples.data.shape[1]) < 2
+    )  # can have off by one error
 
     decoded_example = audio.decode_example(audio.encode_example(audio_path2))
     assert isinstance(decoded_example, AudioDecoder)
     samples = decoded_example.get_all_samples()
     assert decoded_example["sampling_rate"] == samples.sample_rate
     assert decoded_example["array"].ndim == 1  # mono
-    assert abs(decoded_example["array"].shape[0] - samples.data.shape[1]) < 2  # can have off by one error
+    assert (
+        abs(decoded_example["array"].shape[0] - samples.data.shape[1]) < 2
+    )  # can have off by one error
 
 
 @require_torchcodec
@@ -355,7 +375,9 @@ def test_dataset_with_audio_feature_with_none():
     batch = dset[:1]
     assert len(batch) == 1
     assert batch.keys() == {"audio"}
-    assert isinstance(batch["audio"], list) and all(item is None for item in batch["audio"])
+    assert isinstance(batch["audio"], list) and all(
+        item is None for item in batch["audio"]
+    )
     column = dset["audio"]
     assert len(column) == 1
     assert isinstance(column, Column) and all(item is None for item in column)
@@ -510,8 +532,12 @@ def test_resampling_after_loading_dataset_with_audio_feature_mp3(shared_datadir)
         lambda audio_path: {"audio": [open(audio_path, "rb").read()]},
         lambda audio_path: {"audio": [{"path": audio_path}]},
         lambda audio_path: {"audio": [{"path": audio_path, "bytes": None}]},
-        lambda audio_path: {"audio": [{"path": audio_path, "bytes": open(audio_path, "rb").read()}]},
-        lambda audio_path: {"audio": [{"path": None, "bytes": open(audio_path, "rb").read()}]},
+        lambda audio_path: {
+            "audio": [{"path": audio_path, "bytes": open(audio_path, "rb").read()}]
+        },
+        lambda audio_path: {
+            "audio": [{"path": None, "bytes": open(audio_path, "rb").read()}]
+        },
         lambda audio_path: {"audio": [{"bytes": open(audio_path, "rb").read()}]},
     ],
 )
@@ -540,10 +566,12 @@ def test_dataset_concatenate_audio_features(shared_datadir):
     concatenated_dataset = concatenate_datasets([dset1, dset2])
     assert len(concatenated_dataset) == len(dset1) + len(dset2)
     assert (
-        concatenated_dataset[0]["audio"].get_all_samples().data.shape == dset1[0]["audio"].get_all_samples().data.shape
+        concatenated_dataset[0]["audio"].get_all_samples().data.shape
+        == dset1[0]["audio"].get_all_samples().data.shape
     )
     assert (
-        concatenated_dataset[1]["audio"].get_all_samples().data.shape == dset2[0]["audio"].get_all_samples().data.shape
+        concatenated_dataset[1]["audio"].get_all_samples().data.shape
+        == dset2[0]["audio"].get_all_samples().data.shape
     )
 
 
@@ -554,17 +582,29 @@ def test_dataset_concatenate_nested_audio_features(shared_datadir):
     features = Features({"list_of_structs_of_audios": [{"audio": Audio()}]})
     data1 = {"list_of_structs_of_audios": [[{"audio": audio_path}]]}
     dset1 = Dataset.from_dict(data1, features=features)
-    data2 = {"list_of_structs_of_audios": [[{"audio": {"bytes": open(audio_path, "rb").read()}}]]}
+    data2 = {
+        "list_of_structs_of_audios": [
+            [{"audio": {"bytes": open(audio_path, "rb").read()}}]
+        ]
+    }
     dset2 = Dataset.from_dict(data2, features=features)
     concatenated_dataset = concatenate_datasets([dset1, dset2])
     assert len(concatenated_dataset) == len(dset1) + len(dset2)
     assert (
-        concatenated_dataset[0]["list_of_structs_of_audios"][0]["audio"].get_all_samples().data.shape
-        == dset1[0]["list_of_structs_of_audios"][0]["audio"].get_all_samples().data.shape
+        concatenated_dataset[0]["list_of_structs_of_audios"][0]["audio"]
+        .get_all_samples()
+        .data.shape
+        == dset1[0]["list_of_structs_of_audios"][0]["audio"]
+        .get_all_samples()
+        .data.shape
     )
     assert (
-        concatenated_dataset[1]["list_of_structs_of_audios"][0]["audio"].get_all_samples().data.shape
-        == dset2[0]["list_of_structs_of_audios"][0]["audio"].get_all_samples().data.shape
+        concatenated_dataset[1]["list_of_structs_of_audios"][0]["audio"]
+        .get_all_samples()
+        .data.shape
+        == dset2[0]["list_of_structs_of_audios"][0]["audio"]
+        .get_all_samples()
+        .data.shape
     )
 
 
@@ -687,13 +727,21 @@ def jsonl_audio_dataset_path(shared_datadir, tmp_path_factory):
 
 @require_torchcodec
 @pytest.mark.parametrize("streaming", [False, True])
-def test_load_dataset_with_audio_feature(streaming, jsonl_audio_dataset_path, shared_datadir):
+def test_load_dataset_with_audio_feature(
+    streaming, jsonl_audio_dataset_path, shared_datadir
+):
     from torchcodec.decoders import AudioDecoder
 
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data_files = jsonl_audio_dataset_path
     features = Features({"audio": Audio(), "text": Value("string")})
-    dset = load_dataset("json", split="train", data_files=data_files, features=features, streaming=streaming)
+    dset = load_dataset(
+        "json",
+        split="train",
+        data_files=data_files,
+        features=features,
+        streaming=streaming,
+    )
     item = dset[0] if not streaming else next(iter(dset))
     assert item.keys() == {"audio", "text"}
     assert isinstance(item["audio"], AudioDecoder)
@@ -709,7 +757,9 @@ def test_dataset_with_audio_feature_loaded_from_cache():
     # load first time
     ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean")
     # load from cache
-    ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
+    ds = load_dataset(
+        "hf-internal-testing/librispeech_asr_dummy", "clean", split="validation"
+    )
     assert isinstance(ds, Dataset)
 
 
@@ -782,7 +832,12 @@ def test_dataset_with_audio_feature_map_undecoded(shared_datadir):
 def test_audio_embed_storage(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     example = {"bytes": None, "path": audio_path}
-    storage = pa.array([example], type=pa.struct({"bytes": pa.binary(), "path": pa.string()}))
+    storage = pa.array(
+        [example], type=pa.struct({"bytes": pa.binary(), "path": pa.string()})
+    )
     embedded_storage = Audio().embed_storage(storage)
     embedded_example = embedded_storage.to_pylist()[0]
-    assert embedded_example == {"bytes": open(audio_path, "rb").read(), "path": "test_audio_44100.wav"}
+    assert embedded_example == {
+        "bytes": open(audio_path, "rb").read(),
+        "path": "test_audio_44100.wav",
+    }

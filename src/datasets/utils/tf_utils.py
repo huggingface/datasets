@@ -28,7 +28,9 @@ from multiprocess import get_context
 try:
     from multiprocess.shared_memory import SharedMemory
 except ImportError:
-    SharedMemory = None  # Version checks should prevent this being called on older Python versions
+    SharedMemory = (
+        None  # Version checks should prevent this being called on older Python versions
+    )
 
 from .. import config
 
@@ -39,7 +41,9 @@ def minimal_tf_collate_fn(features):
     elif config.TF_AVAILABLE:
         import tensorflow as tf
     else:
-        raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
+        raise ImportError(
+            "Called a Tensorflow-specific function but Tensorflow is not installed."
+        )
 
     first = features[0]
     batch = {}
@@ -64,11 +68,21 @@ def minimal_tf_collate_fn_with_renaming(features):
 def is_numeric_pa_type(pa_type):
     if pa.types.is_list(pa_type):
         return is_numeric_pa_type(pa_type.value_type)
-    return pa.types.is_integer(pa_type) or pa.types.is_floating(pa_type) or pa.types.is_decimal(pa_type)
+    return (
+        pa.types.is_integer(pa_type)
+        or pa.types.is_floating(pa_type)
+        or pa.types.is_decimal(pa_type)
+    )
 
 
 def np_get_batch(
-    indices, dataset, cols_to_retain, collate_fn, collate_fn_args, columns_to_np_types, return_dict=False
+    indices,
+    dataset,
+    cols_to_retain,
+    collate_fn,
+    collate_fn_args,
+    columns_to_np_types,
+    return_dict=False,
 ):
     if not isinstance(indices, np.ndarray):
         indices = indices.numpy()
@@ -93,9 +107,13 @@ def np_get_batch(
         }
 
     if is_batched:
-        actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
+        actual_size = len(
+            list(batch.values())[0]
+        )  # Get the length of one of the arrays, assume all same
         # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
-        batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
+        batch = [
+            {key: value[i] for key, value in batch.items()} for i in range(actual_size)
+        ]
     batch = collate_fn(batch, **collate_fn_args)
 
     if return_dict:
@@ -154,7 +172,9 @@ def dataset_to_tf(
     if config.TF_AVAILABLE:
         import tensorflow as tf
     else:
-        raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
+        raise ImportError(
+            "Called a Tensorflow-specific function but Tensorflow is not installed."
+        )
 
     # TODO Matt: When our minimum Python version is 3.8 or higher, we can delete all of this and move everything
     #            to the NumPy multiprocessing path.
@@ -203,7 +223,9 @@ def dataset_to_tf(
                 # This generates a new random seed once per epoch only,
                 # to ensure that we iterate over each sample exactly once per epoch
                 state = tf.random.uniform(shape=(3,), maxval=2**62, dtype=tf.int64)
-            shuffled_index = random_index_shuffle(index=index, seed=state, max_index=len(dataset) - 1)
+            shuffled_index = random_index_shuffle(
+                index=index, seed=state, max_index=len(dataset) - 1
+            )
             return state, shuffled_index
 
         tf_dataset = tf_dataset.scan(base_seed, scan_random_index)
@@ -218,12 +240,18 @@ def dataset_to_tf(
     if batch_size is not None:
 
         def ensure_shapes(input_dict):
-            return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
+            return {
+                key: tf.ensure_shape(val, output_signature[key].shape)
+                for key, val in input_dict.items()
+            }
 
     else:
         # Ensure shape but remove batch dimension of output_signature[key].shape
         def ensure_shapes(input_dict):
-            return {key: tf.ensure_shape(val, output_signature[key].shape[1:]) for key, val in input_dict.items()}
+            return {
+                key: tf.ensure_shape(val, output_signature[key].shape[1:])
+                for key, val in input_dict.items()
+            }
 
     return tf_dataset.map(ensure_shapes)
 
@@ -246,7 +274,9 @@ class SharedMemoryContext:
         return shm
 
     def get_array(self, name, shape, dtype, create):
-        shm = self.get_shm(name=name, size=np.prod(shape) * np.dtype(dtype).itemsize, create=create)
+        shm = self.get_shm(
+            name=name, size=np.prod(shape) * np.dtype(dtype).itemsize, create=create
+        )
         return np.ndarray(shape, dtype=dtype, buffer=shm.buf)
 
     def __enter__(self):
@@ -278,7 +308,9 @@ class NumpyMultiprocessingGenerator:
         self.cols_to_retain = cols_to_retain
         self.collate_fn = collate_fn
         self.collate_fn_args = collate_fn_args
-        self.string_columns = [col for col, dtype in columns_to_np_types.items() if dtype is np.str_]
+        self.string_columns = [
+            col for col, dtype in columns_to_np_types.items() if dtype is np.str_
+        ]
         # Strings will be converted to arrays of single unicode chars, so that we can have a constant itemsize
         self.columns_to_np_types = {
             col: dtype if col not in self.string_columns else np.dtype("U1")
@@ -291,16 +323,26 @@ class NumpyMultiprocessingGenerator:
         self.num_workers = num_workers
         # Because strings are converted to characters, we need to add one extra dimension to the shape
         self.columns_to_ranks = {
-            col: int(spec.shape.rank) if col not in self.string_columns else int(spec.shape.rank) + 1
+            col: (
+                int(spec.shape.rank)
+                if col not in self.string_columns
+                else int(spec.shape.rank) + 1
+            )
             for col, spec in output_signature.items()
         }
 
     def __iter__(self):
         # Make sure we only spawn workers if they have work to do
-        num_workers = min(self.num_workers, int(ceil(len(self.dataset) / self.batch_size)))
+        num_workers = min(
+            self.num_workers, int(ceil(len(self.dataset) / self.batch_size))
+        )
         # Do the shuffling in iter so that it's done at the start of each epoch
         per_worker_batches, final_batch, final_batch_worker = self.distribute_batches(
-            self.dataset, self.batch_size, self.drop_remainder, num_workers, self.shuffle
+            self.dataset,
+            self.batch_size,
+            self.drop_remainder,
+            num_workers,
+            self.shuffle,
         )
         ctx = get_context("spawn")
         names = []
@@ -325,7 +367,12 @@ class NumpyMultiprocessingGenerator:
                 names.append(worker_name)
 
                 worker_shape_arrays = {
-                    col: shm_ctx.get_array(f"{worker_name}_{col}_shape", shape=(rank,), dtype=np.int64, create=True)
+                    col: shm_ctx.get_array(
+                        f"{worker_name}_{col}_shape",
+                        shape=(rank,),
+                        dtype=np.int64,
+                        create=True,
+                    )
                     for col, rank in self.columns_to_ranks.items()
                 }
                 shape_arrays.append(worker_shape_arrays)
@@ -343,7 +390,9 @@ class NumpyMultiprocessingGenerator:
                     "array_loaded_event": array_loaded_events[i],
                     **base_args,
                 }
-                worker = ctx.Process(target=self.worker_loop, kwargs=worker_kwargs, daemon=True)
+                worker = ctx.Process(
+                    target=self.worker_loop, kwargs=worker_kwargs, daemon=True
+                )
                 worker.start()
                 workers.append(worker)
 
@@ -383,7 +432,9 @@ class NumpyMultiprocessingGenerator:
                         # Now we convert any unicode char arrays to strings
                         for string_col in self.string_columns:
                             arrays[string_col] = (
-                                arrays[string_col].view(f"U{arrays[string_col].shape[-1]}").squeeze(-1)
+                                arrays[string_col]
+                                .view(f"U{arrays[string_col].shape[-1]}")
+                                .squeeze(-1)
                             )
                     yield arrays
                     array_loaded_events[i].set()
@@ -415,9 +466,13 @@ class NumpyMultiprocessingGenerator:
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
-            raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
+            raise ImportError(
+                "Called a Tensorflow-specific function but Tensorflow is not installed."
+            )
 
-        tf.config.set_visible_devices([], "GPU")  # Make sure workers don't try to allocate GPU memory
+        tf.config.set_visible_devices(
+            [], "GPU"
+        )  # Make sure workers don't try to allocate GPU memory
 
         def send_batch_to_parent(indices):
             batch = np_get_batch(
@@ -444,7 +499,10 @@ class NumpyMultiprocessingGenerator:
                         array = array.view("U1").reshape(array.shape + (-1,))
                     shape_arrays[col][:] = array.shape
                     out_arrays[col] = batch_shm_ctx.get_array(
-                        f"{worker_name}_{col}", shape=array.shape, dtype=cast_dtype, create=True
+                        f"{worker_name}_{col}",
+                        shape=array.shape,
+                        dtype=cast_dtype,
+                        create=True,
                     )
                     out_arrays[col][:] = array
 
@@ -454,7 +512,12 @@ class NumpyMultiprocessingGenerator:
 
         with SharedMemoryContext() as shm_ctx:
             shape_arrays = {
-                col: shm_ctx.get_array(f"{worker_name}_{col}_shape", shape=(rank,), dtype=np.int64, create=False)
+                col: shm_ctx.get_array(
+                    f"{worker_name}_{col}_shape",
+                    shape=(rank,),
+                    dtype=np.int64,
+                    create=False,
+                )
                 for col, rank in columns_to_ranks.items()
             }
 
@@ -487,11 +550,15 @@ class NumpyMultiprocessingGenerator:
         indices = indices.reshape(-1, num_workers, batch_size)
 
         per_worker_indices = np.split(indices, indices.shape[1], axis=1)
-        per_worker_indices = [np.squeeze(worker_indices, 1) for worker_indices in per_worker_indices]
+        per_worker_indices = [
+            np.squeeze(worker_indices, 1) for worker_indices in per_worker_indices
+        ]
         # Distribute the final batches to the first workers
         for i in range(len(final_batches)):
             # len(final_batches) can be zero, and is always less than num_workers
-            per_worker_indices[i] = np.concatenate([per_worker_indices[i], final_batches[i].reshape(1, -1)], axis=0)
+            per_worker_indices[i] = np.concatenate(
+                [per_worker_indices[i], final_batches[i].reshape(1, -1)], axis=0
+            )
         # Add the last incomplete batch to the next worker, which might be the first worker
         if last_incomplete_batch is not None:
             incomplete_batch_worker_idx = len(final_batches)
@@ -541,7 +608,9 @@ def multiprocess_dataset_to_tf(
     if config.TF_AVAILABLE:
         import tensorflow as tf
     else:
-        raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
+        raise ImportError(
+            "Called a Tensorflow-specific function but Tensorflow is not installed."
+        )
 
     data_generator = NumpyMultiprocessingGenerator(
         dataset=dataset,
@@ -556,7 +625,9 @@ def multiprocess_dataset_to_tf(
         num_workers=num_workers,
     )
 
-    tf_dataset = tf.data.Dataset.from_generator(data_generator, output_signature=output_signature)
+    tf_dataset = tf.data.Dataset.from_generator(
+        data_generator, output_signature=output_signature
+    )
     if drop_remainder:
         dataset_length = int(len(dataset) // batch_size)
     else:

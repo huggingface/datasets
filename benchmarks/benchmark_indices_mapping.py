@@ -9,7 +9,9 @@ from utils import generate_example_dataset, get_duration
 SPEED_TEST_N_EXAMPLES = 500_000
 
 RESULTS_BASEPATH, RESULTS_FILENAME = os.path.split(__file__)
-RESULTS_FILE_PATH = os.path.join(RESULTS_BASEPATH, "results", RESULTS_FILENAME.replace(".py", ".json"))
+RESULTS_FILE_PATH = os.path.join(
+    RESULTS_BASEPATH, "results", RESULTS_FILENAME.replace(".py", ".json")
+)
 
 
 @get_duration
@@ -43,9 +45,13 @@ def benchmark_indices_mapping():
     functions = (select, sort, shuffle, train_test_split, shard)
     with tempfile.TemporaryDirectory() as tmp_dir:
         print("generating dataset")
-        features = datasets.Features({"text": datasets.Value("string"), "numbers": datasets.Value("float32")})
+        features = datasets.Features(
+            {"text": datasets.Value("string"), "numbers": datasets.Value("float32")}
+        )
         dataset = generate_example_dataset(
-            os.path.join(tmp_dir, "dataset.arrow"), features, num_examples=SPEED_TEST_N_EXAMPLES
+            os.path.join(tmp_dir, "dataset.arrow"),
+            features,
+            num_examples=SPEED_TEST_N_EXAMPLES,
         )
         print("Functions")
         for func in functions:

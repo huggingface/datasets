@@ -85,7 +85,9 @@ class PostProcessedInfo:
     @classmethod
     def from_dict(cls, post_processed_info_dict: dict) -> "PostProcessedInfo":
         field_names = {f.name for f in dataclasses.fields(cls)}
-        return cls(**{k: v for k, v in post_processed_info_dict.items() if k in field_names})
+        return cls(
+            **{k: v for k, v in post_processed_info_dict.items() if k in field_names}
+        )
 
 
 @dataclass
@@ -145,7 +147,9 @@ class DatasetInfo:
 
     # Set later by the builder
     builder_name: Optional[str] = None
-    dataset_name: Optional[str] = None  # for packaged builders, to be different from builder_name
+    dataset_name: Optional[str] = (
+        None  # for packaged builders, to be different from builder_name
+    )
     config_name: Optional[str] = None
     version: Optional[Union[str, Version]] = None
     # Set later by `download_and_prepare`
@@ -168,7 +172,9 @@ class DatasetInfo:
         # Convert back to the correct classes when we reload from dict
         if self.features is not None and not isinstance(self.features, Features):
             self.features = Features.from_dict(self.features)
-        if self.post_processed is not None and not isinstance(self.post_processed, PostProcessedInfo):
+        if self.post_processed is not None and not isinstance(
+            self.post_processed, PostProcessedInfo
+        ):
             self.post_processed = PostProcessedInfo.from_dict(self.post_processed)
         if self.version is not None and not isinstance(self.version, Version):
             if isinstance(self.version, str):
@@ -177,13 +183,20 @@ class DatasetInfo:
                 self.version = Version.from_dict(self.version)
         if self.splits is not None and not isinstance(self.splits, SplitDict):
             self.splits = SplitDict.from_split_dict(self.splits)
-        if self.supervised_keys is not None and not isinstance(self.supervised_keys, SupervisedKeysData):
+        if self.supervised_keys is not None and not isinstance(
+            self.supervised_keys, SupervisedKeysData
+        ):
             if isinstance(self.supervised_keys, (tuple, list)):
                 self.supervised_keys = SupervisedKeysData(*self.supervised_keys)
             else:
                 self.supervised_keys = SupervisedKeysData(**self.supervised_keys)
 
-    def write_to_directory(self, dataset_info_dir, pretty_print=False, storage_options: Optional[dict] = None):
+    def write_to_directory(
+        self,
+        dataset_info_dir,
+        pretty_print=False,
+        storage_options: Optional[dict] = None,
+    ):
         """Write `DatasetInfo` and license (if present) as JSON files to `dataset_info_dir`.
 
         Args:
@@ -206,15 +219,21 @@ class DatasetInfo:
         """
         fs: fsspec.AbstractFileSystem
         fs, *_ = url_to_fs(dataset_info_dir, **(storage_options or {}))
-        with fs.open(posixpath.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
+        with fs.open(
+            posixpath.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb"
+        ) as f:
             self._dump_info(f, pretty_print=pretty_print)
         if self.license:
-            with fs.open(posixpath.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
+            with fs.open(
+                posixpath.join(dataset_info_dir, config.LICENSE_FILENAME), "wb"
+            ) as f:
                 self._dump_license(f)
 
     def _dump_info(self, file, pretty_print=False):
         """Dump info in `file` file-like object open in bytes mode (to support remote files)"""
-        file.write(json.dumps(asdict(self), indent=4 if pretty_print else None).encode("utf-8"))
+        file.write(
+            json.dumps(asdict(self), indent=4 if pretty_print else None).encode("utf-8")
+        )
 
     def _dump_license(self, file):
         """Dump license in `file` file-like object open in bytes mode (to support remote files)"""
@@ -222,16 +241,28 @@ class DatasetInfo:
 
     @classmethod
     def from_merge(cls, dataset_infos: list["DatasetInfo"]):
-        dataset_infos = [dset_info.copy() for dset_info in dataset_infos if dset_info is not None]
+        dataset_infos = [
+            dset_info.copy() for dset_info in dataset_infos if dset_info is not None
+        ]
 
-        if len(dataset_infos) > 0 and all(dataset_infos[0] == dset_info for dset_info in dataset_infos):
+        if len(dataset_infos) > 0 and all(
+            dataset_infos[0] == dset_info for dset_info in dataset_infos
+        ):
             # if all dataset_infos are equal we don't need to merge. Just return the first.
             return dataset_infos[0]
 
-        description = "\n\n".join(unique_values(info.description for info in dataset_infos)).strip()
-        citation = "\n\n".join(unique_values(info.citation for info in dataset_infos)).strip()
-        homepage = "\n\n".join(unique_values(info.homepage for info in dataset_infos)).strip()
-        license = "\n\n".join(unique_values(info.license for info in dataset_infos)).strip()
+        description = "\n\n".join(
+            unique_values(info.description for info in dataset_infos)
+        ).strip()
+        citation = "\n\n".join(
+            unique_values(info.citation for info in dataset_infos)
+        ).strip()
+        homepage = "\n\n".join(
+            unique_values(info.homepage for info in dataset_infos)
+        ).strip()
+        license = "\n\n".join(
+            unique_values(info.license for info in dataset_infos)
+        ).strip()
         features = None
         supervised_keys = None
 
@@ -245,7 +276,9 @@ class DatasetInfo:
         )
 
     @classmethod
-    def from_directory(cls, dataset_info_dir: str, storage_options: Optional[dict] = None) -> "DatasetInfo":
+    def from_directory(
+        cls, dataset_info_dir: str, storage_options: Optional[dict] = None
+    ) -> "DatasetInfo":
         """Create [`DatasetInfo`] from the JSON file in `dataset_info_dir`.
 
         This function updates all the dynamically generated fields (num_examples,
@@ -273,8 +306,14 @@ class DatasetInfo:
         fs, *_ = url_to_fs(dataset_info_dir, **(storage_options or {}))
         logger.debug(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:
-            raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
-        with fs.open(posixpath.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
+            raise ValueError(
+                "Calling DatasetInfo.from_directory() with undefined dataset_info_dir."
+            )
+        with fs.open(
+            posixpath.join(dataset_info_dir, config.DATASET_INFO_FILENAME),
+            "r",
+            encoding="utf-8",
+        ) as f:
             dataset_info_dict = json.load(f)
         return cls.from_dict(dataset_info_dict)
 
@@ -322,9 +361,13 @@ class DatasetInfo:
 
 
 class DatasetInfosDict(dict[str, DatasetInfo]):
-    def write_to_directory(self, dataset_infos_dir, overwrite=False, pretty_print=False) -> None:
+    def write_to_directory(
+        self, dataset_infos_dir, overwrite=False, pretty_print=False
+    ) -> None:
         total_dataset_infos = {}
-        dataset_infos_path = os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)
+        dataset_infos_path = os.path.join(
+            dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME
+        )
         dataset_readme_path = os.path.join(dataset_infos_dir, config.REPOCARD_FILENAME)
         if not overwrite:
             total_dataset_infos = self.from_directory(dataset_infos_dir)
@@ -333,7 +376,8 @@ class DatasetInfosDict(dict[str, DatasetInfo]):
             # for backward compatibility, let's update the JSON file if it exists
             with open(dataset_infos_path, "w", encoding="utf-8") as f:
                 dataset_infos_dict = {
-                    config_name: asdict(dset_info) for config_name, dset_info in total_dataset_infos.items()
+                    config_name: asdict(dset_info)
+                    for config_name, dset_info in total_dataset_infos.items()
                 }
                 json.dump(dataset_infos_dict, f, indent=4 if pretty_print else None)
         # Dump the infos in the YAML part of the README.md file
@@ -346,7 +390,9 @@ class DatasetInfosDict(dict[str, DatasetInfo]):
         if total_dataset_infos:
             total_dataset_infos.to_dataset_card_data(dataset_card_data)
             dataset_card = (
-                DatasetCard("---\n" + str(dataset_card_data) + "\n---\n") if dataset_card is None else dataset_card
+                DatasetCard("---\n" + str(dataset_card_data) + "\n---\n")
+                if dataset_card is None
+                else dataset_card
             )
             dataset_card.save(Path(dataset_readme_path))
 
@@ -355,12 +401,19 @@ class DatasetInfosDict(dict[str, DatasetInfo]):
         logger.debug(f"Loading Dataset Infos from {dataset_infos_dir}")
         # Load the info from the YAML part of README.md
         if os.path.exists(os.path.join(dataset_infos_dir, config.REPOCARD_FILENAME)):
-            dataset_card_data = DatasetCard.load(Path(dataset_infos_dir) / config.REPOCARD_FILENAME).data
+            dataset_card_data = DatasetCard.load(
+                Path(dataset_infos_dir) / config.REPOCARD_FILENAME
+            ).data
             if "dataset_info" in dataset_card_data:
                 return cls.from_dataset_card_data(dataset_card_data)
-        if os.path.exists(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)):
+        if os.path.exists(
+            os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)
+        ):
             # this is just to have backward compatibility with dataset_infos.json files
-            with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
+            with open(
+                os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME),
+                encoding="utf-8",
+            ) as f:
                 return cls(
                     {
                         config_name: DatasetInfo.from_dict(dataset_info_dict)
@@ -371,20 +424,26 @@ class DatasetInfosDict(dict[str, DatasetInfo]):
             return cls()
 
     @classmethod
-    def from_dataset_card_data(cls, dataset_card_data: DatasetCardData) -> "DatasetInfosDict":
+    def from_dataset_card_data(
+        cls, dataset_card_data: DatasetCardData
+    ) -> "DatasetInfosDict":
         if isinstance(dataset_card_data.get("dataset_info"), (list, dict)):
             if isinstance(dataset_card_data["dataset_info"], list):
                 return cls(
                     {
-                        dataset_info_yaml_dict.get("config_name", "default"): DatasetInfo._from_yaml_dict(
-                            dataset_info_yaml_dict
-                        )
+                        dataset_info_yaml_dict.get(
+                            "config_name", "default"
+                        ): DatasetInfo._from_yaml_dict(dataset_info_yaml_dict)
                         for dataset_info_yaml_dict in dataset_card_data["dataset_info"]
                     }
                 )
             else:
-                dataset_info = DatasetInfo._from_yaml_dict(dataset_card_data["dataset_info"])
-                dataset_info.config_name = dataset_card_data["dataset_info"].get("config_name", "default")
+                dataset_info = DatasetInfo._from_yaml_dict(
+                    dataset_card_data["dataset_info"]
+                )
+                dataset_info.config_name = dataset_card_data["dataset_info"].get(
+                    "config_name", "default"
+                )
                 return cls({dataset_info.config_name: dataset_info})
         else:
             return cls()
@@ -392,11 +451,17 @@ class DatasetInfosDict(dict[str, DatasetInfo]):
     def to_dataset_card_data(self, dataset_card_data: DatasetCardData) -> None:
         if self:
             # first get existing metadata info
-            if "dataset_info" in dataset_card_data and isinstance(dataset_card_data["dataset_info"], dict):
+            if "dataset_info" in dataset_card_data and isinstance(
+                dataset_card_data["dataset_info"], dict
+            ):
                 dataset_metadata_infos = {
-                    dataset_card_data["dataset_info"].get("config_name", "default"): dataset_card_data["dataset_info"]
+                    dataset_card_data["dataset_info"].get(
+                        "config_name", "default"
+                    ): dataset_card_data["dataset_info"]
                 }
-            elif "dataset_info" in dataset_card_data and isinstance(dataset_card_data["dataset_info"], list):
+            elif "dataset_info" in dataset_card_data and isinstance(
+                dataset_card_data["dataset_info"], list
+            ):
                 dataset_metadata_infos = {
                     config_metadata["config_name"]: config_metadata
                     for config_metadata in dataset_card_data["dataset_info"]
@@ -406,14 +471,19 @@ class DatasetInfosDict(dict[str, DatasetInfo]):
             # update/rewrite existing metadata info with the one to dump
             total_dataset_infos = {
                 **dataset_metadata_infos,
-                **{config_name: dset_info._to_yaml_dict() for config_name, dset_info in self.items()},
+                **{
+                    config_name: dset_info._to_yaml_dict()
+                    for config_name, dset_info in self.items()
+                },
             }
             # the config_name from the dataset_infos_dict takes over the config_name of the DatasetInfo
             for config_name, dset_info_yaml_dict in total_dataset_infos.items():
                 dset_info_yaml_dict["config_name"] = config_name
             if len(total_dataset_infos) == 1:
                 # use a struct instead of a list of configurations, since there's only one
-                dataset_card_data["dataset_info"] = next(iter(total_dataset_infos.values()))
+                dataset_card_data["dataset_info"] = next(
+                    iter(total_dataset_infos.values())
+                )
                 config_name = dataset_card_data["dataset_info"].pop("config_name", None)
                 if config_name != "default":
                     # if config_name is not "default" preserve it and put at the first position
@@ -423,8 +493,13 @@ class DatasetInfosDict(dict[str, DatasetInfo]):
                     }
             else:
                 dataset_card_data["dataset_info"] = []
-                for config_name, dataset_info_yaml_dict in sorted(total_dataset_infos.items()):
+                for config_name, dataset_info_yaml_dict in sorted(
+                    total_dataset_infos.items()
+                ):
                     # add the config_name field in first position
                     dataset_info_yaml_dict.pop("config_name", None)
-                    dataset_info_yaml_dict = {"config_name": config_name, **dataset_info_yaml_dict}
+                    dataset_info_yaml_dict = {
+                        "config_name": config_name,
+                        **dataset_info_yaml_dict,
+                    }
                     dataset_card_data["dataset_info"].append(dataset_info_yaml_dict)

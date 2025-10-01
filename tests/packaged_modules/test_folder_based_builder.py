@@ -96,7 +96,9 @@ def data_files_with_one_label_no_metadata(tmp_path, auto_text_file):
     filename2 = data_dir / "file1.txt"
     shutil.copyfile(auto_text_file, filename2)
 
-    data_files_with_one_label = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
+    data_files_with_one_label = DataFilesDict.from_patterns(
+        get_data_patterns(str(data_dir)), data_dir.as_posix()
+    )
 
     return data_files_with_one_label
 
@@ -244,7 +246,9 @@ def data_files_with_zip_archives(tmp_path, auto_text_file):
     shutil.make_archive(archive_dir, "zip", archive_dir)
     shutil.rmtree(str(archive_dir))
 
-    data_files_with_zip_archives = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
+    data_files_with_zip_archives = DataFilesDict.from_patterns(
+        get_data_patterns(str(data_dir)), data_dir.as_posix()
+    )
 
     assert len(data_files_with_zip_archives) == 1
     assert len(data_files_with_zip_archives["train"]) == 1
@@ -256,7 +260,9 @@ def test_config_raises_when_invalid_name() -> None:
         _ = FolderBasedBuilderConfig(name="name-with-*-invalid-character")
 
 
-@pytest.mark.parametrize("data_files", ["str_path", ["str_path"], DataFilesList(["str_path"], [()])])
+@pytest.mark.parametrize(
+    "data_files", ["str_path", ["str_path"], DataFilesList(["str_path"], [()])]
+)
 def test_config_raises_when_invalid_data_files(data_files) -> None:
     with pytest.raises(ValueError, match="Expected a DataFilesDict"):
         _ = FolderBasedBuilderConfig(name="name", data_files=data_files)
@@ -264,7 +270,9 @@ def test_config_raises_when_invalid_data_files(data_files) -> None:
 
 def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cache_dir):
     autofolder = DummyFolderBasedBuilder(
-        data_files=data_files_with_labels_no_metadata, cache_dir=cache_dir, drop_labels=False
+        data_files=data_files_with_labels_no_metadata,
+        cache_dir=cache_dir,
+        drop_labels=False,
     )
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     assert autofolder.info.features["label"] == ClassLabel(names=["class0", "class1"])
@@ -272,7 +280,9 @@ def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cac
     assert all(example["label"] in {"class0", "class1"} for _, example in generator)
 
 
-def test_default_folder_builder_not_usable(data_files_with_labels_no_metadata, cache_dir):
+def test_default_folder_builder_not_usable(
+    data_files_with_labels_no_metadata, cache_dir
+):
     # builder would try to access non-existing attributes of a default `BuilderConfig` class
     # as a custom one is not provided
     with pytest.raises(AttributeError):
@@ -294,7 +304,11 @@ def test_streaming_patched():
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
 def test_generate_examples_drop_labels(
-    data_files_with_labels_no_metadata, auto_text_file, drop_metadata, drop_labels, cache_dir
+    data_files_with_labels_no_metadata,
+    auto_text_file,
+    drop_metadata,
+    drop_labels,
+    cache_dir,
 ):
     autofolder = DummyFolderBasedBuilder(
         data_files=data_files_with_labels_no_metadata,
@@ -309,18 +323,23 @@ def test_generate_examples_drop_labels(
     generator = autofolder._generate_examples(**gen_kwargs)
     if not drop_labels:
         assert all(
-            example.keys() == {"base", "label"} and all(val is not None for val in example.values())
+            example.keys() == {"base", "label"}
+            and all(val is not None for val in example.values())
             for _, example in generator
         )
     else:
         assert all(
-            example.keys() == {"base"} and all(val is not None for val in example.values()) for _, example in generator
+            example.keys() == {"base"}
+            and all(val is not None for val in example.values())
+            for _, example in generator
         )
 
 
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
-def test_generate_examples_drop_metadata(file_with_metadata, drop_metadata, drop_labels, cache_dir):
+def test_generate_examples_drop_metadata(
+    file_with_metadata, drop_metadata, drop_labels, cache_dir
+):
     file, metadata_file = file_with_metadata
     autofolder = DummyFolderBasedBuilder(
         data_files=[file, metadata_file],
@@ -352,7 +371,9 @@ def test_generate_examples_drop_metadata(file_with_metadata, drop_metadata, drop
 def test_data_files_with_different_levels_no_metadata(
     data_files_with_different_levels_no_metadata, drop_labels, remote, cache_dir
 ):
-    data_files = remote_files if remote else data_files_with_different_levels_no_metadata
+    data_files = (
+        remote_files if remote else data_files_with_different_levels_no_metadata
+    )
     autofolder = DummyFolderBasedBuilder(
         data_files=data_files,
         cache_dir=cache_dir,
@@ -372,7 +393,9 @@ def test_data_files_with_different_levels_no_metadata(
 
 @pytest.mark.parametrize("remote", [False, True])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
-def test_data_files_with_one_label_no_metadata(data_files_with_one_label_no_metadata, drop_labels, remote, cache_dir):
+def test_data_files_with_one_label_no_metadata(
+    data_files_with_one_label_no_metadata, drop_labels, remote, cache_dir
+):
     data_files = remote_files[:2] if remote else data_files_with_one_label_no_metadata
     autofolder = DummyFolderBasedBuilder(
         data_files=data_files,
@@ -394,9 +417,17 @@ def test_data_files_with_one_label_no_metadata(data_files_with_one_label_no_meta
 @pytest.mark.parametrize("streaming", [False, True])
 @pytest.mark.parametrize("n_splits", [1, 2])
 def test_data_files_with_metadata_and_splits(
-    streaming, cache_dir, n_splits, data_files_with_one_split_and_metadata, data_files_with_two_splits_and_metadata
+    streaming,
+    cache_dir,
+    n_splits,
+    data_files_with_one_split_and_metadata,
+    data_files_with_two_splits_and_metadata,
 ):
-    data_files = data_files_with_one_split_and_metadata if n_splits == 1 else data_files_with_two_splits_and_metadata
+    data_files = (
+        data_files_with_one_split_and_metadata
+        if n_splits == 1
+        else data_files_with_two_splits_and_metadata
+    )
     autofolder = DummyFolderBasedBuilder(
         data_files=data_files,
         cache_dir=cache_dir,
@@ -406,27 +437,55 @@ def test_data_files_with_metadata_and_splits(
     for (split, files), generated_split in zip(data_files.items(), generated_splits):
         assert split == generated_split.name
         expected_num_of_examples = len(files) - 1
-        generated_examples = list(autofolder._generate_examples(**generated_split.gen_kwargs))
+        generated_examples = list(
+            autofolder._generate_examples(**generated_split.gen_kwargs)
+        )
         assert len(generated_examples) == expected_num_of_examples
-        assert len({example["base"] for _, example in generated_examples}) == expected_num_of_examples
-        assert len({example["additional_feature"] for _, example in generated_examples}) == expected_num_of_examples
-        assert all(example["additional_feature"] is not None for _, example in generated_examples)
+        assert (
+            len({example["base"] for _, example in generated_examples})
+            == expected_num_of_examples
+        )
+        assert (
+            len({example["additional_feature"] for _, example in generated_examples})
+            == expected_num_of_examples
+        )
+        assert all(
+            example["additional_feature"] is not None
+            for _, example in generated_examples
+        )
 
 
 @pytest.mark.parametrize("streaming", [False, True])
-def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_with_zip_archives):
-    autofolder = DummyFolderBasedBuilder(data_files=data_files_with_zip_archives, cache_dir=cache_dir)
+def test_data_files_with_metadata_and_archives(
+    streaming, cache_dir, data_files_with_zip_archives
+):
+    autofolder = DummyFolderBasedBuilder(
+        data_files=data_files_with_zip_archives, cache_dir=cache_dir
+    )
     download_manager = StreamingDownloadManager() if streaming else DownloadManager()
     generated_splits = autofolder._split_generators(download_manager)
-    for (split, files), generated_split in zip(data_files_with_zip_archives.items(), generated_splits):
+    for (split, files), generated_split in zip(
+        data_files_with_zip_archives.items(), generated_splits
+    ):
         assert split == generated_split.name
         num_of_archives = len(files)
         expected_num_of_examples = 2 * num_of_archives
-        generated_examples = list(autofolder._generate_examples(**generated_split.gen_kwargs))
+        generated_examples = list(
+            autofolder._generate_examples(**generated_split.gen_kwargs)
+        )
         assert len(generated_examples) == expected_num_of_examples
-        assert len({example["base"] for _, example in generated_examples}) == expected_num_of_examples
-        assert len({example["additional_feature"] for _, example in generated_examples}) == expected_num_of_examples
-        assert all(example["additional_feature"] is not None for _, example in generated_examples)
+        assert (
+            len({example["base"] for _, example in generated_examples})
+            == expected_num_of_examples
+        )
+        assert (
+            len({example["additional_feature"] for _, example in generated_examples})
+            == expected_num_of_examples
+        )
+        assert all(
+            example["additional_feature"] is not None
+            for _, example in generated_examples
+        )
 
 
 def test_data_files_with_wrong_metadata_file_name(cache_dir, tmp_path, auto_text_file):
@@ -442,14 +501,20 @@ def test_data_files_with_wrong_metadata_file_name(cache_dir, tmp_path, auto_text
     with open(metadata_filename, "w", encoding="utf-8") as f:
         f.write(metadata)
 
-    data_files_with_bad_metadata = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
-    autofolder = DummyFolderBasedBuilder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
+    data_files_with_bad_metadata = DataFilesDict.from_patterns(
+        get_data_patterns(str(data_dir)), data_dir.as_posix()
+    )
+    autofolder = DummyFolderBasedBuilder(
+        data_files=data_files_with_bad_metadata, cache_dir=cache_dir
+    )
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     generator = autofolder._generate_examples(**gen_kwargs)
     assert all("additional_feature" not in example for _, example in generator)
 
 
-def test_data_files_with_custom_file_name_column_in_metadata_file(cache_dir, tmp_path, auto_text_file):
+def test_data_files_with_custom_file_name_column_in_metadata_file(
+    cache_dir, tmp_path, auto_text_file
+):
     data_dir = tmp_path / "data_dir_with_custom_file_name_metadata"
     data_dir.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(auto_text_file, data_dir / "file.txt")
@@ -462,8 +527,15 @@ def test_data_files_with_custom_file_name_column_in_metadata_file(cache_dir, tmp
     with open(metadata_filename, "w", encoding="utf-8") as f:
         f.write(metadata)
 
-    data_files_with_bad_metadata = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
-    autofolder = DummyFolderBasedBuilder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
+    data_files_with_bad_metadata = DataFilesDict.from_patterns(
+        get_data_patterns(str(data_dir)), data_dir.as_posix()
+    )
+    autofolder = DummyFolderBasedBuilder(
+        data_files=data_files_with_bad_metadata, cache_dir=cache_dir
+    )
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     generator = autofolder._generate_examples(**gen_kwargs)
-    assert all("text" in example and "text_file_name" not in example for _, example in generator)
+    assert all(
+        "text" in example and "text_file_name" not in example
+        for _, example in generator
+    )

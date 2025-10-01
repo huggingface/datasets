@@ -31,7 +31,10 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
     def _consolidate(self, column):
         if isinstance(column, list):
             if column and all(
-                isinstance(x, np.ndarray) and x.shape == column[0].shape and x.dtype == column[0].dtype for x in column
+                isinstance(x, np.ndarray)
+                and x.shape == column[0].shape
+                and x.dtype == column[0].dtype
+                for x in column
             ):
                 return np.stack(column)
             else:
@@ -46,7 +49,9 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
     def _tensorize(self, value):
         if isinstance(value, (str, bytes, type(None))):
             return value
-        elif isinstance(value, (np.character, np.ndarray)) and np.issubdtype(value.dtype, np.character):
+        elif isinstance(value, (np.character, np.ndarray)) and np.issubdtype(
+            value.dtype, np.character
+        ):
             return value
         elif isinstance(value, np.number):
             return value
@@ -83,14 +88,20 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
 
             if isinstance(data_struct, torch.Tensor):
                 return self._tensorize(data_struct.detach().cpu().numpy()[()])
-        if hasattr(data_struct, "__array__") and not isinstance(data_struct, (np.ndarray, np.character, np.number)):
+        if hasattr(data_struct, "__array__") and not isinstance(
+            data_struct, (np.ndarray, np.character, np.number)
+        ):
             data_struct = data_struct.__array__()
         # support for nested types like struct of list of struct
         if isinstance(data_struct, np.ndarray):
             if data_struct.dtype == object:
-                return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
+                return self._consolidate(
+                    [self.recursive_tensorize(substruct) for substruct in data_struct]
+                )
         if isinstance(data_struct, (list, tuple)):
-            return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
+            return self._consolidate(
+                [self.recursive_tensorize(substruct) for substruct in data_struct]
+            )
         return self._tensorize(data_struct)
 
     def recursive_tensorize(self, data_struct: dict):
@@ -103,7 +114,9 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
 
     def format_column(self, pa_table: pa.Table) -> np.ndarray:
         column = self.numpy_arrow_extractor().extract_column(pa_table)
-        column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
+        column = self.python_features_decoder.decode_column(
+            column, pa_table.column_names[0]
+        )
         column = self.recursive_tensorize(column)
         column = self._consolidate(column)
         return column

@@ -15,7 +15,11 @@ from datasets.utils.py_utils import Literal
 logger = datasets.utils.logging.get_logger(__name__)
 
 _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS = ["names", "prefix"]
-_PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines", "mangle_dupe_cols"]
+_PANDAS_READ_CSV_DEPRECATED_PARAMETERS = [
+    "warn_bad_lines",
+    "error_bad_lines",
+    "mangle_dupe_cols",
+]
 _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS = ["encoding_errors", "on_bad_lines"]
 _PANDAS_READ_CSV_NEW_2_0_0_PARAMETERS = ["date_format"]
 _PANDAS_READ_CSV_DEPRECATED_2_2_0_PARAMETERS = ["verbose"]
@@ -119,12 +123,20 @@ class CsvConfig(datasets.BuilderConfig):
 
         # some kwargs must not be passed if they don't have a default value
         # some others are deprecated and we can also not pass them if they are the default value
-        for pd_read_csv_parameter in _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS + _PANDAS_READ_CSV_DEPRECATED_PARAMETERS:
-            if pd_read_csv_kwargs[pd_read_csv_parameter] == getattr(CsvConfig(), pd_read_csv_parameter):
+        for pd_read_csv_parameter in (
+            _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS
+            + _PANDAS_READ_CSV_DEPRECATED_PARAMETERS
+        ):
+            if pd_read_csv_kwargs[pd_read_csv_parameter] == getattr(
+                CsvConfig(), pd_read_csv_parameter
+            ):
                 del pd_read_csv_kwargs[pd_read_csv_parameter]
 
         # Remove 1.3 new arguments
-        if not (datasets.config.PANDAS_VERSION.major >= 1 and datasets.config.PANDAS_VERSION.minor >= 3):
+        if not (
+            datasets.config.PANDAS_VERSION.major >= 1
+            and datasets.config.PANDAS_VERSION.minor >= 3
+        ):
             for pd_read_csv_parameter in _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS:
                 del pd_read_csv_kwargs[pd_read_csv_parameter]
 
@@ -136,7 +148,9 @@ class CsvConfig(datasets.BuilderConfig):
         # Remove 2.2 deprecated arguments
         if datasets.config.PANDAS_VERSION.release >= (2, 2):
             for pd_read_csv_parameter in _PANDAS_READ_CSV_DEPRECATED_2_2_0_PARAMETERS:
-                if pd_read_csv_kwargs[pd_read_csv_parameter] == getattr(CsvConfig(), pd_read_csv_parameter):
+                if pd_read_csv_kwargs[pd_read_csv_parameter] == getattr(
+                    CsvConfig(), pd_read_csv_parameter
+                ):
                     del pd_read_csv_kwargs[pd_read_csv_parameter]
 
         return pd_read_csv_kwargs
@@ -151,7 +165,9 @@ class Csv(datasets.ArrowBasedBuilder):
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
         if not self.config.data_files:
-            raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
+            raise ValueError(
+                f"At least one data file must be specified, but got data_files={self.config.data_files}"
+            )
         dl_manager.download_config.extract_on_the_fly = True
         data_files = dl_manager.download_and_extract(self.config.data_files)
         splits = []
@@ -159,15 +175,22 @@ class Csv(datasets.ArrowBasedBuilder):
             if isinstance(files, str):
                 files = [files]
             files = [dl_manager.iter_files(file) for file in files]
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
+            splits.append(
+                datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files})
+            )
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.config.features is not None:
             schema = self.config.features.arrow_schema
-            if all(not require_storage_cast(feature) for feature in self.config.features.values()):
+            if all(
+                not require_storage_cast(feature)
+                for feature in self.config.features.values()
+            ):
                 # cheaper cast
-                pa_table = pa.Table.from_arrays([pa_table[field.name] for field in schema], schema=schema)
+                pa_table = pa.Table.from_arrays(
+                    [pa_table[field.name] for field in schema], schema=schema
+                )
             else:
                 # more expensive cast; allows str <-> int/float or str to Audio for example
                 pa_table = table_cast(pa_table, schema)
@@ -178,14 +201,22 @@ class Csv(datasets.ArrowBasedBuilder):
         # dtype allows reading an int column as str
         dtype = (
             {
-                name: dtype.to_pandas_dtype() if not require_storage_cast(feature) else object
-                for name, dtype, feature in zip(schema.names, schema.types, self.config.features.values())
+                name: (
+                    dtype.to_pandas_dtype()
+                    if not require_storage_cast(feature)
+                    else object
+                )
+                for name, dtype, feature in zip(
+                    schema.names, schema.types, self.config.features.values()
+                )
             }
             if schema is not None
             else None
         )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
-            csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.pd_read_csv_kwargs)
+            csv_file_reader = pd.read_csv(
+                file, iterator=True, dtype=dtype, **self.config.pd_read_csv_kwargs
+            )
             try:
                 for batch_idx, df in enumerate(csv_file_reader):
                     pa_table = pa.Table.from_pandas(df)

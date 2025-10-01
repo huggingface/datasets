@@ -192,7 +192,9 @@ NUMPY2_INCOMPATIBLE_LIBRARIES = [
     "tensorflow",
 ]
 TESTS_NUMPY2_REQUIRE = [
-    library for library in TESTS_REQUIRE if library.partition(">")[0] not in NUMPY2_INCOMPATIBLE_LIBRARIES
+    library
+    for library in TESTS_REQUIRE
+    if library.partition(">")[0] not in NUMPY2_INCOMPATIBLE_LIBRARIES
 ]
 
 QUALITY_REQUIRE = ["ruff>=0.3.0"]
@@ -242,7 +244,9 @@ setup(
         "datasets": ["py.typed"],
         "datasets.utils.resources": ["*.json", "*.yaml", "*.tsv"],
     },
-    entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
+    entry_points={
+        "console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]
+    },
     python_requires=">=3.9.0",
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,

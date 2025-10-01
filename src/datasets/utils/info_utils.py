@@ -41,16 +41,28 @@ class VerificationMode(enum.Enum):
     NO_CHECKS = "no_checks"
 
 
-def verify_checksums(expected_checksums: Optional[dict], recorded_checksums: dict, verification_name=None):
+def verify_checksums(
+    expected_checksums: Optional[dict], recorded_checksums: dict, verification_name=None
+):
     if expected_checksums is None:
         logger.info("Unable to verify checksums.")
         return
     if len(set(expected_checksums) - set(recorded_checksums)) > 0:
-        raise ExpectedMoreDownloadedFilesError(str(set(expected_checksums) - set(recorded_checksums)))
+        raise ExpectedMoreDownloadedFilesError(
+            str(set(expected_checksums) - set(recorded_checksums))
+        )
     if len(set(recorded_checksums) - set(expected_checksums)) > 0:
-        raise UnexpectedDownloadedFileError(str(set(recorded_checksums) - set(expected_checksums)))
-    bad_urls = [url for url in expected_checksums if expected_checksums[url] != recorded_checksums[url]]
-    for_verification_name = " for " + verification_name if verification_name is not None else ""
+        raise UnexpectedDownloadedFileError(
+            str(set(recorded_checksums) - set(expected_checksums))
+        )
+    bad_urls = [
+        url
+        for url in expected_checksums
+        if expected_checksums[url] != recorded_checksums[url]
+    ]
+    for_verification_name = (
+        " for " + verification_name if verification_name is not None else ""
+    )
     if len(bad_urls) > 0:
         raise NonMatchingChecksumError(
             f"Checksums didn't match{for_verification_name}:\n"

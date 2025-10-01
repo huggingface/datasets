@@ -12,7 +12,11 @@ from absl.testing import parameterized
 import datasets
 from datasets.arrow_writer import ArrowWriter
 from datasets.features import Array2D, Array3D, Array4D, Array5D, Value
-from datasets.features.features import Array3DExtensionType, PandasArrayExtensionDtype, _ArrayXD
+from datasets.features.features import (
+    Array3DExtensionType,
+    PandasArrayExtensionDtype,
+    _ArrayXD,
+)
 from datasets.formatting.formatting import NumpyArrowExtractor, SimpleArrowExtractor
 
 
@@ -60,7 +64,9 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
     def test_array2d_nonspecific_shape(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
-            with ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow")) as writer:
+            with ArrowWriter(
+                features=my_features, path=os.path.join(tmp_dir, "beta.arrow")
+            ) as writer:
                 for key, record in generate_examples(
                     features=my_features,
                     num_examples=1,
@@ -73,16 +79,29 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
             row = dataset[0]
             first_shape = row["image"].shape
             second_shape = row["text"].shape
-            self.assertTrue(first_shape is not None and second_shape is not None, "need atleast 2 different shapes")
-            self.assertEqual(len(first_shape), len(second_shape), "both shapes are supposed to be equal length")
-            self.assertNotEqual(first_shape, second_shape, "shapes must not be the same")
+            self.assertTrue(
+                first_shape is not None and second_shape is not None,
+                "need atleast 2 different shapes",
+            )
+            self.assertEqual(
+                len(first_shape),
+                len(second_shape),
+                "both shapes are supposed to be equal length",
+            )
+            self.assertNotEqual(
+                first_shape, second_shape, "shapes must not be the same"
+            )
             del dataset
 
     def test_multiple_extensions_same_row(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
-            with ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow")) as writer:
-                for key, record in generate_examples(features=my_features, num_examples=1):
+            with ArrowWriter(
+                features=my_features, path=os.path.join(tmp_dir, "beta.arrow")
+            ) as writer:
+                for key, record in generate_examples(
+                    features=my_features, num_examples=1
+                ):
                     example = my_features.encode_example(record)
                     writer.write(example)
                 num_examples, num_bytes = writer.finalize()
@@ -101,28 +120,40 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
             my_features["image_id"] = datasets.Value("string")
-            with ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow")) as writer:
-                for key, record in generate_examples(features=my_features, num_examples=1):
+            with ArrowWriter(
+                features=my_features, path=os.path.join(tmp_dir, "beta.arrow")
+            ) as writer:
+                for key, record in generate_examples(
+                    features=my_features, num_examples=1
+                ):
                     example = my_features.encode_example(record)
                     writer.write(example)
                 num_examples, num_bytes = writer.finalize()
             dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
-            self.assertIsInstance(dataset[0]["image_id"], str, "image id must be of type string")
+            self.assertIsInstance(
+                dataset[0]["image_id"], str, "image id must be of type string"
+            )
             del dataset
 
     def test_extension_indexing(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
             my_features["explicit_ext"] = Array2D((3, 3), dtype="float32")
-            with ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow")) as writer:
-                for key, record in generate_examples(features=my_features, num_examples=1):
+            with ArrowWriter(
+                features=my_features, path=os.path.join(tmp_dir, "beta.arrow")
+            ) as writer:
+                for key, record in generate_examples(
+                    features=my_features, num_examples=1
+                ):
                     example = my_features.encode_example(record)
                     writer.write(example)
                 num_examples, num_bytes = writer.finalize()
             dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
             dataset.set_format("numpy")
             data = dataset[0]["explicit_ext"]
-            self.assertIsInstance(data, np.ndarray, "indexed extension must return numpy.ndarray")
+            self.assertIsInstance(
+                data, np.ndarray, "indexed extension must return numpy.ndarray"
+            )
             del dataset
 
 
@@ -183,13 +214,17 @@ class ArrayXDTest(unittest.TestCase):
         self.assertIsInstance(matrix_field_of_first_example, list)
         self.assertIsInstance(matrix_field_of_first_example, list)
         self.assertEqual(np.array(matrix_field_of_first_example).shape, shape_2)
-        np.testing.assert_array_equal(np.array(matrix_field_of_first_example), np.array(first_matrix))
+        np.testing.assert_array_equal(
+            np.array(matrix_field_of_first_example), np.array(first_matrix)
+        )
 
         matrix_field_of_first_two_examples = dataset[:2]["matrix"]
         self.assertIsInstance(matrix_field_of_first_two_examples, list)
         self.assertIsInstance(matrix_field_of_first_two_examples[0], list)
         self.assertIsInstance(matrix_field_of_first_two_examples[0][0], list)
-        self.assertTupleEqual(np.array(matrix_field_of_first_two_examples).shape, (2, *shape_2))
+        self.assertTupleEqual(
+            np.array(matrix_field_of_first_two_examples).shape, (2, *shape_2)
+        )
 
         with dataset.formatted_as("numpy"):
             self.assertTupleEqual(dataset["matrix"][:].shape, (2, *shape_2))
@@ -211,13 +246,17 @@ class ArrayXDTest(unittest.TestCase):
                 (0, self.get_dict_example_0(shape_1, shape_2)),
                 (1, self.get_dict_example_1(shape_1, shape_2)),
             ]
-            with ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow")) as writer:
+            with ArrowWriter(
+                features=my_features, path=os.path.join(tmp_dir, "beta.arrow")
+            ) as writer:
                 for key, record in my_examples:
                     example = my_features.encode_example(record)
                     writer.write(example)
                 num_examples, num_bytes = writer.finalize()
             dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
-            self._check_getitem_output_type(dataset, shape_1, shape_2, my_examples[0][1]["matrix"])
+            self._check_getitem_output_type(
+                dataset, shape_1, shape_2, my_examples[0][1]["matrix"]
+            )
             del dataset
 
     def test_write_batch(self, array_feature, shape_1, shape_2):
@@ -225,11 +264,15 @@ class ArrayXDTest(unittest.TestCase):
             my_features = self.get_features(array_feature, shape_1, shape_2)
             dict_examples = self.get_dict_examples(shape_1, shape_2)
             dict_examples = my_features.encode_batch(dict_examples)
-            with ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow")) as writer:
+            with ArrowWriter(
+                features=my_features, path=os.path.join(tmp_dir, "beta.arrow")
+            ) as writer:
                 writer.write_batch(dict_examples)
                 num_examples, num_bytes = writer.finalize()
             dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
-            self._check_getitem_output_type(dataset, shape_1, shape_2, dict_examples["matrix"][0])
+            self._check_getitem_output_type(
+                dataset, shape_1, shape_2, dict_examples["matrix"][0]
+            )
             del dataset
 
     def test_from_dict(self, array_feature, shape_1, shape_2):
@@ -237,23 +280,38 @@ class ArrayXDTest(unittest.TestCase):
         dataset = datasets.Dataset.from_dict(
             dict_examples, features=self.get_features(array_feature, shape_1, shape_2)
         )
-        self._check_getitem_output_type(dataset, shape_1, shape_2, dict_examples["matrix"][0])
+        self._check_getitem_output_type(
+            dataset, shape_1, shape_2, dict_examples["matrix"][0]
+        )
         del dataset
 
 
 class ArrayXDDynamicTest(unittest.TestCase):
     def get_one_col_dataset(self, first_dim_list, fixed_shape):
-        features = datasets.Features({"image": Array3D(shape=(None, *fixed_shape), dtype="float32")})
-        dict_values = {"image": [np.random.rand(fdim, *fixed_shape).astype("float32") for fdim in first_dim_list]}
+        features = datasets.Features(
+            {"image": Array3D(shape=(None, *fixed_shape), dtype="float32")}
+        )
+        dict_values = {
+            "image": [
+                np.random.rand(fdim, *fixed_shape).astype("float32")
+                for fdim in first_dim_list
+            ]
+        }
         dataset = datasets.Dataset.from_dict(dict_values, features=features)
         return dataset
 
     def get_two_col_datasset(self, first_dim_list, fixed_shape):
         features = datasets.Features(
-            {"image": Array3D(shape=(None, *fixed_shape), dtype="float32"), "text": Value("string")}
+            {
+                "image": Array3D(shape=(None, *fixed_shape), dtype="float32"),
+                "text": Value("string"),
+            }
         )
         dict_values = {
-            "image": [np.random.rand(fdim, *fixed_shape).astype("float32") for fdim in first_dim_list],
+            "image": [
+                np.random.rand(fdim, *fixed_shape).astype("float32")
+                for fdim in first_dim_list
+            ],
             "text": ["text" for _ in first_dim_list],
         }
         dataset = datasets.Dataset.from_dict(dict_values, features=features)
@@ -280,7 +338,9 @@ class ArrayXDDynamicTest(unittest.TestCase):
         arr_xd = SimpleArrowExtractor().extract_column(dataset._data)
         self.assertIsInstance(arr_xd.type, Array3DExtensionType)
         # replace with arr_xd = arr_xd.combine_chunks() when 12.0.0 will be the minimal required PyArrow version
-        arr_xd = arr_xd.type.wrap_array(pa.concat_arrays([chunk.storage for chunk in arr_xd.chunks]))
+        arr_xd = arr_xd.type.wrap_array(
+            pa.concat_arrays([chunk.storage for chunk in arr_xd.chunks])
+        )
         numpy_arr = arr_xd.to_numpy()
 
         self.assertIsInstance(numpy_arr, np.ndarray)
@@ -295,7 +355,9 @@ class ArrayXDDynamicTest(unittest.TestCase):
         arr_xd = SimpleArrowExtractor().extract_column(dataset._data)
         self.assertIsInstance(arr_xd.type, Array3DExtensionType)
         # replace with arr_xd = arr_xd.combine_chunks() when 12.0.0 will be the minimal required PyArrow version
-        arr_xd = arr_xd.type.wrap_array(pa.concat_arrays([chunk.storage for chunk in arr_xd.chunks]))
+        arr_xd = arr_xd.type.wrap_array(
+            pa.concat_arrays([chunk.storage for chunk in arr_xd.chunks])
+        )
         numpy_arr = arr_xd.to_numpy()
 
         self.assertIsInstance(numpy_arr, np.ndarray)
@@ -348,56 +410,88 @@ class ArrayXDDynamicTest(unittest.TestCase):
         first_dim_list = [1, 3, 10]
         dataset = self.get_one_col_dataset(first_dim_list, fixed_shape)
 
-        dataset = dataset.map(lambda a: {"image": np.concatenate([a] * 2)}, input_columns="image")
+        dataset = dataset.map(
+            lambda a: {"image": np.concatenate([a] * 2)}, input_columns="image"
+        )
 
         # check also if above function resulted with 2x bigger first dim
         for first_dim, ds_row in zip(first_dim_list, dataset):
             single_arr = ds_row["image"]
             self.assertIsInstance(single_arr, list)
-            self.assertTupleEqual(np.array(single_arr).shape, (first_dim * 2, *fixed_shape))
+            self.assertTupleEqual(
+                np.array(single_arr).shape, (first_dim * 2, *fixed_shape)
+            )
 
 
-@pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
+@pytest.mark.parametrize(
+    "dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)]
+)
 def test_table_to_pandas(dtype, dummy_value):
     features = datasets.Features({"foo": datasets.Array2D(dtype=dtype, shape=(2, 2))})
-    dataset = datasets.Dataset.from_dict({"foo": [[[dummy_value] * 2] * 2]}, features=features)
+    dataset = datasets.Dataset.from_dict(
+        {"foo": [[[dummy_value] * 2] * 2]}, features=features
+    )
     df = dataset._data.to_pandas()
     assert isinstance(df.foo.dtype, PandasArrayExtensionDtype)
     arr = df.foo.to_numpy()
-    np.testing.assert_equal(arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype)))
+    np.testing.assert_equal(
+        arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype))
+    )
 
 
-@pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
+@pytest.mark.parametrize(
+    "dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)]
+)
 def test_array_xd_numpy_arrow_extractor(dtype, dummy_value):
     features = datasets.Features({"foo": datasets.Array2D(dtype=dtype, shape=(2, 2))})
-    dataset = datasets.Dataset.from_dict({"foo": [[[dummy_value] * 2] * 2]}, features=features)
+    dataset = datasets.Dataset.from_dict(
+        {"foo": [[[dummy_value] * 2] * 2]}, features=features
+    )
     arr = NumpyArrowExtractor().extract_column(dataset._data)
     assert isinstance(arr, np.ndarray)
-    np.testing.assert_equal(arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype)))
+    np.testing.assert_equal(
+        arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype))
+    )
 
 
 def test_array_xd_with_none():
     # Fixed shape
     features = datasets.Features({"foo": datasets.Array2D(dtype="int32", shape=(2, 2))})
     dummy_array = np.array([[1, 2], [3, 4]], dtype="int32")
-    dataset = datasets.Dataset.from_dict({"foo": [dummy_array, None, dummy_array, None]}, features=features)
+    dataset = datasets.Dataset.from_dict(
+        {"foo": [dummy_array, None, dummy_array, None]}, features=features
+    )
     arr = NumpyArrowExtractor().extract_column(dataset._data)
-    assert isinstance(arr, np.ndarray) and arr.dtype == np.float64 and arr.shape == (4, 2, 2)
+    assert (
+        isinstance(arr, np.ndarray)
+        and arr.dtype == np.float64
+        and arr.shape == (4, 2, 2)
+    )
     assert np.allclose(arr[0], dummy_array) and np.allclose(arr[2], dummy_array)
-    assert np.all(np.isnan(arr[1])) and np.all(np.isnan(arr[3]))  # broadcasted np.nan - use np.all
+    assert np.all(np.isnan(arr[1])) and np.all(
+        np.isnan(arr[3])
+    )  # broadcasted np.nan - use np.all
 
     # Dynamic shape
-    features = datasets.Features({"foo": datasets.Array2D(dtype="int32", shape=(None, 2))})
+    features = datasets.Features(
+        {"foo": datasets.Array2D(dtype="int32", shape=(None, 2))}
+    )
     dummy_array = np.array([[1, 2], [3, 4]], dtype="int32")
-    dataset = datasets.Dataset.from_dict({"foo": [dummy_array, None, dummy_array, None]}, features=features)
+    dataset = datasets.Dataset.from_dict(
+        {"foo": [dummy_array, None, dummy_array, None]}, features=features
+    )
     arr = NumpyArrowExtractor().extract_column(dataset._data)
     assert isinstance(arr, np.ndarray) and arr.dtype == object and arr.shape == (4,)
     np.testing.assert_equal(arr[0], dummy_array)
     np.testing.assert_equal(arr[2], dummy_array)
-    assert np.isnan(arr[1]) and np.isnan(arr[3])  # a single np.nan value - np.all not needed
+    assert np.isnan(arr[1]) and np.isnan(
+        arr[3]
+    )  # a single np.nan value - np.all not needed
 
 
-@pytest.mark.parametrize("seq_type", ["no_sequence", "sequence", "sequence_of_sequence"])
+@pytest.mark.parametrize(
+    "seq_type", ["no_sequence", "sequence", "sequence_of_sequence"]
+)
 @pytest.mark.parametrize(
     "dtype",
     [
@@ -415,7 +509,9 @@ def test_array_xd_with_none():
         "float64",
     ],
 )
-@pytest.mark.parametrize("shape, feature_class", [((2, 3), datasets.Array2D), ((2, 3, 4), datasets.Array3D)])
+@pytest.mark.parametrize(
+    "shape, feature_class", [((2, 3), datasets.Array2D), ((2, 3, 4), datasets.Array3D)]
+)
 def test_array_xd_with_np(seq_type, dtype, shape, feature_class):
     feature = feature_class(dtype=dtype, shape=shape)
     data = np.zeros(shape, dtype=dtype)
@@ -428,7 +524,9 @@ def test_array_xd_with_np(seq_type, dtype, shape, feature_class):
         feature = datasets.List(datasets.List(feature))
         data = [[data]]
         expected = [[expected]]
-    ds = datasets.Dataset.from_dict({"col": [data]}, features=datasets.Features({"col": feature}))
+    ds = datasets.Dataset.from_dict(
+        {"col": [data]}, features=datasets.Features({"col": feature})
+    )
     assert ds[0]["col"] == expected
 
 
@@ -454,7 +552,9 @@ def test_dataset_map(with_none):
         return batch
 
     features = datasets.Features({"image": Array3D(dtype="int32", shape=(3, 3, 3))})
-    processed_ds = ds.map(process_data, batched=True, remove_columns=ds.column_names, features=features)
+    processed_ds = ds.map(
+        process_data, batched=True, remove_columns=ds.column_names, features=features
+    )
     assert processed_ds.shape == (2, 1)
     with processed_ds.with_format("numpy") as pds:
         for i, example in enumerate(pds):

@@ -100,7 +100,9 @@ class DownloadManager:
         self._data_dir = data_dir
         self._base_path = base_path or os.path.abspath(".")
         # To record what is being used: {url: {num_bytes: int, checksum: str}}
-        self._recorded_sizes_checksums: dict[str, dict[str, Optional[Union[int, str]]]] = {}
+        self._recorded_sizes_checksums: dict[
+            str, dict[str, Optional[Union[int, str]]]
+        ] = {}
         self.record_checksums = record_checksums
         self.download_config = download_config or DownloadConfig()
         self.downloaded_paths = {}
@@ -113,9 +115,16 @@ class DownloadManager:
     @property
     def downloaded_size(self):
         """Returns the total size of downloaded files."""
-        return sum(checksums_dict["num_bytes"] for checksums_dict in self._recorded_sizes_checksums.values())
+        return sum(
+            checksums_dict["num_bytes"]
+            for checksums_dict in self._recorded_sizes_checksums.values()
+        )
 
-    def _record_sizes_checksums(self, url_or_urls: NestedDataStructure, downloaded_path_or_paths: NestedDataStructure):
+    def _record_sizes_checksums(
+        self,
+        url_or_urls: NestedDataStructure,
+        downloaded_path_or_paths: NestedDataStructure,
+    ):
         """Record size/checksum of downloaded files."""
         delay = 5
         for url, path in hf_tqdm(
@@ -169,7 +178,9 @@ class DownloadManager:
         logger.info(f"Downloading took {duration.total_seconds() // 60} min")
         url_or_urls = NestedDataStructure(url_or_urls)
         downloaded_path_or_paths = NestedDataStructure(downloaded_path_or_paths)
-        self.downloaded_paths.update(dict(zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten())))
+        self.downloaded_paths.update(
+            dict(zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten()))
+        )
 
         start_time = datetime.now()
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
@@ -186,7 +197,9 @@ class DownloadManager:
         if len(url_or_filenames) >= 16:
             download_config = download_config.copy()
             download_config.disable_tqdm = True
-            download_func = partial(self._download_single, download_config=download_config)
+            download_func = partial(
+                self._download_single, download_config=download_config
+            )
 
             fs: fsspec.AbstractFileSystem
             path = str(url_or_filenames[0])
@@ -200,7 +213,9 @@ class DownloadManager:
             except Exception:
                 pass
             max_workers = (
-                config.HF_DATASETS_MULTITHREADING_MAX_WORKERS if size < (20 << 20) else 1
+                config.HF_DATASETS_MULTITHREADING_MAX_WORKERS
+                if size < (20 << 20)
+                else 1
             )  # enable multithreading if files are small
 
             return thread_map(
@@ -208,10 +223,17 @@ class DownloadManager:
                 url_or_filenames,
                 desc=download_config.download_desc or "Downloading",
                 unit="files",
-                position=multiprocessing.current_process()._identity[-1]  # contains the ranks of subprocesses
-                if os.environ.get("HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS") == "1"
-                and multiprocessing.current_process()._identity
-                else None,
+                position=(
+                    multiprocessing.current_process()._identity[
+                        -1
+                    ]  # contains the ranks of subprocesses
+                    if os.environ.get(
+                        "HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS"
+                    )
+                    == "1"
+                    and multiprocessing.current_process()._identity
+                    else None
+                ),
                 max_workers=max_workers,
                 tqdm_class=tqdm,
             )
@@ -221,7 +243,9 @@ class DownloadManager:
                 for url_or_filename in url_or_filenames
             ]
 
-    def _download_single(self, url_or_filename: str, download_config: DownloadConfig) -> str:
+    def _download_single(
+        self, url_or_filename: str, download_config: DownloadConfig
+    ) -> str:
         url_or_filename = str(url_or_filename)
         if is_relative_path(url_or_filename):
             # append the relative path to the base_path
@@ -304,7 +328,9 @@ class DownloadManager:
         )
         path_or_paths = NestedDataStructure(path_or_paths)
         extracted_paths = NestedDataStructure(extracted_paths)
-        self.extracted_paths.update(dict(zip(path_or_paths.flatten(), extracted_paths.flatten())))
+        self.extracted_paths.update(
+            dict(zip(path_or_paths.flatten(), extracted_paths.flatten()))
+        )
         return extracted_paths.data
 
     def download_and_extract(self, url_or_urls):
@@ -329,7 +355,9 @@ class DownloadManager:
         return self._recorded_sizes_checksums.copy()
 
     def delete_extracted_files(self):
-        paths_to_delete = set(self.extracted_paths.values()) - set(self.downloaded_paths.values())
+        paths_to_delete = set(self.extracted_paths.values()) - set(
+            self.downloaded_paths.values()
+        )
         for key, path in list(self.extracted_paths.items()):
             if path in paths_to_delete and os.path.isfile(path):
                 os.remove(path)

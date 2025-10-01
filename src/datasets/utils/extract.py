@@ -22,7 +22,9 @@ logger = get_logger(__name__)
 class ExtractManager:
     def __init__(self, cache_dir: Optional[str] = None):
         self.extract_dir = (
-            os.path.join(cache_dir, config.EXTRACTED_DATASETS_DIR) if cache_dir else config.EXTRACTED_DATASETS_PATH
+            os.path.join(cache_dir, config.EXTRACTED_DATASETS_DIR)
+            if cache_dir
+            else config.EXTRACTED_DATASETS_PATH
         )
         self.extractor = Extractor
 
@@ -36,7 +38,8 @@ class ExtractManager:
 
     def _do_extract(self, output_path: str, force_extract: bool) -> bool:
         return force_extract or (
-            not os.path.isfile(output_path) and not (os.path.isdir(output_path) and os.listdir(output_path))
+            not os.path.isfile(output_path)
+            and not (os.path.isdir(output_path) and os.listdir(output_path))
         )
 
     def extract(self, input_path: str, force_extract: bool = False) -> str:
@@ -56,7 +59,9 @@ class BaseExtractor(ABC):
 
     @staticmethod
     @abstractmethod
-    def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None: ...
+    def extract(
+        input_path: Union[Path, str], output_path: Union[Path, str]
+    ) -> None: ...
 
 
 class MagicNumberBaseExtractor(BaseExtractor, ABC):
@@ -70,12 +75,17 @@ class MagicNumberBaseExtractor(BaseExtractor, ABC):
     @classmethod
     def is_extractable(cls, path: Union[Path, str], magic_number: bytes = b"") -> bool:
         if not magic_number:
-            magic_number_length = max(len(cls_magic_number) for cls_magic_number in cls.magic_numbers)
+            magic_number_length = max(
+                len(cls_magic_number) for cls_magic_number in cls.magic_numbers
+            )
             try:
                 magic_number = cls.read_magic_number(path, magic_number_length)
             except OSError:
                 return False
-        return any(magic_number.startswith(cls_magic_number) for cls_magic_number in cls.magic_numbers)
+        return any(
+            magic_number.startswith(cls_magic_number)
+            for cls_magic_number in cls.magic_numbers
+        )
 
 
 class TarExtractor(BaseExtractor):
@@ -113,9 +123,13 @@ class TarExtractor(BaseExtractor):
             if badpath(finfo.name, base):
                 logger.error(f"Extraction of {finfo.name} is blocked (illegal path)")
             elif finfo.issym() and badlink(finfo, base):
-                logger.error(f"Extraction of {finfo.name} is blocked: Symlink to {finfo.linkname}")
+                logger.error(
+                    f"Extraction of {finfo.name} is blocked: Symlink to {finfo.linkname}"
+                )
             elif finfo.islnk() and badlink(finfo, base):
-                logger.error(f"Extraction of {finfo.name} is blocked: Hard link to {finfo.linkname}")
+                logger.error(
+                    f"Extraction of {finfo.name} is blocked: Hard link to {finfo.linkname}"
+                )
             else:
                 yield finfo
 
@@ -123,7 +137,9 @@ class TarExtractor(BaseExtractor):
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
         os.makedirs(output_path, exist_ok=True)
         tar_file = tarfile.open(input_path)
-        tar_file.extractall(output_path, members=TarExtractor.safemembers(tar_file, output_path))
+        tar_file.extractall(
+            output_path, members=TarExtractor.safemembers(tar_file, output_path)
+        )
         tar_file.close()
 
 
@@ -167,18 +183,33 @@ class ZipExtractor(MagicNumberBaseExtractor):
             with open(path, "rb") as fp:
                 endrec = _EndRecData(fp)
                 if endrec:
-                    if endrec[_ECD_ENTRIES_TOTAL] == 0 and endrec[_ECD_SIZE] == 0 and endrec[_ECD_OFFSET] == 0:
+                    if (
+                        endrec[_ECD_ENTRIES_TOTAL] == 0
+                        and endrec[_ECD_SIZE] == 0
+                        and endrec[_ECD_OFFSET] == 0
+                    ):
                         return True  # Empty zipfiles are still zipfiles
                     elif endrec[_ECD_DISK_NUMBER] == endrec[_ECD_DISK_START]:
-                        fp.seek(endrec[_ECD_OFFSET])  # Central directory is on the same disk
-                        if fp.tell() == endrec[_ECD_OFFSET] and endrec[_ECD_SIZE] >= sizeCentralDir:
-                            data = fp.read(sizeCentralDir)  # CD is where we expect it to be
+                        fp.seek(
+                            endrec[_ECD_OFFSET]
+                        )  # Central directory is on the same disk
+                        if (
+                            fp.tell() == endrec[_ECD_OFFSET]
+                            and endrec[_ECD_SIZE] >= sizeCentralDir
+                        ):
+                            data = fp.read(
+                                sizeCentralDir
+                            )  # CD is where we expect it to be
                             if len(data) == sizeCentralDir:
-                                centdir = struct.unpack(structCentralDir, data)  # CD is the right size
+                                centdir = struct.unpack(
+                                    structCentralDir, data
+                                )  # CD is the right size
                                 if centdir[_CD_SIGNATURE] == stringCentralDir:
                                     return True  # First central directory entry  has correct magic number
             return False
-        except Exception:  # catch all errors in case future python versions change the zipfile internals
+        except (
+            Exception
+        ):  # catch all errors in case future python versions change the zipfile internals
             return False
 
     @staticmethod
@@ -292,12 +323,16 @@ class Extractor:
     @staticmethod
     def _read_magic_number(path: Union[Path, str], magic_number_length: int):
         try:
-            return MagicNumberBaseExtractor.read_magic_number(path, magic_number_length=magic_number_length)
+            return MagicNumberBaseExtractor.read_magic_number(
+                path, magic_number_length=magic_number_length
+            )
         except OSError:
             return b""
 
     @classmethod
-    def is_extractable(cls, path: Union[Path, str], return_extractor: bool = False) -> bool:
+    def is_extractable(
+        cls, path: Union[Path, str], return_extractor: bool = False
+    ) -> bool:
         warnings.warn(
             "Method 'is_extractable' was deprecated in version 2.4.0 and will be removed in 3.0.0. "
             "Use 'infer_extractor_format' instead.",
@@ -305,11 +340,17 @@ class Extractor:
         )
         extractor_format = cls.infer_extractor_format(path)
         if extractor_format:
-            return True if not return_extractor else (True, cls.extractors[extractor_format])
+            return (
+                True
+                if not return_extractor
+                else (True, cls.extractors[extractor_format])
+            )
         return False if not return_extractor else (False, None)
 
     @classmethod
-    def infer_extractor_format(cls, path: Union[Path, str]) -> Optional[str]:  # <Added version="2.4.0"/>
+    def infer_extractor_format(
+        cls, path: Union[Path, str]
+    ) -> Optional[str]:  # <Added version="2.4.0"/>
         magic_number_max_length = cls._get_magic_number_max_length()
         magic_number = cls._read_magic_number(path, magic_number_max_length)
         for extractor_format, extractor in cls.extractors.items():

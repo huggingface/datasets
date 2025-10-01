@@ -48,9 +48,15 @@ TEST_URL = "https://huggingface.co/datasets/hf-internal-testing/dataset_with_dat
 TEST_URL_CONTENT = "foo\n" * 10
 
 TEST_GG_DRIVE_FILENAME = "train.tsv"
-TEST_GG_DRIVE_URL = "https://drive.google.com/uc?export=download&id=17bOgBDc3hRCoPZ89EYtKDzK-yXAWat94"
-TEST_GG_DRIVE_GZIPPED_URL = "https://drive.google.com/uc?export=download&id=1Bt4Garpf0QLiwkJhHJzXaVa0I0H5Qhwz"
-TEST_GG_DRIVE_ZIPPED_URL = "https://drive.google.com/uc?export=download&id=1k92sUfpHxKq8PXWRr7Y5aNHXwOCNUmqh"
+TEST_GG_DRIVE_URL = (
+    "https://drive.google.com/uc?export=download&id=17bOgBDc3hRCoPZ89EYtKDzK-yXAWat94"
+)
+TEST_GG_DRIVE_GZIPPED_URL = (
+    "https://drive.google.com/uc?export=download&id=1Bt4Garpf0QLiwkJhHJzXaVa0I0H5Qhwz"
+)
+TEST_GG_DRIVE_ZIPPED_URL = (
+    "https://drive.google.com/uc?export=download&id=1k92sUfpHxKq8PXWRr7Y5aNHXwOCNUmqh"
+)
 TEST_GG_DRIVE_CONTENT = """\
 pokemon_name, type
 Charmander, fire
@@ -75,7 +81,9 @@ def tmpfs_file(tmpfs):
 
 
 @pytest.mark.parametrize("compression_format", ["gzip", "xz", "zstd"])
-def test_cached_path_extract(compression_format, gz_file, xz_file, zstd_path, tmp_path, text_file):
+def test_cached_path_extract(
+    compression_format, gz_file, xz_file, zstd_path, tmp_path, text_file
+):
     input_paths = {"gzip": gz_file, "xz": xz_file, "zstd": zstd_path}
     input_path = input_paths[compression_format]
     cache_dir = tmp_path / "cache"
@@ -90,22 +98,34 @@ def test_cached_path_extract(compression_format, gz_file, xz_file, zstd_path, tm
 
 @pytest.mark.parametrize("default_extracted", [True, False])
 @pytest.mark.parametrize("default_cache_dir", [True, False])
-def test_extracted_datasets_path(default_extracted, default_cache_dir, xz_file, tmp_path, monkeypatch):
+def test_extracted_datasets_path(
+    default_extracted, default_cache_dir, xz_file, tmp_path, monkeypatch
+):
     custom_cache_dir = "custom_cache"
     custom_extracted_dir = "custom_extracted_dir"
     custom_extracted_path = tmp_path / "custom_extracted_path"
     if default_extracted:
         expected = ("downloads" if default_cache_dir else custom_cache_dir, "extracted")
     else:
-        monkeypatch.setattr("datasets.config.EXTRACTED_DATASETS_DIR", custom_extracted_dir)
-        monkeypatch.setattr("datasets.config.EXTRACTED_DATASETS_PATH", str(custom_extracted_path))
-        expected = custom_extracted_path.parts[-2:] if default_cache_dir else (custom_cache_dir, custom_extracted_dir)
+        monkeypatch.setattr(
+            "datasets.config.EXTRACTED_DATASETS_DIR", custom_extracted_dir
+        )
+        monkeypatch.setattr(
+            "datasets.config.EXTRACTED_DATASETS_PATH", str(custom_extracted_path)
+        )
+        expected = (
+            custom_extracted_path.parts[-2:]
+            if default_cache_dir
+            else (custom_cache_dir, custom_extracted_dir)
+        )
 
     filename = xz_file
     download_config = (
         DownloadConfig(extract_compressed_file=True)
         if default_cache_dir
-        else DownloadConfig(cache_dir=tmp_path / custom_cache_dir, extract_compressed_file=True)
+        else DownloadConfig(
+            cache_dir=tmp_path / custom_cache_dir, extract_compressed_file=True
+        )
     )
     extracted_file_path = cached_path(filename, download_config=download_config)
     assert Path(extracted_file_path).parent.parts[-2:] == expected
@@ -172,9 +192,17 @@ def test_fsspec_offline(tmp_path_factory):
         ),
         (
             "https://huggingface.co/datasets/hf-internal-testing/dataset_with_data_files/resolve/main/data/train.txt",
-            DownloadConfig(token="MY-TOKEN", storage_options={"hf": {"on_error": "omit"}}),
+            DownloadConfig(
+                token="MY-TOKEN", storage_options={"hf": {"on_error": "omit"}}
+            ),
             "hf://datasets/hf-internal-testing/dataset_with_data_files@main/data/train.txt",
-            {"hf": {"endpoint": "https://huggingface.co", "token": "MY-TOKEN", "on_error": "omit"}},
+            {
+                "hf": {
+                    "endpoint": "https://huggingface.co",
+                    "token": "MY-TOKEN",
+                    "on_error": "omit",
+                }
+            },
         ),
         (
             "https://domain.org/data.txt",
@@ -190,13 +218,17 @@ def test_fsspec_offline(tmp_path_factory):
         ),
         (
             "https://domain.org/data.txt",
-            DownloadConfig(storage_options={"https": {"client_kwargs": {"raise_for_status": True}}}),
+            DownloadConfig(
+                storage_options={"https": {"client_kwargs": {"raise_for_status": True}}}
+            ),
             "https://domain.org/data.txt",
             {"https": {"client_kwargs": {"trust_env": True, "raise_for_status": True}}},
         ),
         (
             "https://domain.org/data.txt",
-            DownloadConfig(storage_options={"https": {"client_kwargs": {"trust_env": False}}}),
+            DownloadConfig(
+                storage_options={"https": {"client_kwargs": {"trust_env": False}}}
+            ),
             "https://domain.org/data.txt",
             {"https": {"client_kwargs": {"trust_env": False}}},
         ),
@@ -217,11 +249,15 @@ def test_prepare_single_hop_path_and_storage_options(
     urlpath, download_config, expected_urlpath, expected_storage_options
 ):
     original_download_config_storage_options = str(download_config.storage_options)
-    prepared_urlpath, storage_options = _prepare_single_hop_path_and_storage_options(urlpath, download_config)
+    prepared_urlpath, storage_options = _prepare_single_hop_path_and_storage_options(
+        urlpath, download_config
+    )
     assert prepared_urlpath == expected_urlpath
     assert storage_options == expected_storage_options
     # Check that DownloadConfig.storage_options are not modified:
-    assert str(download_config.storage_options) == original_download_config_storage_options
+    assert (
+        str(download_config.storage_options) == original_download_config_storage_options
+    )
 
 
 class DummyTestFS(AbstractFileSystem):
@@ -278,7 +314,9 @@ class DummyTestFS(AbstractFileSystem):
 
         files = not refresh and self._ls_from_cache(path)
         if not files:
-            files = [file for file in self._fs_contents if path == self._parent(file["name"])]
+            files = [
+                file for file in self._fs_contents if path == self._parent(file["name"])
+            ]
             files.sort(key=lambda file: file["name"])
             self.dircache[path.rstrip("/")] = files
 
@@ -390,7 +428,9 @@ def test_xjoin(input_path, paths_to_join, expected_path):
 def test_xdirname(input_path, expected_path):
     output_path = xdirname(input_path)
     output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
-    assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
+    assert output_path == _readd_double_slash_removed_by_path(
+        Path(expected_path).as_posix()
+    )
 
 
 @pytest.mark.parametrize(
@@ -399,7 +439,10 @@ def test_xdirname(input_path, expected_path):
         ("tmp_path/file.txt", True),
         ("tmp_path/file_that_doesnt_exist.txt", False),
         ("mock://top_level/second_level/date=2019-10-01/a.parquet", True),
-        ("mock://top_level/second_level/date=2019-10-01/file_that_doesnt_exist.parquet", False),
+        (
+            "mock://top_level/second_level/date=2019-10-01/file_that_doesnt_exist.parquet",
+            False,
+        ),
     ],
 )
 def test_xexists(input_path, exists, tmp_path, mock_fsspec2):
@@ -414,7 +457,9 @@ def test_xexists_private(hf_private_dataset_repo_txt_data, hf_token):
     root_url = hf_dataset_url(hf_private_dataset_repo_txt_data, "")
     download_config = DownloadConfig(token=hf_token)
     assert xexists(root_url + "data/text_data.txt", download_config=download_config)
-    assert not xexists(root_url + "file_that_doesnt_exist.txt", download_config=download_config)
+    assert not xexists(
+        root_url + "file_that_doesnt_exist.txt", download_config=download_config
+    )
 
 
 @pytest.mark.parametrize(
@@ -425,9 +470,18 @@ def test_xexists_private(hf_private_dataset_repo_txt_data, hf_token):
             (str(Path(__file__).resolve().parent), str(Path(__file__).resolve().name)),
         ),
         ("https://host.com/archive.zip", ("https://host.com", "archive.zip")),
-        ("zip://file.txt::https://host.com/archive.zip", ("zip://::https://host.com/archive.zip", "file.txt")),
-        ("zip://folder::https://host.com/archive.zip", ("zip://::https://host.com/archive.zip", "folder")),
-        ("zip://::https://host.com/archive.zip", ("zip://::https://host.com/archive.zip", "")),
+        (
+            "zip://file.txt::https://host.com/archive.zip",
+            ("zip://::https://host.com/archive.zip", "file.txt"),
+        ),
+        (
+            "zip://folder::https://host.com/archive.zip",
+            ("zip://::https://host.com/archive.zip", "folder"),
+        ),
+        (
+            "zip://::https://host.com/archive.zip",
+            ("zip://::https://host.com/archive.zip", ""),
+        ),
     ],
 )
 def test_xsplit(input_path, expected_head_and_tail):
@@ -444,12 +498,24 @@ def test_xsplit(input_path, expected_head_and_tail):
     [
         (
             str(Path(__file__).resolve()),
-            (str(Path(__file__).resolve().with_suffix("")), str(Path(__file__).resolve().suffix)),
+            (
+                str(Path(__file__).resolve().with_suffix("")),
+                str(Path(__file__).resolve().suffix),
+            ),
         ),
         ("https://host.com/archive.zip", ("https://host.com/archive", ".zip")),
-        ("zip://file.txt::https://host.com/archive.zip", ("zip://file::https://host.com/archive.zip", ".txt")),
-        ("zip://folder::https://host.com/archive.zip", ("zip://folder::https://host.com/archive.zip", "")),
-        ("zip://::https://host.com/archive.zip", ("zip://::https://host.com/archive.zip", "")),
+        (
+            "zip://file.txt::https://host.com/archive.zip",
+            ("zip://file::https://host.com/archive.zip", ".txt"),
+        ),
+        (
+            "zip://folder::https://host.com/archive.zip",
+            ("zip://folder::https://host.com/archive.zip", ""),
+        ),
+        (
+            "zip://::https://host.com/archive.zip",
+            ("zip://::https://host.com/archive.zip", ""),
+        ),
     ],
 )
 def test_xsplitext(input_path, expected_path_and_ext):
@@ -462,9 +528,13 @@ def test_xsplitext(input_path, expected_path_and_ext):
 
 
 def test_xopen_local(text_path):
-    with xopen(text_path, "r", encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
+    with xopen(text_path, "r", encoding="utf-8") as f, open(
+        text_path, encoding="utf-8"
+    ) as expected_file:
         assert list(f) == list(expected_file)
-    with xPath(text_path).open("r", encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
+    with xPath(text_path).open("r", encoding="utf-8") as f, open(
+        text_path, encoding="utf-8"
+    ) as expected_file:
         assert list(f) == list(expected_file)
 
 
@@ -499,7 +569,10 @@ def test_xlistdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_dataset_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     download_config = DownloadConfig(token=hf_token)
     assert len(xlistdir("zip://::" + root_url, download_config=download_config)) == 1
-    assert len(xlistdir("zip://main_dir::" + root_url, download_config=download_config)) == 2
+    assert (
+        len(xlistdir("zip://main_dir::" + root_url, download_config=download_config))
+        == 2
+    )
     with pytest.raises(FileNotFoundError):
         xlistdir("zip://qwertyuiop::" + root_url, download_config=download_config)
     with pytest.raises(FileNotFoundError):
@@ -528,8 +601,13 @@ def test_xisdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_dataset_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     download_config = DownloadConfig(token=hf_token)
     assert xisdir("zip://::" + root_url, download_config=download_config) is True
-    assert xisdir("zip://main_dir::" + root_url, download_config=download_config) is True
-    assert xisdir("zip://qwertyuiop::" + root_url, download_config=download_config) is False
+    assert (
+        xisdir("zip://main_dir::" + root_url, download_config=download_config) is True
+    )
+    assert (
+        xisdir("zip://qwertyuiop::" + root_url, download_config=download_config)
+        is False
+    )
     assert xisdir(root_url, download_config=download_config) is False
 
 
@@ -553,7 +631,10 @@ def test_xisfile(input_path, isfile, tmp_path, mock_fsspec2):
 def test_xisfile_private(hf_private_dataset_repo_txt_data, hf_token):
     root_url = hf_dataset_url(hf_private_dataset_repo_txt_data, "")
     download_config = DownloadConfig(token=hf_token)
-    assert xisfile(root_url + "data/text_data.txt", download_config=download_config) is True
+    assert (
+        xisfile(root_url + "data/text_data.txt", download_config=download_config)
+        is True
+    )
     assert xisfile(root_url + "qwertyuiop", download_config=download_config) is False
 
 
@@ -577,7 +658,9 @@ def test_xgetsize(input_path, size, tmp_path, mock_fsspec2):
 def test_xgetsize_private(hf_private_dataset_repo_txt_data, hf_token):
     root_url = hf_dataset_url(hf_private_dataset_repo_txt_data, "")
     download_config = DownloadConfig(token=hf_token)
-    assert xgetsize(root_url + "data/text_data.txt", download_config=download_config) == 39
+    assert (
+        xgetsize(root_url + "data/text_data.txt", download_config=download_config) == 39
+    )
     with pytest.raises(FileNotFoundError):
         xgetsize(root_url + "qwertyuiop", download_config=download_config)
 
@@ -622,7 +705,10 @@ def test_xglob_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_dataset_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     download_config = DownloadConfig(token=hf_token)
     assert len(xglob("zip://**::" + root_url, download_config=download_config)) == 3
-    assert len(xglob("zip://qwertyuiop/*::" + root_url, download_config=download_config)) == 0
+    assert (
+        len(xglob("zip://qwertyuiop/*::" + root_url, download_config=download_config))
+        == 0
+    )
 
 
 @pytest.mark.parametrize(
@@ -632,8 +718,16 @@ def test_xglob_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
         (
             "mock://top_level/second_level",
             [
-                ("mock://top_level/second_level", ["date=2019-10-01", "date=2019-10-02", "date=2019-10-04"], []),
-                ("mock://top_level/second_level/date=2019-10-01", [], ["a.parquet", "b.parquet"]),
+                (
+                    "mock://top_level/second_level",
+                    ["date=2019-10-01", "date=2019-10-02", "date=2019-10-04"],
+                    [],
+                ),
+                (
+                    "mock://top_level/second_level/date=2019-10-01",
+                    [],
+                    ["a.parquet", "b.parquet"],
+                ),
                 ("mock://top_level/second_level/date=2019-10-02", [], ["a.parquet"]),
                 ("mock://top_level/second_level/date=2019-10-04", [], ["a.parquet"]),
             ],
@@ -645,14 +739,21 @@ def test_xwalk(input_path, expected_outputs, tmp_path, mock_fsspec2):
         input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
         expected_outputs = sorted(
             [
-                (str(tmp_path / dirpath).rstrip("/"), sorted(dirnames), sorted(filenames))
+                (
+                    str(tmp_path / dirpath).rstrip("/"),
+                    sorted(dirnames),
+                    sorted(filenames),
+                )
                 for dirpath, dirnames, filenames in expected_outputs
             ]
         )
         for file in ["file1.txt", "file2.txt", "README.md"]:
             (tmp_path / file).touch()
     outputs = sorted(xwalk(input_path))
-    outputs = [(dirpath, sorted(dirnames), sorted(filenames)) for dirpath, dirnames, filenames in outputs]
+    outputs = [
+        (dirpath, sorted(dirnames), sorted(filenames))
+        for dirpath, dirnames, filenames in outputs
+    ]
     assert outputs == expected_outputs
 
 
@@ -661,16 +762,38 @@ def test_xwalk_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_dataset_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     download_config = DownloadConfig(token=hf_token)
     assert len(list(xwalk("zip://::" + root_url, download_config=download_config))) == 2
-    assert len(list(xwalk("zip://main_dir::" + root_url, download_config=download_config))) == 1
-    assert len(list(xwalk("zip://qwertyuiop::" + root_url, download_config=download_config))) == 0
+    assert (
+        len(list(xwalk("zip://main_dir::" + root_url, download_config=download_config)))
+        == 1
+    )
+    assert (
+        len(
+            list(
+                xwalk("zip://qwertyuiop::" + root_url, download_config=download_config)
+            )
+        )
+        == 0
+    )
 
 
 @pytest.mark.parametrize(
     "input_path, start_path, expected_path",
     [
-        ("dir1/dir2/file.txt".replace("/", os.path.sep), "dir1", "dir2/file.txt".replace("/", os.path.sep)),
-        ("dir1/dir2/file.txt".replace("/", os.path.sep), "dir1/dir2".replace("/", os.path.sep), "file.txt"),
-        ("zip://file.txt::https://host.com/archive.zip", "zip://::https://host.com/archive.zip", "file.txt"),
+        (
+            "dir1/dir2/file.txt".replace("/", os.path.sep),
+            "dir1",
+            "dir2/file.txt".replace("/", os.path.sep),
+        ),
+        (
+            "dir1/dir2/file.txt".replace("/", os.path.sep),
+            "dir1/dir2".replace("/", os.path.sep),
+            "file.txt",
+        ),
+        (
+            "zip://file.txt::https://host.com/archive.zip",
+            "zip://::https://host.com/archive.zip",
+            "file.txt",
+        ),
         (
             "zip://folder/file.txt::https://host.com/archive.zip",
             "zip://::https://host.com/archive.zip",
@@ -706,10 +829,19 @@ class TestxPath:
         "input_path, expected_path",
         [
             ("https://host.com/archive.zip", "https://host.com/archive.zip"),
-            ("zip://file.txt::https://host.com/archive.zip", "zip://file.txt::https://host.com/archive.zip"),
-            ("zip://dir/file.txt::https://host.com/archive.zip", "zip://dir/file.txt::https://host.com/archive.zip"),
+            (
+                "zip://file.txt::https://host.com/archive.zip",
+                "zip://file.txt::https://host.com/archive.zip",
+            ),
+            (
+                "zip://dir/file.txt::https://host.com/archive.zip",
+                "zip://dir/file.txt::https://host.com/archive.zip",
+            ),
             ("file.txt", "file.txt"),
-            (str(Path().resolve() / "file.txt"), (Path().resolve() / "file.txt").as_posix()),
+            (
+                str(Path().resolve() / "file.txt"),
+                (Path().resolve() / "file.txt").as_posix(),
+            ),
         ],
     )
     def test_xpath_as_posix(self, input_path, expected_path):
@@ -721,12 +853,17 @@ class TestxPath:
             ("tmp_path/file.txt", True),
             ("tmp_path/file_that_doesnt_exist.txt", False),
             ("mock://top_level/second_level/date=2019-10-01/a.parquet", True),
-            ("mock://top_level/second_level/date=2019-10-01/file_that_doesnt_exist.parquet", False),
+            (
+                "mock://top_level/second_level/date=2019-10-01/file_that_doesnt_exist.parquet",
+                False,
+            ),
         ],
     )
     def test_xpath_exists(self, input_path, exists, tmp_path, mock_fsspec2):
         if input_path.startswith("tmp_path"):
-            input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+            input_path = input_path.replace("/", os.sep).replace(
+                "tmp_path", str(tmp_path)
+            )
             (tmp_path / "file.txt").touch()
         assert xexists(input_path) is exists
 
@@ -757,7 +894,9 @@ class TestxPath:
             ),
         ],
     )
-    def test_xpath_glob(self, input_path, pattern, expected_paths, tmp_path, mock_fsspec2):
+    def test_xpath_glob(
+        self, input_path, pattern, expected_paths, tmp_path, mock_fsspec2
+    ):
         if input_path == "tmp_path":
             input_path = tmp_path
             expected_paths = [tmp_path / file for file in expected_paths]
@@ -812,7 +951,9 @@ class TestxPath:
             ),
         ],
     )
-    def test_xpath_rglob(self, input_path, pattern, expected_paths, tmp_path, mock_fsspec2):
+    def test_xpath_rglob(
+        self, input_path, pattern, expected_paths, tmp_path, mock_fsspec2
+    ):
         if input_path == "tmp_path":
             input_path = tmp_path
             dir_path = tmp_path / "dir"
@@ -829,8 +970,14 @@ class TestxPath:
         "input_path, expected_path",
         [
             ("https://host.com/archive.zip", "https://host.com"),
-            ("zip://file.txt::https://host.com/archive.zip", "zip://::https://host.com/archive.zip"),
-            ("zip://dir/file.txt::https://host.com/archive.zip", "zip://dir::https://host.com/archive.zip"),
+            (
+                "zip://file.txt::https://host.com/archive.zip",
+                "zip://::https://host.com/archive.zip",
+            ),
+            (
+                "zip://dir/file.txt::https://host.com/archive.zip",
+                "zip://dir::https://host.com/archive.zip",
+            ),
             ("file.txt", ""),
             (str(Path().resolve() / "file.txt"), str(Path().resolve())),
         ],
@@ -881,14 +1028,22 @@ class TestxPath:
         "input_path, suffix, expected",
         [
             ("https://host.com/archive.zip", ".ann", "https://host.com/archive.ann"),
-            ("zip://file.txt::https://host.com/archive.zip", ".ann", "zip://file.ann::https://host.com/archive.zip"),
+            (
+                "zip://file.txt::https://host.com/archive.zip",
+                ".ann",
+                "zip://file.ann::https://host.com/archive.zip",
+            ),
             (
                 "zip://dir/file.txt::https://host.com/archive.zip",
                 ".ann",
                 "zip://dir/file.ann::https://host.com/archive.zip",
             ),
             ("file.txt", ".ann", "file.ann"),
-            (str(Path().resolve() / "file.txt"), ".ann", str(Path().resolve() / "file.ann")),
+            (
+                str(Path().resolve() / "file.txt"),
+                ".ann",
+                str(Path().resolve() / "file.ann"),
+            ),
         ],
     )
     def test_xpath_with_suffix(self, input_path, suffix, expected):
@@ -901,9 +1056,18 @@ class TestxPath:
         ("zip://train-00000.json.gz::https://foo.bar/data.zip", "gzip"),
         ("https://foo.bar/train.json.gz?dl=1", "gzip"),
         ("http://opus.nlpl.eu/download.php?f=Bianet/v1/moses/en-ku.txt.zip", "zip"),
-        ("https://github.com/user/what-time-is-it/blob/master/gutenberg_time_phrases.zip?raw=true", "zip"),
-        ("https://github.com/user/repo/blob/master/data/morph_train.tsv?raw=true", None),
-        ("https://repo.org/bitstream/handle/20.500.12185/346/annotated_corpus.zip?sequence=3&isAllowed=y", "zip"),
+        (
+            "https://github.com/user/what-time-is-it/blob/master/gutenberg_time_phrases.zip?raw=true",
+            "zip",
+        ),
+        (
+            "https://github.com/user/repo/blob/master/data/morph_train.tsv?raw=true",
+            None,
+        ),
+        (
+            "https://repo.org/bitstream/handle/20.500.12185/346/annotated_corpus.zip?sequence=3&isAllowed=y",
+            "zip",
+        ),
         ("https://zenodo.org/record/2787612/files/SICK.zip?download=1", "zip"),
     ],
 )

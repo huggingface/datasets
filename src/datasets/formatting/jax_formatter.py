@@ -36,7 +36,9 @@ DEVICE_MAPPING: Optional[dict] = None
 
 
 class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
-    def __init__(self, features=None, device=None, token_per_repo_id=None, **jnp_array_kwargs):
+    def __init__(
+        self, features=None, device=None, token_per_repo_id=None, **jnp_array_kwargs
+    ):
         super().__init__(features=features, token_per_repo_id=token_per_repo_id)
         import jax
         from jaxlib.xla_client import Device
@@ -75,7 +77,10 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
 
         if isinstance(column, list) and column:
             if all(
-                isinstance(x, jax.Array) and x.shape == column[0].shape and x.dtype == column[0].dtype for x in column
+                isinstance(x, jax.Array)
+                and x.shape == column[0].shape
+                and x.dtype == column[0].dtype
+                for x in column
             ):
                 return jnp.stack(column, axis=0)
         return column
@@ -86,19 +91,25 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
 
         if isinstance(value, (str, bytes, type(None))):
             return value
-        elif isinstance(value, (np.character, np.ndarray)) and np.issubdtype(value.dtype, np.character):
+        elif isinstance(value, (np.character, np.ndarray)) and np.issubdtype(
+            value.dtype, np.character
+        ):
             return value.tolist()
 
         default_dtype = {}
 
-        if isinstance(value, (np.number, np.ndarray)) and np.issubdtype(value.dtype, np.integer):
+        if isinstance(value, (np.number, np.ndarray)) and np.issubdtype(
+            value.dtype, np.integer
+        ):
             # the default int precision depends on the jax config
             # see https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html#double-64bit-precision
             if jax.config.jax_enable_x64:
                 default_dtype = {"dtype": jnp.int64}
             else:
                 default_dtype = {"dtype": jnp.int32}
-        elif isinstance(value, (np.number, np.ndarray)) and np.issubdtype(value.dtype, np.floating):
+        elif isinstance(value, (np.number, np.ndarray)) and np.issubdtype(
+            value.dtype, np.floating
+        ):
             default_dtype = {"dtype": jnp.float32}
 
         if config.PIL_AVAILABLE and "PIL" in sys.modules:
@@ -141,10 +152,16 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
             data_struct = data_struct.__array__()
         # support for nested types like struct of list of struct
         if isinstance(data_struct, np.ndarray):
-            if data_struct.dtype == object:  # jax arrays cannot be instantied from an array of objects
-                return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
+            if (
+                data_struct.dtype == object
+            ):  # jax arrays cannot be instantied from an array of objects
+                return self._consolidate(
+                    [self.recursive_tensorize(substruct) for substruct in data_struct]
+                )
         elif isinstance(data_struct, (list, tuple)):
-            return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
+            return self._consolidate(
+                [self.recursive_tensorize(substruct) for substruct in data_struct]
+            )
         return self._tensorize(data_struct)
 
     def recursive_tensorize(self, data_struct: dict):
@@ -157,7 +174,9 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
 
     def format_column(self, pa_table: pa.Table) -> "jax.Array":
         column = self.numpy_arrow_extractor().extract_column(pa_table)
-        column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
+        column = self.python_features_decoder.decode_column(
+            column, pa_table.column_names[0]
+        )
         column = self.recursive_tensorize(column)
         column = self._consolidate(column)
         return column

@@ -38,15 +38,39 @@ def _hash_python_lines(lines: list[str]) -> str:
 _PACKAGED_DATASETS_MODULES = {
     "csv": (csv.__name__, _hash_python_lines(inspect.getsource(csv).splitlines())),
     "json": (json.__name__, _hash_python_lines(inspect.getsource(json).splitlines())),
-    "pandas": (pandas.__name__, _hash_python_lines(inspect.getsource(pandas).splitlines())),
-    "parquet": (parquet.__name__, _hash_python_lines(inspect.getsource(parquet).splitlines())),
-    "arrow": (arrow.__name__, _hash_python_lines(inspect.getsource(arrow).splitlines())),
+    "pandas": (
+        pandas.__name__,
+        _hash_python_lines(inspect.getsource(pandas).splitlines()),
+    ),
+    "parquet": (
+        parquet.__name__,
+        _hash_python_lines(inspect.getsource(parquet).splitlines()),
+    ),
+    "arrow": (
+        arrow.__name__,
+        _hash_python_lines(inspect.getsource(arrow).splitlines()),
+    ),
     "text": (text.__name__, _hash_python_lines(inspect.getsource(text).splitlines())),
-    "imagefolder": (imagefolder.__name__, _hash_python_lines(inspect.getsource(imagefolder).splitlines())),
-    "audiofolder": (audiofolder.__name__, _hash_python_lines(inspect.getsource(audiofolder).splitlines())),
-    "videofolder": (videofolder.__name__, _hash_python_lines(inspect.getsource(videofolder).splitlines())),
-    "pdffolder": (pdffolder.__name__, _hash_python_lines(inspect.getsource(pdffolder).splitlines())),
-    "webdataset": (webdataset.__name__, _hash_python_lines(inspect.getsource(webdataset).splitlines())),
+    "imagefolder": (
+        imagefolder.__name__,
+        _hash_python_lines(inspect.getsource(imagefolder).splitlines()),
+    ),
+    "audiofolder": (
+        audiofolder.__name__,
+        _hash_python_lines(inspect.getsource(audiofolder).splitlines()),
+    ),
+    "videofolder": (
+        videofolder.__name__,
+        _hash_python_lines(inspect.getsource(videofolder).splitlines()),
+    ),
+    "pdffolder": (
+        pdffolder.__name__,
+        _hash_python_lines(inspect.getsource(pdffolder).splitlines()),
+    ),
+    "webdataset": (
+        webdataset.__name__,
+        _hash_python_lines(inspect.getsource(webdataset).splitlines()),
+    ),
     "xml": (xml.__name__, _hash_python_lines(inspect.getsource(xml).splitlines())),
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
 }
@@ -81,14 +105,30 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".hdf5": ("hdf5", {}),
     ".h5": ("hdf5", {}),
 }
-_EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
-_EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
-_EXTENSION_TO_MODULE.update({ext: ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
-_EXTENSION_TO_MODULE.update({ext.upper(): ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
-_EXTENSION_TO_MODULE.update({ext: ("videofolder", {}) for ext in videofolder.VideoFolder.EXTENSIONS})
-_EXTENSION_TO_MODULE.update({ext.upper(): ("videofolder", {}) for ext in videofolder.VideoFolder.EXTENSIONS})
-_EXTENSION_TO_MODULE.update({ext: ("pdffolder", {}) for ext in pdffolder.PdfFolder.EXTENSIONS})
-_EXTENSION_TO_MODULE.update({ext.upper(): ("pdffolder", {}) for ext in pdffolder.PdfFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update(
+    {ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS}
+)
+_EXTENSION_TO_MODULE.update(
+    {ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS}
+)
+_EXTENSION_TO_MODULE.update(
+    {ext: ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS}
+)
+_EXTENSION_TO_MODULE.update(
+    {ext.upper(): ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS}
+)
+_EXTENSION_TO_MODULE.update(
+    {ext: ("videofolder", {}) for ext in videofolder.VideoFolder.EXTENSIONS}
+)
+_EXTENSION_TO_MODULE.update(
+    {ext.upper(): ("videofolder", {}) for ext in videofolder.VideoFolder.EXTENSIONS}
+)
+_EXTENSION_TO_MODULE.update(
+    {ext: ("pdffolder", {}) for ext in pdffolder.PdfFolder.EXTENSIONS}
+)
+_EXTENSION_TO_MODULE.update(
+    {ext.upper(): ("pdffolder", {}) for ext in pdffolder.PdfFolder.EXTENSIONS}
+)
 
 # Used to filter data files based on extensions given a module name
 _MODULE_TO_EXTENSIONS: dict[str, list[str]] = {}
@@ -102,7 +142,13 @@ for _module in _MODULE_TO_EXTENSIONS:
 _MODULE_TO_METADATA_FILE_NAMES: Dict[str, List[str]] = {}
 for _module in _MODULE_TO_EXTENSIONS:
     _MODULE_TO_METADATA_FILE_NAMES[_module] = []
-_MODULE_TO_METADATA_FILE_NAMES["imagefolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
-_MODULE_TO_METADATA_FILE_NAMES["audiofolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
-_MODULE_TO_METADATA_FILE_NAMES["videofolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
+_MODULE_TO_METADATA_FILE_NAMES["imagefolder"] = (
+    imagefolder.ImageFolder.METADATA_FILENAMES
+)
+_MODULE_TO_METADATA_FILE_NAMES["audiofolder"] = (
+    imagefolder.ImageFolder.METADATA_FILENAMES
+)
+_MODULE_TO_METADATA_FILE_NAMES["videofolder"] = (
+    imagefolder.ImageFolder.METADATA_FILENAMES
+)
 _MODULE_TO_METADATA_FILE_NAMES["pdffolder"] = imagefolder.ImageFolder.METADATA_FILENAMES

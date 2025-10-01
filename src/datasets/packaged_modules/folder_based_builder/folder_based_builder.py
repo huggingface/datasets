@@ -13,7 +13,13 @@ import pyarrow.parquet as pq
 
 import datasets
 from datasets import config
-from datasets.features.features import FeatureType, _visit, _visit_with_path, _VisitPath, require_storage_cast
+from datasets.features.features import (
+    FeatureType,
+    _visit,
+    _visit_with_path,
+    _VisitPath,
+    require_storage_cast,
+)
 from datasets.utils.file_utils import readline
 
 
@@ -56,7 +62,11 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS: FolderBasedBuilderConfig
     EXTENSIONS: list[str]
 
-    METADATA_FILENAMES: list[str] = ["metadata.csv", "metadata.jsonl", "metadata.parquet"]
+    METADATA_FILENAMES: list[str] = [
+        "metadata.csv",
+        "metadata.jsonl",
+        "metadata.parquet",
+    ]
 
     def _info(self):
         if not self.config.data_dir and not self.config.data_files:
@@ -69,7 +79,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         if not self.config.data_files:
-            raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
+            raise ValueError(
+                f"At least one data file must be specified, but got data_files={self.config.data_files}"
+            )
         dl_manager.download_config.extract_on_the_fly = True
         # Do an early pass if:
         # * `drop_labels` is None (default) or False, to infer the class labels
@@ -85,9 +97,16 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             # The files are separated from the archives at this point, so check the first sample
             # to see if it's a file or a directory and iterate accordingly
             if os.path.isfile(downloaded_files_or_dirs[0]):
-                original_files, downloaded_files = files_or_archives, downloaded_files_or_dirs
-                for original_file, downloaded_file in zip(original_files, downloaded_files):
-                    original_file, downloaded_file = str(original_file), str(downloaded_file)
+                original_files, downloaded_files = (
+                    files_or_archives,
+                    downloaded_files_or_dirs,
+                )
+                for original_file, downloaded_file in zip(
+                    original_files, downloaded_files
+                ):
+                    original_file, downloaded_file = str(original_file), str(
+                        downloaded_file
+                    )
                     _, original_file_ext = os.path.splitext(original_file)
                     if original_file_ext.lower() in self.EXTENSIONS:
                         if not self.config.drop_labels:
@@ -105,12 +124,22 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                 for archive, downloaded_dir in zip(archives, downloaded_dirs):
                     archive, downloaded_dir = str(archive), str(downloaded_dir)
                     for downloaded_dir_file in dl_manager.iter_files(downloaded_dir):
-                        _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
+                        _, downloaded_dir_file_ext = os.path.splitext(
+                            downloaded_dir_file
+                        )
                         if downloaded_dir_file_ext in self.EXTENSIONS:
                             if not self.config.drop_labels:
-                                labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
-                                path_depths.add(count_path_segments(downloaded_dir_file))
-                        elif os.path.basename(downloaded_dir_file) in metadata_filenames:
+                                labels.add(
+                                    os.path.basename(
+                                        os.path.dirname(downloaded_dir_file)
+                                    )
+                                )
+                                path_depths.add(
+                                    count_path_segments(downloaded_dir_file)
+                                )
+                        elif (
+                            os.path.basename(downloaded_dir_file) in metadata_filenames
+                        ):
                             metadata_files[split].add((None, downloaded_dir_file))
                         else:
                             archive_file_name = os.path.basename(archive)
@@ -127,8 +156,12 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             files, archives = self._split_files_and_archives(files)
             downloaded_files = dl_manager.download(files)
             downloaded_dirs = dl_manager.download_and_extract(archives)
-            if do_analyze:  # drop_metadata is None or False, drop_labels is None or False
-                logger.info(f"Searching for labels and/or metadata files in {split_name} data files...")
+            if (
+                do_analyze
+            ):  # drop_metadata is None or False, drop_labels is None or False
+                logger.info(
+                    f"Searching for labels and/or metadata files in {split_name} data files..."
+                )
                 analyze(files, downloaded_files, split_name)
                 analyze(archives, downloaded_dirs, split_name)
 
@@ -149,7 +182,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     )
 
                 if add_labels:
-                    logger.info("Adding the labels inferred from data directories to the dataset's features...")
+                    logger.info(
+                        "Adding the labels inferred from data directories to the dataset's features..."
+                    )
                 if add_metadata:
                     logger.info("Adding metadata to the dataset...")
             else:
@@ -160,7 +195,10 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     name=split_name,
                     gen_kwargs={
                         "files": tuple(zip(files, downloaded_files))
-                        + tuple((None, dl_manager.iter_files(downloaded_dir)) for downloaded_dir in downloaded_dirs),
+                        + tuple(
+                            (None, dl_manager.iter_files(downloaded_dir))
+                            for downloaded_dir in downloaded_dirs
+                        ),
                         "metadata_files": metadata_files.get(split_name, []),
                         "add_labels": add_labels,
                         "add_metadata": add_metadata,
@@ -182,20 +220,32 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                 )
             }
             if len(metadata_ext) > 1:
-                raise ValueError(f"Found metadata files with different extensions: {list(metadata_ext)}")
+                raise ValueError(
+                    f"Found metadata files with different extensions: {list(metadata_ext)}"
+                )
             metadata_ext = metadata_ext.pop()
 
             for split_metadata_files in metadata_files.values():
                 pa_metadata_table = None
                 for _, downloaded_metadata_file in split_metadata_files:
-                    for pa_metadata_table in self._read_metadata(downloaded_metadata_file, metadata_ext=metadata_ext):
+                    for pa_metadata_table in self._read_metadata(
+                        downloaded_metadata_file, metadata_ext=metadata_ext
+                    ):
                         break  # just fetch the first rows
                     if pa_metadata_table is not None:
                         features_per_metadata_file.append(
-                            (downloaded_metadata_file, datasets.Features.from_arrow_schema(pa_metadata_table.schema))
+                            (
+                                downloaded_metadata_file,
+                                datasets.Features.from_arrow_schema(
+                                    pa_metadata_table.schema
+                                ),
+                            )
                         )
                         break  # no need to fetch all the files
-            for downloaded_metadata_file, metadata_features in features_per_metadata_file:
+            for (
+                downloaded_metadata_file,
+                metadata_features,
+            ) in features_per_metadata_file:
                 if metadata_features != features_per_metadata_file[0][1]:
                     raise ValueError(
                         f"Metadata files {downloaded_metadata_file} and {features_per_metadata_file[0][0]} have different features: {features_per_metadata_file[0]} != {metadata_features}"
@@ -208,22 +258,26 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                 if isinstance(feature, dict):
                     out = type(feature)()
                     for key in feature:
-                        if (key == "file_name" or key.endswith("_file_name")) and feature[key] == datasets.Value(
-                            "string"
-                        ):
+                        if (
+                            key == "file_name" or key.endswith("_file_name")
+                        ) and feature[key] == datasets.Value("string"):
                             key = key[: -len("_file_name")] or self.BASE_COLUMN_NAME
                             out[key] = self.BASE_FEATURE()
                             feature_not_found = False
-                        elif (key == "file_names" or key.endswith("_file_names")) and feature[key] == datasets.List(
-                            datasets.Value("string")
-                        ):
-                            key = key[: -len("_file_names")] or (self.BASE_COLUMN_NAME + "s")
+                        elif (
+                            key == "file_names" or key.endswith("_file_names")
+                        ) and feature[key] == datasets.List(datasets.Value("string")):
+                            key = key[: -len("_file_names")] or (
+                                self.BASE_COLUMN_NAME + "s"
+                            )
                             out[key] = datasets.List(self.BASE_FEATURE())
                             feature_not_found = False
-                        elif (key == "file_names" or key.endswith("_file_names")) and feature[key] == [
-                            datasets.Value("string")
-                        ]:
-                            key = key[: -len("_file_names")] or (self.BASE_COLUMN_NAME + "s")
+                        elif (
+                            key == "file_names" or key.endswith("_file_names")
+                        ) and feature[key] == [datasets.Value("string")]:
+                            key = key[: -len("_file_names")] or (
+                                self.BASE_COLUMN_NAME + "s"
+                            )
                             out[key] = [self.BASE_FEATURE()]
                             feature_not_found = False
                         else:
@@ -253,7 +307,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     }
                 )
             else:
-                self.info.features = datasets.Features({self.BASE_COLUMN_NAME: self.BASE_FEATURE()})
+                self.info.features = datasets.Features(
+                    {self.BASE_COLUMN_NAME: self.BASE_FEATURE()}
+                )
 
         return splits
 
@@ -270,7 +326,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                 archives.append(data_file)
         return files, archives
 
-    def _read_metadata(self, metadata_file: str, metadata_ext: str = "") -> Iterator[pa.Table]:
+    def _read_metadata(
+        self, metadata_file: str, metadata_ext: str = ""
+    ) -> Iterator[pa.Table]:
         """using the same logic as the Csv, Json and Parquet dataset builders to stream the data"""
         if self.config.filters is not None:
             filter_expr = (
@@ -286,13 +344,21 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             # dtype allows reading an int column as str
             dtype = (
                 {
-                    name: dtype.to_pandas_dtype() if not require_storage_cast(feature) else object
-                    for name, dtype, feature in zip(schema.names, schema.types, self.config.features.values())
+                    name: (
+                        dtype.to_pandas_dtype()
+                        if not require_storage_cast(feature)
+                        else object
+                    )
+                    for name, dtype, feature in zip(
+                        schema.names, schema.types, self.config.features.values()
+                    )
                 }
                 if schema is not None
                 else None
             )
-            csv_file_reader = pd.read_csv(metadata_file, iterator=True, dtype=dtype, chunksize=chunksize)
+            csv_file_reader = pd.read_csv(
+                metadata_file, iterator=True, dtype=dtype, chunksize=chunksize
+            )
             for df in csv_file_reader:
                 pa_table = pa.Table.from_pandas(df)
                 if self.config.filters is not None:
@@ -317,7 +383,8 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     while True:
                         try:
                             pa_table = paj.read_json(
-                                io.BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
+                                io.BytesIO(batch),
+                                read_options=paj.ReadOptions(block_size=block_size),
                             )
                             break
                         except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
@@ -366,14 +433,20 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             _visit_with_path(self.info.features, find_feature_path)
 
             for original_metadata_file, downloaded_metadata_file in metadata_files:
-                metadata_ext = os.path.splitext(original_metadata_file or downloaded_metadata_file)[-1]
+                metadata_ext = os.path.splitext(
+                    original_metadata_file or downloaded_metadata_file
+                )[-1]
                 downloaded_metadata_dir = os.path.dirname(downloaded_metadata_file)
 
                 def set_feature(item, feature_path: _VisitPath):
-                    if len(feature_path) == 2 and isinstance(feature_path[0], str) and feature_path[1] == 0:
-                        item[feature_path[0]] = item.pop("file_names", None) or item.pop(
-                            feature_path[0] + "_file_names", None
-                        )
+                    if (
+                        len(feature_path) == 2
+                        and isinstance(feature_path[0], str)
+                        and feature_path[1] == 0
+                    ):
+                        item[feature_path[0]] = item.pop(
+                            "file_names", None
+                        ) or item.pop(feature_path[0] + "_file_names", None)
                     elif len(feature_path) == 1 and isinstance(feature_path[0], str):
                         item[feature_path[0]] = item.pop("file_name", None) or item.pop(
                             feature_path[0] + "_file_name", None
@@ -383,7 +456,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         item = os.path.join(downloaded_metadata_dir, file_relpath)
                     return item
 
-                for pa_metadata_table in self._read_metadata(downloaded_metadata_file, metadata_ext=metadata_ext):
+                for pa_metadata_table in self._read_metadata(
+                    downloaded_metadata_file, metadata_ext=metadata_ext
+                ):
                     for sample in pa_metadata_table.to_pylist():
                         for feature_path in feature_paths:
                             _nested_apply(sample, feature_path, set_feature)
@@ -397,14 +472,22 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     else self.config.filters
                 )
             for original_file, downloaded_file_or_dir in files:
-                downloaded_files = [downloaded_file_or_dir] if original_file else downloaded_file_or_dir
+                downloaded_files = (
+                    [downloaded_file_or_dir]
+                    if original_file
+                    else downloaded_file_or_dir
+                )
                 for downloaded_file in downloaded_files:
-                    original_file_ext = os.path.splitext(original_file or downloaded_file)[-1]
+                    original_file_ext = os.path.splitext(
+                        original_file or downloaded_file
+                    )[-1]
                     if original_file_ext.lower() not in self.EXTENSIONS:
                         continue
                     sample = {self.BASE_COLUMN_NAME: downloaded_file}
                     if add_labels:
-                        sample["label"] = os.path.basename(os.path.dirname(original_file or downloaded_file))
+                        sample["label"] = os.path.basename(
+                            os.path.dirname(original_file or downloaded_file)
+                        )
                     if self.config.filters is not None:
                         pa_table = pa.Table.from_pylist([sample]).filter(filter_expr)
                         if len(pa_table) == 0:
@@ -413,7 +496,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     sample_idx += 1
 
 
-def _nested_apply(item: Any, feature_path: _VisitPath, func: Callable[[Any, _VisitPath], Any]):
+def _nested_apply(
+    item: Any, feature_path: _VisitPath, func: Callable[[Any, _VisitPath], Any]
+):
     # see _visit_with_path() to see how feature paths are constructed
     item = func(item, feature_path)
     if feature_path:

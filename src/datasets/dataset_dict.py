@@ -61,7 +61,9 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
     def _check_values_type(self):
         for dataset in self.values():
             if not isinstance(dataset, Dataset):
-                raise TypeError(f"Values in `DatasetDict` should be of type `Dataset` but got type '{type(dataset)}'")
+                raise TypeError(
+                    f"Values in `DatasetDict` should be of type `Dataset` but got type '{type(dataset)}'"
+                )
 
     def _check_values_features(self):
         items = list(self.items())
@@ -87,9 +89,15 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             return super().__getitem__(k)
         else:
             available_suggested_splits = [
-                split for split in (Split.TRAIN, Split.TEST, Split.VALIDATION) if split in self
+                split
+                for split in (Split.TRAIN, Split.TEST, Split.VALIDATION)
+                if split in self
             ]
-            suggested_split = available_suggested_splits[0] if available_suggested_splits else list(self)[0]
+            suggested_split = (
+                available_suggested_splits[0]
+                if available_suggested_splits
+                else list(self)[0]
+            )
             raise KeyError(
                 f"Invalid key: {k}. Please first select a split. For example: "
                 f"`my_dataset_dictionary['{suggested_split}'][{k}]`. "
@@ -226,7 +234,9 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ```
         """
         self._check_values_type()
-        return DatasetDict({k: dataset.flatten(max_depth=max_depth) for k, dataset in self.items()})
+        return DatasetDict(
+            {k: dataset.flatten(max_depth=max_depth) for k, dataset in self.items()}
+        )
 
     def unique(self, column: str) -> dict[str, list]:
         """Return a list of the unique elements in a column for each split.
@@ -306,7 +316,9 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ```
         """
         self._check_values_type()
-        return DatasetDict({k: dataset.cast(features=features) for k, dataset in self.items()})
+        return DatasetDict(
+            {k: dataset.cast(features=features) for k, dataset in self.items()}
+        )
 
     def cast_column(self, column: str, feature) -> "DatasetDict":
         """Cast column to feature for decoding.
@@ -335,7 +347,12 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ```
         """
         self._check_values_type()
-        return DatasetDict({k: dataset.cast_column(column=column, feature=feature) for k, dataset in self.items()})
+        return DatasetDict(
+            {
+                k: dataset.cast_column(column=column, feature=feature)
+                for k, dataset in self.items()
+            }
+        )
 
     def remove_columns(self, column_names: Union[str, list[str]]) -> "DatasetDict":
         """
@@ -377,9 +394,16 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ```
         """
         self._check_values_type()
-        return DatasetDict({k: dataset.remove_columns(column_names=column_names) for k, dataset in self.items()})
+        return DatasetDict(
+            {
+                k: dataset.remove_columns(column_names=column_names)
+                for k, dataset in self.items()
+            }
+        )
 
-    def rename_column(self, original_column_name: str, new_column_name: str) -> "DatasetDict":
+    def rename_column(
+        self, original_column_name: str, new_column_name: str
+    ) -> "DatasetDict":
         """
         Rename a column in the dataset and move the features associated to the original column under the new column name.
         The transformation is applied to all the datasets of the dataset dictionary.
@@ -463,7 +487,12 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ```
         """
         self._check_values_type()
-        return DatasetDict({k: dataset.rename_columns(column_mapping=column_mapping) for k, dataset in self.items()})
+        return DatasetDict(
+            {
+                k: dataset.rename_columns(column_mapping=column_mapping)
+                for k, dataset in self.items()
+            }
+        )
 
     def select_columns(self, column_names: Union[str, list[str]]) -> "DatasetDict":
         """Select one or several column(s) from each split in the dataset and
@@ -499,9 +528,16 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ```
         """
         self._check_values_type()
-        return DatasetDict({k: dataset.select_columns(column_names=column_names) for k, dataset in self.items()})
+        return DatasetDict(
+            {
+                k: dataset.select_columns(column_names=column_names)
+                for k, dataset in self.items()
+            }
+        )
 
-    def class_encode_column(self, column: str, include_nulls: bool = False) -> "DatasetDict":
+    def class_encode_column(
+        self, column: str, include_nulls: bool = False
+    ) -> "DatasetDict":
         """Casts the given column as [`~datasets.features.ClassLabel`] and updates the tables.
 
         Args:
@@ -530,7 +566,12 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         """
         self._check_values_type()
         return DatasetDict(
-            {k: dataset.class_encode_column(column=column, include_nulls=include_nulls) for k, dataset in self.items()}
+            {
+                k: dataset.class_encode_column(
+                    column=column, include_nulls=include_nulls
+                )
+                for k, dataset in self.items()
+            }
         )
 
     @contextlib.contextmanager
@@ -560,7 +601,9 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         old_format_type = {k: dataset._format_type for k, dataset in self.items()}
         old_format_kwargs = {k: dataset._format_kwargs for k, dataset in self.items()}
         old_format_columns = {k: dataset._format_columns for k, dataset in self.items()}
-        old_output_all_columns = {k: dataset._output_all_columns for k, dataset in self.items()}
+        old_output_all_columns = {
+            k: dataset._output_all_columns for k, dataset in self.items()
+        }
         try:
             self.set_format(type, columns, output_all_columns, **format_kwargs)
             yield
@@ -813,7 +856,9 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ```
         """
         dataset = copy.deepcopy(self)
-        dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
+        dataset.set_transform(
+            transform=transform, columns=columns, output_all_columns=output_all_columns
+        )
         return dataset
 
     def map(
@@ -1401,9 +1446,15 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         fs: fsspec.AbstractFileSystem
         fs, dataset_dict_path = url_to_fs(dataset_dict_path, **(storage_options or {}))
 
-        dataset_dict_json_path = posixpath.join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME)
-        dataset_state_json_path = posixpath.join(dataset_dict_path, config.DATASET_STATE_JSON_FILENAME)
-        dataset_info_path = posixpath.join(dataset_dict_path, config.DATASET_INFO_FILENAME)
+        dataset_dict_json_path = posixpath.join(
+            dataset_dict_path, config.DATASETDICT_JSON_FILENAME
+        )
+        dataset_state_json_path = posixpath.join(
+            dataset_dict_path, config.DATASET_STATE_JSON_FILENAME
+        )
+        dataset_info_path = posixpath.join(
+            dataset_dict_path, config.DATASET_INFO_FILENAME
+        )
         if not fs.isfile(dataset_dict_json_path):
             if fs.isfile(dataset_info_path) and fs.isfile(dataset_state_json_path):
                 raise FileNotFoundError(
@@ -1418,7 +1469,9 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
 
         dataset_dict = DatasetDict()
         for k in splits:
-            dataset_dict_split_path = posixpath.join(fs.unstrip_protocol(dataset_dict_path), k)
+            dataset_dict_split_path = posixpath.join(
+                fs.unstrip_protocol(dataset_dict_path), k
+            )
             dataset_dict[k] = Dataset.load_from_disk(
                 dataset_dict_split_path,
                 keep_in_memory=keep_in_memory,
@@ -1605,11 +1658,15 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ).read()
 
     @is_documented_by(Dataset.align_labels_with_mapping)
-    def align_labels_with_mapping(self, label2id: dict, label_column: str) -> "DatasetDict":
+    def align_labels_with_mapping(
+        self, label2id: dict, label_column: str
+    ) -> "DatasetDict":
         self._check_values_type()
         return DatasetDict(
             {
-                k: dataset.align_labels_with_mapping(label2id=label2id, label_column=label_column)
+                k: dataset.align_labels_with_mapping(
+                    label2id=label2id, label_column=label_column
+                )
                 for k, dataset in self.items()
             }
         )
@@ -1736,7 +1793,9 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
 
         for split in self.keys():
             if not re.match(_split_re, split):
-                raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
+                raise ValueError(
+                    f"Split name should match '{_split_re}' but got '{split}'."
+                )
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
@@ -1762,13 +1821,17 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             )
 
         if not data_dir:
-            data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
+            data_dir = (
+                config_name if config_name != "default" else "data"
+            )  # for backward compatibility
 
         additions = []
         for split in self.keys():
             logger.info(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
-            split_additions, uploaded_size, dataset_nbytes = self[split]._push_parquet_shards_to_hub(
+            split_additions, uploaded_size, dataset_nbytes = self[
+                split
+            ]._push_parquet_shards_to_hub(
                 repo_id,
                 data_dir=data_dir,
                 split=split,
@@ -1783,14 +1846,20 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             additions += split_additions
             total_uploaded_size += uploaded_size
             total_dataset_nbytes += dataset_nbytes
-            info_to_dump.splits[split] = SplitInfo(str(split), num_bytes=dataset_nbytes, num_examples=len(self[split]))
+            info_to_dump.splits[split] = SplitInfo(
+                str(split), num_bytes=dataset_nbytes, num_examples=len(self[split])
+            )
         info_to_dump.download_checksums = None
         info_to_dump.download_size = total_uploaded_size
         info_to_dump.dataset_size = total_dataset_nbytes
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
-        def get_deletions_and_dataset_card() -> tuple[str, list[CommitOperationDelete], str, Optional[str]]:
-            parent_commit = api.repo_info(repo_id, repo_type="dataset", revision=revision).sha
+        def get_deletions_and_dataset_card() -> (
+            tuple[str, list[CommitOperationDelete], str, Optional[str]]
+        ):
+            parent_commit = api.repo_info(
+                repo_id, repo_type="dataset", revision=revision
+            ).sha
 
             # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
             # and delete old split shards (if they exist)
@@ -1812,15 +1881,23 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
                     repo_with_dataset_infos = True
                 elif (
-                    repo_file.rfilename.startswith(tuple(f"{data_dir}/{split}-" for split in self.keys()))
+                    repo_file.rfilename.startswith(
+                        tuple(f"{data_dir}/{split}-" for split in self.keys())
+                    )
                     and repo_file.rfilename not in repo_files_to_add
                 ):
-                    deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
+                    deletions.append(
+                        CommitOperationDelete(path_in_repo=repo_file.rfilename)
+                    )
                 elif fnmatch.fnmatch(
                     repo_file.rfilename,
-                    PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
+                    PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace(
+                        "{split}", "*"
+                    ),
                 ):
-                    pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                    pattern = glob_pattern_to_regex(
+                        PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED
+                    )
                     split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
                     assert split_pattern_fields is not None
                     repo_split = split_pattern_fields["split"]
@@ -1837,7 +1914,9 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 )
                 dataset_card = DatasetCard.load(Path(dataset_card_path))
                 dataset_card_data = dataset_card.data
-                metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
+                metadata_configs = MetadataConfigs.from_dataset_card_data(
+                    dataset_card_data
+                )
             # get the deprecated dataset_infos.json to update them
             elif repo_with_dataset_infos:
                 dataset_card = None
@@ -1850,16 +1929,26 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
             if not metadata_configs and repo_splits:
                 default_metadata_configs_to_dump = {
-                    "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
+                    "data_files": [
+                        {"split": split, "path": f"data/{split}-*"}
+                        for split in repo_splits
+                    ]
                 }
-                MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
+                MetadataConfigs(
+                    {"default": default_metadata_configs_to_dump}
+                ).to_dataset_card_data(dataset_card_data)
             metadata_config_to_dump = {
-                "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
+                "data_files": [
+                    {"split": split, "path": f"{data_dir}/{split}-*"}
+                    for split in self.keys()
+                ],
             }
             configs_to_dump = {config_name: metadata_config_to_dump}
             if set_default and config_name != "default":
                 if metadata_configs:
-                    current_default_config_name = metadata_configs.get_default_config_name()
+                    current_default_config_name = (
+                        metadata_configs.get_default_config_name()
+                    )
                     if current_default_config_name == "default":
                         raise ValueError(
                             "There exists a configuration named 'default'. To set a different configuration as default, "
@@ -1867,7 +1956,9 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                         )
                     if current_default_config_name:
                         _ = metadata_configs[current_default_config_name].pop("default")
-                        configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
+                        configs_to_dump[current_default_config_name] = metadata_configs[
+                            current_default_config_name
+                        ]
                 metadata_config_to_dump["default"] = True
             # push to the deprecated dataset_infos.json
             if repo_with_dataset_infos:
@@ -1884,31 +1975,44 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             else:
                 new_dataset_infos = None
             # push to README
-            DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
+            DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(
+                dataset_card_data
+            )
             MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
             new_dataset_card = (
-                DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
+                DatasetCard(f"---\n{dataset_card_data}\n---\n")
+                if dataset_card is None
+                else dataset_card
             )
             return parent_commit, deletions, new_dataset_card, new_dataset_infos
 
-        commit_message = commit_message if commit_message is not None else "Upload dataset"
+        commit_message = (
+            commit_message if commit_message is not None else "Upload dataset"
+        )
         if len(additions) > config.UPLOADS_MAX_NUMBER_PER_COMMIT:
             logger.info(
                 f"Number of files to upload is larger than {config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
             )
-            num_commits = math.ceil(len(additions) / config.UPLOADS_MAX_NUMBER_PER_COMMIT)
+            num_commits = math.ceil(
+                len(additions) / config.UPLOADS_MAX_NUMBER_PER_COMMIT
+            )
             for i in range(0, num_commits):
                 operations = additions[
-                    i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
+                    i
+                    * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1)
+                    * config.UPLOADS_MAX_NUMBER_PER_COMMIT
                 ]
-                for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+                for retry, sleep_time in enumerate(
+                    itertools.chain(range(10), itertools.repeat(30)), start=1
+                ):
                     # We need to retry if another commit happens at the same time
                     sleep_time *= 1 + random.random()
                     try:
                         commit_info = api.create_commit(
                             repo_id,
                             operations=operations,
-                            commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                            commit_message=commit_message
+                            + f" (part {i:05d}-of-{num_commits:05d})",
                             commit_description=commit_description,
                             repo_type="dataset",
                             revision=revision,
@@ -1931,17 +2035,25 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                     break
                 logger.info(
                     f"Commit #{i + 1} completed"
-                    + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
+                    + (
+                        f" (still {num_commits - i - 1} to go)"
+                        if num_commits - i - 1
+                        else ""
+                    )
                     + "."
                 )
             last_commit_additions = []
         else:
             last_commit_additions = additions
 
-        for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+        for retry, sleep_time in enumerate(
+            itertools.chain(range(10), itertools.repeat(30)), start=1
+        ):
             # We need to retry if there was a commit in between in case it touched the dataset card data
             sleep_time *= 1 + random.random()
-            parent_commit, deletions, dataset_card, dataset_infos = get_deletions_and_dataset_card()
+            parent_commit, deletions, dataset_card, dataset_infos = (
+                get_deletions_and_dataset_card()
+            )
             dataset_card_additions = []
             if dataset_infos:
                 dataset_card_additions.append(
@@ -1951,12 +2063,17 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                     )
                 )
             dataset_card_additions.append(
-                CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
+                CommitOperationAdd(
+                    path_in_repo=config.REPOCARD_FILENAME,
+                    path_or_fileobj=str(dataset_card).encode(),
+                )
             )
             try:
                 commit_info = api.create_commit(
                     repo_id,
-                    operations=last_commit_additions + dataset_card_additions + deletions,
+                    operations=last_commit_additions
+                    + dataset_card_additions
+                    + deletions,
                     commit_message=commit_message,
                     commit_description=commit_description,
                     repo_type="dataset",
@@ -1988,7 +2105,9 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
     def _check_values_type(self):
         for dataset in self.values():
             if not isinstance(dataset, IterableDataset):
-                raise TypeError(f"Values in `DatasetDict` should be of type `Dataset` but got type '{type(dataset)}'")
+                raise TypeError(
+                    f"Values in `DatasetDict` should be of type `Dataset` but got type '{type(dataset)}'"
+                )
 
     def _check_values_features(self):
         items = [(key, dataset._resolve_features()) for key, dataset in self.items()]
@@ -2083,7 +2202,9 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])}
         ```
         """
-        return IterableDatasetDict({k: dataset.with_format(type=type) for k, dataset in self.items()})
+        return IterableDatasetDict(
+            {k: dataset.with_format(type=type) for k, dataset in self.items()}
+        )
 
     def map(
         self,
@@ -2304,12 +2425,16 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         """
         return IterableDatasetDict(
             {
-                k: dataset.shuffle(seed=seed, generator=generator, buffer_size=buffer_size)
+                k: dataset.shuffle(
+                    seed=seed, generator=generator, buffer_size=buffer_size
+                )
                 for k, dataset in self.items()
             }
         )
 
-    def rename_column(self, original_column_name: str, new_column_name: str) -> "IterableDatasetDict":
+    def rename_column(
+        self, original_column_name: str, new_column_name: str
+    ) -> "IterableDatasetDict":
         """
         Rename a column in the dataset, and move the features associated to the original column under the new column
         name.
@@ -2370,10 +2495,15 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         ```
         """
         return IterableDatasetDict(
-            {k: dataset.rename_columns(column_mapping=column_mapping) for k, dataset in self.items()}
+            {
+                k: dataset.rename_columns(column_mapping=column_mapping)
+                for k, dataset in self.items()
+            }
         )
 
-    def remove_columns(self, column_names: Union[str, list[str]]) -> "IterableDatasetDict":
+    def remove_columns(
+        self, column_names: Union[str, list[str]]
+    ) -> "IterableDatasetDict":
         """
         Remove one or several column(s) in the dataset and the features associated to them.
         The removal is done on-the-fly on the examples when iterating over the dataset.
@@ -2397,9 +2527,13 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
         ```
         """
-        return IterableDatasetDict({k: dataset.remove_columns(column_names) for k, dataset in self.items()})
+        return IterableDatasetDict(
+            {k: dataset.remove_columns(column_names) for k, dataset in self.items()}
+        )
 
-    def select_columns(self, column_names: Union[str, list[str]]) -> "IterableDatasetDict":
+    def select_columns(
+        self, column_names: Union[str, list[str]]
+    ) -> "IterableDatasetDict":
         """Select one or several column(s) in the dataset and the features
         associated to them. The selection is done on-the-fly on the examples
         when iterating over the dataset. The selection is applied to all the
@@ -2423,7 +2557,9 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
         ```
         """
-        return IterableDatasetDict({k: dataset.select_columns(column_names) for k, dataset in self.items()})
+        return IterableDatasetDict(
+            {k: dataset.select_columns(column_names) for k, dataset in self.items()}
+        )
 
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDatasetDict":
         """Cast column to feature for decoding.
@@ -2453,7 +2589,10 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         ```
         """
         return IterableDatasetDict(
-            {k: dataset.cast_column(column=column, feature=feature) for k, dataset in self.items()}
+            {
+                k: dataset.cast_column(column=column, feature=feature)
+                for k, dataset in self.items()
+            }
         )
 
     def cast(
@@ -2491,7 +2630,9 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
          'text': Value('large_string')}
         ```
         """
-        return IterableDatasetDict({k: dataset.cast(features=features) for k, dataset in self.items()})
+        return IterableDatasetDict(
+            {k: dataset.cast(features=features) for k, dataset in self.items()}
+        )
 
     def push_to_hub(
         self,
@@ -2605,7 +2746,9 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
 
         for split in self.keys():
             if not re.match(_split_re, split):
-                raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
+                raise ValueError(
+                    f"Split name should match '{_split_re}' but got '{split}'."
+                )
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
@@ -2631,13 +2774,17 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
             )
 
         if not data_dir:
-            data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
+            data_dir = (
+                config_name if config_name != "default" else "data"
+            )  # for backward compatibility
 
         additions = []
         for split in self.keys():
             logger.info(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
-            split_additions, uploaded_size, dataset_nbytes, num_examples = self[split]._push_parquet_shards_to_hub(
+            split_additions, uploaded_size, dataset_nbytes, num_examples = self[
+                split
+            ]._push_parquet_shards_to_hub(
                 repo_id,
                 data_dir=data_dir,
                 split=split,
@@ -2652,14 +2799,20 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
             additions += split_additions
             total_uploaded_size += uploaded_size
             total_dataset_nbytes += dataset_nbytes
-            info_to_dump.splits[split] = SplitInfo(str(split), num_bytes=dataset_nbytes, num_examples=num_examples)
+            info_to_dump.splits[split] = SplitInfo(
+                str(split), num_bytes=dataset_nbytes, num_examples=num_examples
+            )
         info_to_dump.download_checksums = None
         info_to_dump.download_size = total_uploaded_size
         info_to_dump.dataset_size = total_dataset_nbytes
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
-        def get_deletions_and_dataset_card() -> tuple[str, list[CommitOperationDelete], str, Optional[str]]:
-            parent_commit = api.repo_info(repo_id, repo_type="dataset", revision=revision).sha
+        def get_deletions_and_dataset_card() -> (
+            tuple[str, list[CommitOperationDelete], str, Optional[str]]
+        ):
+            parent_commit = api.repo_info(
+                repo_id, repo_type="dataset", revision=revision
+            ).sha
 
             # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
             # and delete old split shards (if they exist)
@@ -2681,15 +2834,23 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
                     repo_with_dataset_infos = True
                 elif (
-                    repo_file.rfilename.startswith(tuple(f"{data_dir}/{split}-" for split in self.keys()))
+                    repo_file.rfilename.startswith(
+                        tuple(f"{data_dir}/{split}-" for split in self.keys())
+                    )
                     and repo_file.rfilename not in repo_files_to_add
                 ):
-                    deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
+                    deletions.append(
+                        CommitOperationDelete(path_in_repo=repo_file.rfilename)
+                    )
                 elif fnmatch.fnmatch(
                     repo_file.rfilename,
-                    PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
+                    PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace(
+                        "{split}", "*"
+                    ),
                 ):
-                    pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                    pattern = glob_pattern_to_regex(
+                        PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED
+                    )
                     split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
                     assert split_pattern_fields is not None
                     repo_split = split_pattern_fields["split"]
@@ -2706,7 +2867,9 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 )
                 dataset_card = DatasetCard.load(Path(dataset_card_path))
                 dataset_card_data = dataset_card.data
-                metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
+                metadata_configs = MetadataConfigs.from_dataset_card_data(
+                    dataset_card_data
+                )
             # get the deprecated dataset_infos.json to update them
             elif repo_with_dataset_infos:
                 dataset_card = None
@@ -2719,16 +2882,26 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
             # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
             if not metadata_configs and repo_splits:
                 default_metadata_configs_to_dump = {
-                    "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
+                    "data_files": [
+                        {"split": split, "path": f"data/{split}-*"}
+                        for split in repo_splits
+                    ]
                 }
-                MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
+                MetadataConfigs(
+                    {"default": default_metadata_configs_to_dump}
+                ).to_dataset_card_data(dataset_card_data)
             metadata_config_to_dump = {
-                "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
+                "data_files": [
+                    {"split": split, "path": f"{data_dir}/{split}-*"}
+                    for split in self.keys()
+                ],
             }
             configs_to_dump = {config_name: metadata_config_to_dump}
             if set_default and config_name != "default":
                 if metadata_configs:
-                    current_default_config_name = metadata_configs.get_default_config_name()
+                    current_default_config_name = (
+                        metadata_configs.get_default_config_name()
+                    )
                     if current_default_config_name == "default":
                         raise ValueError(
                             "There exists a configuration named 'default'. To set a different configuration as default, "
@@ -2736,7 +2909,9 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                         )
                     if current_default_config_name:
                         _ = metadata_configs[current_default_config_name].pop("default")
-                        configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
+                        configs_to_dump[current_default_config_name] = metadata_configs[
+                            current_default_config_name
+                        ]
                 metadata_config_to_dump["default"] = True
             # push to the deprecated dataset_infos.json
             if repo_with_dataset_infos:
@@ -2753,31 +2928,44 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
             else:
                 new_dataset_infos = None
             # push to README
-            DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
+            DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(
+                dataset_card_data
+            )
             MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
             new_dataset_card = (
-                DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
+                DatasetCard(f"---\n{dataset_card_data}\n---\n")
+                if dataset_card is None
+                else dataset_card
             )
             return parent_commit, deletions, new_dataset_card, new_dataset_infos
 
-        commit_message = commit_message if commit_message is not None else "Upload dataset"
+        commit_message = (
+            commit_message if commit_message is not None else "Upload dataset"
+        )
         if len(additions) > config.UPLOADS_MAX_NUMBER_PER_COMMIT:
             logger.info(
                 f"Number of files to upload is larger than {config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
             )
-            num_commits = math.ceil(len(additions) / config.UPLOADS_MAX_NUMBER_PER_COMMIT)
+            num_commits = math.ceil(
+                len(additions) / config.UPLOADS_MAX_NUMBER_PER_COMMIT
+            )
             for i in range(0, num_commits):
                 operations = additions[
-                    i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
+                    i
+                    * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1)
+                    * config.UPLOADS_MAX_NUMBER_PER_COMMIT
                 ]
-                for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+                for retry, sleep_time in enumerate(
+                    itertools.chain(range(10), itertools.repeat(30)), start=1
+                ):
                     # We need to retry if another commit happens at the same time
                     sleep_time *= 1 + random.random()
                     try:
                         commit_info = api.create_commit(
                             repo_id,
                             operations=operations,
-                            commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                            commit_message=commit_message
+                            + f" (part {i:05d}-of-{num_commits:05d})",
                             commit_description=commit_description,
                             repo_type="dataset",
                             revision=revision,
@@ -2800,17 +2988,25 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                     break
                 logger.info(
                     f"Commit #{i + 1} completed"
-                    + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
+                    + (
+                        f" (still {num_commits - i - 1} to go)"
+                        if num_commits - i - 1
+                        else ""
+                    )
                     + "."
                 )
             last_commit_additions = []
         else:
             last_commit_additions = additions
 
-        for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+        for retry, sleep_time in enumerate(
+            itertools.chain(range(10), itertools.repeat(30)), start=1
+        ):
             # We need to retry if there was a commit in between in case it touched the dataset card data
             sleep_time *= 1 + random.random()
-            parent_commit, deletions, dataset_card, dataset_infos = get_deletions_and_dataset_card()
+            parent_commit, deletions, dataset_card, dataset_infos = (
+                get_deletions_and_dataset_card()
+            )
             dataset_card_additions = []
             if dataset_infos:
                 dataset_card_additions.append(
@@ -2820,12 +3016,17 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                     )
                 )
             dataset_card_additions.append(
-                CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
+                CommitOperationAdd(
+                    path_in_repo=config.REPOCARD_FILENAME,
+                    path_or_fileobj=str(dataset_card).encode(),
+                )
             )
             try:
                 commit_info = api.create_commit(
                     repo_id,
-                    operations=last_commit_additions + dataset_card_additions + deletions,
+                    operations=last_commit_additions
+                    + dataset_card_additions
+                    + deletions,
                     commit_message=commit_message,
                     commit_description=commit_description,
                     repo_type="dataset",

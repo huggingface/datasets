@@ -46,7 +46,10 @@ def upper_lower_case_file(tmp_path):
         ("INFO1", "json"),
         ("info2", "json"),
         ("info3", "JSON"),
-        ("info3", "json"),  # should probably remove if testing on a case insensitive filesystem
+        (
+            "info3",
+            "json",
+        ),  # should probably remove if testing on a case insensitive filesystem
     ]
     with tarfile.open(tar_path, "w") as tar:
         for example_idx in range(num_examples):
@@ -119,7 +122,9 @@ def test_gzipped_text_webdataset(gzipped_text_wds_file, text_path):
     assert len(examples) == 3
     assert isinstance(examples[0]["txt.gz"], str)
     with open(text_path, "r") as f:
-        assert examples[0]["txt.gz"].replace("\r\n", "\n") == f.read().replace("\r\n", "\n")
+        assert examples[0]["txt.gz"].replace("\r\n", "\n") == f.read().replace(
+            "\r\n", "\n"
+        )
 
 
 @require_pil
@@ -145,7 +150,9 @@ def test_image_webdataset(image_wds_file):
     assert len(examples) == 3
     assert isinstance(examples[0]["json"], dict)
     assert isinstance(examples[0]["json"]["caption"], str)
-    assert isinstance(examples[0]["jpg"], dict)  # keep encoded to avoid unecessary copies
+    assert isinstance(
+        examples[0]["jpg"], dict
+    )  # keep encoded to avoid unecessary copies
     encoded = webdataset.info.features.encode_example(examples[0])
     decoded = webdataset.info.features.decode_example(encoded)
     assert isinstance(decoded["json"], dict)
@@ -251,7 +258,9 @@ def test_audio_webdataset(audio_wds_file):
     assert isinstance(examples[0]["json"], dict)
     assert isinstance(examples[0]["json"]["transcript"], str)
     assert isinstance(examples[0]["wav"], dict)
-    assert isinstance(examples[0]["wav"]["bytes"], bytes)  # keep encoded to avoid unecessary copies
+    assert isinstance(
+        examples[0]["wav"]["bytes"], bytes
+    )  # keep encoded to avoid unecessary copies
     encoded = webdataset.info.features.encode_example(examples[0])
     decoded = webdataset.info.features.decode_example(encoded)
     assert isinstance(decoded["json"], dict)
@@ -318,7 +327,9 @@ def test_tensor_webdataset(tensor_wds_file):
     assert len(examples) == 3
     assert isinstance(examples[0]["json"], dict)
     assert isinstance(examples[0]["json"]["text"], str)
-    assert isinstance(examples[0]["pth"], torch.Tensor)  # keep encoded to avoid unecessary copies
+    assert isinstance(
+        examples[0]["pth"], torch.Tensor
+    )  # keep encoded to avoid unecessary copies
     encoded = webdataset.info.features.encode_example(examples[0])
     decoded = webdataset.info.features.decode_example(encoded)
     assert isinstance(decoded["json"], dict)

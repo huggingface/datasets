@@ -19,8 +19,14 @@ def _check_text_dataset(dataset, expected_features):
 def test_dataset_from_text_keep_in_memory(keep_in_memory, text_path, tmp_path):
     cache_dir = tmp_path / "cache"
     expected_features = {"text": "string"}
-    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = TextDatasetReader(text_path, cache_dir=cache_dir, keep_in_memory=keep_in_memory).read()
+    with (
+        assert_arrow_memory_increases()
+        if keep_in_memory
+        else assert_arrow_memory_doesnt_increase()
+    ):
+        dataset = TextDatasetReader(
+            text_path, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        ).read()
     _check_text_dataset(dataset, expected_features)
 
 
@@ -38,9 +44,13 @@ def test_dataset_from_text_features(features, text_path, tmp_path):
     default_expected_features = {"text": "string"}
     expected_features = features.copy() if features else default_expected_features
     features = (
-        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+        Features({feature: Value(dtype) for feature, dtype in features.items()})
+        if features is not None
+        else None
     )
-    dataset = TextDatasetReader(text_path, features=features, cache_dir=cache_dir).read()
+    dataset = TextDatasetReader(
+        text_path, features=features, cache_dir=cache_dir
+    ).read()
     _check_text_dataset(dataset, expected_features)
 
 
@@ -80,8 +90,14 @@ def _check_text_datasetdict(dataset_dict, expected_features, splits=("train",)):
 def test_datasetdict_from_text_keep_in_memory(keep_in_memory, text_path, tmp_path):
     cache_dir = tmp_path / "cache"
     expected_features = {"text": "string"}
-    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = TextDatasetReader({"train": text_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory).read()
+    with (
+        assert_arrow_memory_increases()
+        if keep_in_memory
+        else assert_arrow_memory_doesnt_increase()
+    ):
+        dataset = TextDatasetReader(
+            {"train": text_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        ).read()
     _check_text_datasetdict(dataset, expected_features)
 
 
@@ -100,9 +116,13 @@ def test_datasetdict_from_text_features(features, text_path, tmp_path):
     default_expected_features = {"text": "string"}
     expected_features = features.copy() if features else default_expected_features
     features = (
-        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+        Features({feature: Value(dtype) for feature, dtype in features.items()})
+        if features is not None
+        else None
     )
-    dataset = TextDatasetReader({"train": text_path}, features=features, cache_dir=cache_dir).read()
+    dataset = TextDatasetReader(
+        {"train": text_path}, features=features, cache_dir=cache_dir
+    ).read()
     _check_text_datasetdict(dataset, expected_features)
 
 

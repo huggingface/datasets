@@ -74,6 +74,7 @@ if config.TORCH_AVAILABLE:
         def forward(self, x):
             x = F.relu(self.conv1(x))
             return F.relu(self.conv2(x))
+
 else:
     TorchModule = None
 
@@ -180,7 +181,13 @@ class RecurseHashTest(TestCase):
             code = func.__code__
             # Use _create_code from dill in order to make it work for different python versions
             code = code.replace(co_filename=co_filename)
-            return FunctionType(code, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
+            return FunctionType(
+                code,
+                func.__globals__,
+                func.__name__,
+                func.__defaults__,
+                func.__closure__,
+            )
 
         co_filename, returned_obj = "<ipython-input-2-e0383a102aae>", [0]
         hash1 = Hasher.hash(create_ipython_func(co_filename, returned_obj))
@@ -191,11 +198,17 @@ class RecurseHashTest(TestCase):
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 
-        co_filename, returned_obj = os.path.join(gettempdir(), "ipykernel_12345", "321456789.py"), [0]
+        co_filename, returned_obj = os.path.join(
+            gettempdir(), "ipykernel_12345", "321456789.py"
+        ), [0]
         hash4 = Hasher.hash(create_ipython_func(co_filename, returned_obj))
-        co_filename, returned_obj = os.path.join(gettempdir(), "ipykernel_12345", "321456789.py"), [1]
+        co_filename, returned_obj = os.path.join(
+            gettempdir(), "ipykernel_12345", "321456789.py"
+        ), [1]
         hash5 = Hasher.hash(create_ipython_func(co_filename, returned_obj))
-        co_filename, returned_obj = os.path.join(gettempdir(), "ipykernel_12345", "654123987.py"), [0]
+        co_filename, returned_obj = os.path.join(
+            gettempdir(), "ipykernel_12345", "654123987.py"
+        ), [0]
         hash6 = Hasher.hash(create_ipython_func(co_filename, returned_obj))
         self.assertEqual(hash4, hash6)
         self.assertNotEqual(hash4, hash5)
@@ -214,10 +227,14 @@ class RecurseHashTest(TestCase):
         def globalvars_mock2_side_effect(func, *args, **kwargs):
             return {"bar": bar, "foo": foo}
 
-        with patch("dill.detect.globalvars", side_effect=globalvars_mock1_side_effect) as globalvars_mock1:
+        with patch(
+            "dill.detect.globalvars", side_effect=globalvars_mock1_side_effect
+        ) as globalvars_mock1:
             hash1 = Hasher.hash(func)
             self.assertGreater(globalvars_mock1.call_count, 0)
-        with patch("dill.detect.globalvars", side_effect=globalvars_mock2_side_effect) as globalvars_mock2:
+        with patch(
+            "dill.detect.globalvars", side_effect=globalvars_mock2_side_effect
+        ) as globalvars_mock2:
             hash2 = Hasher.hash(func)
             self.assertGreater(globalvars_mock2.call_count, 0)
         self.assertEqual(hash1, hash2)
@@ -279,7 +296,9 @@ class HashingTest(TestCase):
         rng = np.random.default_rng(42)
         set_ = {rng.random() for _ in range(10_000)}
         expected_hash = Hasher.hash(set_)
-        assert expected_hash == Pool(1).apply_async(partial(Hasher.hash, set(set_))).get()
+        assert (
+            expected_hash == Pool(1).apply_async(partial(Hasher.hash, set(set_))).get()
+        )
 
     def test_set_doesnt_depend_on_order(self):
         set_ = set("abc")

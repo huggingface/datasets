@@ -194,7 +194,9 @@ def test_config_raises_when_invalid_name() -> None:
         _ = JsonConfig(name="name-with-*-invalid-character")
 
 
-@pytest.mark.parametrize("data_files", ["str_path", ["str_path"], DataFilesList(["str_path"], [()])])
+@pytest.mark.parametrize(
+    "data_files", ["str_path", ["str_path"], DataFilesList(["str_path"], [()])]
+)
 def test_config_raises_when_invalid_data_files(data_files) -> None:
     with pytest.raises(ValueError, match="Expected a DataFilesDict"):
         _ = JsonConfig(name="name", data_files=data_files)
@@ -229,28 +231,54 @@ def test_json_generate_tables(file_fixture, config_kwargs, request):
     [
         (
             "jsonl_file",
-            {"features": Features({"col_1": Value("int64"), "col_2": Value("int64"), "missing_col": Value("string")})},
+            {
+                "features": Features(
+                    {
+                        "col_1": Value("int64"),
+                        "col_2": Value("int64"),
+                        "missing_col": Value("string"),
+                    }
+                )
+            },
         ),
         (
             "json_file_with_list_of_dicts",
-            {"features": Features({"col_1": Value("int64"), "col_2": Value("int64"), "missing_col": Value("string")})},
+            {
+                "features": Features(
+                    {
+                        "col_1": Value("int64"),
+                        "col_2": Value("int64"),
+                        "missing_col": Value("string"),
+                    }
+                )
+            },
         ),
         (
             "json_file_with_list_of_dicts_field",
             {
                 "field": "field3",
                 "features": Features(
-                    {"col_1": Value("int64"), "col_2": Value("int64"), "missing_col": Value("string")}
+                    {
+                        "col_1": Value("int64"),
+                        "col_2": Value("int64"),
+                        "missing_col": Value("string"),
+                    }
                 ),
             },
         ),
     ],
 )
-def test_json_generate_tables_with_missing_features(file_fixture, config_kwargs, request):
+def test_json_generate_tables_with_missing_features(
+    file_fixture, config_kwargs, request
+):
     json = Json(**config_kwargs)
     generator = json._generate_tables([[request.getfixturevalue(file_fixture)]])
     pa_table = pa.concat_tables([table for _, table in generator])
-    assert pa_table.to_pydict() == {"col_1": [-1, 1, 10], "col_2": [None, 2, 20], "missing_col": [None, None, None]}
+    assert pa_table.to_pydict() == {
+        "col_1": [-1, 1, 10],
+        "col_2": [None, 2, 20],
+        "missing_col": [None, None, None],
+    }
 
 
 @pytest.mark.parametrize(

@@ -43,7 +43,11 @@ from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .table import array_cast, cast_array_to_feature, embed_table_storage, table_cast
 from .utils import logging
-from .utils.py_utils import asdict, convert_file_size_to_int, first_non_null_non_empty_value
+from .utils.py_utils import (
+    asdict,
+    convert_file_size_to_int,
+    first_non_null_non_empty_value,
+)
 
 
 logger = logging.get_logger(__name__)
@@ -51,7 +55,9 @@ logger = logging.get_logger(__name__)
 type_ = type  # keep python's type function
 
 
-def get_arrow_writer_batch_size_from_features(features: Optional[Features]) -> Optional[int]:
+def get_arrow_writer_batch_size_from_features(
+    features: Optional[Features],
+) -> Optional[int]:
     """
     Get the writer_batch_size that defines the maximum record batch size in the arrow files based on configuration values.
     The default value is 100 for image/audio datasets and 10 for videos.
@@ -72,18 +78,35 @@ def get_arrow_writer_batch_size_from_features(features: Optional[Features]) -> O
 
     def set_batch_size(feature: FeatureType) -> None:
         nonlocal batch_size
-        if isinstance(feature, Image) and config.ARROW_RECORD_BATCH_SIZE_FOR_IMAGE_DATASETS is not None:
-            batch_size = min(batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_IMAGE_DATASETS)
-        elif isinstance(feature, Audio) and config.ARROW_RECORD_BATCH_SIZE_FOR_AUDIO_DATASETS is not None:
-            batch_size = min(batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_AUDIO_DATASETS)
-        elif isinstance(feature, Video) and config.ARROW_RECORD_BATCH_SIZE_FOR_VIDEO_DATASETS is not None:
-            batch_size = min(batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_VIDEO_DATASETS)
+        if (
+            isinstance(feature, Image)
+            and config.ARROW_RECORD_BATCH_SIZE_FOR_IMAGE_DATASETS is not None
+        ):
+            batch_size = min(
+                batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_IMAGE_DATASETS
+            )
+        elif (
+            isinstance(feature, Audio)
+            and config.ARROW_RECORD_BATCH_SIZE_FOR_AUDIO_DATASETS is not None
+        ):
+            batch_size = min(
+                batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_AUDIO_DATASETS
+            )
+        elif (
+            isinstance(feature, Video)
+            and config.ARROW_RECORD_BATCH_SIZE_FOR_VIDEO_DATASETS is not None
+        ):
+            batch_size = min(
+                batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_VIDEO_DATASETS
+            )
         elif (
             isinstance(feature, Value)
             and feature.dtype == "binary"
             and config.ARROW_RECORD_BATCH_SIZE_FOR_BINARY_DATASETS is not None
         ):
-            batch_size = min(batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_BINARY_DATASETS)
+            batch_size = min(
+                batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_BINARY_DATASETS
+            )
 
     _visit(features, set_batch_size)
 
@@ -112,18 +135,35 @@ def get_writer_batch_size_from_features(features: Optional[Features]) -> Optiona
 
     def set_batch_size(feature: FeatureType) -> None:
         nonlocal batch_size
-        if isinstance(feature, Image) and config.PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS is not None:
-            batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS)
-        elif isinstance(feature, Audio) and config.PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS is not None:
-            batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS)
-        elif isinstance(feature, Video) and config.PARQUET_ROW_GROUP_SIZE_FOR_VIDEO_DATASETS is not None:
-            batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_VIDEO_DATASETS)
+        if (
+            isinstance(feature, Image)
+            and config.PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS is not None
+        ):
+            batch_size = min(
+                batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS
+            )
+        elif (
+            isinstance(feature, Audio)
+            and config.PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS is not None
+        ):
+            batch_size = min(
+                batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS
+            )
+        elif (
+            isinstance(feature, Video)
+            and config.PARQUET_ROW_GROUP_SIZE_FOR_VIDEO_DATASETS is not None
+        ):
+            batch_size = min(
+                batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_VIDEO_DATASETS
+            )
         elif (
             isinstance(feature, Value)
             and feature.dtype == "binary"
             and config.PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS is not None
         ):
-            batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS)
+            batch_size = min(
+                batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS
+            )
 
     _visit(features, set_batch_size)
 
@@ -151,7 +191,14 @@ def get_writer_batch_size_from_data_size(num_rows: int, num_bytes: int) -> int:
         writer_batch_size (`Optional[int]`):
             Writer batch size to pass to a parquet writer.
     """
-    return max(10, num_rows * convert_file_size_to_int(config.MAX_ROW_GROUP_SIZE) // num_bytes) if num_bytes > 0 else 1
+    return (
+        max(
+            10,
+            num_rows * convert_file_size_to_int(config.MAX_ROW_GROUP_SIZE) // num_bytes,
+        )
+        if num_bytes > 0
+        else 1
+    )
 
 
 class SchemaInferenceError(ValueError):
@@ -215,7 +262,9 @@ class TypedSequence:
         self.optimized_int_type = optimized_int_type
         # when trying a type (is ignored if data is not compatible)
         self.trying_type = self.try_type is not None
-        self.trying_int_optimization = optimized_int_type is not None and type is None and try_type is None
+        self.trying_int_optimization = (
+            optimized_int_type is not None and type is None and try_type is None
+        )
         # used to get back the inferred type after __arrow_array__() is called once
         self._inferred_type = None
 
@@ -235,7 +284,9 @@ class TypedSequence:
         return self._inferred_type
 
     @staticmethod
-    def _infer_custom_type_and_encode(data: Iterable) -> tuple[Iterable, Optional[FeatureType]]:
+    def _infer_custom_type_and_encode(
+        data: Iterable,
+    ) -> tuple[Iterable, Optional[FeatureType]]:
         """Implement type inference for custom objects like PIL.Image.Image -> Image type.
 
         This function is only used for custom python objects that can't be directly passed to build
@@ -256,20 +307,40 @@ class TypedSequence:
 
             non_null_idx, non_null_value = first_non_null_non_empty_value(data)
             if isinstance(non_null_value, PIL.Image.Image):
-                return [Image().encode_example(value) if value is not None else None for value in data], Image()
-            if isinstance(non_null_value, list) and isinstance(non_null_value[0], PIL.Image.Image):
                 return [
-                    [Image().encode_example(x) for x in value] if value is not None else None for value in data
+                    Image().encode_example(value) if value is not None else None
+                    for value in data
+                ], Image()
+            if isinstance(non_null_value, list) and isinstance(
+                non_null_value[0], PIL.Image.Image
+            ):
+                return [
+                    (
+                        [Image().encode_example(x) for x in value]
+                        if value is not None
+                        else None
+                    )
+                    for value in data
                 ], List(Image())
         if config.PDFPLUMBER_AVAILABLE and "pdfplumber" in sys.modules:
             import pdfplumber
 
             non_null_idx, non_null_value = first_non_null_non_empty_value(data)
             if isinstance(non_null_value, pdfplumber.pdf.PDF):
-                return [Pdf().encode_example(value) if value is not None else None for value in data], Pdf()
-            if isinstance(non_null_value, list) and isinstance(non_null_value[0], pdfplumber.pdf.PDF):
                 return [
-                    [Pdf().encode_example(x) for x in value] if value is not None else None for value in data
+                    Pdf().encode_example(value) if value is not None else None
+                    for value in data
+                ], Pdf()
+            if isinstance(non_null_value, list) and isinstance(
+                non_null_value[0], pdfplumber.pdf.PDF
+            ):
+                return [
+                    (
+                        [Pdf().encode_example(x) for x in value]
+                        if value is not None
+                        else None
+                    )
+                    for value in data
                 ], List(Pdf())
         return data, None
 
@@ -277,7 +348,9 @@ class TypedSequence:
         """This function is called when calling pa.array(typed_sequence)"""
 
         if type is not None:
-            raise ValueError("TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)")
+            raise ValueError(
+                "TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)"
+            )
         del type  # make sure we don't use it
         data = self.data
         # automatic type inference for custom objects
@@ -289,7 +362,9 @@ class TypedSequence:
             type = self._inferred_type
         pa_type = get_nested_type(type) if type is not None else None
         optimized_int_pa_type = (
-            get_nested_type(self.optimized_int_type) if self.optimized_int_type is not None else None
+            get_nested_type(self.optimized_int_type)
+            if self.optimized_int_type is not None
+            else None
         )
         trying_cast_to_python_objects = False
         try:
@@ -301,7 +376,11 @@ class TypedSequence:
             # efficient np array to pyarrow array
             if isinstance(data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(data)
-            elif isinstance(data, list) and data and isinstance(first_non_null_non_empty_value(data)[1], np.ndarray):
+            elif (
+                isinstance(data, list)
+                and data
+                and isinstance(first_non_null_non_empty_value(data)[1], np.ndarray)
+            ):
                 out = list_of_np_array_to_pyarrow_listarray(data)
             else:
                 trying_cast_to_python_objects = True
@@ -313,7 +392,9 @@ class TypedSequence:
                 elif pa.types.is_list(out.type):
                     if pa.types.is_int64(out.type.value_type):
                         out = array_cast(out, pa.list_(optimized_int_pa_type))
-                    elif pa.types.is_list(out.type.value_type) and pa.types.is_int64(out.type.value_type.value_type):
+                    elif pa.types.is_list(out.type.value_type) and pa.types.is_int64(
+                        out.type.value_type.value_type
+                    ):
                         out = array_cast(out, pa.list_(pa.list_(optimized_int_pa_type)))
             # otherwise we can finally use the user's type
             elif type is not None:
@@ -321,7 +402,10 @@ class TypedSequence:
                 # Also, when trying type "string", we don't want to convert integers or floats to "string".
                 # We only do it if trying_type is False - since this is what the user asks for.
                 out = cast_array_to_feature(
-                    out, type, allow_primitive_to_str=not self.trying_type, allow_decimal_to_str=not self.trying_type
+                    out,
+                    type,
+                    allow_primitive_to_str=not self.trying_type,
+                    allow_decimal_to_str=not self.trying_type,
                 )
             return out
         except (
@@ -337,29 +421,46 @@ class TypedSequence:
                 try:  # second chance
                     if isinstance(data, np.ndarray):
                         return numpy_to_pyarrow_listarray(data)
-                    elif isinstance(data, list) and data and any(isinstance(value, np.ndarray) for value in data):
+                    elif (
+                        isinstance(data, list)
+                        and data
+                        and any(isinstance(value, np.ndarray) for value in data)
+                    ):
                         return list_of_np_array_to_pyarrow_listarray(data)
                     else:
                         trying_cast_to_python_objects = True
-                        return pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
+                        return pa.array(
+                            cast_to_python_objects(data, only_1d_for_numpy=True)
+                        )
                 except pa.lib.ArrowInvalid as e:
                     if "overflow" in str(e):
                         raise OverflowError(
                             f"There was an overflow with type {type_(data)}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({e})"
                         ) from None
                     elif self.trying_int_optimization and "not in range" in str(e):
-                        optimized_int_pa_type_str = np.dtype(optimized_int_pa_type.to_pandas_dtype()).name
+                        optimized_int_pa_type_str = np.dtype(
+                            optimized_int_pa_type.to_pandas_dtype()
+                        ).name
                         logger.info(
                             f"Failed to cast a sequence to {optimized_int_pa_type_str}. Falling back to int64."
                         )
                         return out
-                    elif trying_cast_to_python_objects and "Could not convert" in str(e):
+                    elif trying_cast_to_python_objects and "Could not convert" in str(
+                        e
+                    ):
                         out = pa.array(
-                            cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False)
+                            cast_to_python_objects(
+                                data,
+                                only_1d_for_numpy=True,
+                                optimize_list_casting=False,
+                            )
                         )
                         if type is not None:
                             out = cast_array_to_feature(
-                                out, type, allow_primitive_to_str=True, allow_decimal_to_str=True
+                                out,
+                                type,
+                                allow_primitive_to_str=True,
+                                allow_decimal_to_str=True,
                             )
                         return out
                     else:
@@ -369,13 +470,26 @@ class TypedSequence:
                     f"There was an overflow with type {type_(data)}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({e})"
                 ) from None
             elif self.trying_int_optimization and "not in range" in str(e):
-                optimized_int_pa_type_str = np.dtype(optimized_int_pa_type.to_pandas_dtype()).name
-                logger.info(f"Failed to cast a sequence to {optimized_int_pa_type_str}. Falling back to int64.")
+                optimized_int_pa_type_str = np.dtype(
+                    optimized_int_pa_type.to_pandas_dtype()
+                ).name
+                logger.info(
+                    f"Failed to cast a sequence to {optimized_int_pa_type_str}. Falling back to int64."
+                )
                 return out
             elif trying_cast_to_python_objects and "Could not convert" in str(e):
-                out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False))
+                out = pa.array(
+                    cast_to_python_objects(
+                        data, only_1d_for_numpy=True, optimize_list_casting=False
+                    )
+                )
                 if type is not None:
-                    out = cast_array_to_feature(out, type, allow_primitive_to_str=True, allow_decimal_to_str=True)
+                    out = cast_array_to_feature(
+                        out,
+                        type,
+                        allow_primitive_to_str=True,
+                        allow_decimal_to_str=True,
+                    )
                 return out
             else:
                 raise
@@ -393,14 +507,18 @@ class OptimizedTypedSequence(TypedSequence):
         optimized_int_type_by_col = {
             "attention_mask": Value("int8"),  # binary tensor
             "special_tokens_mask": Value("int8"),
-            "input_ids": Value("int32"),  # typical vocab size: 0-50k (max ~500k, never > 1M)
+            "input_ids": Value(
+                "int32"
+            ),  # typical vocab size: 0-50k (max ~500k, never > 1M)
             "token_type_ids": Value(
                 "int8"
             ),  # binary mask; some (XLNetModel) use an additional token represented by a 2
         }
         if type is None and try_type is None:
             optimized_int_type = optimized_int_type_by_col.get(col, None)
-        super().__init__(data, type=type, try_type=try_type, optimized_int_type=optimized_int_type)
+        super().__init__(
+            data, type=type, try_type=try_type, optimized_int_type=optimized_int_type
+        )
 
 
 class ArrowWriter:
@@ -447,7 +565,11 @@ class ArrowWriter:
         if stream is None:
             fs, path = url_to_fs(path, **(storage_options or {}))
             self._fs: fsspec.AbstractFileSystem = fs
-            self._path = path if not is_remote_filesystem(self._fs) else self._fs.unstrip_protocol(path)
+            self._path = (
+                path
+                if not is_remote_filesystem(self._fs)
+                else self._fs.unstrip_protocol(path)
+            )
             self.stream = self._fs.open(path, "wb")
             self._closable_stream = True
         else:
@@ -500,7 +622,9 @@ class ArrowWriter:
         features = self._features
         inferred_features = Features.from_arrow_schema(inferred_schema)
         if self._features is not None:
-            if self.update_features:  # keep original features it they match, or update them
+            if (
+                self.update_features
+            ):  # keep original features it they match, or update them
                 fields = {field.name: field for field in self._features.type}
                 for inferred_field in inferred_features.type:
                     name = inferred_field.name
@@ -514,9 +638,13 @@ class ArrowWriter:
             schema: pa.Schema = inferred_features.arrow_schema
 
         if self.disable_nullable:
-            schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in schema)
+            schema = pa.schema(
+                pa.field(field.name, field.type, nullable=False) for field in schema
+            )
         if self.with_metadata:
-            schema = schema.with_metadata(self._build_metadata(DatasetInfo(features=features), self.fingerprint))
+            schema = schema.with_metadata(
+                self._build_metadata(DatasetInfo(features=features), self.fingerprint)
+            )
         else:
             schema = schema.with_metadata({})
 
@@ -531,15 +659,23 @@ class ArrowWriter:
         _schema = (
             self._schema
             if self._schema is not None
-            else (pa.schema(self._features.type) if self._features is not None else None)
+            else (
+                pa.schema(self._features.type) if self._features is not None else None
+            )
         )
         if self._disable_nullable and _schema is not None:
-            _schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in _schema)
+            _schema = pa.schema(
+                pa.field(field.name, field.type, nullable=False) for field in _schema
+            )
         return _schema if _schema is not None else []
 
     @staticmethod
-    def _build_metadata(info: DatasetInfo, fingerprint: Optional[str] = None) -> dict[str, str]:
-        info_keys = ["features"]  # we can add support for more DatasetInfo keys in the future
+    def _build_metadata(
+        info: DatasetInfo, fingerprint: Optional[str] = None
+    ) -> dict[str, str]:
+        info_keys = [
+            "features"
+        ]  # we can add support for more DatasetInfo keys in the future
         info_as_dict = asdict(info)
         metadata = {}
         metadata["info"] = {key: info_as_dict[key] for key in info_keys}
@@ -554,7 +690,9 @@ class ArrowWriter:
         # preserve the order the columns
         if self.schema:
             schema_cols = set(self.schema.names)
-            examples_cols = self.current_examples[0][0].keys()  # .keys() preserves the order (unlike set)
+            examples_cols = self.current_examples[0][
+                0
+            ].keys()  # .keys() preserves the order (unlike set)
             common_cols = [col for col in self.schema.names if col in examples_cols]
             extra_cols = [col for col in examples_cols if col not in schema_cols]
             cols = common_cols + extra_cols
@@ -565,17 +703,26 @@ class ArrowWriter:
             # We use row[0][col] since current_examples contains (example, key) tuples.
             # Moreover, examples could be Arrow arrays of 1 element.
             # This can happen in `.map()` when we want to re-write the same Arrow data
-            if all(isinstance(row[0][col], (pa.Array, pa.ChunkedArray)) for row in self.current_examples):
+            if all(
+                isinstance(row[0][col], (pa.Array, pa.ChunkedArray))
+                for row in self.current_examples
+            ):
                 arrays = [row[0][col] for row in self.current_examples]
                 arrays = [
                     chunk
                     for array in arrays
-                    for chunk in (array.chunks if isinstance(array, pa.ChunkedArray) else [array])
+                    for chunk in (
+                        array.chunks if isinstance(array, pa.ChunkedArray) else [array]
+                    )
                 ]
                 batch_examples[col] = pa.concat_arrays(arrays)
             else:
                 batch_examples[col] = [
-                    row[0][col].to_pylist()[0] if isinstance(row[0][col], (pa.Array, pa.ChunkedArray)) else row[0][col]
+                    (
+                        row[0][col].to_pylist()[0]
+                        if isinstance(row[0][col], (pa.Array, pa.ChunkedArray))
+                        else row[0][col]
+                    )
                     for row in self.current_examples
                 ]
         self.write_batch(batch_examples=batch_examples)
@@ -614,7 +761,10 @@ class ArrowWriter:
 
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
-        if writer_batch_size is not None and len(self.current_examples) >= writer_batch_size:
+        if (
+            writer_batch_size is not None
+            and len(self.current_examples) >= writer_batch_size
+        ):
             if self._check_duplicates:
                 self.check_duplicate_keys()
                 # Re-initializing to empty list for next batch
@@ -644,11 +794,16 @@ class ArrowWriter:
             row: the row to add.
         """
         if len(row) != 1:
-            raise ValueError(f"Only single-row pyarrow tables are allowed but got table with {len(row)} rows.")
+            raise ValueError(
+                f"Only single-row pyarrow tables are allowed but got table with {len(row)} rows."
+            )
         self.current_rows.append(row)
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
-        if writer_batch_size is not None and len(self.current_rows) >= writer_batch_size:
+        if (
+            writer_batch_size is not None
+            and len(self.current_rows) >= writer_batch_size
+        ):
             self.write_rows_on_file()
 
     def write_batch(
@@ -667,14 +822,20 @@ class ArrowWriter:
         """
         if batch_examples and len(next(iter(batch_examples.values()))) == 0:
             return
-        features = None if self.pa_writer is None and self.update_features else self._features
-        try_features = self._features if self.pa_writer is None and self.update_features else None
+        features = (
+            None if self.pa_writer is None and self.update_features else self._features
+        )
+        try_features = (
+            self._features if self.pa_writer is None and self.update_features else None
+        )
         arrays = []
         inferred_features = Features()
         # preserve the order the columns
         if self.schema:
             schema_cols = set(self.schema.names)
-            batch_cols = batch_examples.keys()  # .keys() preserves the order (unlike set)
+            batch_cols = (
+                batch_examples.keys()
+            )  # .keys() preserves the order (unlike set)
             common_cols = [col for col in self.schema.names if col in batch_cols]
             extra_cols = [col for col in batch_cols if col not in schema_cols]
             cols = common_cols + extra_cols
@@ -684,19 +845,29 @@ class ArrowWriter:
             col_values = batch_examples[col]
             col_type = features[col] if features else None
             if isinstance(col_values, (pa.Array, pa.ChunkedArray)):
-                array = cast_array_to_feature(col_values, col_type) if col_type is not None else col_values
+                array = (
+                    cast_array_to_feature(col_values, col_type)
+                    if col_type is not None
+                    else col_values
+                )
                 arrays.append(array)
                 inferred_features[col] = generate_from_arrow_type(col_values.type)
             else:
                 col_try_type = (
                     try_features[col]
-                    if try_features is not None and col in try_features and try_original_type
+                    if try_features is not None
+                    and col in try_features
+                    and try_original_type
                     else None
                 )
-                typed_sequence = OptimizedTypedSequence(col_values, type=col_type, try_type=col_try_type, col=col)
+                typed_sequence = OptimizedTypedSequence(
+                    col_values, type=col_type, try_type=col_try_type, col=col
+                )
                 arrays.append(pa.array(typed_sequence))
                 inferred_features[col] = typed_sequence.get_inferred_type()
-        schema = inferred_features.arrow_schema if self.pa_writer is None else self.schema
+        schema = (
+            inferred_features.arrow_schema if self.pa_writer is None else self.schema
+        )
         pa_table = pa.Table.from_arrays(arrays, schema=schema)
         self.write_table(pa_table, writer_batch_size)
 
@@ -737,7 +908,9 @@ class ArrowWriter:
         else:
             if close_stream:
                 self.stream.close()
-            raise SchemaInferenceError("Please pass `features` or at least one example when writing data")
+            raise SchemaInferenceError(
+                "Please pass `features` or at least one example when writing data"
+            )
         logger.debug(
             f"Done writing {self._num_examples} {self.unit} in {self._num_bytes} bytes {self._path if self._path else ''}."
         )
@@ -745,7 +918,9 @@ class ArrowWriter:
 
 
 class ParquetWriter(ArrowWriter):
-    def __init__(self, *args, use_content_defined_chunking=True, write_page_index=True, **kwargs):
+    def __init__(
+        self, *args, use_content_defined_chunking=True, write_page_index=True, **kwargs
+    ):
         super().__init__(*args, **kwargs)
         if use_content_defined_chunking is True:
             use_content_defined_chunking = config.DEFAULT_CDC_OPTIONS
@@ -762,5 +937,9 @@ class ParquetWriter(ArrowWriter):
         )
         if self.use_content_defined_chunking is not False:
             self.pa_writer.add_key_value_metadata(
-                {"content_defined_chunking": json.dumps(self.use_content_defined_chunking)}
+                {
+                    "content_defined_chunking": json.dumps(
+                        self.use_content_defined_chunking
+                    )
+                }
             )

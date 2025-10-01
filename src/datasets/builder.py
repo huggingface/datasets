@@ -49,7 +49,12 @@ from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadManager, DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager, xjoin
-from .exceptions import DatasetGenerationCastError, DatasetGenerationError, FileFormatError, ManualDownloadError
+from .exceptions import (
+    DatasetGenerationCastError,
+    DatasetGenerationError,
+    FileFormatError,
+    ManualDownloadError,
+)
 from .features import Features
 from .filesystems import (
     is_remote_filesystem,
@@ -67,7 +72,12 @@ from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils._filelock import FileLock
 from .utils.file_utils import is_remote_url
-from .utils.info_utils import VerificationMode, get_size_checksum_dict, verify_checksums, verify_splits
+from .utils.info_utils import (
+    VerificationMode,
+    get_size_checksum_dict,
+    verify_checksums,
+    verify_splits,
+)
 from .utils.py_utils import (
     classproperty,
     convert_file_size_to_int,
@@ -127,15 +137,21 @@ class BuilderConfig:
                     f"Bad characters from black list '{INVALID_WINDOWS_CHARACTERS_IN_PATH}' found in '{self.name}'. "
                     f"They could create issues when creating a directory for this config on Windows filesystem."
                 )
-        if self.data_files is not None and not isinstance(self.data_files, (DataFilesDict, DataFilesPatternsDict)):
-            raise ValueError(f"Expected a DataFilesDict in data_files but got {self.data_files}")
+        if self.data_files is not None and not isinstance(
+            self.data_files, (DataFilesDict, DataFilesPatternsDict)
+        ):
+            raise ValueError(
+                f"Expected a DataFilesDict in data_files but got {self.data_files}"
+            )
 
     def __eq__(self, o):
         # we need to override the default dataclass __eq__ since it doesn't check for
         # other attributes that the ones of the signature.
         if set(self.__dict__.keys()) != set(o.__dict__.keys()):
             return False
-        return all((k, getattr(self, k)) == (k, getattr(o, k)) for k in self.__dict__.keys())
+        return all(
+            (k, getattr(self, k)) == (k, getattr(o, k)) for k in self.__dict__.keys()
+        )
 
     def create_config_id(
         self,
@@ -175,11 +191,16 @@ class BuilderConfig:
         if config_kwargs_to_add_to_suffix:
             # we don't care about the order of the kwargs
             config_kwargs_to_add_to_suffix = {
-                k: config_kwargs_to_add_to_suffix[k] for k in sorted(config_kwargs_to_add_to_suffix)
+                k: config_kwargs_to_add_to_suffix[k]
+                for k in sorted(config_kwargs_to_add_to_suffix)
             }
-            if all(isinstance(v, (str, bool, int, float)) for v in config_kwargs_to_add_to_suffix.values()):
+            if all(
+                isinstance(v, (str, bool, int, float))
+                for v in config_kwargs_to_add_to_suffix.values()
+            ):
                 suffix = ",".join(
-                    str(k) + "=" + urllib.parse.quote_plus(str(v)) for k, v in config_kwargs_to_add_to_suffix.items()
+                    str(k) + "=" + urllib.parse.quote_plus(str(v))
+                    for k, v in config_kwargs_to_add_to_suffix.items()
                 )
                 if len(suffix) > 32:  # hash if too long
                     suffix = Hasher.hash(config_kwargs_to_add_to_suffix)
@@ -201,7 +222,9 @@ class BuilderConfig:
         else:
             return self.name
 
-    def _resolve_data_files(self, base_path: str, download_config: DownloadConfig) -> None:
+    def _resolve_data_files(
+        self, base_path: str, download_config: DownloadConfig
+    ) -> None:
         if isinstance(self.data_files, DataFilesPatternsDict):
             base_path = xjoin(base_path, self.data_dir) if self.data_dir else base_path
             self.data_files = self.data_files.resolve(base_path, download_config)
@@ -322,18 +345,26 @@ class DatasetBuilder:
         self.token = token
         self.repo_id = repo_id
         self.storage_options = storage_options or {}
-        self.dataset_name = camelcase_to_snakecase(dataset_name) if dataset_name else self.name
+        self.dataset_name = (
+            camelcase_to_snakecase(dataset_name) if dataset_name else self.name
+        )
         self._writer_batch_size = writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
 
         if data_files is not None and not isinstance(data_files, DataFilesDict):
             data_files = DataFilesDict.from_patterns(
                 sanitize_patterns(data_files),
                 base_path=base_path,
-                download_config=DownloadConfig(token=token, storage_options=self.storage_options),
+                download_config=DownloadConfig(
+                    token=token, storage_options=self.storage_options
+                ),
             )
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
-        if "features" in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters and features is not None:
+        if (
+            "features"
+            in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters
+            and features is not None
+        ):
             config_kwargs["features"] = features
         if data_files is not None:
             config_kwargs["data_files"] = data_files
@@ -363,7 +394,9 @@ class DatasetBuilder:
         # cache_dir can be a remote bucket on GCS or S3
         self._cache_dir_root = str(cache_dir or config.HF_DATASETS_CACHE)
         self._cache_dir_root = (
-            self._cache_dir_root if is_remote_url(self._cache_dir_root) else os.path.expanduser(self._cache_dir_root)
+            self._cache_dir_root
+            if is_remote_url(self._cache_dir_root)
+            else os.path.expanduser(self._cache_dir_root)
         )
         self._cache_downloaded_dir = (
             posixpath.join(self._cache_dir_root, config.DOWNLOADED_DATASETS_DIR)
@@ -383,13 +416,18 @@ class DatasetBuilder:
         if not is_remote_url(self._cache_dir_root):
             os.makedirs(self._cache_dir_root, exist_ok=True)
             lock_path = os.path.join(
-                self._cache_dir_root, Path(self._cache_dir).as_posix().replace("/", "_") + ".lock"
+                self._cache_dir_root,
+                Path(self._cache_dir).as_posix().replace("/", "_") + ".lock",
             )
             with FileLock(lock_path):
                 if os.path.exists(self._cache_dir):  # check if data exist
                     if len(os.listdir(self._cache_dir)) > 0:
-                        if os.path.exists(os.path.join(self._cache_dir, config.DATASET_INFO_FILENAME)):
-                            logger.debug("Overwrite dataset info from restored data version if exists.")
+                        if os.path.exists(
+                            os.path.join(self._cache_dir, config.DATASET_INFO_FILENAME)
+                        ):
+                            logger.debug(
+                                "Overwrite dataset info from restored data version if exists."
+                            )
                             self.info = DatasetInfo.from_directory(self._cache_dir)
                     else:  # dir exists but no data, remove the empty dir as data aren't available anymore
                         logger.warning(
@@ -440,17 +478,31 @@ class DatasetBuilder:
         ):
             from .packaged_modules import _PACKAGED_DATASETS_MODULES
 
-            namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
-            config_name = self.repo_id.replace("/", "--") if self.repo_id is not None else self.dataset_name
+            namespace = (
+                self.repo_id.split("/")[0]
+                if self.repo_id and self.repo_id.count("/") > 0
+                else None
+            )
+            config_name = (
+                self.repo_id.replace("/", "--")
+                if self.repo_id is not None
+                else self.dataset_name
+            )
             config_id = config_name + self.config_id[len(self.config.name) :]
             hash = _PACKAGED_DATASETS_MODULES.get(self.name, "missing")[1]
             legacy_relative_data_dir = posixpath.join(
-                self.dataset_name if namespace is None else f"{namespace}___{self.dataset_name}",
+                (
+                    self.dataset_name
+                    if namespace is None
+                    else f"{namespace}___{self.dataset_name}"
+                ),
                 config_id,
                 "0.0.0",
                 hash,
             )
-            legacy_cache_dir = posixpath.join(self._cache_dir_root, legacy_relative_data_dir)
+            legacy_cache_dir = posixpath.join(
+                self._cache_dir_root, legacy_relative_data_dir
+            )
             if os.path.isdir(legacy_cache_dir):
                 return legacy_relative_data_dir
 
@@ -464,7 +516,9 @@ class DatasetBuilder:
             from .packaged_modules import _PACKAGED_DATASETS_MODULES_2_15_HASHES
             from .utils._dill import Pickler
 
-            def update_hash_with_config_parameters(hash: str, config_parameters: dict) -> str:
+            def update_hash_with_config_parameters(
+                hash: str, config_parameters: dict
+            ) -> str:
                 """
                 Used to update hash of packaged modules which is used for creating unique cache directories to reflect
                 different config parameters which are passed in metadata from readme.
@@ -480,24 +534,42 @@ class DatasetBuilder:
                 m.update(params_to_add_to_hash)
                 return m.hexdigest()
 
-            namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
+            namespace = (
+                self.repo_id.split("/")[0]
+                if self.repo_id and self.repo_id.count("/") > 0
+                else None
+            )
             with patch.object(Pickler, "_legacy_no_dict_keys_sorting", True):
-                config_id = self.config.name + "-" + Hasher.hash({"data_files": self.config.data_files})
+                config_id = (
+                    self.config.name
+                    + "-"
+                    + Hasher.hash({"data_files": self.config.data_files})
+                )
             hash = _PACKAGED_DATASETS_MODULES_2_15_HASHES.get(self.name, "missing")
             if (
                 dataset_module.builder_configs_parameters.metadata_configs
-                and self.config.name in dataset_module.builder_configs_parameters.metadata_configs
+                and self.config.name
+                in dataset_module.builder_configs_parameters.metadata_configs
             ):
                 hash = update_hash_with_config_parameters(
-                    hash, dataset_module.builder_configs_parameters.metadata_configs[self.config.name]
+                    hash,
+                    dataset_module.builder_configs_parameters.metadata_configs[
+                        self.config.name
+                    ],
                 )
             legacy_relative_data_dir = posixpath.join(
-                self.dataset_name if namespace is None else f"{namespace}___{self.dataset_name}",
+                (
+                    self.dataset_name
+                    if namespace is None
+                    else f"{namespace}___{self.dataset_name}"
+                ),
                 config_id,
                 "0.0.0",
                 hash,
             )
-            legacy_cache_dir = posixpath.join(self._cache_dir_root, legacy_relative_data_dir)
+            legacy_cache_dir = posixpath.join(
+                self._cache_dir_root, legacy_relative_data_dir
+            )
             if os.path.isdir(legacy_cache_dir):
                 return legacy_relative_data_dir
 
@@ -514,13 +586,13 @@ class DatasetBuilder:
         if config_name is None and self.BUILDER_CONFIGS:
             if self.DEFAULT_CONFIG_NAME is not None:
                 builder_config = self.builder_configs.get(self.DEFAULT_CONFIG_NAME)
-                logger.info(f"No config specified, defaulting to: {self.dataset_name}/{builder_config.name}")
+                logger.info(
+                    f"No config specified, defaulting to: {self.dataset_name}/{builder_config.name}"
+                )
             else:
                 if len(self.BUILDER_CONFIGS) > 1:
                     if not config_kwargs:
-                        example_of_usage = (
-                            f"load_dataset('{self.repo_id or self.dataset_name}', '{self.BUILDER_CONFIGS[0].name}')"
-                        )
+                        example_of_usage = f"load_dataset('{self.repo_id or self.dataset_name}', '{self.BUILDER_CONFIGS[0].name}')"
                         raise ValueError(
                             "Config name is missing."
                             f"\nPlease pick one among the available configs: {list(self.builder_configs.keys())}"
@@ -547,26 +619,38 @@ class DatasetBuilder:
             elif self.DEFAULT_CONFIG_NAME and not config_kwargs:
                 # Use DEFAULT_CONFIG_NAME only if no config_kwargs are passed
                 config_kwargs["name"] = self.DEFAULT_CONFIG_NAME
-            if "version" not in config_kwargs and hasattr(self, "VERSION") and self.VERSION:
+            if (
+                "version" not in config_kwargs
+                and hasattr(self, "VERSION")
+                and self.VERSION
+            ):
                 config_kwargs["version"] = self.VERSION
             builder_config = self.BUILDER_CONFIG_CLASS(**config_kwargs)
 
         # otherwise use the config_kwargs to overwrite the attributes
         else:
-            builder_config = copy.deepcopy(builder_config) if config_kwargs else builder_config
+            builder_config = (
+                copy.deepcopy(builder_config) if config_kwargs else builder_config
+            )
             for key, value in config_kwargs.items():
                 if value is not None:
                     if not hasattr(builder_config, key):
-                        raise ValueError(f"BuilderConfig {builder_config} doesn't have a '{key}' key.")
+                        raise ValueError(
+                            f"BuilderConfig {builder_config} doesn't have a '{key}' key."
+                        )
                     setattr(builder_config, key, value)
 
         if not builder_config.name:
-            raise ValueError(f"BuilderConfig must have a name, got {builder_config.name}")
+            raise ValueError(
+                f"BuilderConfig must have a name, got {builder_config.name}"
+            )
 
         # resolve data files if needed
         builder_config._resolve_data_files(
             base_path=self.base_path,
-            download_config=DownloadConfig(token=self.token, storage_options=self.storage_options),
+            download_config=DownloadConfig(
+                token=self.token, storage_options=self.storage_options
+            ),
         )
 
         # compute the config id that is going to be used for caching
@@ -587,7 +671,9 @@ class DatasetBuilder:
                     f"BuilderConfig. Change the name. Available BuilderConfigs: {list(self.builder_configs.keys())}"
                 )
             if not builder_config.version:
-                raise ValueError(f"BuilderConfig {builder_config.name} must have a version")
+                raise ValueError(
+                    f"BuilderConfig {builder_config.name} must have a version"
+                )
 
         return builder_config, config_id
 
@@ -599,7 +685,9 @@ class DatasetBuilder:
         configs = {config.name: config for config in cls.BUILDER_CONFIGS}
         if len(configs) != len(cls.BUILDER_CONFIGS):
             names = [config.name for config in cls.BUILDER_CONFIGS]
-            raise ValueError(f"Names in BUILDER_CONFIGS must not be duplicated. Got {names}")
+            raise ValueError(
+                f"Names in BUILDER_CONFIGS must not be duplicated. Got {names}"
+            )
         return configs
 
     @property
@@ -609,7 +697,9 @@ class DatasetBuilder:
     def _use_legacy_cache_dir_if_possible(self, dataset_module: "DatasetModule"):
         # Check for the legacy cache directory template (datasets<3.0.0)
         self._legacy_relative_data_dir = (
-            self._check_legacy_cache2(dataset_module) or self._check_legacy_cache() or None
+            self._check_legacy_cache2(dataset_module)
+            or self._check_legacy_cache()
+            or None
         )
         self._cache_dir = self._build_cache_dir()
         self._output_dir = self._cache_dir
@@ -625,19 +715,33 @@ class DatasetBuilder:
         if self._legacy_relative_data_dir is not None and with_version and with_hash:
             return self._legacy_relative_data_dir
 
-        namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
-        builder_data_dir = self.dataset_name if namespace is None else f"{namespace}___{self.dataset_name}"
+        namespace = (
+            self.repo_id.split("/")[0]
+            if self.repo_id and self.repo_id.count("/") > 0
+            else None
+        )
+        builder_data_dir = (
+            self.dataset_name
+            if namespace is None
+            else f"{namespace}___{self.dataset_name}"
+        )
         builder_data_dir = posixpath.join(builder_data_dir, self.config_id)
         if with_version:
-            builder_data_dir = posixpath.join(builder_data_dir, str(self.config.version))
+            builder_data_dir = posixpath.join(
+                builder_data_dir, str(self.config.version)
+            )
         if with_hash and self.hash and isinstance(self.hash, str):
             builder_data_dir = posixpath.join(builder_data_dir, self.hash)
         return builder_data_dir
 
     def _build_cache_dir(self):
         """Return the data directory for the current version."""
-        builder_data_dir = posixpath.join(self._cache_dir_root, self._relative_data_dir(with_version=False))
-        version_data_dir = posixpath.join(self._cache_dir_root, self._relative_data_dir(with_version=True))
+        builder_data_dir = posixpath.join(
+            self._cache_dir_root, self._relative_data_dir(with_version=False)
+        )
+        version_data_dir = posixpath.join(
+            self._cache_dir_root, self._relative_data_dir(with_version=True)
+        )
 
         def _other_versions_on_disk():
             """Returns previous versions on disk."""
@@ -777,14 +881,24 @@ class DatasetBuilder:
         # output_dir can be a remote bucket on GCS or S3
         fs, output_dir = url_to_fs(output_dir, **(storage_options or {}))
         self._fs = fs
-        self._output_dir = output_dir if not is_remote_filesystem(self._fs) else self._fs.unstrip_protocol(output_dir)
+        self._output_dir = (
+            output_dir
+            if not is_remote_filesystem(self._fs)
+            else self._fs.unstrip_protocol(output_dir)
+        )
 
-        download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
-        verification_mode = VerificationMode(verification_mode or VerificationMode.BASIC_CHECKS)
+        download_mode = DownloadMode(
+            download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS
+        )
+        verification_mode = VerificationMode(
+            verification_mode or VerificationMode.BASIC_CHECKS
+        )
         base_path = base_path if base_path is not None else self.base_path
 
         if file_format is not None and file_format not in ["arrow", "parquet"]:
-            raise ValueError(f"Unsupported file_format: {file_format}. Expected 'arrow' or 'parquet'")
+            raise ValueError(
+                f"Unsupported file_format: {file_format}. Expected 'arrow' or 'parquet'"
+            )
         self._file_format = file_format
 
         if self._fs._strip_protocol(self._output_dir) == "":
@@ -813,7 +927,10 @@ class DatasetBuilder:
                 download_config=download_config,
                 data_dir=self.config.data_dir,
                 base_path=base_path,
-                record_checksums=(self._record_infos or verification_mode == VerificationMode.ALL_CHECKS),
+                record_checksums=(
+                    self._record_infos
+                    or verification_mode == VerificationMode.ALL_CHECKS
+                ),
             )
 
         is_local = not is_remote_filesystem(self._fs)
@@ -828,9 +945,13 @@ class DatasetBuilder:
         # File locking only with local paths; no file locking on GCS or S3
         with FileLock(lock_path) if is_local else contextlib.nullcontext():
             # Check if the data already exists
-            data_exists = self._fs.exists(posixpath.join(self._output_dir, config.DATASET_INFO_FILENAME))
+            data_exists = self._fs.exists(
+                posixpath.join(self._output_dir, config.DATASET_INFO_FILENAME)
+            )
             if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
-                logger.info(f"Found cached dataset {self.dataset_name} ({self._output_dir})")
+                logger.info(
+                    f"Found cached dataset {self.dataset_name} ({self._output_dir})"
+                )
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
                 self.info = self._load_info()
@@ -840,7 +961,8 @@ class DatasetBuilder:
             logger.info(f"Generating dataset {self.dataset_name} ({self._output_dir})")
             if is_local:  # if cache dir is local, check for available space
                 if not has_sufficient_disk_space(
-                    self.info.size_in_bytes or 0, directory=Path(self._output_dir).parent
+                    self.info.size_in_bytes or 0,
+                    directory=Path(self._output_dir).parent,
                 ):
                     raise OSError(
                         f"Not enough disk space. Needed: {size_str(self.info.size_in_bytes or 0)} (download: {size_str(self.info.download_size or 0)}, generated: {size_str(self.info.dataset_size or 0)}, post-processed: {size_str(self.info.post_processing_size or 0)})"
@@ -876,8 +998,14 @@ class DatasetBuilder:
                     f"total: {size_str(self.info.size_in_bytes)}) to {self._output_dir}..."
                 )
             else:
-                _dest = self._fs._strip_protocol(self._output_dir) if is_local else self._output_dir
-                logger.info(f"Downloading and preparing dataset {self.dataset_name}/{self.config.name} to {_dest}...")
+                _dest = (
+                    self._fs._strip_protocol(self._output_dir)
+                    if is_local
+                    else self._output_dir
+                )
+                logger.info(
+                    f"Downloading and preparing dataset {self.dataset_name}/{self.config.name} to {_dest}..."
+                )
 
             self._check_manual_download(dl_manager)
 
@@ -898,10 +1026,16 @@ class DatasetBuilder:
                         **download_and_prepare_kwargs,
                     )
                     # Sync info
-                    self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
-                    self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
+                    self.info.dataset_size = sum(
+                        split.num_bytes for split in self.info.splits.values()
+                    )
+                    self.info.download_checksums = (
+                        dl_manager.get_recorded_sizes_checksums()
+                    )
                     if self.info.download_size is not None:
-                        self.info.size_in_bytes = self.info.dataset_size + self.info.download_size
+                        self.info.size_in_bytes = (
+                            self.info.dataset_size + self.info.download_size
+                        )
                     # Save info
                     self._save_info()
 
@@ -914,7 +1048,10 @@ class DatasetBuilder:
             )
 
     def _check_manual_download(self, dl_manager):
-        if self.manual_download_instructions is not None and dl_manager.manual_dir is None:
+        if (
+            self.manual_download_instructions is not None
+            and dl_manager.manual_dir is None
+        ):
             raise ManualDownloadError(
                 textwrap.dedent(
                     f"""\
@@ -926,7 +1063,9 @@ class DatasetBuilder:
                 )
             )
 
-    def _download_and_prepare(self, dl_manager, verification_mode, **prepare_split_kwargs):
+    def _download_and_prepare(
+        self, dl_manager, verification_mode, **prepare_split_kwargs
+    ):
         """Downloads and prepares dataset for reading.
 
         This is the internal implementation to overwrite called when user calls
@@ -944,13 +1083,20 @@ class DatasetBuilder:
         """
         # Generating data for all splits
         split_dict = SplitDict(dataset_name=self.dataset_name)
-        split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
+        split_generators_kwargs = self._make_split_generators_kwargs(
+            prepare_split_kwargs
+        )
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
 
         # Checksums verification
-        if verification_mode == VerificationMode.ALL_CHECKS and dl_manager.record_checksums:
+        if (
+            verification_mode == VerificationMode.ALL_CHECKS
+            and dl_manager.record_checksums
+        ):
             verify_checksums(
-                self.info.download_checksums, dl_manager.get_recorded_sizes_checksums(), "dataset source files"
+                self.info.download_checksums,
+                dl_manager.get_recorded_sizes_checksums(),
+                "dataset source files",
             )
 
         # Build splits
@@ -984,7 +1130,10 @@ class DatasetBuilder:
                 ) from None
             dl_manager.manage_extracted_files()
 
-        if verification_mode == VerificationMode.BASIC_CHECKS or verification_mode == VerificationMode.ALL_CHECKS:
+        if (
+            verification_mode == VerificationMode.BASIC_CHECKS
+            or verification_mode == VerificationMode.ALL_CHECKS
+        ):
             verify_splits(self.info.splits, split_dict)
 
         # Update the info object with the splits.
@@ -993,22 +1142,32 @@ class DatasetBuilder:
 
     def download_post_processing_resources(self, dl_manager):
         for split in self.info.splits or []:
-            for resource_name, resource_file_name in self._post_processing_resources(split).items():
+            for resource_name, resource_file_name in self._post_processing_resources(
+                split
+            ).items():
                 if not not is_remote_filesystem(self._fs):
-                    raise NotImplementedError(f"Post processing is not supported on filesystem {self._fs}")
+                    raise NotImplementedError(
+                        f"Post processing is not supported on filesystem {self._fs}"
+                    )
                 if os.sep in resource_file_name:
-                    raise ValueError(f"Resources shouldn't be in a sub-directory: {resource_file_name}")
+                    raise ValueError(
+                        f"Resources shouldn't be in a sub-directory: {resource_file_name}"
+                    )
                 resource_path = os.path.join(self._output_dir, resource_file_name)
                 if not os.path.exists(resource_path):
                     downloaded_resource_path = self._download_post_processing_resources(
                         split, resource_name, dl_manager
                     )
                     if downloaded_resource_path:
-                        logger.info(f"Downloaded post-processing resource {resource_name} as {resource_file_name}")
+                        logger.info(
+                            f"Downloaded post-processing resource {resource_name} as {resource_file_name}"
+                        )
                         shutil.move(downloaded_resource_path, resource_path)
 
     def _load_info(self) -> DatasetInfo:
-        return DatasetInfo.from_directory(self._output_dir, storage_options=self._fs.storage_options)
+        return DatasetInfo.from_directory(
+            self._output_dir, storage_options=self._fs.storage_options
+        )
 
     def _save_info(self):
         file_lock = (
@@ -1017,7 +1176,9 @@ class DatasetBuilder:
             else contextlib.nullcontext()
         )
         with file_lock:
-            self.info.write_to_directory(self._output_dir, storage_options=self._fs.storage_options)
+            self.info.write_to_directory(
+                self._output_dir, storage_options=self._fs.storage_options
+            )
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
         """Get kwargs for `self._split_generators()` from `prepare_split_kwargs`."""
@@ -1065,9 +1226,13 @@ class DatasetBuilder:
         ```
         """
         if self._file_format is not None and self._file_format != "arrow":
-            raise FileFormatError('Loading a dataset not written in the "arrow" format is not supported.')
+            raise FileFormatError(
+                'Loading a dataset not written in the "arrow" format is not supported.'
+            )
         if is_remote_filesystem(self._fs):
-            raise NotImplementedError(f"Loading a dataset cached in a {type(self._fs).__name__} is not supported.")
+            raise NotImplementedError(
+                f"Loading a dataset cached in a {type(self._fs).__name__} is not supported."
+            )
         if not os.path.exists(self._output_dir):
             raise FileNotFoundError(
                 f"Dataset {self.dataset_name}: could not find data in {self._output_dir}. Please make sure to call "
@@ -1075,13 +1240,17 @@ class DatasetBuilder:
                 "datasets.load_dataset() before trying to access the Dataset object."
             )
 
-        logger.debug(f"Constructing Dataset for split {split or ', '.join(self.info.splits)}, from {self._output_dir}")
+        logger.debug(
+            f"Constructing Dataset for split {split or ', '.join(self.info.splits)}, from {self._output_dir}"
+        )
 
         # By default, return all splits
         if split is None:
             split = {s: s for s in self.info.splits}
 
-        verification_mode = VerificationMode(verification_mode or VerificationMode.BASIC_CHECKS)
+        verification_mode = VerificationMode(
+            verification_mode or VerificationMode.BASIC_CHECKS
+        )
 
         # Create a dataset for each of the given splits
         datasets = map_nested(
@@ -1121,10 +1290,14 @@ class DatasetBuilder:
         if run_post_process:
             for resource_file_name in self._post_processing_resources(split).values():
                 if os.sep in resource_file_name:
-                    raise ValueError(f"Resources shouldn't be in a sub-directory: {resource_file_name}")
+                    raise ValueError(
+                        f"Resources shouldn't be in a sub-directory: {resource_file_name}"
+                    )
             resources_paths = {
                 resource_name: os.path.join(self._output_dir, resource_file_name)
-                for resource_name, resource_file_name in self._post_processing_resources(split).items()
+                for resource_name, resource_file_name in self._post_processing_resources(
+                    split
+                ).items()
             }
             post_processed = self._post_process(ds, resources_paths)
             if post_processed is not None:
@@ -1134,25 +1307,44 @@ class DatasetBuilder:
                 for resource_name, resource_path in resources_paths.items():
                     size_checksum = get_size_checksum_dict(resource_path)
                     recorded_checksums[resource_name] = size_checksum
-                if verification_mode == VerificationMode.ALL_CHECKS and record_checksums:
-                    if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
+                if (
+                    verification_mode == VerificationMode.ALL_CHECKS
+                    and record_checksums
+                ):
+                    if (
+                        self.info.post_processed is None
+                        or self.info.post_processed.resources_checksums is None
+                    ):
                         expected_checksums = None
                     else:
-                        expected_checksums = self.info.post_processed.resources_checksums.get(split)
-                    verify_checksums(expected_checksums, recorded_checksums, "post processing resources")
+                        expected_checksums = (
+                            self.info.post_processed.resources_checksums.get(split)
+                        )
+                    verify_checksums(
+                        expected_checksums,
+                        recorded_checksums,
+                        "post processing resources",
+                    )
                 if self.info.post_processed is None:
                     self.info.post_processed = PostProcessedInfo()
                 if self.info.post_processed.resources_checksums is None:
                     self.info.post_processed.resources_checksums = {}
-                self.info.post_processed.resources_checksums[str(split)] = recorded_checksums
+                self.info.post_processed.resources_checksums[str(split)] = (
+                    recorded_checksums
+                )
                 self.info.post_processing_size = sum(
                     checksums_dict["num_bytes"]
                     for split_checksums_dicts in self.info.post_processed.resources_checksums.values()
                     for checksums_dict in split_checksums_dicts.values()
                 )
-                if self.info.dataset_size is not None and self.info.download_size is not None:
+                if (
+                    self.info.dataset_size is not None
+                    and self.info.download_size is not None
+                ):
                     self.info.size_in_bytes = (
-                        self.info.dataset_size + self.info.download_size + self.info.post_processing_size
+                        self.info.dataset_size
+                        + self.info.download_size
+                        + self.info.post_processing_size
                     )
                 self._save_info()
                 ds._info.post_processed = self.info.post_processed
@@ -1168,7 +1360,11 @@ class DatasetBuilder:
 
         return ds
 
-    def _as_dataset(self, split: Union[ReadInstruction, Split] = Split.TRAIN, in_memory: bool = False) -> Dataset:
+    def _as_dataset(
+        self,
+        split: Union[ReadInstruction, Split] = Split.TRAIN,
+        in_memory: bool = False,
+    ) -> Dataset:
         """Constructs a `Dataset`.
 
         This is the internal implementation to overwrite called when user calls
@@ -1201,7 +1397,9 @@ class DatasetBuilder:
         """The dataset fingerprint is the hash of the relative directory dataset_name/config_name/version/hash, as well as the split specs."""
         hasher = Hasher()
         hasher.update(Path(self._relative_data_dir()).as_posix())
-        hasher.update(str(split))  # for example: train, train+test, train[:10%], test[:33%](pct1_dropremainder)
+        hasher.update(
+            str(split)
+        )  # for example: train, train+test, train[:10%], test[:33%](pct1_dropremainder)
         fingerprint = hasher.hexdigest()
         return fingerprint
 
@@ -1217,7 +1415,9 @@ class DatasetBuilder:
 
         dl_manager = StreamingDownloadManager(
             base_path=base_path or self.base_path,
-            download_config=DownloadConfig(token=self.token, storage_options=self.storage_options),
+            download_config=DownloadConfig(
+                token=self.token, storage_options=self.storage_options
+            ),
             dataset_name=self.dataset_name,
             data_dir=self.config.data_dir,
         )
@@ -1229,7 +1429,9 @@ class DatasetBuilder:
         elif split in splits_generators:
             splits_generator = splits_generators[split]
         else:
-            raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
+            raise ValueError(
+                f"Bad split: {split}. Available splits: {list(splits_generators)}"
+            )
 
         # Create a dataset for each of the given splits
         datasets = map_nested(
@@ -1249,10 +1451,15 @@ class DatasetBuilder:
         # add auth to be able to access and decode audio/image files from private repositories.
         token_per_repo_id = {self.repo_id: self.token} if self.repo_id else {}
         return IterableDataset(
-            ex_iterable, info=self.info, split=splits_generator.name, token_per_repo_id=token_per_repo_id
+            ex_iterable,
+            info=self.info,
+            split=splits_generator.name,
+            token_per_repo_id=token_per_repo_id,
         )
 
-    def _post_process(self, dataset: Dataset, resources_paths: Mapping[str, str]) -> Optional[Dataset]:
+    def _post_process(
+        self, dataset: Dataset, resources_paths: Mapping[str, str]
+    ) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""
         return None
 
@@ -1267,7 +1474,9 @@ class DatasetBuilder:
         return None
 
     @abc.abstractmethod
-    def _split_generators(self, dl_manager: Union[DownloadManager, StreamingDownloadManager]):
+    def _split_generators(
+        self, dl_manager: Union[DownloadManager, StreamingDownloadManager]
+    ):
         """Specify feature dictionary generators and dataset splits.
 
         This function returns a list of `SplitGenerator`s defining how to generate
@@ -1343,7 +1552,9 @@ class DatasetBuilder:
         """
         raise NotImplementedError()
 
-    def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
+    def _get_examples_iterable_for_split(
+        self, split_generator: SplitGenerator
+    ) -> ExamplesIterable:
         """Generate the examples on the fly.
 
         Args:
@@ -1401,7 +1612,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
         num_proc: Optional[int] = None,
         max_shard_size: Optional[Union[int, str]] = None,
     ):
-        max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+        max_shard_size = convert_file_size_to_int(
+            max_shard_size or config.MAX_SHARD_SIZE
+        )
 
         if self.info.splits is not None:
             split_info = self.info.splits[split_generator.name]
@@ -1413,7 +1626,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
         fpath = posixpath.join(self._output_dir, fname)
 
         if num_proc and num_proc > 1:
-            num_input_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
+            num_input_shards = _number_of_shards_in_gen_kwargs(
+                split_generator.gen_kwargs
+            )
             if num_input_shards <= 1:
                 logger.warning(
                     f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
@@ -1453,9 +1668,13 @@ class GeneratorBasedBuilder(DatasetBuilder):
                         pbar.update(content)
             # wrapping everything into lists for consistency with the multiprocessed code path
             assert result is not None, "Failed to retrieve results from prepare_split"
-            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = (
-                [item] for item in result
-            )
+            (
+                examples_per_job,
+                bytes_per_job,
+                features_per_job,
+                shards_per_job,
+                shard_lengths_per_job,
+            ) = ([item] for item in result)
         else:
             kwargs_per_job = [
                 {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
@@ -1489,9 +1708,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
                             # the content is the number of examples progress update
                             pbar.update(content)
 
-            assert None not in examples_per_job, (
-                f"Failed to retrieve results from prepare_split: result list {examples_per_job} still contains None - at least one worker failed to return its results"
-            )
+            assert (
+                None not in examples_per_job
+            ), f"Failed to retrieve results from prepare_split: result list {examples_per_job} still contains None - at least one worker failed to return its results"
 
         total_shards = sum(shards_per_job)
         total_num_examples = sum(examples_per_job)
@@ -1510,8 +1729,12 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 shard_id, job_id = shard_and_job
                 global_shard_id = sum(shards_per_job[:job_id]) + shard_id
                 self._rename(
-                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
-                    fpath.replace("JJJJJ-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
+                    fpath.replace("SSSSS", f"{shard_id:05d}").replace(
+                        "JJJJJ", f"{job_id:05d}"
+                    ),
+                    fpath.replace("JJJJJ-SSSSS", f"{global_shard_id:05d}").replace(
+                        "NNNNN", f"{total_shards:05d}"
+                    ),
                 )
 
             shards_and_jobs = [
@@ -1522,13 +1745,17 @@ class GeneratorBasedBuilder(DatasetBuilder):
             thread_map(_rename_shard, shards_and_jobs, disable=True, max_workers=64)
 
             split_generator.split_info.shard_lengths = [
-                shard_length for shard_lengths in shard_lengths_per_job for shard_length in shard_lengths
+                shard_length
+                for shard_lengths in shard_lengths_per_job
+                for shard_length in shard_lengths
             ]
         else:
             # don't use any pattern
             shard_id, job_id = 0, 0
             self._rename(
-                fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                fpath.replace("SSSSS", f"{shard_id:05d}").replace(
+                    "JJJJJ", f"{job_id:05d}"
+                ),
                 fpath.replace(SUFFIX, ""),
             )
 
@@ -1556,7 +1783,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
         try:
             writer = writer_class(
                 features=self.info.features,
-                path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                path=fpath.replace("SSSSS", f"{shard_id:05d}").replace(
+                    "JJJJJ", f"{job_id:05d}"
+                ),
                 writer_batch_size=self._writer_batch_size,
                 hash_salt=split_info.name,
                 check_duplicates=check_duplicate_keys,
@@ -1566,7 +1795,10 @@ class GeneratorBasedBuilder(DatasetBuilder):
             try:
                 _time = time.time()
                 for key, record in generator:
-                    if max_shard_size is not None and writer._num_bytes > max_shard_size:
+                    if (
+                        max_shard_size is not None
+                        and writer._num_bytes > max_shard_size
+                    ):
                         num_examples, num_bytes = writer.finalize()
                         writer.close()
                         shard_lengths.append(num_examples)
@@ -1575,14 +1807,20 @@ class GeneratorBasedBuilder(DatasetBuilder):
                         shard_id += 1
                         writer = writer_class(
                             features=writer._features,
-                            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace(
+                                "JJJJJ", f"{job_id:05d}"
+                            ),
                             writer_batch_size=self._writer_batch_size,
                             hash_salt=split_info.name,
                             check_duplicates=check_duplicate_keys,
                             storage_options=self._fs.storage_options,
                             embed_local_files=embed_local_files,
                         )
-                    example = self.info.features.encode_example(record) if self.info.features is not None else record
+                    example = (
+                        self.info.features.encode_example(record)
+                        if self.info.features is not None
+                        else record
+                    )
                     writer.write(example, key)
                     num_examples_progress_update += 1
                     if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
@@ -1601,11 +1839,21 @@ class GeneratorBasedBuilder(DatasetBuilder):
             # Ignore the writer's error for no examples written to the file if this error was caused by the error in _generate_examples before the first example was yielded
             if isinstance(e, SchemaInferenceError) and e.__context__ is not None:
                 e = e.__context__
-            raise DatasetGenerationError("An error occurred while generating the dataset") from e
+            raise DatasetGenerationError(
+                "An error occurred while generating the dataset"
+            ) from e
 
-        yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
+        yield job_id, True, (
+            total_num_examples,
+            total_num_bytes,
+            writer._features,
+            num_shards,
+            shard_lengths,
+        )
 
-    def _download_and_prepare(self, dl_manager, verification_mode, **prepare_splits_kwargs):
+    def _download_and_prepare(
+        self, dl_manager, verification_mode, **prepare_splits_kwargs
+    ):
         super()._download_and_prepare(
             dl_manager,
             verification_mode,
@@ -1614,7 +1862,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
             **prepare_splits_kwargs,
         )
 
-    def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
+    def _get_examples_iterable_for_split(
+        self, split_generator: SplitGenerator
+    ) -> ExamplesIterable:
         return ExamplesIterable(self._generate_examples, split_generator.gen_kwargs)
 
 
@@ -1658,7 +1908,9 @@ class ArrowBasedBuilder(DatasetBuilder):
         num_proc: Optional[int] = None,
         max_shard_size: Optional[Union[str, int]] = None,
     ):
-        max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+        max_shard_size = convert_file_size_to_int(
+            max_shard_size or config.MAX_SHARD_SIZE
+        )
 
         try:
             split_info = self.info.splits[split_generator.name]
@@ -1670,7 +1922,9 @@ class ArrowBasedBuilder(DatasetBuilder):
         fpath = posixpath.join(self._output_dir, fname)
 
         if num_proc and num_proc > 1:
-            num_input_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
+            num_input_shards = _number_of_shards_in_gen_kwargs(
+                split_generator.gen_kwargs
+            )
             if num_input_shards <= 1:
                 logger.warning(
                     f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
@@ -1708,9 +1962,13 @@ class ArrowBasedBuilder(DatasetBuilder):
                         pbar.update(content)
             # wrapping everything into lists for consistency with the multiprocessed code path
             assert result is not None, "Failed to retrieve results from prepare_split"
-            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = (
-                [item] for item in result
-            )
+            (
+                examples_per_job,
+                bytes_per_job,
+                features_per_job,
+                shards_per_job,
+                shard_lengths_per_job,
+            ) = ([item] for item in result)
         else:
             kwargs_per_job = [
                 {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
@@ -1744,9 +2002,9 @@ class ArrowBasedBuilder(DatasetBuilder):
                             # the content is the number of examples progress update
                             pbar.update(content)
 
-            assert None not in examples_per_job, (
-                f"Failed to retrieve results from prepare_split: result list {examples_per_job} still contains None - at least one worker failed to return its results"
-            )
+            assert (
+                None not in examples_per_job
+            ), f"Failed to retrieve results from prepare_split: result list {examples_per_job} still contains None - at least one worker failed to return its results"
 
         total_shards = sum(shards_per_job)
         total_num_examples = sum(examples_per_job)
@@ -1765,8 +2023,12 @@ class ArrowBasedBuilder(DatasetBuilder):
                 shard_id, job_id = shard_id_and_job
                 global_shard_id = sum(shards_per_job[:job_id]) + shard_id
                 self._rename(
-                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
-                    fpath.replace("JJJJJ-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
+                    fpath.replace("SSSSS", f"{shard_id:05d}").replace(
+                        "JJJJJ", f"{job_id:05d}"
+                    ),
+                    fpath.replace("JJJJJ-SSSSS", f"{global_shard_id:05d}").replace(
+                        "NNNNN", f"{total_shards:05d}"
+                    ),
                 )
 
             shard_ids_and_jobs = [
@@ -1777,13 +2039,17 @@ class ArrowBasedBuilder(DatasetBuilder):
             thread_map(_rename_shard, shard_ids_and_jobs, disable=True, max_workers=64)
 
             split_generator.split_info.shard_lengths = [
-                shard_length for shard_lengths in shard_lengths_per_job for shard_length in shard_lengths
+                shard_length
+                for shard_lengths in shard_lengths_per_job
+                for shard_length in shard_lengths
             ]
         else:
             # don't use any pattern
             shard_id, job_id = 0, 0
             self._rename(
-                fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                fpath.replace("SSSSS", f"{shard_id:05d}").replace(
+                    "JJJJJ", f"{job_id:05d}"
+                ),
                 fpath.replace(SUFFIX, ""),
             )
 
@@ -1791,9 +2057,17 @@ class ArrowBasedBuilder(DatasetBuilder):
             self.info.features = features
 
     def _prepare_split_single(
-        self, gen_kwargs: dict, fpath: str, file_format: str, max_shard_size: int, job_id: int
+        self,
+        gen_kwargs: dict,
+        fpath: str,
+        file_format: str,
+        max_shard_size: int,
+        job_id: int,
     ) -> Iterable[tuple[int, bool, Union[int, tuple]]]:
-        gen_kwargs = {k: tracked_list(v) if isinstance(v, list) else v for k, v in gen_kwargs.items()}
+        gen_kwargs = {
+            k: tracked_list(v) if isinstance(v, list) else v
+            for k, v in gen_kwargs.items()
+        }
         generator = self._generate_tables(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
@@ -1805,7 +2079,9 @@ class ArrowBasedBuilder(DatasetBuilder):
         try:
             writer = writer_class(
                 features=self.info.features,
-                path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                path=fpath.replace("SSSSS", f"{shard_id:05d}").replace(
+                    "JJJJJ", f"{job_id:05d}"
+                ),
                 writer_batch_size=self._writer_batch_size,
                 storage_options=self._fs.storage_options,
                 embed_local_files=embed_local_files,
@@ -1813,7 +2089,10 @@ class ArrowBasedBuilder(DatasetBuilder):
             try:
                 _time = time.time()
                 for _, table in generator:
-                    if max_shard_size is not None and writer._num_bytes > max_shard_size:
+                    if (
+                        max_shard_size is not None
+                        and writer._num_bytes > max_shard_size
+                    ):
                         num_examples, num_bytes = writer.finalize()
                         writer.close()
                         shard_lengths.append(num_examples)
@@ -1822,7 +2101,9 @@ class ArrowBasedBuilder(DatasetBuilder):
                         shard_id += 1
                         writer = writer_class(
                             features=writer._features,
-                            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace(
+                                "JJJJJ", f"{job_id:05d}"
+                            ),
                             writer_batch_size=self._writer_batch_size,
                             storage_options=self._fs.storage_options,
                             embed_local_files=embed_local_files,
@@ -1855,9 +2136,21 @@ class ArrowBasedBuilder(DatasetBuilder):
                 e = e.__context__
             if isinstance(e, DatasetGenerationError):
                 raise
-            raise DatasetGenerationError("An error occurred while generating the dataset") from e
+            raise DatasetGenerationError(
+                "An error occurred while generating the dataset"
+            ) from e
 
-        yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
+        yield job_id, True, (
+            total_num_examples,
+            total_num_bytes,
+            writer._features,
+            num_shards,
+            shard_lengths,
+        )
 
-    def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
-        return ArrowExamplesIterable(self._generate_tables, kwargs=split_generator.gen_kwargs)
+    def _get_examples_iterable_for_split(
+        self, split_generator: SplitGenerator
+    ) -> ExamplesIterable:
+        return ArrowExamplesIterable(
+            self._generate_tables, kwargs=split_generator.gen_kwargs
+        )

@@ -1,6 +1,10 @@
 import pytest
 
-from datasets.utils.sharding import _distribute_shards, _number_of_shards_in_gen_kwargs, _split_gen_kwargs
+from datasets.utils.sharding import (
+    _distribute_shards,
+    _number_of_shards_in_gen_kwargs,
+    _split_gen_kwargs,
+)
 
 
 @pytest.mark.parametrize(
@@ -10,8 +14,14 @@ from datasets.utils.sharding import _distribute_shards, _number_of_shards_in_gen
         ({"num_shards": 10, "max_num_jobs": 1}, [range(10)]),
         ({"num_shards": 10, "max_num_jobs": 10}, [range(i, i + 1) for i in range(10)]),
         ({"num_shards": 1, "max_num_jobs": 10}, [range(1)]),
-        ({"num_shards": 10, "max_num_jobs": 3}, [range(0, 4), range(4, 7), range(7, 10)]),
-        ({"num_shards": 3, "max_num_jobs": 10}, [range(0, 1), range(1, 2), range(2, 3)]),
+        (
+            {"num_shards": 10, "max_num_jobs": 3},
+            [range(0, 4), range(4, 7), range(7, 10)],
+        ),
+        (
+            {"num_shards": 3, "max_num_jobs": 10},
+            [range(0, 1), range(1, 2), range(2, 3)],
+        ),
     ],
 )
 def test_distribute_shards(kwargs, expected):
@@ -24,7 +34,11 @@ def test_distribute_shards(kwargs, expected):
     [
         ({"foo": 0}, 10, [{"foo": 0}]),
         ({"shards": [0, 1, 2, 3]}, 1, [{"shards": [0, 1, 2, 3]}]),
-        ({"shards": [0, 1, 2, 3]}, 4, [{"shards": [0]}, {"shards": [1]}, {"shards": [2]}, {"shards": [3]}]),
+        (
+            {"shards": [0, 1, 2, 3]},
+            4,
+            [{"shards": [0]}, {"shards": [1]}, {"shards": [2]}, {"shards": [3]}],
+        ),
         ({"shards": [0, 1]}, 4, [{"shards": [0]}, {"shards": [1]}]),
         ({"shards": [0, 1, 2, 3]}, 2, [{"shards": [0, 1]}, {"shards": [2, 3]}]),
     ],

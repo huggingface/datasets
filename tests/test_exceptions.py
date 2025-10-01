@@ -29,7 +29,9 @@ from datasets.exceptions import (
     ],
 )
 def test_error_not_deprecated(error, monkeypatch):
-    monkeypatch.setattr(datasets.utils.deprecation_utils, "_emitted_deprecation_warnings", set())
+    monkeypatch.setattr(
+        datasets.utils.deprecation_utils, "_emitted_deprecation_warnings", set()
+    )
     with warnings.catch_warnings():
         warnings.simplefilter("error")
         error()

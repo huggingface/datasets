@@ -13,7 +13,11 @@ from .. import config
 from ..download.download_config import DownloadConfig
 from ..table import array_cast
 from ..utils.file_utils import is_local_path, xopen
-from ..utils.py_utils import first_non_null_value, no_op_if_value_is_null, string_to_dict
+from ..utils.py_utils import (
+    first_non_null_value,
+    no_op_if_value_is_null,
+    string_to_dict,
+)
 
 
 if TYPE_CHECKING:
@@ -95,7 +99,9 @@ class Image:
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, bytes, bytearray, dict, np.ndarray, "PIL.Image.Image"]) -> dict:
+    def encode_example(
+        self, value: Union[str, bytes, bytearray, dict, np.ndarray, "PIL.Image.Image"]
+    ) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
@@ -155,7 +161,9 @@ class Image:
             `PIL.Image.Image`
         """
         if not self.decode:
-            raise RuntimeError("Decoding is disabled for this feature. Please use Image(decode=True) instead.")
+            raise RuntimeError(
+                "Decoding is disabled for this feature. Please use Image(decode=True) instead."
+            )
 
         if config.PIL_AVAILABLE:
             import PIL.Image
@@ -169,7 +177,9 @@ class Image:
         path, bytes_ = value["path"], value["bytes"]
         if bytes_ is None:
             if path is None:
-                raise ValueError(f"An image should have one of 'path' or 'bytes' but both are None in {value}.")
+                raise ValueError(
+                    f"An image should have one of 'path' or 'bytes' but both are None in {value}."
+                )
             else:
                 if is_local_path(path):
                     image = PIL.Image.open(path)
@@ -182,7 +192,9 @@ class Image:
                     )
                     source_url_fields = string_to_dict(source_url, pattern)
                     token = (
-                        token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
+                        token_per_repo_id.get(source_url_fields["repo_id"])
+                        if source_url_fields is not None
+                        else None
                     )
                     download_config = DownloadConfig(token=token)
                     with xopen(path, "rb", download_config=download_config) as f:
@@ -210,7 +222,9 @@ class Image:
             }
         )
 
-    def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray, pa.ListArray]) -> pa.StructArray:
+    def cast_storage(
+        self, storage: Union[pa.StringArray, pa.StructArray, pa.ListArray]
+    ) -> pa.StructArray:
         """Cast an Arrow array to the Image arrow storage type.
         The Arrow types that can be converted to the Image pyarrow storage type are:
 
@@ -231,10 +245,14 @@ class Image:
         """
         if pa.types.is_string(storage.type):
             bytes_array = pa.array([None] * len(storage), type=pa.binary())
-            storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"], mask=storage.is_null())
+            storage = pa.StructArray.from_arrays(
+                [bytes_array, storage], ["bytes", "path"], mask=storage.is_null()
+            )
         elif pa.types.is_binary(storage.type):
             path_array = pa.array([None] * len(storage), type=pa.string())
-            storage = pa.StructArray.from_arrays([storage, path_array], ["bytes", "path"], mask=storage.is_null())
+            storage = pa.StructArray.from_arrays(
+                [storage, path_array], ["bytes", "path"], mask=storage.is_null()
+            )
         elif pa.types.is_struct(storage.type):
             if storage.type.get_field_index("bytes") >= 0:
                 bytes_array = storage.field("bytes")
@@ -244,10 +262,15 @@ class Image:
                 path_array = storage.field("path")
             else:
                 path_array = pa.array([None] * len(storage), type=pa.string())
-            storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
+            storage = pa.StructArray.from_arrays(
+                [bytes_array, path_array], ["bytes", "path"], mask=storage.is_null()
+            )
         elif pa.types.is_list(storage.type):
             bytes_array = pa.array(
-                [encode_np_array(np.array(arr))["bytes"] if arr is not None else None for arr in storage.to_pylist()],
+                [
+                    encode_np_array(np.array(arr))["bytes"] if arr is not None else None
+                    for arr in storage.to_pylist()
+                ],
                 type=pa.binary(),
             )
             path_array = pa.array([None] * len(storage), type=pa.string())
@@ -256,7 +279,9 @@ class Image:
             )
         return array_cast(storage, self.pa_type)
 
-    def embed_storage(self, storage: pa.StructArray, token_per_repo_id=None) -> pa.StructArray:
+    def embed_storage(
+        self, storage: pa.StructArray, token_per_repo_id=None
+    ) -> pa.StructArray:
         """Embed image files into the Arrow array.
 
         Args:
@@ -274,26 +299,41 @@ class Image:
         def path_to_bytes(path):
             source_url = path.split("::")[-1]
             pattern = (
-                config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
+                config.HUB_DATASETS_URL
+                if source_url.startswith(config.HF_ENDPOINT)
+                else config.HUB_DATASETS_HFFS_URL
             )
             source_url_fields = string_to_dict(source_url, pattern)
-            token = token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
+            token = (
+                token_per_repo_id.get(source_url_fields["repo_id"])
+                if source_url_fields is not None
+                else None
+            )
             download_config = DownloadConfig(token=token)
             with xopen(path, "rb", download_config=download_config) as f:
                 return f.read()
 
         bytes_array = pa.array(
             [
-                (path_to_bytes(x["path"]) if x["bytes"] is None else x["bytes"]) if x is not None else None
+                (
+                    (path_to_bytes(x["path"]) if x["bytes"] is None else x["bytes"])
+                    if x is not None
+                    else None
+                )
                 for x in storage.to_pylist()
             ],
             type=pa.binary(),
         )
         path_array = pa.array(
-            [os.path.basename(path) if path is not None else None for path in storage.field("path").to_pylist()],
+            [
+                os.path.basename(path) if path is not None else None
+                for path in storage.field("path").to_pylist()
+            ],
             type=pa.string(),
         )
-        storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
+        storage = pa.StructArray.from_arrays(
+            [bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null()
+        )
         return array_cast(storage, self.pa_type)
 
 
@@ -306,7 +346,9 @@ def list_image_compression_formats() -> list[str]:
     global _IMAGE_COMPRESSION_FORMATS
     if _IMAGE_COMPRESSION_FORMATS is None:
         PIL.Image.init()
-        _IMAGE_COMPRESSION_FORMATS = list(set(PIL.Image.OPEN.keys()) & set(PIL.Image.SAVE.keys()))
+        _IMAGE_COMPRESSION_FORMATS = list(
+            set(PIL.Image.OPEN.keys()) & set(PIL.Image.SAVE.keys())
+        )
     return _IMAGE_COMPRESSION_FORMATS
 
 
@@ -349,7 +391,9 @@ def encode_np_array(array: np.ndarray) -> dict:
             )
         dest_dtype = np.dtype("|u1")
         if dtype != dest_dtype:
-            warnings.warn(f"Downcasting array dtype {dtype} to {dest_dtype} to be compatible with 'Pillow'")
+            warnings.warn(
+                f"Downcasting array dtype {dtype} to {dest_dtype} to be compatible with 'Pillow'"
+            )
     # Exact match
     elif dtype in _VALID_IMAGE_ARRAY_DTPYES:
         dest_dtype = dtype
@@ -358,7 +402,9 @@ def encode_np_array(array: np.ndarray) -> dict:
             dtype_str = dtype_byteorder + dtype_kind + str(dtype_itemsize)
             if np.dtype(dtype_str) in _VALID_IMAGE_ARRAY_DTPYES:
                 dest_dtype = np.dtype(dtype_str)
-                warnings.warn(f"Downcasting array dtype {dtype} to {dest_dtype} to be compatible with 'Pillow'")
+                warnings.warn(
+                    f"Downcasting array dtype {dtype} to {dest_dtype} to be compatible with 'Pillow'"
+                )
                 break
             else:
                 dtype_itemsize //= 2
@@ -383,7 +429,10 @@ def objects_to_list_of_image_dicts(
     if objs:
         _, obj = first_non_null_value(objs)
         if isinstance(obj, str):
-            return [{"path": obj, "bytes": None} if obj is not None else None for obj in objs]
+            return [
+                {"path": obj, "bytes": None} if obj is not None else None
+                for obj in objs
+            ]
         if isinstance(obj, np.ndarray):
             obj_to_image_dict_func = no_op_if_value_is_null(encode_np_array)
             return [obj_to_image_dict_func(obj) for obj in objs]

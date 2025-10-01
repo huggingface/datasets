@@ -1,9 +1,17 @@
 from typing import Optional, TypeVar
 
-from .arrow_dataset import Dataset, _concatenate_map_style_datasets, _interleave_map_style_datasets
+from .arrow_dataset import (
+    Dataset,
+    _concatenate_map_style_datasets,
+    _interleave_map_style_datasets,
+)
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .info import DatasetInfo
-from .iterable_dataset import IterableDataset, _concatenate_iterable_datasets, _interleave_iterable_datasets
+from .iterable_dataset import (
+    IterableDataset,
+    _concatenate_iterable_datasets,
+    _interleave_iterable_datasets,
+)
 from .splits import NamedSplit
 from .utils import logging
 from .utils.py_utils import Literal
@@ -137,21 +145,35 @@ def interleave_datasets(
             )
         if i == 0:
             dataset_type, other_type = (
-                (Dataset, IterableDataset) if isinstance(dataset, Dataset) else (IterableDataset, Dataset)
+                (Dataset, IterableDataset)
+                if isinstance(dataset, Dataset)
+                else (IterableDataset, Dataset)
             )
         elif not isinstance(dataset, dataset_type):
             raise ValueError(
                 f"Unable to interleave a {dataset_type.__name__} (at position 0) with a {other_type.__name__} (at position {i}). Expected a list of Dataset objects or a list of IterableDataset objects."
             )
     if stopping_strategy not in ["first_exhausted", "all_exhausted"]:
-        raise ValueError(f"{stopping_strategy} is not supported. Please enter a valid stopping_strategy.")
+        raise ValueError(
+            f"{stopping_strategy} is not supported. Please enter a valid stopping_strategy."
+        )
     if dataset_type is Dataset:
         return _interleave_map_style_datasets(
-            datasets, probabilities, seed, info=info, split=split, stopping_strategy=stopping_strategy
+            datasets,
+            probabilities,
+            seed,
+            info=info,
+            split=split,
+            stopping_strategy=stopping_strategy,
         )
     else:
         return _interleave_iterable_datasets(
-            datasets, probabilities, seed, info=info, split=split, stopping_strategy=stopping_strategy
+            datasets,
+            probabilities,
+            seed,
+            info=info,
+            split=split,
+            stopping_strategy=stopping_strategy,
         )
 
 
@@ -203,7 +225,9 @@ def concatenate_datasets(
             )
         if i == 0:
             dataset_type, other_type = (
-                (Dataset, IterableDataset) if isinstance(dataset, Dataset) else (IterableDataset, Dataset)
+                (Dataset, IterableDataset)
+                if isinstance(dataset, Dataset)
+                else (IterableDataset, Dataset)
             )
         elif not isinstance(dataset, dataset_type):
             raise ValueError(

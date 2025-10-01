@@ -144,18 +144,24 @@ def make_file_instructions(
                 if take == 0:
                     continue
                 num_examples += take
-                file_instructions.append({"filename": filename, "skip": from_, "take": take})
+                file_instructions.append(
+                    {"filename": filename, "skip": from_, "take": take}
+                )
         else:  # sharded
             index_start = 0  # Beginning (included) of moving window.
             index_end = 0  # End (excluded) of moving window.
             for filename, shard_length in zip(filenames, shard_lengths):
                 index_end += shard_length
-                if from_ < index_end and to > index_start:  # There is something to take.
+                if (
+                    from_ < index_end and to > index_start
+                ):  # There is something to take.
                     skip = from_ - index_start if from_ > index_start else 0
                     take = to - index_start - skip if to < index_end else -1
                     if take == 0:
                         continue
-                    file_instructions.append({"filename": filename, "skip": skip, "take": take})
+                    file_instructions.append(
+                        {"filename": filename, "skip": skip, "take": take}
+                    )
                     num_examples += shard_length - skip if take == -1 else take
                 index_start += shard_length
     return FileInstructions(
@@ -212,14 +218,20 @@ class BaseReader:
             raise ValueError(
                 "Tried to read an empty table. Please specify at least info.features to create an empty table with the right type."
             )
-        pa_tables = pa_tables or [InMemoryTable.from_batches([], schema=pa.schema(self._info.features.type))]
+        pa_tables = pa_tables or [
+            InMemoryTable.from_batches([], schema=pa.schema(self._info.features.type))
+        ]
         pa_table = concat_tables(pa_tables) if len(pa_tables) != 1 else pa_tables[0]
         return pa_table
 
     def get_file_instructions(self, name, instruction, split_infos):
         """Return list of dict {'filename': str, 'skip': int, 'take': int}"""
         file_instructions = make_file_instructions(
-            name, split_infos, instruction, filetype_suffix=self._filetype_suffix, prefix_path=self._path
+            name,
+            split_infos,
+            instruction,
+            filetype_suffix=self._filetype_suffix,
+            prefix_path=self._path,
         )
         files = file_instructions.file_instructions
         return files
@@ -249,7 +261,9 @@ class BaseReader:
         if not files:
             msg = f'Instruction "{instructions}" corresponds to no data!'
             raise ValueError(msg)
-        return self.read_files(files=files, original_instructions=instructions, in_memory=in_memory)
+        return self.read_files(
+            files=files, original_instructions=instructions, in_memory=in_memory
+        )
 
     def read_files(
         self,
@@ -309,7 +323,11 @@ class ArrowReader(BaseReader):
         if take == -1:
             take = len(table) - skip
         # here we don't want to slice an empty table, or it may segfault
-        if skip is not None and take is not None and not (skip == 0 and take == len(table)):
+        if (
+            skip is not None
+            and take is not None
+            and not (skip == 0 and take == len(table))
+        ):
             table = table.slice(skip, take)
         return table
 
@@ -355,7 +373,11 @@ class ParquetReader(BaseReader):
         # Parquet read_table always loads data in memory, independently of memory_map
         pa_table = pq.read_table(filename, memory_map=True)
         # here we don't want to slice an empty table, or it may segfault
-        if skip is not None and take is not None and not (skip == 0 and take == len(pa_table)):
+        if (
+            skip is not None
+            and take is not None
+            and not (skip == 0 and take == len(pa_table))
+        ):
             pa_table = pa_table.slice(skip, take)
         return pa_table
 
@@ -382,16 +404,23 @@ class _RelativeInstruction:
     def __post_init__(self):
         if self.unit is not None and self.unit not in ["%", "abs"]:
             raise ValueError("unit must be either % or abs")
-        if self.rounding is not None and self.rounding not in ["closest", "pct1_dropremainder"]:
+        if self.rounding is not None and self.rounding not in [
+            "closest",
+            "pct1_dropremainder",
+        ]:
             raise ValueError("rounding must be either closest or pct1_dropremainder")
         if self.unit != "%" and self.rounding is not None:
-            raise ValueError("It is forbidden to specify rounding if not using percent slicing.")
+            raise ValueError(
+                "It is forbidden to specify rounding if not using percent slicing."
+            )
         if self.unit == "%" and self.from_ is not None and abs(self.from_) > 100:
             raise ValueError("Percent slice boundaries must be > -100 and < 100.")
         if self.unit == "%" and self.to is not None and abs(self.to) > 100:
             raise ValueError("Percent slice boundaries must be > -100 and < 100.")
         # Update via __dict__ due to instance being "frozen"
-        self.__dict__["rounding"] = "closest" if self.rounding is None and self.unit == "%" else self.rounding
+        self.__dict__["rounding"] = (
+            "closest" if self.rounding is None and self.unit == "%" else self.rounding
+        )
 
 
 def _str_to_read_instruction(spec):
@@ -431,7 +460,9 @@ def _rel_to_abs_instr(rel_instr, name2len):
         rel_instr: RelativeInstruction instance.
         name2len: dict {split_name: num_examples}.
     """
-    pct_to_abs = _pct_to_abs_closest if rel_instr.rounding == "closest" else _pct_to_abs_pct1
+    pct_to_abs = (
+        _pct_to_abs_closest if rel_instr.rounding == "closest" else _pct_to_abs_pct1
+    )
     split = rel_instr.splitname
     if split not in name2len:
         raise ValueError(f'Unknown split "{split}". Should be one of {list(name2len)}.')
@@ -578,7 +609,9 @@ class ReadInstruction:
                 to = str(to) + unit if to is not None else ""
                 slice_str = f"[{from_}:{to}]"
                 rounding_str = (
-                    f"({rounding})" if unit == "%" and rounding is not None and rounding != "closest" else ""
+                    f"({rounding})"
+                    if unit == "%" and rounding is not None and rounding != "closest"
+                    else ""
                 )
                 rel_instr_spec += slice_str + rounding_str
             rel_instr_specs.append(rel_instr_spec)
@@ -596,7 +629,9 @@ class ReadInstruction:
             and other_ris[0].unit != "abs"
             and self._relative_instructions[0].rounding != other_ris[0].rounding
         ):
-            raise ValueError("It is forbidden to sum ReadInstruction instances with different rounding values.")
+            raise ValueError(
+                "It is forbidden to sum ReadInstruction instances with different rounding values."
+            )
         return self._read_instruction_from_relative_instructions(self_ris + other_ris)
 
     def __str__(self):
@@ -617,4 +652,7 @@ class ReadInstruction:
         Returns:
             list of _AbsoluteInstruction instances (corresponds to the + in spec).
         """
-        return [_rel_to_abs_instr(rel_instr, name2len) for rel_instr in self._relative_instructions]
+        return [
+            _rel_to_abs_instr(rel_instr, name2len)
+            for rel_instr in self._relative_instructions
+        ]

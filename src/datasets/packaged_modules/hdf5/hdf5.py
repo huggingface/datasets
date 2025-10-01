@@ -49,7 +49,9 @@ class HDF5(datasets.ArrowBasedBuilder):
         import h5py
 
         if not self.config.data_files:
-            raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
+            raise ValueError(
+                f"At least one data file must be specified, but got data_files={self.config.data_files}"
+            )
         dl_manager.download_config.extract_on_the_fly = True
         data_files = dl_manager.download_and_extract(self.config.data_files)
         splits = []
@@ -64,7 +66,9 @@ class HDF5(datasets.ArrowBasedBuilder):
                     with h5py.File(first_file, "r") as h5:
                         self.info.features = _recursive_infer_features(h5)
                     break
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
+            splits.append(
+                datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files})
+            )
         return splits
 
     def _generate_tables(self, files):
@@ -81,14 +85,20 @@ class HDF5(datasets.ArrowBasedBuilder):
                     if num_rows is None:
                         logger.warning(f"File {file} contains no data, skipping...")
                         continue
-                    effective_batch = batch_size_cfg or self._writer_batch_size or num_rows
+                    effective_batch = (
+                        batch_size_cfg or self._writer_batch_size or num_rows
+                    )
                     for start in range(0, num_rows, effective_batch):
                         end = min(start + effective_batch, num_rows)
-                        pa_table = _recursive_load_arrays(h5, self.info.features, start, end)
+                        pa_table = _recursive_load_arrays(
+                            h5, self.info.features, start, end
+                        )
                         if pa_table is None:
                             logger.warning(f"File {file} contains no data, skipping...")
                             continue
-                        yield f"{file_idx}_{start}", cast_table_to_features(pa_table, self.info.features)
+                        yield f"{file_idx}_{start}", cast_table_to_features(
+                            pa_table, self.info.features
+                        )
             except ValueError as e:
                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                 raise
@@ -121,7 +131,9 @@ def _create_complex_features(dset) -> Features:
         # two float64s
         value_type = Value("float64")
     else:
-        logger.warning(f"Found complex dtype {dtype} that is not supported. Converting to float64...")
+        logger.warning(
+            f"Found complex dtype {dtype} that is not supported. Converting to float64..."
+        )
         value_type = Value("float64")
 
     return Features(
@@ -137,7 +149,9 @@ def _convert_complex_to_nested(arr: np.ndarray) -> pa.StructArray:
         "real": datasets.features.features.numpy_to_pyarrow_listarray(arr.real),
         "imag": datasets.features.features.numpy_to_pyarrow_listarray(arr.imag),
     }
-    return pa.StructArray.from_arrays([data["real"], data["imag"]], names=["real", "imag"])
+    return pa.StructArray.from_arrays(
+        [data["real"], data["imag"]], names=["real", "imag"]
+    )
 
 
 # ┌────────────┐
@@ -168,7 +182,9 @@ class _CompoundField:
     shape: tuple[int, ...] = field(init=False)
 
     def __post_init__(self):
-        self.shape = (len(self.data) if self.data is not None else 0,) + self.dtype.shape
+        self.shape = (
+            len(self.data) if self.data is not None else 0,
+        ) + self.dtype.shape
 
     def __getitem__(self, key):
         return self.data[key][self.name]
@@ -356,7 +372,9 @@ def _check_dataset_lengths(h5_obj, features: Features) -> int:
             continue
         if _is_dataset(dset):
             if dset.shape[0] != num_rows:
-                raise ValueError(f"Dataset '{path}' has length {dset.shape[0]} but expected {num_rows}")
+                raise ValueError(
+                    f"Dataset '{path}' has length {dset.shape[0]} but expected {num_rows}"
+                )
     return num_rows
 
 

@@ -8,4 +8,6 @@ from filelock import (  # noqa: F401 # imported for backward compatibility TODO:
     WindowsFileLock,
 )
 
-from ._filelock import FileLock  # noqa: F401 # imported for backward compatibility. TODO: remove in 3.0.0
+from ._filelock import (
+    FileLock,
+)  # noqa: F401 # imported for backward compatibility. TODO: remove in 3.0.0

@@ -18,13 +18,23 @@ class SqlDatasetReader(AbstractDatasetInputStream):
     def __init__(
         self,
         sql: Union[str, "sqlalchemy.sql.Selectable"],
-        con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
+        con: Union[
+            str,
+            "sqlalchemy.engine.Connection",
+            "sqlalchemy.engine.Engine",
+            "sqlite3.Connection",
+        ],
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
         **kwargs,
     ):
-        super().__init__(features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs)
+        super().__init__(
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            **kwargs,
+        )
         self.builder = Sql(
             cache_dir=cache_dir,
             features=features,
@@ -48,7 +58,9 @@ class SqlDatasetReader(AbstractDatasetInputStream):
 
         # Build dataset for splits
         dataset = self.builder.as_dataset(
-            split="train", verification_mode=verification_mode, in_memory=self.keep_in_memory
+            split="train",
+            verification_mode=verification_mode,
+            in_memory=self.keep_in_memory,
         )
         return dataset
 
@@ -58,7 +70,12 @@ class SqlDatasetWriter:
         self,
         dataset: Dataset,
         name: str,
-        con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
+        con: Union[
+            str,
+            "sqlalchemy.engine.Connection",
+            "sqlalchemy.engine.Engine",
+            "sqlite3.Connection",
+        ],
         batch_size: Optional[int] = None,
         num_proc: Optional[int] = None,
         **to_sql_kwargs,
@@ -83,7 +100,9 @@ class SqlDatasetWriter:
 
     def _batch_sql(self, args):
         offset, index, to_sql_kwargs = args
-        to_sql_kwargs = {**to_sql_kwargs, "if_exists": "append"} if offset > 0 else to_sql_kwargs
+        to_sql_kwargs = (
+            {**to_sql_kwargs, "if_exists": "append"} if offset > 0 else to_sql_kwargs
+        )
         batch = query_table(
             table=self.dataset.data,
             key=slice(offset, offset + self.batch_size),
@@ -113,9 +132,16 @@ class SqlDatasetWriter:
                 for num_rows in hf_tqdm(
                     pool.imap(
                         self._batch_sql,
-                        [(offset, index, to_sql_kwargs) for offset in range(0, num_rows, batch_size)],
+                        [
+                            (offset, index, to_sql_kwargs)
+                            for offset in range(0, num_rows, batch_size)
+                        ],
                     ),
-                    total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
+                    total=(
+                        (num_rows // batch_size) + 1
+                        if num_rows % batch_size
+                        else num_rows // batch_size
+                    ),
                     unit="ba",
                     desc="Creating SQL from Arrow format",
                 ):

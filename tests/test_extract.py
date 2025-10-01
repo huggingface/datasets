@@ -162,7 +162,9 @@ def tar_file_with_sym_link(tmp_path):
     path = directory / "tar_file_with_sym_link.tar"
     os.symlink("..", directory / "subdir", target_is_directory=True)
     with tarfile.TarFile(path, "w") as f:
-        f.add(str(directory / "subdir"), arcname="subdir")  # str required by os.readlink on Windows and Python < 3.8
+        f.add(
+            str(directory / "subdir"), arcname="subdir"
+        )  # str required by os.readlink on Windows and Python < 3.8
     return path
 
 
@@ -171,7 +173,12 @@ def tar_file_with_sym_link(tmp_path):
     [("tar_file_with_dot_dot", "illegal path"), ("tar_file_with_sym_link", "Symlink")],
 )
 def test_tar_extract_insecure_files(
-    insecure_tar_file, error_log, tar_file_with_dot_dot, tar_file_with_sym_link, tmp_path, caplog
+    insecure_tar_file,
+    error_log,
+    tar_file_with_dot_dot,
+    tar_file_with_sym_link,
+    tmp_path,
+    caplog,
 ):
     insecure_tar_files = {
         "tar_file_with_dot_dot": tar_file_with_dot_dot,

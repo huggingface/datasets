@@ -49,7 +49,9 @@ class SparkDatasetReader(AbstractDatasetReader):
     def read(self):
         if self.streaming:
             return self.builder.as_streaming_dataset(split=self.split)
-        download_mode = None if self._load_from_cache_file else DownloadMode.FORCE_REDOWNLOAD
+        download_mode = (
+            None if self._load_from_cache_file else DownloadMode.FORCE_REDOWNLOAD
+        )
         self.builder.download_and_prepare(
             download_mode=download_mode,
             file_format=self._file_format,

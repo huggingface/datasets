@@ -62,14 +62,18 @@ T = TypeVar("T", str, Path)
 
 
 def is_remote_url(url_or_filename: str) -> bool:
-    return urlparse(url_or_filename).scheme != "" and not os.path.ismount(urlparse(url_or_filename).scheme + ":/")
+    return urlparse(url_or_filename).scheme != "" and not os.path.ismount(
+        urlparse(url_or_filename).scheme + ":/"
+    )
 
 
 def is_local_path(url_or_filename: str) -> bool:
     # On unix the scheme of a local path is empty (for both absolute and relative),
     # while on windows the scheme is the drive name (ex: "c") for absolute paths.
     # for details on the windows behavior, see https://bugs.python.org/issue42215
-    return urlparse(url_or_filename).scheme == "" or os.path.ismount(urlparse(url_or_filename).scheme + ":/")
+    return urlparse(url_or_filename).scheme == "" or os.path.ismount(
+        urlparse(url_or_filename).scheme + ":/"
+    )
 
 
 def is_relative_path(url_or_filename: str) -> bool:
@@ -84,7 +88,10 @@ def relative_to_absolute_path(path: T) -> T:
 
 def url_or_path_join(base_name: str, *pathnames: str) -> str:
     if is_remote_url(base_name):
-        return posixpath.join(base_name, *(str(pathname).replace(os.sep, "/").lstrip("/") for pathname in pathnames))
+        return posixpath.join(
+            base_name,
+            *(str(pathname).replace(os.sep, "/").lstrip("/") for pathname in pathnames),
+        )
     else:
         return Path(base_name, *pathnames).as_posix()
 
@@ -210,7 +217,9 @@ def cached_path(
         raise FileNotFoundError(f"Local file {url_or_filename} doesn't exist")
     else:
         # Something unknown
-        raise ValueError(f"unable to parse {url_or_filename} as a URL or as a local path")
+        raise ValueError(
+            f"unable to parse {url_or_filename} as a URL or as a local path"
+        )
 
     if output_path is None:
         return output_path
@@ -219,18 +228,26 @@ def cached_path(
         if download_config.extract_on_the_fly:
             # Add a compression prefix to the compressed file so that it can be extracted
             # as it's being read using xopen.
-            protocol = _get_extraction_protocol(output_path, download_config=download_config)
+            protocol = _get_extraction_protocol(
+                output_path, download_config=download_config
+            )
             extension = _get_path_extension(url_or_filename.split("::")[0])
             if (
                 protocol
                 and extension not in ["tgz", "tar"]
-                and not url_or_filename.split("::")[0].endswith((".tar.gz", ".tar.bz2", ".tar.xz"))
+                and not url_or_filename.split("::")[0].endswith(
+                    (".tar.gz", ".tar.bz2", ".tar.xz")
+                )
             ):
                 output_path = relative_to_absolute_path(output_path)
                 if protocol in SINGLE_FILE_COMPRESSION_PROTOCOLS:
                     # there is one single file which is the uncompressed file
                     inner_file = os.path.basename(output_path)
-                    inner_file = inner_file[: inner_file.rindex(".")] if "." in inner_file else inner_file
+                    inner_file = (
+                        inner_file[: inner_file.rindex(".")]
+                        if "." in inner_file
+                        else inner_file
+                    )
                     output_path = f"{protocol}://{inner_file}::{output_path}"
                 else:
                     output_path = f"{protocol}://::{output_path}"
@@ -261,7 +278,9 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
     return ua
 
 
-def get_authentication_headers_for_url(url: str, token: Optional[Union[str, bool]] = None) -> dict:
+def get_authentication_headers_for_url(
+    url: str, token: Optional[Union[str, bool]] = None
+) -> dict:
     """Handle the HF authentication"""
     if url.startswith(config.HF_ENDPOINT):
         return huggingface_hub.utils.build_hf_headers(
@@ -275,7 +294,9 @@ def _raise_if_offline_mode_is_enabled(msg: Optional[str] = None):
     """Raise an OfflineModeIsEnabled error (subclass of ConnectionError) if HF_HUB_OFFLINE is True."""
     if config.HF_HUB_OFFLINE:
         raise huggingface_hub.errors.OfflineModeIsEnabled(
-            "Offline mode is enabled." if msg is None else "Offline mode is enabled. " + str(msg)
+            "Offline mode is enabled."
+            if msg is None
+            else "Offline mode is enabled. " + str(msg)
         )
 
 
@@ -288,7 +309,9 @@ def fsspec_head(url, storage_options=None):
 def stack_multiprocessing_download_progress_bars():
     # Stack downloads progress bars automatically using HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS=1
     # We use environment variables since the download may happen in a subprocess
-    return patch.dict(os.environ, {"HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS": "1"})
+    return patch.dict(
+        os.environ, {"HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS": "1"}
+    )
 
 
 class TqdmCallback(fsspec.callbacks.TqdmCallback):
@@ -309,10 +332,17 @@ def fsspec_get(url, temp_file, storage_options=None, desc=None, disable_tqdm=Fal
             "desc": desc or "Downloading",
             "unit": "B",
             "unit_scale": True,
-            "position": multiprocessing.current_process()._identity[-1]  # contains the ranks of subprocesses
-            if os.environ.get("HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS") == "1"
-            and multiprocessing.current_process()._identity
-            else None,
+            "position": (
+                multiprocessing.current_process()._identity[
+                    -1
+                ]  # contains the ranks of subprocesses
+                if os.environ.get(
+                    "HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS"
+                )
+                == "1"
+                and multiprocessing.current_process()._identity
+                else None
+            ),
             "disable": disable_tqdm,
         }
     )
@@ -369,7 +399,9 @@ def get_from_cache(
         headers["user-agent"] = user_agent
 
     response = fsspec_head(url, storage_options=storage_options)
-    etag = (response.get("ETag", None) or response.get("etag", None)) if use_etag else None
+    etag = (
+        (response.get("ETag", None) or response.get("etag", None)) if use_etag else None
+    )
 
     # Try a second time
     filename = hash_url_to_filename(url, etag)
@@ -390,9 +422,17 @@ def get_from_cache(
         # Download to temporary file, then copy to cache path once finished.
         # Otherwise, you get corrupt cache entries if the download gets interrupted.
         with open(incomplete_path, "w+b") as temp_file:
-            logger.info(f"{url} not found in cache or force_download set to True, downloading to {temp_file.name}")
+            logger.info(
+                f"{url} not found in cache or force_download set to True, downloading to {temp_file.name}"
+            )
             # GET file object
-            fsspec_get(url, temp_file, storage_options=storage_options, desc=download_desc, disable_tqdm=disable_tqdm)
+            fsspec_get(
+                url,
+                temp_file,
+                storage_options=storage_options,
+                desc=download_desc,
+                disable_tqdm=disable_tqdm,
+            )
 
         logger.info(f"storing {url} in cache at {cache_path}")
         shutil.move(temp_file.name, cache_path)
@@ -408,7 +448,9 @@ def get_from_cache(
 
 def add_start_docstrings(*docstr):
     def docstring_decorator(fn):
-        fn.__doc__ = "".join(docstr) + "\n\n" + (fn.__doc__ if fn.__doc__ is not None else "")
+        fn.__doc__ = (
+            "".join(docstr) + "\n\n" + (fn.__doc__ if fn.__doc__ is not None else "")
+        )
         return fn
 
     return docstring_decorator
@@ -416,7 +458,9 @@ def add_start_docstrings(*docstr):
 
 def add_end_docstrings(*docstr):
     def docstring_decorator(fn):
-        fn.__doc__ = (fn.__doc__ if fn.__doc__ is not None else "") + "\n\n" + "".join(docstr)
+        fn.__doc__ = (
+            (fn.__doc__ if fn.__doc__ is not None else "") + "\n\n" + "".join(docstr)
+        )
         return fn
 
     return docstring_decorator
@@ -474,7 +518,9 @@ SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL = {
     for fs_class in COMPRESSION_FILESYSTEMS
     for extension in fs_class.extensions
 }
-SINGLE_FILE_COMPRESSION_PROTOCOLS = {fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS}
+SINGLE_FILE_COMPRESSION_PROTOCOLS = {
+    fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS
+}
 SINGLE_SLASH_AFTER_PROTOCOL_PATTERN = re.compile(r"(?<!:):/")
 
 
@@ -493,7 +539,10 @@ MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL = {
 }
 MAGIC_NUMBER_MAX_LENGTH = max(
     len(magic_number)
-    for magic_number in chain(MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL, MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL)
+    for magic_number in chain(
+        MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL,
+        MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL,
+    )
 )
 
 
@@ -521,15 +570,23 @@ def _get_extraction_protocol_with_magic_number(f) -> Optional[str]:
     magic_number = f.read(MAGIC_NUMBER_MAX_LENGTH)
     f.seek(0)
     for i in range(MAGIC_NUMBER_MAX_LENGTH):
-        compression = MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL.get(magic_number[: MAGIC_NUMBER_MAX_LENGTH - i])
+        compression = MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL.get(
+            magic_number[: MAGIC_NUMBER_MAX_LENGTH - i]
+        )
         if compression is not None:
             return compression
-        compression = MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL.get(magic_number[: MAGIC_NUMBER_MAX_LENGTH - i])
+        compression = MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL.get(
+            magic_number[: MAGIC_NUMBER_MAX_LENGTH - i]
+        )
         if compression is not None:
-            raise NotImplementedError(f"Compression protocol '{compression}' not implemented.")
+            raise NotImplementedError(
+                f"Compression protocol '{compression}' not implemented."
+            )
 
 
-def _get_extraction_protocol(urlpath: str, download_config: Optional[DownloadConfig] = None) -> Optional[str]:
+def _get_extraction_protocol(
+    urlpath: str, download_config: Optional[DownloadConfig] = None
+) -> Optional[str]:
     # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
     urlpath = str(urlpath)
     path = urlpath.split("::")[0]
@@ -542,14 +599,17 @@ def _get_extraction_protocol(urlpath: str, download_config: Optional[DownloadCon
         return None
     elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
         return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
-    urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
+    urlpath, storage_options = _prepare_path_and_storage_options(
+        urlpath, download_config=download_config
+    )
     try:
         with fsspec.open(urlpath, **(storage_options or {})) as f:
             return _get_extraction_protocol_with_magic_number(f)
     except FileNotFoundError:
         if urlpath.startswith(config.HF_ENDPOINT):
             raise FileNotFoundError(
-                urlpath + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
+                urlpath
+                + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
             ) from None
         else:
             raise
@@ -628,7 +688,9 @@ def xexists(urlpath: str, download_config: Optional[DownloadConfig] = None):
     if is_local_path(main_hop):
         return os.path.exists(main_hop)
     else:
-        urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
+        urlpath, storage_options = _prepare_path_and_storage_options(
+            urlpath, download_config=download_config
+        )
         main_hop, *rest_hops = urlpath.split("::")
         fs, *_ = url_to_fs(urlpath, **storage_options)
         return fs.exists(main_hop)
@@ -728,7 +790,9 @@ def xisfile(path, download_config: Optional[DownloadConfig] = None) -> bool:
     if is_local_path(main_hop):
         return os.path.isfile(path)
     else:
-        path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
+        path, storage_options = _prepare_path_and_storage_options(
+            path, download_config=download_config
+        )
         main_hop, *rest_hops = path.split("::")
         fs, *_ = url_to_fs(path, **storage_options)
         return fs.isfile(main_hop)
@@ -748,7 +812,9 @@ def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
     if is_local_path(main_hop):
         return os.path.getsize(path)
     else:
-        path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
+        path, storage_options = _prepare_path_and_storage_options(
+            path, download_config=download_config
+        )
         main_hop, *rest_hops = path.split("::")
         fs, *_ = fs, *_ = url_to_fs(path, **storage_options)
         try:
@@ -776,7 +842,9 @@ def xisdir(path, download_config: Optional[DownloadConfig] = None) -> bool:
     if is_local_path(main_hop):
         return os.path.isdir(path)
     else:
-        path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
+        path, storage_options = _prepare_path_and_storage_options(
+            path, download_config=download_config
+        )
         main_hop, *rest_hops = path.split("::")
         fs, *_ = fs, *_ = url_to_fs(path, **storage_options)
         inner_path = main_hop.split("://")[-1]
@@ -797,9 +865,17 @@ def xrelpath(path, start=None):
     """
     main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
-        return os.path.relpath(main_hop, start=start) if start else os.path.relpath(main_hop)
+        return (
+            os.path.relpath(main_hop, start=start)
+            if start
+            else os.path.relpath(main_hop)
+        )
     else:
-        return posixpath.relpath(main_hop, start=str(start).split("::")[0]) if start else os.path.relpath(main_hop)
+        return (
+            posixpath.relpath(main_hop, start=str(start).split("::")[0])
+            if start
+            else os.path.relpath(main_hop)
+        )
 
 
 def _add_retries_to_file_obj_read_method(file_obj):
@@ -843,7 +919,9 @@ def _prepare_path_and_storage_options(
     prepared_urlpath = []
     prepared_storage_options = {}
     for hop in urlpath.split("::"):
-        hop, storage_options = _prepare_single_hop_path_and_storage_options(hop, download_config=download_config)
+        hop, storage_options = _prepare_single_hop_path_and_storage_options(
+            hop, download_config=download_config
+        )
         prepared_urlpath.append(hop)
         prepared_storage_options.update(storage_options)
     return "::".join(prepared_urlpath), storage_options
@@ -862,11 +940,15 @@ def _prepare_single_hop_path_and_storage_options(
     """
     token = None if download_config is None else download_config.token
     if urlpath.startswith(config.HF_ENDPOINT) and "/resolve/" in urlpath:
-        urlpath = "hf://" + urlpath[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
+        urlpath = "hf://" + urlpath[len(config.HF_ENDPOINT) + 1 :].replace(
+            "/resolve/", "@", 1
+        )
     protocol = urlpath.split("://")[0] if "://" in urlpath else "file"
     if download_config is not None and protocol in download_config.storage_options:
         storage_options = download_config.storage_options[protocol].copy()
-    elif download_config is not None and protocol not in download_config.storage_options:
+    elif (
+        download_config is not None and protocol not in download_config.storage_options
+    ):
         storage_options = {
             option_name: option_value
             for option_name, option_value in download_config.storage_options.items()
@@ -876,7 +958,10 @@ def _prepare_single_hop_path_and_storage_options(
         storage_options = {}
     if protocol in {"http", "https"}:
         client_kwargs = storage_options.pop("client_kwargs", {})
-        storage_options["client_kwargs"] = {"trust_env": True, **client_kwargs}  # Enable reading proxy env variables
+        storage_options["client_kwargs"] = {
+            "trust_env": True,
+            **client_kwargs,
+        }  # Enable reading proxy env variables
         if "drive.google.com" in urlpath:
             response = get_session().head(urlpath, timeout=10)
             for k, v in response.cookies.items():
@@ -905,7 +990,13 @@ def _prepare_single_hop_path_and_storage_options(
     return urlpath, storage_options
 
 
-def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] = None, **kwargs):
+def xopen(
+    file: str,
+    mode="r",
+    *args,
+    download_config: Optional[DownloadConfig] = None,
+    **kwargs,
+):
     """Extend `open` function to support remote files using `fsspec`.
 
     It also has a retry mechanism in case connection fails.
@@ -929,7 +1020,9 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
         kwargs.pop("block_size", None)
         return open(main_hop, mode, *args, **kwargs)
     # add headers and cookies for authentication on the HF Hub and for Google Drive
-    file, storage_options = _prepare_path_and_storage_options(file_str, download_config=download_config)
+    file, storage_options = _prepare_path_and_storage_options(
+        file_str, download_config=download_config
+    )
     kwargs = {**kwargs, **(storage_options or {})}
     try:
         file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
@@ -944,7 +1037,8 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
     except FileNotFoundError:
         if file.startswith(config.HF_ENDPOINT):
             raise FileNotFoundError(
-                file + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
+                file
+                + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
             ) from None
         else:
             raise
@@ -967,7 +1061,9 @@ def xlistdir(path: str, download_config: Optional[DownloadConfig] = None) -> lis
         return os.listdir(path)
     else:
         # globbing inside a zip in a private repo requires authentication
-        path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
+        path, storage_options = _prepare_path_and_storage_options(
+            path, download_config=download_config
+        )
         main_hop, *rest_hops = path.split("::")
         fs, *_ = url_to_fs(path, **storage_options)
         inner_path = main_hop.split("://")[-1]
@@ -977,7 +1073,9 @@ def xlistdir(path: str, download_config: Optional[DownloadConfig] = None) -> lis
         return [os.path.basename(path.rstrip("/")) for path in paths]
 
 
-def xglob(urlpath, *, recursive=False, download_config: Optional[DownloadConfig] = None):
+def xglob(
+    urlpath, *, recursive=False, download_config: Optional[DownloadConfig] = None
+):
     """Extend `glob.glob` function to support remote files.
 
     Args:
@@ -994,13 +1092,18 @@ def xglob(urlpath, *, recursive=False, download_config: Optional[DownloadConfig]
         return glob.glob(main_hop, recursive=recursive)
     else:
         # globbing inside a zip in a private repo requires authentication
-        urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
+        urlpath, storage_options = _prepare_path_and_storage_options(
+            urlpath, download_config=download_config
+        )
         main_hop, *rest_hops = urlpath.split("::")
         fs, *_ = url_to_fs(urlpath, **storage_options)
         inner_path = main_hop.split("://")[1]
         globbed_paths = fs.glob(inner_path)
         protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
-        return ["::".join([f"{protocol}://{globbed_path}"] + rest_hops) for globbed_path in globbed_paths]
+        return [
+            "::".join([f"{protocol}://{globbed_path}"] + rest_hops)
+            for globbed_path in globbed_paths
+        ]
 
 
 def xwalk(urlpath, download_config: Optional[DownloadConfig] = None, **kwargs):
@@ -1020,7 +1123,9 @@ def xwalk(urlpath, download_config: Optional[DownloadConfig] = None, **kwargs):
         yield from os.walk(main_hop, **kwargs)
     else:
         # walking inside a zip in a private repo requires authentication
-        urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
+        urlpath, storage_options = _prepare_path_and_storage_options(
+            urlpath, download_config=download_config
+        )
         main_hop, *rest_hops = urlpath.split("::")
         fs, *_ = url_to_fs(urlpath, **storage_options)
         inner_path = main_hop.split("://")[-1]
@@ -1028,7 +1133,9 @@ def xwalk(urlpath, download_config: Optional[DownloadConfig] = None, **kwargs):
             return []
         protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
         for dirpath, dirnames, filenames in fs.walk(inner_path, **kwargs):
-            yield "::".join([f"{protocol}://{dirpath}"] + rest_hops), dirnames, filenames
+            yield "::".join(
+                [f"{protocol}://{dirpath}"] + rest_hops
+            ), dirnames, filenames
 
 
 class xPath(type(Path())):
@@ -1041,7 +1148,9 @@ class xPath(type(Path())):
             return main_hop
         path_as_posix = path_str.replace("\\", "/")
         path_as_posix = SINGLE_SLASH_AFTER_PROTOCOL_PATTERN.sub("://", path_as_posix)
-        path_as_posix += "//" if path_as_posix.endswith(":") else ""  # Add slashes to root of the protocol
+        path_as_posix += (
+            "//" if path_as_posix.endswith(":") else ""
+        )  # Add slashes to root of the protocol
         return path_as_posix
 
     def exists(self, download_config: Optional[DownloadConfig] = None):
@@ -1073,7 +1182,9 @@ class xPath(type(Path())):
             # globbing inside a zip in a private repo requires authentication
             if rest_hops:
                 urlpath = rest_hops[0]
-                urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
+                urlpath, storage_options = _prepare_path_and_storage_options(
+                    urlpath, download_config=download_config
+                )
                 storage_options = {urlpath.split("://")[0]: storage_options}
                 posix_path = "::".join([main_hop, urlpath, *rest_hops[1:]])
             else:
@@ -1081,7 +1192,9 @@ class xPath(type(Path())):
             fs, *_ = url_to_fs(xjoin(posix_path, pattern), **(storage_options or {}))
             globbed_paths = fs.glob(xjoin(main_hop, pattern))
             for globbed_path in globbed_paths:
-                yield type(self)("::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops))
+                yield type(self)(
+                    "::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops)
+                )
 
     def rglob(self, pattern, **kwargs):
         """Rglob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
@@ -1160,34 +1273,59 @@ class xPath(type(Path())):
         main_hop, *rest_hops = str(self).split("::")
         if is_local_path(main_hop):
             return type(self)(str(super().with_suffix(suffix)))
-        return type(self)("::".join([type(self)(PurePosixPath(main_hop).with_suffix(suffix)).as_posix()] + rest_hops))
+        return type(self)(
+            "::".join(
+                [type(self)(PurePosixPath(main_hop).with_suffix(suffix)).as_posix()]
+                + rest_hops
+            )
+        )
 
 
 def _as_str(path: Union[str, Path, xPath]):
     return str(path) if isinstance(path, xPath) else str(xPath(str(path)))
 
 
-def xgzip_open(filepath_or_buffer, *args, download_config: Optional[DownloadConfig] = None, **kwargs):
+def xgzip_open(
+    filepath_or_buffer,
+    *args,
+    download_config: Optional[DownloadConfig] = None,
+    **kwargs,
+):
     import gzip
 
     if hasattr(filepath_or_buffer, "read"):
         return gzip.open(filepath_or_buffer, *args, **kwargs)
     else:
         filepath_or_buffer = str(filepath_or_buffer)
-        return gzip.open(xopen(filepath_or_buffer, "rb", download_config=download_config), *args, **kwargs)
+        return gzip.open(
+            xopen(filepath_or_buffer, "rb", download_config=download_config),
+            *args,
+            **kwargs,
+        )
 
 
-def xnumpy_load(filepath_or_buffer, *args, download_config: Optional[DownloadConfig] = None, **kwargs):
+def xnumpy_load(
+    filepath_or_buffer,
+    *args,
+    download_config: Optional[DownloadConfig] = None,
+    **kwargs,
+):
     import numpy as np
 
     if hasattr(filepath_or_buffer, "read"):
         return np.load(filepath_or_buffer, *args, **kwargs)
     else:
         filepath_or_buffer = str(filepath_or_buffer)
-        return np.load(xopen(filepath_or_buffer, "rb", download_config=download_config), *args, **kwargs)
+        return np.load(
+            xopen(filepath_or_buffer, "rb", download_config=download_config),
+            *args,
+            **kwargs,
+        )
 
 
-def xpandas_read_csv(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):
+def xpandas_read_csv(
+    filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs
+):
     import pandas as pd
 
     if hasattr(filepath_or_buffer, "read"):
@@ -1195,11 +1333,17 @@ def xpandas_read_csv(filepath_or_buffer, download_config: Optional[DownloadConfi
     else:
         filepath_or_buffer = str(filepath_or_buffer)
         if kwargs.get("compression", "infer") == "infer":
-            kwargs["compression"] = _get_extraction_protocol(filepath_or_buffer, download_config=download_config)
-        return pd.read_csv(xopen(filepath_or_buffer, "rb", download_config=download_config), **kwargs)
+            kwargs["compression"] = _get_extraction_protocol(
+                filepath_or_buffer, download_config=download_config
+            )
+        return pd.read_csv(
+            xopen(filepath_or_buffer, "rb", download_config=download_config), **kwargs
+        )
 
 
-def xpandas_read_excel(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):
+def xpandas_read_excel(
+    filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs
+):
     import pandas as pd
 
     if hasattr(filepath_or_buffer, "read"):
@@ -1210,30 +1354,47 @@ def xpandas_read_excel(filepath_or_buffer, download_config: Optional[DownloadCon
     else:
         filepath_or_buffer = str(filepath_or_buffer)
         try:
-            return pd.read_excel(xopen(filepath_or_buffer, "rb", download_config=download_config), **kwargs)
+            return pd.read_excel(
+                xopen(filepath_or_buffer, "rb", download_config=download_config),
+                **kwargs,
+            )
         except ValueError:  # Cannot seek streaming HTTP file
             return pd.read_excel(
-                BytesIO(xopen(filepath_or_buffer, "rb", download_config=download_config).read()), **kwargs
+                BytesIO(
+                    xopen(
+                        filepath_or_buffer, "rb", download_config=download_config
+                    ).read()
+                ),
+                **kwargs,
             )
 
 
-def xpyarrow_parquet_read_table(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):
+def xpyarrow_parquet_read_table(
+    filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs
+):
     import pyarrow.parquet as pq
 
     if hasattr(filepath_or_buffer, "read"):
         return pq.read_table(filepath_or_buffer, **kwargs)
     else:
         filepath_or_buffer = str(filepath_or_buffer)
-        return pq.read_table(xopen(filepath_or_buffer, mode="rb", download_config=download_config), **kwargs)
+        return pq.read_table(
+            xopen(filepath_or_buffer, mode="rb", download_config=download_config),
+            **kwargs,
+        )
 
 
-def xsio_loadmat(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):
+def xsio_loadmat(
+    filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs
+):
     import scipy.io as sio
 
     if hasattr(filepath_or_buffer, "read"):
         return sio.loadmat(filepath_or_buffer, **kwargs)
     else:
-        return sio.loadmat(xopen(filepath_or_buffer, "rb", download_config=download_config), **kwargs)
+        return sio.loadmat(
+            xopen(filepath_or_buffer, "rb", download_config=download_config), **kwargs
+        )
 
 
 def xet_parse(source, parser=None, download_config: Optional[DownloadConfig] = None):
@@ -1254,7 +1415,9 @@ def xet_parse(source, parser=None, download_config: Optional[DownloadConfig] = N
             return ET.parse(f, parser=parser)
 
 
-def xxml_dom_minidom_parse(filename_or_file, download_config: Optional[DownloadConfig] = None, **kwargs):
+def xxml_dom_minidom_parse(
+    filename_or_file, download_config: Optional[DownloadConfig] = None, **kwargs
+):
     """Extend `xml.dom.minidom.parse` function to support remote files.
 
     Args:
@@ -1333,7 +1496,9 @@ class ArchiveIterable(TrackedIterableFromGenerator):
         return cls(cls._iter_from_fileobj, fileobj)
 
     @classmethod
-    def from_urlpath(cls, urlpath_or_buf, download_config: Optional[DownloadConfig] = None) -> "ArchiveIterable":
+    def from_urlpath(
+        cls, urlpath_or_buf, download_config: Optional[DownloadConfig] = None
+    ) -> "ArchiveIterable":
         return cls(cls._iter_from_urlpath, urlpath_or_buf, download_config)
 
 
@@ -1342,7 +1507,9 @@ class FilesIterable(TrackedIterableFromGenerator):
 
     @classmethod
     def _iter_from_urlpaths(
-        cls, urlpaths: Union[str, list[str]], download_config: Optional[DownloadConfig] = None
+        cls,
+        urlpaths: Union[str, list[str]],
+        download_config: Optional[DownloadConfig] = None,
     ) -> Generator[str, None, None]:
         if not isinstance(urlpaths, list):
             urlpaths = [urlpaths]
@@ -1350,9 +1517,17 @@ class FilesIterable(TrackedIterableFromGenerator):
             if xisfile(urlpath, download_config=download_config):
                 yield urlpath
             elif xisdir(urlpath, download_config=download_config):
-                for dirpath, dirnames, filenames in xwalk(urlpath, download_config=download_config):
+                for dirpath, dirnames, filenames in xwalk(
+                    urlpath, download_config=download_config
+                ):
                     # in-place modification to prune the search
-                    dirnames[:] = sorted([dirname for dirname in dirnames if not dirname.startswith((".", "__"))])
+                    dirnames[:] = sorted(
+                        [
+                            dirname
+                            for dirname in dirnames
+                            if not dirname.startswith((".", "__"))
+                        ]
+                    )
                     if xbasename(dirpath).startswith((".", "__")):
                         # skipping hidden directories
                         continue
@@ -1365,5 +1540,7 @@ class FilesIterable(TrackedIterableFromGenerator):
                 raise FileNotFoundError(urlpath)
 
     @classmethod
-    def from_urlpaths(cls, urlpaths, download_config: Optional[DownloadConfig] = None) -> "FilesIterable":
+    def from_urlpaths(
+        cls, urlpaths, download_config: Optional[DownloadConfig] = None
+    ) -> "FilesIterable":
         return cls(cls._iter_from_urlpaths, urlpaths, download_config)

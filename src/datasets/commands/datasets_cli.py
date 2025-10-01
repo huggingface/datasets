@@ -8,12 +8,17 @@ from datasets.utils.logging import set_verbosity_info
 
 
 def parse_unknown_args(unknown_args):
-    return {key.lstrip("-"): value for key, value in zip(unknown_args[::2], unknown_args[1::2])}
+    return {
+        key.lstrip("-"): value
+        for key, value in zip(unknown_args[::2], unknown_args[1::2])
+    }
 
 
 def main():
     parser = ArgumentParser(
-        "HuggingFace Datasets CLI tool", usage="datasets-cli <command> [<args>]", allow_abbrev=False
+        "HuggingFace Datasets CLI tool",
+        usage="datasets-cli <command> [<args>]",
+        allow_abbrev=False,
     )
     commands_parser = parser.add_subparsers(help="datasets-cli command helpers")
     set_verbosity_info()

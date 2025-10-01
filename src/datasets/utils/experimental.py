@@ -35,7 +35,9 @@ def experimental(fn: Callable) -> Callable:
     @wraps(fn)
     def _inner_fn(*args, **kwargs):
         warnings.warn(
-            (f"'{fn.__name__}' is experimental and might be subject to breaking changes in the future."),
+            (
+                f"'{fn.__name__}' is experimental and might be subject to breaking changes in the future."
+            ),
             UserWarning,
         )
         return fn(*args, **kwargs)

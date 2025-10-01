@@ -25,7 +25,12 @@ class SqlConfig(datasets.BuilderConfig):
     """BuilderConfig for SQL."""
 
     sql: Union[str, "sqlalchemy.sql.Selectable"] = None
-    con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"] = None
+    con: Union[
+        str,
+        "sqlalchemy.engine.Connection",
+        "sqlalchemy.engine.Engine",
+        "sqlite3.Connection",
+    ] = None
     index_col: Optional[Union[str, list[str]]] = None
     coerce_float: bool = True
     params: Optional[Union[list, tuple, dict]] = None
@@ -56,7 +61,9 @@ class SqlConfig(datasets.BuilderConfig):
                 import sqlalchemy
 
                 if isinstance(sql, sqlalchemy.sql.Selectable):
-                    engine = sqlalchemy.create_engine(config_kwargs["con"].split("://")[0] + "://")
+                    engine = sqlalchemy.create_engine(
+                        config_kwargs["con"].split("://")[0] + "://"
+                    )
                     sql_str = str(sql.compile(dialect=engine.dialect))
                     config_kwargs["sql"] = sql_str
                 else:
@@ -100,9 +107,14 @@ class Sql(datasets.ArrowBasedBuilder):
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.config.features is not None:
             schema = self.config.features.arrow_schema
-            if all(not require_storage_cast(feature) for feature in self.config.features.values()):
+            if all(
+                not require_storage_cast(feature)
+                for feature in self.config.features.values()
+            ):
                 # cheaper cast
-                pa_table = pa.Table.from_arrays([pa_table[field.name] for field in schema], schema=schema)
+                pa_table = pa.Table.from_arrays(
+                    [pa_table[field.name] for field in schema], schema=schema
+                )
             else:
                 # more expensive cast; allows str <-> int/float or str to Audio for example
                 pa_table = table_cast(pa_table, schema)
@@ -111,7 +123,10 @@ class Sql(datasets.ArrowBasedBuilder):
     def _generate_tables(self):
         chunksize = self.config.chunksize
         sql_reader = pd.read_sql(
-            self.config.sql, self.config.con, chunksize=chunksize, **self.config.pd_read_sql_kwargs
+            self.config.sql,
+            self.config.con,
+            chunksize=chunksize,
+            **self.config.pd_read_sql_kwargs,
         )
         sql_reader = [sql_reader] if chunksize is None else sql_reader
         for chunk_idx, df in enumerate(sql_reader):

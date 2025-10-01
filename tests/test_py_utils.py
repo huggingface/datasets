@@ -41,7 +41,9 @@ class A:
     y: str
 
 
-@pytest.mark.parametrize("batched, function", [(False, add_one), (True, add_one_to_batch)])
+@pytest.mark.parametrize(
+    "batched, function", [(False, add_one), (True, add_one_to_batch)]
+)
 @pytest.mark.parametrize("num_proc", [None, 2])
 @pytest.mark.parametrize(
     "data_struct, expected_result",
@@ -58,7 +60,10 @@ class A:
     ],
 )
 def test_map_nested(data_struct, expected_result, num_proc, batched, function):
-    assert map_nested(function, data_struct, num_proc=num_proc, batched=batched) == expected_result
+    assert (
+        map_nested(function, data_struct, num_proc=num_proc, batched=batched)
+        == expected_result
+    )
 
 
 class PyUtilsTest(TestCase):
@@ -71,14 +76,24 @@ class PyUtilsTest(TestCase):
             "b": np.zeros(3).astype(int),
             "c": np.ones(2).astype(int),
         }
-        self.assertEqual(map_nested(np_sum, sn1, map_numpy=False), expected_map_nested_sn1_sum)
+        self.assertEqual(
+            map_nested(np_sum, sn1, map_numpy=False), expected_map_nested_sn1_sum
+        )
         self.assertEqual(
             {k: v.tolist() for k, v in map_nested(int, sn1, map_numpy=True).items()},
             {k: v.tolist() for k, v in expected_map_nested_sn1_int.items()},
         )
-        self.assertEqual(map_nested(np_sum, sn1, map_numpy=False, num_proc=num_proc), expected_map_nested_sn1_sum)
         self.assertEqual(
-            {k: v.tolist() for k, v in map_nested(int, sn1, map_numpy=True, num_proc=num_proc).items()},
+            map_nested(np_sum, sn1, map_numpy=False, num_proc=num_proc),
+            expected_map_nested_sn1_sum,
+        )
+        self.assertEqual(
+            {
+                k: v.tolist()
+                for k, v in map_nested(
+                    int, sn1, map_numpy=True, num_proc=num_proc
+                ).items()
+            },
             {k: v.tolist() for k, v in expected_map_nested_sn1_int.items()},
         )
         with self.assertRaises(AttributeError):  # can't pickle a local lambda
@@ -123,7 +138,9 @@ def test_map_nested_num_proc(iterable_length, num_proc, expected_num_proc):
         patch("datasets.parallel.parallel.Pool") as mock_multiprocessing_pool,
     ):
         data_struct = {f"{i}": i for i in range(iterable_length)}
-        _ = map_nested(lambda x: x + 10, data_struct, num_proc=num_proc, parallel_min_length=16)
+        _ = map_nested(
+            lambda x: x + 10, data_struct, num_proc=num_proc, parallel_min_length=16
+        )
         if expected_num_proc == 1:
             assert mock_single_map_nested.called
             assert not mock_multiprocessing_pool.called
@@ -246,14 +263,22 @@ def _2seconds_generator_of_2items_with_timing(content):
 
 def test_iflatmap_unordered():
     with Pool(2) as pool:
-        out = list(iflatmap_unordered(pool, _split_text, kwargs_iterable=[{"text": "hello there"}] * 10))
+        out = list(
+            iflatmap_unordered(
+                pool, _split_text, kwargs_iterable=[{"text": "hello there"}] * 10
+            )
+        )
         assert out.count("hello") == 10
         assert out.count("there") == 10
         assert len(out) == 20
 
     # check multiprocess from pathos (uses dill for pickling)
     with multiprocess.Pool(2) as pool:
-        out = list(iflatmap_unordered(pool, _split_text, kwargs_iterable=[{"text": "hello there"}] * 10))
+        out = list(
+            iflatmap_unordered(
+                pool, _split_text, kwargs_iterable=[{"text": "hello there"}] * 10
+            )
+        )
         assert out.count("hello") == 10
         assert out.count("there") == 10
         assert len(out) == 20
@@ -262,9 +287,13 @@ def test_iflatmap_unordered():
     with Pool(2) as pool:
         out = []
         for yield_time, content in iflatmap_unordered(
-            pool, _2seconds_generator_of_2items_with_timing, kwargs_iterable=[{"content": "a"}, {"content": "b"}]
+            pool,
+            _2seconds_generator_of_2items_with_timing,
+            kwargs_iterable=[{"content": "a"}, {"content": "b"}],
         ):
-            assert yield_time < time.time() + 0.1, "we should each item directly after it was yielded"
+            assert (
+                yield_time < time.time() + 0.1
+            ), "we should each item directly after it was yielded"
             out.append(content)
         assert out.count("a") == 2
         assert out.count("b") == 2
@@ -283,7 +312,11 @@ def test_string_to_dict():
 
     rank = 1
     num_proc = 2
-    file_name = file_name_prefix + suffix_template.format(rank=rank, num_proc=num_proc) + file_name_ext
+    file_name = (
+        file_name_prefix
+        + suffix_template.format(rank=rank, num_proc=num_proc)
+        + file_name_ext
+    )
     file_name_parts = string_to_dict(file_name, cache_file_name_pattern)
     assert file_name_parts is not None
     assert file_name_parts == {"rank": f"{rank:05d}", "num_proc": f"{num_proc:05d}"}

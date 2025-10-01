@@ -11,7 +11,12 @@ import pyarrow.parquet as pq
 import pytest
 
 from datasets import config
-from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence
+from datasets.arrow_writer import (
+    ArrowWriter,
+    OptimizedTypedSequence,
+    ParquetWriter,
+    TypedSequence,
+)
 from datasets.features import Array2D, ClassLabel, Features, Image, Value
 from datasets.features.features import Array2DExtensionType, cast_to_python_objects
 from datasets.keyhash import DuplicatedKeysError, InvalidKeyError
@@ -30,7 +35,9 @@ class TypedSequenceTest(TestCase):
 
     def test_try_type_and_type_forbidden(self):
         with self.assertRaises(ValueError):
-            _ = pa.array(TypedSequence([1, 2, 3], try_type=Value("bool"), type=Value("int64")))
+            _ = pa.array(
+                TypedSequence([1, 2, 3], try_type=Value("bool"), type=Value("int64"))
+            )
 
     def test_compatible_type(self):
         arr = pa.array(TypedSequence([1, 2, 3], type=Value("int32")))
@@ -70,16 +77,25 @@ class TypedSequenceTest(TestCase):
 
         pil_image = PIL.Image.fromarray(np.arange(10, dtype=np.uint8).reshape(2, 5))
         with patch(
-            "datasets.arrow_writer.cast_to_python_objects", side_effect=cast_to_python_objects
+            "datasets.arrow_writer.cast_to_python_objects",
+            side_effect=cast_to_python_objects,
         ) as mock_cast_to_python_objects:
-            _ = pa.array(TypedSequence([{"path": None, "bytes": b"image_bytes"}, pil_image], type=Image()))
+            _ = pa.array(
+                TypedSequence(
+                    [{"path": None, "bytes": b"image_bytes"}, pil_image], type=Image()
+                )
+            )
             args, kwargs = mock_cast_to_python_objects.call_args_list[-1]
             self.assertIn("optimize_list_casting", kwargs)
             self.assertFalse(kwargs["optimize_list_casting"])
 
 
 def _check_output(output, expected_num_chunks: int):
-    stream = pa.BufferReader(output) if isinstance(output, pa.Buffer) else pa.memory_map(output)
+    stream = (
+        pa.BufferReader(output)
+        if isinstance(output, pa.Buffer)
+        else pa.memory_map(output)
+    )
     f = pa.ipc.open_stream(stream)
     pa_table: pa.Table = f.read_all()
     assert len(pa_table.to_batches()) == expected_num_chunks
@@ -100,7 +116,9 @@ def _check_output(output, expected_num_chunks: int):
 def test_write(fields, writer_batch_size):
     output = pa.BufferOutputStream()
     schema = pa.schema(fields) if fields else None
-    with ArrowWriter(stream=output, schema=schema, writer_batch_size=writer_batch_size) as writer:
+    with ArrowWriter(
+        stream=output, schema=schema, writer_batch_size=writer_batch_size
+    ) as writer:
         writer.write({"col_1": "foo", "col_2": 1})
         writer.write({"col_1": "bar", "col_2": 2})
         num_examples, num_bytes = writer.finalize()
@@ -109,7 +127,10 @@ def test_write(fields, writer_batch_size):
     if not fields:
         fields = {"col_1": pa.string(), "col_2": pa.int64()}
     assert writer._schema == pa.schema(fields, metadata=writer._schema.metadata)
-    _check_output(output.getvalue(), expected_num_chunks=num_examples if writer_batch_size == 1 else 1)
+    _check_output(
+        output.getvalue(),
+        expected_num_chunks=num_examples if writer_batch_size == 1 else 1,
+    )
 
 
 def test_write_with_features():
@@ -176,17 +197,27 @@ def test_write_with_keys(writer_batch_size):
         num_examples, num_bytes = writer.finalize()
     assert num_examples == 2
     assert num_bytes > 0
-    _check_output(output.getvalue(), expected_num_chunks=num_examples if writer_batch_size == 1 else 1)
+    _check_output(
+        output.getvalue(),
+        expected_num_chunks=num_examples if writer_batch_size == 1 else 1,
+    )
 
 
 @pytest.mark.parametrize("writer_batch_size", [None, 1, 10])
 @pytest.mark.parametrize(
-    "fields", [None, {"col_1": pa.string(), "col_2": pa.int64()}, {"col_1": pa.string(), "col_2": pa.int32()}]
+    "fields",
+    [
+        None,
+        {"col_1": pa.string(), "col_2": pa.int64()},
+        {"col_1": pa.string(), "col_2": pa.int32()},
+    ],
 )
 def test_write_batch(fields, writer_batch_size):
     output = pa.BufferOutputStream()
     schema = pa.schema(fields) if fields else None
-    with ArrowWriter(stream=output, schema=schema, writer_batch_size=writer_batch_size) as writer:
+    with ArrowWriter(
+        stream=output, schema=schema, writer_batch_size=writer_batch_size
+    ) as writer:
         writer.write_batch({"col_1": ["foo", "bar"], "col_2": [1, 2]})
         writer.write_batch({"col_1": [], "col_2": []})
         num_examples, num_bytes = writer.finalize()
@@ -195,35 +226,57 @@ def test_write_batch(fields, writer_batch_size):
     if not fields:
         fields = {"col_1": pa.string(), "col_2": pa.int64()}
     assert writer._schema == pa.schema(fields, metadata=writer._schema.metadata)
-    _check_output(output.getvalue(), expected_num_chunks=num_examples if writer_batch_size == 1 else 1)
+    _check_output(
+        output.getvalue(),
+        expected_num_chunks=num_examples if writer_batch_size == 1 else 1,
+    )
 
 
 @pytest.mark.parametrize("writer_batch_size", [None, 1, 10])
 @pytest.mark.parametrize(
-    "fields", [None, {"col_1": pa.string(), "col_2": pa.int64()}, {"col_1": pa.string(), "col_2": pa.int32()}]
+    "fields",
+    [
+        None,
+        {"col_1": pa.string(), "col_2": pa.int64()},
+        {"col_1": pa.string(), "col_2": pa.int32()},
+    ],
 )
 def test_write_table(fields, writer_batch_size):
     output = pa.BufferOutputStream()
     schema = pa.schema(fields) if fields else None
-    with ArrowWriter(stream=output, schema=schema, writer_batch_size=writer_batch_size) as writer:
-        writer.write_table(pa.Table.from_pydict({"col_1": ["foo", "bar"], "col_2": [1, 2]}))
+    with ArrowWriter(
+        stream=output, schema=schema, writer_batch_size=writer_batch_size
+    ) as writer:
+        writer.write_table(
+            pa.Table.from_pydict({"col_1": ["foo", "bar"], "col_2": [1, 2]})
+        )
         num_examples, num_bytes = writer.finalize()
     assert num_examples == 2
     assert num_bytes > 0
     if not fields:
         fields = {"col_1": pa.string(), "col_2": pa.int64()}
     assert writer._schema == pa.schema(fields, metadata=writer._schema.metadata)
-    _check_output(output.getvalue(), expected_num_chunks=num_examples if writer_batch_size == 1 else 1)
+    _check_output(
+        output.getvalue(),
+        expected_num_chunks=num_examples if writer_batch_size == 1 else 1,
+    )
 
 
 @pytest.mark.parametrize("writer_batch_size", [None, 1, 10])
 @pytest.mark.parametrize(
-    "fields", [None, {"col_1": pa.string(), "col_2": pa.int64()}, {"col_1": pa.string(), "col_2": pa.int32()}]
+    "fields",
+    [
+        None,
+        {"col_1": pa.string(), "col_2": pa.int64()},
+        {"col_1": pa.string(), "col_2": pa.int32()},
+    ],
 )
 def test_write_row(fields, writer_batch_size):
     output = pa.BufferOutputStream()
     schema = pa.schema(fields) if fields else None
-    with ArrowWriter(stream=output, schema=schema, writer_batch_size=writer_batch_size) as writer:
+    with ArrowWriter(
+        stream=output, schema=schema, writer_batch_size=writer_batch_size
+    ) as writer:
         writer.write_row(pa.Table.from_pydict({"col_1": ["foo"], "col_2": [1]}))
         writer.write_row(pa.Table.from_pydict({"col_1": ["bar"], "col_2": [2]}))
         num_examples, num_bytes = writer.finalize()
@@ -232,7 +285,10 @@ def test_write_row(fields, writer_batch_size):
     if not fields:
         fields = {"col_1": pa.string(), "col_2": pa.int64()}
     assert writer._schema == pa.schema(fields, metadata=writer._schema.metadata)
-    _check_output(output.getvalue(), expected_num_chunks=num_examples if writer_batch_size == 1 else 1)
+    _check_output(
+        output.getvalue(),
+        expected_num_chunks=num_examples if writer_batch_size == 1 else 1,
+    )
 
 
 def test_write_file():
@@ -262,9 +318,14 @@ def change_first_primitive_element_in_list(lst, value):
         lst[0] = value
 
 
-@pytest.mark.parametrize("optimized_int_type, expected_dtype", [(None, pa.int64()), (Value("int32"), pa.int32())])
+@pytest.mark.parametrize(
+    "optimized_int_type, expected_dtype",
+    [(None, pa.int64()), (Value("int32"), pa.int32())],
+)
 @pytest.mark.parametrize("sequence", [[1, 2, 3], [[1, 2, 3]], [[[1, 2, 3]]]])
-def test_optimized_int_type_for_typed_sequence(sequence, optimized_int_type, expected_dtype):
+def test_optimized_int_type_for_typed_sequence(
+    sequence, optimized_int_type, expected_dtype
+):
     arr = pa.array(TypedSequence(sequence, optimized_int_type=optimized_int_type))
     assert get_base_dtype(arr.type) == expected_dtype
 
@@ -339,7 +400,9 @@ def test_parquet_writer_write():
 def test_parquet_writer_uses_content_defined_chunking():
     def write_and_get_argument_and_metadata(**kwargs):
         output = pa.BufferOutputStream()
-        with patch("pyarrow.parquet.ParquetWriter", wraps=pq.ParquetWriter) as MockWriter:
+        with patch(
+            "pyarrow.parquet.ParquetWriter", wraps=pq.ParquetWriter
+        ) as MockWriter:
             with ParquetWriter(stream=output, **kwargs) as writer:
                 writer.write({"col_1": "foo", "col_2": 1})
                 writer.write({"col_1": "bar", "col_2": 2})
@@ -359,18 +422,26 @@ def test_parquet_writer_uses_content_defined_chunking():
     passed_arg, key_value_metadata = write_and_get_argument_and_metadata()
     assert passed_arg == config.DEFAULT_CDC_OPTIONS
     assert b"content_defined_chunking" in key_value_metadata
-    json_encoded_options = key_value_metadata[b"content_defined_chunking"].decode("utf-8")
+    json_encoded_options = key_value_metadata[b"content_defined_chunking"].decode(
+        "utf-8"
+    )
     assert json.loads(json_encoded_options) == config.DEFAULT_CDC_OPTIONS
 
     # passing True, using the default options
-    passed_arg, key_value_metadata = write_and_get_argument_and_metadata(use_content_defined_chunking=True)
+    passed_arg, key_value_metadata = write_and_get_argument_and_metadata(
+        use_content_defined_chunking=True
+    )
     assert passed_arg == config.DEFAULT_CDC_OPTIONS
     assert b"content_defined_chunking" in key_value_metadata
-    json_encoded_options = key_value_metadata[b"content_defined_chunking"].decode("utf-8")
+    json_encoded_options = key_value_metadata[b"content_defined_chunking"].decode(
+        "utf-8"
+    )
     assert json.loads(json_encoded_options) == config.DEFAULT_CDC_OPTIONS
 
     # passing False, not using content defined chunking
-    passed_arg, key_value_metadata = write_and_get_argument_and_metadata(use_content_defined_chunking=False)
+    passed_arg, key_value_metadata = write_and_get_argument_and_metadata(
+        use_content_defined_chunking=False
+    )
     assert passed_arg is False
     assert b"content_defined_chunking" not in key_value_metadata
 
@@ -385,16 +456,22 @@ def test_parquet_writer_uses_content_defined_chunking():
     )
     assert passed_arg == custom_cdc_options
     assert b"content_defined_chunking" in key_value_metadata
-    json_encoded_options = key_value_metadata[b"content_defined_chunking"].decode("utf-8")
+    json_encoded_options = key_value_metadata[b"content_defined_chunking"].decode(
+        "utf-8"
+    )
     assert json.loads(json_encoded_options) == custom_cdc_options
 
     # passing None or wrong options raise by pyarrow
     with pytest.raises(TypeError):
         write_and_get_argument_and_metadata(use_content_defined_chunking=None)
     with pytest.raises(TypeError):
-        write_and_get_argument_and_metadata(use_content_defined_chunking="invalid_options")
+        write_and_get_argument_and_metadata(
+            use_content_defined_chunking="invalid_options"
+        )
     with pytest.raises(ValueError):
-        write_and_get_argument_and_metadata(use_content_defined_chunking={"invalid_option": 1})
+        write_and_get_argument_and_metadata(
+            use_content_defined_chunking={"invalid_option": 1}
+        )
 
 
 def test_parquet_writer_writes_page_index():
@@ -419,7 +496,9 @@ def test_writer_embed_local_files(tmp_path, embed_local_files):
     PIL.Image.fromarray(np.zeros((5, 5), dtype=np.uint8)).save(image_path, format="png")
     output = pa.BufferOutputStream()
     with ParquetWriter(
-        stream=output, features=Features({"image": Image()}), embed_local_files=embed_local_files
+        stream=output,
+        features=Features({"image": Image()}),
+        embed_local_files=embed_local_files,
     ) as writer:
         writer.write({"image": image_path})
         writer.finalize()

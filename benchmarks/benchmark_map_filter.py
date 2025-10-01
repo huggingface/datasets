@@ -11,7 +11,9 @@ from utils import generate_example_dataset, get_duration
 SPEED_TEST_N_EXAMPLES = 500_000
 
 RESULTS_BASEPATH, RESULTS_FILENAME = os.path.split(__file__)
-RESULTS_FILE_PATH = os.path.join(RESULTS_BASEPATH, "results", RESULTS_FILENAME.replace(".py", ".json"))
+RESULTS_FILE_PATH = os.path.join(
+    RESULTS_BASEPATH, "results", RESULTS_FILENAME.replace(".py", ".json")
+)
 
 
 @get_duration
@@ -27,12 +29,18 @@ def filter(dataset: datasets.Dataset, **kwargs):
 def benchmark_map_filter():
     times = {"num examples": SPEED_TEST_N_EXAMPLES}
     with tempfile.TemporaryDirectory() as tmp_dir:
-        features = datasets.Features({"text": datasets.Value("string"), "numbers": datasets.Value("float32")})
+        features = datasets.Features(
+            {"text": datasets.Value("string"), "numbers": datasets.Value("float32")}
+        )
         dataset = generate_example_dataset(
-            os.path.join(tmp_dir, "dataset.arrow"), features, num_examples=SPEED_TEST_N_EXAMPLES
+            os.path.join(tmp_dir, "dataset.arrow"),
+            features,
+            num_examples=SPEED_TEST_N_EXAMPLES,
         )
 
-        tokenizer = transformers.AutoTokenizer.from_pretrained("bert-base-cased", use_fast=True)
+        tokenizer = transformers.AutoTokenizer.from_pretrained(
+            "bert-base-cased", use_fast=True
+        )
 
         def tokenize(examples):
             return tokenizer(examples["text"])
@@ -44,18 +52,28 @@ def benchmark_map_filter():
         times["map no-op batched"] = map(dataset, function=lambda x: None, batched=True)
 
         with dataset.formatted_as(type="numpy"):
-            times["map no-op batched numpy"] = map(dataset, function=lambda x: None, batched=True)
+            times["map no-op batched numpy"] = map(
+                dataset, function=lambda x: None, batched=True
+            )
 
         with dataset.formatted_as(type="pandas"):
-            times["map no-op batched pandas"] = map(dataset, function=lambda x: None, batched=True)
+            times["map no-op batched pandas"] = map(
+                dataset, function=lambda x: None, batched=True
+            )
 
         with dataset.formatted_as(type="torch", columns="numbers"):
-            times["map no-op batched pytorch"] = map(dataset, function=lambda x: None, batched=True)
+            times["map no-op batched pytorch"] = map(
+                dataset, function=lambda x: None, batched=True
+            )
 
         with dataset.formatted_as(type="tensorflow", columns="numbers"):
-            times["map no-op batched tensorflow"] = map(dataset, function=lambda x: None, batched=True)
+            times["map no-op batched tensorflow"] = map(
+                dataset, function=lambda x: None, batched=True
+            )
 
-        times["map fast-tokenizer batched"] = map(dataset, function=tokenize, batched=True)
+        times["map fast-tokenizer batched"] = map(
+            dataset, function=tokenize, batched=True
+        )
 
         times["filter"] = filter(dataset)
 

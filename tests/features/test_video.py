@@ -51,13 +51,17 @@ def test_dataset_with_video_feature(shared_datadir):
     batch = dset[:1]
     assert len(batch) == 1
     assert batch.keys() == {"video"}
-    assert isinstance(batch["video"], list) and all(isinstance(item, VideoDecoder) for item in batch["video"])
+    assert isinstance(batch["video"], list) and all(
+        isinstance(item, VideoDecoder) for item in batch["video"]
+    )
     assert batch["video"][0].get_frame_at(0).data.shape == (3, 50, 66)
     assert isinstance(batch["video"][0].get_frame_at(0).data, torch.Tensor)
     column = dset["video"]
     assert len(column) == 1
 
-    assert isinstance(column, Column) and all(isinstance(item, VideoDecoder) for item in column)
+    assert isinstance(column, Column) and all(
+        isinstance(item, VideoDecoder) for item in column
+    )
     assert next(iter(column)).get_frame_at(0).data.shape == (3, 50, 66)
     assert isinstance(next(iter(column)).get_frame_at(0).data, torch.Tensor)
 
@@ -141,13 +145,21 @@ def jsonl_video_dataset_path(shared_datadir, tmp_path_factory):
 
 @require_torchcodec
 @pytest.mark.parametrize("streaming", [False, True])
-def test_load_dataset_with_video_feature(streaming, jsonl_video_dataset_path, shared_datadir):
+def test_load_dataset_with_video_feature(
+    streaming, jsonl_video_dataset_path, shared_datadir
+):
     from torchcodec.decoders import VideoDecoder
 
     video_path = str(shared_datadir / "test_video_66x50.mov")
     data_files = jsonl_video_dataset_path
     features = Features({"video": Video(), "text": Value("string")})
-    dset = load_dataset("json", split="train", data_files=data_files, features=features, streaming=streaming)
+    dset = load_dataset(
+        "json",
+        split="train",
+        data_files=data_files,
+        features=features,
+        streaming=streaming,
+    )
     item = dset[0] if not streaming else next(iter(dset))
     assert item.keys() == {"video", "text"}
     assert isinstance(item["video"], VideoDecoder)

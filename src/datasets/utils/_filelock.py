@@ -33,7 +33,9 @@ class FileLock(FileLock_):
     def __init__(self, lock_file, *args, **kwargs):
         # The "mode" argument is required if we want to use the current umask in filelock >= 3.10
         # In previous previous it was already using the current umask.
-        if "mode" not in kwargs and version.parse(_filelock_version) >= version.parse("3.10.0"):
+        if "mode" not in kwargs and version.parse(_filelock_version) >= version.parse(
+            "3.10.0"
+        ):
             umask = os.umask(0o666)
             os.umask(umask)
             kwargs["mode"] = 0o666 & ~umask
@@ -46,12 +48,17 @@ class FileLock(FileLock_):
         filename = os.path.basename(path)
         max_filename_length = cls.MAX_FILENAME_LENGTH
         if issubclass(cls, UnixFileLock):
-            max_filename_length = min(max_filename_length, os.statvfs(os.path.dirname(path)).f_namemax)
+            max_filename_length = min(
+                max_filename_length, os.statvfs(os.path.dirname(path)).f_namemax
+            )
         if len(filename) > max_filename_length:
             dirname = os.path.dirname(path)
             hashed_filename = str(hash(filename))
             new_filename = (
-                filename[: max_filename_length - len(hashed_filename) - 8] + "..." + hashed_filename + ".lock"
+                filename[: max_filename_length - len(hashed_filename) - 8]
+                + "..."
+                + hashed_filename
+                + ".lock"
             )
             return os.path.join(dirname, new_filename)
         else:

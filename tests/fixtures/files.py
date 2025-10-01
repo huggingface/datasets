@@ -25,7 +25,9 @@ def dataset():
     features = datasets.Features(
         {
             "tokens": datasets.List(datasets.Value("string")),
-            "labels": datasets.List(datasets.ClassLabel(names=["negative", "positive"])),
+            "labels": datasets.List(
+                datasets.ClassLabel(names=["negative", "positive"])
+            ),
             "answers": {
                 "text": datasets.List(datasets.Value("string")),
                 "answer_start": datasets.List(datasets.Value("int32")),
@@ -251,7 +253,10 @@ def sqlite_path(tmp_path_factory):
         cur = con.cursor()
         cur.execute("CREATE TABLE dataset(col_1 text, col_2 int, col_3 real)")
         for item in DATA:
-            cur.execute("INSERT INTO dataset(col_1, col_2, col_3) VALUES (?, ?, ?)", tuple(item.values()))
+            cur.execute(
+                "INSERT INTO dataset(col_1, col_2, col_3) VALUES (?, ?, ?)",
+                tuple(item.values()),
+            )
         con.commit()
     return path
 
@@ -314,7 +319,9 @@ def zip_csv_with_dir_path(csv_path, csv2_path, tmp_path_factory):
     path = tmp_path_factory.mktemp("data") / "dataset_with_dir.csv.zip"
     with zipfile.ZipFile(path, "w") as f:
         f.write(csv_path, arcname=os.path.join("main_dir", os.path.basename(csv_path)))
-        f.write(csv2_path, arcname=os.path.join("main_dir", os.path.basename(csv2_path)))
+        f.write(
+            csv2_path, arcname=os.path.join("main_dir", os.path.basename(csv2_path))
+        )
     return path
 
 
@@ -330,7 +337,9 @@ def parquet_path(tmp_path_factory):
     )
     with open(path, "wb") as f:
         writer = pq.ParquetWriter(f, schema=schema)
-        pa_table = pa.Table.from_pydict({k: [DATA[i][k] for i in range(len(DATA))] for k in DATA[0]}, schema=schema)
+        pa_table = pa.Table.from_pydict(
+            {k: [DATA[i][k] for i in range(len(DATA))] for k in DATA[0]}, schema=schema
+        )
         writer.write_table(pa_table)
         writer.close()
     return path
@@ -338,7 +347,9 @@ def parquet_path(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def geoparquet_path(tmp_path_factory):
-    df = pd.read_parquet(path="https://github.com/opengeospatial/geoparquet/raw/v1.0.0/examples/example.parquet")
+    df = pd.read_parquet(
+        path="https://github.com/opengeospatial/geoparquet/raw/v1.0.0/examples/example.parquet"
+    )
     path = str(tmp_path_factory.mktemp("data") / "dataset.geoparquet")
     df.to_parquet(path=path)
     return path
@@ -433,7 +444,10 @@ def zip_jsonl_path(jsonl_path, jsonl2_path, tmp_path_factory):
 def zip_nested_jsonl_path(zip_jsonl_path, jsonl_path, jsonl2_path, tmp_path_factory):
     path = tmp_path_factory.mktemp("data") / "dataset_nested.jsonl.zip"
     with zipfile.ZipFile(path, "w") as f:
-        f.write(zip_jsonl_path, arcname=os.path.join("nested", os.path.basename(zip_jsonl_path)))
+        f.write(
+            zip_jsonl_path,
+            arcname=os.path.join("nested", os.path.basename(zip_jsonl_path)),
+        )
     return path
 
 
@@ -441,8 +455,12 @@ def zip_nested_jsonl_path(zip_jsonl_path, jsonl_path, jsonl2_path, tmp_path_fact
 def zip_jsonl_with_dir_path(jsonl_path, jsonl2_path, tmp_path_factory):
     path = tmp_path_factory.mktemp("data") / "dataset_with_dir.jsonl.zip"
     with zipfile.ZipFile(path, "w") as f:
-        f.write(jsonl_path, arcname=os.path.join("main_dir", os.path.basename(jsonl_path)))
-        f.write(jsonl2_path, arcname=os.path.join("main_dir", os.path.basename(jsonl2_path)))
+        f.write(
+            jsonl_path, arcname=os.path.join("main_dir", os.path.basename(jsonl_path))
+        )
+        f.write(
+            jsonl2_path, arcname=os.path.join("main_dir", os.path.basename(jsonl2_path))
+        )
     return path
 
 
@@ -459,7 +477,10 @@ def tar_jsonl_path(jsonl_path, jsonl2_path, tmp_path_factory):
 def tar_nested_jsonl_path(tar_jsonl_path, jsonl_path, jsonl2_path, tmp_path_factory):
     path = tmp_path_factory.mktemp("data") / "dataset_nested.jsonl.tar"
     with tarfile.TarFile(path, "w") as f:
-        f.add(tar_jsonl_path, arcname=os.path.join("nested", os.path.basename(tar_jsonl_path)))
+        f.add(
+            tar_jsonl_path,
+            arcname=os.path.join("nested", os.path.basename(tar_jsonl_path)),
+        )
     return path
 
 
@@ -516,8 +537,12 @@ def zip_text_path(text_path, text2_path, tmp_path_factory):
 def zip_text_with_dir_path(text_path, text2_path, tmp_path_factory):
     path = tmp_path_factory.mktemp("data") / "dataset_with_dir.text.zip"
     with zipfile.ZipFile(path, "w") as f:
-        f.write(text_path, arcname=os.path.join("main_dir", os.path.basename(text_path)))
-        f.write(text2_path, arcname=os.path.join("main_dir", os.path.basename(text2_path)))
+        f.write(
+            text_path, arcname=os.path.join("main_dir", os.path.basename(text_path))
+        )
+        f.write(
+            text2_path, arcname=os.path.join("main_dir", os.path.basename(text2_path))
+        )
     return path
 
 
@@ -574,7 +599,9 @@ def zip_image_path(image_file, tmp_path_factory):
     path = tmp_path_factory.mktemp("data") / "dataset.img.zip"
     with zipfile.ZipFile(path, "w") as f:
         f.write(image_file, arcname=os.path.basename(image_file))
-        f.write(image_file, arcname=os.path.basename(image_file).replace(".jpg", "2.jpg"))
+        f.write(
+            image_file, arcname=os.path.basename(image_file).replace(".jpg", "2.jpg")
+        )
     return path
 
 

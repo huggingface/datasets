@@ -124,7 +124,9 @@ def encode_header(a, info=""):
         raise ValueError("mismatch between size and shape")
     if a.dtype.name not in long_to_short:
         raise ValueError("unsupported array type")
-    header = [str64(long_to_short[a.dtype.name]), str64(info), len(a.shape)] + list(a.shape)
+    header = [str64(long_to_short[a.dtype.name]), str64(info), len(a.shape)] + list(
+        a.shape
+    )
     return bytedata(np.array(header, dtype="i8"))
 
 

@@ -34,7 +34,12 @@ def test_download_manager_download(urls_type, tmp_path, tmpfs):
     url = URL
     with tmpfs.open(url, "w") as f:
         f.write(CONTENT)
-    urls_types = {"str": url, "list": [url], "dict": {"train": url}, "dict_of_dict": {"train": {"en": url}}}
+    urls_types = {
+        "str": url,
+        "list": [url],
+        "dict": {"train": url},
+        "dict_of_dict": {"train": {"en": url}},
+    }
     urls = urls_types[urls_type]
     dataset_name = "dummy"
     cache_subdir = "downloads"
@@ -43,7 +48,9 @@ def test_download_manager_download(urls_type, tmp_path, tmpfs):
         cache_dir=os.path.join(cache_dir_root, cache_subdir),
         use_etag=False,
     )
-    dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
+    dl_manager = DownloadManager(
+        dataset_name=dataset_name, download_config=download_config
+    )
     downloaded_paths = dl_manager.download(urls)
     assert isinstance(downloaded_paths, type(urls))
     if "urls_type".startswith("list"):
@@ -55,7 +62,8 @@ def test_download_manager_download(urls_type, tmp_path, tmpfs):
             assert isinstance(downloaded_paths[key], dict)
             assert downloaded_paths[key].keys() == urls[key].keys()
     for downloaded_path, url in zip(
-        NestedDataStructure(downloaded_paths).flatten(), NestedDataStructure(urls).flatten()
+        NestedDataStructure(downloaded_paths).flatten(),
+        NestedDataStructure(urls).flatten(),
     ):
         downloaded_path = Path(downloaded_path)
         parts = downloaded_path.parts
@@ -88,7 +96,9 @@ def test_download_manager_extract(paths_type, xz_file, text_file, extract_on_the
         use_etag=False,
         extract_on_the_fly=extract_on_the_fly,
     )
-    dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
+    dl_manager = DownloadManager(
+        dataset_name=dataset_name, download_config=download_config
+    )
     extracted_paths = dl_manager.extract(paths)
     input_paths = paths
     for extracted_paths in [extracted_paths]:
@@ -126,7 +136,9 @@ def test_download_manager_delete_extracted_files(xz_file):
         cache_dir=cache_dir,
         use_etag=False,
     )
-    dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
+    dl_manager = DownloadManager(
+        dataset_name=dataset_name, download_config=download_config
+    )
     extracted_path = dl_manager.extract(xz_file)
     assert extracted_path == dl_manager.extracted_paths[xz_file]
     extracted_path = Path(extracted_path)
@@ -151,17 +163,25 @@ def _test_jsonl(path, file):
 def test_iter_archive_path(archive_jsonl, request):
     archive_jsonl_path = request.getfixturevalue(archive_jsonl)
     dl_manager = DownloadManager()
-    for num_jsonl, (path, file) in enumerate(dl_manager.iter_archive(archive_jsonl_path), start=1):
+    for num_jsonl, (path, file) in enumerate(
+        dl_manager.iter_archive(archive_jsonl_path), start=1
+    ):
         _test_jsonl(path, file)
     assert num_jsonl == 2
 
 
-@pytest.mark.parametrize("archive_nested_jsonl", ["tar_nested_jsonl_path", "zip_nested_jsonl_path"])
+@pytest.mark.parametrize(
+    "archive_nested_jsonl", ["tar_nested_jsonl_path", "zip_nested_jsonl_path"]
+)
 def test_iter_archive_file(archive_nested_jsonl, request):
     archive_nested_jsonl_path = request.getfixturevalue(archive_nested_jsonl)
     dl_manager = DownloadManager()
-    for num_tar, (path, file) in enumerate(dl_manager.iter_archive(archive_nested_jsonl_path), start=1):
-        for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
+    for num_tar, (path, file) in enumerate(
+        dl_manager.iter_archive(archive_nested_jsonl_path), start=1
+    ):
+        for num_jsonl, (subpath, subfile) in enumerate(
+            dl_manager.iter_archive(file), start=1
+        ):
             _test_jsonl(subpath, subfile)
     assert num_tar == 1
     assert num_jsonl == 2
@@ -169,6 +189,8 @@ def test_iter_archive_file(archive_nested_jsonl, request):
 
 def test_iter_files(data_dir_with_hidden_files):
     dl_manager = DownloadManager()
-    for num_file, file in enumerate(dl_manager.iter_files(data_dir_with_hidden_files), start=1):
+    for num_file, file in enumerate(
+        dl_manager.iter_files(data_dir_with_hidden_files), start=1
+    ):
         assert os.path.basename(file) == ("test.txt" if num_file == 1 else "train.txt")
     assert num_file == 2

@@ -5,7 +5,12 @@ import requests
 
 from datasets.utils.file_utils import fsspec_get, fsspec_head
 
-from .utils import OfflineSimulationMode, RequestWouldHangIndefinitelyError, offline, require_not_windows
+from .utils import (
+    OfflineSimulationMode,
+    RequestWouldHangIndefinitelyError,
+    offline,
+    require_not_windows,
+)
 
 
 @pytest.mark.integration
@@ -16,7 +21,9 @@ def test_offline_with_timeout():
             requests.request("GET", "https://huggingface.co")
         with pytest.raises(requests.exceptions.Timeout):
             requests.request("GET", "https://huggingface.co", timeout=1.0)
-        with pytest.raises(requests.exceptions.Timeout), NamedTemporaryFile() as temp_file:
+        with pytest.raises(
+            requests.exceptions.Timeout
+        ), NamedTemporaryFile() as temp_file:
             fsspec_get("hf://dummy", temp_file=temp_file)
 
 
@@ -26,7 +33,9 @@ def test_offline_with_connection_error():
     with offline(OfflineSimulationMode.CONNECTION_FAILS):
         with pytest.raises(requests.exceptions.ConnectionError):
             requests.request("GET", "https://huggingface.co")
-        with pytest.raises(requests.exceptions.ConnectionError), NamedTemporaryFile() as temp_file:
+        with pytest.raises(
+            requests.exceptions.ConnectionError
+        ), NamedTemporaryFile() as temp_file:
             fsspec_get("hf://dummy", temp_file=temp_file)
 
 

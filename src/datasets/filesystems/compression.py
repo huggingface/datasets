@@ -14,10 +14,16 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
         None  # protocol passed in prefix to the url. ex: "gzip", for gzip://file.txt::http://foo.bar/file.txt.gz
     )
     compression: str = None  # compression type in fsspec. ex: "gzip"
-    extensions: list[str] = None  # extensions of the filename to strip. ex: ".gz" to get file.txt from file.txt.gz
+    extensions: list[str] = (
+        None  # extensions of the filename to strip. ex: ".gz" to get file.txt from file.txt.gz
+    )
 
     def __init__(
-        self, fo: str = "", target_protocol: Optional[str] = None, target_options: Optional[dict] = None, **kwargs
+        self,
+        fo: str = "",
+        target_protocol: Optional[str] = None,
+        target_options: Optional[dict] = None,
+        **kwargs,
     ):
         """
         The compressed file system can be instantiated from any compressed file.
@@ -44,7 +50,9 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
             client_kwargs={
                 "requote_redirect_url": False,  # see https://github.com/huggingface/datasets/pull/5459
                 "trust_env": True,  # Enable reading proxy env variables.
-                **(target_options or {}).pop("client_kwargs", {}),  # To avoid issues if it was already passed.
+                **(target_options or {}).pop(
+                    "client_kwargs", {}
+                ),  # To avoid issues if it was already passed.
             },
             **(target_options or {}),
         )
@@ -63,7 +71,10 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
 
     def _get_dirs(self):
         if self.dir_cache is None:
-            f = {**self._open_with_fsspec().fs.info(self.fo), "name": self.uncompressed_name}
+            f = {
+                **self._open_with_fsspec().fs.info(self.fo),
+                "name": self.uncompressed_name,
+            }
             self.dir_cache = {f["name"]: f}
 
     def cat(self, path: str):
@@ -81,7 +92,9 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
     ):
         path = self._strip_protocol(path)
         if mode != "rb":
-            raise ValueError(f"Tried to read with mode {mode} on file {self.fo} opened with mode 'rb'")
+            raise ValueError(
+                f"Tried to read with mode {mode} on file {self.fo} opened with mode 'rb'"
+            )
         return self._open_with_fsspec().open()
 
 

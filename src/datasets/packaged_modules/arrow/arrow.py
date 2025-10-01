@@ -30,7 +30,9 @@ class Arrow(datasets.ArrowBasedBuilder):
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
         if not self.config.data_files:
-            raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
+            raise ValueError(
+                f"At least one data file must be specified, but got data_files={self.config.data_files}"
+            )
         dl_manager.download_config.extract_on_the_fly = True
         data_files = dl_manager.download_and_extract(self.config.data_files)
         splits = []
@@ -47,9 +49,13 @@ class Arrow(datasets.ArrowBasedBuilder):
                             reader = pa.ipc.open_stream(f)
                         except (OSError, pa.lib.ArrowInvalid):
                             reader = pa.ipc.open_file(f)
-                    self.info.features = datasets.Features.from_arrow_schema(reader.schema)
+                    self.info.features = datasets.Features.from_arrow_schema(
+                        reader.schema
+                    )
                     break
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
+            splits.append(
+                datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files})
+            )
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
@@ -67,7 +73,10 @@ class Arrow(datasets.ArrowBasedBuilder):
                         batches = pa.ipc.open_stream(f)
                     except (OSError, pa.lib.ArrowInvalid):
                         reader = pa.ipc.open_file(f)
-                        batches = (reader.get_batch(i) for i in range(reader.num_record_batches))
+                        batches = (
+                            reader.get_batch(i)
+                            for i in range(reader.num_record_batches)
+                        )
                     for batch_idx, record_batch in enumerate(batches):
                         pa_table = pa.Table.from_batches([record_batch])
                         # Uncomment for debugging (will print the Arrow table size and elements)
@@ -75,5 +84,7 @@ class Arrow(datasets.ArrowBasedBuilder):
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                         yield f"{file_idx}_{batch_idx}", self._cast_table(pa_table)
                 except ValueError as e:
-                    logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                    logger.error(
+                        f"Failed to read file '{file}' with error {type(e)}: {e}"
+                    )
                     raise

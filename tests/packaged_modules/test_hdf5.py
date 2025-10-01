@@ -47,15 +47,25 @@ def hdf5_file_with_arrays(tmp_path):
 
     with h5py.File(filename, "w") as f:
         # 2D array (should become Array2D)
-        f.create_dataset("matrix_2d", data=np.random.randn(n_rows, 3, 4).astype(np.float32))
+        f.create_dataset(
+            "matrix_2d", data=np.random.randn(n_rows, 3, 4).astype(np.float32)
+        )
         # 3D array (should become Array3D)
-        f.create_dataset("tensor_3d", data=np.random.randn(n_rows, 2, 3, 4).astype(np.float64))
+        f.create_dataset(
+            "tensor_3d", data=np.random.randn(n_rows, 2, 3, 4).astype(np.float64)
+        )
         # 4D array (should become Array4D)
-        f.create_dataset("tensor_4d", data=np.random.randn(n_rows, 2, 3, 4, 5).astype(np.float32))
+        f.create_dataset(
+            "tensor_4d", data=np.random.randn(n_rows, 2, 3, 4, 5).astype(np.float32)
+        )
         # 5D array (should become Array5D)
-        f.create_dataset("tensor_5d", data=np.random.randn(n_rows, 2, 3, 4, 5, 6).astype(np.float64))
+        f.create_dataset(
+            "tensor_5d", data=np.random.randn(n_rows, 2, 3, 4, 5, 6).astype(np.float64)
+        )
         # 1D array (should become Value)
-        f.create_dataset("vector_1d", data=np.random.randn(n_rows, 10).astype(np.float32))
+        f.create_dataset(
+            "vector_1d", data=np.random.randn(n_rows, 10).astype(np.float32)
+        )
 
     return str(filename)
 
@@ -76,7 +86,9 @@ def hdf5_file_with_different_dtypes(tmp_path):
         f.create_dataset("uint64", data=np.arange(n_rows, dtype=np.uint64))
         f.create_dataset("float16", data=np.arange(n_rows, dtype=np.float16) / 10.0)
         f.create_dataset("float64", data=np.arange(n_rows, dtype=np.float64) / 10.0)
-        f.create_dataset("bytes", data=np.array([b"row_%d" % i for i in range(n_rows)], dtype="S10"))
+        f.create_dataset(
+            "bytes", data=np.array([b"row_%d" % i for i in range(n_rows)], dtype="S10")
+        )
 
     return str(filename)
 
@@ -119,7 +131,12 @@ def hdf5_file_with_variable_length_strings(tmp_path):
 
     with h5py.File(filename, "w") as f:
         # Variable-length string dataset
-        var_strings = ["short", "medium length string", "very long string with many characters", "tiny"]
+        var_strings = [
+            "short",
+            "medium length string",
+            "very long string with many characters",
+            "tiny",
+        ]
         # Create variable-length string dataset using vlen_dtype
         dt = h5py.vlen_dtype(str)
         dset = f.create_dataset("var_strings", (n_rows,), dtype=dt)
@@ -127,7 +144,12 @@ def hdf5_file_with_variable_length_strings(tmp_path):
             dset[i] = s
 
         # Variable-length bytes dataset
-        var_bytes = [b"short", b"medium length bytes", b"very long bytes with many characters", b"tiny"]
+        var_bytes = [
+            b"short",
+            b"medium length bytes",
+            b"very long bytes with many characters",
+            b"tiny",
+        ]
         dt_bytes = h5py.vlen_dtype(bytes)
         dset_bytes = f.create_dataset("var_bytes", (n_rows,), dtype=dt_bytes)
         for i, b in enumerate(var_bytes):
@@ -147,12 +169,20 @@ def hdf5_file_with_complex_data(tmp_path):
         f.create_dataset("complex_64", data=complex_data)
 
         # Complex double precision
-        complex_double = np.array([1.5 + 2.5j, 3.5 + 4.5j, 5.5 + 6.5j, 7.5 + 8.5j], dtype=np.complex128)
+        complex_double = np.array(
+            [1.5 + 2.5j, 3.5 + 4.5j, 5.5 + 6.5j, 7.5 + 8.5j], dtype=np.complex128
+        )
         f.create_dataset("complex_128", data=complex_double)
 
         # Complex array
         complex_array = np.array(
-            [[1 + 2j, 3 + 4j], [5 + 6j, 7 + 8j], [9 + 10j, 11 + 12j], [13 + 14j, 15 + 16j]], dtype=np.complex64
+            [
+                [1 + 2j, 3 + 4j],
+                [5 + 6j, 7 + 8j],
+                [9 + 10j, 11 + 12j],
+                [13 + 14j, 15 + 16j],
+            ],
+            dtype=np.complex64,
         )
         f.create_dataset("complex_array", data=complex_array)
 
@@ -172,12 +202,22 @@ def hdf5_file_with_compound_data(tmp_path):
 
         # Compound type with complex numbers
         dt_complex = np.dtype([("real", "f4"), ("imag", "f4")])
-        compound_complex = np.array([(1.0, 2.0), (3.0, 4.0), (5.0, 6.0)], dtype=dt_complex)
+        compound_complex = np.array(
+            [(1.0, 2.0), (3.0, 4.0), (5.0, 6.0)], dtype=dt_complex
+        )
         f.create_dataset("complex_compound", data=compound_complex)
 
         # Nested compound type
-        dt_nested = np.dtype([("position", [("x", "i4"), ("y", "i4")]), ("velocity", [("vx", "f4"), ("vy", "f4")])])
-        compound_nested = np.array([((1, 2), (1.5, 2.5)), ((3, 4), (3.5, 4.5)), ((5, 6), (5.5, 6.5))], dtype=dt_nested)
+        dt_nested = np.dtype(
+            [
+                ("position", [("x", "i4"), ("y", "i4")]),
+                ("velocity", [("vx", "f4"), ("vy", "f4")]),
+            ]
+        )
+        compound_nested = np.array(
+            [((1, 2), (1.5, 2.5)), ((3, 4), (3.5, 4.5)), ((5, 6), (5.5, 6.5))],
+            dtype=dt_nested,
+        )
         f.create_dataset("nested_compound", data=compound_nested)
 
     return str(filename)
@@ -205,19 +245,28 @@ def hdf5_file_with_compound_complex_arrays(tmp_path):
                 (
                     (1, 2),
                     1.0 + 2.0j,
-                    [[1.0 + 2.0j, 3.0 + 4.0j, 5.0 + 6.0j], [7.0 + 8.0j, 9.0 + 10.0j, 11.0 + 12.0j]],
+                    [
+                        [1.0 + 2.0j, 3.0 + 4.0j, 5.0 + 6.0j],
+                        [7.0 + 8.0j, 9.0 + 10.0j, 11.0 + 12.0j],
+                    ],
                     (1.5, 2.5),
                 ),
                 (
                     (3, 4),
                     3.0 + 4.0j,
-                    [[13.0 + 14.0j, 15.0 + 16.0j, 17.0 + 18.0j], [19.0 + 20.0j, 21.0 + 22.0j, 23.0 + 24.0j]],
+                    [
+                        [13.0 + 14.0j, 15.0 + 16.0j, 17.0 + 18.0j],
+                        [19.0 + 20.0j, 21.0 + 22.0j, 23.0 + 24.0j],
+                    ],
                     (3.5, 4.5),
                 ),
                 (
                     (5, 6),
                     5.0 + 6.0j,
-                    [[25.0 + 26.0j, 27.0 + 28.0j, 29.0 + 30.0j], [31.0 + 32.0j, 33.0 + 34.0j, 35.0 + 36.0j]],
+                    [
+                        [25.0 + 26.0j, 27.0 + 28.0j, 29.0 + 30.0j],
+                        [31.0 + 32.0j, 33.0 + 34.0j, 35.0 + 36.0j],
+                    ],
                     (5.5, 6.5),
                 ),
             ],
@@ -241,7 +290,13 @@ def hdf5_file_with_mismatched_lengths(tmp_path):
         f.create_dataset("data3", data=np.random.randn(5, 3, 4).astype(np.float32))
         f.create_dataset("data4", data=np.arange(5, dtype=np.float64) / 10.0)
         f.create_dataset("data5", data=np.array([True, False, True, False, True]))
-        var_strings = ["short", "medium length", "very long string", "tiny", "another string"]
+        var_strings = [
+            "short",
+            "medium length",
+            "very long string",
+            "tiny",
+            "another string",
+        ]
         dt = h5py.vlen_dtype(str)
         dset = f.create_dataset("data6", (5,), dtype=dt)
         for i, s in enumerate(var_strings):
@@ -309,7 +364,9 @@ def test_config_raises_when_invalid_name():
         _ = HDF5Config(name="name-with-*-invalid-character")
 
 
-@pytest.mark.parametrize("data_files", ["str_path", ["str_path"], DataFilesList(["str_path"], [()])])
+@pytest.mark.parametrize(
+    "data_files", ["str_path", ["str_path"], DataFilesList(["str_path"], [()])]
+)
 def test_config_raises_when_invalid_data_files(data_files):
     """Test that invalid data_files parameter raises an error."""
     with pytest.raises(ValueError, match="Expected a DataFilesDict"):
@@ -368,7 +425,9 @@ def test_hdf5_multi_dimensional_arrays(hdf5_file_with_arrays):
 
 def test_hdf5_vlen_arrays(hdf5_file_with_vlen_arrays):
     """Test HDF5 loading with variable-length arrays (int32)."""
-    dataset = load_dataset("hdf5", data_files=[hdf5_file_with_vlen_arrays], split="train")
+    dataset = load_dataset(
+        "hdf5", data_files=[hdf5_file_with_vlen_arrays], split="train"
+    )
 
     expected_columns = {"vlen_ints", "mixed_data"}
     assert set(dataset.column_names) == expected_columns
@@ -392,7 +451,9 @@ def test_hdf5_vlen_arrays(hdf5_file_with_vlen_arrays):
 
 def test_hdf5_variable_length_strings(hdf5_file_with_variable_length_strings):
     """Test HDF5 loading with variable-length string datasets."""
-    dataset = load_dataset("hdf5", data_files=[hdf5_file_with_variable_length_strings], split="train")
+    dataset = load_dataset(
+        "hdf5", data_files=[hdf5_file_with_variable_length_strings], split="train"
+    )
     expected_columns = {"var_strings", "var_bytes"}
     assert set(dataset.column_names) == expected_columns
 
@@ -415,8 +476,21 @@ def test_hdf5_variable_length_strings(hdf5_file_with_variable_length_strings):
 
 def test_hdf5_different_dtypes(hdf5_file_with_different_dtypes):
     """Test HDF5 loading with various numeric dtypes."""
-    dataset = load_dataset("hdf5", data_files=[hdf5_file_with_different_dtypes], split="train")
-    expected_columns = {"int8", "int16", "int64", "uint8", "uint16", "uint32", "uint64", "float16", "float64", "bytes"}
+    dataset = load_dataset(
+        "hdf5", data_files=[hdf5_file_with_different_dtypes], split="train"
+    )
+    expected_columns = {
+        "int8",
+        "int16",
+        "int64",
+        "uint8",
+        "uint16",
+        "uint32",
+        "uint64",
+        "float16",
+        "float64",
+        "bytes",
+    }
     assert set(dataset.column_names) == expected_columns
 
     # Check specific dtypes
@@ -449,8 +523,15 @@ def test_hdf5_batch_processing(hdf5_file):
 
 def test_hdf5_column_filtering(hdf5_file_with_groups):
     """Test HDF5 loading with column filtering."""
-    features = Features({"root_data": Value("int32"), "group1": Features({"group_data": Value("float32")})})
-    dataset = load_dataset("hdf5", data_files=[hdf5_file_with_groups], split="train", features=features)
+    features = Features(
+        {
+            "root_data": Value("int32"),
+            "group1": Features({"group_data": Value("float32")}),
+        }
+    )
+    dataset = load_dataset(
+        "hdf5", data_files=[hdf5_file_with_groups], split="train", features=features
+    )
 
     expected_columns = {"root_data", "group1"}
     assert set(dataset.column_names) == expected_columns
@@ -466,8 +547,12 @@ def test_hdf5_column_filtering(hdf5_file_with_groups):
 
 def test_hdf5_feature_specification(hdf5_file):
     """Test HDF5 loading with explicit feature specification."""
-    features = Features({"int32": Value("int32"), "float32": Value("float64"), "bool": Value("bool")})
-    dataset = load_dataset("hdf5", data_files=[hdf5_file], split="train", features=features)
+    features = Features(
+        {"int32": Value("int32"), "float32": Value("float64"), "bool": Value("bool")}
+    )
+    dataset = load_dataset(
+        "hdf5", data_files=[hdf5_file], split="train", features=features
+    )
 
     # Check that features are properly cast
     assert np.asarray(dataset.data["float32"]).dtype == np.float64
@@ -478,7 +563,9 @@ def test_hdf5_feature_specification(hdf5_file):
 def test_hdf5_mismatched_lengths_error(hdf5_file_with_mismatched_lengths):
     """Test that mismatched dataset lengths raise an error."""
     with pytest.raises(DatasetGenerationError) as exc_info:
-        load_dataset("hdf5", data_files=[hdf5_file_with_mismatched_lengths], split="train")
+        load_dataset(
+            "hdf5", data_files=[hdf5_file_with_mismatched_lengths], split="train"
+        )
 
     assert isinstance(exc_info.value.__cause__, ValueError)
     assert "3 but expected 5" in str(exc_info.value.__cause__)
@@ -486,7 +573,9 @@ def test_hdf5_mismatched_lengths_error(hdf5_file_with_mismatched_lengths):
 
 def test_hdf5_zero_dimensions_handling(hdf5_file_with_zero_dimensions, caplog):
     """Test that zero dimensions are handled gracefully."""
-    dataset = load_dataset("hdf5", data_files=[hdf5_file_with_zero_dimensions], split="train")
+    dataset = load_dataset(
+        "hdf5", data_files=[hdf5_file_with_zero_dimensions], split="train"
+    )
 
     expected_columns = {"zero_dim", "zero_middle", "zero_last"}
     assert set(dataset.column_names) == expected_columns
@@ -497,7 +586,9 @@ def test_hdf5_zero_dimensions_handling(hdf5_file_with_zero_dimensions, caplog):
     assert all(len(row) == 0 for row in zero_dim_data)  # Each row is empty
 
     # Check that shape info is lost
-    assert all(isinstance(col, List) and col.length == -1 for col in dataset.features.values())
+    assert all(
+        isinstance(col, List) and col.length == -1 for col in dataset.features.values()
+    )
 
     # Check for the warnings
     assert (
@@ -505,7 +596,8 @@ def test_hdf5_zero_dimensions_handling(hdf5_file_with_zero_dimensions, caplog):
             [
                 record.message
                 for record in caplog.records
-                if record.levelname == "WARNING" and "dimension with size 0" in record.message
+                if record.levelname == "WARNING"
+                and "dimension with size 0" in record.message
             ]
         )
         == 3
@@ -514,11 +606,14 @@ def test_hdf5_zero_dimensions_handling(hdf5_file_with_zero_dimensions, caplog):
 
 def test_hdf5_empty_file_warning(empty_hdf5_file, hdf5_file_with_arrays, caplog):
     """Test that empty files (no datasets) are skipped with a warning."""
-    load_dataset("hdf5", data_files=[hdf5_file_with_arrays, empty_hdf5_file], split="train")
+    load_dataset(
+        "hdf5", data_files=[hdf5_file_with_arrays, empty_hdf5_file], split="train"
+    )
 
     # Check that warning was logged
     assert any(
-        record.levelname == "WARNING" and "contains no data, skipping" in record.message for record in caplog.records
+        record.levelname == "WARNING" and "contains no data, skipping" in record.message
+        for record in caplog.records
     )
 
 
@@ -547,7 +642,9 @@ def test_hdf5_feature_inference(hdf5_file_with_arrays):
 
 def test_hdf5_vlen_feature_inference(hdf5_file_with_vlen_arrays):
     """Test automatic feature inference from variable-length HDF5 datasets."""
-    dataset = load_dataset("hdf5", data_files=[hdf5_file_with_vlen_arrays], split="train")
+    dataset = load_dataset(
+        "hdf5", data_files=[hdf5_file_with_vlen_arrays], split="train"
+    )
 
     # Check that features were inferred
     assert dataset.features is not None
@@ -567,7 +664,9 @@ def test_hdf5_vlen_feature_inference(hdf5_file_with_vlen_arrays):
 
 def test_hdf5_variable_string_feature_inference(hdf5_file_with_variable_length_strings):
     """Test automatic feature inference from variable-length string datasets."""
-    dataset = load_dataset("hdf5", data_files=[hdf5_file_with_variable_length_strings], split="train")
+    dataset = load_dataset(
+        "hdf5", data_files=[hdf5_file_with_variable_length_strings], split="train"
+    )
 
     # Check that features were inferred
     assert dataset.features is not None
@@ -587,12 +686,21 @@ def test_hdf5_invalid_features(hdf5_file_with_arrays):
     """Test that invalid features raise an error."""
     features = Features({"fakefeature": Value("int32")})
     with pytest.raises(ValueError):
-        load_dataset("hdf5", data_files=[hdf5_file_with_arrays], split="train", features=features)
+        load_dataset(
+            "hdf5", data_files=[hdf5_file_with_arrays], split="train", features=features
+        )
 
     # try with one valid and one invalid feature
-    features = Features({"matrix_2d": Array2D(shape=(3, 4), dtype="float32"), "fakefeature": Value("int32")})
+    features = Features(
+        {
+            "matrix_2d": Array2D(shape=(3, 4), dtype="float32"),
+            "fakefeature": Value("int32"),
+        }
+    )
     with pytest.raises(DatasetGenerationError):
-        load_dataset("hdf5", data_files=[hdf5_file_with_arrays], split="train", features=features)
+        load_dataset(
+            "hdf5", data_files=[hdf5_file_with_arrays], split="train", features=features
+        )
 
 
 def test_hdf5_no_data_files_error():
@@ -607,7 +715,9 @@ def test_hdf5_no_data_files_error():
 
 def test_hdf5_complex_numbers(hdf5_file_with_complex_data):
     """Test HDF5 loading with complex number datasets."""
-    dataset = load_dataset("hdf5", data_files=[hdf5_file_with_complex_data], split="train")
+    dataset = load_dataset(
+        "hdf5", data_files=[hdf5_file_with_complex_data], split="train"
+    )
 
     # Check that complex numbers are represented as nested Features
     expected_columns = {
@@ -627,22 +737,32 @@ def test_hdf5_complex_numbers(hdf5_file_with_complex_data):
 
     assert np.asarray(dataset.data["complex_64"].flatten()[0]).dtype == np.float32
     assert np.asarray(dataset.data["complex_64"].flatten()[1]).dtype == np.float32
-    assert (np.asarray(dataset.data["complex_64"].flatten()[0]) == np.array([1, 3, 5, 7], dtype=np.float32)).all()
-    assert (np.asarray(dataset.data["complex_64"].flatten()[1]) == np.array([2, 4, 6, 8], dtype=np.float32)).all()
+    assert (
+        np.asarray(dataset.data["complex_64"].flatten()[0])
+        == np.array([1, 3, 5, 7], dtype=np.float32)
+    ).all()
+    assert (
+        np.asarray(dataset.data["complex_64"].flatten()[1])
+        == np.array([2, 4, 6, 8], dtype=np.float32)
+    ).all()
 
     assert np.asarray(dataset.data["complex_128"].flatten()[0]).dtype == np.float64
     assert np.asarray(dataset.data["complex_128"].flatten()[1]).dtype == np.float64
     assert (
-        np.asarray(dataset.data["complex_128"].flatten()[0]) == np.array([1.5, 3.5, 5.5, 7.5], dtype=np.float64)
+        np.asarray(dataset.data["complex_128"].flatten()[0])
+        == np.array([1.5, 3.5, 5.5, 7.5], dtype=np.float64)
     ).all()
     assert (
-        np.asarray(dataset.data["complex_128"].flatten()[1]) == np.array([2.5, 4.5, 6.5, 8.5], dtype=np.float64)
+        np.asarray(dataset.data["complex_128"].flatten()[1])
+        == np.array([2.5, 4.5, 6.5, 8.5], dtype=np.float64)
     ).all()
 
 
 def test_hdf5_compound_types(hdf5_file_with_compound_data):
     """Test HDF5 loading with compound/structured datasets."""
-    dataset = load_dataset("hdf5", data_files=[hdf5_file_with_compound_data], split="train")
+    dataset = load_dataset(
+        "hdf5", data_files=[hdf5_file_with_compound_data], split="train"
+    )
 
     # Check that compound types are represented as nested structures
     expected_columns = {
@@ -662,7 +782,9 @@ def test_hdf5_compound_types(hdf5_file_with_compound_data):
 
 def test_hdf5_feature_inference_complex(hdf5_file_with_complex_data):
     """Test automatic feature inference for complex datasets."""
-    dataset = load_dataset("hdf5", data_files=[hdf5_file_with_complex_data], split="train")
+    dataset = load_dataset(
+        "hdf5", data_files=[hdf5_file_with_complex_data], split="train"
+    )
 
     # Check that features were inferred correctly
     assert dataset.features is not None
@@ -678,7 +800,9 @@ def test_hdf5_feature_inference_complex(hdf5_file_with_complex_data):
 
 def test_hdf5_feature_inference_compound(hdf5_file_with_compound_data):
     """Test automatic feature inference for compound datasets."""
-    dataset = load_dataset("hdf5", data_files=[hdf5_file_with_compound_data], split="train")
+    dataset = load_dataset(
+        "hdf5", data_files=[hdf5_file_with_compound_data], split="train"
+    )
 
     # Check that features were inferred correctly
     assert dataset.features is not None
@@ -694,7 +818,9 @@ def test_hdf5_feature_inference_compound(hdf5_file_with_compound_data):
 
 def test_hdf5_mixed_data_types(hdf5_file_with_mixed_data_types):
     """Test HDF5 loading with mixed data types in the same file."""
-    dataset = load_dataset("hdf5", data_files=[hdf5_file_with_mixed_data_types], split="train")
+    dataset = load_dataset(
+        "hdf5", data_files=[hdf5_file_with_mixed_data_types], split="train"
+    )
 
     # Check all expected columns are present
     expected_columns = {
@@ -711,11 +837,18 @@ def test_hdf5_mixed_data_types(hdf5_file_with_mixed_data_types):
     assert len(dataset["compound_data"]) == 3
 
 
-def test_hdf5_mismatched_lengths_with_column_filtering(hdf5_file_with_mismatched_lengths):
+def test_hdf5_mismatched_lengths_with_column_filtering(
+    hdf5_file_with_mismatched_lengths,
+):
     """Test that mismatched dataset lengths are ignored when the mismatched dataset is excluded via columns config."""
     # Test 1: Include only the first dataset
     features = Features({"data1": Value("int32")})
-    dataset = load_dataset("hdf5", data_files=[hdf5_file_with_mismatched_lengths], split="train", features=features)
+    dataset = load_dataset(
+        "hdf5",
+        data_files=[hdf5_file_with_mismatched_lengths],
+        split="train",
+        features=features,
+    )
 
     # Should work without error since we're only including the first dataset
     expected_columns = {"data1"}
@@ -736,7 +869,12 @@ def test_hdf5_mismatched_lengths_with_column_filtering(hdf5_file_with_mismatched
             "data6": Value("string"),
         }
     )
-    dataset2 = load_dataset("hdf5", data_files=[hdf5_file_with_mismatched_lengths], split="train", features=features)
+    dataset2 = load_dataset(
+        "hdf5",
+        data_files=[hdf5_file_with_mismatched_lengths],
+        split="train",
+        features=features,
+    )
 
     # Should work without error since we're excluding the mismatched dataset
     expected_columns2 = {"data1", "data3", "data4", "data5", "data6"}
@@ -748,7 +886,9 @@ def test_hdf5_mismatched_lengths_with_column_filtering(hdf5_file_with_mismatched
     assert len(dataset2["data3"]) == 5  # Array2D
     assert len(dataset2["data3"][0]) == 3  # 3 rows in each 2D array
     assert len(dataset2["data3"][0][0]) == 4  # 4 columns in each 2D array
-    np.testing.assert_allclose(dataset2["data4"], [0.0, 0.1, 0.2, 0.3, 0.4], rtol=1e-6)  # float64
+    np.testing.assert_allclose(
+        dataset2["data4"], [0.0, 0.1, 0.2, 0.3, 0.4], rtol=1e-6
+    )  # float64
     assert dataset2["data5"] == [True, False, True, False, True]  # boolean
     assert dataset2["data6"] == [
         "short",
@@ -761,7 +901,9 @@ def test_hdf5_mismatched_lengths_with_column_filtering(hdf5_file_with_mismatched
 
 def test_hdf5_compound_with_complex_arrays(hdf5_file_with_compound_complex_arrays):
     """Test HDF5 loading with compound datasets containing complex arrays."""
-    dataset = load_dataset("hdf5", data_files=[hdf5_file_with_compound_complex_arrays], split="train")
+    dataset = load_dataset(
+        "hdf5", data_files=[hdf5_file_with_compound_complex_arrays], split="train"
+    )
 
     # Check that compound types with complex arrays are represented as nested structures
     expected_columns = {"compound_with_complex"}
@@ -794,9 +936,13 @@ def test_hdf5_compound_with_complex_arrays(hdf5_file_with_compound_complex_array
     assert first_row["nested_complex"]["imag"] == 2.5
 
 
-def test_hdf5_feature_inference_compound_complex_arrays(hdf5_file_with_compound_complex_arrays):
+def test_hdf5_feature_inference_compound_complex_arrays(
+    hdf5_file_with_compound_complex_arrays,
+):
     """Test automatic feature inference for compound datasets with complex arrays."""
-    dataset = load_dataset("hdf5", data_files=[hdf5_file_with_compound_complex_arrays], split="train")
+    dataset = load_dataset(
+        "hdf5", data_files=[hdf5_file_with_compound_complex_arrays], split="train"
+    )
 
     # Check that features were inferred correctly
     assert dataset.features is not None
@@ -821,8 +967,12 @@ def test_hdf5_feature_inference_compound_complex_arrays(hdf5_file_with_compound_
     assert compound_features["complex_field"]["imag"] == Value("float32")
 
     # Check complex array (should be nested real/imag structures)
-    assert compound_features["complex_array"]["real"] == Array2D(shape=(2, 3), dtype="float32")
-    assert compound_features["complex_array"]["imag"] == Array2D(shape=(2, 3), dtype="float32")
+    assert compound_features["complex_array"]["real"] == Array2D(
+        shape=(2, 3), dtype="float32"
+    )
+    assert compound_features["complex_array"]["imag"] == Array2D(
+        shape=(2, 3), dtype="float32"
+    )
 
     # Check nested complex field
     assert compound_features["nested_complex"]["real"] == Value("float32")

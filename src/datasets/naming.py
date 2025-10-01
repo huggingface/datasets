@@ -42,7 +42,9 @@ def snakecase_to_camelcase(name):
     """Convert snake-case string to camel-case string."""
     name = _single_underscore_re.split(name)
     name = [_multiple_underscores_re.split(n) for n in name]
-    return "".join(n.capitalize() for n in itertools.chain.from_iterable(name) if n != "")
+    return "".join(
+        n.capitalize() for n in itertools.chain.from_iterable(name) if n != ""
+    )
 
 
 def filename_prefix_for_name(name):
@@ -67,13 +69,18 @@ def filepattern_for_dataset_split(dataset_name, split, data_dir, filetype_suffix
     return f"{filepath}*"
 
 
-def filenames_for_dataset_split(path, dataset_name, split, filetype_suffix=None, shard_lengths=None):
+def filenames_for_dataset_split(
+    path, dataset_name, split, filetype_suffix=None, shard_lengths=None
+):
     prefix = filename_prefix_for_split(dataset_name, split)
     prefix = os.path.join(path, prefix)
 
     if shard_lengths:
         num_shards = len(shard_lengths)
-        filenames = [f"{prefix}-{shard_id:05d}-of-{num_shards:05d}" for shard_id in range(num_shards)]
+        filenames = [
+            f"{prefix}-{shard_id:05d}-of-{num_shards:05d}"
+            for shard_id in range(num_shards)
+        ]
         if filetype_suffix:
             filenames = [filename + f".{filetype_suffix}" for filename in filenames]
         return filenames

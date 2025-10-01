@@ -94,7 +94,9 @@ class MetadataConfigs(dict[str, dict[str, Any]]):
                             len(yaml_data_files_item) == 2
                             and "split" in yaml_data_files_item
                             and re.match(_split_re, yaml_data_files_item["split"])
-                            and isinstance(yaml_data_files_item.get("path"), (str, list))
+                            and isinstance(
+                                yaml_data_files_item.get("path"), (str, list)
+                            )
                         )
                     ):
                         raise ValueError(yaml_error_message)
@@ -112,15 +114,23 @@ class MetadataConfigs(dict[str, dict[str, Any]]):
                     {
                         "split": split_name,
                         "path": [
-                            parquet_file["url"].replace("refs%2Fconvert%2Fparquet", parquet_commit_hash)
+                            parquet_file["url"].replace(
+                                "refs%2Fconvert%2Fparquet", parquet_commit_hash
+                            )
                             for parquet_file in parquet_files_for_split
                         ],
                     }
-                    for split_name, parquet_files_for_split in groupby(parquet_files_for_config, itemgetter("split"))
+                    for split_name, parquet_files_for_split in groupby(
+                        parquet_files_for_config, itemgetter("split")
+                    )
                 ],
-                "version": str(dataset_infos.get(config_name, DatasetInfo()).version or "0.0.0"),
+                "version": str(
+                    dataset_infos.get(config_name, DatasetInfo()).version or "0.0.0"
+                ),
             }
-            for config_name, parquet_files_for_config in groupby(exported_parquet_files, itemgetter("config"))
+            for config_name, parquet_files_for_config in groupby(
+                exported_parquet_files, itemgetter("config")
+            )
         }
         if dataset_infos:
             # Preserve order of configs and splits
@@ -139,11 +149,15 @@ class MetadataConfigs(dict[str, dict[str, Any]]):
         return cls(metadata_configs)
 
     @classmethod
-    def from_dataset_card_data(cls, dataset_card_data: DatasetCardData) -> "MetadataConfigs":
+    def from_dataset_card_data(
+        cls, dataset_card_data: DatasetCardData
+    ) -> "MetadataConfigs":
         if dataset_card_data.get(cls.FIELD_NAME):
             metadata_configs = dataset_card_data[cls.FIELD_NAME]
             if not isinstance(metadata_configs, list):
-                raise ValueError(f"Expected {cls.FIELD_NAME} to be a list, but got '{metadata_configs}'")
+                raise ValueError(
+                    f"Expected {cls.FIELD_NAME} to be a list, but got '{metadata_configs}'"
+                )
             for metadata_config in metadata_configs:
                 if "config_name" not in metadata_config:
                     raise ValueError(
@@ -154,7 +168,11 @@ class MetadataConfigs(dict[str, dict[str, Any]]):
             return cls(
                 {
                     config.pop("config_name"): {
-                        param: value if param != "features" else Features._from_yaml_list(value)
+                        param: (
+                            value
+                            if param != "features"
+                            else Features._from_yaml_list(value)
+                        )
                         for param, value in config.items()
                     }
                     for metadata_config in metadata_configs
@@ -168,7 +186,9 @@ class MetadataConfigs(dict[str, dict[str, Any]]):
             for metadata_config in self.values():
                 self._raise_if_data_files_field_not_valid(metadata_config)
             current_metadata_configs = self.from_dataset_card_data(dataset_card_data)
-            total_metadata_configs = dict(sorted({**current_metadata_configs, **self}.items()))
+            total_metadata_configs = dict(
+                sorted({**current_metadata_configs, **self}.items())
+            )
             for config_name, config_metadata in total_metadata_configs.items():
                 config_metadata.pop("config_name", None)
             dataset_card_data[self.FIELD_NAME] = [
@@ -179,7 +199,11 @@ class MetadataConfigs(dict[str, dict[str, Any]]):
     def get_default_config_name(self) -> Optional[str]:
         default_config_name = None
         for config_name, metadata_config in self.items():
-            if len(self) == 1 or config_name == "default" or metadata_config.get("default"):
+            if (
+                len(self) == 1
+                or config_name == "default"
+                or metadata_config.get("default")
+            ):
                 if default_config_name is None:
                     default_config_name = config_name
                 else:

@@ -94,7 +94,9 @@ class TranslationVariableLanguages:
         self.num_languages = len(self.languages) if self.languages else None
 
     def __call__(self):
-        return pa.struct({"language": pa.list_(pa.string()), "translation": pa.list_(pa.string())})
+        return pa.struct(
+            {"language": pa.list_(pa.string()), "translation": pa.list_(pa.string())}
+        )
 
     def encode_example(self, translation_dict):
         lang_set = set(self.languages)

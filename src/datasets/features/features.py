@@ -115,7 +115,9 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
     elif pyarrow.types.is_dictionary(arrow_type):
         return _arrow_to_datasets_dtype(arrow_type.value_type)
     else:
-        raise ValueError(f"Arrow type {arrow_type} does not have a datasets dtype equivalent.")
+        raise ValueError(
+            f"Arrow type {arrow_type} does not have a datasets dtype equivalent."
+        )
 
 
 def string_to_arrow(datasets_dtype: str) -> pa.DataType:
@@ -136,10 +138,16 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
     def _dtype_error_msg(dtype, pa_dtype, examples=None, urls=None):
         msg = f"{dtype} is not a validly formatted string representation of the pyarrow {pa_dtype} type."
         if examples:
-            examples = ", ".join(examples[:-1]) + " or " + examples[-1] if len(examples) > 1 else examples[0]
+            examples = (
+                ", ".join(examples[:-1]) + " or " + examples[-1]
+                if len(examples) > 1
+                else examples[0]
+            )
             msg += f"\nValid examples include: {examples}."
         if urls:
-            urls = ", ".join(urls[:-1]) + " and " + urls[-1] if len(urls) > 1 else urls[0]
+            urls = (
+                ", ".join(urls[:-1]) + " and " + urls[-1] if len(urls) > 1 else urls[0]
+            )
             msg += f"\nFor more insformation, see: {urls}."
         return msg
 
@@ -152,7 +160,9 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
     timestamp_matches = re.search(r"^timestamp\[(.*)\]$", datasets_dtype)
     if timestamp_matches:
         timestamp_internals = timestamp_matches.group(1)
-        internals_matches = re.search(r"^(s|ms|us|ns),\s*tz=([a-zA-Z0-9/_+\-:]*)$", timestamp_internals)
+        internals_matches = re.search(
+            r"^(s|ms|us|ns),\s*tz=([a-zA-Z0-9/_+\-:]*)$", timestamp_internals
+        )
         if timestamp_internals in ["s", "ms", "us", "ns"]:
             return pa.timestamp(timestamp_internals)
         elif internals_matches:
@@ -163,7 +173,9 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
                     datasets_dtype,
                     "timestamp",
                     examples=["timestamp[us]", "timestamp[us, tz=America/New_York"],
-                    urls=["https://arrow.apache.org/docs/python/generated/pyarrow.timestamp.html"],
+                    urls=[
+                        "https://arrow.apache.org/docs/python/generated/pyarrow.timestamp.html"
+                    ],
                 )
             )
 
@@ -178,7 +190,9 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
                     datasets_dtype,
                     "duration",
                     examples=["duration[s]", "duration[us]"],
-                    urls=["https://arrow.apache.org/docs/python/generated/pyarrow.duration.html"],
+                    urls=[
+                        "https://arrow.apache.org/docs/python/generated/pyarrow.duration.html"
+                    ],
                 )
             )
 
@@ -218,7 +232,9 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
     if decimal_matches:
         decimal_internals_bits = decimal_matches.group(1)
         if decimal_internals_bits == "128":
-            decimal_internals_precision_and_scale = re.search(r"^(\d+),\s*(-?\d+)$", decimal_matches.group(2))
+            decimal_internals_precision_and_scale = re.search(
+                r"^(\d+),\s*(-?\d+)$", decimal_matches.group(2)
+            )
             if decimal_internals_precision_and_scale:
                 precision = decimal_internals_precision_and_scale.group(1)
                 scale = decimal_internals_precision_and_scale.group(2)
@@ -229,11 +245,15 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
                         datasets_dtype,
                         "decimal128",
                         examples=["decimal128(10, 2)", "decimal128(4, -2)"],
-                        urls=["https://arrow.apache.org/docs/python/generated/pyarrow.decimal128.html"],
+                        urls=[
+                            "https://arrow.apache.org/docs/python/generated/pyarrow.decimal128.html"
+                        ],
                     )
                 )
         elif decimal_internals_bits == "256":
-            decimal_internals_precision_and_scale = re.search(r"^(\d+),\s*(-?\d+)$", decimal_matches.group(2))
+            decimal_internals_precision_and_scale = re.search(
+                r"^(\d+),\s*(-?\d+)$", decimal_matches.group(2)
+            )
             if decimal_internals_precision_and_scale:
                 precision = decimal_internals_precision_and_scale.group(1)
                 scale = decimal_internals_precision_and_scale.group(2)
@@ -244,7 +264,9 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
                         datasets_dtype,
                         "decimal256",
                         examples=["decimal256(30, 2)", "decimal256(38, -4)"],
-                        urls=["https://arrow.apache.org/docs/python/generated/pyarrow.decimal256.html"],
+                        urls=[
+                            "https://arrow.apache.org/docs/python/generated/pyarrow.decimal256.html"
+                        ],
                     )
                 )
         else:
@@ -267,7 +289,9 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
     )
 
 
-def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_casting: bool) -> tuple[Any, bool]:
+def _cast_to_python_objects(
+    obj: Any, only_1d_for_numpy: bool, optimize_list_casting: bool
+) -> tuple[Any, bool]:
     """
     Cast pytorch/tensorflow/pandas objects to python numpy array/lists.
     It works recursively.
@@ -316,19 +340,28 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             return (
                 [
                     _cast_to_python_objects(
-                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                        x,
+                        only_1d_for_numpy=only_1d_for_numpy,
+                        optimize_list_casting=optimize_list_casting,
                     )[0]
                     for x in obj
                 ],
                 True,
             )
-    elif config.TORCH_AVAILABLE and "torch" in sys.modules and isinstance(obj, torch.Tensor):
+    elif (
+        config.TORCH_AVAILABLE
+        and "torch" in sys.modules
+        and isinstance(obj, torch.Tensor)
+    ):
         if obj.dtype == torch.bfloat16:
-            return _cast_to_python_objects(
-                obj.detach().to(torch.float).cpu().numpy(),
-                only_1d_for_numpy=only_1d_for_numpy,
-                optimize_list_casting=optimize_list_casting,
-            )[0], True
+            return (
+                _cast_to_python_objects(
+                    obj.detach().to(torch.float).cpu().numpy(),
+                    only_1d_for_numpy=only_1d_for_numpy,
+                    optimize_list_casting=optimize_list_casting,
+                )[0],
+                True,
+            )
         if obj.ndim == 0:
             return obj.detach().cpu().numpy()[()], True
         elif not only_1d_for_numpy or obj.ndim == 1:
@@ -337,13 +370,19 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             return (
                 [
                     _cast_to_python_objects(
-                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                        x,
+                        only_1d_for_numpy=only_1d_for_numpy,
+                        optimize_list_casting=optimize_list_casting,
                     )[0]
                     for x in obj.detach().cpu().numpy()
                 ],
                 True,
             )
-    elif config.TF_AVAILABLE and "tensorflow" in sys.modules and isinstance(obj, tf.Tensor):
+    elif (
+        config.TF_AVAILABLE
+        and "tensorflow" in sys.modules
+        and isinstance(obj, tf.Tensor)
+    ):
         if obj.ndim == 0:
             return obj.numpy()[()], True
         elif not only_1d_for_numpy or obj.ndim == 1:
@@ -352,7 +391,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             return (
                 [
                     _cast_to_python_objects(
-                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                        x,
+                        only_1d_for_numpy=only_1d_for_numpy,
+                        optimize_list_casting=optimize_list_casting,
                     )[0]
                     for x in obj.numpy()
                 ],
@@ -367,20 +408,32 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             return (
                 [
                     _cast_to_python_objects(
-                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                        x,
+                        only_1d_for_numpy=only_1d_for_numpy,
+                        optimize_list_casting=optimize_list_casting,
                     )[0]
                     for x in np.asarray(obj)
                 ],
                 True,
             )
-    elif config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(obj, PIL.Image.Image):
+    elif (
+        config.PIL_AVAILABLE
+        and "PIL" in sys.modules
+        and isinstance(obj, PIL.Image.Image)
+    ):
         return encode_pil_image(obj), True
-    elif config.PDFPLUMBER_AVAILABLE and "pdfplumber" in sys.modules and isinstance(obj, pdfplumber.pdf.PDF):
+    elif (
+        config.PDFPLUMBER_AVAILABLE
+        and "pdfplumber" in sys.modules
+        and isinstance(obj, pdfplumber.pdf.PDF)
+    ):
         return encode_pdfplumber_pdf(obj), True
     elif isinstance(obj, pd.Series):
         return (
             _cast_to_python_objects(
-                obj.tolist(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                obj.tolist(),
+                only_1d_for_numpy=only_1d_for_numpy,
+                optimize_list_casting=optimize_list_casting,
             )[0],
             True,
         )
@@ -388,7 +441,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         return (
             {
                 key: _cast_to_python_objects(
-                    value, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                    value,
+                    only_1d_for_numpy=only_1d_for_numpy,
+                    optimize_list_casting=optimize_list_casting,
                 )[0]
                 for key, value in obj.to_dict("series").items()
             },
@@ -403,7 +458,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         output = {}
         for k, v in obj.items():
             casted_v, has_changed_v = _cast_to_python_objects(
-                v, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                v,
+                only_1d_for_numpy=only_1d_for_numpy,
+                optimize_list_casting=optimize_list_casting,
             )
             has_changed |= has_changed_v
             output[k] = casted_v
@@ -414,7 +471,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         else:
             return (
                 _cast_to_python_objects(
-                    obj.__array__(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                    obj.__array__(),
+                    only_1d_for_numpy=only_1d_for_numpy,
+                    optimize_list_casting=optimize_list_casting,
                 )[0],
                 True,
             )
@@ -424,13 +483,17 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 if _check_non_null_non_empty_recursive(first_elmt):
                     break
             casted_first_elmt, has_changed_first_elmt = _cast_to_python_objects(
-                first_elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                first_elmt,
+                only_1d_for_numpy=only_1d_for_numpy,
+                optimize_list_casting=optimize_list_casting,
             )
             if has_changed_first_elmt or not optimize_list_casting:
                 return (
                     [
                         _cast_to_python_objects(
-                            elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                            elmt,
+                            only_1d_for_numpy=only_1d_for_numpy,
+                            optimize_list_casting=optimize_list_casting,
                         )[0]
                         for elmt in obj
                     ],
@@ -443,17 +506,27 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                     return list(obj), True
         else:
             return obj, False
-    elif config.TORCHCODEC_AVAILABLE and "torchcodec" in sys.modules and isinstance(obj, VideoDecoder):
+    elif (
+        config.TORCHCODEC_AVAILABLE
+        and "torchcodec" in sys.modules
+        and isinstance(obj, VideoDecoder)
+    ):
         v = Video()
         return v.encode_example(obj), True
-    elif config.TORCHCODEC_AVAILABLE and "torchcodec" in sys.modules and isinstance(obj, AudioDecoder):
+    elif (
+        config.TORCHCODEC_AVAILABLE
+        and "torchcodec" in sys.modules
+        and isinstance(obj, AudioDecoder)
+    ):
         a = Audio()
         return a.encode_example(obj), True
     else:
         return obj, False
 
 
-def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_casting=True) -> Any:
+def cast_to_python_objects(
+    obj: Any, only_1d_for_numpy=False, optimize_list_casting=True
+) -> Any:
     """
     Cast numpy/pytorch/tensorflow/pandas objects to python lists.
     It works recursively.
@@ -474,7 +547,9 @@ def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_cast
         casted_obj: the casted object
     """
     return _cast_to_python_objects(
-        obj, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+        obj,
+        only_1d_for_numpy=only_1d_for_numpy,
+        optimize_list_casting=optimize_list_casting,
     )[0]
 
 
@@ -567,7 +642,9 @@ class _ArrayXD:
         self.shape = tuple(self.shape)
 
     def __call__(self):
-        pa_type = globals()[self.__class__.__name__ + "ExtensionType"](self.shape, self.dtype)
+        pa_type = globals()[self.__class__.__name__ + "ExtensionType"](
+            self.shape, self.dtype
+        )
         return pa_type
 
     def encode_example(self, value):
@@ -679,16 +756,24 @@ class _ArrayXDExtensionType(pa.ExtensionType):
 
     def __init__(self, shape: tuple, dtype: str):
         if self.ndims is None or self.ndims <= 1:
-            raise ValueError("You must instantiate an array type with a value for dim that is > 1")
+            raise ValueError(
+                "You must instantiate an array type with a value for dim that is > 1"
+            )
         if len(shape) != self.ndims:
             raise ValueError(f"shape={shape} and ndims={self.ndims} don't match")
         for dim in range(1, self.ndims):
             if shape[dim] is None:
-                raise ValueError(f"Support only dynamic size on first dimension. Got: {shape}")
+                raise ValueError(
+                    f"Support only dynamic size on first dimension. Got: {shape}"
+                )
         self.shape = tuple(shape)
         self.value_type = dtype
         self.storage_dtype = self._generate_dtype(self.value_type)
-        pa.ExtensionType.__init__(self, self.storage_dtype, f"{self.__class__.__module__}.{self.__class__.__name__}")
+        pa.ExtensionType.__init__(
+            self,
+            self.storage_dtype,
+            f"{self.__class__.__module__}.{self.__class__.__name__}",
+        )
 
     def __arrow_ext_serialize__(self):
         return json.dumps((self.shape, self.value_type)).encode()
@@ -700,7 +785,10 @@ class _ArrayXDExtensionType(pa.ExtensionType):
 
     # This was added to pa.ExtensionType in pyarrow >= 13.0.0
     def __reduce__(self):
-        return self.__arrow_ext_deserialize__, (self.storage_type, self.__arrow_ext_serialize__())
+        return self.__arrow_ext_deserialize__, (
+            self.storage_type,
+            self.__arrow_ext_serialize__(),
+        )
 
     def __hash__(self):
         return hash((self.__class__, self.shape, self.value_type))
@@ -762,7 +850,9 @@ def _is_zero_copy_only(pa_type: pa.DataType, unnest: bool = False) -> bool:
 
     if unnest:
         pa_type = _unnest_pa_type(pa_type)
-    return pa.types.is_primitive(pa_type) and not (pa.types.is_boolean(pa_type) or pa.types.is_temporal(pa_type))
+    return pa.types.is_primitive(pa_type) and not (
+        pa.types.is_boolean(pa_type) or pa.types.is_temporal(pa_type)
+    )
 
 
 class ArrayExtensionArray(pa.ExtensionArray):
@@ -779,16 +869,22 @@ class ArrayExtensionArray(pa.ExtensionArray):
 
         if self.type.shape[0] is not None:
             size = 1
-            null_indices = np.arange(len(storage))[null_mask] - np.arange(np.sum(null_mask))
+            null_indices = np.arange(len(storage))[null_mask] - np.arange(
+                np.sum(null_mask)
+            )
 
             for i in range(self.type.ndims):
                 size *= self.type.shape[i]
                 storage = storage.flatten()
             numpy_arr = storage.to_numpy(zero_copy_only=zero_copy_only)
-            numpy_arr = numpy_arr.reshape(len(self) - len(null_indices), *self.type.shape)
+            numpy_arr = numpy_arr.reshape(
+                len(self) - len(null_indices), *self.type.shape
+            )
 
             if len(null_indices):
-                numpy_arr = np.insert(numpy_arr.astype(np.float64), null_indices, np.nan, axis=0)
+                numpy_arr = np.insert(
+                    numpy_arr.astype(np.float64), null_indices, np.nan, axis=0
+                )
 
         else:
             shape = self.type.shape
@@ -834,7 +930,9 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
 
     def __from_arrow__(self, array: Union[pa.Array, pa.ChunkedArray]):
         if isinstance(array, pa.ChunkedArray):
-            array = array.type.wrap_array(pa.concat_arrays([chunk.storage for chunk in array.chunks]))
+            array = array.type.wrap_array(
+                pa.concat_arrays([chunk.storage for chunk in array.chunks])
+            )
         zero_copy_only = _is_zero_copy_only(array.storage.type, unnest=True)
         numpy_arr = array.to_numpy(zero_copy_only=zero_copy_only)
         return PandasArrayExtensionArray(numpy_arr)
@@ -890,21 +988,32 @@ class PandasArrayExtensionArray(PandasExtensionArray):
 
     @classmethod
     def _from_sequence(
-        cls, scalars, dtype: Optional[PandasArrayExtensionDtype] = None, copy: bool = False
+        cls,
+        scalars,
+        dtype: Optional[PandasArrayExtensionDtype] = None,
+        copy: bool = False,
     ) -> "PandasArrayExtensionArray":
         if len(scalars) > 1 and all(
-            isinstance(x, np.ndarray) and x.shape == scalars[0].shape and x.dtype == scalars[0].dtype for x in scalars
+            isinstance(x, np.ndarray)
+            and x.shape == scalars[0].shape
+            and x.dtype == scalars[0].dtype
+            for x in scalars
         ):
-            data = np.array(scalars, dtype=dtype if dtype is None else dtype.value_type, copy=copy)
+            data = np.array(
+                scalars, dtype=dtype if dtype is None else dtype.value_type, copy=copy
+            )
         else:
             data = np.empty(len(scalars), dtype=object)
             data[:] = scalars
         return cls(data, copy=copy)
 
     @classmethod
-    def _concat_same_type(cls, to_concat: Sequence_["PandasArrayExtensionArray"]) -> "PandasArrayExtensionArray":
+    def _concat_same_type(
+        cls, to_concat: Sequence_["PandasArrayExtensionArray"]
+    ) -> "PandasArrayExtensionArray":
         if len(to_concat) > 1 and all(
-            va._data.shape == to_concat[0]._data.shape and va._data.dtype == to_concat[0]._data.dtype
+            va._data.shape == to_concat[0]._data.shape
+            and va._data.dtype == to_concat[0]._data.dtype
             for va in to_concat
         ):
             data = np.vstack([va._data for va in to_concat])
@@ -927,7 +1036,9 @@ class PandasArrayExtensionArray(PandasExtensionArray):
     def __setitem__(self, key: Union[int, slice, np.ndarray], value: Any) -> None:
         raise NotImplementedError()
 
-    def __getitem__(self, item: Union[int, slice, np.ndarray]) -> Union[np.ndarray, "PandasArrayExtensionArray"]:
+    def __getitem__(
+        self, item: Union[int, slice, np.ndarray]
+    ) -> Union[np.ndarray, "PandasArrayExtensionArray"]:
         if isinstance(item, int):
             return self._data[item]
         return PandasArrayExtensionArray(self._data[item], copy=False)
@@ -938,17 +1049,25 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         indices: np.ndarray = np.asarray(indices, dtype=int)
         if allow_fill:
             fill_value = (
-                self.dtype.na_value if fill_value is None else np.asarray(fill_value, dtype=self.dtype.value_type)
+                self.dtype.na_value
+                if fill_value is None
+                else np.asarray(fill_value, dtype=self.dtype.value_type)
             )
             mask = indices == -1
             if (indices < -1).any():
-                raise ValueError("Invalid value in `indices`, must be all >= -1 for `allow_fill` is True")
+                raise ValueError(
+                    "Invalid value in `indices`, must be all >= -1 for `allow_fill` is True"
+                )
             elif len(self) > 0:
                 pass
             elif not np.all(mask):
-                raise IndexError("Invalid take for empty PandasArrayExtensionArray, must be all -1.")
+                raise IndexError(
+                    "Invalid take for empty PandasArrayExtensionArray, must be all -1."
+                )
             else:
-                data = np.array([fill_value] * len(indices), dtype=self.dtype.value_type)
+                data = np.array(
+                    [fill_value] * len(indices), dtype=self.dtype.value_type
+                )
                 return PandasArrayExtensionArray(data, copy=False)
         took = self._data.take(indices, axis=0)
         if allow_fill and mask.any():
@@ -1001,9 +1120,13 @@ class ClassLabel:
     ```
     """
 
-    num_classes: InitVar[Optional[int]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
+    num_classes: InitVar[Optional[int]] = (
+        None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
+    )
     names: list[str] = None
-    names_file: InitVar[Optional[str]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
+    names_file: InitVar[Optional[str]] = (
+        None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
+    )
     id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     dtype: ClassVar[str] = "int64"
@@ -1024,7 +1147,9 @@ class ClassLabel:
             elif self.num_classes is not None:
                 self.names = [str(i) for i in range(self.num_classes)]
             else:
-                raise ValueError("Please provide either num_classes, names or names_file.")
+                raise ValueError(
+                    "Please provide either num_classes, names or names_file."
+                )
         elif not isinstance(self.names, SequenceABC):
             raise TypeError(f"Please provide names as a list, is {type(self.names)}")
         # Set self.num_classes
@@ -1039,7 +1164,9 @@ class ClassLabel:
         self._int2str = [str(name) for name in self.names]
         self._str2int = {name: i for i, name in enumerate(self._int2str)}
         if len(self._int2str) != len(self._str2int):
-            raise ValueError("Some label names are duplicated. Each label name should be unique.")
+            raise ValueError(
+                "Some label names are duplicated. Each label name should be unique."
+            )
 
     def __call__(self):
         return self.pa_type
@@ -1132,10 +1259,14 @@ class ClassLabel:
 
         # Allowing -1 to mean no label.
         if not -1 <= example_data < self.num_classes:
-            raise ValueError(f"Class label {example_data:d} greater than configured num_classes {self.num_classes}")
+            raise ValueError(
+                f"Class label {example_data:d} greater than configured num_classes {self.num_classes}"
+            )
         return example_data
 
-    def cast_storage(self, storage: Union[pa.StringArray, pa.IntegerArray]) -> pa.Int64Array:
+    def cast_storage(
+        self, storage: Union[pa.StringArray, pa.IntegerArray]
+    ) -> pa.Int64Array:
         """Cast an Arrow array to the `ClassLabel` arrow storage type.
         The Arrow types that can be converted to the `ClassLabel` pyarrow storage type are:
 
@@ -1157,14 +1288,19 @@ class ClassLabel:
                 )
         elif isinstance(storage, pa.StringArray):
             storage = pa.array(
-                [self._strval2int(label) if label is not None else None for label in storage.to_pylist()]
+                [
+                    self._strval2int(label) if label is not None else None
+                    for label in storage.to_pylist()
+                ]
             )
         return array_cast(storage, self.pa_type)
 
     @staticmethod
     def _load_names_from_file(names_filepath):
         with open(names_filepath, encoding="utf-8") as f:
-            return [name.strip() for name in f.read().split("\n") if name.strip()]  # Filter empty names
+            return [
+                name.strip() for name in f.read().split("\n") if name.strip()
+            ]  # Filter empty names
 
 
 class Sequence:
@@ -1194,7 +1330,10 @@ class Sequence:
             and isinstance(feature, dict)
             and any(not isinstance(subfeature, List) for subfeature in feature.values())
         ):
-            out = {key: List(value, length=length, **kwargs) for key, value in feature.items()}
+            out = {
+                key: List(value, length=length, **kwargs)
+                for key, value in feature.items()
+            }
         else:
             out = super().__new__(List)
         return out
@@ -1270,14 +1409,18 @@ FeatureType = Union[
 ]
 
 
-def _check_non_null_non_empty_recursive(obj, schema: Optional[FeatureType] = None) -> bool:
+def _check_non_null_non_empty_recursive(
+    obj, schema: Optional[FeatureType] = None
+) -> bool:
     """
     Check if the object is not None.
     If the object is a list or a tuple, recursively check the first element of the sequence and stop if at any point the first element is not a sequence or is an empty sequence.
     """
     if obj is None:
         return False
-    elif isinstance(obj, (list, tuple)) and (schema is None or isinstance(schema, (list, tuple, LargeList, List))):
+    elif isinstance(obj, (list, tuple)) and (
+        schema is None or isinstance(schema, (list, tuple, LargeList, List))
+    ):
         if len(obj) > 0:
             if schema is None:
                 pass
@@ -1311,7 +1454,9 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
         )  # however don't sort on struct types since the order matters
     elif isinstance(schema, (list, tuple)):
         if len(schema) != 1:
-            raise ValueError("When defining list feature, you should just provide one example of the inner type")
+            raise ValueError(
+                "When defining list feature, you should just provide one example of the inner type"
+            )
         value_type = get_nested_type(schema[0])
         return pa.list_(value_type)
     elif isinstance(schema, LargeList):
@@ -1337,7 +1482,10 @@ def encode_nested_example(schema, obj, level=0):
         if level == 0 and obj is None:
             raise ValueError("Got None but expected a dictionary instead")
         return (
-            {k: encode_nested_example(schema[k], obj.get(k), level=level + 1) for k in schema}
+            {
+                k: encode_nested_example(schema[k], obj.get(k), level=level + 1)
+                for k in schema
+            }
             if obj is not None
             else None
         )
@@ -1351,11 +1499,17 @@ def encode_nested_example(schema, obj, level=0):
                     if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
                         break
                 try:
-                    changed = bool(encode_nested_example(sub_schema, first_elmt, level=level + 1) != first_elmt)
+                    changed = bool(
+                        encode_nested_example(sub_schema, first_elmt, level=level + 1)
+                        != first_elmt
+                    )
                 except ValueError:  # can happen when comparing arrays
                     changed = False
                 if changed:
-                    return [encode_nested_example(sub_schema, o, level=level + 1) for o in obj]
+                    return [
+                        encode_nested_example(sub_schema, o, level=level + 1)
+                        for o in obj
+                    ]
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
@@ -1365,7 +1519,9 @@ def encode_nested_example(schema, obj, level=0):
     return obj
 
 
-def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
+def decode_nested_example(
+    schema, obj, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None
+):
     """Decode a nested example.
     This is used since some features (in particular Audio and Image) have some logic during decoding.
 
@@ -1375,7 +1531,10 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Uni
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
         return (
-            {k: decode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in zip_dict(schema, obj)}
+            {
+                k: decode_nested_example(sub_schema, sub_obj)
+                for k, (sub_schema, sub_obj) in zip_dict(schema, obj)
+            }
             if obj is not None
             else None
         )
@@ -1406,7 +1565,11 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Uni
     # Object with special decoding:
     elif hasattr(schema, "decode_example") and getattr(schema, "decode", True):
         # we pass the token to read and decode files from private repositories in streaming mode
-        return schema.decode_example(obj, token_per_repo_id=token_per_repo_id) if obj is not None else None
+        return (
+            schema.decode_example(obj, token_per_repo_id=token_per_repo_id)
+            if obj is not None
+            else None
+        )
     return obj
 
 
@@ -1466,7 +1629,9 @@ def generate_from_dict(obj: Any):
     class_type = _FEATURE_TYPES.get(_type, None) or globals().get(_type, None)
 
     if class_type is None:
-        raise ValueError(f"Feature type '{_type}' not found. Available feature types: {list(_FEATURE_TYPES.keys())}")
+        raise ValueError(
+            f"Feature type '{_type}' not found. Available feature types: {list(_FEATURE_TYPES.keys())}"
+        )
 
     if class_type == LargeList:
         feature = obj.pop("feature")
@@ -1474,7 +1639,9 @@ def generate_from_dict(obj: Any):
     if class_type == List:
         feature = obj.pop("feature")
         return List(generate_from_dict(feature), **obj)
-    if class_type == Sequence:  # backward compatibility, this translates to a List or a dict
+    if (
+        class_type == Sequence
+    ):  # backward compatibility, this translates to a List or a dict
         feature = obj.pop("feature")
         return Sequence(feature=generate_from_dict(feature), **obj)
 
@@ -1495,7 +1662,9 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
     if isinstance(pa_type, pa.StructType):
         return {field.name: generate_from_arrow_type(field.type) for field in pa_type}
     elif isinstance(pa_type, pa.FixedSizeListType):
-        return List(generate_from_arrow_type(pa_type.value_type), length=pa_type.list_size)
+        return List(
+            generate_from_arrow_type(pa_type.value_type), length=pa_type.list_size
+        )
     elif isinstance(pa_type, pa.ListType):
         return List(generate_from_arrow_type(pa_type.value_type))
     elif isinstance(pa_type, pa.LargeListType):
@@ -1509,7 +1678,9 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
         raise ValueError(f"Cannot convert {pa_type} to a Feature type.")
 
 
-def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.ListArray:
+def numpy_to_pyarrow_listarray(
+    arr: np.ndarray, type: pa.DataType = None
+) -> pa.ListArray:
     """Build a PyArrow ListArray from a multidimensional NumPy array"""
     arr = np.array(arr)
     values = pa.array(arr.flatten(), type=type)
@@ -1521,7 +1692,9 @@ def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.
     return values
 
 
-def list_of_pa_arrays_to_pyarrow_listarray(l_arr: list[Optional[pa.Array]]) -> pa.ListArray:
+def list_of_pa_arrays_to_pyarrow_listarray(
+    l_arr: list[Optional[pa.Array]],
+) -> pa.ListArray:
     null_mask = np.array([arr is None for arr in l_arr])
     null_indices = np.arange(len(null_mask))[null_mask] - np.arange(np.sum(null_mask))
     l_arr = [arr for arr in l_arr if arr is not None]
@@ -1534,11 +1707,16 @@ def list_of_pa_arrays_to_pyarrow_listarray(l_arr: list[Optional[pa.Array]]) -> p
     return pa.ListArray.from_arrays(offsets, values)
 
 
-def list_of_np_array_to_pyarrow_listarray(l_arr: list[np.ndarray], type: pa.DataType = None) -> pa.ListArray:
+def list_of_np_array_to_pyarrow_listarray(
+    l_arr: list[np.ndarray], type: pa.DataType = None
+) -> pa.ListArray:
     """Build a PyArrow ListArray from a possibly nested list of NumPy arrays"""
     if len(l_arr) > 0:
         return list_of_pa_arrays_to_pyarrow_listarray(
-            [numpy_to_pyarrow_listarray(arr, type=type) if arr is not None else None for arr in l_arr]
+            [
+                numpy_to_pyarrow_listarray(arr, type=type) if arr is not None else None
+                for arr in l_arr
+            ]
         )
     else:
         return pa.array([], type=type)
@@ -1561,7 +1739,9 @@ def contains_any_np_array(data: Any):
         return False
 
 
-def any_np_array_to_pyarrow_listarray(data: Union[np.ndarray, list], type: pa.DataType = None) -> pa.ListArray:
+def any_np_array_to_pyarrow_listarray(
+    data: Union[np.ndarray, list], type: pa.DataType = None
+) -> pa.ListArray:
     """Convert to PyArrow ListArray either a NumPy ndarray or (recursively) a list that may contain any NumPy ndarray.
 
     Args:
@@ -1574,7 +1754,9 @@ def any_np_array_to_pyarrow_listarray(data: Union[np.ndarray, list], type: pa.Da
     if isinstance(data, np.ndarray):
         return numpy_to_pyarrow_listarray(data, type=type)
     elif isinstance(data, list):
-        return list_of_pa_arrays_to_pyarrow_listarray([any_np_array_to_pyarrow_listarray(i, type=type) for i in data])
+        return list_of_pa_arrays_to_pyarrow_listarray(
+            [any_np_array_to_pyarrow_listarray(i, type=type) for i in data]
+        )
 
 
 def to_pyarrow_listarray(data: Any, pa_type: _ArrayXDExtensionType) -> pa.Array:
@@ -1593,7 +1775,9 @@ def to_pyarrow_listarray(data: Any, pa_type: _ArrayXDExtensionType) -> pa.Array:
         return pa.array(data, pa_type.storage_dtype)
 
 
-def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureType]]) -> FeatureType:
+def _visit(
+    feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureType]]
+) -> FeatureType:
     """Visit a (possibly nested) feature.
 
     Args:
@@ -1618,7 +1802,9 @@ _VisitPath = list[Union[str, Literal[0]]]
 
 
 def _visit_with_path(
-    feature: FeatureType, func: Callable[[FeatureType, _VisitPath], Optional[FeatureType]], visit_path: _VisitPath = []
+    feature: FeatureType,
+    func: Callable[[FeatureType, _VisitPath], Optional[FeatureType]],
+    visit_path: _VisitPath = [],
 ) -> FeatureType:
     """Visit a (possibly nested) feature with its path in the Feature object.
 
@@ -1637,19 +1823,44 @@ def _visit_with_path(
         `FeatureType`: the visited feature.
     """
     if isinstance(feature, Features):
-        out = func(Features({k: _visit_with_path(f, func, visit_path + [k]) for k, f in feature.items()}), visit_path)
+        out = func(
+            Features(
+                {
+                    k: _visit_with_path(f, func, visit_path + [k])
+                    for k, f in feature.items()
+                }
+            ),
+            visit_path,
+        )
     elif isinstance(feature, dict):
-        out = func({k: _visit_with_path(f, func, visit_path + [k]) for k, f in feature.items()}, visit_path)
+        out = func(
+            {
+                k: _visit_with_path(f, func, visit_path + [k])
+                for k, f in feature.items()
+            },
+            visit_path,
+        )
     elif isinstance(feature, List):
-        out = func(List(_visit_with_path(feature.feature, func, visit_path + [0]), length=feature.length), visit_path)
+        out = func(
+            List(
+                _visit_with_path(feature.feature, func, visit_path + [0]),
+                length=feature.length,
+            ),
+            visit_path,
+        )
     elif isinstance(feature, LargeList):
-        out = func(LargeList(_visit_with_path(feature.feature, func, visit_path + [0])), visit_path)
+        out = func(
+            LargeList(_visit_with_path(feature.feature, func, visit_path + [0])),
+            visit_path,
+        )
     else:
         out = func(feature, visit_path)
     return feature if out is None else out
 
 
-def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False) -> bool:
+def require_decoding(
+    feature: FeatureType, ignore_decode_attribute: bool = False
+) -> bool:
     """Check if a (possibly nested) feature requires decoding.
 
     Args:
@@ -1724,7 +1935,9 @@ def keep_features_dicts_synced(func):
             self: "Features" = kwargs.pop("self")
         out = func(self, *args, **kwargs)
         assert hasattr(self, "_column_requires_decoding")
-        self._column_requires_decoding = {col: require_decoding(feature) for col, feature in self.items()}
+        self._column_requires_decoding = {
+            col: require_decoding(feature) for col, feature in self.items()
+        }
         return out
 
     wrapper._decorator_name_ = "_keep_dicts_synced"
@@ -1764,7 +1977,9 @@ class Features(dict):
     def __init__(*args, **kwargs):
         # self not in the signature to allow passing self as a kwarg
         if not args:
-            raise TypeError("descriptor '__init__' of 'Features' object needs an argument")
+            raise TypeError(
+                "descriptor '__init__' of 'Features' object needs an argument"
+            )
         self, *args = args
         super(Features, self).__init__(*args, **kwargs)
         # keep track of columns which require decoding
@@ -1811,7 +2026,9 @@ class Features(dict):
             :obj:`pyarrow.Schema`
         """
         hf_metadata = {"info": {"features": self.to_dict()}}
-        return pa.schema(self.type).with_metadata({"huggingface": json.dumps(hf_metadata)})
+        return pa.schema(self.type).with_metadata(
+            {"huggingface": json.dumps(hf_metadata)}
+        )
 
     @classmethod
     def from_arrow_schema(cls, pa_schema: pa.Schema) -> "Features":
@@ -1834,13 +2051,18 @@ class Features(dict):
         metadata_features = Features()
         if pa_schema.metadata is not None and b"huggingface" in pa_schema.metadata:
             metadata = json.loads(pa_schema.metadata[b"huggingface"].decode())
-            if "info" in metadata and "features" in metadata["info"] and metadata["info"]["features"] is not None:
+            if (
+                "info" in metadata
+                and "features" in metadata["info"]
+                and metadata["info"]["features"] is not None
+            ):
                 metadata_features = Features.from_dict(metadata["info"]["features"])
         metadata_features_schema = metadata_features.arrow_schema
         obj = {
             field.name: (
                 metadata_features[field.name]
-                if field.name in metadata_features and metadata_features_schema.field(field.name) == field
+                if field.name in metadata_features
+                and metadata_features_schema.field(field.name) == field
                 else generate_from_arrow_type(field.type)
             )
             for field in pa_schema
@@ -1892,7 +2114,9 @@ class Features(dict):
                 # list_type:                ->              list_type: int32
                 #   dtype: int32            ->
                 #
-                if isinstance(feature.get(list_type), dict) and list(feature[list_type]) == ["dtype"]:
+                if isinstance(feature.get(list_type), dict) and list(
+                    feature[list_type]
+                ) == ["dtype"]:
                     feature[list_type] = feature[list_type]["dtype"]
 
                 #
@@ -1901,7 +2125,9 @@ class Features(dict):
                 #   - name: foo             ->                dtype: int32
                 #     dtype: int32          ->
                 #
-                if isinstance(feature.get(list_type), dict) and list(feature[list_type]) == ["struct"]:
+                if isinstance(feature.get(list_type), dict) and list(
+                    feature[list_type]
+                ) == ["struct"]:
                     feature[list_type] = feature[list_type]["struct"]
 
             #
@@ -1910,10 +2136,15 @@ class Features(dict):
             #   - negative              ->                  '0': negative
             #   - positive              ->                  '1': positive
             #
-            if isinstance(feature.get("class_label"), dict) and isinstance(feature["class_label"].get("names"), list):
+            if isinstance(feature.get("class_label"), dict) and isinstance(
+                feature["class_label"].get("names"), list
+            ):
                 # server-side requirement: keys must be strings
                 feature["class_label"]["names"] = {
-                    str(label_id): label_name for label_id, label_name in enumerate(feature["class_label"]["names"])
+                    str(label_id): label_name
+                    for label_id, label_name in enumerate(
+                        feature["class_label"]["names"]
+                    )
                 }
             return feature
 
@@ -1933,7 +2164,12 @@ class Features(dict):
                 elif _type:
                     return {"dtype": simplify({camelcase_to_snakecase(_type): obj})}
                 else:
-                    return {"struct": [{"name": name, **to_yaml_inner(_feature)} for name, _feature in obj.items()]}
+                    return {
+                        "struct": [
+                            {"name": name, **to_yaml_inner(_feature)}
+                            for name, _feature in obj.items()
+                        ]
+                    }
             elif isinstance(obj, list):
                 return simplify({"list": simplify(to_yaml_inner(obj[0]))})
             elif isinstance(obj, tuple):
@@ -1977,13 +2213,19 @@ class Features(dict):
             #     '0': negative              ->               - negative
             #     '1': positive              ->               - positive
             #
-            if isinstance(feature.get("class_label"), dict) and isinstance(feature["class_label"].get("names"), dict):
+            if isinstance(feature.get("class_label"), dict) and isinstance(
+                feature["class_label"].get("names"), dict
+            ):
                 label_ids = sorted(feature["class_label"]["names"], key=int)
-                if label_ids and [int(label_id) for label_id in label_ids] != list(range(int(label_ids[-1]) + 1)):
+                if label_ids and [int(label_id) for label_id in label_ids] != list(
+                    range(int(label_ids[-1]) + 1)
+                ):
                     raise ValueError(
                         f"ClassLabel expected a value for all label ids [0:{int(label_ids[-1]) + 1}] but some ids are missing."
                     )
-                feature["class_label"]["names"] = [feature["class_label"]["names"][label_id] for label_id in label_ids]
+                feature["class_label"]["names"] = [
+                    feature["class_label"]["names"][label_id] for label_id in label_ids
+                ]
             return feature
 
         def from_yaml_inner(obj: Union[dict, list]) -> Union[dict, list]:
@@ -2021,10 +2263,16 @@ class Features(dict):
                     else:
                         return from_yaml_inner(obj["dtype"])
                 else:
-                    return {"_type": snakecase_to_camelcase(_type), **unsimplify(obj)[_type]}
+                    return {
+                        "_type": snakecase_to_camelcase(_type),
+                        **unsimplify(obj)[_type],
+                    }
             elif isinstance(obj, list):
                 names = [_feature.pop("name") for _feature in obj]
-                return {name: from_yaml_inner(_feature) for name, _feature in zip(names, obj)}
+                return {
+                    name: from_yaml_inner(_feature)
+                    for name, _feature in zip(names, obj)
+                }
             else:
                 raise TypeError(f"Expected a dict or a list but got {type(obj)}: {obj}")
 
@@ -2058,7 +2306,9 @@ class Features(dict):
             `list[Any]`
         """
         column = cast_to_python_objects(column)
-        return [encode_nested_example(self[column_name], obj, level=1) for obj in column]
+        return [
+            encode_nested_example(self[column_name], obj, level=1) for obj in column
+        ]
 
     def encode_batch(self, batch):
         """
@@ -2073,13 +2323,21 @@ class Features(dict):
         """
         encoded_batch = {}
         if set(batch) != set(self):
-            raise ValueError(f"Column mismatch between batch {set(batch)} and features {set(self)}")
+            raise ValueError(
+                f"Column mismatch between batch {set(batch)} and features {set(self)}"
+            )
         for key, column in batch.items():
             column = cast_to_python_objects(column)
-            encoded_batch[key] = [encode_nested_example(self[key], obj, level=1) for obj in column]
+            encoded_batch[key] = [
+                encode_nested_example(self[key], obj, level=1) for obj in column
+            ]
         return encoded_batch
 
-    def decode_example(self, example: dict, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
+    def decode_example(
+        self,
+        example: dict,
+        token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None,
+    ):
         """Decode example with custom feature decoding.
 
         Args:
@@ -2094,16 +2352,23 @@ class Features(dict):
         """
 
         return {
-            column_name: decode_nested_example(feature, value, token_per_repo_id=token_per_repo_id)
-            if self._column_requires_decoding[column_name]
-            else value
+            column_name: (
+                decode_nested_example(
+                    feature, value, token_per_repo_id=token_per_repo_id
+                )
+                if self._column_requires_decoding[column_name]
+                else value
+            )
             for column_name, (feature, value) in zip_dict(
                 {key: value for key, value in self.items() if key in example}, example
             )
         }
 
     def decode_column(
-        self, column: list, column_name: str, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None
+        self,
+        column: list,
+        column_name: str,
+        token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None,
     ):
         """Decode column with custom feature decoding.
 
@@ -2118,16 +2383,24 @@ class Features(dict):
         """
         return (
             [
-                decode_nested_example(self[column_name], value, token_per_repo_id=token_per_repo_id)
-                if value is not None
-                else None
+                (
+                    decode_nested_example(
+                        self[column_name], value, token_per_repo_id=token_per_repo_id
+                    )
+                    if value is not None
+                    else None
+                )
                 for value in column
             ]
             if self._column_requires_decoding[column_name]
             else column
         )
 
-    def decode_batch(self, batch: dict, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
+    def decode_batch(
+        self,
+        batch: dict,
+        token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None,
+    ):
         """Decode batch with custom feature decoding.
 
         Args:
@@ -2144,9 +2417,15 @@ class Features(dict):
         for column_name, column in batch.items():
             decoded_batch[column_name] = (
                 [
-                    decode_nested_example(self[column_name], value, token_per_repo_id=token_per_repo_id)
-                    if value is not None
-                    else None
+                    (
+                        decode_nested_example(
+                            self[column_name],
+                            value,
+                            token_per_repo_id=token_per_repo_id,
+                        )
+                        if value is not None
+                        else None
+                    )
                     for value in column
                 ]
                 if self._column_requires_decoding[column_name]
@@ -2205,23 +2484,40 @@ class Features(dict):
             stack_position = " at " + stack[1:] if stack else ""
             if isinstance(source, dict):
                 if not isinstance(target, dict):
-                    raise ValueError(f"Type mismatch: between {source} and {target}" + stack_position)
+                    raise ValueError(
+                        f"Type mismatch: between {source} and {target}" + stack_position
+                    )
                 if sorted(source) != sorted(target):
                     message = (
                         f"Keys mismatch: between {source} (source) and {target} (target).\n"
                         f"{source.keys() - target.keys()} are missing from target "
-                        f"and {target.keys() - source.keys()} are missing from source" + stack_position
+                        f"and {target.keys() - source.keys()} are missing from source"
+                        + stack_position
                     )
                     raise ValueError(message)
-                return {key: recursive_reorder(source[key], target[key], stack + f".{key}") for key in target}
+                return {
+                    key: recursive_reorder(source[key], target[key], stack + f".{key}")
+                    for key in target
+                }
             elif isinstance(source, List):
                 if not isinstance(target, List):
-                    raise ValueError(f"Type mismatch: between {source} and {target}" + stack_position)
-                return List(recursive_reorder(source.feature, target.feature, stack + ".<list>"), length=source.length)
+                    raise ValueError(
+                        f"Type mismatch: between {source} and {target}" + stack_position
+                    )
+                return List(
+                    recursive_reorder(
+                        source.feature, target.feature, stack + ".<list>"
+                    ),
+                    length=source.length,
+                )
             elif isinstance(source, LargeList):
                 if not isinstance(target, LargeList):
-                    raise ValueError(f"Type mismatch: between {source} and {target}" + stack_position)
-                return LargeList(recursive_reorder(source.feature, target.feature, stack + ".<list>"))
+                    raise ValueError(
+                        f"Type mismatch: between {source} and {target}" + stack_position
+                    )
+                return LargeList(
+                    recursive_reorder(source.feature, target.feature, stack + ".<list>")
+                )
             else:
                 return source
 
@@ -2259,11 +2555,21 @@ class Features(dict):
             for column_name, subfeature in self.items():
                 if isinstance(subfeature, dict):
                     no_change = False
-                    flattened.update({f"{column_name}.{k}": v for k, v in subfeature.items()})
+                    flattened.update(
+                        {f"{column_name}.{k}": v for k, v in subfeature.items()}
+                    )
                     del flattened[column_name]
-                elif hasattr(subfeature, "flatten") and subfeature.flatten() != subfeature:
+                elif (
+                    hasattr(subfeature, "flatten")
+                    and subfeature.flatten() != subfeature
+                ):
                     no_change = False
-                    flattened.update({f"{column_name}.{k}": v for k, v in subfeature.flatten().items()})
+                    flattened.update(
+                        {
+                            f"{column_name}.{k}": v
+                            for k, v in subfeature.flatten().items()
+                        }
+                    )
                     del flattened[column_name]
             self = flattened
             if no_change:
@@ -2279,10 +2585,15 @@ def _align_features(features_list: list[Features]) -> list[Features]:
             if k in name2feature and isinstance(v, dict):
                 # Recursively align features.
                 name2feature[k] = _align_features([name2feature[k], v])[0]
-            elif k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
+            elif k not in name2feature or (
+                isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"
+            ):
                 name2feature[k] = v
 
-    return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
+    return [
+        Features({k: name2feature[k] for k in features.keys()})
+        for features in features_list
+    ]
 
 
 def _check_if_features_can_be_aligned(features_list: list[Features]):
@@ -2293,7 +2604,9 @@ def _check_if_features_can_be_aligned(features_list: list[Features]):
     name2feature = {}
     for features in features_list:
         for k, v in features.items():
-            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
+            if k not in name2feature or (
+                isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"
+            ):
                 name2feature[k] = v
 
     for features in features_list:
@@ -2301,7 +2614,10 @@ def _check_if_features_can_be_aligned(features_list: list[Features]):
             if isinstance(v, dict) and isinstance(name2feature[k], dict):
                 # Deep checks for structure.
                 _check_if_features_can_be_aligned([name2feature[k], v])
-            elif not (isinstance(v, Value) and v.dtype == "null") and name2feature[k] != v:
+            elif (
+                not (isinstance(v, Value) and v.dtype == "null")
+                and name2feature[k] != v
+            ):
                 raise ValueError(
                     f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
                 )

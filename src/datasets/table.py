@@ -21,7 +21,9 @@ logger = get_logger(__name__)
 
 def inject_arrow_table_documentation(arrow_table_method):
     def wrapper(fn):
-        fn.__doc__ = arrow_table_method.__doc__ + (fn.__doc__ if fn.__doc__ is not None else "")
+        fn.__doc__ = arrow_table_method.__doc__ + (
+            fn.__doc__ if fn.__doc__ is not None else ""
+        )
         fn.__doc__ = fn.__doc__.replace("pyarrow.Table", "Table")
         if hasattr(arrow_table_method, "__annotations__"):
             fn.__annotations__ = arrow_table_method.__annotations__
@@ -44,7 +46,9 @@ def _in_memory_arrow_table_from_buffer(buffer: pa.Buffer) -> pa.Table:
     return table
 
 
-def _memory_mapped_record_batch_reader_from_file(filename: str) -> pa.RecordBatchStreamReader:
+def _memory_mapped_record_batch_reader_from_file(
+    filename: str,
+) -> pa.RecordBatchStreamReader:
     memory_mapped_stream = pa.memory_map(filename)
     return pa.ipc.open_stream(memory_mapped_stream)
 
@@ -107,7 +111,9 @@ class IndexedTableMixin:
         self._batches: list[pa.RecordBatch] = [
             recordbatch for recordbatch in table.to_batches() if len(recordbatch) > 0
         ]
-        self._offsets: np.ndarray = np.cumsum([0] + [len(b) for b in self._batches], dtype=np.int64)
+        self._offsets: np.ndarray = np.cumsum(
+            [0] + [len(b) for b in self._batches], dtype=np.int64
+        )
 
     def fast_gather(self, indices: Union[list[int], np.ndarray]) -> pa.Table:
         """
@@ -1007,7 +1013,9 @@ class MemoryMappedTable(TableBlock):
     stay low.
     """
 
-    def __init__(self, table: pa.Table, path: str, replays: Optional[list[Replay]] = None):
+    def __init__(
+        self, table: pa.Table, path: str, replays: Optional[list[Replay]] = None
+    ):
         super().__init__(table)
         self.path = os.path.abspath(path)
         self.replays: list[Replay] = replays if replays is not None else []
@@ -1029,7 +1037,9 @@ class MemoryMappedTable(TableBlock):
         MemoryMappedTable.__init__(self, table, path=path, replays=replays)
 
     @staticmethod
-    def _apply_replays(table: pa.Table, replays: Optional[list[Replay]] = None) -> pa.Table:
+    def _apply_replays(
+        table: pa.Table, replays: Optional[list[Replay]] = None
+    ) -> pa.Table:
         if replays is not None:
             for name, args, kwargs in replays:
                 if name == "cast":
@@ -1062,7 +1072,9 @@ class MemoryMappedTable(TableBlock):
         replay = ("slice", (offset, length), {})
         replays = self._append_replay(replay)
         # Use fast slicing here
-        return MemoryMappedTable(self.fast_slice(offset=offset, length=length), self.path, replays)
+        return MemoryMappedTable(
+            self.fast_slice(offset=offset, length=length), self.path, replays
+        )
 
     def filter(self, *args, **kwargs):
         """
@@ -1086,7 +1098,9 @@ class MemoryMappedTable(TableBlock):
         """
         replay = ("flatten", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
-        return MemoryMappedTable(table_flatten(self.table, *args, **kwargs), self.path, replays)
+        return MemoryMappedTable(
+            table_flatten(self.table, *args, **kwargs), self.path, replays
+        )
 
     def combine_chunks(self, *args, **kwargs):
         """
@@ -1104,7 +1118,9 @@ class MemoryMappedTable(TableBlock):
         """
         replay = ("combine_chunks", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
-        return MemoryMappedTable(self.table.combine_chunks(*args, **kwargs), self.path, replays)
+        return MemoryMappedTable(
+            self.table.combine_chunks(*args, **kwargs), self.path, replays
+        )
 
     def cast(self, *args, **kwargs):
         """
@@ -1121,7 +1137,9 @@ class MemoryMappedTable(TableBlock):
         """
         replay = ("cast", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
-        return MemoryMappedTable(table_cast(self.table, *args, **kwargs), self.path, replays)
+        return MemoryMappedTable(
+            table_cast(self.table, *args, **kwargs), self.path, replays
+        )
 
     def replace_schema_metadata(self, *args, **kwargs):
         """
@@ -1137,7 +1155,9 @@ class MemoryMappedTable(TableBlock):
         """
         replay = ("replace_schema_metadata", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
-        return MemoryMappedTable(self.table.replace_schema_metadata(*args, **kwargs), self.path, replays)
+        return MemoryMappedTable(
+            self.table.replace_schema_metadata(*args, **kwargs), self.path, replays
+        )
 
     def add_column(self, *args, **kwargs):
         """
@@ -1160,7 +1180,9 @@ class MemoryMappedTable(TableBlock):
         """
         replay = ("add_column", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
-        return MemoryMappedTable(self.table.add_column(*args, **kwargs), self.path, replays)
+        return MemoryMappedTable(
+            self.table.add_column(*args, **kwargs), self.path, replays
+        )
 
     def append_column(self, *args, **kwargs):
         """
@@ -1179,7 +1201,9 @@ class MemoryMappedTable(TableBlock):
         """
         replay = ("append_column", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
-        return MemoryMappedTable(self.table.append_column(*args, **kwargs), self.path, replays)
+        return MemoryMappedTable(
+            self.table.append_column(*args, **kwargs), self.path, replays
+        )
 
     def remove_column(self, *args, **kwargs):
         """
@@ -1195,7 +1219,9 @@ class MemoryMappedTable(TableBlock):
         """
         replay = ("remove_column", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
-        return MemoryMappedTable(self.table.remove_column(*args, **kwargs), self.path, replays)
+        return MemoryMappedTable(
+            self.table.remove_column(*args, **kwargs), self.path, replays
+        )
 
     def set_column(self, *args, **kwargs):
         """
@@ -1216,7 +1242,9 @@ class MemoryMappedTable(TableBlock):
         """
         replay = ("set_column", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
-        return MemoryMappedTable(self.table.set_column(*args, **kwargs), self.path, replays)
+        return MemoryMappedTable(
+            self.table.set_column(*args, **kwargs), self.path, replays
+        )
 
     def rename_columns(self, *args, **kwargs):
         """
@@ -1224,7 +1252,9 @@ class MemoryMappedTable(TableBlock):
         """
         replay = ("rename_columns", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
-        return MemoryMappedTable(self.table.rename_columns(*args, **kwargs), self.path, replays)
+        return MemoryMappedTable(
+            self.table.rename_columns(*args, **kwargs), self.path, replays
+        )
 
     def drop(self, *args, **kwargs):
         """
@@ -1267,7 +1297,9 @@ class MemoryMappedTable(TableBlock):
 # The ``blocks`` attributes stores a list of list of blocks.
 # The first axis concatenates the tables along the axis 0 (it appends rows),
 # while the second axis concatenates tables along the axis 1 (it appends columns).
-TableBlockContainer = TypeVar("TableBlockContainer", TableBlock, list[TableBlock], list[list[TableBlock]])
+TableBlockContainer = TypeVar(
+    "TableBlockContainer", TableBlock, list[TableBlock], list[list[TableBlock]]
+)
 
 
 class ConcatenationTable(Table):
@@ -1324,8 +1356,12 @@ class ConcatenationTable(Table):
         ConcatenationTable.__init__(self, table, blocks=blocks)
 
     @staticmethod
-    def _concat_blocks(blocks: list[Union[TableBlock, pa.Table]], axis: int = 0) -> pa.Table:
-        pa_tables = [table.table if hasattr(table, "table") else table for table in blocks]
+    def _concat_blocks(
+        blocks: list[Union[TableBlock, pa.Table]], axis: int = 0
+    ) -> pa.Table:
+        pa_tables = [
+            table.table if hasattr(table, "table") else table for table in blocks
+        ]
         if axis == 0:
             # We set promote_options="default" to fill missing columns with null values
             return pa.concat_tables(pa_tables, promote_options="default")
@@ -1341,7 +1377,9 @@ class ConcatenationTable(Table):
             raise ValueError("'axis' must be either 0 or 1")
 
     @classmethod
-    def _concat_blocks_horizontally_and_vertically(cls, blocks: list[list[TableBlock]]) -> pa.Table:
+    def _concat_blocks_horizontally_and_vertically(
+        cls, blocks: list[list[TableBlock]]
+    ) -> pa.Table:
         pa_tables_to_concat_vertically = []
         for i, tables in enumerate(blocks):
             if not tables:
@@ -1351,18 +1389,27 @@ class ConcatenationTable(Table):
         return cls._concat_blocks(pa_tables_to_concat_vertically, axis=0)
 
     @classmethod
-    def _merge_blocks(cls, blocks: TableBlockContainer, axis: Optional[int] = None) -> TableBlockContainer:
+    def _merge_blocks(
+        cls, blocks: TableBlockContainer, axis: Optional[int] = None
+    ) -> TableBlockContainer:
         if axis is not None:
             merged_blocks = []
-            for is_in_memory, block_group in groupby(blocks, key=lambda x: isinstance(x, InMemoryTable)):
+            for is_in_memory, block_group in groupby(
+                blocks, key=lambda x: isinstance(x, InMemoryTable)
+            ):
                 if is_in_memory:
-                    block_group = [InMemoryTable(cls._concat_blocks(list(block_group), axis=axis))]
+                    block_group = [
+                        InMemoryTable(cls._concat_blocks(list(block_group), axis=axis))
+                    ]
                 merged_blocks += list(block_group)
         else:  # both
-            merged_blocks = [cls._merge_blocks(row_block, axis=1) for row_block in blocks]
+            merged_blocks = [
+                cls._merge_blocks(row_block, axis=1) for row_block in blocks
+            ]
             if all(len(row_block) == 1 for row_block in merged_blocks):
                 merged_blocks = cls._merge_blocks(
-                    [block for row_block in merged_blocks for block in row_block], axis=0
+                    [block for row_block in merged_blocks for block in row_block],
+                    axis=0,
                 )
         return merged_blocks
 
@@ -1390,7 +1437,9 @@ class ConcatenationTable(Table):
             return cls(table, blocks)
 
     @classmethod
-    def from_tables(cls, tables: list[Union[pa.Table, Table]], axis: int = 0) -> "ConcatenationTable":
+    def from_tables(
+        cls, tables: list[Union[pa.Table, Table]], axis: int = 0
+    ) -> "ConcatenationTable":
         """Create `ConcatenationTable` from list of tables.
 
         Args:
@@ -1411,9 +1460,13 @@ class ConcatenationTable(Table):
             else:
                 return [[table]]
 
-        def _slice_row_block(row_block: list[TableBlock], length: int) -> tuple[list[TableBlock], list[TableBlock]]:
+        def _slice_row_block(
+            row_block: list[TableBlock], length: int
+        ) -> tuple[list[TableBlock], list[TableBlock]]:
             sliced = [table.slice(0, length) for table in row_block]
-            remainder = [table.slice(length, len(row_block[0]) - length) for table in row_block]
+            remainder = [
+                table.slice(length, len(row_block[0]) - length) for table in row_block
+            ]
             return sliced, remainder
 
         def _split_both_like(
@@ -1440,21 +1493,29 @@ class ConcatenationTable(Table):
                 # and we replace the long row block by its remainder if necessary
                 if len(result[0][0]) > len(blocks[0][0]):
                     new_blocks.append(blocks[0])
-                    sliced, result[0] = _slice_row_block(result[0], len(blocks.pop(0)[0]))
+                    sliced, result[0] = _slice_row_block(
+                        result[0], len(blocks.pop(0)[0])
+                    )
                     new_result.append(sliced)
                 elif len(result[0][0]) < len(blocks[0][0]):
                     new_result.append(result[0])
-                    sliced, blocks[0] = _slice_row_block(blocks[0], len(result.pop(0)[0]))
+                    sliced, blocks[0] = _slice_row_block(
+                        blocks[0], len(result.pop(0)[0])
+                    )
                     new_blocks.append(sliced)
                 else:
                     new_result.append(result.pop(0))
                     new_blocks.append(blocks.pop(0))
             if result or blocks:
-                raise ValueError("Failed to concatenate on axis=1 because tables don't have the same number of rows")
+                raise ValueError(
+                    "Failed to concatenate on axis=1 because tables don't have the same number of rows"
+                )
             return new_result, new_blocks
 
         def _extend_blocks(
-            result: list[list[TableBlock]], blocks: list[list[TableBlock]], axis: int = 0
+            result: list[list[TableBlock]],
+            blocks: list[list[TableBlock]],
+            axis: int = 0,
         ) -> list[list[TableBlock]]:
             if axis == 0:
                 result.extend(blocks)
@@ -1583,8 +1644,21 @@ class ConcatenationTable(Table):
             for subtable in subtables:
                 subfields = []
                 for name in subtable.column_names:
-                    subfields.append(fields.pop(next(i for i, field in enumerate(fields) if field.name == name)))
-                subfeatures = Features({subfield.name: target_features[subfield.name] for subfield in subfields})
+                    subfields.append(
+                        fields.pop(
+                            next(
+                                i
+                                for i, field in enumerate(fields)
+                                if field.name == name
+                            )
+                        )
+                    )
+                subfeatures = Features(
+                    {
+                        subfield.name: target_features[subfield.name]
+                        for subfield in subfields
+                    }
+                )
                 subschema = subfeatures.arrow_schema
                 new_tables.append(subtable.cast(subschema, *args, **kwargs))
             blocks.append(new_tables)
@@ -1664,7 +1738,11 @@ class ConcatenationTable(Table):
         for tables in self.blocks:
             blocks.append(
                 [
-                    t.remove_column(t.column_names.index(name), *args, **kwargs) if name in t.column_names else t
+                    (
+                        t.remove_column(t.column_names.index(name), *args, **kwargs)
+                        if name in t.column_names
+                        else t
+                    )
                     for t in tables
                 ]
             )
@@ -1698,7 +1776,12 @@ class ConcatenationTable(Table):
         blocks = []
         for tables in self.blocks:
             blocks.append(
-                [t.rename_columns([names[name] for name in t.column_names], *args, **kwargs) for t in tables]
+                [
+                    t.rename_columns(
+                        [names[name] for name in t.column_names], *args, **kwargs
+                    )
+                    for t in tables
+                ]
             )
         return ConcatenationTable(table, blocks)
 
@@ -1720,7 +1803,12 @@ class ConcatenationTable(Table):
         table = self.table.drop(columns, *args, **kwargs)
         blocks = []
         for tables in self.blocks:
-            blocks.append([t.drop([c for c in columns if c in t.column_names], *args, **kwargs) for t in tables])
+            blocks.append(
+                [
+                    t.drop([c for c in columns if c in t.column_names], *args, **kwargs)
+                    for t in tables
+                ]
+            )
         return ConcatenationTable(table, blocks)
 
     def select(self, columns, *args, **kwargs):
@@ -1739,7 +1827,14 @@ class ConcatenationTable(Table):
         table = self.table.select(columns, *args, **kwargs)
         blocks = []
         for tables in self.blocks:
-            blocks.append([t.select([c for c in columns if c in t.column_names], *args, **kwargs) for t in tables])
+            blocks.append(
+                [
+                    t.select(
+                        [c for c in columns if c in t.column_names], *args, **kwargs
+                    )
+                    for t in tables
+                ]
+            )
         return ConcatenationTable(table, blocks)
 
 
@@ -1792,7 +1887,9 @@ def _wrap_for_chunked_arrays(func):
 
     def wrapper(array, *args, **kwargs):
         if isinstance(array, pa.ChunkedArray):
-            return pa.chunked_array([func(chunk, *args, **kwargs) for chunk in array.chunks])
+            return pa.chunked_array(
+                [func(chunk, *args, **kwargs) for chunk in array.chunks]
+            )
         else:
             return func(array, *args, **kwargs)
 
@@ -1801,7 +1898,9 @@ def _wrap_for_chunked_arrays(func):
 
 def _are_list_values_of_length(array: pa.ListArray, length: int) -> bool:
     """Check if all the sub-lists of a `pa.ListArray` have the specified length."""
-    return pc.all(pc.equal(array.value_lengths(), length)).as_py() or array.null_count == len(array)
+    return pc.all(
+        pc.equal(array.value_lengths(), length)
+    ).as_py() or array.null_count == len(array)
 
 
 def _combine_list_array_offsets_with_mask(array: pa.ListArray) -> pa.Array:
@@ -1810,7 +1909,9 @@ def _combine_list_array_offsets_with_mask(array: pa.ListArray) -> pa.Array:
     if array.null_count > 0:
         offsets = pa.concat_arrays(
             [
-                pc.replace_with_mask(offsets[:-1], array.is_null(), pa.nulls(len(array), pa.int32())),
+                pc.replace_with_mask(
+                    offsets[:-1], array.is_null(), pa.nulls(len(array), pa.int32())
+                ),
                 offsets[-1:],
             ]
         )
@@ -1822,7 +1923,9 @@ def _storage_type(type: pa.DataType) -> pa.DataType:
     if isinstance(type, pa.ExtensionType):
         return _storage_type(type.storage_type)
     elif isinstance(type, pa.StructType):
-        return pa.struct([pa.field(field.name, _storage_type(field.type)) for field in type])
+        return pa.struct(
+            [pa.field(field.name, _storage_type(field.type)) for field in type]
+        )
     elif isinstance(type, pa.ListType):
         return pa.list_(_storage_type(type.value_type))
     elif isinstance(type, pa.FixedSizeListType):
@@ -1839,8 +1942,13 @@ def _short_str(value: Any) -> str:
 
 @_wrap_for_chunked_arrays
 def array_cast(
-    array: pa.Array, pa_type: pa.DataType, allow_primitive_to_str: bool = True, allow_decimal_to_str: bool = True
-) -> Union[pa.Array, pa.FixedSizeListArray, pa.ListArray, pa.StructArray, pa.ExtensionArray]:
+    array: pa.Array,
+    pa_type: pa.DataType,
+    allow_primitive_to_str: bool = True,
+    allow_decimal_to_str: bool = True,
+) -> Union[
+    pa.Array, pa.FixedSizeListArray, pa.ListArray, pa.StructArray, pa.ExtensionArray
+]:
     """Improved version of `pa.Array.cast`
 
     It supports casting `pa.StructArray` objects to re-order the fields.
@@ -1871,7 +1979,11 @@ def array_cast(
     Returns:
         `List[pyarrow.Array]`: the casted array
     """
-    _c = partial(array_cast, allow_primitive_to_str=allow_primitive_to_str, allow_decimal_to_str=allow_decimal_to_str)
+    _c = partial(
+        array_cast,
+        allow_primitive_to_str=allow_primitive_to_str,
+        allow_decimal_to_str=allow_decimal_to_str,
+    )
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
     if isinstance(pa_type, pa.ExtensionType):
@@ -1879,11 +1991,15 @@ def array_cast(
     elif array.type == pa_type:
         return array
     elif pa.types.is_struct(array.type):
-        if pa.types.is_struct(pa_type) and ({field.name for field in pa_type} == {field.name for field in array.type}):
+        if pa.types.is_struct(pa_type) and (
+            {field.name for field in pa_type} == {field.name for field in array.type}
+        ):
             if array.type.num_fields == 0:
                 return array
             arrays = [_c(array.field(field.name), field.type) for field in pa_type]
-            return pa.StructArray.from_arrays(arrays, fields=list(pa_type), mask=array.is_null())
+            return pa.StructArray.from_arrays(
+                arrays, fields=list(pa_type), mask=array.is_null()
+            )
     elif pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
         if pa.types.is_fixed_size_list(pa_type):
             if _are_list_values_of_length(array, pa_type.list_size):
@@ -1894,43 +2010,71 @@ def array_cast(
                     if array_type != storage_type:
                         # Temporarily convert to the storage type to support extension types in the slice operation
                         array = _c(array, storage_type)
-                        array = pc.list_slice(array, 0, pa_type.list_size, return_fixed_size_list=True)
+                        array = pc.list_slice(
+                            array, 0, pa_type.list_size, return_fixed_size_list=True
+                        )
                         array = _c(array, array_type)
                     else:
-                        array = pc.list_slice(array, 0, pa_type.list_size, return_fixed_size_list=True)
+                        array = pc.list_slice(
+                            array, 0, pa_type.list_size, return_fixed_size_list=True
+                        )
                     array_values = array.values
                     return pa.FixedSizeListArray.from_arrays(
-                        _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
+                        _c(array_values, pa_type.value_type),
+                        pa_type.list_size,
+                        mask=array.is_null(),
                     )
                 else:
                     array_values = array.values[
-                        array.offset * pa_type.list_size : (array.offset + len(array)) * pa_type.list_size
+                        array.offset
+                        * pa_type.list_size : (array.offset + len(array))
+                        * pa_type.list_size
                     ]
-                    return pa.FixedSizeListArray.from_arrays(_c(array_values, pa_type.value_type), pa_type.list_size)
+                    return pa.FixedSizeListArray.from_arrays(
+                        _c(array_values, pa_type.value_type), pa_type.list_size
+                    )
         elif pa.types.is_list(pa_type):
             # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
             array_offsets = _combine_list_array_offsets_with_mask(array)
-            return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type))
+            return pa.ListArray.from_arrays(
+                array_offsets, _c(array.values, pa_type.value_type)
+            )
         elif pa.types.is_large_list(pa_type):
             # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
             array_offsets = _combine_list_array_offsets_with_mask(array)
-            return pa.LargeListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type))
+            return pa.LargeListArray.from_arrays(
+                array_offsets, _c(array.values, pa_type.value_type)
+            )
     elif pa.types.is_fixed_size_list(array.type):
         if pa.types.is_fixed_size_list(pa_type):
             if pa_type.list_size == array.type.list_size:
                 array_values = array.values[
-                    array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
+                    array.offset
+                    * array.type.list_size : (array.offset + len(array))
+                    * array.type.list_size
                 ]
                 return pa.FixedSizeListArray.from_arrays(
-                    _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
+                    _c(array_values, pa_type.value_type),
+                    pa_type.list_size,
+                    mask=array.is_null(),
                 )
         elif pa.types.is_list(pa_type):
-            array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
-            return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type), mask=array.is_null())
+            array_offsets = (
+                np.arange(len(array) + 1) + array.offset
+            ) * array.type.list_size
+            return pa.ListArray.from_arrays(
+                array_offsets,
+                _c(array.values, pa_type.value_type),
+                mask=array.is_null(),
+            )
         elif pa.types.is_large_list(pa_type):
-            array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
+            array_offsets = (
+                np.arange(len(array) + 1) + array.offset
+            ) * array.type.list_size
             return pa.LargeListArray.from_arrays(
-                array_offsets, _c(array.values, pa_type.value_type), mask=array.is_null()
+                array_offsets,
+                _c(array.values, pa_type.value_type),
+                mask=array.is_null(),
             )
     else:
         if pa.types.is_string(pa_type):
@@ -1945,14 +2089,21 @@ def array_cast(
                     f"and allow_decimal_to_str is set to {allow_decimal_to_str}"
                 )
         if pa.types.is_null(pa_type) and not pa.types.is_null(array.type):
-            raise TypeError(f"Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)}")
+            raise TypeError(
+                f"Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)}"
+            )
         return array.cast(pa_type)
-    raise TypeError(f"Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)}")
+    raise TypeError(
+        f"Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)}"
+    )
 
 
 @_wrap_for_chunked_arrays
 def cast_array_to_feature(
-    array: pa.Array, feature: "FeatureType", allow_primitive_to_str: bool = True, allow_decimal_to_str: bool = True
+    array: pa.Array,
+    feature: "FeatureType",
+    allow_primitive_to_str: bool = True,
+    allow_decimal_to_str: bool = True,
 ) -> pa.Array:
     """Cast an array to the arrow type that corresponds to the requested feature type.
     For custom features like [`Audio`] or [`Image`], it takes into account the "cast_storage" methods
@@ -1996,18 +2147,28 @@ def cast_array_to_feature(
 
     if pa.types.is_struct(array.type):
         # feature must be a dict
-        if isinstance(feature, dict) and (array_fields := {field.name for field in array.type}) <= set(feature):
+        if isinstance(feature, dict) and (
+            array_fields := {field.name for field in array.type}
+        ) <= set(feature):
             null_array = pa.array([None] * len(array))
             arrays = [
-                _c(array.field(name) if name in array_fields else null_array, subfeature)
+                _c(
+                    array.field(name) if name in array_fields else null_array,
+                    subfeature,
+                )
                 for name, subfeature in feature.items()
             ]
-            return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
+            return pa.StructArray.from_arrays(
+                arrays, names=list(feature), mask=array.is_null()
+            )
     elif pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
         # feature must be either List(subfeature) or LargeList(subfeature)
         if isinstance(feature, LargeList):
             casted_array_values = _c(array.values, feature.feature)
-            if pa.types.is_large_list(array.type) and casted_array_values.type == array.values.type:
+            if (
+                pa.types.is_large_list(array.type)
+                and casted_array_values.type == array.values.type
+            ):
                 # Both array and feature have equal large_list type and values (within the list) type
                 return array
             else:
@@ -2029,7 +2190,9 @@ def cast_array_to_feature(
                                 allow_primitive_to_str=allow_primitive_to_str,
                                 allow_decimal_to_str=allow_decimal_to_str,
                             )
-                            array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
+                            array = pc.list_slice(
+                                array, 0, feature.length, return_fixed_size_list=True
+                            )
                             array = array_cast(
                                 array,
                                 array_type,
@@ -2037,7 +2200,9 @@ def cast_array_to_feature(
                                 allow_decimal_to_str=allow_decimal_to_str,
                             )
                         else:
-                            array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
+                            array = pc.list_slice(
+                                array, 0, feature.length, return_fixed_size_list=True
+                            )
                         array_values = array.values
                         casted_array_values = _c(array_values, feature.feature)
                         return pa.FixedSizeListArray.from_arrays(
@@ -2045,12 +2210,19 @@ def cast_array_to_feature(
                         )
                     else:
                         array_values = array.values[
-                            array.offset * feature.length : (array.offset + len(array)) * feature.length
+                            array.offset
+                            * feature.length : (array.offset + len(array))
+                            * feature.length
                         ]
-                        return pa.FixedSizeListArray.from_arrays(_c(array_values, feature.feature), feature.length)
+                        return pa.FixedSizeListArray.from_arrays(
+                            _c(array_values, feature.feature), feature.length
+                        )
             else:
                 casted_array_values = _c(array.values, feature.feature)
-                if pa.types.is_list(array.type) and casted_array_values.type == array.values.type:
+                if (
+                    pa.types.is_list(array.type)
+                    and casted_array_values.type == array.values.type
+                ):
                     # Both array and feature have equal list type and values (within the list) type
                     return array
                 else:
@@ -2060,7 +2232,9 @@ def cast_array_to_feature(
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be List(subfeature)
         if isinstance(feature, LargeList):
-            array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
+            array_offsets = (
+                np.arange(len(array) + 1) + array.offset
+            ) * array.type.list_size
             return pa.LargeListArray.from_arrays(
                 array_offsets, _c(array.values, feature.feature), mask=array.is_null()
             )
@@ -2068,13 +2242,23 @@ def cast_array_to_feature(
             if feature.length > -1:
                 if feature.length == array.type.list_size:
                     array_values = array.values[
-                        array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
+                        array.offset
+                        * array.type.list_size : (array.offset + len(array))
+                        * array.type.list_size
                     ]
                     casted_array_values = _c(array_values, feature.feature)
-                    return pa.FixedSizeListArray.from_arrays(casted_array_values, feature.length, mask=array.is_null())
+                    return pa.FixedSizeListArray.from_arrays(
+                        casted_array_values, feature.length, mask=array.is_null()
+                    )
             else:
-                array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
-                return pa.ListArray.from_arrays(array_offsets, _c(array.values, feature.feature), mask=array.is_null())
+                array_offsets = (
+                    np.arange(len(array) + 1) + array.offset
+                ) * array.type.list_size
+                return pa.ListArray.from_arrays(
+                    array_offsets,
+                    _c(array.values, feature.feature),
+                    mask=array.is_null(),
+                )
     if pa.types.is_null(array.type):
         return array_cast(
             array,
@@ -2089,11 +2273,15 @@ def cast_array_to_feature(
             allow_primitive_to_str=allow_primitive_to_str,
             allow_decimal_to_str=allow_decimal_to_str,
         )
-    raise TypeError(f"Couldn't cast array of type\n{_short_str(array.type)}\nto\n{_short_str(feature)}")
+    raise TypeError(
+        f"Couldn't cast array of type\n{_short_str(array.type)}\nto\n{_short_str(feature)}"
+    )
 
 
 @_wrap_for_chunked_arrays
-def embed_array_storage(array: pa.Array, feature: "FeatureType", token_per_repo_id=None):
+def embed_array_storage(
+    array: pa.Array, feature: "FeatureType", token_per_repo_id=None
+):
     """Embed data into an arrays's storage.
     For custom features like Audio or Image, it takes into account the "embed_storage" methods
     they define to embed external data (e.g. an image file) into an array.
@@ -2125,53 +2313,79 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType", token_per_repo_
     elif pa.types.is_struct(array.type):
         # feature must be a dict
         if isinstance(feature, dict):
-            arrays = [_e(array.field(name), subfeature) for name, subfeature in feature.items()]
-            return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
+            arrays = [
+                _e(array.field(name), subfeature)
+                for name, subfeature in feature.items()
+            ]
+            return pa.StructArray.from_arrays(
+                arrays, names=list(feature), mask=array.is_null()
+            )
     elif pa.types.is_list(array.type):
         # feature must be either List(subfeature)
         # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
         array_offsets = _combine_list_array_offsets_with_mask(array)
         if isinstance(feature, List) and feature.length == -1:
-            return pa.ListArray.from_arrays(array_offsets, _e(array.values, feature.feature))
+            return pa.ListArray.from_arrays(
+                array_offsets, _e(array.values, feature.feature)
+            )
     elif pa.types.is_large_list(array.type):
         # feature must be LargeList(subfeature)
         # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
         array_offsets = _combine_list_array_offsets_with_mask(array)
-        return pa.LargeListArray.from_arrays(array_offsets, _e(array.values, feature.feature))
+        return pa.LargeListArray.from_arrays(
+            array_offsets, _e(array.values, feature.feature)
+        )
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be List(subfeature)
         if isinstance(feature, List) and feature.length > -1:
             array_values = array.values[
-                array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
+                array.offset
+                * array.type.list_size : (array.offset + len(array))
+                * array.type.list_size
             ]
             embedded_array_values = _e(array_values, feature.feature)
-            return pa.FixedSizeListArray.from_arrays(embedded_array_values, feature.length, mask=array.is_null())
+            return pa.FixedSizeListArray.from_arrays(
+                embedded_array_values, feature.length, mask=array.is_null()
+            )
     if not isinstance(feature, (List, LargeList, dict)):
         return array
-    raise TypeError(f"Couldn't embed array of type\n{_short_str(array.type)}\nwith\n{_short_str(feature)}")
+    raise TypeError(
+        f"Couldn't embed array of type\n{_short_str(array.type)}\nwith\n{_short_str(feature)}"
+    )
 
 
 class CastError(ValueError):
     """When it's not possible to cast an Arrow table to a specific schema or set of features"""
 
-    def __init__(self, *args, table_column_names: list[str], requested_column_names: list[str]) -> None:
+    def __init__(
+        self, *args, table_column_names: list[str], requested_column_names: list[str]
+    ) -> None:
         super().__init__(*args)
         self.table_column_names = table_column_names
         self.requested_column_names = requested_column_names
 
     def __reduce__(self):
         # Fix unpickling: TypeError: __init__() missing 2 required keyword-only arguments: 'table_column_names' and 'requested_column_names'
-        return partial(
-            CastError, table_column_names=self.table_column_names, requested_column_names=self.requested_column_names
-        ), ()
+        return (
+            partial(
+                CastError,
+                table_column_names=self.table_column_names,
+                requested_column_names=self.requested_column_names,
+            ),
+            (),
+        )
 
     def details(self):
         new_columns = set(self.table_column_names) - set(self.requested_column_names)
-        missing_columns = set(self.requested_column_names) - set(self.table_column_names)
+        missing_columns = set(self.requested_column_names) - set(
+            self.table_column_names
+        )
         if new_columns and missing_columns:
             return f"there are {len(new_columns)} new columns ({_short_str(new_columns)}) and {len(missing_columns)} missing columns ({_short_str(missing_columns)})."
         elif new_columns:
-            return f"there are {len(new_columns)} new columns ({_short_str(new_columns)})"
+            return (
+                f"there are {len(new_columns)} new columns ({_short_str(new_columns)})"
+            )
         else:
             return f"there are {len(missing_columns)} missing columns ({_short_str(missing_columns)})"
 
@@ -2194,7 +2408,10 @@ def cast_table_to_features(table: pa.Table, features: "Features"):
             table_column_names=table.column_names,
             requested_column_names=list(features),
         )
-    arrays = [cast_array_to_feature(table[name], feature) for name, feature in features.items()]
+    arrays = [
+        cast_array_to_feature(table[name], feature)
+        for name, feature in features.items()
+    ]
     return pa.Table.from_arrays(arrays, schema=features.arrow_schema)
 
 
@@ -2222,7 +2439,11 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
         )
     arrays = [
         cast_array_to_feature(
-            table[name] if name in table_column_names else pa.array([None] * len(table), type=schema.field(name).type),
+            (
+                table[name]
+                if name in table_column_names
+                else pa.array([None] * len(table), type=schema.field(name).type)
+            ),
             feature,
         )
         for name, feature in features.items()
@@ -2246,9 +2467,13 @@ def embed_table_storage(table: pa.Table, token_per_repo_id=None):
 
     features = Features.from_arrow_schema(table.schema)
     arrays = [
-        embed_array_storage(table[name], feature, token_per_repo_id=token_per_repo_id)
-        if require_storage_embed(feature)
-        else table[name]
+        (
+            embed_array_storage(
+                table[name], feature, token_per_repo_id=token_per_repo_id
+            )
+            if require_storage_embed(feature)
+            else table[name]
+        )
         for name, feature in features.items()
     ]
     return pa.Table.from_arrays(arrays, schema=features.arrow_schema)
@@ -2292,7 +2517,10 @@ def table_flatten(table: pa.Table):
     from .features import Features
 
     features = Features.from_arrow_schema(table.schema)
-    if any(hasattr(subfeature, "flatten") and subfeature.flatten() == subfeature for subfeature in features.values()):
+    if any(
+        hasattr(subfeature, "flatten") and subfeature.flatten() == subfeature
+        for subfeature in features.values()
+    ):
         flat_arrays = []
         flat_column_names = []
         for field in table.schema:
@@ -2302,7 +2530,9 @@ def table_flatten(table: pa.Table):
                 not hasattr(subfeature, "flatten") or subfeature.flatten() != subfeature
             ):
                 flat_arrays.extend(array.flatten())
-                flat_column_names.extend([f"{field.name}.{subfield.name}" for subfield in field.type])
+                flat_column_names.extend(
+                    [f"{field.name}.{subfield.name}" for subfield in field.type]
+                )
             else:
                 flat_arrays.append(array)
                 flat_column_names.append(field.name)
@@ -2314,7 +2544,12 @@ def table_flatten(table: pa.Table):
         flat_table = table.flatten()
     # Preserve complex types in the metadata
     flat_features = features.flatten(max_depth=2)
-    flat_features = Features({column_name: flat_features[column_name] for column_name in flat_table.column_names})
+    flat_features = Features(
+        {
+            column_name: flat_features[column_name]
+            for column_name in flat_table.column_names
+        }
+    )
     return flat_table.replace_schema_metadata(flat_features.arrow_schema.metadata)
 
 
@@ -2350,7 +2585,9 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
         _visit(table[name], feature)
 
 
-def table_iter(table: Table, batch_size: int, drop_last_batch=False) -> Iterator[pa.Table]:
+def table_iter(
+    table: Table, batch_size: int, drop_last_batch=False
+) -> Iterator[pa.Table]:
     """Iterate over sub-tables of size `batch_size`.
 
     Args:
@@ -2379,7 +2616,9 @@ def table_iter(table: Table, batch_size: int, drop_last_batch=False) -> Iterator
             cropped_chunk_length = batch_size - chunks_buffer_size
             chunks_buffer.append(chunk.slice(0, cropped_chunk_length))
             yield pa.Table.from_batches(chunks_buffer)
-            chunks_buffer = [chunk.slice(cropped_chunk_length, len(chunk) - cropped_chunk_length)]
+            chunks_buffer = [
+                chunk.slice(cropped_chunk_length, len(chunk) - cropped_chunk_length)
+            ]
             chunks_buffer_size = len(chunk) - cropped_chunk_length
     if not drop_last_batch and chunks_buffer:
         yield pa.Table.from_batches(chunks_buffer)
