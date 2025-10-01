@@ -818,16 +818,33 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
     @property
     def num_shards(self) -> int:
-        return min(ex_iterable.num_shards for ex_iterable in self.ex_iterables)
+        return min(ex_iterable.num_shards for ex_iterable in self.ex_iterables) if self.ex_iterables else 0
 
     def shard_data_sources(
         self, num_shards: int, index: int, contiguous=True
     ) -> "CyclingMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
-        return CyclingMultiSourcesExamplesIterable(
-            [iterable.shard_data_sources(num_shards, index, contiguous=contiguous) for iterable in self.ex_iterables],
-            stopping_strategy=self.stopping_strategy,
-        )
+        if num_shards < self.num_shards:
+            return CyclingMultiSourcesExamplesIterable(
+                [
+                    iterable.shard_data_sources(num_shards, index, contiguous=contiguous)
+                    for iterable in self.ex_iterables
+                ],
+                stopping_strategy=self.stopping_strategy,
+            )
+        elif index < self.num_shards:
+            return CyclingMultiSourcesExamplesIterable(
+                [
+                    iterable.shard_data_sources(self.num_shards, index, contiguous=contiguous)
+                    for iterable in self.ex_iterables
+                ],
+                stopping_strategy=self.stopping_strategy,
+            )
+        else:
+            return CyclingMultiSourcesExamplesIterable(
+                [],
+                stopping_strategy=self.stopping_strategy,
+            )
 
 
 class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
@@ -1069,12 +1086,33 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         self, num_shards: int, index: int, contiguous=True
     ) -> "RandomlyCyclingMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
-        return RandomlyCyclingMultiSourcesExamplesIterable(
-            [iterable.shard_data_sources(num_shards, index, contiguous=contiguous) for iterable in self.ex_iterables],
-            self.generator,
-            self.probabilities,
-            self.stopping_strategy,
-        )
+        if num_shards < self.num_shards:
+            return RandomlyCyclingMultiSourcesExamplesIterable(
+                [
+                    iterable.shard_data_sources(num_shards, index, contiguous=contiguous)
+                    for iterable in self.ex_iterables
+                ],
+                self.generator,
+                self.probabilities,
+                self.stopping_strategy,
+            )
+        elif index < self.num_shards:
+            return RandomlyCyclingMultiSourcesExamplesIterable(
+                [
+                    iterable.shard_data_sources(self.num_shards, index, contiguous=contiguous)
+                    for iterable in self.ex_iterables
+                ],
+                self.generator,
+                self.probabilities,
+                self.stopping_strategy,
+            )
+        else:
+            return RandomlyCyclingMultiSourcesExamplesIterable(
+                [],
+                self.generator,
+                self.probabilities,
+                self.stopping_strategy,
+            )
 
 
 def _table_output_to_arrow(output) -> pa.Table:
