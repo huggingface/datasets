@@ -16,6 +16,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
         gen_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
         split: NamedSplit = Split.TRAIN,
+        fingerprint: Optional[str] = None,
         **kwargs,
     ):
         super().__init__(
@@ -32,6 +33,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             generator=generator,
             gen_kwargs=gen_kwargs,
             split=split,
+            config_id=fingerprint,
             **kwargs,
         )
 
