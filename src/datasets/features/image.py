@@ -232,10 +232,6 @@ class Image:
         if pa.types.is_string(storage.type) or pa.types.is_large_string(storage.type):
             bytes_array = pa.array([None] * len(storage), type=pa.binary())
             storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"], mask=storage.is_null())
-        # elif :
-        #    bytes_array = pa.array([None] * len(storage), type=pa.binary())
-        #    path_array = pa.array(storage.to_pylist(), type=pa.string())
-        #    storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
         elif pa.types.is_binary(storage.type):
             path_array = pa.array([None] * len(storage), type=pa.string())
             storage = pa.StructArray.from_arrays([storage, path_array], ["bytes", "path"], mask=storage.is_null())
