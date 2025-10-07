@@ -82,7 +82,7 @@ jobs:
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
 
-  test_py313:
+  test_py312:
     needs: check_code_quality
     strategy:
       matrix:
@@ -100,10 +100,10 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y ffmpeg
-      - name: Set up Python 3.13
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: "3.12"
       - name: Setup conda env (windows)
         if: ${{ matrix.os == 'windows-latest' }}
         uses: conda-incubator/setup-miniconda@v2
@@ -111,7 +111,7 @@ jobs:
           auto-update-conda: true
           miniconda-version: "latest"
           activate-environment: test
-          python-version: "3.13"
+          python-version: "3.12"
       - name: Setup FFmpeg (windows)
         if: ${{ matrix.os == 'windows-latest' }}
         run: conda install "ffmpeg=7.0.1" -c conda-forge
@@ -127,7 +127,7 @@ jobs:
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
 
-  test_py313_future:
+  test_py312_future:
     needs: check_code_quality
     strategy:
       matrix:
@@ -145,10 +145,10 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y ffmpeg 
-      - name: Set up Python 3.13
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: "3.12"
       - name: Setup conda env (windows)
         if: ${{ matrix.os == 'windows-latest' }}
         uses: conda-incubator/setup-miniconda@v2
@@ -156,7 +156,7 @@ jobs:
           auto-update-conda: true
           miniconda-version: "latest"
           activate-environment: test
-          python-version: "3.13"
+          python-version: "3.12"
       - name: Setup FFmpeg (windows)
         if: ${{ matrix.os == 'windows-latest' }}
         run: conda install "ffmpeg=7.0.1" -c conda-forge
