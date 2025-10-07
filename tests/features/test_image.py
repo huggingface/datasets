@@ -320,6 +320,18 @@ def test_dataset_cast_to_image_features(shared_datadir, build_data):
     assert isinstance(item["image"], PIL.Image.Image)
 
 
+def test_dataset_cast_to_image_features_polars(shared_datadir):
+    import PIL.Image
+
+    pl = pytest.importorskip("polars")
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    df = pl.DataFrame({"image_path": [image_path]})
+    dataset = Dataset.from_polars(df)
+    item = dataset.cast_column("image_path", Image())[0]
+    assert item.keys() == {"image_path"}
+    assert isinstance(item["image_path"], PIL.Image.Image)
+
+
 @require_pil
 def test_dataset_concatenate_image_features(shared_datadir):
     # we use a different data structure between 1 and 2 to make sure they are compatible with each other

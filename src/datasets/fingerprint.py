@@ -409,6 +409,7 @@ def fingerprint_transform(
 
         @wraps(func)
         def wrapper(*args, **kwargs):
+            # import ipdb; ipdb.set_trace(context=20)
             kwargs_for_fingerprint = format_kwargs_for_fingerprint(
                 func,
                 args,
