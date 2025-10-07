@@ -760,12 +760,10 @@ class TestxPath:
     def test_xpath_glob(self, input_path, pattern, expected_paths, tmp_path, mock_fsspec2):
         if input_path == "tmp_path":
             input_path = tmp_path
-            expected_paths = [tmp_path / file for file in expected_paths]
+            expected_paths = [str(tmp_path / file) for file in expected_paths]
             for file in ["file1.txt", "file2.txt", "README.md"]:
                 (tmp_path / file).touch()
-        else:
-            expected_paths = [Path(file) for file in expected_paths]
-        output_paths = sorted(xPath(input_path).glob(pattern))
+        output_paths = sorted([str(path) for path in xPath(input_path).glob(pattern)])
         assert output_paths == expected_paths
 
     @pytest.mark.parametrize(
@@ -817,12 +815,10 @@ class TestxPath:
             input_path = tmp_path
             dir_path = tmp_path / "dir"
             dir_path.mkdir()
-            expected_paths = [dir_path / file for file in expected_paths]
+            expected_paths = [str(dir_path / file) for file in expected_paths]
             for file in ["file1.txt", "file2.txt", "README.md"]:
                 (dir_path / file).touch()
-        else:
-            expected_paths = [Path(file) for file in expected_paths]
-        output_paths = sorted(xPath(input_path).rglob(pattern))
+        output_paths = sorted([str(path) for path in xPath(input_path).rglob(pattern)])
         assert output_paths == expected_paths
 
     @pytest.mark.parametrize(
