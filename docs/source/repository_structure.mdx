@@ -90,11 +90,8 @@ configs:
 ---
 ```
 
-<Tip warning={true}>
-
-Note that `config_name` field is required even if you have a single configuration.
-
-</Tip>
+> [!WARNING]
+> Note that `config_name` field is required even if you have a single configuration.
 
 ## Configurations
 
@@ -144,17 +141,14 @@ configs:
 
 Refer to [specific builders' documentation](./package_reference/builder_classes) to see what configuration parameters they have.
 
-<Tip>
-
-You can set a default configuration using `default: true`, e.g. you can run `main_data = load_dataset("my_dataset_repository")` if you set 
-
-```yaml
-- config_name: main_data
-  data_files: "main_data.csv"
-  default: true
-```
-
-</Tip>
+> [!TIP]
+> You can set a default configuration using `default: true`, e.g. you can run `main_data = load_dataset("my_dataset_repository")` if you set 
+>
+> ```yaml
+> - config_name: main_data
+>   data_files: "main_data.csv"
+>   default: true
+> ```
 
 ## Automatic splits detection
 

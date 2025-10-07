@@ -24,11 +24,8 @@ The [`Value`] feature tells 🤗 Datasets:
 
 🤗 Datasets supports many other data types such as `bool`, `float32` and `binary` to name just a few.
 
-<Tip>
-
-Refer to [`Value`] for a full list of supported data types.
-
-</Tip>
+> [!TIP]
+> Refer to [`Value`] for a full list of supported data types.
 
 The [`ClassLabel`] feature informs 🤗 Datasets the `label` column contains two classes. The classes are labeled `not_equivalent` and `equivalent`. Labels are stored as integers in the dataset. When you retrieve the labels, [`ClassLabel.int2str`] and [`ClassLabel.str2int`] carries out the conversion from integer value to label name, and vice versa.
 
@@ -48,11 +45,8 @@ If your data type contains a list of objects, then you want to use the [`List`] 
 
 The `answers` field is constructed using the dict of features because and contains two subfields, `text` and `answer_start`, which are lists of `string` and `int32`, respectively.
 
-<Tip>
-
-See the [flatten](./process#flatten) section to learn how you can extract the nested subfields as their own independent columns.
-
-</Tip>
+> [!TIP]
+> See the [flatten](./process#flatten) section to learn how you can extract the nested subfields as their own independent columns.
 
 The array feature type is useful for creating arrays of various sizes. You can create arrays with two dimensions using [`Array2D`], and even arrays with five dimensions using [`Array5D`].
 
@@ -84,11 +78,8 @@ When you load an audio dataset and call the audio column, the [`Audio`] feature 
 <datasets.features._torchcodec.AudioDecoder object at 0x11642b6a0>
 ```
 
-<Tip warning={true}>
-
-Index into an audio dataset using the row index first and then the `audio` column - `dataset[0]["audio"]` - to avoid decoding and resampling all the audio files in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
-
-</Tip>
+> [!WARNING]
+> Index into an audio dataset using the row index first and then the `audio` column - `dataset[0]["audio"]` - to avoid decoding and resampling all the audio files in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
 
 With `decode=False`, the [`Audio`] type simply gives you the path or the bytes of the audio file, without decoding it into an torchcodec `AudioDecoder` object,
 
@@ -118,11 +109,8 @@ When you load an image dataset and call the image column, the [`Image`] feature 
 <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=500x500 at 0x125506CF8>
 ```
 
-<Tip warning={true}>
-
-Index into an image dataset using the row index first and then the `image` column - `dataset[0]["image"]` - to avoid decoding all the image files in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
-
-</Tip>
+> [!WARNING]
+> Index into an image dataset using the row index first and then the `image` column - `dataset[0]["image"]` - to avoid decoding all the image files in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
 
 With `decode=False`, the [`Image`] type simply gives you the path or the bytes of the image file, without decoding it into an `PIL.Image`,
 

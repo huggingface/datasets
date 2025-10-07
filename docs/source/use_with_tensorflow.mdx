@@ -23,11 +23,8 @@ array([[1, 2],
        [3, 4]])>}
 ```
 
-<Tip>
-
-A [`Dataset`] object is a wrapper of an Arrow table, which allows fast reads from arrays in the dataset to TensorFlow tensors.
-
-</Tip>
+> [!TIP]
+> A [`Dataset`] object is a wrapper of an Arrow table, which allows fast reads from arrays in the dataset to TensorFlow tensors.
 
 This can be useful for converting your dataset to a dict of `Tensor` objects, or for writing a generator to load TF
 samples from it. If you wish to convert the entire dataset to `Tensor`, simply query the full dataset:
@@ -128,12 +125,9 @@ String and binary objects are unchanged, since PyTorch only supports numbers.
 
 The [`Image`] and [`Audio`] feature types are also supported.
 
-<Tip>
-
-To use the [`Image`] feature type, you'll need to install the `vision` extra as
-`pip install datasets[vision]`.
-
-</Tip>
+> [!TIP]
+> To use the [`Image`] feature type, you'll need to install the `vision` extra as
+> `pip install datasets[vision]`.
 
 ```py
 >>> from datasets import Dataset, Features, Audio, Image
@@ -157,12 +151,9 @@ To use the [`Image`] feature type, you'll need to install the `vision` extra as
           [255, 255, 255, 255]]]], dtype=uint8)>}
 ```
 
-<Tip>
-
-To use the [`Audio`] feature type, you'll need to install the `audio` extra as
-`pip install datasets[audio]`.
-
-</Tip>
+> [!TIP]
+> To use the [`Audio`] feature type, you'll need to install the `audio` extra as
+> `pip install datasets[audio]`.
 
 ```py
 >>> from datasets import Dataset, Features, Audio, Image
