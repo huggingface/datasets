@@ -37,7 +37,7 @@ class ParquetConfig(datasets.BuilderConfig):
             This is especially useful to configure buffering and caching.
 
             <Added version="4.2.0"/>
-        on_bad_file (`Literal["error", "warn", "skip"]`, *optional*, defaults to "error")
+        on_bad_files (`Literal["error", "warn", "skip"]`, *optional*, defaults to "error")
             Specify what to do upon encountering a bad file (a file that can't be read). Allowed values are :
             * 'error', raise an Exception when a bad file is encountered.
             * 'warn', raise a warning when a bad file is encountered and skip that file.
@@ -81,7 +81,7 @@ class ParquetConfig(datasets.BuilderConfig):
     features: Optional[datasets.Features] = None
     filters: Optional[Union[ds.Expression, list[tuple], list[list[tuple]]]] = None
     fragment_scan_options: Optional[ds.ParquetFragmentScanOptions] = None
-    on_bad_file: Literal["error", "warn", "skip"] = "error"
+    on_bad_files: Literal["error", "warn", "skip"] = "error"
 
     def __post_init__(self):
         super().__post_init__()
@@ -122,10 +122,10 @@ class Parquet(datasets.ArrowBasedBuilder):
                             self.info.features = datasets.Features.from_arrow_schema(pq.read_schema(f))
                             break
                     except pa.ArrowInvalid as e:
-                        if self.config.on_bad_file == "error":
+                        if self.config.on_bad_files == "error":
                             logger.error(f"Failed to read schema from '{file}' with error {type(e).__name__}: {e}")
                             raise
-                        elif self.config.on_bad_file == "warn":
+                        elif self.config.on_bad_files == "warn":
                             logger.warning(f"Skipping bad schema from '{file}'. {type(e).__name__}: {e}`")
                         else:
                             logger.debug(f"Skipping bad schema from '{file}'. {type(e).__name__}: {e}`")
@@ -180,10 +180,10 @@ class Parquet(datasets.ArrowBasedBuilder):
                             # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                             yield f"{file_idx}_{batch_idx}", self._cast_table(pa_table)
             except (pa.ArrowInvalid, ValueError) as e:
-                if self.config.on_bad_file == "error":
+                if self.config.on_bad_files == "error":
                     logger.error(f"Failed to read file '{file}' with error {type(e).__name__}: {e}")
                     raise
-                elif self.config.on_bad_file == "warn":
+                elif self.config.on_bad_files == "warn":
                     logger.warning(f"Skipping bad file '{file}'. {type(e).__name__}: {e}`")
                 else:
                     logger.debug(f"Skipping bad file '{file}'. {type(e).__name__}: {e}`")
