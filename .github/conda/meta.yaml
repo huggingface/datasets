@@ -20,6 +20,7 @@ requirements:
     - dill
     - pandas
     - requests >=2.19.0
+    - httpx < 1.0.0
     - tqdm >=4.66.3
     - dataclasses
     - multiprocess
@@ -35,6 +36,7 @@ requirements:
     - dill
     - pandas
     - requests >=2.19.0
+    - httpx < 1.0.0
     - tqdm >=4.66.3
     - dataclasses
     - multiprocess
