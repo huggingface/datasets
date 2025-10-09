@@ -32,7 +32,7 @@ class ParquetConfig(datasets.BuilderConfig):
             If possible the predicate will be pushed down to exploit the partition information
             or internal metadata found in the data source, e.g. Parquet statistics.
             Otherwise filters the loaded RecordBatches before yielding them.
-        fragment_scan_options (`pyarrow.dataset.ParquetFragmentScanOptions`; *optional*)
+        fragment_scan_options (`pyarrow.dataset.ParquetFragmentScanOptions`, *optional*)
             Scan-specific options for Parquet fragments.
             This is especially useful to configure buffering and caching.
 
