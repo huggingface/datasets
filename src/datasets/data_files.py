@@ -503,6 +503,18 @@ def _get_origin_metadata(
     max_workers: Optional[int] = None,
 ) -> list[SingleOriginMetadata]:
     max_workers = max_workers if max_workers is not None else config.HF_DATASETS_MULTITHREADING_MAX_WORKERS
+    if all("hf://" in data_file for data_file in data_files):
+        # No need for multithreading here since the origin metadata of HF files
+        # is (repo_id, revision) and is cached after first .info() call.
+        return [
+            _get_single_origin_metadata(data_file, download_config=download_config)
+            for data_file in hf_tqdm(
+                data_files,
+                desc="Resolving data files",
+                # set `disable=None` rather than `disable=False` by default to disable progress bar when no TTY attached
+                disable=len(data_files) <= 16 or None,
+            )
+        ]
     return thread_map(
         partial(_get_single_origin_metadata, download_config=download_config),
         data_files,
