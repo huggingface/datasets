@@ -42,7 +42,7 @@ For example, you can stream a local dataset of hundreds of compressed JSONL file
 {'id': 0, 'text': 'Founded in 2015, Golden Bees is a leading programmatic recruitment platform dedicated to employers, HR agencies and job boards. The company has developed unique HR-custom technologies and predictive algorithms to identify and attract the best candidates for a job opportunity.', ...
 ```
 
-Parquet is a columnar format you can stream and load only a subset of columns and skip unwanted columns. Parquet also stores metadata like columns statistics (at the file and row group level), which enables efficient filtering. Use the `columns` and `filters` argument from [`datasets.packaged_modules.parquet.ParquetConfig`] to stream Parquet datasets and select columns and apply filters:
+Parquet is a columnar format that allows you to stream and load only a subset of columns and ignore unwanted columns. Parquet also stores metadata such as column statistics (at the file and row group level), enabling efficient filtering. Use the `columns` and `filters` arguments of [`datasets.packaged_modules.parquet.ParquetConfig`] to stream Parquet datasets, select columns, and apply filters:
 
 ```py
 >>> from datasets import load_dataset
