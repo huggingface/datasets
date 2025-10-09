@@ -19,7 +19,8 @@ For example, the English split of the [HuggingFaceFW/fineweb](https://huggingfac
 >>> from datasets import load_dataset
 >>> dataset = load_dataset('HuggingFaceFW/fineweb', split='train', streaming=True)
 >>> print(next(iter(dataset)))
-{'text': "How AP reported in all formats from tornado-stricken regionsMarch 8, 2012\nWhen the first serious bout of tornadoes of 2012 blew through middle America in the middle of the night, they touched down in places hours from any AP bureau...
+{'text': 'How AP reported in all formats from tornado-stricken regionsMarch 8, 2012\nWhen the first serious bout of tornadoes of 2012 blew through middle America in the middle of the night, they touched down in places hours from any AP bureau...', ...,
+ 'language_score': 0.9721424579620361, 'token_count': 717}
 ```
 
 Dataset streaming also lets you work with a dataset made of local files without doing any conversion.
@@ -29,6 +30,7 @@ This is especially helpful when:
 - You don't want to wait for an extremely large local dataset to be converted to Arrow.
 - The converted files size would exceed the amount of available disk space on your computer.
 - You want to quickly explore just a few samples of a dataset.
+- You want to load only certain columns or efficiently filter a Parquet dataset.
 
 For example, you can stream a local dataset of hundreds of compressed JSONL files like [oscar-corpus/OSCAR-2201](https://huggingface.co/datasets/oscar-corpus/OSCAR-2201) to use it instantly:
 
@@ -38,6 +40,19 @@ For example, you can stream a local dataset of hundreds of compressed JSONL file
 >>> dataset = load_dataset('json', data_files=data_files, split='train', streaming=True)
 >>> print(next(iter(dataset)))
 {'id': 0, 'text': 'Founded in 2015, Golden Bees is a leading programmatic recruitment platform dedicated to employers, HR agencies and job boards. The company has developed unique HR-custom technologies and predictive algorithms to identify and attract the best candidates for a job opportunity.', ...
+```
+
+Parquet is a columnar format you can stream and load only a subset of columns and skip unwanted columns. Parquet also stores metadata like columns statistics (at the file and row group level), which enables efficient filtering. Use the `columns` and `filters` argument from [`datasets.packaged_modules.parquet.ParquetConfig`] to stream Parquet datasets and select columns and apply filters:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset('HuggingFaceFW/fineweb', split='train', streaming=True, columns=["url", "date"])
+>>> print(next(iter(dataset)))
+{'url': 'http://%20jwashington@ap.org/Content/Press-Release/2012/How-AP-reported-in-all-formats-from-tornado-stricken-regions', 'date': '2013-05-18T05:48:54Z'}
+>>> dataset = load_dataset('HuggingFaceFW/fineweb', split='train', streaming=True, filters=[("language_score", ">=", 0.99)])
+>>> print(next(iter(dataset)))
+{'text': 'Everyone wishes for something. And lots of people believe they know how to make their wishes come true with magical thinking.\nWhat is it? "Magical thinking is a belief in forms of causation, with no known physical basis," said Professor Emily Pronin of Princeton...', ...,
+ 'language_score': 0.9900368452072144, 'token_count': 716}
 ```
 
 Loading a dataset in streaming mode creates a new dataset type instance (instead of the classic [`Dataset`] object), known as an [`IterableDataset`].
