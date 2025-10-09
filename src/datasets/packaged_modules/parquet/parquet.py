@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 
 import pyarrow as pa
 import pyarrow.dataset as ds
@@ -35,6 +35,13 @@ class ParquetConfig(datasets.BuilderConfig):
         fragment_scan_options (`pyarrow.dataset.ParquetFragmentScanOptions`, *optional*)
             Scan-specific options for Parquet fragments.
             This is especially useful to configure buffering and caching.
+
+            <Added version="4.2.0"/>
+        on_bad_file (`Literal["error", "warn", "skip"]`, *optional*, defaults to "error")
+            Specify what to do upon encountering a bad file (a file that can't be read). Allowed values are :
+            * 'error', raise an Exception when a bad file is encountered.
+            * 'warn', raise a warning when a bad file is encountered and skip that file.
+            * 'skip', skip bad files without raising or warning when they are encountered.
 
             <Added version="4.2.0"/>
 
@@ -74,6 +81,7 @@ class ParquetConfig(datasets.BuilderConfig):
     features: Optional[datasets.Features] = None
     filters: Optional[Union[ds.Expression, list[tuple], list[list[tuple]]]] = None
     fragment_scan_options: Optional[ds.ParquetFragmentScanOptions] = None
+    on_bad_file: Literal["error", "warn", "skip"] = "error"
 
     def __post_init__(self):
         super().__post_init__()
@@ -109,9 +117,22 @@ class Parquet(datasets.ArrowBasedBuilder):
             # Infer features if they are stored in the arrow schema
             if self.info.features is None:
                 for file in itertools.chain.from_iterable(files):
-                    with open(file, "rb") as f:
-                        self.info.features = datasets.Features.from_arrow_schema(pq.read_schema(f))
-                    break
+                    try:
+                        with open(file, "rb") as f:
+                            self.info.features = datasets.Features.from_arrow_schema(pq.read_schema(f))
+                            break
+                    except pa.ArrowInvalid as e:
+                        if self.config.on_bad_file == "error":
+                            logger.error(f"Failed to read schema from '{file}' with error {type(e).__name__}: {e}")
+                            raise
+                        elif self.config.on_bad_file == "warn":
+                            logger.warning(f"Skipping bad schema from '{file}'. {type(e).__name__}: {e}`")
+                        else:
+                            logger.debug(f"Skipping bad schema from '{file}'. {type(e).__name__}: {e}`")
+            if self.info.features is None:
+                raise ValueError(
+                    f"At least one valid data file must be specified, all the data_files are invalid: {self.config.data_files}"
+                )
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         if self.config.columns is not None and set(self.config.columns) != set(self.info.features):
             self.info.features = datasets.Features(
@@ -139,11 +160,11 @@ class Parquet(datasets.ArrowBasedBuilder):
         )
         parquet_file_format = ds.ParquetFileFormat(default_fragment_scan_options=self.config.fragment_scan_options)
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
-            with open(file, "rb") as f:
-                parquet_fragment = parquet_file_format.make_fragment(f)
-                if parquet_fragment.row_groups:
-                    batch_size = self.config.batch_size or parquet_fragment.row_groups[0].num_rows
-                    try:
+            try:
+                with open(file, "rb") as f:
+                    parquet_fragment = parquet_file_format.make_fragment(f)
+                    if parquet_fragment.row_groups:
+                        batch_size = self.config.batch_size or parquet_fragment.row_groups[0].num_rows
                         for batch_idx, record_batch in enumerate(
                             parquet_fragment.to_batches(
                                 batch_size=batch_size,
@@ -158,6 +179,11 @@ class Parquet(datasets.ArrowBasedBuilder):
                             # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                             # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                             yield f"{file_idx}_{batch_idx}", self._cast_table(pa_table)
-                    except ValueError as e:
-                        logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
-                        raise
+            except (pa.ArrowInvalid, ValueError) as e:
+                if self.config.on_bad_file == "error":
+                    logger.error(f"Failed to read file '{file}' with error {type(e).__name__}: {e}")
+                    raise
+                elif self.config.on_bad_file == "warn":
+                    logger.warning(f"Skipping bad file '{file}'. {type(e).__name__}: {e}`")
+                else:
+                    logger.debug(f"Skipping bad file '{file}'. {type(e).__name__}: {e}`")
