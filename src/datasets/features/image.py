@@ -229,7 +229,7 @@ class Image:
             `pa.StructArray`: Array in the Image arrow storage type, that is
                 `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
-        if pa.types.is_string(storage.type):
+        if pa.types.is_string(storage.type) or pa.types.is_large_string(storage.type):
             bytes_array = pa.array([None] * len(storage), type=pa.binary())
             storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"], mask=storage.is_null())
         elif pa.types.is_binary(storage.type):
