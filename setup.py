@@ -118,6 +118,7 @@ REQUIRED_PKGS = [
     "pandas",
     # for downloading datasets over HTTPS
     "requests>=2.32.2",
+    "httpx<1.0.0",
     # progress bars in downloads and data operations
     "tqdm>=4.66.3",
     # for fast hashing
@@ -128,7 +129,7 @@ REQUIRED_PKGS = [
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
     "fsspec[http]>=2023.1.0,<=2025.9.0",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface-hub>=0.24.0",
+    "huggingface-hub>=0.25.0,<2.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -227,7 +228,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="4.1.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="4.2.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

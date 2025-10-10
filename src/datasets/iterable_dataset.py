@@ -30,7 +30,6 @@ from huggingface_hub import CommitInfo, CommitOperationAdd, CommitOperationDelet
 from huggingface_hub.hf_api import RepoFile
 from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 from multiprocess import Pool
-from requests import HTTPError
 
 from . import config
 from .arrow_dataset import PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED, Dataset, DatasetInfoMixin
@@ -674,7 +673,9 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
         ex_iterables: list[_BaseExamplesIterable],
-        stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+        stopping_strategy: Literal[
+            "first_exhausted", "all_exhausted", "all_exhausted_without_replacement"
+        ] = "first_exhausted",
     ):
         super().__init__()
         self.ex_iterables = ex_iterables
@@ -682,7 +683,10 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
         # if undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted
         # if oversampling ("all_exhausted"), we stop as soons as every dataset is exhausted, i.e as soon as every samples of every dataset has been visited at least once
-        self.bool_strategy_func = np.all if (stopping_strategy == "all_exhausted") else np.any
+        # if sampling without replacement ("all_exhausted_without_replacement"), we stop once all samples of every dataset has been visited exactly once.
+        self.bool_strategy_func = (
+            np.all if (stopping_strategy in ("all_exhausted", "all_exhausted_without_replacement")) else np.any
+        )
 
     @property
     def is_typed(self):
@@ -735,6 +739,9 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             # if the stopping criteria is met, break the main for loop
             if self.bool_strategy_func(is_exhausted):
                 break
+            # Skip exhausted iterators if we sample without replacement
+            if is_exhausted[i] and self.stopping_strategy in ["all_exhausted_without_replacement"]:
+                continue
             # let's pick one example from the iterator at index i
             if nexts[i] is None:
                 nexts[i] = next(iterators[i], False)
@@ -748,12 +755,13 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
                 is_exhausted[i] = True
                 if self._state_dict:
                     self._state_dict["is_exhausted"][i] = True
-                # we reset it in case the stopping crtieria isn't met yet
-                nexts[i] = None
-                if self._state_dict:
-                    self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
-                    self._state_dict["previous_states"][i] = None
-                iterators[i] = self.ex_iterables[i].iter_arrow()
+                # we reset it in case the stopping crtieria isn't met yet and we sample with replacement
+                if self.stopping_strategy not in ["all_exhausted_without_replacement"]:
+                    nexts[i] = None
+                    if self._state_dict:
+                        self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
+                        self._state_dict["previous_states"][i] = None
+                    iterators[i] = self.ex_iterables[i]._iter_arrow()
 
             if result is not False:
                 yield result
@@ -778,6 +786,8 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             if self.bool_strategy_func(is_exhausted):
                 break
             # let's pick one example from the iterator at index i
+            if is_exhausted[i] and self.stopping_strategy in ["all_exhausted_without_replacement"]:
+                continue
             if nexts[i] is None:
                 nexts[i] = next(iterators[i], False)
             result = nexts[i]
@@ -791,12 +801,12 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
                 if self._state_dict:
                     self._state_dict["is_exhausted"][i] = True
                 # we reset it in case the stopping crtieria isn't met yet
-                nexts[i] = None
-                if self._state_dict:
-                    self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
-                    self._state_dict["previous_states"][i] = None
-                iterators[i] = iter(self.ex_iterables[i])
-
+                if self.stopping_strategy not in ["all_exhausted_without_replacement"]:
+                    nexts[i] = None
+                    if self._state_dict:
+                        self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
+                        self._state_dict["previous_states"][i] = None
+                    iterators[i] = iter(self.ex_iterables[i])
             if result is not False:
                 yield result
 
@@ -807,16 +817,33 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
     @property
     def num_shards(self) -> int:
-        return min(ex_iterable.num_shards for ex_iterable in self.ex_iterables)
+        return min(ex_iterable.num_shards for ex_iterable in self.ex_iterables) if self.ex_iterables else 0
 
     def shard_data_sources(
         self, num_shards: int, index: int, contiguous=True
     ) -> "CyclingMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
-        return CyclingMultiSourcesExamplesIterable(
-            [iterable.shard_data_sources(num_shards, index, contiguous=contiguous) for iterable in self.ex_iterables],
-            stopping_strategy=self.stopping_strategy,
-        )
+        if num_shards < self.num_shards:
+            return CyclingMultiSourcesExamplesIterable(
+                [
+                    iterable.shard_data_sources(num_shards, index, contiguous=contiguous)
+                    for iterable in self.ex_iterables
+                ],
+                stopping_strategy=self.stopping_strategy,
+            )
+        elif index < self.num_shards:
+            return CyclingMultiSourcesExamplesIterable(
+                [
+                    iterable.shard_data_sources(self.num_shards, index, contiguous=contiguous)
+                    for iterable in self.ex_iterables
+                ],
+                stopping_strategy=self.stopping_strategy,
+            )
+        else:
+            return CyclingMultiSourcesExamplesIterable(
+                [],
+                stopping_strategy=self.stopping_strategy,
+            )
 
 
 class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
@@ -988,12 +1015,13 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         ex_iterables: list[_BaseExamplesIterable],
         generator: np.random.Generator,
         probabilities: Optional[list[float]] = None,
-        stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+        stopping_strategy: Literal[
+            "first_exhausted", "all_exhausted", "all_exhausted_without_replacement"
+        ] = "first_exhausted",
     ):
         super().__init__(ex_iterables, stopping_strategy)
         self.generator = deepcopy(generator)
         self.probabilities = probabilities
-        # TODO(QL): implement iter_arrow
 
     @property
     def is_typed(self):
@@ -1057,12 +1085,33 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         self, num_shards: int, index: int, contiguous=True
     ) -> "RandomlyCyclingMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
-        return RandomlyCyclingMultiSourcesExamplesIterable(
-            [iterable.shard_data_sources(num_shards, index, contiguous=contiguous) for iterable in self.ex_iterables],
-            self.generator,
-            self.probabilities,
-            self.stopping_strategy,
-        )
+        if num_shards < self.num_shards:
+            return RandomlyCyclingMultiSourcesExamplesIterable(
+                [
+                    iterable.shard_data_sources(num_shards, index, contiguous=contiguous)
+                    for iterable in self.ex_iterables
+                ],
+                self.generator,
+                self.probabilities,
+                self.stopping_strategy,
+            )
+        elif index < self.num_shards:
+            return RandomlyCyclingMultiSourcesExamplesIterable(
+                [
+                    iterable.shard_data_sources(self.num_shards, index, contiguous=contiguous)
+                    for iterable in self.ex_iterables
+                ],
+                self.generator,
+                self.probabilities,
+                self.stopping_strategy,
+            )
+        else:
+            return RandomlyCyclingMultiSourcesExamplesIterable(
+                [],
+                self.generator,
+                self.probabilities,
+                self.stopping_strategy,
+            )
 
 
 def _table_output_to_arrow(output) -> pa.Table:
@@ -4332,7 +4381,7 @@ class IterableDataset(DatasetInfoMixin):
                     except HfHubHTTPError as err:
                         if (
                             err.__context__
-                            and isinstance(err.__context__, HTTPError)
+                            and isinstance(err.__context__, HfHubHTTPError)
                             and err.__context__.response.status_code == 409
                         ):
                             # 409 is Conflict (another commit is in progress)
@@ -4382,7 +4431,7 @@ class IterableDataset(DatasetInfoMixin):
             except HfHubHTTPError as err:
                 if (
                     err.__context__
-                    and isinstance(err.__context__, HTTPError)
+                    and isinstance(err.__context__, HfHubHTTPError)
                     and err.__context__.response.status_code in (412, 409)
                 ):
                     # 412 is Precondition failed (parent_commit isn't satisfied)
@@ -4490,7 +4539,9 @@ def _interleave_iterable_datasets(
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
-    stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+    stopping_strategy: Literal[
+        "first_exhausted", "all_exhausted", "all_exhausted_without_replacement"
+    ] = "first_exhausted",
 ) -> IterableDataset:
     """
     Interleave several iterable datasets (sources) into a single iterable dataset.
@@ -4536,7 +4587,10 @@ def _interleave_iterable_datasets(
     else:
         generator = np.random.default_rng(seed)
         ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
-            ex_iterables, generator=generator, probabilities=probabilities, stopping_strategy=stopping_strategy
+            ex_iterables,
+            generator=generator,
+            probabilities=probabilities,
+            stopping_strategy=stopping_strategy,
         )
     # Set new info - we update the features
     # setting the features also ensures to fill missing columns with None
