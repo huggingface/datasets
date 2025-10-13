@@ -61,8 +61,9 @@ class HDF5(datasets.ArrowBasedBuilder):
             # Infer features from first file
             if self.info.features is None:
                 for first_file in itertools.chain.from_iterable(files):
-                    with h5py.File(first_file, "r") as h5:
-                        self.info.features = _recursive_infer_features(h5)
+                    with open(first_file, "rb") as f:
+                        with h5py.File(f, "r") as h5:
+                            self.info.features = _recursive_infer_features(h5)
                     break
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
@@ -73,22 +74,23 @@ class HDF5(datasets.ArrowBasedBuilder):
         batch_size_cfg = self.config.batch_size
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             try:
-                with h5py.File(file, "r") as h5:
-                    # Infer features and lengths from first file
-                    if self.info.features is None:
-                        self.info.features = _recursive_infer_features(h5)
-                    num_rows = _check_dataset_lengths(h5, self.info.features)
-                    if num_rows is None:
-                        logger.warning(f"File {file} contains no data, skipping...")
-                        continue
-                    effective_batch = batch_size_cfg or self._writer_batch_size or num_rows
-                    for start in range(0, num_rows, effective_batch):
-                        end = min(start + effective_batch, num_rows)
-                        pa_table = _recursive_load_arrays(h5, self.info.features, start, end)
-                        if pa_table is None:
+                with open(file, "rb") as f:
+                    with h5py.File(f, "r") as h5:
+                        # Infer features and lengths from first file
+                        if self.info.features is None:
+                            self.info.features = _recursive_infer_features(h5)
+                        num_rows = _check_dataset_lengths(h5, self.info.features)
+                        if num_rows is None:
                             logger.warning(f"File {file} contains no data, skipping...")
                             continue
-                        yield f"{file_idx}_{start}", cast_table_to_features(pa_table, self.info.features)
+                        effective_batch = batch_size_cfg or self._writer_batch_size or num_rows
+                        for start in range(0, num_rows, effective_batch):
+                            end = min(start + effective_batch, num_rows)
+                            pa_table = _recursive_load_arrays(h5, self.info.features, start, end)
+                            if pa_table is None:
+                                logger.warning(f"File {file} contains no data, skipping...")
+                                continue
+                            yield f"{file_idx}_{start}", cast_table_to_features(pa_table, self.info.features)
             except ValueError as e:
                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                 raise
