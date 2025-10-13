@@ -42,6 +42,7 @@ from ..utils import experimental, logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
+from .nifti import Nifti
 from .pdf import Pdf, encode_pdfplumber_pdf
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video
@@ -1270,6 +1271,7 @@ FeatureType = Union[
     Image,
     Video,
     Pdf,
+    Nifti,
 ]
 
 
@@ -1428,6 +1430,7 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     Image.__name__: Image,
     Video.__name__: Video,
     Pdf.__name__: Pdf,
+    Nifti.__name__: Nifti,
 }
 
 
@@ -1761,6 +1764,9 @@ class Features(dict):
         - [`Pdf`] feature to store the absolute path to a PDF file, a `pdfplumber.pdf.PDF` object
           or a dictionary with the relative path to a PDF file ("path" key) and its bytes content ("bytes" key).
           This feature loads the PDF lazily with a PDF reader.
+        - [`Nifti`] feature to store the absolute path to a NIfTI neuroimaging file, a `nibabel.Nifti1Image` object
+          or a dictionary with the relative path to a NIfTI file ("path" key) and its bytes content ("bytes" key).
+          This feature loads the NIfTI file lazily with nibabel.
         - [`Translation`] or [`TranslationVariableLanguages`] feature specific to Machine Translation.
     """
 
