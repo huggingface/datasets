@@ -239,9 +239,6 @@ def encode_nibabel_image(img: "nib.Nifti1Image") -> dict[str, Optional[Union[str
     if hasattr(img, "file_map") and img.file_map is not None:
         filename = img.file_map["image"].filename
         return {"path": filename, "bytes": None}
-    with BytesIO() as buffer:
-        # Use nibabel's save functionality to write to buffer
-        import nibabel as nib
 
-        nib.save(img, buffer)
-        return {"path": None, "bytes": buffer.getvalue()}
+    bytes_data = img.to_bytes()
+    return {"path": None, "bytes": bytes_data}
