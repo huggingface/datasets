@@ -895,8 +895,8 @@ def _prepare_single_hop_path_and_storage_options(
             storage_options["headers"] = {"Accept-Encoding": "identity", **headers}
     elif protocol == "hf":
         storage_options = {
-            "token": token,
             "endpoint": config.HF_ENDPOINT,
+            "token": token,
             **storage_options,
         }
     if storage_options:
