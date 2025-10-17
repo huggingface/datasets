@@ -198,6 +198,16 @@ class _BaseExamplesIterable:
         """
         raise NotImplementedError(f"{type(self)} doesn't implement shuffle_data_sources yet")
 
+    def shift_rngs(self, value: int) -> None:
+        def set_seed_recursively(ex_iterable):
+            if hasattr(ex_iterable, "generator"):
+                new_seed = ex_iterable.generator.bit_generator.state["state"]["state"] + value
+                ex_iterable.generator = np.random.default_rng(seed=new_seed)
+            if hasattr(ex_iterable, "ex_iterable"):
+                set_seed_recursively(ex_iterable.ex_iterable)
+
+        set_seed_recursively(self)
+
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "_BaseExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         raise NotImplementedError(f"{type(self)} doesn't implement shard_data_sources yet")
@@ -2372,6 +2382,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable = ex_iterable.shard_data_sources(
                 num_shards=worker_info.num_workers, index=worker_info.id, contiguous=False
             )
+            ex_iterable.shift_rngs(value=worker_info.id)
             self._state_dict = {
                 "examples_iterable": ex_iterable._init_state_dict(),
                 "epoch": self.epoch,
