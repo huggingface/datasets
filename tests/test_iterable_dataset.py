@@ -1595,7 +1595,6 @@ def test_iterable_dataset_interleave_dataset_with_multiple_workers():
     result = list(dataloader)
     for single_chunk in [result[x : x + num_workers] for x in range(0, len(result), num_workers)]:
         values = [item["value"] for item in single_chunk]
-        # This will fail with the chance 1/100 ** 20!
         assert len(set(values)) != 1, "Make sure not all values are identical"
 
 
