@@ -74,19 +74,6 @@ from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, 
 from .utils.typing import PathLike
 
 
-def show_chain_of_iterables(ex_iterable: "_BaseExamplesIterable") -> str:
-    chain_of_iters = [ex_iterable.__class__.__name__]
-
-    def recurse(obj):
-        new_obj = getattr(obj, "ex_iterable", None)
-        if new_obj is not None:
-            chain_of_iters.append(new_obj.__class__.__name__)
-            recurse(new_obj)
-
-    recurse(ex_iterable)
-    print(f"[show_chain_of_iterables]: {','.join(chain_of_iters)}")
-
-
 if TYPE_CHECKING:
     import sqlite3
 
@@ -2395,7 +2382,6 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable = ex_iterable.shard_data_sources(
                 num_shards=worker_info.num_workers, index=worker_info.id, contiguous=False
             )
-            show_chain_of_iterables(ex_iterable)
             ex_iterable.shift_rngs(value=worker_info.id)
             self._state_dict = {
                 "examples_iterable": ex_iterable._init_state_dict(),
