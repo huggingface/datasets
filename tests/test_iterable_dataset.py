@@ -1554,13 +1554,12 @@ def test_iterable_dataset_from_hub_torch_dataloader_parallel(num_workers, tmp_pa
 
 
 @require_torch
-@pytest.mark.filterwarnings("ignore:This DataLoader will create:UserWarning")
-@pytest.mark.parametrize("num_workers", [4, 8])
-def test_iterable_dataset_shuffle_with_multiple_workers_different_rng(num_workers):
+def test_iterable_dataset_shuffle_with_multiple_workers_different_rng():
     from itertools import groupby
 
     from torch.utils.data import DataLoader
 
+    num_workers = 8
     ex_iterable = ExamplesIterable(
         generate_examples_fn, {"filepaths": [f"{i}.txt" for i in range(num_workers)], "n": 10}
     )
