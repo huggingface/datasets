@@ -1555,25 +1555,48 @@ def test_iterable_dataset_from_hub_torch_dataloader_parallel(num_workers, tmp_pa
 
 @require_torch
 def test_iterable_dataset_shuffle_with_multiple_workers_different_rng():
-    from itertools import groupby
+    # GH 7567
+    from torch.utils.data import DataLoader, get_worker_info
 
-    from torch.utils.data import DataLoader
+    def gen(shard):
+        worker_info = get_worker_info()
+        for i in range(100):
+            yield {"value": i, "worker_id": worker_info.id}
 
-    num_workers = 8
-    ex_iterable = ExamplesIterable(
-        generate_examples_fn, {"filepaths": [f"{i}.txt" for i in range(num_workers)], "n": 10}
-    )
-    dataset = IterableDataset(ex_iterable).shuffle(buffer_size=100, seed=42)
-    dataloader = DataLoader(dataset, batch_size=None, num_workers=num_workers)
+    num_workers = 20
+    ds = IterableDataset.from_generator(gen, gen_kwargs={"shard": list(range(num_workers))})
+    ds = ds.shuffle(buffer_size=100, seed=1234)
+    dataloader = DataLoader(ds, batch_size=None, num_workers=num_workers)
 
     result = list(dataloader)
-    assert len(result) == num_workers * 10
+    for single_chunk in [result[x : x + num_workers] for x in range(0, len(result), num_workers)]:
+        values = [item["value"] for item in single_chunk]
+        # This will fail with the chance 1/100 ** 20!
+        assert len(set(values)) != 1, "Make sure not all values are identical"
 
-    chunks = [list(group) for _, group in groupby(enumerate(result), key=lambda x: x[0] // num_workers)]
-    for chunk_idx, chunk in enumerate(chunks):
-        values = [ex["id"] for _, ex in chunk]
-        unique_values = set(values)
-        assert len(unique_values) > 1, f"Chunk {chunk_idx}: all workers produced same values {values}"
+
+@require_torch
+def test_iterable_dataset_interleave_dataset_with_multiple_workers():
+    # GH 7567
+    from torch.utils.data import DataLoader
+
+    def gen(shard, value):
+        for i in range(100):
+            yield {"value": value}
+
+    num_workers = 20
+    ds = [
+        IterableDataset.from_generator(gen, gen_kwargs={"shard": list(range(num_workers)), "value": i})
+        for i in range(10)
+    ]
+    ds = interleave_datasets(ds, probabilities=[1 / len(ds)] * len(ds), seed=1234)
+    dataloader = DataLoader(ds, batch_size=None, num_workers=num_workers)
+
+    result = list(dataloader)
+    for single_chunk in [result[x : x + num_workers] for x in range(0, len(result), num_workers)]:
+        values = [item["value"] for item in single_chunk]
+        # This will fail with the chance 1/100 ** 20!
+        assert len(set(values)) != 1, "Make sure not all values are identical"
 
 
 @pytest.mark.parametrize("batch_size", [4, 5])

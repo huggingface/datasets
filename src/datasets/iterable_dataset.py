@@ -66,6 +66,19 @@ from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, 
 from .utils.typing import PathLike
 
 
+def show_chain_of_iterables(ex_iterable: "_BaseExamplesIterable") -> str:
+    chain_of_iters = [ex_iterable.__class__.__name__]
+
+    def recurse(obj):
+        new_obj = getattr(obj, "ex_iterable", None)
+        if new_obj is not None:
+            chain_of_iters.append(new_obj.__class__.__name__)
+            recurse(new_obj)
+
+    recurse(ex_iterable)
+    print(f"[show_chain_of_iterables]: {','.join(chain_of_iters)}")
+
+
 if TYPE_CHECKING:
     import sqlite3
 
@@ -191,9 +204,14 @@ class _BaseExamplesIterable:
         raise NotImplementedError(f"{type(self)} doesn't implement shuffle_data_sources yet")
 
     def shift_rngs(self, value: int) -> None:
-        if hasattr(self, "generator"):
-            new_seed = self.generator.bit_generator.state["state"]["state"] + value
-            self.generator = np.random.default_rng(seed=new_seed)
+        def set_seed_recursively(ex_iterable):
+            if hasattr(ex_iterable, "generator"):
+                new_seed = ex_iterable.generator.bit_generator.state["state"]["state"] + value
+                ex_iterable.generator = np.random.default_rng(seed=new_seed)
+            if hasattr(ex_iterable, "ex_iterable"):
+                set_seed_recursively(ex_iterable.ex_iterable)
+
+        set_seed_recursively(self)
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "_BaseExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
@@ -2366,6 +2384,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable = ex_iterable.shard_data_sources(
                 num_shards=worker_info.num_workers, index=worker_info.id, contiguous=False
             )
+            show_chain_of_iterables(ex_iterable)
             ex_iterable.shift_rngs(value=worker_info.id)
             self._state_dict = {
                 "examples_iterable": ex_iterable._init_state_dict(),
