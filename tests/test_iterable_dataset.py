@@ -1553,6 +1553,30 @@ def test_iterable_dataset_from_hub_torch_dataloader_parallel(num_workers, tmp_pa
     assert len(result) == 10
 
 
+@require_torch
+@pytest.mark.filterwarnings("ignore:This DataLoader will create:UserWarning")
+@pytest.mark.parametrize("num_workers", [4, 8])
+def test_iterable_dataset_shuffle_with_multiple_workers_different_rng(num_workers):
+    from itertools import groupby
+
+    from torch.utils.data import DataLoader
+
+    ex_iterable = ExamplesIterable(
+        generate_examples_fn, {"filepaths": [f"{i}.txt" for i in range(num_workers)], "n": 10}
+    )
+    dataset = IterableDataset(ex_iterable).shuffle(buffer_size=100, seed=42)
+    dataloader = DataLoader(dataset, batch_size=None, num_workers=num_workers)
+
+    result = list(dataloader)
+    assert len(result) == num_workers * 10
+
+    chunks = [list(group) for _, group in groupby(enumerate(result), key=lambda x: x[0] // num_workers)]
+    for chunk_idx, chunk in enumerate(chunks):
+        values = [ex["id"] for _, ex in chunk]
+        unique_values = set(values)
+        assert len(unique_values) > 1, f"Chunk {chunk_idx}: all workers produced same values {values}"
+
+
 @pytest.mark.parametrize("batch_size", [4, 5])
 @pytest.mark.parametrize("drop_last_batch", [False, True])
 def test_iterable_dataset_iter_batch(batch_size, drop_last_batch):
