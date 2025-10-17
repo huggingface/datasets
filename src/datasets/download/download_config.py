@@ -75,7 +75,7 @@ class DownloadConfig:
     def __setattr__(self, name, value):
         if name == "token" and getattr(self, "storage_options", None) is not None:
             if "hf" not in self.storage_options:
-                self.storage_options["hf"] = {"token": value, "endpoint": config.HF_ENDPOINT}
+                self.storage_options["hf"] = {"endpoint": config.HF_ENDPOINT, "token": value}
             elif getattr(self.storage_options["hf"], "token", None) is None:
                 self.storage_options["hf"]["token"] = value
         super().__setattr__(name, value)
