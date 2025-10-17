@@ -61,6 +61,14 @@ INCOMPLETE_SUFFIX = ".incomplete"
 
 T = TypeVar("T", str, Path)
 
+CONNECTION_ERRORS_TO_RETRY = (
+    _AiohttpClientError,
+    asyncio.TimeoutError,
+    requests.exceptions.ConnectionError,
+    requests.exceptions.Timeout,
+    httpx.RequestError,
+)
+
 
 def is_remote_url(url_or_filename: str) -> bool:
     return urlparse(url_or_filename).scheme != "" and not os.path.ismount(urlparse(url_or_filename).scheme + ":/")
@@ -813,13 +821,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
             try:
                 out = read(*args, **kwargs)
                 break
-            except (
-                _AiohttpClientError,
-                asyncio.TimeoutError,
-                requests.exceptions.ConnectionError,
-                requests.exceptions.Timeout,
-                httpx.RequestError,
-            ) as err:
+            except CONNECTION_ERRORS_TO_RETRY as err:
                 disconnect_err = err
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
@@ -930,23 +932,37 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
     # add headers and cookies for authentication on the HF Hub and for Google Drive
     file, storage_options = _prepare_path_and_storage_options(file_str, download_config=download_config)
     kwargs = {**kwargs, **(storage_options or {})}
-    try:
-        file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
-    except ValueError as e:
-        if str(e) == "Cannot seek streaming HTTP file":
-            raise NonStreamableDatasetError(
-                "Streaming is not possible for this dataset because data host server doesn't support HTTP range "
-                "requests. You can still load this dataset in non-streaming mode by passing `streaming=False` (default)"
-            ) from e
-        else:
-            raise
-    except FileNotFoundError:
-        if file.startswith(config.HF_ENDPOINT):
-            raise FileNotFoundError(
-                file + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
-            ) from None
-        else:
-            raise
+
+    max_retries = config.STREAMING_OPEN_MAX_RETRIES
+
+    disconnect_err = None
+    for retry in range(1, max_retries + 1):
+        try:
+            file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
+            break
+        except CONNECTION_ERRORS_TO_RETRY as err:
+            disconnect_err = err
+            logger.warning(
+                f"Failed to connect to remote data host. Retrying in {config.STREAMING_OPEN_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
+            )
+            time.sleep(config.STREAMING_OPEN_RETRY_INTERVAL)
+        except ValueError as e:
+            if str(e) == "Cannot seek streaming HTTP file":
+                raise NonStreamableDatasetError(
+                    "Streaming is not possible for this dataset because data host server doesn't support HTTP range "
+                    "requests. You can still load this dataset in non-streaming mode by passing `streaming=False` (default)"
+                ) from e
+            else:
+                raise
+        except FileNotFoundError:
+            if file.startswith(config.HF_ENDPOINT):
+                raise FileNotFoundError(
+                    file + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
+                ) from None
+            else:
+                raise
+    else:
+        raise ConnectionError("Server Disconnected") from disconnect_err
     file_obj = _add_retries_to_file_obj_read_method(file_obj)
     return file_obj
 
