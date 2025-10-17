@@ -190,8 +190,17 @@ class _BaseExamplesIterable:
         """
         raise NotImplementedError(f"{type(self)} doesn't implement shuffle_data_sources yet")
 
+    def shift_rngs(self, value: int) -> None:
+        print("[shift_rngs]:", value)
+        if hasattr(self, 'generator'):
+            print("[shift_rngs]: has generator")
+            new_seed = self.generator.bit_generator.state['state']['state'] + value
+            self.generator = np.random.default_rng(seed=new_seed)
+
+
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "_BaseExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        print(f"[_BaseExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         raise NotImplementedError(f"{type(self)} doesn't implement shard_data_sources yet")
 
     def split_shard_indices_by_worker(self, num_shards: int, index: int, contiguous=True) -> list[int]:
@@ -258,6 +267,7 @@ class ExamplesIterable(_BaseExamplesIterable):
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ExamplesIterable":
         """Keep only the requested shard."""
+        print(f"[ExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
         shard_indices = self.split_shard_indices_by_worker(num_shards, index, contiguous=contiguous)
         requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
@@ -298,6 +308,7 @@ class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ExamplesIterable":
         """Keep only the requested shard."""
+        print(f"[ShuffledDataSourcesExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         rng = deepcopy(self.generator)
         kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
         return ExamplesIterable(self.generate_examples_fn, kwargs_with_shuffled_shards).shard_data_sources(
@@ -362,6 +373,7 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ArrowExamplesIterable":
         """Keep only the requested shard."""
+        print(f"[ArrowExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
         shard_indices = self.split_shard_indices_by_worker(num_shards, index, contiguous=contiguous)
         requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
@@ -435,6 +447,7 @@ class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ArrowExamplesIterable":
         """Keep only the requested shard."""
+        print(f"[ShuffledDataSourcesArrowExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         rng = deepcopy(self.generator)
         kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
         return ArrowExamplesIterable(self.generate_tables_fn, kwargs_with_shuffled_shards).shard_data_sources(
@@ -567,6 +580,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
         )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "RebatchedArrowExamplesIterable":
+        print(f"[RebatchedArrowExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         return RebatchedArrowExamplesIterable(
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
             self.batch_size,
@@ -614,6 +628,7 @@ class SelectColumnsIterable(_BaseExamplesIterable):
         return SelectColumnsIterable(self.ex_iterable.shuffle_data_sources(generator), self.column_names)
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "SelectColumnsIterable":
+        print(f"[SelectColumnsIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         return SelectColumnsIterable(
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous), self.column_names
         )
@@ -658,6 +673,7 @@ class StepExamplesIterable(_BaseExamplesIterable):
         )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "StepExamplesIterable":
+        print(f"[StepExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         return StepExamplesIterable(
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
             step=self.step,
@@ -823,6 +839,7 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
         self, num_shards: int, index: int, contiguous=True
     ) -> "CyclingMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        print(f"[CyclingMultiSourcesExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         if num_shards < self.num_shards:
             return CyclingMultiSourcesExamplesIterable(
                 [
@@ -916,6 +933,7 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
         self, num_shards: int, index: int, contiguous=True
     ) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        print(f"[VerticallyConcatenatedMultiSourcesExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         return VerticallyConcatenatedMultiSourcesExamplesIterable(
             [iterable.shard_data_sources(num_shards, index, contiguous=contiguous) for iterable in self.ex_iterables]
         )
@@ -1004,6 +1022,7 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
         self, num_shards: int, index: int, contiguous=True
     ) -> "HorizontallyConcatenatedMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        print(f"[HorizontallyConcatenatedMultiSourcesExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         return HorizontallyConcatenatedMultiSourcesExamplesIterable(
             [iterable.shard_data_sources(num_shards, index, contiguous=contiguous) for iterable in self.ex_iterables]
         )
@@ -1085,6 +1104,7 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         self, num_shards: int, index: int, contiguous=True
     ) -> "RandomlyCyclingMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        print(f"[RandomlyCyclingMultiSourcesExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         if num_shards < self.num_shards:
             return RandomlyCyclingMultiSourcesExamplesIterable(
                 [
@@ -1491,6 +1511,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "MappedExamplesIterable":
         """Keep only the requested shard."""
+        print(f"[MappedExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         return MappedExamplesIterable(
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
             function=self.function,
@@ -1597,6 +1618,7 @@ class FilteredExamplesIterable(MappedExamplesIterable):
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "FilteredExamplesIterable":
         """Keep only the requested shard."""
+        print(f"[FilteredExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         return FilteredExamplesIterable(
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
             function=self.mask_function,
@@ -1615,6 +1637,8 @@ class FilteredExamplesIterable(MappedExamplesIterable):
 
 class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     def __init__(self, ex_iterable: _BaseExamplesIterable, buffer_size: int, generator: np.random.Generator):
+        # import traceback as tb
+        # tb.print_stack()
         super().__init__()
         self.ex_iterable = ex_iterable
         self.buffer_size = buffer_size
@@ -1654,6 +1678,7 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     def __iter__(self):
         buffer_size = self.buffer_size
         rng = deepcopy(self.generator)
+        print(f"This is rng {rng.bit_generator.state['state']['state']}")
         indices_iterator = self._iter_random_indices(rng, buffer_size)
         # this is the shuffle buffer that we keep in memory
         mem_buffer = []
@@ -1693,10 +1718,14 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "BufferShuffledExamplesIterable":
         """Keep only the requested shard."""
+        print(f"[BufferShuffledExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
+        # set the seed independently for each BufferShuffledExamplesIterable based on index (which is worker_id)
+        new_seed = self.generator.bit_generator.state['state']['state'] + index
+        rng = np.random.default_rng(seed=new_seed)
         return BufferShuffledExamplesIterable(
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
             buffer_size=self.buffer_size,
-            generator=self.generator,
+            generator=rng,
         )
 
     @property
@@ -1764,6 +1793,7 @@ class SkipExamplesIterable(_BaseExamplesIterable):
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "SkipExamplesIterable":
         """Keep only the requested shard."""
+        print(f"[SkipExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         if self.split_when_sharding:
             return SkipExamplesIterable(
                 self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
@@ -1818,6 +1848,7 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "RepeatExamplesIterable":
         """Shard, then repeat shards."""
+        print(f"[RepeatExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         return RepeatExamplesIterable(
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
             num_times=self.num_times,
@@ -1889,6 +1920,7 @@ class TakeExamplesIterable(_BaseExamplesIterable):
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "TakeExamplesIterable":
         """Keep only the requested shard."""
+        print(f"[TakeExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         if self.split_when_sharding:
             return TakeExamplesIterable(
                 self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
@@ -1985,6 +2017,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
         return self._state_dict
 
     def __iter__(self):
+        print("[FormattedExamplesIterable.__iter__]", type(self.ex_iterable))
         if not self.formatting or self.formatting.is_table:
             formatter = PythonFormatter(
                 features=self._features if not self.ex_iterable.is_typed else None,
@@ -1997,6 +2030,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
                 token_per_repo_id=self.token_per_repo_id,
             )
         if self.ex_iterable.iter_arrow:
+            print("[FormattedExamplesIterable.__iter__] iter_arrow!")
             # feature casting (inc column addition) handled within self._iter_arrow()
             for key, pa_table in self._iter_arrow():
                 batch = formatter.format_batch(pa_table)
@@ -2009,6 +2043,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
                 else None  # cast in case features is None
             )
             for key, example in self.ex_iterable:
+                print("[FormattedExamplesIterable]  in self.ex_iterable")
                 # don't apply feature types if already applied by ex_iterable (e.g. in case of chained with_format)
                 if self.features and not self.ex_iterable.is_typed:
                     example = _apply_feature_types_on_example(
@@ -2044,6 +2079,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "FormattedExamplesIterable":
         """Keep only the requested shard."""
+        print(f"[FormattedExamplesIterable.shard_data_sources], num_shards: {num_shards}, index: {index}, contiguous: {contiguous}, has_generator: {hasattr(self, 'generator')}")
         return FormattedExamplesIterable(
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
             features=self.features,
@@ -2361,6 +2397,8 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable = ex_iterable.shard_data_sources(
                 num_shards=worker_info.num_workers, index=worker_info.id, contiguous=False
             )
+            ex_iterable.shift_rngs(value=worker_info.id)
+            print("[DEBUG] Number of shards for this worker:", ex_iterable.num_shards, "worker_id", worker_info.id, type(ex_iterable))
             self._state_dict = {
                 "examples_iterable": ex_iterable._init_state_dict(),
                 "epoch": self.epoch,
@@ -2979,6 +3017,7 @@ class IterableDataset(DatasetInfoMixin):
          'text': "sam jones became a very lucky filmmaker the day wilco got dropped from their record label , proving that one man's ruin may be another's fortune ."}]
         ```
         """
+        print("[IterableDataset.shuffle]: seed", {seed})
         if generator is None:
             generator = np.random.default_rng(seed)
         else:
