@@ -3671,7 +3671,7 @@ class IterableDataset(DatasetInfoMixin):
         Args:
             batch_size (`int`, *optional*):
                 The size (number of rows) of the batches if `batched` is `True`.
-                Defaults to `genomicsml.datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
             batched (`bool`):
                 Set to `True` to return a generator that yields the dataset as batches
                 of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
