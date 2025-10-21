@@ -31,16 +31,17 @@ files = ["/path/to/scan_001.nii.gz", "/path/to/scan_002.nii.gz"]
 ds = Dataset.from_dict({"nifti": files}).cast_column("nifti", Nifti())
 
 # access a decoded nibabel image (if decode=True)
-# ds[0]["nifti"] will be a nibabel object or a path depending on the feature configuration
+# ds[0]["nifti"] will be a nibabel.Nifti1Image object when decode=True
+# or a dict {'bytes': None, 'path': '...'} when decode=False
 ```
 
-The `Nifti` feature supports a `decode` parameter, but currently only `decode=True` is supported (loading the NIfTI file into a `nibabel.nifti1.Nifti1Image` object). You can access the image data as a numpy array with `img.get_fdata()`.
+The `Nifti` feature supports a `decode` parameter. When `decode=True` (the default), it loads the NIfTI file into a `nibabel.nifti1.Nifti1Image` object. You can access the image data as a numpy array with `img.get_fdata()`. When `decode=False`, it returns a dict with the file path and bytes.
 
 ```py
 from datasets import Dataset, Nifti
 
 ds = Dataset.from_dict({"nifti": ["/path/to/scan.nii.gz"]}).cast_column("nifti", Nifti(decode=True))
-img = ds[0]["nifti"]  # instance of: nibabel.nifti1.NiFTI1Image
+img = ds[0]["nifti"]  # instance of: nibabel.nifti1.Nifti1Image
 arr = img.get_fdata()
 ```
 
@@ -84,11 +85,7 @@ dataset/test/scan_2001.nii
 
 ## Converting to PyTorch tensors
 
-There are two recommended ways to convert a `Dataset` of NIfTI files to torch tensors, depending on your memory and performance constraints.
-
-If your dataset is reasonably small or you can afford the memory, map each example to a numpy array and use `set_format(type='torch')`:
-
-Use the [`~Dataset.set_transform`] function to apply the transformation on-the-fly to batches of the dataset to consume less disk space:
+Use the [`~Dataset.set_transform`] function to apply the transformation on-the-fly to batches of the dataset:
 
 ```py
 import torch 
@@ -99,10 +96,10 @@ def transform_to_pytorch(example):
     example["nifti_torch"] = [torch.tensor(ex.get_fdata()) for ex in example["nifti"]]
     return example
 
-nifti_ds_fh.set_transform(transform_to_pytorch)
+ds.set_transform(transform_to_pytorch)
 
 ```
-Accessing elements now (e.g. `nifti_ds_fh["train"][0]`) will yield torch tensors in the `"nifti_torch"` key.
+Accessing elements now (e.g. `ds[0]`) will yield torch tensors in the `"nifti_torch"` key.
 
 
 ## Usage of NifTI1Image
