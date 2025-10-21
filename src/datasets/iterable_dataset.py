@@ -26,7 +26,15 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-from huggingface_hub import CommitInfo, CommitOperationAdd, CommitOperationDelete, DatasetCard, DatasetCardData, HfApi
+from huggingface_hub import (
+    CommitInfo,
+    CommitOperationAdd,
+    CommitOperationDelete,
+    DatasetCard,
+    DatasetCardData,
+    HfApi,
+    HfFileSystem,
+)
 from huggingface_hub.hf_api import RepoFile
 from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 from multiprocess import Pool
@@ -2151,6 +2159,7 @@ class IterableDataset(DatasetInfoMixin):
         self._token_per_repo_id: dict[str, Union[str, bool, None]] = token_per_repo_id or {}
         self._epoch: Union[int, "torch.Tensor"] = _maybe_share_with_torch_persistent_workers(0)
         self._starting_state_dict: Optional[dict] = None
+        self.__hffs_cache = HfFileSystem._cache  # keep the cache on pickling (e.g. for dataloader workers)
         self._prepare_ex_iterable_for_iteration()  # set state_dict
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)  # subclass of torch IterableDataset
 
@@ -2299,6 +2308,8 @@ class IterableDataset(DatasetInfoMixin):
         self.__dict__ = d
         # Re-add torch shared memory, since shared memory is not always kept when pickling
         self._epoch = _maybe_share_with_torch_persistent_workers(self._epoch)
+        # Re-add the cache to keep on pickling (e.g. for dataloader workers)
+        self.__hffs_cache = HfFileSystem._cache
         # Re-add torch iterable dataset as a parent class, since dynamically added parent classes are not kept when pickling
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
@@ -3660,7 +3671,7 @@ class IterableDataset(DatasetInfoMixin):
         Args:
             batch_size (`int`, *optional*):
                 The size (number of rows) of the batches if `batched` is `True`.
-                Defaults to `genomicsml.datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
             batched (`bool`):
                 Set to `True` to return a generator that yields the dataset as batches
                 of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
