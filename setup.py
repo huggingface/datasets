@@ -186,6 +186,7 @@ TESTS_REQUIRE = [
     "polars[timezone]>=0.20.0",
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
     "torchcodec>=0.7.0",  # minium version to get windows support
+    "nibabel>=5.3.1",
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
