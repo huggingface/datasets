@@ -37,8 +37,7 @@ class Nifti:
 
     Args:
         decode (`bool`, defaults to `True`):
-            Whether to decode the NIfTI data. If `False`,
-            returns the underlying dictionary in the format `{"path": nifti_path, "bytes": nifti_bytes}`.
+            Whether to decode the NIfTI data. If `False` a string with the bytes is returned. `decode=False` is not supported when decoding examples.
 
     Examples:
 
@@ -107,7 +106,7 @@ class Nifti:
                 f"A nifti sample should be a string, bytes, Path, nibabel image, or dict, but got {type(value)}."
             )
 
-    def decode_example(self, value: dict, token_per_repo_id=None) -> "nib.Nifti1Image":
+    def decode_example(self, value: dict, token_per_repo_id=None) -> "nib.nifti1.Nifti1Image":
         """Decode example NIfTI file into nibabel image object.
 
         Args:
@@ -124,10 +123,10 @@ class Nifti:
                 repo_id (`str`) -> token (`bool` or `str`).
 
         Returns:
-            `nibabel.Nifti1Image` or similar nibabel image object
+            `nibabel.Nifti1Image` objects
         """
         if not self.decode:
-            raise RuntimeError("Decoding is disabled for this feature. Please use Nifti(decode=True) instead.")
+            raise NotImplementedError("Decoding is disabled for this feature. Please use Nifti(decode=True) instead.")
 
         if config.NIBABEL_AVAILABLE:
             import nibabel as nib
