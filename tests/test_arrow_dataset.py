@@ -4773,3 +4773,23 @@ def test_from_polars_save_to_disk_and_load_from_disk_round_trip_with_large_list(
 def test_polars_round_trip():
     ds = Dataset.from_dict({"x": [[1, 2], [3, 4, 5]], "y": ["a", "b"]})
     assert isinstance(Dataset.from_polars(ds.to_polars()), Dataset)
+
+
+def test_map_int32_overflow():
+    # GH: 7821
+    def process_batch(batch):
+        res = []
+        for _ in batch["id"]:
+            res.append(np.zeros((2**31)).astype(np.uint16))
+
+        return {"audio": res}
+
+    ds = Dataset.from_dict({"id": [0]})
+    mapped_ds = ds.map(
+        process_batch,
+        batched=True,
+        batch_size=1,
+        num_proc=0,
+        remove_columns=ds.column_names,
+    )
+    assert isinstance(mapped_ds, Dataset)
