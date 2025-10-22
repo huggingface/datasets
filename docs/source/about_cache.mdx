@@ -6,11 +6,8 @@ The cache is one of the reasons why 🤗 Datasets is so efficient. It stores pre
 
 How does the cache keeps track of what transforms are applied to a dataset? Well, 🤗 Datasets assigns a fingerprint to the cache file. A fingerprint keeps track of the current state of a dataset. The initial fingerprint is computed using a hash from the Arrow table, or a hash of the Arrow files if the dataset is on disk. Subsequent fingerprints are computed by combining the fingerprint of the previous state, and a hash of the latest transform applied. 
 
-<Tip>
-
-Transforms are any of the processing methods from the [How-to Process](./process) guides such as [`Dataset.map`] or [`Dataset.shuffle`].
-
-</Tip>
+> [!TIP]
+> Transforms are any of the processing methods from the [How-to Process](./process) guides such as [`Dataset.map`] or [`Dataset.shuffle`].
 
 Here are what the actual fingerprints look like:
 
@@ -28,11 +25,8 @@ When you use a non-hashable transform, 🤗 Datasets uses a random fingerprint i
 
 An example of when 🤗 Datasets recomputes everything is when caching is disabled. When this happens, the cache files are generated every time and they get written to a temporary directory. Once your Python session ends, the cache files in the temporary directory are deleted. A random hash is assigned to these cache files, instead of a fingerprint. 
 
-<Tip>
-
-When caching is disabled, use [`Dataset.save_to_disk`] to save your transformed dataset or it will be deleted once the session ends.
-
-</Tip>
+> [!TIP]
+> When caching is disabled, use [`Dataset.save_to_disk`] to save your transformed dataset or it will be deleted once the session ends.
 
 ## Hashing
 

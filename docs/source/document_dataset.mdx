@@ -1,22 +1,16 @@
 # Create a document dataset
 
-This guide will show you how to create a document dataset with `PdfFolder` and some metadata. This is a no-code solution for quickly creating a document dataset with several thousand pdfs.
+This guide will show you how to create a document dataset with `PdfFolder` and some metadata. This is a no-code solution for quickly creating a document dataset with several thousand PDFs.
 
-<Tip>
-
-You can control access to your dataset by requiring users to share their contact information first. Check out the [Gated datasets](https://huggingface.co/docs/hub/datasets-gated) guide for more information about how to enable this feature on the Hub.
-
-</Tip>
+> [!TIP]
+> You can control access to your dataset by requiring users to share their contact information first. Check out the [Gated datasets](https://huggingface.co/docs/hub/datasets-gated) guide for more information about how to enable this feature on the Hub.
 
 ## PdfFolder
 
-The `PdfFolder` is a dataset builder designed to quickly load a document dataset with several thousand pdfs without requiring you to write any code.
+The `PdfFolder` is a dataset builder designed to quickly load a document dataset with several thousand PDFs without requiring you to write any code.
 
-<Tip>
-
-💡 Take a look at the [Split pattern hierarchy](repository_structure#split-pattern-hierarchy) to learn more about how `PdfFolder` creates dataset splits based on your dataset repository structure.
-
-</Tip>
+> [!TIP]
+> 💡 Take a look at the [Split pattern hierarchy](repository_structure#split-pattern-hierarchy) to learn more about how `PdfFolder` creates dataset splits based on your dataset repository structure.
 
 `PdfFolder` automatically infers the class labels of your dataset based on the directory name. Store your dataset in a directory structure like:
 
@@ -53,11 +47,8 @@ folder/test/invoice/0001.pdf
 folder/test/invoice/0002.pdf
 ```
 
-<Tip warning={true}>
-
-If all PDF files are contained in a single directory or if they are not on the same level of directory structure, `label` column won't be added automatically. If you need it, set `drop_labels=False` explicitly.
-
-</Tip>
+> [!WARNING]
+> If all PDF files are contained in a single directory or if they are not on the same level of directory structure, `label` column won't be added automatically. If you need it, set `drop_labels=False` explicitly.
 
 
 If there is additional information you'd like to include about your dataset, like text captions or bounding boxes, add it as a `metadata.csv` file in your folder. This lets you quickly create datasets for different computer vision tasks like text captioning or object detection. You can also use a JSONL file `metadata.jsonl` or a Parquet file `metadata.parquet`.
@@ -81,14 +72,14 @@ file_name,additional_feature
 or using `metadata.jsonl`:
 
 ```jsonl
-{"file_name": "0001.pdf", "additional_feature": "This is a first value of a text feature you added to your pdfs"}
-{"file_name": "0002.pdf", "additional_feature": "This is a second value of a text feature you added to your pdfs"}
-{"file_name": "0003.pdf", "additional_feature": "This is a third value of a text feature you added to your pdfs"}
+{"file_name": "0001.pdf", "additional_feature": "This is a first value of a text feature you added to your PDFs"}
+{"file_name": "0002.pdf", "additional_feature": "This is a second value of a text feature you added to your PDFs"}
+{"file_name": "0003.pdf", "additional_feature": "This is a third value of a text feature you added to your PDFs"}
 ```
 
 Here the `file_name` must be the name of the PDF file next to the metadata file. More generally, it must be the relative path from the directory containing the metadata to the PDF file.
 
-It's possible to point to more than one pdf in each row in your dataset, for example if both your input and output are pdfs:
+It's possible to point to more than one PDF in each row in your dataset, for example if both your input and output are pdfs:
 
 ```jsonl
 {"input_file_name": "0001.pdf", "output_file_name": "0001_output.pdf"}
@@ -96,7 +87,7 @@ It's possible to point to more than one pdf in each row in your dataset, for exa
 {"input_file_name": "0003.pdf", "output_file_name": "0003_output.pdf"}
 ```
 
-You can also define lists of pdfs. In that case you need to name the field `file_names` or `*_file_names`. Here is an example:
+You can also define lists of PDFs. In that case you need to name the field `file_names` or `*_file_names`. Here is an example:
 
 ```jsonl
 {"pdfs_file_names": ["0001_part1.pdf", "0001_part2.pdf"], "label": "urgent"}
@@ -104,9 +95,9 @@ You can also define lists of pdfs. In that case you need to name the field `file
 {"pdfs_file_names": ["0003_part1.pdf", "0002_part2.pdf"], "label": "normal"}
 ```
 
-### OCR (Optical character recognition)
+### OCR (Optical Character Recognition)
 
-OCR datasets have the text contained in a pdf. An example `metadata.csv` may look like:
+OCR datasets have the text contained in a PDF. An example `metadata.csv` may look like:
 
 ```csv
 file_name,text
@@ -115,7 +106,7 @@ file_name,text
 0003.pdf,Attention is all you need. Abstract. The ...
 ```
 
-Load the dataset with `PdfFolder`, and it will create a `text` column for the pdf captions:
+Load the dataset with `PdfFolder`, and it will create a `text` column for the PDF captions:
 
 ```py
 >>> dataset = load_dataset("pdffolder", data_dir="/path/to/folder", split="train")

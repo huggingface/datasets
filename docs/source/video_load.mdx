@@ -1,18 +1,12 @@
 # Load video data
 
-<Tip warning={true}>
-
-Video support is experimental and is subject to change.
-
-</Tip>
+> [!WARNING]
+> Video support is experimental and is subject to change.
 
 Video datasets have [`Video`] type columns, which contain `torchvision` objects.
 
-<Tip>
-
-To work with video datasets, you need to have the `torchvision` and `av` packages installed. Check out the [installation](https://github.com/pytorch/vision#installation) guide to learn how to install them.
-
-</Tip>
+> [!TIP]
+> To work with video datasets, you need to have the `torchvision` and `av` packages installed. Check out the [installation](https://github.com/pytorch/vision#installation) guide to learn how to install them.
 
 When you load a video dataset and call the video column, the videos are decoded as `torchvision` Videos:
 
@@ -24,11 +18,8 @@ When you load a video dataset and call the video column, the videos are decoded 
 <torchcodec.decoders._video_decoder.VideoDecoder object at 0x14a61d5a0>
 ```
 
-<Tip warning={true}>
-
-Index into a video dataset using the row index first and then the `video` column - `dataset[0]["video"]` - to avoid creating all the video objects in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
-
-</Tip>
+> [!WARNING]
+> Index into a video dataset using the row index first and then the `video` column - `dataset[0]["video"]` - to avoid creating all the video objects in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
 
 For a guide on how to load any type of dataset, take a look at the <a class="underline decoration-sky-400 decoration-2 font-semibold" href="./loading">general loading guide</a>.
 
@@ -149,11 +140,8 @@ Finally the `filters` argument lets you load only a subset of the dataset, based
 >>> dataset = load_dataset("username/dataset_name", streaming=True, filters=filters)
 ```
 
-<Tip>
-
-For more information about creating your own `VideoFolder` dataset, take a look at the [Create a video dataset](./video_dataset) guide.
-
-</Tip>
+> [!TIP]
+> For more information about creating your own `VideoFolder` dataset, take a look at the [Create a video dataset](./video_dataset) guide.
 
 ## WebDataset
 

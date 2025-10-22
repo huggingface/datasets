@@ -68,9 +68,9 @@ from huggingface_hub import (
     DatasetCardData,
     HfApi,
 )
-from huggingface_hub.hf_api import HfHubHTTPError, RepoFile, RepositoryNotFoundError
+from huggingface_hub.hf_api import RepoFile
+from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 from multiprocess import Pool
-from requests import HTTPError
 from tqdm.contrib.concurrent import thread_map
 
 from . import config
@@ -1465,11 +1465,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = Dataset.from_sql(stmt, "postgres:///db_name")
         ```
 
-        <Tip>
-
-        The returned dataset can only be cached if `con` is specified as URI string.
-
-        </Tip>
+        > [!TIP]
+        > The returned dataset can only be cached if `con` is specified as URI string.
         """
         from .io.sql import SqlDatasetReader
 
@@ -5199,7 +5196,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Args:
             batch_size (`int`, *optional*):
                 The size (number of rows) of the batches if `batched` is `True`.
-                Defaults to `genomicsml.datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
             batched (`bool`):
                 Set to `True` to return a generator that yields the dataset as batches
                 of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
@@ -6000,7 +5997,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     except HfHubHTTPError as err:
                         if (
                             err.__context__
-                            and isinstance(err.__context__, HTTPError)
+                            and isinstance(err.__context__, HfHubHTTPError)
                             and err.__context__.response.status_code == 409
                         ):
                             # 409 is Conflict (another commit is in progress)
@@ -6050,7 +6047,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             except HfHubHTTPError as err:
                 if (
                     err.__context__
-                    and isinstance(err.__context__, HTTPError)
+                    and isinstance(err.__context__, HfHubHTTPError)
                     and err.__context__.response.status_code in (412, 409)
                 ):
                     # 412 is Precondition failed (parent_commit isn't satisfied)
@@ -6576,7 +6573,9 @@ def _interleave_map_style_datasets(
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
-    stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+    stopping_strategy: Literal[
+        "first_exhausted", "all_exhausted", "all_exhausted_without_replacement"
+    ] = "first_exhausted",
     **kwargs,
 ) -> "Dataset":
     """
@@ -6596,6 +6595,7 @@ def _interleave_map_style_datasets(
             Two strategies are proposed right now.
             By default, `first_exhausted` is an undersampling strategy, i.e the dataset construction is stopped as soon as one dataset has ran out of samples.
             If the strategy is `all_exhausted`,  we use an oversampling strategy, i.e the dataset construction is stopped as soon as every samples of every dataset has been added at least once.
+            When strategy is `all_exhausted_without_replacement` we make sure that each sample in each dataset is sampled only once.
             Note that if the strategy is `all_exhausted`, the interleaved dataset size can get enormous:
             - with no probabilities, the resulting dataset will have max_length_datasets*nb_dataset samples.
             - with given probabilities, the resulting dataset will have more samples if some datasets have really low probability of visiting.
@@ -6604,7 +6604,7 @@ def _interleave_map_style_datasets(
     Output:
         :class:`datasets.Dataset`
     """
-    if stopping_strategy not in ["first_exhausted", "all_exhausted"]:
+    if stopping_strategy not in ["first_exhausted", "all_exhausted", "all_exhausted_without_replacement"]:
         raise ValueError(
             f"{stopping_strategy} stopping strategy in `interleave_datasets` is not implemented yet with a list of {type(datasets[0])}"
         )
@@ -6647,7 +6647,9 @@ def _interleave_map_style_datasets(
 
         # if undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted
         # if oversampling ("all_exhausted"), we stop as soons as every dataset is exhausted, i.e as soon as every samples of every dataset has been visited at least once
-        bool_strategy_func = np.all if oversampling else np.any
+        bool_strategy_func = (
+            np.all if (oversampling or stopping_strategy == "all_exhausted_without_replacement") else np.any
+        )
 
         def iter_random_indices():
             """Get an infinite iterator that randomly samples the index of the source to pick examples from."""
@@ -6665,13 +6667,17 @@ def _interleave_map_style_datasets(
                 break
 
             # let's add the example at the current index of the `source_idx`-th dataset
-            indices.append(current_index[source_idx] + offsets[source_idx])
-            current_index[source_idx] += 1
+            # For without replacement sampling we additionally need to make sure the current source is not exhausted to not oversample.
+            if stopping_strategy != "all_exhausted_without_replacement" or not is_exhausted[source_idx]:
+                indices.append(current_index[source_idx] + offsets[source_idx])
+                current_index[source_idx] += 1
 
             # we've ran out of examples for the current dataset, let's update our boolean array and bring the current_index back to 0
             if current_index[source_idx] >= lengths[source_idx]:
                 is_exhausted[source_idx] = True
-                current_index[source_idx] = 0
+                # We don't want to reset the iterator when stopping strategy is without replacement.
+                if stopping_strategy != "all_exhausted_without_replacement":
+                    current_index[source_idx] = 0
 
     return concatenated_datasets.select(indices, **kwargs)
 

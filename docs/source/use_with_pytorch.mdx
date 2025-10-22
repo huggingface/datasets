@@ -22,11 +22,8 @@ To get PyTorch tensors instead, you can set the format of the dataset to `pytorc
          [3, 4]])}
 ```
 
-<Tip>
-
-A [`Dataset`] object is a wrapper of an Arrow table, which allows fast zero-copy reads from arrays in the dataset to PyTorch tensors.
-
-</Tip>
+> [!TIP]
+> A [`Dataset`] object is a wrapper of an Arrow table, which allows fast zero-copy reads from arrays in the dataset to PyTorch tensors.
 
 
 To load the data as tensors on a GPU, specify the `device` argument:
@@ -100,12 +97,9 @@ String and binary objects are unchanged, since PyTorch only supports numbers.
 
 The [`Image`] and [`Audio`] feature types are also supported.
 
-<Tip>
-
-To use the [`Image`] feature type, you'll need to install the `vision` extra as
-`pip install datasets[vision]`.
-
-</Tip>
+> [!TIP]
+> To use the [`Image`] feature type, you'll need to install the `vision` extra as
+> `pip install datasets[vision]`.
 
 ```py
 >>> from datasets import Dataset, Features, Audio, Image
@@ -131,12 +125,9 @@ torch.Size([2, 512, 512, 4])
           [255, 255, 255, 255]]]], dtype=torch.uint8)}
 ```
 
-<Tip>
-
-To use the [`Audio`] feature type, you'll need to install the `audio` extra as
-`pip install datasets[audio]`.
-
-</Tip>
+> [!TIP]
+> To use the [`Audio`] feature type, you'll need to install the `audio` extra as
+> `pip install datasets[audio]`.
 
 ```py
 >>> from datasets import Dataset, Features, Audio, Image

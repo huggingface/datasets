@@ -3,12 +3,9 @@
 This document is a quick introduction to using `datasets` with JAX, with a particular focus on how to get
 `jax.Array` objects out of our datasets, and how to use them to train JAX models.
 
-<Tip>
-
-`jax` and `jaxlib` are required to reproduce to code above, so please make sure you
-install them as `pip install datasets[jax]`.
-
-</Tip>
+> [!TIP]
+> `jax` and `jaxlib` are required to reproduce to code above, so please make sure you
+> install them as `pip install datasets[jax]`.
 
 ## Dataset format
 
@@ -30,11 +27,8 @@ To get JAX arrays (numpy-like) instead, you can set the format of the dataset to
     [3, 4]], dtype=int32)}
 ```
 
-<Tip>
-
-A [`Dataset`] object is a wrapper of an Arrow table, which allows fast reads from arrays in the dataset to JAX arrays.
-
-</Tip>
+> [!TIP]
+> A [`Dataset`] object is a wrapper of an Arrow table, which allows fast reads from arrays in the dataset to JAX arrays.
 
 Note that the exact same procedure applies to `DatasetDict` objects, so that
 when setting the format of a `DatasetDict` to `jax`, all the `Dataset`s there
@@ -138,12 +132,9 @@ String and binary objects are unchanged, since JAX only supports numbers.
 
 The [`Image`] and [`Audio`] feature types are also supported.
 
-<Tip>
-
-To use the [`Image`] feature type, you'll need to install the `vision` extra as
-`pip install datasets[vision]`.
-
-</Tip>
+> [!TIP]
+> To use the [`Image`] feature type, you'll need to install the `vision` extra as
+> `pip install datasets[vision]`.
 
 ```py
 >>> from datasets import Dataset, Features, Image
@@ -169,12 +160,9 @@ To use the [`Image`] feature type, you'll need to install the `vision` extra as
               [ 255, 255, 255]]]], dtype=uint8)}
 ```
 
-<Tip>
-
-To use the [`Audio`] feature type, you'll need to install the `audio` extra as
-`pip install datasets[audio]`.
-
-</Tip>
+> [!TIP]
+> To use the [`Audio`] feature type, you'll need to install the `audio` extra as
+> `pip install datasets[audio]`.
 
 ```py
 >>> from datasets import Dataset, Features, Audio

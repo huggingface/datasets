@@ -4,11 +4,8 @@ The how-to guides offer a more comprehensive overview of all the tools 🤗 Data
 
 The guides assume you are familiar and comfortable with the 🤗 Datasets basics. We recommend newer users check out our [tutorials](tutorial) first.
 
-<Tip>
-
-Interested in learning more? Take a look at [Chapter 5](https://huggingface.co/course/chapter5/1?fw=pt) of the Hugging Face course!
-
-</Tip>
+> [!TIP]
+> Interested in learning more? Take a look at [Chapter 5](https://huggingface.co/course/chapter5/1?fw=pt) of the Hugging Face course!
 
 The guides are organized into six sections:
 

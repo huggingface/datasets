@@ -4,11 +4,8 @@ Welcome to the 🤗 Datasets tutorials! These beginner-friendly tutorials will g
 
 The tutorials assume some basic knowledge of Python and a machine learning framework like PyTorch or TensorFlow. If you're already familiar with these, feel free to check out the [quickstart](./quickstart) to see what you can do with 🤗 Datasets.
 
-<Tip>
-
-The tutorials only cover the basic skills you need to use 🤗 Datasets. There are many other useful functionalities and applications that aren't discussed here. If you're interested in learning more, take a look at [Chapter 5](https://huggingface.co/course/chapter5/1?fw=pt) of the Hugging Face course.
-
-</Tip>
+> [!TIP]
+> The tutorials only cover the basic skills you need to use 🤗 Datasets. There are many other useful functionalities and applications that aren't discussed here. If you're interested in learning more, take a look at [Chapter 5](https://huggingface.co/course/chapter5/1?fw=pt) of the Hugging Face course.
 
 If you have any questions about 🤗 Datasets, feel free to join and ask the community on our [forum](https://discuss.huggingface.co/c/datasets/10).
 

@@ -14,11 +14,8 @@ There are several methods for creating and sharing an audio dataset:
 
 - Create an audio dataset repository with the `AudioFolder` builder. This is a no-code solution for quickly creating an audio dataset with several thousand audio files.
 
-<Tip>
-
-You can control access to your dataset by requiring users to share their contact information first. Check out the [Gated datasets](https://huggingface.co/docs/hub/datasets-gated) guide for more information about how to enable this feature on the Hub.
-
-</Tip>
+> [!TIP]
+> You can control access to your dataset by requiring users to share their contact information first. Check out the [Gated datasets](https://huggingface.co/docs/hub/datasets-gated) guide for more information about how to enable this feature on the Hub.
 
 ## Local files
 
@@ -49,11 +46,8 @@ my_dataset/
 
 The `AudioFolder` is a dataset builder designed to quickly load an audio dataset with several thousand audio files without requiring you to write any code.
 
-<Tip>
-
-💡 Take a look at the [Split pattern hierarchy](repository_structure#split-pattern-hierarchy) to learn more about how `AudioFolder` creates dataset splits based on your dataset repository structure.
-
-</Tip>
+> [!TIP]
+> 💡 Take a look at the [Split pattern hierarchy](repository_structure#split-pattern-hierarchy) to learn more about how `AudioFolder` creates dataset splits based on your dataset repository structure.
 
 `AudioFolder` automatically infers the class labels of your dataset based on the directory name. Store your dataset in a directory structure like:
 
@@ -90,11 +84,8 @@ folder/test/dog/german_shepherd.mp3
 folder/test/cat/bengal.mp3
 ```
 
-<Tip warning={true}>
-
-If all audio files are contained in a single directory or if they are not on the same level of directory structure, `label` column won't be added automatically. If you need it, set `drop_labels=False` explicitly.
-
-</Tip>
+> [!WARNING]
+> If all audio files are contained in a single directory or if they are not on the same level of directory structure, `label` column won't be added automatically. If you need it, set `drop_labels=False` explicitly.
 
 If there is additional information you'd like to include about your dataset, like text captions or bounding boxes, add it as a `metadata.csv` file in your folder. This lets you quickly create datasets for different computer vision tasks like text captioning or object detection. You can also use a JSONL file `metadata.jsonl` or a Parquet file `metadata.parquet`.
 
