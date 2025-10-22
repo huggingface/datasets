@@ -1525,8 +1525,6 @@ def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.
 
 
 def list_of_pa_arrays_to_pyarrow_listarray(l_arr: list[Optional[pa.Array]]) -> pa.ListArray:
-    # import pdb; pdb.set_trace()
-    # import traceback as tb; tb.print_stack()
     null_mask = np.array([arr is None for arr in l_arr])
     null_indices = np.arange(len(null_mask))[null_mask] - np.arange(np.sum(null_mask))
     l_arr = [arr for arr in l_arr if arr is not None]
@@ -1535,8 +1533,6 @@ def list_of_pa_arrays_to_pyarrow_listarray(l_arr: list[Optional[pa.Array]]) -> p
     )  # convert to dtype object to allow None insertion
     offsets = np.insert(offsets, null_indices, None)
     values = pa.concat_arrays(l_arr)
-    # offsets = pa.array(offsets, type=pa.int32())
-    # return pa.ListArray.from_arrays(offsets, values)
     try:
         offsets = pa.array(offsets, type=pa.int32())
         return pa.ListArray.from_arrays(offsets, values)

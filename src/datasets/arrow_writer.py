@@ -206,7 +206,6 @@ class TypedSequence:
         optimized_int_type: Optional[FeatureType] = None,
     ):
         # assert type is None or try_type is None,
-        # print("[TypedSequence]: Init with type", type, "try_type", try_type, "optimized_int_type", optimized_int_type)
         if type is not None and try_type is not None:
             raise ValueError("You cannot specify both type and try_type")
         # set attributes
