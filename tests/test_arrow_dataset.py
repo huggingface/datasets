@@ -4120,6 +4120,8 @@ def test_dataset_from_generator_fingerprint(fingerprint, data_generator, tmp_pat
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     dataset = Dataset.from_generator(data_generator, cache_dir=cache_dir, fingerprint=fingerprint)
     _check_generator_dataset(dataset, expected_features, NamedSplit("train"))
+    if fingerprint:
+        assert dataset._fingerprint == fingerprint
 
 
 @require_not_windows
