@@ -169,6 +169,19 @@ def _convert_to_arrow(
         yield new_key, pa.Table.from_pylist(cast_to_python_objects(examples, only_1d_for_numpy=True))
 
 
+def shift_ex_examples_rngs(ex_iterable: "_BaseExamplesIterable", value: int) -> "_BaseExamplesIterable":
+    """We need to go through the ex_iterables recursively, create a new seed and return a new iterable, then set it to the containing ex_iterable."""
+
+    def set_seed_recursively(ex_iterable):
+        if hasattr(ex_iterable, "shift_rngs"):
+            ex_iterable = ex_iterable.shift_rngs(value)
+        if hasattr(ex_iterable, "ex_iterable"):
+            ex_iterable.ex_iterable = set_seed_recursively(ex_iterable.ex_iterable)
+        return ex_iterable
+
+    return set_seed_recursively(ex_iterable)
+
+
 class _BaseExamplesIterable:
     """Base class for the examples iterable used by an IterableDataset"""
 
@@ -197,16 +210,6 @@ class _BaseExamplesIterable:
         If the order of the shards must stay fixed (when using .skip or .take for example), then this method returns self.
         """
         raise NotImplementedError(f"{type(self)} doesn't implement shuffle_data_sources yet")
-
-    def shift_rngs(self, value: int) -> None:
-        def set_seed_recursively(ex_iterable):
-            if hasattr(ex_iterable, "generator"):
-                new_seed = ex_iterable.generator.bit_generator.state["state"]["state"] + value
-                ex_iterable.generator = np.random.default_rng(seed=new_seed)
-            if hasattr(ex_iterable, "ex_iterable"):
-                set_seed_recursively(ex_iterable.ex_iterable)
-
-        set_seed_recursively(self)
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "_BaseExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
@@ -292,6 +295,14 @@ class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
     ):
         super().__init__(generate_examples_fn, kwargs)
         self.generator = deepcopy(generator)
+
+    def shift_rngs(self, value: int) -> "_BaseExamplesIterable":
+        new_seed = self.generator.bit_generator.state["state"]["state"] + value
+        return ShuffledDataSourcesExamplesIterable(
+            self.generate_examples_fn,
+            self.kwargs,
+            np.random.default_rng(seed=new_seed),
+        )
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {"shard_idx": 0, "shard_example_idx": 0, "type": self.__class__.__name__}
@@ -399,6 +410,14 @@ class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
     ):
         super().__init__(generate_tables_fn, kwargs)
         self.generator = deepcopy(generator)
+
+    def shift_rngs(self, value: int) -> "_BaseExamplesIterable":
+        new_seed = self.generator.bit_generator.state["state"]["state"] + value
+        return ShuffledDataSourcesArrowExamplesIterable(
+            self.generate_examples_fn,
+            self.kwargs,
+            np.random.default_rng(seed=new_seed),
+        )
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {"shard_idx": 0, "shard_example_idx": 0, "type": self.__class__.__name__}
@@ -1041,6 +1060,15 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         self.generator = deepcopy(generator)
         self.probabilities = probabilities
 
+    def shift_rngs(self, value: int) -> "_BaseExamplesIterable":
+        new_seed = self.generator.bit_generator.state["state"]["state"] + value
+        return RandomlyCyclingMultiSourcesExamplesIterable(
+            ex_iterables=self.ex_iterables,
+            generator=np.random.default_rng(seed=new_seed),
+            probabilities=self.probabilities,
+            stopping_strategy=self.stopping_strategy,
+        )
+
     @property
     def is_typed(self):
         return self.ex_iterables[0].is_typed
@@ -1637,6 +1665,14 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         self.ex_iterable = ex_iterable
         self.buffer_size = buffer_size
         self.generator = generator
+
+    def shift_rngs(self, value: int) -> "_BaseExamplesIterable":
+        new_seed = self.generator.bit_generator.state["state"]["state"] + value
+        return BufferShuffledExamplesIterable(
+            ex_iterable=self.ex_iterable,
+            buffer_size=self.buffer_size,
+            generator=np.random.default_rng(seed=new_seed),
+        )
 
     @property
     def is_typed(self):
@@ -2382,7 +2418,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable = ex_iterable.shard_data_sources(
                 num_shards=worker_info.num_workers, index=worker_info.id, contiguous=False
             )
-            ex_iterable.shift_rngs(value=worker_info.id)
+            ex_iterable = shift_ex_examples_rngs(ex_iterable=ex_iterable, value=worker_info.id)
             self._state_dict = {
                 "examples_iterable": ex_iterable._init_state_dict(),
                 "epoch": self.epoch,
@@ -3682,7 +3718,7 @@ class IterableDataset(DatasetInfoMixin):
         Args:
             batch_size (`int`, *optional*):
                 The size (number of rows) of the batches if `batched` is `True`.
-                Defaults to `genomicsml.datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
             batched (`bool`):
                 Set to `True` to return a generator that yields the dataset as batches
                 of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
