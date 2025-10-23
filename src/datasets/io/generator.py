@@ -36,6 +36,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             config_id="default-fingerprint=" + fingerprint if fingerprint else None,
             **kwargs,
         )
+        self.fingerprint = fingerprint
 
     def read(self):
         # Build iterable dataset
