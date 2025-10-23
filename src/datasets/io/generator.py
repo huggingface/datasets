@@ -33,7 +33,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             generator=generator,
             gen_kwargs=gen_kwargs,
             split=split,
-            config_id=fingerprint,
+            fingerprint=fingerprint,
             **kwargs,
         )
 
@@ -58,4 +58,6 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             dataset = self.builder.as_dataset(
                 split=self.builder.config.split, verification_mode=verification_mode, in_memory=self.keep_in_memory
             )
+            if self.fingerprint:
+                dataset._fingerprint = self.fingerprint
         return dataset
