@@ -572,9 +572,7 @@ class DatasetBuilder:
         )
 
         # compute the config id that is going to be used for caching
-        if config_id is not None:
-            config_id = builder_config.name + "-" + config_id
-        else:
+        if config_id is None:
             config_id = builder_config.create_config_id(
                 config_kwargs,
                 custom_features=custom_features,
