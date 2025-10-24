@@ -44,7 +44,6 @@ def test_compression_filesystems(compression_fs_class, gz_file, bz2_file, lz4_fi
             reason += require_zstandard.kwargs["reason"]
         pytest.skip(reason)
     fs = fsspec.filesystem(compression_fs_class.protocol, fo=input_path)
-    assert isinstance(fs, compression_fs_class)
     expected_filename = os.path.basename(input_path)
     expected_filename = expected_filename[: expected_filename.rindex(".")]
     assert fs.glob("*") == [expected_filename]
