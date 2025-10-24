@@ -1,9 +1,7 @@
-import importlib
 import os
 
 import fsspec
 import pytest
-from fsspec import register_implementation
 from fsspec.core import url_to_fs
 from fsspec.registry import _registry as _fsspec_registry
 
