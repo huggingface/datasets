@@ -186,6 +186,7 @@ TESTS_REQUIRE = [
     "polars[timezone]>=0.20.0",
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
     "torchcodec>=0.7.0",  # minium version to get windows support
+    "nibabel>=5.3.1",
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
@@ -207,6 +208,8 @@ DOCS_REQUIRE = [
 
 PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
+NIBABEL_REQUIRE = ["nibabel>=5.3.2"]
+
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
@@ -224,6 +227,7 @@ EXTRAS_REQUIRE = {
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": DOCS_REQUIRE,
     "pdfs": PDFS_REQUIRE,
+    "nibabel": NIBABEL_REQUIRE,
 }
 
 setup(
