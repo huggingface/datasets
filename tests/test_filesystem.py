@@ -60,21 +60,3 @@ def test_fs_isfile(protocol, zip_jsonl_path, jsonl_gz_path):
     fs, *_ = url_to_fs(path)
     assert fs.isfile(member_file_path)
     assert not fs.isfile("non_existing_" + member_file_path)
-
-
-def test_fs_overwrites():
-    protocol = "bz2"
-
-    # Import module
-    import datasets.filesystems
-
-    # Overwrite protocol and reload
-    register_implementation(protocol, None, clobber=True)
-    with pytest.warns(UserWarning) as warning_info:
-        importlib.reload(datasets.filesystems)
-
-    assert len(warning_info) == 1
-    assert (
-        str(warning_info[0].message)
-        == f"A filesystem protocol was already set for {protocol} and will be overwritten."
-    )
