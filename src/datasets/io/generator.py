@@ -16,6 +16,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
         gen_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
         split: NamedSplit = Split.TRAIN,
+        fingerprint: Optional[str] = None,
         **kwargs,
     ):
         super().__init__(
@@ -32,8 +33,10 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             generator=generator,
             gen_kwargs=gen_kwargs,
             split=split,
+            config_id="default-fingerprint=" + fingerprint if fingerprint else None,
             **kwargs,
         )
+        self.fingerprint = fingerprint
 
     def read(self):
         # Build iterable dataset
@@ -56,4 +59,6 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             dataset = self.builder.as_dataset(
                 split=self.builder.config.split, verification_mode=verification_mode, in_memory=self.keep_in_memory
             )
+            if self.fingerprint:
+                dataset._fingerprint = self.fingerprint
         return dataset

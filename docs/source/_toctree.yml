@@ -88,6 +88,8 @@
       title: Load document data
     - local: document_dataset
       title: Create a document dataset
+    - local: nifti_dataset
+      title: Create a medical imaging dataset
     title: "Vision"
   - sections:
     - local: nlp_load

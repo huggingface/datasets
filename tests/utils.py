@@ -209,6 +209,18 @@ def require_pdfplumber(test_case):
     return test_case
 
 
+def require_nibabel(test_case):
+    """
+    Decorator marking a test that requires nibabel.
+
+    These tests are skipped when nibabel isn't installed.
+
+    """
+    if not config.NIBABEL_AVAILABLE:
+        test_case = unittest.skip("test requires nibabel")(test_case)
+    return test_case
+
+
 def require_transformers(test_case):
     """
     Decorator marking a test that requires transformers.
