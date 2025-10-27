@@ -69,9 +69,7 @@ class Pickler(dill.Pickler):
             obj = getattr(obj, "_torchdynamo_orig_callable", obj)
         dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
 
-    def _batch_setitems(self, items):
-        if self._legacy_no_dict_keys_sorting:
-            return super()._batch_setitems(items)
+    def _batch_setitems(self, items, *args, **kwargs):
         # Ignore the order of keys in a dict
         try:
             # Faster, but fails for unorderable elements
@@ -80,7 +78,7 @@ class Pickler(dill.Pickler):
             from datasets.fingerprint import Hasher
 
             items = sorted(items, key=lambda x: Hasher.hash(x[0]))
-        dill.Pickler._batch_setitems(self, items)
+        return super()._batch_setitems(items, *args, **kwargs)
 
     def memoize(self, obj):
         # Don't memoize strings since two identical strings can have different Python ids
