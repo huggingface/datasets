@@ -94,14 +94,11 @@ class Dicom:
         elif isinstance(value, (bytes, bytearray)):
             return {"path": None, "bytes": value}
         elif pydicom is not None and isinstance(value, pydicom.dataset.FileDataset):
-            # pydicom FileDataset object - try to get path or convert to bytes
             return encode_pydicom_dataset(value)
         elif isinstance(value, dict):
             if value.get("path") is not None and os.path.isfile(value["path"]):
-                # we set "bytes": None to not duplicate the data if they're already available locally
                 return {"bytes": None, "path": value.get("path")}
             elif value.get("bytes") is not None or value.get("path") is not None:
-                # store the dicom bytes, and path is used to infer the format using the file extension
                 return {"bytes": value.get("bytes"), "path": value.get("path")}
             else:
                 raise ValueError(

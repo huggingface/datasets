@@ -26,7 +26,6 @@ def test_dicom_feature_encode_example(tmp_path, build_example):
     import pydicom
     from pydicom import examples
 
-    # Save example DICOM to temp file
     dicom_path = str(tmp_path / "test_example_dicom.dcm")
     ds = examples.ct
     ds.save_as(dicom_path, write_like_original=False)
@@ -45,7 +44,6 @@ def test_dataset_with_dicom_feature(tmp_path):
     import pydicom
     from pydicom import examples
 
-    # Save example DICOM to temp file
     dicom_path = str(tmp_path / "test_example_dicom.dcm")
     ds = examples.mr
     ds.save_as(dicom_path, write_like_original=False)
@@ -83,12 +81,12 @@ def test_dataset_cast_dicom_column(shared_datadir):
     # File take from: https://github.com/robyoung/dicom-test-files/blob/master/data/pydicom/693_J2KI.dcm
     dicom_path = str(shared_datadir / "test_dicom_693_J2KI.dcm")
 
-    # Test with decode=True (default)
+    # decode=True (default)
     ds = Dataset.from_dict({"dicom": [dicom_path]}).cast_column("dicom", Dicom())
     assert ds.features["dicom"] == Dicom(decode=True, id=None)
     assert isinstance(ds[0]["dicom"], pydicom.dataset.FileDataset)
 
-    # Test with decode=False
+    # decode=False
     ds = ds.cast_column("dicom", Dicom(decode=False))
     assert ds.features["dicom"] == Dicom(decode=False, id=None)
     decoded_item = ds[0]["dicom"]
@@ -103,12 +101,10 @@ def test_encode_pydicom_dataset(tmp_path):
     import pydicom
     from pydicom import examples
 
-    # Save example DICOM to temp file
     dicom_path = str(tmp_path / "test_example_dicom.dcm")
     ds = examples.rt_ss
     ds.save_as(dicom_path, write_like_original=False)
 
-    # Load and encode
     img = pydicom.dcmread(dicom_path)
     encoded_example = encode_pydicom_dataset(img)
     dicom = Dicom()
@@ -118,7 +114,7 @@ def test_encode_pydicom_dataset(tmp_path):
     decoded_example = dicom.decode_example(encoded_example)
     assert isinstance(decoded_example, pydicom.dataset.FileDataset)
 
-    # test bytes only (when no filename)
+    # test bytes only
     img.filename = None
     encoded_example_bytes = encode_pydicom_dataset(img)
     assert encoded_example_bytes["bytes"] is not None
