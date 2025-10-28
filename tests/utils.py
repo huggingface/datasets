@@ -221,6 +221,18 @@ def require_nibabel(test_case):
     return test_case
 
 
+def require_pydicom(test_case):
+    """
+    Decorator marking a test that requires pydicom.
+
+    These tests are skipped when pydicom isn't installed.
+
+    """
+    if not config.PYDICOM_AVAILABLE:
+        test_case = unittest.skip("test requires pydicom")(test_case)
+    return test_case
+
+
 def require_transformers(test_case):
     """
     Decorator marking a test that requires transformers.

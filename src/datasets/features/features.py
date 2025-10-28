@@ -41,6 +41,7 @@ from ..table import array_cast
 from ..utils import experimental, logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
+from .dicom import Dicom
 from .image import Image, encode_pil_image
 from .nifti import Nifti
 from .pdf import Pdf, encode_pdfplumber_pdf
@@ -1272,6 +1273,7 @@ FeatureType = Union[
     Video,
     Pdf,
     Nifti,
+    Dicom,
 ]
 
 
@@ -1431,6 +1433,7 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     Video.__name__: Video,
     Pdf.__name__: Pdf,
     Nifti.__name__: Nifti,
+    Dicom.__name__: Dicom,
 }
 
 
@@ -1767,6 +1770,9 @@ class Features(dict):
         - [`Nifti`] feature to store the absolute path to a NIfTI neuroimaging file, a `nibabel.Nifti1Image` object
           or a dictionary with the relative path to a NIfTI file ("path" key) and its bytes content ("bytes" key).
           This feature loads the NIfTI file lazily with nibabel.
+        - [`Dicom`] feature to store the absolute path to a DICOM medical imaging file, a `pydicom.dataset.FileDataset` object
+          or a dictionary with the relative path to a DICOM file ("path" key) and its bytes content ("bytes" key).
+          This feature loads the DICOM file lazily with pydicom.
         - [`Translation`] or [`TranslationVariableLanguages`] feature specific to Machine Translation.
     """
 
