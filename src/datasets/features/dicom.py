@@ -54,7 +54,7 @@ class Dicom:
     >>> from datasets import Dataset, Dicom
     >>> ds = Dataset.from_dict({"dicom": ["path/to/file.dcm"]}).cast_column("dicom", Dicom())
     >>> ds.features["dicom"]
-    Dicom(decode=True, id=None)
+    Dicom(decode=True, force=False, id=None)
     >>> ds[0]["dicom"]
     <pydicom.dataset.FileDataset object at 0x7f8a1c2d8f40>
     >>> ds = ds.cast_column("dicom", Dicom(decode=False))
