@@ -210,7 +210,7 @@ PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
 NIBABEL_REQUIRE = ["nibabel>=5.3.2"]
 
-PYDICOM_REQUIRE = ["pydicom>=2.3.0"]
+PYDICOM_REQUIRE = ["pydicom>=3.0.1"]
 
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,

@@ -27,7 +27,7 @@ def test_dicom_feature_encode_example(tmp_path, build_example):
     from pydicom import examples
 
     # Save example DICOM to temp file
-    dicom_path = str(tmp_path / "test_dicom.dcm")
+    dicom_path = str(tmp_path / "test_example_dicom.dcm")
     ds = examples.ct
     ds.save_as(dicom_path, write_like_original=False)
 
@@ -46,7 +46,7 @@ def test_dataset_with_dicom_feature(tmp_path):
     from pydicom import examples
 
     # Save example DICOM to temp file
-    dicom_path = str(tmp_path / "test_dicom.dcm")
+    dicom_path = str(tmp_path / "test_example_dicom.dcm")
     ds = examples.mr
     ds.save_as(dicom_path, write_like_original=False)
 
@@ -76,12 +76,35 @@ def test_dataset_with_dicom_feature(tmp_path):
 
 
 @require_pydicom
+def test_dataset_cast_dicom_column(shared_datadir):
+    """Test the example from the Dicom docstring using shared_datadir"""
+    import pydicom
+
+    # File take from: https://github.com/robyoung/dicom-test-files/blob/master/data/pydicom/693_J2KI.dcm
+    dicom_path = str(shared_datadir / "test_dicom_693_J2KI.dcm")
+
+    # Test with decode=True (default)
+    ds = Dataset.from_dict({"dicom": [dicom_path]}).cast_column("dicom", Dicom())
+    assert ds.features["dicom"] == Dicom(decode=True, id=None)
+    assert isinstance(ds[0]["dicom"], pydicom.dataset.FileDataset)
+
+    # Test with decode=False
+    ds = ds.cast_column("dicom", Dicom(decode=False))
+    assert ds.features["dicom"] == Dicom(decode=False, id=None)
+    decoded_item = ds[0]["dicom"]
+    assert isinstance(decoded_item, dict)
+    assert decoded_item.keys() == {"bytes", "path"}
+    assert decoded_item["path"] == dicom_path
+    assert decoded_item["bytes"] is None
+
+
+@require_pydicom
 def test_encode_pydicom_dataset(tmp_path):
     import pydicom
     from pydicom import examples
 
     # Save example DICOM to temp file
-    dicom_path = str(tmp_path / "test_dicom.dcm")
+    dicom_path = str(tmp_path / "test_example_dicom.dcm")
     ds = examples.rt_ss
     ds.save_as(dicom_path, write_like_original=False)
 
