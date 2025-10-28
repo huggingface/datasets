@@ -47,7 +47,7 @@ def test_dataset_with_dicom_feature(tmp_path):
 
     # Save example DICOM to temp file
     dicom_path = str(tmp_path / "test_dicom.dcm")
-    ds = examples.ct
+    ds = examples.mr
     ds.save_as(dicom_path, write_like_original=False)
 
     data = {"dicom": [dicom_path]}
@@ -82,7 +82,7 @@ def test_encode_pydicom_dataset(tmp_path):
 
     # Save example DICOM to temp file
     dicom_path = str(tmp_path / "test_dicom.dcm")
-    ds = examples.ct
+    ds = examples.rt_ss
     ds.save_as(dicom_path, write_like_original=False)
 
     # Load and encode

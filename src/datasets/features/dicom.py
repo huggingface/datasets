@@ -2,7 +2,7 @@ import os
 from dataclasses import dataclass, field
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, TypedDict, Union
 
 import pyarrow as pa
 
@@ -11,6 +11,11 @@ from ..download.download_config import DownloadConfig
 from ..table import array_cast
 from ..utils.file_utils import is_local_path, xopen
 from ..utils.py_utils import string_to_dict
+
+
+class DicomDict(TypedDict):
+    bytes: Optional[bytes]
+    path: Optional[str]
 
 
 if TYPE_CHECKING:
@@ -107,13 +112,14 @@ class Dicom:
                 f"A dicom sample should be a string, bytes, Path, pydicom FileDataset, or dict, but got {type(value)}."
             )
 
-    def decode_example(self, value: dict, token_per_repo_id=None) -> "pydicom.FileDataset":
+    def decode_example(
+        self, value: DicomDict, token_per_repo_id: Optional[Dict[str, Union[str, bool]]] = None
+    ) -> "pydicom.FileDataset":
         """Decode example DICOM file into pydicom FileDataset object.
 
         Args:
-            value (`str` or `dict`):
-                A string with the absolute DICOM file path, a dictionary with
-                keys:
+            value (`dict`):
+                A dictionary with keys:
 
                 - `path`: String with absolute or relative DICOM file path.
                 - `bytes`: The bytes of the DICOM file.
@@ -160,8 +166,8 @@ class Dicom:
                     with xopen(path, "rb", download_config=download_config) as f:
                         dicom = pydicom.dcmread(f)
         else:
-            bio = BytesIO(bytes_)
-            dicom = pydicom.dcmread(bio)
+            bytesio = BytesIO(bytes_)
+            dicom = pydicom.dcmread(bytesio)
 
         return dicom
 
