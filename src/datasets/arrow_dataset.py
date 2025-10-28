@@ -4868,7 +4868,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 try:
                     train_indices, test_indices = next(
                         stratified_shuffle_split_generate_indices(
-                            self.with_format("numpy")[stratify_by_column], n_train, n_test, rng=generator
+                            np.asarray(self.with_format("numpy")[stratify_by_column]), n_train, n_test, rng=generator
                         )
                     )
                 except Exception as error:
