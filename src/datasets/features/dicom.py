@@ -44,6 +44,9 @@ class Dicom:
         decode (`bool`, defaults to `True`):
             Whether to decode the DICOM data. If `False`,
             returns the underlying dictionary in the format `{"path": dicom_path, "bytes": dicom_bytes}`.
+        force (`bool`, defaults to `False`):
+            Force reading files missing DICOM File Meta Information header or 'DICM' prefix.
+            Passed to `pydicom.dcmread(force=...)`.
 
     Examples:
 
@@ -62,6 +65,7 @@ class Dicom:
     """
 
     decode: bool = True
+    force: bool = False
     id: Optional[str] = field(default=None, repr=False)
 
     # Automatically constructed
@@ -146,7 +150,7 @@ class Dicom:
                 raise ValueError(f"A dicom should have one of 'path' or 'bytes' but both are None in {value}.")
             else:
                 if is_local_path(path):
-                    dicom = pydicom.dcmread(path)
+                    dicom = pydicom.dcmread(path, force=self.force)
                 else:
                     source_url = path.split("::")[-1]
                     pattern = (
@@ -161,10 +165,10 @@ class Dicom:
                         token = None
                     download_config = DownloadConfig(token=token)
                     with xopen(path, "rb", download_config=download_config) as f:
-                        dicom = pydicom.dcmread(f)
+                        dicom = pydicom.dcmread(f, force=self.force)
         else:
             bytesio = BytesIO(bytes_)
-            dicom = pydicom.dcmread(bytesio)
+            dicom = pydicom.dcmread(bytesio, force=self.force)
 
         return dicom
 

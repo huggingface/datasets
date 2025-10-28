@@ -97,6 +97,24 @@ def test_dataset_cast_dicom_column(shared_datadir):
 
 
 @require_pydicom
+def test_dicom_force_parameter(shared_datadir):
+    """Test loading DICOM file that requires force=True"""
+    import pydicom
+
+    # File from: https://github.com/pydicom/pydicom/blob/main/src/pydicom/data/test_files/no_meta.dcm
+    # This file is missing DICOM File Meta Information header but can be read using force=True
+    dicom_path = str(shared_datadir / "test_dicom_no_meta.dcm")
+
+    ds_no_force = Dataset.from_dict({"dicom": [dicom_path]}).cast_column("dicom", Dicom(force=False))
+    with pytest.raises(pydicom.errors.InvalidDicomError):
+        item = ds_no_force[0]
+
+    ds_with_force = Dataset.from_dict({"dicom": [dicom_path]}).cast_column("dicom", Dicom(force=True))
+    item = ds_with_force[0]
+    assert isinstance(item["dicom"], pydicom.dataset.FileDataset)
+
+
+@require_pydicom
 def test_encode_pydicom_dataset(tmp_path):
     import pydicom
     from pydicom import examples
