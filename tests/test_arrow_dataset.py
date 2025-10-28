@@ -4785,8 +4785,12 @@ def test_polars_round_trip():
     assert isinstance(Dataset.from_polars(ds.to_polars()), Dataset)
 
 
+@pytest.mark.integration
+@pytest.mark.high_memory
 def test_map_int32_overflow():
     # GH: 7821
+    # This test requires ~4GB RAM to create a large array that triggers int32 overflow
+    # Marked as high_memory (>=16GB) to prevent CI failures
     def process_batch(batch):
         res = []
         for _ in batch["id"]:
