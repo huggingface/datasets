@@ -8,6 +8,7 @@ from .arrow import arrow
 from .audiofolder import audiofolder
 from .cache import cache
 from .csv import csv
+from .dicomfolder import dicomfolder
 from .hdf5 import hdf5
 from .imagefolder import imagefolder
 from .json import json
@@ -48,6 +49,7 @@ _PACKAGED_DATASETS_MODULES = {
     "videofolder": (videofolder.__name__, _hash_python_lines(inspect.getsource(videofolder).splitlines())),
     "pdffolder": (pdffolder.__name__, _hash_python_lines(inspect.getsource(pdffolder).splitlines())),
     "niftifolder": (niftifolder.__name__, _hash_python_lines(inspect.getsource(niftifolder).splitlines())),
+    "dicomfolder": (dicomfolder.__name__, _hash_python_lines(inspect.getsource(dicomfolder).splitlines())),
     "webdataset": (webdataset.__name__, _hash_python_lines(inspect.getsource(webdataset).splitlines())),
     "xml": (xml.__name__, _hash_python_lines(inspect.getsource(xml).splitlines())),
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
@@ -93,6 +95,8 @@ _EXTENSION_TO_MODULE.update({ext: ("pdffolder", {}) for ext in pdffolder.PdfFold
 _EXTENSION_TO_MODULE.update({ext.upper(): ("pdffolder", {}) for ext in pdffolder.PdfFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("niftifolder", {}) for ext in niftifolder.NiftiFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("niftifolder", {}) for ext in niftifolder.NiftiFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext: ("dicomfolder", {}) for ext in dicomfolder.DicomFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext.upper(): ("dicomfolder", {}) for ext in dicomfolder.DicomFolder.EXTENSIONS})
 
 # Used to filter data files based on extensions given a module name
 _MODULE_TO_EXTENSIONS: dict[str, list[str]] = {}
@@ -111,3 +115,4 @@ _MODULE_TO_METADATA_FILE_NAMES["audiofolder"] = imagefolder.ImageFolder.METADATA
 _MODULE_TO_METADATA_FILE_NAMES["videofolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["pdffolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["niftifolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
+_MODULE_TO_METADATA_FILE_NAMES["dicomfolder"] = imagefolder.ImageFolder.METADATA_FILENAMES

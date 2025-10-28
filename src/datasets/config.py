@@ -140,6 +140,7 @@ TORCHCODEC_AVAILABLE = importlib.util.find_spec("torchcodec") is not None
 TORCHVISION_AVAILABLE = importlib.util.find_spec("torchvision") is not None
 PDFPLUMBER_AVAILABLE = importlib.util.find_spec("pdfplumber") is not None
 NIBABEL_AVAILABLE = importlib.util.find_spec("nibabel") is not None
+PYDICOM_AVAILABLE = importlib.util.find_spec("pydicom") is not None
 
 # Optional compression tools
 RARFILE_AVAILABLE = importlib.util.find_spec("rarfile") is not None
