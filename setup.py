@@ -110,14 +110,15 @@ REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 15.0.0 to be able to cast dictionary types to their underlying types
-    "pyarrow>=15.0.0",
+    # Minimum 21.0.0 to support `use_content_defined_chunking` in ParquetWriter
+    "pyarrow>=21.0.0",
     # For smart caching dataset processing
-    "dill>=0.3.0,<0.3.9",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
+    "dill>=0.3.0,<0.4.1",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
     "requests>=2.32.2",
+    "httpx<1.0.0",
     # progress bars in downloads and data operations
     "tqdm>=4.66.3",
     # for fast hashing
@@ -126,9 +127,9 @@ REQUIRED_PKGS = [
     "multiprocess<0.70.17",  # to align with dill<0.3.9 (see above)
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0,<=2025.7.0",
+    "fsspec[http]>=2023.1.0,<=2025.9.0",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface-hub>=0.24.0",
+    "huggingface-hub>=0.25.0,<2.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -136,9 +137,8 @@ REQUIRED_PKGS = [
 ]
 
 AUDIO_REQUIRE = [
-    "soundfile>=0.12.1",
-    "torchcodec>=0.4.0",
-    "torch>=2.7.0",
+    "torchcodec>=0.6.0",
+    "torch>=2.8.0",
 ]
 
 VISION_REQUIRE = [
@@ -166,6 +166,7 @@ TESTS_REQUIRE = [
     "aiohttp",
     "elasticsearch>=7.17.12,<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch(); 7.9.1 has legacy numpy.float_ which was fixed in https://github.com/elastic/elasticsearch-py/pull/2551.
     "faiss-cpu>=1.8.0.post1",  # Pins numpy < 2
+    "h5py",
     "jax>=0.3.14; sys_platform != 'win32'",
     "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4",
@@ -178,15 +179,14 @@ TESTS_REQUIRE = [
     "tensorflow>=2.6.0; python_version<'3.10' and sys_platform != 'win32'",  # numpy-2 is not supported for Python < 3.10
     "tensorflow>=2.16.0; python_version>='3.10' and sys_platform != 'win32'",  # Pins numpy < 2
     "tiktoken",
-    "torch>=2.0.0",
+    "torch>=2.8.0",
     "torchdata",
-    "soundfile>=0.12.1",
     "transformers>=4.42.0",  # Pins numpy < 2
     "zstandard",
     "polars[timezone]>=0.20.0",
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
-    "soundfile>=0.12.1",
-    "torchcodec>=0.4.0; sys_platform != 'win32'",  # not available for windows
+    "torchcodec>=0.7.0",  # minium version to get windows support
+    "nibabel>=5.3.1",
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
@@ -208,6 +208,8 @@ DOCS_REQUIRE = [
 
 PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
+NIBABEL_REQUIRE = ["nibabel>=5.3.2"]
+
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
@@ -225,11 +227,12 @@ EXTRAS_REQUIRE = {
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": DOCS_REQUIRE,
     "pdfs": PDFS_REQUIRE,
+    "nibabel": NIBABEL_REQUIRE,
 }
 
 setup(
     name="datasets",
-    version="4.0.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="4.3.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Any, Optional, Union
 
 import fsspec
+import httpx
 import requests
 import yaml
 from fsspec.core import url_to_fs
@@ -948,6 +949,8 @@ def dataset_module_factory(
                         OfflineModeIsEnabled,
                         requests.exceptions.Timeout,
                         requests.exceptions.ConnectionError,
+                        httpx.ConnectError,
+                        httpx.TimeoutException,
                     ),
                 ):
                     raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
@@ -963,6 +966,8 @@ def dataset_module_factory(
                 OfflineModeIsEnabled,
                 requests.exceptions.Timeout,
                 requests.exceptions.ConnectionError,
+                httpx.ConnectError,
+                httpx.TimeoutException,
             ) as e:
                 raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
             except GatedRepoError as e:

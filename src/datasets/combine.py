@@ -21,7 +21,9 @@ def interleave_datasets(
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
-    stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+    stopping_strategy: Literal[
+        "first_exhausted", "all_exhausted", "all_exhausted_without_replacement"
+    ] = "first_exhausted",
 ) -> DatasetType:
     """
     Interleave several datasets (sources) into a single dataset.
@@ -55,9 +57,10 @@ def interleave_datasets(
             Name of the dataset split.
             <Added version="2.4.0"/>
         stopping_strategy (`str`, defaults to `first_exhausted`):
-            Two strategies are proposed right now, `first_exhausted` and `all_exhausted`.
+            Three strategies are proposed right now, `first_exhausted`, `all_exhausted` and `all_exhausted_without_replacement`.
             By default, `first_exhausted` is an undersampling strategy, i.e the dataset construction is stopped as soon as one dataset has ran out of samples.
             If the strategy is `all_exhausted`,  we use an oversampling strategy, i.e the dataset construction is stopped as soon as every samples of every dataset has been added at least once.
+            When strategy is `all_exhausted_without_replacement` we make sure that each sample in each dataset is sampled only once.
             Note that if the strategy is `all_exhausted`, the interleaved dataset size can get enormous:
             - with no probabilities, the resulting dataset will have `max_length_datasets*nb_dataset` samples.
             - with given probabilities, the resulting dataset will have more samples if some datasets have really low probability of visiting.
@@ -143,7 +146,7 @@ def interleave_datasets(
             raise ValueError(
                 f"Unable to interleave a {dataset_type.__name__} (at position 0) with a {other_type.__name__} (at position {i}). Expected a list of Dataset objects or a list of IterableDataset objects."
             )
-    if stopping_strategy not in ["first_exhausted", "all_exhausted"]:
+    if stopping_strategy not in ["first_exhausted", "all_exhausted", "all_exhausted_without_replacement"]:
         raise ValueError(f"{stopping_strategy} is not supported. Please enter a valid stopping_strategy.")
     if dataset_type is Dataset:
         return _interleave_map_style_datasets(
@@ -151,7 +154,12 @@ def interleave_datasets(
         )
     else:
         return _interleave_iterable_datasets(
-            datasets, probabilities, seed, info=info, split=split, stopping_strategy=stopping_strategy
+            datasets,
+            probabilities,
+            seed,
+            info=info,
+            split=split,
+            stopping_strategy=stopping_strategy,
         )
 
 

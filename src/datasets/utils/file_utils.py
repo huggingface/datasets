@@ -27,12 +27,13 @@ from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
 import fsspec
+import httpx
 import huggingface_hub
 import huggingface_hub.errors
 import requests
 from fsspec.core import strip_protocol, url_to_fs
 from fsspec.utils import can_be_local
-from huggingface_hub.utils import EntryNotFoundError, get_session, insecure_hashlib
+from huggingface_hub.utils import get_session, insecure_hashlib
 from packaging import version
 
 from .. import __version__, config
@@ -59,6 +60,14 @@ logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 INCOMPLETE_SUFFIX = ".incomplete"
 
 T = TypeVar("T", str, Path)
+
+CONNECTION_ERRORS_TO_RETRY = (
+    _AiohttpClientError,
+    asyncio.TimeoutError,
+    requests.exceptions.ConnectionError,
+    requests.exceptions.Timeout,
+    httpx.RequestError,
+)
 
 
 def is_remote_url(url_or_filename: str) -> bool:
@@ -140,7 +149,7 @@ def cached_path(
         ConnectionError: in case of unreachable url
             and no cache on disk
         ValueError: if it couldn't parse the url or filename correctly
-        requests.exceptions.ConnectionError: in case of internet connection issue
+        httpx.NetworkError or requests.exceptions.ConnectionError: in case of internet connection issue
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
@@ -246,7 +255,7 @@ def cached_path(
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
     ua = f"datasets/{__version__}"
     ua += f"; python/{config.PY_VERSION}"
-    ua += f"; huggingface_hub/{huggingface_hub.__version__}"
+    ua += f"; hf_hub/{huggingface_hub.__version__}"
     ua += f"; pyarrow/{config.PYARROW_VERSION}"
     if config.TORCH_AVAILABLE:
         ua += f"; torch/{config.TORCH_VERSION}"
@@ -753,7 +762,7 @@ def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
         fs, *_ = fs, *_ = url_to_fs(path, **storage_options)
         try:
             size = fs.size(main_hop)
-        except EntryNotFoundError:
+        except huggingface_hub.utils.EntryNotFoundError:
             raise FileNotFoundError(f"No such file: {path}")
         if size is None:
             # use xopen instead of fs.open to make data fetching more robust
@@ -812,12 +821,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
             try:
                 out = read(*args, **kwargs)
                 break
-            except (
-                _AiohttpClientError,
-                asyncio.TimeoutError,
-                requests.exceptions.ConnectionError,
-                requests.exceptions.Timeout,
-            ) as err:
+            except CONNECTION_ERRORS_TO_RETRY as err:
                 disconnect_err = err
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
@@ -893,13 +897,10 @@ def _prepare_single_hop_path_and_storage_options(
             storage_options["headers"] = {"Accept-Encoding": "identity", **headers}
     elif protocol == "hf":
         storage_options = {
-            "token": token,
             "endpoint": config.HF_ENDPOINT,
+            "token": token,
             **storage_options,
         }
-        # streaming with block_size=0 is only implemented in 0.21 (see https://github.com/huggingface/huggingface_hub/pull/1967)
-        if config.HF_HUB_VERSION < version.parse("0.21.0"):
-            storage_options["block_size"] = "default"
     if storage_options:
         storage_options = {protocol: storage_options}
     return urlpath, storage_options
@@ -931,23 +932,37 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
     # add headers and cookies for authentication on the HF Hub and for Google Drive
     file, storage_options = _prepare_path_and_storage_options(file_str, download_config=download_config)
     kwargs = {**kwargs, **(storage_options or {})}
-    try:
-        file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
-    except ValueError as e:
-        if str(e) == "Cannot seek streaming HTTP file":
-            raise NonStreamableDatasetError(
-                "Streaming is not possible for this dataset because data host server doesn't support HTTP range "
-                "requests. You can still load this dataset in non-streaming mode by passing `streaming=False` (default)"
-            ) from e
-        else:
-            raise
-    except FileNotFoundError:
-        if file.startswith(config.HF_ENDPOINT):
-            raise FileNotFoundError(
-                file + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
-            ) from None
-        else:
-            raise
+
+    max_retries = config.STREAMING_OPEN_MAX_RETRIES
+
+    disconnect_err = None
+    for retry in range(1, max_retries + 1):
+        try:
+            file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
+            break
+        except CONNECTION_ERRORS_TO_RETRY as err:
+            disconnect_err = err
+            logger.warning(
+                f"Failed to connect to remote data host. Retrying in {config.STREAMING_OPEN_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
+            )
+            time.sleep(config.STREAMING_OPEN_RETRY_INTERVAL)
+        except ValueError as e:
+            if str(e) == "Cannot seek streaming HTTP file":
+                raise NonStreamableDatasetError(
+                    "Streaming is not possible for this dataset because data host server doesn't support HTTP range "
+                    "requests. You can still load this dataset in non-streaming mode by passing `streaming=False` (default)"
+                ) from e
+            else:
+                raise
+        except FileNotFoundError:
+            if file.startswith(config.HF_ENDPOINT):
+                raise FileNotFoundError(
+                    file + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
+                ) from None
+            else:
+                raise
+    else:
+        raise ConnectionError("Server Disconnected") from disconnect_err
     file_obj = _add_retries_to_file_obj_read_method(file_obj)
     return file_obj
 

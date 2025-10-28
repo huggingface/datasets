@@ -3,6 +3,7 @@ import shutil
 import tarfile
 import warnings
 from io import BytesIO
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -54,6 +55,7 @@ def test_image_feature_type_to_arrow():
     "build_example",
     [
         lambda image_path: image_path,
+        lambda image_path: Path(image_path),
         lambda image_path: open(image_path, "rb").read(),
         lambda image_path: {"path": image_path},
         lambda image_path: {"path": image_path, "bytes": None},
@@ -316,6 +318,18 @@ def test_dataset_cast_to_image_features(shared_datadir, build_data):
     item = dset.cast_column("image", Image())[0]
     assert item.keys() == {"image"}
     assert isinstance(item["image"], PIL.Image.Image)
+
+
+def test_dataset_cast_to_image_features_polars(shared_datadir):
+    import PIL.Image
+
+    pl = pytest.importorskip("polars")
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    df = pl.DataFrame({"image_path": [image_path]})
+    dataset = Dataset.from_polars(df)
+    item = dataset.cast_column("image_path", Image())[0]
+    assert item.keys() == {"image_path"}
+    assert isinstance(item["image_path"], PIL.Image.Image)
 
 
 @require_pil

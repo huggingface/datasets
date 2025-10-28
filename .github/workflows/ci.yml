@@ -53,6 +53,17 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.9"
+      - name: Setup conda env (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          miniconda-version: "latest"
+          activate-environment: test
+          python-version: "3.9"
+      - name: Setup FFmpeg (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: conda install "ffmpeg=7.0.1" -c conda-forge
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
       - name: Install uv
@@ -64,12 +75,14 @@ jobs:
         run: uv pip install --system --upgrade pyarrow huggingface-hub "dill<0.3.9"
       - name: Install dependencies (minimum versions)
         if: ${{ matrix.deps_versions != 'deps-latest' }}
-        run: uv pip install --system pyarrow==15.0.0 huggingface-hub==0.24.7 transformers dill==0.3.1.1
+        run: uv pip install --system pyarrow==21.0.0 huggingface-hub==0.25.0 transformers dill==0.3.1.1
+      - name: Print dependencies
+        run: uv pip list
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
 
-  test_py311:
+  test_py312:
     needs: check_code_quality
     strategy:
       matrix:
@@ -86,22 +99,35 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt update
-          sudo apt install -y ffmpeg 
-      - name: Set up Python 3.11
+          sudo apt install -y ffmpeg
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
+      - name: Setup conda env (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          miniconda-version: "latest"
+          activate-environment: test
+          python-version: "3.12"
+      - name: Setup FFmpeg (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: conda install "ffmpeg=7.0.1" -c conda-forge
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
       - name: Install uv
         run: pip install --upgrade uv
       - name: Install dependencies
         run: uv pip install --system "datasets[tests] @ ."
+      - name: Print dependencies
+        run: uv pip list
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
 
-  test_py311_numpy2:
+  test_py312_future:
     needs: check_code_quality
     strategy:
       matrix:
@@ -119,16 +145,34 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y ffmpeg 
-      - name: Set up Python 3.11
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
+      - name: Setup conda env (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          miniconda-version: "latest"
+          activate-environment: test
+          python-version: "3.12"
+      - name: Setup FFmpeg (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: conda install "ffmpeg=7.0.1" -c conda-forge
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
       - name: Install uv
         run: pip install --upgrade uv
       - name: Install dependencies
-        run: uv pip install --system "datasets[tests_numpy2] @ ."
+        run: |
+          uv pip install --system "datasets[tests_numpy2] @ ."
+          # TODO: remove once transformers v5 / huggingface_hub v1 are released officially
+          uv pip uninstall --system transformers huggingface_hub
+          uv pip install --system --prerelease=allow git+https://github.com/huggingface/transformers.git
+      - name: Print dependencies
+        run: pip list
+
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/

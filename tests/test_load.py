@@ -11,7 +11,6 @@ from unittest.mock import patch
 import dill
 import pyarrow as pa
 import pytest
-import requests
 
 import datasets
 from datasets import config, load_dataset
@@ -44,7 +43,7 @@ from .utils import (
     assert_arrow_memory_increases,
     offline,
     require_pil,
-    require_sndfile,
+    require_torchcodec,
     set_current_working_directory_to_temp_dir,
 )
 
@@ -767,10 +766,7 @@ class LoadTest(TestCase):
     def test_load_dataset_namespace(self):
         with self.assertRaises(DatasetNotFoundError) as context:
             datasets.load_dataset("hf-internal-testing/_dummy")
-        self.assertIn(
-            "hf-internal-testing/_dummy",
-            str(context.exception),
-        )
+        self.assertIn("hf-internal-testing/_dummy", str(context.exception))
         for offline_simulation_mode in list(OfflineSimulationMode):
             with offline(offline_simulation_mode):
                 with self.assertRaises(ConnectionError) as context:
@@ -1114,19 +1110,16 @@ def test_loading_from_dataset_from_hub_specific_splits():
             
 @pytest.mark.integration
 def test_loading_from_the_datasets_hub_with_token():
-    true_request = requests.Session().request
+    class CustomException(Exception):
+        pass
 
-    def assert_auth(method, url, *args, headers, **kwargs):
-        assert headers["authorization"] == "Bearer foo"
-        return true_request(method, url, *args, headers=headers, **kwargs)
-
-    with patch("requests.Session.request") as mock_request:
-        mock_request.side_effect = assert_auth
+    with patch("huggingface_hub.file_download._get_metadata_or_catch_error") as mock_request:
+        mock_request.side_effect = CustomException()
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with offline():
-                with pytest.raises((ConnectionError, requests.exceptions.ConnectionError)):
-                    load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, token="foo")
-        mock_request.assert_called()
+            with pytest.raises(CustomException):
+                load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, token="foo")
+        mock_request.assert_called_once()
+        assert mock_request.call_args_list[0][1]["headers"]["authorization"] == "Bearer foo"
 
 
 @pytest.mark.integration
@@ -1155,7 +1148,7 @@ def test_load_dataset_config_kwargs_passed_as_arguments():
     assert list(ds_custom["train"].features) == ["image"]
 
 
-@require_sndfile
+@require_torchcodec
 @pytest.mark.integration
 def test_load_hub_dataset_with_single_config_in_metadata():
     # load the same dataset but with no configurations (=with default parameters)
@@ -1176,7 +1169,7 @@ def test_load_hub_dataset_with_single_config_in_metadata():
         _ = load_dataset(SAMPLE_DATASET_SINGLE_CONFIG_IN_METADATA, "default")
 
 
-@require_sndfile
+@require_torchcodec
 @pytest.mark.integration
 def test_load_hub_dataset_with_two_config_in_metadata():
     ds = load_dataset(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "v1")
@@ -1204,7 +1197,7 @@ def test_load_hub_dataset_with_two_config_in_metadata():
     assert len(ds_with_default["train"]) == len(ds["train"]) and len(ds_with_default["test"]) == len(ds["test"])
 
 
-@require_sndfile
+@require_torchcodec
 @pytest.mark.integration
 def test_load_hub_dataset_with_metadata_config_in_parallel():
     # assert it doesn't fail (pickling of dynamically created class works)

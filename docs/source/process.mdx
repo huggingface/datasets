@@ -20,11 +20,8 @@ The examples in this guide use the MRPC dataset, but feel free to load any datas
 >>> dataset = load_dataset("nyu-mll/glue", "mrpc", split="train")
 ```
 
-<Tip warning={true}>
-
-All processing methods in this guide return a new [`Dataset`] object. Modification is not done in-place. Be careful about overriding your previous dataset!
-
-</Tip>
+> [!WARNING]
+> All processing methods in this guide return a new [`Dataset`] object. Modification is not done in-place. Be careful about overriding your previous dataset!
 
 ## Sort, shuffle, select, split, and shard
 
@@ -240,11 +237,8 @@ The [`~Dataset.cast`] function transforms the feature type of one or more column
 'idx': Value('int64')}
 ```
 
-<Tip>
-
-Casting only works if the original feature type and new feature type are compatible. For example, you can cast a column with the feature type `Value("int32")` to `Value("bool")` if the original column only contains ones and zeros.
-
-</Tip>
+> [!TIP]
+> Casting only works if the original feature type and new feature type are compatible. For example, you can cast a column with the feature type `Value("int32")` to `Value("bool")` if the original column only contains ones and zeros.
 
 Use the [`~Dataset.cast_column`] function to change the feature type of a single column. Pass the column name and its new feature type as arguments:
 
@@ -322,11 +316,8 @@ Specify the column to remove with the `remove_columns` parameter in [`~Dataset.m
 ['sentence2', 'label', 'idx', 'new_sentence']
 ```
 
-<Tip>
-
-🤗 Datasets also has a [`~Dataset.remove_columns`] function which is faster because it doesn't copy the data of the remaining columns.
-
-</Tip>
+> [!TIP]
+> 🤗 Datasets also has a [`~Dataset.remove_columns`] function which is faster because it doesn't copy the data of the remaining columns.
 
 You can also use [`~Dataset.map`] with indices if you set `with_indices=True`. The example below adds the index to the beginning of each sentence:
 
@@ -666,6 +657,7 @@ In this case, the new dataset is constructed by getting examples one by one from
 You can also specify the `stopping_strategy`. The default strategy, `first_exhausted`, is a subsampling strategy, i.e the dataset construction is stopped as soon one of the dataset runs out of samples.
 You can specify `stopping_strategy=all_exhausted` to execute an oversampling strategy. In this case, the dataset construction is stopped as soon as every samples in every dataset has been added at least once. In practice, it means that if a dataset is exhausted, it will return to the beginning of this dataset until the stop criterion has been reached.
 Note that if no sampling probabilities are specified, the new dataset will have `max_length_datasets*nb_dataset samples`.
+There is also `stopping_strategy=all_exhausted_without_replacement` to ensure that every sample is seen exactly once.
 
 ```py
 >>> d1 = Dataset.from_dict({"a": [0, 1, 2]})
@@ -713,11 +705,8 @@ Here is the list of supported tensors or arrays formats:
 - TensorFlow: format name is "tensorflow", for more information see [Using Datasets with TensorFlow](use_with_tensorflow)
 - JAX: format name is "jax", for more information see [Using Datasets with JAX](use_with_jax)
 
-<Tip>
-
-Check out the [Using Datasets with TensorFlow](use_with_tensorflow#using-totfdataset) guide for more details on how to efficiently create a TensorFlow dataset.
-
-</Tip>
+> [!TIP]
+> Check out the [Using Datasets with TensorFlow](use_with_tensorflow#using-totfdataset) guide for more details on how to efficiently create a TensorFlow dataset.
 
 When a dataset is formatted in a tensor or array format, all the data are formatted as tensors or arrays (except unsupported types like strings for example for PyTorch):
 

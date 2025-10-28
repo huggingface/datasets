@@ -69,9 +69,7 @@ class Pickler(dill.Pickler):
             obj = getattr(obj, "_torchdynamo_orig_callable", obj)
         dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
 
-    def _batch_setitems(self, items):
-        if self._legacy_no_dict_keys_sorting:
-            return super()._batch_setitems(items)
+    def _batch_setitems(self, items, *args, **kwargs):
         # Ignore the order of keys in a dict
         try:
             # Faster, but fails for unorderable elements
@@ -80,7 +78,7 @@ class Pickler(dill.Pickler):
             from datasets.fingerprint import Hasher
 
             items = sorted(items, key=lambda x: Hasher.hash(x[0]))
-        dill.Pickler._batch_setitems(self, items)
+        return super()._batch_setitems(items, *args, **kwargs)
 
     def memoize(self, obj):
         # Don't memoize strings since two identical strings can have different Python ids
@@ -96,6 +94,17 @@ def pklregister(t):
         return func
 
     return proxy
+
+
+def _is_supported_dill_version():
+    """Check if the current dill version is in the supported range."""
+    return config.DILL_VERSION.release[:3] in [
+        version.parse("0.3.6").release,
+        version.parse("0.3.7").release,
+        version.parse("0.3.8").release,
+        version.parse("0.3.9").release,
+        version.parse("0.4.0").release,
+    ]
 
 
 def dump(obj, file):
@@ -115,11 +124,7 @@ if config.DILL_VERSION < version.parse("0.3.6"):
     def log(pickler, msg):
         dill._dill.log.info(msg)
 
-elif config.DILL_VERSION.release[:3] in [
-    version.parse("0.3.6").release,
-    version.parse("0.3.7").release,
-    version.parse("0.3.8").release,
-]:
+elif _is_supported_dill_version():
 
     def log(pickler, msg):
         dill._dill.logger.trace(pickler, msg)
@@ -312,11 +317,7 @@ if config.DILL_VERSION < version.parse("0.3.6"):
         dill._dill.log.info("# Co")
         return
 
-elif config.DILL_VERSION.release[:3] in [
-    version.parse("0.3.6").release,
-    version.parse("0.3.7").release,
-    version.parse("0.3.8").release,
-]:
+elif _is_supported_dill_version():
     # From: https://github.com/uqfoundation/dill/blob/dill-0.3.6/dill/_dill.py#L1104
     @pklregister(CodeType)
     def save_code(pickler, obj):

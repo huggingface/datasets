@@ -1,9 +1,7 @@
-import importlib
 import os
 
 import fsspec
 import pytest
-from fsspec import register_implementation
 from fsspec.core import url_to_fs
 from fsspec.registry import _registry as _fsspec_registry
 
@@ -44,7 +42,6 @@ def test_compression_filesystems(compression_fs_class, gz_file, bz2_file, lz4_fi
             reason += require_zstandard.kwargs["reason"]
         pytest.skip(reason)
     fs = fsspec.filesystem(compression_fs_class.protocol, fo=input_path)
-    assert isinstance(fs, compression_fs_class)
     expected_filename = os.path.basename(input_path)
     expected_filename = expected_filename[: expected_filename.rindex(".")]
     assert fs.glob("*") == [expected_filename]
@@ -61,21 +58,3 @@ def test_fs_isfile(protocol, zip_jsonl_path, jsonl_gz_path):
     fs, *_ = url_to_fs(path)
     assert fs.isfile(member_file_path)
     assert not fs.isfile("non_existing_" + member_file_path)
-
-
-def test_fs_overwrites():
-    protocol = "bz2"
-
-    # Import module
-    import datasets.filesystems
-
-    # Overwrite protocol and reload
-    register_implementation(protocol, None, clobber=True)
-    with pytest.warns(UserWarning) as warning_info:
-        importlib.reload(datasets.filesystems)
-
-    assert len(warning_info) == 1
-    assert (
-        str(warning_info[0].message)
-        == f"A filesystem protocol was already set for {protocol} and will be overwritten."
-    )

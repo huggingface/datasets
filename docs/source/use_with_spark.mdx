@@ -43,11 +43,8 @@ times on the same DataFrame it won't re-run the Spark job that writes the datase
 You can set the cache location by passing `cache_dir=` to [`Dataset.from_spark`].
 Make sure to use a disk that is available to both your workers and your current machine (the driver).
 
-<Tip warning={true}>
-
-In a different session, a Spark DataFrame doesn't have the same [semantic hash](https://spark.apache.org/docs/3.2.0/api/python/reference/api/pyspark.sql.DataFrame.semanticHash.html), and it will rerun a Spark job and store it in a new cache.
-
-</Tip>
+> [!WARNING]
+> In a different session, a Spark DataFrame doesn't have the same [semantic hash](https://spark.apache.org/docs/3.2.0/api/python/reference/api/pyspark.sql.DataFrame.semanticHash.html), and it will rerun a Spark job and store it in a new cache.
 
 ### Feature types
 

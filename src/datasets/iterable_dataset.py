@@ -7,8 +7,10 @@ import itertools
 import json
 import math
 import multiprocessing.pool
+import random
 import re
 import sys
+import time
 from collections import Counter
 from collections.abc import Iterable, Iterator
 from copy import deepcopy
@@ -24,8 +26,17 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-from huggingface_hub import CommitInfo, CommitOperationAdd, CommitOperationDelete, DatasetCard, DatasetCardData, HfApi
+from huggingface_hub import (
+    CommitInfo,
+    CommitOperationAdd,
+    CommitOperationDelete,
+    DatasetCard,
+    DatasetCardData,
+    HfApi,
+    HfFileSystem,
+)
 from huggingface_hub.hf_api import RepoFile
+from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 from multiprocess import Pool
 
 from . import config
@@ -158,6 +169,19 @@ def _convert_to_arrow(
         yield new_key, pa.Table.from_pylist(cast_to_python_objects(examples, only_1d_for_numpy=True))
 
 
+def shift_ex_examples_rngs(ex_iterable: "_BaseExamplesIterable", value: int) -> "_BaseExamplesIterable":
+    """We need to go through the ex_iterables recursively, create a new seed and return a new iterable, then set it to the containing ex_iterable."""
+
+    def set_seed_recursively(ex_iterable):
+        if hasattr(ex_iterable, "shift_rngs"):
+            ex_iterable = ex_iterable.shift_rngs(value)
+        if hasattr(ex_iterable, "ex_iterable"):
+            ex_iterable.ex_iterable = set_seed_recursively(ex_iterable.ex_iterable)
+        return ex_iterable
+
+    return set_seed_recursively(ex_iterable)
+
+
 class _BaseExamplesIterable:
     """Base class for the examples iterable used by an IterableDataset"""
 
@@ -272,6 +296,14 @@ class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
         super().__init__(generate_examples_fn, kwargs)
         self.generator = deepcopy(generator)
 
+    def shift_rngs(self, value: int) -> "_BaseExamplesIterable":
+        new_seed = self.generator.bit_generator.state["state"]["state"] + value
+        return ShuffledDataSourcesExamplesIterable(
+            self.generate_examples_fn,
+            self.kwargs,
+            np.random.default_rng(seed=new_seed),
+        )
+
     def _init_state_dict(self) -> dict:
         self._state_dict = {"shard_idx": 0, "shard_example_idx": 0, "type": self.__class__.__name__}
         return self._state_dict
@@ -378,6 +410,14 @@ class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
     ):
         super().__init__(generate_tables_fn, kwargs)
         self.generator = deepcopy(generator)
+
+    def shift_rngs(self, value: int) -> "_BaseExamplesIterable":
+        new_seed = self.generator.bit_generator.state["state"]["state"] + value
+        return ShuffledDataSourcesArrowExamplesIterable(
+            self.generate_examples_fn,
+            self.kwargs,
+            np.random.default_rng(seed=new_seed),
+        )
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {"shard_idx": 0, "shard_example_idx": 0, "type": self.__class__.__name__}
@@ -670,7 +710,9 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
         ex_iterables: list[_BaseExamplesIterable],
-        stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+        stopping_strategy: Literal[
+            "first_exhausted", "all_exhausted", "all_exhausted_without_replacement"
+        ] = "first_exhausted",
     ):
         super().__init__()
         self.ex_iterables = ex_iterables
@@ -678,8 +720,10 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
         # if undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted
         # if oversampling ("all_exhausted"), we stop as soons as every dataset is exhausted, i.e as soon as every samples of every dataset has been visited at least once
-        self.bool_strategy_func = np.all if (stopping_strategy == "all_exhausted") else np.any
-        # TODO(QL): implement iter_arrow
+        # if sampling without replacement ("all_exhausted_without_replacement"), we stop once all samples of every dataset has been visited exactly once.
+        self.bool_strategy_func = (
+            np.all if (stopping_strategy in ("all_exhausted", "all_exhausted_without_replacement")) else np.any
+        )
 
     @property
     def is_typed(self):
@@ -688,6 +732,11 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
     @property
     def features(self):
         return self.ex_iterables[0].features
+
+    @property
+    def iter_arrow(self):
+        # Can iterate on arrow tables if all ex_iterables can iterate
+        return self._iter_arrow if all(ex_iterable.iter_arrow for ex_iterable in self.ex_iterables) else None
 
     def _get_indices_iterator(self):
         # this is an infinite iterator to keep track of which iterator we want to pick examples from
@@ -707,6 +756,52 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             "type": self.__class__.__name__,
         }
         return self._state_dict
+
+    def _iter_arrow(self):
+        # we use this to buffer one example of each iterator to know if an iterator is exhausted
+        nexts = [None] * len(self.ex_iterables)
+        # because of that, we need to rewind 1 example when reloading the state dict
+        if self._state_dict:
+            for i in range(len(self.ex_iterables)):
+                if self._state_dict["previous_states"][i] is not None:
+                    self.ex_iterables[i].load_state_dict(self._state_dict["previous_states"][i])
+        iterators = [ex_iterable.iter_arrow() for ex_iterable in self.ex_iterables]
+
+        indices_iterator = self._get_indices_iterator()
+
+        is_exhausted = (
+            np.array(self._state_dict["is_exhausted"]) if self._state_dict else np.full(len(self.ex_iterables), False)
+        )
+        for i in indices_iterator:
+            # if the stopping criteria is met, break the main for loop
+            if self.bool_strategy_func(is_exhausted):
+                break
+            # Skip exhausted iterators if we sample without replacement
+            if is_exhausted[i] and self.stopping_strategy in ["all_exhausted_without_replacement"]:
+                continue
+            # let's pick one example from the iterator at index i
+            if nexts[i] is None:
+                nexts[i] = next(iterators[i], False)
+            result = nexts[i]
+            if self._state_dict:
+                self._state_dict["previous_states"][i] = deepcopy(self._state_dict["ex_iterables"][i])
+            nexts[i] = next(iterators[i], False)
+
+            # the iterator is exhausted
+            if nexts[i] is False:
+                is_exhausted[i] = True
+                if self._state_dict:
+                    self._state_dict["is_exhausted"][i] = True
+                # we reset it in case the stopping crtieria isn't met yet and we sample with replacement
+                if self.stopping_strategy not in ["all_exhausted_without_replacement"]:
+                    nexts[i] = None
+                    if self._state_dict:
+                        self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
+                        self._state_dict["previous_states"][i] = None
+                    iterators[i] = self.ex_iterables[i]._iter_arrow()
+
+            if result is not False:
+                yield result
 
     def __iter__(self):
         # we use this to buffer one example of each iterator to know if an iterator is exhausted
@@ -728,6 +823,8 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             if self.bool_strategy_func(is_exhausted):
                 break
             # let's pick one example from the iterator at index i
+            if is_exhausted[i] and self.stopping_strategy in ["all_exhausted_without_replacement"]:
+                continue
             if nexts[i] is None:
                 nexts[i] = next(iterators[i], False)
             result = nexts[i]
@@ -741,12 +838,12 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
                 if self._state_dict:
                     self._state_dict["is_exhausted"][i] = True
                 # we reset it in case the stopping crtieria isn't met yet
-                nexts[i] = None
-                if self._state_dict:
-                    self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
-                    self._state_dict["previous_states"][i] = None
-                iterators[i] = iter(self.ex_iterables[i])
-
+                if self.stopping_strategy not in ["all_exhausted_without_replacement"]:
+                    nexts[i] = None
+                    if self._state_dict:
+                        self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
+                        self._state_dict["previous_states"][i] = None
+                    iterators[i] = iter(self.ex_iterables[i])
             if result is not False:
                 yield result
 
@@ -757,16 +854,33 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
     @property
     def num_shards(self) -> int:
-        return min(ex_iterable.num_shards for ex_iterable in self.ex_iterables)
+        return min(ex_iterable.num_shards for ex_iterable in self.ex_iterables) if self.ex_iterables else 0
 
     def shard_data_sources(
         self, num_shards: int, index: int, contiguous=True
     ) -> "CyclingMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
-        return CyclingMultiSourcesExamplesIterable(
-            [iterable.shard_data_sources(num_shards, index, contiguous=contiguous) for iterable in self.ex_iterables],
-            stopping_strategy=self.stopping_strategy,
-        )
+        if num_shards < self.num_shards:
+            return CyclingMultiSourcesExamplesIterable(
+                [
+                    iterable.shard_data_sources(num_shards, index, contiguous=contiguous)
+                    for iterable in self.ex_iterables
+                ],
+                stopping_strategy=self.stopping_strategy,
+            )
+        elif index < self.num_shards:
+            return CyclingMultiSourcesExamplesIterable(
+                [
+                    iterable.shard_data_sources(self.num_shards, index, contiguous=contiguous)
+                    for iterable in self.ex_iterables
+                ],
+                stopping_strategy=self.stopping_strategy,
+            )
+        else:
+            return CyclingMultiSourcesExamplesIterable(
+                [],
+                stopping_strategy=self.stopping_strategy,
+            )
 
 
 class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
@@ -938,12 +1052,22 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         ex_iterables: list[_BaseExamplesIterable],
         generator: np.random.Generator,
         probabilities: Optional[list[float]] = None,
-        stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+        stopping_strategy: Literal[
+            "first_exhausted", "all_exhausted", "all_exhausted_without_replacement"
+        ] = "first_exhausted",
     ):
         super().__init__(ex_iterables, stopping_strategy)
         self.generator = deepcopy(generator)
         self.probabilities = probabilities
-        # TODO(QL): implement iter_arrow
+
+    def shift_rngs(self, value: int) -> "_BaseExamplesIterable":
+        new_seed = self.generator.bit_generator.state["state"]["state"] + value
+        return RandomlyCyclingMultiSourcesExamplesIterable(
+            ex_iterables=self.ex_iterables,
+            generator=np.random.default_rng(seed=new_seed),
+            probabilities=self.probabilities,
+            stopping_strategy=self.stopping_strategy,
+        )
 
     @property
     def is_typed(self):
@@ -1007,12 +1131,33 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         self, num_shards: int, index: int, contiguous=True
     ) -> "RandomlyCyclingMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
-        return RandomlyCyclingMultiSourcesExamplesIterable(
-            [iterable.shard_data_sources(num_shards, index, contiguous=contiguous) for iterable in self.ex_iterables],
-            self.generator,
-            self.probabilities,
-            self.stopping_strategy,
-        )
+        if num_shards < self.num_shards:
+            return RandomlyCyclingMultiSourcesExamplesIterable(
+                [
+                    iterable.shard_data_sources(num_shards, index, contiguous=contiguous)
+                    for iterable in self.ex_iterables
+                ],
+                self.generator,
+                self.probabilities,
+                self.stopping_strategy,
+            )
+        elif index < self.num_shards:
+            return RandomlyCyclingMultiSourcesExamplesIterable(
+                [
+                    iterable.shard_data_sources(self.num_shards, index, contiguous=contiguous)
+                    for iterable in self.ex_iterables
+                ],
+                self.generator,
+                self.probabilities,
+                self.stopping_strategy,
+            )
+        else:
+            return RandomlyCyclingMultiSourcesExamplesIterable(
+                [],
+                self.generator,
+                self.probabilities,
+                self.stopping_strategy,
+            )
 
 
 def _table_output_to_arrow(output) -> pa.Table:
@@ -1520,7 +1665,14 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         self.ex_iterable = ex_iterable
         self.buffer_size = buffer_size
         self.generator = generator
-        # TODO(QL): implement iter_arrow
+
+    def shift_rngs(self, value: int) -> "_BaseExamplesIterable":
+        new_seed = self.generator.bit_generator.state["state"]["state"] + value
+        return BufferShuffledExamplesIterable(
+            ex_iterable=self.ex_iterable,
+            buffer_size=self.buffer_size,
+            generator=np.random.default_rng(seed=new_seed),
+        )
 
     @property
     def is_typed(self):
@@ -1529,6 +1681,10 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     @property
     def features(self):
         return self.ex_iterable.features
+
+    @property
+    def iter_arrow(self):
+        return self._iter_arrow if self.ex_iterable.iter_arrow else None
 
     def _init_state_dict(self) -> dict:
         self._state_dict = self.ex_iterable._init_state_dict()
@@ -1562,6 +1718,23 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
                 mem_buffer[i] = x  # replace the picked example by a new one
             else:  # otherwise, keep filling the buffer
                 mem_buffer.append(x)
+        # when we run out of examples, we shuffle the remaining examples in the buffer and yield them
+        rng.shuffle(mem_buffer)
+        yield from mem_buffer
+
+    def _iter_arrow(self):
+        buffer_size = self.buffer_size
+        rng = deepcopy(self.generator)
+        indices_iterator = self._iter_random_indices(rng, buffer_size)
+        # this is the shuffle buffer that we keep in memory
+        mem_buffer = []
+        for key, pa_table in self.ex_iterable.iter_arrow():
+            if len(mem_buffer) == buffer_size:  # if the buffer is full, pick and example from it
+                i = next(indices_iterator)
+                yield mem_buffer[i]
+                mem_buffer[i] = (key, pa_table)  # replace the picked example by a new one
+            else:  # otherwise, keep filling the buffer
+                mem_buffer.append((key, pa_table))
         # when we run out of examples, we shuffle the remaining examples in the buffer and yield them
         rng.shuffle(mem_buffer)
         yield from mem_buffer
@@ -2032,6 +2205,7 @@ class IterableDataset(DatasetInfoMixin):
         self._token_per_repo_id: dict[str, Union[str, bool, None]] = token_per_repo_id or {}
         self._epoch: Union[int, "torch.Tensor"] = _maybe_share_with_torch_persistent_workers(0)
         self._starting_state_dict: Optional[dict] = None
+        self.__hffs_cache = HfFileSystem._cache  # keep the cache on pickling (e.g. for dataloader workers)
         self._prepare_ex_iterable_for_iteration()  # set state_dict
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)  # subclass of torch IterableDataset
 
@@ -2180,6 +2354,8 @@ class IterableDataset(DatasetInfoMixin):
         self.__dict__ = d
         # Re-add torch shared memory, since shared memory is not always kept when pickling
         self._epoch = _maybe_share_with_torch_persistent_workers(self._epoch)
+        # Re-add the cache to keep on pickling (e.g. for dataloader workers)
+        self.__hffs_cache = HfFileSystem._cache
         # Re-add torch iterable dataset as a parent class, since dynamically added parent classes are not kept when pickling
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
@@ -2242,6 +2418,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable = ex_iterable.shard_data_sources(
                 num_shards=worker_info.num_workers, index=worker_info.id, contiguous=False
             )
+            ex_iterable = shift_ex_examples_rngs(ex_iterable=ex_iterable, value=worker_info.id)
             self._state_dict = {
                 "examples_iterable": ex_iterable._init_state_dict(),
                 "epoch": self.epoch,
@@ -2866,8 +3043,12 @@ class IterableDataset(DatasetInfoMixin):
             generator = deepcopy(generator)
         shuffling = ShufflingConfig(generator=generator, _original_seed=seed)
         return IterableDataset(
-            ex_iterable=BufferShuffledExamplesIterable(
-                self._ex_iterable, buffer_size=buffer_size, generator=generator
+            BufferShuffledExamplesIterable(
+                RebatchedArrowExamplesIterable(self._ex_iterable, batch_size=1)
+                if self._ex_iterable.iter_arrow
+                else self._ex_iterable,
+                buffer_size=buffer_size,
+                generator=generator,
             ),
             info=self._info.copy(),
             split=self._split,
@@ -3447,15 +3628,12 @@ class IterableDataset(DatasetInfoMixin):
         ```
         """
 
-        def batch_fn(unbatched):
-            return {k: [v] for k, v in unbatched.items()}
-
         if self.features:
             features = Features({col: List(feature) for col, feature in self.features.items()})
         else:
             features = None
         return self.map(
-            batch_fn, batched=True, batch_size=batch_size, drop_last_batch=drop_last_batch, features=features
+            _batch_fn, batched=True, batch_size=batch_size, drop_last_batch=drop_last_batch, features=features
         )
 
     def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
@@ -3537,7 +3715,7 @@ class IterableDataset(DatasetInfoMixin):
         Args:
             batch_size (`int`, *optional*):
                 The size (number of rows) of the batches if `batched` is `True`.
-                Defaults to `genomicsml.datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
             batched (`bool`):
                 Set to `True` to return a generator that yields the dataset as batches
                 of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
@@ -3741,12 +3919,12 @@ class IterableDataset(DatasetInfoMixin):
         ```
 
         """
-        from .io.parquet import get_writer_batch_size
+        from .arrow_writer import get_arrow_writer_batch_size_from_features
 
-        batch_size = get_writer_batch_size(self.features)
+        batch_size = get_arrow_writer_batch_size_from_features(self.features) or config.DEFAULT_MAX_BATCH_SIZE
         table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=batch_size)))
         return Dataset(table, fingerprint="unset").to_parquet(
-            path_or_buf, batch_size=batch_size, storage_options=storage_options, **parquet_writer_kwargs
+            path_or_buf, storage_options=storage_options, **parquet_writer_kwargs
         )
 
     def _push_parquet_shards_to_hub_single(
@@ -3762,7 +3940,7 @@ class IterableDataset(DatasetInfoMixin):
         # max_shard_size: Optional[Union[int, str]] = None,  # TODO(QL): add arg
         num_shards: int,
         embed_external_files: bool,
-    ) -> tuple[list[CommitOperationAdd], int, int]:
+    ) -> Iterable[tuple[list[CommitOperationAdd], int, int]]:
         """Pushes the dataset shards as Parquet files to the hub.
 
         Returns:
@@ -3788,13 +3966,13 @@ class IterableDataset(DatasetInfoMixin):
         additions: list[CommitOperationAdd] = []
         for index, shard in index_shards:
             if embed_external_files:
-                from .io.parquet import get_writer_batch_size
+                from .arrow_writer import get_arrow_writer_batch_size_from_features
 
                 shard = shard.with_format("arrow")
                 shard = shard.map(
                     partial(embed_table_storage, token_per_repo_id=self._token_per_repo_id),
                     batched=True,
-                    batch_size=get_writer_batch_size(shard.features),
+                    batch_size=get_arrow_writer_batch_size_from_features(shard.features),
                 )
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
             buffer = BytesIO()
@@ -3876,13 +4054,13 @@ class IterableDataset(DatasetInfoMixin):
             for job_id in range(num_jobs)
         ]
         desc = "Uploading the dataset shards"
-        desc += f" (num_proc={num_proc})" if num_proc is not None and num_proc > 1 else ""
+        desc += f" (num_proc={num_proc})" if num_proc is not None and num_proc >= 1 else ""
         pbar = hf_tqdm(
             unit=" shards",
             total=num_shards,
             desc=desc,
         )
-        with contextlib.nullcontext() if num_proc is None or num_proc <= 1 else Pool(num_proc) as pool:
+        with contextlib.nullcontext() if num_proc is None or num_proc < 1 else Pool(num_proc) as pool:
             update_stream = (
                 IterableDataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
                 if pool is None
@@ -4041,14 +4219,16 @@ class IterableDataset(DatasetInfoMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
-        repo_url = api.create_repo(
-            repo_id,
-            token=token,
-            repo_type="dataset",
-            private=private,
-            exist_ok=True,
-        )
-        repo_id = repo_url.repo_id
+        try:
+            repo_id = api.repo_info(repo_id, repo_type="dataset").id
+        except RepositoryNotFoundError:
+            repo_url = api.create_repo(
+                repo_id,
+                repo_type="dataset",
+                private=private,
+                exist_ok=True,
+            )
+            repo_id = repo_url.repo_id
 
         if revision is not None and not revision.startswith("refs/pr/"):
             # We do not call create_branch for a PR reference: 400 Bad Request
@@ -4070,173 +4250,168 @@ class IterableDataset(DatasetInfoMixin):
             num_proc=num_proc,
         )
 
-        # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
-        # and delete old split shards (if they exist)
-        repo_with_dataset_card, repo_with_dataset_infos = False, False
-        deletions: list[CommitOperationDelete] = []
-        deleted_size = 0
-        repo_splits: list[str] = []  # use a list to keep the order of the splits
-        repo_files_to_add = [addition.path_in_repo for addition in additions]
-        for repo_file in api.list_repo_tree(
-            repo_id=repo_id, revision=revision, repo_type="dataset", token=token, recursive=True
-        ):
-            if not isinstance(repo_file, RepoFile):
-                continue
-            if repo_file.rfilename == config.REPOCARD_FILENAME:
-                repo_with_dataset_card = True
-            elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
-                repo_with_dataset_infos = True
-            elif (
-                repo_file.rfilename.startswith(f"{data_dir}/{split}-") and repo_file.rfilename not in repo_files_to_add
-            ):
-                deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
-                deleted_size += repo_file.size
-            elif fnmatch.fnmatch(
-                repo_file.rfilename, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*")
-            ):
-                pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
-                split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
-                assert split_pattern_fields is not None
-                repo_split = split_pattern_fields["split"]
-                if repo_split not in repo_splits:
-                    repo_splits.append(repo_split)
+        def get_deletions_and_dataset_card() -> tuple[str, list[CommitOperationDelete], str, Optional[str]]:
+            parent_commit = api.repo_info(repo_id, repo_type="dataset", revision=revision).sha
 
-        organization, dataset_name = repo_id.split("/") if "/" in repo_id else (None, repo_id)
-        info_to_dump = self.info.copy()
-        info_to_dump.download_checksums = None
-        info_to_dump.download_size = uploaded_size
-        info_to_dump.dataset_size = dataset_nbytes
-        info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
-        info_to_dump.config_name = config_name
-        info_to_dump.splits = SplitDict(
-            {split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=num_examples, dataset_name=dataset_name)}
-        )
-        # get the info from the README to update them
-        if repo_with_dataset_card:
-            dataset_card_path = api.hf_hub_download(
-                repo_id, config.REPOCARD_FILENAME, repo_type="dataset", revision=revision
+            # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
+            # and delete old split shards (if they exist)
+            repo_with_dataset_card, repo_with_dataset_infos = False, False
+            deletions: list[CommitOperationDelete] = []
+            deleted_size = 0
+            repo_splits: list[str] = []  # use a list to keep the order of the splits
+            repo_files_to_add = [addition.path_in_repo for addition in additions]
+            for repo_file in api.list_repo_tree(
+                repo_id=repo_id, revision=parent_commit, repo_type="dataset", token=token, recursive=True
+            ):
+                if not isinstance(repo_file, RepoFile):
+                    continue
+                if repo_file.rfilename == config.REPOCARD_FILENAME:
+                    repo_with_dataset_card = True
+                elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
+                    repo_with_dataset_infos = True
+                elif (
+                    repo_file.rfilename.startswith(f"{data_dir}/{split}-")
+                    and repo_file.rfilename not in repo_files_to_add
+                ):
+                    deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
+                    deleted_size += repo_file.size
+                elif fnmatch.fnmatch(
+                    repo_file.rfilename,
+                    PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
+                ):
+                    pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                    split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
+                    assert split_pattern_fields is not None
+                    repo_split = split_pattern_fields["split"]
+                    if repo_split not in repo_splits:
+                        repo_splits.append(repo_split)
+
+            organization, dataset_name = repo_id.split("/") if "/" in repo_id else (None, repo_id)
+            info_to_dump = self.info.copy()
+            info_to_dump.download_checksums = None
+            info_to_dump.download_size = uploaded_size
+            info_to_dump.dataset_size = dataset_nbytes
+            info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
+            info_to_dump.config_name = config_name
+            info_to_dump.splits = SplitDict(
+                {
+                    split: SplitInfo(
+                        split, num_bytes=dataset_nbytes, num_examples=num_examples, dataset_name=dataset_name
+                    )
+                }
             )
-            dataset_card = DatasetCard.load(Path(dataset_card_path))
-            dataset_card_data = dataset_card.data
-            metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
-            dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
-            if dataset_infos and config_name in dataset_infos:
-                repo_info = dataset_infos[config_name]
+            # get the info from the README to update them
+            if repo_with_dataset_card:
+                dataset_card_path = api.hf_hub_download(
+                    repo_id, config.REPOCARD_FILENAME, repo_type="dataset", revision=parent_commit
+                )
+                dataset_card = DatasetCard.load(Path(dataset_card_path))
+                dataset_card_data = dataset_card.data
+                metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
+                dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
+                if dataset_infos and config_name in dataset_infos:
+                    repo_info = dataset_infos[config_name]
+                else:
+                    repo_info = None
+            # get the deprecated dataset_infos.json to update them
+            elif repo_with_dataset_infos:
+                dataset_card = None
+                dataset_card_data = DatasetCardData()
+                metadata_configs = MetadataConfigs()
+                dataset_infos_path = api.hf_hub_download(
+                    repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=parent_commit
+                )
+                with open(dataset_infos_path, encoding="utf-8") as f:
+                    dataset_infos: dict = json.load(f)
+                    dataset_info = dataset_infos.get(config_name, None) if dataset_infos else None
+                    repo_info = DatasetInfo.from_dict(dataset_info) if dataset_info else None
             else:
+                dataset_card = None
+                dataset_card_data = DatasetCardData()
+                metadata_configs = MetadataConfigs()
                 repo_info = None
-        # get the deprecated dataset_infos.json to update them
-        elif repo_with_dataset_infos:
-            dataset_card = None
-            dataset_card_data = DatasetCardData()
-            metadata_configs = MetadataConfigs()
-            dataset_infos_path = api.hf_hub_download(
-                repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=revision
-            )
-            with open(dataset_infos_path, encoding="utf-8") as f:
-                dataset_infos: dict = json.load(f)
-                dataset_info = dataset_infos.get(config_name, None) if dataset_infos else None
-                repo_info = DatasetInfo.from_dict(dataset_info) if dataset_info else None
-        else:
-            dataset_card = None
-            dataset_card_data = DatasetCardData()
-            metadata_configs = MetadataConfigs()
-            repo_info = None
-        # update the total info to dump from existing info
-        if repo_info is not None:
-            logger.info("Updating downloaded metadata with the new split.")
-            if repo_info.splits and list(repo_info.splits) != [split]:
-                if self._info.features != repo_info.features:
-                    raise ValueError(
-                        f"Features of the new split don't match the features of the existing splits on the hub: {self._info.features} != {repo_info.features}"
+            # update the total info to dump from existing info
+            if repo_info is not None:
+                logger.info("Updating downloaded metadata with the new split.")
+                if repo_info.splits and list(repo_info.splits) != [split]:
+                    if self._info.features != repo_info.features:
+                        raise ValueError(
+                            f"Features of the new split don't match the features of the existing splits on the hub: {self._info.features} != {repo_info.features}"
+                        )
+
+                    if split in repo_info.splits:
+                        repo_info.download_size -= deleted_size
+                        repo_info.dataset_size -= repo_info.splits.get(split, SplitInfo()).num_bytes or 0
+
+                    repo_info.download_checksums = None
+                    repo_info.download_size = (repo_info.download_size or 0) + uploaded_size
+                    repo_info.dataset_size = (repo_info.dataset_size or 0) + dataset_nbytes
+                    repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
+                    repo_info.splits.pop(split, None)
+                    repo_info.splits[split] = SplitInfo(
+                        split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
                     )
-
-                if split in repo_info.splits:
-                    repo_info.download_size -= deleted_size
-                    repo_info.dataset_size -= repo_info.splits.get(split, SplitInfo()).num_bytes or 0
-
-                repo_info.download_checksums = None
-                repo_info.download_size = (repo_info.download_size or 0) + uploaded_size
-                repo_info.dataset_size = (repo_info.dataset_size or 0) + dataset_nbytes
-                repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
-                repo_info.splits.pop(split, None)
-                repo_info.splits[split] = SplitInfo(
-                    split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
-                )
-                info_to_dump = repo_info
-        # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
-        if not metadata_configs and repo_splits:
-            default_metadata_configs_to_dump = {
-                "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
-            }
-            MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
-        # update the metadata configs
-        if config_name in metadata_configs:
-            metadata_config = metadata_configs[config_name]
-            if "data_files" in metadata_config:
-                data_files_to_dump = sanitize_patterns(metadata_config["data_files"])
+                    info_to_dump = repo_info
+            # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
+            if not metadata_configs and repo_splits:
+                default_metadata_configs_to_dump = {
+                    "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
+                }
+                MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
+            # update the metadata configs
+            if config_name in metadata_configs:
+                metadata_config = metadata_configs[config_name]
+                if "data_files" in metadata_config:
+                    data_files_to_dump = sanitize_patterns(metadata_config["data_files"])
+                else:
+                    data_files_to_dump = {}
+                # add the new split
+                data_files_to_dump[split] = [f"{data_dir}/{split}-*"]
+                metadata_config_to_dump = {
+                    "data_files": [
+                        {
+                            "split": _split,
+                            "path": _pattern[0] if len(_pattern) == 1 else _pattern,
+                        }
+                        for _split, _pattern in data_files_to_dump.items()
+                    ]
+                }
             else:
-                data_files_to_dump = {}
-            # add the new split
-            data_files_to_dump[split] = [f"{data_dir}/{split}-*"]
-            metadata_config_to_dump = {
-                "data_files": [
-                    {
-                        "split": _split,
-                        "path": _pattern[0] if len(_pattern) == 1 else _pattern,
-                    }
-                    for _split, _pattern in data_files_to_dump.items()
-                ]
-            }
-        else:
-            metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
-        configs_to_dump = {config_name: metadata_config_to_dump}
-        if set_default and config_name != "default":
-            if metadata_configs:
-                current_default_config_name = metadata_configs.get_default_config_name()
-                if current_default_config_name == "default":
-                    raise ValueError(
-                        "There exists a configuration named 'default'. To set a different configuration as default, "
-                        "rename the 'default' one first."
-                    )
-                if current_default_config_name:
-                    _ = metadata_configs[current_default_config_name].pop("default")
-                    configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
-            metadata_config_to_dump["default"] = True
-        # push to the deprecated dataset_infos.json
-        if repo_with_dataset_infos:
-            dataset_infos_path = api.hf_hub_download(
-                repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=revision
-            )
-            with open(dataset_infos_path, encoding="utf-8") as f:
-                dataset_infos: dict = json.load(f)
-            dataset_infos[config_name] = asdict(info_to_dump)
-            additions.append(
-                CommitOperationAdd(
-                    path_in_repo=config.DATASETDICT_INFOS_FILENAME,
-                    path_or_fileobj=json.dumps(dataset_infos, indent=4).encode("utf-8"),
+                metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
+            configs_to_dump = {config_name: metadata_config_to_dump}
+            if set_default and config_name != "default":
+                if metadata_configs:
+                    current_default_config_name = metadata_configs.get_default_config_name()
+                    if current_default_config_name == "default":
+                        raise ValueError(
+                            "There exists a configuration named 'default'. To set a different configuration as default, "
+                            "rename the 'default' one first."
+                        )
+                    if current_default_config_name:
+                        _ = metadata_configs[current_default_config_name].pop("default")
+                        configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
+                metadata_config_to_dump["default"] = True
+            # push to the deprecated dataset_infos.json
+            if repo_with_dataset_infos:
+                dataset_infos_path = api.hf_hub_download(
+                    repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=parent_commit
                 )
+                with open(dataset_infos_path, encoding="utf-8") as f:
+                    dataset_infos: dict = json.load(f)
+                dataset_infos[config_name] = asdict(info_to_dump)
+                new_dataset_infos = json.dumps(dataset_infos, indent=4)
+            else:
+                new_dataset_infos = None
+            # push to README
+            DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
+            MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
+            new_dataset_card = (
+                DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
             )
-        # push to README
-        DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
-        MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
-        dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
-        additions.append(
-            CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
-        )
+            return parent_commit, deletions, new_dataset_card, new_dataset_infos
 
         commit_message = commit_message if commit_message is not None else "Upload dataset"
-        if len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:
-            commit_info = api.create_commit(
-                repo_id,
-                operations=additions + deletions,
-                commit_message=commit_message,
-                commit_description=commit_description,
-                token=token,
-                repo_type="dataset",
-                revision=revision,
-                create_pr=create_pr,
-            )
-        else:
+        if len(additions) > config.UPLOADS_MAX_NUMBER_PER_COMMIT:
             logger.info(
                 f"Number of files to upload is larger than {config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
             )
@@ -4244,22 +4419,87 @@ class IterableDataset(DatasetInfoMixin):
             for i in range(0, num_commits):
                 operations = additions[
                     i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
-                ] + (deletions if i == 0 else [])
-                commit_info = api.create_commit(
-                    repo_id,
-                    operations=operations,
-                    commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
-                    commit_description=commit_description,
-                    token=token,
-                    repo_type="dataset",
-                    revision=revision,
-                    create_pr=create_pr,
-                )
+                ]
+                for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+                    # We need to retry if another commit happens at the same time
+                    sleep_time *= 1 + random.random()
+                    try:
+                        commit_info = api.create_commit(
+                            repo_id,
+                            operations=operations,
+                            commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                            commit_description=commit_description,
+                            repo_type="dataset",
+                            revision=revision,
+                            create_pr=create_pr,
+                        )
+                    except HfHubHTTPError as err:
+                        if (
+                            err.__context__
+                            and isinstance(err.__context__, HfHubHTTPError)
+                            and err.__context__.response.status_code == 409
+                        ):
+                            # 409 is Conflict (another commit is in progress)
+                            time.sleep(sleep_time)
+                            logger.info(
+                                f"Retrying intermediate commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
+                            )
+                            continue
+                        else:
+                            raise
+                    break
                 logger.info(
                     f"Commit #{i + 1} completed"
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
+            last_commit_additions = []
+        else:
+            last_commit_additions = additions
+
+        for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+            # We need to retry if there was a commit in between in case it touched the dataset card data
+            sleep_time *= 1 + random.random()
+            parent_commit, deletions, dataset_card, dataset_infos = get_deletions_and_dataset_card()
+            dataset_card_additions = []
+            if dataset_infos:
+                dataset_card_additions.append(
+                    CommitOperationAdd(
+                        path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+                        path_or_fileobj=dataset_infos.encode("utf-8"),
+                    )
+                )
+            dataset_card_additions.append(
+                CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
+            )
+            try:
+                commit_info = api.create_commit(
+                    repo_id,
+                    operations=last_commit_additions + dataset_card_additions + deletions,
+                    commit_message=commit_message,
+                    commit_description=commit_description,
+                    repo_type="dataset",
+                    revision=revision,
+                    create_pr=create_pr,
+                    parent_commit=parent_commit,
+                )
+            except HfHubHTTPError as err:
+                if (
+                    err.__context__
+                    and isinstance(err.__context__, HfHubHTTPError)
+                    and err.__context__.response.status_code in (412, 409)
+                ):
+                    # 412 is Precondition failed (parent_commit isn't satisfied)
+                    # 409 is Conflict (another commit is in progress)
+                    time.sleep(sleep_time)
+                    logger.info(
+                        f"Retrying commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
+                    )
+                    continue
+                else:
+                    raise
+            break
+
         return commit_info
 
 
@@ -4354,7 +4594,9 @@ def _interleave_iterable_datasets(
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
-    stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+    stopping_strategy: Literal[
+        "first_exhausted", "all_exhausted", "all_exhausted_without_replacement"
+    ] = "first_exhausted",
 ) -> IterableDataset:
     """
     Interleave several iterable datasets (sources) into a single iterable dataset.
@@ -4392,14 +4634,18 @@ def _interleave_iterable_datasets(
     )
 
     ex_iterables = [copy.deepcopy(d._ex_iterable) for d in datasets]
-
+    if all(ex_iterable.iter_arrow for ex_iterable in ex_iterables):
+        ex_iterables = [RebatchedArrowExamplesIterable(ex_iterable, batch_size=1) for ex_iterable in ex_iterables]
     # Use cycling or random cycling of sources
     if probabilities is None:
         ex_iterable = CyclingMultiSourcesExamplesIterable(ex_iterables, stopping_strategy=stopping_strategy)
     else:
         generator = np.random.default_rng(seed)
         ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
-            ex_iterables, generator=generator, probabilities=probabilities, stopping_strategy=stopping_strategy
+            ex_iterables,
+            generator=generator,
+            probabilities=probabilities,
+            stopping_strategy=stopping_strategy,
         )
     # Set new info - we update the features
     # setting the features also ensures to fill missing columns with None
@@ -4457,3 +4703,7 @@ async def _apply_async(pool, func, x):
             return future.get()
         else:
             await asyncio.sleep(0)
+
+
+def _batch_fn(unbatched):
+    return {k: [v] for k, v in unbatched.items()}

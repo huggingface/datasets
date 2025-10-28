@@ -15,11 +15,12 @@ requirements:
     - python
     - pip
     - numpy >=1.17
-    - pyarrow >=15.0.0
+    - pyarrow >=16.0.0
     - python-xxhash
     - dill
     - pandas
     - requests >=2.19.0
+    - httpx <1.0.0
     - tqdm >=4.66.3
     - dataclasses
     - multiprocess
@@ -30,11 +31,12 @@ requirements:
     - python
     - pip
     - numpy >=1.17
-    - pyarrow >=15.0.0
+    - pyarrow >=16.0.0
     - python-xxhash
     - dill
     - pandas
     - requests >=2.19.0
+    - httpx <1.0.0
     - tqdm >=4.66.3
     - dataclasses
     - multiprocess

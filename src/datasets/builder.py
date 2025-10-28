@@ -321,6 +321,7 @@ class DatasetBuilder:
         data_dir: Optional[str] = None,
         storage_options: Optional[dict] = None,
         writer_batch_size: Optional[int] = None,
+        config_id: Optional[str] = None,
         **config_kwargs,
     ):
         # DatasetBuilder name
@@ -351,6 +352,7 @@ class DatasetBuilder:
         self.config, self.config_id = self._create_builder_config(
             config_name=config_name,
             custom_features=features,
+            config_id=config_id,
             **config_kwargs,
         )
 
@@ -510,7 +512,7 @@ class DatasetBuilder:
                 return legacy_relative_data_dir
 
     def _create_builder_config(
-        self, config_name=None, custom_features=None, **config_kwargs
+        self, config_name=None, custom_features=None, config_id=None, **config_kwargs
     ) -> tuple[BuilderConfig, str]:
         """Create and validate BuilderConfig object as well as a unique config id for this config.
         Raises ValueError if there are multiple builder configs and config_name and DEFAULT_CONFIG_NAME are None.
@@ -578,10 +580,11 @@ class DatasetBuilder:
         )
 
         # compute the config id that is going to be used for caching
-        config_id = builder_config.create_config_id(
-            config_kwargs,
-            custom_features=custom_features,
-        )
+        if config_id is None:
+            config_id = builder_config.create_config_id(
+                config_kwargs,
+                custom_features=custom_features,
+            )
         is_custom = (config_id not in self.builder_configs) and config_id != "default"
         if is_custom:
             logger.info(f"Using custom data configuration {config_id}")

@@ -1,7 +1,7 @@
 # Load audio data
 
 You can load an audio dataset using the [`Audio`] feature that automatically decodes and resamples the audio files when you access the examples.
-Audio decoding is based on the [`soundfile`](https://github.com/bastibe/python-soundfile) python package, which uses the [`libsndfile`](https://github.com/libsndfile/libsndfile) C library under the hood.
+Audio decoding is based on the [`torchcodec`](https://github.com/pytorch/torchcodec) python package, which uses the [`FFmpeg`](https://www.ffmpeg.org/) C library under the hood.
 
 ## Installation
 
@@ -85,11 +85,8 @@ Finally the `filters` argument lets you load only a subset of the dataset, based
 >>> dataset = load_dataset("username/dataset_name", streaming=True, filters=filters)
 ```
 
-<Tip>
-
-For more information about creating your own `AudioFolder` dataset, take a look at the [Create an audio dataset](./audio_dataset) guide.
-
-</Tip>
+> [!TIP]
+> For more information about creating your own `AudioFolder` dataset, take a look at the [Create an audio dataset](./audio_dataset) guide.
 
 For a guide on how to load any type of dataset, take a look at the <a class="underline decoration-sky-400 decoration-2 font-semibold" href="./loading">general loading guide</a>.
 
