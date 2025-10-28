@@ -153,7 +153,7 @@ BENCHMARKS_REQUIRE = [
 
 TESTS_REQUIRE = [
     # fix pip install issues for windows
-    "numba>=0.56.4",  # to get recent versions of llvmlite for windows ci
+    "numba>=0.56.4; python_version < '3.14'",  # to get recent versions of llvmlite for windows ci, not available on 3.14
     # test dependencies
     "absl-py",
     "decorator",
