@@ -20,8 +20,12 @@
 
 🤗 Datasets is a lightweight library providing **two** main features:
 
-- **one-line dataloaders for many public datasets**: one-liners to download and pre-process any of the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) major public datasets (image datasets, audio datasets, text datasets in 467 languages and dialects, etc.) provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets). With a simple command like `squad_dataset = load_dataset("rajpurkar/squad")`, get any of these datasets ready to use in a dataloader for training/evaluating a ML model (Numpy/Pandas/PyTorch/TensorFlow/JAX),
-- **efficient data pre-processing**: simple, fast and reproducible data pre-processing for the public datasets as well as your own local datasets in CSV, JSON, text, PNG, JPEG, WAV, MP3, Parquet, HDF5, etc. With simple commands like `processed_dataset = dataset.map(process_example)`, efficiently prepare the dataset for inspection and ML model evaluation and training.
+- **one-line dataloaders for many public datasets**: Provides simple one-liners to download and pre-process any of the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) major public datasets. This includes image datasets, audio datasets, text datasets in 467 languages and dialects, and more, all available on the [HuggingFace Datasets Hub](https://huggingface.co/datasets). For example, you can run:
+`squad_dataset = load_dataset("rajpurkar/squad")`
+to get a dataset ready for training or evaluating an ML model in Numpy, Pandas, PyTorch, TensorFlow, or JAX.
+- **efficient data pre-processing**: Provides simple, fast, and reproducible data pre-processing for public datasets as well as your own local datasets in CSV, JSON, text, PNG, JPEG, WAV, MP3, Parquet, HDF5, etc. For example, you can run:
+`processed_dataset = dataset.map(process_example)`
+to efficiently prepare the dataset for inspection and ML model evaluation or training.
 
 [🎓 **Documentation**](https://huggingface.co/docs/datasets/) [🔎 **Find a dataset in the Hub**](https://huggingface.co/datasets) [🌟 **Share a dataset on the Hub**](https://huggingface.co/docs/datasets/share)
 
@@ -64,7 +68,7 @@ Follow the installation pages of TensorFlow and PyTorch to see how to install th
 
 For more details on installation, check the installation page in the documentation: https://huggingface.co/docs/datasets/installation
 
-## Installation to use with Machine Learning & Data frameworks frameworks
+## Installation to use with Machine Learning & Data frameworks
 
 If you plan to use 🤗 Datasets with PyTorch (2.0+), TensorFlow (2.6+) or JAX (3.14+) you should also install PyTorch, TensorFlow or JAX.
 🤗 Datasets is also well integrated with data frameworks like PyArrow, Pandas, Polars and Spark, which should be installed separately.
@@ -80,20 +84,21 @@ This library can be used for text/image/audio/etc. datasets. Here is an example 
 Here is a quick example:
 
 ```python
+# Example: Load datasets and print first example
 from datasets import load_dataset
 
-# Print all the available datasets
+# Example: List all available datasets
 from huggingface_hub import list_datasets
 print([dataset.id for dataset in list_datasets()])
 
-# Load a dataset and print the first example in the training set
+# Example: Load a dataset and print the first example in the training set
 squad_dataset = load_dataset('rajpurkar/squad')
 print(squad_dataset['train'][0])
 
-# Process the dataset - add a column with the length of the context texts
+# Example: Process the dataset - add a column with the length of the context texts
 dataset_with_length = squad_dataset.map(lambda x: {"length": len(x["context"])})
 
-# Process the dataset - tokenize the context texts (using a tokenizer from the 🤗 Transformers library)
+# Example: Process the dataset - tokenize the context texts (using a tokenizer from the 🤗 Transformers library)
 from transformers import AutoTokenizer
 tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 
