@@ -4785,7 +4785,6 @@ def test_polars_round_trip():
     assert isinstance(Dataset.from_polars(ds.to_polars()), Dataset)
 
 
-@pytest.mark.integration
 @pytest.mark.high_memory
 def test_map_int32_overflow():
     # GH: 7821
