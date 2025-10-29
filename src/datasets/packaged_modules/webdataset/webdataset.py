@@ -2,7 +2,7 @@ import io
 import json
 import re
 from itertools import islice
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, List, Optional
 
 import fsspec
 import numpy as np

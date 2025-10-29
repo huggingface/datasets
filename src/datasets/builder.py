@@ -30,7 +30,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Iterable, List, Mapping, Optional, Tuple, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 from unittest.mock import patch
 
 import fsspec
@@ -690,7 +690,7 @@ class DatasetBuilder:
             info: (DatasetInfo) The dataset information
         """
         raise NotImplementedError
-    
+
     def _supports_partial_generation(self) -> bool:
         """Whether the dataset supports generation of specific splits."""
         return hasattr(self, "_available_splits") and "splits" in inspect.signature(self._split_generators).parameters
@@ -925,7 +925,7 @@ class DatasetBuilder:
                         yield tmp_dir
                         if os.path.isdir(dirname):
                             for root, dirnames, filenames in os.walk(dirname, topdown=False):
-                        # LocalFileSystem.mv does copy + rm, it is more efficient to simply rename a local directory
+                                # LocalFileSystem.mv does copy + rm, it is more efficient to simply rename a local directory
                                 for filename in filenames:
                                     filename = os.path.join(root, filename)
                                     delete_filename = True
@@ -1181,7 +1181,7 @@ class DatasetBuilder:
             )
 
         available_splits = self._available_splits() if self._supports_partial_generation() else self.info.splits
-        logger.debug(f'Constructing Dataset for split {split or ", ".join(available_splits)}, from {self._output_dir}')
+        logger.debug(f"Constructing Dataset for split {split or ', '.join(available_splits)}, from {self._output_dir}")
 
         # By default, return all splits
         if split is None:

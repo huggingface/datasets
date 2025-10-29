@@ -3,7 +3,7 @@ import io
 import itertools
 import os
 from dataclasses import dataclass
-from typing import Any, Callable, Iterator, Optional, Union
+from typing import Any, Callable, Iterator, List, Optional, Union
 
 import pandas as pd
 import pyarrow as pa

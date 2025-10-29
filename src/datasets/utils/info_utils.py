@@ -6,12 +6,8 @@ from huggingface_hub.utils import insecure_hashlib
 
 from .. import config
 from ..exceptions import (
-    ExpectedMoreDownloadedFilesError,
-    ExpectedMoreSplitsError,
     NonMatchingChecksumError,
     NonMatchingSplitsSizesError,
-    UnexpectedDownloadedFileError,
-    UnexpectedSplitsError,
 )
 from .logging import get_logger
 

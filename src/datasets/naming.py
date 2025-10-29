@@ -16,7 +16,6 @@
 """Utilities for file names."""
 
 import itertools
-import os
 import posixpath
 import re
 

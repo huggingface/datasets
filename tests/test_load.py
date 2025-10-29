@@ -1107,7 +1107,7 @@ def test_loading_from_dataset_from_hub_specific_splits():
         with pytest.raises(ValueError):
             load_dataset(SAMPLE_DATASET_IDENTIFIER2, split="non-existing-split", cache_dir=tmp_dir)
 
-            
+
 @pytest.mark.integration
 def test_loading_from_the_datasets_hub_with_token():
     class CustomException(Exception):
