@@ -158,7 +158,7 @@ TESTS_REQUIRE = [
     "absl-py",
     "decorator",
     "joblib<1.3.0",  # joblibspark doesn't support recent joblib versions
-    "joblibspark",
+    "joblibspark; python_version < '3.14'",  # python 3.14 gives AttributeError: module 'ast' has no attribute 'Num'
     "pytest",
     "pytest-datadir",
     "pytest-xdist",
