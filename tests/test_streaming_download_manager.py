@@ -62,7 +62,7 @@ def test_streaming_dl_manager_download(text_path):
 
 
 def test_streaming_dl_manager_download_and_extract_no_extraction_dummy_path():
-    path = str(Path().resolve().parents[-1] / "foo" / "bard.txt")
+    path = str(Path(__file__).resolve())
     dl_manager = StreamingDownloadManager()
     assert dl_manager.download_and_extract(path) == path
 
