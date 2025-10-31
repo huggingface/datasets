@@ -1553,18 +1553,21 @@ def test_iterable_dataset_from_hub_torch_dataloader_parallel(num_workers, tmp_pa
     assert len(result) == 10
 
 
+def gen_with_worker_info(shard):
+    from torch.utils.data import get_worker_info
+
+    worker_info = get_worker_info()
+    for i in range(100):
+        yield {"value": i, "worker_id": worker_info.id}
+
+
 @require_torch
 def test_iterable_dataset_shuffle_with_multiple_workers_different_rng():
     # GH 7567
-    from torch.utils.data import DataLoader, get_worker_info
-
-    def gen(shard):
-        worker_info = get_worker_info()
-        for i in range(100):
-            yield {"value": i, "worker_id": worker_info.id}
+    from torch.utils.data import DataLoader
 
     num_workers = 20
-    ds = IterableDataset.from_generator(gen, gen_kwargs={"shard": list(range(num_workers))})
+    ds = IterableDataset.from_generator(gen_with_worker_info, gen_kwargs={"shard": list(range(num_workers))})
     ds = ds.shuffle(buffer_size=100, seed=1234)
     dataloader = DataLoader(ds, batch_size=None, num_workers=num_workers)
 
@@ -1575,18 +1578,19 @@ def test_iterable_dataset_shuffle_with_multiple_workers_different_rng():
         assert len(set(values)) != 1, "Make sure not all values are identical"
 
 
+def gen_with_value(shard, value):
+    for i in range(100):
+        yield {"value": value}
+
+
 @require_torch
 def test_iterable_dataset_interleave_dataset_with_multiple_workers():
     # GH 7567
     from torch.utils.data import DataLoader
 
-    def gen(shard, value):
-        for i in range(100):
-            yield {"value": value}
-
     num_workers = 20
     ds = [
-        IterableDataset.from_generator(gen, gen_kwargs={"shard": list(range(num_workers)), "value": i})
+        IterableDataset.from_generator(gen_with_value, gen_kwargs={"shard": list(range(num_workers)), "value": i})
         for i in range(10)
     ]
     ds = interleave_datasets(ds, probabilities=[1 / len(ds)] * len(ds), seed=1234)
@@ -1598,18 +1602,19 @@ def test_iterable_dataset_interleave_dataset_with_multiple_workers():
         assert len(set(values)) != 1, "Make sure not all values are identical"
 
 
+def gen_with_id(shard, value):
+    for i in range(50):
+        yield {"value": value, "id": i}
+
+
 @require_torch
 def test_iterable_dataset_interleave_dataset_deterministic_across_iterations():
     # GH 7567
     from torch.utils.data import DataLoader
 
-    def gen(shard, value):
-        for i in range(50):
-            yield {"value": value, "id": i}
-
     num_workers = 10
     ds = [
-        IterableDataset.from_generator(gen, gen_kwargs={"shard": list(range(num_workers)), "value": i})
+        IterableDataset.from_generator(gen_with_id, gen_kwargs={"shard": list(range(num_workers)), "value": i})
         for i in range(5)
     ]
     ds = interleave_datasets(ds, probabilities=[1 / len(ds)] * len(ds), seed=1234)

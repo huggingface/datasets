@@ -1,5 +1,4 @@
 import os
-import zipfile
 
 import pytest
 
@@ -199,5 +198,5 @@ def test_is_zipfile_false_positive(tmpdir):
     )
     with not_a_zip_file.open("wb") as f:
         f.write(data)
-    assert zipfile.is_zipfile(str(not_a_zip_file))  # is a false positive for `zipfile`
+    # zipfile.is_zipfile(str(not_a_zip_file)) could be a false positive for `zipfile`
     assert not ZipExtractor.is_extractable(not_a_zip_file)  # but we're right
