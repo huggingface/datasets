@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 
 import pytest
 
@@ -26,10 +27,16 @@ Squirtle, water
 Bulbasaur, grass"""
 
 
-@pytest.mark.parametrize("urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"])
-def test_streaming_dl_manager_download_dummy_path(urlpath):
+def test_streaming_dl_manager_download_dummy_path():
+    path = str(Path().resolve().parents[-1] / "foo" / "bard.txt")
     dl_manager = StreamingDownloadManager()
-    assert dl_manager.download(urlpath) == urlpath
+    assert dl_manager.download(path) == path
+
+
+def test_streaming_dl_manager_download_dummy_url():
+    url = "https://f.oo/bar.txt"
+    dl_manager = StreamingDownloadManager()
+    assert dl_manager.download(url) == url
 
 
 @pytest.mark.parametrize(
@@ -54,10 +61,16 @@ def test_streaming_dl_manager_download(text_path):
         assert f.read() == expected_file.read()
 
 
-@pytest.mark.parametrize("urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"])
-def test_streaming_dl_manager_download_and_extract_no_extraction(urlpath):
+def test_streaming_dl_manager_download_and_extract_no_extraction_dummy_path():
+    path = str(Path().resolve().parents[-1] / "foo" / "bard.txt")
     dl_manager = StreamingDownloadManager()
-    assert dl_manager.download_and_extract(urlpath) == urlpath
+    assert dl_manager.download_and_extract(path) == path
+
+
+def test_streaming_dl_manager_download_and_extract_no_extraction_dummy_url():
+    url = "https://f.oo/bar.txt"
+    dl_manager = StreamingDownloadManager()
+    assert dl_manager.download_and_extract(url) == url
 
 
 def test_streaming_dl_manager_extract(text_gz_path, text_path):
