@@ -28,7 +28,7 @@ Bulbasaur, grass"""
 
 
 def test_streaming_dl_manager_download_dummy_path():
-    path = str(Path().resolve().parents[-1] / "foo" / "bard.txt")
+    path = str(Path(__file__).resolve().parents[-1] / "foo" / "bar.txt")
     dl_manager = StreamingDownloadManager()
     assert dl_manager.download(path) == path
 
