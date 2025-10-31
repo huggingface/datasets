@@ -24,4 +24,5 @@ filterwarnings = [
 markers = [
     "unit: unit test",
     "integration: integration test",
+    "high_memory: tests requiring significant RAM (>=16GB)",
 ]
