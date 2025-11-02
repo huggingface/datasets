@@ -127,8 +127,8 @@ class Audio:
             # convert the audio array to wav bytes
             buffer = BytesIO()
             AudioEncoder(
-                torch.from_numpy(value["array"].astype(np.float32)), sample_rate=value["sampling_rate"], num_channels=num_channels
-            ).to_file_like(buffer, format="wav")
+                torch.from_numpy(value["array"].astype(np.float32)), sample_rate=value["sampling_rate"]
+            ).to_file_like(buffer, format="wav", num_channels=num_channels)
             return {"bytes": buffer.getvalue(), "path": None}
         elif value.get("path") is not None and os.path.isfile(value["path"]):
             # we set "bytes": None to not duplicate the data if they're already available locally
@@ -144,8 +144,8 @@ class Audio:
                     bytes_value = np.memmap(value["path"], dtype="h", mode="r").astype(np.float32) / 32767
 
                 buffer = BytesIO()
-                AudioEncoder(torch.from_numpy(bytes_value), sample_rate=value["sampling_rate"], num_channels=num_channels).to_file_like(
-                    buffer, format="wav"
+                AudioEncoder(torch.from_numpy(bytes_value), sample_rate=value["sampling_rate"]).to_file_like(
+                    buffer, format="wav", num_channels=num_channels
                 )
                 return {"bytes": buffer.getvalue(), "path": None}
             else:
@@ -315,6 +315,6 @@ def encode_torchcodec_audio(audio: "AudioDecoder") -> dict:
 
         samples = audio.get_all_samples()
         buffer = BytesIO()
-        mono = True if samples.data.shape[0] == 1 else False
-        AudioEncoder(samples.data.cpu(), sample_rate=samples.sample_rate, mono=mono).to_file_like(buffer, format="wav")
+        num_channels = samples.data.shape[0]
+        AudioEncoder(samples.data.cpu(), sample_rate=samples.sample_rate).to_file_like(buffer, format="wav", num_channels=num_channels)
         return {"bytes": buffer.getvalue(), "path": None}
