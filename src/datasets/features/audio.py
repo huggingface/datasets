@@ -49,7 +49,6 @@ class Audio:
     Args:
         sampling_rate (`int`, *optional*):
             Target sampling rate. If `None`, the native sampling rate is used.
-        # replace with num_channels
         num_channels (`int`, *optional*):
              The desired number of channels of the decoded samples. By default, the number of channels of the source is used.
              Currently `None` (number of channels of the source), `1` (mono) or `2` (stereo) channels are supported.
