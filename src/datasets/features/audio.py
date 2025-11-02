@@ -50,11 +50,8 @@ class Audio:
         sampling_rate (`int`, *optional*):
             Target sampling rate. If `None`, the native sampling rate is used.
         num_channels (`int`, *optional*):
-             The desired number of channels of the decoded samples. By default, the number of channels of the source is used.
+             The desired number of channels of the samples. By default, the number of channels of the source is used.
              Currently `None` (number of channels of the source), `1` (mono) or `2` (stereo) channels are supported.
-        mono (Optiona[`bool`], defaults to `None`):
-            Whether to convert the audio signal to mono by averaging samples across
-            channels. If `None`, the audio signal is left in its original number of channels.
         decode (`bool`, defaults to `True`):
             Whether to decode the audio data. If `False`,
             returns the underlying dictionary in the format `{"path": audio_path, "bytes": audio_bytes}`.
