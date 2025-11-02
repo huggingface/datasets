@@ -189,11 +189,12 @@ def test_audio_decode_example_opus(shared_datadir):
 
 
 @require_torchcodec
-def test_audio_decode_example_opus_mono(shared_datadir):
+def test_audio_decode_example_opus_convert_to_stereo(shared_datadir):
+    # GH 7837
     from torchcodec.decoders import AudioDecoder
 
     audio_path = str(shared_datadir / "test_audio_48000.opus")
-    audio = Audio(mono=False)
+    audio = Audio(num_channels=2)
     decoded_example = audio.decode_example(audio.encode_example(audio_path))
     assert isinstance(decoded_example, AudioDecoder)
     samples = decoded_example.get_all_samples()

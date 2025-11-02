@@ -49,9 +49,13 @@ class Audio:
     Args:
         sampling_rate (`int`, *optional*):
             Target sampling rate. If `None`, the native sampling rate is used.
-        mono (`bool`, defaults to `True`):
+        # replace with num_channels
+        num_channels (`int`, *optional*):
+             The desired number of channels of the decoded samples. By default, the number of channels of the source is used.
+             Currently `None` (number of channels of the source), `1` (mono) or `2` (stereo) channels are supported.
+        mono (Optiona[`bool`], defaults to `None`):
             Whether to convert the audio signal to mono by averaging samples across
-            channels.
+            channels. If `None`, the audio signal is left in its original number of channels.
         decode (`bool`, defaults to `True`):
             Whether to decode the audio data. If `False`,
             returns the underlying dictionary in the format `{"path": audio_path, "bytes": audio_bytes}`.
@@ -78,7 +82,7 @@ class Audio:
 
     sampling_rate: Optional[int] = None
     decode: bool = True
-    mono: bool = True
+    num_channels: Optional[int] = None
     stream_index: Optional[int] = None
     id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
@@ -114,7 +118,6 @@ class Audio:
         else:
             AudioDecoder = None
 
-        num_channels = 1 if self.mono else 2
         if isinstance(value, str):
             return {"bytes": None, "path": value}
         elif isinstance(value, Path):
@@ -128,7 +131,7 @@ class Audio:
             buffer = BytesIO()
             AudioEncoder(
                 torch.from_numpy(value["array"].astype(np.float32)), sample_rate=value["sampling_rate"]
-            ).to_file_like(buffer, format="wav", num_channels=num_channels)
+            ).to_file_like(buffer, format="wav", num_channels=self.num_channels)
             return {"bytes": buffer.getvalue(), "path": None}
         elif value.get("path") is not None and os.path.isfile(value["path"]):
             # we set "bytes": None to not duplicate the data if they're already available locally
@@ -145,7 +148,7 @@ class Audio:
 
                 buffer = BytesIO()
                 AudioEncoder(torch.from_numpy(bytes_value), sample_rate=value["sampling_rate"]).to_file_like(
-                    buffer, format="wav", num_channels=num_channels
+                    buffer, format="wav", num_channels=self.num_channels
                 )
                 return {"bytes": buffer.getvalue(), "path": None}
             else:
@@ -185,13 +188,14 @@ class Audio:
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Audio(decode=True) instead.")
 
-        num_channels = 1 if self.mono else 2
         path, bytes = (value["path"], value["bytes"]) if value["bytes"] is not None else (value["path"], None)
         if path is None and bytes is None:
             raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
 
         if bytes is None and is_local_path(path):
-            audio = AudioDecoder(path, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=num_channels)
+            audio = AudioDecoder(
+                path, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=self.num_channels
+            )
 
         elif bytes is None:
             token_per_repo_id = token_per_repo_id or {}
@@ -204,10 +208,14 @@ class Audio:
 
             download_config = DownloadConfig(token=token)
             f = xopen(path, "rb", download_config=download_config)
-            audio = AudioDecoder(f, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=num_channels)
+            audio = AudioDecoder(
+                f, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=self.num_channels
+            )
 
         else:
-            audio = AudioDecoder(bytes, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=num_channels)
+            audio = AudioDecoder(
+                bytes, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=self.num_channels
+            )
         audio._hf_encoded = {"path": path, "bytes": bytes}
         audio.metadata.path = path
         return audio
@@ -316,5 +324,7 @@ def encode_torchcodec_audio(audio: "AudioDecoder") -> dict:
         samples = audio.get_all_samples()
         buffer = BytesIO()
         num_channels = samples.data.shape[0]
-        AudioEncoder(samples.data.cpu(), sample_rate=samples.sample_rate).to_file_like(buffer, format="wav", num_channels=num_channels)
+        AudioEncoder(samples.data.cpu(), sample_rate=samples.sample_rate).to_file_like(
+            buffer, format="wav", num_channels=num_channels
+        )
         return {"bytes": buffer.getvalue(), "path": None}
