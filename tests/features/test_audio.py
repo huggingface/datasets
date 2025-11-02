@@ -189,6 +189,19 @@ def test_audio_decode_example_opus(shared_datadir):
 
 
 @require_torchcodec
+def test_audio_decode_example_opus_mono(shared_datadir):
+    from torchcodec.decoders import AudioDecoder
+
+    audio_path = str(shared_datadir / "test_audio_48000.opus")
+    audio = Audio(mono=False)
+    decoded_example = audio.decode_example(audio.encode_example(audio_path))
+    assert isinstance(decoded_example, AudioDecoder)
+    samples = decoded_example.get_all_samples()
+    assert samples.sample_rate == 48000
+    assert samples.data.shape == (2, 48000)
+
+
+@require_torchcodec
 @pytest.mark.parametrize("sampling_rate", [16_000, 48_000])
 def test_audio_decode_example_pcm(shared_datadir, sampling_rate):
     from torchcodec.decoders import AudioDecoder

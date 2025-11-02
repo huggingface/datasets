@@ -78,6 +78,7 @@ class Audio:
 
     sampling_rate: Optional[int] = None
     decode: bool = True
+    mono: bool = True
     stream_index: Optional[int] = None
     id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
@@ -113,6 +114,7 @@ class Audio:
         else:
             AudioDecoder = None
 
+        num_channels = 1 if self.mono else 2
         if isinstance(value, str):
             return {"bytes": None, "path": value}
         elif isinstance(value, Path):
@@ -125,7 +127,7 @@ class Audio:
             # convert the audio array to wav bytes
             buffer = BytesIO()
             AudioEncoder(
-                torch.from_numpy(value["array"].astype(np.float32)), sample_rate=value["sampling_rate"]
+                torch.from_numpy(value["array"].astype(np.float32)), sample_rate=value["sampling_rate"], num_channels=num_channels
             ).to_file_like(buffer, format="wav")
             return {"bytes": buffer.getvalue(), "path": None}
         elif value.get("path") is not None and os.path.isfile(value["path"]):
@@ -142,7 +144,7 @@ class Audio:
                     bytes_value = np.memmap(value["path"], dtype="h", mode="r").astype(np.float32) / 32767
 
                 buffer = BytesIO()
-                AudioEncoder(torch.from_numpy(bytes_value), sample_rate=value["sampling_rate"]).to_file_like(
+                AudioEncoder(torch.from_numpy(bytes_value), sample_rate=value["sampling_rate"], num_channels=num_channels).to_file_like(
                     buffer, format="wav"
                 )
                 return {"bytes": buffer.getvalue(), "path": None}
@@ -183,12 +185,13 @@ class Audio:
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Audio(decode=True) instead.")
 
+        num_channels = 1 if self.mono else 2
         path, bytes = (value["path"], value["bytes"]) if value["bytes"] is not None else (value["path"], None)
         if path is None and bytes is None:
             raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
 
         if bytes is None and is_local_path(path):
-            audio = AudioDecoder(path, stream_index=self.stream_index, sample_rate=self.sampling_rate)
+            audio = AudioDecoder(path, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=num_channels)
 
         elif bytes is None:
             token_per_repo_id = token_per_repo_id or {}
@@ -201,10 +204,10 @@ class Audio:
 
             download_config = DownloadConfig(token=token)
             f = xopen(path, "rb", download_config=download_config)
-            audio = AudioDecoder(f, stream_index=self.stream_index, sample_rate=self.sampling_rate)
+            audio = AudioDecoder(f, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=num_channels)
 
         else:
-            audio = AudioDecoder(bytes, stream_index=self.stream_index, sample_rate=self.sampling_rate)
+            audio = AudioDecoder(bytes, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=num_channels)
         audio._hf_encoded = {"path": path, "bytes": bytes}
         audio.metadata.path = path
         return audio
@@ -312,5 +315,6 @@ def encode_torchcodec_audio(audio: "AudioDecoder") -> dict:
 
         samples = audio.get_all_samples()
         buffer = BytesIO()
-        AudioEncoder(samples.data.cpu(), sample_rate=samples.sample_rate).to_file_like(buffer, format="wav")
+        mono = True if samples.data.shape[0] == 1 else False
+        AudioEncoder(samples.data.cpu(), sample_rate=samples.sample_rate, mono=mono).to_file_like(buffer, format="wav")
         return {"bytes": buffer.getvalue(), "path": None}
