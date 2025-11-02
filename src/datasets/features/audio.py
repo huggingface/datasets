@@ -63,7 +63,7 @@ class Audio:
     ```py
     >>> from datasets import load_dataset, Audio
     >>> ds = load_dataset("PolyAI/minds14", name="en-US", split="train")
-    >>> ds = ds.cast_column("audio", Audio(sampling_rate=44100))
+    >>> ds = ds.cast_column("audio", Audio(sampling_rate=44100, num_channels=2))
     >>> ds[0]["audio"]
     <datasets.features._torchcodec.AudioDecoder object at 0x11642b6a0>
     >>> audio = ds[0]["audio"]
