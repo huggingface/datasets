@@ -25,7 +25,7 @@ requirements:
     - dataclasses
     - multiprocess
     - fsspec
-    - huggingface_hub >=0.24.0,<1.0.0
+    - huggingface_hub >=0.25.0,<2.0.0
     - packaging
   run:
     - python
@@ -41,7 +41,7 @@ requirements:
     - dataclasses
     - multiprocess
     - fsspec
-    - huggingface_hub >=0.24.0,<1.0.0
+    - huggingface_hub >=0.25.0,<2.0.0
     - packaging
 
 test:

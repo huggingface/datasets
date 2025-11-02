@@ -26,6 +26,7 @@ from .utils import (
     require_spacy,
     require_tiktoken,
     require_torch,
+    require_torch_compile,
     require_transformers,
 )
 
@@ -347,7 +348,7 @@ class HashingTest(TestCase):
         self.assertNotEqual(hash1, hash2)
 
     @require_not_windows
-    @require_torch
+    @require_torch_compile
     def test_hash_torch_compiled_function(self):
         import torch
 
@@ -360,7 +361,7 @@ class HashingTest(TestCase):
         self.assertEqual(hash1, hash2)
 
     @require_not_windows
-    @require_torch
+    @require_torch_compile
     def test_hash_torch_compiled_module(self):
         m = TorchModule()
         next(iter(m.parameters())).data.fill_(1.0)
