@@ -796,10 +796,24 @@ def test_audio_decode_example_opus_convert_to_stereo(shared_datadir):
     # GH 7837
     from torchcodec.decoders import AudioDecoder
 
-    audio_path = str(shared_datadir / "test_audio_48000.opus")
+    audio_path = str(shared_datadir / "test_audio_48000.opus")  # mono file
     audio = Audio(num_channels=2)
     decoded_example = audio.decode_example(audio.encode_example(audio_path))
     assert isinstance(decoded_example, AudioDecoder)
     samples = decoded_example.get_all_samples()
     assert samples.sample_rate == 48000
     assert samples.data.shape == (2, 48000)
+
+
+@require_torchcodec
+def test_audio_decode_example_opus_convert_to_mono(shared_datadir):
+    # GH 7837
+    from torchcodec.decoders import AudioDecoder
+
+    audio_path = str(shared_datadir / "test_audio_44100.wav")  # stereo file
+    audio = Audio(num_channels=1)
+    decoded_example = audio.decode_example(audio.encode_example(audio_path))
+    assert isinstance(decoded_example, AudioDecoder)
+    samples = decoded_example.get_all_samples()
+    assert samples.sample_rate == 44100
+    assert samples.data.shape == (1, 202311)

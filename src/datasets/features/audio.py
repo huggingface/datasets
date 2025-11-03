@@ -51,7 +51,11 @@ class Audio:
             Target sampling rate. If `None`, the native sampling rate is used.
         num_channels (`int`, *optional*):
              The desired number of channels of the samples. By default, the number of channels of the source is used.
-             Currently `None` (number of channels of the source), `1` (mono) or `2` (stereo) channels are supported.
+             Audio decoding will return samples with shape (num_channels, num_samples)
+             Currently `None` (number of channels of the source, default), `1` (mono) or `2` (stereo) channels are supported.
+             The `num_channels` argument is passed to `torchcodec.decoders.AudioDecoder`.
+
+             <Added version="4.4.0"/>
         decode (`bool`, defaults to `True`):
             Whether to decode the audio data. If `False`,
             returns the underlying dictionary in the format `{"path": audio_path, "bytes": audio_bytes}`.
