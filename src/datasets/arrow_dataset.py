@@ -660,7 +660,11 @@ class Column(Sequence_):
 
     def __iter__(self) -> Iterator[Any]:
         if isinstance(self.source, Dataset):
-            source = self.source._fast_select_column(self.column_name)
+            if self.source._format_type == "custom":
+                # the formatting transform may require all columns
+                source = self.source
+            else:
+                source = self.source._fast_select_column(self.column_name)
         else:
             source = self.source
         for example in source:
@@ -670,7 +674,12 @@ class Column(Sequence_):
         if isinstance(key, str):
             return Column(self, key)
         elif isinstance(self.source, Dataset):
-            return self.source._fast_select_column(self.column_name)[key][self.column_name]
+            if self.source._format_type == "custom":
+                # the formatting transform may require all columns
+                source = self.source
+            else:
+                source = self.source._fast_select_column(self.column_name)
+            return source[key][self.column_name]
         elif isinstance(key, int):
             return self.source[key][self.column_name]
         else:
@@ -4868,7 +4877,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 try:
                     train_indices, test_indices = next(
                         stratified_shuffle_split_generate_indices(
-                            self.with_format("numpy")[stratify_by_column], n_train, n_test, rng=generator
+                            np.asarray(self.with_format("numpy")[stratify_by_column]), n_train, n_test, rng=generator
                         )
                     )
                 except Exception as error:

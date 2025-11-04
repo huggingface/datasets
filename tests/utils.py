@@ -125,6 +125,20 @@ def require_torch(test_case):
     return test_case
 
 
+def require_torch_compile(test_case):
+    """
+    Decorator marking a test that requires PyTorch.
+
+    These tests are skipped when PyTorch isn't installed.
+
+    """
+    if not config.TORCH_AVAILABLE:
+        test_case = unittest.skip("test requires PyTorch")(test_case)
+    if config.PY_VERSION >= version.parse("3.14"):
+        test_case = unittest.skip("test requires torch compile which isn't available in python 3.14")(test_case)
+    return test_case
+
+
 def require_polars(test_case):
     """
     Decorator marking a test that requires Polars.
