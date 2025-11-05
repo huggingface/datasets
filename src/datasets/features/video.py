@@ -45,8 +45,6 @@ class Video:
     Output: The Video features output data as `torchcodec.decoders.VideoDecoder` objects.
 
     Args:
-        mode (`str`, *optional*):
-            The mode to convert the video to. If `None`, the native mode of the video is used.
         decode (`bool`, defaults to `True`):
             Whether to decode the video data. If `False`,
             returns the underlying dictionary in the format `{"path": video_path, "bytes": video_bytes}`.
