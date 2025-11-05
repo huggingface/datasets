@@ -44,8 +44,6 @@ class Pdf:
     - A `pdfplumber.pdf.PDF`: pdfplumber pdf object.
 
     Args:
-        mode (`str`, *optional*):
-            The mode to convert the pdf to. If `None`, the native mode of the pdf is used.
         decode (`bool`, defaults to `True`):
             Whether to decode the pdf data. If `False`,
             returns the underlying dictionary in the format `{"path": pdf_path, "bytes": pdf_bytes}`.
