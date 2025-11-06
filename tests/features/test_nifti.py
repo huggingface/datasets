@@ -94,10 +94,12 @@ def test_encode_nibabel_image(shared_datadir):
 
 @require_nibabel
 def test_embed_storage(shared_datadir):
-    import nibabel
+    from io import BytesIO
+
+    import nibabel as nib
 
     nifti_path = str(shared_datadir / "test_nifti.nii")
-    img = nibabel.load(nifti_path)
+    img = nib.load(nifti_path)
     nifti = Nifti()
 
     bytes_array = pa.array([None], type=pa.binary())
@@ -107,7 +109,12 @@ def test_embed_storage(shared_datadir):
     embedded_storage = nifti.embed_storage(storage)
 
     embedded_bytes = embedded_storage[0]["bytes"].as_py()
-    original_bytes = img.to_bytes()
+
+    bio = BytesIO(embedded_bytes)
+    fh = nib.FileHolder(fileobj=bio)
+    nifti_img = nib.Nifti1Image.from_file_map({"header": fh, "image": fh})
 
     assert embedded_bytes is not None
-    assert embedded_bytes == original_bytes
+    assert nifti_img.header == img.header
+    assert (nifti_img.affine == img.affine).all()
+    assert (nifti_img.get_fdata() == img.get_fdata()).all()

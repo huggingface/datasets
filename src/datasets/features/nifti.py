@@ -81,9 +81,6 @@ class Nifti:
         else:
             nib = None
 
-        import pdb
-
-        pdb.set_trace()
         if isinstance(value, str):
             return {"path": value, "bytes": None}
         elif isinstance(value, Path):
@@ -131,25 +128,14 @@ class Nifti:
         if not self.decode:
             raise NotImplementedError("Decoding is disabled for this feature. Please use Nifti(decode=True) instead.")
 
-        if config.NIBABEL_AVAILABLE:
-            import nibabel as nib
-        else:
-            raise ImportError("To support decoding NIfTI files, please install 'nibabel'.")
-
         if token_per_repo_id is None:
             token_per_repo_id = {}
 
         path, bytes_ = value["path"], value["bytes"]
-        import pdb
-
-        pdb.set_trace()
         if bytes_ is None:
             if path is None:
                 raise ValueError(f"A nifti should have one of 'path' or 'bytes' but both are None in {value}.")
             else:
-                import pdb
-
-                pdb.set_trace()
                 if is_local_path(path):
                     nifti = nib.load(path)
                 else:
@@ -193,7 +179,7 @@ class Nifti:
                 `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
         if config.NIBABEL_AVAILABLE:
-            import nibabel as nib
+            pass
         else:
             raise ImportError("To support embedding NIfTI files, please install 'nibabel'.")
 
@@ -210,11 +196,7 @@ class Nifti:
             token = token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
             download_config = DownloadConfig(token=token)
             with xopen(path, "rb", download_config=download_config) as f:
-                bytes_data = f.read()
-                bio = BytesIO(bytes_data)
-                fh = nib.FileHolder(fileobj=bio)
-                nifti = nib.Nifti1Image.from_file_map({"header": fh, "image": fh})
-                return nifti.to_bytes()
+                return f.read()
 
         bytes_array = pa.array(
             [
