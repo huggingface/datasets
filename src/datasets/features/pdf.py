@@ -90,9 +90,6 @@ class Pdf:
         else:
             pdfplumber = None
 
-        import pdb
-
-        pdb.set_trace()
         if isinstance(value, str):
             return {"path": value, "bytes": None}
         elif isinstance(value, Path):
@@ -144,9 +141,6 @@ class Pdf:
             token_per_repo_id = {}
 
         path, bytes_ = value["path"], value["bytes"]
-        import pdb
-
-        pdb.set_trace()
         if bytes_ is None:
             if path is None:
                 raise ValueError(f"A pdf should have one of 'path' or 'bytes' but both are None in {value}.")
@@ -235,9 +229,6 @@ class Pdf:
             `pa.StructArray`: Array in the PDF arrow storage type, that is
                 `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
-        import pdb
-
-        pdb.set_trace()
         if token_per_repo_id is None:
             token_per_repo_id = {}
 
@@ -281,9 +272,6 @@ def encode_pdfplumber_pdf(pdf: "pdfplumber.pdf.PDF") -> dict:
     Returns:
         dict: A dictionary with "path" or "bytes" field.
     """
-    import pdb
-
-    pdb.set_trace()
     if hasattr(pdf, "stream") and hasattr(pdf.stream, "name") and pdf.stream.name:
         # Return the path if the PDF has an associated file path
         return {"path": pdf.stream.name, "bytes": None}

@@ -128,10 +128,7 @@ class Nifti:
         if config.NIBABEL_AVAILABLE:
             import nibabel as nib
         else:
-            nib = None
-
-        if not self.decode:
-            raise NotImplementedError("Decoding is disabled for this feature. Please use Nifti(decode=True) instead.")
+            raise ImportError("To support decoding NIfTI files, please install 'nibabel'.")
 
         if token_per_repo_id is None:
             token_per_repo_id = {}
