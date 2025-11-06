@@ -10,7 +10,7 @@ from .. import config
 from ..download.download_config import DownloadConfig
 from ..table import array_cast
 from ..utils.file_utils import is_local_path, xopen
-from ..utils.py_utils import string_to_dict
+from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
 
 
 if TYPE_CHECKING:
@@ -81,6 +81,9 @@ class Nifti:
         else:
             nib = None
 
+        import pdb
+
+        pdb.set_trace()
         if isinstance(value, str):
             return {"path": value, "bytes": None}
         elif isinstance(value, Path):
@@ -137,10 +140,16 @@ class Nifti:
             token_per_repo_id = {}
 
         path, bytes_ = value["path"], value["bytes"]
+        import pdb
+
+        pdb.set_trace()
         if bytes_ is None:
             if path is None:
                 raise ValueError(f"A nifti should have one of 'path' or 'bytes' but both are None in {value}.")
             else:
+                import pdb
+
+                pdb.set_trace()
                 if is_local_path(path):
                     nifti = nib.load(path)
                 else:
@@ -171,6 +180,55 @@ class Nifti:
             nifti = nib.Nifti1Image.from_file_map({"header": fh, "image": fh})
 
         return nifti
+
+    def embed_storage(self, storage: pa.StructArray, token_per_repo_id=None) -> pa.StructArray:
+        """Embed NifTI files into the Arrow array.
+
+        Args:
+            storage (`pa.StructArray`):
+                PyArrow array to embed.
+
+        Returns:
+            `pa.StructArray`: Array in the NifTI arrow storage type, that is
+                `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
+        """
+        if config.NIBABEL_AVAILABLE:
+            import nibabel as nib
+        else:
+            raise ImportError("To support embedding NIfTI files, please install 'nibabel'.")
+
+        if token_per_repo_id is None:
+            token_per_repo_id = {}
+
+        @no_op_if_value_is_null
+        def path_to_bytes(path):
+            source_url = path.split("::")[-1]
+            pattern = (
+                config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
+            )
+            source_url_fields = string_to_dict(source_url, pattern)
+            token = token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
+            download_config = DownloadConfig(token=token)
+            with xopen(path, "rb", download_config=download_config) as f:
+                bytes_data = f.read()
+                bio = BytesIO(bytes_data)
+                fh = nib.FileHolder(fileobj=bio)
+                nifti = nib.Nifti1Image.from_file_map({"header": fh, "image": fh})
+                return nifti.to_bytes()
+
+        bytes_array = pa.array(
+            [
+                (path_to_bytes(x["path"]) if x["bytes"] is None else x["bytes"]) if x is not None else None
+                for x in storage.to_pylist()
+            ],
+            type=pa.binary(),
+        )
+        path_array = pa.array(
+            [os.path.basename(path) if path is not None else None for path in storage.field("path").to_pylist()],
+            type=pa.string(),
+        )
+        storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
+        return array_cast(storage, self.pa_type)
 
     def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
         """If in the decodable state, return the feature itself, otherwise flatten the feature into a dictionary."""

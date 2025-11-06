@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import pyarrow as pa
 import pytest
 
 from datasets import Dataset, Features, Nifti
@@ -89,3 +90,24 @@ def test_encode_nibabel_image(shared_datadir):
     assert isinstance(encoded_example_bytes, dict)
     assert encoded_example_bytes["bytes"] is not None and encoded_example_bytes["path"] is None
     # this cannot be converted back from bytes (yet)
+
+
+@require_nibabel
+def test_embed_storage(shared_datadir):
+    import nibabel
+
+    nifti_path = str(shared_datadir / "test_nifti.nii")
+    img = nibabel.load(nifti_path)
+    nifti = Nifti()
+
+    bytes_array = pa.array([None], type=pa.binary())
+    path_array = pa.array([nifti_path], type=pa.string())
+    storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
+
+    embedded_storage = nifti.embed_storage(storage)
+
+    embedded_bytes = embedded_storage[0]["bytes"].as_py()
+    original_bytes = img.to_bytes()
+
+    assert embedded_bytes is not None
+    assert embedded_bytes == original_bytes
