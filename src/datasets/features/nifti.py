@@ -125,6 +125,11 @@ class Nifti:
         Returns:
             `nibabel.Nifti1Image` objects
         """
+        if config.NIBABEL_AVAILABLE:
+            import nibabel as nib
+        else:
+            nib = None
+
         if not self.decode:
             raise NotImplementedError("Decoding is disabled for this feature. Please use Nifti(decode=True) instead.")
 
@@ -136,6 +141,9 @@ class Nifti:
             if path is None:
                 raise ValueError(f"A nifti should have one of 'path' or 'bytes' but both are None in {value}.")
             else:
+                # gzipped files have the structure: 'gzip://T1.nii::<local_path>'
+                if path.startswith("gzip://") and is_local_path(path.split("::")[-1]):
+                    path = path.split("::")[-1]
                 if is_local_path(path):
                     nifti = nib.load(path)
                 else:
@@ -145,11 +153,10 @@ class Nifti:
                         if source_url.startswith(config.HF_ENDPOINT)
                         else config.HUB_DATASETS_HFFS_URL
                     )
-                    try:
-                        repo_id = string_to_dict(source_url, pattern)["repo_id"]
-                        token = token_per_repo_id.get(repo_id)
-                    except ValueError:
-                        token = None
+                    source_url_fields = string_to_dict(source_url, pattern)
+                    token = (
+                        token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
+                    )
                     download_config = DownloadConfig(token=token)
                     with xopen(path, "rb", download_config=download_config) as f:
                         nifti = nib.load(f)
@@ -178,11 +185,6 @@ class Nifti:
             `pa.StructArray`: Array in the NifTI arrow storage type, that is
                 `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
-        if config.NIBABEL_AVAILABLE:
-            pass
-        else:
-            raise ImportError("To support embedding NIfTI files, please install 'nibabel'.")
-
         if token_per_repo_id is None:
             token_per_repo_id = {}
 

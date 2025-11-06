@@ -5,7 +5,7 @@ from pathlib import Path
 import pyarrow as pa
 import pytest
 
-from datasets import Dataset, Features, Nifti
+from datasets import Dataset, Features, Nifti, load_dataset
 from src.datasets.features.nifti import encode_nibabel_image
 
 from ..utils import require_nibabel
@@ -118,3 +118,13 @@ def test_embed_storage(shared_datadir):
     assert nifti_img.header == img.header
     assert (nifti_img.affine == img.affine).all()
     assert (nifti_img.get_fdata() == img.get_fdata()).all()
+
+
+@require_nibabel
+def test_load_zipped_file_locally(shared_datadir):
+    import nibabel as nib
+
+    nifti_path = str(shared_datadir / "test_nifti.nii.gz")
+
+    ds = load_dataset("niftifolder", data_files=nifti_path)
+    assert isinstance(ds["train"][0]["nifti"], nib.nifti1.Nifti1Image)
