@@ -877,38 +877,51 @@ class DatasetBuilder:
                 if missing_splits:
                     # import pdb; pdb.set_trace()
                     raise ValueError(f"Splits {list(missing_splits)} not found. Available splits: {available_splits}")
-                if download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
-                    for split_name in splits[:]:
-                        num_shards = 1
-                        if self.info.splits:
-                            try:
-                                num_shards = len(self.info.splits[split_name].shard_lengths or ())
-                            except (TypeError, ValueError):
-                                pass
-                        # import pdb; pdb.set_trace()
-                        split_filenames = filenames_for_dataset_split(
-                            self._output_dir,
-                            _dataset_name,
-                            split_name,
-                            filetype_suffix=file_format,
-                            num_shards=num_shards,
-                        )
+                if download_mode == DownloadMode.FORCE_REDOWNLOAD:
+                    for split_name in set(available_splits) - set(splits):
+                        split_filenames = self._get_filenames_for_split(split_name,
+                                                                        dataset_name=_dataset_name,
+                                                                        file_format=file_format)
                         if self._fs.exists(split_filenames[0]):
-                            splits.remove(split_name)
-                            # import pdb; pdb.set_trace()
                             split_filepattern = filepattern_for_dataset_split(
                                 self._output_dir, _dataset_name, split_name, filetype_suffix=file_format
                             )
+                            # import pdb; pdb.set_trace()
                             patterns_of_split_files_to_overwrite.append(split_filepattern)
+                        # for split_name in splits[:]:
+                        #     num_shards = 1
+                        #     if self.info.splits:
+                        #         try:
+                        #             num_shards = len(self.info.splits[split_name].shard_lengths or ())
+                        #         except (TypeError, ValueError):
+                        #             pass
+                        #     # import pdb; pdb.set_trace()
+                        #     split_filenames = filenames_for_dataset_split(
+                        #         self._output_dir,
+                        #         _dataset_name,
+                        #         split_name,
+                        #         filetype_suffix=file_format,
+                        #         num_shards=num_shards,
+                        #     )
+                        #     if self._fs.exists(split_filenames[0]):
+                        #         splits.remove(split_name)
+                        #         # import pdb; pdb.set_trace()
+                        #         split_filepattern = filepattern_for_dataset_split(
+                        #             self._output_dir, _dataset_name, split_name, filetype_suffix=file_format
+                        #         )
+                        #         patterns_of_split_files_to_overwrite.append(split_filepattern)
 
             # We cannot use info as the source of truth if the builder supports partial generation
             # as the info can be incomplete in that case
-            requested_splits_exist = not splits if supports_partial_generation else info_exists
-            if requested_splits_exist and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
-                import pdb; pdb.set_trace()
-                logger.info(f"Found cached dataset {self.dataset_name} ({self._output_dir})")
-                self.download_post_processing_resources(dl_manager)
-                return
+            if download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS and supports_partial_generation is True:
+                requested_splits_exist = True
+                for split_name in splits[:]:
+                    file_names = self._get_filenames_for_split(split_name, dataset_name=_dataset_name, file_format=file_format)
+                    if not self._fs.exists(file_names[0]):
+                        requested_splits_exist = False
+                        break
+                if requested_splits_exist:
+                    self.download_post_processing_resources(dl_manager)
 
             logger.info(f"Generating dataset {self.dataset_name} ({self._output_dir})")
             if is_local:  # if cache dir is local, check for available space
@@ -1013,6 +1026,21 @@ class DatasetBuilder:
                 f"Dataset {self.dataset_name} downloaded and prepared to {self._output_dir}. "
                 f"Subsequent calls will reuse this data."
             )
+
+    def _get_filenames_for_split(self, split_name: str, dataset_name: str, file_format: str) -> list[str]:
+        num_shards = 1
+        if self.info.splits:
+            try:
+                num_shards = len(self.info.splits[split_name].shard_lengths or ())
+            except (TypeError, ValueError):
+                pass
+        return filenames_for_dataset_split(
+            self._output_dir,
+            dataset_name,
+            split_name,
+            filetype_suffix=file_format,
+            num_shards=num_shards,
+        )
 
     def _check_manual_download(self, dl_manager):
         if self.manual_download_instructions is not None and dl_manager.manual_dir is None:
