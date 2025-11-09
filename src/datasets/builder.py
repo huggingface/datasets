@@ -945,7 +945,7 @@ class DatasetBuilder:
                         yield tmp_dir
                         # raise ValueError("debugging")
                         if os.path.isdir(dirname):
-                            import pdb; pdb.set_trace()
+                            # import pdb; pdb.set_trace()
                             for root, dirnames, filenames in os.walk(dirname, topdown=False):
                                 # LocalFileSystem.mv does copy + rm, it is more efficient to simply rename a local directory
                                 for filename in filenames:
@@ -987,7 +987,7 @@ class DatasetBuilder:
             self._check_manual_download(dl_manager)
 
             # Create a tmp dir and rename to self._output_dir on successful exit.
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             with incomplete_dir(self._output_dir) as tmp_output_dir:
                 # Temporarily assign _output_dir to tmp_data_dir to avoid having to forward
                 # it to every sub function.

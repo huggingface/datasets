@@ -1122,7 +1122,7 @@ def test_load_dataset_specific_splits_then_other(data_dir):
         arrow_files = Path(processed_dataset_dir).glob("*.arrow")
         assert all(arrow_file.name.split("-", 1)[1].startswith("train") for arrow_file in arrow_files)
 
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         with load_dataset(data_dir, split="test", cache_dir=tmp_dir) as dataset:
             assert isinstance(dataset, Dataset)
             assert len(dataset) > 0
@@ -1278,6 +1278,7 @@ def test_load_dataset_then_move_then_reload(data_dir, tmp_path, caplog):
     del dataset
     os.rename(cache_dir1, cache_dir2)
     caplog.clear()
+    import pdb; pdb.set_trace()
     with caplog.at_level(INFO, logger=get_logger().name):
         dataset = load_dataset(data_dir, split="train", cache_dir=cache_dir2)
     assert "Found cached dataset" in caplog.text
