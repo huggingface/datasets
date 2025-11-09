@@ -868,16 +868,19 @@ class DatasetBuilder:
                         split_names = [rel_instr.splitname for rel_instr in split._relative_instructions]
                         splits.extend(split_names)
                     splits = list(unique_values(splits))  # remove duplicates
+                # todo: can we simply use getattr(self.info.splits, 'keys', dict)() here?
                 available_splits = self._available_splits()
                 if splits is None:
                     splits = available_splits
                 missing_splits = set(splits) - set(available_splits)
                 if missing_splits:
                     raise ValueError(f"Splits {list(missing_splits)} not found. Available splits: {available_splits}")
-                if DownloadMode.REUSE_DATASET_IF_EXISTS:
+                # todo: this should check against anything, does always evaluate to true!
+                if download_mode is DownloadMode.REUSE_DATASET_IF_EXISTS:
                     for split_name in splits[:]:
                         num_shards = 1
                         if self.info.splits is not None:
+                            # todo: what is this exception for?
                             try:
                                 num_shards = len(self.info.splits[split_name].shard_lengths or ())
                             except Exception:
@@ -895,6 +898,10 @@ class DatasetBuilder:
                                 self._output_dir, _dataset_name, split_name, filetype_suffix=file_format
                             )
                             cached_split_filepatterns.append(split_filepattern)
+                else:
+                    # todo: how do we download files normally?
+                    pass
+
             # We cannot use info as the source of truth if the builder supports partial generation
             # as the info can be incomplete in that case
             requested_splits_exist = not splits if supports_partial_generation else info_exists

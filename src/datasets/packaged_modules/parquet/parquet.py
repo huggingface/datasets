@@ -103,6 +103,7 @@ class Parquet(datasets.ArrowBasedBuilder):
         return datasets.DatasetInfo(features=self.config.features)
 
     def _available_splits(self) -> Optional[List[str]]:
+        import pdb; pdb.set_trace()
         return [str(split) for split in self.config.data_files] if isinstance(self.config.data_files, dict) else None
 
     def _split_generators(self, dl_manager, splits: Optional[List[str]] = None):
