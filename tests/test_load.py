@@ -1064,6 +1064,7 @@ def test_load_dataset_specific_splits(data_dir):
         with pytest.raises(ValueError):
             load_dataset(data_dir, split="non-existing-split", cache_dir=tmp_dir)
 
+
 def test_load_dataset_full_then_specific_split_force_redownload(data_dir):
     with tempfile.TemporaryDirectory() as tmp_dir:
         with load_dataset(data_dir, cache_dir=tmp_dir) as dataset:
@@ -1083,6 +1084,7 @@ def test_load_dataset_full_then_specific_split_force_redownload(data_dir):
         arrow_files = Path(processed_dataset_dir).glob("*.arrow")
         # make sure test is gone after force_redownload
         assert all(arrow_file.name.split("-", 1)[1].startswith("train") for arrow_file in arrow_files)
+
 
 def test_load_dataset_specific_splits_then_full(data_dir):
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -1107,7 +1109,10 @@ def test_load_dataset_specific_splits_then_full(data_dir):
 
 def test_load_dataset_specific_splits_missing_split(data_dir):
     import re
-    with pytest.raises(ValueError, match=re.escape("Splits ['missing_split'] not found. Available splits: ['train', 'test']")):
+
+    with pytest.raises(
+        ValueError, match=re.escape("Splits ['missing_split'] not found. Available splits: ['train', 'test']")
+    ):
         with tempfile.TemporaryDirectory() as tmp_dir:
             load_dataset(data_dir, split="missing_split", cache_dir=tmp_dir)
 
@@ -1278,7 +1283,9 @@ def test_load_dataset_then_move_then_reload(data_dir, tmp_path, caplog):
     del dataset
     os.rename(cache_dir1, cache_dir2)
     caplog.clear()
-    import pdb; pdb.set_trace()
+    import pdb
+
+    pdb.set_trace()
     with caplog.at_level(INFO, logger=get_logger().name):
         dataset = load_dataset(data_dir, split="train", cache_dir=cache_dir2)
     assert "Found cached dataset" in caplog.text

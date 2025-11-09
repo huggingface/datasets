@@ -879,9 +879,9 @@ class DatasetBuilder:
                     raise ValueError(f"Splits {list(missing_splits)} not found. Available splits: {available_splits}")
                 if download_mode == DownloadMode.FORCE_REDOWNLOAD:
                     for split_name in set(available_splits) - set(splits):
-                        split_filenames = self._get_filenames_for_split(split_name,
-                                                                        dataset_name=_dataset_name,
-                                                                        file_format=file_format)
+                        split_filenames = self._get_filenames_for_split(
+                            split_name, dataset_name=_dataset_name, file_format=file_format
+                        )
                         if self._fs.exists(split_filenames[0]):
                             split_filepattern = filepattern_for_dataset_split(
                                 self._output_dir, _dataset_name, split_name, filetype_suffix=file_format
@@ -916,7 +916,9 @@ class DatasetBuilder:
             if download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS and supports_partial_generation is True:
                 requested_splits_exist = True
                 for split_name in splits[:]:
-                    file_names = self._get_filenames_for_split(split_name, dataset_name=_dataset_name, file_format=file_format)
+                    file_names = self._get_filenames_for_split(
+                        split_name, dataset_name=_dataset_name, file_format=file_format
+                    )
                     if not self._fs.exists(file_names[0]):
                         requested_splits_exist = False
                         break
