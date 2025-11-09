@@ -1064,6 +1064,25 @@ def test_load_dataset_specific_splits(data_dir):
         with pytest.raises(ValueError):
             load_dataset(data_dir, split="non-existing-split", cache_dir=tmp_dir)
 
+def test_load_dataset_full_then_specific_split_force_redownload(data_dir):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        with load_dataset(data_dir, cache_dir=tmp_dir) as dataset:
+            assert isinstance(dataset, DatasetDict)
+            assert len(dataset) > 0
+            assert "train" in dataset
+            assert "test" in dataset
+
+        processed_dataset_dir = load_dataset_builder(data_dir, cache_dir=tmp_dir).cache_dir
+        arrow_files = Path(processed_dataset_dir).glob("*.arrow")
+        assert all(arrow_file.name.split("-", 1)[1].startswith(("train", "test")) for arrow_file in arrow_files)
+
+        with load_dataset(data_dir, split="train", cache_dir=tmp_dir, download_mode="force_redownload") as dataset:
+            assert isinstance(dataset, Dataset)
+            assert len(dataset) > 0
+
+        arrow_files = Path(processed_dataset_dir).glob("*.arrow")
+        # make sure test is gone after force_redownload
+        assert all(arrow_file.name.split("-", 1)[1].startswith("train") for arrow_file in arrow_files)
 
 def test_load_dataset_specific_splits_then_full(data_dir):
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -1084,6 +1103,33 @@ def test_load_dataset_specific_splits_then_full(data_dir):
 
         arrow_files = Path(processed_dataset_dir).glob("*.arrow")
         assert all(arrow_file.name.split("-", 1)[1].startswith(tuple(dataset_splits)) for arrow_file in arrow_files)
+
+
+def test_load_dataset_specific_splits_missing_split(data_dir):
+    import re
+    with pytest.raises(ValueError, match=re.escape("Splits ['missing_split'] not found. Available splits: ['train', 'test']")):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            load_dataset(data_dir, split="missing_split", cache_dir=tmp_dir)
+
+
+def test_load_dataset_specific_splits_then_other(data_dir):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        with load_dataset(data_dir, split="train", cache_dir=tmp_dir) as dataset:
+            assert isinstance(dataset, Dataset)
+            assert len(dataset) > 0
+
+        processed_dataset_dir = load_dataset_builder(data_dir, cache_dir=tmp_dir).cache_dir
+        arrow_files = Path(processed_dataset_dir).glob("*.arrow")
+        assert all(arrow_file.name.split("-", 1)[1].startswith("train") for arrow_file in arrow_files)
+
+        import pdb; pdb.set_trace()
+        with load_dataset(data_dir, split="test", cache_dir=tmp_dir) as dataset:
+            assert isinstance(dataset, Dataset)
+            assert len(dataset) > 0
+
+        arrow_files = Path(processed_dataset_dir).glob("*.arrow")
+        # after loading both splits independently, we should have both locally
+        assert all(arrow_file.name.split("-", 1)[1].startswith(("train", "test")) for arrow_file in arrow_files)
 
 
 @pytest.mark.integration
