@@ -713,6 +713,7 @@ def test_dataset_with_audio_feature_loaded_from_cache():
     assert isinstance(ds, Dataset)
 
 
+@require_torchcodec
 def test_dataset_with_audio_feature_undecoded(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data = {"audio": [audio_path]}
@@ -730,6 +731,7 @@ def test_dataset_with_audio_feature_undecoded(shared_datadir):
     assert column[0] == {"path": audio_path, "bytes": None}
 
 
+@require_torchcodec
 def test_formatted_dataset_with_audio_feature_undecoded(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data = {"audio": [audio_path]}
@@ -761,6 +763,7 @@ def test_formatted_dataset_with_audio_feature_undecoded(shared_datadir):
         assert column[0] == {"path": audio_path, "bytes": None}
 
 
+@require_torchcodec
 def test_dataset_with_audio_feature_map_undecoded(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data = {"audio": [audio_path]}
@@ -786,3 +789,31 @@ def test_audio_embed_storage(shared_datadir):
     embedded_storage = Audio().embed_storage(storage)
     embedded_example = embedded_storage.to_pylist()[0]
     assert embedded_example == {"bytes": open(audio_path, "rb").read(), "path": "test_audio_44100.wav"}
+
+
+@require_torchcodec
+def test_audio_decode_example_opus_convert_to_stereo(shared_datadir):
+    # GH 7837
+    from torchcodec.decoders import AudioDecoder
+
+    audio_path = str(shared_datadir / "test_audio_48000.opus")  # mono file
+    audio = Audio(num_channels=2)
+    decoded_example = audio.decode_example(audio.encode_example(audio_path))
+    assert isinstance(decoded_example, AudioDecoder)
+    samples = decoded_example.get_all_samples()
+    assert samples.sample_rate == 48000
+    assert samples.data.shape == (2, 48000)
+
+
+@require_torchcodec
+def test_audio_decode_example_opus_convert_to_mono(shared_datadir):
+    # GH 7837
+    from torchcodec.decoders import AudioDecoder
+
+    audio_path = str(shared_datadir / "test_audio_44100.wav")  # stereo file
+    audio = Audio(num_channels=1)
+    decoded_example = audio.decode_example(audio.encode_example(audio_path))
+    assert isinstance(decoded_example, AudioDecoder)
+    samples = decoded_example.get_all_samples()
+    assert samples.sample_rate == 44100
+    assert samples.data.shape == (1, 202311)
