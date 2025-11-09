@@ -923,6 +923,7 @@ class DatasetBuilder:
                         requested_splits_exist = False
                         break
                 if requested_splits_exist:
+                    logger.info(f"Found cached dataset {self.dataset_name} ({self._output_dir})")
                     self.download_post_processing_resources(dl_manager)
 
             logger.info(f"Generating dataset {self.dataset_name} ({self._output_dir})")
