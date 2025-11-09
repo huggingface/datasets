@@ -844,7 +844,6 @@ class DatasetBuilder:
             lock_path = self._output_dir + "_builder.lock"
 
         # File locking only with local paths; no file locking on GCS or S3
-        # import pdb; pdb.set_trace()
         with FileLock(lock_path) if is_local else contextlib.nullcontext():
             # Check if the data already exists
             info_exists = self._fs.exists(posixpath.join(self._output_dir, config.DATASET_INFO_FILENAME))
@@ -875,7 +874,6 @@ class DatasetBuilder:
                     splits = available_splits
                 missing_splits = set(splits) - set(available_splits)
                 if missing_splits:
-                    # import pdb; pdb.set_trace()
                     raise ValueError(f"Splits {list(missing_splits)} not found. Available splits: {available_splits}")
                 if download_mode == DownloadMode.FORCE_REDOWNLOAD:
                     for split_name in set(available_splits) - set(splits):
@@ -886,30 +884,7 @@ class DatasetBuilder:
                             split_filepattern = filepattern_for_dataset_split(
                                 self._output_dir, _dataset_name, split_name, filetype_suffix=file_format
                             )
-                            # import pdb; pdb.set_trace()
                             patterns_of_split_files_to_overwrite.append(split_filepattern)
-                        # for split_name in splits[:]:
-                        #     num_shards = 1
-                        #     if self.info.splits:
-                        #         try:
-                        #             num_shards = len(self.info.splits[split_name].shard_lengths or ())
-                        #         except (TypeError, ValueError):
-                        #             pass
-                        #     # import pdb; pdb.set_trace()
-                        #     split_filenames = filenames_for_dataset_split(
-                        #         self._output_dir,
-                        #         _dataset_name,
-                        #         split_name,
-                        #         filetype_suffix=file_format,
-                        #         num_shards=num_shards,
-                        #     )
-                        #     if self._fs.exists(split_filenames[0]):
-                        #         splits.remove(split_name)
-                        #         # import pdb; pdb.set_trace()
-                        #         split_filepattern = filepattern_for_dataset_split(
-                        #             self._output_dir, _dataset_name, split_name, filetype_suffix=file_format
-                        #         )
-                        #         patterns_of_split_files_to_overwrite.append(split_filepattern)
 
             # We cannot use info as the source of truth if the builder supports partial generation
             # as the info can be incomplete in that case
@@ -948,7 +923,6 @@ class DatasetBuilder:
                         yield tmp_dir
                         # raise ValueError("debugging")
                         if os.path.isdir(dirname):
-                            # import pdb; pdb.set_trace()
                             for root, dirnames, filenames in os.walk(dirname, topdown=False):
                                 # LocalFileSystem.mv does copy + rm, it is more efficient to simply rename a local directory
                                 for filename in filenames:
@@ -990,7 +964,6 @@ class DatasetBuilder:
             self._check_manual_download(dl_manager)
 
             # Create a tmp dir and rename to self._output_dir on successful exit.
-            # import pdb; pdb.set_trace()
             with incomplete_dir(self._output_dir) as tmp_output_dir:
                 # Temporarily assign _output_dir to tmp_data_dir to avoid having to forward
                 # it to every sub function.
@@ -1075,7 +1048,6 @@ class DatasetBuilder:
             prepare_split_kwargs: Additional options, such as `file_format`, `max_shard_size`
         """
         # Generating data for all splits
-        # import pdb; pdb.set_trace()
         split_dict = SplitDict(dataset_name=self.dataset_name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
