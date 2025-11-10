@@ -515,7 +515,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("boolq")
+        >>> ds = load_dataset("google/boolq")
         >>> ds["train"].features
         {'answer': Value('bool'),
          'passage': Value('string'),
