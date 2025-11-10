@@ -1,7 +1,7 @@
 import io
 import itertools
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 
 import pandas as pd
 import pyarrow as pa
@@ -50,6 +50,7 @@ class JsonConfig(datasets.BuilderConfig):
     block_size: Optional[int] = None  # deprecated
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
+    columns: Optional[List[str]] = None
 
     def __post_init__(self):
         super().__post_init__()
@@ -121,6 +122,12 @@ class Json(datasets.ArrowBasedBuilder):
                 if df.columns.tolist() == [0]:
                     df.columns = list(self.config.features) if self.config.features else ["text"]
                 pa_table = pa.Table.from_pandas(df, preserve_index=False)
+                if self.config.columns is not None:
+                    missing_cols = [col for col in self.config.columns if col not in pa_table.column_names]
+                    if missing_cols:
+                        for col in missing_cols:
+                            pa_table = pa_table.append_column(col, pa.array([None] * len(pa_table)))
+                    pa_table = pa_table.select(self.config.columns)
                 yield file_idx, self._cast_table(pa_table)
 
             # If the file has one json object per line
@@ -186,7 +193,21 @@ class Json(datasets.ArrowBasedBuilder):
                                 raise ValueError(
                                     f"Failed to convert pandas DataFrame to Arrow Table from file {file}."
                                 ) from None
+                            # Column filtering (pandas fallback)
+                            if self.config.columns is not None:
+                                missing_cols = [col for col in self.config.columns if col not in pa_table.column_names]
+                                if missing_cols:
+                                    for col in missing_cols:
+                                        pa_table = pa_table.append_column(col, pa.array([None] * len(pa_table)))
+                                pa_table = pa_table.select(self.config.columns)
                             yield file_idx, self._cast_table(pa_table)
                             break
+                        # Column filtering (Arrow JSON path)
+                        if self.config.columns is not None:
+                            missing_cols = [col for col in self.config.columns if col not in pa_table.column_names]
+                            if missing_cols:
+                                for col in missing_cols:
+                                    pa_table = pa_table.append_column(col, pa.array([None] * len(pa_table)))
+                            pa_table = pa_table.select(self.config.columns)
                         yield (file_idx, batch_idx), self._cast_table(pa_table)
                         batch_idx += 1
