@@ -136,7 +136,7 @@ If you're a dataset owner and wish to update any part of it (description, citati
 
 ## BibTeX
 
-If you want to cite our 🤗 Datasets library, you can use our [paper](https://arxiv.org/abs/2109.02846):
+If you want to cite our 🤗 Datasets library, you can use our [paper](https://huggingface.co/papers/2109.02846):
 
 ```bibtex
 @inproceedings{lhoest-etal-2021-datasets,
