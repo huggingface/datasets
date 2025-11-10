@@ -9,7 +9,6 @@ from Bio import SeqIO
 import datasets
 from datasets.features import Value
 from datasets.table import table_cast
-from datasets.utils.file_utils import xopen
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -33,8 +32,8 @@ class FASTAConfig(datasets.BuilderConfig):
         super().__post_init__()
 
 
-class FASTA(datasets.ArrowBasedBuilder):
-    """ArrowBasedBuilder that converts FASTA files to Arrow tables."""
+class FASTA(datasets.GeneratorBasedBuilder):
+    """GeneratorBasedBuilder that converts FASTA files to Arrow tables."""
 
     BUILDER_CONFIG_CLASS = FASTAConfig
 
@@ -89,7 +88,7 @@ class FASTA(datasets.ArrowBasedBuilder):
         batch_size_cfg = self.config.batch_size or self._writer_batch_size or 10_000
 
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
-            # Stream-parse and yield Arrow tables in batches
+            # Stream-parse and yield Arrow tables
             try:
                 batch = {col: [] for col in effective_cols}
                 row_count = 0
@@ -132,6 +131,6 @@ def _iter_fasta_records(path: str) -> Iterable[Dict[str, str]]:
     """
     # Use xopen to handle fsspec paths (e.g., gzip://file::path.gz) and regular paths
     # Open in text mode for BioPython's SeqIO.parse
-    with xopen(path, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8") as f:
         for r in SeqIO.parse(f, "fasta"):
             yield {"id": r.id, "description": r.description, "sequence": str(r.seq)}
