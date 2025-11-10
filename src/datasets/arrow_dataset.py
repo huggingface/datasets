@@ -5299,6 +5299,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         name: str,
         con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
         batch_size: Optional[int] = None,
+        num_proc: Optional[int] = None,
         **sql_writer_kwargs,
     ) -> int:
         """Exports the dataset to a SQL database.
@@ -5311,6 +5312,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             batch_size (`int`, *optional*):
                 Size of the batch to load in memory and write at once.
                 Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            num_proc (`int`, *optional*):
+                Number of processes for multiprocessing. By default, it doesn't
+                use multiprocessing. `batch_size` in this case defaults to
+                `datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
+                value if you have sufficient compute power.
             **sql_writer_kwargs (additional keyword arguments):
                 Parameters to pass to pandas's [`pandas.DataFrame.to_sql`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_sql.html).
 
@@ -5341,7 +5347,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.sql import SqlDatasetWriter
 
-        return SqlDatasetWriter(self, name, con, batch_size=batch_size, **sql_writer_kwargs).write()
+        return SqlDatasetWriter(self, name, con, batch_size=batch_size, num_proc=num_proc, **sql_writer_kwargs).write()
 
     def _estimate_nbytes(self) -> int:
         dataset_nbytes = self.data.nbytes
