@@ -1970,7 +1970,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("boolq", split="validation")
+        >>> ds = load_dataset("google/boolq", split="validation")
         >>> ds.features
         {'answer': Value('bool'),
          'passage': Value('string'),
@@ -4725,7 +4725,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = ds.train_test_split(test_size=0.2, seed=42)
 
         # stratified split
-        >>> ds = load_dataset("imdb",split="train")
+        >>> ds = load_dataset("stanfordnlp/imdb",split="train")
         Dataset({
             features: ['text', 'label'],
             num_rows: 25000
@@ -6175,7 +6175,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```python
-        >>> ds = datasets.load_dataset('crime_and_punish', split='train')
+        >>> ds = datasets.load_dataset('community-datasets/crime_and_punish', split='train')
         >>> ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
         >>> ds_with_embeddings.add_faiss_index(column='embeddings')
         >>> # query
@@ -6183,7 +6183,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> # save index
         >>> ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
 
-        >>> ds = datasets.load_dataset('crime_and_punish', split='train')
+        >>> ds = datasets.load_dataset('community-datasets/crime_and_punish', split='train')
         >>> # load index
         >>> ds.load_faiss_index('embeddings', 'my_index.faiss')
         >>> # query
@@ -6314,7 +6314,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```python
         >>> es_client = elasticsearch.Elasticsearch()
-        >>> ds = datasets.load_dataset('crime_and_punish', split='train')
+        >>> ds = datasets.load_dataset('community-datasets/crime_and_punish', split='train')
         >>> ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
         >>> scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
         ```
