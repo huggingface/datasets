@@ -163,7 +163,7 @@ Also describe in this section if the proposed dataset contains a low-resource or
 
 Provide descriptions of specific biases that are likely to be reflected in the data, and state whether any steps were taken to reduce their impact.
 
-For Wikipedia text, see for example [Dinan et al 2020 on biases in Wikipedia (esp. Table 1)](https://arxiv.org/abs/2005.00614), or [Blodgett et al 2020](https://www.aclweb.org/anthology/2020.acl-main.485/) for a more general discussion of the topic.
+For Wikipedia text, see for example [Dinan et al 2020 on biases in Wikipedia (esp. Table 1)](https://huggingface.co/papers/2005.00614), or [Blodgett et al 2020](https://www.aclweb.org/anthology/2020.acl-main.485/) for a more general discussion of the topic.
 
 If analyses have been run quantifying these biases, please add brief summaries and links to the studies here.
 
