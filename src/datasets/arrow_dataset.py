@@ -6692,9 +6692,15 @@ def _interleave_map_style_datasets(
     return concatenated_datasets.select(indices, **kwargs)
 
 
-def _split_by_node_map_style_dataset(dataset: Dataset, rank: int, world_size: int) -> Dataset:
+def _split_by_node_map_style_dataset(
+    dataset: Dataset,
+    rank: int,
+    world_size: int,
+    stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
+) -> Dataset:
     """
-    Split a dataset for the node at rank `rank` in a pool of nodes of size `world_size`.
+    Split a dataset for the node at rank `rank` in a pool of nodes of size `world_size`, with each
+    rank having the same number of examples thanks to the `stopping_strategy`.
     Each node is assigned a chunk of data, e.g. rank 0 is given the first chunk of the dataset.
     To maximize data loading throughput, chunks are made of contiguous data on disk if possible.
 
@@ -6709,7 +6715,15 @@ def _split_by_node_map_style_dataset(dataset: Dataset, rank: int, world_size: in
     Returns:
         [`Dataset`]: The dataset to be used on the node at rank `rank`.
     """
-    return dataset.shard(num_shards=world_size, index=rank, contiguous=True)
+    shard = dataset.shard(num_shards=world_size, index=rank, contiguous=True)
+    # Make sure all the shards have the same number of examples:
+    # - first_exhausted: len() = len(dataset) // world_size
+    # - all_exhausted: len() = len(dataset) // world_size + 1
+    if len(shard) == len(dataset) // world_size + 1 and stopping_strategy == "first_exhausted":
+        shard = shard.select(range(len(dataset) // world_size))
+    if len(shard) == len(dataset) // world_size and stopping_strategy == "all_exhausted":
+        shard = _concatenate_map_style_datasets([shard, shard.select([0])])
+    return shard
 
 
 # This is outside Dataset.filter as it needs to be picklable for multiprocessing
