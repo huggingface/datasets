@@ -56,6 +56,75 @@ def fasta_gz(tmp_path):
     return str(p)
 
 
+# ┌─────────────────────────┐
+# │ Fixtures: FASTQ files   │
+# └─────────────────────────┘
+
+
+@pytest.fixture
+def fastq_basic(tmp_path):
+    p = tmp_path / "basic.fastq"
+    content = dedent("""\
+        @SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=36
+        GGGTGATGGCCGCTGCCGATGGCGTCAAATCCCACC
+        +SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=36
+        IIIIIIIIIIIIIIIIIIIIIIIIIIIIII9IG9IC
+        @SRR001666.2 071112_SLXA-EAS1_s_7:5:1:801:338 length=36
+        GTTCAGGGATACGACGTTTGTATTTTAAGAATCTGA
+        +SRR001666.2 071112_SLXA-EAS1_s_7:5:1:801:338 length=36
+        IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII6IBI
+    """)
+    p.write_text(content)
+    return str(p)
+
+
+@pytest.fixture
+def fastq_multiline(tmp_path):
+    p = tmp_path / "multiline.fastq"
+    # FASTQ with multi-line sequences and quality scores
+    content = dedent("""\
+        @read1
+        GATTTGGGGTTCAAAGCAGTATCGATCAAATAGT
+        AAATCCATTTGTTCAACTCACAGTTT
+        +
+        !''*((((***+))%%%++)(%%%%).1***-+*'
+        '))**55CCF>>>>>>CCCCCCC65
+        @read2
+        ACGT
+        ACGT
+        +
+        IIII
+        IIII
+    """)
+    p.write_text(content)
+    return str(p)
+
+
+@pytest.fixture
+def fastq_empty(tmp_path):
+    p = tmp_path / "empty.fastq"
+    p.write_text("")
+    return str(p)
+
+
+@pytest.fixture
+def fastq_multi(tmp_path):
+    p1 = tmp_path / "file1.fastq"
+    p2 = tmp_path / "file2.fastq"
+    p1.write_text("@read1\nATGC\n+\nIIII\n@read2\nGGGG\n+\n!!!!\n")
+    p2.write_text("@read3\nAAAA\n+\nHHHH\n@read4\nTTTT\n+\n####\n")
+    return str(p1), str(p2)
+
+
+@pytest.fixture
+def fastq_gz(tmp_path):
+    p = tmp_path / "compressed.fastq.gz"
+    content = "@gz_read1\nATGCATGC\n+\nIIIIIIII\n@gz_read2\nGGGGTTTT\n+\nHHHHHHHH\n"
+    with gzip.open(p, "wb") as f:
+        f.write(content.encode("utf-8"))
+    return str(p)
+
+
 # ┌──────────────────────┐
 # │ Config validation    │
 # └──────────────────────┘
@@ -79,22 +148,15 @@ def test_config_raises_when_invalid_data_files(data_files):
 
 def test_fasta_basic_functionality(fasta_basic):
     fasta = FASTA()
-    generator = fasta._generate_tables([[fasta_basic]])
-    tables = list(generator)
-    # Expect a single batch with all rows by default (_writer_batch_size may change this in HF CI;
-    # still, we only assert data correctness)
-    assert len(tables) >= 1
+    generator = fasta._generate_examples([[fasta_basic]])
+    examples = list(generator)
+    assert len(examples) >= 1
 
-    # Merge batches virtually by reading first batch for sanity
-    _, first_table = tables[0]
-    cols = set(first_table.column_names)
-    assert {"id", "description", "sequence"} <= cols
+    # Collect all rows
+    all_rows = [example for _, example in examples]
 
-    # Collect all rows across batches
-    all_rows = []
-    for _, tbl in tables:
-        for i in range(len(tbl)):
-            all_rows.append({c: tbl[c][i].as_py() for c in tbl.column_names})
+    # Check columns
+    assert {"id", "description", "sequence"} <= set(all_rows[0].keys())
 
     # Order should match stream order: seq1, seq2, seq3
     assert all_rows[0]["id"] == "seq1"
@@ -112,14 +174,11 @@ def test_fasta_basic_functionality(fasta_basic):
 
 def test_fasta_whitespace_and_multiline(fasta_with_whitespace):
     fasta = FASTA()
-    generator = fasta._generate_tables([[fasta_with_whitespace]])
-    tables = list(generator)
+    generator = fasta._generate_examples([[fasta_with_whitespace]])
+    examples = list(generator)
 
-    # Flatten rows
-    rows = []
-    for _, tbl in tables:
-        for i in range(len(tbl)):
-            rows.append({c: tbl[c][i].as_py() for c in tbl.column_names})
+    # Collect all rows
+    rows = [example for _, example in examples]
 
     assert rows[0]["id"] == "id1"
     assert rows[0]["sequence"] == "ATGCATGC"  # spaces & blank lines stripped
@@ -142,15 +201,11 @@ def test_fasta_batch_processing(fasta_basic):
     fasta = FASTA()
     fasta.config = config
 
-    generator = fasta._generate_tables([[fasta_basic]])
-    tables = list(generator)
+    generator = fasta._generate_examples([[fasta_basic]])
+    examples = list(generator)
 
-    # 3 records; batch_size=2 -> 2 batches
-    assert len(tables) == 2
-
-    # First batch has 2 rows, final has 1
-    assert len(tables[0][1]) == 2
-    assert len(tables[1][1]) == 1
+    # 3 records in the file (batch_size doesn't affect _generate_examples)
+    assert len(examples) == 3
 
 
 # ┌───────────────────┐
@@ -160,21 +215,21 @@ def test_fasta_batch_processing(fasta_basic):
 
 def test_fasta_column_filtering(fasta_basic):
     config = FASTAConfig(columns=["id", "sequence"])
+    
     fasta = FASTA()
     fasta.config = config
-    # Call _info to initialize default features, then manually filter to match columns
+    # Call _info to initialize features (they're already set correctly in config)
     info = fasta._info()
-    # Manually apply column filtering since we're not going through _split_generators
     fasta.info.features = Features({col: feat for col, feat in info.features.items() if col in config.columns})
-    generator = fasta._generate_tables([[fasta_basic]])
-    tables = list(generator)
+
+    generator = fasta._generate_examples([[fasta_basic]])
+    examples = list(generator)
 
     # Ensure only selected columns appear
-    for _, tbl in tables:
-        assert set(tbl.column_names) == {"id", "sequence"}
-        # basic sanity on values
-        assert isinstance(tbl["id"][0].as_py(), str)
-        assert isinstance(tbl["sequence"][0].as_py(), str)
+    for _, example in examples:
+        assert set(example.keys()) == {"id", "sequence"}
+        assert isinstance(example["id"], str)
+        assert isinstance(example["sequence"], str)
 
 
 def test_fasta_columns_features_mismatch():
@@ -207,11 +262,12 @@ def test_fasta_feature_specification_casting(fasta_basic):
     fasta = FASTA()
     fasta.config = config
 
-    tables = list(fasta._generate_tables([[fasta_basic]]))
-    # Check schema cast
-    _, tbl = tables[0]
+    examples = list(fasta._generate_examples([[fasta_basic]]))
+    # Check that examples have the correct columns
+    _, example = examples[0]
     for col in features:
-        assert tbl.schema.field(col).type == features[col].pa_type
+        assert col in example
+        assert isinstance(example[col], str)
 
 
 # ┌───────────────────────────────┐
@@ -221,9 +277,9 @@ def test_fasta_feature_specification_casting(fasta_basic):
 
 def test_fasta_empty_file_warning(fasta_empty, caplog):
     fasta = FASTA()
-    tables = list(fasta._generate_tables([[fasta_empty]]))
-    assert len(tables) == 0
-    # A warning may be logged by your builder; this just asserts "no tables" behavior.
+    examples = list(fasta._generate_examples([[fasta_empty]]))
+    assert len(examples) == 0
+    # A warning may be logged by your builder; this just asserts "no examples" behavior.
 
 
 # ┌───────────────────────────────┐
@@ -234,21 +290,16 @@ def test_fasta_empty_file_warning(fasta_empty, caplog):
 def test_fasta_multiple_files(fasta_multi):
     f1, f2 = fasta_multi
     fasta = FASTA()
-    tables = list(fasta._generate_tables([[f1, f2]]))
-    # Expect records from both files in order (builder yields per file batches)
-    total_rows = 0
-    ids = []
-    for _, tbl in tables:
-        total_rows += len(tbl)
-        ids += [tbl["id"][i].as_py() for i in range(len(tbl))]
-    assert total_rows == 4
+    examples = list(fasta._generate_examples([[f1, f2]]))
+    # Expect records from both files in order
+    ids = [example["id"] for _, example in examples]
+    assert len(examples) == 4
     assert ids == ["a", "b", "c", "d"]
 
 
 def test_fasta_gz_via_dl_manager(fasta_gz, tmp_path):
     # Test that gzipped FASTA files can be read via StreamingDownloadManager.
-    # This validates that the FASTA implementation properly uses xopen() to handle
-    # fsspec paths like "gzip://file.fasta::path/to/file.gz"
+    # This validates that the FASTA implementation properly handles compressed files
     data_files = DataFilesDict({"train": [fasta_gz]})
     config = FASTAConfig(data_files=data_files)
     fasta = FASTA()
@@ -257,15 +308,12 @@ def test_fasta_gz_via_dl_manager(fasta_gz, tmp_path):
     dlm = StreamingDownloadManager()
     splits = fasta._split_generators(dlm)
     assert len(splits) == 1
-    # Generate tables using files from dl_manager (ensures .gz is extracted on the fly)
-    tables = list(fasta._generate_tables(splits[0].gen_kwargs["files"]))
-    assert len(tables) >= 1
+    # Generate examples using files from dl_manager (ensures .gz is extracted on the fly)
+    examples = list(fasta._generate_examples(splits[0].gen_kwargs["files"]))
+    assert len(examples) >= 1
 
-    # Flatten and check content
-    rows = []
-    for _, tbl in tables:
-        for i in range(len(tbl)):
-            rows.append({c: tbl[c][i].as_py() for c in tbl.column_names})
+    # Collect all examples
+    rows = [example for _, example in examples]
 
     assert len(rows) == 2
     assert rows[0]["id"] == "gz1"
@@ -286,11 +334,14 @@ def test_fasta_load_dataset_like_usage(fasta_basic, tmp_path, monkeypatch):
     config = FASTAConfig()
     fasta = FASTA()
     fasta.config = config
-    tables = list(fasta._generate_tables([[fasta_basic]]))
-    assert len(tables) >= 1
+    examples = list(fasta._generate_examples([[fasta_basic]]))
+    assert len(examples) >= 1
 
-    # Optionally, verify that features match expected when building a Dataset
-    # (constructing a Dataset from pyarrow tables directly is possible, but out of scope here).
+    # Verify that examples have the expected structure
+    _, example = examples[0]
+    assert "id" in example
+    assert "description" in example
+    assert "sequence" in example
 
 
 # ┌───────────────────────────────┐
@@ -302,11 +353,8 @@ def test_fasta_handles_no_trailing_newline(tmp_path):
     p = tmp_path / "no_newline.fasta"
     p.write_text(">x\nATGC")  # no trailing newline
     fasta = FASTA()
-    tables = list(fasta._generate_tables([[str(p)]]))
-    rows = []
-    for _, tbl in tables:
-        for i in range(len(tbl)):
-            rows.append({c: tbl[c][i].as_py() for c in tbl.column_names})
+    examples = list(fasta._generate_examples([[str(p)]]))
+    rows = [example for _, example in examples]
     assert rows == [{"id": "x", "description": "x", "sequence": "ATGC"}]
 
 
@@ -321,6 +369,188 @@ def test_fasta_single_record(tmp_path):
         .replace("\n        ", "\n")
     )
     fasta = FASTA()
-    tables = list(fasta._generate_tables([[str(p)]]))
-    total = sum(len(tbl) for _, tbl in tables)
-    assert total == 1
+    examples = list(fasta._generate_examples([[str(p)]]))
+    assert len(examples) == 1
+
+
+# ┌───────────────────────────────────┐
+# │ FASTQ: Basic functionality        │
+# └───────────────────────────────────┘
+
+
+def test_fastq_basic_functionality(fastq_basic):
+    config = FASTAConfig(file_type="fastq")
+    fasta = FASTA()
+    fasta.config = config
+    fasta.info = fasta._info()
+    generator = fasta._generate_examples([[fastq_basic]])
+    examples = list(generator)
+    assert len(examples) >= 1
+
+    # Collect all rows
+    all_rows = [example for _, example in examples]
+
+    assert set(all_rows[0].keys()) == {"id", "description", "sequence", "quality"}
+
+    # Verify first record
+    assert all_rows[0]["id"] == "SRR001666.1"
+    assert all_rows[0]["description"] == "SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=36"
+    assert all_rows[0]["sequence"] == "GGGTGATGGCCGCTGCCGATGGCGTCAAATCCCACC"
+    assert all_rows[0]["quality"] == "IIIIIIIIIIIIIIIIIIIIIIIIIIIIII9IG9IC"
+
+    # Verify second record
+    assert all_rows[1]["id"] == "SRR001666.2"
+    assert all_rows[1]["description"] == "SRR001666.2 071112_SLXA-EAS1_s_7:5:1:801:338 length=36"
+    assert all_rows[1]["sequence"] == "GTTCAGGGATACGACGTTTGTATTTTAAGAATCTGA"
+    assert all_rows[1]["quality"] == "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII6IBI"
+
+
+def test_fastq_multiline_sequences(fastq_multiline):
+    config = FASTAConfig(file_type="fastq")
+    fasta = FASTA()
+    fasta.config = config
+    fasta.info = fasta._info()
+    generator = fasta._generate_examples([[fastq_multiline]])
+    examples = list(generator)
+
+    # Collect all rows
+    rows = [example for _, example in examples]
+
+    # First record - multi-line sequence and quality should be concatenated
+    assert rows[0]["id"] == "read1"
+    assert rows[0]["sequence"] == "GATTTGGGGTTCAAAGCAGTATCGATCAAATAGTAAATCCATTTGTTCAACTCACAGTTT"
+    assert rows[0]["quality"] == "!''*((((***+))%%%++)(%%%%).1***-+*''))**55CCF>>>>>>CCCCCCC65"
+
+    # Second record
+    assert rows[1]["id"] == "read2"
+    assert rows[1]["sequence"] == "ACGTACGT"
+    assert rows[1]["quality"] == "IIIIIIII"
+
+
+def test_fastq_default_features(fastq_basic):
+    config = FASTAConfig(file_type="fastq")
+    fasta = FASTA()
+    fasta.config = config
+    fasta.info = fasta._info()
+    # FASTQ should have id, description, sequence, and quality
+    assert set(fasta.info.features.keys()) == {"id", "description", "sequence", "quality"}
+
+
+def test_fastq_column_filtering(fastq_basic):
+    config = FASTAConfig(
+        file_type="fastq",
+        columns=["id", "sequence", "quality"]
+        )
+    fasta = FASTA()
+    fasta.config = config
+    # Call _info to initialize features (they're already set correctly in config)
+    info = fasta._info()
+    fasta.info.features = Features({col: feat for col, feat in info.features.items() if col in config.columns})
+
+    generator = fasta._generate_examples([[fastq_basic]])
+    examples = list(generator)
+
+    # Ensure only selected columns appear
+    for _, example in examples:
+        assert set(example.keys()) == {"id", "sequence", "quality"}
+        assert isinstance(example["id"], str)
+        assert isinstance(example["sequence"], str)
+        assert isinstance(example["quality"], str)
+
+
+def test_fastq_batch_processing(fastq_basic):
+    config = FASTAConfig(file_type="fastq")
+    fasta = FASTA()
+    fasta.config = config
+    fasta.info = fasta._info()
+
+    generator = fasta._generate_examples([[fastq_basic]])
+    examples = list(generator)
+
+    # 2 records in the file
+    assert len(examples) == 2
+
+
+def test_fastq_empty_file(fastq_empty):
+    config = FASTAConfig(file_type="fastq")
+    fasta = FASTA()
+    fasta.config = config
+    fasta.info = fasta._info()
+    examples = list(fasta._generate_examples([[fastq_empty]]))
+    assert len(examples) == 0
+
+
+def test_fastq_multiple_files(fastq_multi):
+    f1, f2 = fastq_multi
+    config = FASTAConfig(file_type="fastq")
+    fasta = FASTA()
+    fasta.config = config
+    fasta.info = fasta._info()
+    examples = list(fasta._generate_examples([[f1, f2]]))
+
+    ids = [example["id"] for _, example in examples]
+
+    assert len(examples) == 4
+    assert ids == ["read1", "read2", "read3", "read4"]
+
+
+def test_fastq_gz_via_dl_manager(fastq_gz, tmp_path):
+    # Test that gzipped FASTQ files can be read via StreamingDownloadManager
+    data_files = DataFilesDict({"train": [fastq_gz]})
+    config = FASTAConfig(data_files=data_files, file_type="fastq")
+    fasta = FASTA()
+    fasta.config = config
+    fasta.info = fasta._info()
+
+    dlm = StreamingDownloadManager()
+    splits = fasta._split_generators(dlm)
+    assert len(splits) == 1
+
+    examples = list(fasta._generate_examples(splits[0].gen_kwargs["files"]))
+    assert len(examples) >= 1
+
+    # Collect all examples
+    rows = [example for _, example in examples]
+
+    assert len(rows) == 2
+    assert rows[0]["id"] == "gz_read1"
+    assert rows[0]["sequence"] == "ATGCATGC"
+    assert rows[0]["quality"] == "IIIIIIII"
+    assert rows[1]["id"] == "gz_read2"
+    assert rows[1]["sequence"] == "GGGGTTTT"
+    assert rows[1]["quality"] == "HHHHHHHH"
+
+
+def test_fastq_quality_scores_preserved(fastq_basic):
+    # Verify that quality scores with special characters are preserved correctly
+    config = FASTAConfig(file_type="fastq")
+    fasta = FASTA()
+    fasta.config = config
+    fasta.info = fasta._info()
+    generator = fasta._generate_examples([[fastq_basic]])
+    examples = list(generator)
+
+    rows = [example for _, example in examples]
+
+    # Check that quality characters are preserved (high quality 'I' and moderate quality digits)
+    assert "I" in rows[0]["quality"]
+    assert "9" in rows[0]["quality"]
+    assert "G" in rows[0]["quality"]
+    assert "C" in rows[0]["quality"]
+    assert "6" in rows[1]["quality"]
+    assert "B" in rows[1]["quality"]
+
+
+def test_fastq_handles_no_trailing_newline(tmp_path):
+    p = tmp_path / "no_newline.fastq"
+    p.write_text("@read1\nATGC\n+\nIIII")  # no trailing newline
+    config = FASTAConfig(file_type="fastq")
+    fasta = FASTA()
+    fasta.config = config
+    fasta.info = fasta._info()
+    examples = list(fasta._generate_examples([[str(p)]]))
+    rows = [example for _, example in examples]
+    assert len(rows) == 1
+    assert rows[0]["id"] == "read1"
+    assert rows[0]["sequence"] == "ATGC"
+    assert rows[0]["quality"] == "IIII"
