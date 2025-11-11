@@ -145,6 +145,10 @@ VISION_REQUIRE = [
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
 ]
 
+MIDI_REQUIRE = [
+    "pretty-midi>=0.2.0",
+]
+
 BENCHMARKS_REQUIRE = [
     "tensorflow==2.12.0",
     "torch==2.0.1",
@@ -213,6 +217,7 @@ NIBABEL_REQUIRE = ["nibabel>=5.3.2"]
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
+    "midi": MIDI_REQUIRE,
     "tensorflow": [
         "tensorflow>=2.6.0",
     ],
