@@ -459,34 +459,34 @@ class ReadInstruction:
     Examples::
 
       # The following lines are equivalent:
-      ds = datasets.load_dataset('mnist', split='test[:33%]')
-      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction.from_spec('test[:33%]'))
-      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction('test', to=33, unit='%'))
-      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction(
+      ds = datasets.load_dataset('ylecun/mnist', split='test[:33%]')
+      ds = datasets.load_dataset('ylecun/mnist', split=datasets.ReadInstruction.from_spec('test[:33%]'))
+      ds = datasets.load_dataset('ylecun/mnist', split=datasets.ReadInstruction('test', to=33, unit='%'))
+      ds = datasets.load_dataset('ylecun/mnist', split=datasets.ReadInstruction(
           'test', from_=0, to=33, unit='%'))
 
       # The following lines are equivalent:
-      ds = datasets.load_dataset('mnist', split='test[:33%]+train[1:-1]')
-      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction.from_spec(
+      ds = datasets.load_dataset('ylecun/mnist', split='test[:33%]+train[1:-1]')
+      ds = datasets.load_dataset('ylecun/mnist', split=datasets.ReadInstruction.from_spec(
           'test[:33%]+train[1:-1]'))
-      ds = datasets.load_dataset('mnist', split=(
+      ds = datasets.load_dataset('ylecun/mnist', split=(
           datasets.ReadInstruction('test', to=33, unit='%') +
           datasets.ReadInstruction('train', from_=1, to=-1, unit='abs')))
 
       # The following lines are equivalent:
-      ds = datasets.load_dataset('mnist', split='test[:33%](pct1_dropremainder)')
-      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction.from_spec(
+      ds = datasets.load_dataset('ylecun/mnist', split='test[:33%](pct1_dropremainder)')
+      ds = datasets.load_dataset('ylecun/mnist', split=datasets.ReadInstruction.from_spec(
           'test[:33%](pct1_dropremainder)'))
-      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction(
+      ds = datasets.load_dataset('ylecun/mnist', split=datasets.ReadInstruction(
           'test', from_=0, to=33, unit='%', rounding="pct1_dropremainder"))
 
       # 10-fold validation:
       tests = datasets.load_dataset(
-          'mnist',
+          'ylecun/mnist',
           [datasets.ReadInstruction('train', from_=k, to=k+10, unit='%')
           for k in range(0, 100, 10)])
       trains = datasets.load_dataset(
-          'mnist',
+          'ylecun/mnist',
           [datasets.ReadInstruction('train', to=k, unit='%') + datasets.ReadInstruction('train', from_=k+10, unit='%')
           for k in range(0, 100, 10)])
 

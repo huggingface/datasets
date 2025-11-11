@@ -22,7 +22,7 @@ FAISS retrieves documents based on the similarity of their vector representation
 
 ```py
 >>> from datasets import load_dataset
->>> ds = load_dataset('crime_and_punish', split='train[:100]')
+>>> ds = load_dataset('community-datasets/crime_and_punish', split='train[:100]')
 >>> ds_with_embeddings = ds.map(lambda example: {'embeddings': ctx_encoder(**ctx_tokenizer(example["line"], return_tensors="pt"))[0][0].numpy()})
 ```
 
@@ -62,7 +62,7 @@ FAISS retrieves documents based on the similarity of their vector representation
 7. Reload it at a later time with [`Dataset.load_faiss_index`]:
 
 ```py
->>> ds = load_dataset('crime_and_punish', split='train[:100]')
+>>> ds = load_dataset('community-datasets/crime_and_punish', split='train[:100]')
 >>> ds.load_faiss_index('embeddings', 'my_index.faiss')
 ```
 
