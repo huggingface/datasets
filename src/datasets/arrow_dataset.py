@@ -1612,9 +1612,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             total=len(self),
             desc=f"Saving the dataset ({shards_done}/{num_shards} shards)",
         )
-        # Optionally flatten indices before sharding. Flattening rewrites the dataset as a contiguous
-        # Arrow table which can be expensive for datasets that already use indices mappings (e.g. after
-        # filter/shuffle). By default `flatten_indices=True` to preserve existing behavior. Setting it to
         # False avoids rebuilding the dataset and can significantly speed up save_to_disk for those cases.
         dataset_for_sharding = self.flatten_indices() if (self._indices is not None and flatten_indices) else self
 
