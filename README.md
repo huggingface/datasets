@@ -54,6 +54,7 @@ pip install datasets
 
 ## With conda
 
+# Note: Requires Python 3.8 or later
 🤗 Datasets can be installed using conda as follows:
 
 ```bash
