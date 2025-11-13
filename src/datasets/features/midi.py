@@ -118,24 +118,16 @@ class Midi:
         except ImportError as err:
             raise ImportError("To support encoding MIDI data, please install 'pretty_midi'.") from err
 
-
-
         # Create piano instrument
-        piano_program = pretty_midi.instrument_name_to_program('Acoustic Grand Piano')
+        piano_program = pretty_midi.instrument_name_to_program("Acoustic Grand Piano")
         piano = pretty_midi.Instrument(program=piano_program)
 
         notes = value.get("notes", [])
         for note_data in notes:
             if len(note_data) >= 4:
                 pitch, velocity, start, end = note_data[:4]
-                note = pretty_midi.Note(
-                    velocity=int(velocity),
-                    pitch=int(pitch),
-                    start=float(start),
-                    end=float(end)
-                )
+                note = pretty_midi.Note(velocity=int(velocity), pitch=int(pitch), start=float(start), end=float(end))
                 piano.notes.append(note)
-
 
         if "tempo" in value:
             midi = pretty_midi.PrettyMIDI(initial_tempo=value["tempo"])
@@ -208,10 +200,9 @@ class Midi:
         # Extract instrument information
         instruments = []
         for instrument in midi.instruments:
-            instruments.append({
-                "program": instrument.program,
-                "name": pretty_midi.program_to_instrument_name(instrument.program)
-            })
+            instruments.append(
+                {"program": instrument.program, "name": pretty_midi.program_to_instrument_name(instrument.program)}
+            )
 
         # Get tempo
         tempo = 120.0  # Default tempo
