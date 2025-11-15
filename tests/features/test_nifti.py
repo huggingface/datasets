@@ -2,9 +2,10 @@
 
 from pathlib import Path
 
+import pyarrow as pa
 import pytest
 
-from datasets import Dataset, Features, Nifti
+from datasets import Dataset, Features, Nifti, load_dataset
 from src.datasets.features.nifti import encode_nibabel_image
 
 from ..utils import require_nibabel
@@ -89,3 +90,41 @@ def test_encode_nibabel_image(shared_datadir):
     assert isinstance(encoded_example_bytes, dict)
     assert encoded_example_bytes["bytes"] is not None and encoded_example_bytes["path"] is None
     # this cannot be converted back from bytes (yet)
+
+
+@require_nibabel
+def test_embed_storage(shared_datadir):
+    from io import BytesIO
+
+    import nibabel as nib
+
+    nifti_path = str(shared_datadir / "test_nifti.nii")
+    img = nib.load(nifti_path)
+    nifti = Nifti()
+
+    bytes_array = pa.array([None], type=pa.binary())
+    path_array = pa.array([nifti_path], type=pa.string())
+    storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
+
+    embedded_storage = nifti.embed_storage(storage)
+
+    embedded_bytes = embedded_storage[0]["bytes"].as_py()
+
+    bio = BytesIO(embedded_bytes)
+    fh = nib.FileHolder(fileobj=bio)
+    nifti_img = nib.Nifti1Image.from_file_map({"header": fh, "image": fh})
+
+    assert embedded_bytes is not None
+    assert nifti_img.header == img.header
+    assert (nifti_img.affine == img.affine).all()
+    assert (nifti_img.get_fdata() == img.get_fdata()).all()
+
+
+@require_nibabel
+def test_load_zipped_file_locally(shared_datadir):
+    import nibabel as nib
+
+    nifti_path = str(shared_datadir / "test_nifti.nii.gz")
+
+    ds = load_dataset("niftifolder", data_files=nifti_path)
+    assert isinstance(ds["train"][0]["nifti"], nib.nifti1.Nifti1Image)

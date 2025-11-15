@@ -28,7 +28,7 @@ class patch_submodule:
         >>> from datasets.load import dataset_module_factory
         >>> from datasets.streaming import patch_submodule, xjoin
         >>>
-        >>> dataset_module = dataset_module_factory("snli")
+        >>> dataset_module = dataset_module_factory("stanfordnlp/snli")
         >>> snli_module = importlib.import_module(dataset_module.module_path)
         >>> patcher = patch_submodule(snli_module, "os.path.join", xjoin)
         >>> patcher.start()

@@ -3218,7 +3218,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("amazon_polarity", split="train", streaming=True)
+        >>> ds = load_dataset("fancyzhx/amazon_polarity", split="train", streaming=True)
         >>> ds
         Dataset({
             features: ['label', 'title', 'content'],
