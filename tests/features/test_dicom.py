@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pyarrow as pa
 import pytest
 
 from datasets import Dataset, Dicom, Features
@@ -112,6 +113,27 @@ def test_dicom_force_parameter(shared_datadir):
     ds_with_force = Dataset.from_dict({"dicom": [dicom_path]}).cast_column("dicom", Dicom(force=True))
     item = ds_with_force[0]
     assert isinstance(item["dicom"], pydicom.dataset.FileDataset)
+
+
+@require_pydicom
+def test_embed_storage(shared_datadir):
+    from io import BytesIO
+
+    import pydicom
+
+    dicom_path = str(shared_datadir / "test_dicom_693_J2KI.dcm")
+    img = pydicom.dcmread(dicom_path)
+    dicom = Dicom()
+    bytes_array = pa.array([None], type=pa.binary())
+    path_array = pa.array([dicom_path], type=pa.string())
+    storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
+    embedded_storage = dicom.embed_storage(storage)
+    embedded_bytes = embedded_storage[0]["bytes"].as_py()
+    bio = BytesIO(embedded_bytes)
+    dicom_file = pydicom.dcmread(bio)
+    assert embedded_bytes is not None
+    for key in img.keys():
+        assert dicom_file[key] == img[key]
 
 
 @require_pydicom
