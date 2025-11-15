@@ -269,7 +269,7 @@ class DownloadManager:
         Example:
 
         ```py
-        >>> files = dl_manager.download_and_extract('https://huggingface.co/datasets/beans/resolve/main/data/train.zip')
+        >>> files = dl_manager.download_and_extract('https://huggingface.co/datasets/AI-Lab-Makerere/beans/resolve/main/data/train.zip')
         >>> files = dl_manager.iter_files(files)
         ```
         """
