@@ -223,11 +223,7 @@ class Nifti:
                 bytes_ = gzip.decompress(bytes_)
 
             nifti = nib.Nifti1Image.from_bytes(bytes_)
-            # bio = BytesIO(bytes_)
-            # fh = nib.FileHolder(fileobj=bio)
-            # nifti = nib.Nifti1Image.from_file_map({"header": fh, "image": fh})
 
-        # return nifti
         return Nifti1ImageWrapper(nifti)
 
     def embed_storage(self, storage: pa.StructArray, token_per_repo_id=None) -> pa.StructArray:
