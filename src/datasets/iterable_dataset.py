@@ -564,7 +564,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                         self._state_dict["batch_idx"] += 1
                         self._state_dict["num_chunks_since_previous_state"] += len(chunks_buffer)
                         self._state_dict["cropped_chunk_length"] = 0
-                    # FIXED: Cast chunks to expected schema
+
                     if self.features:
                         expected_schema = pa.schema(self.features.type)
                         casted_chunks = []
@@ -598,7 +598,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                         self._state_dict["batch_idx"] += 1
                         self._state_dict["num_chunks_since_previous_state"] += len(chunks_buffer)
                         self._state_dict["cropped_chunk_length"] = cropped_chunk_length
-                    # FIXED: Cast chunks to expected schema
+
                     if self.features:
                         expected_schema = pa.schema(self.features.type)
                         casted_chunks = []
@@ -630,7 +630,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                 self._state_dict["batch_idx"] += 1
                 self._state_dict["num_chunks_since_previous_state"] = 0
                 self._state_dict["cropped_chunk_length"] = 0
-            # FIXED: Cast chunks to expected schema
+
             if self.features:
                 expected_schema = pa.schema(self.features.type)
                 casted_chunks = []
