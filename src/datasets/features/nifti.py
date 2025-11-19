@@ -46,7 +46,7 @@ if config.NIBABEL_AVAILABLE:
             viewer_id = f"papaya-{uuid.uuid4().hex[:8]}"
 
             html = f"""
-    <div id="{viewer_id}" style="width: 100%; height: 400px;"></div>
+    <div id="{viewer_id}" style="width: 100%; height: 800px;"></div>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/papaya-viewer@1.0.1455/release/current/standard/papaya.css" />
     <script src="https://cdn.jsdelivr.net/npm/papaya-viewer@1.0.1455/release/current/standard/papaya.js"></script>
     <script type="text/javascript">
