@@ -246,6 +246,7 @@ setup(
     package_data={
         "datasets": ["py.typed"],
         "datasets.utils.resources": ["*.json", "*.yaml", "*.tsv"],
+        "datasets.features._papaya": ["*.js", "*.css"],
     },
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
     python_requires=">=3.9.0",

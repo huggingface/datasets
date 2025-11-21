@@ -45,10 +45,19 @@ if config.NIBABEL_AVAILABLE:
             self.nifti_data_url = f"data:application/octet-stream;base64,{b64}"
             viewer_id = f"papaya-{uuid.uuid4().hex[:8]}"
 
+            # Load local Papaya files
+            papaya_dir = Path(__file__).parent / "_papaya"
+            papaya_css = (papaya_dir / "papaya.css").read_text()
+            papaya_js = (papaya_dir / "papaya.js").read_text()
+
             html = f"""
     <div id="{viewer_id}" style="width: 100%; height: 800px;"></div>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/papaya-viewer@1.0.1455/release/current/standard/papaya.css" />
-    <script src="https://cdn.jsdelivr.net/npm/papaya-viewer@1.0.1455/release/current/standard/papaya.js"></script>
+    <style type="text/css">
+    {papaya_css}
+    </style>
+    <script type="text/javascript">
+    {papaya_js}
+    </script>
     <script type="text/javascript">
     (function() {{
         // Wait for Papaya to load
