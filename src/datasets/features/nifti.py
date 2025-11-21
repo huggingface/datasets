@@ -51,7 +51,6 @@ if config.NIBABEL_AVAILABLE:
 
             canvas_id = f"niivue-{uuid.uuid4().hex[:8]}"
 
-            # Minimal HTML + JS: one canvas, status overlay, lazy import of NiiVue via unpkg CDN
             html = f"""
 <div style="width:100%;max-width:900px;height:600px;position:relative;">
     <canvas id="{canvas_id}" width="900" height="600" style="width:100%;height:100%;display:block;background:#000;border:1px solid #444;border-radius:4px;"></canvas>
@@ -61,11 +60,21 @@ if config.NIBABEL_AVAILABLE:
 (async () => {{
     const statusEl = document.getElementById('{canvas_id}-status');
     try {{
-        statusEl.textContent = 'Fetching NiiVue...';
-        const {{ Niivue }} = await import('https://unpkg.com/@niivue/niivue@0.57.0/dist/index.js');
+        // Check if NiiVue is already loaded
+        let Niivue;
+        if (window.NiivueModule && window.NiivueModule.Niivue) {{
+            statusEl.textContent = 'Using cached NiiVue...';
+            Niivue = window.NiivueModule.Niivue;
+        }} else {{
+            statusEl.textContent = 'Fetching NiiVue...';
+            const niivueModule = await import('https://unpkg.com/@niivue/niivue@0.57.0/dist/index.js');
+            Niivue = niivueModule.Niivue;
+            // Cache module
+            window.NiivueModule = niivueModule;
+        }}
         statusEl.textContent = 'Initializing viewer...';
 
-        // Volume definition: name with .nii.gz extension helps some downstream heuristics
+        // Volume definition: name with .nii.gz extension helps some downstream heuristics --> todo: check with .nii files
         const volumes = [{{ url: '{data_url}', name: 'volume.nii.gz', visible: true, opacity: 1 }}];
 
         const nv = new Niivue({{
@@ -87,7 +96,6 @@ if config.NIBABEL_AVAILABLE:
             nv.updateGLVolume();
             nv.drawScene();
             statusEl.style.display = 'none';
-            console.log('NiiVue ready (multiplanar + 3D)');
         }}, 200);
     }} catch (err) {{
         console.error('NiiVue error:', err);
