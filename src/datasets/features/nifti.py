@@ -39,49 +39,64 @@ if config.NIBABEL_AVAILABLE:
             self.nifti_image = nifti_image
 
         def _repr_html_(self):
+            """Return an HTML representation using NiiVue multiplanar view.
+
+            Shows 4 panels (axial, sagittal, coronal + 3D rendering) in a single WebGL canvas
+            without requiring any additional user parameters.
+            """
+            # Serialize image to base64 data URL (works for in-memory objects and remote bytes)
             bytes_ = self.nifti_image.to_bytes()
             b64 = base64.b64encode(bytes_).decode("utf-8")
+            data_url = f"data:application/octet-stream;base64,{b64}"
 
-            self.nifti_data_url = f"data:application/octet-stream;base64,{b64}"
-            viewer_id = f"papaya-{uuid.uuid4().hex[:8]}"
+            canvas_id = f"niivue-{uuid.uuid4().hex[:8]}"
 
-            # Load local Papaya files
-            papaya_dir = Path(__file__).parent / "_papaya"
-            papaya_css = (papaya_dir / "papaya.css").read_text()
-            papaya_js = (papaya_dir / "papaya.js").read_text()
-
+            # Minimal HTML + JS: one canvas, status overlay, lazy import of NiiVue via unpkg CDN
             html = f"""
-    <div id="{viewer_id}" style="width: 100%; height: 800px;"></div>
-    <style type="text/css">
-    {papaya_css}
-    </style>
-    <script type="text/javascript">
-    {papaya_js}
-    </script>
-    <script type="text/javascript">
-    (function() {{
-        // Wait for Papaya to load
-        function initPapaya() {{
-            if (typeof papaya === 'undefined' || typeof papaya.Container === 'undefined') {{
-                setTimeout(initPapaya, 100);
-                return;
-            }}
+<div style="width:100%;max-width:900px;height:600px;position:relative;">
+    <canvas id="{canvas_id}" width="900" height="600" style="width:100%;height:100%;display:block;background:#000;border:1px solid #444;border-radius:4px;"></canvas>
+    <div id="{canvas_id}-status" style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.65);color:#fff;font:12px/1.4 monospace;padding:6px 8px;border-radius:4px;">Loading NIfTI...</div>
+</div>
+<script type="module">
+(async () => {{
+    const statusEl = document.getElementById('{canvas_id}-status');
+    try {{
+        statusEl.textContent = 'Fetching NiiVue...';
+        const {{ Niivue }} = await import('https://unpkg.com/@niivue/niivue@0.57.0/dist/index.js');
+        statusEl.textContent = 'Initializing viewer...';
 
-            // Papaya loaded - manually initialize
-            var params = {{}};
-            params["images"] = ["{self.nifti_data_url}"];
-            params["kioskMode"] = false;
-            params["showControls"] = true;
+        // Volume definition: name with .nii.gz extension helps some downstream heuristics
+        const volumes = [{{ url: '{data_url}', name: 'volume.nii.gz', visible: true, opacity: 1 }}];
 
-            // Manual initialization
-            papaya.Container.startPapaya();
-            papaya.Container.addViewer("{viewer_id}", params);
-        }}
+        const nv = new Niivue({{
+            isResizeCanvas: true,
+            logging: false,
+            show3Dcrosshair: true,
+            textHeight: 0.04,
+            multiplanarForceRender: true  // ensure 3D panel is shown
+        }});
 
-        initPapaya();
-    }})();
-    </script>
-    """
+        await nv.attachTo('{canvas_id}');
+        statusEl.textContent = 'Loading volume...';
+        await nv.loadVolumes(volumes);
+        nv.setSliceType(nv.sliceTypeMultiplanar);
+        nv.opts.multiplanarForceRender = true; // double-assurance even if options change
+
+        // Slight delay to allow WebGL context settle before first draw
+        setTimeout(() => {{
+            nv.updateGLVolume();
+            nv.drawScene();
+            statusEl.style.display = 'none';
+            console.log('NiiVue ready (multiplanar + 3D)');
+        }}, 200);
+    }} catch (err) {{
+        console.error('NiiVue error:', err);
+        statusEl.textContent = 'Error: ' + err.message;
+        statusEl.style.background = 'rgba(160,0,0,.75)';
+    }}
+}})();
+</script>
+"""
             return html
 
 
