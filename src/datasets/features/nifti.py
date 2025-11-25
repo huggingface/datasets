@@ -44,60 +44,16 @@ if config.NIBABEL_AVAILABLE:
             Shows 4 panels (axial, sagittal, coronal + 3D rendering) in a single WebGL canvas
             without requiring any additional user parameters.
             """
-            # Serialize image to base64 data URL (works for in-memory objects and remote bytes)
+            from ipyniivue import NiiVue, SliceType, ShowRender, Volume
+            from IPython.display import display
+
             bytes_ = self.nifti_image.to_bytes()
-            b64 = base64.b64encode(bytes_).decode("utf-8")
-            data_url = f"data:application/octet-stream;base64,{b64}"
-
-            canvas_id = f"niivue-{uuid.uuid4().hex[:8]}"
-
-            # Minimal HTML + JS: one canvas, status overlay, lazy import of NiiVue via unpkg CDN
-            html = f"""
-<div style="width:100%;max-width:900px;height:600px;position:relative;">
-    <canvas id="{canvas_id}" width="900" height="600" style="width:100%;height:100%;display:block;background:#000;border:1px solid #444;border-radius:4px;"></canvas>
-    <div id="{canvas_id}-status" style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.65);color:#fff;font:12px/1.4 monospace;padding:6px 8px;border-radius:4px;">Loading NIfTI...</div>
-</div>
-<script type="module">
-(async () => {{
-    const statusEl = document.getElementById('{canvas_id}-status');
-    try {{
-        statusEl.textContent = 'Fetching NiiVue...';
-        const {{ Niivue }} = await import('https://unpkg.com/@niivue/niivue@0.57.0/dist/index.js');
-        statusEl.textContent = 'Initializing viewer...';
-
-        // Volume definition: name with .nii.gz extension helps some downstream heuristics
-        const volumes = [{{ url: '{data_url}', name: 'volume.nii.gz', visible: true, opacity: 1 }}];
-
-        const nv = new Niivue({{
-            isResizeCanvas: true,
-            logging: false,
-            show3Dcrosshair: true,
-            textHeight: 0.04,
-            multiplanarForceRender: true  // ensure 3D panel is shown
-        }});
-
-        await nv.attachTo('{canvas_id}');
-        statusEl.textContent = 'Loading volume...';
-        await nv.loadVolumes(volumes);
-        nv.setSliceType(nv.sliceTypeMultiplanar);
-        nv.opts.multiplanarForceRender = true; // double-assurance even if options change
-
-        // Slight delay to allow WebGL context settle before first draw
-        setTimeout(() => {{
-            nv.updateGLVolume();
-            nv.drawScene();
-            statusEl.style.display = 'none';
-            console.log('NiiVue ready (multiplanar + 3D)');
-        }}, 200);
-    }} catch (err) {{
-        console.error('NiiVue error:', err);
-        statusEl.textContent = 'Error: ' + err.message;
-        statusEl.style.background = 'rgba(160,0,0,.75)';
-    }}
-}})();
-</script>
-"""
-            return html
+            nv = NiiVue()
+            nv.set_slice_type(SliceType.MULTIPLANAR)
+            nv.opts.multiplanar_show_render = ShowRender.ALWAYS
+            volume = Volume(name="volume", data=bytes_)
+            nv.load_volumes([volume])
+            display(nv)
 
 
 @dataclass
