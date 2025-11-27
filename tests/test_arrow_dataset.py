@@ -4783,3 +4783,11 @@ def test_from_polars_save_to_disk_and_load_from_disk_round_trip_with_large_list(
 def test_polars_round_trip():
     ds = Dataset.from_dict({"x": [[1, 2], [3, 4, 5]], "y": ["a", "b"]})
     assert isinstance(Dataset.from_polars(ds.to_polars()), Dataset)
+    
+def test_add_column_and_item_without_fingerprint():
+    from datasets import Dataset
+    ds = Dataset.from_dict({"a": [1, 2]})
+
+    # add column
+    ds2 = ds.add_column("b", [3, 4])
+    assert "b"
