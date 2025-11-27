@@ -1,6 +1,4 @@
-import base64
 import os
-import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
@@ -39,41 +37,27 @@ if config.NIBABEL_AVAILABLE:
             self.nifti_image = nifti_image
 
         def _repr_html_(self):
+            from ipyniivue import NiiVue, ShowRender, SliceType, Volume
+            from IPython.display import display
+
             bytes_ = self.nifti_image.to_bytes()
-            b64 = base64.b64encode(bytes_).decode("utf-8")
-
-            self.nifti_data_url = f"data:application/octet-stream;base64,{b64}"
-            viewer_id = f"papaya-{uuid.uuid4().hex[:8]}"
-
-            html = f"""
-    <div id="{viewer_id}" style="width: 100%; height: 800px;"></div>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/papaya-viewer@1.0.1455/release/current/standard/papaya.css" />
-    <script src="https://cdn.jsdelivr.net/npm/papaya-viewer@1.0.1455/release/current/standard/papaya.js"></script>
-    <script type="text/javascript">
-    (function() {{
-        // Wait for Papaya to load
-        function initPapaya() {{
-            if (typeof papaya === 'undefined' || typeof papaya.Container === 'undefined') {{
-                setTimeout(initPapaya, 100);
-                return;
-            }}
-
-            // Papaya loaded - manually initialize
-            var params = {{}};
-            params["images"] = ["{self.nifti_data_url}"];
-            params["kioskMode"] = false;
-            params["showControls"] = true;
-
-            // Manual initialization
-            papaya.Container.startPapaya();
-            papaya.Container.addViewer("{viewer_id}", params);
-        }}
-
-        initPapaya();
-    }})();
-    </script>
-    """
-            return html
+            nv = NiiVue()
+            nv.set_slice_type(SliceType.MULTIPLANAR)
+            nv.opts.multiplanar_show_render = ShowRender.ALWAYS
+            nv.opts.show_3d_crosshair = True
+            nv.opts.multiplanar_force_render = True
+            name = None
+            if hasattr(self.nifti_image, "file_map"):
+                if (
+                    "image" in self.nifti_image.file_map
+                    and getattr(self.nifti_image.file_map["image"], "filename", None) is not None
+                ):
+                    name = self.nifti_image.file_map["image"].filename
+            if name is None:
+                name = "volume.nii.gz"
+            volume = Volume(name=name, data=bytes_)
+            nv.load_volumes([volume])
+            display(nv)
 
 
 @dataclass
