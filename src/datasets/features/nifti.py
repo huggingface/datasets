@@ -1,6 +1,4 @@
-import base64
 import os
-import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
@@ -44,14 +42,23 @@ if config.NIBABEL_AVAILABLE:
             Shows 4 panels (axial, sagittal, coronal + 3D rendering) in a single WebGL canvas
             without requiring any additional user parameters.
             """
-            from ipyniivue import NiiVue, SliceType, ShowRender, Volume
+            from ipyniivue import NiiVue, ShowRender, SliceType, Volume
             from IPython.display import display
 
             bytes_ = self.nifti_image.to_bytes()
             nv = NiiVue()
             nv.set_slice_type(SliceType.MULTIPLANAR)
             nv.opts.multiplanar_show_render = ShowRender.ALWAYS
-            volume = Volume(name="volume", data=bytes_)
+            name = None
+            if hasattr(self.nifti_image, "file_map"):
+                if (
+                    "image" in self.nifti_image.file_map
+                    and getattr(self.nifti_image.file_map["image"], "filename", None) is not None
+                ):
+                    name = self.nifti_image.file_map["image"].filename
+            if name is None:
+                name = "volume.nii.gz"
+            volume = Volume(name=name, data=bytes_)
             nv.load_volumes([volume])
             display(nv)
 
