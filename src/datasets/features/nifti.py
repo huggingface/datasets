@@ -49,6 +49,8 @@ if config.NIBABEL_AVAILABLE:
             nv = NiiVue()
             nv.set_slice_type(SliceType.MULTIPLANAR)
             nv.opts.multiplanar_show_render = ShowRender.ALWAYS
+            nv.opts.show_3d_crosshair = True
+            nv.opts.multiplanar_force_render = True
             name = None
             if hasattr(self.nifti_image, "file_map"):
                 if (
