@@ -16,8 +16,10 @@ __all__ = [
     "Video",
     "Pdf",
     "Nifti",
+    "Dicom",
 ]
 from .audio import Audio
+from .dicom import Dicom
 from .features import Array2D, Array3D, Array4D, Array5D, ClassLabel, Features, LargeList, List, Sequence, Value
 from .image import Image
 from .nifti import Nifti
