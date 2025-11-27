@@ -37,11 +37,6 @@ if config.NIBABEL_AVAILABLE:
             self.nifti_image = nifti_image
 
         def _repr_html_(self):
-            """Return an HTML representation using NiiVue multiplanar view.
-
-            Shows 4 panels (axial, sagittal, coronal + 3D rendering) in a single WebGL canvas
-            without requiring any additional user parameters.
-            """
             from ipyniivue import NiiVue, ShowRender, SliceType, Volume
             from IPython.display import display
 
