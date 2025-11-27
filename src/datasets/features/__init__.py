@@ -16,10 +16,12 @@ __all__ = [
     "Video",
     "Pdf",
     "Nifti",
+    "Midi",
 ]
 from .audio import Audio
 from .features import Array2D, Array3D, Array4D, Array5D, ClassLabel, Features, LargeList, List, Sequence, Value
 from .image import Image
+from .midi import Midi
 from .nifti import Nifti
 from .pdf import Pdf
 from .translation import Translation, TranslationVariableLanguages
