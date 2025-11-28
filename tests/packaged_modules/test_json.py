@@ -265,3 +265,30 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
     generator = builder._generate_tables([[request.getfixturevalue(file_fixture)]])
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.column_names == ["ID", "Language", "Topic"]
+
+
+def test_json_generate_tables_with_columns_subset(jsonl_file):
+    # Keep only col_1
+    builder = Json(columns=["col_1"])
+    generator = builder._generate_tables([[jsonl_file]])
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa_table.column_names == ["col_1"]
+    assert pa_table.to_pydict() == {"col_1": [-1, 1, 10]}
+
+
+def test_json_generate_tables_with_columns_and_missing(jsonl_file):
+    # Ask for col_1 and a non-existent column -> should be filled with None
+    builder = Json(columns=["col_1", "missing_col"])
+    generator = builder._generate_tables([[jsonl_file]])
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa_table.column_names == ["col_1", "missing_col"]
+    assert pa_table.to_pydict() == {"col_1": [-1, 1, 10], "missing_col": [None, None, None]}
+
+
+def test_json_generate_tables_with_columns_on_list_of_strings(json_file_with_list_of_strings):
+    # list-of-strings becomes a single "text" column; ensure selection works
+    builder = Json(columns=["text"])
+    generator = builder._generate_tables([[json_file_with_list_of_strings]])
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa_table.column_names == ["text"]
+    assert pa_table.to_pydict() == {"text": ["First text.", "Second text.", "Third text."]}
