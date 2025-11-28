@@ -180,6 +180,15 @@ For now only the Arrow streaming format is supported. The Arrow IPC file format 
 
 Note that the HDF5 loader assumes that the file has "tabular" structure, i.e. that all datasets in the file have (the same number of) rows on their first dimension.
 
+## FASTA files
+
+[FASTA](https://www.ncbi.nlm.nih.gov/genbank/fastaformat/) files are commonly used genomic, protein, and nucleotide sequencing data.
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("fasta", data_files="data.fasta")
+```
+
 ### SQL
 
 Read database contents with [`~datasets.Dataset.from_sql`] by specifying the URI to connect to your database. You can read both table names and queries:
