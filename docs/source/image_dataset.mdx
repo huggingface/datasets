@@ -208,3 +208,17 @@ f18b91585c4d3f3e.json
 ```
 
 For more details on the WebDataset format and the python library, please check the [WebDataset documentation](https://webdataset.github.io/webdataset).
+
+## Visualizing images in Jupyter
+If you're working in a Jupyter notebook, we added built-in support for visualizing images directly in the notebook. When you load an image dataset, the images will be displayed automatically when you return them.
+
+```py
+from datasets import load_dataset
+
+ds = load_dataset("<path/to/folder>",
+                  split="<split>")
+
+ds[1]["nifti"]  # The image will be displayed directly in the notebook
+```
+
+![Jupyter image visualization example](imgs/image_dataset_jupyter.png)
