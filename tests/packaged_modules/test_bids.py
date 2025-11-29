@@ -100,3 +100,21 @@ def test_bids_loads_single_subject(minimal_bids_dataset):
     assert sample["suffix"] == "T1w"
     assert sample["datatype"] == "anat"
     assert sample["session"] is None
+
+
+@pytest.mark.skipif(
+    not datasets.config.PYBIDS_AVAILABLE,
+    reason="pybids not installed"
+)
+def test_bids_multi_subject(multi_subject_bids):
+    from datasets import load_dataset
+
+    ds = load_dataset("bids", data_dir=multi_subject_bids, trust_remote_code=True)
+
+    assert len(ds["train"]) == 4  # 2 subjects × 2 sessions
+
+    subjects = set(sample["subject"] for sample in ds["train"])
+    assert subjects == {"01", "02"}
+
+    sessions = set(sample["session"] for sample in ds["train"])
+    assert sessions == {"baseline", "followup"}
