@@ -14,6 +14,9 @@ class BidsConfig(datasets.BuilderConfig):
     """BuilderConfig for BIDS datasets."""
     data_dir: Optional[str] = None
     database_path: Optional[str] = None  # For pybids caching
+    subjects: Optional[list[str]] = None  # Filter by subject
+    sessions: Optional[list[str]] = None  # Filter by session
+    datatypes: Optional[list[str]] = None  # Filter by datatype
 
 
 class Bids(datasets.GeneratorBasedBuilder):
@@ -53,8 +56,17 @@ class Bids(datasets.GeneratorBasedBuilder):
             validate=False,  # Don't fail on minor validation issues
         )
 
+        # Build query kwargs
+        query = {"extension": [".nii", ".nii.gz"]}
+        if self.config.subjects:
+            query["subject"] = self.config.subjects
+        if self.config.sessions:
+            query["session"] = self.config.sessions
+        if self.config.datatypes:
+            query["datatype"] = self.config.datatypes
+
         # Get all NIfTI files
-        nifti_files = layout.get(extension=[".nii", ".nii.gz"])
+        nifti_files = layout.get(**query)
 
         return [
             datasets.SplitGenerator(
