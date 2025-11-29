@@ -90,6 +90,8 @@
       title: Create a document dataset
     - local: nifti_dataset
       title: Create a medical imaging dataset
+    - local: bids_dataset
+      title: Load a BIDS dataset
     title: "Vision"
   - sections:
     - local: nlp_load
