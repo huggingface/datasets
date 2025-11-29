@@ -75,7 +75,6 @@ def test_bids_module_imports():
 
 def test_bids_requires_pybids(monkeypatch):
     """Test helpful error when pybids not installed."""
-    import datasets.config
     from datasets.packaged_modules.bids.bids import Bids
 
     monkeypatch.setattr(datasets.config, "PYBIDS_AVAILABLE", False)
@@ -84,7 +83,10 @@ def test_bids_requires_pybids(monkeypatch):
         Bids()
 
 
-@pytest.mark.skipif(not datasets.config.PYBIDS_AVAILABLE, reason="pybids not installed")
+@pytest.mark.skipif(
+    not datasets.config.PYBIDS_AVAILABLE or not datasets.config.NIBABEL_AVAILABLE,
+    reason="pybids or nibabel not installed",
+)
 def test_bids_loads_single_subject(minimal_bids_dataset):
     from datasets import load_dataset
 
@@ -100,7 +102,10 @@ def test_bids_loads_single_subject(minimal_bids_dataset):
     assert sample["session"] is None
 
 
-@pytest.mark.skipif(not datasets.config.PYBIDS_AVAILABLE, reason="pybids not installed")
+@pytest.mark.skipif(
+    not datasets.config.PYBIDS_AVAILABLE or not datasets.config.NIBABEL_AVAILABLE,
+    reason="pybids or nibabel not installed",
+)
 def test_bids_multi_subject(multi_subject_bids):
     from datasets import load_dataset
 

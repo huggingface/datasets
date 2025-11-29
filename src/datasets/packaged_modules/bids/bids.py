@@ -1,4 +1,5 @@
 import json
+import os
 from dataclasses import dataclass
 from typing import Optional
 
@@ -28,6 +29,8 @@ class Bids(datasets.GeneratorBasedBuilder):
     def _info(self):
         if not config.PYBIDS_AVAILABLE:
             raise ImportError("To load BIDS datasets, please install pybids: pip install pybids")
+        if not config.NIBABEL_AVAILABLE:
+            raise ImportError("To load BIDS datasets, please install nibabel: pip install nibabel")
 
         return datasets.DatasetInfo(
             features=datasets.Features(
@@ -46,8 +49,6 @@ class Bids(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        import os
-
         from bids import BIDSLayout
 
         if not self.config.data_dir:
