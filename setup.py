@@ -210,7 +210,7 @@ PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
 NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 
-PYBIDS_REQUIRE = ["pybids>=0.21.0"]
+PYBIDS_REQUIRE = ["pybids>=0.21.0"] + NIBABEL_REQUIRE
 
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
