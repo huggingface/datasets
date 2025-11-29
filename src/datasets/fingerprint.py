@@ -49,7 +49,35 @@ class _TempCacheDir:
     """
 
     def __init__(self):
-        self.name = tempfile.mkdtemp(prefix=config.TEMP_CACHE_DIR_PREFIX)
+        # Check if TMPDIR is set and handle the case where it doesn't exist
+        tmpdir = os.environ.get("TMPDIR")
+        # Normalize the path to handle any path resolution issues
+        if tmpdir:
+            tmpdir = os.path.normpath(tmpdir)
+            if not os.path.exists(tmpdir):
+                # Auto-create the directory if it doesn't exist
+                # This prevents tempfile from silently falling back to /tmp
+                try:
+                    os.makedirs(tmpdir, exist_ok=True)
+                    logger.info(f"Created TMPDIR directory: {tmpdir}")
+                except OSError as e:
+                    logger.warning(
+                        f"TMPDIR is set to '{tmpdir}' but the directory does not exist and could not be created: {e}. "
+                        f"Falling back to default temporary directory."
+                    )
+                    tmpdir = None
+            # If tmpdir exists, verify it's actually a directory and writable
+            elif not os.path.isdir(tmpdir):
+                logger.warning(
+                    f"TMPDIR is set to '{tmpdir}' but it is not a directory. "
+                    f"Falling back to default temporary directory."
+                )
+                tmpdir = None
+
+        # Explicitly pass the directory to mkdtemp to ensure TMPDIR is respected
+        # This works even if tempfile.gettempdir() was already called and cached
+        # Pass dir=None if tmpdir is None to use default temp directory
+        self.name = tempfile.mkdtemp(prefix=config.TEMP_CACHE_DIR_PREFIX, dir=tmpdir)
         self._finalizer = weakref.finalize(self, self._cleanup)
 
     def _cleanup(self):
