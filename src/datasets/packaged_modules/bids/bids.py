@@ -45,10 +45,20 @@ class Bids(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
+        import os
         from bids import BIDSLayout
 
         if not self.config.data_dir:
             raise ValueError("data_dir is required for BIDS datasets")
+
+        if not os.path.isdir(self.config.data_dir):
+            raise ValueError(f"data_dir does not exist: {self.config.data_dir}")
+
+        desc_file = os.path.join(self.config.data_dir, "dataset_description.json")
+        if not os.path.exists(desc_file):
+            raise ValueError(
+                f"Not a valid BIDS dataset: missing dataset_description.json in {self.config.data_dir}"
+            )
 
         layout = BIDSLayout(
             self.config.data_dir,
@@ -67,6 +77,12 @@ class Bids(datasets.GeneratorBasedBuilder):
 
         # Get all NIfTI files
         nifti_files = layout.get(**query)
+
+        if not nifti_files:
+            logger.warning(
+                f"No NIfTI files found in {self.config.data_dir} with filters: {query}. "
+                "Check that the dataset is valid BIDS and filters match existing data."
+            )
 
         return [
             datasets.SplitGenerator(
