@@ -12,6 +12,7 @@ logger = datasets.utils.logging.get_logger(__name__)
 @dataclass
 class BidsConfig(datasets.BuilderConfig):
     """BuilderConfig for BIDS datasets."""
+
     data_dir: Optional[str] = None
     database_path: Optional[str] = None  # For pybids caching
     subjects: Optional[list[str]] = None  # Filter by subject
@@ -26,26 +27,27 @@ class Bids(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         if not config.PYBIDS_AVAILABLE:
-            raise ImportError(
-                "To load BIDS datasets, please install pybids: pip install pybids"
-            )
+            raise ImportError("To load BIDS datasets, please install pybids: pip install pybids")
 
         return datasets.DatasetInfo(
-            features=datasets.Features({
-                "subject": datasets.Value("string"),
-                "session": datasets.Value("string"),
-                "datatype": datasets.Value("string"),
-                "suffix": datasets.Value("string"),
-                "task": datasets.Value("string"),
-                "run": datasets.Value("string"),
-                "path": datasets.Value("string"),
-                "nifti": datasets.Nifti(),
-                "metadata": datasets.Value("string"),
-            })
+            features=datasets.Features(
+                {
+                    "subject": datasets.Value("string"),
+                    "session": datasets.Value("string"),
+                    "datatype": datasets.Value("string"),
+                    "suffix": datasets.Value("string"),
+                    "task": datasets.Value("string"),
+                    "run": datasets.Value("string"),
+                    "path": datasets.Value("string"),
+                    "nifti": datasets.Nifti(),
+                    "metadata": datasets.Value("string"),
+                }
+            )
         )
 
     def _split_generators(self, dl_manager):
         import os
+
         from bids import BIDSLayout
 
         if not self.config.data_dir:
@@ -56,9 +58,7 @@ class Bids(datasets.GeneratorBasedBuilder):
 
         desc_file = os.path.join(self.config.data_dir, "dataset_description.json")
         if not os.path.exists(desc_file):
-            raise ValueError(
-                f"Not a valid BIDS dataset: missing dataset_description.json in {self.config.data_dir}"
-            )
+            raise ValueError(f"Not a valid BIDS dataset: missing dataset_description.json in {self.config.data_dir}")
 
         layout = BIDSLayout(
             self.config.data_dir,
@@ -99,14 +99,17 @@ class Bids(datasets.GeneratorBasedBuilder):
             metadata = layout.get_metadata(bids_file.path)
             metadata_str = json.dumps(metadata) if metadata else "{}"
 
-            yield idx, {
-                "subject": entities.get("subject"),
-                "session": entities.get("session"),
-                "datatype": entities.get("datatype"),
-                "suffix": entities.get("suffix"),
-                "task": entities.get("task"),
-                "run": str(entities.get("run")) if entities.get("run") else None,
-                "path": bids_file.path,
-                "nifti": bids_file.path,
-                "metadata": metadata_str,
-            }
+            yield (
+                idx,
+                {
+                    "subject": entities.get("subject"),
+                    "session": entities.get("session"),
+                    "datatype": entities.get("datatype"),
+                    "suffix": entities.get("suffix"),
+                    "task": entities.get("task"),
+                    "run": str(entities.get("run")) if entities.get("run") else None,
+                    "path": bids_file.path,
+                    "nifti": bids_file.path,
+                    "metadata": metadata_str,
+                },
+            )
