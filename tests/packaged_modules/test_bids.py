@@ -60,6 +60,9 @@ def multi_subject_bids(tmp_path):
                 file_path.write_bytes(b"DUMMY NIFTI CONTENT")
                 
             (anat_dir / f"sub-{sub}_ses-{ses}_T1w.json").write_text(
+                json.dumps({"RepetitionTime": 2.0})
+            )
+
     return str(tmp_path)
 
 
