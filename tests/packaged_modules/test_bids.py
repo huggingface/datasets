@@ -79,9 +79,8 @@ def test_bids_requires_pybids(monkeypatch):
 
     monkeypatch.setattr(datasets.config, "PYBIDS_AVAILABLE", False)
 
-    builder = Bids()
     with pytest.raises(ImportError, match="pybids"):
-        builder._info()
+        Bids()
 
 
 @pytest.mark.skipif(
