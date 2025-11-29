@@ -267,6 +267,34 @@ class TestPushToHub:
             num_commits_after_push = len(self._api.list_repo_commits(ds_name, repo_type="dataset", token=self._token))
             assert num_commits_after_push - num_commits_before_push > 1
 
+    def _wait_for_repo_ready(self, repo_id, max_wait=30):
+        """Wait for repository to be in a consistent state after push operations.
+
+        This helper addresses race conditions where rapid successive push_to_hub calls
+        don't wait for Hub's LFS object propagation between pushes, causing errors like:
+        "LFS pointer pointed to a file that does not exist"
+
+        Args:
+            repo_id: The repository ID to check.
+            max_wait: Maximum time in seconds to wait for repository readiness.
+
+        Raises:
+            TimeoutError: If repository is not ready within max_wait seconds.
+        """
+        from huggingface_hub.errors import HfHubHTTPError
+
+        start_time = time.monotonic()
+        while (time.monotonic() - start_time) < max_wait:
+            try:
+                # Verify we can list files (repo is consistent)
+                self._api.list_repo_files(repo_id, repo_type="dataset", token=self._token)
+                # Small delay to ensure LFS objects are fully propagated
+                time.sleep(1)
+                return
+            except HfHubHTTPError:
+                time.sleep(1)
+        raise TimeoutError(f"Repository {repo_id} not ready after {max_wait}s")
+
     def test_push_dataset_dict_to_hub_overwrite_files(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
         ds2 = Dataset.from_dict({"x": list(range(100)), "y": list(range(100))})
@@ -277,6 +305,9 @@ class TestPushToHub:
         # Verify that the new files contain the correct dataset.
         with temporary_repo() as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token)
+
+            # Wait for Hub to fully process the first push
+            self._wait_for_repo_ready(ds_name)
 
             with tempfile.TemporaryDirectory() as tmp:
                 # Add a file starting with "data" to ensure it doesn't get deleted.
@@ -291,6 +322,9 @@ class TestPushToHub:
                     repo_type="dataset",
                     token=self._token,
                 )
+
+            # Wait again before second push
+            self._wait_for_repo_ready(ds_name)
 
             local_ds.push_to_hub(ds_name, token=self._token, max_shard_size=500 << 5)
 
@@ -320,8 +354,11 @@ class TestPushToHub:
 
         # Push to hub two times, but the second time with fewer files.
         # Verify that the new files contain the correct dataset and that non-necessary files have been deleted.
-        with temporary_repo(ds_name):
-            local_ds.push_to_hub(ds_name, token=self._token, max_shard_size=500 << 5)
+        with temporary_repo() as ds_name_2:
+            local_ds.push_to_hub(ds_name_2, token=self._token, max_shard_size=500 << 5)
+
+            # Wait for Hub to fully process the first push
+            self._wait_for_repo_ready(ds_name_2)
 
             with tempfile.TemporaryDirectory() as tmp:
                 # Add a file starting with "data" to ensure it doesn't get deleted.
@@ -332,15 +369,18 @@ class TestPushToHub:
                 self._api.upload_file(
                     path_or_fileobj=str(path),
                     path_in_repo="datafile.txt",
-                    repo_id=ds_name,
+                    repo_id=ds_name_2,
                     repo_type="dataset",
                     token=self._token,
                 )
 
-            local_ds.push_to_hub(ds_name, token=self._token)
+            # Wait again before second push
+            self._wait_for_repo_ready(ds_name_2)
+
+            local_ds.push_to_hub(ds_name_2, token=self._token)
 
             # Ensure that there are two files on the repository that have the correct name
-            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
+            files = sorted(self._api.list_repo_files(ds_name_2, repo_type="dataset", token=self._token))
             assert files == [
                 ".gitattributes",
                 "README.md",
@@ -350,9 +390,9 @@ class TestPushToHub:
             ]
 
             # Keeping the "datafile.txt" breaks the load_dataset to think it's a text-based dataset
-            self._api.delete_file("datafile.txt", repo_id=ds_name, repo_type="dataset", token=self._token)
+            self._api.delete_file("datafile.txt", repo_id=ds_name_2, repo_type="dataset", token=self._token)
 
-            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+            hub_ds = load_dataset(ds_name_2, download_mode="force_redownload")
 
             assert local_ds.column_names == hub_ds.column_names
             assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
