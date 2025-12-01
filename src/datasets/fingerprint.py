@@ -61,18 +61,16 @@ class _TempCacheDir:
                     os.makedirs(tmpdir, exist_ok=True)
                     logger.info(f"Created TMPDIR directory: {tmpdir}")
                 except OSError as e:
-                    logger.warning(
+                    raise OSError(
                         f"TMPDIR is set to '{tmpdir}' but the directory does not exist and could not be created: {e}. "
-                        f"Falling back to default temporary directory."
-                    )
-                    tmpdir = None
+                        "Please create it manually or unset TMPDIR to fall back to the default temporary directory."
+                    ) from e
             # If tmpdir exists, verify it's actually a directory and writable
             elif not os.path.isdir(tmpdir):
-                logger.warning(
+                raise OSError(
                     f"TMPDIR is set to '{tmpdir}' but it is not a directory. "
-                    f"Falling back to default temporary directory."
+                    "Please point TMPDIR to a writable directory or unset it to fall back to the default temporary directory."
                 )
-                tmpdir = None
 
         # Explicitly pass the directory to mkdtemp to ensure TMPDIR is respected
         # This works even if tempfile.gettempdir() was already called and cached
