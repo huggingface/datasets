@@ -300,7 +300,7 @@ class Nifti:
         return array_cast(storage, self.pa_type)
 
 
-def encode_nibabel_image(img: "nib.Nifti1Image") -> dict[str, Optional[Union[str, bytes]]]:
+def encode_nibabel_image(img: "nib.Nifti1Image", force_bytes: bool = False) -> dict[str, Optional[Union[str, bytes]]]:
     """
     Encode a nibabel image object into a dictionary.
 
@@ -313,7 +313,7 @@ def encode_nibabel_image(img: "nib.Nifti1Image") -> dict[str, Optional[Union[str
     Returns:
         dict: A dictionary with "path" or "bytes" field.
     """
-    if hasattr(img, "file_map") and img.file_map is not None:
+    if hasattr(img, "file_map") and img.file_map is not None and not force_bytes:
         filename = img.file_map["image"].filename
         return {"path": filename, "bytes": None}
 
