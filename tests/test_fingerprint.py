@@ -504,34 +504,42 @@ def test_temp_cache_dir_without_tmpdir(monkeypatch):
 
 
 def test_temp_cache_dir_tmpdir_creation_failure(tmp_path, monkeypatch, caplog):
-    """Test that _TempCacheDir handles failure to create TMPDIR gracefully."""
+    """Test that _TempCacheDir raises if TMPDIR cannot be created."""
     from unittest.mock import patch
 
-    from datasets.fingerprint import get_temporary_cache_files_directory
+    from datasets.fingerprint import _TempCacheDir
 
     # Set TMPDIR to a path that will fail to create (e.g., invalid permissions)
     # Use a path that's likely to fail on creation
     tmpdir_path = tmp_path / "nonexistent" / "nested" / "path"
     monkeypatch.setenv("TMPDIR", str(tmpdir_path))
 
-    # Clear any existing temp cache dir
-    import datasets.fingerprint
-
-    datasets.fingerprint._TEMP_DIR_FOR_TEMP_CACHE_FILES = None
-
     # Mock os.makedirs to raise an error
     with patch("datasets.fingerprint.os.makedirs", side_effect=OSError("Permission denied")):
-        with caplog.at_level("WARNING", logger="datasets.fingerprint"):
-            cache_dir = get_temporary_cache_files_directory()
+        with pytest.raises(OSError) as excinfo:
+            _TempCacheDir()
 
-    # Verify warning was logged
-    assert "TMPDIR is set to" in caplog.text
-    assert "could not be created" in caplog.text
-    # Verify it falls back to default temp directory
-    from tempfile import gettempdir
+    # Verify the error message gives clear context about TMPDIR
+    msg = str(excinfo.value)
+    assert "TMPDIR is set to" in msg
+    assert "could not be created" in msg
 
-    default_temp = gettempdir()
-    assert cache_dir.startswith(default_temp), f"Cache dir {cache_dir} should fall back to default temp {default_temp}"
+
+def test_temp_cache_dir_tmpdir_not_directory(tmp_path, monkeypatch):
+    """Test that _TempCacheDir raises if TMPDIR points to a non-directory."""
+    from datasets.fingerprint import _TempCacheDir
+
+    # Create a regular file and point TMPDIR to it
+    file_path = tmp_path / "not_a_dir"
+    file_path.write_text("not a directory")
+    monkeypatch.setenv("TMPDIR", str(file_path))
+
+    with pytest.raises(OSError) as excinfo:
+        _TempCacheDir()
+
+    msg = str(excinfo.value)
+    assert "TMPDIR is set to" in msg
+    assert "is not a directory" in msg
 
 
 def test_fingerprint_when_transform_version_changes():
