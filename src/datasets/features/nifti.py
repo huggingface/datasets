@@ -309,6 +309,7 @@ def encode_nibabel_image(img: "nib.Nifti1Image", force_bytes: bool = False) -> d
 
     Args:
         img: A nibabel image object (e.g., Nifti1Image).
+        force_bytes: If `True`, always serialize to bytes even if a file path exists. Needed to upload bytes properly.
 
     Returns:
         dict: A dictionary with "path" or "bytes" field.
