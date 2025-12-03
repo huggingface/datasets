@@ -59,7 +59,6 @@ from .filesystems import (
 from .fingerprint import Hasher
 from .info import DatasetInfo, PostProcessedInfo
 from .iterable_dataset import ArrowExamplesIterable, ExamplesIterable, IterableDataset
-from .keyhash import DuplicatedKeysError
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator, SplitInfo
 from .streaming import extend_dataset_builder_for_streaming
@@ -979,13 +978,6 @@ class DatasetBuilder:
                     + "\nOriginal error:\n"
                     + str(e)
                 ) from None
-            # If check_duplicates is set to True , then except DuplicatedKeysError
-            except DuplicatedKeysError as e:
-                raise DuplicatedKeysError(
-                    e.key,
-                    e.duplicate_key_indices,
-                    fix_msg=f"To avoid duplicate keys, please fix the dataset splits for {self.name}",
-                ) from None
             dl_manager.manage_extracted_files()
 
         if verification_mode == VerificationMode.BASIC_CHECKS or verification_mode == VerificationMode.ALL_CHECKS:
@@ -1400,7 +1392,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
     def _prepare_split(
         self,
         split_generator: SplitGenerator,
-        check_duplicate_keys: bool,
         file_format="arrow",
         num_proc: Optional[int] = None,
         max_shard_size: Optional[Union[int, str]] = None,
@@ -1440,7 +1431,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
             "file_format": file_format,
             "max_shard_size": max_shard_size,
             "split_info": split_info,
-            "check_duplicate_keys": check_duplicate_keys,
         }
 
         if num_proc is None or num_proc == 1:
@@ -1558,7 +1548,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
         file_format: str,
         max_shard_size: int,
         split_info: SplitInfo,
-        check_duplicate_keys: bool,
         job_id: int,
     ) -> Iterable[tuple[int, bool, tuple[int, int, Features, int, int, int]]]:
         generator = self._generate_examples(**gen_kwargs)
@@ -1575,8 +1564,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 features=self.info.features,
                 path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
                 writer_batch_size=self._writer_batch_size,
-                hash_salt=split_info.name,
-                check_duplicates=check_duplicate_keys,
                 storage_options=self._fs.storage_options,
                 embed_local_files=embed_local_files,
             )
@@ -1594,13 +1581,11 @@ class GeneratorBasedBuilder(DatasetBuilder):
                             features=writer._features,
                             path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
                             writer_batch_size=self._writer_batch_size,
-                            hash_salt=split_info.name,
-                            check_duplicates=check_duplicate_keys,
                             storage_options=self._fs.storage_options,
                             embed_local_files=embed_local_files,
                         )
                     example = self.info.features.encode_example(record) if self.info.features is not None else record
-                    writer.write(example, (input_shard_idx, example_idx))
+                    writer.write(example)
                     if len(input_shard_lengths) == input_shard_idx:
                         input_shard_lengths.append(1)
                     else:
@@ -1634,8 +1619,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
         super()._download_and_prepare(
             dl_manager,
             verification_mode,
-            check_duplicate_keys=verification_mode == VerificationMode.BASIC_CHECKS
-            or verification_mode == VerificationMode.ALL_CHECKS,
             **prepare_splits_kwargs,
         )
 

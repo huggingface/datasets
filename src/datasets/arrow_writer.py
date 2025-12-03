@@ -16,7 +16,7 @@
 import json
 import sys
 from collections.abc import Iterable
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import fsspec
 import numpy as np
@@ -40,7 +40,6 @@ from .features.features import (
 )
 from .filesystems import is_remote_filesystem
 from .info import DatasetInfo
-from .keyhash import DuplicatedKeysError, KeyHasher
 from .table import array_cast, cast_array_to_feature, embed_table_storage, table_cast
 from .utils import logging
 from .utils.py_utils import asdict, convert_file_size_to_int, first_non_null_non_empty_value
@@ -414,8 +413,6 @@ class ArrowWriter:
         stream: Optional[pa.NativeFile] = None,
         fingerprint: Optional[str] = None,
         writer_batch_size: Optional[int] = None,
-        hash_salt: Optional[str] = None,
-        check_duplicates: Optional[bool] = False,
         disable_nullable: bool = False,
         update_features: bool = False,
         with_metadata: bool = True,
@@ -435,13 +432,6 @@ class ArrowWriter:
             self._features = None
             self._schema = None
 
-        if hash_salt is not None:
-            # Create KeyHasher instance using split name as hash salt
-            self._hasher = KeyHasher(hash_salt)
-        else:
-            self._hasher = KeyHasher("")
-
-        self._check_duplicates = check_duplicates
         self._disable_nullable = disable_nullable
 
         if stream is None:
@@ -592,50 +582,20 @@ class ArrowWriter:
     def write(
         self,
         example: dict[str, Any],
-        key: Optional[Union[str, int, bytes]] = None,
         writer_batch_size: Optional[int] = None,
     ):
         """Add a given (Example,Key) pair to the write-pool of examples which is written to file.
 
         Args:
             example: the Example to add.
-            key: Optional, a unique identifier(str, int or bytes) associated with each example
         """
-        # Utilize the keys and duplicate checking when `self._check_duplicates` is passed True
-        if self._check_duplicates:
-            # Create unique hash from key and store as (key, example) pairs
-            hash = self._hasher.hash(key)
-            self.current_examples.append((example, hash))
-            # Maintain record of keys and their respective hashes for checking duplicates
-            self.hkey_record.append((hash, key))
-        else:
-            # Store example as a tuple so as to keep the structure of `self.current_examples` uniform
-            self.current_examples.append((example, ""))
+        # Store example as a tuple so as to keep the structure of `self.current_examples` uniform
+        self.current_examples.append((example, ""))
 
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
         if writer_batch_size is not None and len(self.current_examples) >= writer_batch_size:
-            if self._check_duplicates:
-                self.check_duplicate_keys()
-                # Re-initializing to empty list for next batch
-                self.hkey_record = []
-
             self.write_examples_on_file()
-
-    def check_duplicate_keys(self):
-        """Raises error if duplicates found in a batch"""
-        tmp_record = set()
-        for hash, key in self.hkey_record:
-            if hash in tmp_record:
-                duplicate_key_indices = [
-                    str(self._num_examples + index)
-                    for index, (duplicate_hash, _) in enumerate(self.hkey_record)
-                    if duplicate_hash == hash
-                ]
-
-                raise DuplicatedKeysError(key, duplicate_key_indices)
-            else:
-                tmp_record.add(hash)
 
     def write_row(self, row: pa.Table, writer_batch_size: Optional[int] = None):
         """Add a given single-row Table to the write-pool of rows which is written to file.
@@ -721,10 +681,6 @@ class ArrowWriter:
     def finalize(self, close_stream=True):
         self.write_rows_on_file()
         # In case current_examples < writer_batch_size, but user uses finalize()
-        if self._check_duplicates:
-            self.check_duplicate_keys()
-            # Re-initializing to empty list for next batch
-            self.hkey_record = []
         self.write_examples_on_file()
         # If schema is known, infer features even if no examples were written
         if self.pa_writer is None and self.schema:
