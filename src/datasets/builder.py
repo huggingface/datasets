@@ -22,7 +22,6 @@ import inspect
 import os
 import posixpath
 import shutil
-import textwrap
 import time
 import urllib
 from collections.abc import Iterable, Mapping
@@ -50,7 +49,7 @@ from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadManager, DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager, xjoin
-from .exceptions import DatasetGenerationCastError, DatasetGenerationError, FileFormatError, ManualDownloadError
+from .exceptions import DatasetGenerationCastError, DatasetGenerationError, FileFormatError
 from .features import Features
 from .filesystems import (
     is_remote_filesystem,
@@ -422,16 +421,6 @@ class DatasetBuilder:
         self.__dict__ = d
         # Re-enable streaming, since patched functions are not kept when pickling
         extend_dataset_builder_for_streaming(self)
-
-    # Must be set for datasets that use 'data_dir' functionality - the ones
-    # that require users to do additional steps to download the data
-    # (this is usually due to some external regulations / rules).
-    # This field should contain a string with user instructions, including
-    # the list of files that should be present. It will be
-    # displayed in the dataset documentation.
-    @property
-    def manual_download_instructions(self) -> Optional[str]:
-        return None
 
     def _check_legacy_cache(self) -> Optional[str]:
         """Check for the old cache directory template {cache_dir}/{namespace}___{builder_name} from 2.13"""
@@ -882,8 +871,6 @@ class DatasetBuilder:
                 _dest = self._fs._strip_protocol(self._output_dir) if is_local else self._output_dir
                 logger.info(f"Downloading and preparing dataset {self.dataset_name}/{self.config.name} to {_dest}...")
 
-            self._check_manual_download(dl_manager)
-
             # Create a tmp dir and rename to self._output_dir on successful exit.
             with incomplete_dir(self._output_dir) as tmp_output_dir:
                 # Temporarily assign _output_dir to tmp_data_dir to avoid having to forward
@@ -914,19 +901,6 @@ class DatasetBuilder:
             logger.info(
                 f"Dataset {self.dataset_name} downloaded and prepared to {self._output_dir}. "
                 f"Subsequent calls will reuse this data."
-            )
-
-    def _check_manual_download(self, dl_manager):
-        if self.manual_download_instructions is not None and dl_manager.manual_dir is None:
-            raise ManualDownloadError(
-                textwrap.dedent(
-                    f"""\
-                    The dataset {self.dataset_name} with config {self.config.name} requires manual data.
-                    Please follow the manual download instructions:
-                     {self.manual_download_instructions}
-                    Manual data can be loaded with:
-                     datasets.load_dataset("{self.repo_id or self.dataset_name}", data_dir="<path/to/manual/data>")"""
-                )
             )
 
     def _download_and_prepare(self, dl_manager, verification_mode, **prepare_split_kwargs):
@@ -972,12 +946,7 @@ class DatasetBuilder:
                 # Prepare split will record examples associated to the split
                 self._prepare_split(split_generator, **prepare_split_kwargs)
             except OSError as e:
-                raise OSError(
-                    "Cannot find data file. "
-                    + (self.manual_download_instructions or "")
-                    + "\nOriginal error:\n"
-                    + str(e)
-                ) from None
+                raise OSError("Cannot find data file. " + "\nOriginal error:\n" + str(e)) from None
             dl_manager.manage_extracted_files()
 
         if verification_mode == VerificationMode.BASIC_CHECKS or verification_mode == VerificationMode.ALL_CHECKS:
@@ -1217,7 +1186,6 @@ class DatasetBuilder:
             dataset_name=self.dataset_name,
             data_dir=self.config.data_dir,
         )
-        self._check_manual_download(dl_manager)
         splits_generators = {sg.name: sg for sg in self._split_generators(dl_manager)}
         # By default, return all splits
         if split is None:

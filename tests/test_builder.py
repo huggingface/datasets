@@ -69,7 +69,7 @@ class DummyGeneratorBasedBuilder(GeneratorBasedBuilder):
 
     def _generate_examples(self):
         for i in range(100):
-            yield i, {"text": "foo"}
+            yield (0, i), {"text": "foo"}
 
 
 class DummyArrowBasedBuilder(ArrowBasedBuilder):
@@ -81,7 +81,7 @@ class DummyArrowBasedBuilder(ArrowBasedBuilder):
 
     def _generate_tables(self):
         for i in range(10):
-            yield i, pa.table({"text": ["foo"] * 10})
+            yield (0, i), pa.table({"text": ["foo"] * 10})
 
 
 class DummyGeneratorBasedBuilderWithIntegers(GeneratorBasedBuilder):
@@ -93,7 +93,7 @@ class DummyGeneratorBasedBuilderWithIntegers(GeneratorBasedBuilder):
 
     def _generate_examples(self):
         for i in range(100):
-            yield i, {"id": i}
+            yield (0, i), {"id": i}
 
 
 class DummyGeneratorBasedBuilderConfig(BuilderConfig):
@@ -114,7 +114,7 @@ class DummyGeneratorBasedBuilderWithConfig(GeneratorBasedBuilder):
 
     def _generate_examples(self):
         for i in range(100):
-            yield i, {"text": self.config.content * self.config.times}
+            yield (0, i), {"text": self.config.content * self.config.times}
 
 
 class DummyBuilderWithMultipleConfigs(DummyBuilder):
@@ -142,17 +142,6 @@ class DummyBuilderWithDownload(DummyBuilder):
         return [SplitGenerator(name=Split.TRAIN)]
 
 
-class DummyBuilderWithManualDownload(DummyBuilderWithMultipleConfigs):
-    @property
-    def manual_download_instructions(self):
-        return "To use the dataset you have to download some stuff manually and pass the data path to data_dir"
-
-    def _split_generators(self, dl_manager):
-        if not os.path.exists(self.config.data_dir):
-            raise FileNotFoundError(f"data_dir {self.config.data_dir} doesn't exist.")
-        return [SplitGenerator(name=Split.TRAIN)]
-
-
 class DummyArrowBasedBuilderWithShards(ArrowBasedBuilder):
     def _info(self):
         return DatasetInfo(features=Features({"id": Value("int8"), "filepath": Value("string")}))
@@ -161,11 +150,9 @@ class DummyArrowBasedBuilderWithShards(ArrowBasedBuilder):
         return [SplitGenerator(name=Split.TRAIN, gen_kwargs={"filepaths": [f"data{i}.txt" for i in range(4)]})]
 
     def _generate_tables(self, filepaths):
-        idx = 0
-        for filepath in filepaths:
+        for shard_idx, filepath in enumerate(filepaths):
             for i in range(10):
-                yield idx, pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
-                idx += 1
+                yield (shard_idx, i), pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
 
 
 class DummyGeneratorBasedBuilderWithShards(GeneratorBasedBuilder):
@@ -199,11 +186,9 @@ class DummyArrowBasedBuilderWithAmbiguousShards(ArrowBasedBuilder):
         ]
 
     def _generate_tables(self, filepaths, dummy_kwarg_with_different_length):
-        idx = 0
-        for filepath in filepaths:
+        for shard_idx, filepath in enumerate(filepaths):
             for i in range(10):
-                yield idx, pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
-                idx += 1
+                yield (shard_idx, i), pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
 
 
 class DummyGeneratorBasedBuilderWithAmbiguousShards(GeneratorBasedBuilder):
@@ -222,11 +207,9 @@ class DummyGeneratorBasedBuilderWithAmbiguousShards(GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepaths, dummy_kwarg_with_different_length):
-        idx = 0
-        for filepath in filepaths:
+        for shard_idx, filepath in enumerate(filepaths):
             for i in range(100):
-                yield idx, {"id": i, "filepath": filepath}
-                idx += 1
+                yield (shard_idx, i), {"id": i, "filepath": filepath}
 
 
 def _run_concurrent_download_and_prepare(tmp_dir):
