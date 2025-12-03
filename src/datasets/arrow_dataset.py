@@ -40,7 +40,6 @@ from collections.abc import Iterable, Iterator, Mapping
 from collections.abc import Sequence as Sequence_
 from copy import deepcopy
 from functools import partial, wraps
-from io import BytesIO
 from math import ceil, floor
 from pathlib import Path
 from random import sample
@@ -5550,12 +5549,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
                 shard = shard.with_format(**format)
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
-            buffer = BytesIO()
-            shard.to_parquet(buffer, batch_size=writer_batch_size)
-            parquet_content = buffer.getvalue()
-            uploaded_size += len(parquet_content)
-            del buffer
-            shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=parquet_content)
+            # Write to temp file instead of BytesIO to avoid holding all shard bytes in memory.
+            # This fixes OOM when uploading large datasets with many shards.
+            # See: https://github.com/huggingface/datasets/issues/XXXX
+            with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as f:
+                temp_path = f.name
+            shard.to_parquet(temp_path, batch_size=writer_batch_size)
+            uploaded_size += os.path.getsize(temp_path)
+            shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=temp_path)
             api.preupload_lfs_files(
                 repo_id=repo_id,
                 additions=[shard_addition],
@@ -5563,6 +5564,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 revision=revision,
                 create_pr=create_pr,
             )
+            # Delete temp file after upload - bytes no longer needed in memory
+            os.unlink(temp_path)
             additions.append(shard_addition)
             yield job_id, False, 1
 
