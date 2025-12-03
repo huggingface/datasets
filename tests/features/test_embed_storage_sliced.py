@@ -1,7 +1,7 @@
 """Tests for embed_array_storage with sliced/sharded arrays.
 
-Regression tests for https://github.com/huggingface/datasets/issues/XXXX
-(SIGKILL in embed_array_storage when processing sliced/sharded Arrow tables)
+Regression tests for SIGKILL crash when processing sliced/sharded Arrow tables
+with nested types like Sequence(Nifti()) or Sequence(Image()).
 """
 
 import pyarrow as pa
@@ -81,6 +81,8 @@ class TestEmbedArrayStorageSliced:
         # This should NOT crash with SIGKILL
         embedded = embed_array_storage(sliced, List(Nifti()))
 
+        # The fix should make the result contiguous (offset = 0)
+        assert embedded.offset == 0, "Result should be contiguous after fix"
         assert len(embedded) == 2
         # Verify bytes were embedded
         assert embedded[0].as_py()[0]["bytes"] is not None
@@ -111,4 +113,10 @@ class TestEmbedArrayStorageSliced:
         # This should NOT crash with SIGKILL
         embedded = embed_array_storage(sliced, LargeList(Image()))
 
+        # The fix should make the result contiguous (offset = 0)
+        assert embedded.offset == 0, "Result should be contiguous after fix"
         assert len(embedded) == 2
+        # Item 0 of sliced = Item 1 of original (has 2 images)
+        assert len(embedded[0].as_py()) == 2
+        # Verify bytes were embedded
+        assert embedded[0].as_py()[0]["bytes"] is not None
