@@ -1457,9 +1457,14 @@ class GeneratorBasedBuilder(DatasetBuilder):
                         pbar.update(content)
             # wrapping everything into lists for consistency with the multiprocessed code path
             assert result is not None, "Failed to retrieve results from prepare_split"
-            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job, input_shard_lengths_per_job = (
-                [item] for item in result
-            )
+            (
+                examples_per_job,
+                bytes_per_job,
+                features_per_job,
+                shards_per_job,
+                shard_lengths_per_job,
+                input_shard_lengths_per_job,
+            ) = ([item] for item in result)
         else:
             kwargs_per_job = [
                 {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
@@ -1531,7 +1536,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 shard_length for shard_lengths in shard_lengths_per_job for shard_length in shard_lengths
             ]
             split_generator.split_info.input_shard_lengths = [
-                input_shard_length for input_shard_lengths in input_shard_lengths_per_job for input_shard_length in input_shard_lengths
+                input_shard_length
+                for input_shard_lengths in input_shard_lengths_per_job
+                for input_shard_length in input_shard_lengths
             ]
         else:
             # don't use any pattern
@@ -1617,7 +1624,11 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 e = e.__context__
             raise DatasetGenerationError("An error occurred while generating the dataset") from e
 
-        yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths, input_shard_lengths)
+        yield (
+            job_id,
+            True,
+            (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths, input_shard_lengths),
+        )
 
     def _download_and_prepare(self, dl_manager, verification_mode, **prepare_splits_kwargs):
         super()._download_and_prepare(
@@ -1713,9 +1724,14 @@ class ArrowBasedBuilder(DatasetBuilder):
                         pbar.update(content)
             # wrapping everything into lists for consistency with the multiprocessed code path
             assert result is not None, "Failed to retrieve results from prepare_split"
-            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job, input_shard_lengths_per_job = (
-                [item] for item in result
-            )
+            (
+                examples_per_job,
+                bytes_per_job,
+                features_per_job,
+                shards_per_job,
+                shard_lengths_per_job,
+                input_shard_lengths_per_job,
+            ) = ([item] for item in result)
         else:
             kwargs_per_job = [
                 {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
@@ -1787,7 +1803,9 @@ class ArrowBasedBuilder(DatasetBuilder):
                 shard_length for shard_lengths in shard_lengths_per_job for shard_length in shard_lengths
             ]
             split_generator.split_info.input_shard_lengths = [
-                input_shard_length for input_shard_lengths in input_shard_lengths_per_job for input_shard_length in input_shard_lengths
+                input_shard_length
+                for input_shard_lengths in input_shard_lengths_per_job
+                for input_shard_length in input_shard_lengths
             ]
         else:
             # don't use any pattern
@@ -1872,7 +1890,11 @@ class ArrowBasedBuilder(DatasetBuilder):
                 raise
             raise DatasetGenerationError("An error occurred while generating the dataset") from e
 
-        yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths, input_shard_lengths)
+        yield (
+            job_id,
+            True,
+            (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths, input_shard_lengths),
+        )
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
         return ArrowExamplesIterable(self._generate_tables, kwargs=split_generator.gen_kwargs)

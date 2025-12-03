@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Callable, Optional
 
 import datasets
-from datasets.utils.sharding import _split_gen_kwargs, _number_of_shards_in_gen_kwargs
+from datasets.utils.sharding import _number_of_shards_in_gen_kwargs, _split_gen_kwargs
 
 
 @dataclass
