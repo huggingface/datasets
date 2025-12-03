@@ -2125,7 +2125,6 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType", token_per_repo_
     # When ds.shard() or ds.select() creates a sliced view, array.values returns
     # values with internal offset references that can cause PyArrow's C++ layer
     # to crash when processing nested types like Sequence(Nifti()).
-    # See: https://github.com/huggingface/datasets/issues/XXXX
     if pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
         if hasattr(array, "offset") and array.offset > 0:
             array = pa.concat_arrays([array])
