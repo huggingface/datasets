@@ -116,4 +116,4 @@ class Sql(datasets.ArrowBasedBuilder):
         sql_reader = [sql_reader] if chunksize is None else sql_reader
         for chunk_idx, df in enumerate(sql_reader):
             pa_table = pa.Table.from_pandas(df)
-            yield chunk_idx, self._cast_table(pa_table)
+            yield (0, chunk_idx), self._cast_table(pa_table)

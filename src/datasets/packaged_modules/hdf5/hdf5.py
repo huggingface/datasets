@@ -84,13 +84,13 @@ class HDF5(datasets.ArrowBasedBuilder):
                             logger.warning(f"File {file} contains no data, skipping...")
                             continue
                         effective_batch = batch_size_cfg or self._writer_batch_size or num_rows
-                        for start in range(0, num_rows, effective_batch):
+                        for batch_idx, start in enumerate(range(0, num_rows, effective_batch)):
                             end = min(start + effective_batch, num_rows)
                             pa_table = _recursive_load_arrays(h5, self.info.features, start, end)
                             if pa_table is None:
                                 logger.warning(f"File {file} contains no data, skipping...")
                                 continue
-                            yield f"{file_idx}_{start}", cast_table_to_features(pa_table, self.info.features)
+                            yield (file_idx, batch_idx), cast_table_to_features(pa_table, self.info.features)
             except ValueError as e:
                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                 raise

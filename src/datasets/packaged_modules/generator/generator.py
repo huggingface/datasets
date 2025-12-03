@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Callable, Optional
 
 import datasets
+from datasets.utils.sharding import _split_gen_kwargs, _number_of_shards_in_gen_kwargs
 
 
 @dataclass
@@ -30,4 +31,7 @@ class Generator(datasets.GeneratorBasedBuilder):
         return [datasets.SplitGenerator(name=self.config.split, gen_kwargs=self.config.gen_kwargs)]
 
     def _generate_examples(self, **gen_kwargs):
-        yield from enumerate(self.config.generator(**gen_kwargs))
+        num_shards = _number_of_shards_in_gen_kwargs(gen_kwargs)
+        for shard_idx, shard_gen_kwargs in _split_gen_kwargs(gen_kwargs, max_num_jobs=num_shards):
+            for sample_idx, sample in enumerate(self.config.generator(**shard_gen_kwargs)):
+                yield (shard_idx, sample_idx), sample

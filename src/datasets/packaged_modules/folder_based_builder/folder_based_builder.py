@@ -354,7 +354,6 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     yield pa.Table.from_batches([record_batch])
 
     def _generate_examples(self, files, metadata_files, add_metadata, add_labels):
-        sample_idx = 0
         if add_metadata:
             feature_paths = []
 
@@ -365,7 +364,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
             _visit_with_path(self.info.features, find_feature_path)
 
-            for original_metadata_file, downloaded_metadata_file in metadata_files:
+            for shard_idx, (original_metadata_file, downloaded_metadata_file) in enumerate(metadata_files):
                 metadata_ext = os.path.splitext(original_metadata_file or downloaded_metadata_file)[-1]
                 downloaded_metadata_dir = os.path.dirname(downloaded_metadata_file)
 
@@ -384,11 +383,10 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     return item
 
                 for pa_metadata_table in self._read_metadata(downloaded_metadata_file, metadata_ext=metadata_ext):
-                    for sample in pa_metadata_table.to_pylist():
+                    for sample_idx, sample in enumerate(pa_metadata_table.to_pylist()):
                         for feature_path in feature_paths:
                             _nested_apply(sample, feature_path, set_feature)
-                        yield sample_idx, sample
-                        sample_idx += 1
+                        yield (shard_idx, sample_idx), sample
         else:
             if self.config.filters is not None:
                 filter_expr = (
@@ -396,9 +394,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     if isinstance(self.config.filters, list)
                     else self.config.filters
                 )
-            for original_file, downloaded_file_or_dir in files:
+            for shard_idx, (original_file, downloaded_file_or_dir) in enumerate(files):
                 downloaded_files = [downloaded_file_or_dir] if original_file else downloaded_file_or_dir
-                for downloaded_file in downloaded_files:
+                for sample_idx, downloaded_file in enumerate(downloaded_files):
                     original_file_ext = os.path.splitext(original_file or downloaded_file)[-1]
                     if original_file_ext.lower() not in self.EXTENSIONS:
                         continue
@@ -409,8 +407,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         pa_table = pa.Table.from_pylist([sample]).filter(filter_expr)
                         if len(pa_table) == 0:
                             continue
-                    yield sample_idx, sample
-                    sample_idx += 1
+                    yield (shard_idx, sample_idx), sample
 
 
 def _nested_apply(item: Any, feature_path: _VisitPath, func: Callable[[Any, _VisitPath], Any]):

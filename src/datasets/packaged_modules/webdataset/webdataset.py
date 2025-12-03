@@ -125,7 +125,7 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                             "path": example["__key__"] + "." + field_name,
                             "bytes": example[field_name],
                         }
-                yield f"{tar_idx}_{example_idx}", example
+                yield (tar_idx, example_idx), example
 
 
 # Source: https://github.com/webdataset/webdataset/blob/87bd5aa41602d57f070f65a670893ee625702f2f/webdataset/tariterators.py#L25

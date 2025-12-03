@@ -62,4 +62,4 @@ class Pandas(datasets.ArrowBasedBuilder):
         for i, file in enumerate(itertools.chain.from_iterable(files)):
             with open(file, "rb") as f:
                 pa_table = pa.Table.from_pandas(pd.read_pickle(f))
-                yield i, self._cast_table(pa_table)
+                yield (i, 0), self._cast_table(pa_table)
