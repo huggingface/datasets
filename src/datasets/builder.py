@@ -29,10 +29,11 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 from unittest.mock import patch
 
 import fsspec
+import pyarrow as pa
 from fsspec.core import url_to_fs
 from multiprocess import Pool
 from tqdm.contrib.concurrent import thread_map
@@ -1366,7 +1367,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
     """
 
     @abc.abstractmethod
-    def _generate_examples(self, **kwargs):
+    def _generate_examples(self, **kwargs) -> Iterable[tuple[int, int], dict[str, Any]]:
         """Default function generating examples for each `SplitGenerator`.
 
         This function preprocess the examples from the raw data to the preprocessed
@@ -1456,7 +1457,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                         pbar.update(content)
             # wrapping everything into lists for consistency with the multiprocessed code path
             assert result is not None, "Failed to retrieve results from prepare_split"
-            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = (
+            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job, input_shard_lengths_per_job = (
                 [item] for item in result
             )
         else:
@@ -1473,6 +1474,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             features_per_job = [None] * num_jobs
             shards_per_job = [None] * num_jobs
             shard_lengths_per_job = [None] * num_jobs
+            input_shard_lengths_per_job = [None] * num_jobs
 
             with Pool(num_proc) as pool:
                 with pbar:
@@ -1487,6 +1489,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                                 features_per_job[job_id],
                                 shards_per_job[job_id],
                                 shard_lengths_per_job[job_id],
+                                input_shard_lengths_per_job[job_id],
                             ) = content
                         else:
                             # the content is the number of examples progress update
@@ -1527,6 +1530,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
             split_generator.split_info.shard_lengths = [
                 shard_length for shard_lengths in shard_lengths_per_job for shard_length in shard_lengths
             ]
+            split_generator.split_info.input_shard_lengths = [
+                input_shard_length for input_shard_lengths in input_shard_lengths_per_job for input_shard_length in input_shard_lengths
+            ]
         else:
             # don't use any pattern
             shard_id, job_id = 0, 0
@@ -1547,11 +1553,12 @@ class GeneratorBasedBuilder(DatasetBuilder):
         split_info: SplitInfo,
         check_duplicate_keys: bool,
         job_id: int,
-    ) -> Iterable[tuple[int, bool, Union[int, tuple]]]:
+    ) -> Iterable[tuple[int, bool, tuple[int, int, Features, int, int, int]]]:
         generator = self._generate_examples(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
         shard_lengths = []
+        input_shard_lengths = []
         total_num_examples, total_num_bytes = 0, 0
 
         shard_id = 0
@@ -1568,7 +1575,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             )
             try:
                 _time = time.time()
-                for key, record in generator:
+                for (input_shard_idx, example_idx), record in generator:
                     if max_shard_size is not None and writer._num_bytes > max_shard_size:
                         num_examples, num_bytes = writer.finalize()
                         writer.close()
@@ -1586,7 +1593,11 @@ class GeneratorBasedBuilder(DatasetBuilder):
                             embed_local_files=embed_local_files,
                         )
                     example = self.info.features.encode_example(record) if self.info.features is not None else record
-                    writer.write(example, key)
+                    writer.write(example, (input_shard_idx, example_idx))
+                    if len(input_shard_lengths) == input_shard_idx:
+                        input_shard_lengths.append(1)
+                    else:
+                        input_shard_lengths[input_shard_idx] += 1
                     num_examples_progress_update += 1
                     if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()
@@ -1606,7 +1617,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 e = e.__context__
             raise DatasetGenerationError("An error occurred while generating the dataset") from e
 
-        yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
+        yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths, input_shard_lengths)
 
     def _download_and_prepare(self, dl_manager, verification_mode, **prepare_splits_kwargs):
         super()._download_and_prepare(
@@ -1625,7 +1636,7 @@ class ArrowBasedBuilder(DatasetBuilder):
     """Base class for datasets with data generation based on Arrow loading functions (CSV/JSON/Parquet)."""
 
     @abc.abstractmethod
-    def _generate_tables(self, **kwargs):
+    def _generate_tables(self, **kwargs) -> Iterable[tuple[int, int], pa.Table]:
         """Default function generating examples for each `SplitGenerator`.
 
         This function preprocess the examples from the raw data to the preprocessed
@@ -1639,16 +1650,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                 Arguments forwarded from the SplitGenerator.gen_kwargs
 
         Yields:
-            key: `str` or `int`, a unique deterministic example identification key.
-                * Unique: An error will be raised if two examples are yield with the
-                    same key.
-                * Deterministic: When generating the dataset twice, the same example
-                    should have the same key.
-                Good keys can be the image id, or line number if examples are extracted
-                from a text file.
-                The key will be hashed and sorted to shuffle examples deterministically,
-                such as generating the dataset multiple times keep examples in the
-                same order.
+            key: tuple[int, int] input_shard_idx and table_idx within that shard
             example: `pyarrow.Table`, a feature table
                 ready to be encoded and written to disk.
         """
@@ -1711,7 +1713,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                         pbar.update(content)
             # wrapping everything into lists for consistency with the multiprocessed code path
             assert result is not None, "Failed to retrieve results from prepare_split"
-            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = (
+            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job, input_shard_lengths_per_job = (
                 [item] for item in result
             )
         else:
@@ -1728,6 +1730,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             features_per_job = [None] * num_jobs
             shards_per_job = [None] * num_jobs
             shard_lengths_per_job = [None] * num_jobs
+            input_shard_lengths_per_job = [None] * num_jobs
 
             with Pool(num_proc) as pool:
                 with pbar:
@@ -1742,6 +1745,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                                 features_per_job[job_id],
                                 shards_per_job[job_id],
                                 shard_lengths_per_job[job_id],
+                                input_shard_lengths_per_job[job_id],
                             ) = content
                         else:
                             # the content is the number of examples progress update
@@ -1782,6 +1786,9 @@ class ArrowBasedBuilder(DatasetBuilder):
             split_generator.split_info.shard_lengths = [
                 shard_length for shard_lengths in shard_lengths_per_job for shard_length in shard_lengths
             ]
+            split_generator.split_info.input_shard_lengths = [
+                input_shard_length for input_shard_lengths in input_shard_lengths_per_job for input_shard_length in input_shard_lengths
+            ]
         else:
             # don't use any pattern
             shard_id, job_id = 0, 0
@@ -1795,12 +1802,13 @@ class ArrowBasedBuilder(DatasetBuilder):
 
     def _prepare_split_single(
         self, gen_kwargs: dict, fpath: str, file_format: str, max_shard_size: int, job_id: int
-    ) -> Iterable[tuple[int, bool, Union[int, tuple]]]:
+    ) -> Iterable[tuple[int, bool, tuple[int, int, Features, int, int, int]]]:
         gen_kwargs = {k: tracked_list(v) if isinstance(v, list) else v for k, v in gen_kwargs.items()}
         generator = self._generate_tables(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
         shard_lengths = []
+        input_shard_lengths = []
         total_num_examples, total_num_bytes = 0, 0
 
         shard_id = 0
@@ -1815,7 +1823,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             )
             try:
                 _time = time.time()
-                for _, table in generator:
+                for (input_shard_idx, table_idx), table in generator:
                     if max_shard_size is not None and writer._num_bytes > max_shard_size:
                         num_examples, num_bytes = writer.finalize()
                         writer.close()
@@ -1839,6 +1847,10 @@ class ArrowBasedBuilder(DatasetBuilder):
                             gen_kwargs=gen_kwargs,
                             token=self.token,
                         )
+                    if len(input_shard_lengths) == input_shard_idx:
+                        input_shard_lengths.append(len(table))
+                    else:
+                        input_shard_lengths[input_shard_idx] += len(table)
                     num_examples_progress_update += len(table)
                     if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()
@@ -1860,7 +1872,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                 raise
             raise DatasetGenerationError("An error occurred while generating the dataset") from e
 
-        yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
+        yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths, input_shard_lengths)
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
         return ArrowExamplesIterable(self._generate_tables, kwargs=split_generator.gen_kwargs)
