@@ -5554,20 +5554,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # See: https://github.com/huggingface/datasets/issues/XXXX
             with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as f:
                 temp_path = f.name
-            shard.to_parquet(temp_path, batch_size=writer_batch_size)
-            uploaded_size += os.path.getsize(temp_path)
-            shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=temp_path)
-            api.preupload_lfs_files(
-                repo_id=repo_id,
-                additions=[shard_addition],
-                repo_type="dataset",
-                revision=revision,
-                create_pr=create_pr,
-            )
-            # Delete temp file after upload - bytes no longer needed in memory
-            os.unlink(temp_path)
-            additions.append(shard_addition)
-            yield job_id, False, 1
+            try:
+                shard.to_parquet(temp_path, batch_size=writer_batch_size)
+                uploaded_size += os.path.getsize(temp_path)
+                shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=temp_path)
+                api.preupload_lfs_files(
+                    repo_id=repo_id,
+                    additions=[shard_addition],
+                    repo_type="dataset",
+                    revision=revision,
+                    create_pr=create_pr,
+                )
+                additions.append(shard_addition)
+                yield job_id, False, 1
+            finally:
+                # Always clean up temp file, even if upload fails
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
 
         yield job_id, True, additions
 
