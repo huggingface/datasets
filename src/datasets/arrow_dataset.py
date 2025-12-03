@@ -5551,7 +5551,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
             # Write to temp file instead of BytesIO to avoid holding all shard bytes in memory.
             # This fixes OOM when uploading large datasets with many shards.
-            # See: https://github.com/huggingface/datasets/issues/XXXX
+            # See: https://github.com/The-Obstacle-Is-The-Way/datasets/issues/5
             with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as f:
                 temp_path = f.name
             try:
@@ -5568,9 +5568,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 additions.append(shard_addition)
                 yield job_id, False, 1
             finally:
-                # Always clean up temp file, even if upload fails
-                if os.path.exists(temp_path):
-                    os.unlink(temp_path)
+                # For LFS uploads, content now lives on the Hub; the local temp file can be
+                # safely removed. For regular uploads, create_commit still needs to read
+                # from disk, so we must keep the file until after the commit completes.
+                if getattr(shard_addition, "_upload_mode", None) == "lfs":
+                    if os.path.exists(temp_path):
+                        os.unlink(temp_path)
 
         yield job_id, True, additions
 
