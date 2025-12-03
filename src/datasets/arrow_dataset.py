@@ -5551,7 +5551,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
             # Write to temp file instead of BytesIO to avoid holding all shard bytes in memory.
             # This fixes OOM when uploading large datasets with many shards.
-            # See: https://github.com/The-Obstacle-Is-The-Way/datasets/issues/5
             with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as f:
                 temp_path = f.name
             try:

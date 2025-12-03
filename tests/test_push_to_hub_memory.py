@@ -1,7 +1,7 @@
 """Tests for memory-safe push_to_hub with large datasets.
 
-Regression tests for https://github.com/The-Obstacle-Is-The-Way/datasets/issues/5
-(OOM when uploading large datasets due to memory accumulation in additions list)
+Regression tests for OOM when uploading large datasets due to memory
+accumulation in the additions list.
 """
 
 import tempfile
