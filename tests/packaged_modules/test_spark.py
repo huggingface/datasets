@@ -25,7 +25,7 @@ def _get_expected_row_ids_and_row_dicts_for_partition_order(df, partition_order)
     for part_id in partition_order:
         partition = df.where(f"SPARK_PARTITION_ID() = {part_id}").collect()
         for row_idx, row in enumerate(partition):
-            expected_row_ids_and_row_dicts.append((f"{part_id}_{row_idx}", row.asDict()))
+            expected_row_ids_and_row_dicts.append(((part_id, row_idx), row.asDict()))
     return expected_row_ids_and_row_dicts
 
 

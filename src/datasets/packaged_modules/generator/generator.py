@@ -32,6 +32,6 @@ class Generator(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, **gen_kwargs):
         num_shards = _number_of_shards_in_gen_kwargs(gen_kwargs)
-        for shard_idx, shard_gen_kwargs in _split_gen_kwargs(gen_kwargs, max_num_jobs=num_shards):
+        for shard_idx, shard_gen_kwargs in enumerate(_split_gen_kwargs(gen_kwargs, max_num_jobs=num_shards)):
             for sample_idx, sample in enumerate(self.config.generator(**shard_gen_kwargs)):
                 yield (shard_idx, sample_idx), sample
