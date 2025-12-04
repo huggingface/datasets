@@ -163,11 +163,9 @@ class DummyGeneratorBasedBuilderWithShards(GeneratorBasedBuilder):
         return [SplitGenerator(name=Split.TRAIN, gen_kwargs={"filepaths": [f"data{i}.txt" for i in range(4)]})]
 
     def _generate_examples(self, filepaths):
-        idx = 0
-        for filepath in filepaths:
+        for shard_idx, filepath in enumerate(filepaths):
             for i in range(100):
-                yield idx, {"id": i, "filepath": filepath}
-                idx += 1
+                yield (shard_idx, i), {"id": i, "filepath": filepath}
 
 
 class DummyArrowBasedBuilderWithAmbiguousShards(ArrowBasedBuilder):
@@ -766,16 +764,16 @@ class BuilderTest(TestCase):
 
     def test_cache_dir_for_data_dir(self):
         with tempfile.TemporaryDirectory() as tmp_dir, tempfile.TemporaryDirectory() as data_dir:
-            builder = DummyBuilderWithManualDownload(cache_dir=tmp_dir, config_name="a", data_dir=data_dir)
-            other_builder = DummyBuilderWithManualDownload(cache_dir=tmp_dir, config_name="a", data_dir=data_dir)
+            builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, config_name="a", data_dir=data_dir)
+            other_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, config_name="a", data_dir=data_dir)
             self.assertEqual(builder.cache_dir, other_builder.cache_dir)
-            other_builder = DummyBuilderWithManualDownload(cache_dir=tmp_dir, config_name="a", data_dir=tmp_dir)
+            other_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, config_name="a", data_dir=tmp_dir)
             self.assertNotEqual(builder.cache_dir, other_builder.cache_dir)
 
     def test_cache_dir_for_configured_builder(self):
         with tempfile.TemporaryDirectory() as tmp_dir, tempfile.TemporaryDirectory() as data_dir:
             builder_cls = configure_builder_class(
-                DummyBuilderWithManualDownload,
+                DummyGeneratorBasedBuilder,
                 builder_configs=[BuilderConfig(data_dir=data_dir)],
                 default_config_name=None,
                 dataset_name="dummy",

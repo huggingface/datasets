@@ -83,7 +83,7 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
-Key = Union[int, str]
+Key = Union[int, str, tuple[int, int]]
 
 
 def identity_func(x):
