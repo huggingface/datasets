@@ -75,8 +75,8 @@ def test_spark_examples_iterable():
     df = spark.range(10).repartition(1)
     it = SparkExamplesIterable(df)
     assert it.num_shards == 1
-    for i, (row_id, row_dict) in enumerate(it):
-        assert row_id == f"0_{i}"
+    for i, (row_key, row_dict) in enumerate(it):
+        assert row_key == (0, i)
         assert row_dict == {"id": i}
 
 
