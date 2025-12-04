@@ -4787,6 +4787,7 @@ def test_polars_round_trip():
 
 def test_add_column():
     from datasets import Dataset
+
     ds = Dataset.from_dict({"a": [1, 2]})
     ds = ds.add_column("b", [3, 4])
     assert "b" in ds.features
