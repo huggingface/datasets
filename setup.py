@@ -129,7 +129,7 @@ REQUIRED_PKGS = [
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
     "fsspec[http]>=2023.1.0,<=2025.10.0",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface-hub>=0.25.0,<2.0",
+    "huggingface-hub==v1.2.0.rc0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
