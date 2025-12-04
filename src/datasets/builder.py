@@ -922,7 +922,7 @@ class DatasetBuilder:
         # Generating data for all splits
         split_dict = SplitDict(dataset_name=self.dataset_name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
-        split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
+        split_generators: list[SplitGenerator] = self._split_generators(dl_manager, **split_generators_kwargs)
 
         # Checksums verification
         if verification_mode == VerificationMode.ALL_CHECKS and dl_manager.record_checksums:
@@ -1421,7 +1421,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 features_per_job,
                 shards_per_job,
                 shard_lengths_per_job,
-                input_shard_lengths_per_job,
+                original_shard_lengths_per_job,
             ) = ([item] for item in result)
         else:
             kwargs_per_job = [
@@ -1437,7 +1437,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             features_per_job = [None] * num_jobs
             shards_per_job = [None] * num_jobs
             shard_lengths_per_job = [None] * num_jobs
-            input_shard_lengths_per_job = [None] * num_jobs
+            original_shard_lengths_per_job = [None] * num_jobs
 
             with Pool(num_proc) as pool:
                 with pbar:
@@ -1452,7 +1452,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                                 features_per_job[job_id],
                                 shards_per_job[job_id],
                                 shard_lengths_per_job[job_id],
-                                input_shard_lengths_per_job[job_id],
+                                original_shard_lengths_per_job[job_id],
                             ) = content
                         else:
                             # the content is the number of examples progress update
@@ -1493,10 +1493,10 @@ class GeneratorBasedBuilder(DatasetBuilder):
             split_generator.split_info.shard_lengths = [
                 shard_length for shard_lengths in shard_lengths_per_job for shard_length in shard_lengths
             ]
-            split_generator.split_info.input_shard_lengths = [
-                input_shard_length
-                for input_shard_lengths in input_shard_lengths_per_job
-                for input_shard_length in input_shard_lengths
+            split_generator.split_info.original_shard_lengths = [
+                original_shard_length
+                for original_shard_lengths in original_shard_lengths_per_job
+                for original_shard_length in original_shard_lengths
             ]
         else:
             # don't use any pattern
@@ -1522,7 +1522,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
         shard_lengths = []
-        input_shard_lengths = []
+        original_shard_lengths = []
         total_num_examples, total_num_bytes = 0, 0
 
         shard_id = 0
@@ -1554,10 +1554,10 @@ class GeneratorBasedBuilder(DatasetBuilder):
                         )
                     example = self.info.features.encode_example(record) if self.info.features is not None else record
                     writer.write(example)
-                    if len(input_shard_lengths) == input_shard_idx:
-                        input_shard_lengths.append(1)
+                    if len(original_shard_lengths) == input_shard_idx:
+                        original_shard_lengths.append(1)
                     else:
-                        input_shard_lengths[input_shard_idx] += 1
+                        original_shard_lengths[input_shard_idx] += 1
                     num_examples_progress_update += 1
                     if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()
@@ -1580,7 +1580,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         yield (
             job_id,
             True,
-            (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths, input_shard_lengths),
+            (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths, original_shard_lengths),
         )
 
     def _download_and_prepare(self, dl_manager, verification_mode, **prepare_splits_kwargs):
@@ -1681,7 +1681,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                 features_per_job,
                 shards_per_job,
                 shard_lengths_per_job,
-                input_shard_lengths_per_job,
+                original_shard_lengths_per_job,
             ) = ([item] for item in result)
         else:
             kwargs_per_job = [
@@ -1697,7 +1697,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             features_per_job = [None] * num_jobs
             shards_per_job = [None] * num_jobs
             shard_lengths_per_job = [None] * num_jobs
-            input_shard_lengths_per_job = [None] * num_jobs
+            original_shard_lengths_per_job = [None] * num_jobs
 
             with Pool(num_proc) as pool:
                 with pbar:
@@ -1712,7 +1712,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                                 features_per_job[job_id],
                                 shards_per_job[job_id],
                                 shard_lengths_per_job[job_id],
-                                input_shard_lengths_per_job[job_id],
+                                original_shard_lengths_per_job[job_id],
                             ) = content
                         else:
                             # the content is the number of examples progress update
@@ -1749,15 +1749,6 @@ class ArrowBasedBuilder(DatasetBuilder):
                 for shard_id in range(num_shards)
             ]
             thread_map(_rename_shard, shard_ids_and_jobs, disable=True, max_workers=64)
-
-            split_generator.split_info.shard_lengths = [
-                shard_length for shard_lengths in shard_lengths_per_job for shard_length in shard_lengths
-            ]
-            split_generator.split_info.input_shard_lengths = [
-                input_shard_length
-                for input_shard_lengths in input_shard_lengths_per_job
-                for input_shard_length in input_shard_lengths
-            ]
         else:
             # don't use any pattern
             shard_id, job_id = 0, 0
@@ -1765,6 +1756,15 @@ class ArrowBasedBuilder(DatasetBuilder):
                 fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
                 fpath.replace(SUFFIX, ""),
             )
+
+        split_generator.split_info.shard_lengths = [
+            shard_length for shard_lengths in shard_lengths_per_job for shard_length in shard_lengths
+        ]
+        split_generator.split_info.original_shard_lengths = [
+            original_shard_length
+            for original_shard_lengths in original_shard_lengths_per_job
+            for original_shard_length in original_shard_lengths
+        ]
 
         if self.info.features is None:
             self.info.features = features
@@ -1777,7 +1777,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
         shard_lengths = []
-        input_shard_lengths = []
+        original_shard_lengths = []
         total_num_examples, total_num_bytes = 0, 0
 
         shard_id = 0
@@ -1816,10 +1816,10 @@ class ArrowBasedBuilder(DatasetBuilder):
                             gen_kwargs=gen_kwargs,
                             token=self.token,
                         )
-                    if len(input_shard_lengths) == input_shard_idx:
-                        input_shard_lengths.append(len(table))
+                    if len(original_shard_lengths) == input_shard_idx:
+                        original_shard_lengths.append(len(table))
                     else:
-                        input_shard_lengths[input_shard_idx] += len(table)
+                        original_shard_lengths[input_shard_idx] += len(table)
                     num_examples_progress_update += len(table)
                     if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()
@@ -1844,7 +1844,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         yield (
             job_id,
             True,
-            (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths, input_shard_lengths),
+            (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths, original_shard_lengths),
         )
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:

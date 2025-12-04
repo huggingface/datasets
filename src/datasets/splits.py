@@ -34,7 +34,7 @@ class SplitInfo:
     num_bytes: int = dataclasses.field(default=0, metadata={"include_in_asdict_even_if_is_default": True})
     num_examples: int = dataclasses.field(default=0, metadata={"include_in_asdict_even_if_is_default": True})
     shard_lengths: Optional[list[int]] = None
-    input_shard_lengths: Optional[list[int]] = None
+    original_shard_lengths: Optional[list[int]] = None
 
     # Deprecated
     # For backward compatibility, this field needs to always be included in files like
@@ -589,7 +589,7 @@ class SplitDict(dict):
         # we don't need the shard lengths in YAML
         for split_info_dict in out:
             split_info_dict.pop("shard_lengths", None)
-            split_info_dict.pop("input_shard_lengths", None)
+            split_info_dict.pop("original_shard_lengths", None)
         # we don't need the dataset_name attribute that is deprecated
         for split_info_dict in out:
             split_info_dict.pop("dataset_name", None)
