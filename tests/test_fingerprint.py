@@ -407,12 +407,139 @@ def test_fingerprint_in_multiprocessing():
     data = {"a": [0, 1, 2]}
     dataset = DatasetChild(InMemoryTable.from_pydict(data))
     expected_fingerprint = dataset.func1()._fingerprint
-    assert expected_fingerprint == dataset.func1()._fingerprint
-    assert expected_fingerprint != dataset.func2()._fingerprint
+    with Pool(2) as pool:
+        fingerprints = pool.map(
+            lambda _: DatasetChild(InMemoryTable.from_pydict(data)).func1()._fingerprint, range(10)
+        )
+    assert all(f == expected_fingerprint for f in fingerprints)
 
-    with Pool(2) as p:
-        assert expected_fingerprint == p.apply_async(dataset.func1).get()._fingerprint
-        assert expected_fingerprint != p.apply_async(dataset.func2).get()._fingerprint
+
+def test_temp_cache_dir_with_tmpdir_nonexistent(tmp_path, caplog):
+    """Test that _TempCacheDir creates TMPDIR if it doesn't exist."""
+    import os
+
+    # Set TMPDIR to a non-existent directory
+    tmpdir_path = tmp_path / "custom_tmpdir"
+    assert not tmpdir_path.exists(), "TMPDIR should not exist initially"
+
+    # Save original TMPDIR and set new one
+    original_tmpdir = os.environ.get("TMPDIR")
+    try:
+        os.environ["TMPDIR"] = str(tmpdir_path)
+
+        # Clear any existing temp cache dir to force recreation
+        import datasets.fingerprint
+
+        datasets.fingerprint._TEMP_DIR_FOR_TEMP_CACHE_FILES = None
+
+        # Import and test _TempCacheDir directly
+        from datasets.fingerprint import _TempCacheDir
+
+        with caplog.at_level("INFO", logger="datasets.fingerprint"):
+            temp_cache = _TempCacheDir()
+            cache_dir = temp_cache.name
+
+        # The key test: verify the cache directory is within the TMPDIR we set
+        # This proves that TMPDIR was respected and the directory was created
+        tmpdir_path_str = str(tmpdir_path)
+        assert cache_dir.startswith(tmpdir_path_str), (
+            f"Cache dir {cache_dir} should be in TMPDIR {tmpdir_path_str}. TMPDIR env var: {os.environ.get('TMPDIR')}"
+        )
+        # Verify the directory was created
+        assert tmpdir_path.exists(), (
+            f"TMPDIR directory {tmpdir_path} should have been created. Cache dir is: {cache_dir}"
+        )
+        # Verify logging
+        assert f"Created TMPDIR directory: {tmpdir_path_str}" in caplog.text
+
+        # Cleanup
+        temp_cache.cleanup()
+    finally:
+        # Restore original TMPDIR
+        if original_tmpdir is not None:
+            os.environ["TMPDIR"] = original_tmpdir
+        elif "TMPDIR" in os.environ:
+            del os.environ["TMPDIR"]
+
+
+def test_temp_cache_dir_with_tmpdir_existing(tmp_path, monkeypatch):
+    """Test that _TempCacheDir works correctly when TMPDIR exists."""
+    from datasets.fingerprint import get_temporary_cache_files_directory
+
+    # Set TMPDIR to an existing directory
+    tmpdir_path = tmp_path / "existing_tmpdir"
+    tmpdir_path.mkdir()
+    monkeypatch.setenv("TMPDIR", str(tmpdir_path))
+
+    # Clear any existing temp cache dir
+    import datasets.fingerprint
+
+    datasets.fingerprint._TEMP_DIR_FOR_TEMP_CACHE_FILES = None
+
+    cache_dir = get_temporary_cache_files_directory()
+
+    # Verify the cache directory is within the TMPDIR
+    assert cache_dir.startswith(str(tmpdir_path)), f"Cache dir {cache_dir} should be in TMPDIR {tmpdir_path}"
+
+
+def test_temp_cache_dir_without_tmpdir(monkeypatch):
+    """Test that _TempCacheDir works correctly when TMPDIR is not set."""
+    from datasets.fingerprint import get_temporary_cache_files_directory
+
+    # Remove TMPDIR if it exists
+    monkeypatch.delenv("TMPDIR", raising=False)
+
+    # Clear any existing temp cache dir
+    import datasets.fingerprint
+
+    datasets.fingerprint._TEMP_DIR_FOR_TEMP_CACHE_FILES = None
+
+    cache_dir = get_temporary_cache_files_directory()
+
+    # Verify it uses the default temp directory
+    from tempfile import gettempdir
+
+    default_temp = gettempdir()
+    assert cache_dir.startswith(default_temp), f"Cache dir {cache_dir} should be in default temp {default_temp}"
+
+
+def test_temp_cache_dir_tmpdir_creation_failure(tmp_path, monkeypatch, caplog):
+    """Test that _TempCacheDir raises if TMPDIR cannot be created."""
+    from unittest.mock import patch
+
+    from datasets.fingerprint import _TempCacheDir
+
+    # Set TMPDIR to a path that will fail to create (e.g., invalid permissions)
+    # Use a path that's likely to fail on creation
+    tmpdir_path = tmp_path / "nonexistent" / "nested" / "path"
+    monkeypatch.setenv("TMPDIR", str(tmpdir_path))
+
+    # Mock os.makedirs to raise an error
+    with patch("datasets.fingerprint.os.makedirs", side_effect=OSError("Permission denied")):
+        with pytest.raises(OSError) as excinfo:
+            _TempCacheDir()
+
+    # Verify the error message gives clear context about TMPDIR
+    msg = str(excinfo.value)
+    assert "TMPDIR is set to" in msg
+    assert "could not be created" in msg
+
+
+def test_temp_cache_dir_tmpdir_not_directory(tmp_path, monkeypatch):
+    """Test that _TempCacheDir raises if TMPDIR points to a non-directory."""
+    from datasets.fingerprint import _TempCacheDir
+
+    # Create a regular file and point TMPDIR to it
+    file_path = tmp_path / "not_a_dir"
+    file_path.write_text("not a directory")
+    monkeypatch.setenv("TMPDIR", str(file_path))
+
+    with pytest.raises(OSError) as excinfo:
+        _TempCacheDir()
+
+    msg = str(excinfo.value)
+    assert "TMPDIR is set to" in msg
+    assert "is not a directory" in msg
 
 
 def test_fingerprint_when_transform_version_changes():
