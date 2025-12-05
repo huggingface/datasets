@@ -46,7 +46,7 @@
 
 ## With pip
 
-🤗 Datasets can be installed from PyPi and has to be installed in a virtual environment (venv or conda for instance)
+🤗 Datasets can be installed from PyPI & has to be installed in a virtual environment (venv or conda for instance)
 
 ```bash
 pip install datasets
