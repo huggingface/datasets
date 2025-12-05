@@ -6,6 +6,7 @@ from typing import Optional
 import pyarrow as pa
 
 import datasets
+from datasets.builder import Key
 from datasets.features.features import require_storage_cast
 from datasets.table import table_cast
 
