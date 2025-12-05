@@ -517,7 +517,7 @@ class SplitReadInstruction:
         return list(self._splits.values())
 
 
-class SplitDict(dict):
+class SplitDict(dict[str, SplitInfo]):
     """Split info object."""
 
     def __init__(self, *args, dataset_name=None, **kwargs):

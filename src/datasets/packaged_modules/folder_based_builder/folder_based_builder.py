@@ -13,6 +13,7 @@ import pyarrow.parquet as pq
 
 import datasets
 from datasets import config
+from datasets.builder import Key
 from datasets.features.features import FeatureType, _visit, _visit_with_path, _VisitPath, require_storage_cast
 from datasets.utils.file_utils import readline
 
@@ -386,7 +387,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     for sample_idx, sample in enumerate(pa_metadata_table.to_pylist()):
                         for feature_path in feature_paths:
                             _nested_apply(sample, feature_path, set_feature)
-                        yield (shard_idx, sample_idx), sample
+                        yield Key(shard_idx, sample_idx), sample
         else:
             if self.config.filters is not None:
                 filter_expr = (
@@ -407,7 +408,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         pa_table = pa.Table.from_pylist([sample]).filter(filter_expr)
                         if len(pa_table) == 0:
                             continue
-                    yield (shard_idx, sample_idx), sample
+                    yield Key(shard_idx, sample_idx), sample
 
 
 def _nested_apply(item: Any, feature_path: _VisitPath, func: Callable[[Any, _VisitPath], Any]):

@@ -22,6 +22,7 @@ from datasets.builder import (
     DatasetBuilder,
     GeneratorBasedBuilder,
     InvalidConfigName,
+    Key,
 )
 from datasets.data_files import DataFilesList
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
@@ -152,7 +153,7 @@ class DummyArrowBasedBuilderWithShards(ArrowBasedBuilder):
     def _generate_tables(self, filepaths):
         for shard_idx, filepath in enumerate(filepaths):
             for i in range(10):
-                yield (shard_idx, i), pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
+                yield Key(shard_idx, i), pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
 
 
 class DummyGeneratorBasedBuilderWithShards(GeneratorBasedBuilder):
@@ -165,7 +166,7 @@ class DummyGeneratorBasedBuilderWithShards(GeneratorBasedBuilder):
     def _generate_examples(self, filepaths):
         for shard_idx, filepath in enumerate(filepaths):
             for i in range(100):
-                yield (shard_idx, i), {"id": i, "filepath": filepath}
+                yield Key(shard_idx, i), {"id": i, "filepath": filepath}
 
 
 class DummyArrowBasedBuilderWithAmbiguousShards(ArrowBasedBuilder):
@@ -186,7 +187,7 @@ class DummyArrowBasedBuilderWithAmbiguousShards(ArrowBasedBuilder):
     def _generate_tables(self, filepaths, dummy_kwarg_with_different_length):
         for shard_idx, filepath in enumerate(filepaths):
             for i in range(10):
-                yield (shard_idx, i), pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
+                yield Key(shard_idx, i), pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
 
 
 class DummyGeneratorBasedBuilderWithAmbiguousShards(GeneratorBasedBuilder):
@@ -207,7 +208,7 @@ class DummyGeneratorBasedBuilderWithAmbiguousShards(GeneratorBasedBuilder):
     def _generate_examples(self, filepaths, dummy_kwarg_with_different_length):
         for shard_idx, filepath in enumerate(filepaths):
             for i in range(100):
-                yield (shard_idx, i), {"id": i, "filepath": filepath}
+                yield Key(shard_idx, i), {"id": i, "filepath": filepath}
 
 
 def _run_concurrent_download_and_prepare(tmp_dir):
@@ -1033,6 +1034,8 @@ def test_generator_based_builder_download_and_prepare_sharded(tmp_path):
         builder.download_and_prepare(file_format="parquet")
     expected_num_shards = 100 // writer_batch_size
     assert builder.info.splits["train"].num_examples == 100
+    assert builder.info.splits["train"].shard_lengths == [25] * 4
+    assert builder.info.splits["train"].original_shard_lengths is None
     parquet_path = os.path.join(
         tmp_path,
         builder.dataset_name,
@@ -1081,6 +1084,7 @@ def test_generator_based_builder_download_and_prepare_with_num_proc(tmp_path):
     expected_num_shards = 2
     assert builder.info.splits["train"].num_examples == 400
     assert builder.info.splits["train"].shard_lengths == [200, 200]
+    assert builder.info.splits["train"].original_shard_lengths == [100] * 4
     arrow_path = os.path.join(
         tmp_path,
         builder.dataset_name,
@@ -1123,6 +1127,8 @@ def test_arrow_based_builder_download_and_prepare_sharded(tmp_path):
         builder.download_and_prepare(file_format="parquet")
     expected_num_shards = 10
     assert builder.info.splits["train"].num_examples == 100
+    assert builder.info.splits["train"].shard_lengths == [10] * 10
+    assert builder.info.splits["train"].original_shard_lengths is None
     parquet_path = os.path.join(
         tmp_path,
         builder.dataset_name,
@@ -1170,6 +1176,7 @@ def test_arrow_based_builder_download_and_prepare_with_num_proc(tmp_path):
     expected_num_shards = 2
     assert builder.info.splits["train"].num_examples == 400
     assert builder.info.splits["train"].shard_lengths == [200, 200]
+    assert builder.info.splits["train"].original_shard_lengths == [100] * 4
     arrow_path = os.path.join(
         tmp_path,
         builder.dataset_name,

@@ -6,6 +6,7 @@ import numpy as np
 import pyarrow as pa
 
 import datasets
+from datasets.builder import Key
 from datasets.features.features import (
     Array2D,
     Array3D,
@@ -90,7 +91,7 @@ class HDF5(datasets.ArrowBasedBuilder):
                             if pa_table is None:
                                 logger.warning(f"File {file} contains no data, skipping...")
                                 continue
-                            yield (file_idx, batch_idx), cast_table_to_features(pa_table, self.info.features)
+                            yield Key(file_idx, batch_idx), cast_table_to_features(pa_table, self.info.features)
             except ValueError as e:
                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                 raise
