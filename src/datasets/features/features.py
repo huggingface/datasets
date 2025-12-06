@@ -42,7 +42,7 @@ from ..utils import experimental, logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
-from .nifti import Nifti
+from .nifti import Nifti, encode_nibabel_image
 from .pdf import Pdf, encode_pdfplumber_pdf
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video
@@ -307,6 +307,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
     if config.PDFPLUMBER_AVAILABLE and "pdfplumber" in sys.modules:
         import pdfplumber
 
+    if config.NIBABEL_AVAILABLE and "nibabel" in sys.modules:
+        import nibabel as nib
+
     if config.TORCHCODEC_AVAILABLE and "torchcodec" in sys.modules:
         from torchcodec.decoders import AudioDecoder, VideoDecoder
 
@@ -380,6 +383,8 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         return encode_pil_image(obj), True
     elif config.PDFPLUMBER_AVAILABLE and "pdfplumber" in sys.modules and isinstance(obj, pdfplumber.pdf.PDF):
         return encode_pdfplumber_pdf(obj), True
+    elif config.NIBABEL_AVAILABLE and "nibabel" in sys.modules and isinstance(obj, nib.analyze.AnalyzeImage):
+        return encode_nibabel_image(obj, force_bytes=True), True
     elif isinstance(obj, pd.Series):
         return (
             _cast_to_python_objects(
