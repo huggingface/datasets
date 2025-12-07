@@ -8,6 +8,7 @@ from .arrow import arrow
 from .audiofolder import audiofolder
 from .cache import cache
 from .csv import csv
+from .fasta import fasta
 from .hdf5 import hdf5
 from .imagefolder import imagefolder
 from .json import json
@@ -51,6 +52,7 @@ _PACKAGED_DATASETS_MODULES = {
     "webdataset": (webdataset.__name__, _hash_python_lines(inspect.getsource(webdataset).splitlines())),
     "xml": (xml.__name__, _hash_python_lines(inspect.getsource(xml).splitlines())),
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
+    "fasta": (fasta.__name__, _hash_python_lines(inspect.getsource(fasta).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -82,6 +84,11 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".xml": ("xml", {}),
     ".hdf5": ("hdf5", {}),
     ".h5": ("hdf5", {}),
+    ".fa": ("fasta", {}),
+    ".fasta": ("fasta", {}),
+    ".fna": ("fasta", {}),
+    ".ffn": ("fasta", {}),
+    ".frn": ("fasta", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
