@@ -90,6 +90,8 @@
       title: Create a document dataset
     - local: nifti_dataset
       title: Create a medical imaging dataset
+    - local: dicom_dataset
+      title: Create a medical dataset, containing images, signals or videos and additional metadata
     title: "Vision"
   - sections:
     - local: nlp_load
