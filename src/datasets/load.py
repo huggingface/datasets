@@ -25,7 +25,8 @@ from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional, Union, Literal, overload
+from typing import Any, Literal, Optional, Union, overload
+
 import fsspec
 import httpx
 import requests
