@@ -25,7 +25,7 @@ from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Literal, Optional, Union, overload
 
 import fsspec
 import httpx
@@ -1185,6 +1185,98 @@ def load_dataset_builder(
     builder_instance._use_legacy_cache_dir_if_possible(dataset_module)
 
     return builder_instance
+
+
+@overload
+def load_dataset(
+    path: str,
+    name: Optional[str] = None,
+    data_dir: Optional[str] = None,
+    data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
+    split: Literal[None] = None,
+    cache_dir: Optional[str] = None,
+    features: Optional[Features] = None,
+    download_config: Optional[DownloadConfig] = None,
+    download_mode: Optional[Union[DownloadMode, str]] = None,
+    verification_mode: Optional[Union[VerificationMode, str]] = None,
+    keep_in_memory: Optional[bool] = None,
+    save_infos: bool = False,
+    revision: Optional[Union[str, Version]] = None,
+    token: Optional[Union[bool, str]] = None,
+    streaming: Literal[False] = False,
+    num_proc: Optional[int] = None,
+    storage_options: Optional[dict] = None,
+    **config_kwargs,
+) -> DatasetDict: ...
+
+
+@overload
+def load_dataset(
+    path: str,
+    name: Optional[str] = None,
+    data_dir: Optional[str] = None,
+    data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
+    split: str = "",
+    cache_dir: Optional[str] = None,
+    features: Optional[Features] = None,
+    download_config: Optional[DownloadConfig] = None,
+    download_mode: Optional[Union[DownloadMode, str]] = None,
+    verification_mode: Optional[Union[VerificationMode, str]] = None,
+    keep_in_memory: Optional[bool] = None,
+    save_infos: bool = False,
+    revision: Optional[Union[str, Version]] = None,
+    token: Optional[Union[bool, str]] = None,
+    streaming: Literal[False] = False,
+    num_proc: Optional[int] = None,
+    storage_options: Optional[dict] = None,
+    **config_kwargs,
+) -> Dataset: ...
+
+
+@overload
+def load_dataset(
+    path: str,
+    name: Optional[str] = None,
+    data_dir: Optional[str] = None,
+    data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
+    split: Literal[None] = None,
+    cache_dir: Optional[str] = None,
+    features: Optional[Features] = None,
+    download_config: Optional[DownloadConfig] = None,
+    download_mode: Optional[Union[DownloadMode, str]] = None,
+    verification_mode: Optional[Union[VerificationMode, str]] = None,
+    keep_in_memory: Optional[bool] = None,
+    save_infos: bool = False,
+    revision: Optional[Union[str, Version]] = None,
+    token: Optional[Union[bool, str]] = None,
+    streaming: Literal[True] = True,
+    num_proc: Optional[int] = None,
+    storage_options: Optional[dict] = None,
+    **config_kwargs,
+) -> IterableDatasetDict: ...
+
+
+@overload
+def load_dataset(
+    path: str,
+    name: Optional[str] = None,
+    data_dir: Optional[str] = None,
+    data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
+    split: str = "",
+    cache_dir: Optional[str] = None,
+    features: Optional[Features] = None,
+    download_config: Optional[DownloadConfig] = None,
+    download_mode: Optional[Union[DownloadMode, str]] = None,
+    verification_mode: Optional[Union[VerificationMode, str]] = None,
+    keep_in_memory: Optional[bool] = None,
+    save_infos: bool = False,
+    revision: Optional[Union[str, Version]] = None,
+    token: Optional[Union[bool, str]] = None,
+    streaming: Literal[True] = True,
+    num_proc: Optional[int] = None,
+    storage_options: Optional[dict] = None,
+    **config_kwargs,
+) -> IterableDataset: ...
 
 
 def load_dataset(
