@@ -6076,7 +6076,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @transmit_format
     @fingerprint_transform(inplace=False)
     def add_column(
-        self, name: str, column: Union[list, np.ndarray], new_fingerprint: str, feature: Optional[FeatureType] = None
+        self,
+        name: str,
+        column: Union[list, np.ndarray],
+        new_fingerprint: Optional[str] = None,
+        feature: Optional[FeatureType] = None,
     ):
         """Add column to Dataset.
 
@@ -6333,7 +6337,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(inplace=False)
-    def add_item(self, item: dict, new_fingerprint: str):
+    def add_item(self, item: dict, new_fingerprint: Optional[str] = None):
         """Add item to Dataset.
 
         <Added version="1.7"/>

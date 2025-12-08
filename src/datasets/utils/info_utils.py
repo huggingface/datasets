@@ -29,8 +29,7 @@ class VerificationMode(enum.Enum):
 
     |                           | Verification checks                                                           |
     |---------------------------|------------------------------------------------------------------------------ |
-    | `ALL_CHECKS`              | Split checks, uniqueness of the keys yielded in case of the GeneratorBuilder  |
-    |                           | and the validity (number of files, checksums, etc.) of downloaded files       |
+    | `ALL_CHECKS`              | Split checks and validity (number of files, checksums) of downloaded files    |
     | `BASIC_CHECKS` (default)  | Same as `ALL_CHECKS` but without checking downloaded files                    |
     | `NO_CHECKS`               | None                                                                          |
 
