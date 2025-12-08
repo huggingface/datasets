@@ -479,6 +479,7 @@ COMPRESSION_EXTENSION_TO_PROTOCOL = {
     },
     # archive compression
     "zip": "zip",
+    "eval": "zip",
 }
 SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL = {
     extension.lstrip("."): fs_class.protocol
