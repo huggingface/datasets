@@ -689,10 +689,10 @@ class Column(Sequence_):
         return len(self.source)
 
     def __repr__(self):
-        return "Column(" + repr(list(self[:5])) + ")"
+        return "Column(" + repr(list(self[:5]))[:-1] + (", ...])" if len(self) > 5 else "])")
 
     def __str__(self):
-        return "Column(" + str(list(self[:5])) + ")"
+        return "Column(" + str(list(self[:5]))[:-1] + (", ...])" if len(self) > 5 else "])")
 
     def __eq__(self, value):
         if isinstance(value, Column):
