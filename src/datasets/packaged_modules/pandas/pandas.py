@@ -7,6 +7,7 @@ import pandas as pd
 import pyarrow as pa
 
 import datasets
+from datasets.builder import Key
 from datasets.table import table_cast
 
 
@@ -62,4 +63,4 @@ class Pandas(datasets.ArrowBasedBuilder):
         for i, file in enumerate(itertools.chain.from_iterable(files)):
             with open(file, "rb") as f:
                 pa_table = pa.Table.from_pandas(pd.read_pickle(f))
-                yield i, self._cast_table(pa_table)
+                yield Key(i, 0), self._cast_table(pa_table)

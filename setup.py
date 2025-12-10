@@ -208,7 +208,7 @@ DOCS_REQUIRE = [
 
 PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
-NIBABEL_REQUIRE = ["nibabel>=5.3.2"]
+NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,

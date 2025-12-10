@@ -22,6 +22,7 @@ from datasets.builder import (
     DatasetBuilder,
     GeneratorBasedBuilder,
     InvalidConfigName,
+    Key,
 )
 from datasets.data_files import DataFilesList
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
@@ -69,7 +70,7 @@ class DummyGeneratorBasedBuilder(GeneratorBasedBuilder):
 
     def _generate_examples(self):
         for i in range(100):
-            yield i, {"text": "foo"}
+            yield (0, i), {"text": "foo"}
 
 
 class DummyArrowBasedBuilder(ArrowBasedBuilder):
@@ -81,7 +82,7 @@ class DummyArrowBasedBuilder(ArrowBasedBuilder):
 
     def _generate_tables(self):
         for i in range(10):
-            yield i, pa.table({"text": ["foo"] * 10})
+            yield (0, i), pa.table({"text": ["foo"] * 10})
 
 
 class DummyGeneratorBasedBuilderWithIntegers(GeneratorBasedBuilder):
@@ -93,7 +94,7 @@ class DummyGeneratorBasedBuilderWithIntegers(GeneratorBasedBuilder):
 
     def _generate_examples(self):
         for i in range(100):
-            yield i, {"id": i}
+            yield (0, i), {"id": i}
 
 
 class DummyGeneratorBasedBuilderConfig(BuilderConfig):
@@ -114,7 +115,7 @@ class DummyGeneratorBasedBuilderWithConfig(GeneratorBasedBuilder):
 
     def _generate_examples(self):
         for i in range(100):
-            yield i, {"text": self.config.content * self.config.times}
+            yield (0, i), {"text": self.config.content * self.config.times}
 
 
 class DummyBuilderWithMultipleConfigs(DummyBuilder):
@@ -142,17 +143,6 @@ class DummyBuilderWithDownload(DummyBuilder):
         return [SplitGenerator(name=Split.TRAIN)]
 
 
-class DummyBuilderWithManualDownload(DummyBuilderWithMultipleConfigs):
-    @property
-    def manual_download_instructions(self):
-        return "To use the dataset you have to download some stuff manually and pass the data path to data_dir"
-
-    def _split_generators(self, dl_manager):
-        if not os.path.exists(self.config.data_dir):
-            raise FileNotFoundError(f"data_dir {self.config.data_dir} doesn't exist.")
-        return [SplitGenerator(name=Split.TRAIN)]
-
-
 class DummyArrowBasedBuilderWithShards(ArrowBasedBuilder):
     def _info(self):
         return DatasetInfo(features=Features({"id": Value("int8"), "filepath": Value("string")}))
@@ -161,11 +151,9 @@ class DummyArrowBasedBuilderWithShards(ArrowBasedBuilder):
         return [SplitGenerator(name=Split.TRAIN, gen_kwargs={"filepaths": [f"data{i}.txt" for i in range(4)]})]
 
     def _generate_tables(self, filepaths):
-        idx = 0
-        for filepath in filepaths:
+        for shard_idx, filepath in enumerate(filepaths):
             for i in range(10):
-                yield idx, pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
-                idx += 1
+                yield Key(shard_idx, i), pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
 
 
 class DummyGeneratorBasedBuilderWithShards(GeneratorBasedBuilder):
@@ -176,11 +164,9 @@ class DummyGeneratorBasedBuilderWithShards(GeneratorBasedBuilder):
         return [SplitGenerator(name=Split.TRAIN, gen_kwargs={"filepaths": [f"data{i}.txt" for i in range(4)]})]
 
     def _generate_examples(self, filepaths):
-        idx = 0
-        for filepath in filepaths:
+        for shard_idx, filepath in enumerate(filepaths):
             for i in range(100):
-                yield idx, {"id": i, "filepath": filepath}
-                idx += 1
+                yield Key(shard_idx, i), {"id": i, "filepath": filepath}
 
 
 class DummyArrowBasedBuilderWithAmbiguousShards(ArrowBasedBuilder):
@@ -199,11 +185,9 @@ class DummyArrowBasedBuilderWithAmbiguousShards(ArrowBasedBuilder):
         ]
 
     def _generate_tables(self, filepaths, dummy_kwarg_with_different_length):
-        idx = 0
-        for filepath in filepaths:
+        for shard_idx, filepath in enumerate(filepaths):
             for i in range(10):
-                yield idx, pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
-                idx += 1
+                yield Key(shard_idx, i), pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
 
 
 class DummyGeneratorBasedBuilderWithAmbiguousShards(GeneratorBasedBuilder):
@@ -222,11 +206,9 @@ class DummyGeneratorBasedBuilderWithAmbiguousShards(GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepaths, dummy_kwarg_with_different_length):
-        idx = 0
-        for filepath in filepaths:
+        for shard_idx, filepath in enumerate(filepaths):
             for i in range(100):
-                yield idx, {"id": i, "filepath": filepath}
-                idx += 1
+                yield Key(shard_idx, i), {"id": i, "filepath": filepath}
 
 
 def _run_concurrent_download_and_prepare(tmp_dir):
@@ -666,26 +648,6 @@ class BuilderTest(TestCase):
                 os.path.exists(os.path.join(tmp_dir, builder.dataset_name, "default", "0.0.0", "dataset_info.json"))
             )
 
-        # Test that duplicated keys are ignored if verification_mode is "no_checks"
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir)
-            with patch("datasets.builder.ArrowWriter", side_effect=ArrowWriter) as mock_arrow_writer:
-                builder.download_and_prepare(
-                    download_mode=DownloadMode.FORCE_REDOWNLOAD, verification_mode=VerificationMode.NO_CHECKS
-                )
-                mock_arrow_writer.assert_called_once()
-                args, kwargs = mock_arrow_writer.call_args_list[0]
-                self.assertFalse(kwargs["check_duplicates"])
-
-                mock_arrow_writer.reset_mock()
-
-                builder.download_and_prepare(
-                    download_mode=DownloadMode.FORCE_REDOWNLOAD, verification_mode=VerificationMode.BASIC_CHECKS
-                )
-                mock_arrow_writer.assert_called_once()
-                args, kwargs = mock_arrow_writer.call_args_list[0]
-                self.assertTrue(kwargs["check_duplicates"])
-
     def test_cache_dir_no_args(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, data_dir=None, data_files=None)
@@ -803,16 +765,16 @@ class BuilderTest(TestCase):
 
     def test_cache_dir_for_data_dir(self):
         with tempfile.TemporaryDirectory() as tmp_dir, tempfile.TemporaryDirectory() as data_dir:
-            builder = DummyBuilderWithManualDownload(cache_dir=tmp_dir, config_name="a", data_dir=data_dir)
-            other_builder = DummyBuilderWithManualDownload(cache_dir=tmp_dir, config_name="a", data_dir=data_dir)
+            builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, config_name="a", data_dir=data_dir)
+            other_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, config_name="a", data_dir=data_dir)
             self.assertEqual(builder.cache_dir, other_builder.cache_dir)
-            other_builder = DummyBuilderWithManualDownload(cache_dir=tmp_dir, config_name="a", data_dir=tmp_dir)
+            other_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, config_name="a", data_dir=tmp_dir)
             self.assertNotEqual(builder.cache_dir, other_builder.cache_dir)
 
     def test_cache_dir_for_configured_builder(self):
         with tempfile.TemporaryDirectory() as tmp_dir, tempfile.TemporaryDirectory() as data_dir:
             builder_cls = configure_builder_class(
-                DummyBuilderWithManualDownload,
+                DummyGeneratorBasedBuilder,
                 builder_configs=[BuilderConfig(data_dir=data_dir)],
                 default_config_name=None,
                 dataset_name="dummy",
@@ -1072,6 +1034,8 @@ def test_generator_based_builder_download_and_prepare_sharded(tmp_path):
         builder.download_and_prepare(file_format="parquet")
     expected_num_shards = 100 // writer_batch_size
     assert builder.info.splits["train"].num_examples == 100
+    assert builder.info.splits["train"].shard_lengths == [25] * 4
+    assert builder.info.splits["train"].original_shard_lengths is None
     parquet_path = os.path.join(
         tmp_path,
         builder.dataset_name,
@@ -1120,6 +1084,7 @@ def test_generator_based_builder_download_and_prepare_with_num_proc(tmp_path):
     expected_num_shards = 2
     assert builder.info.splits["train"].num_examples == 400
     assert builder.info.splits["train"].shard_lengths == [200, 200]
+    assert builder.info.splits["train"].original_shard_lengths == [100] * 4
     arrow_path = os.path.join(
         tmp_path,
         builder.dataset_name,
@@ -1162,6 +1127,8 @@ def test_arrow_based_builder_download_and_prepare_sharded(tmp_path):
         builder.download_and_prepare(file_format="parquet")
     expected_num_shards = 10
     assert builder.info.splits["train"].num_examples == 100
+    assert builder.info.splits["train"].shard_lengths == [10] * 10
+    assert builder.info.splits["train"].original_shard_lengths is None
     parquet_path = os.path.join(
         tmp_path,
         builder.dataset_name,
@@ -1209,6 +1176,7 @@ def test_arrow_based_builder_download_and_prepare_with_num_proc(tmp_path):
     expected_num_shards = 2
     assert builder.info.splits["train"].num_examples == 400
     assert builder.info.splits["train"].shard_lengths == [200, 200]
+    assert builder.info.splits["train"].original_shard_lengths == [100] * 4
     arrow_path = os.path.join(
         tmp_path,
         builder.dataset_name,

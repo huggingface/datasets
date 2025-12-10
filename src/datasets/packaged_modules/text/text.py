@@ -6,6 +6,7 @@ from typing import List, Optional
 import pyarrow as pa
 
 import datasets
+from datasets.builder import Key
 from datasets.features.features import require_storage_cast
 from datasets.table import table_cast
 
@@ -88,7 +89,7 @@ class Text(datasets.ArrowBasedBuilder):
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield (file_idx, batch_idx), self._cast_table(pa_table)
+                        yield Key(file_idx, batch_idx), self._cast_table(pa_table)
                         batch_idx += 1
                 elif self.config.sample_by == "paragraph":
                     batch_idx = 0
@@ -106,7 +107,7 @@ class Text(datasets.ArrowBasedBuilder):
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield (file_idx, batch_idx), self._cast_table(pa_table)
+                        yield Key(file_idx, batch_idx), self._cast_table(pa_table)
                         batch_idx += 1
                         batch = batch[-1]
                     if batch:
@@ -115,4 +116,4 @@ class Text(datasets.ArrowBasedBuilder):
                 elif self.config.sample_by == "document":
                     text = f.read()
                     pa_table = pa.Table.from_arrays([pa.array([text])], names=pa_table_names)
-                    yield file_idx, self._cast_table(pa_table)
+                    yield Key(file_idx, 0), self._cast_table(pa_table)

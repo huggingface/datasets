@@ -9,6 +9,7 @@ import pyarrow.json as paj
 
 import datasets
 import datasets.config
+from datasets.builder import Key
 from datasets.table import table_cast
 from datasets.utils.file_utils import readline
 
@@ -127,7 +128,7 @@ class Json(datasets.ArrowBasedBuilder):
                 if df.columns.tolist() == [0]:
                     df.columns = list(self.config.features) if self.config.features else ["text"]
                 pa_table = pa.Table.from_pandas(df, preserve_index=False)
-                yield file_idx, self._cast_table(pa_table)
+                yield Key(file_idx, 0), self._cast_table(pa_table)
 
             # If the file has one json object per line
             else:
@@ -192,7 +193,7 @@ class Json(datasets.ArrowBasedBuilder):
                                 raise ValueError(
                                     f"Failed to convert pandas DataFrame to Arrow Table from file {file}."
                                 ) from None
-                            yield file_idx, self._cast_table(pa_table)
+                            yield Key(file_idx, 0), self._cast_table(pa_table)
                             break
-                        yield (file_idx, batch_idx), self._cast_table(pa_table)
+                        yield Key(file_idx, batch_idx), self._cast_table(pa_table)
                         batch_idx += 1
