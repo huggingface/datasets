@@ -991,10 +991,10 @@ class DatasetBuilder:
             )
 
     def _get_filenames_for_split(self, split_name: str, dataset_name: str, file_format: str) -> list[str]:
-        num_shards = 1
+        shard_lengths = [1]
         if self.info.splits:
             try:
-                num_shards = len(self.info.splits[split_name].shard_lengths or ())
+                shard_lengths = self.info.splits[split_name].shard_lengths or []
             except (TypeError, ValueError):
                 pass
         return filenames_for_dataset_split(
@@ -1002,7 +1002,7 @@ class DatasetBuilder:
             dataset_name,
             split_name,
             filetype_suffix=file_format,
-            num_shards=num_shards,
+            shard_lengths=shard_lengths,
         )
 
     def _check_manual_download(self, dl_manager):
