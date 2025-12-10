@@ -1005,19 +1005,6 @@ class DatasetBuilder:
             shard_lengths=shard_lengths,
         )
 
-    def _check_manual_download(self, dl_manager):
-        if self.manual_download_instructions is not None and dl_manager.manual_dir is None:
-            raise ManualDownloadError(
-                textwrap.dedent(
-                    f"""\
-                    The dataset {self.dataset_name} with config {self.config.name} requires manual data.
-                    Please follow the manual download instructions:
-                     {self.manual_download_instructions}
-                    Manual data can be loaded with:
-                     datasets.load_dataset("{self.repo_id or self.dataset_name}", data_dir="<path/to/manual/data>")"""
-                )
-            )
-
     def _download_and_prepare(self, dl_manager, verification_mode, **prepare_split_kwargs):
         """Downloads and prepares dataset for reading.
 
@@ -1316,7 +1303,6 @@ class DatasetBuilder:
             dataset_name=self.dataset_name,
             data_dir=self.config.data_dir,
         )
-        self._check_manual_download(dl_manager)
         splits_generators_kwargs = {}
         if self._supports_split_by_split_generation():
             splits_generators_kwargs["splits"] = [split] if split else None
