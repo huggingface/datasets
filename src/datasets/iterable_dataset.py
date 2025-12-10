@@ -81,9 +81,11 @@ if TYPE_CHECKING:
     import sqlalchemy
     import torch
 
+    from .builder import Key as BuilderKey
+
 logger = get_logger(__name__)
 
-Key = Union[int, str]
+Key = Union[int, str, tuple[int, int], "BuilderKey"]
 
 
 def identity_func(x):
@@ -253,7 +255,7 @@ class _BaseExamplesIterable:
 
 
 class ExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, generate_examples_fn: Callable[..., tuple[Key, dict]], kwargs: dict):
+    def __init__(self, generate_examples_fn: Callable[..., Iterator[tuple[Key, dict]]], kwargs: dict):
         super().__init__()
         self.generate_examples_fn = generate_examples_fn
         self.kwargs = kwargs
@@ -291,7 +293,10 @@ class ExamplesIterable(_BaseExamplesIterable):
 
 class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
     def __init__(
-        self, generate_examples_fn: Callable[..., tuple[Key, dict]], kwargs: dict, generator: np.random.Generator
+        self,
+        generate_examples_fn: Callable[..., Iterator[tuple[Key, dict]]],
+        kwargs: dict,
+        generator: np.random.Generator,
     ):
         super().__init__(generate_examples_fn, kwargs)
         self.generator = deepcopy(generator)
@@ -335,7 +340,7 @@ class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
 
 
 class ArrowExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, generate_tables_fn: Callable[..., tuple[Key, pa.Table]], kwargs: dict):
+    def __init__(self, generate_tables_fn: Callable[..., Iterator[tuple[Key, pa.Table]]], kwargs: dict):
         super().__init__()
         self.generate_tables_fn = generate_tables_fn
         self.kwargs = kwargs
@@ -404,7 +409,7 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
 class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
     def __init__(
         self,
-        generate_tables_fn: Callable[..., tuple[Key, pa.Table]],
+        generate_tables_fn: Callable[..., Iterator[tuple[Key, pa.Table]]],
         kwargs: dict,
         generator: np.random.Generator,
     ):
