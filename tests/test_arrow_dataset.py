@@ -4785,6 +4785,16 @@ def test_polars_round_trip():
     assert isinstance(Dataset.from_polars(ds.to_polars()), Dataset)
 
 
+def test_add_column():
+    from datasets import Dataset
+
+    ds = Dataset.from_dict({"a": [1, 2]})
+    ds = ds.add_column("b", [3, 4])
+    assert "b" in ds.features
+    assert ds[0] == {"a": 1, "b": 3}
+    assert ds[1] == {"a": 2, "b": 4}
+
+
 @pytest.mark.high_memory
 def test_map_int32_overflow():
     # GH: 7821

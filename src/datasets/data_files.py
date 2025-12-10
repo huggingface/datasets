@@ -94,8 +94,11 @@ DEFAULT_PATTERNS_ALL = {
     Split.TRAIN: ["**"],
 }
 
+DEFAULT_PATTERNS_LOGS = {"logs": ["**/*.eval"]}
+
 ALL_SPLIT_PATTERNS = [SPLIT_PATTERN_SHARDED]
 ALL_DEFAULT_PATTERNS = [
+    DEFAULT_PATTERNS_LOGS,
     DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME,
     DEFAULT_PATTERNS_SPLIT_IN_FILENAME,
     DEFAULT_PATTERNS_ALL,
@@ -349,14 +352,18 @@ def resolve_pattern(
     pattern, storage_options = _prepare_path_and_storage_options(pattern, download_config=download_config)
     fs, fs_pattern = url_to_fs(pattern, **storage_options)
     files_to_ignore = set(FILES_TO_IGNORE) - {xbasename(pattern)}
-    protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[0]
+    protocol = (
+        pattern.split("://")[0]
+        if "://" in pattern
+        else (fs.protocol if isinstance(fs.protocol, str) else fs.protocol[0])
+    )
     protocol_prefix = protocol + "://" if protocol != "file" else ""
     glob_kwargs = {}
     if protocol == "hf":
         # 10 times faster glob with detail=True (ignores costly info like lastCommit)
         glob_kwargs["expand_info"] = False
     matched_paths = [
-        filepath if filepath.startswith(protocol_prefix) else protocol_prefix + filepath
+        filepath if "://" in filepath else protocol_prefix + filepath
         for filepath, info in fs.glob(pattern, detail=True, **glob_kwargs).items()
         if (info["type"] == "file" or (info.get("islink") and os.path.isfile(os.path.realpath(filepath))))
         and (xbasename(filepath) not in files_to_ignore)

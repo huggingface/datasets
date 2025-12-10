@@ -71,7 +71,7 @@ def _generate_iterable_examples(
             row_id = 0
         if state_dict:
             state_dict["partition_example_idx"] = row_id + 1
-        yield f"{part_id}_{row_id}", row_as_dict
+        yield (part_id, row_id), row_as_dict
         row_id += 1
 
 

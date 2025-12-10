@@ -9,6 +9,7 @@ import numpy as np
 import pyarrow as pa
 
 import datasets
+from datasets.builder import Key
 from datasets.features.features import cast_to_python_objects
 from datasets.utils.file_utils import SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL, xbasename
 
@@ -125,7 +126,7 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                             "path": example["__key__"] + "." + field_name,
                             "bytes": example[field_name],
                         }
-                yield f"{tar_idx}_{example_idx}", example
+                yield Key(tar_idx, example_idx), example
 
 
 # Source: https://github.com/webdataset/webdataset/blob/87bd5aa41602d57f070f65a670893ee625702f2f/webdataset/tariterators.py#L25

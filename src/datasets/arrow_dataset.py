@@ -660,7 +660,11 @@ class Column(Sequence_):
 
     def __iter__(self) -> Iterator[Any]:
         if isinstance(self.source, Dataset):
-            source = self.source._fast_select_column(self.column_name)
+            if self.source._format_type == "custom":
+                # the formatting transform may require all columns
+                source = self.source
+            else:
+                source = self.source._fast_select_column(self.column_name)
         else:
             source = self.source
         for example in source:
@@ -670,7 +674,12 @@ class Column(Sequence_):
         if isinstance(key, str):
             return Column(self, key)
         elif isinstance(self.source, Dataset):
-            return self.source._fast_select_column(self.column_name)[key][self.column_name]
+            if self.source._format_type == "custom":
+                # the formatting transform may require all columns
+                source = self.source
+            else:
+                source = self.source._fast_select_column(self.column_name)
+            return source[key][self.column_name]
         elif isinstance(key, int):
             return self.source[key][self.column_name]
         else:
@@ -680,10 +689,10 @@ class Column(Sequence_):
         return len(self.source)
 
     def __repr__(self):
-        return "Column(" + repr(list(self[:5])) + ")"
+        return "Column(" + repr(list(self[:5]))[:-1] + (", ...])" if len(self) > 5 else "])")
 
     def __str__(self):
-        return "Column(" + str(list(self[:5])) + ")"
+        return "Column(" + str(list(self[:5]))[:-1] + (", ...])" if len(self) > 5 else "])")
 
     def __eq__(self, value):
         if isinstance(value, Column):
@@ -1961,7 +1970,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("boolq", split="validation")
+        >>> ds = load_dataset("google/boolq", split="validation")
         >>> ds.features
         {'answer': Value('bool'),
          'passage': Value('string'),
@@ -4716,7 +4725,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = ds.train_test_split(test_size=0.2, seed=42)
 
         # stratified split
-        >>> ds = load_dataset("imdb",split="train")
+        >>> ds = load_dataset("stanfordnlp/imdb",split="train")
         Dataset({
             features: ['text', 'label'],
             num_rows: 25000
@@ -4868,7 +4877,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 try:
                     train_indices, test_indices = next(
                         stratified_shuffle_split_generate_indices(
-                            self.with_format("numpy")[stratify_by_column], n_train, n_test, rng=generator
+                            np.asarray(self.with_format("numpy")[stratify_by_column]), n_train, n_test, rng=generator
                         )
                     )
                 except Exception as error:
@@ -6067,7 +6076,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @transmit_format
     @fingerprint_transform(inplace=False)
     def add_column(
-        self, name: str, column: Union[list, np.ndarray], new_fingerprint: str, feature: Optional[FeatureType] = None
+        self,
+        name: str,
+        column: Union[list, np.ndarray],
+        new_fingerprint: Optional[str] = None,
+        feature: Optional[FeatureType] = None,
     ):
         """Add column to Dataset.
 
@@ -6166,7 +6179,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```python
-        >>> ds = datasets.load_dataset('crime_and_punish', split='train')
+        >>> ds = datasets.load_dataset('community-datasets/crime_and_punish', split='train')
         >>> ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
         >>> ds_with_embeddings.add_faiss_index(column='embeddings')
         >>> # query
@@ -6174,7 +6187,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> # save index
         >>> ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
 
-        >>> ds = datasets.load_dataset('crime_and_punish', split='train')
+        >>> ds = datasets.load_dataset('community-datasets/crime_and_punish', split='train')
         >>> # load index
         >>> ds.load_faiss_index('embeddings', 'my_index.faiss')
         >>> # query
@@ -6305,7 +6318,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```python
         >>> es_client = elasticsearch.Elasticsearch()
-        >>> ds = datasets.load_dataset('crime_and_punish', split='train')
+        >>> ds = datasets.load_dataset('community-datasets/crime_and_punish', split='train')
         >>> ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
         >>> scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
         ```
@@ -6324,7 +6337,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(inplace=False)
-    def add_item(self, item: dict, new_fingerprint: str):
+    def add_item(self, item: dict, new_fingerprint: Optional[str] = None):
         """Add item to Dataset.
 
         <Added version="1.7"/>

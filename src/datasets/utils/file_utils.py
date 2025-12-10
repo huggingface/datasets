@@ -68,6 +68,8 @@ CONNECTION_ERRORS_TO_RETRY = (
     requests.exceptions.Timeout,
     httpx.RequestError,
 )
+SERVER_UNAVAILABLE_CODE = 504
+RATE_LIMIT_CODE = 429
 
 
 def is_remote_url(url_or_filename: str) -> bool:
@@ -477,6 +479,7 @@ COMPRESSION_EXTENSION_TO_PROTOCOL = {
     },
     # archive compression
     "zip": "zip",
+    "eval": "zip",
 }
 SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL = {
     extension.lstrip("."): fs_class.protocol
@@ -827,6 +830,22 @@ def _add_retries_to_file_obj_read_method(file_obj):
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
                 )
                 time.sleep(config.STREAMING_READ_RETRY_INTERVAL)
+            except huggingface_hub.errors.HfHubHTTPError as err:
+                if err.response is not None and err.response.status_code == SERVER_UNAVAILABLE_CODE:
+                    disconnect_err = err
+                    logger.warning(
+                        f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_SERVER_UNAVAILABLE_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
+                    )
+                    time.sleep(config.STREAMING_READ_SERVER_UNAVAILABLE_RETRY_INTERVAL)
+                elif err.response is not None and err.response.status_code == RATE_LIMIT_CODE:
+                    disconnect_err = err
+                    logger.warning(str(err))
+                    logger.warning(
+                        f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RATE_LIMIT_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
+                    )
+                    time.sleep(config.STREAMING_READ_RATE_LIMIT_RETRY_INTERVAL)
+                else:
+                    raise
         else:
             raise ConnectionError("Server Disconnected") from disconnect_err
         return out

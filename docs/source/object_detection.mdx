@@ -8,14 +8,14 @@ To run these examples, make sure you have up-to-date versions of [albumentations
 pip install -U albumentations opencv-python
 ```
 
-In this example, you'll use the [`cppe-5`](https://huggingface.co/datasets/cppe-5) dataset for identifying medical personal protective equipment (PPE) in the context of the COVID-19 pandemic.
+In this example, you'll use the [`cppe-5`](https://huggingface.co/datasets/rishitdagli/cppe-5) dataset for identifying medical personal protective equipment (PPE) in the context of the COVID-19 pandemic.
 
 Load the dataset and take a look at an example:
 
 ```py
 >>> from datasets import load_dataset
 
->>> ds = load_dataset("cppe-5")
+>>> ds = load_dataset("rishitdagli/cppe-5")
 >>> example = ds['train'][0]
 >>> example
 {'height': 663,

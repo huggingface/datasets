@@ -65,4 +65,4 @@ class Xml(datasets.ArrowBasedBuilder):
             with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
                 xml = f.read()
                 pa_table = pa.Table.from_arrays([pa.array([xml])], names=pa_table_names)
-                yield file_idx, self._cast_table(pa_table)
+                yield (file_idx, 0), self._cast_table(pa_table)

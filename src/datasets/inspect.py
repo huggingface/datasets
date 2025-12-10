@@ -280,9 +280,6 @@ def get_dataset_config_info(
         download_config = download_config.copy() if download_config else DownloadConfig()
         if token is not None:
             download_config.token = token
-        builder._check_manual_download(
-            StreamingDownloadManager(base_path=builder.base_path, download_config=download_config)
-        )
         try:
             info.splits = {
                 split_generator.name: {"name": split_generator.name, "dataset_name": path}

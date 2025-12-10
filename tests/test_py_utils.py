@@ -1,4 +1,5 @@
 import os
+import pickle
 import time
 from dataclasses import dataclass
 from multiprocessing import Pool
@@ -81,7 +82,7 @@ class PyUtilsTest(TestCase):
             {k: v.tolist() for k, v in map_nested(int, sn1, map_numpy=True, num_proc=num_proc).items()},
             {k: v.tolist() for k, v in expected_map_nested_sn1_int.items()},
         )
-        with self.assertRaises(AttributeError):  # can't pickle a local lambda
+        with self.assertRaises((AttributeError, pickle.PicklingError)):  # can't pickle a local lambda
             map_nested(lambda x: x + 1, sn1, num_proc=num_proc)
 
     def test_zip_dict(self):
