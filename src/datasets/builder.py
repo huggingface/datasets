@@ -835,8 +835,9 @@ class DatasetBuilder:
         # File locking only with local paths; no file locking on GCS or S3
         with FileLock(lock_path) if is_local else contextlib.nullcontext():
             # Check if the data already exists
-            info_exists = self._fs.exists(posixpath.join(self._output_dir, config.DATASET_INFO_FILENAME))
-            if info_exists:
+            data_exists = self._fs.exists(posixpath.join(self._output_dir, config.DATASET_INFO_FILENAME))
+            if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
+                logger.info(f"Found cached dataset {self.dataset_name} ({self._output_dir})")
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
                 self.info = self._load_info()
@@ -1060,14 +1061,19 @@ class DatasetBuilder:
         if self._supports_split_by_split_generation():
             split_infos = self.info.splits or {}
             ordered_split_infos = {}
+            downloaded_size = 0
             for split_name in self._available_splits():
                 if split_name in split_dict:
                     ordered_split_infos[split_name] = split_dict[split_name]
+                    downloaded_size += ordered_split_infos[split_name].num_bytes or 0
                 elif split_name in split_infos:
                     ordered_split_infos[split_name] = split_infos[split_name]
+                    downloaded_size += ordered_split_infos[split_name].num_bytes or 0
             self.info.splits = SplitDict.from_split_dict(ordered_split_infos, dataset_name=self.dataset_name)
+            self.info.download_size = downloaded_size
         else:
             self.info.splits = split_dict
+            self.info.download_size = dl_manager.downloaded_size
 
     def download_post_processing_resources(self, dl_manager):
         for split in self.info.splits or []:
