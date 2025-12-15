@@ -50,7 +50,7 @@ class _TempCacheDir:
 
     def __init__(self):
         # Check if TMPDIR is set and handle the case where it doesn't exist
-        tmpdir = os.environ.get("TMPDIR") or os.environ.get("TEMP")  or os.environ.get("TMP")
+        tmpdir = os.environ.get("TMPDIR") or os.environ.get("TEMP") or os.environ.get("TMP")
         # Normalize the path to handle any path resolution issues
         if tmpdir:
             tmpdir = os.path.normpath(tmpdir)
