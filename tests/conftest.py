@@ -27,6 +27,9 @@ def set_test_cache_config(tmp_path_factory, monkeypatch):
     test_extracted_datasets_path = test_hf_datasets_cache / "downloads" / "extracted"
     monkeypatch.setattr("datasets.config.EXTRACTED_DATASETS_PATH", str(test_extracted_datasets_path))
 
+    # used in dataset viewer, we may set it to true by default in the future
+    monkeypatch.setattr("datasets.config.SAVE_ORIGINAL_SHARD_LENGTHS", True)
+
 
 @pytest.fixture(autouse=True)
 def disable_implicit_token(monkeypatch):

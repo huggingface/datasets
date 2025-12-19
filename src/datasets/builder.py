@@ -1514,7 +1514,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 fpath.replace(SUFFIX, ""),
             )
 
-        if total_original_shards > 1:
+        if total_original_shards > 1 and config.SAVE_ORIGINAL_SHARD_LENGTHS:
             split_generator.split_info.original_shard_lengths = [
                 original_shard_length
                 for original_shard_lengths in original_shard_lengths_per_job
@@ -1792,7 +1792,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                 fpath.replace(SUFFIX, ""),
             )
 
-        if total_original_shards > 1:
+        if total_original_shards > 1 and config.SAVE_ORIGINAL_SHARD_LENGTHS:
             split_generator.split_info.original_shard_lengths = [
                 original_shard_length
                 for original_shard_lengths in original_shard_lengths_per_job
