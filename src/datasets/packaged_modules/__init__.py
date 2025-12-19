@@ -6,6 +6,7 @@ from huggingface_hub.utils import insecure_hashlib
 
 from .arrow import arrow
 from .audiofolder import audiofolder
+from .bids import bids
 from .cache import cache
 from .csv import csv
 from .eval import eval
@@ -49,6 +50,7 @@ _PACKAGED_DATASETS_MODULES = {
     "videofolder": (videofolder.__name__, _hash_python_lines(inspect.getsource(videofolder).splitlines())),
     "pdffolder": (pdffolder.__name__, _hash_python_lines(inspect.getsource(pdffolder).splitlines())),
     "niftifolder": (niftifolder.__name__, _hash_python_lines(inspect.getsource(niftifolder).splitlines())),
+    "bids": (bids.__name__, _hash_python_lines(inspect.getsource(bids).splitlines())),
     "webdataset": (webdataset.__name__, _hash_python_lines(inspect.getsource(webdataset).splitlines())),
     "xml": (xml.__name__, _hash_python_lines(inspect.getsource(xml).splitlines())),
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
