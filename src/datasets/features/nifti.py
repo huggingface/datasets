@@ -27,7 +27,7 @@ if config.NIBABEL_AVAILABLE:
 
         def __init__(self, nifti_image: nib.nifti1.Nifti1Image):
             super().__init__(
-                dataobj=nifti_image.get_fdata(),
+                dataobj=nifti_image.dataobj,
                 affine=nifti_image.affine,
                 header=nifti_image.header,
                 extra=nifti_image.extra,
