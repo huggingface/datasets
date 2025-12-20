@@ -2162,7 +2162,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset
 
     @fingerprint_transform(inplace=False)
-    def cast_column(self, column: str, feature: FeatureType, new_fingerprint: Optional[str] = None) -> "Dataset":
+    def cast_column(self, column: str, feature: FeatureType, new_fingerprint: Optional[str] = None, **cast_kwargs) -> "Dataset":
         """Cast column to feature for decoding.
 
         Args:
@@ -2202,7 +2202,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             features = self.features
             features[column] = feature
-            return self.cast(features)
+            return self.cast(features, **cast_kwargs)
 
     @transmit_format
     @fingerprint_transform(inplace=False)
