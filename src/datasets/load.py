@@ -91,7 +91,7 @@ from .utils.version import Version
 
 logger = get_logger(__name__)
 
-ALL_ALLOWED_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + [".zip"]
+ALL_ALLOWED_EXTENSIONS = [*_EXTENSION_TO_MODULE.keys(), ".zip"]
 
 
 class _InitializeConfiguredDatasetBuilder:
