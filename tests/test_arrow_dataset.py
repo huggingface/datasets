@@ -4793,3 +4793,26 @@ def test_add_column():
     assert "b" in ds.features
     assert ds[0] == {"a": 1, "b": 3}
     assert ds[1] == {"a": 2, "b": 4}
+
+
+@pytest.mark.high_memory
+def test_map_int32_overflow():
+    # GH: 7821
+    # This test requires ~4GB RAM to create a large array that triggers int32 overflow
+    # Marked as high_memory (>=16GB) to prevent CI failures
+    def process_batch(batch):
+        res = []
+        for _ in batch["id"]:
+            res.append(np.zeros((2**31)).astype(np.uint16))
+
+        return {"audio": res}
+
+    ds = Dataset.from_dict({"id": [0]})
+    mapped_ds = ds.map(
+        process_batch,
+        batched=True,
+        batch_size=1,
+        num_proc=0,
+        remove_columns=ds.column_names,
+    )
+    assert isinstance(mapped_ds, Dataset)

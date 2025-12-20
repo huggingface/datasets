@@ -514,7 +514,9 @@ class ArrowWriter:
 
     def _build_writer(self, inferred_schema: pa.Schema):
         self._schema, self._features = self._build_schema(inferred_schema)
-        self.pa_writer = pa.RecordBatchStreamWriter(self.stream, self._schema)
+        self.pa_writer = pa.RecordBatchStreamWriter(
+            self.stream, self._schema, options=pa.ipc.IpcWriteOptions(allow_64bit=True)
+        )
 
     @property
     def schema(self):
