@@ -4793,3 +4793,25 @@ def test_add_column():
     assert "b" in ds.features
     assert ds[0] == {"a": 1, "b": 3}
     assert ds[1] == {"a": 2, "b": 4}
+
+
+def test_process_large_few_examples(tmp_path):
+    # GH 7911
+    from datasets import Dataset
+
+    target_size = 2 * 1024
+
+    base_text = "This is a sample sentence that will be repeated many times to create a large dataset. " * 100
+    large_text = ""
+
+    while len(large_text.encode("utf-8")) < target_size:
+        large_text += base_text
+
+    data = {"text": [large_text], "label": [0], "id": [1]}
+
+    ds = Dataset.from_dict(data)
+
+    dataset_path = tmp_path / "sample_dataset"
+    # make sure this is split into 2 shards
+    ds.save_to_disk(dataset_path, max_shard_size="1KB")
+    assert (dataset_path / "data-00000-of-00001.arrow").exists()
