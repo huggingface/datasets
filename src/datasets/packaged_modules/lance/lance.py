@@ -47,16 +47,13 @@ class Lance(datasets.ArrowBasedBuilder):
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
-        print("GENERATING: ", self.config, self)
         splits = []
         if self.config.dataset_dirs is None:
             # if not speficied, treat whole data_files as a single split
             for split, files in self.config.data_files.items():
                 dataset_paths = set()
                 for data_file in files:
-                    print(data_file)
                     dataset_paths.add(str(Path(data_file).parent.parent))
-                print(list(dataset_paths))
                 splits.append(
                     datasets.SplitGenerator(name=split, gen_kwargs={"paths": dl_manager.download(list(dataset_paths))})
                 )
