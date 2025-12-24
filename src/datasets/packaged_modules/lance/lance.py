@@ -6,6 +6,7 @@ import pyarrow as pa
 
 import datasets
 from datasets.builder import Key
+from datasets.table import table_cast
 
 
 logger = datasets.utils.logging.get_logger(__name__)
