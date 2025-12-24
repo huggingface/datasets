@@ -21,10 +21,6 @@ class LanceConfig(datasets.BuilderConfig):
     BuilderConfig for Lance format.
 
     Args:
-        dataset_dirs: (`List[dict[str, str]]`):
-            List of dataset directories with their split names.
-            Example: [{"path": ["path/to/dataset1.lance", "path/to/dataset2.lance"], "split": "train"},
-                      {"path": ["path/to/dataset3.lance"], "split": "test"}]
         features: (`Features`, *optional*):
             Cast the data to `features`.
         columns: (`List[str]`, *optional*):
@@ -32,8 +28,6 @@ class LanceConfig(datasets.BuilderConfig):
         batch_size: (`int`, *optional*):
             Size of the RecordBatches to iterate on.
     """
-
-    dataset_dirs: list[dict[str, str]] = None
 
     features: Optional[datasets.Features] = None
     columns: Optional[List[str]] = None
@@ -44,6 +38,8 @@ class LanceConfig(datasets.BuilderConfig):
 
 
 class _LanceSnapshotDataset:
+    """Reconstruct a Lance dataset from huggingface snapshot"""
+
     def __init__(self, paths: List[datasets.utils.track.tracked_str], version: Optional[int] = None):
         self._dataset_version = version
 

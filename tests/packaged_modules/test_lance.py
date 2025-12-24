@@ -42,15 +42,6 @@ size_categories:
 - 1M<n<10M
 source_datasets:
 - lance_test
-configs:
-- config_name: default
-  dataset_dirs:
-  - split: train
-    path:
-    - "data/train.lance"
-  - split: test
-    path:
-    - "data/test.lance"
 ---
     # Test Lance Dataset\n\n
     # My Markdown is fancier\n
