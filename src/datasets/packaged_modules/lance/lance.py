@@ -57,13 +57,14 @@ class _LanceSnapshotDataset:
         # Reconstruct the dataset
         for p in paths:
             original_path = Path(p.get_origin())
-            if original_path.parent.name == "data":
+            parent_dir = original_path.parent.name
+            if parent_dir == "data":
                 (self.dataset_uri / "data" / original_path.name).symlink_to(p)
-            elif original_path.suffix == ".txn" and original_path.parent.name == "_transactions":
+            elif parent_dir == "_transactions":
                 (self.dataset_uri / "_transactions" / original_path.name).symlink_to(p)
-            elif original_path.parent.name == "_indices":
+            elif parent_dir == "_indices":
                 (self.dataset_uri / "_indices" / original_path.name).symlink_to(p)
-            elif original_path.suffix == ".manifest":
+            elif parent_dir == "_versions":
                 shutil.copyfile(p, self.dataset_uri / "_versions" / original_path.name)
 
     def get_fragments(self) -> List["LanceFragment"]:
