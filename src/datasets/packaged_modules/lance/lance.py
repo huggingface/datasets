@@ -1,6 +1,9 @@
+import shutil
+import tempfile
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, Iterable, List, Optional
 
 import pyarrow as pa
 
@@ -40,6 +43,47 @@ class LanceConfig(datasets.BuilderConfig):
         return super().__post_init__()
 
 
+class _LanceSnapshotDataset:
+    def __init__(self, paths: List[datasets.utils.track.tracked_str], version: Optional[int] = None):
+        self._dataset_version = version
+
+        # Reconstruct a temporary dataset directory
+        self.temp_root = tempfile.TemporaryDirectory(delete=True)
+        self.dataset_uri = Path(self.temp_root.name)
+        (self.dataset_uri / "data").mkdir(parents=True, exist_ok=True)
+        (self.dataset_uri / "_versions").mkdir(parents=True, exist_ok=True)
+        (self.dataset_uri / "_transactions").mkdir(parents=True, exist_ok=True)
+
+        # Reconstruct the dataset
+        for p in paths:
+            original_path = Path(p.get_origin())
+            if original_path.parent.name == "data":
+                (self.dataset_uri / "data" / original_path.name).symlink_to(p)
+            elif original_path.suffix == ".txn" and original_path.parent.name == "_transactions":
+                (self.dataset_uri / "_transactions" / original_path.name).symlink_to(p)
+            elif original_path.parent.name == "_indices":
+                (self.dataset_uri / "_indices" / original_path.name).symlink_to(p)
+            elif original_path.suffix == ".manifest":
+                shutil.copyfile(p, self.dataset_uri / "_versions" / original_path.name)
+
+    def get_fragments(self) -> List["LanceFragment"]:
+        import lance
+
+        ds = lance.LanceDataset(self.dataset_uri.as_posix(), version=self._dataset_version)
+        for fragment in ds.get_fragments():
+            yield fragment
+
+
+def _group_by_dataset(files: Iterable[str]) -> Dict[str, List[str]]:
+    files_per_dataset = defaultdict(list)
+    for file_path in files:
+        path = Path(file_path)
+        dataset_root = path.parent.parent
+        if dataset_root.suffix == ".lance":
+            files_per_dataset[str(dataset_root)].append(file_path)
+    return files_per_dataset
+
+
 class Lance(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = LanceConfig
 
@@ -47,27 +91,20 @@ class Lance(datasets.ArrowBasedBuilder):
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
+        dl_manager.download_config.extract_on_the_fly = True
+
         splits = []
-        if self.config.dataset_dirs is None:
-            # if not speficied, treat whole data_files as a single split
-            for split, files in self.config.data_files.items():
-                dataset_paths = set()
-                for data_file in files:
-                    dataset_paths.add(str(Path(data_file).parent.parent))
-                splits.append(
-                    datasets.SplitGenerator(name=split, gen_kwargs={"paths": dl_manager.download(list(dataset_paths))})
-                )
-            return splits
+        # if not speficied, treat whole data_files as a single split
+        for split, files in self.config.data_files.items():
+            dataset_paths = _group_by_dataset(files)
 
-        for split_dataset in self.config.dataset_dirs:
-            split = split_dataset.get("split", "train")
-            dataset_paths = split_dataset["path"]
-            files = []
-            for dataset_path in dataset_paths:
-                files.append(dl_manager.download(dataset_path))
-
-            splits.append(datasets.SplitGenerator(name=split, gen_kwargs={"paths": files}))
-
+            all_files_to_download = list(dl_manager.iter_files(list(dataset_paths.keys())))
+            local_dataset_paths = _group_by_dataset(dl_manager.iter_files(dl_manager.download(all_files_to_download)))
+            local_datasets = []
+            for paths in local_dataset_paths.values():
+                ds = _LanceSnapshotDataset(paths)
+                local_datasets.append(ds)
+            splits.append(datasets.SplitGenerator(name=split, gen_kwargs={"paths": local_datasets}))
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
@@ -77,14 +114,12 @@ class Lance(datasets.ArrowBasedBuilder):
             pa_table = table_cast(pa_table, self.info.features.arrow_schema)
         return pa_table
 
-    def _generate_tables(self, paths: List[str]):
-        import lance
-
-        for dataset_path in paths:
-            dataset = lance.dataset(dataset_path)
-            for idx, batch in enumerate(
-                dataset.to_batches(columns=self.config.columns, batch_size=self.config.batch_size)
-            ):
-                table = pa.Table.from_batches([batch])
-                table = self._cast_table(table)
-                yield Key(0, idx), table
+    def _generate_tables(self, paths: List[_LanceSnapshotDataset]):
+        for ds in paths:
+            for frag_idx, fragment in enumerate(ds.get_fragments()):
+                for batch_idx, batch in enumerate(
+                    fragment.to_batches(columns=self.config.columns, batch_size=self.config.batch_size)
+                ):
+                    table = pa.Table.from_batches([batch])
+                    table = self._cast_table(table)
+                    yield Key(frag_idx, batch_idx), table
