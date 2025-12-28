@@ -20,6 +20,8 @@ from .tqdm import (
     are_progress_bars_disabled,
     disable_progress_bars,
     enable_progress_bars,
+    get_progress_format,
+    set_progress_format,
     tqdm,
 )
 from .version import Version
