@@ -1798,7 +1798,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 tqdm_class=hf_tqdm,
                 desc="Loading dataset from disk",
                 # set `disable=None` rather than `disable=False` by default to disable progress bar when no TTY attached
-                disable=len(state["_data_files"]) <= 16 or None,
+                disable=len(state["_data_files"]) <= 16,
+
             )
         )
 
