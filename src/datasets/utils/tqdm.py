@@ -169,8 +169,10 @@ class tqdm(old_tqdm):
         elif get_progress_format() == "silent":
             kwargs["disable"] = True
         elif get_progress_format() == "json":
-            # Disable tqdm visual output, we'll emit JSON instead
-            kwargs["disable"] = True
+            # Suppress tqdm visual output but keep tracking active
+            import io
+            kwargs["file"] = io.StringIO()  # Suppress output to invisible stream
+            kwargs["disable"] = False  # Keep tracking active
 
         super().__init__(*args, **kwargs)
 
