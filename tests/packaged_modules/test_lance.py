@@ -88,3 +88,10 @@ def test_load_vectors(lance_hf_dataset):
     assert "vector" in dataset.column_names
     vectors = dataset.data["vector"].combine_chunks().values.to_numpy(zero_copy_only=False)
     assert np.allclose(vectors, np.full(16, 0.1))
+
+
+def test_load_stream_datasets():
+    dataset_dict = load_dataset("lance-format/openvid-lance", split="train", streaming=True)
+    assert "id" in dataset_dict.column_names
+    ids = [example["id"] for example in dataset_dict]
+    assert ids == [1, 2, 3, 4]

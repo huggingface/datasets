@@ -75,8 +75,8 @@ def _group_by_dataset(files: Iterable[str]) -> Dict[str, List[str]]:
     files_per_dataset = defaultdict(list)
     for file_path in files:
         path = Path(file_path)
-        dataset_root = path.parent.parent
-        if dataset_root.suffix == ".lance":
+        if path.parent.name in {"data", "_transactions", "_indices"}:
+            dataset_root = path.parent.parent
             files_per_dataset[str(dataset_root)].append(file_path)
     return files_per_dataset
 
@@ -90,15 +90,22 @@ class Lance(datasets.ArrowBasedBuilder):
     def _split_generators(self, dl_manager):
         dl_manager.download_config.extract_on_the_fly = True
 
+        print("dl_manager:", dl_manager)
+        # print("Self. data files: ", self.config.data_files)
         splits = []
         # if not speficied, treat whole data_files as a single split
         for split, files in self.config.data_files.items():
+            # print("FILES FOR SPLIT ", split, ": ", files)
             dataset_paths = _group_by_dataset(files)
+            # print("DATASET PATHS: ", dataset_paths)
 
             all_files_to_download = list(dl_manager.iter_files(list(dataset_paths.keys())))
+            # print("ALL FILES TO DOWNLOAD: ", all_files_to_download)
             local_dataset_paths = _group_by_dataset(dl_manager.iter_files(dl_manager.download(all_files_to_download)))
             local_datasets = []
+            print("LOCAL DATASET PATHS: ", local_dataset_paths)
             for paths in local_dataset_paths.values():
+                # print("SPLIT PATHS: ", paths)
                 ds = _LanceSnapshotDataset(paths)
                 local_datasets.append(ds)
             splits.append(datasets.SplitGenerator(name=split, gen_kwargs={"paths": local_datasets}))
