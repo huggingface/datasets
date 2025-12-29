@@ -40,6 +40,7 @@ Example:
     ```
 """
 
+import os
 import warnings
 
 from tqdm.auto import tqdm as old_tqdm
@@ -111,6 +112,9 @@ class tqdm(old_tqdm):
     def __init__(self, *args, **kwargs):
         if are_progress_bars_disabled():
             kwargs["disable"] = True
+        elif kwargs.get("disable") is None and os.getenv("TQDM_POSITION") == "-1":
+            # Force-enable progress bars in cloud environments when disable=None
+            kwargs["disable"] = False
         super().__init__(*args, **kwargs)
 
     def __delattr__(self, attr: str) -> None:
