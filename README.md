@@ -70,6 +70,16 @@ If you plan to use 🤗 Datasets with PyTorch (2.0+), TensorFlow (2.6+) or JAX (
 🤗 Datasets is also well integrated with data frameworks like PyArrow, Pandas, Polars and Spark, which should be installed separately.
 
 For more details on using the library with these frameworks, check the quick start page in the documentation: https://huggingface.co/docs/datasets/quickstart
+## Quickstart
+
+Load your first dataset in three lines of code:
+
+```python
+from datasets import load_dataset
+
+dataset = load_dataset("imdb")
+print(dataset["train"][0])
+
 
 # Usage
 
