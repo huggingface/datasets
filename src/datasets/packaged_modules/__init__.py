@@ -9,6 +9,7 @@ from .audiofolder import audiofolder
 from .cache import cache
 from .csv import csv
 from .eval import eval
+from .fastq import fastq
 from .hdf5 import hdf5
 from .imagefolder import imagefolder
 from .json import json
@@ -53,6 +54,7 @@ _PACKAGED_DATASETS_MODULES = {
     "xml": (xml.__name__, _hash_python_lines(inspect.getsource(xml).splitlines())),
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
     "eval": (eval.__name__, _hash_python_lines(inspect.getsource(eval).splitlines())),
+    "fastq": (fastq.__name__, _hash_python_lines(inspect.getsource(fastq).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -85,6 +87,8 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".hdf5": ("hdf5", {}),
     ".h5": ("hdf5", {}),
     ".eval": ("eval", {}),
+    ".fq": ("fastq", {}),
+    ".fastq": ("fastq", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})

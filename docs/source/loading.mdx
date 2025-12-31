@@ -219,6 +219,34 @@ To load remote WebDatasets via HTTP, pass the URLs instead:
 >>> dataset = load_dataset("webdataset", data_files={"train": urls}, split="train", streaming=True)
 ```
 
+### FASTQ
+
+[FASTQ](https://en.wikipedia.org/wiki/FASTQ_format) is a text-based format for storing nucleotide sequences together with their quality scores, widely used for high-throughput sequencing data.
+
+Load a FASTQ file:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("fastq", data_files="reads.fq")
+```
+
+The loader returns four columns:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | string | Sequence identifier (first word after `@`) |
+| `description` | string | Full description line (everything after id) |
+| `sequence` | large_string | The nucleotide sequence |
+| `quality` | large_string | ASCII-encoded quality scores |
+
+Load only specific columns:
+
+```py
+>>> dataset = load_dataset("fastq", data_files="reads.fq", columns=["sequence", "quality"])
+```
+
+Compressed files (.fq.gz, .fastq.gz, .fq.bz2, .fq.xz) are automatically detected and decompressed.
+
 
 ## Multiprocessing
 
