@@ -13,6 +13,7 @@ from .eval import eval
 from .hdf5 import hdf5
 from .iceberg import iceberg
 from .imagefolder import imagefolder
+from .mmcif import mmcif
 from .json import json
 from .lance import lance
 from .meshfolder import meshfolder
@@ -65,6 +66,7 @@ _PACKAGED_DATASETS_MODULES = {
     "tsfile": (tsfile.__name__, _hash_python_lines(inspect.getsource(tsfile).splitlines())),
     "iceberg": (iceberg.__name__, _hash_python_lines(inspect.getsource(iceberg).splitlines())),
     "vortex": (vortex.__name__, _hash_python_lines(inspect.getsource(vortex).splitlines())),
+    "mmcif": (mmcif.__name__, _hash_python_lines(inspect.getsource(mmcif).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -102,6 +104,8 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".lance": ("lance", {}),
     ".tsfile": ("tsfile", {}),
     ".vortex": ("vortex", {}),
+    ".cif": ("mmcif", {}),
+    ".mmcif": ("mmcif", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
