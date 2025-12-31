@@ -21,6 +21,7 @@ from datasets.data_files import (
     resolve_pattern,
 )
 from datasets.fingerprint import Hasher
+from datasets.data_files import group_files_by_subset
 
 
 _TEST_PATTERNS = ["*", "**", "**/*", "*.txt", "data/*", "**/*.txt", "**/train.txt"]
@@ -507,6 +508,23 @@ def test_DataFilesPatternsDict(text_file):
     assert data_files_dict == {"train": [text_file.as_posix()]}
     assert isinstance(data_files_dict, DataFilesDict)
     assert isinstance(data_files_dict["train"], DataFilesList)
+
+
+def test_group_files_by_subset():
+    files = [
+        "animals.jsonl",
+        "trees.jsonl",
+        "metadata.jsonl",
+        "train0.jsonl",
+        "train1.jsonl",
+        "train2.jsonl",
+    ]
+    groups = group_files_by_subset(files)
+    assert "train" in groups
+    assert set(groups["train"]) == {"train0.jsonl", "train1.jsonl", "train2.jsonl"}
+    assert "animals" in groups
+    assert "trees" in groups
+    assert "metadata" in groups
 
 
 def mock_fs(file_paths: List[str]):
