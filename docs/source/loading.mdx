@@ -219,6 +219,47 @@ To load remote WebDatasets via HTTP, pass the URLs instead:
 >>> dataset = load_dataset("webdataset", data_files={"train": urls}, split="train", streaming=True)
 ```
 
+### mmCIF
+
+[mmCIF](https://mmcif.wwpdb.org/) (macromolecular Crystallographic Information File) is the modern standard format for representing 3D macromolecular structures, used by the Protein Data Bank (PDB) since 2014.
+
+To load an mmCIF file:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("mmcif", data_files="structure.cif")
+```
+
+This returns the `_atom_site` category containing atomic coordinates. The default columns include:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | int | Atom serial number |
+| `type_symbol` | string | Element symbol |
+| `label_atom_id` | string | Atom name (e.g., CA, N, C) |
+| `label_comp_id` | string | Residue name (e.g., ALA, GLY) |
+| `label_asym_id` | string | Chain identifier |
+| `label_seq_id` | int | Residue sequence number |
+| `Cartn_x` | float | X coordinate (Å) |
+| `Cartn_y` | float | Y coordinate (Å) |
+| `Cartn_z` | float | Z coordinate (Å) |
+| `occupancy` | float | Occupancy factor |
+| `B_iso_or_equiv` | float | Temperature factor (B-factor) |
+
+You can select specific columns:
+
+```py
+>>> dataset = load_dataset("mmcif", data_files="structure.cif", columns=["label_atom_id", "Cartn_x", "Cartn_y", "Cartn_z"])
+```
+
+To exclude HETATM records (ligands, water molecules):
+
+```py
+>>> dataset = load_dataset("mmcif", data_files="structure.cif", include_hetatm=False)
+```
+
+Compressed files (`.cif.gz`) are automatically detected and decompressed.
+
 
 ## Multiprocessing
 
