@@ -15,6 +15,7 @@ from .json import json
 from .niftifolder import niftifolder
 from .pandas import pandas
 from .parquet import parquet
+from .pdb import pdb
 from .pdffolder import pdffolder
 from .sql import sql
 from .text import text
@@ -53,6 +54,7 @@ _PACKAGED_DATASETS_MODULES = {
     "xml": (xml.__name__, _hash_python_lines(inspect.getsource(xml).splitlines())),
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
     "eval": (eval.__name__, _hash_python_lines(inspect.getsource(eval).splitlines())),
+    "pdb": (pdb.__name__, _hash_python_lines(inspect.getsource(pdb).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -85,6 +87,8 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".hdf5": ("hdf5", {}),
     ".h5": ("hdf5", {}),
     ".eval": ("eval", {}),
+    ".pdb": ("pdb", {}),
+    ".ent": ("pdb", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
