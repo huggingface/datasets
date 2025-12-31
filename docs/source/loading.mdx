@@ -180,6 +180,33 @@ For now only the Arrow streaming format is supported. The Arrow IPC file format 
 
 Note that the HDF5 loader assumes that the file has "tabular" structure, i.e. that all datasets in the file have (the same number of) rows on their first dimension.
 
+### PDB
+
+[PDB](https://www.wwpdb.org/documentation/file-format) (Protein Data Bank) is the legacy fixed-width format for representing 3D macromolecular structures. While mmCIF is the modern standard, PDB remains widely used and many historical datasets are in this format.
+
+To load a PDB file:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("pdb", data_files="structure.pdb")
+```
+
+By default, both ATOM and HETATM records are loaded. You can filter to load only specific record types:
+
+```py
+>>> # Load only ATOM records (exclude ligands/water)
+>>> dataset = load_dataset("pdb", data_files="structure.pdb", record_types=["ATOM"])
+```
+
+You can also select specific columns to reduce memory usage:
+
+```py
+>>> dataset = load_dataset("pdb", data_files="structure.pdb",
+...                        columns=["atom_name", "residue_name", "x", "y", "z"])
+```
+
+The PDB loader automatically handles gzip, bzip2, and xz compressed files based on magic bytes detection. Extensions `.pdb` and `.ent` are supported.
+
 ### SQL
 
 Read database contents with [`~datasets.Dataset.from_sql`] by specifying the URI to connect to your database. You can read both table names and queries:
