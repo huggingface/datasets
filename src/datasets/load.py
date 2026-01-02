@@ -977,10 +977,6 @@ def dataset_module_factory(
                 elif e.response.status_code == 403:
                     message += f" Visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
                 raise DatasetNotFoundError(message) from e
-            except RevisionNotFoundError as e:
-                raise DatasetNotFoundError(
-                    f"Revision '{revision}' doesn't exist for dataset '{path}' on the Hub."
-                ) from e
             except RepositoryNotFoundError as e:
                 raise DatasetNotFoundError(f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed.") from e
             try:
@@ -1014,10 +1010,8 @@ def dataset_module_factory(
                 elif e.response.status_code == 403:
                     message += f" Visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
                 raise DatasetNotFoundError(message) from e
-            except RevisionNotFoundError as e:
-                raise DatasetNotFoundError(
-                    f"Revision '{revision}' doesn't exist for dataset '{path}' on the Hub."
-                ) from e
+        except RevisionNotFoundError as e:
+            raise DatasetNotFoundError(f"Revision '{revision}' doesn't exist for dataset '{path}' on the Hub.") from e
         except Exception as e1:
             # All the attempts failed, before raising the error we should check if the module is already cached
             try:
