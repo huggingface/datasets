@@ -1167,11 +1167,21 @@ def load_dataset_builder(
         raise ValueError(error_msg)
 
     builder_cls = get_dataset_builder_class(dataset_module, dataset_name=dataset_name)
-    # Instantiate the dataset builder
+    # Merge builder_kwargs and config_kwargs safely
+    # merged_kwargs = {**builder_kwargs, **config_kwargs}
+    # Merge kwargs safely
+    merged_kwargs = {**builder_kwargs, **config_kwargs}
+
+    # Remove arguments that are passed explicitly
+    # merged_kwargs.pop("config_name", None)
+    merged_kwargs.pop("dataset_name", None)
+    merged_kwargs.pop("data_dir", None)
+    merged_kwargs.pop("data_files", None)
+    
     builder_instance: DatasetBuilder = builder_cls(
         cache_dir=cache_dir,
         dataset_name=dataset_name,
-        config_name=config_name,
+        # config_name=config_name,
         data_dir=data_dir,
         data_files=data_files,
         hash=dataset_module.hash,
@@ -1179,9 +1189,9 @@ def load_dataset_builder(
         features=features,
         token=token,
         storage_options=storage_options,
-        **builder_kwargs,
-        **config_kwargs,
+        **merged_kwargs,
     )
+
     builder_instance._use_legacy_cache_dir_if_possible(dataset_module)
 
     return builder_instance
