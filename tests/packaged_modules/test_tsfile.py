@@ -16,7 +16,7 @@ from datasets.packaged_modules.tsfile.tsfile import TsFile, TsFileConfig
 @pytest.fixture
 def tsfile_table_model(tmp_path):
     """Create a TsFile with table-model data."""
-    from tsfile import TsFileTableWriter, TableSchema, ColumnSchema, ColumnCategory, TSDataType, Tablet
+    from tsfile import ColumnCategory, ColumnSchema, TableSchema, Tablet, TSDataType, TsFileTableWriter
 
     filename = tmp_path / "table_model.tsfile"
     n_rows = 10
@@ -54,7 +54,7 @@ def tsfile_table_model(tmp_path):
 @pytest.fixture
 def simple_tsfile(tmp_path):
     """Create a simple TsFile for basic tests."""
-    from tsfile import TsFileTableWriter, TableSchema, ColumnSchema, ColumnCategory, TSDataType, Tablet
+    from tsfile import ColumnCategory, ColumnSchema, TableSchema, Tablet, TSDataType, TsFileTableWriter
 
     filename = tmp_path / "simple.tsfile"
     n_rows = 5

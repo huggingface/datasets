@@ -96,7 +96,6 @@ class TsFile(datasets.ArrowBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Handle string, list and dicts in datafiles."""
-        from tsfile import TsFileReader
 
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
@@ -122,8 +121,8 @@ class TsFile(datasets.ArrowBasedBuilder):
 
             if self.info.features is None:
                 raise ValueError(
-                    f"Could not infer features from data files. "
-                    f"Please specify features explicitly or ensure data files are valid TsFiles."
+                    "Could not infer features from data files. "
+                    "Please specify features explicitly or ensure data files are valid TsFiles."
                 )
 
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
@@ -132,7 +131,7 @@ class TsFile(datasets.ArrowBasedBuilder):
 
     def _infer_features_from_file(self, file_path: str) -> datasets.Features:
         """Infer features from a TsFile's schema."""
-        from tsfile import TsFileReader, TSDataType
+        from tsfile import TSDataType, TsFileReader
 
         # Map TsFile data type values (integers) to HuggingFace datasets Value types
         # TSDataType enum values: BOOLEAN=0, INT32=1, INT64=2, FLOAT=3, DOUBLE=4, TEXT=5, etc.
