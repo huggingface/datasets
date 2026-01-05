@@ -210,6 +210,8 @@ PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
 NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 
+TSFILE_REQUIRE = ["tsfile>=2.0.0"]
+
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
@@ -228,6 +230,7 @@ EXTRAS_REQUIRE = {
     "docs": DOCS_REQUIRE,
     "pdfs": PDFS_REQUIRE,
     "nibabel": NIBABEL_REQUIRE,
+    "tsfile": TSFILE_REQUIRE,
 }
 
 setup(
