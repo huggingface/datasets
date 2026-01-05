@@ -160,9 +160,7 @@ class TsFile(datasets.ArrowBasedBuilder):
                     table_name = list(table_schemas.keys())[0]
 
                 if table_name not in table_schemas:
-                    raise ValueError(
-                        f"Table '{table_name}' not found. Available tables: {list(table_schemas.keys())}"
-                    )
+                    raise ValueError(f"Table '{table_name}' not found. Available tables: {list(table_schemas.keys())}")
 
                 schema = table_schemas[table_name]
                 for column in schema.columns:

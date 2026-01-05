@@ -152,6 +152,7 @@ def test_tsfile_data_values(simple_tsfile):
 
     # Check float values (with tolerance)
     import numpy as np
+
     np.testing.assert_allclose(dataset["value_float"], [0.0, 1.5, 3.0, 4.5, 6.0], rtol=1e-5)
 
 
@@ -177,9 +178,7 @@ def test_tsfile_feature_inference(simple_tsfile):
 
 def test_tsfile_custom_features(simple_tsfile):
     """Test loading with explicit feature specification."""
-    features = Features(
-        {"value_int": Value("int64"), "value_float": Value("float64"), "time": Value("int64")}
-    )
+    features = Features({"value_int": Value("int64"), "value_float": Value("float64"), "time": Value("int64")})
     dataset = load_dataset("tsfile", data_files=[simple_tsfile], split="train", features=features)
 
     assert dataset.features is not None
