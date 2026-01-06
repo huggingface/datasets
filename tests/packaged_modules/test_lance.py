@@ -62,9 +62,9 @@ def test_load_lance_dataset(lance_dataset):
     ids = dataset["id"]
     assert ids == [1, 2, 3, 4]
 
-
-def test_load_hf_dataset(lance_hf_dataset):
-    dataset_dict = load_dataset(lance_hf_dataset, columns=["id", "text"])
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_hf_dataset(lance_hf_dataset, streaming):
+    dataset_dict = load_dataset(lance_hf_dataset, columns=["id", "text"], streaming=streaming)
     assert "train" in dataset_dict.keys()
     assert "test" in dataset_dict.keys()
     dataset = dataset_dict["train"]
@@ -73,9 +73,9 @@ def test_load_hf_dataset(lance_hf_dataset):
     assert "text" in dataset.column_names
     assert "value" not in dataset.column_names
     assert "vector" not in dataset.column_names
-    ids = dataset["id"]
+    ids = list(dataset["id"])
     assert ids == [1, 2, 3, 4]
-    text = dataset["text"]
+    text = list(dataset["text"])
     assert text == ["a", "b", "c", "d"]
     assert "value" not in dataset.column_names
 
@@ -88,13 +88,6 @@ def test_load_vectors(lance_hf_dataset):
     assert "vector" in dataset.column_names
     vectors = dataset.data["vector"].combine_chunks().values.to_numpy(zero_copy_only=False)
     assert np.allclose(vectors, np.full(16, 0.1))
-
-
-def test_load_stream_datasets():
-    dataset = load_dataset("lance-format/openvid-lance", split="train", streaming=True)
-    assert "id" in dataset.column_names
-    ids = [example["id"] for example in dataset]
-    assert ids == [1, 2, 3, 4]
 
 
 @pytest.mark.parametrize("streaming", [False, True])
@@ -110,13 +103,3 @@ def test_load_lance_streaming_modes(lance_hf_dataset, streaming):
         items = list(ds)
     assert len(items) == 4
     assert all("id" in item for item in items)
-
-
-def test_streaming_with_columns(lance_hf_dataset):
-    """Test streaming mode with column selection."""
-    ds = load_dataset(lance_hf_dataset, split="train", streaming=True, columns=["id", "text"])
-    first = next(iter(ds))
-    assert "id" in first
-    assert "text" in first
-    assert "value" not in first
-    assert "vector" not in first
