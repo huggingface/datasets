@@ -1,4 +1,5 @@
 import shutil
+import re
 import tempfile
 from collections import defaultdict
 from dataclasses import dataclass
@@ -26,14 +27,14 @@ class LanceConfig(datasets.BuilderConfig):
         columns: (`List[str]`, *optional*):
             List of columns to load, the other ones are ignored.
         batch_size: (`int`, *optional*):
-            Size of the RecordBatches to iterate on.
+            Size of the RecordBatches to iterate on. Default to 256.
         token: (`str`, *optional*):
             Optional HF token to use to download datasets.
     """
 
     features: Optional[datasets.Features] = None
     columns: Optional[List[str]] = None
-    batch_size: Optional[int] = None
+    batch_size: Optional[int] = 256
     token: Optional[str] = None
 
     def __post_init__(self):
@@ -112,6 +113,13 @@ def _group_by_dataset(files: Iterable[str]) -> Dict[str, List[str]]:
             files_per_dataset[str(dataset_root)].append(file_path)
     return files_per_dataset
 
+def _normalize_hf_uri(uri: str) -> str:
+    # replace the revision tag from hf uri
+    if "@" in uri:
+        matched = re.match(r"(hf://.+?)(@[0-9a-f]+)(/.*)", uri)
+        if matched:
+            uri = matched.group(1) + matched.group(3)
+    return uri
 
 class Lance(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = LanceConfig
@@ -147,7 +155,7 @@ class Lance(datasets.ArrowBasedBuilder):
                     # TODO: support revision
                     if "@" in dataset_root:
                         # temporarily remove the revision from the dataset root
-                        dataset_root = dataset_root.split("@")[0]
+                        dataset_root = _normalize_hf_uri(dataset_root)
 
                     streaming_ds = _LanceDataset(
                         data_files,
