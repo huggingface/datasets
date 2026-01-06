@@ -91,7 +91,32 @@ def test_load_vectors(lance_hf_dataset):
 
 
 def test_load_stream_datasets():
-    dataset_dict = load_dataset("lance-format/openvid-lance", split="train", streaming=True)
-    assert "id" in dataset_dict.column_names
-    ids = [example["id"] for example in dataset_dict]
+    dataset = load_dataset("lance-format/openvid-lance", split="train", streaming=True)
+    assert "id" in dataset.column_names
+    ids = [example["id"] for example in dataset]
     assert ids == [1, 2, 3, 4]
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_lance_streaming_modes(lance_hf_dataset, streaming):
+    """Test loading Lance dataset in both streaming and non-streaming modes."""
+    from datasets import IterableDataset
+
+    ds = load_dataset(lance_hf_dataset, split="train", streaming=streaming)
+    if streaming:
+        assert isinstance(ds, IterableDataset)
+        items = list(ds)
+    else:
+        items = list(ds)
+    assert len(items) == 4
+    assert all("id" in item for item in items)
+
+
+def test_streaming_with_columns(lance_hf_dataset):
+    """Test streaming mode with column selection."""
+    ds = load_dataset(lance_hf_dataset, split="train", streaming=True, columns=["id", "text"])
+    first = next(iter(ds))
+    assert "id" in first
+    assert "text" in first
+    assert "value" not in first
+    assert "vector" not in first
