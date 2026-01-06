@@ -1,5 +1,5 @@
-import shutil
 import re
+import shutil
 import tempfile
 from collections import defaultdict
 from dataclasses import dataclass
@@ -113,6 +113,7 @@ def _group_by_dataset(files: Iterable[str]) -> Dict[str, List[str]]:
             files_per_dataset[str(dataset_root)].append(file_path)
     return files_per_dataset
 
+
 def _normalize_hf_uri(uri: str) -> str:
     # replace the revision tag from hf uri
     if "@" in uri:
@@ -120,6 +121,7 @@ def _normalize_hf_uri(uri: str) -> str:
         if matched:
             uri = matched.group(1) + matched.group(3)
     return uri
+
 
 class Lance(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = LanceConfig

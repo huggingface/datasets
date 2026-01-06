@@ -62,6 +62,7 @@ def test_load_lance_dataset(lance_dataset):
     ids = dataset["id"]
     assert ids == [1, 2, 3, 4]
 
+
 @pytest.mark.parametrize("streaming", [False, True])
 def test_load_hf_dataset(lance_hf_dataset, streaming):
     dataset_dict = load_dataset(lance_hf_dataset, columns=["id", "text"], streaming=streaming)
