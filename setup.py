@@ -187,6 +187,7 @@ TESTS_REQUIRE = [
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
     "torchcodec>=0.7.0; python_version < '3.14'",  # minium version to get windows support, torchcodec doesn't have wheels for 3.14 yet
     "nibabel>=5.3.1",
+    "tsfile>=2.0.0",
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
