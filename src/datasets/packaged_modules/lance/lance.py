@@ -1,17 +1,20 @@
 import re
-import shutil
-import tempfile
-from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import pyarrow as pa
+from huggingface_hub import HfApi
 
 import datasets
 from datasets.builder import Key
 from datasets.table import table_cast
+from datasets.utils.file_utils import is_local_path
 
+
+if TYPE_CHECKING:
+    import lance
+    import lance.file
 
 logger = datasets.utils.logging.get_logger(__name__)
 
@@ -37,84 +40,18 @@ class LanceConfig(datasets.BuilderConfig):
     batch_size: Optional[int] = 256
     token: Optional[str] = None
 
-    def __post_init__(self):
-        return super().__post_init__()
 
-
-class _LanceDataset:
-    """Reconstruct a Lance dataset from huggingface snapshot or remote files.
-
-    TODO: support sharding
-    """
-
-    def __init__(
-        self,
-        paths: List[datasets.utils.track.tracked_str],
-        streaming: bool = False,
-        dataset_uri: Optional[str] = None,
-        token: Optional[str] = None,
-        version: Optional[int] = None,
-    ):
-        self._paths = paths
-        self._dataset_version = version
-        self._streaming = streaming
-        self._dataset_uri = dataset_uri
-        self._hf_token = token
-
-    def __repr__(self):
-        return "_HfLanceDataset(uri={}, streaming={})".format(self._dataset_uri, self._streaming)
-
-    def _open_local_dataset(self) -> "lance.LanceDataset":
-        import lance
-
-        # Reconstruct a temporary dataset directory
-        self.temp_root = tempfile.TemporaryDirectory(delete=True)
-        self.dataset_uri = Path(self.temp_root.name)
-        (self.dataset_uri / "data").mkdir(parents=True, exist_ok=True)
-        (self.dataset_uri / "_versions").mkdir(parents=True, exist_ok=True)
-        (self.dataset_uri / "_transactions").mkdir(parents=True, exist_ok=True)
-
-        # Reconstruct the dataset
-        for p in self._paths:
-            original_path = Path(p.get_origin())
-            parent_dir = original_path.parent.name
-            if parent_dir == "data":
-                (self.dataset_uri / "data" / original_path.name).symlink_to(p)
-            elif parent_dir == "_transactions":
-                (self.dataset_uri / "_transactions" / original_path.name).symlink_to(p)
-            elif parent_dir == "_indices":
-                (self.dataset_uri / "_indices" / original_path.name).symlink_to(p)
-            elif parent_dir == "_versions":
-                shutil.copyfile(p, self.dataset_uri / "_versions" / original_path.name)
-        return lance.dataset(self.dataset_uri.as_posix(), version=self._dataset_version)
-
-    def _open_streaming_dataset(self) -> "lance.LanceDataset":
-        import lance
-
-        storage_opts = {"token": self._hf_token} if self._hf_token else {}
-        return lance.dataset(self._dataset_uri, version=self._dataset_version, storage_options=storage_opts)
-
-    def get_fragments(self) -> List["LanceFragment"]:
-        if self._streaming:
-            ds = self._open_streaming_dataset()
-        else:
-            ds = self._open_local_dataset()
-        # TODO: filter fragments based on the provided data files
-        for fragment in ds.get_fragments():
-            yield fragment
-
-
-def _group_by_dataset(files: Iterable[str]) -> Dict[str, List[str]]:
-    files_per_dataset = defaultdict(list)
+def resolve_dataset_uris(files: List[str]) -> Dict[str, List[str]]:
+    dataset_uris = set()
     for file_path in files:
         path = Path(file_path)
-        if path.parent.name in {"data", "_transactions", "_indices", "_versions"}:
+        if path.parent.name in {"_transactions", "_indices", "_versions"}:
             dataset_root = path.parent.parent
-            files_per_dataset[str(dataset_root)].append(file_path)
-    return files_per_dataset
+            dataset_uris.add(str(dataset_root))
+    return list(dataset_uris)
 
 
-def _normalize_hf_uri(uri: str) -> str:
+def _fix_hf_uri(uri: str) -> str:
     # replace the revision tag from hf uri
     if "@" in uri:
         matched = re.match(r"(hf://.+?)(@[0-9a-f]+)(/.*)", uri)
@@ -123,66 +60,81 @@ def _normalize_hf_uri(uri: str) -> str:
     return uri
 
 
+def _fix_local_version_file(uri: str) -> str:
+    # replace symlinks with real files for _version
+    if "/_versions/" in uri and is_local_path(uri):
+        path = Path(uri)
+        if path.is_symlink():
+            data = path.read_bytes()
+            path.unlink()
+            path.write_bytes(data)
+    return uri
+
+
 class Lance(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = LanceConfig
+    METADATA_EXTENSIONS = [".idx", ".txn", ".manifest"]
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
 
-    def _get_features(self, ds: _LanceDataset) -> datasets.Features:
-        if self.info.features is None:
-            pa_schema = ds._open_local_dataset().schema if not ds._streaming else ds._open_streaming_dataset().schema
-            if self.config.columns:
-                fields = [
-                    pa_schema.field(name) for name in self.config.columns if pa_schema.get_field_index(name) != -1
-                ]
-                pa_schema = pa.schema(fields)
-            return datasets.Features.from_arrow_schema(pa_schema)
-        return self.info.features
-
     def _split_generators(self, dl_manager):
-        dl_manager.download_config.extract_on_the_fly = True
+        import lance
+        import lance.file
+
+        if not self.config.data_files:
+            raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
+        if self.repo_id:
+            api = HfApi(**dl_manager.download_config.storage_options["hf"])
+            dataset_sha = api.dataset_info(self.repo_id).sha
+            if dataset_sha != self.hash:
+                raise NotImplementedError(
+                    f"lance doesn't support loading other revisions than 'main' yet, but got {self.hash}"
+                )
+        data_files = dl_manager.download(self.config.data_files)
+
+        # TODO: remove once Lance supports HF links with revisions
+        data_files = {split: [_fix_hf_uri(file) for file in files] for split, files in data_files.items()}
+        # TODO: remove once Lance supports symlinks for _version files
+        data_files = {split: [_fix_local_version_file(file) for file in files] for split, files in data_files.items()}
 
         splits = []
-        for split, files in self.config.data_files.items():
-            dataset_paths = _group_by_dataset(files)
+        for split_name, files in data_files.items():
+            storage_options = dl_manager.download_config.storage_options.get(files[0].split("://", 0)[0] + "://")
 
-            is_streaming = getattr(dl_manager, "is_streaming", False)
-
-            datasets_per_split = []
-            if is_streaming:
-                # STREAMING MODE
-                for dataset_root, file_list in dataset_paths.items():
-                    data_files = [f for f in file_list if "/data/" in f]
-                    # TODO: support revision
-                    if "@" in dataset_root:
-                        # temporarily remove the revision from the dataset root
-                        dataset_root = _normalize_hf_uri(dataset_root)
-
-                    streaming_ds = _LanceDataset(
-                        data_files,
-                        dataset_uri=dataset_root,
-                        streaming=True,
-                        token=self.config.token,
+            lance_dataset_uris = resolve_dataset_uris(files)
+            if lance_dataset_uris:
+                fragments = [
+                    frag
+                    for uri in lance_dataset_uris
+                    for frag in lance.dataset(uri, storage_options=storage_options).get_fragments()
+                ]
+                if self.info.features is None:
+                    pa_schema = fragments[0]._ds.schema
+                splits.append(
+                    datasets.SplitGenerator(
+                        name=split_name,
+                        gen_kwargs={"fragments": fragments, "lance_files": None},
                     )
-                    if self.info.features is None:
-                        self.info.features = self._get_features(streaming_ds)
-                    datasets_per_split.append(streaming_ds)
+                )
             else:
-                # NON-STREAMING MODE: Download files (existing behavior)
-                all_files_to_download = list(dl_manager.iter_files(list(dataset_paths.keys())))
-                local_dataset_paths = _group_by_dataset(
-                    dl_manager.iter_files(dl_manager.download(all_files_to_download))
+                lance_files = [lance.file.LanceFileReader(file, storage_options=storage_options) for file in files]
+                if self.info.features is None:
+                    pa_schema = lance_files[0].metadata().schema
+                splits.append(
+                    datasets.SplitGenerator(
+                        name=split_name,
+                        gen_kwargs={"fragments": None, "lance_files": lance_files},
+                    )
                 )
-                for paths in local_dataset_paths.values():
-                    ds = _LanceDataset(paths, streaming=False, token=self.config.token)
-                    datasets_per_split.append(ds)
-            splits.append(
-                datasets.SplitGenerator(
-                    name=split,
-                    gen_kwargs={"datasets": datasets_per_split},
-                )
-            )
+            if self.info.features is None:
+                if self.config.columns:
+                    fields = [
+                        pa_schema.field(name) for name in self.config.columns if pa_schema.get_field_index(name) != -1
+                    ]
+                    pa_schema = pa.schema(fields)
+                self.info.features = datasets.Features.from_arrow_schema(pa_schema)
+
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
@@ -192,11 +144,20 @@ class Lance(datasets.ArrowBasedBuilder):
             pa_table = table_cast(pa_table, self.info.features.arrow_schema)
         return pa_table
 
-    def _generate_tables(self, datasets: List[_LanceDataset]):
-        for ds in datasets:
-            for frag_idx, fragment in enumerate(ds.get_fragments()):
+    def _generate_tables(
+        self,
+        fragments: Optional[List["lance.LanceFragment"]],
+        lance_files: Optional[List["lance.file.LanceFileReader"]],
+    ):
+        if fragments:
+            for frag_idx, fragment in enumerate(fragments):
                 for batch_idx, batch in enumerate(
                     fragment.to_batches(columns=self.config.columns, batch_size=self.config.batch_size)
                 ):
                     table = pa.Table.from_batches([batch])
                     yield Key(frag_idx, batch_idx), self._cast_table(table)
+        else:
+            for file_idx, lance_file in enumerate(lance_files):
+                for batch_idx, batch in enumerate(lance_file.read_all(batch_size=self.config.batch_size).to_batches()):
+                    table = pa.Table.from_batches([batch])
+                    yield Key(file_idx, batch_idx), self._cast_table(table)
