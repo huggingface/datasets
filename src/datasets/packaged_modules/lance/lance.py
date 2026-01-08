@@ -118,7 +118,10 @@ class Lance(datasets.ArrowBasedBuilder):
                     )
                 )
             else:
-                lance_files = [lance.file.LanceFileReader(file, storage_options=storage_options) for file in files]
+                lance_files = [
+                    lance.file.LanceFileReader(file, storage_options=storage_options, columns=self.config.columns)
+                    for file in files
+                ]
                 if self.info.features is None:
                     pa_schema = lance_files[0].metadata().schema
                 splits.append(
