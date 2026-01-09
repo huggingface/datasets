@@ -395,8 +395,13 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     if isinstance(self.config.filters, list)
                     else self.config.filters
                 )
-            for shard_idx, (original_file, downloaded_file_or_dir) in enumerate(files):
+            # Use a separate counter for valid shards to avoid gaps when files are skipped
+            # (e.g., when metadata files like metadata.csv are in the files list but get
+            # skipped because their extension is not in EXTENSIONS)
+            valid_shard_idx = 0
+            for original_file, downloaded_file_or_dir in files:
                 downloaded_files = [downloaded_file_or_dir] if original_file else downloaded_file_or_dir
+                shard_has_valid_files = False
                 for sample_idx, downloaded_file in enumerate(downloaded_files):
                     original_file_ext = os.path.splitext(original_file or downloaded_file)[-1]
                     if original_file_ext.lower() not in self.EXTENSIONS:
@@ -408,7 +413,10 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         pa_table = pa.Table.from_pylist([sample]).filter(filter_expr)
                         if len(pa_table) == 0:
                             continue
-                    yield Key(shard_idx, sample_idx), sample
+                    shard_has_valid_files = True
+                    yield Key(valid_shard_idx, sample_idx), sample
+                if shard_has_valid_files:
+                    valid_shard_idx += 1
 
 
 def _nested_apply(item: Any, feature_path: _VisitPath, func: Callable[[Any, _VisitPath], Any]):

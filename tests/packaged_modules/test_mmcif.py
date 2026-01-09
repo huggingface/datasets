@@ -1,526 +1,371 @@
-"""Tests for mmCIF file loader."""
+"""Tests for MmcifFolder packaged module.
 
-import gzip
+Tests the folder-based mmCIF loader that follows the one-row-per-structure pattern
+(similar to ImageFolder pattern).
+"""
+
 import textwrap
 
 import pyarrow as pa
 import pytest
 
-from datasets import Features, Value
-from datasets.builder import InvalidConfigName
-from datasets.data_files import DataFilesList
-from datasets.packaged_modules.mmcif.mmcif import Mmcif, MmcifConfig
+from datasets import ClassLabel, Dataset, DatasetDict, ProteinStructure, load_dataset
+from datasets.packaged_modules.mmcif.mmcif import MmcifFolder
+
+
+# Test data - minimal mmCIF format
+MMCIF_CONTENT = """\
+data_TEST
+#
+_entry.id   TEST
+#
+_cell.length_a           50.000
+_cell.length_b           50.000
+_cell.length_c           50.000
+_cell.angle_alpha        90.00
+_cell.angle_beta         90.00
+_cell.angle_gamma        90.00
+#
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_comp_id
+_atom_site.label_asym_id
+_atom_site.label_seq_id
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.occupancy
+_atom_site.B_iso_or_equiv
+ATOM   1  N  N   ALA A 1  0.000   0.000   0.000  1.00 20.00
+ATOM   2  C  CA  ALA A 1  1.458   0.000   0.000  1.00 20.00
+#
+"""
 
 
 @pytest.fixture
 def mmcif_file(tmp_path):
-    """Create a simple mmCIF file with atom_site data."""
-    filename = tmp_path / "structure.cif"
-    data = textwrap.dedent(
-        """\
-        data_test
-        #
-        loop_
-        _atom_site.id
-        _atom_site.type_symbol
-        _atom_site.label_atom_id
-        _atom_site.label_comp_id
-        _atom_site.label_asym_id
-        _atom_site.label_seq_id
-        _atom_site.Cartn_x
-        _atom_site.Cartn_y
-        _atom_site.Cartn_z
-        _atom_site.occupancy
-        _atom_site.B_iso_or_equiv
-        _atom_site.group_PDB
-        1  N  N   ALA A 1  10.000 20.000 30.000 1.00 15.00 ATOM
-        2  C  CA  ALA A 1  11.000 21.000 31.000 1.00 14.00 ATOM
-        3  C  C   ALA A 1  12.000 22.000 32.000 1.00 13.00 ATOM
-        4  O  O   ALA A 1  13.000 23.000 33.000 1.00 12.00 ATOM
-        5  C  CB  ALA A 1  14.000 24.000 34.000 1.00 16.00 ATOM
-        #
-        """
-    )
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(data)
-    return str(filename)
+    """Create a single mmCIF test file."""
+    path = tmp_path / "structure.cif"
+    path.write_text(MMCIF_CONTENT)
+    return str(path)
 
 
 @pytest.fixture
-def mmcif_file_with_hetatm(tmp_path):
-    """Create mmCIF file with ATOM and HETATM records."""
-    filename = tmp_path / "structure_hetatm.cif"
-    data = textwrap.dedent(
-        """\
-        data_test
-        #
-        loop_
-        _atom_site.id
-        _atom_site.type_symbol
-        _atom_site.label_atom_id
-        _atom_site.label_comp_id
-        _atom_site.label_asym_id
-        _atom_site.label_seq_id
-        _atom_site.Cartn_x
-        _atom_site.Cartn_y
-        _atom_site.Cartn_z
-        _atom_site.occupancy
-        _atom_site.B_iso_or_equiv
-        _atom_site.group_PDB
-        1  N  N   ALA A 1  10.000 20.000 30.000 1.00 15.00 ATOM
-        2  C  CA  ALA A 1  11.000 21.000 31.000 1.00 14.00 ATOM
-        3  O  O   HOH B 1   5.000 10.000 15.000 1.00 20.00 HETATM
-        4  O  O   HOH B 2   6.000 11.000 16.000 1.00 21.00 HETATM
-        #
-        """
-    )
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(data)
-    return str(filename)
+def mmcif_file_mmcif_ext(tmp_path):
+    """Create a single mmCIF test file with .mmcif extension."""
+    path = tmp_path / "structure.mmcif"
+    path.write_text(MMCIF_CONTENT)
+    return str(path)
 
 
 @pytest.fixture
-def mmcif_file_gzipped(tmp_path):
-    """Create a gzipped mmCIF file."""
-    filename = tmp_path / "structure.cif.gz"
-    data = textwrap.dedent(
-        """\
-        data_test
-        #
-        loop_
-        _atom_site.id
-        _atom_site.type_symbol
-        _atom_site.label_atom_id
-        _atom_site.label_comp_id
-        _atom_site.label_asym_id
-        _atom_site.label_seq_id
-        _atom_site.Cartn_x
-        _atom_site.Cartn_y
-        _atom_site.Cartn_z
-        _atom_site.occupancy
-        _atom_site.B_iso_or_equiv
-        _atom_site.group_PDB
-        1  N  N   GLY A 1  10.000 20.000 30.000 1.00 15.00 ATOM
-        2  C  CA  GLY A 1  11.000 21.000 31.000 1.00 14.00 ATOM
-        #
-        """
-    )
-    with gzip.open(filename, "wt", encoding="utf-8") as f:
-        f.write(data)
-    return str(filename)
+def mmcif_data_dir(tmp_path):
+    """Create a directory with mmCIF files."""
+    data_dir = tmp_path / "mmcif_data"
+    data_dir.mkdir()
+
+    # Create several mmCIF files
+    for i in range(3):
+        (data_dir / f"structure_{i}.cif").write_text(MMCIF_CONTENT.replace("TEST", f"TEST_{i}"))
+
+    return str(data_dir)
 
 
 @pytest.fixture
-def mmcif_file_quoted_values(tmp_path):
-    """Create mmCIF file with quoted values."""
-    filename = tmp_path / "structure_quoted.cif"
-    data = textwrap.dedent(
-        """\
-        data_test
-        #
-        loop_
-        _atom_site.id
-        _atom_site.type_symbol
-        _atom_site.label_atom_id
-        _atom_site.label_comp_id
-        _atom_site.label_asym_id
-        _atom_site.label_seq_id
-        _atom_site.Cartn_x
-        _atom_site.Cartn_y
-        _atom_site.Cartn_z
-        _atom_site.occupancy
-        _atom_site.B_iso_or_equiv
-        _atom_site.group_PDB
-        1  N  "N"   'ALA' A 1  10.000 20.000 30.000 1.00 15.00 ATOM
-        2  C  "CA"  'ALA' A 1  11.000 21.000 31.000 1.00 14.00 ATOM
-        #
-        """
-    )
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(data)
-    return str(filename)
+def mmcif_data_dir_with_labels(tmp_path):
+    """Create directories with label-based structure."""
+    data_dir = tmp_path / "mmcif_labeled"
+
+    # Create labeled directories (like ImageFolder pattern)
+    for label in ["enzymes", "receptors"]:
+        label_dir = data_dir / label
+        label_dir.mkdir(parents=True)
+        for i in range(2):
+            content = MMCIF_CONTENT.replace("TEST", f"{label.upper()}_{i}")
+            (label_dir / f"{label}_{i}.cif").write_text(content)
+
+    return str(data_dir)
 
 
 @pytest.fixture
-def mmcif_file_missing_values(tmp_path):
-    """Create mmCIF file with missing values (. and ?)."""
-    filename = tmp_path / "structure_missing.cif"
-    data = textwrap.dedent(
-        """\
-        data_test
-        #
-        loop_
-        _atom_site.id
-        _atom_site.type_symbol
-        _atom_site.label_atom_id
-        _atom_site.label_comp_id
-        _atom_site.label_asym_id
-        _atom_site.label_seq_id
-        _atom_site.Cartn_x
-        _atom_site.Cartn_y
-        _atom_site.Cartn_z
-        _atom_site.occupancy
-        _atom_site.B_iso_or_equiv
-        _atom_site.group_PDB
-        1  N  N   ALA A .  10.000 20.000 30.000 1.00 ?     ATOM
-        2  C  CA  ALA A ?  11.000 21.000 31.000 .    15.00 ATOM
-        #
-        """
-    )
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(data)
-    return str(filename)
+def mmcif_data_dir_with_metadata(tmp_path):
+    """Create directory with metadata.csv file."""
+    data_dir = tmp_path / "mmcif_metadata"
+    data_dir.mkdir()
+
+    # Create mmCIF files
+    for i in range(3):
+        (data_dir / f"structure_{i}.cif").write_text(MMCIF_CONTENT.replace("TEST", f"META_{i}"))
+
+    # Create metadata.csv
+    metadata = textwrap.dedent("""\
+        file_name,resolution,method
+        structure_0.cif,2.5,X-RAY
+        structure_1.cif,1.8,CRYO-EM
+        structure_2.cif,3.0,NMR
+    """)
+    (data_dir / "metadata.csv").write_text(metadata)
+
+    return str(data_dir)
 
 
-@pytest.fixture
-def mmcif_file_large(tmp_path):
-    """Create a larger mmCIF file for batch testing."""
-    filename = tmp_path / "structure_large.cif"
+class TestMmcifFolderConfig:
+    """Tests for MmcifFolderConfig."""
 
-    # Build header
-    lines = [
-        "data_test",
-        "#",
-        "loop_",
-        "_atom_site.id",
-        "_atom_site.type_symbol",
-        "_atom_site.label_atom_id",
-        "_atom_site.label_comp_id",
-        "_atom_site.label_asym_id",
-        "_atom_site.label_seq_id",
-        "_atom_site.Cartn_x",
-        "_atom_site.Cartn_y",
-        "_atom_site.Cartn_z",
-        "_atom_site.occupancy",
-        "_atom_site.B_iso_or_equiv",
-        "_atom_site.group_PDB",
-    ]
+    def test_config_defaults(self):
+        """Test default config values."""
+        builder = MmcifFolder(data_dir=".")
+        assert builder.config.drop_labels is None
+        assert builder.config.drop_metadata is None
 
-    # Add 500 atoms
-    for i in range(500):
-        atom_name = ["N", "CA", "C", "O", "CB"][i % 5]
-        element = "N" if atom_name == "N" else ("O" if atom_name == "O" else "C")
-        residue = i // 5 + 1
-        lines.append(
-            f"{i+1}  {element}  {atom_name}  ALA A {residue}  "
-            f"{10.0 + i * 0.1:.3f} {20.0 + i * 0.1:.3f} {30.0 + i * 0.1:.3f} "
-            f"1.00 15.00 ATOM"
+    def test_config_custom_values(self):
+        """Test custom config values."""
+        builder = MmcifFolder(data_dir=".", drop_labels=True, drop_metadata=True)
+        assert builder.config.drop_labels is True
+        assert builder.config.drop_metadata is True
+
+
+class TestMmcifFolderBuilder:
+    """Tests for MmcifFolder builder properties."""
+
+    def test_base_feature(self):
+        """Test BASE_FEATURE is ProteinStructure."""
+        assert MmcifFolder.BASE_FEATURE == ProteinStructure
+
+    def test_base_column_name(self):
+        """Test BASE_COLUMN_NAME is 'structure'."""
+        assert MmcifFolder.BASE_COLUMN_NAME == "structure"
+
+    def test_extensions(self):
+        """Test supported extensions."""
+        assert ".cif" in MmcifFolder.EXTENSIONS
+        assert ".mmcif" in MmcifFolder.EXTENSIONS
+        assert len(MmcifFolder.EXTENSIONS) == 2
+
+
+class TestMmcifFolderLoading:
+    """Tests for loading mmCIF datasets."""
+
+    def test_load_single_file(self, mmcif_file):
+        """Test loading a single mmCIF file."""
+        dataset = load_dataset("mmcif", data_files=mmcif_file, split="train")
+        assert len(dataset) == 1
+        assert "structure" in dataset.column_names
+
+    def test_load_mmcif_extension(self, mmcif_file_mmcif_ext):
+        """Test loading .mmcif extension."""
+        dataset = load_dataset("mmcif", data_files=mmcif_file_mmcif_ext, split="train")
+        assert len(dataset) == 1
+        assert "structure" in dataset.column_names
+
+    def test_load_directory(self, mmcif_data_dir):
+        """Test loading from directory."""
+        dataset = load_dataset("mmcif", data_dir=mmcif_data_dir, split="train")
+        assert len(dataset) == 3
+        assert "structure" in dataset.column_names
+
+    def test_load_with_labels(self, mmcif_data_dir_with_labels):
+        """Test loading with folder-based labels."""
+        dataset = load_dataset("mmcif", data_dir=mmcif_data_dir_with_labels, split="train")
+        assert len(dataset) == 4
+        assert "structure" in dataset.column_names
+        assert "label" in dataset.column_names
+        # Check labels are ClassLabel
+        assert isinstance(dataset.features["label"], ClassLabel)
+
+    def test_load_drop_labels(self, mmcif_data_dir_with_labels):
+        """Test dropping labels."""
+        dataset = load_dataset(
+            "mmcif", data_dir=mmcif_data_dir_with_labels, split="train", drop_labels=True
+        )
+        assert len(dataset) == 4
+        assert "structure" in dataset.column_names
+        assert "label" not in dataset.column_names
+
+    def test_load_with_metadata(self, mmcif_data_dir_with_metadata):
+        """Test loading with metadata.csv."""
+        dataset = load_dataset("mmcif", data_dir=mmcif_data_dir_with_metadata, split="train")
+        assert len(dataset) == 3
+        assert "structure" in dataset.column_names
+        assert "resolution" in dataset.column_names
+        assert "method" in dataset.column_names
+
+    def test_load_drop_metadata(self, mmcif_data_dir_with_metadata):
+        """Test dropping metadata."""
+        dataset = load_dataset(
+            "mmcif", data_dir=mmcif_data_dir_with_metadata, split="train", drop_metadata=True
+        )
+        assert len(dataset) == 3
+        assert "structure" in dataset.column_names
+        assert "resolution" not in dataset.column_names
+        assert "method" not in dataset.column_names
+
+
+class TestMmcifFolderFeatures:
+    """Tests for ProteinStructure feature in mmCIF datasets."""
+
+    def test_feature_type(self, mmcif_file):
+        """Test feature type is ProteinStructure."""
+        dataset = load_dataset("mmcif", data_files=mmcif_file, split="train")
+        assert isinstance(dataset.features["structure"], ProteinStructure)
+
+    def test_structure_content_decoded(self, mmcif_file):
+        """Test structure content is accessible when decoded (default)."""
+        dataset = load_dataset("mmcif", data_files=mmcif_file, split="train")
+        sample = dataset[0]
+        structure = sample["structure"]
+
+        # With decode=True (default), structure is a string
+        assert isinstance(structure, str)
+        assert "data_TEST" in structure
+        assert "_atom_site" in structure
+
+    def test_structure_content_undecoded(self, mmcif_file):
+        """Test structure content when decode=False."""
+        dataset = load_dataset("mmcif", data_files=mmcif_file, split="train")
+        # Cast to decode=False to get raw bytes/path dict
+        dataset = dataset.cast_column("structure", ProteinStructure(decode=False))
+        sample = dataset[0]
+        structure = sample["structure"]
+
+        # Should have bytes and path
+        assert "bytes" in structure or "path" in structure
+        # Path should end with .cif
+        if structure["path"]:
+            assert structure["path"].endswith(".cif")
+
+    def test_arrow_type(self, mmcif_file):
+        """Test underlying Arrow type."""
+        dataset = load_dataset("mmcif", data_files=mmcif_file, split="train")
+        feature = dataset.features["structure"]
+        pa_type = feature.pa_type
+
+        # Should be a struct with bytes and path
+        assert pa.types.is_struct(pa_type)
+        field_names = [f.name for f in pa_type]
+        assert "bytes" in field_names
+        assert "path" in field_names
+
+
+class TestMmcifFolderIntegration:
+    """Integration tests for MmcifFolder."""
+
+    def test_dataset_operations(self, mmcif_data_dir):
+        """Test common dataset operations."""
+        dataset = load_dataset("mmcif", data_dir=mmcif_data_dir, split="train")
+
+        # Test filter
+        filtered = dataset.filter(lambda x: True)
+        assert len(filtered) == len(dataset)
+
+        # Test select
+        selected = dataset.select([0, 1])
+        assert len(selected) == 2
+
+        # Test shuffle
+        shuffled = dataset.shuffle(seed=42)
+        assert len(shuffled) == len(dataset)
+
+    def test_train_test_split(self, mmcif_data_dir):
+        """Test train/test split."""
+        dataset = load_dataset("mmcif", data_dir=mmcif_data_dir, split="train")
+        splits = dataset.train_test_split(test_size=0.3)
+
+        assert isinstance(splits, DatasetDict)
+        assert "train" in splits
+        assert "test" in splits
+        assert len(splits["train"]) + len(splits["test"]) == len(dataset)
+
+    def test_map_function(self, mmcif_data_dir):
+        """Test map function on dataset."""
+        dataset = load_dataset("mmcif", data_dir=mmcif_data_dir, split="train")
+
+        def extract_entry_id(example):
+            # structure is decoded as a string by default
+            content = example["structure"]
+            # Extract entry ID from mmCIF content
+            for line in content.split("\n"):
+                if line.startswith("data_"):
+                    return {"entry_id": line.replace("data_", "")}
+            return {"entry_id": "unknown"}
+
+        mapped = dataset.map(extract_entry_id)
+        assert "entry_id" in mapped.column_names
+
+    def test_save_and_load(self, mmcif_data_dir, tmp_path):
+        """Test save and reload dataset."""
+        dataset = load_dataset("mmcif", data_dir=mmcif_data_dir, split="train")
+
+        # Save to disk
+        save_path = tmp_path / "saved_mmcif"
+        dataset.save_to_disk(str(save_path))
+
+        # Reload
+        reloaded = Dataset.load_from_disk(str(save_path))
+        assert len(reloaded) == len(dataset)
+        assert reloaded.features["structure"] == dataset.features["structure"]
+
+
+class TestMmcifFolderEdgeCases:
+    """Edge case tests for MmcifFolder."""
+
+    def test_empty_directory(self, tmp_path):
+        """Test loading from empty directory raises error."""
+        empty_dir = tmp_path / "empty"
+        empty_dir.mkdir()
+
+        with pytest.raises(Exception):  # FileNotFoundError or similar
+            load_dataset("mmcif", data_dir=str(empty_dir), split="train")
+
+    def test_mixed_extensions(self, tmp_path):
+        """Test directory with both .cif and .mmcif files."""
+        data_dir = tmp_path / "mixed"
+        data_dir.mkdir()
+
+        (data_dir / "structure1.cif").write_text(MMCIF_CONTENT.replace("TEST", "CIF1"))
+        (data_dir / "structure2.mmcif").write_text(MMCIF_CONTENT.replace("TEST", "MMCIF2"))
+
+        dataset = load_dataset("mmcif", data_dir=str(data_dir), split="train")
+        assert len(dataset) == 2
+
+    def test_nested_directories(self, tmp_path):
+        """Test nested directory structure."""
+        data_dir = tmp_path / "nested"
+        sub_dir = data_dir / "sub1" / "sub2"
+        sub_dir.mkdir(parents=True)
+
+        (data_dir / "root.cif").write_text(MMCIF_CONTENT.replace("TEST", "ROOT"))
+        (sub_dir / "nested.cif").write_text(MMCIF_CONTENT.replace("TEST", "NESTED"))
+
+        dataset = load_dataset("mmcif", data_dir=str(data_dir), split="train")
+        # Should find files in nested directories
+        assert len(dataset) >= 1
+
+    def test_large_mmcif_content(self, tmp_path):
+        """Test with larger mmCIF file."""
+        data_dir = tmp_path / "large"
+        data_dir.mkdir()
+
+        # Create mmCIF with many atoms
+        atoms = []
+        for i in range(100):
+            atoms.append(f"ATOM   {i+1}  N  N   ALA A {i+1}  {i}.000   0.000   0.000  1.00 20.00")
+
+        large_content = MMCIF_CONTENT.replace(
+            "ATOM   1  N  N   ALA A 1  0.000   0.000   0.000  1.00 20.00\n"
+            "ATOM   2  C  CA  ALA A 1  1.458   0.000   0.000  1.00 20.00",
+            "\n".join(atoms)
         )
 
-    lines.append("#")
-
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines))
-    return str(filename)
-
-
-def test_config_raises_when_invalid_name() -> None:
-    with pytest.raises(InvalidConfigName, match="Bad characters"):
-        _ = MmcifConfig(name="name-with-*-invalid-character")
-
-
-@pytest.mark.parametrize("data_files", ["str_path", ["str_path"], DataFilesList(["str_path"], [()])])
-def test_config_raises_when_invalid_data_files(data_files) -> None:
-    with pytest.raises(ValueError, match="Expected a DataFilesDict"):
-        _ = MmcifConfig(name="name", data_files=data_files)
-
-
-def test_mmcif_basic_loading(mmcif_file):
-    """Test basic mmCIF file loading."""
-    mmcif = Mmcif()
-    generator = mmcif._generate_tables([[mmcif_file]])
-    pa_table = pa.concat_tables([table for _, table in generator])
-
-    result = pa_table.to_pydict()
-
-    assert len(result["id"]) == 5
-    assert result["id"] == [1, 2, 3, 4, 5]
-    assert result["type_symbol"] == ["N", "C", "C", "O", "C"]
-    assert result["label_atom_id"] == ["N", "CA", "C", "O", "CB"]
-    assert result["label_comp_id"] == ["ALA", "ALA", "ALA", "ALA", "ALA"]
-    assert result["Cartn_x"][0] == pytest.approx(10.0)
-    assert result["Cartn_y"][0] == pytest.approx(20.0)
-    assert result["Cartn_z"][0] == pytest.approx(30.0)
-
-
-def test_mmcif_column_filtering(mmcif_file):
-    """Test loading with column subset."""
-    mmcif = Mmcif(columns=["label_atom_id", "Cartn_x", "Cartn_y", "Cartn_z"])
-    generator = mmcif._generate_tables([[mmcif_file]])
-    pa_table = pa.concat_tables([table for _, table in generator])
-
-    result = pa_table.to_pydict()
-
-    # Should only have specified columns
-    assert set(result.keys()) == {"label_atom_id", "Cartn_x", "Cartn_y", "Cartn_z"}
-    assert len(result["label_atom_id"]) == 5
-
-
-def test_mmcif_hetatm_filtering(mmcif_file_with_hetatm):
-    """Test excluding HETATM records."""
-    # Include HETATM (default)
-    mmcif_with = Mmcif(include_hetatm=True, columns=["id", "group_PDB"])
-    generator = mmcif_with._generate_tables([[mmcif_file_with_hetatm]])
-    pa_table = pa.concat_tables([table for _, table in generator])
-    result_with = pa_table.to_pydict()
-
-    assert len(result_with["id"]) == 4
-    assert "HETATM" in result_with["group_PDB"]
-
-    # Exclude HETATM
-    mmcif_without = Mmcif(include_hetatm=False, columns=["id", "group_PDB"])
-    generator = mmcif_without._generate_tables([[mmcif_file_with_hetatm]])
-    pa_table = pa.concat_tables([table for _, table in generator])
-    result_without = pa_table.to_pydict()
-
-    assert len(result_without["id"]) == 2
-    assert "HETATM" not in result_without["group_PDB"]
-
-
-def test_mmcif_gzipped(mmcif_file_gzipped):
-    """Test loading gzipped mmCIF files."""
-    mmcif = Mmcif()
-    generator = mmcif._generate_tables([[mmcif_file_gzipped]])
-    pa_table = pa.concat_tables([table for _, table in generator])
-
-    result = pa_table.to_pydict()
-
-    assert len(result["id"]) == 2
-    assert result["label_comp_id"] == ["GLY", "GLY"]
-
-
-def test_mmcif_quoted_values(mmcif_file_quoted_values):
-    """Test parsing quoted values."""
-    mmcif = Mmcif()
-    generator = mmcif._generate_tables([[mmcif_file_quoted_values]])
-    pa_table = pa.concat_tables([table for _, table in generator])
-
-    result = pa_table.to_pydict()
-
-    assert result["label_atom_id"] == ["N", "CA"]
-    assert result["label_comp_id"] == ["ALA", "ALA"]
-
-
-def test_mmcif_missing_values(mmcif_file_missing_values):
-    """Test handling of missing values (. and ?)."""
-    mmcif = Mmcif()
-    generator = mmcif._generate_tables([[mmcif_file_missing_values]])
-    pa_table = pa.concat_tables([table for _, table in generator])
-
-    result = pa_table.to_pydict()
-
-    assert len(result["id"]) == 2
-    # Missing values should be None
-    assert result["label_seq_id"][0] is None
-    assert result["label_seq_id"][1] is None
-    assert result["B_iso_or_equiv"][0] is None
-    assert result["occupancy"][1] is None
-
-
-def test_mmcif_batch_size(mmcif_file_large):
-    """Test batch size configuration."""
-    # Use batch_size=100 to create multiple batches
-    mmcif = Mmcif(batch_size=100)
-    generator = mmcif._generate_tables([[mmcif_file_large]])
-    tables = [table for _, table in generator]
-
-    # Should have 5 batches (500 atoms / 100)
-    assert len(tables) == 5
-
-    # Each batch should have 100 records
-    for table in tables:
-        assert table.num_rows == 100
-
-
-def test_mmcif_schema_types(mmcif_file):
-    """Test that schema uses correct Arrow types."""
-    mmcif = Mmcif()
-    generator = mmcif._generate_tables([[mmcif_file]])
-    pa_table = pa.concat_tables([table for _, table in generator])
-
-    schema = pa_table.schema
-
-    # Check numeric types
-    assert schema.field("id").type == pa.int32()
-    assert schema.field("label_seq_id").type == pa.int32()
-    assert schema.field("Cartn_x").type == pa.float32()
-    assert schema.field("Cartn_y").type == pa.float32()
-    assert schema.field("Cartn_z").type == pa.float32()
-    assert schema.field("occupancy").type == pa.float32()
-    assert schema.field("B_iso_or_equiv").type == pa.float32()
-
-    # Check string types
-    assert schema.field("type_symbol").type == pa.string()
-    assert schema.field("label_atom_id").type == pa.string()
-    assert schema.field("label_comp_id").type == pa.string()
-
-
-def test_mmcif_feature_casting(mmcif_file):
-    """Test feature casting to custom schema."""
-    features = Features({
-        "id": Value("int32"),
-        "type_symbol": Value("string"),
-        "Cartn_x": Value("float32"),
-        "Cartn_y": Value("float32"),
-        "Cartn_z": Value("float32"),
-    })
-    mmcif = Mmcif(features=features, columns=["id", "type_symbol", "Cartn_x", "Cartn_y", "Cartn_z"])
-    generator = mmcif._generate_tables([[mmcif_file]])
-    pa_table = pa.concat_tables([table for _, table in generator])
-
-    assert pa_table.schema.field("id").type == pa.int32()
-    assert pa_table.schema.field("Cartn_x").type == pa.float32()
-
-
-def test_mmcif_empty_file(tmp_path):
-    """Test handling of empty mmCIF file."""
-    filename = tmp_path / "empty.cif"
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write("")
-
-    mmcif = Mmcif()
-    generator = mmcif._generate_tables([[str(filename)]])
-    tables = list(generator)
-
-    # Empty file should produce no tables
-    assert len(tables) == 0
-
-
-def test_mmcif_no_atom_site(tmp_path):
-    """Test mmCIF file without atom_site category."""
-    filename = tmp_path / "no_atoms.cif"
-    data = textwrap.dedent(
-        """\
-        data_test
-        #
-        _entry.id test
-        _struct.title "Test structure"
-        #
-        """
-    )
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(data)
-
-    mmcif = Mmcif()
-    generator = mmcif._generate_tables([[str(filename)]])
-    tables = list(generator)
-
-    # No atom_site should produce no tables
-    assert len(tables) == 0
-
-
-def test_mmcif_multiple_files(tmp_path):
-    """Test loading multiple mmCIF files."""
-    # Create two files
-    file1 = tmp_path / "structure1.cif"
-    file2 = tmp_path / "structure2.cif"
-
-    data1 = textwrap.dedent(
-        """\
-        data_test1
-        loop_
-        _atom_site.id
-        _atom_site.type_symbol
-        _atom_site.label_atom_id
-        _atom_site.label_comp_id
-        _atom_site.label_asym_id
-        _atom_site.label_seq_id
-        _atom_site.Cartn_x
-        _atom_site.Cartn_y
-        _atom_site.Cartn_z
-        _atom_site.occupancy
-        _atom_site.B_iso_or_equiv
-        1  N  N  ALA A 1  10.0 20.0 30.0 1.0 15.0
-        """
-    )
-
-    data2 = textwrap.dedent(
-        """\
-        data_test2
-        loop_
-        _atom_site.id
-        _atom_site.type_symbol
-        _atom_site.label_atom_id
-        _atom_site.label_comp_id
-        _atom_site.label_asym_id
-        _atom_site.label_seq_id
-        _atom_site.Cartn_x
-        _atom_site.Cartn_y
-        _atom_site.Cartn_z
-        _atom_site.occupancy
-        _atom_site.B_iso_or_equiv
-        1  C  CA  GLY B 1  11.0 21.0 31.0 1.0 14.0
-        """
-    )
-
-    with open(file1, "w", encoding="utf-8") as f:
-        f.write(data1)
-    with open(file2, "w", encoding="utf-8") as f:
-        f.write(data2)
-
-    mmcif = Mmcif()
-    generator = mmcif._generate_tables([[str(file1)], [str(file2)]])
-    pa_table = pa.concat_tables([table for _, table in generator])
-
-    result = pa_table.to_pydict()
-
-    assert len(result["id"]) == 2
-    assert result["label_comp_id"] == ["ALA", "GLY"]
-
-
-def test_mmcif_extensions():
-    """Test that correct extensions are defined."""
-    assert ".cif" in Mmcif.EXTENSIONS
-    assert ".mmcif" in Mmcif.EXTENSIONS
-
-
-def test_mmcif_comments_handling(tmp_path):
-    """Test that comments are properly skipped."""
-    filename = tmp_path / "comments.cif"
-    data = textwrap.dedent(
-        """\
-        data_test
-        # This is a comment
-        #
-        loop_
-        _atom_site.id
-        _atom_site.type_symbol
-        _atom_site.label_atom_id
-        _atom_site.label_comp_id
-        _atom_site.label_asym_id
-        _atom_site.label_seq_id
-        _atom_site.Cartn_x
-        _atom_site.Cartn_y
-        _atom_site.Cartn_z
-        _atom_site.occupancy
-        _atom_site.B_iso_or_equiv
-        # Another comment
-        1  N  N  ALA A 1  10.0 20.0 30.0 1.0 15.0
-        # Comment between data
-        2  C  CA  ALA A 1  11.0 21.0 31.0 1.0 14.0
-        #
-        """
-    )
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(data)
-
-    mmcif = Mmcif()
-    generator = mmcif._generate_tables([[str(filename)]])
-    pa_table = pa.concat_tables([table for _, table in generator])
-
-    result = pa_table.to_pydict()
-    assert len(result["id"]) == 2
-
-
-def test_mmcif_default_columns():
-    """Test that default columns are sensible."""
-    from datasets.packaged_modules.mmcif.mmcif import DEFAULT_ATOM_SITE_COLUMNS
-
-    # Essential columns should be in defaults
-    assert "id" in DEFAULT_ATOM_SITE_COLUMNS
-    assert "type_symbol" in DEFAULT_ATOM_SITE_COLUMNS
-    assert "label_atom_id" in DEFAULT_ATOM_SITE_COLUMNS
-    assert "label_comp_id" in DEFAULT_ATOM_SITE_COLUMNS
-    assert "Cartn_x" in DEFAULT_ATOM_SITE_COLUMNS
-    assert "Cartn_y" in DEFAULT_ATOM_SITE_COLUMNS
-    assert "Cartn_z" in DEFAULT_ATOM_SITE_COLUMNS
+        (data_dir / "large.cif").write_text(large_content)
+
+        dataset = load_dataset("mmcif", data_dir=str(data_dir), split="train")
+        assert len(dataset) == 1
+
+        # Verify content is complete (decoded as string by default)
+        content = dataset[0]["structure"]
+        assert isinstance(content, str)
+        assert "ALA A 100" in content

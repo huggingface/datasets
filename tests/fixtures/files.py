@@ -579,6 +579,11 @@ def zip_image_path(image_file, tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def cif_file():
+    return os.path.join("tests", "features", "data", "test_protein.cif")
+
+
+@pytest.fixture(scope="session")
 def data_dir_with_hidden_files(tmp_path_factory):
     data_dir = tmp_path_factory.mktemp("data_dir")
 

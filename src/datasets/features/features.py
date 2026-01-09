@@ -44,6 +44,7 @@ from .audio import Audio
 from .image import Image, encode_pil_image
 from .nifti import Nifti, encode_nibabel_image
 from .pdf import Pdf, encode_pdfplumber_pdf
+from .protein_structure import ProteinStructure
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video
 
@@ -1436,6 +1437,7 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     Video.__name__: Video,
     Pdf.__name__: Pdf,
     Nifti.__name__: Nifti,
+    ProteinStructure.__name__: ProteinStructure,
 }
 
 
