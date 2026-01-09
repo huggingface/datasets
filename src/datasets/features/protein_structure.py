@@ -116,7 +116,9 @@ class ProteinStructure:
             `str`: The structure file content as a string (PDB/mmCIF are text formats).
         """
         if not self.decode:
-            raise RuntimeError("Decoding is disabled for this feature. Please use ProteinStructure(decode=True) instead.")
+            raise RuntimeError(
+                "Decoding is disabled for this feature. Please use ProteinStructure(decode=True) instead."
+            )
 
         if token_per_repo_id is None:
             token_per_repo_id = {}
@@ -124,7 +126,9 @@ class ProteinStructure:
         path, bytes_ = value["path"], value["bytes"]
         if bytes_ is None:
             if path is None:
-                raise ValueError(f"A protein structure should have one of 'path' or 'bytes' but both are None in {value}.")
+                raise ValueError(
+                    f"A protein structure should have one of 'path' or 'bytes' but both are None in {value}."
+                )
             else:
                 if is_local_path(path):
                     with open(path, "r", encoding="utf-8") as f:

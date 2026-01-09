@@ -123,9 +123,7 @@ def test_config_valid_name():
 
 
 def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cache_dir):
-    pdbfolder = PdbFolder(
-        data_files=data_files_with_labels_no_metadata, cache_dir=cache_dir, drop_labels=False
-    )
+    pdbfolder = PdbFolder(data_files=data_files_with_labels_no_metadata, cache_dir=cache_dir, drop_labels=False)
     gen_kwargs = pdbfolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     assert pdbfolder.info.features["label"] == ClassLabel(names=["enzyme", "receptor"])
     generator = pdbfolder._generate_examples(**gen_kwargs)
