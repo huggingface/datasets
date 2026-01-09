@@ -178,9 +178,7 @@ class TestMmcifFolderLoading:
 
     def test_load_drop_labels(self, mmcif_data_dir_with_labels):
         """Test dropping labels."""
-        dataset = load_dataset(
-            "mmcif", data_dir=mmcif_data_dir_with_labels, split="train", drop_labels=True
-        )
+        dataset = load_dataset("mmcif", data_dir=mmcif_data_dir_with_labels, split="train", drop_labels=True)
         assert len(dataset) == 4
         assert "structure" in dataset.column_names
         assert "label" not in dataset.column_names
@@ -195,9 +193,7 @@ class TestMmcifFolderLoading:
 
     def test_load_drop_metadata(self, mmcif_data_dir_with_metadata):
         """Test dropping metadata."""
-        dataset = load_dataset(
-            "mmcif", data_dir=mmcif_data_dir_with_metadata, split="train", drop_metadata=True
-        )
+        dataset = load_dataset("mmcif", data_dir=mmcif_data_dir_with_metadata, split="train", drop_metadata=True)
         assert len(dataset) == 3
         assert "structure" in dataset.column_names
         assert "resolution" not in dataset.column_names
@@ -352,12 +348,12 @@ class TestMmcifFolderEdgeCases:
         # Create mmCIF with many atoms
         atoms = []
         for i in range(100):
-            atoms.append(f"ATOM   {i+1}  N  N   ALA A {i+1}  {i}.000   0.000   0.000  1.00 20.00")
+            atoms.append(f"ATOM   {i + 1}  N  N   ALA A {i + 1}  {i}.000   0.000   0.000  1.00 20.00")
 
         large_content = MMCIF_CONTENT.replace(
             "ATOM   1  N  N   ALA A 1  0.000   0.000   0.000  1.00 20.00\n"
             "ATOM   2  C  CA  ALA A 1  1.458   0.000   0.000  1.00 20.00",
-            "\n".join(atoms)
+            "\n".join(atoms),
         )
 
         (data_dir / "large.cif").write_text(large_content)

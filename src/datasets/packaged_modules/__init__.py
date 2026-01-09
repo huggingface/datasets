@@ -13,10 +13,10 @@ from .eval import eval
 from .hdf5 import hdf5
 from .iceberg import iceberg
 from .imagefolder import imagefolder
-from .mmcif import mmcif
 from .json import json
 from .lance import lance
 from .meshfolder import meshfolder
+from .mmcif import mmcif
 from .niftifolder import niftifolder
 from .pandas import pandas
 from .parquet import parquet
