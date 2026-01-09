@@ -358,6 +358,8 @@ def resolve_pattern(
         else (fs.protocol if isinstance(fs.protocol, str) else fs.protocol[0])
     )
     protocol_prefix = protocol + "://" if protocol != "file" else ""
+    if protocol == "hdfs" and "host" in fs.storage_options:
+        protocol_prefix += f"{fs.storage_options['host']}"
     glob_kwargs = {}
     if protocol == "hf":
         # 10 times faster glob with detail=True (ignores costly info like lastCommit)
