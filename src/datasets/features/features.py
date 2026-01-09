@@ -44,8 +44,8 @@ from .audio import Audio
 from .image import Image, encode_pil_image
 from .nifti import Nifti, encode_nibabel_image
 from .pdf import Pdf, encode_pdfplumber_pdf
-from .translation import Translation, TranslationVariableLanguages
 from .protein_structure import ProteinStructure
+from .translation import Translation, TranslationVariableLanguages
 from .video import Video
 
 
