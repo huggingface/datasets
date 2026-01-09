@@ -1514,6 +1514,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         num_shards: Optional[int] = None,
         num_proc: Optional[int] = None,
         storage_options: Optional[dict] = None,
+        flatten_indices: bool = True,
     ):
         """
         Saves a dataset to a dataset directory, or in a filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
@@ -1613,10 +1614,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             total=len(self),
             desc=f"Saving the dataset ({shards_done}/{num_shards} shards)",
         )
+        # False avoids rebuilding the dataset and can significantly speed up save_to_disk for those cases.
+        dataset_for_sharding = self.flatten_indices() if (self._indices is not None and flatten_indices) else self
+
         kwargs_per_job = (
             {
                 "job_id": shard_idx,
-                "shard": self.shard(num_shards=num_shards, index=shard_idx, contiguous=True),
+                "shard": dataset_for_sharding.shard(num_shards=num_shards, index=shard_idx, contiguous=True),
                 "fpath": posixpath.join(dataset_path, f"data-{shard_idx:05d}-of-{num_shards:05d}.arrow"),
                 "storage_options": storage_options,
             }
