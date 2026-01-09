@@ -11,8 +11,8 @@ from .csv import csv
 from .eval import eval
 from .hdf5 import hdf5
 from .imagefolder import imagefolder
-from .mmcif import mmcif
 from .json import json
+from .mmcif import mmcif
 from .niftifolder import niftifolder
 from .pandas import pandas
 from .parquet import parquet
