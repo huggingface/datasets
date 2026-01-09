@@ -49,6 +49,7 @@ from .mesh import Mesh
 from .nifti import Nifti, encode_nibabel_image
 from .pdf import Pdf, encode_pdfplumber_pdf
 from .translation import Translation, TranslationVariableLanguages
+from .protein_structure import ProteinStructure
 from .video import Video
 
 
@@ -1564,6 +1565,7 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     BioSequence.__name__: BioSequence,
     BioStructure.__name__: BioStructure,
     Json.__name__: Json,
+    ProteinStructure.__name__: ProteinStructure,
 }
 
 
