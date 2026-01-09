@@ -87,9 +87,9 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".hdf5": ("hdf5", {}),
     ".h5": ("hdf5", {}),
     ".eval": ("eval", {}),
-    ".pdb": ("pdb", {}),
-    ".ent": ("pdb", {}),
 }
+_EXTENSION_TO_MODULE.update({ext: ("pdb", {}) for ext in pdb.PdbFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext.upper(): ("pdb", {}) for ext in pdb.PdbFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
@@ -118,3 +118,4 @@ _MODULE_TO_METADATA_FILE_NAMES["audiofolder"] = imagefolder.ImageFolder.METADATA
 _MODULE_TO_METADATA_FILE_NAMES["videofolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["pdffolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["niftifolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
+_MODULE_TO_METADATA_FILE_NAMES["pdb"] = imagefolder.ImageFolder.METADATA_FILENAMES

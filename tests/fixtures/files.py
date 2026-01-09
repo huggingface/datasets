@@ -560,6 +560,16 @@ def audio_file_16000():
 
 
 @pytest.fixture(scope="session")
+def pdb_file():
+    return os.path.join("tests", "features", "data", "test_protein.pdb")
+
+
+@pytest.fixture(scope="session")
+def cif_file():
+    return os.path.join("tests", "features", "data", "test_protein.cif")
+
+
+@pytest.fixture(scope="session")
 def tensor_file(tmp_path_factory):
     import torch
 

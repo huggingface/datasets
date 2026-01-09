@@ -1,399 +1,241 @@
-"""Tests for PDB file loader."""
+"""Tests for PdbFolder - folder-based PDB structure loader."""
 
-import gzip
+import shutil
 import textwrap
 
-import pyarrow as pa
 import pytest
 
-from datasets import Features, Value
-from datasets.builder import InvalidConfigName
-from datasets.data_files import DataFilesList
-from datasets.packaged_modules.pdb.pdb import (
-    DEFAULT_PDB_COLUMNS,
-    PDB_COLUMN_TYPES,
-    Pdb,
-    PdbConfig,
-)
-
-
-# Sample PDB content for testing
-SAMPLE_PDB_CONTENT = textwrap.dedent("""\
-ATOM      1  N   ALA A   1       1.000   2.000   3.000  1.00 10.00           N
-ATOM      2  CA  ALA A   1       4.000   5.000   6.000  1.00 11.00           C
-ATOM      3  C   ALA A   1       7.000   8.000   9.000  1.00 12.00           C
-HETATM    4  O   HOH A 100      10.000  11.000  12.000  1.00 20.00           O
-END
-""")
+from datasets import ClassLabel, DownloadManager, ProteinStructure
+from datasets.data_files import DataFilesDict, get_data_patterns
+from datasets.download.streaming_download_manager import StreamingDownloadManager
+from datasets.packaged_modules.pdb.pdb import PdbFolder, PdbFolderConfig
 
 
 @pytest.fixture
-def pdb_file(tmp_path):
-    """Create a sample PDB file."""
-    filename = tmp_path / "test.pdb"
-    filename.write_text(SAMPLE_PDB_CONTENT)
-    return str(filename)
+def cache_dir(tmp_path):
+    return str(tmp_path / "pdb_cache_dir")
 
 
 @pytest.fixture
-def pdb_file_gzipped(tmp_path):
-    """Create a gzipped PDB file."""
-    filename = tmp_path / "test.pdb.gz"
-    with gzip.open(filename, "wt", encoding="utf-8") as f:
-        f.write(SAMPLE_PDB_CONTENT)
-    return str(filename)
+def data_files_with_labels_no_metadata(tmp_path, pdb_file):
+    data_dir = tmp_path / "pdb_data_dir_with_labels"
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    subdir_class_0 = data_dir / "enzyme"
+    subdir_class_0.mkdir(parents=True, exist_ok=True)
+    subdir_class_1 = data_dir / "receptor"
+    subdir_class_1.mkdir(parents=True, exist_ok=True)
+
+    shutil.copy(pdb_file, subdir_class_0 / "structure1.pdb")
+    shutil.copy(pdb_file, subdir_class_1 / "structure2.pdb")
+
+    data_files_with_labels_no_metadata = DataFilesDict.from_patterns(
+        get_data_patterns(str(data_dir)), data_dir.as_posix()
+    )
+
+    return data_files_with_labels_no_metadata
 
 
-class TestPdbConfig:
-    """Test PdbConfig validation."""
+@pytest.fixture
+def file_with_metadata(tmp_path, pdb_file):
+    filename = tmp_path / "structure.pdb"
+    shutil.copy(pdb_file, filename)
+    metadata_filename = tmp_path / "metadata.jsonl"
+    metadata = textwrap.dedent(
+        """\
+        {"file_name": "structure.pdb", "resolution": 2.5, "method": "X-ray"}
+        """
+    )
+    with open(metadata_filename, "w", encoding="utf-8") as f:
+        f.write(metadata)
+    return str(filename), str(metadata_filename)
 
-    def test_config_raises_when_invalid_name(self) -> None:
-        with pytest.raises(InvalidConfigName, match="Bad characters"):
-            _ = PdbConfig(name="name-with-*-invalid-character")
 
-    @pytest.mark.parametrize("data_files", ["str_path", ["str_path"], DataFilesList(["str_path"], [()])])
-    def test_config_raises_when_invalid_data_files(self, data_files) -> None:
-        with pytest.raises(ValueError, match="Expected a DataFilesDict"):
-            _ = PdbConfig(name="name", data_files=data_files)
+@pytest.fixture
+def data_files_with_one_split_and_metadata(tmp_path, pdb_file):
+    data_dir = tmp_path / "pdb_data_dir_with_metadata_one_split"
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    filename = data_dir / "structure1.pdb"
+    shutil.copy(pdb_file, filename)
+    filename2 = data_dir / "structure2.ent"
+    shutil.copy(pdb_file, filename2)
+
+    metadata_filename = data_dir / "metadata.jsonl"
+    metadata = textwrap.dedent(
+        """\
+        {"file_name": "structure1.pdb", "resolution": 2.5}
+        {"file_name": "structure2.ent", "resolution": 1.8}
+        """
+    )
+    with open(metadata_filename, "w", encoding="utf-8") as f:
+        f.write(metadata)
+    data_files_with_one_split_and_metadata = DataFilesDict.from_patterns(
+        get_data_patterns(str(data_dir)), data_dir.as_posix()
+    )
+    assert len(data_files_with_one_split_and_metadata) == 1
+    assert len(data_files_with_one_split_and_metadata["train"]) == 3
+    return data_files_with_one_split_and_metadata
 
 
-class TestPdbLoader:
-    """Test PDB file loading functionality."""
+@pytest.fixture
+def data_files_with_two_splits_and_metadata(tmp_path, pdb_file):
+    data_dir = tmp_path / "pdb_data_dir_with_metadata_two_splits"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    train_dir = data_dir / "train"
+    train_dir.mkdir(parents=True, exist_ok=True)
+    test_dir = data_dir / "test"
+    test_dir.mkdir(parents=True, exist_ok=True)
 
-    def test_pdb_basic_loading(self, pdb_file):
-        """Test basic PDB file loading."""
-        pdb = Pdb()
-        generator = pdb._generate_tables([[pdb_file]])
-        pa_table = pa.concat_tables([table for _, table in generator])
+    shutil.copy(pdb_file, train_dir / "train_structure1.pdb")
+    shutil.copy(pdb_file, train_dir / "train_structure2.ent")
+    shutil.copy(pdb_file, test_dir / "test_structure1.pdb")
 
-        # Should have 4 records (3 ATOM + 1 HETATM)
-        assert pa_table.num_rows == 4
-        # Should have default columns
-        assert set(pa_table.column_names) == set(DEFAULT_PDB_COLUMNS)
+    train_metadata_filename = train_dir / "metadata.jsonl"
+    train_metadata = textwrap.dedent(
+        """\
+        {"file_name": "train_structure1.pdb", "resolution": 2.5}
+        {"file_name": "train_structure2.ent", "resolution": 1.8}
+        """
+    )
+    with open(train_metadata_filename, "w", encoding="utf-8") as f:
+        f.write(train_metadata)
+    test_metadata_filename = test_dir / "metadata.jsonl"
+    test_metadata = textwrap.dedent(
+        """\
+        {"file_name": "test_structure1.pdb", "resolution": 3.0}
+        """
+    )
+    with open(test_metadata_filename, "w", encoding="utf-8") as f:
+        f.write(test_metadata)
+    data_files_with_two_splits_and_metadata = DataFilesDict.from_patterns(
+        get_data_patterns(str(data_dir)), data_dir.as_posix()
+    )
+    assert len(data_files_with_two_splits_and_metadata) == 2
+    assert len(data_files_with_two_splits_and_metadata["train"]) == 3
+    assert len(data_files_with_two_splits_and_metadata["test"]) == 2
+    return data_files_with_two_splits_and_metadata
 
-    def test_pdb_column_filtering(self, pdb_file):
-        """Test selecting specific columns."""
-        columns = ["atom_name", "x", "y", "z"]
-        pdb = Pdb(columns=columns)
-        generator = pdb._generate_tables([[pdb_file]])
-        pa_table = pa.concat_tables([table for _, table in generator])
 
-        assert set(pa_table.column_names) == set(columns)
-        assert pa_table.num_rows == 4
+def test_config_valid_name():
+    config = PdbFolderConfig(name="valid_name")
+    assert config.name == "valid_name"
 
-    def test_pdb_atom_only(self, pdb_file):
-        """Test loading only ATOM records."""
-        pdb = Pdb(record_types=["ATOM"])
-        generator = pdb._generate_tables([[pdb_file]])
-        pa_table = pa.concat_tables([table for _, table in generator])
 
-        assert pa_table.num_rows == 3
-        record_types = pa_table["record_type"].to_pylist()
-        assert all(rt == "ATOM" for rt in record_types)
+def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cache_dir):
+    pdbfolder = PdbFolder(
+        data_files=data_files_with_labels_no_metadata, cache_dir=cache_dir, drop_labels=False
+    )
+    gen_kwargs = pdbfolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    assert pdbfolder.info.features["label"] == ClassLabel(names=["enzyme", "receptor"])
+    generator = pdbfolder._generate_examples(**gen_kwargs)
+    assert all(example["label"] in {"enzyme", "receptor"} for _, example in generator)
 
-    def test_pdb_hetatm_only(self, pdb_file):
-        """Test loading only HETATM records."""
-        pdb = Pdb(record_types=["HETATM"])
-        generator = pdb._generate_tables([[pdb_file]])
-        pa_table = pa.concat_tables([table for _, table in generator])
 
-        assert pa_table.num_rows == 1
-        record_types = pa_table["record_type"].to_pylist()
-        assert all(rt == "HETATM" for rt in record_types)
+@pytest.mark.parametrize("drop_metadata", [None, True, False])
+@pytest.mark.parametrize("drop_labels", [None, True, False])
+def test_generate_examples_drop_labels(data_files_with_labels_no_metadata, drop_metadata, drop_labels, cache_dir):
+    pdbfolder = PdbFolder(
+        data_files=data_files_with_labels_no_metadata,
+        drop_metadata=drop_metadata,
+        drop_labels=drop_labels,
+        cache_dir=cache_dir,
+    )
+    gen_kwargs = pdbfolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    # removing labels explicitly requires drop_labels=True
+    assert gen_kwargs["add_labels"] is not bool(drop_labels)
+    assert gen_kwargs["add_metadata"] is False
+    generator = pdbfolder._generate_examples(**gen_kwargs)
+    if not drop_labels:
+        assert all(
+            example.keys() == {"structure", "label"} and all(val is not None for val in example.values())
+            for _, example in generator
+        )
+    else:
+        assert all(
+            example.keys() == {"structure"} and all(val is not None for val in example.values())
+            for _, example in generator
+        )
 
-    def test_pdb_gzipped(self, pdb_file_gzipped):
-        """Test loading gzipped PDB files."""
-        pdb = Pdb()
-        generator = pdb._generate_tables([[pdb_file_gzipped]])
-        pa_table = pa.concat_tables([table for _, table in generator])
 
-        assert pa_table.num_rows == 4
+@pytest.mark.parametrize("drop_metadata", [None, True, False])
+@pytest.mark.parametrize("drop_labels", [None, True, False])
+def test_generate_examples_drop_metadata(file_with_metadata, drop_metadata, drop_labels, cache_dir):
+    file, metadata_file = file_with_metadata
+    pdbfolder = PdbFolder(
+        data_files=[file, metadata_file],
+        drop_metadata=drop_metadata,
+        drop_labels=drop_labels,
+        cache_dir=cache_dir,
+    )
+    gen_kwargs = pdbfolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    # since the dataset has metadata, removing the metadata explicitly requires drop_metadata=True
+    assert gen_kwargs["add_metadata"] is not bool(drop_metadata)
+    # since the dataset has metadata, adding the labels explicitly requires drop_labels=False
+    assert gen_kwargs["add_labels"] is False
+    generator = pdbfolder._generate_examples(**gen_kwargs)
+    expected_columns = {"structure"}
+    if gen_kwargs["add_metadata"]:
+        expected_columns.update({"resolution", "method"})
+    if gen_kwargs["add_labels"]:
+        expected_columns.add("label")
+    result = [example for _, example in generator]
+    assert len(result) == 1
+    example = result[0]
+    assert example.keys() == expected_columns
+    for column in expected_columns:
+        assert example[column] is not None
 
-    def test_pdb_multichain(self, tmp_path):
-        """Test loading PDB with multiple chains."""
-        pdb_content = textwrap.dedent("""\
-ATOM      1  CA  ALA A   1       1.000   2.000   3.000  1.00 10.00           C
-ATOM      2  CA  ALA B   1       4.000   5.000   6.000  1.00 11.00           C
-ATOM      3  CA  ALA C   1       7.000   8.000   9.000  1.00 12.00           C
-END
-""")
-        file_path = tmp_path / "multichain.pdb"
-        file_path.write_text(pdb_content)
 
-        pdb = Pdb()
-        generator = pdb._generate_tables([[str(file_path)]])
-        pa_table = pa.concat_tables([table for _, table in generator])
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("n_splits", [1, 2])
+def test_data_files_with_metadata_and_splits(
+    streaming, cache_dir, n_splits, data_files_with_one_split_and_metadata, data_files_with_two_splits_and_metadata
+):
+    data_files = data_files_with_one_split_and_metadata if n_splits == 1 else data_files_with_two_splits_and_metadata
+    pdbfolder = PdbFolder(
+        data_files=data_files,
+        cache_dir=cache_dir,
+    )
+    download_manager = StreamingDownloadManager() if streaming else DownloadManager()
+    generated_splits = pdbfolder._split_generators(download_manager)
+    for (split, files), generated_split in zip(data_files.items(), generated_splits):
+        assert split == generated_split.name
+        expected_num_of_examples = len(files) - 1
+        generated_examples = list(pdbfolder._generate_examples(**generated_split.gen_kwargs))
+        assert len(generated_examples) == expected_num_of_examples
+        assert len({example["structure"] for _, example in generated_examples}) == expected_num_of_examples
+        assert len({example["resolution"] for _, example in generated_examples}) == expected_num_of_examples
+        assert all(example["resolution"] is not None for _, example in generated_examples)
 
-        assert pa_table.num_rows == 3
-        chain_ids = pa_table["chain_id"].to_pylist()
-        assert chain_ids == ["A", "B", "C"]
 
-    def test_pdb_alternate_locations(self, tmp_path):
-        """Test parsing alternate location indicators."""
-        pdb_content = textwrap.dedent("""\
-ATOM      1  CA AALA A   1       1.000   2.000   3.000  0.50 10.00           C
-ATOM      2  CA BALA A   1       1.100   2.100   3.100  0.50 10.00           C
-END
-""")
-        file_path = tmp_path / "altloc.pdb"
-        file_path.write_text(pdb_content)
+def test_structure_content_decoded(data_files_with_labels_no_metadata, cache_dir):
+    pdbfolder = PdbFolder(
+        data_files=data_files_with_labels_no_metadata,
+        cache_dir=cache_dir,
+        drop_labels=True,
+    )
+    pdbfolder.download_and_prepare()
+    dataset = list(pdbfolder.as_dataset()["train"])
 
-        pdb = Pdb(columns=["atom_name", "alt_loc", "occupancy"])
-        generator = pdb._generate_tables([[str(file_path)]])
-        pa_table = pa.concat_tables([table for _, table in generator])
+    for example in dataset:
+        content = example["structure"]
+        assert isinstance(content, str)
+        # PDB files should contain standard PDB format markers
+        assert "HEADER" in content or "ATOM" in content
 
-        assert pa_table.num_rows == 2
-        alt_locs = pa_table["alt_loc"].to_pylist()
-        assert alt_locs == ["A", "B"]
-        occupancies = pa_table["occupancy"].to_pylist()
-        assert all(occ == 0.5 for occ in occupancies)
 
-    def test_pdb_charged_atoms(self, tmp_path):
-        """Test parsing atoms with charges."""
-        pdb_content = textwrap.dedent("""\
-ATOM      1  N   LYS A   1       1.000   2.000   3.000  1.00 10.00           N1+
-ATOM      2  OE1 GLU A   2       4.000   5.000   6.000  1.00 11.00           O1-
-END
-""")
-        file_path = tmp_path / "charged.pdb"
-        file_path.write_text(pdb_content)
+def test_extensions_supported():
+    expected_extensions = [".pdb", ".ent"]
+    assert all(ext in PdbFolder.EXTENSIONS for ext in expected_extensions)
+    # Should NOT contain mmCIF extensions
+    assert ".cif" not in PdbFolder.EXTENSIONS
+    assert ".mmcif" not in PdbFolder.EXTENSIONS
 
-        pdb = Pdb(columns=["atom_name", "element", "charge"])
-        generator = pdb._generate_tables([[str(file_path)]])
-        pa_table = pa.concat_tables([table for _, table in generator])
 
-        assert pa_table.num_rows == 2
-        charges = pa_table["charge"].to_pylist()
-        assert charges == ["1+", "1-"]
+def test_base_feature_is_protein_structure():
+    assert PdbFolder.BASE_FEATURE == ProteinStructure
 
-    def test_pdb_batch_size(self, tmp_path):
-        """Test batch size configuration."""
-        # Create PDB with more records than batch size
-        lines = []
-        for i in range(10):
-            lines.append(
-                f"ATOM  {i+1:5d}  CA  ALA A{i+1:4d}       1.000   2.000   3.000  1.00 10.00           C"
-            )
-        lines.append("END")
-        pdb_content = "\n".join(lines) + "\n"
 
-        file_path = tmp_path / "large.pdb"
-        file_path.write_text(pdb_content)
-
-        # Use batch_size=3 to force multiple batches
-        pdb = Pdb(batch_size=3)
-        batches = list(pdb._generate_tables([[str(file_path)]]))
-
-        # Should have 4 batches: 3+3+3+1
-        assert len(batches) == 4
-        total_rows = sum(table.num_rows for _, table in batches)
-        assert total_rows == 10
-
-    def test_pdb_schema_types(self, pdb_file):
-        """Test that schema types are correct."""
-        pdb = Pdb()
-        generator = pdb._generate_tables([[pdb_file]])
-        pa_table = pa.concat_tables([table for _, table in generator])
-
-        # Check numeric columns
-        assert pa.types.is_float32(pa_table.schema.field("x").type)
-        assert pa.types.is_float32(pa_table.schema.field("y").type)
-        assert pa.types.is_float32(pa_table.schema.field("z").type)
-        assert pa.types.is_float32(pa_table.schema.field("occupancy").type)
-        assert pa.types.is_float32(pa_table.schema.field("temp_factor").type)
-        assert pa.types.is_int32(pa_table.schema.field("atom_serial").type)
-        assert pa.types.is_int32(pa_table.schema.field("residue_seq").type)
-
-        # Check string columns
-        assert pa.types.is_string(pa_table.schema.field("atom_name").type)
-        assert pa.types.is_string(pa_table.schema.field("residue_name").type)
-        assert pa.types.is_string(pa_table.schema.field("chain_id").type)
-
-    def test_pdb_feature_casting(self, pdb_file):
-        """Test feature casting to specified types."""
-        features = Features({
-            "atom_name": Value("string"),
-            "x": Value("float64"),
-            "y": Value("float64"),
-            "z": Value("float64"),
-        })
-        pdb = Pdb(columns=["atom_name", "x", "y", "z"], features=features)
-        generator = pdb._generate_tables([[pdb_file]])
-        pa_table = pa.concat_tables([table for _, table in generator])
-
-        # Cast to features
-        pa_table = pdb._cast_table(pa_table)
-
-        assert pa.types.is_float64(pa_table.schema.field("x").type)
-        assert pa.types.is_float64(pa_table.schema.field("y").type)
-        assert pa.types.is_float64(pa_table.schema.field("z").type)
-
-    def test_pdb_empty_file(self, tmp_path):
-        """Test handling empty PDB file."""
-        file_path = tmp_path / "empty.pdb"
-        file_path.write_text("END\n")
-
-        pdb = Pdb()
-        batches = list(pdb._generate_tables([[str(file_path)]]))
-
-        # No records should be yielded
-        assert len(batches) == 0
-
-    def test_pdb_multiple_files(self, tmp_path):
-        """Test loading multiple PDB files."""
-        pdb_content1 = textwrap.dedent("""\
-ATOM      1  CA  ALA A   1       1.000   2.000   3.000  1.00 10.00           C
-END
-""")
-        pdb_content2 = textwrap.dedent("""\
-ATOM      1  CA  GLY B   1       4.000   5.000   6.000  1.00 11.00           C
-END
-""")
-        file1 = tmp_path / "file1.pdb"
-        file2 = tmp_path / "file2.pdb"
-        file1.write_text(pdb_content1)
-        file2.write_text(pdb_content2)
-
-        pdb = Pdb()
-        generator = pdb._generate_tables([[str(file1), str(file2)]])
-        pa_table = pa.concat_tables([table for _, table in generator])
-
-        assert pa_table.num_rows == 2
-        residue_names = pa_table["residue_name"].to_pylist()
-        assert set(residue_names) == {"ALA", "GLY"}
-
-    def test_pdb_extensions(self):
-        """Test that correct extensions are registered."""
-        assert ".pdb" in Pdb.EXTENSIONS
-        assert ".ent" in Pdb.EXTENSIONS
-
-    def test_pdb_default_columns(self):
-        """Test default columns are defined correctly."""
-        assert "atom_serial" in DEFAULT_PDB_COLUMNS
-        assert "atom_name" in DEFAULT_PDB_COLUMNS
-        assert "residue_name" in DEFAULT_PDB_COLUMNS
-        assert "chain_id" in DEFAULT_PDB_COLUMNS
-        assert "x" in DEFAULT_PDB_COLUMNS
-        assert "y" in DEFAULT_PDB_COLUMNS
-        assert "z" in DEFAULT_PDB_COLUMNS
-        # Optional columns should not be in default
-        assert "charge" not in DEFAULT_PDB_COLUMNS
-        assert "insertion_code" not in DEFAULT_PDB_COLUMNS
-
-    def test_pdb_insertion_codes(self, tmp_path):
-        """Test parsing insertion codes."""
-        pdb_content = textwrap.dedent("""\
-ATOM      1  CA  ALA A  27       1.000   2.000   3.000  1.00 10.00           C
-ATOM      2  CA  ALA A  27A      4.000   5.000   6.000  1.00 11.00           C
-ATOM      3  CA  ALA A  27B      7.000   8.000   9.000  1.00 12.00           C
-END
-""")
-        file_path = tmp_path / "insertion.pdb"
-        file_path.write_text(pdb_content)
-
-        pdb = Pdb(columns=["residue_seq", "insertion_code", "x"])
-        generator = pdb._generate_tables([[str(file_path)]])
-        pa_table = pa.concat_tables([table for _, table in generator])
-
-        assert pa_table.num_rows == 3
-        insertion_codes = pa_table["insertion_code"].to_pylist()
-        # First one has no insertion code, others have A and B
-        assert insertion_codes[0] in ["", None]
-        assert insertion_codes[1] == "A"
-        assert insertion_codes[2] == "B"
-
-    def test_pdb_short_lines(self, tmp_path):
-        """Test handling lines shorter than 80 characters."""
-        # Some PDB files have lines shorter than spec (missing element/charge)
-        pdb_content = textwrap.dedent("""\
-ATOM      1  CA  ALA A   1       1.000   2.000   3.000  1.00 10.00
-ATOM      2  CA  GLY A   2       4.000   5.000   6.000  1.00 11.00
-END
-""")
-        file_path = tmp_path / "short.pdb"
-        file_path.write_text(pdb_content)
-
-        pdb = Pdb()
-        generator = pdb._generate_tables([[str(file_path)]])
-        pa_table = pa.concat_tables([table for _, table in generator])
-
-        assert pa_table.num_rows == 2
-        # Element should be empty or None for short lines
-        elements = pa_table["element"].to_pylist()
-        assert all(e in ["", None] for e in elements)
-
-    def test_pdb_ent_extension(self, tmp_path):
-        """Test loading .ent files (PDB entry format)."""
-        pdb_content = textwrap.dedent("""\
-ATOM      1  CA  ALA A   1       1.000   2.000   3.000  1.00 10.00           C
-END
-""")
-        file_path = tmp_path / "structure.ent"
-        file_path.write_text(pdb_content)
-
-        pdb = Pdb()
-        generator = pdb._generate_tables([[str(file_path)]])
-        pa_table = pa.concat_tables([table for _, table in generator])
-
-        assert pa_table.num_rows == 1
-
-    def test_pdb_negative_coordinates(self, tmp_path):
-        """Test parsing negative coordinates."""
-        pdb_content = textwrap.dedent("""\
-ATOM      1  N   ALA A   1     -10.123 -20.456 -30.789  1.00 10.00           N
-ATOM      2  CA  ALA A   1     -40.111  50.222 -60.333  1.00 11.00           C
-END
-""")
-        file_path = tmp_path / "negative.pdb"
-        file_path.write_text(pdb_content)
-
-        pdb = Pdb(columns=["x", "y", "z"])
-        generator = pdb._generate_tables([[str(file_path)]])
-        pa_table = pa.concat_tables([table for _, table in generator])
-
-        assert pa_table.num_rows == 2
-        x_vals = pa_table["x"].to_pylist()
-        y_vals = pa_table["y"].to_pylist()
-        z_vals = pa_table["z"].to_pylist()
-
-        assert abs(x_vals[0] - (-10.123)) < 0.001
-        assert abs(y_vals[0] - (-20.456)) < 0.001
-        assert abs(z_vals[0] - (-30.789)) < 0.001
-        assert abs(x_vals[1] - (-40.111)) < 0.001
-        assert abs(y_vals[1] - 50.222) < 0.001
-        assert abs(z_vals[1] - (-60.333)) < 0.001
-
-    def test_pdb_all_columns(self, tmp_path):
-        """Test loading all available columns."""
-        pdb_content = textwrap.dedent("""\
-ATOM      1  N  AALA A   1A      1.000   2.000   3.000  0.50 10.00           N1+
-END
-""")
-        file_path = tmp_path / "allcols.pdb"
-        file_path.write_text(pdb_content)
-
-        all_columns = list(PDB_COLUMN_TYPES.keys())
-        pdb = Pdb(columns=all_columns)
-        generator = pdb._generate_tables([[str(file_path)]])
-        pa_table = pa.concat_tables([table for _, table in generator])
-
-        assert pa_table.num_rows == 1
-        assert set(pa_table.column_names) == set(all_columns)
-
-        # Verify specific values
-        row = {col: pa_table[col][0].as_py() for col in all_columns}
-        assert row["record_type"] == "ATOM"
-        assert row["atom_serial"] == 1
-        assert row["atom_name"] == "N"
-        assert row["alt_loc"] == "A"
-        assert row["residue_name"] == "ALA"
-        assert row["chain_id"] == "A"
-        assert row["residue_seq"] == 1
-        assert row["insertion_code"] == "A"
-        assert abs(row["x"] - 1.0) < 0.001
-        assert abs(row["y"] - 2.0) < 0.001
-        assert abs(row["z"] - 3.0) < 0.001
-        assert abs(row["occupancy"] - 0.5) < 0.001
-        assert abs(row["temp_factor"] - 10.0) < 0.001
-        assert row["element"] == "N"
-        assert row["charge"] == "1+"
+def test_base_column_name():
+    assert PdbFolder.BASE_COLUMN_NAME == "structure"
