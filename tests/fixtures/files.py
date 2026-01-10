@@ -663,9 +663,13 @@ def fasta_xz_path(tmp_path_factory):
     return path
 
 
-FASTA_LONG_SEQUENCE = """\
+FASTA_LONG_SEQUENCE = (
+    """\
 >long_seq Very long sequence for testing large_string type
-""" + "ATGCATGCATGCATGC" * 1000 + "\n"
+"""
+    + "ATGCATGCATGCATGC" * 1000
+    + "\n"
+)
 
 
 @pytest.fixture(scope="session")

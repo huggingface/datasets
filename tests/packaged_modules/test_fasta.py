@@ -272,10 +272,12 @@ def test_fasta_schema_types(fasta_file):
 
 def test_fasta_feature_casting(fasta_file):
     """Test custom feature casting."""
-    features = Features({
-        "id": Value("string"),
-        "sequence": Value("large_string"),
-    })
+    features = Features(
+        {
+            "id": Value("string"),
+            "sequence": Value("large_string"),
+        }
+    )
     fasta = Fasta(columns=["id", "sequence"], features=features)
     generator = fasta._generate_tables([[fasta_file]])
     tables = list(generator)
