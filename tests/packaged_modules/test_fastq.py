@@ -260,12 +260,14 @@ def test_fastq_schema_types(fastq_file):
 
 def test_fastq_feature_casting(fastq_file):
     """Test feature casting to custom schema."""
-    features = Features({
-        "id": Value("string"),
-        "description": Value("string"),
-        "sequence": Value("large_string"),
-        "quality": Value("large_string"),
-    })
+    features = Features(
+        {
+            "id": Value("string"),
+            "description": Value("string"),
+            "sequence": Value("large_string"),
+            "quality": Value("large_string"),
+        }
+    )
     fastq = Fastq(features=features)
     generator = fastq._generate_tables([[fastq_file]])
     pa_table = pa.concat_tables([table for _, table in generator])
