@@ -49,6 +49,9 @@ class FastaConfig(datasets.BuilderConfig):
     max_batch_bytes: Optional[int] = DEFAULT_MAX_BATCH_BYTES
     columns: Optional[list[str]] = None
 
+    def __post_init__(self):
+        super().__post_init__()
+
 
 class Fasta(datasets.ArrowBasedBuilder):
     """Dataset builder for FASTA files."""
@@ -71,9 +74,7 @@ class Fasta(datasets.ArrowBasedBuilder):
         If dict, then keys should be from the `datasets.Split` enum.
         """
         if not self.config.data_files:
-            raise ValueError(
-                f"At least one data file must be specified, but got data_files={self.config.data_files}"
-            )
+            raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         dl_manager.download_config.extract_on_the_fly = True
         data_files = dl_manager.download_and_extract(self.config.data_files)
         splits = []
@@ -81,19 +82,14 @@ class Fasta(datasets.ArrowBasedBuilder):
             if isinstance(files, str):
                 files = [files]
             files = [dl_manager.iter_files(file) for file in files]
-            splits.append(
-                datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files})
-            )
+            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         """Cast Arrow table to configured features schema."""
         if self.config.features is not None:
             schema = self.config.features.arrow_schema
-            if all(
-                not require_storage_cast(feature)
-                for feature in self.config.features.values()
-            ):
+            if all(not require_storage_cast(feature) for feature in self.config.features.values()):
                 pa_table = pa_table.cast(schema)
             else:
                 pa_table = table_cast(pa_table, schema)
@@ -171,9 +167,7 @@ class Fasta(datasets.ArrowBasedBuilder):
             # Validate columns
             for col in self.config.columns:
                 if col not in default_columns:
-                    raise ValueError(
-                        f"Invalid column '{col}'. Valid columns are: {default_columns}"
-                    )
+                    raise ValueError(f"Invalid column '{col}'. Valid columns are: {default_columns}")
             return self.config.columns
         return default_columns
 
