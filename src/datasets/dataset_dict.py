@@ -1900,6 +1900,9 @@ class DatasetDict(dict):
                     revision=revision,
                     create_pr=create_pr,
                 )
+                if create_pr:
+                    create_pr = False
+                    revision = commit_info.pr_revision
                 logger.info(
                     f"Commit #{i + 1} completed"
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")

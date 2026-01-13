@@ -16,6 +16,7 @@
 import json
 import sys
 from collections.abc import Iterable
+from functools import partial
 from typing import Any, Optional, Union
 
 import fsspec
@@ -674,4 +675,4 @@ class ArrowWriter:
 
 
 class ParquetWriter(ArrowWriter):
-    _WRITER_CLASS = pq.ParquetWriter
+    _WRITER_CLASS = partial(pq.ParquetWriter, write_page_index=True)
