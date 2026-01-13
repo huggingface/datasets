@@ -1,4 +1,3 @@
-import itertools
 from dataclasses import dataclass
 from typing import Literal, Optional, Union
 
@@ -108,16 +107,12 @@ class Parquet(datasets.ArrowBasedBuilder):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         dl_manager.download_config.extract_on_the_fly = True
-        data_files = dl_manager.download_and_extract(self.config.data_files)
+        data_files = dl_manager.download(self.config.data_files)
         splits = []
         for split_name, files in data_files.items():
-            if isinstance(files, str):
-                files = [files]
-            # Use `dl_manager.iter_files` to skip hidden files in an extracted archive
-            files = [dl_manager.iter_files(file) for file in files]
             # Infer features if they are stored in the arrow schema
             if self.info.features is None:
-                for file in itertools.chain.from_iterable(files):
+                for file in files:
                     try:
                         with open(file, "rb") as f:
                             self.info.features = datasets.Features.from_arrow_schema(pq.read_schema(f))
@@ -148,6 +143,9 @@ class Parquet(datasets.ArrowBasedBuilder):
             pa_table = table_cast(pa_table, self.info.features.arrow_schema)
         return pa_table
 
+    def _generate_shards(self, files):
+        yield from files
+
     def _generate_tables(self, files):
         if self.config.features is not None and self.config.columns is not None:
             if sorted(field.name for field in self.info.features.arrow_schema) != sorted(self.config.columns):
@@ -160,7 +158,7 @@ class Parquet(datasets.ArrowBasedBuilder):
             else self.config.filters
         )
         parquet_file_format = ds.ParquetFileFormat(default_fragment_scan_options=self.config.fragment_scan_options)
-        for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
+        for file_idx, file in enumerate(files):
             try:
                 with open(file, "rb") as f:
                     parquet_fragment = parquet_file_format.make_fragment(f)

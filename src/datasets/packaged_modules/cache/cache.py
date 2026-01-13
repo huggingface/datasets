@@ -176,6 +176,9 @@ class Cache(datasets.ArrowBasedBuilder):
             for split_info in split_infos
         ]
 
+    def _generate_shards(self, files):
+        yield from files
+
     def _generate_tables(self, files):
         # used to stream from cache
         for file_idx, file in enumerate(files):
