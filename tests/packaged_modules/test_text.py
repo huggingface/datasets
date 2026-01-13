@@ -57,7 +57,7 @@ def test_text_linebreaks(text_file, keep_linebreaks):
     with open(text_file, encoding="utf-8") as f:
         expected_content = f.read().splitlines(keepends=keep_linebreaks)
     text = Text(keep_linebreaks=keep_linebreaks, encoding="utf-8")
-    generator = text._generate_tables([[text_file]])
+    generator = text._generate_tables(base_files=[text_file], files_iterables=[[text_file]])
     generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()["text"]
     assert generated_content == expected_content
 
@@ -67,7 +67,7 @@ def test_text_cast_image(text_file_with_image):
     with open(text_file_with_image, encoding="utf-8") as f:
         image_file = f.read().splitlines()[0]
     text = Text(encoding="utf-8", features=Features({"image": Image()}))
-    generator = text._generate_tables([[text_file_with_image]])
+    generator = text._generate_tables(base_files=[text_file_with_image], files_iterables=[[text_file_with_image]])
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.schema.field("image").type == Image()()
     generated_content = pa_table.to_pydict()["image"]
@@ -85,6 +85,6 @@ def test_text_sample_by(sample_by, text_file):
     elif sample_by == "document":
         expected_content = [expected_content]
     text = Text(sample_by=sample_by, encoding="utf-8", chunksize=100)
-    generator = text._generate_tables([[text_file]])
+    generator = text._generate_tables(base_files=[text_file], files_iterables=[[text_file]])
     generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()["text"]
     assert generated_content == expected_content

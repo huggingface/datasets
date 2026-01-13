@@ -268,8 +268,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
         files, metadata_files, archives = [], [], []
         metadata_filenames = self.config.metadata_filenames or self.METADATA_FILENAMES
         for data_file in data_files:
-            _, data_file_ext = os.path.splitext(data_file)
-            if data_file_ext.lower() in self.EXTENSIONS:
+            data_file_root, data_file_ext = os.path.splitext(data_file)
+            _, second_data_file_ext = os.path.splitext(data_file_root)
+            if data_file_ext.lower() in self.EXTENSIONS or second_data_file_ext.lower() in self.EXTENSIONS:
                 files.append(data_file)
             elif os.path.basename(data_file) in metadata_filenames:
                 metadata_files.append(data_file)
