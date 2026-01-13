@@ -856,7 +856,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
         orig_file_obj = file_obj
         file_obj = io.RawIOBase()
         file_obj.read = read_with_retries
-        file_obj.__getattr__ = lambda _, attr: getattr(orig_file_obj, attr)
+        file_obj.__getattribute__ = lambda _, attr: getattr(orig_file_obj, attr)
     return file_obj
 
 
