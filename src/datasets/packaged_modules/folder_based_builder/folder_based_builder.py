@@ -95,7 +95,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                             labels.add(os.path.basename(os.path.dirname(original_file)))
                             path_depths.add(count_path_segments(original_file))
                     elif os.path.basename(original_file) in metadata_filenames:
-                        all_metadata_files[split].add((original_file, downloaded_file))
+                        all_metadata_files[split].add((original_file, None, downloaded_file))
                     else:
                         original_file_name = os.path.basename(original_file)
                         logger.debug(
@@ -156,11 +156,12 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             else:
                 add_labels, add_metadata, all_metadata_files = False, False, {}
 
-            # files info (original_file, downloaded_file)
-            files = tuple(zip(files, downloaded_files))
-            # dirs info (original_file, downloaded_dir, downloaded_files)
+            # files info (original_file, None, downloaded_file)
+            files = tuple(zip(files, [None] * len(files), downloaded_files))
+            # archives info (original_archive_file, downloaded_dir, downloaded_files)
             files += tuple(
-                (None, downloaded_dir, dl_manager.iter_files(downloaded_dir)) for downloaded_dir in downloaded_dirs
+                (archive, downloaded_dir, dl_manager.iter_files(downloaded_dir))
+                for archive, downloaded_dir in zip(archives, downloaded_dirs)
             )
             splits.append(
                 datasets.SplitGenerator(
@@ -183,7 +184,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             # Check that all metadata files share the same format
             metadata_ext = {
                 os.path.splitext(original_metadata_file or downloaded_metadata_file)[-1]
-                for original_metadata_file, downloaded_metadata_file in itertools.chain.from_iterable(
+                for original_metadata_file, _, downloaded_metadata_file in itertools.chain.from_iterable(
                     all_metadata_files.values()
                 )
             }
@@ -193,7 +194,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
             for split_metadata_files in all_metadata_files.values():
                 pa_metadata_table = None
-                for _, downloaded_metadata_file in split_metadata_files:
+                for _, _, downloaded_metadata_file in split_metadata_files:
                     for pa_metadata_table in self._read_metadata(downloaded_metadata_file, metadata_ext=metadata_ext):
                         break  # just fetch the first rows
                     if pa_metadata_table is not None:
@@ -361,11 +362,11 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
     def _generate_shards(self, files, metadata_files, add_metadata, add_labels):
         if add_metadata:
-            for original_metadata_file, downloaded_metadata_file in metadata_files:
+            for _, _, downloaded_metadata_file in metadata_files:
                 yield downloaded_metadata_file
         else:
-            for original_file, downloaded_file_or_dir in files:
-                yield downloaded_file_or_dir
+            for _, downloaded_dir, downloaded_file in files:
+                yield downloaded_dir or downloaded_file
 
     def _generate_examples(self, files, metadata_files, add_metadata, add_labels):
         if add_metadata:
@@ -412,12 +413,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     if isinstance(self.config.filters, list)
                     else self.config.filters
                 )
-            for shard_idx, file_or_dir_info in enumerate(files):
-                if len(file_or_dir_info) == 2:
-                    original_file, downloaded_file = file_or_dir_info
-                    downloaded_files = [downloaded_file]
-                else:
-                    original_file, downloaded_dir, downloaded_files = file_or_dir_info
+            for shard_idx, (original_file, _, downloaded_files) in enumerate(files):
+                if isinstance(downloaded_files, str):
+                    downloaded_files = [downloaded_files]
                 for sample_idx, downloaded_file in enumerate(downloaded_files):
                     sample = {self.BASE_COLUMN_NAME: downloaded_file}
                     if add_labels:
