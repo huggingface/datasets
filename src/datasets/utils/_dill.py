@@ -257,62 +257,25 @@ if config.DILL_VERSION < version.parse("0.3.6"):
             else os.path.basename(obj.co_filename)
         )
         co_firstlineno = 1
-        # The rest is the same as in the original dill implementation (with also a version check for 3.10)
-        if dill._dill.PY3:
-            if hasattr(obj, "co_posonlyargcount"):  # python 3.8 (16 args)
-                args = (
-                    obj.co_argcount,
-                    obj.co_posonlyargcount,
-                    obj.co_kwonlyargcount,
-                    obj.co_nlocals,
-                    obj.co_stacksize,
-                    obj.co_flags,
-                    obj.co_code,
-                    obj.co_consts,
-                    obj.co_names,
-                    obj.co_varnames,
-                    co_filename,
-                    obj.co_name,
-                    co_firstlineno,
-                    obj.co_linetable if sys.version_info >= (3, 10) else obj.co_lnotab,
-                    obj.co_freevars,
-                    obj.co_cellvars,
-                )
-            else:  # python 3.7 (15 args)
-                args = (
-                    obj.co_argcount,
-                    obj.co_kwonlyargcount,
-                    obj.co_nlocals,
-                    obj.co_stacksize,
-                    obj.co_flags,
-                    obj.co_code,
-                    obj.co_consts,
-                    obj.co_names,
-                    obj.co_varnames,
-                    co_filename,
-                    obj.co_name,
-                    co_firstlineno,
-                    obj.co_lnotab,
-                    obj.co_freevars,
-                    obj.co_cellvars,
-                )
-        else:
-            args = (
-                obj.co_argcount,
-                obj.co_nlocals,
-                obj.co_stacksize,
-                obj.co_flags,
-                obj.co_code,
-                obj.co_consts,
-                obj.co_names,
-                obj.co_varnames,
-                co_filename,
-                obj.co_name,
-                co_firstlineno,
-                obj.co_lnotab,
-                obj.co_freevars,
-                obj.co_cellvars,
-            )
+        # The rest is the same as in the original dill implementation
+        args = (
+            obj.co_argcount,
+            obj.co_posonlyargcount,
+            obj.co_kwonlyargcount,
+            obj.co_nlocals,
+            obj.co_stacksize,
+            obj.co_flags,
+            obj.co_code,
+            obj.co_consts,
+            obj.co_names,
+            obj.co_varnames,
+            co_filename,
+            obj.co_name,
+            co_firstlineno,
+            obj.co_linetable if sys.version_info >= (3, 10) else obj.co_lnotab,
+            obj.co_freevars,
+            obj.co_cellvars,
+        )
         pickler.save_reduce(CodeType, args, obj=obj)
         dill._dill.log.info("# Co")
         return
@@ -424,28 +387,10 @@ elif _is_supported_dill_version():
                 obj.co_freevars,
                 obj.co_cellvars,
             )
-        elif hasattr(obj, "co_posonlyargcount"):  # python 3.8 (16 args)
+        else:  # python 3.9 (16 args)
             args = (
                 obj.co_argcount,
                 obj.co_posonlyargcount,
-                obj.co_kwonlyargcount,
-                obj.co_nlocals,
-                obj.co_stacksize,
-                obj.co_flags,
-                obj.co_code,
-                obj.co_consts,
-                obj.co_names,
-                obj.co_varnames,
-                co_filename,  # Modification for huggingface/datasets ############################################
-                obj.co_name,
-                co_firstlineno,  # Modification for huggingface/datasets #########################################
-                obj.co_lnotab,
-                obj.co_freevars,
-                obj.co_cellvars,
-            )
-        else:  # python 3.7 (15 args)
-            args = (
-                obj.co_argcount,
                 obj.co_kwonlyargcount,
                 obj.co_nlocals,
                 obj.co_stacksize,
