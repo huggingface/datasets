@@ -114,7 +114,7 @@ class Lance(datasets.ArrowBasedBuilder):
                 splits.append(
                     datasets.SplitGenerator(
                         name=split_name,
-                        gen_kwargs={"fragments": fragments, "lance_files": None},
+                        gen_kwargs={"fragments": fragments, "lance_files_paths": None, "lance_files": None},
                     )
                 )
             else:
@@ -127,7 +127,7 @@ class Lance(datasets.ArrowBasedBuilder):
                 splits.append(
                     datasets.SplitGenerator(
                         name=split_name,
-                        gen_kwargs={"fragments": None, "lance_files": lance_files},
+                        gen_kwargs={"fragments": None, "lance_files_paths": files, "lance_files": lance_files},
                     )
                 )
             if self.info.features is None:
@@ -147,9 +147,23 @@ class Lance(datasets.ArrowBasedBuilder):
             pa_table = table_cast(pa_table, self.info.features.arrow_schema)
         return pa_table
 
+    def _generate_shards(
+        self,
+        fragments: Optional[List["lance.LanceFragment"]],
+        lance_files_paths: Optional[list[str]],
+        lance_files: Optional[List["lance.file.LanceFileReader"]],
+    ):
+        if fragments:
+            for fragment in fragments:
+                paths = [data_file.path for data_file in fragment.metadata.data_files()]
+                yield paths[0] if len(paths) == 1 else {"fragment_data_files": paths}
+        else:
+            yield from lance_files_paths
+
     def _generate_tables(
         self,
         fragments: Optional[List["lance.LanceFragment"]],
+        lance_files_paths: Optional[list[str]],
         lance_files: Optional[List["lance.file.LanceFileReader"]],
     ):
         if fragments:

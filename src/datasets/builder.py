@@ -1335,6 +1335,26 @@ class GeneratorBasedBuilder(DatasetBuilder):
     (`_split_generators`). See the method docstrings for details.
     """
 
+    def _generate_shards(self, **kwargs) -> Iterator[Union[str, dict[str, Any]]]:
+        """Default function generating shards paths for each `SplitGenerator`.
+
+        This function is useful to list the original shards from where the data
+        comes from and is either converted to Arrow or streamed to an IterableDataset.
+
+        This is optional and only used for certain utilities, but not in Dataset
+        nor IterableDataset. E.g. it's used to map original shard files to Parquet
+        files in the Dataset Viewer after conversion.
+
+        Args:
+            **kwargs (additional keyword arguments):
+                Arguments forwarded from the SplitGenerator.gen_kwargs
+
+        Yields:
+            shard: generally a string representing the shard path, or a dict
+                representing the shard in case of shards spanning intra or inter-files.
+        """
+        raise NotImplementedError()
+
     @abc.abstractmethod
     def _generate_examples(self, **kwargs) -> Iterator[tuple[Key, dict[str, Any]]]:
         """Default function generating examples for each `SplitGenerator`.
@@ -1623,6 +1643,26 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
 class ArrowBasedBuilder(DatasetBuilder):
     """Base class for datasets with data generation based on Arrow loading functions (CSV/JSON/Parquet)."""
+
+    def _generate_shards(self, **kwargs) -> Iterator[Union[str, dict[str, Any]]]:
+        """Default function generating shards paths for each `SplitGenerator`.
+
+        This function is useful to list the original shards from where the data
+        comes from and is either converted to Arrow or streamed to an IterableDataset.
+
+        This is optional and only used for certain utilities, but not in Dataset
+        nor IterableDataset. E.g. it's used to map original shard files to Parquet
+        files in the Dataset Viewer after conversion.
+
+        Args:
+            **kwargs (additional keyword arguments):
+                Arguments forwarded from the SplitGenerator.gen_kwargs
+
+        Yields:
+            shard: generally a string representing the shard path, or a dict
+                representing the shard in case of shards spanning intra or inter-files.
+        """
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def _generate_tables(self, **kwargs) -> Iterator[tuple[Key, pa.Table]]:
