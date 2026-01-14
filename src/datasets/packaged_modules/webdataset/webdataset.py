@@ -68,8 +68,6 @@ class WebDataset(datasets.GeneratorBasedBuilder):
         data_files = dl_manager.download(self.config.data_files)
         splits = []
         for split_name, tar_paths in data_files.items():
-            if isinstance(tar_paths, str):
-                tar_paths = [tar_paths]
             tar_iterators = [dl_manager.iter_archive(tar_path) for tar_path in tar_paths]
             splits.append(
                 datasets.SplitGenerator(
@@ -106,6 +104,9 @@ class WebDataset(datasets.GeneratorBasedBuilder):
             self.info.features = features
 
         return splits
+
+    def _generate_shards(self, tar_paths, tar_iterators):
+        yield from tar_paths
 
     def _generate_examples(self, tar_paths, tar_iterators):
         image_field_names = [
