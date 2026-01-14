@@ -3,6 +3,7 @@ import time
 from itertools import chain
 from typing import Optional, Union
 
+import aiohttp
 from huggingface_hub import (
     CommitInfo,
     CommitOperationAdd,
@@ -69,7 +70,8 @@ def convert_to_parquet(
     else:
         config = configs.pop(0)
     print(f"{config = }")
-    dataset = load_dataset(repo_id, config, revision=revision, trust_remote_code=trust_remote_code)
+    storage_options = {'client_kwargs': {'timeout': aiohttp.ClientTimeout(total=300)}}
+    dataset = load_dataset(repo_id, config, revision=revision, trust_remote_code=trust_remote_code, storage_options=storage_options)
     commit_info = dataset.push_to_hub(
         repo_id,
         config_name=config,
