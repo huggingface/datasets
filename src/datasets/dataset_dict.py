@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Callable, Optional, Union
 
 import fsspec
+import httpx
 import numpy as np
 from fsspec.core import url_to_fs
 from huggingface_hub import (
@@ -1871,16 +1872,25 @@ class DatasetDict(dict):
 
         commit_message = commit_message if commit_message is not None else "Upload dataset"
         if len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:
-            commit_info = api.create_commit(
-                repo_id,
-                operations=additions + deletions,
-                commit_message=commit_message,
-                commit_description=commit_description,
-                token=token,
-                repo_type="dataset",
-                revision=revision,
-                create_pr=create_pr,
-            )
+            raise_err = None
+            for retry in range(6):
+                try:
+                    commit_info = api.create_commit(
+                        repo_id,
+                        operations=additions + deletions,
+                        commit_message=commit_message,
+                        commit_description=commit_description,
+                        token=token,
+                        repo_type="dataset",
+                        revision=revision,
+                        create_pr=create_pr,
+                    )
+                    break
+                except httpx.ReadTimeout as err:
+                    raise_err = err
+                    print(f"httpx.ReadTimeout {retry=}")
+            else:
+                raise raise_err
         else:
             logger.info(
                 f"Number of files to upload is larger than {config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
@@ -1890,16 +1900,25 @@ class DatasetDict(dict):
                 operations = additions[
                     i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
                 ] + (deletions if i == 0 else [])
-                commit_info = api.create_commit(
-                    repo_id,
-                    operations=operations,
-                    commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
-                    commit_description=commit_description,
-                    token=token,
-                    repo_type="dataset",
-                    revision=revision,
-                    create_pr=create_pr,
-                )
+                raise_err = None
+                for retry in range(6):
+                    try:
+                        commit_info = api.create_commit(
+                            repo_id,
+                            operations=operations,
+                            commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                            commit_description=commit_description,
+                            token=token,
+                            repo_type="dataset",
+                            revision=revision,
+                            create_pr=create_pr,
+                        )
+                        break
+                    except httpx.ReadTimeout as err:
+                        raise_err = err
+                        print(f"httpx.ReadTimeout {retry=}")
+                else:
+                    raise raise_err
                 if create_pr:
                     create_pr = False
                     revision = commit_info.pr_revision
