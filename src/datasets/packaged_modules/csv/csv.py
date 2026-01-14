@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 
 import pandas as pd
 import pyarrow as pa
@@ -149,12 +149,18 @@ class Csv(datasets.ArrowBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
 
-    def _split_generators(self, dl_manager):
+    def _available_splits(self) -> Optional[List[str]]:
+        return [str(split) for split in self.config.data_files] if isinstance(self.config.data_files, dict) else None
+
+    def _split_generators(self, dl_manager, splits: Optional[List[str]] = None):
         """We handle string, list and dicts in datafiles"""
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         dl_manager.download_config.extract_on_the_fly = True
-        data_files = dl_manager.download_and_extract(self.config.data_files)
+        data_files = self.config.data_files
+        if splits and isinstance(data_files, dict):
+            data_files = {split: data_files[split] for split in splits}
+        data_files = dl_manager.download_and_extract(data_files)
         splits = []
         for split_name, files in data_files.items():
             if isinstance(files, str):

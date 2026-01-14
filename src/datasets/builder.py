@@ -18,6 +18,7 @@
 import abc
 import contextlib
 import copy
+import fnmatch
 import inspect
 import os
 import posixpath
@@ -28,7 +29,7 @@ from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 from unittest.mock import patch
 
 import fsspec
@@ -58,7 +59,12 @@ from .filesystems import (
 from .fingerprint import Hasher
 from .info import DatasetInfo, PostProcessedInfo
 from .iterable_dataset import ArrowExamplesIterable, ExamplesIterable, IterableDataset
-from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
+from .naming import (
+    INVALID_WINDOWS_CHARACTERS_IN_PATH,
+    camelcase_to_snakecase,
+    filenames_for_dataset_split,
+    filepattern_for_dataset_split,
+)
 from .splits import Split, SplitDict, SplitGenerator, SplitInfo
 from .streaming import extend_dataset_builder_for_streaming
 from .table import CastError
@@ -68,6 +74,7 @@ from .utils._filelock import FileLock
 from .utils.file_utils import is_remote_url
 from .utils.info_utils import VerificationMode, get_size_checksum_dict, verify_checksums, verify_splits
 from .utils.py_utils import (
+    NestedDataStructure,
     classproperty,
     convert_file_size_to_int,
     has_sufficient_disk_space,
@@ -76,6 +83,7 @@ from .utils.py_utils import (
     memoize,
     size_str,
     temporary_assignment,
+    unique_values,
 )
 from .utils.sharding import _number_of_shards_in_gen_kwargs, _split_gen_kwargs
 from .utils.track import tracked_list
@@ -672,6 +680,10 @@ class DatasetBuilder:
         """
         raise NotImplementedError
 
+    def _supports_split_by_split_generation(self) -> bool:
+        """Whether the dataset supports generation of specific splits."""
+        return hasattr(self, "_available_splits") and "splits" in inspect.signature(self._split_generators).parameters
+
     @classmethod
     def get_imported_module_dir(cls):
         """Return the path of the module of this class or subclass."""
@@ -683,6 +695,7 @@ class DatasetBuilder:
     def download_and_prepare(
         self,
         output_dir: Optional[str] = None,
+        split: Optional[Union[str, ReadInstruction, Split]] = None,
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
         verification_mode: Optional[Union[VerificationMode, str]] = None,
@@ -702,6 +715,8 @@ class DatasetBuilder:
                 Default to this builder's `cache_dir`, which is inside `~/.cache/huggingface/datasets` by default.
 
                 <Added version="2.5.0"/>
+            split (`Union[str, ReadInstruction, Split]`, *optional*):
+                Splits to generate. Default to all splits.
             download_config (`DownloadConfig`, *optional*):
                 Specific download configuration parameters.
             download_mode ([`DownloadMode`] or `str`, *optional*):
@@ -826,8 +841,55 @@ class DatasetBuilder:
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
                 self.info = self._load_info()
-                self.download_post_processing_resources(dl_manager)
-                return
+            _dataset_name = self.name if self._check_legacy_cache() else self.dataset_name
+            splits: Optional[List[str]] = None
+            patterns_of_split_files_to_overwrite = []
+            supports_partial_generation = self._supports_split_by_split_generation()
+            if supports_partial_generation:
+                if split:
+                    splits = []
+                    for split in NestedDataStructure(split).flatten():
+                        if not isinstance(split, ReadInstruction):
+                            split = str(split)
+                            if split == Split.ALL:
+                                splits = None  # generate all splits
+                                break
+                            split = ReadInstruction.from_spec(split)
+                        split_names = [rel_instr.splitname for rel_instr in split._relative_instructions]
+                        splits.extend(split_names)
+                    splits = list(unique_values(splits))  # remove duplicates
+                # todo: can we simply use getattr(self.info.splits, 'keys', dict)() here?
+                available_splits = self._available_splits()
+                if splits is None:
+                    splits = available_splits
+                missing_splits = set(splits) - set(available_splits)
+                if missing_splits:
+                    raise ValueError(f"Splits {list(missing_splits)} not found. Available splits: {available_splits}")
+                if download_mode == DownloadMode.FORCE_REDOWNLOAD:
+                    for split_name in set(available_splits) - set(splits):
+                        split_filenames = self._get_filenames_for_split(
+                            split_name, dataset_name=_dataset_name, file_format=file_format
+                        )
+                        if self._fs.exists(split_filenames[0]):
+                            split_filepattern = filepattern_for_dataset_split(
+                                self._output_dir, _dataset_name, split_name, filetype_suffix=file_format
+                            )
+                            patterns_of_split_files_to_overwrite.append(split_filepattern)
+
+            # We cannot use info as the source of truth if the builder supports partial generation
+            # as the info can be incomplete in that case
+            if download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS and supports_partial_generation is True:
+                requested_splits_exist = True
+                for split_name in splits[:]:
+                    file_names = self._get_filenames_for_split(
+                        split_name, dataset_name=_dataset_name, file_format=file_format
+                    )
+                    if not self._fs.exists(file_names[0]):
+                        requested_splits_exist = False
+                        break
+                if requested_splits_exist:
+                    logger.info(f"Found cached dataset {self.dataset_name} ({self._output_dir})")
+                    self.download_post_processing_resources(dl_manager)
 
             logger.info(f"Generating dataset {self.dataset_name} ({self._output_dir})")
             if is_local:  # if cache dir is local, check for available space
@@ -849,17 +911,35 @@ class DatasetBuilder:
                     os.makedirs(tmp_dir, exist_ok=True)
                     try:
                         yield tmp_dir
+                        # raise ValueError("debugging")
                         if os.path.isdir(dirname):
-                            shutil.rmtree(dirname)
-                        # LocalFileSystem.mv does copy + rm, it is more efficient to simply rename a local directory
-                        shutil.move(tmp_dir, dirname)
+                            for root, dirnames, filenames in os.walk(dirname, topdown=False):
+                                # LocalFileSystem.mv does copy + rm, it is more efficient to simply rename a local directory
+                                for filename in filenames:
+                                    filename = os.path.join(root, filename)
+                                    delete_filename = False
+                                    for split_filepattern_to_overwrite in patterns_of_split_files_to_overwrite:
+                                        if fnmatch.fnmatch(filename, split_filepattern_to_overwrite):
+                                            delete_filename = True
+                                            break
+                                    if delete_filename:
+                                        os.remove(filename)
+                                for dirname in dirnames:
+                                    dirname = os.path.join(root, dirname)
+                                    if len(os.listdir(dirname)) == 0:
+                                        os.rmdir(dirname)
+                            for file_or_dir in os.listdir(tmp_dir):
+                                try:
+                                    shutil.move(os.path.join(tmp_dir, file_or_dir), dirname)
+                                except shutil.Error:
+                                    # If the file already exists in the distributed setup
+                                    pass
+                        else:
+                            shutil.move(tmp_dir, dirname)
                     finally:
                         if os.path.exists(tmp_dir):
                             shutil.rmtree(tmp_dir)
 
-            # Print is intentional: we want this to always go to stdout so user has
-            # information needed to cancel download/preparation if needed.
-            # This comes right before the progress bar.
             if self.info.size_in_bytes:
                 logger.info(
                     f"Downloading and preparing dataset {self.dataset_name}/{self.config.name} "
@@ -876,7 +956,7 @@ class DatasetBuilder:
                 # Temporarily assign _output_dir to tmp_data_dir to avoid having to forward
                 # it to every sub function.
                 with temporary_assignment(self, "_output_dir", tmp_output_dir):
-                    prepare_split_kwargs = {"file_format": file_format}
+                    prepare_split_kwargs = {"file_format": file_format, "splits": splits}
                     if max_shard_size is not None:
                         prepare_split_kwargs["max_shard_size"] = max_shard_size
                     if num_proc is not None:
@@ -888,7 +968,15 @@ class DatasetBuilder:
                         **download_and_prepare_kwargs,
                     )
                     # Sync info
+                    if supports_partial_generation and self.info.download_checksums is not None:
+                        self.info.download_checksums.update(dl_manager.get_recorded_sizes_checksums())
+                    else:
+                        self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
+
                     self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
+                    self.info.download_size = sum(
+                        checksum["num_bytes"] for checksum in self.info.download_checksums.values()
+                    )
                     self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
                     if self.info.download_size is not None:
                         self.info.size_in_bytes = self.info.dataset_size + self.info.download_size
@@ -902,6 +990,21 @@ class DatasetBuilder:
                 f"Dataset {self.dataset_name} downloaded and prepared to {self._output_dir}. "
                 f"Subsequent calls will reuse this data."
             )
+
+    def _get_filenames_for_split(self, split_name: str, dataset_name: str, file_format: str) -> list[str]:
+        shard_lengths = [1]
+        if self.info.splits:
+            try:
+                shard_lengths = self.info.splits[split_name].shard_lengths or []
+            except (TypeError, ValueError):
+                pass
+        return filenames_for_dataset_split(
+            self._output_dir,
+            dataset_name,
+            split_name,
+            filetype_suffix=file_format,
+            shard_lengths=shard_lengths,
+        )
 
     def _download_and_prepare(self, dl_manager, verification_mode, **prepare_split_kwargs):
         """Downloads and prepares dataset for reading.
@@ -927,7 +1030,9 @@ class DatasetBuilder:
         # Checksums verification
         if verification_mode == VerificationMode.ALL_CHECKS and dl_manager.record_checksums:
             verify_checksums(
-                self.info.download_checksums, dl_manager.get_recorded_sizes_checksums(), "dataset source files"
+                self.info.download_checksums,
+                dl_manager.get_recorded_sizes_checksums(),
+                "dataset source files",
             )
 
         # Build splits
@@ -952,14 +1057,28 @@ class DatasetBuilder:
         if verification_mode == VerificationMode.BASIC_CHECKS or verification_mode == VerificationMode.ALL_CHECKS:
             verify_splits(self.info.splits, split_dict)
 
-        # Update the info object with the splits.
-        self.info.splits = split_dict
-        self.info.download_size = dl_manager.downloaded_size
+        # Update the info object with the generated splits.
+        if self._supports_split_by_split_generation():
+            split_infos = self.info.splits or {}
+            ordered_split_infos = {}
+            downloaded_size = 0
+            for split_name in self._available_splits():
+                if split_name in split_dict:
+                    ordered_split_infos[split_name] = split_dict[split_name]
+                    downloaded_size += ordered_split_infos[split_name].num_bytes or 0
+                elif split_name in split_infos:
+                    ordered_split_infos[split_name] = split_infos[split_name]
+                    downloaded_size += ordered_split_infos[split_name].num_bytes or 0
+            self.info.splits = SplitDict.from_split_dict(ordered_split_infos, dataset_name=self.dataset_name)
+            self.info.download_size = downloaded_size
+        else:
+            self.info.splits = split_dict
+            self.info.download_size = dl_manager.downloaded_size
 
     def download_post_processing_resources(self, dl_manager):
         for split in self.info.splits or []:
             for resource_name, resource_file_name in self._post_processing_resources(split).items():
-                if not not is_remote_filesystem(self._fs):
+                if not is_remote_filesystem(self._fs):
                     raise NotImplementedError(f"Post processing is not supported on filesystem {self._fs}")
                 if os.sep in resource_file_name:
                     raise ValueError(f"Resources shouldn't be in a sub-directory: {resource_file_name}")
@@ -986,7 +1105,9 @@ class DatasetBuilder:
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
         """Get kwargs for `self._split_generators()` from `prepare_split_kwargs`."""
-        del prepare_split_kwargs
+        splits = prepare_split_kwargs.pop("splits", None)
+        if self._supports_split_by_split_generation():
+            return {"splits": splits}
         return {}
 
     def as_dataset(
@@ -1040,11 +1161,12 @@ class DatasetBuilder:
                 "datasets.load_dataset() before trying to access the Dataset object."
             )
 
-        logger.debug(f"Constructing Dataset for split {split or ', '.join(self.info.splits)}, from {self._output_dir}")
+        available_splits = self._available_splits() if self._supports_split_by_split_generation() else self.info.splits
+        logger.debug(f"Constructing Dataset for split {split or ', '.join(available_splits)}, from {self._output_dir}")
 
         # By default, return all splits
         if split is None:
-            split = {s: s for s in self.info.splits}
+            split = {s: s for s in available_splits}
 
         verification_mode = VerificationMode(verification_mode or VerificationMode.BASIC_CHECKS)
 
@@ -1072,10 +1194,11 @@ class DatasetBuilder:
         in_memory: bool = False,
     ):
         """as_dataset for a single split."""
+        available_splits = self._available_splits() if self._supports_split_by_split_generation() else self.info.splits
         if not isinstance(split, ReadInstruction):
             split = str(split)
-            if split == "all":
-                split = "+".join(self.info.splits.keys())
+            if split == Split.ALL:
+                split = "+".join(available_splits)
             split = Split(split)
 
         # Build base dataset
@@ -1186,7 +1309,10 @@ class DatasetBuilder:
             dataset_name=self.dataset_name,
             data_dir=self.config.data_dir,
         )
-        splits_generators = {sg.name: sg for sg in self._split_generators(dl_manager)}
+        splits_generators_kwargs = {}
+        if self._supports_split_by_split_generation():
+            splits_generators_kwargs["splits"] = [split] if split else None
+        splits_generators = {sg.name: sg for sg in self._split_generators(dl_manager, **splits_generators_kwargs)}
         # By default, return all splits
         if split is None:
             splits_generator = splits_generators
@@ -1375,8 +1501,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
     ):
         max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
 
-        if self.info.splits is not None:
-            split_info = self.info.splits[split_generator.name]
+        if self.info.splits:
+            split_info = self.info.splits.get(split_generator.name, split_generator.split_info)
         else:
             split_info = split_generator.split_info
 
