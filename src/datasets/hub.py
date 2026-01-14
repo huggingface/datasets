@@ -1,3 +1,4 @@
+import math
 import time
 from itertools import chain
 from typing import Optional, Union
@@ -182,9 +183,9 @@ def _delete_files(dataset_id, revision=None, token=None):
         repo_type="dataset",
     )
     if repo_files:
-        legacy_json_file = []
-        python_files = []
-        data_files = []
+        legacy_json_file: list[str] = []
+        python_files: list[str] = []
+        data_files: list[str] = []
         for filename in repo_files:
             if filename in {".gitattributes", "README.md"}:
                 continue
@@ -202,29 +203,35 @@ def _delete_files(dataset_id, revision=None, token=None):
                 python_files.append(filename)
             else:
                 data_files.append(filename)
-        if legacy_json_file:
-            hf_api.delete_file(
-                "dataset_infos.json",
+
+        deletions = [CommitOperationDelete(filename for filename in chain(legacy_json_file, python_files, data_files))]
+        commit_message = "Delete old data files"
+        if len(deletions) <= datasets.config.UPLOADS_MAX_NUMBER_PER_COMMIT:
+            hf_api.create_commit(
                 dataset_id,
+                operations=deletions,
+                commit_message=commit_message,
                 repo_type="dataset",
                 revision=revision,
-                commit_message="Delete legacy dataset_infos.json",
             )
-        if python_files:
-            for filename in python_files:
-                hf_api.delete_file(
-                    filename,
-                    dataset_id,
+        else:
+            print(
+                f"Number of files to delete is larger than {datasets.config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
+            )
+            num_commits = math.ceil(len(deletions) / datasets.config.UPLOADS_MAX_NUMBER_PER_COMMIT)
+            for i in range(0, num_commits):
+                operations = deletions[
+                    i * datasets.config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * datasets.config.UPLOADS_MAX_NUMBER_PER_COMMIT
+                ] + (deletions if i == 0 else [])
+                hf_api.create_commit(
+                    dataset_name,
+                    operations=operations,
+                    commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
                     repo_type="dataset",
                     revision=revision,
-                    commit_message="Delete loading script auxiliary file",
                 )
-        if data_files:
-            for filename in data_files:
-                hf_api.delete_file(
-                    filename,
-                    dataset_id,
-                    repo_type="dataset",
-                    revision=revision,
-                    commit_message="Delete data file",
+                print(
+                    f"Commit #{i + 1} completed"
+                    + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
+                    + "."
                 )
