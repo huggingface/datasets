@@ -206,7 +206,7 @@ def _delete_files(dataset_id, revision=None, token=None):
             else:
                 data_files.append(filename)
 
-        deletions = [CommitOperationDelete(filename for filename in chain(legacy_json_file, python_files, data_files))]
+        deletions = [CommitOperationDelete(filename) for filename in chain(legacy_json_file, python_files, data_files)]
         commit_message = "Delete old data files"
         if len(deletions) <= datasets.config.UPLOADS_MAX_NUMBER_PER_COMMIT:
             hf_api.create_commit(
