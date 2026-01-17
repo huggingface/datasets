@@ -38,6 +38,8 @@
       title: Use with NumPy
     - local: use_with_jax
       title: Use with JAX
+    - local: use_with_lance
+      title: Use with Lance
     - local: use_with_pandas
       title: Use with Pandas
     - local: use_with_polars
