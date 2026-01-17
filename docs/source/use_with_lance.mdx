@@ -10,10 +10,14 @@ Use `load_dataset(..., streaming=True)` to iterate without downloading the datas
 from datasets import load_dataset
 
 # Return as a Hugging Face dataset
-ds = load_dataset("lance-format/laion-1m", split="train", streaming=True)
-rows = list(ds.take(3))
-for row in rows:
-    print(row)
+ds = load_dataset(
+    "lance-format/laion-1m",
+    split="train",
+    streaming=True
+)
+# Take first three rows
+for row in ds.take(3):
+    print(f"caption: {row['caption']}\nwidth: {row['width']}\nheight: {row['height']}\n")
 ```
 
 Streaming is great for sampling metadata to understand what you have. For vector search or working with large binary blobs, you can use the Lance `dataset` API, explained below.
@@ -21,6 +25,7 @@ Streaming is great for sampling metadata to understand what you have. For vector
 ## Stream from the Hub with `lance.dataset`
 
 You can open a Lance dataset that's stored on the Hugging Face Hub using the `hf://` path specifier. This scans the remote dataset without requiring that you download it locally.
+It's also simple to set limits, filters and projections to only fetch the data you need.
 
 ```python
 import lance
@@ -28,7 +33,11 @@ import lance
 # Return as a Lance dataset
 ds = lance.dataset("hf://datasets/lance-format/laion-1m/data/train.lance")
 
-scanner = ds.scanner(columns=["caption", "url", "similarity"], limit=5)
+scanner = ds.scanner(
+    columns=["caption", "url", "similarity"],
+    limit=5
+)
+
 rows = scanner.to_table().to_pylist()
 for row in rows:
     print(row)
