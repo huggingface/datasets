@@ -64,6 +64,7 @@ from .features.features import _fix_for_backward_compatible_features
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
+from .load_from_disk import load_from_disk
 from .naming import camelcase_to_snakecase, snakecase_to_camelcase
 from .packaged_modules import (
     _ALL_ALLOWED_EXTENSIONS,
@@ -1458,6 +1459,18 @@ def load_dataset(
     >>> ds = load_dataset('imagefolder', data_dir='/path/to/images', split='train')
     ```
     """
+    # Fallback: auto-detect save_to_disk-style folders
+    if (
+        os.path.isdir(path)
+        and os.path.exists(os.path.join(path, "dataset_info.json"))  # for Dataset
+        or os.path.exists(os.path.join(path, "dataset_dict.json"))   # for DatasetDict
+    ):
+        logger.warning(
+            "Detected a directory saved via `save_to_disk()`. Redirecting to `load_from_disk('%s')` for compatibility.",
+            path,
+        )
+        return load_from_disk(path)
+        
     if "trust_remote_code" in config_kwargs:
         if config_kwargs.pop("trust_remote_code"):
             logger.error(
