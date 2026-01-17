@@ -12,6 +12,7 @@ from datasets.builder import Key
 from datasets.table import table_cast
 from datasets.utils.file_utils import readline
 
+import os
 
 logger = datasets.utils.logging.get_logger(__name__)
 
@@ -50,6 +51,7 @@ class JsonConfig(datasets.BuilderConfig):
     block_size: Optional[int] = None  # deprecated
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
+    return_file_name : bool = False 
 
     def __post_init__(self):
         super().__post_init__()
@@ -129,6 +131,12 @@ class Json(datasets.ArrowBasedBuilder):
                     if df.columns.tolist() == [0]:
                         df.columns = list(self.config.features) if self.config.features else ["text"]
                     pa_table = pa.Table.from_pandas(df, preserve_index=False)
+                    if self.config.return_file_name:
+                        file_name = os.path.basename(file)
+                        pa_table = pa_table.append_column( #add file_name to column
+                            "file_name",
+                            pa.array([file_name] * len(pa_table), type=pa.string())
+                        )
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
 
                 # If the file has one json object per line
@@ -196,5 +204,11 @@ class Json(datasets.ArrowBasedBuilder):
                                     ) from None
                                 yield Key(shard_idx, 0), self._cast_table(pa_table)
                                 break
+                            if self.config.return_file_name:
+                                file_name = os.path.basename(file)
+                                pa_table = pa_table.append_column(
+                                    "file_name",
+                                    pa.array([file_name] * len(pa_table), type=pa.string())
+                                )
                             yield Key(shard_idx, batch_idx), self._cast_table(pa_table)
                             batch_idx += 1
