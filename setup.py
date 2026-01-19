@@ -211,6 +211,8 @@ PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
 NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 
+PYBIDS_REQUIRE = ["pybids>=0.21.0"] + NIBABEL_REQUIRE
+
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
@@ -229,6 +231,7 @@ EXTRAS_REQUIRE = {
     "docs": DOCS_REQUIRE,
     "pdfs": PDFS_REQUIRE,
     "nibabel": NIBABEL_REQUIRE,
+    "bids": PYBIDS_REQUIRE,
 }
 
 setup(
