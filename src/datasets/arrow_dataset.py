@@ -81,6 +81,7 @@ from .download.streaming_download_manager import xgetsize
 from .features import Audio, ClassLabel, Features, Image, List, Value, Video
 from .features.features import (
     FeatureType,
+    Sequence,
     _align_features,
     _check_if_features_can_be_aligned,
     _fix_for_backward_compatible_features,
@@ -136,6 +137,10 @@ from .utils.py_utils import (
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
 from .utils.typing import ListLike, PathLike
+
+from typing import Sequence, Union, Optional
+from os import PathLike
+
 
 
 if TYPE_CHECKING:
@@ -1262,12 +1267,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_parquet(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
-        columns: Optional[list[str]] = None,
+        columns: Optional[Sequence[str]] = None,
         num_proc: Optional[int] = None,
         **kwargs,
     ):
