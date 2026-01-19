@@ -9,6 +9,7 @@ from .audiofolder import audiofolder
 from .cache import cache
 from .csv import csv
 from .eval import eval
+from .genbank import genbank
 from .hdf5 import hdf5
 from .imagefolder import imagefolder
 from .json import json
@@ -53,6 +54,7 @@ _PACKAGED_DATASETS_MODULES = {
     "xml": (xml.__name__, _hash_python_lines(inspect.getsource(xml).splitlines())),
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
     "eval": (eval.__name__, _hash_python_lines(inspect.getsource(eval).splitlines())),
+    "genbank": (genbank.__name__, _hash_python_lines(inspect.getsource(genbank).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -85,6 +87,9 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".hdf5": ("hdf5", {}),
     ".h5": ("hdf5", {}),
     ".eval": ("eval", {}),
+    ".gb": ("genbank", {}),
+    ".gbk": ("genbank", {}),
+    ".genbank": ("genbank", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
