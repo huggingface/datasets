@@ -52,6 +52,7 @@ from typing import (
     Optional,
     Union,
     overload,
+    Sequence
 )
 
 import fsspec
@@ -81,7 +82,6 @@ from .download.streaming_download_manager import xgetsize
 from .features import Audio, ClassLabel, Features, Image, List, Value, Video
 from .features.features import (
     FeatureType,
-    Sequence,
     _align_features,
     _check_if_features_can_be_aligned,
     _fix_for_backward_compatible_features,
@@ -1265,7 +1265,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_parquet(
-        path_or_paths: Union[PathLike, Sequence_[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
