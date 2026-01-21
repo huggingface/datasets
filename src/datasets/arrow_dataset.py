@@ -40,6 +40,7 @@ from collections.abc import Iterable, Iterator, Mapping
 from collections.abc import Sequence as Sequence_
 from copy import deepcopy
 from functools import partial, wraps
+from html import escape
 from io import BytesIO
 from math import ceil, floor
 from pathlib import Path
@@ -2528,8 +2529,134 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     slice(i, i + batch_size),
                 )
 
-    def __repr__(self):
-        return f"Dataset({{\n    features: {list(self._info.features.keys())},\n    num_rows: {self.num_rows}\n}})"
+    def __repr__(self, block_width: int = 20, small_block_width: int = 10, rows_to_display: int = 5):
+        column_names = list(self._info.features.keys())
+        small_columns = ["idx"] + [col for col in ["label", "id"] if col in column_names]
+
+        column_names = [col for col in column_names if col not in small_columns]
+
+        if len(column_names) > 4:
+            column_names = column_names[:2] + ["..."] + column_names[-2:]
+            num_columns = 5
+        else:
+            num_columns = len(column_names)
+
+        table = ""
+
+        table += f"shape: ({self.num_rows}, {self.num_columns})\n"
+
+        table += (
+            "┌"
+            + "┬".join("─" * small_block_width for _ in small_columns)
+            + "┬"
+            + "┬".join("─" * block_width for _ in range(num_columns))
+            + "┐\n"
+        )
+
+        for name in small_columns:
+            table += "│" + name.center(small_block_width)
+        for name in column_names:
+            truncated_name = name[:block_width]
+            table += "│" + truncated_name.center(block_width)
+        table += "│\n"
+
+        for name in small_columns:
+            if name == "idx":
+                table += "│" + "int".center(small_block_width)
+            else:
+                dtype = str(self._info.features[name].dtype)
+                table += "│" + dtype.center(small_block_width)
+        for name in column_names:
+            if name == "...":
+                table += "│" + "...".center(block_width)
+            else:
+                dtype = str(self._info.features[name].dtype)
+                table += "│" + dtype.center(block_width)
+        table += "│\n"
+
+        table += (
+            "├"
+            + "┼".join("─" * small_block_width for _ in small_columns)
+            + "┼"
+            + "┼".join("─" * block_width for _ in range(num_columns))
+            + "┤\n"
+        )
+
+        for i in range(min(rows_to_display, self.num_rows)):
+            row = self.__getitem__(i)
+            table += "│" + str(i).ljust(small_block_width)
+            for name in small_columns[1:]:
+                truncated_value = str(row[name])[:small_block_width]
+                table += "│" + truncated_value.ljust(small_block_width)
+            for name in column_names:
+                if name == "...":
+                    table += "│" + "...".center(block_width)
+                else:
+                    truncated_value = str(row[name])[:block_width]
+                    table += "│" + truncated_value.ljust(block_width)
+            table += "│\n"
+
+        table += (
+            "└"
+            + "┴".join("─" * small_block_width for _ in small_columns)
+            + "┴"
+            + "┴".join("─" * block_width for _ in range(num_columns))
+            + "┘\n"
+        )
+
+        return table
+
+    def _repr_html_(self, max_length: int = 50, num_rows: int = 5):
+        column_names = list(self._info.features.keys())
+        small_columns = ["idx"] + [col for col in ["label", "id"] if col in column_names]
+
+        column_names = [col for col in column_names if col not in small_columns]
+
+        if len(column_names) > 4:
+            column_names = column_names[:2] + ["..."] + column_names[-2:]
+
+        html = "<table>"
+
+        html += "<tr>"
+        for name in small_columns:
+            html += "<th>{}</th>".format(name.upper())
+        for name in column_names:
+            html += "<th>{}</th>".format(name.upper())
+        html += "</tr>"
+
+        html += "<tr>"
+        for name in small_columns:
+            if name == "idx":
+                html += "<td>int</td>"
+            else:
+                dtype = str(self._info.features[name].dtype)
+                html += "<td>{}</td>".format(dtype)
+        for name in column_names:
+            if name == "...":
+                html += "<td>...</td>"
+            else:
+                dtype = str(self._info.features[name].dtype)
+                html += "<td>{}</td>".format(dtype)
+        html += "</tr>"
+
+        for i in range(min(num_rows, self.num_rows)):
+            row = self.__getitem__(i)
+            html += "<tr>"
+            html += "<td>{}</td>".format(i)
+            for name in small_columns[1:]:
+                value = escape(str(row[name]))[:max_length]
+                html += "<td>{}</td>".format(value)
+            for name in column_names:
+                if name == "...":
+                    html += "<td>...</td>"
+                else:
+                    value = escape(str(row[name]))[:max_length]
+                    html += "<td>{}</td>".format(value)
+            html += "</tr>"
+
+        html += "</table>"
+
+        return html
 
     @property
     def format(self):
