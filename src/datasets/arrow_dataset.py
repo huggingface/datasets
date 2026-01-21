@@ -6667,7 +6667,7 @@ def _interleave_map_style_datasets(
         # if undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted
         # if oversampling ("all_exhausted"), we stop as soons as every dataset is exhausted, i.e as soon as every samples of every dataset has been visited at least once
         bool_strategy_func = (
-            np.all if (oversampling or stopping_strategy == "all_exhausted_without_replacement") else np.any
+            np.all if oversampling else np.any
         )
 
         def iter_random_indices():
@@ -6687,7 +6687,7 @@ def _interleave_map_style_datasets(
 
             # let's add the example at the current index of the `source_idx`-th dataset
             # For without replacement sampling we additionally need to make sure the current source is not exhausted to not oversample.
-            if stopping_strategy != "all_exhausted_without_replacement" or not is_exhausted[source_idx]:
+            if not is_exhausted[source_idx]:
                 indices.append(current_index[source_idx] + offsets[source_idx])
                 current_index[source_idx] += 1
 
