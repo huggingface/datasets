@@ -6635,7 +6635,22 @@ def _interleave_map_style_datasets(
     # if stopping_strategy is "first_exhausted", it is an undersampling situation whereas it is an oversampling situation if it is "all_exhausted"
     oversampling = stopping_strategy == "all_exhausted"
 
-    if probabilities is None and not oversampling:
+    if probabilities is None and stopping_strategy == "all_exhausted_without_replacement":
+        # Without replacement situation with cycling between each sources
+        # Example: If lengths of the datasets are [3, 4, 3]
+        # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 5, 9, 6]
+        # We cycle through datasets until all are exhausted, but skip exhausted datasets
+
+        indices = []
+        current_index = [0] * len(datasets)
+        max_length = max(lengths)
+
+        for round_idx in range(max_length):
+            for dataset_idx in range(len(datasets)):
+                if current_index[dataset_idx] < lengths[dataset_idx]:
+                    indices.append(current_index[dataset_idx] + offsets[dataset_idx])
+                    current_index[dataset_idx] += 1
+    elif probabilities is None and not oversampling:
         # Undersampling situation with cycling between each sources
         # Example:: If lengths of the datasets are [3, 4, 5]
         # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 6, 9]
