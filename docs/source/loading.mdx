@@ -98,6 +98,15 @@ JSON files have diverse formats, but we think the most efficient format is to ha
 {"a": 4, "b": -5.5, "c": null, "d": true}
 ```
 
+When each line of the file stands for a JSON object, they can be loaded as "jsonl" files as well:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("json", data_files="my_jsonl_file.jsonl")
+```
+
+This will load up every line as an entry in the dataset.
+
 Another JSON format you may encounter is a nested field, in which case you'll need to specify the `field` argument as shown in the following:
 
 ```py
