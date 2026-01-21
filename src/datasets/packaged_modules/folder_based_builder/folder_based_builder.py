@@ -148,6 +148,12 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         if self.config.drop_labels is None
                         else not self.config.drop_labels
                     )
+                    
+                    if add_labels and labels:
+                        common_split_names = {"train", "training", "test", "testing", "val", "valid", "validation", "dev", "eval"}
+                        split_names = set(data_files.keys())
+                        if labels.issubset(common_split_names | split_names):
+                            add_labels = False
 
                 if add_labels:
                     logger.info("Adding the labels inferred from data directories to the dataset's features...")
