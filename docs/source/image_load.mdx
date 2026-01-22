@@ -130,6 +130,34 @@ You can load a WebDataset like this:
 >>> dataset = load_dataset("webdataset", data_dir="/path/to/folder", streaming=True)
 ```
 
+## Lance
+
+[Lance](https://lance.org) is an open multimodal lakehouse table format. Lance tables can natively store not only text and scalar values,
+but also large binary objects (blobs) such as images, audio, and video alongside your tabular data.
+
+Lance keeps your metadata and image blobs together in one place, while still letting you efficiently scan only the metadata columns you care about
+without loading image bytes. When you're ready, you can fetch a small subset of rows (including the image blobs) and write them directly to files on
+your local filesystem.
+
+```python
+import lance
+from pathlib import Path
+
+ds = lance.dataset("hf://datasets/lance-format/laion-1m/data/train.lance")
+
+dir_name = "laion_samples"
+Path(dir_name).mkdir(exist_ok=True)
+
+rows = ds.take([0, 1], columns=["image", "caption"]).to_pylist()
+for idx, row in enumerate(rows):
+    with open(f"{dir_name}/{idx}.jpg", "wb") as f:
+        f.write(row["image"])
+```
+
+In this example, the `image` column contains the encoded image bytes, so you can write them directly to `.jpg` files.
+
+For more details on working with Lance datasets, see the [Lance documentation](https://lance.org).
+
 ## Image decoding
 
 By default, images are decoded sequentially as `PIL.Images` when you iterate on a dataset.
