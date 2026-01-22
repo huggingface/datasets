@@ -226,7 +226,7 @@ def infer_module_for_data_files_list(
         def sort_key(ext_count: tuple[tuple[str, bool], int]) -> tuple[int, bool]:
             """Sort by count and set ".parquet" as the favorite in case of a draw, and ignore metadata files"""
             (ext, is_metadata), count = ext_count
-            return (not is_metadata, count, ext == ".parquet", ext == ".jsonl", ext == ".json", ext == ".csv", ext)
+            return (not is_metadata, count, ext == ".parquet", ext == ".arrow", ext == ".jsonl", ext == ".json", ext == ".csv", ext)
 
         for (ext, _), _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
             if ext in _EXTENSION_TO_MODULE:
