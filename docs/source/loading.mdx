@@ -181,7 +181,7 @@ For now only the Arrow streaming format is supported. The Arrow IPC file format 
 To stream the dataset without copying it to your local machine, specify the `streaming=True` parameter:
 
 ```py
-ds = load_dataset(lance_base_url, split="train", streaming=True )
+ds = load_dataset(lance_base_url, split="train", streaming=True)
 # Take first three rows
 for row in ds.take(3):
     print(row["caption"], row["image"])
