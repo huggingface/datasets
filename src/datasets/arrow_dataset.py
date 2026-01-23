@@ -3560,7 +3560,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     ) from None
             if isinstance(inputs, Mapping) and isinstance(processed_inputs, Mapping):
                 # The .map() transform *updates* the dataset:
-                # the output dictionary contains both the the input data and the output data.
+                # the output dictionary contains both the input data and the output data.
                 # The output dictionary may contain Arrow values from `inputs_to_merge` so that we can re-write them efficiently.
                 return {**inputs_to_merge, **processed_inputs}
             else:
