@@ -6641,19 +6641,24 @@ def _interleave_map_style_datasets(
         # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 5, 9, 6]
         # We cycle through datasets until all are exhausted, but skip exhausted datasets
 
-        indices = []
-        current_index = [0] * len(datasets)
-        max_length = max(lengths)
-
-        for round_idx in range(max_length):
-            for dataset_idx in range(len(datasets)):
-                if current_index[dataset_idx] < lengths[dataset_idx]:
-                    indices.append(current_index[dataset_idx] + offsets[dataset_idx])
-                    current_index[dataset_idx] += 1
+        # Reasoning behind the following operation: keeping the first indices of each dataset
+        # while offsetting in order to correspond to the right indices of the concatenated dataset
+        # and flattening to effectively interleave the datasets. Then we remove the exausted datasets
+        # and we continue with the following indices, until all datasets are exhausted
+        chunks_boundaries = [0] + sorted(set(lengths))
+        chunks = zip(chunks_boundaries[:-1], chunks_boundaries[1:])
+        indices_chunks = []
+        for start, end in chunks:
+            indices_chunks.append((np.array(offsets).reshape(1, -1) + np.arange(start, end).reshape(-1, 1)).flatten())
+            exhausted_indices = [i for i in range(len(lengths)) if lengths[i] == end]
+            lengths = np.delete(lengths, exhausted_indices).tolist()
+            offsets = np.delete(offsets, exhausted_indices)
+        indices = np.concatenate(indices_chunks).tolist()
+        
     elif probabilities is None and not oversampling:
         # Undersampling situation with cycling between each sources
         # Example:: If lengths of the datasets are [3, 4, 5]
-        # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 6, 9]
+        # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 5, 9]
         # Note that we only have 3 examples per dataset since the first dataset ran out of examples
 
         # Reasoning behind the following operation: keeping the min_length first indices of each dataset
