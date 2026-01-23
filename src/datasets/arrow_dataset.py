@@ -6654,7 +6654,7 @@ def _interleave_map_style_datasets(
             lengths = np.delete(lengths, exhausted_indices).tolist()
             offsets = np.delete(offsets, exhausted_indices)
         indices = np.concatenate(indices_chunks).tolist()
-        
+
     elif probabilities is None and not oversampling:
         # Undersampling situation with cycling between each sources
         # Example:: If lengths of the datasets are [3, 4, 5]
