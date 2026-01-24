@@ -2349,6 +2349,10 @@ class IterableDataset(DatasetInfoMixin):
         """
         self._starting_state_dict = state_dict
 
+    def __add__(self, other):
+        assert self.features.type == other.features.type
+        return concatenate_datasets([self, other])
+
     def __repr__(self):
         return f"IterableDataset({{\n    features: {list(self._info.features.keys()) if self._info.features is not None else 'Unknown'},\n    num_shards: {self.num_shards}\n}})"
 
