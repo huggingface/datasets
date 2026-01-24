@@ -1849,7 +1849,12 @@ class Features(dict):
         if pa_schema.metadata is not None and b"huggingface" in pa_schema.metadata:
             metadata = json.loads(pa_schema.metadata[b"huggingface"].decode())
             if "info" in metadata and "features" in metadata["info"] and metadata["info"]["features"] is not None:
-                metadata_features = Features.from_dict(metadata["info"]["features"])
+                try:
+                    metadata_features = Features.from_dict(metadata["info"]["features"])
+                except Exception as e:
+                    logger.warning(
+                        f"Warning: failed to load features from Arrow schema metadata: {e}, decoding may not be as intended"
+                    )
         metadata_features_schema = metadata_features.arrow_schema
         obj = {
             field.name: (

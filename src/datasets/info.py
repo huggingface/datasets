@@ -314,7 +314,13 @@ class DatasetInfo:
     def _from_yaml_dict(cls, yaml_data: dict) -> "DatasetInfo":
         yaml_data = copy.deepcopy(yaml_data)
         if yaml_data.get("features") is not None:
-            yaml_data["features"] = Features._from_yaml_list(yaml_data["features"])
+            try:
+                yaml_data["features"] = Features._from_yaml_list(yaml_data["features"])
+            except Exception as e:
+                logger.warning(
+                    f"Warning: failed to load features from Arrow schema metadata: {e}, decoding may not be as intended"
+                )
+                del yaml_data["features"]
         if yaml_data.get("splits") is not None:
             yaml_data["splits"] = SplitDict._from_yaml_list(yaml_data["splits"])
         field_names = {f.name for f in dataclasses.fields(cls)}
