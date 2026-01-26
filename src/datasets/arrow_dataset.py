@@ -136,7 +136,6 @@ from .utils.py_utils import (
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
 from .utils.typing import ListLike, PathLike
-from typing import Optional, Union, Sequence
 
 
 if TYPE_CHECKING:
@@ -1263,7 +1262,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_parquet(
-        path_or_paths: Sequence[Union[PathLike, Sequence[PathLike]]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
