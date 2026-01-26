@@ -130,6 +130,39 @@ You can load a WebDataset like this:
 >>> dataset = load_dataset("webdataset", data_dir="/path/to/folder", streaming=True)
 ```
 
+## Lance
+
+[Lance](https://lance.org) is an open multimodal lakehouse table format. Lance tables can natively store not only text and scalar values,
+but also large binary objects (blobs) such as images, audio, and video alongside your tabular data.
+
+Lance keeps your metadata and image blobs together in one place, while still letting you efficiently scan only the metadata columns you care about
+without loading image bytes. When you're ready, you can fetch a small subset of rows (including the image blobs) and write them directly to files on
+your local filesystem.
+
+```python
+from datasets import load_dataset
+
+# Return as a Hugging Face dataset
+ds = load_dataset(
+    "lance-format/laion-1m",
+    split="train",
+    streaming=True
+)
+
+dir_name = "laion_samples"
+Path(dir_name).mkdir(exist_ok=True)
+
+for idx, row in enumerate(ds.take(3)):
+    with open(f"{dir_name}/{idx}.jpg", "wb") as f:
+        f.write(row["image"])
+```
+
+In this example, the `image` column contains the encoded image bytes, so you can write them directly to `.jpg` files.
+
+> [!NOTE] The `datasets` API doesn't currently push down operations to the Lance table, so for larger datasets it may be slow.
+> For now, you'll get much better performance using the `lance` Python package directly. See the
+> documentation on [the Hub](https://huggingface.co/docs/datasets-lance) for examples on usage.
+
 ## Image decoding
 
 By default, images are decoded sequentially as `PIL.Images` when you iterate on a dataset.

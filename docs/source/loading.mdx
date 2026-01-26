@@ -169,6 +169,26 @@ The cache directory to store intermediate processing results will be the Arrow f
 
 For now only the Arrow streaming format is supported. The Arrow IPC file format (also known as Feather V2) is not supported.
 
+### Lance
+
+[Lance](https://lance.org) is an open multimodal lakehouse table format for AI. Lance tables can natively store not only text and scalar values, but also large binary objects (blobs) such as images, audio, and video alongside your tabular data.
+
+```py
+>>> from datasets import load_dataset
+>>> lance_base_url = "lance-format/laion-1m"
+```
+
+To stream the dataset without copying it to your local machine, specify the `streaming=True` parameter:
+
+```py
+ds = load_dataset(lance_base_url, split="train", streaming=True)
+# Take first three rows
+for row in ds.take(3):
+    print(row["caption"], row["image"])
+```
+
+This will return the image caption and the image bytes in a single request.
+
 ## HDF5 files
 
 [HDF5](https://www.hdfgroup.org/solutions/hdf5/) files are commonly used for storing large amounts of numerical data in scientific computing and machine learning. Loading HDF5 files with 🤗 Datasets is similar to loading CSV files:

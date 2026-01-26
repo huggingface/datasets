@@ -66,8 +66,10 @@ from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
 from .naming import camelcase_to_snakecase, snakecase_to_camelcase
 from .packaged_modules import (
+    _ALL_ALLOWED_EXTENSIONS,
     _EXTENSION_TO_MODULE,
     _MODULE_TO_EXTENSIONS,
+    _MODULE_TO_METADATA_EXTENSIONS,
     _MODULE_TO_METADATA_FILE_NAMES,
     _PACKAGED_DATASETS_MODULES,
 )
@@ -90,8 +92,6 @@ from .utils.version import Version
 
 
 logger = get_logger(__name__)
-
-ALL_ALLOWED_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + [".zip"]
 
 
 class _InitializeConfiguredDatasetBuilder:
@@ -328,7 +328,7 @@ def create_builder_configs_from_metadata_configs(
             )
             config_data_files_dict = DataFilesPatternsDict.from_patterns(
                 config_patterns,
-                allowed_extensions=ALL_ALLOWED_EXTENSIONS,
+                allowed_extensions=_ALL_ALLOWED_EXTENSIONS,
             )
         except EmptyDatasetError as e:
             raise EmptyDatasetError(
@@ -436,14 +436,15 @@ class LocalDatasetModuleFactory(_DatasetModuleFactory):
         data_files = DataFilesDict.from_patterns(
             patterns,
             base_path=base_path,
-            allowed_extensions=ALL_ALLOWED_EXTENSIONS,
+            allowed_extensions=_ALL_ALLOWED_EXTENSIONS,
         )
         module_name, default_builder_kwargs = infer_module_for_data_files(
             data_files=data_files,
             path=self.path,
         )
         data_files = data_files.filter(
-            extensions=_MODULE_TO_EXTENSIONS[module_name], file_names=_MODULE_TO_METADATA_FILE_NAMES[module_name]
+            extensions=_MODULE_TO_EXTENSIONS[module_name] + _MODULE_TO_METADATA_EXTENSIONS[module_name],
+            file_names=_MODULE_TO_METADATA_FILE_NAMES[module_name],
         )
         module_path, _ = _PACKAGED_DATASETS_MODULES[module_name]
         if metadata_configs:
@@ -633,7 +634,7 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
         data_files = DataFilesDict.from_patterns(
             patterns,
             base_path=base_path,
-            allowed_extensions=ALL_ALLOWED_EXTENSIONS,
+            allowed_extensions=_ALL_ALLOWED_EXTENSIONS,
             download_config=self.download_config,
         )
         module_name, default_builder_kwargs = infer_module_for_data_files(
@@ -642,7 +643,8 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
             download_config=self.download_config,
         )
         data_files = data_files.filter(
-            extensions=_MODULE_TO_EXTENSIONS[module_name], file_names=_MODULE_TO_METADATA_FILE_NAMES[module_name]
+            extensions=_MODULE_TO_EXTENSIONS[module_name] + _MODULE_TO_METADATA_EXTENSIONS[module_name],
+            file_names=_MODULE_TO_METADATA_FILE_NAMES[module_name],
         )
         module_path, _ = _PACKAGED_DATASETS_MODULES[module_name]
         if metadata_configs:
@@ -977,10 +979,6 @@ def dataset_module_factory(
                 elif e.response.status_code == 403:
                     message += f" Visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
                 raise DatasetNotFoundError(message) from e
-            except RevisionNotFoundError as e:
-                raise DatasetNotFoundError(
-                    f"Revision '{revision}' doesn't exist for dataset '{path}' on the Hub."
-                ) from e
             except RepositoryNotFoundError as e:
                 raise DatasetNotFoundError(f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed.") from e
             try:
@@ -1014,10 +1012,8 @@ def dataset_module_factory(
                 elif e.response.status_code == 403:
                     message += f" Visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
                 raise DatasetNotFoundError(message) from e
-            except RevisionNotFoundError as e:
-                raise DatasetNotFoundError(
-                    f"Revision '{revision}' doesn't exist for dataset '{path}' on the Hub."
-                ) from e
+        except RevisionNotFoundError as e:
+            raise DatasetNotFoundError(f"Revision '{revision}' doesn't exist for dataset '{path}' on the Hub.") from e
         except Exception as e1:
             # All the attempts failed, before raising the error we should check if the module is already cached
             try:
