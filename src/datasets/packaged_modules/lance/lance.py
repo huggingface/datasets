@@ -169,7 +169,9 @@ class Lance(datasets.ArrowBasedBuilder):
         if fragments:
             for frag_idx, fragment in enumerate(fragments):
                 for batch_idx, batch in enumerate(
-                    fragment.to_batches(columns=self.config.columns, batch_size=self.config.batch_size)
+                    fragment.to_batches(
+                        columns=self.config.columns, batch_size=self.config.batch_size, blob_handling="all_binary"
+                    )
                 ):
                     table = pa.Table.from_batches([batch])
                     yield Key(frag_idx, batch_idx), self._cast_table(table)
