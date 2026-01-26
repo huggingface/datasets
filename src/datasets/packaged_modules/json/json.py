@@ -105,7 +105,8 @@ class Json(datasets.ArrowBasedBuilder):
                         .to_json(orient="records", lines=True)
                     )
                     string_array = pa.array(
-                        ("{" + x.rstrip() for x in ("\n" + jsonl).split("\n{") if x), type=pa.string()
+                        (None if x.strip() == "null" else x.strip() for x in jsonl.split("\n") if x.strip()),
+                        type=pa.string(),
                     )
                     pa_table = pa_table.set_column(i, column_name, string_array)
             # more expensive cast to support nested structures with keys in a different order
