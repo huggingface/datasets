@@ -71,7 +71,7 @@ def _fix_local_version_file(uri: str) -> str:
     return uri
 
 
-class Lance(datasets.ArrowBasedBuilder):
+class Lance(datasets.ArrowBasedBuilder, datasets.builder._CountableBuilderMixin):
     BUILDER_CONFIG_CLASS = LanceConfig
     METADATA_EXTENSIONS = [".idx", ".txn", ".manifest"]
 
@@ -85,7 +85,7 @@ class Lance(datasets.ArrowBasedBuilder):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         if self.repo_id:
-            api = HfApi(**dl_manager.download_config.storage_options["hf"])
+            api = HfApi(**dl_manager.download_config.storage_options.get("hf", {}))
             dataset_sha = api.dataset_info(self.repo_id).sha
             if dataset_sha != self.hash:
                 raise NotImplementedError(
@@ -98,7 +98,7 @@ class Lance(datasets.ArrowBasedBuilder):
         # TODO: remove once Lance supports symlinks for _version files
         data_files = {split: [_fix_local_version_file(file) for file in files] for split, files in data_files.items()}
 
-        splits = []
+        splits: list[datasets.SplitGenerator] = []
         for split_name, files in data_files.items():
             storage_options = dl_manager.download_config.storage_options.get(files[0].split("://", 0)[0] + "://")
 
@@ -159,6 +159,19 @@ class Lance(datasets.ArrowBasedBuilder):
                 yield paths[0] if len(paths) == 1 else {"fragment_data_files": paths}
         else:
             yield from lance_files_paths
+
+    def _generate_num_examples(
+        self,
+        fragments: Optional[List["lance.LanceFragment"]],
+        lance_files_paths: Optional[list[str]],
+        lance_files: Optional[List["lance.file.LanceFileReader"]],
+    ):
+        if fragments:
+            for fragment in fragments:
+                yield fragment.count_rows()
+        else:
+            for lance_file in lance_files:
+                yield lance_file.num_rows()
 
     def _generate_tables(
         self,
