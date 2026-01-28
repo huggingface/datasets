@@ -599,3 +599,82 @@ def data_dir_with_hidden_files(tmp_path_factory):
         f.write("bar\n" * 10)
 
     return data_dir
+
+
+# FASTA biological sequence files
+
+
+FASTA_CONTENT = """\
+>seq1 Example protein sequence
+MKWVTFISLLFLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPF
+EDHVKLVNEVTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEP
+>seq2 Another sequence with multi-line
+MVLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSH
+GSAQVKGHGKKVADALTNAVAHVDDMPNALSALSDLHAHKLRVDPVNFKLL
+SHCLLVTLAAHLPAEFTPAVHASLDKFLASVSTVLTSKYR
+>seq3
+ATGCATGCATGCATGCATGCATGCATGC
+"""
+
+
+@pytest.fixture(scope="session")
+def fasta_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "sequences.fasta")
+    with open(path, "w") as f:
+        f.write(FASTA_CONTENT)
+    return path
+
+
+@pytest.fixture(scope="session")
+def fasta_path_fa(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "sequences.fa")
+    with open(path, "w") as f:
+        f.write(FASTA_CONTENT)
+    return path
+
+
+@pytest.fixture(scope="session")
+def fasta_gz_path(tmp_path_factory):
+    import gzip
+
+    path = str(tmp_path_factory.mktemp("data") / "sequences.fasta.gz")
+    with gzip.open(path, "wt", encoding="utf-8") as f:
+        f.write(FASTA_CONTENT)
+    return path
+
+
+@pytest.fixture(scope="session")
+def fasta_bz2_path(tmp_path_factory):
+    import bz2
+
+    path = str(tmp_path_factory.mktemp("data") / "sequences.fasta.bz2")
+    with bz2.open(path, "wt", encoding="utf-8") as f:
+        f.write(FASTA_CONTENT)
+    return path
+
+
+@pytest.fixture(scope="session")
+def fasta_xz_path(tmp_path_factory):
+    import lzma
+
+    path = str(tmp_path_factory.mktemp("data") / "sequences.fasta.xz")
+    with lzma.open(path, "wt", encoding="utf-8") as f:
+        f.write(FASTA_CONTENT)
+    return path
+
+
+FASTA_LONG_SEQUENCE = (
+    """\
+>long_seq Very long sequence for testing large_string type
+"""
+    + "ATGCATGCATGCATGC" * 1000
+    + "\n"
+)
+
+
+@pytest.fixture(scope="session")
+def fasta_long_sequence_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "long_sequence.fasta")
+    with open(path, "w") as f:
+        f.write(FASTA_LONG_SEQUENCE)
+    return path
