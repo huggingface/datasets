@@ -3065,6 +3065,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if keep_in_memory and cache_file_name is not None:
             raise ValueError("Please use either `keep_in_memory` or `cache_file_name` but not both.")
 
+        # 7756 fix (multiprocessing hang on bad start_method)
+
+        if num_proc and num_proc > 1 :
+            try :
+                import multiprocessing as mp 
+                if mp.get_start_method() not in ['forkserver','spawn'] :
+                    logger.warning ("map(num_proc > 1) may hang. fallback to 1")
+                    num_proc = 1
+
+            except :
+                (ImportError, RuntimeError) :
+                num_proc = 1
+
         if num_proc == 0:
             num_proc = None
         elif num_proc is not None and num_proc < 0:
