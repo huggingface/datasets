@@ -1934,3 +1934,28 @@ class ArrowBasedBuilder(DatasetBuilder):
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
         return ArrowExamplesIterable(self._generate_tables, kwargs=split_generator.gen_kwargs)
+
+
+class _CountableBuilderMixin(DatasetBuilder):
+    @abc.abstractmethod
+    def _generate_num_examples(self, **kwargs) -> Iterator[int]:
+        raise NotImplementedError()
+
+    def count_examples(self, dl_manager: DownloadManager) -> dict[str, int]:
+        split_generators_kwargs = self._make_split_generators_kwargs({})
+        split_generators: list[SplitGenerator] = self._split_generators(dl_manager, **split_generators_kwargs)
+        return {split_generator.name: self._count_examples(split_generator) for split_generator in split_generators}
+
+    def _count_examples(self, split_generator: SplitGenerator) -> int:
+        max_workers = min(32, os.cpu_count() + 4)
+        return sum(
+            thread_map(
+                self._count_examples_single,
+                _split_gen_kwargs(split_generator.gen_kwargs, max_workers),
+                delay=5,
+                desc=f"Counting rows for split={split_generator.name}",
+            )
+        )
+
+    def _count_examples_single(self, gen_kwargs: dict[str, Any]) -> int:
+        return sum(self._generate_num_examples(**gen_kwargs))
