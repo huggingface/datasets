@@ -4189,13 +4189,6 @@ class IterableDataset(DatasetInfoMixin):
         >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
         ```
         """
-        if "Video(" in str(self.features):
-            raise NotImplementedError(
-                "push_to_hub is not implemented for video datasets, instead you should upload the video files "
-                "using e.g. the huggingface_hub library and optionally upload a metadata.csv or metadata.jsonl "
-                "file containing other information like video captions, features or labels. More information "
-                "at https://huggingface.co/docs/datasets/main/en/video_load#videofolder"
-            )
         if num_proc is not None and num_proc > self.num_shards:
             logger.warning(
                 f"Too many num_proc: {num_proc} (max is dataset.num_shards={self.num_shards}). "
