@@ -43,7 +43,7 @@ def arrow_file_file_format(tmp_path):
 )
 def test_arrow_generate_tables(file_fixture, config_kwargs, request):
     arrow = Arrow(**config_kwargs)
-    generator = arrow._generate_tables([[request.getfixturevalue(file_fixture)]])
+    generator = arrow._generate_tables([request.getfixturevalue(file_fixture)])
     pa_table = pa.concat_tables([table for _, table in generator])
 
     expected = {"input_ids": [[1, 1, 1], [0, 100, 6], [1, 90, 900]]}

@@ -1335,6 +1335,26 @@ class GeneratorBasedBuilder(DatasetBuilder):
     (`_split_generators`). See the method docstrings for details.
     """
 
+    def _generate_shards(self, **kwargs) -> Iterator[Union[str, dict[str, Any]]]:
+        """Default function generating shards paths for each `SplitGenerator`.
+
+        This function is useful to list the original shards from where the data
+        comes from and is either converted to Arrow or streamed to an IterableDataset.
+
+        This is optional and only used for certain utilities, but not in Dataset
+        nor IterableDataset. E.g. it's used to map original shard files to Parquet
+        files in the Dataset Viewer after conversion.
+
+        Args:
+            **kwargs (additional keyword arguments):
+                Arguments forwarded from the SplitGenerator.gen_kwargs
+
+        Yields:
+            shard: generally a string representing the shard path, or a dict
+                representing the shard in case of shards spanning intra or inter-files.
+        """
+        raise NotImplementedError()
+
     @abc.abstractmethod
     def _generate_examples(self, **kwargs) -> Iterator[tuple[Key, dict[str, Any]]]:
         """Default function generating examples for each `SplitGenerator`.
@@ -1624,6 +1644,26 @@ class GeneratorBasedBuilder(DatasetBuilder):
 class ArrowBasedBuilder(DatasetBuilder):
     """Base class for datasets with data generation based on Arrow loading functions (CSV/JSON/Parquet)."""
 
+    def _generate_shards(self, **kwargs) -> Iterator[Union[str, dict[str, Any]]]:
+        """Default function generating shards paths for each `SplitGenerator`.
+
+        This function is useful to list the original shards from where the data
+        comes from and is either converted to Arrow or streamed to an IterableDataset.
+
+        This is optional and only used for certain utilities, but not in Dataset
+        nor IterableDataset. E.g. it's used to map original shard files to Parquet
+        files in the Dataset Viewer after conversion.
+
+        Args:
+            **kwargs (additional keyword arguments):
+                Arguments forwarded from the SplitGenerator.gen_kwargs
+
+        Yields:
+            shard: generally a string representing the shard path, or a dict
+                representing the shard in case of shards spanning intra or inter-files.
+        """
+        raise NotImplementedError()
+
     @abc.abstractmethod
     def _generate_tables(self, **kwargs) -> Iterator[tuple[Key, pa.Table]]:
         """Default function generating examples for each `SplitGenerator`.
@@ -1894,3 +1934,28 @@ class ArrowBasedBuilder(DatasetBuilder):
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
         return ArrowExamplesIterable(self._generate_tables, kwargs=split_generator.gen_kwargs)
+
+
+class _CountableBuilderMixin(DatasetBuilder):
+    @abc.abstractmethod
+    def _generate_num_examples(self, **kwargs) -> Iterator[int]:
+        raise NotImplementedError()
+
+    def count_examples(self, dl_manager: DownloadManager) -> dict[str, int]:
+        split_generators_kwargs = self._make_split_generators_kwargs({})
+        split_generators: list[SplitGenerator] = self._split_generators(dl_manager, **split_generators_kwargs)
+        return {split_generator.name: self._count_examples(split_generator) for split_generator in split_generators}
+
+    def _count_examples(self, split_generator: SplitGenerator) -> int:
+        max_workers = min(32, os.cpu_count() + 4)
+        return sum(
+            thread_map(
+                self._count_examples_single,
+                _split_gen_kwargs(split_generator.gen_kwargs, max_workers),
+                delay=5,
+                desc=f"Counting rows for split={split_generator.name}",
+            )
+        )
+
+    def _count_examples_single(self, gen_kwargs: dict[str, Any]) -> int:
+        return sum(self._generate_num_examples(**gen_kwargs))
