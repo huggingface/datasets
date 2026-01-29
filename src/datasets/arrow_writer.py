@@ -36,6 +36,7 @@ from .features.features import (
     get_nested_type,
     list_of_np_array_to_pyarrow_listarray,
     numpy_to_pyarrow_listarray,
+    require_storage_embed,
     to_pyarrow_listarray,
 )
 from .filesystems import is_remote_filesystem
@@ -150,7 +151,7 @@ def get_writer_batch_size_from_data_size(num_rows: int, num_bytes: int) -> int:
         writer_batch_size (`Optional[int]`):
             Writer batch size to pass to a parquet writer.
     """
-    return max(10, num_rows * convert_file_size_to_int(config.MAX_ROW_GROUP_SIZE) // num_bytes) if num_bytes > 0 else 1
+    return max(1, num_rows * convert_file_size_to_int(config.MAX_ROW_GROUP_SIZE) // num_bytes) if num_bytes > 0 else 1
 
 
 class SchemaInferenceError(ValueError):
@@ -715,6 +716,13 @@ class ParquetWriter(ArrowWriter):
             self._schema,
             use_content_defined_chunking=self.use_content_defined_chunking,
             write_page_index=self.write_page_index,
+            compression={
+                col: "none" if require_storage_embed(feature) else "snappy" for col, feature in self._features.items()
+            },
+            use_dictionary=[col for col, feature in self._features.items() if not require_storage_embed(feature)],
+            column_encoding={
+                col: "plain" if require_storage_embed(feature) else None for col, feature in self._features.items()
+            },
         )
         if self.use_content_defined_chunking is not False:
             self.pa_writer.add_key_value_metadata(
