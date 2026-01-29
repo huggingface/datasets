@@ -721,7 +721,7 @@ class ParquetWriter(ArrowWriter):
             },
             use_dictionary=[col for col, feature in self._features.items() if not require_storage_embed(feature)],
             column_encoding={
-                col: "plain" if require_storage_embed(feature) else None for col, feature in self._features.items()
+                col: "PLAIN" for col, feature in self._features.items() if require_storage_embed(feature)
             },
         )
         if self.use_content_defined_chunking is not False:
