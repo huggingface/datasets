@@ -674,6 +674,12 @@ class StepExamplesIterable(_BaseExamplesIterable):
         # TODO(QL): implement iter_arrow
 
     @property
+    def iter_arrow(self):
+        if self.ex_iterable.iter_arrow:
+            return self._iter_arrow
+        return None
+
+    @property
     def is_typed(self):
         return self.ex_iterable.is_typed
 
@@ -682,7 +688,11 @@ class StepExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.features
 
     def _init_state_dict(self) -> dict:
-        self._state_dict = self.ex_iterable._init_state_dict()
+        self._state_dict = {
+            "current_idx": 0,
+            "examples_iterable": self.ex_iterable._init_state_dict(),
+            "type": self.__class__.__name__,
+        }
         return self._state_dict
 
     def __iter__(self):
@@ -693,6 +703,29 @@ class StepExamplesIterable(_BaseExamplesIterable):
                 yield batch[self.offset]
             else:
                 break
+
+    def _iter_arrow(self) -> Iterator[tuple[Key, pa.Table]]:
+        current_idx = self._state_dict["current_idx"] if self._state_dict else 0
+        next_target_idx = (current_idx + self.step - 1 - self.offset) // self.step * self.step + self.offset
+        if next_target_idx < current_idx:
+            next_target_idx += self.step
+
+        for key, pa_table in self.ex_iterable.iter_arrow():
+            table_len = len(pa_table)
+            to_yield = None
+            if next_target_idx < current_idx + table_len:
+                indices = []
+                while next_target_idx < current_idx + table_len:
+                    indices.append(next_target_idx - current_idx)
+                    next_target_idx += self.step
+                to_yield = (key, pa_table.take(indices))
+
+            current_idx += table_len
+            if self._state_dict:
+                self._state_dict["current_idx"] = current_idx
+
+            if to_yield is not None:
+                yield to_yield
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "StepExamplesIterable":
         return StepExamplesIterable(
@@ -1779,6 +1812,12 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         # TODO(QL): implement iter_arrow
 
     @property
+    def iter_arrow(self):
+        if self.ex_iterable.iter_arrow:
+            return self._iter_arrow
+        return None
+
+    @property
     def is_typed(self):
         return self.ex_iterable.is_typed
 
@@ -1799,6 +1838,22 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         if self._state_dict:
             self._state_dict["skipped"] = True
         yield from islice(self.ex_iterable, ex_iterable_idx_start, None)
+
+    def _iter_arrow(self) -> Iterator[tuple[Key, pa.Table]]:
+        ex_iterable_idx_start = 0 if self._state_dict and self._state_dict["skipped"] else self.n
+        if self._state_dict:
+            self._state_dict["skipped"] = True
+
+        num_skipped = 0
+        for key, pa_table in self.ex_iterable.iter_arrow():
+            if num_skipped < ex_iterable_idx_start:
+                if num_skipped + len(pa_table) <= ex_iterable_idx_start:
+                    num_skipped += len(pa_table)
+                    continue
+                else:
+                    pa_table = pa_table.slice(ex_iterable_idx_start - num_skipped)
+                    num_skipped = ex_iterable_idx_start
+            yield key, pa_table
 
     @staticmethod
     def split_number(num, n):
@@ -1903,6 +1958,12 @@ class TakeExamplesIterable(_BaseExamplesIterable):
         # TODO(QL): implement iter_arrow
 
     @property
+    def iter_arrow(self):
+        if self.ex_iterable.iter_arrow:
+            return self._iter_arrow
+        return None
+
+    @property
     def is_typed(self):
         return self.ex_iterable.is_typed
 
@@ -1924,6 +1985,26 @@ class TakeExamplesIterable(_BaseExamplesIterable):
             if self._state_dict:
                 self._state_dict["num_taken"] += 1
             yield key_example
+
+    def _iter_arrow(self) -> Iterator[tuple[Key, pa.Table]]:
+        ex_iterable_num_taken = self._state_dict["num_taken"] if self._state_dict else 0
+        n_to_take = self.n - ex_iterable_num_taken
+
+        num_taken = 0
+        for key, pa_table in self.ex_iterable.iter_arrow():
+            if num_taken < n_to_take:
+                if num_taken + len(pa_table) <= n_to_take:
+                    if self._state_dict:
+                        self._state_dict["num_taken"] += len(pa_table)
+                    yield key, pa_table
+                    num_taken += len(pa_table)
+                else:
+                    yield key, pa_table.slice(0, n_to_take - num_taken)
+                    if self._state_dict:
+                        self._state_dict["num_taken"] += n_to_take - num_taken
+                    num_taken = n_to_take
+            if num_taken >= n_to_take:
+                break
 
     @staticmethod
     def split_number(num, n):
