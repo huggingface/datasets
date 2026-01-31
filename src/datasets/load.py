@@ -818,10 +818,23 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             if config.HF_HUB_OFFLINE:
                 warning_msg += " (offline mode is enabled)."
             logger.warning(warning_msg)
+            config_names = set()
+            for cached_directory_path in cached_directory_paths:
+                dataset_info_path = Path(cached_directory_path) / "dataset_info.json"
+                if dataset_info_path.is_file():
+                    try:
+                        dataset_info = json.loads(dataset_info_path.read_text(encoding="utf-8"))
+                        config_name = dataset_info.get("config_name")
+                        if config_name:
+                            config_names.add(config_name)
+                    except (json.JSONDecodeError, OSError, KeyError):
+                        pass
+            builder_configs = [BuilderConfig(name=config_name) for config_name in sorted(config_names)]
             return DatasetModule(
                 "datasets.packaged_modules.cache.cache",
                 "auto",
                 {**builder_kwargs, "version": "auto"},
+                builder_configs_parameters=BuilderConfigsParameters(builder_configs=builder_configs or None),
             )
         raise FileNotFoundError(f"Dataset {self.name} is not cached in {self.cache_dir}")
 
