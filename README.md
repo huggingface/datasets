@@ -90,6 +90,16 @@ print([dataset.id for dataset in list_datasets()])
 squad_dataset = load_dataset('rajpurkar/squad')
 print(squad_dataset['train'][0])
 
+### 💡 Quick Tip for Beginners
+
+If you're new to 🤗 Datasets, here is a quick way to verify that your installation works correctly.
+
+---Python---
+from datasets import load_dataset
+
+dataset = load_dataset("imdb")
+print(dataset)
+
 # Process the dataset - add a column with the length of the context texts
 dataset_with_length = squad_dataset.map(lambda x: {"length": len(x["context"])})
 
