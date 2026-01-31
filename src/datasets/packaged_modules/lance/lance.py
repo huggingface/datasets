@@ -7,6 +7,7 @@ import pyarrow as pa
 from huggingface_hub import HfApi
 
 import datasets
+from datasets import Audio, Image, Video
 from datasets.builder import Key
 from datasets.table import table_cast
 from datasets.utils.file_utils import is_local_path
@@ -17,6 +18,23 @@ if TYPE_CHECKING:
     import lance.file
 
 logger = datasets.utils.logging.get_logger(__name__)
+
+MAGIC_BYTES_EXTENSION_AND_FEATURE_TYPES = [
+    ("1A 45 DF A3", ".mkv", Video()),
+    ("66 74 79 70 69 73 6F 6D", ".mp4", Video()),
+    ("66 74 79 70 4D 53 4E 56", ".mp4", Video()),
+    ("52 49 46 46", ".avi", Video()),
+    ("00 00 01 BA", ".mpeg", Video()),
+    ("00 00 01 BA", ".mpeg", Video()),
+    ("00 00 01 B3", ".mov", Video()),
+    ("89 50 4E 47", ".png", Image()),
+    ("FF D8", ".jpg", Image()),
+    ("49 49", ".tif", Image()),
+    ("47 49 46 38", ".gif", Image()),
+    ("52 49 46 46", ".wav", Audio()),
+    ("49 44 33", ".mp3", Audio()),
+    ("66 4C 61 43", ".flac", Audio()),
+]
 
 
 @dataclass
@@ -71,7 +89,7 @@ def _fix_local_version_file(uri: str) -> str:
     return uri
 
 
-class Lance(datasets.ArrowBasedBuilder):
+class Lance(datasets.ArrowBasedBuilder, datasets.builder._CountableBuilderMixin):
     BUILDER_CONFIG_CLASS = LanceConfig
     METADATA_EXTENSIONS = [".idx", ".txn", ".manifest"]
 
@@ -85,7 +103,7 @@ class Lance(datasets.ArrowBasedBuilder):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         if self.repo_id:
-            api = HfApi(**dl_manager.download_config.storage_options["hf"])
+            api = HfApi(**dl_manager.download_config.storage_options.get("hf", {}))
             dataset_sha = api.dataset_info(self.repo_id).sha
             if dataset_sha != self.hash:
                 raise NotImplementedError(
@@ -98,19 +116,29 @@ class Lance(datasets.ArrowBasedBuilder):
         # TODO: remove once Lance supports symlinks for _version files
         data_files = {split: [_fix_local_version_file(file) for file in files] for split, files in data_files.items()}
 
-        splits = []
+        splits: list[datasets.SplitGenerator] = []
         for split_name, files in data_files.items():
             storage_options = dl_manager.download_config.storage_options.get(files[0].split("://", 0)[0] + "://")
 
             lance_dataset_uris = resolve_dataset_uris(files)
             if lance_dataset_uris:
-                fragments = [
-                    frag
-                    for uri in lance_dataset_uris
-                    for frag in lance.dataset(uri, storage_options=storage_options).get_fragments()
-                ]
+                lance_datasets = [lance.dataset(uri, storage_options=storage_options) for uri in lance_dataset_uris]
+                fragments = [frag for lance_dataset in lance_datasets for frag in lance_dataset.get_fragments()]
                 if self.info.features is None:
                     pa_schema = fragments[0]._ds.schema
+                    first_row_first_bytes = {}
+                    for field in pa_schema:
+                        if self.config.columns is not None and field.name not in self.config.columns:
+                            continue
+                        if pa.types.is_binary(field.type) or pa.types.is_large_binary(field.type):
+                            try:
+                                first_row_first_bytes[field.name] = (
+                                    lance_datasets[0].take_blobs(field.name, [0])[0].read(16)
+                                )
+                            except ValueError:
+                                first_row_first_bytes[field.name] = (
+                                    lance_datasets[0].take([0], [field.name]).to_pylist()[0][field.name][:16]
+                                )
                 splits.append(
                     datasets.SplitGenerator(
                         name=split_name,
@@ -124,6 +152,11 @@ class Lance(datasets.ArrowBasedBuilder):
                 ]
                 if self.info.features is None:
                     pa_schema = lance_files[0].metadata().schema
+                    first_row_first_bytes = {
+                        field_name: value[:16]
+                        for field_name, value in lance_files[0].take_rows([0]).to_table().to_pylist()[0].items()
+                        if isinstance(value, bytes)
+                    }
                 splits.append(
                     datasets.SplitGenerator(
                         name=split_name,
@@ -136,7 +169,14 @@ class Lance(datasets.ArrowBasedBuilder):
                         pa_schema.field(name) for name in self.config.columns if pa_schema.get_field_index(name) != -1
                     ]
                     pa_schema = pa.schema(fields)
-                self.info.features = datasets.Features.from_arrow_schema(pa_schema)
+                features = datasets.Features.from_arrow_schema(pa_schema)
+                for field_name, first_bytes in first_row_first_bytes.items():
+                    for magic_bytes_hex, _, feature_type in MAGIC_BYTES_EXTENSION_AND_FEATURE_TYPES:
+                        magic_bytes = bytes.fromhex(magic_bytes_hex)
+                        if magic_bytes in first_bytes[: len(magic_bytes) * 2]:  # allow some padding
+                            features[field_name] = feature_type
+                            break
+                self.info.features = features
 
         return splits
 
@@ -159,6 +199,19 @@ class Lance(datasets.ArrowBasedBuilder):
                 yield paths[0] if len(paths) == 1 else {"fragment_data_files": paths}
         else:
             yield from lance_files_paths
+
+    def _generate_num_examples(
+        self,
+        fragments: Optional[List["lance.LanceFragment"]],
+        lance_files_paths: Optional[list[str]],
+        lance_files: Optional[List["lance.file.LanceFileReader"]],
+    ):
+        if fragments:
+            for fragment in fragments:
+                yield fragment.count_rows()
+        else:
+            for lance_file in lance_files:
+                yield lance_file.num_rows()
 
     def _generate_tables(
         self,
