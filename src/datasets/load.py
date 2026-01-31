@@ -1175,8 +1175,8 @@ def load_dataset_builder(
         features=features,
         token=token,
         storage_options=storage_options,
-        **builder_kwargs,
-        **config_kwargs,
+        **{**builder_kwargs,
+        **config_kwargs},
     )
     builder_instance._use_legacy_cache_dir_if_possible(dataset_module)
 
