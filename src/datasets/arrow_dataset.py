@@ -40,7 +40,6 @@ from collections.abc import Iterable, Iterator, Mapping
 from collections.abc import Sequence as Sequence_
 from copy import deepcopy
 from functools import partial, wraps
-from io import BytesIO
 from math import ceil, floor
 from pathlib import Path
 from random import sample
@@ -5538,7 +5537,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
-        uploaded_size = 0
         additions: list[CommitOperationAdd] = []
         for index, shard in index_shards:
             if embed_external_files:
@@ -5552,19 +5550,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
                 shard = shard.with_format(**format)
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
-            buffer = BytesIO()
-            shard.to_parquet(buffer, batch_size=writer_batch_size)
-            parquet_content = buffer.getvalue()
-            uploaded_size += len(parquet_content)
-            del buffer
-            shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=parquet_content)
-            api.preupload_lfs_files(
-                repo_id=repo_id,
-                additions=[shard_addition],
-                repo_type="dataset",
-                revision=revision,
-                create_pr=create_pr,
-            )
+            tmp_file = tempfile.NamedTemporaryFile(suffix=".parquet", delete=False)
+            try:
+                shard.to_parquet(tmp_file, batch_size=writer_batch_size)
+                tmp_file.close()
+                shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=tmp_file.name)
+                api.preupload_lfs_files(
+                    repo_id=repo_id,
+                    additions=[shard_addition],
+                    repo_type="dataset",
+                    revision=revision,
+                    create_pr=create_pr,
+                )
+            except (Exception, KeyboardInterrupt):
+                tmp_file.close()
+                if Path(tmp_file.name).exists():
+                    Path(tmp_file.name).unlink()
+                raise
             additions.append(shard_addition)
             yield job_id, False, 1
 
