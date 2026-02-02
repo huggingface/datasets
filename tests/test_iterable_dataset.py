@@ -2661,3 +2661,130 @@ class TestIterableColumn:
         texts = ds["text"]
         assert isinstance(texts, IterableColumn)
         assert list(texts) == [["Good", "Bad"], ["Good again", "Bad again"]]
+
+
+def generate_tables_iter_arrow_fn(**kwargs):
+    n = kwargs.get("n", 20)
+    batch_size = kwargs.get("batch_size", 5)
+    for i in range(0, n, batch_size):
+        yield str(i // batch_size), pa.Table.from_pydict({"id": list(range(i, min(i + batch_size, n)))})
+
+
+def test_skip_examples_iterable_iter_arrow():
+    base_iterable = ArrowExamplesIterable(generate_tables_iter_arrow_fn, {"n": 20, "batch_size": 5})
+    # Skip 7 (skips first batch of 5 and 2 from second batch)
+    skip_iterable = SkipExamplesIterable(base_iterable, n=7)
+
+    assert skip_iterable.iter_arrow is not None
+    batches = list(skip_iterable.iter_arrow())
+
+    # Expected: batch 1 (partially skipped), batch 2, batch 3
+    # Batch 0 (0-4): skipped
+    # Batch 1 (5-9): first 2 skipped -> (7-9)
+    # Batch 2 (10-14): all
+    # Batch 3 (15-19): all
+
+    assert len(batches) == 3
+    assert batches[0][1].to_pydict()["id"] == [7, 8, 9]
+    assert batches[1][1].to_pydict()["id"] == [10, 11, 12, 13, 14]
+    assert batches[2][1].to_pydict()["id"] == [15, 16, 17, 18, 19]
+
+
+def test_take_examples_iterable_iter_arrow():
+    base_iterable = ArrowExamplesIterable(generate_tables_iter_arrow_fn, {"n": 20, "batch_size": 5})
+    # Take 12 (batch 0, batch 1, and 2 from batch 2)
+    take_iterable = TakeExamplesIterable(base_iterable, n=12)
+
+    assert take_iterable.iter_arrow is not None
+    batches = list(take_iterable.iter_arrow())
+
+    assert len(batches) == 3
+    assert batches[0][1].to_pydict()["id"] == [0, 1, 2, 3, 4]
+    assert batches[1][1].to_pydict()["id"] == [5, 6, 7, 8, 9]
+    assert batches[2][1].to_pydict()["id"] == [10, 11]
+
+
+def test_step_examples_iterable_iter_arrow():
+    base_iterable = ArrowExamplesIterable(generate_tables_iter_arrow_fn, {"n": 20, "batch_size": 8})
+    # batches: [0..7], [8..15], [16..19]
+    # step=3, offset=1
+    # expected: 1, 4, 7, 10, 13, 16, 19
+    step_iterable = StepExamplesIterable(base_iterable, step=3, offset=1)
+
+    assert step_iterable.iter_arrow is not None
+    batches = list(step_iterable.iter_arrow())
+
+    # Batch 0: [0..7] -> 1, 4, 7
+    # Batch 1: [8..15] -> (next target 10, 13)
+    # Batch 2: [16..19] -> (next target 16, 19)
+
+    assert len(batches) == 3
+    assert batches[0][1].to_pydict()["id"] == [1, 4, 7]
+    assert batches[1][1].to_pydict()["id"] == [10, 13]
+    assert batches[2][1].to_pydict()["id"] == [16, 19]
+
+
+def test_skip_examples_iterable_state_dict():
+    base_iterable = ArrowExamplesIterable(generate_tables_iter_arrow_fn, {"n": 20, "batch_size": 5})
+    skip_iterable = SkipExamplesIterable(base_iterable, n=7)
+
+    # Init state dict
+    skip_iterable._init_state_dict()
+
+    # Start iteration
+    it = skip_iterable.iter_arrow()
+    batch1_key, batch1_table = next(it)
+    assert batch1_table.to_pydict()["id"] == [7, 8, 9]
+
+    # Checkpoint
+    state_dict = skip_iterable.state_dict()
+
+    # Resume
+    base_iterable_2 = ArrowExamplesIterable(generate_tables_iter_arrow_fn, {"n": 20, "batch_size": 5})
+    new_skip_iterable = SkipExamplesIterable(base_iterable_2, n=7)
+    new_skip_iterable._init_state_dict()
+    new_skip_iterable.load_state_dict(state_dict)
+
+    it2 = new_skip_iterable.iter_arrow()
+    batch2_key, batch2_table = next(it2)
+    assert batch2_table.to_pydict()["id"] == [10, 11, 12, 13, 14]
+
+
+def test_take_examples_iterable_state_dict():
+    base_iterable = ArrowExamplesIterable(generate_tables_iter_arrow_fn, {"n": 20, "batch_size": 5})
+    take_iterable = TakeExamplesIterable(base_iterable, n=12)
+
+    take_iterable._init_state_dict()
+    it = take_iterable.iter_arrow()
+    next(it)  # batch 0
+
+    state_dict = take_iterable.state_dict()
+
+    base_iterable_2 = ArrowExamplesIterable(generate_tables_iter_arrow_fn, {"n": 20, "batch_size": 5})
+    new_take_iterable = TakeExamplesIterable(base_iterable_2, n=12)
+    new_take_iterable._init_state_dict()
+    new_take_iterable.load_state_dict(state_dict)
+
+    it2 = new_take_iterable.iter_arrow()
+    batch1_key, batch1_table = next(it2)
+    assert batch1_table.to_pydict()["id"] == [5, 6, 7, 8, 9]
+
+
+def test_step_examples_iterable_state_dict():
+    base_iterable = ArrowExamplesIterable(generate_tables_iter_arrow_fn, {"n": 20, "batch_size": 8})
+    step_iterable = StepExamplesIterable(base_iterable, step=3, offset=1)
+
+    step_iterable._init_state_dict()
+    it = step_iterable.iter_arrow()
+    next(it)  # Batch 0: [1, 4, 7]
+
+    state_dict = step_iterable.state_dict()
+
+    base_iterable_2 = ArrowExamplesIterable(generate_tables_iter_arrow_fn, {"n": 20, "batch_size": 8})
+    new_step_iterable = StepExamplesIterable(base_iterable_2, step=3, offset=1)
+    new_step_iterable._init_state_dict()
+    new_step_iterable.load_state_dict(state_dict)
+
+    it2 = new_step_iterable.iter_arrow()
+    batch1_key, batch1_table = next(it2)
+    assert batch1_table.to_pydict()["id"] == [10, 13]
