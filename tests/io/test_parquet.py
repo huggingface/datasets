@@ -5,6 +5,7 @@ import fsspec
 import pyarrow.parquet as pq
 import pytest
 
+import datasets.config
 from datasets import Audio, Dataset, DatasetDict, Features, IterableDatasetDict, List, NamedSplit, Value, config
 from datasets.arrow_writer import get_arrow_writer_batch_size_from_features
 from datasets.features.image import Image
@@ -12,6 +13,9 @@ from datasets.info import DatasetInfo
 from datasets.io.parquet import ParquetDatasetReader, ParquetDatasetWriter
 
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
+
+
+STRING_FROM_PANDAS = "large_string" if datasets.config.PANDAS_VERSION.major >= 3 else "string"
 
 
 def _check_parquet_dataset(dataset, expected_features):
@@ -80,8 +84,8 @@ def test_parquet_read_geoparquet(geoparquet_path, tmp_path):
 
     expected_features = {
         "pop_est": "float64",
-        "continent": "string",
-        "name": "string",
+        "continent": STRING_FROM_PANDAS,
+        "name": STRING_FROM_PANDAS,
         "gdp_md_est": "int64",
         "geometry": "binary",
     }
