@@ -4435,19 +4435,25 @@ class IterableDataset(DatasetInfoMixin):
                             create_pr=create_pr,
                         )
                     except HfHubHTTPError as err:
-                        if (
-                            err.__context__
-                            and isinstance(err.__context__, HfHubHTTPError)
-                            and err.__context__.response.status_code == 409
-                        ):
+                        response = (
+                            err.response if err.response is not None else getattr(err.__context__, "response", None)
+                        )
+                        status_code = response.status_code if response is not None else None
+                        if status_code == 409:
                             # 409 is Conflict (another commit is in progress)
                             time.sleep(sleep_time)
                             logger.info(
-                                f"Retrying intermediate commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
+                                f"Retrying intermediate commit for {repo_id}, {config_name} ({retry}/n with status_code {status_code})"
                             )
                             continue
-                        else:
-                            raise
+                        elif status_code == 400 and "lfs pointer" in str(err).lower():
+                            # 400 with LFS error indicates LFS objects not yet propagated
+                            time.sleep(sleep_time)
+                            logger.info(
+                                f"Retrying intermediate commit for {repo_id}, {config_name} ({retry}/n with status_code {status_code} - LFS propagation)"
+                            )
+                            continue
+                        raise
                     break
                 logger.info(
                     f"Commit #{i + 1} completed"
@@ -4485,20 +4491,24 @@ class IterableDataset(DatasetInfoMixin):
                     parent_commit=parent_commit,
                 )
             except HfHubHTTPError as err:
-                if (
-                    err.__context__
-                    and isinstance(err.__context__, HfHubHTTPError)
-                    and err.__context__.response.status_code in (412, 409)
-                ):
+                response = err.response if err.response is not None else getattr(err.__context__, "response", None)
+                status_code = response.status_code if response is not None else None
+                if status_code in (412, 409):
                     # 412 is Precondition failed (parent_commit isn't satisfied)
                     # 409 is Conflict (another commit is in progress)
                     time.sleep(sleep_time)
                     logger.info(
-                        f"Retrying commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
+                        f"Retrying commit for {repo_id}, {config_name} ({retry}/n with status_code {status_code})"
                     )
                     continue
-                else:
-                    raise
+                elif status_code == 400 and "lfs pointer" in str(err).lower():
+                    # 400 with LFS error indicates LFS objects not yet propagated
+                    time.sleep(sleep_time)
+                    logger.info(
+                        f"Retrying commit for {repo_id}, {config_name} ({retry}/n with status_code {status_code} - LFS propagation)"
+                    )
+                    continue
+                raise
             break
 
         return commit_info
