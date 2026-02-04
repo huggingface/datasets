@@ -40,9 +40,6 @@ from datasets.iterable_dataset import (
     RebatchedArrowExamplesIterable,
     RepeatExamplesIterable,
     SelectColumnsIterable,
-    ShuffledDataSourcesArrowExamplesIterable,
-    ShuffledDataSourcesExamplesIterable,
-    ShufflingConfig,
     SkipExamplesIterable,
     StepExamplesIterable,
     TakeExamplesIterable,
@@ -1301,7 +1298,6 @@ def test_horizontally_concatenated_examples_iterable():
     "ex_iterable",
     [
         ExamplesIterable(generate_examples_fn, {}),
-        ShuffledDataSourcesExamplesIterable(generate_examples_fn, {}, np.random.default_rng(42)),
         SelectColumnsIterable(ExamplesIterable(generate_examples_fn, {}), ["id"]),
         StepExamplesIterable(ExamplesIterable(generate_examples_fn, {}), 2, 0),
         CyclingMultiSourcesExamplesIterable([ExamplesIterable(generate_examples_fn, {})]),
@@ -1332,7 +1328,6 @@ def test_no_iter_arrow(ex_iterable: _BaseExamplesIterable):
     "ex_iterable",
     [
         ArrowExamplesIterable(generate_tables_fn, {}),
-        ShuffledDataSourcesArrowExamplesIterable(generate_tables_fn, {}, np.random.default_rng(42)),
         SelectColumnsIterable(ArrowExamplesIterable(generate_tables_fn, {}), ["id"]),
         # StepExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), 2, 0),  # not implemented
         # CyclingMultiSourcesExamplesIterable([ArrowExamplesIterable(generate_tables_fn, {})]),  # not implemented
@@ -1785,10 +1780,7 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, seed, epoch):
     dataset = deepcopy(dataset)
     dataset._ex_iterable.kwargs["filepaths"] = ["0.txt", "1.txt"]
     dataset = dataset.shuffle(seed, buffer_size=buffer_size)
-    assert isinstance(dataset._shuffling, ShufflingConfig)
-    assert isinstance(dataset._shuffling.generator, np.random.Generator)
-    assert is_rng_equal(dataset._shuffling.generator, np.random.default_rng(seed))
-    # Effective seed is sum of seed and epoch
+    # Effective seed is mix of seed and epoch
     if epoch is None or epoch == 0:
         effective_seed = seed
     else:
@@ -1802,7 +1794,9 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, seed, epoch):
     # It also shuffles the underlying examples iterable
     expected_ex_iterable = ExamplesIterable(
         generate_examples_fn, {"filepaths": ["0.txt", "1.txt"]}
-    ).shuffle_data_sources(np.random.default_rng(effective_seed))
+    ).shuffle_data_sources(np.random.default_rng(seed))
+    if epoch:
+        expected_ex_iterable = expected_ex_iterable.shuffle_data_sources(np.random.default_rng(epoch))
     assert isinstance(dataset._ex_iterable.ex_iterable, ExamplesIterable)
     assert next(iter(dataset)) == list(islice(expected_ex_iterable, expected_first_example_index + 1))[-1][1]
 

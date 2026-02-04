@@ -129,7 +129,11 @@ class Parquet(datasets.ArrowBasedBuilder):
                 raise ValueError(
                     f"At least one valid data file must be specified, all the data_files are invalid: {self.config.data_files}"
                 )
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
+            splits.append(
+                datasets.SplitGenerator(
+                    name=split_name, gen_kwargs={"files": files, "row_groups_list": [None] * len(files)}
+                )
+            )
         if self.config.columns is not None and set(self.config.columns) != set(self.info.features):
             self.info.features = datasets.Features(
                 {col: feat for col, feat in self.info.features.items() if col in self.config.columns}
@@ -143,10 +147,33 @@ class Parquet(datasets.ArrowBasedBuilder):
             pa_table = table_cast(pa_table, self.info.features.arrow_schema)
         return pa_table
 
-    def _generate_shards(self, files):
-        yield from files
+    def _generate_shards(self, files, row_groups_list):
+        if not row_groups_list:
+            yield from files
+        else:
+            for file, row_groups in zip(files, row_groups_list):
+                yield {
+                    "fragment_data_file": file,
+                    "fragment_row_groups": row_groups,
+                }
 
-    def _generate_tables(self, files):
+    def _generate_more_gen_kwargs(self, files, row_groups_list):
+        if not row_groups_list:
+            parquet_file_format = ds.ParquetFileFormat(default_fragment_scan_options=self.config.fragment_scan_options)
+            for file in files:
+                with open(file, "rb") as f:
+                    parquet_fragment = parquet_file_format.make_fragment(f)
+                    yield {
+                        "files": [file] * parquet_fragment.num_row_groups,
+                        "row_groups_list": [
+                            (row_group_id,) for row_group_id in range(parquet_fragment.num_row_groups)
+                        ],
+                    }
+        else:
+            for file, row_groups in zip(files, row_groups_list):
+                yield {"files": [file], "row_groups_list": [row_groups]}
+
+    def _generate_tables(self, files, row_groups_list):
         if self.config.features is not None and self.config.columns is not None:
             if sorted(field.name for field in self.info.features.arrow_schema) != sorted(self.config.columns):
                 raise ValueError(
@@ -158,10 +185,12 @@ class Parquet(datasets.ArrowBasedBuilder):
             else self.config.filters
         )
         parquet_file_format = ds.ParquetFileFormat(default_fragment_scan_options=self.config.fragment_scan_options)
-        for file_idx, file in enumerate(files):
+        for file_idx, (file, row_groups) in enumerate(zip(files, row_groups_list)):
             try:
                 with open(file, "rb") as f:
                     parquet_fragment = parquet_file_format.make_fragment(f)
+                    if row_groups is not None:
+                        parquet_fragment.subset(row_group_ids=row_groups)
                     if parquet_fragment.row_groups:
                         batch_size = self.config.batch_size or parquet_fragment.row_groups[0].num_rows
                         for batch_idx, record_batch in enumerate(
