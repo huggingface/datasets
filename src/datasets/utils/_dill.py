@@ -212,11 +212,42 @@ def _save_spacyLanguage(pickler, obj):
 
 def _save_transformersPreTrainedTokenizerBase(pickler, obj):
     log(pickler, f"Tok: {obj}")
-    # Ignore the `cache` attribute
-    state = obj.__dict__
+    # Ignore the `cache` attribute and make hashing stable.
+    #
+    # Some tokenizers backed by the `tokenizers` library mutate their internal `_tokenizer` state when called
+    # (e.g. by enabling truncation/padding). This can change the serialized bytes across runs and make dataset
+    # fingerprints unstable, which prevents `.map(load_from_cache_file=True)` from reusing cache files.
+    #
+    # For hashing/fingerprinting, we temporarily disable backend truncation/padding to avoid these runtime settings
+    # affecting the fingerprint, then restore the original settings.
+    state = obj.__dict__.copy()
     if "cache" in state and isinstance(state["cache"], dict):
         state["cache"] = {}
-    pickler.save_reduce(type(obj), (), state=state, obj=obj)
+
+    backend_tokenizer = obj.__dict__.get("_tokenizer")
+    truncation = padding = None
+    if backend_tokenizer is not None and hasattr(backend_tokenizer, "truncation") and hasattr(backend_tokenizer, "padding"):
+        truncation = backend_tokenizer.truncation
+        padding = backend_tokenizer.padding
+        try:
+            if truncation is not None and hasattr(backend_tokenizer, "no_truncation"):
+                backend_tokenizer.no_truncation()
+            if padding is not None and hasattr(backend_tokenizer, "no_padding"):
+                backend_tokenizer.no_padding()
+        except Exception:
+            truncation = padding = None
+
+    try:
+        pickler.save_reduce(type(obj), (), state=state, obj=obj)
+    finally:
+        try:
+            if backend_tokenizer is not None:
+                if truncation is not None and hasattr(backend_tokenizer, "enable_truncation"):
+                    backend_tokenizer.enable_truncation(**truncation)
+                if padding is not None and hasattr(backend_tokenizer, "enable_padding"):
+                    backend_tokenizer.enable_padding(**padding)
+        except Exception:
+            pass
     log(pickler, "# Tok")
 
 
