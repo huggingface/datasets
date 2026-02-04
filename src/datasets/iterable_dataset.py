@@ -3261,7 +3261,7 @@ class IterableDataset(DatasetInfoMixin):
 
     def reshard(self) -> "IterableDataset":
         """Reshard the dataset if possible, i.e. split the current shards further into more shards.
-        This increases the number of shatds and the resulting dataset has num_shards >= previous_num_shards
+        This increases the number of shards and the resulting dataset has num_shards >= previous_num_shards
         Equality may happen if no shard can be split further.
 
         The resharding mechanism depends on the dataset file format:
