@@ -2721,6 +2721,15 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(sql_dset.shape, dset.shape)
                 self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
 
+            # Test writing with multiprocessors
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, num_proc=3, if_exists="replace")
+                self.assertTrue(os.path.isfile(file_path))
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
     def test_train_test_split(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
