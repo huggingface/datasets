@@ -1261,15 +1261,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_parquet(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
-        columns: Optional[list[str]] = None,
+        columns: Optional[Sequence[str]] = None,
         num_proc: Optional[int] = None,
         **kwargs,
     ):
+
         """Create Dataset from Parquet file(s).
 
         Args:
