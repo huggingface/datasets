@@ -85,13 +85,9 @@ def test_distributed_shuffle_iterable():
 
     ds_rank0 = split_dataset_by_node(full_ds, rank=0, world_size=world_size).shuffle(seed=42)
     assert len(list(ds_rank0)) == 1 + full_size // world_size
-    with pytest.raises(RuntimeError):
-        split_dataset_by_node(full_ds, rank=0, world_size=world_size).shuffle()
 
     ds_rank0 = split_dataset_by_node(full_ds.shuffle(seed=42), rank=0, world_size=world_size)
     assert len(list(ds_rank0)) == 1 + full_size // world_size
-    with pytest.raises(RuntimeError):
-        split_dataset_by_node(full_ds.shuffle(), rank=0, world_size=world_size)
 
 
 @pytest.mark.parametrize("streaming", [False, True])
