@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Optional
 
@@ -117,7 +115,7 @@ def _require_zarr():
     except Exception as e:  # pragma: no cover
         raise ImportError(
             "Using the packaged module `zarr` requires the optional dependency `zarr`.\n"
-            "Install it with: `pip install zarr`"
+            "Install it with: `pip install \"datasets[zarr]\"` (or `pip install zarr`)"
         ) from e
     return zarr
 

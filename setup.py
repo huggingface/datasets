@@ -221,6 +221,7 @@ EXTRAS_REQUIRE = {
     "tensorflow_gpu": ["tensorflow>=2.6.0"],
     "torch": ["torch"],
     "jax": ["jax>=0.3.14", "jaxlib>=0.3.14"],
+    "zarr": ["zarr"],
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
     "tests": TESTS_REQUIRE,
