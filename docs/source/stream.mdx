@@ -55,6 +55,50 @@ Parquet is a columnar format that allows you to stream and load only a subset of
  'language_score': 0.9900368452072144, 'token_count': 716}
 ```
 
+## Streaming scientific formats (HDF5 and Zarr)
+
+Scientific datasets are often stored in formats like HDF5 or Zarr (chunked, N-dimensional arrays). 🤗 Datasets can stream these formats directly from local files (and remote filesystems supported by `fsspec`) without converting the full dataset to Arrow first.
+
+### HDF5
+
+```py
+>>> from datasets import load_dataset
+>>> ds = load_dataset("hdf5", data_files=["/path/to/data.h5"], split="train", streaming=True)
+>>> print(next(iter(ds)))
+{'temperature': 280.12, 'pressure': 101325.0, ...}
+```
+
+### Zarr
+
+Zarr support is currently experimental. Install it with `pip install "datasets[zarr]"` (or `pip install zarr`).
+
+Zarr stores are directory-based. You can point `data_files` to either the Zarr store root directory (recommended for convenience) or the Zarr root metadata file:
+
+- Zarr store root directory: `.../store.zarr` (auto-detects metadata)
+- Zarr v3: `.../store.zarr/zarr.json`
+- Zarr v2 (consolidated): `.../store.zarr/.zmetadata`
+
+```py
+>>> from datasets import load_dataset
+>>> ds = load_dataset("zarr", data_files=["/path/to/store.zarr"], split="train", streaming=True)
+>>> print(next(iter(ds)))
+{'int32': 0, 'float32': 0.0, 'matrix_2d': [[...], ...]}
+```
+
+You can also load from the Hub via the `hf://` protocol:
+
+```py
+>>> from datasets import DownloadConfig, load_dataset
+>>> download_config = DownloadConfig(storage_options={"hf": {"token": None}})  # set token for private/gated repos
+>>> ds = load_dataset(
+...     "zarr",
+...     data_files=["hf://datasets/<user>/<repo>@main/path/to/store.zarr/zarr.json"],
+...     split="train",
+...     streaming=True,
+...     download_config=download_config,
+... )
+```
+
 Loading a dataset in streaming mode creates a new dataset type instance (instead of the classic [`Dataset`] object), known as an [`IterableDataset`].
 This special type of dataset has its own set of processing methods shown below.
 

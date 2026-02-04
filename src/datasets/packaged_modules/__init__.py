@@ -22,6 +22,7 @@ from .text import text
 from .videofolder import videofolder
 from .webdataset import webdataset
 from .xml import xml
+from .zarr import zarr
 
 
 def _hash_python_lines(lines: list[str]) -> str:
@@ -55,6 +56,7 @@ _PACKAGED_DATASETS_MODULES = {
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
     "eval": (eval.__name__, _hash_python_lines(inspect.getsource(eval).splitlines())),
     "lance": (lance.__name__, _hash_python_lines(inspect.getsource(lance).splitlines())),
+    "zarr": (zarr.__name__, _hash_python_lines(inspect.getsource(zarr).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -88,6 +90,9 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".h5": ("hdf5", {}),
     ".eval": ("eval", {}),
     ".lance": ("lance", {}),
+    # Zarr stores are directory-based; users typically pass the root metadata file (Zarr v3: `zarr.json`,
+    # Zarr v2 consolidated: `.zmetadata`) explicitly via `data_files`.
+    ".zarr": ("zarr", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
