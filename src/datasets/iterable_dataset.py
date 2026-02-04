@@ -4673,6 +4673,11 @@ def _interleave_iterable_datasets(
 
     # Perform checks
     _check_if_features_can_be_aligned([dset.features for dset in datasets])
+    for i, dset in enumerate(datasets):
+        if datasets[0]._distributed != dset._distributed:
+            raise ValueError(
+                f"Datasets should be identically split_by_node before interleaving, but got {datasets[0]._distributed}!={dset._distributed} at index 0 and {i}"
+            )
 
     # TODO: improve this to account for a mix of ClassLabel and Value for example
     # right now it would keep the type of the first dataset in the list
@@ -4706,7 +4711,13 @@ def _interleave_iterable_datasets(
         repo_id: token for dataset in datasets for repo_id, token in dataset._token_per_repo_id.items()
     }
     # Return new daset
-    return IterableDataset(ex_iterable=ex_iterable, info=info, split=split, token_per_repo_id=token_per_repo_id)
+    return IterableDataset(
+        ex_iterable=ex_iterable,
+        info=info,
+        split=split,
+        token_per_repo_id=token_per_repo_id,
+        distributed=datasets[0]._distributed,
+    )
 
 
 def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_size: int) -> IterableDataset:
@@ -4737,7 +4748,6 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
         info=dataset._info.copy(),
         split=dataset._split,
         formatting=dataset._formatting,
-        shuffling=copy.deepcopy(dataset._shuffling),
         distributed=distributed,
         token_per_repo_id=dataset._token_per_repo_id,
     )
