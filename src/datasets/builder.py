@@ -1557,7 +1557,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
         shard_lengths = []
-        original_shard_lengths = []
+        original_shard_lengths = {}
         total_num_examples, total_num_bytes = 0, 0
 
         shard_id = 0
@@ -1592,8 +1592,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
                         )
                     example = self.info.features.encode_example(record) if self.info.features is not None else record
                     writer.write(example)
-                    if len(original_shard_lengths) == original_shard_id:
-                        original_shard_lengths.append(1)
+                    if original_shard_id not in original_shard_lengths:
+                        original_shard_lengths[original_shard_id] = 1
                     else:
                         original_shard_lengths[original_shard_id] += 1
                     num_examples_progress_update += 1
@@ -1626,7 +1626,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 num_shards,
                 shard_lengths,
                 num_original_shards,
-                original_shard_lengths,
+                [original_shard_lengths.get(i, 0) for i in range(max(original_shard_lengths.keys()))],
             ),
         )
 
@@ -1850,7 +1850,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
         shard_lengths = []
-        original_shard_lengths = []
+        original_shard_lengths = {}
         total_num_examples, total_num_bytes = 0, 0
 
         shard_id = 0
@@ -1892,8 +1892,8 @@ class ArrowBasedBuilder(DatasetBuilder):
                             gen_kwargs=gen_kwargs,
                             token=self.token,
                         )
-                    if len(original_shard_lengths) == original_shard_id:
-                        original_shard_lengths.append(len(table))
+                    if original_shard_id not in original_shard_lengths:
+                        original_shard_lengths[original_shard_id] = len(table)
                     else:
                         original_shard_lengths[original_shard_id] += len(table)
                     num_examples_progress_update += len(table)
@@ -1928,7 +1928,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                 num_shards,
                 shard_lengths,
                 num_original_shards,
-                original_shard_lengths,
+                [original_shard_lengths.get(i, 0) for i in range(max(original_shard_lengths.keys()))],
             ),
         )
 
