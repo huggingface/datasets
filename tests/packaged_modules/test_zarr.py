@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
 
+from pathlib import Path
+
 from datasets import Array2D, Features, Value, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
@@ -71,6 +73,13 @@ def test_config_raises_when_invalid_data_files(data_files) -> None:
 
 def test_zarr_basic_loading(zarr_root_metadata_file):
     ds = load_dataset("zarr", data_files=[zarr_root_metadata_file], split="train")
+    assert set(ds.column_names) == {"int32", "float32", "matrix_2d"}
+    assert ds["int32"] == [0, 1, 2, 3, 4]
+
+
+def test_zarr_loading_from_store_root_directory(zarr_root_metadata_file):
+    store_root = str(Path(zarr_root_metadata_file).parent)
+    ds = load_dataset("zarr", data_files=[store_root], split="train")
     assert set(ds.column_names) == {"int32", "float32", "matrix_2d"}
     assert ds["int32"] == [0, 1, 2, 3, 4]
 

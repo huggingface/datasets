@@ -72,14 +72,15 @@ Scientific datasets are often stored in formats like HDF5 or Zarr (chunked, N-di
 
 Zarr support is currently experimental. Install it with `pip install "datasets[zarr]"` (or `pip install zarr`).
 
-Zarr stores are directory-based. To load them, point `data_files` to the Zarr root metadata file:
+Zarr stores are directory-based. You can point `data_files` to either the Zarr store root directory (recommended for convenience) or the Zarr root metadata file:
 
+- Zarr store root directory: `.../store.zarr` (auto-detects metadata)
 - Zarr v3: `.../store.zarr/zarr.json`
 - Zarr v2 (consolidated): `.../store.zarr/.zmetadata`
 
 ```py
 >>> from datasets import load_dataset
->>> ds = load_dataset("zarr", data_files=["/path/to/store.zarr/zarr.json"], split="train", streaming=True)
+>>> ds = load_dataset("zarr", data_files=["/path/to/store.zarr"], split="train", streaming=True)
 >>> print(next(iter(ds)))
 {'int32': 0, 'float32': 0.0, 'matrix_2d': [[...], ...]}
 ```

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import os
 from typing import Optional
 
 import numpy as np
@@ -23,7 +24,9 @@ class ZarrConfig(datasets.BuilderConfig):
     group as a column and the first dimension as the row dimension.
 
     Notes:
-    - Pass the path(s) to a Zarr root metadata file via `data_files`:
+    - Pass either the Zarr store root directory (usually ending in `.zarr`) or the Zarr root metadata file(s)
+      via `data_files`:
+      - Store root directory: `.../store.zarr` (auto-detects metadata)
       - Zarr v2 (consolidated): `.zmetadata`
       - Zarr v3: `zarr.json`
     - Nested groups are not yet supported (only arrays at the selected group root).
@@ -69,17 +72,9 @@ class Zarr(datasets.ArrowBasedBuilder):
 
         for store_idx, metadata_file in enumerate(metadata_files):
             metadata_file = str(metadata_file)
-            is_v2_consolidated = metadata_file.endswith("/.zmetadata") or metadata_file.endswith("\\.zmetadata")
-            is_v3_root = metadata_file.endswith("/zarr.json") or metadata_file.endswith("\\zarr.json")
-            if not (is_v2_consolidated or is_v3_root):
-                raise ValueError(
-                    "Zarr packaged module expects a Zarr root metadata file. Supported values:\n"
-                    "- Zarr v2 consolidated: `.zmetadata`\n"
-                    "- Zarr v3: `zarr.json`\n"
-                    f"Got: {metadata_file}"
-                )
-
-            store_root = xdirname(metadata_file)
+            store_root, is_v2_consolidated, is_v3_root = _resolve_store_root_and_version(
+                metadata_file, storage_options=storage_options
+            )
             mapper = _get_fsspec_mapper(store_root, storage_options)
 
             if is_v2_consolidated and self.config.consolidated:
@@ -126,6 +121,85 @@ def _get_fsspec_mapper(store_root: str, storage_options: dict):
     protocol = store_root.split("://", 1)[0] if "://" in store_root else "file"
     per_protocol = storage_options.get(protocol, {}) if isinstance(storage_options, dict) else {}
     return fsspec.get_mapper(store_root, **(per_protocol or {}))
+
+
+def _resolve_store_root_and_version(path: str, *, storage_options: dict) -> tuple[str, bool, bool]:
+    """
+    Normalize the user input into a Zarr store root and detect whether it's a v2 consolidated store.
+
+    Supported `path` values:
+    - a Zarr root metadata file: `.../.zmetadata` (v2 consolidated) or `.../zarr.json` (v3)
+    - a Zarr store root directory: `.../store.zarr` (auto-detect `zarr.json` / `.zmetadata`)
+    """
+
+    def _endswith_metadata(p: str, suffix: str) -> bool:
+        return p.endswith("/" + suffix) or p.endswith("\\" + suffix)
+
+    if _endswith_metadata(path, ".zmetadata"):
+        return xdirname(path), True, False
+    if _endswith_metadata(path, "zarr.json"):
+        return xdirname(path), False, True
+
+    protocol = path.split("://", 1)[0] if "://" in path else "file"
+    per_protocol = storage_options.get(protocol, {}) if isinstance(storage_options, dict) else {}
+
+    # Treat paths ending in ".zarr" as store roots, and also accept directories for convenience.
+    is_store_root = path.rstrip("/\\").endswith(".zarr")
+
+    try:
+        from fsspec.core import url_to_fs
+
+        fs, fs_path = url_to_fs(path, **(per_protocol or {}))
+        try:
+            if fs.isdir(fs_path):
+                is_store_root = True
+        except Exception:
+            pass
+    except Exception:
+        fs = None
+        fs_path = None
+
+    if not is_store_root:
+        raise ValueError(
+            "Zarr packaged module expects either a Zarr store root directory (usually ending in `.zarr`) or a Zarr "
+            "root metadata file:\n"
+            "- Zarr store root directory: `.../store.zarr`\n"
+            "- Zarr v2 consolidated: `.../store.zarr/.zmetadata`\n"
+            "- Zarr v3: `.../store.zarr/zarr.json`\n"
+            f"Got: {path}"
+        )
+
+    store_root = path.rstrip("/\\")
+    # If fsspec isn't available for some reason, fall back to local filesystem checks.
+    if fs is None:
+        zarr_json = os.path.join(store_root, "zarr.json")
+        zmetadata = os.path.join(store_root, ".zmetadata")
+        if os.path.exists(zarr_json):
+            return store_root, False, True
+        if os.path.exists(zmetadata):
+            return store_root, True, False
+        raise ValueError(
+            f"Zarr store root directory '{store_root}' does not contain 'zarr.json' (v3) or '.zmetadata' (v2 consolidated)."
+        )
+
+    # Build candidate paths in the fs namespace.
+    fs_root = fs_path.rstrip("/") if isinstance(fs_path, str) else fs_path
+    cand_v3 = f"{fs_root}/zarr.json"
+    cand_v2 = f"{fs_root}/.zmetadata"
+
+    try:
+        if fs.exists(cand_v3):
+            return store_root, False, True
+        if fs.exists(cand_v2):
+            return store_root, True, False
+    except Exception:
+        pass
+
+    raise ValueError(
+        "Zarr store root directory does not contain expected metadata. Looked for:\n"
+        f"- {store_root}/zarr.json\n"
+        f"- {store_root}/.zmetadata"
+    )
 
 
 def _get_root_arrays(zgroup) -> dict[str, "zarr.Array"]:
