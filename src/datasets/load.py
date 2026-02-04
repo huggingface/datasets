@@ -218,7 +218,7 @@ def infer_module_for_data_files_list(
     """
     extensions_counter = Counter(
         ("." + suffix.lower(), xbasename(filepath) in FolderBasedBuilder.METADATA_FILENAMES)
-        for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE]
+        for filepath in data_files_list
         for suffix in xbasename(filepath).split(".")[1:]
     )
     if extensions_counter:
@@ -255,14 +255,11 @@ def infer_module_for_data_files_list_in_archives(
     for filepath in data_files_list:
         if str(filepath).endswith(".zip"):
             archive_files_counter += 1
-            if archive_files_counter > config.GLOBBED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE:
+            if archive_files_counter > config.ARCHIVES_MAX_NUMBER_FOR_MODULE_INFERENCE:
                 break
             extracted = xjoin(StreamingDownloadManager().extract(filepath), "**")
             archived_files += [
-                f.split("::")[0]
-                for f in xglob(extracted, recursive=True, download_config=download_config)[
-                    : config.ARCHIVED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE
-                ]
+                f.split("::")[0] for f in xglob(extracted, recursive=True, download_config=download_config)
             ]
     extensions_counter = Counter(
         "." + suffix.lower() for filepath in archived_files for suffix in xbasename(filepath).split(".")[1:]

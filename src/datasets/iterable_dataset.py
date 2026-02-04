@@ -10,13 +10,13 @@ import multiprocessing.pool
 import random
 import re
 import sys
+import tempfile
 import time
 from collections import Counter
 from collections.abc import Iterable, Iterator
 from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
-from io import BytesIO
 from itertools import cycle, islice
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Optional, Union
@@ -3950,8 +3950,8 @@ class IterableDataset(DatasetInfoMixin):
 
         Returns:
             additions (`List[CommitOperation]`): list of the `CommitOperationAdd` of the uploaded shards
-            uploaded_size (`int`): number of uploaded bytes to the repository
             dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset after uncompression
+            num_examples (`int`): number of examples of th euploaded shards
         """
 
         div = num_shards // num_jobs
@@ -3965,7 +3965,6 @@ class IterableDataset(DatasetInfoMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
-        uploaded_size = 0
         dataset_nbytes = 0
         num_examples = 0
         additions: list[CommitOperationAdd] = []
@@ -3980,17 +3979,21 @@ class IterableDataset(DatasetInfoMixin):
                     batch_size=get_arrow_writer_batch_size_from_features(shard.features),
                 )
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
-            buffer = BytesIO()
-            shard.to_parquet(buffer)
-            parquet_metadata = pq.read_metadata(buffer)
-            num_examples += parquet_metadata.num_rows
-            dataset_nbytes += sum(
-                parquet_metadata.row_group(i).total_byte_size for i in range(parquet_metadata.num_row_groups)
-            )
-            parquet_content = buffer.getvalue()
-            uploaded_size += len(parquet_content)
-            del buffer
-            shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=parquet_content)
+            tmp_file = tempfile.NamedTemporaryFile(suffix=".parquet", delete=False)
+            try:
+                shard.to_parquet(tmp_file)
+                tmp_file.close()
+                parquet_metadata = pq.read_metadata(tmp_file.name)
+                num_examples += parquet_metadata.num_rows
+                dataset_nbytes += sum(
+                    parquet_metadata.row_group(i).total_byte_size for i in range(parquet_metadata.num_row_groups)
+                )
+                shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=tmp_file.name)
+            except (Exception, KeyboardInterrupt):
+                tmp_file.close()
+                if Path(tmp_file.name).exists():
+                    Path(tmp_file.name).unlink()
+                raise
             api.preupload_lfs_files(
                 repo_id=repo_id,
                 additions=[shard_addition],
@@ -4189,13 +4192,6 @@ class IterableDataset(DatasetInfoMixin):
         >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
         ```
         """
-        if "Video(" in str(self.features):
-            raise NotImplementedError(
-                "push_to_hub is not implemented for video datasets, instead you should upload the video files "
-                "using e.g. the huggingface_hub library and optionally upload a metadata.csv or metadata.jsonl "
-                "file containing other information like video captions, features or labels. More information "
-                "at https://huggingface.co/docs/datasets/main/en/video_load#videofolder"
-            )
         if num_proc is not None and num_proc > self.num_shards:
             logger.warning(
                 f"Too many num_proc: {num_proc} (max is dataset.num_shards={self.num_shards}). "
