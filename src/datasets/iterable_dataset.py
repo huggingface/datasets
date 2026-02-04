@@ -2433,7 +2433,7 @@ class IterableDataset(DatasetInfoMixin):
             logger.info(
                 f"To parallelize data loading, we give each process some shards (or data sources) to process. "
                 f"Therefore it's unnecessary to have a number of workers greater than dataset.num_shards={ex_iterable.num_shards}. "
-                f"To enable more parallelism, please split the dataset in more files than {ex_iterable.num_shards}."
+                f"To enable more parallelism, please split the dataset in more files than {ex_iterable.num_shards} or try `dataset = dataset.reshard()` which may increase `num_shards` depending on the dataset file format."
             )
         # split workload
         _log_prefix = f"node#{self._distributed.rank} " if self._distributed else ""
