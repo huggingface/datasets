@@ -362,14 +362,23 @@ def resolve_pattern(
     if protocol == "hf":
         # 10 times faster glob with detail=True (ignores costly info like lastCommit)
         glob_kwargs["expand_info"] = False
-    matched_paths = [
-        filepath if "://" in filepath else protocol_prefix + filepath
-        for filepath, info in fs.glob(pattern, detail=True, **glob_kwargs).items()
-        if (info["type"] == "file" or (info.get("islink") and os.path.isfile(os.path.realpath(filepath))))
-        and (xbasename(filepath) not in files_to_ignore)
-        and not _is_inside_unrequested_special_dir(filepath, fs_pattern)
-        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(filepath, fs_pattern)
-    ]  # ignore .ipynb and __pycache__, but keep /../
+    matched_paths = []
+    for filepath, info in fs.glob(pattern, detail=True, **glob_kwargs).items():
+        # fsspec might report local symlinks as type=="other" and omit the islink flag.
+        # In that case, we still want to include them if they point to a regular file.
+        is_file = info.get("type") == "file"
+        is_link = bool(info.get("islink")) or (protocol == "file" and os.path.islink(filepath))
+        if not (is_file or (is_link and os.path.isfile(os.path.realpath(filepath)))):
+            continue
+        if xbasename(filepath) in files_to_ignore:
+            continue
+        if _is_inside_unrequested_special_dir(filepath, fs_pattern):
+            continue
+        if _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(filepath, fs_pattern):
+            continue
+
+        matched_paths.append(filepath if "://" in filepath else protocol_prefix + filepath)
+    # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [
             filepath

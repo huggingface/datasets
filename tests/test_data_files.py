@@ -265,6 +265,46 @@ def test_resolve_pattern_locally_does_not_resolve_symbolic_links(tmp_path, compl
     assert Path(resolved_data_files[0]) == tmp_path / "train_data_symlink.txt"
 
 
+@pytest.mark.skipif(os.name == "nt", reason="Windows does not support symlinks in the default mode")
+def test_resolve_pattern_locally_glob_includes_symlinked_files(tmp_path):
+    """
+    Some fsspec versions report local symlinks as type='other' and may omit the 'islink' flag.
+    We still want `resolve_pattern` to include them if they point to a regular file.
+    """
+
+    (tmp_path / "blobs").mkdir()
+    (tmp_path / "data").mkdir()
+    real_file = tmp_path / "blobs" / "file.parquet"
+    real_file.write_bytes(b"parquet")
+    symlink_file = tmp_path / "data" / "train-00000-of-00001.parquet"
+    symlink_file.symlink_to(real_file)
+
+    pattern = str(tmp_path / "data" / "*.parquet")
+
+    from fsspec.core import url_to_fs as fsspec_url_to_fs
+
+    fs, fs_pattern = fsspec_url_to_fs(pattern)
+
+    class WrappedFS:
+        def __init__(self, fs):
+            self._fs = fs
+            self.protocol = fs.protocol
+
+        def glob(self, path, detail=True, **kwargs):
+            out = self._fs.glob(path, detail=detail, **kwargs)
+            if detail:
+                for info in out.values():
+                    info["type"] = "other"
+                    info.pop("islink", None)
+            return out
+
+    with patch("datasets.data_files.url_to_fs", return_value=(WrappedFS(fs), fs_pattern)):
+        resolved_data_files = resolve_pattern(pattern, str(tmp_path))
+
+    assert len(resolved_data_files) == 1
+    assert Path(resolved_data_files[0]) == symlink_file
+
+
 def test_resolve_pattern_locally_sorted_files(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("unsorted_text_files"))
     unsorted_names = ["0.txt", "2.txt", "3.txt"]
