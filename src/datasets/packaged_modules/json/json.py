@@ -1,5 +1,4 @@
 import io
-import itertools
 from dataclasses import dataclass
 from typing import Optional
 
@@ -9,6 +8,7 @@ import pyarrow.json as paj
 
 import datasets
 import datasets.config
+from datasets.builder import Key
 from datasets.table import table_cast
 from datasets.utils.file_utils import readline
 
@@ -75,13 +75,17 @@ class Json(datasets.ArrowBasedBuilder):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         dl_manager.download_config.extract_on_the_fly = True
-        data_files = dl_manager.download_and_extract(self.config.data_files)
+        base_data_files = dl_manager.download(self.config.data_files)
+        extracted_data_files = dl_manager.extract(base_data_files)
         splits = []
-        for split_name, files in data_files.items():
-            if isinstance(files, str):
-                files = [files]
-            files = [dl_manager.iter_files(file) for file in files]
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
+        for split_name, extracted_files in extracted_data_files.items():
+            files_iterables = [dl_manager.iter_files(extracted_file) for extracted_file in extracted_files]
+            splits.append(
+                datasets.SplitGenerator(
+                    name=split_name,
+                    gen_kwargs={"files_iterables": files_iterables, "base_files": base_data_files[split_name]},
+                )
+            )
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
@@ -101,7 +105,8 @@ class Json(datasets.ArrowBasedBuilder):
                         .to_json(orient="records", lines=True)
                     )
                     string_array = pa.array(
-                        ("{" + x.rstrip() for x in ("\n" + jsonl).split("\n{") if x), type=pa.string()
+                        (None if x.strip() == "null" else x.strip() for x in jsonl.split("\n") if x.strip()),
+                        type=pa.string(),
                     )
                     pa_table = pa_table.set_column(i, column_name, string_array)
             # more expensive cast to support nested structures with keys in a different order
@@ -109,84 +114,88 @@ class Json(datasets.ArrowBasedBuilder):
             pa_table = table_cast(pa_table, self.config.features.arrow_schema)
         return pa_table
 
-    def _generate_tables(self, files):
-        for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
-            # If the file is one json object and if we need to look at the items in one specific field
-            if self.config.field is not None:
-                with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
-                    dataset = ujson_loads(f.read())
-                # We keep only the field we are interested in
-                dataset = dataset[self.config.field]
-                df = pandas_read_json(io.StringIO(ujson_dumps(dataset)))
-                if df.columns.tolist() == [0]:
-                    df.columns = list(self.config.features) if self.config.features else ["text"]
-                pa_table = pa.Table.from_pandas(df, preserve_index=False)
-                yield file_idx, self._cast_table(pa_table)
+    def _generate_shards(self, base_files, files_iterables):
+        yield from base_files
 
-            # If the file has one json object per line
-            else:
-                with open(file, "rb") as f:
-                    batch_idx = 0
-                    # Use block_size equal to the chunk size divided by 32 to leverage multithreading
-                    # Set a default minimum value of 16kB if the chunk size is really small
-                    block_size = max(self.config.chunksize // 32, 16 << 10)
-                    encoding_errors = (
-                        self.config.encoding_errors if self.config.encoding_errors is not None else "strict"
-                    )
-                    while True:
-                        batch = f.read(self.config.chunksize)
-                        if not batch:
-                            break
-                        # Finish current line
-                        try:
-                            batch += f.readline()
-                        except (AttributeError, io.UnsupportedOperation):
-                            batch += readline(f)
-                        # PyArrow only accepts utf-8 encoded bytes
-                        if self.config.encoding != "utf-8":
-                            batch = batch.decode(self.config.encoding, errors=encoding_errors).encode("utf-8")
-                        try:
-                            while True:
-                                try:
-                                    pa_table = paj.read_json(
-                                        io.BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
-                                    )
-                                    break
-                                except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
-                                    if (
-                                        isinstance(e, pa.ArrowInvalid)
-                                        and "straddling" not in str(e)
-                                        or block_size > len(batch)
-                                    ):
-                                        raise
-                                    else:
-                                        # Increase the block size in case it was too small.
-                                        # The block size will be reset for the next file.
-                                        logger.debug(
-                                            f"Batch of {len(batch)} bytes couldn't be parsed with block_size={block_size}. Retrying with block_size={block_size * 2}."
+    def _generate_tables(self, base_files, files_iterables):
+        for shard_idx, files_iterable in enumerate(files_iterables):
+            for file in files_iterable:
+                # If the file is one json object and if we need to look at the items in one specific field
+                if self.config.field is not None:
+                    with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
+                        dataset = ujson_loads(f.read())
+                    # We keep only the field we are interested in
+                    dataset = dataset[self.config.field]
+                    df = pandas_read_json(io.StringIO(ujson_dumps(dataset)))
+                    if df.columns.tolist() == [0]:
+                        df.columns = list(self.config.features) if self.config.features else ["text"]
+                    pa_table = pa.Table.from_pandas(df, preserve_index=False)
+                    yield Key(shard_idx, 0), self._cast_table(pa_table)
+
+                # If the file has one json object per line
+                else:
+                    with open(file, "rb") as f:
+                        batch_idx = 0
+                        # Use block_size equal to the chunk size divided by 32 to leverage multithreading
+                        # Set a default minimum value of 16kB if the chunk size is really small
+                        block_size = max(self.config.chunksize // 32, 16 << 10)
+                        encoding_errors = (
+                            self.config.encoding_errors if self.config.encoding_errors is not None else "strict"
+                        )
+                        while True:
+                            batch = f.read(self.config.chunksize)
+                            if not batch:
+                                break
+                            # Finish current line
+                            try:
+                                batch += f.readline()
+                            except (AttributeError, io.UnsupportedOperation):
+                                batch += readline(f)
+                            # PyArrow only accepts utf-8 encoded bytes
+                            if self.config.encoding != "utf-8":
+                                batch = batch.decode(self.config.encoding, errors=encoding_errors).encode("utf-8")
+                            try:
+                                while True:
+                                    try:
+                                        pa_table = paj.read_json(
+                                            io.BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
                                         )
-                                        block_size *= 2
-                        except pa.ArrowInvalid as e:
-                            try:
-                                with open(
-                                    file, encoding=self.config.encoding, errors=self.config.encoding_errors
-                                ) as f:
-                                    df = pandas_read_json(f)
-                            except ValueError:
-                                logger.error(f"Failed to load JSON from file '{file}' with error {type(e)}: {e}")
-                                raise e
-                            if df.columns.tolist() == [0]:
-                                df.columns = list(self.config.features) if self.config.features else ["text"]
-                            try:
-                                pa_table = pa.Table.from_pandas(df, preserve_index=False)
+                                        break
+                                    except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
+                                        if (
+                                            isinstance(e, pa.ArrowInvalid)
+                                            and "straddling" not in str(e)
+                                            or block_size > len(batch)
+                                        ):
+                                            raise
+                                        else:
+                                            # Increase the block size in case it was too small.
+                                            # The block size will be reset for the next file.
+                                            logger.debug(
+                                                f"Batch of {len(batch)} bytes couldn't be parsed with block_size={block_size}. Retrying with block_size={block_size * 2}."
+                                            )
+                                            block_size *= 2
                             except pa.ArrowInvalid as e:
-                                logger.error(
-                                    f"Failed to convert pandas DataFrame to Arrow Table from file '{file}' with error {type(e)}: {e}"
-                                )
-                                raise ValueError(
-                                    f"Failed to convert pandas DataFrame to Arrow Table from file {file}."
-                                ) from None
-                            yield file_idx, self._cast_table(pa_table)
-                            break
-                        yield (file_idx, batch_idx), self._cast_table(pa_table)
-                        batch_idx += 1
+                                try:
+                                    with open(
+                                        file, encoding=self.config.encoding, errors=self.config.encoding_errors
+                                    ) as f:
+                                        df = pandas_read_json(f)
+                                except ValueError:
+                                    logger.error(f"Failed to load JSON from file '{file}' with error {type(e)}: {e}")
+                                    raise e
+                                if df.columns.tolist() == [0]:
+                                    df.columns = list(self.config.features) if self.config.features else ["text"]
+                                try:
+                                    pa_table = pa.Table.from_pandas(df, preserve_index=False)
+                                except pa.ArrowInvalid as e:
+                                    logger.error(
+                                        f"Failed to convert pandas DataFrame to Arrow Table from file '{file}' with error {type(e)}: {e}"
+                                    )
+                                    raise ValueError(
+                                        f"Failed to convert pandas DataFrame to Arrow Table from file {file}."
+                                    ) from None
+                                yield Key(shard_idx, 0), self._cast_table(pa_table)
+                                break
+                            yield Key(shard_idx, batch_idx), self._cast_table(pa_table)
+                            batch_idx += 1

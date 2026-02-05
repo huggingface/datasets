@@ -479,6 +479,7 @@ COMPRESSION_EXTENSION_TO_PROTOCOL = {
     },
     # archive compression
     "zip": "zip",
+    "eval": "zip",
 }
 SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL = {
     extension.lstrip("."): fs_class.protocol
@@ -813,6 +814,25 @@ def xrelpath(path, start=None):
         return posixpath.relpath(main_hop, start=str(start).split("::")[0]) if start else os.path.relpath(main_hop)
 
 
+class _OverridableIOWrapper(io.RawIOBase):
+    def __init__(self, f):
+        self._overrides = {}
+        self.f = f
+
+    def __getattribute__(self, attr):
+        if attr == "_overrides":
+            return object.__getattribute__(self, attr)
+        elif attr in self._overrides:
+            return self._overrides[attr]
+        return getattr(self.f, attr)
+
+    def __setattr__(self, attr, value):
+        if attr == "_overrides":
+            object.__setattr__(self, attr, value)
+        else:
+            self._overrides[attr] = value
+
+
 def _add_retries_to_file_obj_read_method(file_obj):
     read = file_obj.read
     max_retries = config.STREAMING_READ_MAX_RETRIES
@@ -852,10 +872,8 @@ def _add_retries_to_file_obj_read_method(file_obj):
     try:
         file_obj.read = read_with_retries
     except AttributeError:  # read-only attribute
-        orig_file_obj = file_obj
-        file_obj = io.RawIOBase()
+        file_obj = _OverridableIOWrapper(file_obj)
         file_obj.read = read_with_retries
-        file_obj.__getattr__ = lambda _, attr: getattr(orig_file_obj, attr)
     return file_obj
 
 

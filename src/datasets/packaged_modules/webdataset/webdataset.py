@@ -9,6 +9,7 @@ import numpy as np
 import pyarrow as pa
 
 import datasets
+from datasets.builder import Key
 from datasets.features.features import cast_to_python_objects
 from datasets.utils.file_utils import SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL, xbasename
 
@@ -67,8 +68,6 @@ class WebDataset(datasets.GeneratorBasedBuilder):
         data_files = dl_manager.download(self.config.data_files)
         splits = []
         for split_name, tar_paths in data_files.items():
-            if isinstance(tar_paths, str):
-                tar_paths = [tar_paths]
             tar_iterators = [dl_manager.iter_archive(tar_path) for tar_path in tar_paths]
             splits.append(
                 datasets.SplitGenerator(
@@ -106,6 +105,9 @@ class WebDataset(datasets.GeneratorBasedBuilder):
 
         return splits
 
+    def _generate_shards(self, tar_paths, tar_iterators):
+        yield from tar_paths
+
     def _generate_examples(self, tar_paths, tar_iterators):
         image_field_names = [
             field_name for field_name, feature in self.info.features.items() if isinstance(feature, datasets.Image)
@@ -125,7 +127,7 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                             "path": example["__key__"] + "." + field_name,
                             "bytes": example[field_name],
                         }
-                yield f"{tar_idx}_{example_idx}", example
+                yield Key(tar_idx, example_idx), example
 
 
 # Source: https://github.com/webdataset/webdataset/blob/87bd5aa41602d57f070f65a670893ee625702f2f/webdataset/tariterators.py#L25

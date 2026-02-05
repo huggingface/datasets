@@ -40,7 +40,6 @@ from collections.abc import Iterable, Iterator, Mapping
 from collections.abc import Sequence as Sequence_
 from copy import deepcopy
 from functools import partial, wraps
-from io import BytesIO
 from math import ceil, floor
 from pathlib import Path
 from random import sample
@@ -689,10 +688,10 @@ class Column(Sequence_):
         return len(self.source)
 
     def __repr__(self):
-        return "Column(" + repr(list(self[:5])) + ")"
+        return "Column(" + repr(list(self[:5]))[:-1] + (", ...])" if len(self) > 5 else "])")
 
     def __str__(self):
-        return "Column(" + str(list(self[:5])) + ")"
+        return "Column(" + str(list(self[:5]))[:-1] + (", ...])" if len(self) > 5 else "])")
 
     def __eq__(self, value):
         if isinstance(value, Column):
@@ -1564,6 +1563,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
             num_shards = int(dataset_nbytes / max_shard_size) + 1
             num_shards = max(num_shards, num_proc or 1)
+            # if we have only a few large samples, we should only create as many shards as samples
+            num_shards = min(len(self.data), num_shards)
 
         fs: fsspec.AbstractFileSystem
         fs, _ = url_to_fs(dataset_path, **(storage_options or {}))
@@ -3558,7 +3559,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     ) from None
             if isinstance(inputs, Mapping) and isinstance(processed_inputs, Mapping):
                 # The .map() transform *updates* the dataset:
-                # the output dictionary contains both the the input data and the output data.
+                # the output dictionary contains both the input data and the output data.
                 # The output dictionary may contain Arrow values from `inputs_to_merge` so that we can re-write them efficiently.
                 return {**inputs_to_merge, **processed_inputs}
             else:
@@ -5536,7 +5537,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
-        uploaded_size = 0
         additions: list[CommitOperationAdd] = []
         for index, shard in index_shards:
             if embed_external_files:
@@ -5550,19 +5550,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
                 shard = shard.with_format(**format)
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
-            buffer = BytesIO()
-            shard.to_parquet(buffer, batch_size=writer_batch_size)
-            parquet_content = buffer.getvalue()
-            uploaded_size += len(parquet_content)
-            del buffer
-            shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=parquet_content)
-            api.preupload_lfs_files(
-                repo_id=repo_id,
-                additions=[shard_addition],
-                repo_type="dataset",
-                revision=revision,
-                create_pr=create_pr,
-            )
+            tmp_file = tempfile.NamedTemporaryFile(suffix=".parquet", delete=False)
+            try:
+                shard.to_parquet(tmp_file, batch_size=writer_batch_size)
+                tmp_file.close()
+                shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=tmp_file.name)
+                api.preupload_lfs_files(
+                    repo_id=repo_id,
+                    additions=[shard_addition],
+                    repo_type="dataset",
+                    revision=revision,
+                    create_pr=create_pr,
+                )
+            except (Exception, KeyboardInterrupt):
+                tmp_file.close()
+                if Path(tmp_file.name).exists():
+                    Path(tmp_file.name).unlink()
+                raise
             additions.append(shard_addition)
             yield job_id, False, 1
 
@@ -5771,13 +5775,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
         ```
         """
-        if "Video(" in str(self.features):
-            raise NotImplementedError(
-                "push_to_hub is not implemented for video datasets, instead you should upload the video files "
-                "using e.g. the huggingface_hub library and optionally upload a metadata.csv or metadata.jsonl "
-                "file containing other information like video captions, features or labels. More information "
-                "at https://huggingface.co/docs/datasets/main/en/video_load#videofolder"
-            )
         if config_name == "data":
             raise ValueError("`config_name` cannot be 'data'. Please, choose another name for configuration.")
 
@@ -6076,7 +6073,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @transmit_format
     @fingerprint_transform(inplace=False)
     def add_column(
-        self, name: str, column: Union[list, np.ndarray], new_fingerprint: str, feature: Optional[FeatureType] = None
+        self,
+        name: str,
+        column: Union[list, np.ndarray],
+        new_fingerprint: Optional[str] = None,
+        feature: Optional[FeatureType] = None,
     ):
         """Add column to Dataset.
 
@@ -6333,7 +6334,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(inplace=False)
-    def add_item(self, item: dict, new_fingerprint: str):
+    def add_item(self, item: dict, new_fingerprint: Optional[str] = None):
         """Add item to Dataset.
 
         <Added version="1.7"/>
@@ -6629,10 +6630,30 @@ def _interleave_map_style_datasets(
     # if stopping_strategy is "first_exhausted", it is an undersampling situation whereas it is an oversampling situation if it is "all_exhausted"
     oversampling = stopping_strategy == "all_exhausted"
 
-    if probabilities is None and not oversampling:
+    if probabilities is None and stopping_strategy == "all_exhausted_without_replacement":
+        # Without replacement situation with cycling between each sources
+        # Example: If lengths of the datasets are [3, 4, 3]
+        # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 5, 9, 6]
+        # We cycle through datasets until all are exhausted, but skip exhausted datasets
+
+        # Reasoning behind the following operation: keeping the first indices of each dataset
+        # while offsetting in order to correspond to the right indices of the concatenated dataset
+        # and flattening to effectively interleave the datasets. Then we remove the exausted datasets
+        # and we continue with the following indices, until all datasets are exhausted
+        chunks_boundaries = [0] + sorted(set(lengths))
+        chunks = zip(chunks_boundaries[:-1], chunks_boundaries[1:])
+        indices_chunks = []
+        for start, end in chunks:
+            indices_chunks.append((np.array(offsets).reshape(1, -1) + np.arange(start, end).reshape(-1, 1)).flatten())
+            exhausted_indices = [i for i in range(len(lengths)) if lengths[i] == end]
+            lengths = np.delete(lengths, exhausted_indices).tolist()
+            offsets = np.delete(offsets, exhausted_indices)
+        indices = np.concatenate(indices_chunks).tolist()
+
+    elif probabilities is None and not oversampling:
         # Undersampling situation with cycling between each sources
         # Example:: If lengths of the datasets are [3, 4, 5]
-        # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 6, 9]
+        # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 5, 9]
         # Note that we only have 3 examples per dataset since the first dataset ran out of examples
 
         # Reasoning behind the following operation: keeping the min_length first indices of each dataset

@@ -24,6 +24,7 @@ from fsspec.core import strip_protocol
 from packaging import version
 
 import datasets.arrow_dataset
+import datasets.config
 from datasets import concatenate_datasets, interleave_datasets, load_from_disk
 from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
 from datasets.dataset_dict import DatasetDict
@@ -118,6 +119,8 @@ def assert_arrow_metadata_are_synced_with_dataset_features(dataset: Dataset):
 IN_MEMORY_PARAMETERS = [
     {"testcase_name": name, "in_memory": im} for im, name in [(True, "in_memory"), (False, "on_disk")]
 ]
+
+STRING_FROM_PANDAS = "large_string" if datasets.config.PANDAS_VERSION.major >= 3 else "string"
 
 
 @parameterized.named_parameters(IN_MEMORY_PARAMETERS)
@@ -1656,7 +1659,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(
                         dset_test.features,
-                        Features({"id": Value("int64"), "text": Value("string")}),
+                        Features({"id": Value("int64"), "text": Value(STRING_FROM_PANDAS)}),
                     )
                     self.assertEqual(dset_test[0]["id"], 0)
                     self.assertEqual(dset_test[0]["text"], "a")
@@ -1672,7 +1675,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(
                         dset_test.features,
-                        Features({"id": Value("int64"), "text": Value("string")}),
+                        Features({"id": Value("int64"), "text": Value(STRING_FROM_PANDAS)}),
                     )
                     self.assertEqual(dset_test[0]["id"], 0)
                     self.assertEqual(dset_test[0]["text"], "a")
@@ -1923,7 +1926,7 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 dset.set_format("numpy")
                 fingerprint = dset._fingerprint
-                with dset.filter(lambda x: (int(x["filename"][-1]) % 2 == 0)) as dset_filter_even_num:
+                with dset.filter(lambda x: int(x["filename"][-1]) % 2 == 0) as dset_filter_even_num:
                     self.assertEqual(len(dset_filter_even_num), 15)
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(dset_filter_even_num.features, Features({"filename": Value("string")}))
@@ -2702,6 +2705,12 @@ class BaseDatasetTest(TestCase):
                 self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
 
             # With array features
+            if datasets.config.PANDAS_VERSION.major >= 3:
+                # Pandas 3 can't save and reload string data
+                # pandas/_libs/lib.pyx:732: in pandas._libs.lib.ensure_string_array
+                # E   UnicodeDecodeError: 'utf-8' codec can't decode byte 0x98 in position 0: invalid start byte
+                # pandas/_libs/lib.pyx:846: UnicodeDecodeError
+                return
             with self._create_dummy_dataset(in_memory, tmp_dir, array_features=True) as dset:
                 file_path = os.path.join(tmp_dir, "test_path.sqlite")
                 _ = dset.to_sql("data", "sqlite:///" + file_path, if_exists="replace")
@@ -3285,7 +3294,9 @@ class MiscellaneousDatasetTest(TestCase):
             self.assertSequenceEqual(dset["col_1"], data["col_1"])
             self.assertSequenceEqual(dset["col_2"], data["col_2"])
             self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
-            self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
+            self.assertDictEqual(
+                dset.features, Features({"col_1": Value("int64"), "col_2": Value(STRING_FROM_PANDAS)})
+            )
 
         features = Features({"col_1": Value("int64"), "col_2": Value("string")})
         with Dataset.from_pandas(df, features=features) as dset:
@@ -4200,7 +4211,7 @@ def _check_sql_dataset(dataset, expected_features):
 @pytest.mark.parametrize("con_type", ["string", "engine"])
 def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning, caplog):
     cache_dir = tmp_path / "cache"
-    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = {"col_1": STRING_FROM_PANDAS, "col_2": "int64", "col_3": "float64"}
     if con_type == "string":
         con = "sqlite:///" + sqlite_path
     elif con_type == "engine":
@@ -4238,7 +4249,7 @@ def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path, set_sqlalche
 )
 def test_dataset_from_sql_features(features, sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
     cache_dir = tmp_path / "cache"
-    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    default_expected_features = {"col_1": STRING_FROM_PANDAS, "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = (
         Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
@@ -4251,7 +4262,7 @@ def test_dataset_from_sql_features(features, sqlite_path, tmp_path, set_sqlalche
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 def test_dataset_from_sql_keep_in_memory(keep_in_memory, sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
     cache_dir = tmp_path / "cache"
-    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = {"col_1": STRING_FROM_PANDAS, "col_2": "int64", "col_3": "float64"}
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
         dataset = Dataset.from_sql(
             "dataset", "sqlite:///" + sqlite_path, cache_dir=cache_dir, keep_in_memory=keep_in_memory
@@ -4783,3 +4794,35 @@ def test_from_polars_save_to_disk_and_load_from_disk_round_trip_with_large_list(
 def test_polars_round_trip():
     ds = Dataset.from_dict({"x": [[1, 2], [3, 4, 5]], "y": ["a", "b"]})
     assert isinstance(Dataset.from_polars(ds.to_polars()), Dataset)
+
+
+def test_add_column():
+    from datasets import Dataset
+
+    ds = Dataset.from_dict({"a": [1, 2]})
+    ds = ds.add_column("b", [3, 4])
+    assert "b" in ds.features
+    assert ds[0] == {"a": 1, "b": 3}
+    assert ds[1] == {"a": 2, "b": 4}
+
+
+def test_process_large_few_examples(tmp_path):
+    # GH 7911
+    from datasets import Dataset
+
+    target_size = 2 * 1024
+
+    base_text = "This is a sample sentence that will be repeated many times to create a large dataset. " * 100
+    large_text = ""
+
+    while len(large_text.encode("utf-8")) < target_size:
+        large_text += base_text
+
+    data = {"text": [large_text], "label": [0], "id": [1]}
+
+    ds = Dataset.from_dict(data)
+
+    dataset_path = tmp_path / "sample_dataset"
+    # make sure this is split into 2 shards
+    ds.save_to_disk(dataset_path, max_shard_size="1KB")
+    assert (dataset_path / "data-00000-of-00001.arrow").exists()

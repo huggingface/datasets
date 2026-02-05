@@ -34,6 +34,7 @@ class SplitInfo:
     num_bytes: int = dataclasses.field(default=0, metadata={"include_in_asdict_even_if_is_default": True})
     num_examples: int = dataclasses.field(default=0, metadata={"include_in_asdict_even_if_is_default": True})
     shard_lengths: Optional[list[int]] = None
+    original_shard_lengths: Optional[list[int]] = None
 
     # Deprecated
     # For backward compatibility, this field needs to always be included in files like
@@ -58,7 +59,7 @@ class SplitInfo:
 @dataclass
 class SubSplitInfo:
     """Wrapper around a sub split info.
-    This class expose info on the subsplit:
+    This class exposes info on the subsplit:
     ```
     ds, info = datasets.load_dataset(..., split='train[75%:]', with_info=True)
     info.splits['train[75%:]'].num_examples
@@ -69,7 +70,7 @@ class SubSplitInfo:
 
     @property
     def num_examples(self):
-        """Returns the number of example in the subsplit."""
+        """Returns the number of examples in the subsplit."""
         return self.instructions.num_examples
 
     @property
@@ -354,7 +355,7 @@ class NamedSplit(SplitBase):
             ```
     """
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         self._name = name
         split_names_from_instruction = [split_instruction.split("[")[0] for split_instruction in name.split("+")]
         for split_name in split_names_from_instruction:
@@ -398,7 +399,7 @@ class NamedSplitAll(NamedSplit):
         return "NamedSplitAll()"
 
     def get_read_instruction(self, split_dict):
-        # Merge all dataset split together
+        # Merge all dataset splits together
         read_instructions = [SplitReadInstruction(s) for s in split_dict.values()]
         return sum(read_instructions, SplitReadInstruction())
 
@@ -516,7 +517,7 @@ class SplitReadInstruction:
         return list(self._splits.values())
 
 
-class SplitDict(dict):
+class SplitDict(dict[str, SplitInfo]):
     """Split info object."""
 
     def __init__(self, *args, dataset_name=None, **kwargs):
@@ -585,9 +586,10 @@ class SplitDict(dict):
 
     def _to_yaml_list(self) -> list:
         out = [asdict(s) for s in self.to_split_dict()]
-        # we don't need the shard lengths in YAML, since it depends on max_shard_size and num_proc
+        # we don't need the shard lengths in YAML
         for split_info_dict in out:
             split_info_dict.pop("shard_lengths", None)
+            split_info_dict.pop("original_shard_lengths", None)
         # we don't need the dataset_name attribute that is deprecated
         for split_info_dict in out:
             split_info_dict.pop("dataset_name", None)

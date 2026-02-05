@@ -39,8 +39,10 @@ def interleave_datasets(
 
     Note for iterable datasets:
 
-    In a distributed setup or in PyTorch DataLoader workers, the stopping strategy is applied per process.
-    Therefore the "first_exhausted" strategy on an sharded iterable dataset can generate less samples in total (up to 1 missing sample per subdataset per worker).
+    * The resulting dataset's `num_shards` is the minimum of each dataset's `num_shards` to ensure good parallelism.
+      If some of your datasets have a very low number of shards, you may use [`IterableDataset.reshard`].
+    * In a distributed setup or in PyTorch DataLoader workers, the stopping strategy is applied per process.
+      Therefore the "first_exhausted" strategy on an sharded iterable dataset can generate less samples in total (up to 1 missing sample per subdataset per worker).
 
     Args:
         datasets (`List[Dataset]` or `List[IterableDataset]`):
@@ -170,10 +172,17 @@ def concatenate_datasets(
     axis: int = 0,
 ) -> DatasetType:
     """
-    Converts a list of [`Dataset`] with the same schema into a single [`Dataset`].
+    Concatenate several datasets (sources) into a single dataset.
+
+    Use axis=0 to concatenate vertically (default), or axis=1 to concatenate horizontally.
+
+    Note for iterable datasets:
+
+    * if axis=0, the resulting dataset's `num_shards` is the sum of each dataset's `num_shards`.
+    * if axis=1, the resulting dataset has one (1) shard to not misalign data.
 
     Args:
-        dsets (`List[datasets.Dataset]`):
+        dsets (`List[datasets.Dataset]` or `List[datasets.IterableDataset]`):
             List of Datasets to concatenate.
         info (`DatasetInfo`, *optional*):
             Dataset information, like description, citation, etc.

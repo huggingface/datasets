@@ -1,4 +1,3 @@
-import itertools
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional
 
@@ -6,6 +5,7 @@ import numpy as np
 import pyarrow as pa
 
 import datasets
+from datasets.builder import Key
 from datasets.features.features import (
     Array2D,
     Array3D,
@@ -50,17 +50,12 @@ class HDF5(datasets.ArrowBasedBuilder):
 
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
-        dl_manager.download_config.extract_on_the_fly = True
-        data_files = dl_manager.download_and_extract(self.config.data_files)
+        data_files = dl_manager.download(self.config.data_files)
         splits = []
         for split_name, files in data_files.items():
-            if isinstance(files, str):
-                files = [files]
-
-            files = [dl_manager.iter_files(file) for file in files]
             # Infer features from first file
             if self.info.features is None:
-                for first_file in itertools.chain.from_iterable(files):
+                for first_file in files:
                     with open(first_file, "rb") as f:
                         with h5py.File(f, "r") as h5:
                             self.info.features = _recursive_infer_features(h5)
@@ -68,11 +63,14 @@ class HDF5(datasets.ArrowBasedBuilder):
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
+    def _generate_shards(self, files):
+        yield from files
+
     def _generate_tables(self, files):
         import h5py
 
         batch_size_cfg = self.config.batch_size
-        for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
+        for file_idx, file in enumerate(files):
             try:
                 with open(file, "rb") as f:
                     with h5py.File(f, "r") as h5:
@@ -84,13 +82,13 @@ class HDF5(datasets.ArrowBasedBuilder):
                             logger.warning(f"File {file} contains no data, skipping...")
                             continue
                         effective_batch = batch_size_cfg or self._writer_batch_size or num_rows
-                        for start in range(0, num_rows, effective_batch):
+                        for batch_idx, start in enumerate(range(0, num_rows, effective_batch)):
                             end = min(start + effective_batch, num_rows)
                             pa_table = _recursive_load_arrays(h5, self.info.features, start, end)
                             if pa_table is None:
                                 logger.warning(f"File {file} contains no data, skipping...")
                                 continue
-                            yield f"{file_idx}_{start}", cast_table_to_features(pa_table, self.info.features)
+                            yield Key(file_idx, batch_idx), cast_table_to_features(pa_table, self.info.features)
             except ValueError as e:
                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                 raise

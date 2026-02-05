@@ -101,7 +101,9 @@ def test_config_raises_when_invalid_data_files(data_files) -> None:
 
 def test_csv_generate_tables_raises_error_with_malformed_csv(csv_file, malformed_csv_file, caplog):
     csv = Csv()
-    generator = csv._generate_tables([[csv_file, malformed_csv_file]])
+    base_files = [csv_file, malformed_csv_file]
+    files_iterables = [[file] for file in base_files]
+    generator = csv._generate_tables(base_files=base_files, files_iterables=files_iterables)
     with pytest.raises(ValueError, match="Error tokenizing data"):
         for _ in generator:
             pass
@@ -118,7 +120,9 @@ def test_csv_cast_image(csv_file_with_image):
     with open(csv_file_with_image, encoding="utf-8") as f:
         image_file = f.read().splitlines()[1]
     csv = Csv(encoding="utf-8", features=Features({"image": Image()}))
-    generator = csv._generate_tables([[csv_file_with_image]])
+    base_files = [csv_file_with_image]
+    files_iterables = [[file] for file in base_files]
+    generator = csv._generate_tables(base_files=base_files, files_iterables=files_iterables)
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.schema.field("image").type == Image()()
     generated_content = pa_table.to_pydict()["image"]
@@ -129,7 +133,9 @@ def test_csv_cast_label(csv_file_with_label):
     with open(csv_file_with_label, encoding="utf-8") as f:
         labels = f.read().splitlines()[1:]
     csv = Csv(encoding="utf-8", features=Features({"label": ClassLabel(names=["good", "bad"])}))
-    generator = csv._generate_tables([[csv_file_with_label]])
+    base_files = [csv_file_with_label]
+    files_iterables = [[file] for file in base_files]
+    generator = csv._generate_tables(base_files=base_files, files_iterables=files_iterables)
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.schema.field("label").type == ClassLabel(names=["good", "bad"])()
     generated_content = pa_table.to_pydict()["label"]
@@ -138,7 +144,9 @@ def test_csv_cast_label(csv_file_with_label):
 
 def test_csv_convert_int_list(csv_file_with_int_list):
     csv = Csv(encoding="utf-8", sep=",", converters={"int_list": lambda x: [int(i) for i in x.split()]})
-    generator = csv._generate_tables([[csv_file_with_int_list]])
+    base_files = [csv_file_with_int_list]
+    files_iterables = [[file] for file in base_files]
+    generator = csv._generate_tables(base_files=base_files, files_iterables=files_iterables)
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa.types.is_list(pa_table.schema.field("int_list").type)
     generated_content = pa_table.to_pydict()["int_list"]
