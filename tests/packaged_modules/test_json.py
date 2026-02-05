@@ -271,3 +271,32 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
     generator = json._generate_tables(base_files=base_files, files_iterables=files_iterables)
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.column_names == ["ID", "Language", "Topic"]
+
+def test_json_no_file_name_by_default(jsonl_file):
+    """Ensure backward compatibility, when return_file_name is not set"""
+    json = Json()
+    base_files = [jsonl_file]
+    files_iterables = [[file] for file in base_files]
+    generator = json._generate_tables(base_files=base_files, files_iterables=files_iterables)
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert "file_name" not in pa_table.column_names
+
+def test_json_return_file_name_enabled(jsonl_file):
+    json = Json(return_file_name = True)
+    base_files = [jsonl_file]
+    files_iterables = [[file] for file in base_files]
+    generator = json._generate_tables(base_files=base_files, files_iterables=files_iterables)
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert "file_name" in pa_table.column_names
+
+def test_json_file_name_values(jsonl_file):
+    """File name column should contain the source file basename for each row."""
+    json = Json(return_file_name=True)
+    base_files = [jsonl_file]
+    files_iterables = [[jsonl_file]]
+
+    generator = json._generate_tables(base_files=base_files, files_iterables=files_iterables)
+    pa_table = pa.concat_tables([table for _, table in generator])
+
+    data = pa_table.to_pydict()
+    assert all(name == "file.jsonl" for name in data["file_name"])
