@@ -19,6 +19,7 @@ from .parquet import parquet
 from .pdffolder import pdffolder
 from .sql import sql
 from .text import text
+from .tsfile import tsfile
 from .videofolder import videofolder
 from .webdataset import webdataset
 from .xml import xml
@@ -53,6 +54,7 @@ _PACKAGED_DATASETS_MODULES = {
     "webdataset": (webdataset.__name__, _hash_python_lines(inspect.getsource(webdataset).splitlines())),
     "xml": (xml.__name__, _hash_python_lines(inspect.getsource(xml).splitlines())),
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
+    "tsfile": (tsfile.__name__, _hash_python_lines(inspect.getsource(tsfile).splitlines())),
     "eval": (eval.__name__, _hash_python_lines(inspect.getsource(eval).splitlines())),
     "lance": (lance.__name__, _hash_python_lines(inspect.getsource(lance).splitlines())),
 }
@@ -86,6 +88,7 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".xml": ("xml", {}),
     ".hdf5": ("hdf5", {}),
     ".h5": ("hdf5", {}),
+    ".tsfile": ("tsfile", {}),
     ".eval": ("eval", {}),
     ".lance": ("lance", {}),
 }

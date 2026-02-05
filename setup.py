@@ -188,6 +188,7 @@ TESTS_REQUIRE = [
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
     "torchcodec>=0.7.0; python_version < '3.14'",  # minium version to get windows support, torchcodec doesn't have wheels for 3.14 yet
     "nibabel>=5.3.1",
+    "tsfile>=2.0.0",
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
@@ -211,6 +212,8 @@ PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
 NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 
+TSFILE_REQUIRE = ["tsfile>=2.0.0"]
+
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
@@ -229,6 +232,7 @@ EXTRAS_REQUIRE = {
     "docs": DOCS_REQUIRE,
     "pdfs": PDFS_REQUIRE,
     "nibabel": NIBABEL_REQUIRE,
+    "tsfile": TSFILE_REQUIRE,
 }
 
 setup(
