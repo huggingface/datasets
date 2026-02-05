@@ -239,6 +239,29 @@ To load remote WebDatasets via HTTP, pass the URLs instead:
 >>> dataset = load_dataset("webdataset", data_files={"train": urls}, split="train", streaming=True)
 ```
 
+### FASTA
+
+[FASTA](https://en.wikipedia.org/wiki/FASTA_format) is a text-based format for representing nucleotide sequences (DNA/RNA) or peptide sequences (proteins), widely used in bioinformatics.
+
+To load a FASTA file:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("fasta", data_files="sequences.fasta")
+```
+
+This returns a dataset with the following columns:
+- `id`: Sequence identifier (first word after `>`)
+- `description`: Full description line (everything after the id)
+- `sequence`: The biological sequence (DNA/RNA/protein)
+
+You can also load only specific columns:
+
+```py
+>>> dataset = load_dataset("fasta", data_files="sequences.fa", columns=["id", "sequence"])
+```
+
+FASTA files with various extensions are supported: `.fa`, `.fasta`, `.fna` (nucleic acid), `.ffn` (nucleotide of gene regions), `.faa` (amino acid), and `.frn` (non-coding RNA). Compressed files (gzip, bzip2, xz) are automatically detected and decompressed.
 
 ## Multiprocessing
 
