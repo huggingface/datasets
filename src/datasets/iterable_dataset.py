@@ -503,7 +503,25 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                         self._state_dict["batch_idx"] += 1
                         self._state_dict["num_chunks_since_previous_state"] += len(chunks_buffer)
                         self._state_dict["cropped_chunk_length"] = 0
-                    yield new_key, pa.Table.from_batches(chunks_buffer)
+
+                    if self.features:
+                        expected_schema = pa.schema(self.features.type)
+                        casted_chunks = []
+                        for chunk in chunks_buffer:
+                            try:
+                                casted_chunks.append(chunk.cast(expected_schema))
+                            except (pa.ArrowInvalid, pa.ArrowNotImplementedError):
+                                casted_chunks.append(chunk)
+                        yield new_key, pa.Table.from_batches(casted_chunks)
+                    else:
+                        # Unify schemas when no explicit features provided
+                        if chunks_buffer:
+                            unified_schema = pa.unify_schemas([chunk.schema for chunk in chunks_buffer])
+                            casted_chunks = [chunk.cast(unified_schema) for chunk in chunks_buffer]
+                            yield new_key, pa.Table.from_batches(casted_chunks, schema=unified_schema)
+                        else:
+                            yield new_key, pa.Table.from_batches(chunks_buffer)
+
                     keys_buffer = []
                     chunks_buffer = []
                     chunks_buffer_size = 0
@@ -519,7 +537,23 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                         self._state_dict["batch_idx"] += 1
                         self._state_dict["num_chunks_since_previous_state"] += len(chunks_buffer)
                         self._state_dict["cropped_chunk_length"] = cropped_chunk_length
-                    yield new_key, pa.Table.from_batches(chunks_buffer)
+
+                    if self.features:
+                        expected_schema = pa.schema(self.features.type)
+                        casted_chunks = []
+                        for chunk in chunks_buffer:
+                            try:
+                                casted_chunks.append(chunk.cast(expected_schema))
+                            except (pa.ArrowInvalid, pa.ArrowNotImplementedError):
+                                casted_chunks.append(chunk)
+                        yield new_key, pa.Table.from_batches(casted_chunks)
+                    else:
+                        if chunks_buffer:
+                            unified_schema = pa.unify_schemas([chunk.schema for chunk in chunks_buffer])
+                            casted_chunks = [chunk.cast(unified_schema) for chunk in chunks_buffer]
+                            yield new_key, pa.Table.from_batches(casted_chunks, schema=unified_schema)
+                        else:
+                            yield new_key, pa.Table.from_batches(chunks_buffer)
                     keys_buffer = [f"{key}[{cropped_chunk_length}:]"]
                     chunks_buffer = [chunk.slice(cropped_chunk_length, len(chunk) - cropped_chunk_length)]
                     chunks_buffer_size = len(chunk) - cropped_chunk_length
@@ -535,7 +569,23 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                 self._state_dict["batch_idx"] += 1
                 self._state_dict["num_chunks_since_previous_state"] = 0
                 self._state_dict["cropped_chunk_length"] = 0
-            yield new_key, pa.Table.from_batches(chunks_buffer)
+
+            if self.features:
+                expected_schema = pa.schema(self.features.type)
+                casted_chunks = []
+                for chunk in chunks_buffer:
+                    try:
+                        casted_chunks.append(chunk.cast(expected_schema))
+                    except (pa.ArrowInvalid, pa.ArrowNotImplementedError):
+                        casted_chunks.append(chunk)
+                yield new_key, pa.Table.from_batches(casted_chunks)
+            else:
+                if chunks_buffer:
+                    unified_schema = pa.unify_schemas([chunk.schema for chunk in chunks_buffer])
+                    casted_chunks = [chunk.cast(unified_schema) for chunk in chunks_buffer]
+                    yield new_key, pa.Table.from_batches(casted_chunks, schema=unified_schema)
+                else:
+                    yield new_key, pa.Table.from_batches(chunks_buffer)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "RebatchedArrowExamplesIterable":
         return RebatchedArrowExamplesIterable(
