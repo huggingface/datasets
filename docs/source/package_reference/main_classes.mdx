@@ -100,6 +100,15 @@ The base class [`Dataset`] implements a Dataset backed by an Apache Arrow table.
     - from_sql
     - align_labels_with_mapping
 
+### Example: create a Dataset from a Python dict
+
+```py
+from datasets import Dataset
+
+data = {"text": ["hello", "world"], "label": [0, 1]}
+ds = Dataset.from_dict(data)
+```
+
 [[autodoc]] datasets.concatenate_datasets
 
 [[autodoc]] datasets.interleave_datasets
