@@ -1146,6 +1146,14 @@ def load_dataset_builder(
     dataset_name = builder_kwargs.pop("dataset_name", None)
     info = dataset_module.dataset_infos.get(config_name) if dataset_module.dataset_infos else None
 
+    # Avoid passing duplicate keyword arguments to the builder.
+    # `builder_kwargs` can contain keys like `base_path`, and users may also pass them via `config_kwargs`.
+    # In that case, Python raises: "TypeError: got multiple values for keyword argument ...".
+    # Keep the user-provided values (config_kwargs) by dropping overlaps from builder_kwargs.
+    if config_kwargs:
+        for key in set(builder_kwargs).intersection(config_kwargs):
+            builder_kwargs.pop(key, None)
+
     if (
         path in _PACKAGED_DATASETS_MODULES
         and data_files is None
