@@ -1307,6 +1307,11 @@ class DatasetBuilder:
         """
         raise NotImplementedError()
 
+    @property
+    def subset_name(self) -> str:
+        """Alias for self.config.name to match Hugging Face Hub terminology ('Subset')."""
+        return self.config.name
+
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
         """Generate the examples on the fly.
 
