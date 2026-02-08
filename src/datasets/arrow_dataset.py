@@ -3673,7 +3673,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     _time = time.time()
                     for i, example in iter_outputs(shard_iterable):
                         if update_data:
-                            if i == 0:
+                            if writer is None:
                                 buf_writer, writer, tmp_file = init_buffer_and_writer()
                                 stack.enter_context(writer)
                             if isinstance(example, pa.Table):
@@ -3698,7 +3698,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     for i, batch in iter_outputs(shard_iterable):
                         num_examples_in_batch = len(i)
                         if update_data:
-                            if i and i[0] == 0:
+                            if writer is None:
                                 buf_writer, writer, tmp_file = init_buffer_and_writer()
                                 stack.enter_context(writer)
                             if isinstance(batch, pa.Table):
