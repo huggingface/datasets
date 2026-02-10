@@ -763,6 +763,18 @@ class LoadTest(TestCase):
                         str(context.exception),
                     )
 
+    @pytest.mark.integration
+    def test_load_dataset_invalid_revision_with_cache(self):
+        repo_id = SAMPLE_DATASET_IDENTIFIER2
+        builder = load_dataset_builder(repo_id, cache_dir=self.cache_dir)
+        builder.download_and_prepare()
+        with self.assertRaises(DatasetNotFoundError) as context:
+            datasets.load_dataset(repo_id, revision="invalid_revision", cache_dir=self.cache_dir)
+        self.assertIn(
+            "Revision 'invalid_revision' doesn't exist for dataset",
+            str(context.exception),
+        )
+
     def test_load_dataset_namespace(self):
         with self.assertRaises(DatasetNotFoundError) as context:
             datasets.load_dataset("hf-internal-testing/_dummy")

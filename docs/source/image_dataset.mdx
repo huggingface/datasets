@@ -208,3 +208,90 @@ f18b91585c4d3f3e.json
 ```
 
 For more details on the WebDataset format and the python library, please check the [WebDataset documentation](https://webdataset.github.io/webdataset).
+
+## Lance
+
+[Lance](https://lance.org) is an open multimodal lakehouse table format. Lance tables can natively store not only text and scalar values,
+but also large binary objects (blobs) such as images, audio, and video alongside your tabular data.
+
+Starting from image files on disk plus associated metadata (for example, captions and dimensions), you can write a self-contained Lance dataset to a
+local `*.lance` directory. The resulting table can store your metadata columns alongside an `image` column containing the encoded image bytes.
+
+For example, you might start with metadata like:
+
+```text
+{'caption': 'Cordelia and Dudley on their wedding  day last year', 'height': 315, 'width': 233}
+{'caption': 'Statistics on challenges for automation in 2021', 'height': 299, 'width': 701}
+```
+
+You can define a `pyarrow` schema for your metadata and image bytes, build a table, and write it as a Lance dataset:
+
+```python
+import lance
+import pyarrow as pa
+
+schema = pa.schema(
+    [
+        pa.field("caption", pa.utf8()),
+        pa.field("height", pa.int32()),
+        pa.field("width", pa.int32()),
+        # ... add any additional metadata columns you want here ...
+        pa.field("image", pa.binary()),
+    ]
+)
+
+# Provide image files alongside metadata
+rows = [
+    {
+        "image_path": "/path/to/images/0001.jpg",
+        "caption": "Cordelia and Dudley on their wedding  day last year",
+        "height": 315,
+        "width": 233,
+    },
+    {
+        "image_path": "/path/to/images/0002.jpg",
+        "caption": "Statistics on challenges for automation in 2021",
+        "height": 299,
+        "width": 701,
+    },
+]
+
+image_bytes = []
+for r in rows:
+    with open(r["image_path"], "rb") as f:
+        image_bytes.append(f.read())
+
+table = pa.table(
+    {
+        "caption": [r["caption"] for r in rows],
+        "height": [r["height"] for r in rows],
+        "width": [r["width"] for r in rows],
+        "image": image_bytes,
+    },
+    schema=schema,
+)
+
+ds = lance.write_dataset(
+    table,
+    "./images.lance",
+    schema=schema,
+    mode="create",
+)
+```
+
+Here's a representative view of what a Lance table storing images might look like (the `image` column contains encoded bytes):
+
+```text
++-----------------------------------------------+--------+-------+-----+------------------------------+
+| caption                                       | height | width | ... | image                        |
++-----------------------------------------------+--------+-------+-----+------------------------------+
+| "Cordelia and Dudley on their wedding ..."    | 315    | 233   | ... | b"\\xff\\xd8\\xff...\\xd9"   |
+| "Statistics on challenges for automation ..." | 299    | 701   | ... | b"\\xff\\xd8\\xff...\\xd9"   |
++-----------------------------------------------+--------+-------+-----+------------------------------+
+```
+
+Using this approach, you can store arbitrarily large image datasets in Lance. The resulting `images.lance/` directory with
+its `*.lance` files can be uploaded to the Hugging Face Hub, just like the other examples above. See the `lance-format/laion-1m`
+[on the Hub](https://huggingface.co/datasets/lance-format/laion-1m) dataset for an example of a Lance image dataset.
+
+For more details on working with Lance datasets, see the [Lance documentation](https://lance.org).

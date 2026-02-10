@@ -1,4 +1,3 @@
-import itertools
 from dataclasses import dataclass
 from typing import Optional
 
@@ -58,9 +57,12 @@ class Xml(datasets.ArrowBasedBuilder):
         else:
             return pa_table.cast(pa.schema({"xml": pa.string()}))
 
+    def _generate_shards(self, files):
+        yield from files
+
     def _generate_tables(self, files):
         pa_table_names = list(self.config.features) if self.config.features is not None else ["xml"]
-        for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
+        for file_idx, file in enumerate(files):
             # open in text mode, by default translates universal newlines ("\n", "\r\n" and "\r") into "\n"
             with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
                 xml = f.read()

@@ -432,7 +432,7 @@ def test_hdf5_batch_processing(hdf5_file):
     config = HDF5Config(batch_size=2)
     hdf5 = HDF5()
     hdf5.config = config
-    generator = hdf5._generate_tables([[hdf5_file]])
+    generator = hdf5._generate_tables([hdf5_file])
 
     tables = list(generator)
     # Should have 3 batches: [0,1], [2,3], [4]

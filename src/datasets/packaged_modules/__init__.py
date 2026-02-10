@@ -13,6 +13,7 @@ from .genbank import genbank
 from .hdf5 import hdf5
 from .imagefolder import imagefolder
 from .json import json
+from .lance import lance
 from .niftifolder import niftifolder
 from .pandas import pandas
 from .parquet import parquet
@@ -55,6 +56,7 @@ _PACKAGED_DATASETS_MODULES = {
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
     "eval": (eval.__name__, _hash_python_lines(inspect.getsource(eval).splitlines())),
     "genbank": (genbank.__name__, _hash_python_lines(inspect.getsource(genbank).splitlines())),
+    "lance": (lance.__name__, _hash_python_lines(inspect.getsource(lance).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -90,6 +92,7 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".gb": ("genbank", {}),
     ".gbk": ("genbank", {}),
     ".genbank": ("genbank", {}),
+    ".lance": ("lance", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
@@ -119,3 +122,14 @@ _MODULE_TO_METADATA_FILE_NAMES["audiofolder"] = imagefolder.ImageFolder.METADATA
 _MODULE_TO_METADATA_FILE_NAMES["videofolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["pdffolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["niftifolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
+
+_MODULE_TO_METADATA_EXTENSIONS: Dict[str, List[str]] = {}
+for _module in _MODULE_TO_EXTENSIONS:
+    _MODULE_TO_METADATA_EXTENSIONS[_module] = []
+_MODULE_TO_METADATA_EXTENSIONS["lance"] = lance.Lance.METADATA_EXTENSIONS
+
+# Total
+
+_ALL_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + [".zip"]
+_ALL_METADATA_EXTENSIONS = list({_ext for _exts in _MODULE_TO_METADATA_EXTENSIONS.values() for _ext in _exts})
+_ALL_ALLOWED_EXTENSIONS = _ALL_EXTENSIONS + _ALL_METADATA_EXTENSIONS

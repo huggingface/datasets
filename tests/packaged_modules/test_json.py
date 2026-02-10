@@ -215,7 +215,9 @@ def test_config_raises_when_invalid_data_files(data_files) -> None:
 )
 def test_json_generate_tables(file_fixture, config_kwargs, request):
     json = Json(**config_kwargs)
-    generator = json._generate_tables([[request.getfixturevalue(file_fixture)]])
+    base_files = [request.getfixturevalue(file_fixture)]
+    files_iterables = [[file] for file in base_files]
+    generator = json._generate_tables(base_files=base_files, files_iterables=files_iterables)
     pa_table = pa.concat_tables([table for _, table in generator])
     if "list_of_strings" in file_fixture:
         expected = {"text": ["First text.", "Second text.", "Third text."]}
@@ -248,7 +250,9 @@ def test_json_generate_tables(file_fixture, config_kwargs, request):
 )
 def test_json_generate_tables_with_missing_features(file_fixture, config_kwargs, request):
     json = Json(**config_kwargs)
-    generator = json._generate_tables([[request.getfixturevalue(file_fixture)]])
+    base_files = [request.getfixturevalue(file_fixture)]
+    files_iterables = [[file] for file in base_files]
+    generator = json._generate_tables(base_files=base_files, files_iterables=files_iterables)
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.to_pydict() == {"col_1": [-1, 1, 10], "col_2": [None, 2, 20], "missing_col": [None, None, None]}
 
@@ -261,7 +265,9 @@ def test_json_generate_tables_with_missing_features(file_fixture, config_kwargs,
     ],
 )
 def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, request):
-    builder = Json(**config_kwargs)
-    generator = builder._generate_tables([[request.getfixturevalue(file_fixture)]])
+    json = Json(**config_kwargs)
+    base_files = [request.getfixturevalue(file_fixture)]
+    files_iterables = [[file] for file in base_files]
+    generator = json._generate_tables(base_files=base_files, files_iterables=files_iterables)
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.column_names == ["ID", "Language", "Topic"]

@@ -156,6 +156,41 @@ You can load a WebDataset like this:
 >>> dataset = load_dataset("webdataset", data_dir="/path/to/folder", streaming=True)
 ```
 
+## Lance
+
+[Lance](https://lance.org) is an open multimodal lakehouse table format. Lance tables can natively store not only text and scalar values,
+but also large binary objects (blobs) such as images, audio, and video alongside your tabular data. Inside a Lance table, large
+blobs like videos are stored as bytes with offsets (see the [blob guide](https://lance.org/guide/blob/) for more details), so this
+makes it easy to scan and filter metadata without loading heavier video blobs, and then fetch only the specific video blobs you need on demand.
+
+Also, because Lance is a columnar columnar format, you can project and filter only the metadata columns you care about
+(without fetching large video files), and then retrieve a small subset of rows (including the video) when you're ready. This
+keeps your metadata and videos in one place, without needing a separate file store or an external index.
+
+```python
+import lance
+
+ds = lance.dataset("hf://datasets/lance-format/openvid-lance/data/train.lance")
+
+# 1. Browse metadata without loading video blobs.
+metadata = ds.scanner(
+    columns=["caption", "aesthetic_score"],
+    filter="aesthetic_score >= 4.5",
+    limit=2,
+).to_table().to_pylist()
+
+# 2. Fetch a single video blob by row index.
+selected_index = 0
+blob_file = ds.take_blobs("video_blob", ids=[selected_index])[0]
+with open("video_0.mp4", "wb") as f:
+    f.write(blob_file.read())
+```
+
+In this example, the video is stored natively (as its encoded bytes) in the Lance table, so you can write it directly to an `mp4` file on your local
+filesystem without any extra conversion step.
+
+For more details on working with Lance datasets, see the [Lance documentation](https://lance.org).
+
 ## Video decoding
 
 By default, videos are decoded sequentially as torchvision `VideoReaders` when you iterate on a dataset.

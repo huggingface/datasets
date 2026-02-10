@@ -59,7 +59,7 @@ class SplitInfo:
 @dataclass
 class SubSplitInfo:
     """Wrapper around a sub split info.
-    This class expose info on the subsplit:
+    This class exposes info on the subsplit:
     ```
     ds, info = datasets.load_dataset(..., split='train[75%:]', with_info=True)
     info.splits['train[75%:]'].num_examples
@@ -70,7 +70,7 @@ class SubSplitInfo:
 
     @property
     def num_examples(self):
-        """Returns the number of example in the subsplit."""
+        """Returns the number of examples in the subsplit."""
         return self.instructions.num_examples
 
     @property
@@ -355,7 +355,7 @@ class NamedSplit(SplitBase):
             ```
     """
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         self._name = name
         split_names_from_instruction = [split_instruction.split("[")[0] for split_instruction in name.split("+")]
         for split_name in split_names_from_instruction:
@@ -399,7 +399,7 @@ class NamedSplitAll(NamedSplit):
         return "NamedSplitAll()"
 
     def get_read_instruction(self, split_dict):
-        # Merge all dataset split together
+        # Merge all dataset splits together
         read_instructions = [SplitReadInstruction(s) for s in split_dict.values()]
         return sum(read_instructions, SplitReadInstruction())
 

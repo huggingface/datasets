@@ -20,4 +20,4 @@ class NiftiFolder(folder_based_builder.FolderBasedBuilder):
     BASE_FEATURE = datasets.Nifti
     BASE_COLUMN_NAME = "nifti"
     BUILDER_CONFIG_CLASS = NiftiFolderConfig
-    EXTENSIONS: list[str] = [".nii", ".nii.gz"]
+    EXTENSIONS: list[str] = [".nii"]

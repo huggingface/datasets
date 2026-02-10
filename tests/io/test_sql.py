@@ -4,10 +4,14 @@ import sqlite3
 
 import pytest
 
+import datasets.config
 from datasets import Dataset, Features, Value
 from datasets.io.sql import SqlDatasetReader, SqlDatasetWriter
 
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_sqlalchemy
+
+
+STRING_FROM_PANDAS = "large_string" if datasets.config.PANDAS_VERSION.major >= 3 else "string"
 
 
 def _check_sql_dataset(dataset, expected_features):
@@ -23,7 +27,7 @@ def _check_sql_dataset(dataset, expected_features):
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 def test_dataset_from_sql_keep_in_memory(keep_in_memory, sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
     cache_dir = tmp_path / "cache"
-    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = {"col_1": STRING_FROM_PANDAS, "col_2": "int64", "col_3": "float64"}
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
         dataset = SqlDatasetReader(
             "dataset", "sqlite:///" + sqlite_path, cache_dir=cache_dir, keep_in_memory=keep_in_memory
@@ -44,7 +48,7 @@ def test_dataset_from_sql_keep_in_memory(keep_in_memory, sqlite_path, tmp_path, 
 )
 def test_dataset_from_sql_features(features, sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
     cache_dir = tmp_path / "cache"
-    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    default_expected_features = {"col_1": STRING_FROM_PANDAS, "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = (
         Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None

@@ -170,3 +170,123 @@ Load your WebDataset and it will create on column per file suffix (here "mp4" an
 >>> dataset[0]["json"]
 {"bbox": [[302.0, 109.0, 73.0, 52.0]], "categories": [0]}
 ```
+
+## Lance
+
+[Lance](https://lance.org) is an open multimodal lakehouse table format. Lance tables can natively store not only text and scalar values,
+but also large binary objects (blobs) such as images, audio, and video alongside your tabular data.
+
+Lance provides a [blob API](https://lance.org/guide/blob/) that makes it convenient to store and retrieve large blobs in Lance datasets.
+The following example shows how to efficiently browse metadata without loading the heavier video blobs, then fetch the relevant video
+blobs on demand.
+
+Here's a representative view of what a Lance table storing videos might look like (the `video_blob` column uses Lance's blob encoding):
+
+```text
++------------------------------------------+-----------------+-----+------------------------------------------+
+| caption                                  | aesthetic_score | ... | video_blob                               |
++------------------------------------------+-----------------+-----+------------------------------------------+
+| "a breathtaking view of a mounta..."     | 5.2401          | ... | {position: 0, size: 4873879}             |
+| "a captivating view of the sun, b..."    | 5.2401          | ... | {position: 4873920, size: 3370571}       |
++------------------------------------------+-----------------+-----+------------------------------------------+
+```
+
+### Write a Lance dataset from raw video files
+
+Starting from raw video files on disk plus associated metadata (for example, captions and scores), you can write a self-contained Lance dataset
+to a local `*.lance` directory (a Lance dataset is a directory on disk, and it's common to name it with a `.lance` suffix):
+
+```py
+import lance
+import pyarrow as pa
+
+import urllib.request
+
+schema = pa.schema(
+    [
+        pa.field("caption", pa.utf8()),
+        pa.field("aesthetic_score", pa.float64()),
+        pa.field(
+            "video_blob",
+            pa.large_binary(),
+            metadata={"lance-encoding:blob": "true"},
+        ),
+    ]
+)
+
+# Provide video files alongside metadata
+rows = [
+    {
+        "video_path": "/path/to/videos/0001.mp4",
+        "caption": "a breathtaking view of a mountainous landscape ...",
+        "aesthetic_score": 5.240138053894043,
+    },
+    {
+        "video_path": "0002.mp4",
+        "caption": "a captivating view of the sun, bathed in hues ...",
+        "aesthetic_score": 5.240137100219727,
+    },
+]
+
+video_bytes = []
+for r in rows:
+    with open(r["video_path"], "rb") as f:
+        video_bytes.append(f.read())
+
+table = pa.table(
+    {
+        "caption": [r["caption"] for r in rows],
+        "aesthetic_score": [r["aesthetic_score"] for r in rows],
+        "video_blob": video_bytes,
+    },
+    schema=schema,
+)
+
+ds = lance.write_dataset(
+    table,
+    "./videos.lance",
+    schema=schema,
+    mode="create",
+)
+```
+
+This stores your metadata and video bytes together inside `videos.lance/`, so you can move/copy a single directory without having to keep
+separate `*.mp4` files in sync.
+
+Here's a representative view of what a Lance table storing videos might look like (the `video_blob` column contains data that's
+stored natively as blobs inside the Lance dataset):
+
+```text
++------------------------------------------+-----------------+-----+------------------------------------------+
+| caption                                  | aesthetic_score | ... | video_blob                               |
++------------------------------------------+-----------------+-----+------------------------------------------+
+| "a breathtaking view of a mounta..."     | 5.2401          | ... | {position: 0, size: 4873879}             |
+| "a captivating view of the sun, b..."    | 5.2401          | ... | {position: 4873920, size: 3370571}       |
++------------------------------------------+-----------------+-----+------------------------------------------+
+```
+
+You can upload the resulting `videos.lance/` directory to the Hub (for example with `huggingface_hub.HfApi.upload_folder`) and share it as a
+dataset repository, keeping the metadata and videos together as a single artifact.
+
+> [!TIP]
+> Lance datasets scale to very large sizes (terabytes and beyond) since the data is stored in a columnar format on disk.
+> See the [blob API](https://lance.org/guide/blob/) guide for the latest information on best practices for storing and retrieving
+> large blobs in Lance.
+
+When writing large datasets, it's typically best to limit the size of each individual `*.lance` file to a few gigabytest at most.
+Simply gather the data via an iterator and specify the `max_bytes_per_file` parameter when writing the dataset:
+
+```python
+MAX_BYTES_PER_FILE = 5 * 1024 * 1024 * 1024  # ~5 GB per file
+
+# Write as Lance dataset with file size limits for each *.lance file
+ds = lance.write_dataset(
+    table,
+    "./videos.lance",
+    schema=schema,
+    mode="create",
+    max_bytes_per_file=MAX_BYTES_PER_FILE,
+)
+```
+
+For more details on working with Lance datasets, see the [Lance documentation](https://lance.org).
