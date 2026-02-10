@@ -182,7 +182,21 @@ IterableDataset({
 })
 ```
 
-If your dataset has `dataset.num_shards==1`, you should chunk it using [`IterableDataset.skip`] and [`IterableDataset.take`] instead.
+To increase the number of shards of a dataset, you can use [`IterableDataset.reshard`]:
+
+```py
+>>> dataset.reshard()
+IterableDataset({
+    features: ['label', 'title', 'content'],
+    num_shards: 3600
+})
+```
+
+The resharding mechanism depends on the dataset file format.
+For example for Parquet, it reshards using row groups instead of having one file per shard.
+See how it works for every format in [`IterableDataset.reshard`]'s documentation.
+
+If your dataset has `dataset.num_shards==1` even after resharding, you should chunk it using [`IterableDataset.skip`] and [`IterableDataset.take`] instead.
 
 ## Interleave
 

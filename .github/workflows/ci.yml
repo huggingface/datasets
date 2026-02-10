@@ -21,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -49,10 +49,10 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y ffmpeg 
-      - name: Set up Python 3.9
+      - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
       - name: Setup conda env (windows)
         if: ${{ matrix.os == 'windows-latest' }}
         uses: conda-incubator/setup-miniconda@v2
@@ -60,7 +60,7 @@ jobs:
           auto-update-conda: true
           miniconda-version: "latest"
           activate-environment: test
-          python-version: "3.9"
+          python-version: "3.10"
       - name: Setup FFmpeg (windows)
         if: ${{ matrix.os == 'windows-latest' }}
         run: conda install "ffmpeg=7.0.1" -c conda-forge
@@ -165,11 +165,7 @@ jobs:
       - name: Install uv
         run: pip install --upgrade uv
       - name: Install dependencies
-        run: |
-          uv pip install --system "datasets[tests_numpy2] @ ."
-          # TODO: remove once transformers v5 / huggingface_hub v1 are released officially
-          uv pip uninstall --system transformers huggingface_hub
-          uv pip install --system --prerelease=allow git+https://github.com/huggingface/transformers.git
+        run: uv pip install --system "datasets[tests_numpy2] @ ."
       - name: Print dependencies
         run: pip list
 

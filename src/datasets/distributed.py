@@ -22,6 +22,10 @@ def split_dataset_by_node(dataset: DatasetType, rank: int, world_size: int) -> D
     then the shards are evenly assigned across the nodes, which is the most optimized.
     Otherwise, each node keeps 1 example out of `world_size`, skipping the other examples.
 
+    > [!WARNING]
+    > If you shuffle your iterable dataset in a distributed setup, make sure to set a fixed `seed` in [`IterableDataset.shuffle`]
+    so the same shuffled list of shards is used on every node to know which shards the node should skip.
+
     Args:
         dataset ([`Dataset`] or [`IterableDataset`]):
             The dataset to split by node.

@@ -249,7 +249,7 @@ setup(
         "datasets.utils.resources": ["*.json", "*.yaml", "*.tsv"],
     },
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
-    python_requires=">=3.9.0",
+    python_requires=">=3.10.0",
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
     classifiers=[
@@ -260,7 +260,6 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",

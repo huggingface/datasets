@@ -252,6 +252,12 @@ class Audio:
         if pa.types.is_string(storage.type):
             bytes_array = pa.array([None] * len(storage), type=pa.binary())
             storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"], mask=storage.is_null())
+        elif pa.types.is_large_binary(storage.type):
+            storage = array_cast(
+                storage, pa.binary()
+            )  # this can fail in case of big audios, paths should be used instead
+            path_array = pa.array([None] * len(storage), type=pa.string())
+            storage = pa.StructArray.from_arrays([storage, path_array], ["bytes", "path"], mask=storage.is_null())
         elif pa.types.is_binary(storage.type):
             path_array = pa.array([None] * len(storage), type=pa.string())
             storage = pa.StructArray.from_arrays([storage, path_array], ["bytes", "path"], mask=storage.is_null())
