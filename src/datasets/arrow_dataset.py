@@ -1566,6 +1566,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # if we have only a few large samples, we should only create as many shards as samples
             num_shards = min(len(self.data), num_shards)
 
+        dataset_path = os.fspath(dataset_path)
+
         fs: fsspec.AbstractFileSystem
         fs, _ = url_to_fs(dataset_path, **(storage_options or {}))
 
@@ -1737,6 +1739,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = load_from_disk("path/to/dataset/directory")
         ```
         """
+        dataset_path = os.fspath(dataset_path)
+
         fs: fsspec.AbstractFileSystem
         fs, dataset_path = url_to_fs(dataset_path, **(storage_options or {}))
 
