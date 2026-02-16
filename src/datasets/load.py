@@ -1144,6 +1144,8 @@ def load_dataset_builder(
         "config_name", name or dataset_module.builder_configs_parameters.default_config_name
     )
     dataset_name = builder_kwargs.pop("dataset_name", None)
+    if "base_path" in config_kwargs:
+        builder_kwargs.pop("base_path", None)
     info = dataset_module.dataset_infos.get(config_name) if dataset_module.dataset_infos else None
 
     if (
