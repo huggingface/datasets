@@ -174,7 +174,7 @@ def cached_path(
         # Download files from Hugging Face.
         # Note: no need to check for https://huggingface.co file URLs since _prepare_path_and_storage_options
         # prepares Hugging Face HTTP URLs as hf:// paths already
-        if url_or_filename.startswith("hf://"):
+        if url_or_filename.startswith("hf://") and not url_or_filename.startswith("hf://buckets/"):
             resolved_path = huggingface_hub.HfFileSystem(
                 endpoint=config.HF_ENDPOINT, token=download_config.token
             ).resolve_path(url_or_filename)

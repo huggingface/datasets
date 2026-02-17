@@ -486,16 +486,17 @@ def _get_single_origin_metadata(
     data_file: str,
     download_config: Optional[DownloadConfig] = None,
 ) -> SingleOriginMetadata:
-    data_file, storage_options = _prepare_path_and_storage_options(data_file, download_config=download_config)
-    fs, *_ = url_to_fs(data_file, **storage_options)
+    if data_file.startswith(config.HF_ENDPOINT):
+        fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
+        data_file = "hf://" + data_file[len(config.HF_ENDPOINT) + 1 :]
+        data_file = data_file.replace("/resolve/", "/" if data_file.startswith("hf://buckets/") else "@", 1)
+    else:
+        data_file, storage_options = _prepare_path_and_storage_options(data_file, download_config=download_config)
+        fs, *_ = url_to_fs(data_file, **storage_options)
     if isinstance(fs, HfFileSystem):
         resolved_path = fs.resolve_path(data_file)
-        return resolved_path.repo_id, resolved_path.revision
-    elif data_file.startswith(config.HF_ENDPOINT):
-        hffs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
-        data_file = "hf://" + data_file[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
-        resolved_path = hffs.resolve_path(data_file)
-        return resolved_path.repo_id, resolved_path.revision
+        if hasattr(resolved_path, "revision"):  # no revision for buckets
+            return resolved_path.repo_id, resolved_path.revision
     info = fs.info(data_file)
     # s3fs uses "ETag", gcsfs uses "etag", and for local we simply check mtime
     for key in ["ETag", "etag", "mtime"]:

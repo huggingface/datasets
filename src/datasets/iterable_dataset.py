@@ -10,13 +10,13 @@ import multiprocessing.pool
 import random
 import re
 import sys
+import tempfile
 import time
 from collections import Counter
 from collections.abc import Iterable, Iterator
 from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
-from io import BytesIO
 from itertools import cycle, islice
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Optional, Union
@@ -179,6 +179,8 @@ def shift_ex_examples_rngs(ex_iterable: "_BaseExamplesIterable", value: int) -> 
             ex_iterable = ex_iterable.shift_rngs(value)
         if hasattr(ex_iterable, "ex_iterable"):
             ex_iterable.ex_iterable = set_seed_recursively(ex_iterable.ex_iterable)
+        if hasattr(ex_iterable, "ex_iterables"):
+            ex_iterable.ex_iterables = [set_seed_recursively(ei) for ei in ex_iterable.ex_iterables]
         return ex_iterable
 
     return set_seed_recursively(ex_iterable)
@@ -216,6 +218,14 @@ class _BaseExamplesIterable:
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "_BaseExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         raise NotImplementedError(f"{type(self)} doesn't implement shard_data_sources yet")
+
+    def reshard_data_sources(self) -> "_BaseExamplesIterable":
+        """
+        Either reshard the shards/sources of the dataset, i.e. further split the current shards into more shards,
+        or propagate the resharding to the underlying iterable.
+        If the examples iterable can't be further resharded, then this method returns self.
+        """
+        raise NotImplementedError(f"{type(self)} doesn't implement reshard_data_sources yet")
 
     def split_shard_indices_by_worker(self, num_shards: int, index: int, contiguous=True) -> list[int]:
         if contiguous:
@@ -255,10 +265,18 @@ class _BaseExamplesIterable:
 
 
 class ExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, generate_examples_fn: Callable[..., Iterator[tuple[Key, dict]]], kwargs: dict):
+    def __init__(
+        self,
+        generate_examples_fn: Callable[..., Iterator[tuple[Key, dict]]],
+        kwargs: dict,
+        generate_more_kwargs_fn: Optional[Callable[..., Iterator[dict]]] = None,
+    ):
         super().__init__()
         self.generate_examples_fn = generate_examples_fn
         self.kwargs = kwargs
+
+        # for resharding
+        self.generate_more_kwargs_fn = generate_more_kwargs_fn
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {"shard_idx": 0, "shard_example_idx": 0, "type": self.__class__.__name__}
@@ -277,73 +295,51 @@ class ExamplesIterable(_BaseExamplesIterable):
                 self._state_dict["shard_example_idx"] = 0
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "ExamplesIterable":
-        return ShuffledDataSourcesExamplesIterable(self.generate_examples_fn, self.kwargs, generator)
+        return ExamplesIterable(
+            self.generate_examples_fn,
+            _shuffle_gen_kwargs(copy.deepcopy(generator), self.kwargs),
+            self.generate_more_kwargs_fn,
+        )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ExamplesIterable":
         """Keep only the requested shard."""
         gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
         shard_indices = self.split_shard_indices_by_worker(num_shards, index, contiguous=contiguous)
         requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
-        return ExamplesIterable(self.generate_examples_fn, requested_gen_kwargs)
+        return ExamplesIterable(self.generate_examples_fn, requested_gen_kwargs, self.generate_more_kwargs_fn)
+
+    def reshard_data_sources(self) -> "ExamplesIterable":
+        """Split shars into more shards if possible."""
+        if not self.generate_more_kwargs_fn:
+            return ExamplesIterable(self.generate_examples_fn, self.kwargs, self.generate_more_kwargs_fn)
+        gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
+        new_gen_kwargs = _merge_gen_kwargs(
+            [
+                new_gen_kwargs
+                for gen_kwargs in gen_kwargs_list
+                for new_gen_kwargs in self.generate_more_kwargs_fn(**gen_kwargs)
+            ]
+        )
+        return ExamplesIterable(self.generate_examples_fn, new_gen_kwargs, self.generate_more_kwargs_fn)
 
     @property
     def num_shards(self) -> int:
         return _number_of_shards_in_gen_kwargs(self.kwargs)
 
 
-class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
+class ArrowExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
-        generate_examples_fn: Callable[..., Iterator[tuple[Key, dict]]],
+        generate_tables_fn: Callable[..., Iterator[tuple[Key, pa.Table]]],
         kwargs: dict,
-        generator: np.random.Generator,
+        generate_more_kwargs_fn: Optional[Callable[..., Iterator[dict]]] = None,
     ):
-        super().__init__(generate_examples_fn, kwargs)
-        self.generator = deepcopy(generator)
-
-    def shift_rngs(self, value: int) -> "_BaseExamplesIterable":
-        new_seed = self.generator.bit_generator.state["state"]["state"] + value
-        return ShuffledDataSourcesExamplesIterable(
-            self.generate_examples_fn,
-            self.kwargs,
-            np.random.default_rng(seed=new_seed),
-        )
-
-    def _init_state_dict(self) -> dict:
-        self._state_dict = {"shard_idx": 0, "shard_example_idx": 0, "type": self.__class__.__name__}
-        return self._state_dict
-
-    def __iter__(self):
-        """Shuffle the kwargs order to shuffle shards"""
-        rng = deepcopy(self.generator)
-        kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
-        shard_idx_start = self._state_dict["shard_idx"] if self._state_dict else 0
-        for gen_kwags in islice(
-            _split_gen_kwargs(kwargs_with_shuffled_shards, max_num_jobs=self.num_shards), shard_idx_start, None
-        ):
-            shard_example_idx_start = self._state_dict["shard_example_idx"] if self._state_dict else 0
-            for key_example in islice(self.generate_examples_fn(**gen_kwags), shard_example_idx_start, None):
-                if self._state_dict:
-                    self._state_dict["shard_example_idx"] += 1
-                yield key_example
-            if self._state_dict:
-                self._state_dict["shard_idx"] += 1
-                self._state_dict["shard_example_idx"] = 0
-
-    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ExamplesIterable":
-        """Keep only the requested shard."""
-        rng = deepcopy(self.generator)
-        kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
-        return ExamplesIterable(self.generate_examples_fn, kwargs_with_shuffled_shards).shard_data_sources(
-            num_shards, index, contiguous=contiguous
-        )
-
-
-class ArrowExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, generate_tables_fn: Callable[..., Iterator[tuple[Key, pa.Table]]], kwargs: dict):
         super().__init__()
         self.generate_tables_fn = generate_tables_fn
         self.kwargs = kwargs
+
+        # for resharding
+        self.generate_more_kwargs_fn = generate_more_kwargs_fn
 
     @property
     def iter_arrow(self):
@@ -392,7 +388,9 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
                 self._state_dict["shard_example_idx"] = 0
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "ArrowExamplesIterable":
-        return ShuffledDataSourcesArrowExamplesIterable(self.generate_tables_fn, self.kwargs, generator)
+        return ArrowExamplesIterable(
+            self.generate_tables_fn, _shuffle_gen_kwargs(copy.deepcopy(generator), self.kwargs), generator
+        )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ArrowExamplesIterable":
         """Keep only the requested shard."""
@@ -401,87 +399,23 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
         requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
         return ArrowExamplesIterable(self.generate_tables_fn, requested_gen_kwargs)
 
+    def reshard_data_sources(self) -> "ArrowExamplesIterable":
+        """Split shars into more shards if possible."""
+        if not self.generate_more_kwargs_fn:
+            return ArrowExamplesIterable(self.generate_tables_fn, self.kwargs, self.generate_more_kwargs_fn)
+        gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
+        new_gen_kwargs = _merge_gen_kwargs(
+            [
+                new_gen_kwargs
+                for gen_kwargs in gen_kwargs_list
+                for new_gen_kwargs in self.generate_more_kwargs_fn(**gen_kwargs)
+            ]
+        )
+        return ArrowExamplesIterable(self.generate_tables_fn, new_gen_kwargs, self.generate_more_kwargs_fn)
+
     @property
     def num_shards(self) -> int:
         return _number_of_shards_in_gen_kwargs(self.kwargs)
-
-
-class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
-    def __init__(
-        self,
-        generate_tables_fn: Callable[..., Iterator[tuple[Key, pa.Table]]],
-        kwargs: dict,
-        generator: np.random.Generator,
-    ):
-        super().__init__(generate_tables_fn, kwargs)
-        self.generator = deepcopy(generator)
-
-    def shift_rngs(self, value: int) -> "_BaseExamplesIterable":
-        new_seed = self.generator.bit_generator.state["state"]["state"] + value
-        return ShuffledDataSourcesArrowExamplesIterable(
-            self.generate_examples_fn,
-            self.kwargs,
-            np.random.default_rng(seed=new_seed),
-        )
-
-    def _init_state_dict(self) -> dict:
-        self._state_dict = {"shard_idx": 0, "shard_example_idx": 0, "type": self.__class__.__name__}
-        return self._state_dict
-
-    def __iter__(self):
-        """Shuffle the kwargs order to shuffle shards"""
-        rng = deepcopy(self.generator)
-        kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
-        formatter = PythonFormatter()
-        shard_idx_start = self._state_dict["shard_idx"] if self._state_dict else 0
-        for gen_kwags in islice(
-            _split_gen_kwargs(kwargs_with_shuffled_shards, max_num_jobs=self.num_shards), shard_idx_start, None
-        ):
-            shard_example_idx_start = self._state_dict["shard_example_idx"] if self._state_dict else 0
-            shard_example_idx = 0
-            for key, pa_table in self.generate_tables_fn(**gen_kwags):
-                if shard_example_idx + len(pa_table) <= shard_example_idx_start:
-                    shard_example_idx += len(pa_table)
-                    continue
-                for pa_subtable in pa_table.to_reader(max_chunksize=config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER):
-                    formatted_batch = formatter.format_batch(pa_subtable)
-                    for example in _batch_to_examples(formatted_batch):
-                        if shard_example_idx >= shard_example_idx_start:
-                            if self._state_dict:
-                                self._state_dict["shard_example_idx"] += 1
-                            yield key, example
-                        shard_example_idx += 1
-            if self._state_dict:
-                self._state_dict["shard_idx"] += 1
-                self._state_dict["shard_example_idx"] = 0
-
-    def _iter_arrow(self):
-        rng = deepcopy(self.generator)
-        kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
-        shard_idx_start = self._state_dict["shard_idx"] if self._state_dict else 0
-        for gen_kwags in islice(
-            _split_gen_kwargs(kwargs_with_shuffled_shards, max_num_jobs=self.num_shards), shard_idx_start, None
-        ):
-            shard_example_idx_start = self._state_dict["shard_example_idx"] if self._state_dict else 0
-            shard_example_idx = 0
-            for key, pa_table in self.generate_tables_fn(**gen_kwags):
-                shard_example_idx += len(pa_table)
-                if shard_example_idx <= shard_example_idx_start:
-                    continue
-                if self._state_dict:
-                    self._state_dict["shard_example_idx"] += len(pa_table)
-                yield key, pa_table
-            if self._state_dict:
-                self._state_dict["shard_idx"] += 1
-                self._state_dict["shard_example_idx"] = 0
-
-    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ArrowExamplesIterable":
-        """Keep only the requested shard."""
-        rng = deepcopy(self.generator)
-        kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
-        return ArrowExamplesIterable(self.generate_tables_fn, kwargs_with_shuffled_shards).shard_data_sources(
-            num_shards, index, contiguous=contiguous
-        )
 
 
 class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
@@ -615,6 +549,13 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
             self.drop_last_batch,
         )
 
+    def reshard_data_sources(self) -> "RebatchedArrowExamplesIterable":
+        return RebatchedArrowExamplesIterable(
+            self.ex_iterable.reshard_data_sources(),
+            self.batch_size,
+            self.drop_last_batch,
+        )
+
     @property
     def num_shards(self) -> int:
         return self.ex_iterable.num_shards
@@ -659,6 +600,9 @@ class SelectColumnsIterable(_BaseExamplesIterable):
         return SelectColumnsIterable(
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous), self.column_names
         )
+
+    def reshard_data_sources(self) -> "SelectColumnsIterable":
+        return SelectColumnsIterable(self.ex_iterable.reshard_data_sources(), self.column_names)
 
     @property
     def num_shards(self) -> int:
@@ -735,6 +679,13 @@ class StepExamplesIterable(_BaseExamplesIterable):
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "StepExamplesIterable":
         return StepExamplesIterable(
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
+            step=self.step,
+            offset=self.offset,
+        )
+
+    def reshard_data_sources(self) -> "StepExamplesIterable":
+        return StepExamplesIterable(
+            self.ex_iterable.reshard_data_sources(),
             step=self.step,
             offset=self.offset,
         )
@@ -920,6 +871,12 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
                 stopping_strategy=self.stopping_strategy,
             )
 
+    def reshard_data_sources(self) -> "CyclingMultiSourcesExamplesIterable":
+        return CyclingMultiSourcesExamplesIterable(
+            [iterable.reshard_data_sources() for iterable in self.ex_iterables],
+            stopping_strategy=self.stopping_strategy,
+        )
+
 
 class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     """
@@ -976,23 +933,37 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     def shuffle_data_sources(
         self, generator: np.random.Generator
     ) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
-        """Shuffle the list of examples iterable, as well as each underlying examples iterable."""
+        """Shuffle all shards."""
         rng = deepcopy(generator)
-        ex_iterables = list(self.ex_iterables)
-        rng.shuffle(ex_iterables)
-        ex_iterables = [ex_iterable.shuffle_data_sources(generator) for ex_iterable in ex_iterables]
-        return VerticallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
+        single_shard_ex_iterables = [
+            ex_iterable.shard_data_sources(num_shards=ex_iterable.num_shards, index=index)
+            for ex_iterable in self.ex_iterables
+            for index in range(ex_iterable.num_shards)
+        ]
+        rng.shuffle(single_shard_ex_iterables)
+        return VerticallyConcatenatedMultiSourcesExamplesIterable(single_shard_ex_iterables)
 
     @property
     def num_shards(self) -> int:
-        return min(ex_iterable.num_shards for ex_iterable in self.ex_iterables)
+        return sum(ex_iterable.num_shards for ex_iterable in self.ex_iterables)
 
     def shard_data_sources(
         self, num_shards: int, index: int, contiguous=True
     ) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
-        """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        """Keep only the requested shard"""
+        single_shard_ex_iterables = [
+            ex_iterable.shard_data_sources(num_shards=ex_iterable.num_shards, index=index)
+            for ex_iterable in self.ex_iterables
+            for index in range(ex_iterable.num_shards)
+        ]
+        shard_indices = self.split_shard_indices_by_worker(num_shards, index, contiguous=contiguous)
         return VerticallyConcatenatedMultiSourcesExamplesIterable(
-            [iterable.shard_data_sources(num_shards, index, contiguous=contiguous) for iterable in self.ex_iterables]
+            [single_shard_ex_iterables[i] for i in shard_indices]
+        )
+
+    def reshard_data_sources(self) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
+        return VerticallyConcatenatedMultiSourcesExamplesIterable(
+            [iterable.reshard_data_sources() for iterable in self.ex_iterables]
         )
 
 
@@ -1078,10 +1049,12 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
     def shard_data_sources(
         self, num_shards: int, index: int, contiguous=True
     ) -> "HorizontallyConcatenatedMultiSourcesExamplesIterable":
-        """Either keep only the requested shard, or propagate the request to the underlying iterable."""
-        return HorizontallyConcatenatedMultiSourcesExamplesIterable(
-            [iterable.shard_data_sources(num_shards, index, contiguous=contiguous) for iterable in self.ex_iterables]
-        )
+        """Doesn't shard the wrapped examples iterable since it would break the alignment between them."""
+        return self
+
+    def reshard_data_sources(self) -> "HorizontallyConcatenatedMultiSourcesExamplesIterable":
+        """Doesn't reshard the wrapped examples iterable since it would break the alignment between them."""
+        return self
 
 
 class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIterable):
@@ -1099,7 +1072,8 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         self.probabilities = probabilities
 
     def shift_rngs(self, value: int) -> "_BaseExamplesIterable":
-        new_seed = self.generator.bit_generator.state["state"]["state"] + value
+        rng = deepcopy(self.generator)
+        new_seed = rng.integers(0, 1 << 63) - value
         return RandomlyCyclingMultiSourcesExamplesIterable(
             ex_iterables=self.ex_iterables,
             generator=np.random.default_rng(seed=new_seed),
@@ -1196,6 +1170,15 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
                 self.probabilities,
                 self.stopping_strategy,
             )
+
+    def reshard_data_sources(self) -> "RandomlyCyclingMultiSourcesExamplesIterable":
+        """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        return RandomlyCyclingMultiSourcesExamplesIterable(
+            [iterable.reshard_data_sources() for iterable in self.ex_iterables],
+            self.generator,
+            self.probabilities,
+            self.stopping_strategy,
+        )
 
 
 def _table_output_to_arrow(output) -> pa.Table:
@@ -1590,6 +1573,22 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             max_num_running_async_map_functions_in_parallel=self.max_num_running_async_map_functions_in_parallel,
         )
 
+    def reshard_data_sources(self) -> "MappedExamplesIterable":
+        return MappedExamplesIterable(
+            self.ex_iterable.reshard_data_sources(),
+            function=self.function,
+            with_indices=self.with_indices,
+            input_columns=self.input_columns,
+            batched=self.batched,
+            batch_size=self.batch_size,
+            drop_last_batch=self.drop_last_batch,
+            remove_columns=self.remove_columns,
+            fn_kwargs=self.fn_kwargs,
+            formatting=self.formatting,
+            features=self.features,
+            max_num_running_async_map_functions_in_parallel=self.max_num_running_async_map_functions_in_parallel,
+        )
+
     @property
     def num_shards(self) -> int:
         return self.ex_iterable.num_shards
@@ -1692,6 +1691,18 @@ class FilteredExamplesIterable(MappedExamplesIterable):
             formatting=self.formatting,
         )
 
+    def reshard_data_sources(self) -> "FilteredExamplesIterable":
+        return FilteredExamplesIterable(
+            self.ex_iterable.reshard_data_sources(),
+            function=self.mask_function,
+            with_indices=self.with_indices,
+            input_columns=self.input_columns,
+            batched=self.batched,
+            batch_size=self.batch_size,
+            fn_kwargs=self.fn_kwargs,
+            formatting=self.formatting,
+        )
+
     @property
     def num_shards(self) -> int:
         return self.ex_iterable.num_shards
@@ -1705,7 +1716,8 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         self.generator = generator
 
     def shift_rngs(self, value: int) -> "_BaseExamplesIterable":
-        new_seed = self.generator.bit_generator.state["state"]["state"] + value
+        rng = deepcopy(self.generator)
+        new_seed = rng.integers(0, 1 << 63) - value
         return BufferShuffledExamplesIterable(
             ex_iterable=self.ex_iterable,
             buffer_size=self.buffer_size,
@@ -1780,13 +1792,20 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     def shuffle_data_sources(self, generator: np.random.Generator) -> "BufferShuffledExamplesIterable":
         """Shuffle the wrapped examples iterable as well as the shuffling buffer."""
         return BufferShuffledExamplesIterable(
-            self.ex_iterable.shuffle_data_sources(generator), buffer_size=self.buffer_size, generator=generator
+            self.ex_iterable.shuffle_data_sources(generator), buffer_size=self.buffer_size, generator=self.generator
         )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "BufferShuffledExamplesIterable":
         """Keep only the requested shard."""
         return BufferShuffledExamplesIterable(
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
+            buffer_size=self.buffer_size,
+            generator=self.generator,
+        )
+
+    def reshard_data_sources(self) -> "BufferShuffledExamplesIterable":
+        return BufferShuffledExamplesIterable(
+            self.ex_iterable.reshard_data_sources(),
             buffer_size=self.buffer_size,
             generator=self.generator,
         )
@@ -1888,6 +1907,14 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         else:
             return self
 
+    def reshard_data_sources(self) -> "SkipExamplesIterable":
+        return SkipExamplesIterable(
+            self.ex_iterable.reshard_data_sources(),
+            n=self.n,
+            block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
+            split_when_sharding=self.split_when_sharding,
+        )
+
     @property
     def num_shards(self) -> int:
         return self.ex_iterable.num_shards
@@ -1934,6 +1961,12 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
         """Shard, then repeat shards."""
         return RepeatExamplesIterable(
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
+            num_times=self.num_times,
+        )
+
+    def reshard_data_sources(self) -> "RepeatExamplesIterable":
+        return RepeatExamplesIterable(
+            self.ex_iterable.reshard_data_sources(),
             num_times=self.num_times,
         )
 
@@ -2043,6 +2076,14 @@ class TakeExamplesIterable(_BaseExamplesIterable):
                 block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
                 split_when_sharding=self.split_when_sharding,
             )
+
+    def reshard_data_sources(self) -> "TakeExamplesIterable":
+        return TakeExamplesIterable(
+            self.ex_iterable.reshard_data_sources(),
+            n=self.n,
+            block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
+            split_when_sharding=self.split_when_sharding,
+        )
 
     @property
     def num_shards(self) -> int:
@@ -2191,15 +2232,17 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             formatting=self.formatting,
         )
 
+    def reshard_data_sources(self) -> "FormattedExamplesIterable":
+        return FormattedExamplesIterable(
+            self.ex_iterable.shard_data_sources(),
+            features=self.features,
+            token_per_repo_id=self.token_per_repo_id,
+            formatting=self.formatting,
+        )
+
     @property
     def num_shards(self) -> int:
         return self.ex_iterable.num_shards
-
-
-@dataclass
-class ShufflingConfig:
-    generator: np.random.Generator
-    _original_seed: Optional[int] = None
 
 
 @dataclass
@@ -2271,22 +2314,14 @@ class IterableDataset(DatasetInfoMixin):
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
         formatting: Optional[FormattingConfig] = None,
-        shuffling: Optional[ShufflingConfig] = None,
         distributed: Optional[DistributedConfig] = None,
         token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None,
     ):
-        if distributed and distributed.world_size > 1 and shuffling and shuffling._original_seed is None:
-            raise RuntimeError(
-                "The dataset doesn't have a fixed random seed across nodes to shuffle and split the list of dataset shards by node. "
-                "Please pass e.g. `seed=42` in `.shuffle()` to make all the nodes use the same seed. "
-            )
-
         info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
 
         self._ex_iterable = copy.copy(ex_iterable)
         self._formatting = formatting
-        self._shuffling = shuffling
         self._distributed = distributed
         self._token_per_repo_id: dict[str, Union[str, bool, None]] = token_per_repo_id or {}
         self._epoch: Union[int, "torch.Tensor"] = _maybe_share_with_torch_persistent_workers(0)
@@ -2452,17 +2487,6 @@ class IterableDataset(DatasetInfoMixin):
     def epoch(self) -> int:
         return int(self._epoch)
 
-    def _effective_generator(self):
-        if self._shuffling and self.epoch == 0:
-            return self._shuffling.generator
-        elif self._shuffling:
-            # Create effective seed using self.epoch (we subtract in order to avoir overflow in long_scalars)
-            effective_seed = deepcopy(self._shuffling.generator).integers(0, 1 << 63) - self.epoch
-            effective_seed = (1 << 63) + effective_seed if effective_seed < 0 else effective_seed
-            return np.random.default_rng(effective_seed)
-        else:
-            raise ValueError("This dataset is not shuffled")
-
     @property
     def num_shards(self) -> int:
         if self._distributed and self._ex_iterable.num_shards % self._distributed.world_size == 0:
@@ -2490,7 +2514,7 @@ class IterableDataset(DatasetInfoMixin):
             logger.info(
                 f"To parallelize data loading, we give each process some shards (or data sources) to process. "
                 f"Therefore it's unnecessary to have a number of workers greater than dataset.num_shards={ex_iterable.num_shards}. "
-                f"To enable more parallelism, please split the dataset in more files than {ex_iterable.num_shards}."
+                f"To enable more parallelism, please split the dataset in more files than {ex_iterable.num_shards} or try `dataset = dataset.reshard()` which may increase `num_shards` depending on the dataset file format."
             )
         # split workload
         _log_prefix = f"node#{self._distributed.rank} " if self._distributed else ""
@@ -2556,10 +2580,9 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable = RebatchedArrowExamplesIterable(
                 ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch
             )
-        if self._shuffling:
-            ex_iterable = ex_iterable.shuffle_data_sources(self._effective_generator())
-        else:
-            ex_iterable = ex_iterable
+        if self.epoch:
+            ex_iterable = ex_iterable.shuffle_data_sources(np.random.default_rng(self.epoch))
+            ex_iterable = shift_ex_examples_rngs(ex_iterable, self.epoch)
 
         if self._distributed:
             rank = self._distributed.rank
@@ -2830,7 +2853,6 @@ class IterableDataset(DatasetInfoMixin):
             info=self._info.copy(),
             split=self._split,
             formatting=FormattingConfig(format_type=type),
-            shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -2982,7 +3004,6 @@ class IterableDataset(DatasetInfoMixin):
             info=info,
             split=self._split,
             formatting=self._formatting,
-            shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -3068,7 +3089,6 @@ class IterableDataset(DatasetInfoMixin):
             info=self._info,
             split=self._split,
             formatting=self._formatting,
-            shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -3127,19 +3147,17 @@ class IterableDataset(DatasetInfoMixin):
             generator = np.random.default_rng(seed)
         else:
             generator = deepcopy(generator)
-        shuffling = ShufflingConfig(generator=generator, _original_seed=seed)
         return IterableDataset(
             BufferShuffledExamplesIterable(
-                RebatchedArrowExamplesIterable(self._ex_iterable, batch_size=1)
+                RebatchedArrowExamplesIterable(self._ex_iterable.shuffle_data_sources(generator), batch_size=1)
                 if self._ex_iterable.iter_arrow
-                else self._ex_iterable,
+                else self._ex_iterable.shuffle_data_sources(generator),
                 buffer_size=buffer_size,
                 generator=generator,
             ),
             info=self._info.copy(),
             split=self._split,
             formatting=self._formatting,
-            shuffling=shuffling,
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -3178,7 +3196,6 @@ class IterableDataset(DatasetInfoMixin):
         ex_iterable = SkipExamplesIterable(
             self._ex_iterable,
             n,
-            block_sources_order_when_shuffling=self._shuffling is None,
             split_when_sharding=self._distributed is None,
         )
         return IterableDataset(
@@ -3186,7 +3203,6 @@ class IterableDataset(DatasetInfoMixin):
             info=self._info.copy(),
             split=self._split,
             formatting=self._formatting,
-            shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -3229,7 +3245,6 @@ class IterableDataset(DatasetInfoMixin):
             info=self._info,
             split=self._split,
             formatting=self._formatting,
-            shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -3258,7 +3273,6 @@ class IterableDataset(DatasetInfoMixin):
         ex_iterable = TakeExamplesIterable(
             self._ex_iterable,
             n,
-            block_sources_order_when_shuffling=self._shuffling is None,
             split_when_sharding=self._distributed is None,
         )
         return IterableDataset(
@@ -3266,7 +3280,6 @@ class IterableDataset(DatasetInfoMixin):
             info=self._info.copy(),
             split=self._split,
             formatting=self._formatting,
-            shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -3306,12 +3319,12 @@ class IterableDataset(DatasetInfoMixin):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("fancyzhx/amazon_polarity", split="train", streaming=True)
         >>> ds
-        Dataset({
+        IterableDataset({
             features: ['label', 'title', 'content'],
             num_shards: 4
         })
         >>> ds.shard(num_shards=2, index=0)
-        Dataset({
+        IterableDataset({
             features: ['label', 'title', 'content'],
             num_shards: 2
         })
@@ -3323,7 +3336,46 @@ class IterableDataset(DatasetInfoMixin):
             info=self._info.copy(),
             split=self._split,
             formatting=self._formatting,
-            shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
+            token_per_repo_id=self._token_per_repo_id,
+        )
+
+    def reshard(self) -> "IterableDataset":
+        """Reshard the dataset if possible, i.e. split the current shards further into more shards.
+        This increases the number of shards and the resulting dataset has num_shards >= previous_num_shards.
+        Equality may happen if no shard can be split further.
+
+        The resharding mechanism depends on the dataset file format:
+
+        * Parquet: shard per row group instead of per file
+        * Other: not implemented yet (contributions are welcome !)
+
+        Be sure to reshard/shard before using any randomizing operator (such as `shuffle`).
+        It is best if the shard operator is used early in the dataset pipeline.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("fancyzhx/amazon_polarity", split="train", streaming=True)
+        >>> ds
+        IterableDataset({
+            features: ['label', 'title', 'content'],
+            num_shards: 4
+        })
+        >>> ds.reshard()
+        IterableDataset({
+            features: ['label', 'title', 'content'],
+            num_shards: 3600
+        })
+        ```
+        """
+        ex_iterable = self._ex_iterable.reshard_data_sources()
+        return IterableDataset(
+            ex_iterable=ex_iterable,
+            info=self._info.copy(),
+            split=self._split,
+            formatting=self._formatting,
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -3476,7 +3528,6 @@ class IterableDataset(DatasetInfoMixin):
             info=info,
             split=self._split,
             formatting=self._formatting,
-            shuffling=self._shuffling,
             distributed=self._distributed,
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -3523,7 +3574,6 @@ class IterableDataset(DatasetInfoMixin):
             info=info,
             split=self._split,
             formatting=self._formatting,
-            shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -3570,7 +3620,6 @@ class IterableDataset(DatasetInfoMixin):
             info=info,
             split=self._split,
             formatting=self._formatting,
-            shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -3675,7 +3724,6 @@ class IterableDataset(DatasetInfoMixin):
             info=self._info.copy(),
             split=self._split,
             formatting=self._formatting,
-            shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -3694,7 +3742,6 @@ class IterableDataset(DatasetInfoMixin):
             info=info,
             split=self._split,
             formatting=self._formatting,
-            shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -4031,8 +4078,8 @@ class IterableDataset(DatasetInfoMixin):
 
         Returns:
             additions (`List[CommitOperation]`): list of the `CommitOperationAdd` of the uploaded shards
-            uploaded_size (`int`): number of uploaded bytes to the repository
             dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset after uncompression
+            num_examples (`int`): number of examples of th euploaded shards
         """
 
         div = num_shards // num_jobs
@@ -4046,7 +4093,6 @@ class IterableDataset(DatasetInfoMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
-        uploaded_size = 0
         dataset_nbytes = 0
         num_examples = 0
         additions: list[CommitOperationAdd] = []
@@ -4061,17 +4107,21 @@ class IterableDataset(DatasetInfoMixin):
                     batch_size=get_arrow_writer_batch_size_from_features(shard.features),
                 )
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
-            buffer = BytesIO()
-            shard.to_parquet(buffer)
-            parquet_metadata = pq.read_metadata(buffer)
-            num_examples += parquet_metadata.num_rows
-            dataset_nbytes += sum(
-                parquet_metadata.row_group(i).total_byte_size for i in range(parquet_metadata.num_row_groups)
-            )
-            parquet_content = buffer.getvalue()
-            uploaded_size += len(parquet_content)
-            del buffer
-            shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=parquet_content)
+            tmp_file = tempfile.NamedTemporaryFile(suffix=".parquet", delete=False)
+            try:
+                shard.to_parquet(tmp_file)
+                tmp_file.close()
+                parquet_metadata = pq.read_metadata(tmp_file.name)
+                num_examples += parquet_metadata.num_rows
+                dataset_nbytes += sum(
+                    parquet_metadata.row_group(i).total_byte_size for i in range(parquet_metadata.num_row_groups)
+                )
+                shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=tmp_file.name)
+            except (Exception, KeyboardInterrupt):
+                tmp_file.close()
+                if Path(tmp_file.name).exists():
+                    Path(tmp_file.name).unlink()
+                raise
             api.preupload_lfs_files(
                 repo_id=repo_id,
                 additions=[shard_addition],
@@ -4705,6 +4755,11 @@ def _interleave_iterable_datasets(
 
     # Perform checks
     _check_if_features_can_be_aligned([dset.features for dset in datasets])
+    for i, dset in enumerate(datasets):
+        if datasets[0]._distributed != dset._distributed:
+            raise ValueError(
+                f"Datasets should be identically split_by_node before interleaving, but got {datasets[0]._distributed}!={dset._distributed} at index 0 and {i}"
+            )
 
     # TODO: improve this to account for a mix of ClassLabel and Value for example
     # right now it would keep the type of the first dataset in the list
@@ -4738,7 +4793,13 @@ def _interleave_iterable_datasets(
         repo_id: token for dataset in datasets for repo_id, token in dataset._token_per_repo_id.items()
     }
     # Return new daset
-    return IterableDataset(ex_iterable=ex_iterable, info=info, split=split, token_per_repo_id=token_per_repo_id)
+    return IterableDataset(
+        ex_iterable=ex_iterable,
+        info=info,
+        split=split,
+        token_per_repo_id=token_per_repo_id,
+        distributed=datasets[0]._distributed,
+    )
 
 
 def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_size: int) -> IterableDataset:
@@ -4769,7 +4830,6 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
         info=dataset._info.copy(),
         split=dataset._split,
         formatting=dataset._formatting,
-        shuffling=copy.deepcopy(dataset._shuffling),
         distributed=distributed,
         token_per_repo_id=dataset._token_per_repo_id,
     )

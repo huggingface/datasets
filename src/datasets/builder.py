@@ -1638,7 +1638,11 @@ class GeneratorBasedBuilder(DatasetBuilder):
         )
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
-        return ExamplesIterable(self._generate_examples, split_generator.gen_kwargs)
+        return ExamplesIterable(
+            self._generate_examples,
+            split_generator.gen_kwargs,
+            generate_more_kwargs_fn=getattr(self, "_generate_more_gen_kwargs", None),
+        )
 
 
 class ArrowBasedBuilder(DatasetBuilder):
@@ -1933,7 +1937,11 @@ class ArrowBasedBuilder(DatasetBuilder):
         )
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
-        return ArrowExamplesIterable(self._generate_tables, kwargs=split_generator.gen_kwargs)
+        return ArrowExamplesIterable(
+            self._generate_tables,
+            kwargs=split_generator.gen_kwargs,
+            generate_more_kwargs_fn=getattr(self, "_generate_more_gen_kwargs", None),
+        )
 
 
 class _CountableBuilderMixin(DatasetBuilder):

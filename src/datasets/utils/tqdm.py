@@ -60,14 +60,14 @@ _hf_datasets_progress_bars_disabled: bool = HF_DATASETS_DISABLE_PROGRESS_BARS or
 
 def disable_progress_bars() -> None:
     """
-    Disable globally progress bars used in `datasets` except if `HF_DATASETS_DISABLE_PROGRESS_BAR` environment
+    Disable globally progress bars used in `datasets` except if `HF_DATASETS_DISABLE_PROGRESS_BARS` environment
     variable has been set.
 
     Use [`~utils.enable_progress_bars`] to re-enable them.
     """
     if HF_DATASETS_DISABLE_PROGRESS_BARS is False:
         warnings.warn(
-            "Cannot disable progress bars: environment variable `HF_DATASETS_DISABLE_PROGRESS_BAR=0` is set and has"
+            "Cannot disable progress bars: environment variable `HF_DATASETS_DISABLE_PROGRESS_BARS=0` is set and has"
             " priority."
         )
         return
@@ -77,14 +77,14 @@ def disable_progress_bars() -> None:
 
 def enable_progress_bars() -> None:
     """
-    Enable globally progress bars used in `datasets` except if `HF_DATASETS_DISABLE_PROGRESS_BAR` environment
+    Enable globally progress bars used in `datasets` except if `HF_DATASETS_DISABLE_PROGRESS_BARS` environment
     variable has been set.
 
     Use [`~utils.disable_progress_bars`] to disable them.
     """
     if HF_DATASETS_DISABLE_PROGRESS_BARS is True:
         warnings.warn(
-            "Cannot enable progress bars: environment variable `HF_DATASETS_DISABLE_PROGRESS_BAR=1` is set and has"
+            "Cannot enable progress bars: environment variable `HF_DATASETS_DISABLE_PROGRESS_BARS=1` is set and has"
             " priority."
         )
         return
@@ -96,7 +96,7 @@ def are_progress_bars_disabled() -> bool:
     """Return whether progress bars are globally disabled or not.
 
     Progress bars used in `datasets` can be enable or disabled globally using [`~utils.enable_progress_bars`]
-    and [`~utils.disable_progress_bars`] or by setting `HF_DATASETS_DISABLE_PROGRESS_BAR` as environment variable.
+    and [`~utils.disable_progress_bars`] or by setting `HF_DATASETS_DISABLE_PROGRESS_BARS` as environment variable.
     """
     global _hf_datasets_progress_bars_disabled
     return _hf_datasets_progress_bars_disabled
