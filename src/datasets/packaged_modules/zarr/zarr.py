@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import os
 from typing import Optional
 
 import numpy as np
@@ -7,7 +6,16 @@ import pyarrow as pa
 
 import datasets
 from datasets.builder import Key
-from datasets.features.features import Array2D, Array3D, Array4D, Array5D, Features, List, Value, _arrow_to_datasets_dtype
+from datasets.features.features import (
+    Array2D,
+    Array3D,
+    Array4D,
+    Array5D,
+    Features,
+    List,
+    Value,
+    _arrow_to_datasets_dtype,
+)
 from datasets.table import cast_table_to_features
 from datasets.utils.file_utils import xdirname
 
@@ -110,7 +118,7 @@ def _require_zarr():
     except Exception as e:  # pragma: no cover
         raise ImportError(
             "Using the packaged module `zarr` requires the optional dependency `zarr`.\n"
-            "Install it with: `pip install \"datasets[zarr]\"` (or `pip install zarr`)"
+            'Install it with: `pip install "datasets[zarr]"` (or `pip install zarr`)'
         ) from e
     return zarr
 
@@ -146,18 +154,14 @@ def _resolve_store_root_and_version(path: str, *, storage_options: dict) -> tupl
     # Treat paths ending in ".zarr" as store roots, and also accept directories for convenience.
     is_store_root = path.rstrip("/\\").endswith(".zarr")
 
-    try:
-        from fsspec.core import url_to_fs
+    from fsspec.core import url_to_fs
 
-        fs, fs_path = url_to_fs(path, **(per_protocol or {}))
-        try:
-            if fs.isdir(fs_path):
-                is_store_root = True
-        except Exception:
-            pass
+    fs, fs_path = url_to_fs(path, **(per_protocol or {}))
+    try:
+        if fs.isdir(fs_path):
+            is_store_root = True
     except Exception:
-        fs = None
-        fs_path = None
+        pass
 
     if not is_store_root:
         raise ValueError(
@@ -170,20 +174,9 @@ def _resolve_store_root_and_version(path: str, *, storage_options: dict) -> tupl
         )
 
     store_root = path.rstrip("/\\")
-    # If fsspec isn't available for some reason, fall back to local filesystem checks.
-    if fs is None:
-        zarr_json = os.path.join(store_root, "zarr.json")
-        zmetadata = os.path.join(store_root, ".zmetadata")
-        if os.path.exists(zarr_json):
-            return store_root, False, True
-        if os.path.exists(zmetadata):
-            return store_root, True, False
-        raise ValueError(
-            f"Zarr store root directory '{store_root}' does not contain 'zarr.json' (v3) or '.zmetadata' (v2 consolidated)."
-        )
 
     # Build candidate paths in the fs namespace.
-    fs_root = fs_path.rstrip("/") if isinstance(fs_path, str) else fs_path
+    fs_root = fs_path.rstrip("/\\") if isinstance(fs_path, str) else fs_path
     cand_v3 = f"{fs_root}/zarr.json"
     cand_v2 = f"{fs_root}/.zmetadata"
 
@@ -261,8 +254,9 @@ def _load_batch(arrays: dict[str, "zarr.Array"], features: Features, start: int,
             continue
         np_batch = arr[start:end]
         if np.dtype(arr.dtype).kind in {"O", "U", "S"}:
-            batch[name] = pa.array([x.decode("utf-8") if isinstance(x, (bytes, bytearray)) else str(x) for x in np_batch])
+            batch[name] = pa.array(
+                [x.decode("utf-8") if isinstance(x, (bytes, bytearray)) else str(x) for x in np_batch]
+            )
         else:
             batch[name] = datasets.features.features.numpy_to_pyarrow_listarray(np_batch)
     return pa.Table.from_pydict(batch)
-

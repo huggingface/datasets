@@ -1,0 +1,45 @@
+# Load scientific data
+
+Scientific datasets are often stored in formats like HDF5 or Zarr (chunked, N-dimensional arrays). 🤗 Datasets can stream these formats directly from local files (and remote filesystems supported by `fsspec`) without converting the full dataset to Arrow first.
+
+## HDF5
+
+```py
+>>> from datasets import load_dataset
+>>> ds = load_dataset("hdf5", data_files=["/path/to/data.h5"], split="train", streaming=True)
+>>> print(next(iter(ds)))
+{'temperature': 280.12, 'pressure': 101325.0, ...}
+```
+
+## Zarr
+
+Zarr support is currently experimental. Install it with `pip install "datasets[zarr]"` (or `pip install zarr`).
+
+Zarr stores are directory-based. You can point `data_files` to either the Zarr store root directory (recommended for convenience) or the Zarr root metadata file:
+
+- Zarr store root directory: `.../store.zarr` (auto-detects metadata)
+- Zarr v3: `.../store.zarr/zarr.json`
+- Zarr v2 (consolidated): `.../store.zarr/.zmetadata`
+
+```py
+>>> from datasets import load_dataset
+>>> ds = load_dataset("zarr", data_files=["/path/to/store.zarr"], split="train", streaming=True)
+>>> print(next(iter(ds)))
+{'int32': 0, 'float32': 0.0, 'matrix_2d': [[...], ...]}
+```
+
+In streaming mode, `num_shards` is based on the number of Zarr stores you pass in `data_files`. For more fine-grained sharding, consider splitting large datasets into multiple `.zarr` stores.
+
+You can also load from the Hub via the `hf://` protocol:
+
+```py
+>>> from datasets import DownloadConfig, load_dataset
+>>> download_config = DownloadConfig(storage_options={"hf": {"token": None}})  # set token for private/gated repos
+>>> ds = load_dataset(
+...     "zarr",
+...     data_files=["hf://datasets/<user>/<repo>@main/path/to/store.zarr"],
+...     split="train",
+...     streaming=True,
+...     download_config=download_config,
+... )
+```

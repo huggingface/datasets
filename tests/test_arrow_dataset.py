@@ -1926,7 +1926,7 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 dset.set_format("numpy")
                 fingerprint = dset._fingerprint
-                with dset.filter(lambda x: (int(x["filename"][-1]) % 2 == 0)) as dset_filter_even_num:
+                with dset.filter(lambda x: int(x["filename"][-1]) % 2 == 0) as dset_filter_even_num:
                     self.assertEqual(len(dset_filter_even_num), 15)
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(dset_filter_even_num.features, Features({"filename": Value("string")}))

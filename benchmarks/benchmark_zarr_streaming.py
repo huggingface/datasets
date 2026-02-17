@@ -8,7 +8,6 @@ This benchmark creates a small local Zarr store and compares:
 Note: This is a best-effort benchmark intended for development/profiling.
 """
 
-
 import argparse
 import tempfile
 import time

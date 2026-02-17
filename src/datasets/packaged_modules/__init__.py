@@ -90,8 +90,7 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".h5": ("hdf5", {}),
     ".eval": ("eval", {}),
     ".lance": ("lance", {}),
-    # Zarr stores are directory-based; users typically pass the root metadata file (Zarr v3: `zarr.json`,
-    # Zarr v2 consolidated: `.zmetadata`) explicitly via `data_files`.
+    # Zarr stores are directory-based (usually ending in `.zarr`).
     ".zarr": ("zarr", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
@@ -122,11 +121,13 @@ _MODULE_TO_METADATA_FILE_NAMES["audiofolder"] = imagefolder.ImageFolder.METADATA
 _MODULE_TO_METADATA_FILE_NAMES["videofolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["pdffolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["niftifolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
+_MODULE_TO_METADATA_FILE_NAMES["zarr"] = ["zarr.json"]
 
 _MODULE_TO_METADATA_EXTENSIONS: Dict[str, List[str]] = {}
 for _module in _MODULE_TO_EXTENSIONS:
     _MODULE_TO_METADATA_EXTENSIONS[_module] = []
 _MODULE_TO_METADATA_EXTENSIONS["lance"] = lance.Lance.METADATA_EXTENSIONS
+_MODULE_TO_METADATA_EXTENSIONS["zarr"] = [".zmetadata"]
 
 # Total
 
