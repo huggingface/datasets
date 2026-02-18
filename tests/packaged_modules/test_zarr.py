@@ -31,6 +31,14 @@ def _maybe_consolidate_v2_metadata(zarr_module, store_dir) -> None:
         pass
 
 
+def _create_array_compat(zarr_group, name: str, data: np.ndarray, chunks: tuple[int, ...]) -> None:
+    create_array = getattr(zarr_group, "create_array", None)
+    if create_array is not None:
+        create_array(name, data=data, chunks=chunks)
+    else:
+        zarr_group.create_dataset(name, data=data, chunks=chunks)
+
+
 @pytest.fixture
 def zarr_root_metadata_file(tmp_path) -> str:
     zarr = pytest.importorskip("zarr")
@@ -39,11 +47,12 @@ def zarr_root_metadata_file(tmp_path) -> str:
     n_rows = 5
 
     root = zarr.open_group(store=str(store_dir), mode="w")
-    root.create_array("int32", data=np.arange(n_rows, dtype=np.int32), chunks=(2,))
-    root.create_array("float32", data=np.arange(n_rows, dtype=np.float32) / 10.0, chunks=(2,))
-    root.create_array(
+    _create_array_compat(root, "int32", np.arange(n_rows, dtype=np.int32), chunks=(2,))
+    _create_array_compat(root, "float32", np.arange(n_rows, dtype=np.float32) / 10.0, chunks=(2,))
+    _create_array_compat(
+        root,
         "matrix_2d",
-        data=np.random.randn(n_rows, 3, 4).astype(np.float32),
+        np.random.randn(n_rows, 3, 4).astype(np.float32),
         chunks=(2, 3, 4),
     )
 
