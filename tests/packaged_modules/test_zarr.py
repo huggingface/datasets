@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from datasets import Array2D, Features, Value, load_dataset
+from datasets import Array2D, DownloadManager, Features, Value, load_dataset, load_dataset_builder
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.zarr.zarr import ZarrConfig
@@ -109,3 +109,8 @@ def test_zarr_streaming(zarr_root_metadata_file):
     ds = load_dataset("zarr", data_files=[zarr_root_metadata_file], split="train", streaming=True)
     first = next(iter(ds))
     assert set(first.keys()) == {"int32", "float32", "matrix_2d"}
+
+
+def test_zarr_count_examples(zarr_root_metadata_file):
+    builder = load_dataset_builder("zarr", data_files=[zarr_root_metadata_file])
+    assert builder.count_examples(DownloadManager()) == {"train": 5}

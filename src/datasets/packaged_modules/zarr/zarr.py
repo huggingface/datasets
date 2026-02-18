@@ -46,7 +46,7 @@ class ZarrConfig(datasets.BuilderConfig):
     consolidated: bool = True
 
 
-class Zarr(datasets.ArrowBasedBuilder):
+class Zarr(datasets.ArrowBasedBuilder, datasets.builder._CountableBuilderMixin):
     BUILDER_CONFIG_CLASS = ZarrConfig
 
     def _info(self):
@@ -71,6 +71,35 @@ class Zarr(datasets.ArrowBasedBuilder):
 
     def _generate_shards(self, metadata_files, storage_options):
         yield from metadata_files
+
+    def _generate_num_examples(self, metadata_files, storage_options):
+        zarr = _require_zarr()
+
+        group_path = self.config.group
+
+        for metadata_file in metadata_files:
+            metadata_file = str(metadata_file)
+            store_root, is_v2_consolidated, _ = _resolve_store_root_and_version(
+                metadata_file, storage_options=storage_options
+            )
+            mapper = _get_fsspec_mapper(store_root, storage_options)
+
+            if is_v2_consolidated and self.config.consolidated:
+                zgroup = zarr.open_consolidated(store=mapper, mode="r")
+            else:
+                zgroup = zarr.open_group(store=mapper, mode="r")
+
+            if group_path:
+                zgroup = zgroup[group_path]
+
+            arrays = _get_root_arrays(zgroup)
+            if not arrays:
+                raise ValueError(f"No arrays found in Zarr group at '{store_root}'")
+
+            if self.info.features is None:
+                self.info.features = _infer_features_from_zarr_arrays(arrays)
+
+            yield _check_array_lengths(arrays, self.info.features)
 
     def _generate_tables(self, metadata_files, storage_options):
         zarr = _require_zarr()
