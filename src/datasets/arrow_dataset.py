@@ -58,6 +58,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
+import pyarrow.dataset as pds
 from fsspec.core import url_to_fs
 from huggingface_hub import (
     CommitInfo,
@@ -928,7 +929,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @classmethod
     def from_polars(
         cls,
-        df: "pl.DataFrame",
+        df: Union["pl.DataFrame", "pl.LazyFrame"],
         features: Optional[Features] = None,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
@@ -952,6 +953,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = Dataset.from_polars(df)
         ```
         """
+        import polars as pl
+
         if info is not None and features is not None and info.features != features:
             raise ValueError(
                 f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
@@ -962,6 +965,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if info is None:
             info = DatasetInfo()
         info.features = features
+        if isinstance(df, pl.LazyFrame):
+            df = df.collect()
         table = InMemoryTable(df.to_arrow())
         if features is not None:
             # more expensive cast than InMemoryTable.from_polars(..., schema=features.arrow_schema)
@@ -1075,8 +1080,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         keep_in_memory: bool = False,
         num_proc: Optional[int] = None,
         **kwargs,
-    ):
+    ) -> "Dataset":
         """Create Dataset from CSV file(s).
+
+        Read the CSV files, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
             path_or_paths (`path-like` or list of `path-like`):
@@ -1130,8 +1137,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         split: NamedSplit = Split.TRAIN,
         fingerprint: Optional[str] = None,
         **kwargs,
-    ):
+    ) -> "Dataset":
         """Create a Dataset from a generator.
+
+        Load the data from the generator, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
             generator (:`Callable`):
@@ -1212,8 +1221,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         field: Optional[str] = None,
         num_proc: Optional[int] = None,
         **kwargs,
-    ):
+    ) -> "Dataset":
         """Create Dataset from JSON or JSON Lines file(s).
+
+        Read the JSON files, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
             path_or_paths (`path-like` or list of `path-like`):
@@ -1268,9 +1279,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         keep_in_memory: bool = False,
         columns: Optional[list[str]] = None,
         num_proc: Optional[int] = None,
+        filters: Optional[Union[pds.Expression, list[tuple], list[list[tuple]]]] = None,
+        fragment_scan_options: Optional[pds.ParquetFragmentScanOptions] = None,
+        on_bad_files: Literal["error", "warn", "skip"] = "error",
         **kwargs,
-    ):
+    ) -> "Dataset":
         """Create Dataset from Parquet file(s).
+
+        Read the Parquet files, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
             path_or_paths (`path-like` or list of `path-like`):
@@ -1292,6 +1308,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
 
                 <Added version="2.8.0"/>
+            filters (`Union[pyarrow.dataset.Expression, list[tuple], list[list[tuple]]]`, *optional*):
+                Return only the rows matching the filter.
+                If possible the predicate will be pushed down to exploit the partition information
+                or internal metadata found in the data source, e.g. Parquet statistics.
+                Otherwise filters the loaded RecordBatches before yielding them.
+            fragment_scan_options (`pyarrow.dataset.ParquetFragmentScanOptions`, *optional*)
+                Scan-specific options for Parquet fragments.
+                This is especially useful to configure buffering and caching.
+
+                <Added version="4.2.0"/>
+            on_bad_files (`Literal["error", "warn", "skip"]`, *optional*, defaults to "error")
+                Specify what to do upon encountering a bad file (a file that can't be read). Allowed values are :
+                * 'error', raise an Exception when a bad file is encountered.
+                * 'warn', raise a warning when a bad file is encountered and skip that file.
+                * 'skip', skip bad files without raising or warning when they are encountered.
+
+                <Added version="4.2.0"/>
             **kwargs (additional keyword arguments):
                 Keyword arguments to be passed to [`ParquetConfig`].
 
@@ -1302,6 +1335,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> ds = Dataset.from_parquet('path/to/dataset.parquet')
+        ```
+
+        Load a subset of columns:
+
+        ```python
+        >>> ds = Dataset.from_parquet('path/to/dataset.parquet', columns=["col_0", "col_1"])
+        ```
+
+        Efficiently filter data, possibly skipping entire files or row groups:
+
+        ```python
+        >>> filters = [("col_0", "==", 0)]
+        >>> ds = Dataset.from_parquet(parquet_files_list, filters=filters)
         ```
         """
         # Dynamic import to avoid circular dependency
@@ -1315,6 +1361,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             keep_in_memory=keep_in_memory,
             columns=columns,
             num_proc=num_proc,
+            filters=filters,
+            fragment_scan_options=fragment_scan_options,
+            on_bad_files=on_bad_files,
             **kwargs,
         ).read()
 
@@ -1326,9 +1375,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cache_dir: str = None,
         keep_in_memory: bool = False,
         num_proc: Optional[int] = None,
+        keep_linebreaks: bool = False,
+        sample_by: Literal["line", "paragraph", "document"] = "line",
         **kwargs,
-    ):
+    ) -> "Dataset":
         """Create Dataset from text file(s).
+
+        Read the text files, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
             path_or_paths (`path-like` or list of `path-like`):
@@ -1346,6 +1399,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
 
                 <Added version="2.8.0"/>
+            keep_linebreaks: (`bool`, defaults to False):
+                Whether to keep line breaks.
+            sample_by (`Literal["line", "paragraph", "document"]`, defaults to "line"):
+                Whether to load data per line, praragraph or document.
+                By default one row in the dataset = one line.
             **kwargs (additional keyword arguments):
                 Keyword arguments to be passed to [`TextConfig`].
 
@@ -1368,6 +1426,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             num_proc=num_proc,
+            keep_linebreaks=keep_linebreaks,
+            sample_by=sample_by,
             **kwargs,
         ).read()
 
@@ -1381,8 +1441,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         working_dir: str = None,
         load_from_cache_file: bool = True,
         **kwargs,
-    ):
+    ) -> "Dataset":
         """Create a Dataset from Spark DataFrame. Dataset downloading is distributed over Spark workers.
+
+        Read the Spark DataFrame, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
             df (`pyspark.sql.DataFrame`):
@@ -1441,8 +1503,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cache_dir: str = None,
         keep_in_memory: bool = False,
         **kwargs,
-    ):
+    ) -> "Dataset":
         """Create Dataset from SQL query or database table.
+
+        Query the SQL database, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
             sql (`str` or `sqlalchemy.sql.Selectable`):

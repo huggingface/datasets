@@ -25,6 +25,7 @@ import fsspec.asyn
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+import pyarrow.dataset as pds
 import pyarrow.parquet as pq
 from huggingface_hub import (
     CommitInfo,
@@ -2628,7 +2629,7 @@ class IterableDataset(DatasetInfoMixin):
 
                 <Added version="2.21.0"/>
         Returns:
-            `IterableDataset`
+            [`IterableDataset`]
 
         Example:
 
@@ -2718,6 +2719,436 @@ class IterableDataset(DatasetInfoMixin):
         inferred_features = Features.from_arrow_schema(pa_table_schema)
         ex_iterable = ArrowExamplesIterable(Dataset._generate_tables_from_cache_file, kwargs={"filename": filename})
         return IterableDataset(ex_iterable=ex_iterable, info=DatasetInfo(features=inferred_features))
+
+    @classmethod
+    def from_pandas(
+        cls,
+        df: pd.DataFrame,
+        features: Optional[Features] = None,
+        info: Optional[DatasetInfo] = None,
+        split: Optional[NamedSplit] = None,
+        preserve_index: Optional[bool] = None,
+        num_shards: Optional[int] = 1,
+    ) -> "IterableDataset":
+        """
+        Convert `pandas.DataFrame` to a `pyarrow.Table` to create an [`IterableDataset`].
+
+        The column types in the resulting Arrow Table are inferred from the dtypes of the `pandas.Series` in the
+        DataFrame. In the case of non-object Series, the NumPy dtype is translated to its Arrow equivalent. In the
+        case of `object`, we need to guess the datatype by looking at the Python objects in this Series.
+
+        Be aware that Series of the `object` dtype don't carry enough information to always lead to a meaningful Arrow
+        type. In the case that we cannot infer a type, e.g. because the DataFrame is of length 0 or the Series only
+        contains `None/nan` objects, the type is set to `null`. This behavior can be avoided by constructing explicit
+        features and passing it to this function.
+
+        Important: a dataset created with from_pandas() lives in memory.
+        This may change in the future, but in the meantime if you
+        want to reduce memory usage you should write it on disk
+        and reload using e.g. to_parquet / from_parquet.
+
+        Args:
+            df (`pandas.DataFrame`):
+                Dataframe that contains the dataset.
+            features ([`Features`], *optional*):
+                Dataset features.
+            info (`DatasetInfo`, *optional*):
+                Dataset information, like description, citation, etc.
+            split (`NamedSplit`, *optional*):
+                Name of the dataset split.
+            preserve_index (`bool`, *optional*):
+                Whether to store the index as an additional column in the resulting Dataset.
+                The default of `None` will store the index as a column, except for `RangeIndex` which is stored as metadata only.
+                Use `preserve_index=True` to force it to be stored as a column.
+            num_shards (`int`, default to `1`):
+                Number of shards to define when instantiating the iterable dataset. This is especially useful for big datasets to be able to shuffle properly,
+                and also to enable fast parallel loading using a PyTorch DataLoader or in distributed setups for example.
+
+        Returns:
+            [`IterableDataset`]
+
+        Example:
+
+        ```py
+        >>> ds = IterableDataset.from_pandas(df)
+        ```
+        """
+        return Dataset.from_pandas(
+            df,
+            features=features,
+            info=info,
+            split=split,
+            preserve_index=preserve_index,
+        ).to_iterable_dataset(num_shards=num_shards)
+
+    @classmethod
+    def from_polars(
+        cls,
+        df: Union["pl.DataFrame", "pl.LazyFrame"],
+        features: Optional[Features] = None,
+        info: Optional[DatasetInfo] = None,
+        split: Optional[NamedSplit] = None,
+    ) -> "IterableDataset":
+        """
+        Create an IterableDataset from a polars DataFrame or LazyFrame.
+
+        Iterating over the dataset is mostly zero copy.
+        Under the hood, the dataset iterates over the polars DataFrame batches/slices.
+
+        Data types that do copy:
+            * CategoricalType
+
+        Args:
+            df (`polars.DataFrame`): DataFrame to convert to Arrow Table
+            features (`Features`, optional): Dataset features.
+            info (`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+            split (`NamedSplit`, optional): Name of the dataset split.
+
+        Returns:
+            [`IterableDataset`]
+
+        Examples:
+        ```py
+        >>> ds = IterableDataset.from_polars(df)
+        ```
+        """
+        import polars as pl
+
+        if info is not None and features is not None and info.features != features:
+            raise ValueError(
+                f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
+            )
+        features = features if features is not None else info.features if info is not None else None
+        if features is not None:
+            features = _fix_for_backward_compatible_features(features)
+        if info is None:
+            info = DatasetInfo()
+        info.features = features or Features.from_arrow_schema(
+            (df.collect_schema() if isinstance(df, pl.LazyFrame) else df.schema).to_arrow()
+        )
+        return IterableDataset(
+            ArrowExamplesIterable(_generate_tables_from_polars, kwargs={"df": df}),
+            info=info,
+            split=split,
+        )
+
+    @classmethod
+    def from_dict(
+        cls,
+        mapping: dict,
+        features: Optional[Features] = None,
+        info: Optional[DatasetInfo] = None,
+        split: Optional[NamedSplit] = None,
+        num_shards: Optional[int] = 1,
+    ) -> "IterableDataset":
+        """
+        Convert `dict` to a `pyarrow.Table` to create an [`IterableDataset`].
+
+        Important: a dataset created with from_dict() lives in memory.
+        This may change in the future, but in the meantime if you
+        want to reduce memory usage you should write it back on disk
+        and reload using e.g. to_parquet / from_parquet.
+
+        Args:
+            mapping (`Mapping`):
+                Mapping of strings to Arrays or Python lists.
+            features ([`Features`], *optional*):
+                Dataset features.
+            info (`DatasetInfo`, *optional*):
+                Dataset information, like description, citation, etc.
+            split (`NamedSplit`, *optional*):
+                Name of the dataset split.
+            num_shards (`int`, default to `1`):
+                Number of shards to define when instantiating the iterable dataset. This is especially useful for big datasets to be able to shuffle properly,
+                and also to enable fast parallel loading using a PyTorch DataLoader or in distributed setups for example.
+
+        Returns:
+            [`IterableDataset`]
+        """
+        return Dataset.from_dict(mapping, features=features, info=info, split=split).to_iterable_dataset(
+            num_shards=num_shards
+        )
+
+    @classmethod
+    def from_list(
+        cls,
+        mapping: list[dict],
+        features: Optional[Features] = None,
+        info: Optional[DatasetInfo] = None,
+        split: Optional[NamedSplit] = None,
+        num_shards: Optional[int] = 1,
+    ) -> "IterableDataset":
+        """
+        Convert a list of dicts to a `pyarrow.Table` to create an [`IterableDataset`]`.
+
+        Note that the keys of the first entry will be used to determine the dataset columns,
+        regardless of what is passed to features.
+
+        Important: a dataset created with from_list() lives in memory.
+        This may change in the future, but in the meantime if you
+        want to reduce memory usage you should write it back on disk
+        and reload using e.g. from_parquet / to_parquet.
+
+        Args:
+            mapping (`List[dict]`): A list of mappings of strings to row values.
+            features (`Features`, optional): Dataset features.
+            info (`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+            split (`NamedSplit`, optional): Name of the dataset split.
+            num_shards (`int`, default to `1`):
+                Number of shards to define when instantiating the iterable dataset. This is especially useful for big datasets to be able to shuffle properly,
+                and also to enable fast parallel loading using a PyTorch DataLoader or in distributed setups for example.
+
+        Returns:
+            [`IterableDataset`]
+        """
+        return Dataset.from_list(
+            mapping,
+            features=features,
+            info=info,
+            split=split,
+        ).to_iterable_dataset(num_shards=num_shards)
+
+    @staticmethod
+    def from_csv(
+        path_or_paths: Union[PathLike, list[PathLike]],
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        **kwargs,
+    ) -> "IterableDataset":
+        """Create an IterableDataset from CSV file(s).
+
+        Args:
+            path_or_paths (`path-like` or list of `path-like`):
+                Path(s) of the CSV file(s).
+            split ([`NamedSplit`], *optional*):
+                Split name to be assigned to the dataset.
+            features ([`Features`], *optional*):
+                Dataset features.
+            cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
+                Directory to cache data.
+            keep_in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
+            **kwargs (additional keyword arguments):
+                Keyword arguments to be passed to [`pandas.read_csv`].
+
+        Returns:
+            [`IterableDataset`]
+
+        Example:
+
+        ```py
+        >>> ds = IterableDataset.from_csv('path/to/dataset.csv')
+        ```
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.csv import CsvDatasetReader
+
+        return CsvDatasetReader(
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            streaming=True**kwargs,
+        ).read()
+
+    @staticmethod
+    def from_json(
+        path_or_paths: Union[PathLike, list[PathLike]],
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        field: Optional[str] = None,
+        **kwargs,
+    ) -> "IterableDataset":
+        """Create an IterableDataset from JSON or JSON Lines file(s).
+
+        Args:
+            path_or_paths (`path-like` or list of `path-like`):
+                Path(s) of the JSON or JSON Lines file(s).
+            split ([`NamedSplit`], *optional*):
+                Split name to be assigned to the dataset.
+            features ([`Features`], *optional*):
+                 Dataset features.
+            cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
+                Directory to cache data.
+            keep_in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
+            field (`str`, *optional*):
+                Field name of the JSON file where the dataset is contained in.
+            **kwargs (additional keyword arguments):
+                Keyword arguments to be passed to [`JsonConfig`].
+
+        Returns:
+            [`IterableDataset`]
+
+        Example:
+
+        ```py
+        >>> ds = IterableDataset.from_json('path/to/dataset.json')
+        ```
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.json import JsonDatasetReader
+
+        return JsonDatasetReader(
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            field=field,
+            streaming=True,
+            **kwargs,
+        ).read()
+
+    @staticmethod
+    def from_parquet(
+        path_or_paths: Union[PathLike, list[PathLike]],
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        columns: Optional[list[str]] = None,
+        filters: Optional[Union[pds.Expression, list[tuple], list[list[tuple]]]] = None,
+        fragment_scan_options: Optional[pds.ParquetFragmentScanOptions] = None,
+        on_bad_files: Literal["error", "warn", "skip"] = "error",
+        **kwargs,
+    ) -> "IterableDataset":
+        """Create an IterableDataset from Parquet file(s).
+
+        Args:
+            path_or_paths (`path-like` or list of `path-like`):
+                Path(s) of the Parquet file(s).
+            split (`NamedSplit`, *optional*):
+                Split name to be assigned to the dataset.
+            features (`Features`, *optional*):
+                Dataset features.
+            cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
+                Directory to cache data.
+            keep_in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
+            columns (`List[str]`, *optional*):
+                If not `None`, only these columns will be read from the file.
+                A column name may be a prefix of a nested field, e.g. 'a' will select
+                'a.b', 'a.c', and 'a.d.e'.
+            filters (`Union[pyarrow.dataset.Expression, list[tuple], list[list[tuple]]]`, *optional*):
+                Return only the rows matching the filter.
+                If possible the predicate will be pushed down to exploit the partition information
+                or internal metadata found in the data source, e.g. Parquet statistics.
+                Otherwise filters the loaded RecordBatches before yielding them.
+            fragment_scan_options (`pyarrow.dataset.ParquetFragmentScanOptions`, *optional*)
+                Scan-specific options for Parquet fragments.
+                This is especially useful to configure buffering and caching.
+
+                <Added version="4.2.0"/>
+            on_bad_files (`Literal["error", "warn", "skip"]`, *optional*, defaults to "error")
+                Specify what to do upon encountering a bad file (a file that can't be read). Allowed values are :
+                * 'error', raise an Exception when a bad file is encountered.
+                * 'warn', raise a warning when a bad file is encountered and skip that file.
+                * 'skip', skip bad files without raising or warning when they are encountered.
+
+                <Added version="4.2.0"/>
+            **kwargs (additional keyword arguments):
+                Keyword arguments to be passed to [`ParquetConfig`].
+
+        Returns:
+            [`IterableDataset`]
+
+        Example:
+
+        ```py
+        >>> ds = IterableDataset.from_parquet('path/to/dataset.parquet')
+        ```
+
+        Load a subset of columns:
+
+        ```python
+        >>> ds = IterableDataset.from_parquet('path/to/dataset.parquet', columns=["col_0", "col_1"])
+        ```
+
+        Efficiently filter data, possibly skipping entire files or row groups:
+
+        ```python
+        >>> filters = [("col_0", "==", 0)]
+        >>> ds = IterableDataset.from_parquet(parquet_files_list, filters=filters)
+        ```
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.parquet import ParquetDatasetReader
+
+        return ParquetDatasetReader(
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            columns=columns,
+            streaming=True,
+            filters=filters,
+            fragment_scan_options=fragment_scan_options,
+            on_bad_files=on_bad_files,
+            **kwargs,
+        ).read()
+
+    @staticmethod
+    def from_text(
+        path_or_paths: Union[PathLike, list[PathLike]],
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        keep_linebreaks: bool = False,
+        sample_by: Literal["line", "paragraph", "document"] = "line",
+        **kwargs,
+    ) -> "IterableDataset":
+        """Create an IterableDataset from text file(s).
+
+        Args:
+            path_or_paths (`path-like` or list of `path-like`):
+                Path(s) of the text file(s).
+            split (`NamedSplit`, *optional*):
+                Split name to be assigned to the dataset.
+            features (`Features`, *optional*):
+                Dataset features.
+            cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
+                Directory to cache data.
+            keep_in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
+            keep_linebreaks: (`bool`, defaults to False):
+                Whether to keep line breaks.
+            sample_by (`Literal["line", "paragraph", "document"]`, defaults to "line"):
+                Whether to load data per line, praragraph or document.
+                By default one row in the dataset = one line.
+            **kwargs (additional keyword arguments):
+                Keyword arguments to be passed to [`TextConfig`].
+
+        Returns:
+            [`IterableDataset`]
+
+        Example:
+
+        ```py
+        >>> ds = IterableDataset.from_text('path/to/dataset.txt')
+        ```
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.text import TextDatasetReader
+
+        return TextDatasetReader(
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            streaming=True,
+            keep_linebreaks=keep_linebreaks,
+            sample_by=sample_by,
+            **kwargs,
+        ).read()
 
     def with_format(
         self,
@@ -4765,3 +5196,12 @@ async def _apply_async(pool, func, x):
 
 def _batch_fn(unbatched):
     return {k: [v] for k, v in unbatched.items()}
+
+
+def _generate_tables_from_polars(df: Union["pl.DataFrame", "pl.LazyFrame"]) -> Iterator[tuple["BuilderKey", pa.Table]]:
+    import polars as pl
+
+    from .builder import Key as BuilderKey
+
+    for slice_idx, df_slice in enumerate(df.collect_batches() if isinstance(df, pl.LazyFrame) else df.iter_slices()):
+        yield BuilderKey(0, slice_idx), df_slice.to_arrow()
