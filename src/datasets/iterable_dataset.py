@@ -2913,7 +2913,6 @@ class IterableDataset(DatasetInfoMixin):
         path_or_paths: Union[PathLike, list[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
-        cache_dir: str = None,
         keep_in_memory: bool = False,
         **kwargs,
     ) -> "IterableDataset":
@@ -2926,8 +2925,6 @@ class IterableDataset(DatasetInfoMixin):
                 Split name to be assigned to the dataset.
             features ([`Features`], *optional*):
                 Dataset features.
-            cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
-                Directory to cache data.
             keep_in_memory (`bool`, defaults to `False`):
                 Whether to copy the data in-memory.
             **kwargs (additional keyword arguments):
@@ -2949,7 +2946,6 @@ class IterableDataset(DatasetInfoMixin):
             path_or_paths,
             split=split,
             features=features,
-            cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             streaming=True**kwargs,
         ).read()
@@ -2959,7 +2955,6 @@ class IterableDataset(DatasetInfoMixin):
         path_or_paths: Union[PathLike, list[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
-        cache_dir: str = None,
         keep_in_memory: bool = False,
         field: Optional[str] = None,
         **kwargs,
@@ -2973,8 +2968,6 @@ class IterableDataset(DatasetInfoMixin):
                 Split name to be assigned to the dataset.
             features ([`Features`], *optional*):
                  Dataset features.
-            cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
-                Directory to cache data.
             keep_in_memory (`bool`, defaults to `False`):
                 Whether to copy the data in-memory.
             field (`str`, *optional*):
@@ -2998,7 +2991,6 @@ class IterableDataset(DatasetInfoMixin):
             path_or_paths,
             split=split,
             features=features,
-            cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             field=field,
             streaming=True,
@@ -3010,7 +3002,6 @@ class IterableDataset(DatasetInfoMixin):
         path_or_paths: Union[PathLike, list[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
-        cache_dir: str = None,
         keep_in_memory: bool = False,
         columns: Optional[list[str]] = None,
         filters: Optional[Union[pds.Expression, list[tuple], list[list[tuple]]]] = None,
@@ -3027,8 +3018,6 @@ class IterableDataset(DatasetInfoMixin):
                 Split name to be assigned to the dataset.
             features (`Features`, *optional*):
                 Dataset features.
-            cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
-                Directory to cache data.
             keep_in_memory (`bool`, defaults to `False`):
                 Whether to copy the data in-memory.
             columns (`List[str]`, *optional*):
@@ -3084,7 +3073,6 @@ class IterableDataset(DatasetInfoMixin):
             path_or_paths,
             split=split,
             features=features,
-            cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             columns=columns,
             streaming=True,
@@ -3099,7 +3087,6 @@ class IterableDataset(DatasetInfoMixin):
         path_or_paths: Union[PathLike, list[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
-        cache_dir: str = None,
         keep_in_memory: bool = False,
         keep_linebreaks: bool = False,
         sample_by: Literal["line", "paragraph", "document"] = "line",
@@ -3114,8 +3101,6 @@ class IterableDataset(DatasetInfoMixin):
                 Split name to be assigned to the dataset.
             features (`Features`, *optional*):
                 Dataset features.
-            cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
-                Directory to cache data.
             keep_in_memory (`bool`, defaults to `False`):
                 Whether to copy the data in-memory.
             keep_linebreaks: (`bool`, defaults to False):
@@ -3142,7 +3127,6 @@ class IterableDataset(DatasetInfoMixin):
             path_or_paths,
             split=split,
             features=features,
-            cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             streaming=True,
             keep_linebreaks=keep_linebreaks,
