@@ -198,16 +198,68 @@ See how it works for every format in [`IterableDataset.reshard`]'s documentation
 
 If your dataset has `dataset.num_shards==1` even after resharding, you should chunk it using [`IterableDataset.skip`] and [`IterableDataset.take`] instead.
 
+## Concatenate
+
+Separate datasets can be concatenated if they share the same column types. Concatenate datasets with [`concatenate_datasets`]:
+
+```py
+>>> from datasets import concatenate_datasets, load_dataset
+
+>>> stories = load_dataset("ajibawa-2023/General-Stories-Collection", split="train", streaming=True)
+>>> stories = stories.select_columns(["text"])  # only keep the 'text' column
+IterableDataset({
+    features: Unknown,
+    num_shards: 10
+})
+
+>>> wiki = load_dataset("wikimedia/wikipedia", "20231101.en", split="train", streaming=True)
+>>> wiki = wiki.select_columns(["text"])  # only keep the 'text' column
+IterableDataset({
+    features: ['text'],
+    num_shards: 41
+})
+
+>>> bert_dataset = concatenate_datasets([stories, wiki])
+IterableDataset({
+    features: ['text'],
+    num_shards: 51
+})
+```
+
+The shards of the concatenated dataset are the shards of the input datasets.
+
+You can also concatenate two datasets horizontally by setting `axis=1` as long as the datasets have the same number of rows:
+
+```py
+>>> from datasets import IterableDataset
+>>> stories_ids = IterableDataset.from_dict({"ids": list(range(num_stories))})
+>>> stories_with_ids = concatenate_datasets([stories, stories_ids], axis=1)
+```
+
+In this case, the concatenated dataset only has 1 shard, to avoid ending with unaligned shards from the input datasets.
+
 ## Interleave
 
-[`interleave_datasets`] can combine an [`IterableDataset`] with other datasets. The combined dataset returns alternating examples from each of the original datasets.
+[`interleave_datasets`] can combine an [`IterableDataset`] with other datasets if they have the same column types. The combined dataset returns alternating examples from each of the original datasets.
 
 ```py
 >>> from datasets import interleave_datasets
 >>> es_dataset = load_dataset('allenai/c4', 'es', split='train', streaming=True)
+IterableDataset({
+    features: Unknown,
+    num_shards: 2048
+})
 >>> fr_dataset = load_dataset('allenai/c4', 'fr', split='train', streaming=True)
+IterableDataset({
+    features: Unknown,
+    num_shards: 2048
+})
 
 >>> multilingual_dataset = interleave_datasets([es_dataset, fr_dataset])
+IterableDataset({
+    features: ['text', 'timestamp', 'url'],
+    num_shards: 2048
+})
 >>> list(multilingual_dataset.take(2))
 [{'text': 'Comprar Zapatillas para niña en chancla con goma por...'},
  {'text': 'Le sacre de philippe ier, 23 mai 1059 - Compte Rendu...'}]
@@ -228,6 +280,10 @@ You can also specify the `stopping_strategy`. The default strategy, `first_exhau
 You can specify `stopping_strategy=all_exhausted` to execute an oversampling strategy. In this case, the dataset construction is stopped as soon as every samples in every dataset has been added at least once. In practice, it means that if a dataset is exhausted, it will return to the beginning of this dataset until the stop criterion has been reached.
 Note that if no sampling probabilities are specified, the new dataset will have `max_length_datasets*nb_dataset samples`.
 There is also `stopping_strategy=all_exhausted_without_replacement` to ensure that every sample is seen exactly once.
+
+To ensure proper parallelism using sharding, the shards of the interleaved dataset contain at least 1 shard of every input dataset. Therefore the sharding level of the interleaved dataset is the minimum sharding level of the input datasets.
+
+E.g. if the input datasets have respectively 32, 48 and 128 shards, then the interleaved dataset has 32 = min(32, 48, 128) shards, and each new shard has 1 shard from the first dataset, 1-2 shards from the second dataset and 4 shards from the third dataset.
 
 ## Rename, remove, and cast
 

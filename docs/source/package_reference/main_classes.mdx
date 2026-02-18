@@ -16,6 +16,7 @@ The base class [`Dataset`] implements a Dataset backed by an Apache Arrow table.
     - from_buffer
     - from_pandas
     - from_dict
+    - from_list
     - from_generator
     - data
     - cache_files
@@ -160,6 +161,10 @@ It also has dataset transform methods like map or filter, to process all the spl
 The base class [`IterableDataset`] implements an iterable Dataset backed by python generators.
 
 [[autodoc]] datasets.IterableDataset
+    - from_file
+    - from_pandas
+    - from_dict
+    - from_list
     - from_generator
     - remove_columns
     - select_columns
@@ -202,6 +207,10 @@ The base class [`IterableDataset`] implements an iterable Dataset backed by pyth
     - size_in_bytes
     - supervised_keys
     - version
+    - from_csv
+    - from_json
+    - from_parquet
+    - from_text
 
 [[autodoc]] datasets.IterableColumn
 
