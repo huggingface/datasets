@@ -216,7 +216,8 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     out = type(feature)()
                     for key in feature:
                         if (key == "file_name" or key.endswith("_file_name")) and (
-                            feature[key] == datasets.Value("string") or feature[key] == datasets.Value("large_string")
+                            feature[key] == datasets.Value("string")
+                            or feature[key] == datasets.Value("large_string")
                         ):
                             key = key[: -len("_file_name")] or self.BASE_COLUMN_NAME
                             out[key] = self.BASE_FEATURE()
