@@ -21,6 +21,8 @@ Zarr stores are directory-based. You can point `data_files` to either the Zarr s
 - Zarr v3: `.../store.zarr/zarr.json`
 - Zarr v2 (consolidated): `.../store.zarr/.zmetadata`
 
+For Zarr v2 non-consolidated stores, pass the store root (`.../store.zarr`) with `consolidated=False`.
+
 ```py
 >>> from datasets import load_dataset
 >>> ds = load_dataset("zarr", data_files=["/path/to/store.zarr"], split="train", streaming=True)
@@ -28,7 +30,12 @@ Zarr stores are directory-based. You can point `data_files` to either the Zarr s
 {'int32': 0, 'float32': 0.0, 'matrix_2d': [[...], ...]}
 ```
 
-In streaming mode, `num_shards` is based on the number of Zarr stores you pass in `data_files`. For more fine-grained sharding, consider splitting large datasets into multiple `.zarr` stores.
+In streaming mode, Zarr is sharded by row ranges aligned to axis-0 chunk boundaries (instead of one shard per metadata file). You can control this with:
+
+- `rows_per_shard`: target number of rows per shard (rounded up to chunk boundaries)
+- `target_num_shards`: target number of shards across each input store
+
+If a root group contains arrays with different axis-0 lengths (for example coordinate arrays and time-varying arrays together), 🤗 Datasets automatically infers the primary row dimension (preferring N-D data arrays) and ignores non-row-aligned arrays. You can also target a specific subgroup with `group=...` for more control.
 
 You can also load from the Hub via the `hf://` protocol:
 
