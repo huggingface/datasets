@@ -663,10 +663,10 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
     ):
         """Set ``__getitem__`` return format using this transform. The transform is applied on-the-fly on batches when ``__getitem__`` is called.
         The transform is set for every dataset in the dataset dictionary
-        As :func:`datasets.Dataset.set_format`, this can be reset using :func:`datasets.Dataset.reset_format`
+        As `datasets.Dataset.set_format`, this can be reset using `datasets.Dataset.reset_format`
 
         Args:
-            transform (`Callable`, optional): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
+            transform (`Callable`, optional): user-defined formatting transform, replaces the format defined by `datasets.Dataset.set_format`
                 A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
                 This function is applied right before returning the objects in ``__getitem__``.
             columns (`list[str]`, optional): columns to format in the output

@@ -27,10 +27,10 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
         without the compression extension at the end of the filename.
 
         Args:
-            fo (:obj:``str``): Path to compressed file. Will fetch file using ``fsspec.open()``
-            mode (:obj:``str``): Currently, only 'rb' accepted
-            target_protocol(:obj:``str``, optional): To override the FS protocol inferred from a URL.
-            target_options (:obj:``dict``, optional): Kwargs passed when instantiating the target FS.
+            fo (``str``): Path to compressed file. Will fetch file using ``fsspec.open()``
+            mode (``str``): Currently, only 'rb' accepted
+            target_protocol(``str``, optional): To override the FS protocol inferred from a URL.
+            target_options (``dict``, optional): Kwargs passed when instantiating the target FS.
         """
         super().__init__(self, **kwargs)
         self.fo = fo.__fspath__() if hasattr(fo, "__fspath__") else fo

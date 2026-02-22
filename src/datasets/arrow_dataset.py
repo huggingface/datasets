@@ -600,7 +600,7 @@ def update_metadata_with_features(table: Table, features: Features):
 
 
 def _check_table(table) -> Table:
-    """We check the table type to make sure it's an instance of :class:`datasets.table.Table`"""
+    """We check the table type to make sure it's an instance of `datasets.table.Table`"""
     if isinstance(table, pa.Table):
         # for a pyarrow table, we can just consider it as a in-memory table
         # this is here for backward compatibility
@@ -1760,7 +1760,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 `"s3://my-bucket/dataset/train"`) to concatenate.
 
         Returns:
-            :class:`Path`: the concatenated path (temp dir + path)
+            `Path`: the concatenated path (temp dir + path)
         """
         src_dataset_path = Path(uri_or_path)
         tmp_dir = get_temporary_cache_files_directory()
@@ -2566,8 +2566,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         selected format.
 
         Args:
-            batch_size (:obj:`int`): size of each batch to yield.
-            drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
+            batch_size (`int`): size of each batch to yield.
+            drop_last_batch (`bool`, default `False`): Whether a last batch smaller than the batch_size should be
                 dropped
         """
         if self._indices is None:
@@ -6535,13 +6535,13 @@ def _concatenate_map_style_datasets(
     axis: int = 0,
 ):
     """
-    Converts a list of :class:`Dataset` with the same schema into a single :class:`Dataset`.
+    Converts a list of `Dataset` with the same schema into a single `Dataset`.
     When you concatenate on axis 0, missing data are filled with None values.
 
     Args:
         dsets (`List[datasets.Dataset]`): List of Datasets to concatenate.
-        info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
-        split (:class:`NamedSplit`, optional): Name of the dataset split.
+        info (`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+        split (`NamedSplit`, optional): Name of the dataset split.
         axis (``{0, 1}``, default ``0``, meaning over rows):
             Axis to concatenate over, where ``0`` means over rows (vertically) and ``1`` means over columns
             (horizontally).
@@ -6664,8 +6664,8 @@ def _interleave_map_style_datasets(
         probabilities (`List[float]`, optional, default None): If specified, the new dataset is constructed by sampling
             examples from one source at a time according to these probabilities.
         seed (`int`, optional, default None): The random seed used to choose a source for each example.
-        info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
-        split (:class:`NamedSplit`, optional): Name of the dataset split.
+        info (`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+        split (`NamedSplit`, optional): Name of the dataset split.
         stopping_strategy (`str`, defaults to `first_exhausted`):
             Two strategies are proposed right now.
             By default, `first_exhausted` is an undersampling strategy, i.e the dataset construction is stopped as soon as one dataset has ran out of samples.
@@ -6674,10 +6674,10 @@ def _interleave_map_style_datasets(
             Note that if the strategy is `all_exhausted`, the interleaved dataset size can get enormous:
             - with no probabilities, the resulting dataset will have max_length_datasets*nb_dataset samples.
             - with given probabilities, the resulting dataset will have more samples if some datasets have really low probability of visiting.
-        **kwargs (additional keyword arguments): Keyword arguments to be passed to :meth:`datasets.Datasets.select` when selecting the indices used to interleave the datasets.
+        **kwargs (additional keyword arguments): Keyword arguments to be passed to `datasets.Datasets.select` when selecting the indices used to interleave the datasets.
 
     Output:
-        :class:`datasets.Dataset`
+        `datasets.Dataset`
     """
     if stopping_strategy not in ["first_exhausted", "all_exhausted", "all_exhausted_without_replacement"]:
         raise ValueError(

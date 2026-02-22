@@ -616,7 +616,7 @@ class Table(IndexedTableMixin):
         Returns a new table with the specified columns, and metadata preserved.
 
         Args:
-            columns (:obj:`Union[List[str], List[int]]`):
+            columns (`Union[List[str], List[int]]`):
                 The column names or integer indices to select.
 
         Returns:
@@ -973,11 +973,11 @@ class InMemoryTable(TableBlock):
         Returns a new table with the specified columns, and metadata preserved.
 
         Args:
-            columns (:obj:`Union[List[str], List[int]]`):
+            columns (`Union[List[str], List[int]]`):
                 The column names or integer indices to select.
 
         Returns:
-            :class:`datasets.table.Table`: New table with the specified columns, and metadata preserved.
+            `datasets.table.Table`: New table with the specified columns, and metadata preserved.
         """
         return InMemoryTable(self.table.select(*args, **kwargs))
 
@@ -1252,11 +1252,11 @@ class MemoryMappedTable(TableBlock):
         Returns a new table with the specified columns, and metadata preserved.
 
         Args:
-            columns (:obj:`Union[List[str], List[int]]`):
+            columns (`Union[List[str], List[int]]`):
                 The column names or integer indices to select.
 
         Returns:
-            :class:`datasets.table.Table`: New table with the specified columns, and metadata preserved.
+            `datasets.table.Table`: New table with the specified columns, and metadata preserved.
         """
         replay = ("select", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
@@ -1730,11 +1730,11 @@ class ConcatenationTable(Table):
         Returns a new table with the specified columns, and metadata preserved.
 
         Args:
-            columns (:obj:`Union[List[str], List[int]]`):
+            columns (`Union[List[str], List[int]]`):
                 The column names or integer indices to select.
 
         Returns:
-            :class:`datasets.table.Table`: New table with the specified columns, and metadata preserved.
+            `datasets.table.Table`: New table with the specified columns, and metadata preserved.
         """
         table = self.table.select(columns, *args, **kwargs)
         blocks = []

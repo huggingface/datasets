@@ -2572,8 +2572,8 @@ class IterableDataset(DatasetInfoMixin):
         """Iterate through the batches of size `batch_size`.
 
         Args:
-            batch_size (:obj:`int`): size of each batch to yield.
-            drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
+            batch_size (`int`): size of each batch to yield.
+            drop_last_batch (`bool`, default `False`): Whether a last batch smaller than the batch_size should be
                 dropped
         """
 

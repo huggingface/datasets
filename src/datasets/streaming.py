@@ -51,7 +51,7 @@ def extend_module_for_streaming(module_path, download_config: Optional[DownloadC
       - `pathlib.Path.joinpath` and `pathlib.Path.__truediv__` (called when using the "/" operator)
 
     The patched functions are replaced with custom functions defined to work with the
-    :class:`~download.streaming_download_manager.StreamingDownloadManager`.
+    `StreamingDownloadManager`.
 
     Args:
         module_path: Path to the module to be extended.
@@ -111,7 +111,7 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
     """Extend the dataset builder module and the modules imported by it to support streaming.
 
     Args:
-        builder (:class:`DatasetBuilder`): Dataset builder instance.
+        builder (`DatasetBuilder`): Dataset builder instance.
     """
     # this extends the open and os.path.join functions for data streaming
     download_config = DownloadConfig(storage_options=builder.storage_options, token=builder.token)
