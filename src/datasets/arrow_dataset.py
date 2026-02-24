@@ -3715,10 +3715,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # If `update_data` is True after processing the first example/batch, initialize these resources with `init_buffer_and_writer`
         buf_writer, writer, tmp_file = None, None, None
 
-        # Check if Polars is available and import it if so
-        if config.POLARS_AVAILABLE and "polars" in sys.modules:
-            import polars as pl
-
         # Optionally initialize the writer as a context manager
         with contextlib.ExitStack() as stack:
             try:
@@ -3744,12 +3740,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 writer.write_row(example)
                             elif isinstance(example, pd.DataFrame):
                                 writer.write_row(pa.Table.from_pandas(example))
-                            elif (
-                                config.POLARS_AVAILABLE
-                                and "polars" in sys.modules
-                                and isinstance(example, pl.DataFrame)
-                            ):
-                                writer.write_row(example.to_arrow())
+                            elif config.POLARS_AVAILABLE and "polars" in sys.modules:
+                                import polars as pl
+
+                                if isinstance(example, pl.DataFrame):
+                                    writer.write_row(example.to_arrow())
+                                else:
+                                    writer.write(example)
                             else:
                                 writer.write(example)
                         num_examples_progress_update += 1
@@ -3769,10 +3766,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 writer.write_table(batch)
                             elif isinstance(batch, pd.DataFrame):
                                 writer.write_table(pa.Table.from_pandas(batch))
-                            elif (
-                                config.POLARS_AVAILABLE and "polars" in sys.modules and isinstance(batch, pl.DataFrame)
-                            ):
-                                writer.write_table(batch.to_arrow())
+                            elif config.POLARS_AVAILABLE and "polars" in sys.modules:
+                                import polars as pl
+
+                                if isinstance(batch, pl.DataFrame):
+                                    writer.write_table(batch.to_arrow())
+                                else:
+                                    writer.write_batch(batch, try_original_type=try_original_type)
                             else:
                                 writer.write_batch(batch, try_original_type=try_original_type)
                         num_examples_progress_update += num_examples_in_batch
