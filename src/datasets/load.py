@@ -1160,6 +1160,8 @@ def load_dataset_builder(
         raise ValueError(error_msg)
 
     builder_cls = get_dataset_builder_class(dataset_module, dataset_name=dataset_name)
+    # Pop common keys from builder_kwargs to avoid conflicts with config_kwargs
+    base_path = builder_kwargs.pop("base_path", None)
     # Instantiate the dataset builder
     builder_instance: DatasetBuilder = builder_cls(
         cache_dir=cache_dir,
@@ -1174,6 +1176,7 @@ def load_dataset_builder(
         storage_options=storage_options,
         **builder_kwargs,
         **config_kwargs,
+        base_path=base_path,
     )
     builder_instance._use_legacy_cache_dir_if_possible(dataset_module)
 
