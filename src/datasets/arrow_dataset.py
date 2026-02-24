@@ -1707,6 +1707,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset_path: PathLike,
         keep_in_memory: Optional[bool] = None,
         storage_options: Optional[dict] = None,
+        progress_bar: Optional[bool] = None,
     ) -> "Dataset":
         """
         Loads a dataset that was previously saved using [`save_to_disk`] from a dataset directory, or from a
@@ -1791,7 +1792,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         keep_in_memory = keep_in_memory if keep_in_memory is not None else is_small_dataset(dataset_size)
         table_cls = InMemoryTable if keep_in_memory else MemoryMappedTable
-
+        # if the dataset is small, we enable the progress bar by default, otherwise we disable it by default. The user can still override this default behavior by explicitly setting `progress_bar` to `True` or `False`.
+        if progress_bar is None:
+            disable = len(state["_data_files"]) <= 16 or None
+        else:
+            disable = not bool(progress_bar)
         arrow_table = concat_tables(
             thread_map(
                 table_cls.from_file,
@@ -1799,7 +1804,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 tqdm_class=hf_tqdm,
                 desc="Loading dataset from disk",
                 # set `disable=None` rather than `disable=False` by default to disable progress bar when no TTY attached
-                disable=len(state["_data_files"]) <= 16 or None,
+                disable=disable,
             )
         )
 
