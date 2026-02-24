@@ -1592,10 +1592,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
                         )
                     example = self.info.features.encode_example(record) if self.info.features is not None else record
                     writer.write(example)
-                    if len(original_shard_lengths) == original_shard_id:
-                        original_shard_lengths.append(1)
-                    else:
-                        original_shard_lengths[original_shard_id] += 1
+                    if len(original_shard_lengths) <= original_shard_id:
+                        original_shard_lengths.extend([0] * (1 + original_shard_id - len(original_shard_lengths)))
+                    original_shard_lengths[original_shard_id] += 1
                     num_examples_progress_update += 1
                     if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()
