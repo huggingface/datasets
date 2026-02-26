@@ -92,8 +92,11 @@ class Json(datasets.ArrowBasedBuilder):
                 )
             )
         if self.info.features is None:
-            pa_table = next(iter(self._generate_tables(**splits[0].gen_kwargs)))[1]
-            self.info.features = datasets.Features.from_arrow_schema(pa_table.schema)
+            try:
+                pa_table = next(iter(self._generate_tables(**splits[0].gen_kwargs, allow_full_read=False)))[1]
+                self.info.features = datasets.Features.from_arrow_schema(pa_table.schema)
+            except FullReadDisallowed:
+                pass
         return splits
 
     def _cast_table(self, pa_table: pa.Table, json_field_paths=()) -> pa.Table:
@@ -199,8 +202,9 @@ class Json(datasets.ArrowBasedBuilder):
                                         )
                                         break
                                     except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
-                                        print(e)
-                                        if (
+                                        if batch.startswith(b"["):  # paj.read_json only supports json lines
+                                            raise
+                                        elif (
                                             isinstance(e, pa.ArrowInvalid)
                                             and "JSON parse error: Column(" in str(e)
                                             and ") changed from" in str(e)
@@ -217,7 +221,6 @@ class Json(datasets.ArrowBasedBuilder):
                                                     if seg == 0:
                                                         json_field_path = json_field_path[: i + 1]
                                                         break
-                                            print(f"{json_field_path=}")
                                             # Add to list of json_field_paths and check if other share a common path
                                             for i in range(len(json_field_paths)):
                                                 if json_field_paths[i][: len(json_field_path)] == json_field_path:
