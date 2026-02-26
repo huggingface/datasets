@@ -9,6 +9,7 @@ import pyarrow.json as paj
 import datasets
 import datasets.config
 from datasets.builder import Key
+from datasets.features.features import _visit_with_path
 from datasets.table import table_cast
 from datasets.utils.file_utils import readline
 
@@ -36,6 +37,10 @@ def pandas_read_json(path_or_buf, **kwargs):
     if datasets.config.PANDAS_VERSION.major >= 2:
         kwargs["dtype_backend"] = "pyarrow"
     return pd.read_json(path_or_buf, **kwargs)
+
+
+class FullReadDisallowed(Exception):
+    pass
 
 
 @dataclass
@@ -86,17 +91,20 @@ class Json(datasets.ArrowBasedBuilder):
                     gen_kwargs={"files_iterables": files_iterables, "base_files": base_data_files[split_name]},
                 )
             )
+        if self.info.features is None:
+            pa_table = next(iter(self._generate_tables(**splits[0].gen_kwargs)))[1]
+            self.info.features = datasets.Features.from_arrow_schema(pa_table.schema)
         return splits
 
-    def _cast_table(self, pa_table: pa.Table) -> pa.Table:
-        if self.config.features is not None:
+    def _cast_table(self, pa_table: pa.Table, json_field_paths=()) -> pa.Table:
+        if self.info.features is not None:
             # adding missing columns
-            for column_name in set(self.config.features) - set(pa_table.column_names):
-                type = self.config.features.arrow_schema.field(column_name).type
+            for column_name in set(self.info.features) - set(pa_table.column_names):
+                type = self.info.features.arrow_schema.field(column_name).type
                 pa_table = pa_table.append_column(column_name, pa.array([None] * len(pa_table), type=type))
             # convert to string when needed
             for i, column_name in enumerate(pa_table.column_names):
-                if pa.types.is_struct(pa_table[column_name].type) and self.config.features.get(
+                if pa.types.is_struct(pa_table[column_name].type) and self.info.features.get(
                     column_name, None
                 ) == datasets.Value("string"):
                     jsonl = (
@@ -111,17 +119,37 @@ class Json(datasets.ArrowBasedBuilder):
                     pa_table = pa_table.set_column(i, column_name, string_array)
             # more expensive cast to support nested structures with keys in a different order
             # allows str <-> int/float or str to Audio for example
-            pa_table = table_cast(pa_table, self.config.features.arrow_schema)
+            pa_table = table_cast(pa_table, self.info.features.arrow_schema)
+        elif json_field_paths:
+            features = datasets.Features.from_arrow_schema(pa_table.schema)
+
+            def set_json_type(feature, feature_path):
+                return datasets.Json() if feature_path in json_field_paths else feature
+
+            features = _visit_with_path(features, set_json_type)
+            pa_table = table_cast(pa_table, features.arrow_schema)
         return pa_table
 
     def _generate_shards(self, base_files, files_iterables):
         yield from base_files
 
-    def _generate_tables(self, base_files, files_iterables):
+    def _generate_tables(self, base_files, files_iterables, allow_full_read=True):
+        json_field_paths = []
+
+        def get_json_type_path(feature, feature_path):
+            if isinstance(feature, datasets.Json):
+                json_field_paths.append(feature_path)
+            return feature
+
+        if self.info.features is not None:
+            _visit_with_path(self.info.features, get_json_type_path)
+
         for shard_idx, files_iterable in enumerate(files_iterables):
             for file in files_iterable:
                 # If the file is one json object and if we need to look at the items in one specific field
                 if self.config.field is not None:
+                    if not allow_full_read:
+                        raise FullReadDisallowed()
                     with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
                         dataset = ujson_loads(f.read())
                     # We keep only the field we are interested in
@@ -154,6 +182,15 @@ class Json(datasets.ArrowBasedBuilder):
                             # PyArrow only accepts utf-8 encoded bytes
                             if self.config.encoding != "utf-8":
                                 batch = batch.decode(self.config.encoding, errors=encoding_errors).encode("utf-8")
+                            # Re-encode JSON fields
+                            original_batch = batch
+                            if json_field_paths:
+                                examples = [ujson_loads(line) for line in batch.splitlines()]
+                                for json_field_path in json_field_paths:
+                                    examples = [json_encode_field(examples, json_field_path) for examples in examples]
+                                batch = "\n".join(ujson_dumps(example) for example in examples).encode()
+                            # Disable parallelism if block size is ~ len(batch) to avoid segfault
+                            block_size = len(batch) if len(batch) // 8 > block_size else block_size
                             try:
                                 while True:
                                     try:
@@ -162,7 +199,40 @@ class Json(datasets.ArrowBasedBuilder):
                                         )
                                         break
                                     except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
+                                        print(e)
                                         if (
+                                            isinstance(e, pa.ArrowInvalid)
+                                            and "JSON parse error: Column(" in str(e)
+                                            and ") changed from" in str(e)
+                                        ):
+                                            json_field_path_str = (
+                                                str(e).split("Column(", 1)[1].rsplit(") changed from", 1)[0].strip("/")
+                                            )
+                                            json_field_path = [
+                                                0 if seg == "[]" else seg for seg in json_field_path_str.split("/")
+                                            ]
+                                            # Get List(Json()) when possible, setting the closest List type to List(Json())
+                                            if 0 in json_field_path:
+                                                for i, seg in list(enumerate(json_field_path))[::-1]:
+                                                    if seg == 0:
+                                                        json_field_path = json_field_path[: i + 1]
+                                                        break
+                                            print(f"{json_field_path=}")
+                                            # Add to list of json_field_paths and check if other share a common path
+                                            for i in range(len(json_field_paths)):
+                                                if json_field_paths[i][: len(json_field_path)] == json_field_path:
+                                                    json_field_paths[i] = json_field_path
+                                                    break
+                                            else:
+                                                json_field_paths.append(json_field_path)
+                                            examples = [ujson_loads(line) for line in original_batch.splitlines()]
+                                            for json_field_path in json_field_paths:
+                                                examples = [
+                                                    json_encode_field(examples, json_field_path)
+                                                    for examples in examples
+                                                ]
+                                            batch = "\n".join(ujson_dumps(example) for example in examples).encode()
+                                        elif (
                                             isinstance(e, pa.ArrowInvalid)
                                             and "straddling" not in str(e)
                                             or block_size > len(batch)
@@ -176,6 +246,8 @@ class Json(datasets.ArrowBasedBuilder):
                                             )
                                             block_size *= 2
                             except pa.ArrowInvalid as e:
+                                if not allow_full_read:
+                                    raise FullReadDisallowed()
                                 try:
                                     with open(
                                         file, encoding=self.config.encoding, errors=self.config.encoding_errors
@@ -197,5 +269,23 @@ class Json(datasets.ArrowBasedBuilder):
                                     ) from None
                                 yield Key(shard_idx, 0), self._cast_table(pa_table)
                                 break
-                            yield Key(shard_idx, batch_idx), self._cast_table(pa_table)
+                            yield (
+                                Key(shard_idx, batch_idx),
+                                self._cast_table(pa_table, json_field_paths=json_field_paths),
+                            )
                             batch_idx += 1
+
+
+def json_encode_field(example, json_field_path):
+    if json_field_path:
+        field, *json_field_path = json_field_path
+        if example is None:
+            return None
+        elif field == 0:
+            for i in range(len(example)):
+                example[i] = json_encode_field(example[i], json_field_path)
+        else:
+            example[field] = json_encode_field(example.get(field), json_field_path)
+        return example
+    else:
+        return ujson_dumps(example)

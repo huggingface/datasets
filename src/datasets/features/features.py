@@ -1176,6 +1176,58 @@ class ClassLabel:
             return [name.strip() for name in f.read().split("\n") if name.strip()]  # Filter empty names
 
 
+def ujson_dumps(*args, **kwargs):
+    try:
+        return pd.io.json.ujson_dumps(*args, **kwargs)
+    except AttributeError:
+        # Before pandas-2.2.0, ujson_dumps was renamed to dumps: import ujson_dumps as dumps
+        return pd.io.json.dumps(*args, **kwargs)
+
+
+def ujson_loads(*args, **kwargs):
+    try:
+        return pd.io.json.ujson_loads(*args, **kwargs)
+    except AttributeError:
+        # Before pandas-2.2.0, ujson_loads was renamed to loads: import ujson_loads as loads
+        return pd.io.json.loads(*args, **kwargs)
+
+
+@dataclass
+class Json:
+    """Feature type for JSON objects.
+
+    Under the hood the objects are stored as JSON-encoded strings.
+
+    Example:
+
+    ```py
+    >>> from datasets import Features, Json
+    >>> features = Features({'json': Json()})
+    >>> features
+    {'json': Json()}
+    ```
+    """
+
+    decode: bool = True
+    id: Optional[str] = field(default=None, repr=False)
+    # Automatically constructed
+    pa_type: ClassVar[Any] = pa.json_()
+    _type: str = field(default="Json", init=False, repr=False)
+
+    def __call__(self):
+        return self.pa_type
+
+    def encode_example(self, example_data):
+        if not isinstance(example_data, str):
+            example_data = ujson_dumps(example_data)
+        return example_data
+
+    def decode_example(self, example_data, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
+        if not self.decode:
+            raise RuntimeError("Decoding is disabled for this feature. Please use Json(decode=True) instead.")
+        return ujson_loads(example_data)
+
+
 class Sequence:
     """
     A `Sequence` is a utility that automatically converts internal dictionary feature into a dictionary of
@@ -1406,6 +1458,8 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Uni
             return None
         else:
             sub_schema = schema.feature
+            if isinstance(sub_schema, dict):
+                return [decode_nested_example(sub_schema, o) for o in obj]
             if len(obj) > 0:
                 for first_elmt in obj:
                     if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
@@ -1436,6 +1490,7 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     Video.__name__: Video,
     Pdf.__name__: Pdf,
     Nifti.__name__: Nifti,
+    Json.__name__: Json,
 }
 
 
@@ -1514,6 +1569,8 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
     elif isinstance(pa_type, _ArrayXDExtensionType):
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
+    elif isinstance(pa_type, pa.JsonType):
+        return Json()
     elif isinstance(pa_type, pa.DataType):
         return Value(dtype=_arrow_to_datasets_dtype(pa_type))
     else:
