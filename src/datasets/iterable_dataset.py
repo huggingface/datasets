@@ -4460,9 +4460,9 @@ class IterableDataset(DatasetInfoMixin):
                 )
             except (Exception, KeyboardInterrupt):
                 tmp_file.close()
-                if Path(tmp_file.name).exists():
-                    Path(tmp_file.name).unlink()
+                Path(tmp_file.name).unlink()
                 raise
+            tmp_file.close()
             Path(tmp_file.name).unlink()
             additions.append(shard_addition)
             yield job_id, False, 1
