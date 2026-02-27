@@ -4451,18 +4451,19 @@ class IterableDataset(DatasetInfoMixin):
                     parquet_metadata.row_group(i).total_byte_size for i in range(parquet_metadata.num_row_groups)
                 )
                 shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=tmp_file.name)
+                api.preupload_lfs_files(
+                    repo_id=repo_id,
+                    additions=[shard_addition],
+                    repo_type="dataset",
+                    revision=revision,
+                    create_pr=create_pr,
+                )
             except (Exception, KeyboardInterrupt):
                 tmp_file.close()
                 if Path(tmp_file.name).exists():
                     Path(tmp_file.name).unlink()
                 raise
-            api.preupload_lfs_files(
-                repo_id=repo_id,
-                additions=[shard_addition],
-                repo_type="dataset",
-                revision=revision,
-                create_pr=create_pr,
-            )
+            Path(tmp_file.name).unlink()
             additions.append(shard_addition)
             yield job_id, False, 1
 
