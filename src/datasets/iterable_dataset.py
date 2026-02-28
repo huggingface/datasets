@@ -12,7 +12,7 @@ import re
 import sys
 import tempfile
 import time
-from collections import Counter
+from collections import Counter, deque
 from collections.abc import Iterable, Iterator
 from copy import deepcopy
 from dataclasses import dataclass
@@ -1207,7 +1207,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     f"different from {ex_iterable.batch_size=} from its underlying iterable."
                 )
         # to enable graceful ends
-        self._owned_loops_and_tasks: list[tuple[asyncio.AbstractEventLoop, list[asyncio.Task]]] = []
+        self._owned_loops_and_tasks: list[tuple[asyncio.AbstractEventLoop, deque[asyncio.Task]]] = []
 
     @property
     def iter_arrow(self):
@@ -1341,7 +1341,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             processed_inputs = await self.function(*fn_args, *additional_args, **fn_kwargs)
             return prepare_outputs(key_example, inputs, processed_inputs)
 
-        tasks: list[asyncio.Task] = []
+        tasks: deque[asyncio.Task] = deque()
         if inspect.iscoroutinefunction(self.function):
             try:
                 loop = asyncio.get_running_loop()
@@ -1360,7 +1360,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     self._state_dict["previous_state"] = previous_state
                     previous_state_task = None
                     previous_state_example_idx = self._state_dict["previous_state_example_idx"]
-                indices: Union[list[int], list[list[int]]] = []
+                indices: deque[Union[int, list[int]]] = deque()
                 for i, key_example in inputs_iterator:
                     indices.append(i)
                     tasks.append(loop.create_task(async_apply_function(key_example, i)))
@@ -1377,7 +1377,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                         loop.run_until_complete(tasks[0])
                     # yield finished tasks
                     while tasks and tasks[0].done():
-                        i, task = indices.pop(0), tasks.pop(0)
+                        i, task = indices.popleft(), tasks.popleft()
                         yield i, task.result()
                         if self._state_dict and task is previous_state_task:
                             self._state_dict["previous_state"] = previous_state
@@ -1391,7 +1391,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                         previous_state_example_idx = current_idx
                 while tasks:
                     yield indices[0], loop.run_until_complete(tasks[0])
-                    indices.pop(0), tasks.pop(0)
+                    indices.popleft(), tasks.popleft()
             else:
                 if self._state_dict:
                     if self.batched:
