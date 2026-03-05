@@ -4387,13 +4387,24 @@ class IterableDataset(DatasetInfoMixin):
         ```
 
         """
-        from .arrow_writer import get_arrow_writer_batch_size_from_features
+        from .io.parquet import ParquetDatasetWriter
 
-        batch_size = get_arrow_writer_batch_size_from_features(self.features) or config.DEFAULT_MAX_BATCH_SIZE
-        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=batch_size)))
-        return Dataset(table, fingerprint="unset").to_parquet(
-            path_or_buf, storage_options=storage_options, **parquet_writer_kwargs
-        )
+        dataset: Union[Dataset, IterableDataset, None] = None
+        if self.features is None:
+            # Without features we can't construct a schema upfront — fall back to materializing
+            from .arrow_writer import get_arrow_writer_batch_size_from_features
+
+            batch_size = (
+                batch_size or get_arrow_writer_batch_size_from_features(self.features) or config.DEFAULT_MAX_BATCH_SIZE
+            )
+            table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=batch_size)))
+            dataset = Dataset(table, fingerprint="unset")
+        else:
+            dataset = self
+
+        return ParquetDatasetWriter(
+            dataset, path_or_buf, batch_size=batch_size, storage_options=storage_options, **parquet_writer_kwargs
+        ).write()
 
     def _push_parquet_shards_to_hub_single(
         self,

@@ -6,7 +6,17 @@ import pyarrow.parquet as pq
 import pytest
 
 import datasets.config
-from datasets import Audio, Dataset, DatasetDict, Features, IterableDatasetDict, List, NamedSplit, Value, config
+from datasets import (
+    Audio,
+    Dataset,
+    DatasetDict,
+    Features,
+    IterableDatasetDict,
+    List,
+    NamedSplit,
+    Value,
+    config,
+)
 from datasets.arrow_writer import get_arrow_writer_batch_size_from_features
 from datasets.features.image import Image
 from datasets.info import DatasetInfo
@@ -293,3 +303,35 @@ def test_dataset_to_parquet_fsspec(dataset, mockfs):
 
     with fsspec.open(dataset_path, "rb", **mockfs.storage_options) as f:
         assert f.read()
+
+
+def test_iterable_dataset_to_parquet(tmp_path):
+    data = {"col_1": ["a", "b", "c"], "col_2": [1, 2, 3]}
+    features = Features({"col_1": Value("string"), "col_2": Value("int64")})
+    ds = Dataset.from_dict(data, features=features)
+    iterable_ds = ds.to_iterable_dataset()
+
+    output_path = tmp_path / "output.parquet"
+    writer = ParquetDatasetWriter(iterable_ds, output_path, batch_size=2)
+    written = writer.write()
+    assert written > 0
+
+    reloaded = Dataset.from_parquet(str(output_path))
+    assert reloaded.num_rows == 3
+    assert reloaded.column_names == ["col_1", "col_2"]
+    assert reloaded.features == features
+    assert reloaded["col_1"] == ["a", "b", "c"]
+    assert reloaded["col_2"] == [1, 2, 3]
+
+
+def test_iterable_dataset_to_parquet_keeps_features(tmp_path):
+    features = Features({"col_1": Value("string"), "col_2": Value("int32")})
+    ds = Dataset.from_dict({"col_1": ["a", "b"], "col_2": [1, 2]}, features=features)
+    iterable_ds = ds.to_iterable_dataset()
+
+    output_path = tmp_path / "output.parquet"
+    writer = ParquetDatasetWriter(iterable_ds, output_path)
+    assert writer.write() > 0
+
+    reloaded = Dataset.from_parquet(str(output_path))
+    assert reloaded.features == features
