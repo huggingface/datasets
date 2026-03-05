@@ -4451,6 +4451,7 @@ class IterableDataset(DatasetInfoMixin):
                     partial(embed_table_storage, token_per_repo_id=self._token_per_repo_id),
                     batched=True,
                     batch_size=get_arrow_writer_batch_size_from_features(shard.features),
+                    features=shard.features,
                 )
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
             tmp_file = tempfile.NamedTemporaryFile(suffix=".parquet", delete=False)
