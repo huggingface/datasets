@@ -325,7 +325,7 @@ def create_builder_configs_from_metadata_configs(
             )
             config_data_files_dict = DataFilesPatternsDict.from_patterns(
                 config_patterns,
-                allowed_extensions=_ALL_ALLOWED_EXTENSIONS,
+                allowed_extensions=None if config_data_files is not None else _ALL_ALLOWED_EXTENSIONS,
             )
         except EmptyDatasetError as e:
             raise EmptyDatasetError(
