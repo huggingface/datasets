@@ -2105,6 +2105,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         batch_size: int = 1000,
         drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, list[str]]] = None,
+        features: Optional[Features] = None,
         fn_kwargs: Optional[dict] = None,
     ) -> "IterableDatasetDict":
         """
@@ -2156,6 +2157,8 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
+            features (`[Features]`, *optional*, defaults to `None`):
+                Feature types of the resulting dataset.
             fn_kwargs (`Dict`, *optional*, defaults to `None`):
                 Keyword arguments to be passed to `function`
 
@@ -2187,6 +2190,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 batch_size=batch_size,
                 drop_last_batch=drop_last_batch,
                 remove_columns=remove_columns,
+                features=features,
                 fn_kwargs=fn_kwargs,
             )
 
