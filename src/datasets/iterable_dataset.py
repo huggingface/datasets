@@ -4813,7 +4813,7 @@ class IterableDataset(DatasetInfoMixin):
                     repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
                     repo_info.splits.pop(split, None)
                     repo_info.splits[split] = SplitInfo(
-                        split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
+                        split, num_bytes=dataset_nbytes, num_examples=num_examples, dataset_name=dataset_name
                     )
                     info_to_dump = repo_info
             # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
