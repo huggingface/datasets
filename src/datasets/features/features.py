@@ -2285,6 +2285,21 @@ class Features(dict):
         return self
 
 
+def _is_null_feature(feature) -> bool:
+    """Recursively check if a feature represents a null type.
+
+    This handles not only top-level ``Value("null")`` but also nested null types
+    such as ``List(Value("null"))``, ``LargeList(Value("null"))``, and
+    ``Sequence(Value("null"))``, which can arise when a shard contains only
+    empty lists during multi-process ``Dataset.map()``.
+    """
+    if isinstance(feature, Value) and feature.dtype == "null":
+        return True
+    if isinstance(feature, (Sequence, LargeList)) and hasattr(feature, "feature"):
+        return _is_null_feature(feature.feature)
+    return False
+
+
 def _align_features(features_list: list[Features]) -> list[Features]:
     """Align dictionaries of features so that the keys that are found in multiple dictionaries share the same feature."""
     name2feature = {}
@@ -2293,7 +2308,7 @@ def _align_features(features_list: list[Features]) -> list[Features]:
             if k in name2feature and isinstance(v, dict):
                 # Recursively align features.
                 name2feature[k] = _align_features([name2feature[k], v])[0]
-            elif k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
+            elif k not in name2feature or _is_null_feature(name2feature[k]):
                 name2feature[k] = v
 
     return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
@@ -2302,12 +2317,13 @@ def _align_features(features_list: list[Features]) -> list[Features]:
 def _check_if_features_can_be_aligned(features_list: list[Features]):
     """Check if the dictionaries of features can be aligned.
 
-    Two dictonaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.
+    Two dictionaries of features can be aligned if the keys they share have the same type or some of them is of
+    type ``Value("null")`` (or a container wrapping ``Value("null")``, such as ``List(Value("null"))``).
     """
     name2feature = {}
     for features in features_list:
         for k, v in features.items():
-            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
+            if k not in name2feature or _is_null_feature(name2feature[k]):
                 name2feature[k] = v
 
     for features in features_list:
@@ -2315,7 +2331,7 @@ def _check_if_features_can_be_aligned(features_list: list[Features]):
             if isinstance(v, dict) and isinstance(name2feature[k], dict):
                 # Deep checks for structure.
                 _check_if_features_can_be_aligned([name2feature[k], v])
-            elif not (isinstance(v, Value) and v.dtype == "null") and name2feature[k] != v:
+            elif not _is_null_feature(v) and name2feature[k] != v:
                 raise ValueError(
                     f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
                 )
