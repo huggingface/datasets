@@ -144,6 +144,7 @@ def _convert_to_arrow(
     iterable: Iterable[tuple[Key, dict]],
     batch_size: int,
     drop_last_batch: bool = False,
+    features: Optional[Features] = None,
 ) -> Iterator[tuple[Key, pa.Table]]:
     """Convert and group examples in Arrow tables of size `batch_size`.
 
@@ -154,12 +155,18 @@ def _convert_to_arrow(
             Size of each sub-table to yield. If None or <= 0, yields the full table.
         drop_last_batch (`bool`, defaults to `False`):
             Drop the last batch if it is smaller than `batch_size`.
+        features (`Optional[Features]`, defaults to `None`):
+            If provided, cast each produced Arrow table to the given features schema.
+            This prevents schema mismatches when Arrow infers inconsistent types across batches
+            (e.g. `null` vs `struct` when early batches contain None values).
     """
     if batch_size is None or batch_size <= 0:
-        yield (
-            "all",
-            pa.Table.from_pylist(cast_to_python_objects([example for _, example in iterable], only_1d_for_numpy=True)),
+        pa_table = pa.Table.from_pylist(
+            cast_to_python_objects([example for _, example in iterable], only_1d_for_numpy=True)
         )
+        if features is not None:
+            pa_table = cast_table_to_features(pa_table, features)
+        yield "all", pa_table
         return
     iterator = iter(iterable)
     for key, example in iterator:
@@ -169,7 +176,10 @@ def _convert_to_arrow(
             return
         keys, examples = zip(*key_examples_list)
         new_key = "_".join(str(key) for key in keys)
-        yield new_key, pa.Table.from_pylist(cast_to_python_objects(examples, only_1d_for_numpy=True))
+        pa_table = pa.Table.from_pylist(cast_to_python_objects(examples, only_1d_for_numpy=True))
+        if features is not None:
+            pa_table = cast_table_to_features(pa_table, features)
+        yield new_key, pa_table
 
 
 def shift_ex_examples_rngs(ex_iterable: "_BaseExamplesIterable", value: int) -> "_BaseExamplesIterable":
@@ -459,7 +469,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
         if self.ex_iterable.iter_arrow:
             iterator = self.ex_iterable.iter_arrow()
         else:
-            iterator = _convert_to_arrow(self.ex_iterable, batch_size=1)
+            iterator = _convert_to_arrow(self.ex_iterable, batch_size=1, features=self.ex_iterable.features)
         if self.batch_size is None or self.batch_size <= 0:
             if self._state_dict and self._state_dict["batch_idx"] > 0:
                 return
@@ -1444,6 +1454,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 self.ex_iterable,
                 batch_size=self.batch_size if self.batched else 1,
                 drop_last_batch=self.drop_last_batch,
+                features=self._features,
             )
         if self._state_dict and self._state_dict["previous_state"]:
             self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
@@ -2461,7 +2472,7 @@ class IterableDataset(DatasetInfoMixin):
                 if ex_iterable.iter_arrow:
                     iterator = ex_iterable.iter_arrow()
                 else:
-                    iterator = _convert_to_arrow(ex_iterable, batch_size=1)
+                    iterator = _convert_to_arrow(ex_iterable, batch_size=1, features=self.features)
                 for key, pa_table in iterator:
                     yield formatter.format_row(pa_table)
                 return
@@ -2559,7 +2570,7 @@ class IterableDataset(DatasetInfoMixin):
             if ex_iterable.iter_arrow:
                 iterator = ex_iterable.iter_arrow()
             else:
-                iterator = _convert_to_arrow(ex_iterable, batch_size=1)
+                iterator = _convert_to_arrow(ex_iterable, batch_size=1, features=self.features)
             for key, pa_table in iterator:
                 yield formatter.format_row(pa_table)
             return
@@ -2588,7 +2599,9 @@ class IterableDataset(DatasetInfoMixin):
             if ex_iterable.iter_arrow:
                 iterator = ex_iterable.iter_arrow()
             else:
-                iterator = _convert_to_arrow(ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch)
+                iterator = _convert_to_arrow(
+                    ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch, features=self.features
+                )
             for key, pa_table in iterator:
                 yield formatter.format_batch(pa_table)
             return

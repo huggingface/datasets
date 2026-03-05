@@ -186,6 +186,100 @@ def test_convert_to_arrow(batch_size, drop_last_batch):
         assert full_table.slice(0, num_rows).to_pydict() == reloaded.to_pydict()
 
 
+def test_convert_to_arrow_schema_mismatch_with_nulls():
+    """When early batches have None values, Arrow infers null type which conflicts with later batches.
+
+    This reproduces the bug where _convert_to_arrow produces tables with inconsistent schemas
+    because pa.Table.from_pylist infers types per-batch without schema enforcement.
+    """
+    # First batch: nested field is None → Arrow infers null type
+    # Second batch: nested field has real data → Arrow infers struct type
+    examples = [
+        {"id": 0, "nested": None},
+        {"id": 1, "nested": None},
+        {"id": 2, "nested": {"value": 1.0, "label": "a"}},
+        {"id": 3, "nested": {"value": 2.0, "label": "b"}},
+    ]
+    # batch_size=2 ensures first batch is all-null, second batch has structs
+    subtables = list(
+        _convert_to_arrow(
+            list(enumerate(examples)),
+            batch_size=2,
+        )
+    )
+    # Without fix: first table has schema {id: int64, nested: null}
+    #              second table has schema {id: int64, nested: struct<value: double, label: string>}
+    # pa.concat_tables will fail with ArrowInvalid
+    with pytest.raises(pa.lib.ArrowInvalid):
+        pa.concat_tables([subtable for _, subtable in subtables])
+
+
+def test_convert_to_arrow_schema_mismatch_with_empty_lists():
+    """When early batches have empty lists, Arrow infers list<null> which conflicts with later batches."""
+    examples = [
+        {"id": 0, "values": []},
+        {"id": 1, "values": []},
+        {"id": 2, "values": [1.0, 2.0]},
+        {"id": 3, "values": [3.0, 4.0]},
+    ]
+    subtables = list(
+        _convert_to_arrow(
+            list(enumerate(examples)),
+            batch_size=2,
+        )
+    )
+    with pytest.raises(pa.lib.ArrowInvalid):
+        pa.concat_tables([subtable for _, subtable in subtables])
+
+
+def test_convert_to_arrow_with_features_enforces_schema():
+    """When features are provided, _convert_to_arrow should cast tables to the declared schema."""
+    features = Features(
+        {
+            "id": Value("int64"),
+            "nested": {"value": Value("float64"), "label": Value("string")},
+        }
+    )
+    examples = [
+        {"id": 0, "nested": None},
+        {"id": 1, "nested": None},
+        {"id": 2, "nested": {"value": 1.0, "label": "a"}},
+        {"id": 3, "nested": {"value": 2.0, "label": "b"}},
+    ]
+    subtables = list(
+        _convert_to_arrow(
+            list(enumerate(examples)),
+            batch_size=2,
+            features=features,
+        )
+    )
+    # With features, all tables should have consistent schema and concat should work
+    result = pa.concat_tables([subtable for _, subtable in subtables])
+    assert len(result) == 4
+    assert result.schema == features.arrow_schema
+
+
+def test_convert_to_arrow_with_features_enforces_schema_empty_lists():
+    """When features are provided, empty lists should be cast to the correct list type."""
+    features = Features({"id": Value("int64"), "values": List(Value("float64"))})
+    examples = [
+        {"id": 0, "values": []},
+        {"id": 1, "values": []},
+        {"id": 2, "values": [1.0, 2.0]},
+        {"id": 3, "values": [3.0, 4.0]},
+    ]
+    subtables = list(
+        _convert_to_arrow(
+            list(enumerate(examples)),
+            batch_size=2,
+            features=features,
+        )
+    )
+    result = pa.concat_tables([subtable for _, subtable in subtables])
+    assert len(result) == 4
+    assert result.schema == features.arrow_schema
+
+
 ################################
 #
 #   _BaseExampleIterable tests
