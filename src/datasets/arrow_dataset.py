@@ -5680,7 +5680,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         additions: list[CommitOperationAdd] = []
 
-        num_jobs = num_proc or 1
+        num_jobs = min(num_proc or 1, num_shards)
         kwargs_iterable = [
             {
                 "self": self.shard(num_shards=num_jobs, index=job_id, contiguous=True),
