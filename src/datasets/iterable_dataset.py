@@ -4466,10 +4466,9 @@ class IterableDataset(DatasetInfoMixin):
                     features=shard.features,
                 )
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
-            tmp_file = tempfile.NamedTemporaryFile(suffix=".parquet", delete=False)
-            try:
+            with tempfile.NamedTemporaryFile(suffix=".parquet") as tmp_file:
                 shard.to_parquet(tmp_file)
-                tmp_file.close()
+                tmp_file.flush()
                 parquet_metadata = pq.read_metadata(tmp_file.name)
                 num_examples += parquet_metadata.num_rows
                 dataset_nbytes += sum(
@@ -4483,12 +4482,6 @@ class IterableDataset(DatasetInfoMixin):
                     revision=revision,
                     create_pr=create_pr,
                 )
-            except (Exception, KeyboardInterrupt):
-                tmp_file.close()
-                Path(tmp_file.name).unlink()
-                raise
-            tmp_file.close()
-            Path(tmp_file.name).unlink()
             additions.append(shard_addition)
             yield job_id, False, 1
 
