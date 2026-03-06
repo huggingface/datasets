@@ -52,7 +52,7 @@ def find_mixed_struct_types_field_paths(examples: list) -> list[str]:
     while paths_and_content_to_check:
         path, content = paths_and_content_to_check.pop(0)
         if all(isinstance(x, dict) for x in content):
-            if any(set(x) != set(content[0]) for x in content):
+            if path and any(set(x) != set(content[0]) for x in content):
                 mixed_struct_types_field_paths.append(path)
             else:
                 for subfield in content[0]:
@@ -89,7 +89,7 @@ def insert_json_field_path(json_field_paths: list[str], json_field_path: str) ->
 def json_encode_fields_in_json_lines(original_batch: bytes, json_field_paths: list[str]) -> bytes:
     examples = [ujson_loads(line) for line in original_batch.splitlines()]
     for json_field_path in json_field_paths:
-        examples = [json_encode_field(examples, json_field_path) for examples in examples]
+        examples = [json_encode_field(example, json_field_path) for example in examples]
     batch = "\n".join([ujson_dumps(example) for example in examples]).encode()
     return batch
 

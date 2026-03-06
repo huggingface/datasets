@@ -245,7 +245,7 @@ class TypedSequence:
             FeatureType: inferred feature type of the sequence.
         """
         if self._inferred_type is None:
-            pa.array(self).type
+            pa.array(self)
         return self._inferred_type
 
     @staticmethod
@@ -289,7 +289,8 @@ class TypedSequence:
 
     def __arrow_array__(self, type: Optional[pa.DataType] = None):
         out = self._arrow_array(type=type)
-        self._inferred_type = generate_from_arrow_type(out.type)
+        if self._inferred_type is None:
+            self._inferred_type = generate_from_arrow_type(out.type)
         return out
 
     def _arrow_array(self, type: Optional[pa.DataType] = None):
@@ -446,13 +447,14 @@ class TypedSequence:
                             features = set_json_types_in_feature(features, json_field_paths)
                             pa_table = table_cast(pa_table, features.arrow_schema)
                             out = pa_table[0]  # get the "obj" column
+                            return out
                         else:
                             raise
                     else:
                         raise
-                    if type is not None:
-                        out = cast_array_to_feature(out, type, allow_primitive_to_str=True, allow_decimal_to_str=True)
-                    return out
+                if type is not None:
+                    out = cast_array_to_feature(out, type, allow_primitive_to_str=True, allow_decimal_to_str=True)
+                return out
             else:
                 raise
 

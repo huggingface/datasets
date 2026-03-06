@@ -167,8 +167,14 @@ class Json(datasets.ArrowBasedBuilder):
                                 if not allow_full_read:
                                     raise FullReadDisallowed()
                                 else:
+                                    # convert to JSON Lines
                                     full_data = batch + f.read()
-                                    batch = "\n".join(ujson_dumps(x) for x in ujson_loads(full_data)).encode()
+                                    if b"{" in batch[:100].split(b'"', 1)[0]:  # list of objects
+                                        batch = "\n".join(ujson_dumps(x) for x in ujson_loads(full_data)).encode()
+                                    else:  # list of strings
+                                        batch = "\n".join(
+                                            ujson_dumps({"text": x}) for x in ujson_loads(full_data)
+                                        ).encode()
                             # Finish current line
                             try:
                                 batch += f.readline()
