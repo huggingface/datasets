@@ -163,6 +163,12 @@ class Json(datasets.ArrowBasedBuilder):
                             batch = f.read(self.config.chunksize)
                             if not batch:
                                 break
+                            if batch.startswith(b"["):
+                                if not allow_full_read:
+                                    raise FullReadDisallowed()
+                                else:
+                                    full_data = batch + f.read()
+                                    batch = "\n".join(ujson_dumps(x) for x in ujson_loads(full_data)).encode()
                             # Finish current line
                             try:
                                 batch += f.readline()
