@@ -329,7 +329,7 @@ class TypedSequence:
                 examples = data
                 # find fields to json-encode
                 if self.on_mixed_types == "use_json" and type is None:
-                    json_field_paths = find_mixed_struct_types_field_paths(examples)
+                    json_field_paths = find_mixed_struct_types_field_paths(examples, allow_root=True)
                 elif type is not None:
                     json_field_paths = get_json_field_paths_from_feature(type)
                 # json encode if needed

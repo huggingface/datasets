@@ -43,7 +43,7 @@ def json_encode_field(example: Any, json_field_path: str) -> Any:
             return example
 
 
-def find_mixed_struct_types_field_paths(examples: list) -> list[str]:
+def find_mixed_struct_types_field_paths(examples: list, allow_root=False) -> list[str]:
     mixed_struct_types_field_paths = []
     examples = [example for example in examples if example is not None]
     if not examples:
@@ -52,7 +52,7 @@ def find_mixed_struct_types_field_paths(examples: list) -> list[str]:
     while paths_and_content_to_check:
         path, content = paths_and_content_to_check.pop(0)
         if all(isinstance(x, dict) for x in content):
-            if path and any(set(x) != set(content[0]) for x in content):
+            if (allow_root or path) and any(set(x) != set(content[0]) for x in content):
                 mixed_struct_types_field_paths.append(path)
             else:
                 for subfield in content[0]:

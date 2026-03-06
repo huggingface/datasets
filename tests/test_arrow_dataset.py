@@ -3286,6 +3286,32 @@ class BaseDatasetTest(TestCase):
         del tf_dataset_with_drop
 
 
+_messages = [
+    {"role": "user", "content": "Turn on the living room lights and play my electronic music playlist."},
+    {
+        "role": "assistant",
+        "tool_calls": [
+            {
+                "type": "function",
+                "function": {"name": "control_light", "arguments": {"room": "living room", "state": "on"}},
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "play_music",
+                    "arguments": {
+                        "playlist": "electronic"
+                    },  # mixed-type here since keys ["playlist"] and ["room", "state"] are different
+                },
+            },
+        ],
+    },
+    {"role": "tool", "name": "control_light", "content": "The lights in the living room are now on."},
+    {"role": "tool", "name": "play_music", "content": "The music is now playing."},
+    {"role": "assistant", "content": "Done!"},
+]
+
+
 class MiscellaneousDatasetTest(TestCase):
     def test_from_pandas(self):
         data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
@@ -3388,6 +3414,20 @@ class MiscellaneousDatasetTest(TestCase):
 
         features = Features({"col_1": Value("int64"), "col_2": Value("int64"), "col_3": Value("bool")})
         self.assertRaises(ValueError, Dataset.from_dict, data, features=features)
+
+    def test_from_dict_on_mixed_types(self):
+        data = {"col_1": [-1, 1, "foo"]}
+        with Dataset.from_dict(data, on_mixed_types="use_json") as dset:
+            self.assertEqual(dset[:], data)
+        data = {"col_1": [{"a": 0}, {"b": 0}, {"c": 0}]}
+        with Dataset.from_dict(data, on_mixed_types="use_json") as dset:
+            self.assertEqual(dset[:], data)
+        data = {"col_1": [[{"a": 0}, {"b": 0}], [{"c": 0}, {"d": 0}]]}
+        with Dataset.from_dict(data, on_mixed_types="use_json") as dset:
+            self.assertEqual(dset[:], data)
+        data = {"messages": [_messages]}
+        with Dataset.from_dict(data, on_mixed_types="use_json") as dset:
+            self.assertEqual(dset[:], data)
 
     def test_concatenate_mixed_memory_and_disk(self):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}

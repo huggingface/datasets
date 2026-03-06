@@ -9,7 +9,7 @@ import pytest
 
 from datasets import Array2D
 from datasets.arrow_dataset import Column, Dataset
-from datasets.features import Audio, ClassLabel, Features, Image, LargeList, List, Sequence, Value
+from datasets.features import Audio, ClassLabel, Features, Image, Json, LargeList, List, Sequence, Value
 from datasets.features.features import (
     _align_features,
     _arrow_to_datasets_dtype,
@@ -659,6 +659,8 @@ CUSTOM_FEATURES = [
     Features({"audio": Audio(decode=False)}),
     Features({"translation": Translation(["en", "fr"])}),
     Features({"translation": TranslationVariableLanguages(["en", "fr"])}),
+    Features({"json": Json()}),
+    Features({"json": Json(decode=False)}),
 ]
 
 NESTED_FEATURES = [
