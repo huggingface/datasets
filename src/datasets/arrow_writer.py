@@ -13,14 +13,16 @@
 # Lint as: python3
 """To write records into Parquet files."""
 
+import io
 import json
 import sys
 from collections.abc import Iterable
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 import fsspec
 import numpy as np
 import pyarrow as pa
+import pyarrow.json as paj
 import pyarrow.parquet as pq
 from fsspec.core import url_to_fs
 
@@ -43,6 +45,16 @@ from .filesystems import is_remote_filesystem
 from .info import DatasetInfo
 from .table import array_cast, cast_array_to_feature, embed_table_storage, table_cast
 from .utils import logging
+from .utils.json import (
+    find_mixed_struct_types_field_paths,
+    get_json_field_path_from_pyarrow_json_error,
+    get_json_field_paths_from_feature,
+    insert_json_field_path,
+    json_encode_field,
+    json_encode_fields_in_json_lines,
+    set_json_types_in_feature,
+    ujson_dumps,
+)
 from .utils.py_utils import asdict, convert_file_size_to_int, first_non_null_non_empty_value
 
 
@@ -204,6 +216,7 @@ class TypedSequence:
         type: Optional[FeatureType] = None,
         try_type: Optional[FeatureType] = None,
         optimized_int_type: Optional[FeatureType] = None,
+        on_mixed_types: Literal["error", "use_json"] = "error",
     ):
         # assert type is None or try_type is None,
         if type is not None and try_type is not None:
@@ -213,6 +226,7 @@ class TypedSequence:
         self.type = type
         self.try_type = try_type  # is ignored if it doesn't match the data
         self.optimized_int_type = optimized_int_type
+        self.on_mixed_types = on_mixed_types
         # when trying a type (is ignored if data is not compatible)
         self.trying_type = self.try_type is not None
         self.trying_int_optimization = optimized_int_type is not None and type is None and try_type is None
@@ -231,7 +245,7 @@ class TypedSequence:
             FeatureType: inferred feature type of the sequence.
         """
         if self._inferred_type is None:
-            self._inferred_type = generate_from_arrow_type(pa.array(self).type)
+            pa.array(self).type
         return self._inferred_type
 
     @staticmethod
@@ -274,6 +288,11 @@ class TypedSequence:
         return data, None
 
     def __arrow_array__(self, type: Optional[pa.DataType] = None):
+        out = self._arrow_array(type=type)
+        self._inferred_type = generate_from_arrow_type(out.type)
+        return out
+
+    def _arrow_array(self, type: Optional[pa.DataType] = None):
         """This function is called when calling pa.array(typed_sequence)"""
 
         if type is not None:
@@ -292,6 +311,7 @@ class TypedSequence:
             get_nested_type(self.optimized_int_type) if self.optimized_int_type is not None else None
         )
         trying_cast_to_python_objects = False
+        json_field_paths = []
         try:
             # custom pyarrow types
             if isinstance(pa_type, _ArrayXDExtensionType):
@@ -305,7 +325,25 @@ class TypedSequence:
                 out = list_of_np_array_to_pyarrow_listarray(data)
             else:
                 trying_cast_to_python_objects = True
-                out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
+                examples = data
+                # find fields to json-encode
+                if self.on_mixed_types == "use_json" and type is None:
+                    json_field_paths = find_mixed_struct_types_field_paths(examples)
+                elif type is not None:
+                    json_field_paths = get_json_field_paths_from_feature(type)
+                # json encode if needed
+                if json_field_paths:
+                    for json_field_path in json_field_paths:
+                        examples = [json_encode_field(examples, json_field_path) for examples in examples]
+                # to arrow array
+                out = pa.array(cast_to_python_objects(examples, only_1d_for_numpy=True))
+                # cast to json type if needed
+                if json_field_paths:
+                    pa_table = pa.Table.from_arrays([out], names=["obj"])
+                    features = Features.from_arrow_schema(pa_table.schema)
+                    feature = set_json_types_in_feature(features["obj"], json_field_paths)
+                    pa_table = table_cast(pa_table, Features({"obj": feature}).arrow_schema)
+                    out = pa_table[0]  # get the "obj" column
             # use smaller integer precisions if possible
             if self.trying_int_optimization:
                 if pa.types.is_int64(out.type):
@@ -326,6 +364,7 @@ class TypedSequence:
             return out
         except (
             TypeError,
+            pa.lib.ArrowTypeError,
             pa.lib.ArrowInvalid,
             pa.lib.ArrowNotImplementedError,
         ) as e:  # handle type errors and overflows
@@ -372,11 +411,48 @@ class TypedSequence:
                 optimized_int_pa_type_str = np.dtype(optimized_int_pa_type.to_pandas_dtype()).name
                 logger.info(f"Failed to cast a sequence to {optimized_int_pa_type_str}. Falling back to int64.")
                 return out
-            elif trying_cast_to_python_objects and "Could not convert" in str(e):
-                out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False))
-                if type is not None:
-                    out = cast_array_to_feature(out, type, allow_primitive_to_str=True, allow_decimal_to_str=True)
-                return out
+            elif trying_cast_to_python_objects and (
+                "Could not convert" in str(e) or "cannot mix struct and non-struct" in str(e) or "Expected " in str(e)
+            ):
+                try:  # third chance
+                    out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False))
+                except (pa.ArrowInvalid, pa.ArrowTypeError) as ee:
+                    # in case of mixed types, we use the JSON Lines reader in pyarrow to locate them and set them to json fields
+                    if self.on_mixed_types == "use_json" and (
+                        "Could not convert " in str(ee)
+                        or "cannot mix struct and non-struct" in str(ee)
+                        or "Expected " in str(ee)
+                    ):
+                        # we use "obj" to have valid JSON Lines since data may contain lists
+                        original_batch = "\n".join([ujson_dumps({"obj": example}) for example in data]).encode()
+                        json_field_paths = [["obj"] + json_field_path for json_field_path in json_field_paths]
+                        batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
+                        pa_table = None
+                        while True:
+                            try:  # fourth chance
+                                pa_table = paj.read_json(
+                                    io.BytesIO(batch), read_options=paj.ReadOptions(use_threads=False)
+                                )
+                                break
+                            except pa.ArrowInvalid as eee:
+                                if "JSON parse error: Column(" in str(eee) and ") changed from" in str(eee):
+                                    json_field_path = get_json_field_path_from_pyarrow_json_error(str(eee))
+                                    insert_json_field_path(json_field_paths, json_field_path)
+                                    batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
+                                else:
+                                    break
+                        if pa_table is not None:
+                            features = Features.from_arrow_schema(pa_table.schema)
+                            features = set_json_types_in_feature(features, json_field_paths)
+                            pa_table = table_cast(pa_table, features.arrow_schema)
+                            out = pa_table[0]  # get the "obj" column
+                        else:
+                            raise
+                    else:
+                        raise
+                    if type is not None:
+                        out = cast_array_to_feature(out, type, allow_primitive_to_str=True, allow_decimal_to_str=True)
+                    return out
             else:
                 raise
 
@@ -389,6 +465,7 @@ class OptimizedTypedSequence(TypedSequence):
         try_type: Optional[FeatureType] = None,
         col: Optional[str] = None,
         optimized_int_type: Optional[FeatureType] = None,
+        on_mixed_types: Literal["error", "use_json"] = "error",
     ):
         optimized_int_type_by_col = {
             "attention_mask": Value("int8"),  # binary tensor
@@ -400,7 +477,9 @@ class OptimizedTypedSequence(TypedSequence):
         }
         if type is None and try_type is None:
             optimized_int_type = optimized_int_type_by_col.get(col, None)
-        super().__init__(data, type=type, try_type=try_type, optimized_int_type=optimized_int_type)
+        super().__init__(
+            data, type=type, try_type=try_type, optimized_int_type=optimized_int_type, on_mixed_types=on_mixed_types
+        )
 
 
 class ArrowWriter:
@@ -416,6 +495,7 @@ class ArrowWriter:
         writer_batch_size: Optional[int] = None,
         disable_nullable: bool = False,
         update_features: bool = False,
+        on_mixed_types: Literal["error", "use_json"] = "use_json",
         with_metadata: bool = True,
         unit: str = "examples",
         embed_local_files: bool = False,
@@ -455,6 +535,7 @@ class ArrowWriter:
             or config.DEFAULT_MAX_BATCH_SIZE
         )
         self.update_features = update_features
+        self.on_mixed_types = on_mixed_types
         self.with_metadata = with_metadata
         self.unit = unit
         self.embed_local_files = embed_local_files
@@ -654,7 +735,9 @@ class ArrowWriter:
                     if try_features is not None and col in try_features and try_original_type
                     else None
                 )
-                typed_sequence = OptimizedTypedSequence(col_values, type=col_type, try_type=col_try_type, col=col)
+                typed_sequence = OptimizedTypedSequence(
+                    col_values, type=col_type, try_type=col_try_type, col=col, on_mixed_types=self.on_mixed_types
+                )
                 arrays.append(pa.array(typed_sequence))
                 inferred_features[col] = typed_sequence.get_inferred_type()
         schema = inferred_features.arrow_schema if self.pa_writer is None else self.schema

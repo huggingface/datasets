@@ -39,6 +39,7 @@ from .. import config
 from ..naming import camelcase_to_snakecase, snakecase_to_camelcase
 from ..table import array_cast
 from ..utils import experimental, logging
+from ..utils.json import ujson_dumps, ujson_loads
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
@@ -1176,22 +1177,6 @@ class ClassLabel:
             return [name.strip() for name in f.read().split("\n") if name.strip()]  # Filter empty names
 
 
-def ujson_dumps(*args, **kwargs):
-    try:
-        return pd.io.json.ujson_dumps(*args, **kwargs)
-    except AttributeError:
-        # Before pandas-2.2.0, ujson_dumps was renamed to dumps: import ujson_dumps as dumps
-        return pd.io.json.dumps(*args, **kwargs)
-
-
-def ujson_loads(*args, **kwargs):
-    try:
-        return pd.io.json.ujson_loads(*args, **kwargs)
-    except AttributeError:
-        # Before pandas-2.2.0, ujson_loads was renamed to loads: import ujson_loads as loads
-        return pd.io.json.loads(*args, **kwargs)
-
-
 @dataclass
 class Json:
     """Feature type for JSON objects.
@@ -1205,6 +1190,26 @@ class Json:
     >>> features = Features({'json': Json()})
     >>> features
     {'json': Json()}
+    ```
+
+    ```py
+    >>> from datasets import Dataset, Features, Json, List
+    >>> features = Features({"a": List(Json())})
+    >>> ds = Dataset.from_dict({"a": [[{"b": 0}, {"c": 0}]]}, features=features)
+    >>> # OR
+    >>> ds = Dataset.from_dict({"a": [[{"b": 0}, {"c": 0}]]}, on_mixed_types="use_json")
+    >>> ds.features
+    {'a': List(Json())}
+    >>> ds[0]
+    {'a': [{'b': 0}, {'c': 0}]}
+    >>> def f(x):
+    ...     for y in x["a"]:
+    ...         y["d"] = "foo"
+    ...     return x
+    >>> ds = ds.map(f)
+    >>> ds.features
+    >>> ds[0]
+    {'a': [{'b': 0, 'd': 'foo'}, {'c': 0, 'd': 'foo'}]}
     ```
     """
 
@@ -1220,12 +1225,40 @@ class Json:
     def encode_example(self, example_data):
         if not isinstance(example_data, str):
             example_data = ujson_dumps(example_data)
+        else:
+            try:
+                ujson_loads(example_data)
+            except Exception:
+                example_data = ujson_dumps(example_data)
         return example_data
 
     def decode_example(self, example_data, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Json(decode=True) instead.")
         return ujson_loads(example_data)
+
+    def cast_storage(self, storage: Union[pa.Array]) -> pa.Int64Array:
+        """Cast an Arrow array to the `Json` arrow storage type.
+
+        Args:
+            storage (`Union[pa.StringArray, pa.IntegerArray]`):
+                PyArrow array to cast.
+
+        Returns:
+            `pa.Int64Array`: Array in the `ClassLabel` arrow storage type.
+        """
+        if isinstance(storage, pa.JsonArray):
+            return storage
+        elif isinstance(storage, (pa.StringArray)):
+            items = storage[:5].to_pylist()
+            try:
+                for item in items:
+                    ujson_loads(item)
+            except Exception:
+                storage = pa.array([ujson_dumps(x) for x in storage.to_pylist()], pa.json_())
+        else:
+            storage = pa.array([ujson_dumps(x) for x in storage.to_pylist()], pa.json_())
+        return array_cast(storage, self.pa_type)
 
 
 class Sequence:
@@ -1830,6 +1863,7 @@ class Features(dict):
           or a dictionary with the relative path to a NIfTI file ("path" key) and its bytes content ("bytes" key).
           This feature loads the NIfTI file lazily with nibabel.
         - [`Translation`] or [`TranslationVariableLanguages`] feature specific to Machine Translation.
+        - [`Json`] feature to store unstructred data, e.g. containing mixed/abritrary types. Under the hood
     """
 
     def __init__(*args, **kwargs):
