@@ -1754,6 +1754,34 @@ def test_iterable_dataset_filter(dataset: IterableDataset) -> None:
     assert next(iter(filtered_dataset)) == {"id": 1}
 
 
+def test_iterable_dataset_filter_chaining_does_not_raise() -> None:
+    """Chaining two .filter() calls must not raise TypeError.
+
+    After the first .filter() the internal ex_iterable becomes typed
+    (is_typed=True) because FilteredExamplesIterable adds a mask column.
+    The second .filter() then wraps it in FormattedExamplesIterable.
+    Previously, features=None was passed when is_typed=True, causing
+    FilteredExamplesIterable.__init__ to crash with:
+      TypeError: 'NoneType' object is not a mapping
+    (issue #8037)
+    """
+    from datasets import IterableDataset
+    from datasets.features import Features, Value
+
+    features = Features({"id": Value("int32"), "text": Value("string")})
+
+    def gen():
+        for i in range(5):
+            yield {"id": i, "text": f"item-{i}"}
+
+    ds = IterableDataset.from_generator(gen, features=features)
+    ds = ds.filter(lambda x: x["id"] >= 1)
+    # Second filter must not raise TypeError
+    ds = ds.filter(lambda x: x["id"] <= 3)
+    result = list(ds)
+    assert [row["id"] for row in result] == [1, 2, 3]
+
+
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
 @pytest.mark.parametrize("epoch", [None, 0, 1])
 def test_iterable_dataset_shuffle(dataset: IterableDataset, seed, epoch):
