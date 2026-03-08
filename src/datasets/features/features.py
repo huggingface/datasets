@@ -42,6 +42,7 @@ from ..utils import experimental, logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
+from .mesh import Mesh
 from .nifti import Nifti, encode_nibabel_image
 from .pdf import Pdf, encode_pdfplumber_pdf
 from .translation import Translation, TranslationVariableLanguages
@@ -1274,6 +1275,7 @@ FeatureType = Union[
     Array5D,
     Audio,
     Image,
+    Mesh,
     Video,
     Pdf,
     Nifti,
@@ -1433,6 +1435,7 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     Array5D.__name__: Array5D,
     Audio.__name__: Audio,
     Image.__name__: Image,
+    Mesh.__name__: Mesh,
     Video.__name__: Video,
     Pdf.__name__: Pdf,
     Nifti.__name__: Nifti,

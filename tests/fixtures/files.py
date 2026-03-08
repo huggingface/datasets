@@ -599,3 +599,18 @@ def data_dir_with_hidden_files(tmp_path_factory):
         f.write("bar\n" * 10)
 
     return data_dir
+
+
+@pytest.fixture(scope="session")
+def mesh_file():
+    return os.path.join("tests", "features", "data", "test_mesh_glb.glb")
+
+
+@pytest.fixture(scope="session")
+def mesh_file_ply():
+    return os.path.join("tests", "features", "data", "test_mesh_ply.ply")
+
+
+@pytest.fixture(scope="session")
+def mesh_file_stl():
+    return os.path.join("tests", "features", "data", "test_mesh_stl.stl")
