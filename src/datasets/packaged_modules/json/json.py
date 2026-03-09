@@ -219,15 +219,18 @@ class Json(datasets.ArrowBasedBuilder):
                                             json_field_path = get_json_field_path_from_pyarrow_json_error(str(e))
                                             insert_json_field_path(json_field_paths, json_field_path)
                                             batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
-                                        elif "straddling" not in str(e) or block_size > len(batch):
-                                            raise
-                                        else:
+                                        elif (
+                                            "straddling" in str(e) or "JSON conversion to" in str(e)
+                                        ) and block_size < len(batch):
                                             # Increase the block size in case it was too small.
                                             # The block size will be reset for the next file.
+                                            # this is needed in case of "stradding" or for some JSON conversions (see https://github.com/huggingface/datasets/issues/2799)
                                             logger.debug(
                                                 f"Batch of {len(batch)} bytes couldn't be parsed with block_size={block_size}. Retrying with block_size={block_size * 2}."
                                             )
                                             block_size *= 2
+                                        else:
+                                            raise
                             except pa.ArrowInvalid as e:
                                 if not allow_full_read:
                                     raise FullReadDisallowed()
