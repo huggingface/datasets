@@ -360,7 +360,6 @@ class SevenZipExtractor(MagicNumberBaseExtractor):
 
         os.makedirs(output_path, exist_ok=True)
         with py7zr.SevenZipFile(input_path, "r") as archive:
-            archive.extract
             archive.extractall(output_path)
 
 
