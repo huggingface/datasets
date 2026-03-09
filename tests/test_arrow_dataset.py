@@ -1909,6 +1909,21 @@ class BaseDatasetTest(TestCase):
                     "To debug the error, disable multiprocessing."
                 )
 
+    def test_map_on_lixed_types(self, in_memory):
+        mixed_data = {
+            "mixed_type": [-1, 1, "foo"],
+            "mix_struct_and_non_struct": [{"a": 0}, [0]],
+            "mixed_dict_keys": [{"a": 0}, {"b": 0}, {"c": 0}],
+            "mixed_dict_keys2": [[{"a": 0}, {"b": 0}], [{"c": 0}, {"d": 0}]],
+            "messages": _messages,
+        }
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(
+                    lambda x: mixed_data, on_mixed_types="use_json", remove_columns=dset.column_names
+                ) as dset:
+                    self.assertDictEqual(dset[0], mixed_data)
+
     def test_filter(self, in_memory):
         # keep only first five examples
 
@@ -3417,6 +3432,9 @@ class MiscellaneousDatasetTest(TestCase):
 
     def test_from_dict_on_mixed_types(self):
         data = {"col_1": [-1, 1, "foo"]}
+        with Dataset.from_dict(data, on_mixed_types="use_json") as dset:
+            self.assertEqual(dset[:], data)
+        data = {"col_1": [{"a": 0}, [0]]}
         with Dataset.from_dict(data, on_mixed_types="use_json") as dset:
             self.assertEqual(dset[:], data)
         data = {"col_1": [{"a": 0}, {"b": 0}, {"c": 0}]}
