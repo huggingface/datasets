@@ -3405,7 +3405,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable = FormattedExamplesIterable(
                 ex_iterable,
                 formatting=self._formatting,
-                features=None if ex_iterable.is_typed else self._info.features,
+                features=ex_iterable.features if ex_iterable.is_typed else self._info.features,
                 token_per_repo_id=self._token_per_repo_id,
             )
 
