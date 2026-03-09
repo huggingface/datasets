@@ -223,6 +223,8 @@ def _save_transformersPreTrainedTokenizerBase(pickler, obj):
     state = obj.__dict__.copy()
     if "cache" in state and isinstance(state["cache"], dict):
         state["cache"] = {}
+    if "deprecation_warnings" in state and isinstance(state["deprecation_warnings"], dict):
+        state["deprecation_warnings"] = {}
 
     backend_tokenizer = obj.__dict__.get("_tokenizer")
     truncation = padding = None
