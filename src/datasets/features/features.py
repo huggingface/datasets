@@ -39,6 +39,7 @@ from .. import config
 from ..naming import camelcase_to_snakecase, snakecase_to_camelcase
 from ..table import array_cast
 from ..utils import experimental, logging
+from ..utils.json import ujson_dumps, ujson_loads
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
@@ -135,6 +136,8 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
         which means that each Value() must be able to resolve into a corresponding pyarrow.DataType, which is the
         purpose of this function.
     """
+    if datasets_dtype == "json":
+        raise ValueError("'json' is not a valid dtype, use the Json() feature instead")
 
     def _dtype_error_msg(dtype, pa_dtype, examples=None, urls=None):
         msg = f"{dtype} is not a validly formatted string representation of the pyarrow {pa_dtype} type."
@@ -1176,6 +1179,90 @@ class ClassLabel:
             return [name.strip() for name in f.read().split("\n") if name.strip()]  # Filter empty names
 
 
+@dataclass
+class Json:
+    """Feature type for JSON objects.
+
+    Under the hood the objects are stored as JSON-encoded strings.
+
+    Example:
+
+    ```py
+    >>> from datasets import Features, Json
+    >>> features = Features({'json': Json()})
+    >>> features
+    {'json': Json()}
+    ```
+
+    ```py
+    >>> from datasets import Dataset, Features, Json, List
+    >>> features = Features({"a": List(Json())})
+    >>> ds = Dataset.from_dict({"a": [[{"b": 0}, {"c": 0}]]}, features=features)
+    >>> # OR
+    >>> ds = Dataset.from_dict({"a": [[{"b": 0}, {"c": 0}]]}, on_mixed_types="use_json")
+    >>> ds.features
+    {'a': List(Json())}
+    >>> ds[0]
+    {'a': [{'b': 0}, {'c': 0}]}
+    >>> def f(x):
+    ...     for y in x["a"]:
+    ...         y["d"] = "foo"
+    ...     return x
+    >>> ds = ds.map(f)
+    >>> ds.features
+    >>> ds[0]
+    {'a': [{'b': 0, 'd': 'foo'}, {'c': 0, 'd': 'foo'}]}
+    ```
+    """
+
+    decode: bool = True
+    id: Optional[str] = field(default=None, repr=False)
+    # Automatically constructed
+    pa_type: ClassVar[Any] = pa.json_()
+    _type: str = field(default="Json", init=False, repr=False)
+
+    def __call__(self):
+        return self.pa_type
+
+    def encode_example(self, example_data):
+        if not isinstance(example_data, str):
+            example_data = ujson_dumps(example_data)
+        else:
+            try:
+                ujson_loads(example_data)
+            except Exception:
+                example_data = ujson_dumps(example_data)
+        return example_data
+
+    def decode_example(self, example_data, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
+        if not self.decode:
+            raise RuntimeError("Decoding is disabled for this feature. Please use Json(decode=True) instead.")
+        return ujson_loads(example_data)
+
+    def cast_storage(self, storage: Union[pa.Array]) -> pa.Int64Array:
+        """Cast an Arrow array to the `Json` arrow storage type.
+
+        Args:
+            storage (`Union[pa.StringArray, pa.IntegerArray]`):
+                PyArrow array to cast.
+
+        Returns:
+            `pa.Int64Array`: Array in the `ClassLabel` arrow storage type.
+        """
+        if isinstance(storage, pa.JsonArray):
+            return storage
+        elif isinstance(storage, (pa.StringArray)):
+            items = storage[:5].to_pylist()
+            try:
+                for item in items:
+                    ujson_loads(item)
+            except Exception:
+                storage = pa.array([ujson_dumps(x) for x in storage.to_pylist()], pa.json_())
+        else:
+            storage = pa.array([ujson_dumps(x) for x in storage.to_pylist()], pa.json_())
+        return array_cast(storage, self.pa_type)
+
+
 class Sequence:
     """
     A `Sequence` is a utility that automatically converts internal dictionary feature into a dictionary of
@@ -1406,6 +1493,8 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Uni
             return None
         else:
             sub_schema = schema.feature
+            if isinstance(sub_schema, dict):
+                return [decode_nested_example(sub_schema, o) for o in obj]
             if len(obj) > 0:
                 for first_elmt in obj:
                     if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
@@ -1436,6 +1525,7 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     Video.__name__: Video,
     Pdf.__name__: Pdf,
     Nifti.__name__: Nifti,
+    Json.__name__: Json,
 }
 
 
@@ -1514,6 +1604,8 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
     elif isinstance(pa_type, _ArrayXDExtensionType):
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
+    elif isinstance(pa_type, pa.JsonType):
+        return Json()
     elif isinstance(pa_type, pa.DataType):
         return Value(dtype=_arrow_to_datasets_dtype(pa_type))
     else:
@@ -1773,6 +1865,7 @@ class Features(dict):
           or a dictionary with the relative path to a NIfTI file ("path" key) and its bytes content ("bytes" key).
           This feature loads the NIfTI file lazily with nibabel.
         - [`Translation`] or [`TranslationVariableLanguages`] feature specific to Machine Translation.
+        - [`Json`] feature to store unstructred data, e.g. containing mixed/abritrary types. Under the hood
     """
 
     def __init__(*args, **kwargs):
