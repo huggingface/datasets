@@ -326,7 +326,7 @@ class SevenZipExtractor(MagicNumberBaseExtractor):
         See: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-4559
         From: https://stackoverflow.com/a/10077309
 
-        This additional mitigation is applied for rarfile as well.
+        This additional mitigation is applied for py7zr as well.
         """
 
         def resolved(path: Union[Path, str]) -> str:
@@ -360,7 +360,8 @@ class SevenZipExtractor(MagicNumberBaseExtractor):
 
         os.makedirs(output_path, exist_ok=True)
         with py7zr.SevenZipFile(input_path, "r") as archive:
-            archive.extractall(output_path)
+            targets = [finfo.filename for finfo in SevenZipExtractor.safemembers(archive.list(), output_path)]
+            archive.extract(output_path, targets=targets)
 
 
 class Lz4Extractor(MagicNumberBaseExtractor):
