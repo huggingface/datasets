@@ -226,7 +226,11 @@ def _save_transformersPreTrainedTokenizerBase(pickler, obj):
 
     backend_tokenizer = obj.__dict__.get("_tokenizer")
     truncation = padding = None
-    if backend_tokenizer is not None and hasattr(backend_tokenizer, "truncation") and hasattr(backend_tokenizer, "padding"):
+    if (
+        backend_tokenizer is not None
+        and hasattr(backend_tokenizer, "truncation")
+        and hasattr(backend_tokenizer, "padding")
+    ):
         truncation = backend_tokenizer.truncation
         padding = backend_tokenizer.padding
         try:
