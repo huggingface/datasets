@@ -981,7 +981,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
-        on_mixed_types: Literal["error", "use_json"] = "error",
+        on_mixed_types: Optional[Literal["use_json"]] = None,
     ) -> "Dataset":
         """
         Convert `dict` to a `pyarrow.Table` to create a [`Dataset`].
@@ -1001,7 +1001,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Dataset information, like description, citation, etc.
             split (`NamedSplit`, *optional*):
                 Name of the dataset split.
-            on_mixed_types (`Literal["error", "use_json"]`, defaults to "error"):
+            on_mixed_types (`Literal["use_json"]`, *optional*, defaults to `None`):
                 If "use_json", use the Json() type for mixed-types fields,
                 i.e. unstructured fields that contain data without a predefined schema.
                 In this case, a field with mixed type is set to Json().
@@ -1147,7 +1147,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
-        on_mixed_types: Literal["error", "use_json"] = "error",
+        on_mixed_types: Optional[Literal["use_json"]] = None,
     ) -> "Dataset":
         """
         Convert a list of dicts to a `pyarrow.Table` to create a [`Dataset`]`.
@@ -1166,7 +1166,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features (`Features`, optional): Dataset features.
             info (`DatasetInfo`, optional): Dataset information, like description, citation, etc.
             split (`NamedSplit`, optional): Name of the dataset split.
-            on_mixed_types (`Literal["error", "use_json"]`, defaults to "error"):
+            on_mixed_types (`Literal["use_json"]`, *optional*, defaults to `None`):
                 If "use_json", use the Json() type for mixed-types fields,
                 i.e. unstructured fields that contain data without a predefined schema.
                 In this case, a field with mixed type is set to Json().
@@ -3219,7 +3219,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         new_fingerprint: Optional[str] = None,
         desc: Optional[str] = None,
         try_original_type: Optional[bool] = True,
-        on_mixed_types: Literal["error", "use_json"] = "use_json",
+        on_mixed_types: Optional[Literal["use_json"]] = "use_json",
     ) -> "Dataset":
         """
         Apply a function to all the examples in the table (individually or in batches) and update the table.
@@ -3308,7 +3308,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             try_original_type (`Optional[bool]`, defaults to `True`):
                 Try to keep the types of the original columns (e.g. int32 -> int32).
                 Set to False if you want to always infer new types.
-            on_mixed_types (`Literal["error", "use_json"]`, defaults to "error"):
+            on_mixed_types (`Literal["use_json"]`, *optional*, defaults to `None`):
                 If "use_json", use the Json() type for mixed-types fields,
                 i.e. unstructured fields that contain data without a predefined schema.
                 In this case, a field with mixed type is set to Json().
@@ -3673,7 +3673,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         rank: Optional[int] = None,
         offset: int = 0,
         try_original_type: Optional[bool] = True,
-        on_mixed_types: Literal["error", "use_json"] = "use_json",
+        on_mixed_types: Optional[Literal["use_json"]] = "use_json",
     ) -> Iterable[tuple[Optional[int], bool, Union[int, "Dataset"]]]:
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does update examples).
@@ -3718,7 +3718,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             try_original_type: (`Optional[bool]`, defaults to `True`):
                 Try to keep the types of the original columns (e.g. int32 -> int32).
                 Set to False if you want to always infer new types.
-            on_mixed_types (`Literal["error", "use_json"]`, defaults to "error"):
+            on_mixed_types (`Literal["use_json"]`, *optional*, defaults to `None`):
                 If "use_json", use the Json() type for mixed-types fields,
                 i.e. unstructured fields that contain data without a predefined schema.
                 In this case, a field with mixed type is set to Json().

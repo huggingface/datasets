@@ -49,7 +49,7 @@ class JsonConfig(datasets.BuilderConfig):
     block_size: Optional[int] = None  # deprecated
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
-    on_mixed_types: Literal["error", "use_json"] = "use_json"
+    on_mixed_types: Optional[Literal["use_json"]] = "use_json"
 
     def __post_init__(self):
         super().__post_init__()

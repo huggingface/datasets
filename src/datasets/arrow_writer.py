@@ -216,7 +216,7 @@ class TypedSequence:
         type: Optional[FeatureType] = None,
         try_type: Optional[FeatureType] = None,
         optimized_int_type: Optional[FeatureType] = None,
-        on_mixed_types: Literal["error", "use_json"] = "error",
+        on_mixed_types: Optional[Literal["use_json"]] = None,
     ):
         # assert type is None or try_type is None,
         if type is not None and try_type is not None:
@@ -467,7 +467,7 @@ class OptimizedTypedSequence(TypedSequence):
         try_type: Optional[FeatureType] = None,
         col: Optional[str] = None,
         optimized_int_type: Optional[FeatureType] = None,
-        on_mixed_types: Literal["error", "use_json"] = "error",
+        on_mixed_types: Optional[Literal["use_json"]] = None,
     ):
         optimized_int_type_by_col = {
             "attention_mask": Value("int8"),  # binary tensor
@@ -497,7 +497,7 @@ class ArrowWriter:
         writer_batch_size: Optional[int] = None,
         disable_nullable: bool = False,
         update_features: bool = False,
-        on_mixed_types: Literal["error", "use_json"] = "use_json",
+        on_mixed_types: Optional[Literal["use_json"]] = "use_json",
         with_metadata: bool = True,
         unit: str = "examples",
         embed_local_files: bool = False,
