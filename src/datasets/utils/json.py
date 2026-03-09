@@ -64,6 +64,8 @@ def find_mixed_struct_types_field_paths(examples: list, allow_root=False) -> lis
             if not examples:
                 continue
             paths_and_content_to_check.append((path + [0], examples))
+        elif any(isinstance(x, (dict, list)) for x in content):
+            mixed_struct_types_field_paths.append(path)
     return mixed_struct_types_field_paths
 
 
