@@ -29,10 +29,9 @@ def json_encode_field(example: Any, json_field_path: str) -> Any:
         if example is None:
             return None
         elif field == 0:
-            for i in range(len(example)):
-                example[i] = json_encode_field(example[i], json_field_path)
+            return [json_encode_field(x, json_field_path) for x in example]
         else:
-            example[field] = json_encode_field(example.get(field), json_field_path)
+            return {**example, field: json_encode_field(example.get(field), json_field_path)}
         return example
     else:
         try:

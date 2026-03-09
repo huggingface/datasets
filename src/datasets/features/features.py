@@ -136,6 +136,8 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
         which means that each Value() must be able to resolve into a corresponding pyarrow.DataType, which is the
         purpose of this function.
     """
+    if datasets_dtype == "json":
+        raise ValueError("'json' is not a valid dtype, use the Json() feature instead")
 
     def _dtype_error_msg(dtype, pa_dtype, examples=None, urls=None):
         msg = f"{dtype} is not a validly formatted string representation of the pyarrow {pa_dtype} type."
