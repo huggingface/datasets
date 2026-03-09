@@ -9,11 +9,16 @@ import warnings
 import zipfile
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from .. import config
 from ._filelock import FileLock
 from .logging import get_logger
+
+
+if TYPE_CHECKING:
+    import py7zr
+    import rarfile
 
 
 logger = get_logger(__name__)
@@ -84,7 +89,7 @@ class TarExtractor(BaseExtractor):
         return tarfile.is_tarfile(path)
 
     @staticmethod
-    def safemembers(members, output_path):
+    def safemembers(members: tarfile.TarFile, output_path: Union[Path, str]):
         """
         Fix for CVE-2007-4559
         Desc:
@@ -95,14 +100,14 @@ class TarExtractor(BaseExtractor):
         From: https://stackoverflow.com/a/10077309
         """
 
-        def resolved(path: str) -> str:
+        def resolved(path: Union[Path, str]) -> str:
             return os.path.realpath(os.path.abspath(path))
 
         def badpath(path: str, base: str) -> bool:
             # joinpath will ignore base if path is absolute
             return not resolved(os.path.join(base, path)).startswith(base)
 
-        def badlink(info, base: str) -> bool:
+        def badlink(info: tarfile.TarInfo, base: str) -> bool:
             # Links are interpreted relative to the directory containing the link
             tip = resolved(os.path.join(base, os.path.dirname(info.name)))
             return badpath(info.linkname, base=tip)
@@ -182,10 +187,42 @@ class ZipExtractor(MagicNumberBaseExtractor):
             return False
 
     @staticmethod
+    def safemembers(members: list[zipfile.ZipInfo], output_path: Union[Path, str]):
+        """
+        Fix for CVE-2007-4559
+        Desc:
+            Directory traversal vulnerability in the (1) extract and (2) extractall functions in the tarfile
+            module in Python allows user-assisted remote attackers to overwrite arbitrary files via a .. (dot dot)
+            sequence in filenames in a TAR archive, a related issue to CVE-2001-1267.
+        See: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-4559
+        From: https://stackoverflow.com/a/10077309
+
+        This additional mitigation is applied for zipfile as well.
+        """
+
+        def resolved(path: Union[Path, str]) -> str:
+            return os.path.realpath(os.path.abspath(path))
+
+        def badpath(path: str, base: str) -> bool:
+            # joinpath will ignore base if path is absolute
+            return not resolved(os.path.join(base, path)).startswith(base)
+
+        base = resolved(output_path)
+
+        for finfo in members:
+            if badpath(finfo.filename, base):
+                logger.error(f"Extraction of {finfo.filename} is blocked (illegal path)")
+            # zipfile doesn't support symlinks
+            # elif finfo.is_symlink and badlink(finfo, base):
+            #     logger.error(f"Extraction of {finfo.name} is blocked: Symlink to {finfo.linkname}")
+            else:
+                yield finfo
+
+    @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
         os.makedirs(output_path, exist_ok=True)
         with zipfile.ZipFile(input_path, "r") as zip_file:
-            zip_file.extractall(output_path)
+            zip_file.extractall(output_path, members=ZipExtractor.safemembers(zip_file.filelist, output_path))
             zip_file.close()
 
 
@@ -203,6 +240,43 @@ class RarExtractor(MagicNumberBaseExtractor):
     magic_numbers = [b"Rar!\x1a\x07\x00", b"Rar!\x1a\x07\x01\x00"]  # RAR_ID  # RAR5_ID
 
     @staticmethod
+    def safemembers(members: list["rarfile.RarInfo"], output_path: Union[Path, str]):
+        """
+        Fix for CVE-2007-4559
+        Desc:
+            Directory traversal vulnerability in the (1) extract and (2) extractall functions in the tarfile
+            module in Python allows user-assisted remote attackers to overwrite arbitrary files via a .. (dot dot)
+            sequence in filenames in a TAR archive, a related issue to CVE-2001-1267.
+        See: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-4559
+        From: https://stackoverflow.com/a/10077309
+
+        This additional mitigation is applied for rarfile as well.
+        """
+
+        def resolved(path: Union[Path, str]) -> str:
+            return os.path.realpath(os.path.abspath(path))
+
+        def badpath(path: str, base: str) -> bool:
+            # joinpath will ignore base if path is absolute
+            return not resolved(os.path.join(base, path)).startswith(base)
+
+        def badlink(info: "rarfile.RarInfo", base: str) -> bool:
+            # Links are interpreted relative to the directory containing the link
+            tip = resolved(os.path.join(base, os.path.dirname(info.filename)))
+            redir_type, redir_flags, link_name = info.file_redir
+            return badpath(link_name, base=tip)
+
+        base = resolved(output_path)
+
+        for finfo in members:
+            if badpath(finfo.filename, base):
+                logger.error(f"Extraction of {finfo.filename} is blocked (illegal path)")
+            elif finfo.is_symlink() and badlink(finfo, base):
+                logger.error(f"Extraction of {finfo.filename} is blocked: Symlink to {finfo.file_redir}")
+            else:
+                yield finfo
+
+    @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
         if not config.RARFILE_AVAILABLE:
             raise ImportError("Please pip install rarfile")
@@ -210,7 +284,7 @@ class RarExtractor(MagicNumberBaseExtractor):
 
         os.makedirs(output_path, exist_ok=True)
         rf = rarfile.RarFile(input_path)
-        rf.extractall(output_path)
+        rf.extractall(output_path, members=RarExtractor.safemembers(rf.infolist(), output_path))
         rf.close()
 
 
@@ -242,6 +316,43 @@ class SevenZipExtractor(MagicNumberBaseExtractor):
     magic_numbers = [b"\x37\x7a\xbc\xaf\x27\x1c"]
 
     @staticmethod
+    def safemembers(members: list["py7zr.FileInfo"], output_path: Union[Path, str]):
+        """
+        Fix for CVE-2007-4559
+        Desc:
+            Directory traversal vulnerability in the (1) extract and (2) extractall functions in the tarfile
+            module in Python allows user-assisted remote attackers to overwrite arbitrary files via a .. (dot dot)
+            sequence in filenames in a TAR archive, a related issue to CVE-2001-1267.
+        See: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-4559
+        From: https://stackoverflow.com/a/10077309
+
+        This additional mitigation is applied for py7zr as well.
+        """
+
+        def resolved(path: Union[Path, str]) -> str:
+            return os.path.realpath(os.path.abspath(path))
+
+        def badpath(path: str, base: str) -> bool:
+            # joinpath will ignore base if path is absolute
+            return not resolved(os.path.join(base, path)).startswith(base)
+
+        def badlink(info: "py7zr.FileInfo", base: str) -> bool:
+            # Links are interpreted relative to the directory containing the link
+            tip = resolved(os.path.join(base, os.path.dirname(info.filename)))
+            return badpath(os.path.basename(info.filename), base=tip)
+
+        base = resolved(output_path)
+
+        for finfo in members:
+            if badpath(finfo.filename, base):
+                logger.error(f"Extraction of {finfo.filename} is blocked (illegal path)")
+            # py7zr already checks symlinks validity
+            # elif finfo.is_symlink and badlink(finfo, base):
+            #     logger.error(f"Extraction of {finfo.name} is blocked: Symlink to {finfo.linkname}")
+            else:
+                yield finfo
+
+    @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
         if not config.PY7ZR_AVAILABLE:
             raise ImportError("Please pip install py7zr")
@@ -249,7 +360,8 @@ class SevenZipExtractor(MagicNumberBaseExtractor):
 
         os.makedirs(output_path, exist_ok=True)
         with py7zr.SevenZipFile(input_path, "r") as archive:
-            archive.extractall(output_path)
+            targets = [finfo.filename for finfo in SevenZipExtractor.safemembers(archive.list(), output_path)]
+            archive.extract(output_path, targets=targets)
 
 
 class Lz4Extractor(MagicNumberBaseExtractor):

@@ -618,9 +618,9 @@ Separate datasets can be concatenated if they share the same column types. Conca
 >>> from datasets import concatenate_datasets, load_dataset
 
 >>> stories = load_dataset("ajibawa-2023/General-Stories-Collection", split="train")
->>> stories = stories.remove_columns([col for col in stories.column_names if col != "text"])  # only keep the 'text' column
->>> wiki = load_dataset("wikimedia/wikipedia", "20220301.en", split="train")
->>> wiki = wiki.remove_columns([col for col in wiki.column_names if col != "text"])  # only keep the 'text' column
+>>> stories = stories.select_columns(["text"])  # only keep the 'text' column
+>>> wiki = load_dataset("wikimedia/wikipedia", "20231101.en", split="train")
+>>> wiki = wiki.select_columns(["text"])  # only keep the 'text' column
 
 >>> assert stories.features.type == wiki.features.type
 >>> bert_dataset = concatenate_datasets([stories, wiki])

@@ -58,6 +58,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
+import pyarrow.dataset as pds
 from fsspec.core import url_to_fs
 from huggingface_hub import (
     CommitInfo,
@@ -928,7 +929,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @classmethod
     def from_polars(
         cls,
-        df: "pl.DataFrame",
+        df: Union["pl.DataFrame", "pl.LazyFrame"],
         features: Optional[Features] = None,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
@@ -952,6 +953,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = Dataset.from_polars(df)
         ```
         """
+        import polars as pl
+
         if info is not None and features is not None and info.features != features:
             raise ValueError(
                 f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
@@ -962,6 +965,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if info is None:
             info = DatasetInfo()
         info.features = features
+        if isinstance(df, pl.LazyFrame):
+            df = df.collect()
         table = InMemoryTable(df.to_arrow())
         if features is not None:
             # more expensive cast than InMemoryTable.from_polars(..., schema=features.arrow_schema)
@@ -976,6 +981,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
+        on_mixed_types: Optional[Literal["use_json"]] = None,
     ) -> "Dataset":
         """
         Convert `dict` to a `pyarrow.Table` to create a [`Dataset`].
@@ -995,9 +1001,109 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Dataset information, like description, citation, etc.
             split (`NamedSplit`, *optional*):
                 Name of the dataset split.
+            on_mixed_types (`Literal["use_json"]`, *optional*, defaults to `None`):
+                If "use_json", use the Json() type for mixed-types fields,
+                i.e. unstructured fields that contain data without a predefined schema.
+                In this case, a field with mixed type is set to Json().
+
+                This allow loading lists with a mix of strings/integers/floats
+                for example, or dictionaries with arbitrary value types.
+
+                <Added version="4.7.0"/>
 
         Returns:
             [`Dataset`]
+
+        Examples:
+
+        Get a Dataset from a dictionary containing one list per column:
+
+        ```py
+        >>> ds = Dataset.from_dict({"text": ["hello there !", "general kenobi !"]})
+        ```
+
+        Pass features to set the column types, e.g. for an image dataset:
+
+        ```py
+        >>> features = Features({"image": Image()})
+        >>> ds = Dataset.from_dict({"image": ["path/to/image.png"]}, features=features)
+        ```
+
+        Datasets are based on Arrow which is a columnar format, and therefore they expect every example to have the same
+        type and subtypes, and dictionaries to have the same keys and values types.
+        Loading a dataset errors out when fields have mismatching types, and fills missing fields in dictionaries with None so all dictionaries have the same keys and value types.
+
+        To avoid this and allow mixed-types without errors, you can use `on_mixed_types="use_json"` or specify `features=` with a [`Json`] type:
+
+        ```py
+        >>> ds = Dataset.from_dict({"a": [0, "foo", {"subfield": "bar"}]})
+        Traceback (most recent call last):
+          ...
+          File "pyarrow/error.pxi", line 92, in pyarrow.lib.check_status
+        pyarrow.lib.ArrowInvalid: Could not convert 'foo' with type str: tried to convert to int64
+
+        >>> ds = Dataset.from_dict({"a": [0, "foo", {"subfield": "bar"}]}, on_mixed_types="use_json")
+        >>> ds.features
+        {'a': Json()}
+        >>> list(ds["a"])
+        [0, "foo", {"subfield": "bar"}]
+
+        >>> features = Features({"a": Json()})
+        >>> ds = Dataset.from_dict({"a": [0, "foo", {"subfield": "bar"}]}, features=features)
+        >>> ds.features
+        {'a': Json()}
+        >>> list(ds["a"])
+        [0, "foo", {"subfield": "bar"}]
+        ```
+
+        This is also useful for lists of dictionaries with arbitrary keys and values, to avoid filling missing fields with None:
+
+        ```py
+        >>> ds = Dataset.from_dict({"a": [[{"b": 0}, {"c": 0}]]})
+        >>> ds.features
+        {'a': List({'b': Value('int64'), 'c': Value('int64')})}
+        >>> list(ds["a"])
+        [[{'b': 0, 'c': None}, {'b': None, 'c': 0}]]  # missing fields are filled with None
+
+        >>> features = Features({"a": List(Json())})
+        >>> ds = Dataset.from_dict({"a": [[{"b": 0}, {"c": 0}]]}, features=features)
+        >>> ds.features
+        {'a': List(Json())}
+        >>> list(ds["a"])
+        [[{'b': 0}, {'c': 0}]]  # OK
+
+        >>> ds = Dataset.from_dict({"a": [[{"b": 0}, {"c": 0}]]}, on_mixed_types="use_json")
+        >>> ds.features
+        {'a': List(Json())}
+        >>> list(ds["a"])
+        [[{'b': 0}, {'c': 0}]]  # OK
+        ```
+
+        Another example with tool calling data:
+
+        ```py
+        >>> messages = [
+        ...     {"role": "user", "content": "Turn on the living room lights and play my electronic music playlist."},
+        ...     {"role": "assistant", "tool_calls": [
+        ...         {"type": "function", "function": {
+        ...             "name": "control_light",
+        ...             "arguments": {"room": "living room", "state": "on"}
+        ...         }},
+        ...         {"type": "function", "function": {
+        ...             "name": "play_music",
+        ...             "arguments": {"playlist": "electronic"}  # mixed-type here since keys ["playlist"] and ["room", "state"] are different
+        ...         }}]
+        ...     },
+        ...     {"role": "tool", "name": "control_light", "content": "The lights in the living room are now on."},
+        ...     {"role": "tool", "name": "play_music", "content": "The music is now playing."},
+        ...     {"role": "assistant", "content": "Done!"}
+        ... ]
+        >>> ds = Dataset.from_dict({"messages": [messages]}, on_mixed_types="use_json")
+        >>> ds.features
+        {'messages': List({'role': Value('string'), 'content': Value('string'), 'tool_calls': List(Json()), 'name': Value('string')})}
+        >>> ds[0]["messages"][1]["tool_calls"][0]["function"]["arguments"]
+        {"room": "living room", "state": "on"}
+        ```
         """
         if info is not None and features is not None and info.features != features:
             raise ValueError(
@@ -1015,6 +1121,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     features.encode_column(data, col) if features is not None else data,
                     type=features[col] if features is not None else None,
                     col=col,
+                    on_mixed_types=on_mixed_types,
                 )
             arrow_typed_mapping[col] = data
         mapping = arrow_typed_mapping
@@ -1040,6 +1147,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
+        on_mixed_types: Optional[Literal["use_json"]] = None,
     ) -> "Dataset":
         """
         Convert a list of dicts to a `pyarrow.Table` to create a [`Dataset`]`.
@@ -1058,13 +1166,113 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features (`Features`, optional): Dataset features.
             info (`DatasetInfo`, optional): Dataset information, like description, citation, etc.
             split (`NamedSplit`, optional): Name of the dataset split.
+            on_mixed_types (`Literal["use_json"]`, *optional*, defaults to `None`):
+                If "use_json", use the Json() type for mixed-types fields,
+                i.e. unstructured fields that contain data without a predefined schema.
+                In this case, a field with mixed type is set to Json().
+
+                This allow loading lists with a mix of strings/integers/floats
+                for example, or dictionaries with arbitrary value types.
+
+                <Added version="4.7.0"/>
 
         Returns:
             [`Dataset`]
+
+        Examples:
+
+        Get a Dataset from a list containing the examples:
+
+        ```py
+        >>> ds = Dataset.from_list([{"text": "hello there !"}, {"text": "general kenobi !"}]})
+        ```
+
+        Pass features to set the column types, e.g. for an image dataset:
+
+        ```py
+        >>> features = Features({"image": Image()})
+        >>> ds = Dataset.from_list([{"image": "path/to/image.png"}], features=features)
+        ```
+
+        Datasets are based on Arrow which is a columnar format, and therefore they expect every example to have the same
+        type and subtypes, and dictionaries to have the same keys and values types.
+        Loading a dataset errors out when fields have mismatching types, and fills missing fields in dictionaries with None so all dictionaries have the same keys and value types.
+
+        To avoid this and allow mixed-types without errors, you can use `on_mixed_types="use_json"` or specify `features=` with a [`Json`] type:
+
+        ```py
+        >>> ds = Dataset.from_list([{"a": 0}, {"a": "foo"}, {"a": {"subfield": "bar"}}])
+        Traceback (most recent call last):
+          ...
+          File "pyarrow/error.pxi", line 92, in pyarrow.lib.check_status
+        pyarrow.lib.ArrowInvalid: Could not convert 'foo' with type str: tried to convert to int64
+
+        >>> ds = Dataset.from_list([{"a": 0}, {"a": "foo"}, {"a": {"subfield": "bar"}}], on_mixed_types="use_json")
+        >>> ds.features
+        {'a': Json()}
+        >>> list(ds["a"])
+        [0, "foo", {"subfield": "bar"}]
+
+        >>> features = Features({"a": Json()})
+        >>> ds = Dataset.from_list([{"a": 0}, {"a": "foo"}, {"a": {"subfield": "bar"}}], features=features)
+        >>> ds.features
+        {'a': Json()}
+        >>> list(ds["a"])
+        [0, "foo", {"subfield": "bar"}]
+        ```
+
+        This is also useful for lists of dictionaries with arbitrary keys and values, to avoid filling missing fields with None:
+
+        ```py
+        >>> ds = Dataset.from_list([{"a": [{"b": 0}, {"c": 0}]}])
+        >>> ds.features
+        {'a': List({'b': Value('int64'), 'c': Value('int64')})}
+        >>> list(ds["a"])
+        [[{'b': 0, 'c': None}, {'b': None, 'c': 0}]]  # missing fields are filled with None
+
+        >>> features = Features({"a": List(Json())})
+        >>> ds = Dataset.from_list([{"a": [{"b": 0}, {"c": 0}]}], features=features)
+        >>> ds.features
+        {'a': List(Json())}
+        >>> list(ds["a"])
+        [[{'b': 0}, {'c': 0}]]  # OK
+
+        >>> ds = Dataset.from_list([{"a": [{"b": 0}, {"c": 0}]}], on_mixed_types="use_json")
+        >>> ds.features
+        {'a': List(Json())}
+        >>> list(ds["a"])
+        [[{'b': 0}, {'c': 0}]]  # OK
+        ```
+
+        Another example with tool calling data:
+
+        ```py
+        >>> messages = [
+        ...     {"role": "user", "content": "Turn on the living room lights and play my electronic music playlist."},
+        ...     {"role": "assistant", "tool_calls": [
+        ...         {"type": "function", "function": {
+        ...             "name": "control_light",
+        ...             "arguments": {"room": "living room", "state": "on"}
+        ...         }},
+        ...         {"type": "function", "function": {
+        ...             "name": "play_music",
+        ...             "arguments": {"playlist": "electronic"}  # mixed-type here since keys ["playlist"] and ["room", "state"] are different
+        ...         }}]
+        ...     },
+        ...     {"role": "tool", "name": "control_light", "content": "The lights in the living room are now on."},
+        ...     {"role": "tool", "name": "play_music", "content": "The music is now playing."},
+        ...     {"role": "assistant", "content": "Done!"}
+        ... ]
+        >>> ds = Dataset.from_list([{"messages": messages}], on_mixed_types="use_json")
+        >>> ds.features
+        {'messages': List({'role': Value('string'), 'content': Value('string'), 'tool_calls': List(Json()), 'name': Value('string')})}
+        >>> ds[0]["messages"][1]["tool_calls"][0]["function"]["arguments"]
+        {"room": "living room", "state": "on"}
+        ```
         """
         # for simplicity and consistency wrt OptimizedTypedSequence we do not use InMemoryTable.from_pylist here
         mapping = {k: [r.get(k) for r in mapping] for k in mapping[0]} if mapping else {}
-        return cls.from_dict(mapping, features, info, split)
+        return cls.from_dict(mapping, features, info, split, on_mixed_types=on_mixed_types)
 
     @staticmethod
     def from_csv(
@@ -1075,8 +1283,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         keep_in_memory: bool = False,
         num_proc: Optional[int] = None,
         **kwargs,
-    ):
+    ) -> "Dataset":
         """Create Dataset from CSV file(s).
+
+        Read the CSV files, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
             path_or_paths (`path-like` or list of `path-like`):
@@ -1130,8 +1340,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         split: NamedSplit = Split.TRAIN,
         fingerprint: Optional[str] = None,
         **kwargs,
-    ):
+    ) -> "Dataset":
         """Create a Dataset from a generator.
+
+        Load the data from the generator, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
             generator (:`Callable`):
@@ -1212,8 +1424,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         field: Optional[str] = None,
         num_proc: Optional[int] = None,
         **kwargs,
-    ):
+    ) -> "Dataset":
         """Create Dataset from JSON or JSON Lines file(s).
+
+        Read the JSON files, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
             path_or_paths (`path-like` or list of `path-like`):
@@ -1268,9 +1482,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         keep_in_memory: bool = False,
         columns: Optional[list[str]] = None,
         num_proc: Optional[int] = None,
+        filters: Optional[Union[pds.Expression, list[tuple], list[list[tuple]]]] = None,
+        fragment_scan_options: Optional[pds.ParquetFragmentScanOptions] = None,
+        on_bad_files: Literal["error", "warn", "skip"] = "error",
         **kwargs,
-    ):
+    ) -> "Dataset":
         """Create Dataset from Parquet file(s).
+
+        Read the Parquet files, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
             path_or_paths (`path-like` or list of `path-like`):
@@ -1292,6 +1511,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
 
                 <Added version="2.8.0"/>
+            filters (`Union[pyarrow.dataset.Expression, list[tuple], list[list[tuple]]]`, *optional*):
+                Return only the rows matching the filter.
+                If possible the predicate will be pushed down to exploit the partition information
+                or internal metadata found in the data source, e.g. Parquet statistics.
+                Otherwise filters the loaded RecordBatches before yielding them.
+            fragment_scan_options (`pyarrow.dataset.ParquetFragmentScanOptions`, *optional*)
+                Scan-specific options for Parquet fragments.
+                This is especially useful to configure buffering and caching.
+
+                <Added version="4.2.0"/>
+            on_bad_files (`Literal["error", "warn", "skip"]`, *optional*, defaults to "error")
+                Specify what to do upon encountering a bad file (a file that can't be read). Allowed values are :
+                * 'error', raise an Exception when a bad file is encountered.
+                * 'warn', raise a warning when a bad file is encountered and skip that file.
+                * 'skip', skip bad files without raising or warning when they are encountered.
+
+                <Added version="4.2.0"/>
             **kwargs (additional keyword arguments):
                 Keyword arguments to be passed to [`ParquetConfig`].
 
@@ -1302,6 +1538,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> ds = Dataset.from_parquet('path/to/dataset.parquet')
+        ```
+
+        Load a subset of columns:
+
+        ```python
+        >>> ds = Dataset.from_parquet('path/to/dataset.parquet', columns=["col_0", "col_1"])
+        ```
+
+        Efficiently filter data, possibly skipping entire files or row groups:
+
+        ```python
+        >>> filters = [("col_0", "==", 0)]
+        >>> ds = Dataset.from_parquet(parquet_files_list, filters=filters)
         ```
         """
         # Dynamic import to avoid circular dependency
@@ -1315,6 +1564,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             keep_in_memory=keep_in_memory,
             columns=columns,
             num_proc=num_proc,
+            filters=filters,
+            fragment_scan_options=fragment_scan_options,
+            on_bad_files=on_bad_files,
             **kwargs,
         ).read()
 
@@ -1326,9 +1578,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cache_dir: str = None,
         keep_in_memory: bool = False,
         num_proc: Optional[int] = None,
+        keep_linebreaks: bool = False,
+        sample_by: Literal["line", "paragraph", "document"] = "line",
         **kwargs,
-    ):
+    ) -> "Dataset":
         """Create Dataset from text file(s).
+
+        Read the text files, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
             path_or_paths (`path-like` or list of `path-like`):
@@ -1346,6 +1602,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
 
                 <Added version="2.8.0"/>
+            keep_linebreaks: (`bool`, defaults to False):
+                Whether to keep line breaks.
+            sample_by (`Literal["line", "paragraph", "document"]`, defaults to "line"):
+                Whether to load data per line, praragraph or document.
+                By default one row in the dataset = one line.
             **kwargs (additional keyword arguments):
                 Keyword arguments to be passed to [`TextConfig`].
 
@@ -1368,6 +1629,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             num_proc=num_proc,
+            keep_linebreaks=keep_linebreaks,
+            sample_by=sample_by,
             **kwargs,
         ).read()
 
@@ -1381,8 +1644,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         working_dir: str = None,
         load_from_cache_file: bool = True,
         **kwargs,
-    ):
+    ) -> "Dataset":
         """Create a Dataset from Spark DataFrame. Dataset downloading is distributed over Spark workers.
+
+        Read the Spark DataFrame, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
             df (`pyspark.sql.DataFrame`):
@@ -1441,8 +1706,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cache_dir: str = None,
         keep_in_memory: bool = False,
         **kwargs,
-    ):
+    ) -> "Dataset":
         """Create Dataset from SQL query or database table.
+
+        Query the SQL database, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
             sql (`str` or `sqlalchemy.sql.Selectable`):
@@ -2952,6 +3219,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         new_fingerprint: Optional[str] = None,
         desc: Optional[str] = None,
         try_original_type: Optional[bool] = True,
+        on_mixed_types: Optional[Literal["use_json"]] = "use_json",
     ) -> "Dataset":
         """
         Apply a function to all the examples in the table (individually or in batches) and update the table.
@@ -3040,6 +3308,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             try_original_type (`Optional[bool]`, defaults to `True`):
                 Try to keep the types of the original columns (e.g. int32 -> int32).
                 Set to False if you want to always infer new types.
+            on_mixed_types (`Literal["use_json"]`, *optional*, defaults to `None`):
+                If "use_json", use the Json() type for mixed-types fields,
+                i.e. unstructured fields that contain data without a predefined schema.
+                In this case, a field with mixed type is set to Json().
+
+                This allow loading lists with a mix of strings/integers/floats
+                for example, or dictionaries with arbitrary value types.
+
+                <Added version="4.7.0"/>
 
         Example:
 
@@ -3141,6 +3418,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             "disable_nullable": disable_nullable,
             "fn_kwargs": fn_kwargs,
             "try_original_type": try_original_type,
+            "on_mixed_types": on_mixed_types,
         }
 
         if new_fingerprint is None:
@@ -3395,6 +3673,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         rank: Optional[int] = None,
         offset: int = 0,
         try_original_type: Optional[bool] = True,
+        on_mixed_types: Optional[Literal["use_json"]] = "use_json",
     ) -> Iterable[tuple[Optional[int], bool, Union[int, "Dataset"]]]:
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does update examples).
@@ -3439,6 +3718,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             try_original_type: (`Optional[bool]`, defaults to `True`):
                 Try to keep the types of the original columns (e.g. int32 -> int32).
                 Set to False if you want to always infer new types.
+            on_mixed_types (`Literal["use_json"]`, *optional*, defaults to `None`):
+                If "use_json", use the Json() type for mixed-types fields,
+                i.e. unstructured fields that contain data without a predefined schema.
+                In this case, a field with mixed type is set to Json().
+
+                This allow loading lists with a mix of strings/integers/floats
+                for example, or dictionaries with arbitrary value types.
+
+                <Added version="4.7.0"/>
         """
         if fn_kwargs is None:
             fn_kwargs = {}
@@ -3595,6 +3883,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     update_features=update_features,
                     fingerprint=new_fingerprint,
                     disable_nullable=disable_nullable,
+                    on_mixed_types=on_mixed_types,
                 )
             else:
                 buf_writer = None
@@ -3609,6 +3898,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     update_features=update_features,
                     fingerprint=new_fingerprint,
                     disable_nullable=disable_nullable,
+                    on_mixed_types=on_mixed_types,
                 )
             return buf_writer, writer, tmp_file
 
@@ -3651,10 +3941,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # If `update_data` is True after processing the first example/batch, initialize these resources with `init_buffer_and_writer`
         buf_writer, writer, tmp_file = None, None, None
 
-        # Check if Polars is available and import it if so
-        if config.POLARS_AVAILABLE and "polars" in sys.modules:
-            import polars as pl
-
         # Optionally initialize the writer as a context manager
         with contextlib.ExitStack() as stack:
             try:
@@ -3680,12 +3966,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 writer.write_row(example)
                             elif isinstance(example, pd.DataFrame):
                                 writer.write_row(pa.Table.from_pandas(example))
-                            elif (
-                                config.POLARS_AVAILABLE
-                                and "polars" in sys.modules
-                                and isinstance(example, pl.DataFrame)
-                            ):
-                                writer.write_row(example.to_arrow())
+                            elif config.POLARS_AVAILABLE and "polars" in sys.modules:
+                                import polars as pl
+
+                                if isinstance(example, pl.DataFrame):
+                                    writer.write_row(example.to_arrow())
+                                else:
+                                    writer.write(example)
                             else:
                                 writer.write(example)
                         num_examples_progress_update += 1
@@ -3705,10 +3992,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 writer.write_table(batch)
                             elif isinstance(batch, pd.DataFrame):
                                 writer.write_table(pa.Table.from_pandas(batch))
-                            elif (
-                                config.POLARS_AVAILABLE and "polars" in sys.modules and isinstance(batch, pl.DataFrame)
-                            ):
-                                writer.write_table(batch.to_arrow())
+                            elif config.POLARS_AVAILABLE and "polars" in sys.modules:
+                                import polars as pl
+
+                                if isinstance(batch, pl.DataFrame):
+                                    writer.write_table(batch.to_arrow())
+                                else:
+                                    writer.write_batch(batch, try_original_type=try_original_type)
                             else:
                                 writer.write_batch(batch, try_original_type=try_original_type)
                         num_examples_progress_update += num_examples_in_batch
@@ -5564,9 +5854,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
             except (Exception, KeyboardInterrupt):
                 tmp_file.close()
-                if Path(tmp_file.name).exists():
-                    Path(tmp_file.name).unlink()
+                Path(tmp_file.name).unlink()
                 raise
+            tmp_file.close()
+            Path(tmp_file.name).unlink()
             additions.append(shard_addition)
             yield job_id, False, 1
 
@@ -5616,6 +5907,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         additions: list[CommitOperationAdd] = []
 
         num_jobs = num_proc or 1
+        if num_shards <= 1:
+            logger.warning(
+                f"Setting num_proc from {num_jobs} back to 1 for the {split} split to disable multiprocessing as it only contains one shard."
+            )
+            num_jobs = 1
+        elif num_shards < num_jobs:
+            logger.warning(
+                f"Setting num_proc from {num_jobs} to {num_shards} for the {split} split as it only contains {num_shards} shards."
+            )
+            num_proc = num_shards
         kwargs_iterable = [
             {
                 "self": self.shard(num_shards=num_jobs, index=job_id, contiguous=True),
