@@ -981,6 +981,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
+        on_mixed_types: Optional[Literal["use_json"]] = None,
     ) -> "Dataset":
         """
         Convert `dict` to a `pyarrow.Table` to create a [`Dataset`].
@@ -1000,9 +1001,109 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Dataset information, like description, citation, etc.
             split (`NamedSplit`, *optional*):
                 Name of the dataset split.
+            on_mixed_types (`Literal["use_json"]`, *optional*, defaults to `None`):
+                If "use_json", use the Json() type for mixed-types fields,
+                i.e. unstructured fields that contain data without a predefined schema.
+                In this case, a field with mixed type is set to Json().
+
+                This allow loading lists with a mix of strings/integers/floats
+                for example, or dictionaries with arbitrary value types.
+
+                <Added version="4.7.0"/>
 
         Returns:
             [`Dataset`]
+
+        Examples:
+
+        Get a Dataset from a dictionary containing one list per column:
+
+        ```py
+        >>> ds = Dataset.from_dict({"text": ["hello there !", "general kenobi !"]})
+        ```
+
+        Pass features to set the column types, e.g. for an image dataset:
+
+        ```py
+        >>> features = Features({"image": Image()})
+        >>> ds = Dataset.from_dict({"image": ["path/to/image.png"]}, features=features)
+        ```
+
+        Datasets are based on Arrow which is a columnar format, and therefore they expect every example to have the same
+        type and subtypes, and dictionaries to have the same keys and values types.
+        Loading a dataset errors out when fields have mismatching types, and fills missing fields in dictionaries with None so all dictionaries have the same keys and value types.
+
+        To avoid this and allow mixed-types without errors, you can use `on_mixed_types="use_json"` or specify `features=` with a [`Json`] type:
+
+        ```py
+        >>> ds = Dataset.from_dict({"a": [0, "foo", {"subfield": "bar"}]})
+        Traceback (most recent call last):
+          ...
+          File "pyarrow/error.pxi", line 92, in pyarrow.lib.check_status
+        pyarrow.lib.ArrowInvalid: Could not convert 'foo' with type str: tried to convert to int64
+
+        >>> ds = Dataset.from_dict({"a": [0, "foo", {"subfield": "bar"}]}, on_mixed_types="use_json")
+        >>> ds.features
+        {'a': Json()}
+        >>> list(ds["a"])
+        [0, "foo", {"subfield": "bar"}]
+
+        >>> features = Features({"a": Json()})
+        >>> ds = Dataset.from_dict({"a": [0, "foo", {"subfield": "bar"}]}, features=features)
+        >>> ds.features
+        {'a': Json()}
+        >>> list(ds["a"])
+        [0, "foo", {"subfield": "bar"}]
+        ```
+
+        This is also useful for lists of dictionaries with arbitrary keys and values, to avoid filling missing fields with None:
+
+        ```py
+        >>> ds = Dataset.from_dict({"a": [[{"b": 0}, {"c": 0}]]})
+        >>> ds.features
+        {'a': List({'b': Value('int64'), 'c': Value('int64')})}
+        >>> list(ds["a"])
+        [[{'b': 0, 'c': None}, {'b': None, 'c': 0}]]  # missing fields are filled with None
+
+        >>> features = Features({"a": List(Json())})
+        >>> ds = Dataset.from_dict({"a": [[{"b": 0}, {"c": 0}]]}, features=features)
+        >>> ds.features
+        {'a': List(Json())}
+        >>> list(ds["a"])
+        [[{'b': 0}, {'c': 0}]]  # OK
+
+        >>> ds = Dataset.from_dict({"a": [[{"b": 0}, {"c": 0}]]}, on_mixed_types="use_json")
+        >>> ds.features
+        {'a': List(Json())}
+        >>> list(ds["a"])
+        [[{'b': 0}, {'c': 0}]]  # OK
+        ```
+
+        Another example with tool calling data:
+
+        ```py
+        >>> messages = [
+        ...     {"role": "user", "content": "Turn on the living room lights and play my electronic music playlist."},
+        ...     {"role": "assistant", "tool_calls": [
+        ...         {"type": "function", "function": {
+        ...             "name": "control_light",
+        ...             "arguments": {"room": "living room", "state": "on"}
+        ...         }},
+        ...         {"type": "function", "function": {
+        ...             "name": "play_music",
+        ...             "arguments": {"playlist": "electronic"}  # mixed-type here since keys ["playlist"] and ["room", "state"] are different
+        ...         }}]
+        ...     },
+        ...     {"role": "tool", "name": "control_light", "content": "The lights in the living room are now on."},
+        ...     {"role": "tool", "name": "play_music", "content": "The music is now playing."},
+        ...     {"role": "assistant", "content": "Done!"}
+        ... ]
+        >>> ds = Dataset.from_dict({"messages": [messages]}, on_mixed_types="use_json")
+        >>> ds.features
+        {'messages': List({'role': Value('string'), 'content': Value('string'), 'tool_calls': List(Json()), 'name': Value('string')})}
+        >>> ds[0]["messages"][1]["tool_calls"][0]["function"]["arguments"]
+        {"room": "living room", "state": "on"}
+        ```
         """
         if info is not None and features is not None and info.features != features:
             raise ValueError(
@@ -1020,6 +1121,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     features.encode_column(data, col) if features is not None else data,
                     type=features[col] if features is not None else None,
                     col=col,
+                    on_mixed_types=on_mixed_types,
                 )
             arrow_typed_mapping[col] = data
         mapping = arrow_typed_mapping
@@ -1045,6 +1147,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
+        on_mixed_types: Optional[Literal["use_json"]] = None,
     ) -> "Dataset":
         """
         Convert a list of dicts to a `pyarrow.Table` to create a [`Dataset`]`.
@@ -1063,13 +1166,113 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features (`Features`, optional): Dataset features.
             info (`DatasetInfo`, optional): Dataset information, like description, citation, etc.
             split (`NamedSplit`, optional): Name of the dataset split.
+            on_mixed_types (`Literal["use_json"]`, *optional*, defaults to `None`):
+                If "use_json", use the Json() type for mixed-types fields,
+                i.e. unstructured fields that contain data without a predefined schema.
+                In this case, a field with mixed type is set to Json().
+
+                This allow loading lists with a mix of strings/integers/floats
+                for example, or dictionaries with arbitrary value types.
+
+                <Added version="4.7.0"/>
 
         Returns:
             [`Dataset`]
+
+        Examples:
+
+        Get a Dataset from a list containing the examples:
+
+        ```py
+        >>> ds = Dataset.from_list([{"text": "hello there !"}, {"text": "general kenobi !"}]})
+        ```
+
+        Pass features to set the column types, e.g. for an image dataset:
+
+        ```py
+        >>> features = Features({"image": Image()})
+        >>> ds = Dataset.from_list([{"image": "path/to/image.png"}], features=features)
+        ```
+
+        Datasets are based on Arrow which is a columnar format, and therefore they expect every example to have the same
+        type and subtypes, and dictionaries to have the same keys and values types.
+        Loading a dataset errors out when fields have mismatching types, and fills missing fields in dictionaries with None so all dictionaries have the same keys and value types.
+
+        To avoid this and allow mixed-types without errors, you can use `on_mixed_types="use_json"` or specify `features=` with a [`Json`] type:
+
+        ```py
+        >>> ds = Dataset.from_list([{"a": 0}, {"a": "foo"}, {"a": {"subfield": "bar"}}])
+        Traceback (most recent call last):
+          ...
+          File "pyarrow/error.pxi", line 92, in pyarrow.lib.check_status
+        pyarrow.lib.ArrowInvalid: Could not convert 'foo' with type str: tried to convert to int64
+
+        >>> ds = Dataset.from_list([{"a": 0}, {"a": "foo"}, {"a": {"subfield": "bar"}}], on_mixed_types="use_json")
+        >>> ds.features
+        {'a': Json()}
+        >>> list(ds["a"])
+        [0, "foo", {"subfield": "bar"}]
+
+        >>> features = Features({"a": Json()})
+        >>> ds = Dataset.from_list([{"a": 0}, {"a": "foo"}, {"a": {"subfield": "bar"}}], features=features)
+        >>> ds.features
+        {'a': Json()}
+        >>> list(ds["a"])
+        [0, "foo", {"subfield": "bar"}]
+        ```
+
+        This is also useful for lists of dictionaries with arbitrary keys and values, to avoid filling missing fields with None:
+
+        ```py
+        >>> ds = Dataset.from_list([{"a": [{"b": 0}, {"c": 0}]}])
+        >>> ds.features
+        {'a': List({'b': Value('int64'), 'c': Value('int64')})}
+        >>> list(ds["a"])
+        [[{'b': 0, 'c': None}, {'b': None, 'c': 0}]]  # missing fields are filled with None
+
+        >>> features = Features({"a": List(Json())})
+        >>> ds = Dataset.from_list([{"a": [{"b": 0}, {"c": 0}]}], features=features)
+        >>> ds.features
+        {'a': List(Json())}
+        >>> list(ds["a"])
+        [[{'b': 0}, {'c': 0}]]  # OK
+
+        >>> ds = Dataset.from_list([{"a": [{"b": 0}, {"c": 0}]}], on_mixed_types="use_json")
+        >>> ds.features
+        {'a': List(Json())}
+        >>> list(ds["a"])
+        [[{'b': 0}, {'c': 0}]]  # OK
+        ```
+
+        Another example with tool calling data:
+
+        ```py
+        >>> messages = [
+        ...     {"role": "user", "content": "Turn on the living room lights and play my electronic music playlist."},
+        ...     {"role": "assistant", "tool_calls": [
+        ...         {"type": "function", "function": {
+        ...             "name": "control_light",
+        ...             "arguments": {"room": "living room", "state": "on"}
+        ...         }},
+        ...         {"type": "function", "function": {
+        ...             "name": "play_music",
+        ...             "arguments": {"playlist": "electronic"}  # mixed-type here since keys ["playlist"] and ["room", "state"] are different
+        ...         }}]
+        ...     },
+        ...     {"role": "tool", "name": "control_light", "content": "The lights in the living room are now on."},
+        ...     {"role": "tool", "name": "play_music", "content": "The music is now playing."},
+        ...     {"role": "assistant", "content": "Done!"}
+        ... ]
+        >>> ds = Dataset.from_list([{"messages": messages}], on_mixed_types="use_json")
+        >>> ds.features
+        {'messages': List({'role': Value('string'), 'content': Value('string'), 'tool_calls': List(Json()), 'name': Value('string')})}
+        >>> ds[0]["messages"][1]["tool_calls"][0]["function"]["arguments"]
+        {"room": "living room", "state": "on"}
+        ```
         """
         # for simplicity and consistency wrt OptimizedTypedSequence we do not use InMemoryTable.from_pylist here
         mapping = {k: [r.get(k) for r in mapping] for k in mapping[0]} if mapping else {}
-        return cls.from_dict(mapping, features, info, split)
+        return cls.from_dict(mapping, features, info, split, on_mixed_types=on_mixed_types)
 
     @staticmethod
     def from_csv(
@@ -3016,6 +3219,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         new_fingerprint: Optional[str] = None,
         desc: Optional[str] = None,
         try_original_type: Optional[bool] = True,
+        on_mixed_types: Optional[Literal["use_json"]] = "use_json",
     ) -> "Dataset":
         """
         Apply a function to all the examples in the table (individually or in batches) and update the table.
@@ -3104,6 +3308,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             try_original_type (`Optional[bool]`, defaults to `True`):
                 Try to keep the types of the original columns (e.g. int32 -> int32).
                 Set to False if you want to always infer new types.
+            on_mixed_types (`Literal["use_json"]`, *optional*, defaults to `None`):
+                If "use_json", use the Json() type for mixed-types fields,
+                i.e. unstructured fields that contain data without a predefined schema.
+                In this case, a field with mixed type is set to Json().
+
+                This allow loading lists with a mix of strings/integers/floats
+                for example, or dictionaries with arbitrary value types.
+
+                <Added version="4.7.0"/>
 
         Example:
 
@@ -3205,6 +3418,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             "disable_nullable": disable_nullable,
             "fn_kwargs": fn_kwargs,
             "try_original_type": try_original_type,
+            "on_mixed_types": on_mixed_types,
         }
 
         if new_fingerprint is None:
@@ -3459,6 +3673,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         rank: Optional[int] = None,
         offset: int = 0,
         try_original_type: Optional[bool] = True,
+        on_mixed_types: Optional[Literal["use_json"]] = "use_json",
     ) -> Iterable[tuple[Optional[int], bool, Union[int, "Dataset"]]]:
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does update examples).
@@ -3503,6 +3718,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             try_original_type: (`Optional[bool]`, defaults to `True`):
                 Try to keep the types of the original columns (e.g. int32 -> int32).
                 Set to False if you want to always infer new types.
+            on_mixed_types (`Literal["use_json"]`, *optional*, defaults to `None`):
+                If "use_json", use the Json() type for mixed-types fields,
+                i.e. unstructured fields that contain data without a predefined schema.
+                In this case, a field with mixed type is set to Json().
+
+                This allow loading lists with a mix of strings/integers/floats
+                for example, or dictionaries with arbitrary value types.
+
+                <Added version="4.7.0"/>
         """
         if fn_kwargs is None:
             fn_kwargs = {}
@@ -3659,6 +3883,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     update_features=update_features,
                     fingerprint=new_fingerprint,
                     disable_nullable=disable_nullable,
+                    on_mixed_types=on_mixed_types,
                 )
             else:
                 buf_writer = None
@@ -3673,6 +3898,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     update_features=update_features,
                     fingerprint=new_fingerprint,
                     disable_nullable=disable_nullable,
+                    on_mixed_types=on_mixed_types,
                 )
             return buf_writer, writer, tmp_file
 
@@ -5681,6 +5907,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         additions: list[CommitOperationAdd] = []
 
         num_jobs = num_proc or 1
+        if num_shards <= 1:
+            logger.warning(
+                f"Setting num_proc from {num_jobs} back to 1 for the {split} split to disable multiprocessing as it only contains one shard."
+            )
+            num_jobs = 1
+        elif num_shards < num_jobs:
+            logger.warning(
+                f"Setting num_proc from {num_jobs} to {num_shards} for the {split} split as it only contains {num_shards} shards."
+            )
+            num_proc = num_shards
         kwargs_iterable = [
             {
                 "self": self.shard(num_shards=num_jobs, index=job_id, contiguous=True),

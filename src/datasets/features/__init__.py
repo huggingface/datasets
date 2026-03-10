@@ -6,6 +6,7 @@ __all__ = [
     "Array5D",
     "ClassLabel",
     "Features",
+    "Json",
     "LargeList",
     "List",
     "Sequence",
@@ -19,7 +20,7 @@ __all__ = [
     "Nifti",
 ]
 from .audio import Audio
-from .features import Array2D, Array3D, Array4D, Array5D, ClassLabel, Features, LargeList, List, Sequence, Value
+from .features import Array2D, Array3D, Array4D, Array5D, ClassLabel, Features, Json, LargeList, List, Sequence, Value
 from .image import Image
 from .mesh import Mesh
 from .nifti import Nifti

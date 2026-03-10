@@ -84,7 +84,7 @@ from datasets import load_dataset
 
 # Print all the available datasets
 from huggingface_hub import list_datasets
-print([dataset.id for dataset in list_datasets()])
+print([dataset.id for dataset in list_datasets(limit=20)])
 
 # Load a dataset and print the first example in the training set
 squad_dataset = load_dataset('rajpurkar/squad')

@@ -285,9 +285,9 @@ class ExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         shard_idx_start = self._state_dict["shard_idx"] if self._state_dict else 0
-        for gen_kwags in islice(_split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards), shard_idx_start, None):
+        for gen_kwargs in islice(_split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards), shard_idx_start, None):
             shard_example_idx_start = self._state_dict["shard_example_idx"] if self._state_dict else 0
-            for key_example in islice(self.generate_examples_fn(**gen_kwags), shard_example_idx_start, None):
+            for key_example in islice(self.generate_examples_fn(**gen_kwargs), shard_example_idx_start, None):
                 if self._state_dict:
                     self._state_dict["shard_example_idx"] += 1
                 yield key_example
@@ -2947,7 +2947,8 @@ class IterableDataset(DatasetInfoMixin):
             split=split,
             features=features,
             keep_in_memory=keep_in_memory,
-            streaming=True**kwargs,
+            streaming=True,
+            **kwargs,
         ).read()
 
     @staticmethod
@@ -3404,7 +3405,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable = FormattedExamplesIterable(
                 ex_iterable,
                 formatting=self._formatting,
-                features=None if ex_iterable.is_typed else self._info.features,
+                features=ex_iterable.features if ex_iterable.is_typed else self._info.features,
                 token_per_repo_id=self._token_per_repo_id,
             )
 
@@ -4813,7 +4814,7 @@ class IterableDataset(DatasetInfoMixin):
                     repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
                     repo_info.splits.pop(split, None)
                     repo_info.splits[split] = SplitInfo(
-                        split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
+                        split, num_bytes=dataset_nbytes, num_examples=num_examples, dataset_name=dataset_name
                     )
                     info_to_dump = repo_info
             # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
