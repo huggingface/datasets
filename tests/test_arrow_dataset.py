@@ -1889,6 +1889,30 @@ class BaseDatasetTest(TestCase):
                 dset.map(ex_cnt)
                 self.assertEqual(ex_cnt.cnt, len(dset))
 
+    def test_map_writer_initialized_when_first_examples_return_none(self, in_memory):
+        """Dataset.map must not crash when early examples return None.
+
+        The writer was previously only initialized when i == 0.  If the map
+        function returns None for the first N examples, update_data stays False
+        and the writer is never created.  When a later example returns a dict,
+        update_data flips to True but writer is still None, causing:
+            AttributeError: 'NoneType' object has no attribute 'write'
+        (issue #7990)
+        """
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                def fn(example, idx):
+                    if idx < 2:
+                        return None
+                    return {"filename": example["filename"] + "_transformed"}
+
+                result = dset.map(fn, with_indices=True)
+                # First two rows are skipped (return None → no update)
+                # Remaining rows are transformed
+                self.assertEqual(len(result), len(dset))
+                for i in range(2, len(dset)):
+                    self.assertTrue(result[i]["filename"].endswith("_transformed"))
+
     @require_not_windows
     def test_map_crash_subprocess(self, in_memory):
         # be sure that a crash in one of the subprocess will not
