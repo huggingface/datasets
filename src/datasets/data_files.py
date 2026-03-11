@@ -141,11 +141,11 @@ def sanitize_patterns(patterns: Union[dict, list, str]) -> dict[str, Union[list[
                     and isinstance(pattern.get("path"), (str, list))
                 ):
                     raise ValueError(
-    "Invalid format for data_files entry. "
-    "Each item must be a dictionary with the structure "
-    "{'split': <split_name>, 'path': <path_or_list_of_paths>}.\n"
-    f"Received: {pattern}"
-)
+                        "Invalid format for data_files entry. "
+                        "Each item must be a dictionary with the structure "
+                        "{'split': <split_name>, 'path': <path_or_list_of_paths>}.\n"
+                        f"Received: {pattern}"
+                    )
             splits = [pattern["split"] for pattern in patterns]
             if len(set(splits)) != len(splits):
                 raise ValueError(f"Some splits are duplicated in data_files: {splits}")
