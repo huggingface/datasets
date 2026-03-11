@@ -102,6 +102,10 @@
       title: Load tabular data
     title: "Tabular"
   - sections:
+    - local: scientific_load
+      title: Load scientific data
+    title: "Scientific data"
+  - sections:
     - local: share
       title: Share
     - local: dataset_card

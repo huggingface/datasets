@@ -167,6 +167,7 @@ TESTS_REQUIRE = [
     "elasticsearch>=7.17.12,<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch(); 7.9.1 has legacy numpy.float_ which was fixed in https://github.com/elastic/elasticsearch-py/pull/2551.
     "faiss-cpu>=1.8.0.post1",  # Pins numpy < 2
     "h5py",
+    "zarr",
     "pylance",
     "jax>=0.3.14; sys_platform != 'win32'",
     "jaxlib>=0.3.14; sys_platform != 'win32'",
@@ -220,6 +221,7 @@ EXTRAS_REQUIRE = {
     "tensorflow_gpu": ["tensorflow>=2.6.0"],
     "torch": ["torch"],
     "jax": ["jax>=0.3.14", "jaxlib>=0.3.14"],
+    "zarr": ["zarr"],
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
     "tests": TESTS_REQUIRE,

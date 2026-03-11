@@ -22,6 +22,7 @@ from .text import text
 from .videofolder import videofolder
 from .webdataset import webdataset
 from .xml import xml
+from .zarr import zarr
 
 
 def _hash_python_lines(lines: list[str]) -> str:
@@ -55,6 +56,7 @@ _PACKAGED_DATASETS_MODULES = {
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
     "eval": (eval.__name__, _hash_python_lines(inspect.getsource(eval).splitlines())),
     "lance": (lance.__name__, _hash_python_lines(inspect.getsource(lance).splitlines())),
+    "zarr": (zarr.__name__, _hash_python_lines(inspect.getsource(zarr).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -88,6 +90,8 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".h5": ("hdf5", {}),
     ".eval": ("eval", {}),
     ".lance": ("lance", {}),
+    # Zarr stores are directory-based (usually ending in `.zarr`).
+    ".zarr": ("zarr", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
@@ -117,11 +121,13 @@ _MODULE_TO_METADATA_FILE_NAMES["audiofolder"] = imagefolder.ImageFolder.METADATA
 _MODULE_TO_METADATA_FILE_NAMES["videofolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["pdffolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["niftifolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
+_MODULE_TO_METADATA_FILE_NAMES["zarr"] = ["zarr.json"]
 
 _MODULE_TO_METADATA_EXTENSIONS: Dict[str, List[str]] = {}
 for _module in _MODULE_TO_EXTENSIONS:
     _MODULE_TO_METADATA_EXTENSIONS[_module] = []
 _MODULE_TO_METADATA_EXTENSIONS["lance"] = lance.Lance.METADATA_EXTENSIONS
+_MODULE_TO_METADATA_EXTENSIONS["zarr"] = [".zmetadata", ".zgroup"]
 
 # Total
 
