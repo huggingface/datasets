@@ -4361,8 +4361,20 @@ class IterableDataset(DatasetInfoMixin):
                 Either a path to a file (e.g. `file.parquet`), a remote URI (e.g. `hf://datasets/username/my_dataset_name/data.parquet`),
                 or a BinaryIO, where the dataset will be saved to in the specified format.
             batch_size (`int`, *optional*):
-                Size of the batch to load in memory and write at once.
-                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+                Size of the Arrow table batches loaded into memory and written at once.
+                Each batch is written as a single Parquet row group (unless overridden
+                by `row_group_size` in `parquet_writer_kwargs`).
+                Defaults to a value inferred from the dataset features, falling back
+                to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+
+                <Tip warning={true}>
+
+                If the dataset has no features set, the entire dataset is materialized
+                into memory as a single Arrow table before writing, regardless of
+                `batch_size`. Call [`IterableDataset.cast`] or set features beforehand
+                to enable streaming writes.
+
+                </Tip>
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
 
@@ -4389,11 +4401,22 @@ class IterableDataset(DatasetInfoMixin):
         """
         from .arrow_writer import get_arrow_writer_batch_size_from_features
 
-        batch_size = get_arrow_writer_batch_size_from_features(self.features) or config.DEFAULT_MAX_BATCH_SIZE
-        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=batch_size)))
-        return Dataset(table, fingerprint="unset").to_parquet(
-            path_or_buf, storage_options=storage_options, **parquet_writer_kwargs
+        batch_size = (
+            batch_size or get_arrow_writer_batch_size_from_features(self.features) or config.DEFAULT_MAX_BATCH_SIZE
         )
+        dataset: Union[Dataset, IterableDataset, None] = None
+        if self.features is None:
+            # Without features we can't construct a schema upfront — fall back to materializing
+            table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=batch_size)))
+            dataset = Dataset(table, fingerprint="unset")
+        else:
+            dataset = self
+
+        from .io.parquet import ParquetDatasetWriter
+
+        return ParquetDatasetWriter(
+            dataset, path_or_buf, batch_size=batch_size, storage_options=storage_options, **parquet_writer_kwargs
+        ).write()
 
     def _push_parquet_shards_to_hub_single(
         self,
@@ -4440,12 +4463,12 @@ class IterableDataset(DatasetInfoMixin):
                     partial(embed_table_storage, token_per_repo_id=self._token_per_repo_id),
                     batched=True,
                     batch_size=get_arrow_writer_batch_size_from_features(shard.features),
+                    features=shard.features,
                 )
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
-            tmp_file = tempfile.NamedTemporaryFile(suffix=".parquet", delete=False)
-            try:
+            with tempfile.NamedTemporaryFile(suffix=".parquet") as tmp_file:
                 shard.to_parquet(tmp_file)
-                tmp_file.close()
+                tmp_file.flush()
                 parquet_metadata = pq.read_metadata(tmp_file.name)
                 num_examples += parquet_metadata.num_rows
                 dataset_nbytes += sum(
@@ -4459,12 +4482,6 @@ class IterableDataset(DatasetInfoMixin):
                     revision=revision,
                     create_pr=create_pr,
                 )
-            except (Exception, KeyboardInterrupt):
-                tmp_file.close()
-                Path(tmp_file.name).unlink()
-                raise
-            tmp_file.close()
-            Path(tmp_file.name).unlink()
             additions.append(shard_addition)
             yield job_id, False, 1
 
