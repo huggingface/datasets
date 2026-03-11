@@ -127,7 +127,7 @@ _MODULE_TO_METADATA_EXTENSIONS: Dict[str, List[str]] = {}
 for _module in _MODULE_TO_EXTENSIONS:
     _MODULE_TO_METADATA_EXTENSIONS[_module] = []
 _MODULE_TO_METADATA_EXTENSIONS["lance"] = lance.Lance.METADATA_EXTENSIONS
-_MODULE_TO_METADATA_EXTENSIONS["zarr"] = [".zmetadata"]
+_MODULE_TO_METADATA_EXTENSIONS["zarr"] = [".zmetadata", ".zgroup"]
 
 # Total
 

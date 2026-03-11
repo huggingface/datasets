@@ -367,7 +367,6 @@ def resolve_pattern(
         for filepath, info in fs.glob(pattern, detail=True, **glob_kwargs).items()
         if (
             info["type"] == "file"
-            or (info["type"] == "directory" and filepath.rstrip("/\\").endswith(".zarr"))
             or (info.get("islink") and os.path.isfile(os.path.realpath(filepath)))
         )
         and (xbasename(filepath) not in files_to_ignore)

@@ -1,4 +1,5 @@
 import gzip
+import re
 from collections import Counter
 from dataclasses import dataclass
 from typing import Optional
@@ -79,11 +80,8 @@ class Zarr(datasets.ArrowBasedBuilder, datasets.builder._CountableBuilderMixin):
         splits = []
         for split_name, metadata_files in data_files.items():
             shards = []
-            for metadata_file in metadata_files:
-                metadata_file = str(metadata_file)
-                store_root, is_v2_consolidated, _ = _resolve_store_root_and_version(
-                    metadata_file, storage_options=storage_options
-                )
+            store_inputs = _resolve_split_store_inputs(metadata_files, storage_options=storage_options)
+            for store_input, store_root, is_v2_consolidated in store_inputs:
                 zgroup = _open_zarr_group(
                     zarr,
                     store_root=store_root,
@@ -118,7 +116,7 @@ class Zarr(datasets.ArrowBasedBuilder, datasets.builder._CountableBuilderMixin):
                 for start, end in row_ranges:
                     shards.append(
                         {
-                            "metadata_file": metadata_file,
+                            "metadata_file": store_input,
                             "store_root": store_root,
                             "is_v2_consolidated": is_v2_consolidated,
                             "start": start,
@@ -297,6 +295,30 @@ def _open_zarr_group(
     if group_path:
         zgroup = zgroup[group_path]
     return zgroup
+
+
+def _extract_zarr_store_root(path: str) -> Optional[str]:
+    match = re.match(r"^(.*\\.zarr)(?:$|[\\\\/].*)", str(path))
+    if match:
+        return match.group(1).rstrip("/\\")
+    return None
+
+
+def _resolve_split_store_inputs(metadata_files, *, storage_options: dict) -> list[tuple[str, str, bool]]:
+    seen = set()
+    store_inputs: list[tuple[str, str, bool]] = []
+    for metadata_file in metadata_files:
+        metadata_file = str(metadata_file)
+        candidate = _extract_zarr_store_root(metadata_file) or metadata_file
+        store_root, is_v2_consolidated, _ = _resolve_store_root_and_version(
+            candidate, storage_options=storage_options
+        )
+        key = (store_root, is_v2_consolidated)
+        if key in seen:
+            continue
+        seen.add(key)
+        store_inputs.append((candidate, store_root, is_v2_consolidated))
+    return store_inputs
 
 
 def _resolve_store_root_and_version(path: str, *, storage_options: dict) -> tuple[str, bool, bool]:
