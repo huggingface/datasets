@@ -2646,6 +2646,19 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         additions = []
         for split in self.keys():
             logger.info(f"Pushing split {split} to the Hub.")
+            split_num_proc = num_proc
+            split_dataset = self[split]
+            if split_num_proc is not None and split_num_proc > split_dataset.num_shards:
+                logger.warning(
+                    f"Too many num_proc: {split_num_proc} (max is dataset.num_shards={split_dataset.num_shards}). "
+                    f"Stopping {split_num_proc - split_dataset.num_shards} processes."
+                )
+                logger.info(
+                    f"To parallelize data loading, we give each process some shards (or data sources) to process. "
+                    f"Therefore it's unnecessary to have a number of processes greater than dataset.num_shards={split_dataset.num_shards}. "
+                    f"To enable more parallelism, please split the dataset in more files than {split_dataset.num_shards}."
+                )
+                split_num_proc = split_dataset.num_shards
             # The split=key needs to be removed before merging
             split_additions, uploaded_size, dataset_nbytes, num_examples = self[split]._push_parquet_shards_to_hub(
                 repo_id,
@@ -2657,7 +2670,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 # max_shard_size=max_shard_size,  # TODO(QL): add arg
                 num_shards=num_shards.get(split),
                 embed_external_files=embed_external_files,
-                num_proc=num_proc,
+                num_proc=split_num_proc,
             )
             additions += split_additions
             total_uploaded_size += uploaded_size
