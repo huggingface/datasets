@@ -5901,15 +5901,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         num_shards: Optional[int],
         embed_external_files: bool,
         num_proc: Optional[int],
-    ) -> tuple[list[CommitOperationAdd], int, int]:
+    ) -> tuple[list[CommitOperationAdd], list[str], int, SplitInfo]:
         """Pushes the dataset shards as Parquet files to the hub.
 
         Returns:
             additions (`List[CommitOperation]`): list of the `CommitOperationAdd` of the uploaded shards
             new_parquet_paths (`List[str]`): list of paths of the new files uploaded to the output path,
                 relative to output path
+            features (`features`): features of the uploaded dataset
+            split_info (`int`): info of the uploaded split, including the approximate size in bytes of
+                the uploaded dataset after uncompression
             uploaded_size (`int`): number of uploaded bytes to the repository or bucket
-            dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset after uncompression
         """
         from .arrow_writer import get_writer_batch_size_from_data_size, get_writer_batch_size_from_features
 
@@ -5989,7 +5991,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     new_parquet_paths += job_new_parquet_paths
                     uploaded_size += job_uploaded_size
 
-        return additions, new_parquet_paths, uploaded_size, dataset_nbytes
+        split_info = SplitInfo(name=split, num_bytes=dataset_nbytes, num_examples=len(self))
+        return additions, new_parquet_paths, self.features, split_info, uploaded_size
 
     def push_to_hub(
         self,
@@ -6181,7 +6184,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
 
     def _push_to_repo(
-        self,
+        self: Union["Dataset", "IterableDataset"],
         repo_id: str,
         config_name: str = "default",
         set_default: Optional[bool] = None,
@@ -6202,7 +6205,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             repo_id=repo_id, repo_type="dataset", revision=revision or "main", path_in_repo=""
         )
 
-        additions, new_parquet_paths, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
+        additions, new_parquet_paths, features, split_info, uploaded_size = self._push_parquet_shards_to_hub(
             resolved_output_path=resolved_output_path,
             data_dir=data_dir,
             split=split,
@@ -6213,7 +6216,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             embed_external_files=embed_external_files,
             num_proc=num_proc,
         )
-        split_info = SplitInfo(name=split, num_bytes=dataset_nbytes, num_examples=len(self))
 
         commit_message = commit_message if commit_message is not None else "Upload dataset"
         if len(additions) > config.UPLOADS_MAX_NUMBER_PER_COMMIT:
@@ -6289,10 +6291,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             deleted_size = sum(file_info["size"] for file_info in files_to_delete)
 
             # Update the dataset card
-            new_dataset_card, new_legacy_dataset_infos = self._get_updated_dataset_card(
+            new_dataset_card, new_legacy_dataset_infos = _get_updated_dataset_card(
                 fs=dirfs,
                 config_name=config_name,
                 splits_info=[split_info],
+                features=features,
                 data_dir=data_dir,
                 set_default=set_default,
                 uploaded_sizes=[uploaded_size],
@@ -6344,7 +6347,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return commit_info
 
     def _push_to_bucket(
-        self,
+        self: Union["Dataset", "IterableDataset"],
         bucket_id: str,
         path: str,
         config_name: str = "default",
@@ -6361,7 +6364,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
         resolved_output_path = HfFileSystemResolvedBucketPath(bucket_id=bucket_id, path=path)
         hf_path = resolved_output_path.unresolve()
-        dataset_name = hf_path.split("/")[-1]
         hffs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=token)
         dirfs = DirFileSystem(fs=hffs, path=hf_path)
 
@@ -6369,7 +6371,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         files_to_delete = list(dirfs.glob(f"{data_dir}/{split}-*", detail=True).values())
 
         # Upload the Parquet files
-        _, new_parquet_paths, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
+        _, new_parquet_paths, features, split_info, uploaded_size = self._push_parquet_shards_to_hub(
             resolved_output_path=resolved_output_path,
             data_dir=data_dir,
             split=split,
@@ -6380,7 +6382,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             embed_external_files=embed_external_files,
             num_proc=num_proc,
         )
-        split_info = SplitInfo(name=split, num_bytes=dataset_nbytes, num_examples=len(self))
 
         # Don't delete the new files
         new_parquet_paths = set(new_parquet_paths)
@@ -6388,11 +6389,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         deleted_size = sum(file_info["size"] for file_info in files_to_delete)
 
         # Update the dataset card
-        new_dataset_card, new_legacy_dataset_infos = self._get_updated_dataset_card(
+        new_dataset_card, new_legacy_dataset_infos = _get_updated_dataset_card(
             fs=dirfs,
-            dataset_name=dataset_name,
             config_name=config_name,
             splits_info=[split_info],
+            features=features,
             data_dir=data_dir,
             set_default=set_default,
             uploaded_sizes=[uploaded_size],
@@ -6412,138 +6413,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             add=add,
             delete=delete,
         )
-
-    @staticmethod
-    def _get_updated_dataset_card(
-        fs: DirFileSystem,
-        config_name: str,
-        splits_info: list[SplitInfo],
-        features: Features,
-        data_dir: str,
-        set_default: Optional[bool],
-        uploaded_sizes: list[int],
-        deleted_sizes: list[int],
-        remove_other_splits: bool,
-    ) -> tuple[DatasetCard, Optional[dict]]:
-        # get the deprecated dataset_infos.json to update them
-        try:
-            legacy_dataset_info: dict = json.loads(
-                fs.read_text(config.DATASETDICT_INFOS_FILENAME, encoding="utf-8")
-            ).get(config_name, None)
-            repo_info = DatasetInfo.from_dict(legacy_dataset_info) if legacy_dataset_info else None
-        except FileNotFoundError:
-            legacy_dataset_info = None
-            repo_info = None
-        # get the info from the README to update them
-        try:
-            dataset_card = DatasetCard(fs.read_text(config.REPOCARD_FILENAME, newline="", encoding="utf-8"))
-            dataset_card_data = dataset_card.data
-            metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
-            dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
-            if dataset_infos and config_name in dataset_infos:
-                repo_info = dataset_infos[config_name]
-            else:
-                repo_info = None
-        except FileNotFoundError:
-            dataset_card = None
-            dataset_card_data = DatasetCardData()
-            metadata_configs = MetadataConfigs()
-        # update the total info to dump from existing info
-        if repo_info is not None and not remove_other_splits:
-            logger.info("Updating downloaded metadata with the new split" + ("s." if len(splits_info) > 1 else "."))
-            for split_info, deleted_size, uploaded_size in zip(splits_info, deleted_sizes, uploaded_sizes):
-                split = split_info.name
-                if repo_info.splits and any(s != split for s in repo_info.splits):
-                    if features != repo_info.features:
-                        raise ValueError(
-                            f"Features of the new split don't match the features of the existing splits on the hub: {features} != {repo_info.features}"
-                        )
-
-                if split in repo_info.splits:
-                    repo_info.download_size -= deleted_size
-                    repo_info.dataset_size -= repo_info.splits.get(split, SplitInfo()).num_bytes or 0
-
-                repo_info.download_checksums = None
-                repo_info.download_size = (repo_info.download_size or 0) + uploaded_size
-                repo_info.dataset_size = (repo_info.dataset_size or 0) + split_info.num_bytes
-                repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
-                repo_info.splits.pop(split, None)
-                repo_info.splits[split] = split_info
-            info_to_dump = repo_info
-        else:
-            info_to_dump = DatasetInfo(
-                config_name=config_name, features=features, splits=SplitDict(), download_size=0, dataset_size=0
-            )
-            for split_info, uploaded_size in zip(splits_info, uploaded_sizes):
-                info_to_dump.splits.add(split_info)
-                info_to_dump.download_size += uploaded_size
-                info_to_dump.dataset_size += split_info.num_bytes
-            info_to_dump.size_in_bytes = info_to_dump.download_size + info_to_dump.dataset_size
-        # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
-        repo_splits: list[str] = []
-        pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
-        for file_path in fs.glob(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*")):
-            split_pattern_fields = string_to_dict(file_path, pattern)
-            assert split_pattern_fields is not None
-            repo_split = split_pattern_fields["split"]
-            if repo_split not in repo_splits:
-                repo_splits.append(repo_split)
-        if not metadata_configs and repo_splits:
-            default_metadata_configs_to_dump = {
-                "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
-            }
-            MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
-        # update the metadata configs
-        if config_name in metadata_configs:
-            metadata_config = metadata_configs[config_name]
-            if "data_files" in metadata_config:
-                data_files_to_dump = sanitize_patterns(metadata_config["data_files"])
-            else:
-                data_files_to_dump = {}
-            # add the new splits
-            for split_info in splits_info:
-                split = split_info.name
-                data_files_to_dump[split] = [f"{data_dir}/{split}-*"]
-            metadata_config_to_dump = {
-                "data_files": [
-                    {
-                        "split": _split,
-                        "path": _pattern[0] if len(_pattern) == 1 else _pattern,
-                    }
-                    for _split, _pattern in data_files_to_dump.items()
-                ]
-            }
-        else:
-            metadata_config_to_dump = {
-                "data_files": [
-                    {"split": split_info.name, "path": f"{data_dir}/{split_info.name}-*"} for split_info in splits_info
-                ]
-            }
-        configs_to_dump = {config_name: metadata_config_to_dump}
-        if set_default and config_name != "default":
-            if metadata_configs:
-                current_default_config_name = metadata_configs.get_default_config_name()
-                if current_default_config_name == "default":
-                    raise ValueError(
-                        "There exists a configuration named 'default'. To set a different configuration as default, "
-                        "rename the 'default' one first."
-                    )
-                if current_default_config_name:
-                    _ = metadata_configs[current_default_config_name].pop("default")
-                    configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
-            metadata_config_to_dump["default"] = True
-        # push to the deprecated dataset_infos.json
-        if legacy_dataset_info:
-            legacy_dataset_infos: dict = json.loads(fs.read_text(config.DATASETDICT_INFOS_FILENAME, encoding="utf-8"))
-            legacy_dataset_infos[config_name] = asdict(info_to_dump)
-            new_legacy_dataset_infos = json.dumps(dataset_infos, indent=4)
-        else:
-            new_legacy_dataset_infos = None
-        # push to README
-        DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
-        MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
-        new_dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
-        return new_dataset_card, new_legacy_dataset_infos
 
     @transmit_format
     @fingerprint_transform(inplace=False)
@@ -6937,6 +6806,139 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             else List(ClassLabel(num_classes=len(label_names), names=label_names))
         )
         return self.map(process_label_ids, features=features, batched=True, desc="Aligning the labels")
+
+
+def _get_updated_dataset_card(
+    fs: DirFileSystem,
+    config_name: str,
+    splits_info: list[SplitInfo],
+    features: Features,
+    data_dir: str,
+    set_default: Optional[bool],
+    uploaded_sizes: list[int],
+    deleted_sizes: list[int],
+    remove_other_splits: bool,
+) -> tuple[DatasetCard, Optional[dict]]:
+    """Update a dataset card in push_to_hub"""
+    # get the deprecated dataset_infos.json to update them
+    try:
+        legacy_dataset_info: dict = json.loads(fs.read_text(config.DATASETDICT_INFOS_FILENAME, encoding="utf-8")).get(
+            config_name, None
+        )
+        repo_info = DatasetInfo.from_dict(legacy_dataset_info) if legacy_dataset_info else None
+    except FileNotFoundError:
+        legacy_dataset_info = None
+        repo_info = None
+    # get the info from the README to update them
+    try:
+        dataset_card = DatasetCard(fs.read_text(config.REPOCARD_FILENAME, newline="", encoding="utf-8"))
+        dataset_card_data = dataset_card.data
+        metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
+        dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
+        if dataset_infos and config_name in dataset_infos:
+            repo_info = dataset_infos[config_name]
+        else:
+            repo_info = None
+    except FileNotFoundError:
+        dataset_card = None
+        dataset_card_data = DatasetCardData()
+        metadata_configs = MetadataConfigs()
+    # update the total info to dump from existing info
+    if repo_info is not None and not remove_other_splits:
+        logger.info("Updating downloaded metadata with the new split" + ("s." if len(splits_info) > 1 else "."))
+        for split_info, deleted_size, uploaded_size in zip(splits_info, deleted_sizes, uploaded_sizes):
+            split = split_info.name
+            if repo_info.splits and any(s != split for s in repo_info.splits):
+                if features != repo_info.features:
+                    raise ValueError(
+                        f"Features of the new split don't match the features of the existing splits on the hub: {features} != {repo_info.features}"
+                    )
+
+            if split in repo_info.splits:
+                repo_info.download_size -= deleted_size
+                repo_info.dataset_size -= repo_info.splits.get(split, SplitInfo()).num_bytes or 0
+
+            repo_info.download_checksums = None
+            repo_info.download_size = (repo_info.download_size or 0) + uploaded_size
+            repo_info.dataset_size = (repo_info.dataset_size or 0) + split_info.num_bytes
+            repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
+            repo_info.splits.pop(split, None)
+            repo_info.splits[split] = split_info
+        info_to_dump = repo_info
+    else:
+        info_to_dump = DatasetInfo(
+            config_name=config_name, features=features, splits=SplitDict(), download_size=0, dataset_size=0
+        )
+        for split_info, uploaded_size in zip(splits_info, uploaded_sizes):
+            info_to_dump.splits.add(split_info)
+            info_to_dump.download_size += uploaded_size
+            info_to_dump.dataset_size += split_info.num_bytes
+        info_to_dump.size_in_bytes = info_to_dump.download_size + info_to_dump.dataset_size
+    # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
+    repo_splits: list[str] = []
+    pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+    for file_path in fs.glob(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*")):
+        split_pattern_fields = string_to_dict(file_path, pattern)
+        assert split_pattern_fields is not None
+        repo_split = split_pattern_fields["split"]
+        if repo_split not in repo_splits:
+            repo_splits.append(repo_split)
+    if not metadata_configs and repo_splits:
+        default_metadata_configs_to_dump = {
+            "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
+        }
+        MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
+    # update the metadata configs
+    if config_name in metadata_configs:
+        metadata_config = metadata_configs[config_name]
+        if "data_files" in metadata_config:
+            data_files_to_dump = sanitize_patterns(metadata_config["data_files"])
+        else:
+            data_files_to_dump = {}
+        # add the new splits
+        for split_info in splits_info:
+            split = split_info.name
+            data_files_to_dump[split] = [f"{data_dir}/{split}-*"]
+        metadata_config_to_dump = {
+            "data_files": [
+                {
+                    "split": _split,
+                    "path": _pattern[0] if len(_pattern) == 1 else _pattern,
+                }
+                for _split, _pattern in data_files_to_dump.items()
+            ]
+        }
+    else:
+        metadata_config_to_dump = {
+            "data_files": [
+                {"split": split_info.name, "path": f"{data_dir}/{split_info.name}-*"} for split_info in splits_info
+            ]
+        }
+    configs_to_dump = {config_name: metadata_config_to_dump}
+    if set_default and config_name != "default":
+        if metadata_configs:
+            current_default_config_name = metadata_configs.get_default_config_name()
+            if current_default_config_name == "default":
+                raise ValueError(
+                    "There exists a configuration named 'default'. To set a different configuration as default, "
+                    "rename the 'default' one first."
+                )
+            if current_default_config_name:
+                _ = metadata_configs[current_default_config_name].pop("default")
+                configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
+        metadata_config_to_dump["default"] = True
+    # push to the deprecated dataset_infos.json
+    if legacy_dataset_info:
+        legacy_dataset_infos: dict = json.loads(fs.read_text(config.DATASETDICT_INFOS_FILENAME, encoding="utf-8"))
+        legacy_dataset_infos[config_name] = asdict(info_to_dump)
+        new_legacy_dataset_infos = json.dumps(dataset_infos, indent=4)
+    else:
+        new_legacy_dataset_infos = None
+    # push to README
+    DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
+    MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
+    new_dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
+    return new_dataset_card, new_legacy_dataset_infos
 
 
 def _concatenate_map_style_datasets(
