@@ -76,6 +76,22 @@ SAMPLE_DATASET_CAPITAL_LETTERS_IN_NAME_COMMIT_HASH = "70aa36264a6954920a13dd0465
 SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "hf-internal-testing/_dummy"
 SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
 
+from datasets.load import dataset_module_factory
+
+
+def test_dataset_script_error_message(tmp_path):
+    # create fake dataset script
+    fake_script = tmp_path / "dummy.py"
+    fake_script.write_text("print('hello')")
+
+    # pass the actual file path (not directory)
+    with pytest.raises(RuntimeError) as exc:
+        dataset_module_factory(str(fake_script))
+
+    message = str(exc.value)
+
+    assert "no longer supported" in message
+    assert "dataset repository on the Hugging Face Hub" in message
 
 @pytest.fixture
 def data_dir(tmp_path):

@@ -912,9 +912,45 @@ def dataset_module_factory(
         ).get_module()
     # Try locally
     elif path.endswith(filename):
-        raise RuntimeError(f"Dataset scripts are no longer supported, but found {filename}")
+        raise RuntimeError(f"""
+Dataset scripts are no longer supported in the Hugging Face `datasets` library.
+
+Detected script file: {filename}
+
+As of the new architecture, dataset loading scripts must be hosted directly
+in the dataset repository on the Hugging Face Hub.
+
+To migrate your dataset:
+
+1. Move your loading script into the dataset repository on the Hub.
+2. Ensure the script is named `<dataset_name>.py`.
+3. Push it to the Hub repository.
+4. Load it using: load_dataset("username/dataset_name")
+
+See migration guide:
+https://huggingface.co/docs/datasets/main/en/share_dataset
+
+""")
     elif os.path.isfile(combined_path):
-        raise RuntimeError(f"Dataset scripts are no longer supported, but found {filename}")
+        raise RuntimeError(f"""
+Dataset scripts are no longer supported in the Hugging Face `datasets` library.
+
+Detected script file: {filename}
+
+As of the new architecture, dataset loading scripts must be hosted directly
+in the dataset repository on the Hugging Face Hub.
+
+To migrate your dataset:
+
+1. Move your loading script into the dataset repository on the Hub.
+2. Ensure the script is named `<dataset_name>.py`.
+3. Push it to the Hub repository.
+4. Load it using: load_dataset("username/dataset_name")
+
+See migration guide:
+https://huggingface.co/docs/datasets/main/en/share_dataset
+
+""")
     elif os.path.isdir(path):
         return LocalDatasetModuleFactory(
             path, data_dir=data_dir, data_files=data_files, download_mode=download_mode
@@ -986,7 +1022,25 @@ def dataset_module_factory(
                     revision=commit_hash,
                     proxies=download_config.proxies,
                 )
-                raise RuntimeError(f"Dataset scripts are no longer supported, but found {filename}")
+                raise RuntimeError(f"""
+Dataset scripts are no longer supported in the Hugging Face `datasets` library.
+
+Detected script file: {filename}
+
+As of the new architecture, dataset loading scripts must be hosted directly
+in the dataset repository on the Hugging Face Hub.
+
+To migrate your dataset:
+
+1. Move your loading script into the dataset repository on the Hub.
+2. Ensure the script is named `<dataset_name>.py`.
+3. Push it to the Hub repository.
+4. Load it using: load_dataset("username/dataset_name")
+
+See migration guide:
+https://huggingface.co/docs/datasets/main/en/share_dataset
+
+""")
             except EntryNotFoundError:
                 # Use the infos from the parquet export except in some cases:
                 if data_dir or data_files or (revision and revision != "main"):
