@@ -1520,7 +1520,10 @@ def load_dataset(
 
 
 def load_from_disk(
-    dataset_path: PathLike, keep_in_memory: Optional[bool] = None, storage_options: Optional[dict] = None
+    dataset_path: PathLike,
+    keep_in_memory: Optional[bool] = None,
+    storage_options: Optional[dict] = None,
+    progress_bar: Optional[bool] = None,
 ) -> Union[Dataset, DatasetDict]:
     """
     Loads a dataset that was previously saved using [`~Dataset.save_to_disk`] from a dataset directory, or
@@ -1560,9 +1563,13 @@ def load_from_disk(
     if fs.isfile(posixpath.join(dataset_path, config.DATASET_INFO_FILENAME)) and fs.isfile(
         posixpath.join(dataset_path, config.DATASET_STATE_JSON_FILENAME)
     ):
-        return Dataset.load_from_disk(dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options)
+        return Dataset.load_from_disk(
+            dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options, progress_bar=progress_bar
+        )
     elif fs.isfile(posixpath.join(dataset_path, config.DATASETDICT_JSON_FILENAME)):
-        return DatasetDict.load_from_disk(dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options)
+        return DatasetDict.load_from_disk(
+            dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options, progress_bar=progress_bar
+        )
     else:
         raise FileNotFoundError(
             f"Directory {dataset_path} is neither a `Dataset` directory nor a `DatasetDict` directory."

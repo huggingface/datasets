@@ -1381,6 +1381,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         dataset_dict_path: PathLike,
         keep_in_memory: Optional[bool] = None,
         storage_options: Optional[dict] = None,
+        progress_bar: Optional[bool] = None,
     ) -> "DatasetDict":
         """
         Load a dataset that was previously saved using [`save_to_disk`] from a filesystem using `fsspec.spec.AbstractFileSystem`.
@@ -1433,6 +1434,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 dataset_dict_split_path,
                 keep_in_memory=keep_in_memory,
                 storage_options=storage_options,
+                progress_bar=progress_bar,
             )
         return dataset_dict
 
