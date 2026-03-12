@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 from typing import Literal, Optional, Union
 
@@ -82,6 +83,8 @@ class ParquetConfig(datasets.BuilderConfig):
     filters: Optional[Union[ds.Expression, list[tuple], list[list[tuple]]]] = None
     fragment_scan_options: Optional[ds.ParquetFragmentScanOptions] = None
     on_bad_files: Literal["error", "warn", "skip"] = "error"
+    return_file_name: bool = False
+    """If True, add a ``file_name`` column with the source file basename for each batch."""
 
     def __post_init__(self):
         super().__post_init__()
@@ -206,6 +209,12 @@ class Parquet(datasets.ArrowBasedBuilder):
                             # Uncomment for debugging (will print the Arrow table size and elements)
                             # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                             # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+                            if self.config.return_file_name:
+                                file_name = os.path.basename(file)
+                                pa_table = pa_table.append_column(
+                                    "file_name",
+                                    pa.array([file_name] * len(pa_table), type=pa.string()),
+                                )
                             yield Key(file_idx, batch_idx), self._cast_table(pa_table)
             except (pa.ArrowInvalid, ValueError) as e:
                 if self.config.on_bad_files == "error":
