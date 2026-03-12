@@ -2154,7 +2154,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
 
     def reshard_data_sources(self) -> "FormattedExamplesIterable":
         return FormattedExamplesIterable(
-            self.ex_iterable.shard_data_sources(),
+            self.ex_iterable.reshard_data_sources(),
             features=self.features,
             token_per_repo_id=self.token_per_repo_id,
             formatting=self.formatting,
