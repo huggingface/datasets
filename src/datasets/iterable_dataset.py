@@ -2122,6 +2122,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
     def _iter_arrow(self) -> Iterator[tuple[Key, pa.Table]]:
         if not self.features:
             yield from self.ex_iterable._iter_arrow()
+            return
         for key, pa_table in self.ex_iterable._iter_arrow():
             columns = set(pa_table.column_names)
             schema = self.features.arrow_schema
