@@ -6199,7 +6199,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     ) -> CommitInfo:
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
         resolved_output_path = HfFileSystemResolvedRepositoryPath(
-            repo_id=repo_id, repo_type="dataset", revision=revision, path_in_repo=""
+            repo_id=repo_id, repo_type="dataset", revision=revision or "main", path_in_repo=""
         )
 
         additions, new_parquet_paths, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
@@ -6478,7 +6478,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 info_to_dump.splits.add(split_info)
                 info_to_dump.download_size += uploaded_size
                 info_to_dump.dataset_size += split_info.num_bytes
-            info_to_dump.size_in_bytes = repo_info.download_size + repo_info.dataset_size
+            info_to_dump.size_in_bytes = info_to_dump.download_size + info_to_dump.dataset_size
         # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
         repo_splits: list[str] = []
         pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
@@ -6516,7 +6516,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             metadata_config_to_dump = {
                 "data_files": [
-                    {"split": split_info.name, "path": f"{data_dir}/{split}-*"} for split_info in splits_info
+                    {"split": split_info.name, "path": f"{data_dir}/{split_info.name}-*"} for split_info in splits_info
                 ]
             }
         configs_to_dump = {config_name: metadata_config_to_dump}

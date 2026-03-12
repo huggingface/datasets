@@ -1837,7 +1837,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
     ) -> CommitInfo:
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
         resolved_output_path = HfFileSystemResolvedRepositoryPath(
-            repo_id=repo_id, repo_type="dataset", revision=revision, path_in_repo=""
+            repo_id=repo_id, repo_type="dataset", revision=revision or "main", path_in_repo=""
         )
 
         additions: list[CommitOperationAdd] = []
