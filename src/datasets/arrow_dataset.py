@@ -144,13 +144,10 @@ if config.HF_HUB_VERSION >= version.parse("1.6.0"):
     from huggingface_hub.errors import BucketNotFoundError
     from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
 
-    BUCKETS_AVAILABLE = True
 else:
     BucketNotFoundError = None
     HfFileSystemResolvedBucketPath = None
     HfFileSystemResolvedRepositoryPath = HfFileSystemResolvedPath
-
-    BUCKETS_AVAILABLE = False
 
 
 if TYPE_CHECKING:
@@ -6176,6 +6173,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 commit_description=commit_description,
                 token=token,
                 revision=revision,
+                create_pr=create_pr,
                 max_shard_size=max_shard_size,
                 num_shards=num_shards,
                 embed_external_files=embed_external_files,
@@ -6203,7 +6201,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         resolved_output_path = HfFileSystemResolvedRepositoryPath(
             repo_id=repo_id, repo_type="dataset", revision=revision, path_in_repo=""
         )
-        dataset_name = repo_id.split("/")[-1]
 
         additions, new_parquet_paths, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
             resolved_output_path=resolved_output_path,
@@ -6216,6 +6213,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             embed_external_files=embed_external_files,
             num_proc=num_proc,
         )
+        split_info = SplitInfo(name=split, num_bytes=dataset_nbytes, num_examples=len(self))
 
         commit_message = commit_message if commit_message is not None else "Upload dataset"
         if len(additions) > config.UPLOADS_MAX_NUMBER_PER_COMMIT:
@@ -6280,7 +6278,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dirfs = DirFileSystem(fs=hffs, path=hf_path)
 
             # Check the files to delete
-            files_to_delete = list(dirfs.glob(f"{data_dir}/{split}-", detail=True).values())
+            files_to_delete = list(dirfs.glob(f"{data_dir}/{split}-*", detail=True).values())
 
             # Don't delete the new files
             deletions = [
@@ -6288,19 +6286,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 for file_info in files_to_delete
                 if file_info["name"] not in new_parquet_paths
             ]
-            previous_dataset_size = sum(file_info["size"] for file_info in files_to_delete)
+            deleted_size = sum(file_info["size"] for file_info in files_to_delete)
 
             # Update the dataset card
             new_dataset_card, new_legacy_dataset_infos = self._get_updated_dataset_card(
                 fs=dirfs,
-                dataset_name=dataset_name,
                 config_name=config_name,
-                split=split,
+                splits_info=[split_info],
                 data_dir=data_dir,
                 set_default=set_default,
-                uploaded_size=uploaded_size,
-                previous_dataset_size=previous_dataset_size,
-                dataset_nbytes=dataset_nbytes,
+                uploaded_sizes=[uploaded_size],
+                deleted_sizes=[deleted_size],
+                remove_other_splits=False,
             )
             dataset_card_additions = [
                 CommitOperationAdd(
@@ -6369,7 +6366,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dirfs = DirFileSystem(fs=hffs, path=hf_path)
 
         # Check the files to delete before uploading
-        files_to_delete = list(dirfs.glob(f"{data_dir}/{split}-", detail=True).values())
+        files_to_delete = list(dirfs.glob(f"{data_dir}/{split}-*", detail=True).values())
 
         # Upload the Parquet files
         _, new_parquet_paths, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
@@ -6383,23 +6380,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             embed_external_files=embed_external_files,
             num_proc=num_proc,
         )
+        split_info = SplitInfo(name=split, num_bytes=dataset_nbytes, num_examples=len(self))
 
         # Don't delete the new files
         new_parquet_paths = set(new_parquet_paths)
         delete = [file_info["name"] for file_info in files_to_delete if file_info["name"] not in new_parquet_paths]
-        previous_dataset_size = sum(file_info["size"] for file_info in files_to_delete)
+        deleted_size = sum(file_info["size"] for file_info in files_to_delete)
 
         # Update the dataset card
         new_dataset_card, new_legacy_dataset_infos = self._get_updated_dataset_card(
             fs=dirfs,
             dataset_name=dataset_name,
             config_name=config_name,
-            split=split,
+            splits_info=[split_info],
             data_dir=data_dir,
             set_default=set_default,
-            uploaded_size=uploaded_size,
-            previous_dataset_size=previous_dataset_size,
-            dataset_nbytes=dataset_nbytes,
+            uploaded_sizes=[uploaded_size],
+            deleted_sizes=[deleted_size],
+            remove_other_splits=False,
         )
         path_prefix = (path + "/") if path else ""
         add = [(str(new_dataset_card).encode(), path_prefix + config.REPOCARD_FILENAME)]
@@ -6415,28 +6413,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             delete=delete,
         )
 
+    @staticmethod
     def _get_updated_dataset_card(
-        self,
-        *,
         fs: DirFileSystem,
-        dataset_name: str,
         config_name: str,
-        split: str,
+        splits_info: list[SplitInfo],
+        features: Features,
         data_dir: str,
         set_default: Optional[bool],
-        uploaded_size: int,
-        previous_dataset_size: int,
-        dataset_nbytes: int,
+        uploaded_sizes: list[int],
+        deleted_sizes: list[int],
+        remove_other_splits: bool,
     ) -> tuple[DatasetCard, Optional[dict]]:
-        info_to_dump = self.info.copy()
-        info_to_dump.download_checksums = None
-        info_to_dump.download_size = uploaded_size
-        info_to_dump.dataset_size = dataset_nbytes
-        info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
-        info_to_dump.config_name = config_name
-        info_to_dump.splits = SplitDict(
-            {split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)}
-        )
         # get the deprecated dataset_infos.json to update them
         try:
             legacy_dataset_info: dict = json.loads(
@@ -6461,27 +6449,36 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_card_data = DatasetCardData()
             metadata_configs = MetadataConfigs()
         # update the total info to dump from existing info
-        if repo_info is not None:
-            logger.info("Updating downloaded metadata with the new split.")
-            if repo_info.splits and list(repo_info.splits) != [split]:
-                if self._info.features != repo_info.features:
-                    raise ValueError(
-                        f"Features of the new split don't match the features of the existing splits on the hub: {self._info.features} != {repo_info.features}"
-                    )
+        if repo_info is not None and not remove_other_splits:
+            logger.info("Updating downloaded metadata with the new split" + ("s." if len(splits_info) > 1 else "."))
+            for split_info, deleted_size, uploaded_size in zip(splits_info, deleted_sizes, uploaded_sizes):
+                split = split_info.name
+                if repo_info.splits and any(s != split for s in repo_info.splits):
+                    if features != repo_info.features:
+                        raise ValueError(
+                            f"Features of the new split don't match the features of the existing splits on the hub: {features} != {repo_info.features}"
+                        )
 
                 if split in repo_info.splits:
-                    repo_info.download_size -= previous_dataset_size
+                    repo_info.download_size -= deleted_size
                     repo_info.dataset_size -= repo_info.splits.get(split, SplitInfo()).num_bytes or 0
 
                 repo_info.download_checksums = None
                 repo_info.download_size = (repo_info.download_size or 0) + uploaded_size
-                repo_info.dataset_size = (repo_info.dataset_size or 0) + dataset_nbytes
+                repo_info.dataset_size = (repo_info.dataset_size or 0) + split_info.num_bytes
                 repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
                 repo_info.splits.pop(split, None)
-                repo_info.splits[split] = SplitInfo(
-                    split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
-                )
-                info_to_dump = repo_info
+                repo_info.splits[split] = split_info
+            info_to_dump = repo_info
+        else:
+            info_to_dump = DatasetInfo(
+                config_name=config_name, features=features, splits=SplitDict(), download_size=0, dataset_size=0
+            )
+            for split_info, uploaded_size in zip(splits_info, uploaded_sizes):
+                info_to_dump.splits.add(split_info)
+                info_to_dump.download_size += uploaded_size
+                info_to_dump.dataset_size += split_info.num_bytes
+            info_to_dump.size_in_bytes = repo_info.download_size + repo_info.dataset_size
         # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
         repo_splits: list[str] = []
         pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
@@ -6503,8 +6500,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 data_files_to_dump = sanitize_patterns(metadata_config["data_files"])
             else:
                 data_files_to_dump = {}
-            # add the new split
-            data_files_to_dump[split] = [f"{data_dir}/{split}-*"]
+            # add the new splits
+            for split_info in splits_info:
+                split = split_info.name
+                data_files_to_dump[split] = [f"{data_dir}/{split}-*"]
             metadata_config_to_dump = {
                 "data_files": [
                     {
@@ -6515,7 +6514,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ]
             }
         else:
-            metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
+            metadata_config_to_dump = {
+                "data_files": [
+                    {"split": split_info.name, "path": f"{data_dir}/{split}-*"} for split_info in splits_info
+                ]
+            }
         configs_to_dump = {config_name: metadata_config_to_dump}
         if set_default and config_name != "default":
             if metadata_configs:
