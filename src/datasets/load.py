@@ -1553,6 +1553,8 @@ def load_from_disk(
     >>> ds = load_from_disk('path/to/dataset/directory')
     ```
     """
+    dataset_path = os.fspath(dataset_path)
+
     fs: fsspec.AbstractFileSystem
     fs, *_ = url_to_fs(dataset_path, **(storage_options or {}))
     if not fs.exists(dataset_path):

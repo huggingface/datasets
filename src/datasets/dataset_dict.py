@@ -4,6 +4,7 @@ import fnmatch
 import itertools
 import json
 import math
+import os
 import posixpath
 import random
 import re
@@ -1349,6 +1350,8 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         >>> dataset_dict.save_to_disk("path/to/dataset/directory", num_shards={"train": 1024, "test": 8})
         ```
         """
+        dataset_dict_path = os.fspath(dataset_dict_path)
+
         fs: fsspec.AbstractFileSystem
         fs, _ = url_to_fs(dataset_dict_path, **(storage_options or {}))
 
@@ -1408,6 +1411,8 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         >>> ds = load_from_disk('path/to/dataset/directory')
         ```
         """
+        dataset_dict_path = os.fspath(dataset_dict_path)
+
         fs: fsspec.AbstractFileSystem
         fs, dataset_dict_path = url_to_fs(dataset_dict_path, **(storage_options or {}))
 
