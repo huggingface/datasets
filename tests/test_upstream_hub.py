@@ -5,7 +5,6 @@ import shutil
 import tempfile
 import textwrap
 import time
-import unittest
 from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch
@@ -39,7 +38,13 @@ from datasets.utils.file_utils import cached_path
 from datasets.utils.hub import hf_dataset_url
 
 from .fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
-from .utils import for_all_test_methods, require_pil, require_torchcodec, xfail_if_500_502_http_error
+from .utils import (
+    for_all_test_methods,
+    require_buckets_support_in_huggingface_hub,
+    require_pil,
+    require_torchcodec,
+    xfail_if_500_502_http_error,
+)
 
 
 pytestmark = pytest.mark.integration
@@ -358,6 +363,82 @@ class TestPushToHub:
             assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
             assert local_ds["train"].features == hub_ds["train"].features
 
+    @require_buckets_support_in_huggingface_hub
+    def test_push_dataset_dict_to_hub_bucket(self, temporary_bucket):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+
+        local_ds = DatasetDict({"train": ds})
+
+        with temporary_bucket() as bucket_id:
+            ds_location = "buckets/" + bucket_id
+            local_ds.push_to_hub(ds_location, token=self._token)
+            hub_ds = load_dataset(ds_location, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = sorted(item.path for item in self._api.list_bucket_tree(bucket_id, token=self._token))
+            assert files == ["README.md", "data/train-00000-of-00001.parquet"]
+
+    @require_buckets_support_in_huggingface_hub
+    def test_push_dataset_dict_to_hub_bucket_inside_dir(self, temporary_bucket):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+
+        local_ds = DatasetDict({"train": ds})
+
+        with temporary_bucket() as bucket_id:
+            ds_location = "buckets/" + bucket_id + "/my-dir"
+            local_ds.push_to_hub(ds_location, token=self._token)
+            hub_ds = load_dataset(ds_location, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = sorted(
+                item.path for item in self._api.list_bucket_tree(bucket_id, prefix="my-dir", token=self._token)
+            )
+            assert files == ["README.md", "data/train-00000-of-00001.parquet"]
+
+    @require_buckets_support_in_huggingface_hub
+    def test_push_dataset_to_hub_bucket(self, temporary_bucket):
+        local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+
+        with temporary_bucket() as bucket_id:
+            ds_location = "buckets/" + bucket_id
+            local_ds.push_to_hub(ds_location, token=self._token)
+            hub_ds = load_dataset(ds_location, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
+            assert local_ds.features == hub_ds.features
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = sorted(item.path for item in self._api.list_bucket_tree(bucket_id, token=self._token))
+            assert files == ["README.md", "data/train-00000-of-00001.parquet"]
+
+    @require_buckets_support_in_huggingface_hub
+    def test_push_dataset_to_hub_bucket_inside_dir(self, temporary_bucket):
+        local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+
+        with temporary_bucket() as bucket_id:
+            ds_location = "buckets/" + bucket_id + "/my-dir"
+            local_ds.push_to_hub(ds_location, token=self._token)
+            hub_ds = load_dataset(ds_location, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
+            assert local_ds.features == hub_ds.features
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = sorted(
+                item.path for item in self._api.list_bucket_tree(bucket_id, prefix="my-dir", token=self._token)
+            )
+            assert files == ["README.md", "data/train-00000-of-00001.parquet"]
+
     def test_push_dataset_to_hub(self, temporary_repo):
         local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
@@ -508,22 +589,6 @@ class TestPushToHub:
             assert local_ds.column_names == hub_ds.column_names
             assert list(local_ds["random"].features.keys()) == list(hub_ds["random"].features.keys())
             assert local_ds["random"].features == hub_ds["random"].features
-
-    @unittest.skip("This test cannot pass until iterable datasets have push to hub")
-    def test_push_streaming_dataset_dict_to_hub(self, temporary_repo):
-        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
-        local_ds = DatasetDict({"train": ds})
-        with tempfile.TemporaryDirectory() as tmp:
-            local_ds.save_to_disk(tmp)
-            local_ds = load_dataset(tmp, streaming=True)
-
-            with temporary_repo() as ds_name:
-                local_ds.push_to_hub(ds_name, token=self._token)
-                hub_ds = load_dataset(ds_name, download_mode="force_redownload")
-
-                assert local_ds.column_names == hub_ds.column_names
-                assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
-                assert local_ds["train"].features == hub_ds["train"].features
 
     def test_push_multiple_dataset_configs_to_hub_load_dataset_builder(self, temporary_repo):
         ds_default = Dataset.from_dict({"a": [0], "b": [1]})
@@ -900,7 +965,7 @@ class TestPushToHub:
                 "data/train-00001-of-00002.parquet",
             ]
 
-    def test_push_dataset_dict_to_hub_iterable(self, temporary_repo, set_ci_hub_access_token):
+    def test_push_iterable_dataset_dict_to_hub(self, temporary_repo, set_ci_hub_access_token):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]}).to_iterable_dataset()
 
         local_ds = IterableDatasetDict({"train": ds})
@@ -917,7 +982,7 @@ class TestPushToHub:
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
             assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
 
-    def test_push_dataset_dict_to_hub_iterable_num_proc(self, temporary_repo, set_ci_hub_access_token):
+    def test_push_iterable_dataset_dict_to_hub_num_proc(self, temporary_repo, set_ci_hub_access_token):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]}).to_iterable_dataset(num_shards=3)
 
         local_ds = IterableDatasetDict({"train": ds})
@@ -934,6 +999,78 @@ class TestPushToHub:
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
             assert files == [
                 ".gitattributes",
+                "README.md",
+                "data/train-00000-of-00003.parquet",
+                "data/train-00001-of-00003.parquet",
+                "data/train-00002-of-00003.parquet",
+            ]
+
+    def test_push_iterable_dataset_to_hub(self, temporary_repo):
+        local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]}).to_iterable_dataset()
+
+        with temporary_repo() as ds_name:
+            local_ds.push_to_hub(ds_name, token=self._token)
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
+            assert local_ds.features == hub_ds.features
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
+            assert files == ["README.md", "data/train-00000-of-00001.parquet"]
+
+    @require_buckets_support_in_huggingface_hub
+    def test_push_iterable_dataset_dict_to_hub_bucket(self, temporary_bucket):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]}).to_iterable_dataset()
+        local_ds = IterableDatasetDict({"train": ds})
+
+        with temporary_bucket() as bucket_id:
+            ds_location = "buckets/" + bucket_id
+            local_ds.push_to_hub(ds_location, token=self._token)
+            hub_ds = load_dataset(ds_location, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = sorted(item.path for item in self._api.list_bucket_tree(bucket_id, token=self._token))
+            assert files == ["README.md", "data/train-00000-of-00001.parquet"]
+
+    @require_buckets_support_in_huggingface_hub
+    def test_push_iterable_dataset_to_hub_bucket(self, temporary_bucket):
+        local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]}).to_iterable_dataset()
+
+        with temporary_bucket() as bucket_id:
+            ds_location = "buckets/" + bucket_id
+            local_ds.push_to_hub(ds_location, token=self._token)
+            hub_ds = load_dataset(ds_location, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
+            assert local_ds.features == hub_ds.features
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = sorted(item.path for item in self._api.list_bucket_tree(bucket_id, token=self._token))
+            assert files == ["README.md", "data/train-00000-of-00001.parquet"]
+
+    @require_buckets_support_in_huggingface_hub
+    def test_push_sharded_iterable_dataset_to_hub_bucket(self, temporary_bucket):
+        local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]}).to_iterable_dataset(num_shards=3)
+
+        with temporary_bucket() as bucket_id:
+            ds_location = "buckets/" + bucket_id
+            local_ds.push_to_hub(ds_location, token=self._token)
+            hub_ds = load_dataset(ds_location, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
+            assert local_ds.features == hub_ds.features
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = sorted(item.path for item in self._api.list_bucket_tree(bucket_id, token=self._token))
+            assert files == [
                 "README.md",
                 "data/train-00000-of-00003.parquet",
                 "data/train-00001-of-00003.parquet",

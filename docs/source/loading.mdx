@@ -189,7 +189,7 @@ for row in ds.take(3):
 
 This will return the image caption and the image bytes in a single request.
 
-## HDF5 files
+### HDF5 files
 
 [HDF5](https://www.hdfgroup.org/solutions/hdf5/) files are commonly used for storing large amounts of numerical data in scientific computing and machine learning. Loading HDF5 files with 🤗 Datasets is similar to loading CSV files:
 
@@ -239,6 +239,12 @@ To load remote WebDatasets via HTTP, pass the URLs instead:
 >>> dataset = load_dataset("webdataset", data_files={"train": urls}, split="train", streaming=True)
 ```
 
+## Remote files
+
+If you have remote files likely stored as a `csv`, `json`, `txt`, `parquet` or any supported format, the [`load_dataset`] function can load load them if you specify their remote paths:
+
+- `https://` URLs for public online files, e.g. `data_files=["https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v2.0.json"]`
+- `hf://` URLs for files in any repository or [Storage Bucket](https://huggingface.co/docs/hub/storage-buckets) on Hugging Face, e.g. `data_files=["hf://buckets/julien-c/my-training-bucket/julien/affluence.csv"]`
 
 ## Multiprocessing
 
