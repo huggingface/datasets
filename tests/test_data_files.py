@@ -678,3 +678,11 @@ def test_get_data_patterns_from_directory_with_the_word_data_twice(tmp_path):
     data_file.touch()
     data_file_patterns = get_data_patterns(repo_dir.as_posix())
     assert data_file_patterns == {"train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"]}
+
+
+def test_get_data_patterns_local_path_uses_single_resolve(complex_data_dir):
+    with patch("datasets.data_files.resolve_pattern", wraps=resolve_pattern) as mocked_resolve_pattern:
+        patterns = get_data_patterns(complex_data_dir)
+    assert list(patterns.keys()) == ["train", "test"]
+    assert patterns["train"] and patterns["test"]
+    assert mocked_resolve_pattern.call_count == 1
