@@ -34,7 +34,7 @@ from multiprocess import Pool
 from packaging import version
 
 from . import config
-from .arrow_dataset import Dataset, DatasetInfoMixin
+from .arrow_dataset import Dataset, DatasetInfoMixin, _push_to_bucket, _push_to_repo
 from .features import Features
 from .features.features import (
     FeatureType,
@@ -4718,6 +4718,8 @@ class IterableDataset(DatasetInfoMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
         if repo_id.startswith("buckets/"):
+            if BucketNotFoundError is None:
+                raise ImportError("Pushing datasets to buckets requires huggingface_hub>=1.6.0")
             _, _namespace, _bucket_name, *_path_segments = repo_id.split("/")
             try:
                 bucket_id = api.bucket_info(_namespace + "/" + _bucket_name).id
@@ -4725,7 +4727,7 @@ class IterableDataset(DatasetInfoMixin):
                 bucket_url = api.create_bucket(_namespace + "/" + _bucket_name, private=private, exist_ok=True)
                 bucket_id = bucket_url.bucket_id
             path = "/".join(s for s in _path_segments if s)
-            return Dataset._push_to_bucket(
+            return _push_to_bucket(
                 self,
                 bucket_id=bucket_id,
                 path=path,
@@ -4754,7 +4756,7 @@ class IterableDataset(DatasetInfoMixin):
             if revision is not None and not revision.startswith("refs/pr/"):
                 # We do not call create_branch for a PR reference: 400 Bad Request
                 api.create_branch(repo_id, branch=revision, repo_type="dataset", exist_ok=True)
-            return Dataset._push_to_repo(
+            return _push_to_repo(
                 self,
                 repo_id=repo_id,
                 config_name=config_name,

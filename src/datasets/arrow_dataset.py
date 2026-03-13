@@ -6131,6 +6131,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
         if repo_id.startswith("buckets/"):
+            if BucketNotFoundError is None:
+                raise ImportError("Pushing datasets to buckets requires huggingface_hub>=1.6.0")
             _, _namespace, _bucket_name, *_path_segments = repo_id.split("/")
             try:
                 bucket_id = api.bucket_info(_namespace + "/" + _bucket_name).id
@@ -6138,7 +6140,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 bucket_url = api.create_bucket(_namespace + "/" + _bucket_name, private=private, exist_ok=True)
                 bucket_id = bucket_url.bucket_id
             path = "/".join(s for s in _path_segments if s)
-            return self._push_to_bucket(
+            return _push_to_bucket(
                 bucket_id=bucket_id,
                 path=path,
                 config_name=config_name,
@@ -6166,7 +6168,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if revision is not None and not revision.startswith("refs/pr/"):
                 # We do not call create_branch for a PR reference: 400 Bad Request
                 api.create_branch(repo_id, branch=revision, repo_type="dataset", exist_ok=True)
-            return self._push_to_repo(
+            return _push_to_repo(
                 repo_id=repo_id,
                 config_name=config_name,
                 set_default=set_default,
@@ -6182,237 +6184,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 embed_external_files=embed_external_files,
                 num_proc=num_proc,
             )
-
-    def _push_to_repo(
-        self: Union["Dataset", "IterableDataset"],
-        repo_id: str,
-        config_name: str = "default",
-        set_default: Optional[bool] = None,
-        split: Optional[str] = None,
-        data_dir: Optional[str] = None,
-        commit_message: Optional[str] = None,
-        commit_description: Optional[str] = None,
-        token: Optional[str] = None,
-        revision: Optional[str] = None,
-        create_pr: Optional[bool] = False,
-        max_shard_size: Optional[Union[int, str]] = None,
-        num_shards: Optional[int] = None,
-        embed_external_files: bool = True,
-        num_proc: Optional[int] = None,
-    ) -> CommitInfo:
-        api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
-        resolved_output_path = HfFileSystemResolvedRepositoryPath(
-            repo_id=repo_id, repo_type="dataset", revision=revision or "main", path_in_repo=""
-        )
-
-        additions, new_parquet_paths, features, split_info, uploaded_size = self._push_parquet_shards_to_hub(
-            resolved_output_path=resolved_output_path,
-            data_dir=data_dir,
-            split=split,
-            token=token,
-            max_shard_size=max_shard_size,
-            num_shards=num_shards,
-            create_pr=create_pr,
-            embed_external_files=embed_external_files,
-            num_proc=num_proc,
-        )
-
-        commit_message = commit_message if commit_message is not None else "Upload dataset"
-        if len(additions) > config.UPLOADS_MAX_NUMBER_PER_COMMIT:
-            logger.info(
-                f"Number of files to upload is larger than {config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
-            )
-            num_commits = math.ceil(len(additions) / config.UPLOADS_MAX_NUMBER_PER_COMMIT)
-            for i in range(0, num_commits):
-                operations = additions[
-                    i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
-                ]
-                for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
-                    # We need to retry if another commit happens at the same time
-                    sleep_time *= 1 + random.random()
-                    try:
-                        commit_info = api.create_commit(
-                            repo_id,
-                            operations=operations,
-                            commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
-                            commit_description=commit_description,
-                            repo_type="dataset",
-                            revision=revision,
-                            create_pr=create_pr,
-                        )
-                    except HfHubHTTPError as err:
-                        if (
-                            err.__context__
-                            and isinstance(err.__context__, HfHubHTTPError)
-                            and err.__context__.response.status_code == 409
-                        ):
-                            # 409 is Conflict (another commit is in progress)
-                            time.sleep(sleep_time)
-                            logger.info(
-                                f"Retrying intermediate commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
-                            )
-                            continue
-                        else:
-                            raise
-                    break
-                logger.info(
-                    f"Commit #{i + 1} completed"
-                    + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
-                    + "."
-                )
-            last_commit_additions = []
-        else:
-            last_commit_additions = additions
-
-        for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
-            # We need to retry if there was a commit in between in case it touched the dataset card data
-            sleep_time *= 1 + random.random()
-
-            # We make sure to get info from this commit
-            parent_commit = api.repo_info(repo_id, repo_type="dataset", revision=revision).sha
-            hf_path = HfFileSystemResolvedRepositoryPath(
-                repo_type=resolved_output_path.repo_type,
-                repo_id=resolved_output_path.repo_id,
-                revision=parent_commit,
-                path_in_repo=resolved_output_path.path_in_repo,
-            ).unresolve()
-            hffs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=token)
-            dirfs = DirFileSystem(fs=hffs, path=hf_path)
-
-            # Check the files to delete
-            files_to_delete = list(dirfs.glob(f"{data_dir}/{split}-*", detail=True).values())
-
-            # Don't delete the new files
-            deletions = [
-                CommitOperationDelete(path_in_repo=file_info["name"])
-                for file_info in files_to_delete
-                if file_info["name"] not in new_parquet_paths
-            ]
-            deleted_size = sum(file_info["size"] for file_info in files_to_delete)
-
-            # Update the dataset card
-            new_dataset_card, new_legacy_dataset_infos = _get_updated_dataset_card(
-                fs=dirfs,
-                config_name=config_name,
-                splits_info=[split_info],
-                features=features,
-                data_dir=data_dir,
-                set_default=set_default,
-                uploaded_sizes=[uploaded_size],
-                deleted_sizes=[deleted_size],
-                remove_other_splits=False,
-            )
-            dataset_card_additions = [
-                CommitOperationAdd(
-                    path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(new_dataset_card).encode()
-                )
-            ]
-            if new_legacy_dataset_infos:
-                dataset_card_additions.append(
-                    CommitOperationAdd(
-                        path_in_repo=config.DATASETDICT_INFOS_FILENAME,
-                        path_or_fileobj=json.dumps(new_legacy_dataset_infos).encode("utf-8"),
-                    )
-                )
-            operations = last_commit_additions + dataset_card_additions + deletions
-
-            try:
-                commit_info = api.create_commit(
-                    repo_id,
-                    operations=operations,
-                    commit_message=commit_message,
-                    commit_description=commit_description,
-                    repo_type="dataset",
-                    revision=revision,
-                    create_pr=create_pr,
-                    parent_commit=parent_commit,
-                )
-            except HfHubHTTPError as err:
-                if (
-                    err.__context__
-                    and isinstance(err.__context__, HfHubHTTPError)
-                    and err.__context__.response.status_code in (412, 409)
-                ):
-                    # 412 is Precondition failed (parent_commit isn't satisfied)
-                    # 409 is Conflict (another commit is in progress)
-                    time.sleep(sleep_time)
-                    logger.info(
-                        f"Retrying commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
-                    )
-                    continue
-                else:
-                    raise
-            break
-
-        return commit_info
-
-    def _push_to_bucket(
-        self: Union["Dataset", "IterableDataset"],
-        bucket_id: str,
-        path: str,
-        config_name: str = "default",
-        set_default: Optional[bool] = None,
-        split: Optional[str] = None,
-        data_dir: Optional[str] = None,
-        token: Optional[str] = None,
-        create_pr: Optional[bool] = False,
-        max_shard_size: Optional[Union[int, str]] = None,
-        num_shards: Optional[int] = None,
-        embed_external_files: bool = True,
-        num_proc: Optional[int] = None,
-    ) -> None:
-        api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
-        resolved_output_path = HfFileSystemResolvedBucketPath(bucket_id=bucket_id, path=path)
-        hf_path = resolved_output_path.unresolve()
-        hffs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=token)
-        dirfs = DirFileSystem(fs=hffs, path=hf_path)
-
-        # Check the files to delete before uploading
-        files_to_delete = list(dirfs.glob(f"{data_dir}/{split}-*", detail=True).values())
-
-        # Upload the Parquet files
-        _, new_parquet_paths, features, split_info, uploaded_size = self._push_parquet_shards_to_hub(
-            resolved_output_path=resolved_output_path,
-            data_dir=data_dir,
-            split=split,
-            token=token,
-            max_shard_size=max_shard_size,
-            num_shards=num_shards,
-            create_pr=create_pr,
-            embed_external_files=embed_external_files,
-            num_proc=num_proc,
-        )
-
-        # Don't delete the new files
-        new_parquet_paths = set(new_parquet_paths)
-        delete = [file_info["name"] for file_info in files_to_delete if file_info["name"] not in new_parquet_paths]
-        deleted_size = sum(file_info["size"] for file_info in files_to_delete)
-
-        # Update the dataset card
-        new_dataset_card, new_legacy_dataset_infos = _get_updated_dataset_card(
-            fs=dirfs,
-            config_name=config_name,
-            splits_info=[split_info],
-            features=features,
-            data_dir=data_dir,
-            set_default=set_default,
-            uploaded_sizes=[uploaded_size],
-            deleted_sizes=[deleted_size],
-            remove_other_splits=False,
-        )
-        path_prefix = (path + "/") if path else ""
-        add = [(str(new_dataset_card).encode(), path_prefix + config.REPOCARD_FILENAME)]
-        if new_legacy_dataset_infos:
-            add.append(
-                (json.dumps(new_legacy_dataset_infos).encode("utf-8"), path_prefix + config.DATASETDICT_INFOS_FILENAME)
-            )
-
-        # Upload dataset card and delete old files
-        api.batch_bucket_files(
-            bucket_id=bucket_id,
-            add=add,
-            delete=delete,
-        )
 
     @transmit_format
     @fingerprint_transform(inplace=False)
@@ -6806,6 +6577,237 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             else List(ClassLabel(num_classes=len(label_names), names=label_names))
         )
         return self.map(process_label_ids, features=features, batched=True, desc="Aligning the labels")
+
+
+def _push_to_repo(
+    dset: Union["Dataset", "IterableDataset"],
+    repo_id: str,
+    config_name: str = "default",
+    set_default: Optional[bool] = None,
+    split: Optional[str] = None,
+    data_dir: Optional[str] = None,
+    commit_message: Optional[str] = None,
+    commit_description: Optional[str] = None,
+    token: Optional[str] = None,
+    revision: Optional[str] = None,
+    create_pr: Optional[bool] = False,
+    max_shard_size: Optional[Union[int, str]] = None,
+    num_shards: Optional[int] = None,
+    embed_external_files: bool = True,
+    num_proc: Optional[int] = None,
+) -> CommitInfo:
+    api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+    resolved_output_path = HfFileSystemResolvedRepositoryPath(
+        repo_id=repo_id, repo_type="dataset", revision=revision or "main", path_in_repo=""
+    )
+
+    additions, new_parquet_paths, features, split_info, uploaded_size = dset._push_parquet_shards_to_hub(
+        resolved_output_path=resolved_output_path,
+        data_dir=data_dir,
+        split=split,
+        token=token,
+        max_shard_size=max_shard_size,
+        num_shards=num_shards,
+        create_pr=create_pr,
+        embed_external_files=embed_external_files,
+        num_proc=num_proc,
+    )
+
+    commit_message = commit_message if commit_message is not None else "Upload dataset"
+    if len(additions) > config.UPLOADS_MAX_NUMBER_PER_COMMIT:
+        logger.info(
+            f"Number of files to upload is larger than {config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
+        )
+        num_commits = math.ceil(len(additions) / config.UPLOADS_MAX_NUMBER_PER_COMMIT)
+        for i in range(0, num_commits):
+            operations = additions[
+                i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
+            ]
+            for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+                # We need to retry if another commit happens at the same time
+                sleep_time *= 1 + random.random()
+                try:
+                    commit_info = api.create_commit(
+                        repo_id,
+                        operations=operations,
+                        commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                        commit_description=commit_description,
+                        repo_type="dataset",
+                        revision=revision,
+                        create_pr=create_pr,
+                    )
+                except HfHubHTTPError as err:
+                    if (
+                        err.__context__
+                        and isinstance(err.__context__, HfHubHTTPError)
+                        and err.__context__.response.status_code == 409
+                    ):
+                        # 409 is Conflict (another commit is in progress)
+                        time.sleep(sleep_time)
+                        logger.info(
+                            f"Retrying intermediate commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
+                        )
+                        continue
+                    else:
+                        raise
+                break
+            logger.info(
+                f"Commit #{i + 1} completed"
+                + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
+                + "."
+            )
+        last_commit_additions = []
+    else:
+        last_commit_additions = additions
+
+    for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
+        # We need to retry if there was a commit in between in case it touched the dataset card data
+        sleep_time *= 1 + random.random()
+
+        # We make sure to get info from this commit
+        parent_commit = api.repo_info(repo_id, repo_type="dataset", revision=revision).sha
+        hf_path = HfFileSystemResolvedRepositoryPath(
+            repo_type=resolved_output_path.repo_type,
+            repo_id=resolved_output_path.repo_id,
+            revision=parent_commit,
+            path_in_repo=resolved_output_path.path_in_repo,
+        ).unresolve()
+        hffs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=token)
+        dirfs = DirFileSystem(fs=hffs, path=hf_path)
+
+        # Check the files to delete
+        files_to_delete = list(dirfs.glob(f"{data_dir}/{split}-*", detail=True).values())
+
+        # Don't delete the new files
+        deletions = [
+            CommitOperationDelete(path_in_repo=file_info["name"])
+            for file_info in files_to_delete
+            if file_info["name"] not in new_parquet_paths
+        ]
+        deleted_size = sum(file_info["size"] for file_info in files_to_delete)
+
+        # Update the dataset card
+        new_dataset_card, new_legacy_dataset_infos = _get_updated_dataset_card(
+            fs=dirfs,
+            config_name=config_name,
+            splits_info=[split_info],
+            features=features,
+            data_dir=data_dir,
+            set_default=set_default,
+            uploaded_sizes=[uploaded_size],
+            deleted_sizes=[deleted_size],
+            remove_other_splits=False,
+        )
+        dataset_card_additions = [
+            CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(new_dataset_card).encode())
+        ]
+        if new_legacy_dataset_infos:
+            dataset_card_additions.append(
+                CommitOperationAdd(
+                    path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+                    path_or_fileobj=json.dumps(new_legacy_dataset_infos).encode("utf-8"),
+                )
+            )
+        operations = last_commit_additions + dataset_card_additions + deletions
+
+        try:
+            commit_info = api.create_commit(
+                repo_id,
+                operations=operations,
+                commit_message=commit_message,
+                commit_description=commit_description,
+                repo_type="dataset",
+                revision=revision,
+                create_pr=create_pr,
+                parent_commit=parent_commit,
+            )
+        except HfHubHTTPError as err:
+            if (
+                err.__context__
+                and isinstance(err.__context__, HfHubHTTPError)
+                and err.__context__.response.status_code in (412, 409)
+            ):
+                # 412 is Precondition failed (parent_commit isn't satisfied)
+                # 409 is Conflict (another commit is in progress)
+                time.sleep(sleep_time)
+                logger.info(
+                    f"Retrying commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
+                )
+                continue
+            else:
+                raise
+        break
+
+    return commit_info
+
+
+def _push_to_bucket(
+    dset: Union["Dataset", "IterableDataset"],
+    bucket_id: str,
+    path: str,
+    config_name: str = "default",
+    set_default: Optional[bool] = None,
+    split: Optional[str] = None,
+    data_dir: Optional[str] = None,
+    token: Optional[str] = None,
+    create_pr: Optional[bool] = False,
+    max_shard_size: Optional[Union[int, str]] = None,
+    num_shards: Optional[int] = None,
+    embed_external_files: bool = True,
+    num_proc: Optional[int] = None,
+) -> None:
+    api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+    resolved_output_path = HfFileSystemResolvedBucketPath(bucket_id=bucket_id, path=path)
+    hf_path = resolved_output_path.unresolve()
+    hffs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=token)
+    dirfs = DirFileSystem(fs=hffs, path=hf_path)
+
+    # Check the files to delete before uploading
+    files_to_delete = list(dirfs.glob(f"{data_dir}/{split}-*", detail=True).values())
+
+    # Upload the Parquet files
+    _, new_parquet_paths, features, split_info, uploaded_size = dset._push_parquet_shards_to_hub(
+        resolved_output_path=resolved_output_path,
+        data_dir=data_dir,
+        split=split,
+        token=token,
+        max_shard_size=max_shard_size,
+        num_shards=num_shards,
+        create_pr=create_pr,
+        embed_external_files=embed_external_files,
+        num_proc=num_proc,
+    )
+
+    # Don't delete the new files
+    new_parquet_paths = set(new_parquet_paths)
+    delete = [file_info["name"] for file_info in files_to_delete if file_info["name"] not in new_parquet_paths]
+    deleted_size = sum(file_info["size"] for file_info in files_to_delete)
+
+    # Update the dataset card
+    new_dataset_card, new_legacy_dataset_infos = _get_updated_dataset_card(
+        fs=dirfs,
+        config_name=config_name,
+        splits_info=[split_info],
+        features=features,
+        data_dir=data_dir,
+        set_default=set_default,
+        uploaded_sizes=[uploaded_size],
+        deleted_sizes=[deleted_size],
+        remove_other_splits=False,
+    )
+    path_prefix = (path + "/") if path else ""
+    add = [(str(new_dataset_card).encode(), path_prefix + config.REPOCARD_FILENAME)]
+    if new_legacy_dataset_infos:
+        add.append(
+            (json.dumps(new_legacy_dataset_infos).encode("utf-8"), path_prefix + config.DATASETDICT_INFOS_FILENAME)
+        )
+
+    # Upload dataset card and delete old files
+    api.batch_bucket_files(
+        bucket_id=bucket_id,
+        add=add,
+        delete=delete,
+    )
 
 
 def _get_updated_dataset_card(

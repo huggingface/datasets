@@ -34,7 +34,6 @@ import yaml
 from fsspec.core import url_to_fs
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFileSystem
 from huggingface_hub.utils import (
-    BucketNotFoundError,
     EntryNotFoundError,
     GatedRepoError,
     LocalEntryNotFoundError,
@@ -43,6 +42,7 @@ from huggingface_hub.utils import (
     RevisionNotFoundError,
     get_session,
 )
+from packaging import version
 
 from . import __version__, config
 from .arrow_dataset import Dataset
@@ -90,6 +90,13 @@ from .utils.logging import get_logger
 from .utils.metadata import MetadataConfigs
 from .utils.typing import PathLike
 from .utils.version import Version
+
+
+if config.HF_HUB_VERSION >= version.parse("1.6.0"):
+    from huggingface_hub.errors import BucketNotFoundError
+
+else:
+    BucketNotFoundError = None
 
 
 logger = get_logger(__name__)
@@ -1049,6 +1056,8 @@ def dataset_module_factory(
         ).get_module()
     # Try remotely
     elif path.startswith("buckets/"):
+        if BucketNotFoundError is None:
+            raise ImportError("Loading datasets from buckets requires huggingface_hub>=1.6.0")
         # We check that the bucket exists, and the directory exists, and authentication in one call
         api = HfApi(
             endpoint=config.HF_ENDPOINT,
