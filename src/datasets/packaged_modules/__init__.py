@@ -17,6 +17,7 @@ from .niftifolder import niftifolder
 from .pandas import pandas
 from .parquet import parquet
 from .pdffolder import pdffolder
+from .sparse_csv import sparse_csv
 from .sql import sql
 from .text import text
 from .videofolder import videofolder
@@ -55,6 +56,7 @@ _PACKAGED_DATASETS_MODULES = {
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
     "eval": (eval.__name__, _hash_python_lines(inspect.getsource(eval).splitlines())),
     "lance": (lance.__name__, _hash_python_lines(inspect.getsource(lance).splitlines())),
+    "sparse_csv": (sparse_csv.__name__, _hash_python_lines(inspect.getsource(sparse_csv).splitlines())),
 }
 
 # get importable module names and hash for caching
