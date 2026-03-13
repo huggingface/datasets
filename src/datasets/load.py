@@ -1054,7 +1054,7 @@ def load_dataset_builder(
     You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
 
     A dataset is a directory that contains some data files in generic formats (JSON, CSV, Parquet, etc.) and possibly
-    in a generic structure (Webdataset, ImageFolder, AudioFolder, VideoFolder, etc.)
+    in a generic structure (Webdataset, ImageFolder, AudioFolder, VideoFolder, MeshFolder, etc.)
 
     Args:
 
@@ -1070,7 +1070,7 @@ def load_dataset_builder(
               e.g. `'./path/to/directory/with/my/csv/data'`.
 
             - if `path` is the name of a dataset builder and `data_files` or `data_dir` is specified
-              (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder")
+              (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder", "meshfolder")
               -> load the dataset builder from the files in `data_files` or `data_dir`
               e.g. `'parquet'`.
 
@@ -1300,13 +1300,13 @@ def load_dataset(
     You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
 
     A dataset is a directory that contains some data files in generic formats (JSON, CSV, Parquet, etc.) and possibly
-    in a generic structure (Webdataset, ImageFolder, AudioFolder, VideoFolder, etc.)
+    in a generic structure (Webdataset, ImageFolder, AudioFolder, VideoFolder, MeshFolder, etc.)
 
     This function does the following under the hood:
 
         1. Load a dataset builder:
 
-            * Find the most common data format in the dataset and pick its associated builder (JSON, CSV, Parquet, Webdataset, ImageFolder, AudioFolder, etc.)
+            * Find the most common data format in the dataset and pick its associated builder (JSON, CSV, Parquet, Webdataset, ImageFolder, AudioFolder, MeshFolder, etc.)
             * Find which file goes into which split (e.g. train/test) based on file and directory names or on the YAML configuration
             * It is also possible to specify `data_files` manually, and which dataset builder to use (e.g. "parquet").
 
@@ -1340,7 +1340,7 @@ def load_dataset(
               e.g. `'./path/to/directory/with/my/csv/data'`.
 
             - if `path` is the name of a dataset builder and `data_files` or `data_dir` is specified
-              (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder")
+              (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder", "meshfolder")
               -> load the dataset from the files in `data_files` or `data_dir`
               e.g. `'parquet'`.
 

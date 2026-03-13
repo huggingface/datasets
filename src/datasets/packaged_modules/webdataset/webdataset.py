@@ -22,6 +22,7 @@ class WebDataset(datasets.GeneratorBasedBuilder):
     IMAGE_EXTENSIONS: list[str]  # definition at the bottom of the script
     AUDIO_EXTENSIONS: list[str]  # definition at the bottom of the script
     VIDEO_EXTENSIONS: list[str]  # definition at the bottom of the script
+    MESH_EXTENSIONS: list[str]  # definition at the bottom of the script
     DECODERS: dict[str, Callable[[Any], Any]]  # definition at the bottom of the script
     NUM_EXAMPLES_FOR_FEATURES_INFERENCE = 5
 
@@ -101,6 +102,9 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                 # Set Video types
                 if extension in self.VIDEO_EXTENSIONS:
                     features[field_name] = datasets.Video()
+                # Set Mesh types
+                if extension in self.MESH_EXTENSIONS:
+                    features[field_name] = datasets.Mesh()
             self.info.features = features
 
         return splits
@@ -115,13 +119,19 @@ class WebDataset(datasets.GeneratorBasedBuilder):
         audio_field_names = [
             field_name for field_name, feature in self.info.features.items() if isinstance(feature, datasets.Audio)
         ]
+        video_field_names = [
+            field_name for field_name, feature in self.info.features.items() if isinstance(feature, datasets.Video)
+        ]
+        mesh_field_names = [
+            field_name for field_name, feature in self.info.features.items() if isinstance(feature, datasets.Mesh)
+        ]
         all_field_names = list(self.info.features.keys())
         for tar_idx, (tar_path, tar_iterator) in enumerate(zip(tar_paths, tar_iterators)):
             for example_idx, example in enumerate(self._get_pipeline_from_tar(tar_path, tar_iterator)):
                 for field_name in all_field_names:
                     if field_name not in example:
                         example[field_name] = None
-                for field_name in image_field_names + audio_field_names:
+                for field_name in image_field_names + audio_field_names + video_field_names + mesh_field_names:
                     if example[field_name] is not None:
                         example[field_name] = {
                             "path": example["__key__"] + "." + field_name,
@@ -269,13 +279,21 @@ WebDataset.AUDIO_EXTENSIONS = AUDIO_EXTENSIONS
 
 # TODO: initial list, we should check the compatibility of other formats
 VIDEO_EXTENSIONS = [
-    ".mkv",
-    ".mp4",
-    ".avi",
-    ".mpeg",
-    ".mov",
+    "mkv",
+    "mp4",
+    "avi",
+    "mpeg",
+    "mov",
 ]
 WebDataset.VIDEO_EXTENSIONS = VIDEO_EXTENSIONS
+
+
+MESH_EXTENSIONS = [
+    "glb",
+    "ply",
+    "stl",
+]
+WebDataset.MESH_EXTENSIONS = MESH_EXTENSIONS
 
 
 def text_loads(data: bytes):
