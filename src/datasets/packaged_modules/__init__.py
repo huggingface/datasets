@@ -109,7 +109,7 @@ for _module in _MODULE_TO_EXTENSIONS:
     _MODULE_TO_EXTENSIONS[_module].append(".zip")
 
 # Used to filter data files based on file names
-_MODULE_TO_METADATA_FILE_NAMES: Dict[str, List[str]] = {}
+_MODULE_TO_METADATA_FILE_NAMES: dict[str, list[str]] = {}
 for _module in _MODULE_TO_EXTENSIONS:
     _MODULE_TO_METADATA_FILE_NAMES[_module] = []
 _MODULE_TO_METADATA_FILE_NAMES["imagefolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
