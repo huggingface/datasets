@@ -1551,10 +1551,10 @@ def generate_from_dict(obj: Any):
 
     generate_from_dict is the recursive helper for Features.from_dict, and allows for a convenient constructor syntax
     to define features from deserialized JSON dictionaries. This function is used in particular when deserializing
-    a :class:`DatasetInfo` that was dumped to a JSON object. This acts as an analogue to
-    :meth:`Features.from_arrow_schema` and handles the recursive field-by-field instantiation, but doesn't require any
+    a `DatasetInfo` that was dumped to a JSON object. This acts as an analogue to
+    `Features.from_arrow_schema` and handles the recursive field-by-field instantiation, but doesn't require any
     mapping to/from pyarrow, except for the fact that it takes advantage of the mapping of pyarrow primitive dtypes
-    that :class:`Value` automatically performs.
+    that `Value` automatically performs.
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(obj, list):
@@ -1757,10 +1757,10 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
 
     Args:
         feature (FeatureType): the feature type to be checked
-        ignore_decode_attribute (:obj:`bool`, default ``False``): Whether to ignore the current value
+        ignore_decode_attribute (`bool`, default ``False``): Whether to ignore the current value
             of the `decode` attribute of the decodable feature types.
     Returns:
-        :obj:`bool`
+        `bool`
     """
     if isinstance(feature, dict):
         return any(require_decoding(f) for f in feature.values())
@@ -1782,7 +1782,7 @@ def require_storage_cast(feature: FeatureType) -> bool:
     Args:
         feature (FeatureType): the feature type to be checked
     Returns:
-        :obj:`bool`
+        `bool`
     """
     if isinstance(feature, dict):
         return any(require_storage_cast(f) for f in feature.values())
@@ -1800,7 +1800,7 @@ def require_storage_embed(feature: FeatureType) -> bool:
     Args:
         feature (FeatureType): the feature type to be checked
     Returns:
-        :obj:`bool`
+        `bool`
     """
     if isinstance(feature, dict):
         return any(require_storage_cast(f) for f in feature.values())
@@ -1814,7 +1814,7 @@ def require_storage_embed(feature: FeatureType) -> bool:
 
 def keep_features_dicts_synced(func):
     """
-    Wrapper to keep the secondary dictionary, which tracks whether keys are decodable, of the :class:`datasets.Features` object
+    Wrapper to keep the secondary dictionary, which tracks whether keys are decodable, of the `datasets.Features` object
     in sync with the main dictionary.
     """
 
@@ -1905,7 +1905,7 @@ class Features(dict):
         Features field types.
 
         Returns:
-            :obj:`pyarrow.DataType`
+            `pyarrow.DataType`
         """
         return get_nested_type(self)
 
@@ -1915,7 +1915,7 @@ class Features(dict):
         Features schema.
 
         Returns:
-            :obj:`pyarrow.Schema`
+            `pyarrow.Schema`
         """
         hf_metadata = {"info": {"features": self.to_dict()}}
         return pa.schema(self.type).with_metadata({"huggingface": json.dumps(hf_metadata)})

@@ -1107,7 +1107,7 @@ class xPath(type(Path())):
         return xexists(str(self), download_config=download_config)
 
     def glob(self, pattern, download_config: Optional[DownloadConfig] = None):
-        """Glob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+        """Glob function for argument of type `Path` that supports both local paths end remote URLs.
 
         Args:
             pattern (`str`): Pattern that resulting paths must match.
@@ -1135,7 +1135,7 @@ class xPath(type(Path())):
                 yield type(self)("::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops))
 
     def rglob(self, pattern, **kwargs):
-        """Rglob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+        """Rglob function for argument of type `Path` that supports both local paths end remote URLs.
 
         Args:
             pattern (`str`): Pattern that resulting paths must match.
@@ -1147,7 +1147,7 @@ class xPath(type(Path())):
 
     @property
     def parent(self) -> "xPath":
-        """Name function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+        """Name function for argument of type `Path` that supports both local paths end remote URLs.
 
         Returns:
             [`xPath`]
@@ -1156,7 +1156,7 @@ class xPath(type(Path())):
 
     @property
     def name(self) -> str:
-        """Name function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+        """Name function for argument of type `Path` that supports both local paths end remote URLs.
 
         Returns:
             `str`
@@ -1165,7 +1165,7 @@ class xPath(type(Path())):
 
     @property
     def stem(self) -> str:
-        """Stem function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+        """Stem function for argument of type `Path` that supports both local paths end remote URLs.
 
         Returns:
             `str`
@@ -1174,7 +1174,7 @@ class xPath(type(Path())):
 
     @property
     def suffix(self) -> str:
-        """Suffix function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+        """Suffix function for argument of type `Path` that supports both local paths end remote URLs.
 
         Returns:
             `str`
@@ -1182,11 +1182,11 @@ class xPath(type(Path())):
         return PurePosixPath(self.as_posix().split("::")[0]).suffix
 
     def open(self, *args, **kwargs):
-        """Extend :func:`xopen` to support argument of type :obj:`~pathlib.Path`.
+        """Extend `xopen` to support argument of type `Path`.
 
         Args:
-            **args: Arguments passed to :func:`fsspec.open`.
-            **kwargs: Keyword arguments passed to :func:`fsspec.open`.
+            **args: Arguments passed to `fsspec.open`.
+            **kwargs: Keyword arguments passed to `fsspec.open`.
 
         Returns:
             `io.FileIO`: File-like object.
@@ -1194,7 +1194,7 @@ class xPath(type(Path())):
         return xopen(str(self), *args, **kwargs)
 
     def joinpath(self, *p: tuple[str, ...]) -> "xPath":
-        """Extend :func:`xjoin` to support argument of type :obj:`~pathlib.Path`.
+        """Extend `xjoin` to support argument of type `Path`.
 
         Args:
             *p (`tuple` of `str`): Other path components.
@@ -1314,7 +1314,7 @@ def xxml_dom_minidom_parse(filename_or_file, download_config: Optional[DownloadC
         **kwargs (optional): Additional keyword arguments passed to `xml.dom.minidom.parse`.
 
     Returns:
-        :obj:`xml.dom.minidom.Document`: Parsed document.
+        `xml.dom.minidom.Document`: Parsed document.
     """
     if hasattr(filename_or_file, "read"):
         return xml.dom.minidom.parse(filename_or_file, **kwargs)

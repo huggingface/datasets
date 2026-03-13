@@ -855,14 +855,14 @@ def dataset_module_factory(
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository
               e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing your data files.
 
-        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset to load.
+        revision (`Version` or `str`, optional): Version of the dataset to load.
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
-        download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`DownloadMode` or :obj:`str`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        data_dir (:obj:`str`, optional): Directory with the data files. Used only if `data_files` is not specified,
+        download_config (`DownloadConfig`, optional): Specific download configuration parameters.
+        download_mode (`DownloadMode` or `str`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        data_dir (`str`, optional): Directory with the data files. Used only if `data_files` is not specified,
             in which case it's equal to pass `os.path.join(data_dir, "**")` as `data_files`.
-        data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
+        data_files (`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
         cache_dir (`str`, *optional*):
             Directory to read/write data. Defaults to `"~/.cache/huggingface/datasets"`.
 

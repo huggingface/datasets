@@ -386,24 +386,24 @@ def fingerprint_transform(
     """
     Wrapper for dataset transforms to update the dataset fingerprint using ``update_fingerprint``
     Args:
-        inplace (:obj:`bool`):  If inplace is True, the fingerprint of the dataset is updated inplace.
+        inplace (`bool`):  If inplace is True, the fingerprint of the dataset is updated inplace.
             Otherwise, a parameter "new_fingerprint" is passed to the wrapped method that should take care of
             setting the fingerprint of the returned Dataset.
-        use_kwargs (:obj:`List[str]`, optional): optional white list of argument names to take into account
+        use_kwargs (`List[str]`, optional): optional white list of argument names to take into account
             to update the fingerprint to the wrapped method that should take care of
             setting the fingerprint of the returned Dataset. By default all the arguments are used.
-        ignore_kwargs (:obj:`List[str]`, optional): optional black list of argument names to take into account
+        ignore_kwargs (`List[str]`, optional): optional black list of argument names to take into account
             to update the fingerprint. Note that ignore_kwargs prevails on use_kwargs.
-        fingerprint_names (:obj:`List[str]`, optional, defaults to ["new_fingerprint"]):
+        fingerprint_names (`List[str]`, optional, defaults to ["new_fingerprint"]):
             If the dataset transforms is not inplace and returns a DatasetDict, then it can require
             several fingerprints (one per dataset in the DatasetDict). By specifying fingerprint_names,
             one fingerprint named after each element of fingerprint_names is going to be passed.
-        randomized_function (:obj:`bool`, defaults to False): If the dataset transform is random and has
+        randomized_function (`bool`, defaults to False): If the dataset transform is random and has
             optional parameters "seed" and "generator", then you can set randomized_function to True.
             This way, even if users set "seed" and "generator" to None, then the fingerprint is
             going to be randomly generated depending on numpy's current state. In this case, the
             generator is set to np.random.default_rng(np.random.get_state()[1][0]).
-        version (:obj:`str`, optional): version of the transform. The version is taken into account when
+        version (`str`, optional): version of the transform. The version is taken into account when
             computing the fingerprint. If a datase transform changes (or at least if the output data
             that are cached changes), then one should increase the version. If the version stays the
             same, then old cached data could be reused that are not compatible with the new transform.

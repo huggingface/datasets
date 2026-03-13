@@ -253,14 +253,14 @@ def get_dataset_config_info(
                 e.g. `'./dataset/squad'`
             - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`huggingface_hub.list_datasets`]),
                 e.g. `'rajpurkar/squad'`, `'nyu-mll/glue'` or``'openai/webtext'`
-        config_name (:obj:`str`, optional): Defining the name of the dataset configuration.
-        data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
-        download_config (:class:`~download.DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`DownloadMode` or :obj:`str`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset to load.
+        config_name (`str`, optional): Defining the name of the dataset configuration.
+        data_files (`str` or `Sequence` or `Mapping`, optional): Path(s) to source data file(s).
+        download_config (`DownloadConfig`, optional): Specific download configuration parameters.
+        download_mode (`DownloadMode` or `str`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        revision (`Version` or `str`, optional): Version of the dataset to load.
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
-        token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+        token (``str`` or `bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, or not specified, will get token from `"~/.huggingface"`.
         **config_kwargs (additional keyword arguments): optional attributes for builder class which will override the attributes if supplied.
 

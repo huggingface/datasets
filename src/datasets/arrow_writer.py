@@ -181,7 +181,7 @@ class TypedSequence:
         in order to get an extension array.
     - Support for ``try_type`` parameter that can be used instead of ``type``:
         When an array is transformed, we like to keep the same type as before if possible.
-        For example when calling :func:`datasets.Dataset.map`, we don't want to change the type
+        For example when calling `datasets.Dataset.map`, we don't want to change the type
         of each column by default.
     - Better error message when a pyarrow array overflows.
 
