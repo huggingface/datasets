@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Optional, Union
 
 import fsspec.asyn
+import multiprocess as mp
 import numpy as np
 import pandas as pd
 import pyarrow as pa
@@ -30,7 +31,6 @@ from huggingface_hub import (
     HfFileSystemResolvedPath,
 )
 from huggingface_hub.utils import RepositoryNotFoundError
-from multiprocess import Pool
 from packaging import version
 
 from . import config
@@ -4557,7 +4557,11 @@ class IterableDataset(DatasetInfoMixin):
             total=num_shards,
             desc=desc,
         )
-        with contextlib.nullcontext() if num_proc is None or num_proc < 1 else Pool(num_proc) as pool:
+        with (
+            contextlib.nullcontext()
+            if num_proc is None or num_proc < 1
+            else mp.get_context("spawn").Pool(num_proc) as pool
+        ):
             update_stream = (
                 IterableDataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
                 if pool is None
@@ -4653,6 +4657,7 @@ class IterableDataset(DatasetInfoMixin):
             num_proc (`int`, *optional*, defaults to `None`):
                 Number of processes when preparing and uploading the dataset.
                 This is helpful if the dataset is made of many samples and transformations.
+                I uses "spawn" context to work with hf_xet, the rust client for fast uploads to HF.
                 Multiprocessing is disabled by default.
 
         Return:

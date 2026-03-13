@@ -27,7 +27,6 @@ import warnings
 from collections.abc import Iterable
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
-from multiprocessing import Manager
 from queue import Empty
 from shutil import disk_usage
 from typing import Any, Callable, Optional, TypeVar, Union
@@ -600,8 +599,7 @@ def iflatmap_unordered(
 ) -> Iterable[Y]:
     initial_pool_pid = _get_pool_pid(pool)
     pool_changed = False
-    manager_cls = Manager if isinstance(pool, multiprocessing.pool.Pool) else multiprocess.Manager
-    with manager_cls() as manager:
+    with pool._ctx.Manager() as manager:
         queue = manager.Queue()
         async_results = [
             pool.apply_async(_write_generator_to_queue, (queue, func, kwargs)) for kwargs in kwargs_iterable

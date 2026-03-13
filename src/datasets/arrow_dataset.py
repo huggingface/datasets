@@ -53,6 +53,7 @@ from typing import (
 )
 
 import fsspec
+import multiprocess as mp
 import numpy as np
 import pandas as pd
 import pyarrow as pa
@@ -71,7 +72,6 @@ from huggingface_hub import (
     HfFileSystemResolvedPath,
 )
 from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
-from multiprocess import Pool
 from packaging import version
 from tqdm.contrib.concurrent import thread_map
 
@@ -1903,7 +1903,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         shard_lengths = [None] * num_shards
         shard_sizes = [None] * num_shards
         if num_proc is not None and num_proc >= 1:
-            with Pool(num_proc) as pool:
+            with mp.get_context("spawn").Pool(num_proc) as pool:
                 with pbar:
                     for job_id, done, content in iflatmap_unordered(
                         pool, Dataset._save_to_disk_single, kwargs_iterable=kwargs_per_job
@@ -3616,7 +3616,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         pbar.update(content)
 
                 if num_proc is not None and num_proc >= 1:
-                    with Pool(num_proc) as pool:
+                    with mp.Pool(num_proc) as pool:
                         os.environ = prev_env
                         logger.info(f"Spawning {num_proc} processes")
 
@@ -5972,7 +5972,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             total=num_shards,
             desc=desc,
         )
-        with contextlib.nullcontext() if num_proc is None or num_proc < 1 else Pool(num_proc) as pool:
+        with (
+            contextlib.nullcontext()
+            if num_proc is None or num_proc < 1
+            else mp.get_context("spawn").Pool(num_proc) as pool
+        ):
             update_stream = (
                 Dataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
                 if pool is None
@@ -6075,6 +6079,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_proc (`int`, *optional*, defaults to `None`):
                 Number of processes when preparing and uploading the dataset.
                 This is helpful if the dataset is made of many samples or media files to embed.
+                I uses "spawn" context to work with hf_xet, the rust client for fast uploads to HF.
                 Multiprocessing is disabled by default.
 
                 <Added version="4.0.0"/>

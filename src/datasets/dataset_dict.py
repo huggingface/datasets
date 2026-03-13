@@ -1711,6 +1711,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             num_proc (`int`, *optional*, defaults to `None`):
                 Number of processes when preparing and uploading the dataset.
                 This is helpful if the dataset is made of many samples or media files to embed.
+                I uses "spawn" context to work with hf_xet, the rust client for fast uploads to HF.
                 Multiprocessing is disabled by default.
 
                 <Added version="4.0.0"/>
@@ -2399,6 +2400,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
             num_proc (`int`, *optional*, defaults to `None`):
                 Number of processes when preparing and uploading the dataset.
                 This is helpful if the dataset is made of many samples or media files to embed.
+                I uses "spawn" context to work with hf_xet, the rust client for fast uploads to HF.
                 Multiprocessing is disabled by default.
 
                 <Added version="4.0.0"/>
