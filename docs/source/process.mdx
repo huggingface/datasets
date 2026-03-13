@@ -847,3 +847,10 @@ For example, export your dataset to a CSV file like this:
 ```py
 >>> encoded_dataset.to_csv("path/of/my/dataset.csv")
 ```
+
+Use a `hf://` path to export to a repository or a [Storage Bucket](https://huggingface.co/docs/hub/storage-buckets) on Hugging Face:
+
+```py
+>>> encoded_dataset.to_csv("hf://datasets/username/dataset_name/path/of/my/dataset.csv")
+>>> encoded_dataset.to_csv("hf://buckets/username/raw_data_bucket/path/of/my/dataset.csv")
+```

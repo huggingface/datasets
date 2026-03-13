@@ -1036,6 +1036,15 @@ def dataset_module_factory(
     # - if path starts with "buckets/" and points to a Storage Bucket on the HF hub
     #   -> use a packaged module (csv, text etc.) based on content of the directory in the bucket
 
+    if path.startswith("hf://datasets/"):
+        path = path[len("hf://datasets/") :]
+        remote_only = True
+    elif path.startswith("hf://buckets/"):
+        path = path[len("hf://") :]
+        remote_only = True
+    else:
+        remote_only = False
+
     # Try packaged
     if path in _PACKAGED_DATASETS_MODULES:
         return PackagedDatasetModuleFactory(
@@ -1050,7 +1059,7 @@ def dataset_module_factory(
         raise RuntimeError(f"Dataset scripts are no longer supported, but found {filename}")
     elif os.path.isfile(combined_path):
         raise RuntimeError(f"Dataset scripts are no longer supported, but found {filename}")
-    elif os.path.isdir(path):
+    elif os.path.isdir(path) and not remote_only:
         return LocalDatasetModuleFactory(
             path, data_dir=data_dir, data_files=data_files, download_mode=download_mode
         ).get_module()
@@ -1247,6 +1256,9 @@ def load_dataset_builder(
               (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder")
               -> load the dataset builder from the files in `data_files` or `data_dir`
               e.g. `'parquet'`.
+
+            Use a `hf://` path like `'hf://datasets/username/dataset_name'` to allow remote only.
+            Use an absolute path to allow local only.
 
         name (`str`, *optional*):
             Defining the name of the dataset configuration.
@@ -1521,6 +1533,9 @@ def load_dataset(
               (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder")
               -> load the dataset from the files in `data_files` or `data_dir`
               e.g. `'parquet'`.
+
+            Use a `hf://` path like `'hf://datasets/username/dataset_name'` to allow remote only.
+            Use an absolute path to allow local only.
 
         name (`str`, *optional*):
             Defining the name of the dataset configuration.
