@@ -1773,6 +1773,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 bucket_id = bucket_url.bucket_id
             path = "/".join(s for s in _path_segments if s)
             return _push_to_bucket(
+                self,
                 bucket_id=bucket_id,
                 path=path,
                 config_name=config_name,
@@ -1801,6 +1802,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 # We do not call create_branch for a PR reference: 400 Bad Request
                 api.create_branch(repo_id, branch=revision, repo_type="dataset", exist_ok=True)
             return _push_to_repo(
+                self,
                 repo_id=repo_id,
                 config_name=config_name,
                 set_default=set_default,
@@ -2629,7 +2631,7 @@ def _push_to_repo(
             data_dir=data_dir,
             set_default=set_default,
             uploaded_sizes=uploaded_sizes,
-            deleted_size=[],
+            deleted_sizes=[],
             remove_other_splits=True,
         )
         dataset_card_additions = [
