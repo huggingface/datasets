@@ -858,6 +858,11 @@ def test_load_dataset_builder_for_relative_data_dir(complex_data_dir):
         assert len(builder.config.data_files["test"]) > 0
 
 
+def test_load_dataset_builder_config_kwargs_can_override_builder_kwargs(complex_data_dir):
+    builder = datasets.load_dataset_builder(complex_data_dir, base_path=complex_data_dir)
+    assert isinstance(builder, DatasetBuilder)
+
+
 @pytest.mark.integration
 def test_load_dataset_builder_for_community_dataset():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER2)

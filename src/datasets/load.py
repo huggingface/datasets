@@ -1145,6 +1145,10 @@ def load_dataset_builder(
     )
     dataset_name = builder_kwargs.pop("dataset_name", None)
     info = dataset_module.dataset_infos.get(config_name) if dataset_module.dataset_infos else None
+    # Some kwargs (e.g. base_path) can be present in both builder_kwargs and config_kwargs.
+    # Remove duplicates to avoid "multiple values for keyword argument" when instantiating builders.
+    for key in config_kwargs:
+        builder_kwargs.pop(key, None)
 
     if (
         path in _PACKAGED_DATASETS_MODULES
