@@ -3908,12 +3908,14 @@ def test_dataset_from_csv_split(split, csv_path, tmp_path):
     assert dataset.split == split if split else "train"
 
 
-@pytest.mark.parametrize("path_type", [str, list])
+@pytest.mark.parametrize("path_type", [str, list, tuple])
 def test_dataset_from_csv_path_type(path_type, csv_path, tmp_path):
     if issubclass(path_type, str):
         path = csv_path
     elif issubclass(path_type, list):
         path = [csv_path]
+    elif issubclass(path_type, tuple):
+        path = (csv_path,)
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
     dataset = Dataset.from_csv(path, cache_dir=cache_dir)
@@ -3981,12 +3983,14 @@ def test_dataset_from_json_split(split, jsonl_path, tmp_path):
     assert dataset.split == split if split else "train"
 
 
-@pytest.mark.parametrize("path_type", [str, list])
+@pytest.mark.parametrize("path_type", [str, list, tuple])
 def test_dataset_from_json_path_type(path_type, jsonl_path, tmp_path):
     if issubclass(path_type, str):
         path = jsonl_path
     elif issubclass(path_type, list):
         path = [jsonl_path]
+    elif issubclass(path_type, tuple):
+        path = (jsonl_path,)
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     dataset = Dataset.from_json(path, cache_dir=cache_dir)
@@ -4041,12 +4045,14 @@ def test_dataset_from_parquet_split(split, parquet_path, tmp_path):
     assert dataset.split == split if split else "train"
 
 
-@pytest.mark.parametrize("path_type", [str, list])
+@pytest.mark.parametrize("path_type", [str, list, tuple])
 def test_dataset_from_parquet_path_type(path_type, parquet_path, tmp_path):
     if issubclass(path_type, str):
         path = parquet_path
     elif issubclass(path_type, list):
         path = [parquet_path]
+    elif issubclass(path_type, tuple):
+        path = (parquet_path,)
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     dataset = Dataset.from_parquet(path, cache_dir=cache_dir)
@@ -4100,12 +4106,14 @@ def test_dataset_from_text_split(split, text_path, tmp_path):
     assert dataset.split == split if split else "train"
 
 
-@pytest.mark.parametrize("path_type", [str, list])
+@pytest.mark.parametrize("path_type", [str, list, tuple])
 def test_dataset_from_text_path_type(path_type, text_path, tmp_path):
     if issubclass(path_type, str):
         path = text_path
     elif issubclass(path_type, list):
         path = [text_path]
+    elif issubclass(path_type, tuple):
+        path = (text_path,)
     cache_dir = tmp_path / "cache"
     expected_features = {"text": "string"}
     dataset = Dataset.from_text(path, cache_dir=cache_dir)
