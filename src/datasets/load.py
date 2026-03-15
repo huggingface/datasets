@@ -1159,6 +1159,10 @@ def load_dataset_builder(
             error_msg += f'\nFor example `data_files={{"train": "path/to/data/train/*.{example_extensions[0]}"}}`'
         raise ValueError(error_msg)
 
+    # When users pass config kwargs, they should override module-provided defaults
+    # instead of colliding at constructor call time.
+    builder_kwargs = {key: value for key, value in builder_kwargs.items() if key not in config_kwargs}
+
     builder_cls = get_dataset_builder_class(dataset_module, dataset_name=dataset_name)
     # Instantiate the dataset builder
     builder_instance: DatasetBuilder = builder_cls(

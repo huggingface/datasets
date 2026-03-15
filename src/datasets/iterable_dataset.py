@@ -70,7 +70,14 @@ from .table import cast_table_to_features, embed_table_storage, read_schema_from
 from .utils import tqdm as hf_tqdm
 from .utils.logging import get_logger
 from .utils.metadata import MetadataConfigs
-from .utils.py_utils import Literal, asdict, glob_pattern_to_regex, iflatmap_unordered, string_to_dict
+from .utils.py_utils import (
+    Literal,
+    asdict,
+    convert_file_size_to_int,
+    glob_pattern_to_regex,
+    iflatmap_unordered,
+    string_to_dict,
+)
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 from .utils.typing import PathLike
 
@@ -616,7 +623,10 @@ class StepExamplesIterable(_BaseExamplesIterable):
         self.ex_iterable = ex_iterable
         self.step = step
         self.offset = offset
-        # TODO(QL): implement iter_arrow
+
+    @property
+    def iter_arrow(self):
+        return self._iter_arrow if self.ex_iterable.iter_arrow else None
 
     @property
     def is_typed(self):
@@ -638,6 +648,9 @@ class StepExamplesIterable(_BaseExamplesIterable):
                 yield batch[self.offset]
             else:
                 break
+
+    def _iter_arrow(self):
+        yield from _convert_to_arrow(self, batch_size=1)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "StepExamplesIterable":
         return StepExamplesIterable(
@@ -964,7 +977,10 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
     def __init__(self, ex_iterables: list[_BaseExamplesIterable]):
         super().__init__()
         self.ex_iterables = ex_iterables
-        # TODO(QL): implement iter_arrow
+
+    @property
+    def iter_arrow(self):
+        return self._iter_arrow if all(ex_iterable.iter_arrow for ex_iterable in self.ex_iterables) else None
 
     @property
     def is_typed(self):
@@ -1003,6 +1019,9 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
                 yield new_key, new_example
             else:
                 break
+
+    def _iter_arrow(self):
+        yield from _convert_to_arrow(self, batch_size=1)
 
     def shuffle_data_sources(
         self, generator: np.random.Generator
@@ -1796,7 +1815,10 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         self.n = n
         self.block_sources_order_when_shuffling = block_sources_order_when_shuffling
         self.split_when_sharding = split_when_sharding
-        # TODO(QL): implement iter_arrow
+
+    @property
+    def iter_arrow(self):
+        return self._iter_arrow if self.ex_iterable.iter_arrow else None
 
     @property
     def is_typed(self):
@@ -1819,6 +1841,9 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         if self._state_dict:
             self._state_dict["skipped"] = True
         yield from islice(self.ex_iterable, ex_iterable_idx_start, None)
+
+    def _iter_arrow(self):
+        yield from _convert_to_arrow(self, batch_size=1)
 
     @staticmethod
     def split_number(num, n):
@@ -1934,7 +1959,10 @@ class TakeExamplesIterable(_BaseExamplesIterable):
         self.n = n
         self.block_sources_order_when_shuffling = block_sources_order_when_shuffling
         self.split_when_sharding = split_when_sharding
-        # TODO(QL): implement iter_arrow
+
+    @property
+    def iter_arrow(self):
+        return self._iter_arrow if self.ex_iterable.iter_arrow else None
 
     @property
     def is_typed(self):
@@ -1958,6 +1986,9 @@ class TakeExamplesIterable(_BaseExamplesIterable):
             if self._state_dict:
                 self._state_dict["num_taken"] += 1
             yield key_example
+
+    def _iter_arrow(self):
+        yield from _convert_to_arrow(self, batch_size=1)
 
     @staticmethod
     def split_number(num, n):
@@ -4164,12 +4195,23 @@ class IterableDataset(DatasetInfoMixin):
         >>> ds.to_pandas()
         ```
         """
+        info = DatasetInfo(features=self.features.copy()) if self.features is not None else None
+
+        def maybe_cast_to_declared_features(table: pa.Table):
+            if self.features is not None and table.schema != self.features.arrow_schema:
+                return cast_table_to_features(table, self.features)
+            return table
+
         if batched:
-            for table in self.with_format("arrow").iter(batch_size=batch_size):
-                yield Dataset(table, fingerprint="unset").to_pandas()
+            return (
+                Dataset(maybe_cast_to_declared_features(table), info=info, fingerprint="unset").to_pandas()
+                for table in self.with_format("arrow").iter(batch_size=batch_size)
+            )
         else:
-            table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
-            return Dataset(table, fingerprint="unset").to_pandas()
+            table = pa.concat_tables(
+                [maybe_cast_to_declared_features(table) for table in self.with_format("arrow").iter(batch_size=1000)]
+            )
+            return Dataset(table, info=info, fingerprint="unset").to_pandas()
 
     def to_polars(
         self,
@@ -4478,7 +4520,7 @@ class IterableDataset(DatasetInfoMixin):
         token: Optional[str],
         revision: Optional[str],
         create_pr: Optional[bool],
-        # max_shard_size: Optional[Union[int, str]],  # TODO(QL): add arg
+        max_shard_size: Optional[Union[int, str]],
         num_shards: Optional[int],
         embed_external_files: bool,
         num_proc: Optional[int],
@@ -4502,13 +4544,32 @@ class IterableDataset(DatasetInfoMixin):
         embed_external_files = embed_external_files and bool(decodable_columns)
 
         if num_shards is None:
-            # TODO(QL): this can depend on max_shard_size later
-            num_shards = self.num_shards
+            if max_shard_size is None:
+                num_shards = self.num_shards
+            else:
+                max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+                estimated_nbytes = 0
+                for pa_table in self.with_format("arrow").iter(batch_size=config.DEFAULT_MAX_BATCH_SIZE):
+                    estimated_nbytes += pa_table.nbytes
+                num_shards = int(estimated_nbytes / max_shard_size) + 1
+                num_shards = max(num_shards, num_proc or 1)
 
         additions: list[CommitOperationAdd] = []
         dataset_nbytes = num_examples = 0
 
         num_jobs = num_proc or 1
+        if num_shards <= 1:
+            logger.warning(
+                f"Setting num_proc from {num_jobs} back to 1 for the {split} split to disable multiprocessing as it only contains one shard."
+            )
+            num_proc = None
+            num_jobs = 1
+        elif num_shards < num_jobs:
+            logger.warning(
+                f"Setting num_proc from {num_jobs} to {num_shards} for the {split} split as it only contains {num_shards} shards."
+            )
+            num_proc = num_shards
+            num_jobs = num_shards
         kwargs_iterable = [
             {
                 "self": self.shard(num_shards=num_jobs, index=job_id, contiguous=True),
@@ -4569,7 +4630,7 @@ class IterableDataset(DatasetInfoMixin):
         token: Optional[str] = None,
         revision: Optional[str] = None,
         create_pr: Optional[bool] = False,
-        # max_shard_size: Optional[Union[int, str]] = None,  # TODO(QL): add arg
+        max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[int] = None,
         embed_external_files: bool = True,
         num_proc: Optional[int] = None,
@@ -4612,8 +4673,12 @@ class IterableDataset(DatasetInfoMixin):
                 Branch to push the uploaded files to. Defaults to the `"main"` branch.
             create_pr (`bool`, *optional*, defaults to `False`):
                 Whether to create a PR with the uploaded files or directly commit.
+            max_shard_size (`int` or `str`, *optional*):
+                Optional maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed
+                by a unit (like `"5MB"`). If not provided, shard count defaults to this dataset's `.num_shards`.
             num_shards (`int`, *optional*):
-                Number of shards to write. Equals to this dataset's `.num_shards` by default.
+                Number of shards to write. If `max_shard_size` is provided and `num_shards` is not, then the number of shards is estimated
+                from `max_shard_size`.
             embed_external_files (`bool`, defaults to `True`):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
@@ -4632,6 +4697,7 @@ class IterableDataset(DatasetInfoMixin):
         ```python
         >>> dataset.push_to_hub("<organization>/<dataset_id>")
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", private=True)
+        >>> dataset.push_to_hub("<organization>/<dataset_id>", max_shard_size="1GB")
         >>> dataset.push_to_hub("<organization>/<dataset_id>", num_shards=1024)
         ```
 
@@ -4671,10 +4737,10 @@ class IterableDataset(DatasetInfoMixin):
         if config_name == "data":
             raise ValueError("`config_name` cannot be 'data'. Please, choose another name for configuration.")
 
-        # if max_shard_size is not None and num_shards is not None:
-        #     raise ValueError(
-        #         "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
-        #     )
+        if max_shard_size is not None and num_shards is not None:
+            raise ValueError(
+                "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
+            )
 
         if split is None:
             split = str(self.split) if self.split is not None else "train"
@@ -4708,7 +4774,7 @@ class IterableDataset(DatasetInfoMixin):
             split=split,
             token=token,
             revision=revision,
-            # max_shard_size=max_shard_size,  # TODO(QL): add arg
+            max_shard_size=max_shard_size,
             num_shards=num_shards,
             create_pr=create_pr,
             embed_external_files=embed_external_files,

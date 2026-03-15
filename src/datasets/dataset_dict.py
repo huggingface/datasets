@@ -2515,7 +2515,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         token: Optional[str] = None,
         revision: Optional[str] = None,
         create_pr: Optional[bool] = False,
-        # max_shard_size: Optional[Union[int, str]] = None,  # TODO(QL): add arg
+        max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[dict[str, int]] = None,
         embed_external_files: bool = True,
         num_proc: Optional[int] = None,
@@ -2562,9 +2562,13 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 Branch to push the uploaded files to. Defaults to the `"main"` branch.
             create_pr (`bool`, *optional*, defaults to `False`):
                 Whether to create a PR with the uploaded files or directly commit.
+            max_shard_size (`int` or `str`, *optional*):
+                Optional maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed
+                by a unit (like `"500MB"` or `"1GB"`). If not provided, each split keeps its dataset-native shard count.
             num_shards (`Dict[str, int]`, *optional*):
-                Number of shards to write. Equals to this dataset's `.num_shards` by default.
-                Use a dictionary to define a different num_shards for each split.
+                Number of shards to write. Use a dictionary to define a different `num_shards` for each split.
+                If `max_shard_size` is provided and a split's `num_shards` is not, then the number of shards for that split is estimated
+                from `max_shard_size`.
             embed_external_files (`bool`, defaults to `True`):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
@@ -2585,6 +2589,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         ```python
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>")
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", private=True)
+        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", max_shard_size="1GB")
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", num_shards={"train": 1024, "test": 8})
         ```
 
@@ -2598,6 +2603,12 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
         ```
         """
+        #check to make sure that the user doesnt specify the # of shards and max shard sdize at same time, since these are 2 different ways to specify the same thing
+        if max_shard_size is not None and num_shards is not None:
+            raise ValueError(
+                "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
+            )
+
         if num_shards is None:
             num_shards = dict.fromkeys(self)
         elif not isinstance(num_shards, dict):
@@ -2654,7 +2665,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 token=token,
                 revision=revision,
                 create_pr=create_pr,
-                # max_shard_size=max_shard_size,  # TODO(QL): add arg
+                max_shard_size=max_shard_size,
                 num_shards=num_shards.get(split),
                 embed_external_files=embed_external_files,
                 num_proc=num_proc,
