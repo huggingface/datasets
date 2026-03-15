@@ -705,7 +705,7 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
     @property
     def iter_arrow(self):
-        # Can iterate on arrow tables if all ex_iterables can iterate
+        # iterate on arrow tables if all ex_iterables can iterate
         return self._iter_arrow if all(ex_iterable.iter_arrow for ex_iterable in self.ex_iterables) else None
 
     def _get_indices_iterator(self):
