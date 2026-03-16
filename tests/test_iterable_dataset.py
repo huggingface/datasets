@@ -11,6 +11,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 import pytest
+from huggingface_hub import HfFileSystemResolvedPath
 from packaging import version
 
 from datasets import Dataset, config, load_dataset

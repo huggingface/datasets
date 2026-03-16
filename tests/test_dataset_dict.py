@@ -426,7 +426,7 @@ class DatasetDictTest(TestCase):
             def create_commit(self, *args, **kwargs):
                 return SimpleNamespace(commit_url="https://hf.co/commit/dummy")
 
-        dummy_fs = MemoryFileSystem()
+        dummy_fs = MemoryFileSystem(skip_instance_cache=True)
         dummy_fs.touch("datasets/user/dataset@dummy-sha/README.md")
 
         forwarded_calls = []
