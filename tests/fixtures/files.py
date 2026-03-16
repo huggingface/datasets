@@ -230,6 +230,17 @@ DATA_STR = [
     {"col_1": "s3", "col_2": 3, "col_3": 3.0},
 ]
 
+DATA_MISSING_FIELDS = [
+    {"col_1": 1, "col_2": 2},
+    {"col_1": 1, "col_3": 3},
+]
+
+DATA_MIXED_TYPES = [
+    {"col_1": 1, "col_2": {"a": "a"}, "col_3": [{"x": "x"}]},
+    {"col_1": "one", "col_2": {"b": "b"}, "col_3": [{"y": "y"}]},
+    {"col_1": None, "col_2": None, "col_3": [None]},
+]
+
 
 @pytest.fixture(scope="session")
 def dataset_dict():
@@ -394,6 +405,24 @@ def jsonl_str_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset-str.jsonl")
     with open(path, "w") as f:
         for item in DATA_STR:
+            f.write(json.dumps(item) + "\n")
+    return path
+
+
+@pytest.fixture(scope="session")
+def jsonl_missing_fields_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset-missing-fields.jsonl")
+    with open(path, "w") as f:
+        for item in DATA_MISSING_FIELDS:
+            f.write(json.dumps(item) + "\n")
+    return path
+
+
+@pytest.fixture(scope="session")
+def jsonl_mixed_types_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset-mixed-types.jsonl")
+    with open(path, "w") as f:
+        for item in DATA_MIXED_TYPES:
             f.write(json.dumps(item) + "\n")
     return path
 
