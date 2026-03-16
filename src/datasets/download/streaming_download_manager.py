@@ -124,12 +124,8 @@ class StreamingDownloadManager:
     def _extract(self, urlpath: str) -> str:
         urlpath = str(urlpath)
         # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
-        path = urlpath.split("::")[0]
-        path_protocol = path.split("://", 1)[0] if "://" in path else None
-        if path_protocol in {"zip", "tar"} and any(char in path for char in ["*", "?", "["]):
-            # Path already targets archive FS with glob patterns. Just keep it as is
-            return urlpath
         protocol = _get_extraction_protocol(urlpath, download_config=self.download_config)
+        path = urlpath.split("::")[0]
         extension = _get_path_extension(path)
         if extension in ["tgz", "tar"] or path.endswith((".tar.gz", ".tar.bz2", ".tar.xz")):
             raise NotImplementedError(

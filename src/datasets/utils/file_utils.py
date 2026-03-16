@@ -1398,31 +1398,22 @@ class FilesIterable(TrackedIterableFromGenerator):
         if not isinstance(urlpaths, list):
             urlpaths = [urlpaths]
         for urlpath in urlpaths:
-            # Expand wildcard patterns, including paths like zip://*::) before walking files.
-            resolved_urlpaths = (
-                sorted(xglob(urlpath, download_config=download_config))
-                if glob.has_magic(str(urlpath).split("::")[0])
-                else [urlpath]
-            )
-            if not resolved_urlpaths:
-                raise FileNotFoundError(urlpath)
-            for resolved_urlpath in resolved_urlpaths:
-                if xisfile(resolved_urlpath, download_config=download_config):
-                    yield resolved_urlpath
-                elif xisdir(resolved_urlpath, download_config=download_config):
-                    for dirpath, dirnames, filenames in xwalk(resolved_urlpath, download_config=download_config):
-                        # in-place modification to prune the search
-                        dirnames[:] = sorted([dirname for dirname in dirnames if not dirname.startswith((".", "__"))])
-                        if xbasename(dirpath).startswith((".", "__")):
-                            # skip la hidden directories
+            if xisfile(urlpath, download_config=download_config):
+                yield urlpath
+            elif xisdir(urlpath, download_config=download_config):
+                for dirpath, dirnames, filenames in xwalk(urlpath, download_config=download_config):
+                    # in-place modification to prune the search
+                    dirnames[:] = sorted([dirname for dirname in dirnames if not dirname.startswith((".", "__"))])
+                    if xbasename(dirpath).startswith((".", "__")):
+                        # skipping hidden directories
+                        continue
+                    for filename in sorted(filenames):
+                        if filename.startswith((".", "__")):
+                            # skipping hidden files
                             continue
-                        for filename in sorted(filenames):
-                            if filename.startswith((".", "__")):
-                                # skip the  hidden files
-                                continue
-                            yield xjoin(dirpath, filename)
-                else:
-                    raise FileNotFoundError(resolved_urlpath)
+                        yield xjoin(dirpath, filename)
+            else:
+                raise FileNotFoundError(urlpath)
 
     @classmethod
     def from_urlpaths(cls, urlpaths, download_config: Optional[DownloadConfig] = None) -> "FilesIterable":
