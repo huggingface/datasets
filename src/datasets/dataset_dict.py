@@ -2431,7 +2431,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
         ```
         """
-        #check to make sure that the user doesnt specify the # of shards and max shard sdize at same time, since these are 2 different ways to specify the same thing
+        # check to make sure that the user doesnt specify the # of shards and max shard sdize at same time, since these are 2 different ways to specify the same thing
         if max_shard_size is not None and num_shards is not None:
             raise ValueError(
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."

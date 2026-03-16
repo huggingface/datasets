@@ -4,7 +4,7 @@ import time
 from copy import deepcopy
 from dataclasses import dataclass
 from itertools import chain, cycle, islice
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import numpy as np
 import pandas as pd
@@ -22,6 +22,7 @@ from datasets.features import (
     List,
     Value,
 )
+from packaging import version
 from datasets.formatting import Formatter, get_format_type_from_alias
 from datasets.info import DatasetInfo
 from datasets.iterable_dataset import (
@@ -63,6 +64,16 @@ from .utils import (
     require_torchdata_stateful_dataloader,
 )
 
+
+
+if config.HF_HUB_VERSION >= version.parse("1.6.0"):
+    from huggingface_hub.errors import BucketNotFoundError
+    from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
+
+else:
+    BucketNotFoundError = None
+    HfFileSystemResolvedBucketPath = None
+    HfFileSystemResolvedRepositoryPath = HfFileSystemResolvedPath
 
 SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/dataset_with_data_files"
 
@@ -1390,20 +1401,23 @@ def test_iterable_dataset_push_to_hub_max_shard_size_and_num_shards_are_mutually
 
 def test_iterable_dataset_push_to_hub_single_shard_disables_multiprocessing():
     dataset = IterableDataset.from_generator(lambda: iter([{"id": 0}]))
+    mock_context = MagicMock()
+    mock_pool = MagicMock()
+    mock_pool_cls = MagicMock(return_value=mock_pool)
+    mock_context.Pool = mock_pool_cls
     with (
-        patch("datasets.iterable_dataset.Pool") as mock_pool,
+        patch("multiprocess.get_context", return_value=mock_context),
         patch.object(
             IterableDataset,
             "_push_parquet_shards_to_hub_single",
-            return_value=iter([(0, True, ([], 0, 1))]),
+            return_value=iter([(0, True, ([], [], Features(), 0, 1))]),
         ),
     ):
-        additions, uploaded_size, dataset_nbytes, num_examples = dataset._push_parquet_shards_to_hub(
-            repo_id="user/dataset",
+        additions, new_parquet_paths, features, spit_info, uploaded_size = dataset._push_parquet_shards_to_hub(
+            resolved_output_path=HfFileSystemResolvedRepositoryPath(repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""),
             data_dir="data",
             split="train",
             token=None,
-            revision=None,
             create_pr=False,
             max_shard_size=None,
             num_shards=1,
@@ -1412,9 +1426,12 @@ def test_iterable_dataset_push_to_hub_single_shard_disables_multiprocessing():
         )
     mock_pool.assert_not_called()
     assert additions == []
+    assert new_parquet_paths == []
+    assert features == Features()
+    assert spit_info.name == "train"
+    assert spit_info.num_bytes == 0
+    assert spit_info.num_examples == 1
     assert uploaded_size == 0
-    assert dataset_nbytes == 0
-    assert num_examples == 1
 
 
 def test_iterable_dataset_push_to_hub_default_num_shards_uses_dataset_num_shards():
@@ -1427,15 +1444,14 @@ def test_iterable_dataset_push_to_hub_default_num_shards_uses_dataset_num_shards
 
     def mock_push_single(**kwargs):
         captured_num_shards["value"] = kwargs["num_shards"]
-        return iter([(0, True, ([], 0, 0))])
+        return iter([(0, True, ([], [], Features(), 0, 0))])
 
     with patch.object(IterableDataset, "_push_parquet_shards_to_hub_single", side_effect=mock_push_single):
         dataset._push_parquet_shards_to_hub(
-            repo_id="user/dataset",
+            resolved_output_path=HfFileSystemResolvedRepositoryPath(repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""),
             data_dir="data",
             split="train",
             token=None,
-            revision=None,
             create_pr=False,
             max_shard_size=None,
             num_shards=None,
@@ -1457,15 +1473,14 @@ def test_iterable_dataset_push_to_hub_max_shard_size_computes_num_shards_from_es
 
     def mock_push_single(**kwargs):
         captured_num_shards["value"] = kwargs["num_shards"]
-        return iter([(0, True, ([], 0, 0))])
+        return iter([(0, True, ([], [], Features(), 0, 0))])
 
     with patch.object(IterableDataset, "_push_parquet_shards_to_hub_single", side_effect=mock_push_single):
         dataset._push_parquet_shards_to_hub(
-            repo_id="user/dataset",
+            resolved_output_path=HfFileSystemResolvedRepositoryPath(repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""),
             data_dir="data",
             split="train",
             token=None,
-            revision=None,
             create_pr=False,
             max_shard_size=max_shard_size,
             num_shards=None,
@@ -1477,18 +1492,6 @@ def test_iterable_dataset_push_to_hub_max_shard_size_computes_num_shards_from_es
 
 
 def test_iterable_dataset_push_to_hub_max_shard_size_respects_num_proc_floor():
-    class DummyPool:
-        def __enter__(self):
-            return self
-
-        def __exit__(self, exc_type, exc_value, traceback):
-            return False
-
-        def close(self):
-            pass
-
-        def join(self):
-            pass
 
     dataset = IterableDataset.from_generator(
         lambda shard_names: ({"shard_name": shard_name} for shard_name in shard_names),
@@ -1502,18 +1505,16 @@ def test_iterable_dataset_push_to_hub_max_shard_size_respects_num_proc_floor():
     expected_num_shards = max(int(estimated_nbytes / max_shard_size) + 1, requested_num_proc)
 
     with (
-        patch("datasets.iterable_dataset.Pool", return_value=DummyPool()),
         patch(
             "datasets.iterable_dataset.iflatmap_unordered",
-            return_value=iter([(0, True, ([], 0, 0))]),
+            return_value=iter([(0, True, ([], [], Features(), 0, 0))]),
         ) as mock_iflatmap_unordered,
     ):
         dataset._push_parquet_shards_to_hub(
-            repo_id="user/dataset",
+            resolved_output_path=HfFileSystemResolvedRepositoryPath(repo_id="user/dataset", path_in_repo="", revision="main", repo_type="dataset"),
             data_dir="data",
             split="train",
             token=None,
-            revision=None,
             create_pr=False,
             max_shard_size=max_shard_size,
             num_shards=None,

@@ -845,7 +845,6 @@ class HubBucketDatasetModuleFactory(_DatasetModuleFactory):
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
     ):
-
         self.path = Path(path).as_posix()
         self.name = Path(path).stem
         self.data_files = data_files

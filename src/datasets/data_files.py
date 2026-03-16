@@ -366,13 +366,13 @@ def resolve_pattern(
         # 10 times faster glob with detail=True (ignores costly info like lastCommit)
         glob_kwargs["expand_info"] = False
 
-    # if the pattern contains hops like "zip://data.zip::csv/*.csv", we need to keep them after globbing
+    # if the pattern contains hops like "zip://csv/*.csv::data.zip", we need to keep them after globbing
     _, *rest_hops = pattern.split("::")
     matched_paths = []
     for filepath, info in fs.glob(fs_pattern, detail=True, **glob_kwargs).items():
-        if not (
-            info["type"] == "file" or (info.get("islink") and os.path.isfile(os.path.realpath(filepath)))
-        ) or (xbasename(filepath) in files_to_ignore):
+        if not (info["type"] == "file" or (info.get("islink") and os.path.isfile(os.path.realpath(filepath)))) or (
+            xbasename(filepath) in files_to_ignore
+        ):
             continue
         if _is_inside_unrequested_special_dir(filepath, fs_pattern):
             continue

@@ -469,7 +469,9 @@ def test_data_files_with_custom_file_name_column_in_metadata_file(cache_dir, tmp
     assert all("text" in example and "text_file_name" not in example for _, example in generator)
 
 
-def test_data_files_with_custom_file_names_column_in_metadata_file_large_string_list(cache_dir, tmp_path, auto_text_file):
+def test_data_files_with_custom_file_names_column_in_metadata_file_large_string_list(
+    cache_dir, tmp_path, auto_text_file
+):
     import pyarrow as pa
     import pyarrow.parquet as pq
 

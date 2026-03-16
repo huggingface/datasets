@@ -44,8 +44,8 @@ from .utils import (
     assert_arrow_memory_increases,
     offline,
     require_pil,
-    require_zstandard,
     require_torchcodec,
+    require_zstandard,
     set_current_working_directory_to_temp_dir,
 )
 
@@ -812,7 +812,7 @@ def test_load_dataset_builder_config_kwargs_override_builder_kwargs():
         def __init__(self, **kwargs):
             self.kwargs = kwargs
 
-        #make sure that the builder is not trying to use the legacy cache dir
+        # make sure that the builder is not trying to use the legacy cache dir
         def _use_legacy_cache_dir_if_possible(self, dataset_module):
             pass
 

@@ -61,14 +61,10 @@ from .splits import NamedSplit, Split, SplitInfo
 from .table import cast_table_to_features, embed_table_storage, read_schema_from_file, table_cast
 from .utils import tqdm as hf_tqdm
 from .utils.logging import get_logger
-from .utils.metadata import MetadataConfigs
 from .utils.py_utils import (
     Literal,
-    asdict,
     convert_file_size_to_int,
-    glob_pattern_to_regex,
     iflatmap_unordered,
-    string_to_dict,
 )
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 from .utils.typing import PathLike
@@ -651,7 +647,9 @@ class StepExamplesIterable(_BaseExamplesIterable):
                 break
 
     def _iter_arrow(self):
-        yield from _convert_to_arrow(self, batch_size=1)
+        for key, pa_table in self.ex_iterable.iter_arrow():
+            pa_table = pa_table.take(pa.array(range(self.offset, len(pa_table), self.step), type=pa.int64()))
+            yield key, pa_table
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "StepExamplesIterable":
         return StepExamplesIterable(
@@ -981,7 +979,15 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
 
     @property
     def iter_arrow(self):
-        return self._iter_arrow if all(ex_iterable.iter_arrow for ex_iterable in self.ex_iterables) else None
+        return (
+            self._iter_arrow
+            if all(
+                isinstance(ex_iterable, RebatchedArrowExamplesIterable) and ex_iterable.ex_iterable.iter_arrow
+                for ex_iterable in self.ex_iterables
+            )
+            or (len(self.ex_iterables) < 2 and all(ex_iterable.iter_arrow for ex_iterable in self.ex_iterables))
+            else None
+        )
 
     @property
     def is_typed(self):
@@ -1022,7 +1028,32 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
                 break
 
     def _iter_arrow(self):
-        yield from _convert_to_arrow(self, batch_size=1)
+        pa_table_iterators = [iter(ex_iterable.iter_arrow()) for ex_iterable in self.ex_iterables]
+        for i in itertools.count():
+            keys = []
+            pa_tables = []
+            for pa_table_iterator in list(pa_table_iterators):
+                try:
+                    key, pa_table = next(pa_table_iterator)
+                    keys.append(key)
+                    pa_tables.append(pa_table)
+                except StopIteration:
+                    pa_table_iterators.remove(pa_table_iterator)
+            if pa_table_iterators:
+                if i == 0:
+                    _check_column_names(
+                        [column_name for pa_table in pa_tables for column_name in pa_table.column_names]
+                    )
+                for j, table in enumerate(pa_tables):
+                    if j == 0:
+                        new_pa_table = table
+                    else:
+                        for name, col in zip(table.column_names, table.columns):
+                            new_pa_table = pa_table.append_column(name, col)
+                new_key = "_".join(str(key) for key in keys)
+                yield new_key, new_pa_table
+            else:
+                break
 
     def shuffle_data_sources(
         self, generator: np.random.Generator
@@ -1831,20 +1862,39 @@ class SkipExamplesIterable(_BaseExamplesIterable):
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {
-            "skipped": False,
+            "skipped": 0,
             "examples_iterable": self.ex_iterable._init_state_dict(),
             "type": self.__class__.__name__,
         }
         return self._state_dict
 
     def __iter__(self):
-        ex_iterable_idx_start = 0 if self._state_dict and self._state_dict["skipped"] else self.n
-        if self._state_dict:
-            self._state_dict["skipped"] = True
-        yield from islice(self.ex_iterable, ex_iterable_idx_start, None)
+        skipped = self._state_dict["skipped"] if self._state_dict else 0
+        for key_example in self.ex_iterable:
+            if skipped + 1 <= self.n:
+                skipped += 1
+                if self._state_dict:
+                    self._state_dict["skipped"] = skipped
+            else:
+                yield key_example
 
     def _iter_arrow(self):
-        yield from _convert_to_arrow(self, batch_size=1)
+        skipped = self._state_dict["skipped"] if self._state_dict else 0
+        for key, pa_table in self.ex_iterable.iter_arrow():
+            if len(pa_table) == 0:
+                continue
+            elif skipped + len(pa_table) <= self.n:
+                skipped += len(pa_table)
+                if self._state_dict:
+                    self._state_dict["skipped"] = skipped
+            if skipped + 1 <= self.n:
+                offset = self.n - skipped
+                skipped = self.n
+                if self._state_dict:
+                    self._state_dict["skipped"] = skipped
+                yield key, pa_table.slice(offset, len(pa_table) - offset)
+            else:
+                yield key, pa_table
 
     @staticmethod
     def split_number(num, n):
@@ -1975,21 +2025,45 @@ class TakeExamplesIterable(_BaseExamplesIterable):
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {
-            "num_taken": 0,
+            "taken": 0,
             "examples_iterable": self.ex_iterable._init_state_dict(),
             "type": self.__class__.__name__,
         }
         return self._state_dict
 
     def __iter__(self):
-        ex_iterable_num_taken = self._state_dict["num_taken"] if self._state_dict else 0
-        for key_example in islice(self.ex_iterable, self.n - ex_iterable_num_taken):
-            if self._state_dict:
-                self._state_dict["num_taken"] += 1
-            yield key_example
+        taken = self._state_dict["taken"] if self._state_dict else 0
+        if taken >= self.n:
+            return
+        for key_example in self.ex_iterable:
+            if taken + 1 <= self.n:
+                taken += 1
+                if self._state_dict:
+                    self._state_dict["taken"] = taken
+                yield key_example
+            else:
+                break
 
     def _iter_arrow(self):
-        yield from _convert_to_arrow(self, batch_size=1)
+        taken = self._state_dict["taken"] if self._state_dict else 0
+        if taken >= self.n:
+            return
+        for key, pa_table in self.ex_iterable.iter_arrow():
+            if len(pa_table) == 0:
+                continue
+            elif taken + len(pa_table) <= self.n:
+                taken += len(pa_table)
+                if self._state_dict:
+                    self._state_dict["taken"] = taken
+                yield key, pa_table
+            elif taken + 1 <= self.n:
+                length = self.n - taken
+                taken = self.n
+                if self._state_dict:
+                    self._state_dict["taken"] = taken
+                yield key, pa_table.slice(0, length)
+            else:
+                break
 
     @staticmethod
     def split_number(num, n):
@@ -4554,8 +4628,6 @@ class IterableDataset(DatasetInfoMixin):
                 the uploaded dataset after uncompression
             uploaded_size (`int`): number of uploaded bytes to the repository or bucket
         """
-        if max_shard_size is not None:
-            raise NotImplementedError()
 
         # Find decodable columns, because if there are any, we need to:
         # embed the bytes from the files in the shards
@@ -4912,6 +4984,13 @@ def _concatenate_iterable_datasets(
     if axis == 0:
         ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
     else:
+        if all(ex_iterable.iter_arrow for ex_iterable in ex_iterables):
+            from .arrow_writer import get_arrow_writer_batch_size_from_features
+
+            batch_size = get_arrow_writer_batch_size_from_features(features) or config.DEFAULT_MAX_BATCH_SIZE
+            ex_iterables = [
+                RebatchedArrowExamplesIterable(ex_iterable, batch_size=batch_size) for ex_iterable in ex_iterables
+            ]
         ex_iterable = HorizontallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
     # Set new info - we update the features
     # setting the features also ensures to fill missing columns with None

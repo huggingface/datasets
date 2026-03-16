@@ -194,7 +194,10 @@ def test_resolve_pattern_locally_prefixed_archive_glob(archive_jsonl, request):
     archive_path = str(request.getfixturevalue(archive_jsonl))
     protocol = "tar" if archive_path.endswith(".tar") else "zip"
     resolved_data_files = resolve_pattern(f"{protocol}://*::{archive_path}", base_path="")
-    assert sorted(os.path.basename(path.split("::")[0]) for path in resolved_data_files) == ["dataset.jsonl", "dataset2.jsonl"]
+    assert sorted(os.path.basename(path.split("::")[0]) for path in resolved_data_files) == [
+        "dataset.jsonl",
+        "dataset2.jsonl",
+    ]
     assert all(path.endswith(f"::{archive_path}") for path in resolved_data_files)
 
 

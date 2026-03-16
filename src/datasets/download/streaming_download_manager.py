@@ -127,7 +127,7 @@ class StreamingDownloadManager:
         path = urlpath.split("::")[0]
         path_protocol = path.split("://", 1)[0] if "://" in path else None
         if path_protocol in {"zip", "tar"} and any(char in path for char in ["*", "?", "["]):
-            # Path already targets archive FS with glob patterns. Just keep it as is 
+            # Path already targets archive FS with glob patterns. Just keep it as is
             return urlpath
         protocol = _get_extraction_protocol(urlpath, download_config=self.download_config)
         extension = _get_path_extension(path)
