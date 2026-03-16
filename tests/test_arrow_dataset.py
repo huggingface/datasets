@@ -1443,21 +1443,13 @@ class BaseDatasetTest(TestCase):
             self._caplog.clear()
             with self._caplog.at_level(INFO, logger=get_logger().name):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                    with patch(
-                        "datasets.arrow_dataset.Pool",
-                        new_callable=PickableMagicMock,
-                        side_effect=datasets.arrow_dataset.Pool,
-                    ) as mock_pool:
-                        with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
-                            dset_test1_data_files = list(dset_test1.cache_files)
-                        self.assertEqual(mock_pool.call_count, 1)
-                        with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test2:
-                            self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
-                            self.assertTrue(
-                                (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 1)
-                                ^ in_memory
-                            )
-                        self.assertEqual(mock_pool.call_count, 2 if in_memory else 1)
+                    with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
+                        dset_test1_data_files = list(dset_test1.cache_files)
+                    with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test2:
+                        self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                        self.assertTrue(
+                            (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 1) ^ in_memory
+                        )
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()

@@ -113,7 +113,7 @@ REQUIRED_PKGS = [
     # Minimum 21.0.0 to support `use_content_defined_chunking` in ParquetWriter
     "pyarrow>=21.0.0",
     # For smart caching dataset processing
-    "dill>=0.3.0,<0.4.1",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
+    "dill>=0.3.0,<0.4.2",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
@@ -124,7 +124,7 @@ REQUIRED_PKGS = [
     # for fast hashing
     "xxhash",
     # for better multiprocessing
-    "multiprocess<0.70.19",  # to align with dill<0.3.9 (see above)
+    "multiprocess<0.70.20",  # to align with dill<0.3.9 (see above)
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
     "fsspec[http]>=2023.1.0,<=2026.2.0",
