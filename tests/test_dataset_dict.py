@@ -8,12 +8,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from fsspec.implementations.memory import MemoryFileSystem
 from datasets import load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.features import ClassLabel, Features, List, Value
 from datasets.iterable_dataset import IterableDataset
-from datasets.splits import NamedSplit
+from datasets.splits import NamedSplit, SplitInfo
 
 from .utils import (
     assert_arrow_memory_doesnt_increase,
@@ -425,14 +426,16 @@ class DatasetDictTest(TestCase):
             def create_commit(self, *args, **kwargs):
                 return SimpleNamespace(commit_url="https://hf.co/commit/dummy")
 
+        dummy_fs = MemoryFileSystem()
+        dummy_fs.touch("datasets/user/dataset@dummy-sha/README.md")
+
         forwarded_calls = []
 
         def mock_push_parquet_shards_to_hub(
-            repo_id,
+            resolved_output_path,
             data_dir,
             split,
             token,
-            revision,
             create_pr,
             max_shard_size,
             num_shards,
@@ -446,12 +449,13 @@ class DatasetDictTest(TestCase):
                     "num_shards": num_shards,
                 }
             )
-            return [], 0, 0, 0
+            return [], [], Features(), SplitInfo(name=split), 0
 
         dsets = self._create_dummy_iterable_dataset_dict()
         max_shard_size = sum(split_dataset.num_shards for split_dataset in dsets.values())
         with (
             patch("datasets.dataset_dict.HfApi", DummyApi),
+            patch("datasets.dataset_dict.HfFileSystem", return_value=dummy_fs),
             patch.object(IterableDataset, "_push_parquet_shards_to_hub", side_effect=mock_push_parquet_shards_to_hub),
         ):
             dsets.push_to_hub("user/dataset", max_shard_size=max_shard_size)
