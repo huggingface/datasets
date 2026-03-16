@@ -244,7 +244,7 @@ To load remote WebDatasets via HTTP, pass the URLs instead:
 If you have remote files likely stored as a `csv`, `json`, `txt`, `parquet` or any supported format, the [`load_dataset`] function can load load them if you specify their remote paths:
 
 - `https://` URLs for public online files, e.g. `data_files=["https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v2.0.json"]`
-- `hf://` URLs for files in any repository or [Storage Bucket](https://huggingface.co/docs/hub/storage-buckets) on Hugging Face, e.g. `data_files=["hf://buckets/julien-c/my-training-bucket/julien/affluence.csv"]`
+- `hf://` URLs for files in any [Dataset repository](https://huggingface.co/docs/hub/datasets-overview) or [Storage Bucket](https://huggingface.co/docs/hub/storage-buckets) on Hugging Face, e.g. `data_files=["hf://datasets/karpathy/tinystories-gpt4-clean/tinystories_gpt4_clean.parquet"]` or `data_files=["hf://buckets/julien-c/my-training-bucket/julien/affluence.csv"]`
 
 ## Multiprocessing
 
