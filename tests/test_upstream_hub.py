@@ -401,7 +401,7 @@ class TestPushToHub:
             files = sorted(
                 item.path for item in self._api.list_bucket_tree(bucket_id, prefix="my-dir", token=self._token)
             )
-            assert files == ["README.md", "data/train-00000-of-00001.parquet"]
+            assert files == ["my-dir/README.md", "my-dir/data/train-00000-of-00001.parquet"]
 
     @require_buckets_support_in_huggingface_hub
     def test_push_dataset_to_hub_bucket(self, temporary_bucket):
@@ -1018,7 +1018,7 @@ class TestPushToHub:
 
             # Ensure that there is a single file on the repository that has the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            assert files == ["README.md", "data/train-00000-of-00001.parquet"]
+            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
 
     @require_buckets_support_in_huggingface_hub
     def test_push_iterable_dataset_dict_to_hub_bucket(self, temporary_bucket):

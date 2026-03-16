@@ -2469,7 +2469,6 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 set_default=set_default,
                 data_dir=data_dir,
                 token=token,
-                create_pr=create_pr,
                 # max_shard_size=max_shard_size,
                 num_shards=num_shards,
                 embed_external_files=embed_external_files,
