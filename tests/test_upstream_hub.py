@@ -410,7 +410,7 @@ class TestPushToHub:
         with temporary_bucket() as bucket_id:
             ds_location = "buckets/" + bucket_id
             local_ds.push_to_hub(ds_location, token=self._token)
-            hub_ds = load_dataset(ds_location, download_mode="force_redownload")
+            hub_ds = load_dataset(ds_location, download_mode="force_redownload", split="train")
 
             assert local_ds.column_names == hub_ds.column_names
             assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
@@ -427,7 +427,7 @@ class TestPushToHub:
         with temporary_bucket() as bucket_id:
             ds_location = "buckets/" + bucket_id + "/my-dir"
             local_ds.push_to_hub(ds_location, token=self._token)
-            hub_ds = load_dataset(ds_location, download_mode="force_redownload")
+            hub_ds = load_dataset(ds_location, download_mode="force_redownload", split="train")
 
             assert local_ds.column_names == hub_ds.column_names
             assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
@@ -437,7 +437,7 @@ class TestPushToHub:
             files = sorted(
                 item.path for item in self._api.list_bucket_tree(bucket_id, prefix="my-dir", token=self._token)
             )
-            assert files == ["README.md", "data/train-00000-of-00001.parquet"]
+            assert files == ["my-dir/README.md", "my-dir/data/train-00000-of-00001.parquet"]
 
     def test_push_dataset_to_hub(self, temporary_repo):
         local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
@@ -1010,7 +1010,7 @@ class TestPushToHub:
 
         with temporary_repo() as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token)
-            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload", split="train")
 
             assert local_ds.column_names == hub_ds.column_names
             assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
@@ -1045,7 +1045,7 @@ class TestPushToHub:
         with temporary_bucket() as bucket_id:
             ds_location = "buckets/" + bucket_id
             local_ds.push_to_hub(ds_location, token=self._token)
-            hub_ds = load_dataset(ds_location, download_mode="force_redownload")
+            hub_ds = load_dataset(ds_location, download_mode="force_redownload", split="train")
 
             assert local_ds.column_names == hub_ds.column_names
             assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
@@ -1062,7 +1062,7 @@ class TestPushToHub:
         with temporary_bucket() as bucket_id:
             ds_location = "buckets/" + bucket_id
             local_ds.push_to_hub(ds_location, token=self._token)
-            hub_ds = load_dataset(ds_location, download_mode="force_redownload")
+            hub_ds = load_dataset(ds_location, download_mode="force_redownload", split="train")
 
             assert local_ds.column_names == hub_ds.column_names
             assert list(local_ds.features.keys()) == list(hub_ds.features.keys())

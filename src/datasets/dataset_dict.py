@@ -23,7 +23,7 @@ from huggingface_hub import (
     HfFileSystem,
     HfFileSystemResolvedPath,
 )
-from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
+from huggingface_hub.utils import EntryNotFoundError, HfHubHTTPError, RepositoryNotFoundError
 from packaging import version
 
 from . import config
@@ -1750,7 +1750,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         if config_name == "data":
             raise ValueError("`config_name` cannot be 'data'. Please, choose another name for configuration.")
 
-        if max_shard_size is not None and num_shards is not None:
+        if max_shard_size is not None and num_shards is not None and any(x is not None for x in num_shards.values()):
             raise ValueError(
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
             )
@@ -1781,7 +1781,6 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 set_default=set_default,
                 data_dir=data_dir,
                 token=token,
-                create_pr=create_pr,
                 max_shard_size=max_shard_size,
                 num_shards=num_shards,
                 embed_external_files=embed_external_files,
@@ -1812,6 +1811,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 commit_description=commit_description,
                 token=token,
                 revision=revision,
+                create_pr=create_pr,
                 max_shard_size=max_shard_size,
                 num_shards=num_shards,
                 embed_external_files=embed_external_files,
@@ -2438,7 +2438,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         if config_name == "data":
             raise ValueError("`config_name` cannot be 'data'. Please, choose another name for configuration.")
 
-        # if max_shard_size is not None and num_shards is not None:
+        # if max_shard_size is not None and num_shards is not None and any(x is not None for x in num_shards.values()):
         #     raise ValueError(
         #         "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
         #     )
@@ -2615,13 +2615,16 @@ def _push_to_repo(
         dirfs = DirFileSystem(fs=hffs, path=hf_path)
 
         # Check the files to delete
-        files_to_delete = list(dirfs.glob(f"{data_dir}/*", detail=True).values())
+        try:
+            files_to_delete = list(dirfs.glob(f"{data_dir}/*"))
+        except EntryNotFoundError:  # needed for huggingface_hub<=1.7.1
+            files_to_delete = []
 
         # Don't delete the new files
         deletions = [
-            CommitOperationDelete(path_in_repo=file_info["name"])
-            for file_info in files_to_delete
-            if file_info["name"] not in new_parquet_paths
+            CommitOperationDelete(path_in_repo=file_to_delete)
+            for file_to_delete in files_to_delete
+            if file_to_delete not in new_parquet_paths
         ]
 
         # Update the dataset card
@@ -2687,7 +2690,6 @@ def _push_to_bucket(
     set_default: Optional[bool] = None,
     data_dir: Optional[str] = None,
     token: Optional[str] = None,
-    create_pr: Optional[bool] = False,
     max_shard_size: Optional[Union[int, str]] = None,
     num_shards: Optional[dict[str, Optional[int]]] = None,
     embed_external_files: bool = True,
@@ -2705,7 +2707,10 @@ def _push_to_bucket(
     uploaded_sizes: list[int] = []
 
     # Check the files to delete before uploading
-    files_to_delete = list(dirfs.glob(f"{data_dir}/*", detail=True).values())
+    try:
+        files_to_delete = list(dirfs.glob(f"{data_dir}/*"))
+    except EntryNotFoundError:  # needed for huggingface_hub<=1.7.1
+        files_to_delete = []
 
     for split in dset_dict:
         # Upload the Parquet files
@@ -2718,7 +2723,7 @@ def _push_to_bucket(
             token=token,
             max_shard_size=max_shard_size,
             num_shards=(num_shards or {}).get(split),
-            create_pr=create_pr,
+            create_pr=False,
             embed_external_files=embed_external_files,
             num_proc=num_proc,
         )
@@ -2729,7 +2734,7 @@ def _push_to_bucket(
 
     # Don't delete the new files
     new_parquet_paths = set(new_parquet_paths)
-    delete = [file_info["name"] for file_info in files_to_delete if file_info["name"] not in new_parquet_paths]
+    delete = [file_to_delete for file_to_delete in files_to_delete if file_to_delete not in new_parquet_paths]
 
     # Update the dataset card
     new_dataset_card, new_legacy_dataset_infos = _get_updated_dataset_card(

@@ -71,7 +71,7 @@ from huggingface_hub import (
     HfFileSystem,
     HfFileSystemResolvedPath,
 )
-from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
+from huggingface_hub.utils import EntryNotFoundError, HfHubHTTPError, RepositoryNotFoundError
 from packaging import version
 from tqdm.contrib.concurrent import thread_map
 
@@ -6683,15 +6683,18 @@ def _push_to_repo(
         dirfs = DirFileSystem(fs=hffs, path=hf_path)
 
         # Check the files to delete
-        files_to_delete = list(dirfs.glob(f"{data_dir}/{split}-*", detail=True).values())
+        try:
+            files_to_delete = dirfs.glob(f"{data_dir}/{split}-*", detail=True)
+        except EntryNotFoundError:  # needed for huggingface_hub<=1.7.1
+            files_to_delete = {}
 
         # Don't delete the new files
         deletions = [
-            CommitOperationDelete(path_in_repo=file_info["name"])
-            for file_info in files_to_delete
-            if file_info["name"] not in new_parquet_paths
+            CommitOperationDelete(path_in_repo=file_to_delete)
+            for file_to_delete in files_to_delete
+            if file_to_delete not in new_parquet_paths
         ]
-        deleted_size = sum(file_info["size"] for file_info in files_to_delete)
+        deleted_size = sum(file_info["size"] for file_info in files_to_delete.values())
 
         # Update the dataset card
         new_dataset_card, new_legacy_dataset_infos = _get_updated_dataset_card(
@@ -6770,7 +6773,10 @@ def _push_to_bucket(
     dirfs = DirFileSystem(fs=hffs, path=hf_path)
 
     # Check the files to delete before uploading
-    files_to_delete = list(dirfs.glob(f"{data_dir}/{split}-*", detail=True).values())
+    try:
+        files_to_delete = dirfs.glob(f"{data_dir}/{split}-*", detail=True)
+    except EntryNotFoundError:  # needed for huggingface_hub<=1.7.1
+        files_to_delete = {}
 
     # Upload the Parquet files
     _, new_parquet_paths, features, split_info, uploaded_size = dset._push_parquet_shards_to_hub(
@@ -6787,8 +6793,8 @@ def _push_to_bucket(
 
     # Don't delete the new files
     new_parquet_paths = set(new_parquet_paths)
-    delete = [file_info["name"] for file_info in files_to_delete if file_info["name"] not in new_parquet_paths]
-    deleted_size = sum(file_info["size"] for file_info in files_to_delete)
+    delete = [file_to_delete for file_to_delete in files_to_delete if file_to_delete not in new_parquet_paths]
+    deleted_size = sum(file_info["size"] for file_info in files_to_delete.values())
 
     # Update the dataset card
     new_dataset_card, new_legacy_dataset_infos = _get_updated_dataset_card(
