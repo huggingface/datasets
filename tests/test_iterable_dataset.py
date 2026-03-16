@@ -4,13 +4,14 @@ import time
 from copy import deepcopy
 from dataclasses import dataclass
 from itertools import chain, cycle, islice
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 import pytest
+from packaging import version
 
 from datasets import Dataset, config, load_dataset
 from datasets.combine import concatenate_datasets, interleave_datasets
@@ -22,7 +23,6 @@ from datasets.features import (
     List,
     Value,
 )
-from packaging import version
 from datasets.formatting import Formatter, get_format_type_from_alias
 from datasets.info import DatasetInfo
 from datasets.iterable_dataset import (
@@ -63,7 +63,6 @@ from .utils import (
     require_torch,
     require_torchdata_stateful_dataloader,
 )
-
 
 
 if config.HF_HUB_VERSION >= version.parse("1.6.0"):
@@ -1414,7 +1413,9 @@ def test_iterable_dataset_push_to_hub_single_shard_disables_multiprocessing():
         ),
     ):
         additions, new_parquet_paths, features, spit_info, uploaded_size = dataset._push_parquet_shards_to_hub(
-            resolved_output_path=HfFileSystemResolvedRepositoryPath(repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""),
+            resolved_output_path=HfFileSystemResolvedRepositoryPath(
+                repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
+            ),
             data_dir="data",
             split="train",
             token=None,
@@ -1448,7 +1449,9 @@ def test_iterable_dataset_push_to_hub_default_num_shards_uses_dataset_num_shards
 
     with patch.object(IterableDataset, "_push_parquet_shards_to_hub_single", side_effect=mock_push_single):
         dataset._push_parquet_shards_to_hub(
-            resolved_output_path=HfFileSystemResolvedRepositoryPath(repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""),
+            resolved_output_path=HfFileSystemResolvedRepositoryPath(
+                repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
+            ),
             data_dir="data",
             split="train",
             token=None,
@@ -1477,7 +1480,9 @@ def test_iterable_dataset_push_to_hub_max_shard_size_computes_num_shards_from_es
 
     with patch.object(IterableDataset, "_push_parquet_shards_to_hub_single", side_effect=mock_push_single):
         dataset._push_parquet_shards_to_hub(
-            resolved_output_path=HfFileSystemResolvedRepositoryPath(repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""),
+            resolved_output_path=HfFileSystemResolvedRepositoryPath(
+                repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
+            ),
             data_dir="data",
             split="train",
             token=None,
@@ -1492,7 +1497,6 @@ def test_iterable_dataset_push_to_hub_max_shard_size_computes_num_shards_from_es
 
 
 def test_iterable_dataset_push_to_hub_max_shard_size_respects_num_proc_floor():
-
     dataset = IterableDataset.from_generator(
         lambda shard_names: ({"shard_name": shard_name} for shard_name in shard_names),
         gen_kwargs={"shard_names": ["train-0", "train-1", "train-2"]},
@@ -1511,7 +1515,9 @@ def test_iterable_dataset_push_to_hub_max_shard_size_respects_num_proc_floor():
         ) as mock_iflatmap_unordered,
     ):
         dataset._push_parquet_shards_to_hub(
-            resolved_output_path=HfFileSystemResolvedRepositoryPath(repo_id="user/dataset", path_in_repo="", revision="main", repo_type="dataset"),
+            resolved_output_path=HfFileSystemResolvedRepositoryPath(
+                repo_id="user/dataset", path_in_repo="", revision="main", repo_type="dataset"
+            ),
             data_dir="data",
             split="train",
             token=None,
