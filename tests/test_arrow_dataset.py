@@ -34,6 +34,7 @@ from datasets.features import (
     ClassLabel,
     Features,
     Image,
+    Json,
     LargeList,
     List,
     Translation,
@@ -1901,7 +1902,7 @@ class BaseDatasetTest(TestCase):
                     "To debug the error, disable multiprocessing."
                 )
 
-    def test_map_on_lixed_types(self, in_memory):
+    def test_map_on_mixed_types(self, in_memory):
         mixed_data = {
             "mixed_type": [-1, 1, "foo"],
             "mix_struct_and_non_struct": [{"a": 0}, [0]],
@@ -3438,6 +3439,10 @@ class MiscellaneousDatasetTest(TestCase):
         data = {"messages": [_messages]}
         with Dataset.from_dict(data, on_mixed_types="use_json") as dset:
             self.assertEqual(dset[:], data)
+        data = {"empty_struct": [{}]}
+        with Dataset.from_dict(data, on_mixed_types="use_json") as dset:
+            self.assertEqual(dset[:], data)
+            self.assertEqual(dset.features["empty_struct"], Json())
 
     def test_concatenate_mixed_memory_and_disk(self):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}

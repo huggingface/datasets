@@ -6,7 +6,7 @@ import pyarrow.parquet as pq
 import pytest
 
 import datasets.config
-from datasets import Audio, Dataset, DatasetDict, Features, IterableDatasetDict, List, NamedSplit, Value, config
+from datasets import Audio, Dataset, DatasetDict, Features, IterableDatasetDict, Json, List, NamedSplit, Value, config
 from datasets.arrow_writer import get_arrow_writer_batch_size_from_features
 from datasets.features.image import Image
 from datasets.info import DatasetInfo
@@ -271,6 +271,22 @@ def test_dataset_to_parquet_keeps_features(shared_datadir, tmp_path):
 
     reloaded_iterable_dataset = ParquetDatasetReader(str(tmp_path / "foo.parquet"), streaming=True).read()
     assert dataset.features == reloaded_iterable_dataset.features
+
+
+def test_dataset_to_parquet_json_for_empty_struct(shared_datadir, tmp_path):
+    data = {"empty_struct": [{}]}
+    features = Features({"empty_struct": Json()})
+    dataset = Dataset.from_dict(data, features=features)
+    writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet")
+    assert writer.write() > 0
+
+    reloaded_dataset = Dataset.from_parquet(str(tmp_path / "foo.parquet"))
+    assert dataset.features == reloaded_dataset.features
+    assert dataset[0] == {"empty_struct": {}}
+
+    reloaded_iterable_dataset = ParquetDatasetReader(str(tmp_path / "foo.parquet"), streaming=True).read()
+    assert dataset.features == reloaded_iterable_dataset.features
+    assert next(iter(dataset)) == {"empty_struct": {}}
 
 
 @pytest.mark.parametrize(
