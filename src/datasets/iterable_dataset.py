@@ -2218,6 +2218,10 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
                 features=self._features if not self.ex_iterable.is_typed else None,
                 token_per_repo_id=self.token_per_repo_id,
             )
+
+        # It's ok to use _iter_arrow here without fancy state_dict logic since it's
+        # used with RebatchedArrowExamplesIterable with the right batch_size to
+        # never lose examples
         if self.ex_iterable.iter_arrow:
             # feature casting (inc column addition) handled within self._iter_arrow()
             for key, pa_table in self._iter_arrow():
