@@ -752,7 +752,9 @@ def test_mapped_examples_iterable_input_columns(n, func, batched, batch_size, in
 )
 def test_mapped_examples_iterable_arrow_format(n, func, batched, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
-    base_ex_iterable = RebatchedArrowExamplesIterable(base_ex_iterable, batch_size=batch_size if batched else 1)
+    base_ex_iterable = RebatchedArrowExamplesIterable(
+        base_ex_iterable, batch_size=batch_size if batched else 1, force_convert_to_arrow=True
+    )
     ex_iterable = MappedExamplesIterable(
         base_ex_iterable,
         func,
@@ -832,7 +834,9 @@ def test_mapped_examples_iterable_arrow_format_from_arrow_examples_iterable(n, f
 )
 def test_mapped_examples_iterable_drop_last_batch_and_arrow_format(n, func, batched, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
-    base_ex_iterable = RebatchedArrowExamplesIterable(base_ex_iterable, batch_size=batch_size if batched else 1)
+    base_ex_iterable = RebatchedArrowExamplesIterable(
+        base_ex_iterable, batch_size=batch_size if batched else 1, force_convert_to_arrow=True
+    )
     ex_iterable = MappedExamplesIterable(
         base_ex_iterable,
         func,
@@ -895,7 +899,9 @@ def test_mapped_examples_iterable_drop_last_batch_and_arrow_format(n, func, batc
 )
 def test_mapped_examples_iterable_with_indices_and_arrow_format(n, func, batched, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
-    base_ex_iterable = RebatchedArrowExamplesIterable(base_ex_iterable, batch_size=batch_size if batched else 1)
+    base_ex_iterable = RebatchedArrowExamplesIterable(
+        base_ex_iterable, batch_size=batch_size if batched else 1, force_convert_to_arrow=True
+    )
     ex_iterable = MappedExamplesIterable(
         base_ex_iterable,
         func,
@@ -946,7 +952,9 @@ def test_mapped_examples_iterable_with_indices_and_arrow_format(n, func, batched
 )
 def test_mapped_examples_iterable_remove_columns_arrow_format(n, func, batched, batch_size, remove_columns):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n, "extra_column": "foo"})
-    base_ex_iterable = RebatchedArrowExamplesIterable(base_ex_iterable, batch_size=batch_size if batched else 1)
+    base_ex_iterable = RebatchedArrowExamplesIterable(
+        base_ex_iterable, batch_size=batch_size if batched else 1, force_convert_to_arrow=True
+    )
     ex_iterable = MappedExamplesIterable(
         base_ex_iterable,
         func,
@@ -991,7 +999,9 @@ def test_mapped_examples_iterable_remove_columns_arrow_format(n, func, batched, 
 )
 def test_mapped_examples_iterable_fn_kwargs_and_arrow_format(n, func, batched, batch_size, fn_kwargs):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
-    base_ex_iterable = RebatchedArrowExamplesIterable(base_ex_iterable, batch_size=batch_size if batched else 1)
+    base_ex_iterable = RebatchedArrowExamplesIterable(
+        base_ex_iterable, batch_size=batch_size if batched else 1, force_convert_to_arrow=True
+    )
     ex_iterable = MappedExamplesIterable(
         base_ex_iterable,
         func,
@@ -1031,7 +1041,9 @@ def test_mapped_examples_iterable_fn_kwargs_and_arrow_format(n, func, batched, b
 )
 def test_mapped_examples_iterable_input_columns_and_arrow_format(n, func, batched, batch_size, input_columns):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
-    base_ex_iterable = RebatchedArrowExamplesIterable(base_ex_iterable, batch_size=batch_size if batched else 1)
+    base_ex_iterable = RebatchedArrowExamplesIterable(
+        base_ex_iterable, batch_size=batch_size if batched else 1, force_convert_to_arrow=True
+    )
     ex_iterable = MappedExamplesIterable(
         base_ex_iterable,
         func,
@@ -1232,6 +1244,48 @@ def test_take_examples_iterable():
     assert_load_state_dict_resumes_iteration(take_ex_iterable)
 
 
+def test_step_examples_iterable():
+    total, step, offset = 10, 2, 1
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": total})
+    step_ex_iterable = StepExamplesIterable(base_ex_iterable, step=step, offset=offset)
+    expected = list(generate_examples_fn(n=total))[offset::step]
+    assert list(step_ex_iterable) == expected
+    assert_load_state_dict_resumes_iteration(step_ex_iterable)
+
+
+def test_skip_arrow_examples_iterable():
+    total, count = 10, 2
+    base_ex_iterable = ArrowExamplesIterable(generate_tables_fn, {"n": total})
+    skip_ex_iterable = SkipExamplesIterable(base_ex_iterable, n=count)
+    expected = [x for _, pa_table in generate_tables_fn(n=total) for x in pa_table.to_pylist()][count:]
+    assert [example for _, example in skip_ex_iterable] == expected
+    assert skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is skip_ex_iterable, (
+        "skip examples makes the shards order fixed"
+    )
+    assert_load_state_dict_resumes_iteration(skip_ex_iterable)
+
+
+def test_take_arrow_examples_iterable():
+    total, count = 10, 2
+    base_ex_iterable = ArrowExamplesIterable(generate_tables_fn, {"n": total})
+    take_ex_iterable = TakeExamplesIterable(base_ex_iterable, n=count)
+    expected = [x for _, pa_table in generate_tables_fn(n=total) for x in pa_table.to_pylist()][:count]
+    assert [example for _, example in take_ex_iterable] == expected
+    assert take_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is take_ex_iterable, (
+        "skip examples makes the shards order fixed"
+    )
+    assert_load_state_dict_resumes_iteration(take_ex_iterable)
+
+
+def test_step_arrow_examples_iterable():
+    total, step, offset = 10, 2, 1
+    base_ex_iterable = ArrowExamplesIterable(generate_tables_fn, {"n": total})
+    step_ex_iterable = StepExamplesIterable(base_ex_iterable, step=step, offset=offset)
+    expected = [x for _, pa_table in generate_tables_fn(n=total) for x in pa_table.to_pylist()][offset::step]
+    assert [example for _, example in step_ex_iterable] == expected
+    assert_load_state_dict_resumes_iteration(step_ex_iterable)
+
+
 @pytest.mark.parametrize(
     "n, num_times",
     [
@@ -1345,7 +1399,9 @@ def test_no_iter_arrow(ex_iterable: _BaseExamplesIterable):
         HorizontallyConcatenatedMultiSourcesExamplesIterable([ArrowExamplesIterable(generate_tables_fn, {})]),
         # RandomlyCyclingMultiSourcesExamplesIterable([ArrowExamplesIterable(generate_tables_fn, {})], np.random.default_rng(42)),  # not implemented
         MappedExamplesIterable(
-            RebatchedArrowExamplesIterable(ExamplesIterable(generate_examples_fn, {}), batch_size=1),
+            RebatchedArrowExamplesIterable(
+                ExamplesIterable(generate_examples_fn, {}), batch_size=1, force_convert_to_arrow=True
+            ),
             lambda t: t,
             formatting=FormattingConfig(format_type="arrow"),
         ),
@@ -1355,12 +1411,16 @@ def test_no_iter_arrow(ex_iterable: _BaseExamplesIterable):
             formatting=FormattingConfig(format_type="arrow"),
         ),
         FilteredExamplesIterable(
-            RebatchedArrowExamplesIterable(ExamplesIterable(generate_examples_fn, {}), batch_size=1),
+            RebatchedArrowExamplesIterable(
+                ExamplesIterable(generate_examples_fn, {}), batch_size=1, force_convert_to_arrow=True
+            ),
             lambda t: True,
             formatting=FormattingConfig(format_type="arrow"),
         ),
         FilteredExamplesIterable(
-            RebatchedArrowExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), batch_size=1),
+            RebatchedArrowExamplesIterable(
+                ArrowExamplesIterable(generate_tables_fn, {}), batch_size=1, force_convert_to_arrow=True
+            ),
             lambda t: True,
             formatting=FormattingConfig(format_type="arrow"),
         ),
