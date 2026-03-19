@@ -1239,7 +1239,7 @@ class Json:
             raise RuntimeError("Decoding is disabled for this feature. Please use Json(decode=True) instead.")
         return ujson_loads(example_data)
 
-    def cast_storage(self, storage: Union[pa.Array]) -> pa.Int64Array:
+    def cast_storage(self, storage: Union[pa.Array]) -> pa.JsonArray:
         """Cast an Arrow array to the `Json` arrow storage type.
 
         Args:
@@ -1247,7 +1247,7 @@ class Json:
                 PyArrow array to cast.
 
         Returns:
-            `pa.Int64Array`: Array in the `ClassLabel` arrow storage type.
+            `pa.JsonArray`: Array in the `Json` arrow storage type.
         """
         if isinstance(storage, pa.JsonArray):
             return storage
