@@ -2160,22 +2160,6 @@ def _apply_feature_types_on_example(
     return decoded_example
 
 
-def _apply_feature_types_on_batch(
-    batch: dict, features: Features, token_per_repo_id: dict[str, Union[str, bool, None]]
-) -> dict:
-    batch = dict(batch)
-    # add missing columns
-    n_examples = len(batch[next(iter(batch))])
-    for column_name in features:
-        if column_name not in batch:
-            batch[column_name] = [None] * n_examples
-    # we encode the batch for ClassLabel feature types for example
-    encoded_batch = features.encode_batch(batch)
-    # Decode batch for Audio feature, e.g.
-    decoded_batch = features.decode_batch(encoded_batch, token_per_repo_id=token_per_repo_id)
-    return decoded_batch
-
-
 @dataclass
 class FormattingConfig:
     format_type: Optional[str]
@@ -2196,16 +2180,18 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
         formatting: Optional[FormattingConfig],
         features: Optional[Features],
         token_per_repo_id: dict[str, Union[str, bool, None]],
+        force_convert_to_python: bool = False,
     ):
         super().__init__()
         self.ex_iterable = ex_iterable
         self._features = features
         self.formatting = formatting
         self.token_per_repo_id = token_per_repo_id
+        self.force_convert_to_python = force_convert_to_python
 
     @property
     def iter_arrow(self):
-        if self.ex_iterable.iter_arrow and (not self.formatting or self.formatting.is_table):
+        if self.ex_iterable.iter_arrow and not self.force_convert_to_python:
             return self._iter_arrow
 
     @property
@@ -2277,6 +2263,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             features=self.features,
             token_per_repo_id=self.token_per_repo_id,
             formatting=self.formatting,
+            force_convert_to_python=self.force_convert_to_python,
         )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "FormattedExamplesIterable":
@@ -2286,6 +2273,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             features=self.features,
             token_per_repo_id=self.token_per_repo_id,
             formatting=self.formatting,
+            force_convert_to_python=self.force_convert_to_python,
         )
 
     def reshard_data_sources(self) -> "FormattedExamplesIterable":
@@ -2294,6 +2282,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             features=self.features,
             token_per_repo_id=self.token_per_repo_id,
             formatting=self.formatting,
+            force_convert_to_python=self.force_convert_to_python,
         )
 
     @property
@@ -2594,11 +2583,7 @@ class IterableDataset(DatasetInfoMixin):
 
             if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
                 formatter = get_formatter(self._formatting.format_type, features=self.features)
-                if ex_iterable.iter_arrow:
-                    iterator = ex_iterable.iter_arrow()
-                else:
-                    iterator = _convert_to_arrow(ex_iterable, batch_size=1)
-                for key, pa_table in iterator:
+                for key, pa_table in ex_iterable.iter_arrow():
                     yield formatter.format_row(pa_table)
                 return
             else:
@@ -2628,10 +2613,7 @@ class IterableDataset(DatasetInfoMixin):
         self, batch_size: int = 1, drop_last_batch: bool = False
     ) -> _BaseExamplesIterable:
         ex_iterable = self._ex_iterable
-        if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
-            ex_iterable = RebatchedArrowExamplesIterable(
-                ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch, force_convert_to_arrow=True
-            )
+
         if self.epoch:
             ex_iterable = ex_iterable.shuffle_data_sources(np.random.default_rng(self.epoch))
             ex_iterable = shift_ex_examples_rngs(ex_iterable, self.epoch)
@@ -2658,6 +2640,15 @@ class IterableDataset(DatasetInfoMixin):
                         f"The current dataset has {ex_iterable.num_shards} which is not a factor of {world_size}"
                     )
                 ex_iterable = StepExamplesIterable(ex_iterable, step=world_size, offset=rank)
+
+        if ex_iterable.iter_arrow:
+            ex_iterable = RebatchedArrowExamplesIterable(
+                ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch
+            )
+        elif self._formatting and self._formatting.is_table:
+            ex_iterable = RebatchedArrowExamplesIterable(
+                ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch, force_convert_to_arrow=True
+            )
 
         if self._formatting or (self.features and ex_iterable.features != self.features):
             ex_iterable = FormattedExamplesIterable(
@@ -2688,11 +2679,7 @@ class IterableDataset(DatasetInfoMixin):
         ex_iterable = self._prepare_ex_iterable_for_iteration()
         if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
             formatter = get_formatter(self._formatting.format_type, features=self.features)
-            if ex_iterable.iter_arrow:
-                iterator = ex_iterable.iter_arrow()
-            else:
-                iterator = _convert_to_arrow(ex_iterable, batch_size=1)
-            for key, pa_table in iterator:
+            for key, pa_table in ex_iterable.iter_arrow():
                 yield formatter.format_row(pa_table)
             return
 
@@ -2717,11 +2704,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ex_iterable = self._prepare_ex_iterable_for_iteration(batch_size=batch_size, drop_last_batch=drop_last_batch)
         if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
-            if ex_iterable.iter_arrow:
-                iterator = ex_iterable.iter_arrow()
-            else:
-                iterator = _convert_to_arrow(ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch)
-            for key, pa_table in iterator:
+            for key, pa_table in ex_iterable.iter_arrow():
                 yield formatter.format_batch(pa_table)
             return
 
@@ -3452,6 +3435,7 @@ class IterableDataset(DatasetInfoMixin):
                     formatting=copy.deepcopy(self._formatting),
                     features=input_features,
                     token_per_repo_id=self._token_per_repo_id,
+                    force_convert_to_python=True,
                 )
 
         ex_iterable = MappedExamplesIterable(
