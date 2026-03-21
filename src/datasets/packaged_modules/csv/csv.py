@@ -180,7 +180,60 @@ class Csv(datasets.ArrowBasedBuilder):
     def _generate_shards(self, base_files, files_iterables):
         yield from base_files
 
-    def _generate_tables(self, base_files, files_iterables):
+    def _generate_more_gen_kwargs(self, base_files, files_iterables, num_shards=None):
+        """Generate more gen_kwargs for resharding"""
+        # Only reshard if num_shards is specified
+        if num_shards is None:
+            # No resharding - return the original gen_kwargs
+            for base_file, files_iterable in zip(base_files, files_iterables):
+                for file in files_iterable:
+                    yield {
+                        "base_files": [base_file],
+                        "files_iterables": [[file]],
+                        "shard_start_line": [0],
+                        "shard_end_line": [None],
+                    }
+            return
+
+        for base_file, files_iterable in zip(base_files, files_iterables):
+            for file in files_iterable:
+                # Split the file into multiple shards based on line boundaries
+                try:
+                    with open(
+                        file,
+                        "r",
+                        encoding=self.config.encoding or "utf-8",
+                        errors=self.config.encoding_errors or "strict",
+                    ) as f:
+                        # Read the file to count lines
+                        line_count = 0
+                        while f.readline():
+                            line_count += 1
+
+                    # Use the specified number of shards
+                    # But limit to the number of lines to avoid empty shards
+                    target_num_shards = min(num_shards, line_count)
+
+                    lines_per_shard = (line_count + target_num_shards - 1) // target_num_shards
+
+                    # Generate gen_kwargs for each shard
+                    for shard_idx in range(target_num_shards):
+                        yield {
+                            "base_files": [base_file],
+                            "files_iterables": [[file]],
+                            "shard_start_line": [shard_idx * lines_per_shard],
+                            "shard_end_line": [(shard_idx + 1) * lines_per_shard],
+                        }
+                except Exception:
+                    # If we can't split the file, just use the whole file as one shard
+                    yield {
+                        "base_files": [base_file],
+                        "files_iterables": [[file]],
+                        "shard_start_line": [0],
+                        "shard_end_line": [None],
+                    }
+
+    def _generate_tables(self, base_files, files_iterables, shard_start_line=0, shard_end_line=None):
         schema = self.config.features.arrow_schema if self.config.features else None
         # dtype allows reading an int column as str
         dtype = (
@@ -191,13 +244,27 @@ class Csv(datasets.ArrowBasedBuilder):
             if schema is not None
             else None
         )
+
+        # Handle list parameters (from resharding)
+        if isinstance(shard_start_line, list):
+            shard_start_line = shard_start_line[0]
+        if isinstance(shard_end_line, list):
+            shard_end_line = shard_end_line[0]
+
         for shard_idx, files_iterable in enumerate(files_iterables):
             for file in files_iterable:
-                csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.pd_read_csv_kwargs)
+                # Handle shard_start_line and shard_end_line
+                read_csv_kwargs = self.config.pd_read_csv_kwargs.copy()
+                if shard_start_line > 0:
+                    read_csv_kwargs["skiprows"] = shard_start_line
+                if shard_end_line is not None:
+                    read_csv_kwargs["nrows"] = shard_end_line - shard_start_line
+
+                csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **read_csv_kwargs)
                 try:
                     for batch_idx, df in enumerate(csv_file_reader):
                         pa_table = pa.Table.from_pandas(df)
-                        # Uncomment for debugging (will print the Arrow table size and elements)
+                        # Uncomment for debugging (will print Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                         yield Key(shard_idx, batch_idx), self._cast_table(pa_table)

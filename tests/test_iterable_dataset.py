@@ -2190,6 +2190,63 @@ def test_iterable_dataset_shard():
     ) == list(dataset)
 
 
+def test_iterable_dataset_reshard():
+    num_examples = 100
+    num_shards = 5
+    dataset = Dataset.from_dict({"a": range(num_examples)}).to_iterable_dataset(num_shards=num_shards)
+    # without generate_more_kwargs_fn, reshard returns the same dataset
+    resharded_dataset = dataset.reshard()
+    assert resharded_dataset.num_shards == dataset.num_shards
+    assert list(resharded_dataset) == list(dataset)
+    resharded_dataset = dataset.reshard(num_shards=10)
+    assert resharded_dataset.num_shards == dataset.num_shards
+    assert list(resharded_dataset) == list(dataset)
+
+
+def test_iterable_dataset_reshard_with_more_kwargs_fn():
+    def generate_examples_fn(files, shard_start_line=None, shard_end_line=None):
+        for file_idx, file in enumerate(files):
+            start = shard_start_line[file_idx] if shard_start_line else 0
+            end = shard_end_line[file_idx] if shard_end_line else 10
+            for line_idx in range(start, min(end, 10)):
+                yield f"{file}_{line_idx}", {"file": file, "line": line_idx}
+
+    def generate_more_kwargs_fn(files, num_shards=None):
+        total_lines = 10
+        if num_shards is not None:
+            lines_per_shard = (total_lines + num_shards - 1) // num_shards
+            for shard_idx in range(num_shards):
+                start = shard_idx * lines_per_shard
+                end = min((shard_idx + 1) * lines_per_shard, total_lines)
+                yield {
+                    "files": files,
+                    "shard_start_line": [start],
+                    "shard_end_line": [end],
+                }
+        else:
+            yield {
+                "files": files,
+                "shard_start_line": [0],
+                "shard_end_line": [total_lines],
+            }
+
+    files = ["data.txt"]
+    ex_iterable = ExamplesIterable(
+        generate_examples_fn, {"files": files}, generate_more_kwargs_fn=generate_more_kwargs_fn
+    )
+    dataset = IterableDataset(ex_iterable)
+    assert dataset.num_shards == 1
+    original_data = list(dataset)
+    assert len(original_data) == 10
+
+    # reshard with num_shards
+    resharded_dataset = dataset.reshard(num_shards=4)
+    assert resharded_dataset.num_shards == 4
+    resharded_data = list(resharded_dataset)
+    assert len(resharded_data) == len(original_data)
+    assert sorted(resharded_data, key=lambda x: x["line"]) == sorted(original_data, key=lambda x: x["line"])
+
+
 @pytest.mark.parametrize("method", ["skip", "take"])
 @pytest.mark.parametrize("after_shuffle", [False, True])
 @pytest.mark.parametrize("count", [2, 5, 11])

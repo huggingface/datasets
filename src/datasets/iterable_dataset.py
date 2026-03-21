@@ -224,11 +224,15 @@ class _BaseExamplesIterable:
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         raise NotImplementedError(f"{type(self)} doesn't implement shard_data_sources yet")
 
-    def reshard_data_sources(self) -> "_BaseExamplesIterable":
+    def reshard_data_sources(self, num_shards: Optional[int] = None) -> "_BaseExamplesIterable":
         """
         Either reshard the shards/sources of the dataset, i.e. further split the current shards into more shards,
         or propagate the resharding to the underlying iterable.
         If the examples iterable can't be further resharded, then this method returns self.
+
+        Args:
+            num_shards (`int`, *optional*):
+                Target number of shards. If not specified, reshard to maximum possible number.
         """
         raise NotImplementedError(f"{type(self)} doesn't implement reshard_data_sources yet")
 
@@ -313,18 +317,39 @@ class ExamplesIterable(_BaseExamplesIterable):
         requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
         return ExamplesIterable(self.generate_examples_fn, requested_gen_kwargs, self.generate_more_kwargs_fn)
 
-    def reshard_data_sources(self) -> "ExamplesIterable":
-        """Split shars into more shards if possible."""
+    def reshard_data_sources(self, num_shards: Optional[int] = None) -> "ExamplesIterable":
+        """Split shars into more shards if possible.
+
+        Args:
+            num_shards (`int`, *optional*):
+                Target number of shards. If not specified, reshard to maximum possible number.
+        """
         if not self.generate_more_kwargs_fn:
             return ExamplesIterable(self.generate_examples_fn, self.kwargs, self.generate_more_kwargs_fn)
         gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
-        new_gen_kwargs = _merge_gen_kwargs(
-            [
-                new_gen_kwargs
-                for gen_kwargs in gen_kwargs_list
-                for new_gen_kwargs in self.generate_more_kwargs_fn(**gen_kwargs)
-            ]
-        )
+        all_new_gen_kwargs = []
+        for gen_kwargs in gen_kwargs_list:
+            for new_gen_kwargs in self.generate_more_kwargs_fn(**gen_kwargs, num_shards=num_shards):
+                all_new_gen_kwargs.append(new_gen_kwargs)
+
+        # If num_shards is specified, limit the number of shards
+        if num_shards is not None and len(all_new_gen_kwargs) > num_shards:
+            # Calculate how many original shards to include per target shard
+            shards_per_target = len(all_new_gen_kwargs) // num_shards
+            remainder = len(all_new_gen_kwargs) % num_shards
+
+            selected_gen_kwargs = []
+            current_idx = 0
+            for i in range(num_shards):
+                # Distribute remainder across first few shards
+                num_to_take = shards_per_target + (1 if i < remainder else 0)
+                selected_gen_kwargs.extend(all_new_gen_kwargs[current_idx : current_idx + num_to_take])
+                current_idx += num_to_take
+
+            new_gen_kwargs = _merge_gen_kwargs(selected_gen_kwargs)
+        else:
+            new_gen_kwargs = _merge_gen_kwargs(all_new_gen_kwargs)
+
         return ExamplesIterable(self.generate_examples_fn, new_gen_kwargs, self.generate_more_kwargs_fn)
 
     @property
@@ -404,18 +429,39 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
         requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
         return ArrowExamplesIterable(self.generate_tables_fn, requested_gen_kwargs)
 
-    def reshard_data_sources(self) -> "ArrowExamplesIterable":
-        """Split shars into more shards if possible."""
+    def reshard_data_sources(self, num_shards: Optional[int] = None) -> "ArrowExamplesIterable":
+        """Split shars into more shards if possible.
+
+        Args:
+            num_shards (`int`, *optional*):
+                Target number of shards. If not specified, reshard to maximum possible number.
+        """
         if not self.generate_more_kwargs_fn:
             return ArrowExamplesIterable(self.generate_tables_fn, self.kwargs, self.generate_more_kwargs_fn)
         gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
-        new_gen_kwargs = _merge_gen_kwargs(
-            [
-                new_gen_kwargs
-                for gen_kwargs in gen_kwargs_list
-                for new_gen_kwargs in self.generate_more_kwargs_fn(**gen_kwargs)
-            ]
-        )
+        all_new_gen_kwargs = []
+        for gen_kwargs in gen_kwargs_list:
+            for new_gen_kwargs in self.generate_more_kwargs_fn(**gen_kwargs, num_shards=num_shards):
+                all_new_gen_kwargs.append(new_gen_kwargs)
+
+        # If num_shards is specified, limit the number of shards
+        if num_shards is not None and len(all_new_gen_kwargs) > num_shards:
+            # Calculate how many original shards to include per target shard
+            shards_per_target = len(all_new_gen_kwargs) // num_shards
+            remainder = len(all_new_gen_kwargs) % num_shards
+
+            selected_gen_kwargs = []
+            current_idx = 0
+            for i in range(num_shards):
+                # Distribute remainder across first few shards
+                num_to_take = shards_per_target + (1 if i < remainder else 0)
+                selected_gen_kwargs.extend(all_new_gen_kwargs[current_idx : current_idx + num_to_take])
+                current_idx += num_to_take
+
+            new_gen_kwargs = _merge_gen_kwargs(selected_gen_kwargs)
+        else:
+            new_gen_kwargs = _merge_gen_kwargs(all_new_gen_kwargs)
+
         return ArrowExamplesIterable(self.generate_tables_fn, new_gen_kwargs, self.generate_more_kwargs_fn)
 
     @property
@@ -569,9 +615,12 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
             self.force_convert_to_arrow,
         )
 
-    def reshard_data_sources(self) -> "RebatchedArrowExamplesIterable":
+    def reshard_data_sources(self, num_shards: Optional[int] = None) -> "RebatchedArrowExamplesIterable":
         return RebatchedArrowExamplesIterable(
-            self.ex_iterable.reshard_data_sources(), self.batch_size, self.drop_last_batch, self.force_convert_to_arrow
+            self.ex_iterable.reshard_data_sources(num_shards=num_shards),
+            self.batch_size,
+            self.drop_last_batch,
+            self.force_convert_to_arrow
         )
 
     @property
@@ -619,8 +668,8 @@ class SelectColumnsIterable(_BaseExamplesIterable):
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous), self.column_names
         )
 
-    def reshard_data_sources(self) -> "SelectColumnsIterable":
-        return SelectColumnsIterable(self.ex_iterable.reshard_data_sources(), self.column_names)
+    def reshard_data_sources(self, num_shards: Optional[int] = None) -> "SelectColumnsIterable":
+        return SelectColumnsIterable(self.ex_iterable.reshard_data_sources(num_shards=num_shards), self.column_names)
 
     @property
     def num_shards(self) -> int:
@@ -686,9 +735,9 @@ class StepExamplesIterable(_BaseExamplesIterable):
             offset=self.offset,
         )
 
-    def reshard_data_sources(self) -> "StepExamplesIterable":
+    def reshard_data_sources(self, num_shards: Optional[int] = None) -> "StepExamplesIterable":
         return StepExamplesIterable(
-            self.ex_iterable.reshard_data_sources(),
+            self.ex_iterable.reshard_data_sources(num_shards=num_shards),
             step=self.step,
             offset=self.offset,
         )
@@ -874,9 +923,9 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
                 stopping_strategy=self.stopping_strategy,
             )
 
-    def reshard_data_sources(self) -> "CyclingMultiSourcesExamplesIterable":
+    def reshard_data_sources(self, num_shards: Optional[int] = None) -> "CyclingMultiSourcesExamplesIterable":
         return CyclingMultiSourcesExamplesIterable(
-            [iterable.reshard_data_sources() for iterable in self.ex_iterables],
+            [iterable.reshard_data_sources(num_shards=num_shards) for iterable in self.ex_iterables],
             stopping_strategy=self.stopping_strategy,
         )
 
@@ -964,9 +1013,11 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
             [single_shard_ex_iterables[i] for i in shard_indices]
         )
 
-    def reshard_data_sources(self) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
+    def reshard_data_sources(
+        self, num_shards: Optional[int] = None
+    ) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
         return VerticallyConcatenatedMultiSourcesExamplesIterable(
-            [iterable.reshard_data_sources() for iterable in self.ex_iterables]
+            [iterable.reshard_data_sources(num_shards=num_shards) for iterable in self.ex_iterables]
         )
 
 
@@ -1213,10 +1264,10 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
                 self.stopping_strategy,
             )
 
-    def reshard_data_sources(self) -> "RandomlyCyclingMultiSourcesExamplesIterable":
+    def reshard_data_sources(self, num_shards: Optional[int] = None) -> "RandomlyCyclingMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         return RandomlyCyclingMultiSourcesExamplesIterable(
-            [iterable.reshard_data_sources() for iterable in self.ex_iterables],
+            [iterable.reshard_data_sources(num_shards=num_shards) for iterable in self.ex_iterables],
             self.generator,
             self.probabilities,
             self.stopping_strategy,
@@ -1621,9 +1672,9 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             max_num_running_async_map_functions_in_parallel=self.max_num_running_async_map_functions_in_parallel,
         )
 
-    def reshard_data_sources(self) -> "MappedExamplesIterable":
+    def reshard_data_sources(self, num_shards: Optional[int] = None) -> "MappedExamplesIterable":
         return MappedExamplesIterable(
-            self.ex_iterable.reshard_data_sources(),
+            self.ex_iterable.reshard_data_sources(num_shards=num_shards),
             function=self.function,
             with_indices=self.with_indices,
             input_columns=self.input_columns,
@@ -1739,9 +1790,9 @@ class FilteredExamplesIterable(MappedExamplesIterable):
             formatting=self.formatting,
         )
 
-    def reshard_data_sources(self) -> "FilteredExamplesIterable":
+    def reshard_data_sources(self, num_shards: Optional[int] = None) -> "FilteredExamplesIterable":
         return FilteredExamplesIterable(
-            self.ex_iterable.reshard_data_sources(),
+            self.ex_iterable.reshard_data_sources(num_shards=num_shards),
             function=self.mask_function,
             with_indices=self.with_indices,
             input_columns=self.input_columns,
@@ -1851,9 +1902,9 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
             generator=self.generator,
         )
 
-    def reshard_data_sources(self) -> "BufferShuffledExamplesIterable":
+    def reshard_data_sources(self, num_shards: Optional[int] = None) -> "BufferShuffledExamplesIterable":
         return BufferShuffledExamplesIterable(
-            self.ex_iterable.reshard_data_sources(),
+            self.ex_iterable.reshard_data_sources(num_shards=num_shards),
             buffer_size=self.buffer_size,
             generator=self.generator,
         )
@@ -1958,9 +2009,9 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         else:
             return self
 
-    def reshard_data_sources(self) -> "SkipExamplesIterable":
+    def reshard_data_sources(self, num_shards: Optional[int] = None) -> "SkipExamplesIterable":
         return SkipExamplesIterable(
-            self.ex_iterable.reshard_data_sources(),
+            self.ex_iterable.reshard_data_sources(num_shards=num_shards),
             n=self.n,
             block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
             split_when_sharding=self.split_when_sharding,
@@ -2015,9 +2066,9 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
             num_times=self.num_times,
         )
 
-    def reshard_data_sources(self) -> "RepeatExamplesIterable":
+    def reshard_data_sources(self, num_shards: Optional[int] = None) -> "RepeatExamplesIterable":
         return RepeatExamplesIterable(
-            self.ex_iterable.reshard_data_sources(),
+            self.ex_iterable.reshard_data_sources(num_shards=num_shards),
             num_times=self.num_times,
         )
 
@@ -2132,9 +2183,9 @@ class TakeExamplesIterable(_BaseExamplesIterable):
                 split_when_sharding=self.split_when_sharding,
             )
 
-    def reshard_data_sources(self) -> "TakeExamplesIterable":
+    def reshard_data_sources(self, num_shards: Optional[int] = None) -> "TakeExamplesIterable":
         return TakeExamplesIterable(
-            self.ex_iterable.reshard_data_sources(),
+            self.ex_iterable.reshard_data_sources(num_shards=num_shards),
             n=self.n,
             block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
             split_when_sharding=self.split_when_sharding,
@@ -2280,9 +2331,9 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             force_convert_to_python=self.force_convert_to_python,
         )
 
-    def reshard_data_sources(self) -> "FormattedExamplesIterable":
+    def reshard_data_sources(self, num_shards: Optional[int] = None) -> "FormattedExamplesIterable":
         return FormattedExamplesIterable(
-            self.ex_iterable.reshard_data_sources(),
+            self.ex_iterable.reshard_data_sources(num_shards=num_shards),
             features=self.features,
             token_per_repo_id=self.token_per_repo_id,
             formatting=self.formatting,
@@ -3798,7 +3849,7 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-    def reshard(self) -> "IterableDataset":
+    def reshard(self, num_shards: Optional[int] = None) -> "IterableDataset":
         """Reshard the dataset if possible, i.e. split the current shards further into more shards.
         This increases the number of shards and the resulting dataset has num_shards >= previous_num_shards.
         Equality may happen if no shard can be split further.
@@ -3806,7 +3857,22 @@ class IterableDataset(DatasetInfoMixin):
         The resharding mechanism depends on the dataset file format:
 
         * Parquet: shard per row group instead of per file
+        * JSON Lines: shard by line boundaries (only when `num_shards` is specified)
+        * CSV: shard by line boundaries (only when `num_shards` is specified)
         * Other: not implemented yet (contributions are welcome !)
+
+        Args:
+            num_shards (`int`, *optional*):
+                Target number of shards. If not specified, the dataset is resharded to the maximum
+                possible number of shards (e.g., for Parquet, it's the number of row groups).
+                For JSON Lines and CSV, resharding only takes effect when `num_shards` is specified.
+
+                <Added version="3.0.0"/>
+                <Note>
+                If the dataset has fewer data items than `num_shards`, the actual number of shards after resharding
+                may be less than `num_shards`. For example, if a JSON Lines file has only 5 lines and you call
+                `reshard(num_shards=10)`, the resulting dataset will have at most 5 shards (one per line).
+                </Note>
 
         Be sure to reshard/shard before using any randomizing operator (such as `shuffle`).
         It is best if the shard operator is used early in the dataset pipeline.
@@ -3826,9 +3892,14 @@ class IterableDataset(DatasetInfoMixin):
             features: ['label', 'title', 'content'],
             num_shards: 3600
         })
+        >>> ds.reshard(num_shards=100)
+        IterableDataset({
+            features: ['label', 'title', 'content'],
+            num_shards: 100
+        })
         ```
         """
-        ex_iterable = self._ex_iterable.reshard_data_sources()
+        ex_iterable = self._ex_iterable.reshard_data_sources(num_shards=num_shards)
         return IterableDataset(
             ex_iterable=ex_iterable,
             info=self._info.copy(),

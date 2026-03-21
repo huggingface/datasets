@@ -127,11 +127,77 @@ class Json(datasets.ArrowBasedBuilder):
     def _generate_shards(self, base_files, files_iterables):
         yield from base_files
 
-    def _generate_tables(self, base_files, files_iterables, allow_full_read=True):
+    def _generate_more_gen_kwargs(self, base_files, files_iterables, num_shards=None):
+        """Generate more gen_kwargs for resharding"""
+        # Only reshard if num_shards is specified
+        if num_shards is None:
+            # No resharding - return the original gen_kwargs
+            for base_file, files_iterable in zip(base_files, files_iterables):
+                for file in files_iterable:
+                    yield {
+                        "base_files": [base_file],
+                        "files_iterables": [[file]],
+                        "shard_start_line": [0],
+                        "shard_end_line": [None],
+                    }
+            return
+
+        for base_file, files_iterable in zip(base_files, files_iterables):
+            for file in files_iterable:
+                # Check if the file is a JSON Lines file (one JSON object per line)
+                if self.config.field is None:
+                    # Split the file into multiple shards based on line boundaries
+                    try:
+                        with open(file, "rb") as f:
+                            # Read the file to count lines
+                            line_count = 0
+                            while f.readline():
+                                line_count += 1
+
+                        # Use the specified number of shards
+                        # But limit to the number of lines to avoid empty shards
+                        target_num_shards = min(num_shards, line_count)
+
+                        lines_per_shard = (line_count + target_num_shards - 1) // target_num_shards
+
+                        # Generate gen_kwargs for each shard
+                        for shard_idx in range(target_num_shards):
+                            yield {
+                                "base_files": [base_file],
+                                "files_iterables": [[file]],
+                                "shard_start_line": [shard_idx * lines_per_shard],
+                                "shard_end_line": [(shard_idx + 1) * lines_per_shard],
+                            }
+                    except Exception:
+                        # If we can't split the file, just use the whole file as one shard
+                        yield {
+                            "base_files": [base_file],
+                            "files_iterables": [[file]],
+                            "shard_start_line": [0],
+                            "shard_end_line": [None],
+                        }
+                else:
+                    # For single JSON object files, we can't split them further
+                    yield {
+                        "base_files": [base_file],
+                        "files_iterables": [[file]],
+                        "shard_start_line": [0],
+                        "shard_end_line": [None],
+                    }
+
+    def _generate_tables(
+        self, base_files, files_iterables, allow_full_read=True, shard_start_line=0, shard_end_line=None
+    ):
         json_field_paths = []
 
         if self.info.features is not None:
             json_field_paths = get_json_field_paths_from_feature(self.info.features)
+
+        # Handle list parameters (from resharding)
+        if isinstance(shard_start_line, list):
+            shard_start_line = shard_start_line[0]
+        if isinstance(shard_end_line, list):
+            shard_end_line = shard_end_line[0]
 
         for shard_idx, files_iterable in enumerate(files_iterables):
             for file in files_iterable:
@@ -159,6 +225,16 @@ class Json(datasets.ArrowBasedBuilder):
                         encoding_errors = (
                             self.config.encoding_errors if self.config.encoding_errors is not None else "strict"
                         )
+
+                        # Skip lines until shard_start_line
+                        current_line = 0
+                        if shard_start_line > 0:
+                            while current_line < shard_start_line:
+                                line = f.readline()
+                                if not line:
+                                    break
+                                current_line += 1
+
                         while True:
                             batch = f.read(self.config.chunksize)
                             if not batch:
@@ -180,6 +256,18 @@ class Json(datasets.ArrowBasedBuilder):
                                 batch += f.readline()
                             except (AttributeError, io.UnsupportedOperation):
                                 batch += readline(f)
+
+                            # Count lines in batch and respect shard_end_line
+                            lines = batch.splitlines()
+                            if shard_end_line is not None:
+                                remaining_lines = shard_end_line - current_line
+                                if remaining_lines <= 0:
+                                    break
+                                if len(lines) > remaining_lines:
+                                    lines = lines[:remaining_lines]
+                                    batch = b"\n".join(lines) + b"\n"
+                            current_line += len(lines)
+
                             # PyArrow only accepts utf-8 encoded bytes
                             if self.config.encoding != "utf-8":
                                 batch = batch.decode(self.config.encoding, errors=encoding_errors).encode("utf-8")
@@ -238,7 +326,22 @@ class Json(datasets.ArrowBasedBuilder):
                                     with open(
                                         file, encoding=self.config.encoding, errors=self.config.encoding_errors
                                     ) as f:
-                                        df = pandas_read_json(f)
+                                        # Skip lines until shard_start_line
+                                        if shard_start_line > 0:
+                                            for _ in range(shard_start_line):
+                                                f.readline()
+                                        # Read until shard_end_line
+                                        lines = []
+                                        current_line = shard_start_line
+                                        while True:
+                                            line = f.readline()
+                                            if not line:
+                                                break
+                                            if shard_end_line is not None and current_line >= shard_end_line:
+                                                break
+                                            lines.append(line)
+                                            current_line += 1
+                                        df = pandas_read_json(io.StringIO("".join(lines)))
                                 except ValueError:
                                     logger.error(f"Failed to load JSON from file '{file}' with error {type(e)}: {e}")
                                     raise e
@@ -260,3 +363,7 @@ class Json(datasets.ArrowBasedBuilder):
                                 self._cast_table(pa_table, json_field_paths=json_field_paths),
                             )
                             batch_idx += 1
+
+                            # Stop if we've reached shard_end_line
+                            if shard_end_line is not None and current_line >= shard_end_line:
+                                break
