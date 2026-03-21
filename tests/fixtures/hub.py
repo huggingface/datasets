@@ -8,7 +8,16 @@ import pytest
 from huggingface_hub.hf_api import HfApi
 from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 from huggingface_hub.utils._headers import _http_user_agent
+from packaging import version
 
+from datasets import config
+
+
+if config.HF_HUB_VERSION >= version.parse("1.6.0"):
+    from huggingface_hub.errors import BucketNotFoundError
+
+else:
+    BucketNotFoundError = None
 
 CI_HUB_USER = "__DUMMY_TRANSFORMERS_USER__"
 CI_HUB_USER_FULL_NAME = "Dummy User"
@@ -76,11 +85,19 @@ def hf_token():
 
 
 @pytest.fixture
-def cleanup_repo(hf_api):
+def cleanup_repo(hf_api: HfApi):
     def _cleanup_repo(repo_id):
         hf_api.delete_repo(repo_id, token=CI_HUB_USER_TOKEN, repo_type="dataset")
 
     return _cleanup_repo
+
+
+@pytest.fixture
+def cleanup_bucket(hf_api: HfApi):
+    def _cleanup_bucket(bucket_id):
+        hf_api.delete_bucket(bucket_id, token=CI_HUB_USER_TOKEN)
+
+    return _cleanup_bucket
 
 
 @pytest.fixture
@@ -97,6 +114,22 @@ def temporary_repo(cleanup_repo):
                 pass
 
     return _temporary_repo
+
+
+@pytest.fixture
+def temporary_bucket(cleanup_bucket):
+    @contextmanager
+    def _temporary_bucket(bucket_id: Optional[str] = None):
+        bucket_id = bucket_id or f"{CI_HUB_USER}/test-bucket-{uuid.uuid4().hex[:6]}-{int(time.time() * 10e3)}"
+        try:
+            yield bucket_id
+        finally:
+            try:
+                cleanup_bucket(bucket_id)
+            except BucketNotFoundError:
+                pass
+
+    return _temporary_bucket
 
 
 @pytest.fixture(scope="session")

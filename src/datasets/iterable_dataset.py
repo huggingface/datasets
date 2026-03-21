@@ -1,17 +1,12 @@
 import asyncio
 import contextlib
 import copy
-import fnmatch
 import inspect
 import itertools
-import json
-import math
 import multiprocessing.pool
-import random
 import re
 import sys
 import tempfile
-import time
 from collections import Counter
 from collections.abc import Iterable, Iterator
 from copy import deepcopy
@@ -22,6 +17,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Optional, Union
 
 import fsspec.asyn
+import multiprocess as mp
 import numpy as np
 import pandas as pd
 import pyarrow as pa
@@ -30,19 +26,15 @@ import pyarrow.parquet as pq
 from huggingface_hub import (
     CommitInfo,
     CommitOperationAdd,
-    CommitOperationDelete,
-    DatasetCard,
-    DatasetCardData,
     HfApi,
     HfFileSystem,
+    HfFileSystemResolvedPath,
 )
-from huggingface_hub.hf_api import RepoFile
-from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
-from multiprocess import Pool
+from huggingface_hub.utils import RepositoryNotFoundError
+from packaging import version
 
 from . import config
-from .arrow_dataset import PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED, Dataset, DatasetInfoMixin
-from .data_files import sanitize_patterns
+from .arrow_dataset import Dataset, DatasetInfoMixin, _push_to_bucket, _push_to_repo
 from .features import Features
 from .features.features import (
     FeatureType,
@@ -63,17 +55,29 @@ from .formatting import (
     get_format_type_from_alias,
     get_formatter,
 )
-from .info import DatasetInfo, DatasetInfosDict
+from .info import DatasetInfo
 from .naming import _split_re
-from .splits import NamedSplit, Split, SplitDict, SplitInfo
+from .splits import NamedSplit, Split, SplitInfo
 from .table import cast_table_to_features, embed_table_storage, read_schema_from_file, table_cast
 from .utils import tqdm as hf_tqdm
 from .utils.logging import get_logger
-from .utils.metadata import MetadataConfigs
-from .utils.py_utils import Literal, asdict, glob_pattern_to_regex, iflatmap_unordered, string_to_dict
+from .utils.py_utils import (
+    Literal,
+    convert_file_size_to_int,
+    iflatmap_unordered,
+)
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 from .utils.typing import PathLike
 
+
+if config.HF_HUB_VERSION >= version.parse("1.6.0"):
+    from huggingface_hub.errors import BucketNotFoundError
+    from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
+
+else:
+    BucketNotFoundError = None
+    HfFileSystemResolvedBucketPath = None
+    HfFileSystemResolvedRepositoryPath = HfFileSystemResolvedPath
 
 if TYPE_CHECKING:
     import sqlite3
@@ -420,15 +424,22 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
 
 
 class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterable: _BaseExamplesIterable, batch_size: Optional[int], drop_last_batch: bool = False):
+    def __init__(
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        batch_size: Optional[int],
+        drop_last_batch: bool = False,
+        force_convert_to_arrow: bool = False,
+    ):
         super().__init__()
         self.ex_iterable = ex_iterable
         self.batch_size = batch_size
         self.drop_last_batch = drop_last_batch
+        self.force_convert_to_arrow = force_convert_to_arrow
 
     @property
     def iter_arrow(self):
-        return self._iter_arrow
+        return self._iter_arrow if self.ex_iterable.iter_arrow or self.force_convert_to_arrow else None
 
     @property
     def is_typed(self):
@@ -458,8 +469,12 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
             self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
         if self.ex_iterable.iter_arrow:
             iterator = self.ex_iterable.iter_arrow()
-        else:
+        elif self.force_convert_to_arrow:
             iterator = _convert_to_arrow(self.ex_iterable, batch_size=1)
+        else:
+            raise RuntimeError(
+                "_iter_arrow is not available in RebatchedArrowExamplesIterable, use an examples iterable that implements _iter_arrow() or pass force_convert_to_arrow=True"
+            )
         if self.batch_size is None or self.batch_size <= 0:
             if self._state_dict and self._state_dict["batch_idx"] > 0:
                 return
@@ -540,7 +555,10 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "RebatchedArrowExamplesIterable":
         return RebatchedArrowExamplesIterable(
-            self.ex_iterable.shuffle_data_sources(generator), self.batch_size, self.drop_last_batch
+            self.ex_iterable.shuffle_data_sources(generator),
+            self.batch_size,
+            self.drop_last_batch,
+            self.force_convert_to_arrow,
         )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "RebatchedArrowExamplesIterable":
@@ -548,13 +566,12 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
             self.batch_size,
             self.drop_last_batch,
+            self.force_convert_to_arrow,
         )
 
     def reshard_data_sources(self) -> "RebatchedArrowExamplesIterable":
         return RebatchedArrowExamplesIterable(
-            self.ex_iterable.reshard_data_sources(),
-            self.batch_size,
-            self.drop_last_batch,
+            self.ex_iterable.reshard_data_sources(), self.batch_size, self.drop_last_batch, self.force_convert_to_arrow
         )
 
     @property
@@ -616,7 +633,10 @@ class StepExamplesIterable(_BaseExamplesIterable):
         self.ex_iterable = ex_iterable
         self.step = step
         self.offset = offset
-        # TODO(QL): implement iter_arrow
+
+    @property
+    def iter_arrow(self):
+        return self._iter_arrow if self.ex_iterable.iter_arrow else None
 
     @property
     def is_typed(self):
@@ -627,7 +647,11 @@ class StepExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.features
 
     def _init_state_dict(self) -> dict:
-        self._state_dict = self.ex_iterable._init_state_dict()
+        self._state_dict = {
+            "examples_iterable": self.ex_iterable._init_state_dict(),
+            "stepped": 0,
+            "type": self.__class__.__name__,
+        }
         return self._state_dict
 
     def __iter__(self):
@@ -638,6 +662,17 @@ class StepExamplesIterable(_BaseExamplesIterable):
                 yield batch[self.offset]
             else:
                 break
+
+    def _iter_arrow(self):
+        stepped = self._state_dict["stepped"] if self._state_dict else 0
+        for key, pa_table in self.ex_iterable.iter_arrow():
+            stepped_pa_table = pa_table.take(
+                pa.array(range((self.offset - stepped) % self.step, len(pa_table), self.step), type=pa.int64())
+            )
+            stepped = (stepped + len(pa_table)) % self.step
+            if self._state_dict:
+                self._state_dict["stepped"] = stepped
+            yield key, stepped_pa_table
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "StepExamplesIterable":
         return StepExamplesIterable(
@@ -692,7 +727,7 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
     @property
     def iter_arrow(self):
-        # Can iterate on arrow tables if all ex_iterables can iterate
+        # iterate on arrow tables if all ex_iterables can iterate
         return self._iter_arrow if all(ex_iterable.iter_arrow for ex_iterable in self.ex_iterables) else None
 
     def _get_indices_iterator(self):
@@ -964,7 +999,18 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
     def __init__(self, ex_iterables: list[_BaseExamplesIterable]):
         super().__init__()
         self.ex_iterables = ex_iterables
-        # TODO(QL): implement iter_arrow
+
+    @property
+    def iter_arrow(self):
+        return (
+            self._iter_arrow
+            if all(
+                isinstance(ex_iterable, RebatchedArrowExamplesIterable) and ex_iterable.ex_iterable.iter_arrow
+                for ex_iterable in self.ex_iterables
+            )
+            or (len(self.ex_iterables) < 2 and all(ex_iterable.iter_arrow for ex_iterable in self.ex_iterables))
+            else None
+        )
 
     @property
     def is_typed(self):
@@ -1001,6 +1047,34 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
                     new_example.update(example)
                 new_key = "_".join(str(key) for key in keys)
                 yield new_key, new_example
+            else:
+                break
+
+    def _iter_arrow(self):
+        pa_table_iterators = [iter(ex_iterable.iter_arrow()) for ex_iterable in self.ex_iterables]
+        for i in itertools.count():
+            keys = []
+            pa_tables = []
+            for pa_table_iterator in list(pa_table_iterators):
+                try:
+                    key, pa_table = next(pa_table_iterator)
+                    keys.append(key)
+                    pa_tables.append(pa_table)
+                except StopIteration:
+                    pa_table_iterators.remove(pa_table_iterator)
+            if pa_table_iterators:
+                if i == 0:
+                    _check_column_names(
+                        [column_name for pa_table in pa_tables for column_name in pa_table.column_names]
+                    )
+                for j, table in enumerate(pa_tables):
+                    if j == 0:
+                        new_pa_table = table
+                    else:
+                        for name, col in zip(table.column_names, table.columns):
+                            new_pa_table = pa_table.append_column(name, col)
+                new_key = "_".join(str(key) for key in keys)
+                yield new_key, new_pa_table
             else:
                 break
 
@@ -1198,12 +1272,18 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             # batch_size should match for iter_arrow
             if not isinstance(ex_iterable, RebatchedArrowExamplesIterable):
                 raise ValueError(
-                    f"The {formatting.format_type.capitalize()}-formatted {type(self).__name__} has underlying iterable"
+                    f"The {formatting.format_type.capitalize()}-formatted {type(self).__name__} has underlying iterable "
                     f"that is a {type(ex_iterable).__name__} instead of a RebatchedArrowExamplesIterable."
+                )
+            elif not ex_iterable.iter_arrow:
+                raise ValueError(
+                    f"The {formatting.format_type.capitalize()}-formatted {type(self).__name__} has underlying iterable "
+                    f"that is a {type(ex_iterable).__name__} but doesnt' implement iter_arrow(), a possible fix could be "
+                    "to use RebatchedArrowExamplesIterable(..., force_convert_to_arrow=True)."
                 )
             elif ex_iterable.batch_size != (batch_size if batched else 1):
                 raise ValueError(
-                    f"The {formatting.format_type.capitalize()}-formatted {type(self).__name__} has batch_size={batch_size if batched else 1} which is"
+                    f"The {formatting.format_type.capitalize()}-formatted {type(self).__name__} has batch_size={batch_size if batched else 1} which is "
                     f"different from {ex_iterable.batch_size=} from its underlying iterable."
                 )
         # to enable graceful ends
@@ -1796,7 +1876,10 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         self.n = n
         self.block_sources_order_when_shuffling = block_sources_order_when_shuffling
         self.split_when_sharding = split_when_sharding
-        # TODO(QL): implement iter_arrow
+
+    @property
+    def iter_arrow(self):
+        return self._iter_arrow if self.ex_iterable.iter_arrow else None
 
     @property
     def is_typed(self):
@@ -1808,17 +1891,39 @@ class SkipExamplesIterable(_BaseExamplesIterable):
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {
-            "skipped": False,
+            "skipped": 0,
             "examples_iterable": self.ex_iterable._init_state_dict(),
             "type": self.__class__.__name__,
         }
         return self._state_dict
 
     def __iter__(self):
-        ex_iterable_idx_start = 0 if self._state_dict and self._state_dict["skipped"] else self.n
-        if self._state_dict:
-            self._state_dict["skipped"] = True
-        yield from islice(self.ex_iterable, ex_iterable_idx_start, None)
+        skipped = self._state_dict["skipped"] if self._state_dict else 0
+        for key_example in self.ex_iterable:
+            if skipped + 1 <= self.n:
+                skipped += 1
+                if self._state_dict:
+                    self._state_dict["skipped"] = skipped
+            else:
+                yield key_example
+
+    def _iter_arrow(self):
+        skipped = self._state_dict["skipped"] if self._state_dict else 0
+        for key, pa_table in self.ex_iterable.iter_arrow():
+            if len(pa_table) == 0:
+                continue
+            elif skipped + len(pa_table) <= self.n:
+                skipped += len(pa_table)
+                if self._state_dict:
+                    self._state_dict["skipped"] = skipped
+            if skipped + 1 <= self.n:
+                offset = self.n - skipped
+                skipped = self.n
+                if self._state_dict:
+                    self._state_dict["skipped"] = skipped
+                yield key, pa_table.slice(offset, len(pa_table) - offset)
+            else:
+                yield key, pa_table
 
     @staticmethod
     def split_number(num, n):
@@ -1934,7 +2039,10 @@ class TakeExamplesIterable(_BaseExamplesIterable):
         self.n = n
         self.block_sources_order_when_shuffling = block_sources_order_when_shuffling
         self.split_when_sharding = split_when_sharding
-        # TODO(QL): implement iter_arrow
+
+    @property
+    def iter_arrow(self):
+        return self._iter_arrow if self.ex_iterable.iter_arrow else None
 
     @property
     def is_typed(self):
@@ -1946,18 +2054,45 @@ class TakeExamplesIterable(_BaseExamplesIterable):
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {
-            "num_taken": 0,
+            "taken": 0,
             "examples_iterable": self.ex_iterable._init_state_dict(),
             "type": self.__class__.__name__,
         }
         return self._state_dict
 
     def __iter__(self):
-        ex_iterable_num_taken = self._state_dict["num_taken"] if self._state_dict else 0
-        for key_example in islice(self.ex_iterable, self.n - ex_iterable_num_taken):
-            if self._state_dict:
-                self._state_dict["num_taken"] += 1
-            yield key_example
+        taken = self._state_dict["taken"] if self._state_dict else 0
+        if taken >= self.n:
+            return
+        for key_example in self.ex_iterable:
+            if taken + 1 <= self.n:
+                taken += 1
+                if self._state_dict:
+                    self._state_dict["taken"] = taken
+                yield key_example
+            else:
+                break
+
+    def _iter_arrow(self):
+        taken = self._state_dict["taken"] if self._state_dict else 0
+        if taken >= self.n:
+            return
+        for key, pa_table in self.ex_iterable.iter_arrow():
+            if len(pa_table) == 0:
+                continue
+            elif taken + len(pa_table) <= self.n:
+                taken += len(pa_table)
+                if self._state_dict:
+                    self._state_dict["taken"] = taken
+                yield key, pa_table
+            elif taken + 1 <= self.n:
+                length = self.n - taken
+                taken = self.n
+                if self._state_dict:
+                    self._state_dict["taken"] = taken
+                yield key, pa_table.slice(0, length)
+            else:
+                break
 
     @staticmethod
     def split_number(num, n):
@@ -2025,22 +2160,6 @@ def _apply_feature_types_on_example(
     return decoded_example
 
 
-def _apply_feature_types_on_batch(
-    batch: dict, features: Features, token_per_repo_id: dict[str, Union[str, bool, None]]
-) -> dict:
-    batch = dict(batch)
-    # add missing columns
-    n_examples = len(batch[next(iter(batch))])
-    for column_name in features:
-        if column_name not in batch:
-            batch[column_name] = [None] * n_examples
-    # we encode the batch for ClassLabel feature types for example
-    encoded_batch = features.encode_batch(batch)
-    # Decode batch for Audio feature, e.g.
-    decoded_batch = features.decode_batch(encoded_batch, token_per_repo_id=token_per_repo_id)
-    return decoded_batch
-
-
 @dataclass
 class FormattingConfig:
     format_type: Optional[str]
@@ -2061,16 +2180,18 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
         formatting: Optional[FormattingConfig],
         features: Optional[Features],
         token_per_repo_id: dict[str, Union[str, bool, None]],
+        force_convert_to_python: bool = False,
     ):
         super().__init__()
         self.ex_iterable = ex_iterable
         self._features = features
         self.formatting = formatting
         self.token_per_repo_id = token_per_repo_id
+        self.force_convert_to_python = force_convert_to_python
 
     @property
     def iter_arrow(self):
-        if self.ex_iterable.iter_arrow and (not self.formatting or self.formatting.is_table):
+        if self.ex_iterable.iter_arrow and not self.force_convert_to_python:
             return self._iter_arrow
 
     @property
@@ -2097,6 +2218,10 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
                 features=self._features if not self.ex_iterable.is_typed else None,
                 token_per_repo_id=self.token_per_repo_id,
             )
+
+        # It's ok to use _iter_arrow here without fancy state_dict logic since it's
+        # used with RebatchedArrowExamplesIterable with the right batch_size to
+        # never lose examples
         if self.ex_iterable.iter_arrow:
             # feature casting (inc column addition) handled within self._iter_arrow()
             for key, pa_table in self._iter_arrow():
@@ -2122,6 +2247,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
     def _iter_arrow(self) -> Iterator[tuple[Key, pa.Table]]:
         if not self.features:
             yield from self.ex_iterable._iter_arrow()
+            return
         for key, pa_table in self.ex_iterable._iter_arrow():
             columns = set(pa_table.column_names)
             schema = self.features.arrow_schema
@@ -2141,6 +2267,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             features=self.features,
             token_per_repo_id=self.token_per_repo_id,
             formatting=self.formatting,
+            force_convert_to_python=self.force_convert_to_python,
         )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "FormattedExamplesIterable":
@@ -2150,6 +2277,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             features=self.features,
             token_per_repo_id=self.token_per_repo_id,
             formatting=self.formatting,
+            force_convert_to_python=self.force_convert_to_python,
         )
 
     def reshard_data_sources(self) -> "FormattedExamplesIterable":
@@ -2158,6 +2286,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             features=self.features,
             token_per_repo_id=self.token_per_repo_id,
             formatting=self.formatting,
+            force_convert_to_python=self.force_convert_to_python,
         )
 
     @property
@@ -2458,11 +2587,7 @@ class IterableDataset(DatasetInfoMixin):
 
             if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
                 formatter = get_formatter(self._formatting.format_type, features=self.features)
-                if ex_iterable.iter_arrow:
-                    iterator = ex_iterable.iter_arrow()
-                else:
-                    iterator = _convert_to_arrow(ex_iterable, batch_size=1)
-                for key, pa_table in iterator:
+                for key, pa_table in ex_iterable.iter_arrow():
                     yield formatter.format_row(pa_table)
                 return
             else:
@@ -2492,14 +2617,7 @@ class IterableDataset(DatasetInfoMixin):
         self, batch_size: int = 1, drop_last_batch: bool = False
     ) -> _BaseExamplesIterable:
         ex_iterable = self._ex_iterable
-        if (
-            self._formatting
-            and (ex_iterable.iter_arrow or self._formatting.is_table)
-            or (self.features and ex_iterable.features != self.features)
-        ):
-            ex_iterable = RebatchedArrowExamplesIterable(
-                ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch
-            )
+
         if self.epoch:
             ex_iterable = ex_iterable.shuffle_data_sources(np.random.default_rng(self.epoch))
             ex_iterable = shift_ex_examples_rngs(ex_iterable, self.epoch)
@@ -2526,6 +2644,15 @@ class IterableDataset(DatasetInfoMixin):
                         f"The current dataset has {ex_iterable.num_shards} which is not a factor of {world_size}"
                     )
                 ex_iterable = StepExamplesIterable(ex_iterable, step=world_size, offset=rank)
+
+        if ex_iterable.iter_arrow:
+            ex_iterable = RebatchedArrowExamplesIterable(
+                ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch
+            )
+        elif self._formatting and self._formatting.is_table:
+            ex_iterable = RebatchedArrowExamplesIterable(
+                ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch, force_convert_to_arrow=True
+            )
 
         if self._formatting or (self.features and ex_iterable.features != self.features):
             ex_iterable = FormattedExamplesIterable(
@@ -2556,11 +2683,7 @@ class IterableDataset(DatasetInfoMixin):
         ex_iterable = self._prepare_ex_iterable_for_iteration()
         if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
             formatter = get_formatter(self._formatting.format_type, features=self.features)
-            if ex_iterable.iter_arrow:
-                iterator = ex_iterable.iter_arrow()
-            else:
-                iterator = _convert_to_arrow(ex_iterable, batch_size=1)
-            for key, pa_table in iterator:
+            for key, pa_table in ex_iterable.iter_arrow():
                 yield formatter.format_row(pa_table)
             return
 
@@ -2585,11 +2708,7 @@ class IterableDataset(DatasetInfoMixin):
 
         ex_iterable = self._prepare_ex_iterable_for_iteration(batch_size=batch_size, drop_last_batch=drop_last_batch)
         if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
-            if ex_iterable.iter_arrow:
-                iterator = ex_iterable.iter_arrow()
-            else:
-                iterator = _convert_to_arrow(ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch)
-            for key, pa_table in iterator:
+            for key, pa_table in ex_iterable.iter_arrow():
                 yield formatter.format_batch(pa_table)
             return
 
@@ -3303,7 +3422,10 @@ class IterableDataset(DatasetInfoMixin):
                 token_per_repo_id=self._token_per_repo_id,
             )
             ex_iterable = RebatchedArrowExamplesIterable(
-                ex_iterable, batch_size=batch_size if batched else 1, drop_last_batch=drop_last_batch
+                ex_iterable,
+                batch_size=batch_size if batched else 1,
+                drop_last_batch=drop_last_batch,
+                force_convert_to_arrow=True,
             )
         else:
             if self._formatting and self._ex_iterable.iter_arrow:
@@ -3317,6 +3439,7 @@ class IterableDataset(DatasetInfoMixin):
                     formatting=copy.deepcopy(self._formatting),
                     features=input_features,
                     token_per_repo_id=self._token_per_repo_id,
+                    force_convert_to_python=True,
                 )
 
         ex_iterable = MappedExamplesIterable(
@@ -4164,12 +4287,23 @@ class IterableDataset(DatasetInfoMixin):
         >>> ds.to_pandas()
         ```
         """
+        info = DatasetInfo(features=self.features.copy()) if self.features is not None else None
+
+        def maybe_cast_to_declared_features(table: pa.Table):
+            if self.features is not None and table.schema != self.features.arrow_schema:
+                return cast_table_to_features(table, self.features)
+            return table
+
         if batched:
-            for table in self.with_format("arrow").iter(batch_size=batch_size):
-                yield Dataset(table, fingerprint="unset").to_pandas()
+            return (
+                Dataset(maybe_cast_to_declared_features(table), info=info, fingerprint="unset").to_pandas()
+                for table in self.with_format("arrow").iter(batch_size=batch_size)
+            )
         else:
-            table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
-            return Dataset(table, fingerprint="unset").to_pandas()
+            table = pa.concat_tables(
+                [maybe_cast_to_declared_features(table) for table in self.with_format("arrow").iter(batch_size=1000)]
+            )
+            return Dataset(table, info=info, fingerprint="unset").to_pandas()
 
     def to_polars(
         self,
@@ -4399,20 +4533,21 @@ class IterableDataset(DatasetInfoMixin):
         self,
         job_id: int,
         num_jobs: int,
-        repo_id: str,
+        resolved_output_path: HfFileSystemResolvedPath,
         data_dir: str,
         split: str,
         token: Optional[str],
-        revision: Optional[str],
         create_pr: Optional[bool],
         # max_shard_size: Optional[Union[int, str]] = None,  # TODO(QL): add arg
         num_shards: int,
         embed_external_files: bool,
-    ) -> Iterable[tuple[list[CommitOperationAdd], int, int]]:
+    ) -> Iterable[tuple[list[CommitOperationAdd], list[str], int, int]]:
         """Pushes the dataset shards as Parquet files to the hub.
 
         Returns:
             additions (`List[CommitOperation]`): list of the `CommitOperationAdd` of the uploaded shards
+            new_parquet_paths (`List[str]`): list of the paths of the uploaded parquet files
+            features (`Features`): features of the uploaded dataset
             dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset after uncompression
             num_examples (`int`): number of examples of th euploaded shards
         """
@@ -4431,6 +4566,8 @@ class IterableDataset(DatasetInfoMixin):
         dataset_nbytes = 0
         num_examples = 0
         additions: list[CommitOperationAdd] = []
+        new_parquet_paths: list[str] = []
+        features = self.features
         for index, shard in index_shards:
             if embed_external_files:
                 from .arrow_writer import get_arrow_writer_batch_size_from_features
@@ -4447,49 +4584,66 @@ class IterableDataset(DatasetInfoMixin):
                 shard.to_parquet(tmp_file)
                 tmp_file.close()
                 parquet_metadata = pq.read_metadata(tmp_file.name)
+                if features is None:
+                    features = Features.from_arrow_schema(parquet_metadata.schema.to_arrow_schema())
                 num_examples += parquet_metadata.num_rows
                 dataset_nbytes += sum(
                     parquet_metadata.row_group(i).total_byte_size for i in range(parquet_metadata.num_row_groups)
                 )
-                shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=tmp_file.name)
-                api.preupload_lfs_files(
-                    repo_id=repo_id,
-                    additions=[shard_addition],
-                    repo_type="dataset",
-                    revision=revision,
-                    create_pr=create_pr,
-                )
+                new_parquet_paths.append(shard_path_in_repo)
+                if (
+                    isinstance(resolved_output_path, HfFileSystemResolvedRepositoryPath)
+                    and not resolved_output_path.path_in_repo
+                ):
+                    shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=tmp_file.name)
+                    api.preupload_lfs_files(
+                        repo_id=resolved_output_path.repo_id,
+                        additions=[shard_addition],
+                        repo_type=resolved_output_path.repo_type,
+                        revision=resolved_output_path.revision,
+                        create_pr=create_pr,
+                    )
+                    additions.append(shard_addition)
+                elif isinstance(resolved_output_path, HfFileSystemResolvedBucketPath):
+                    if resolved_output_path.path:
+                        shard_path_in_repo = resolved_output_path.path + "/" + shard_path_in_repo
+                    api.batch_bucket_files(
+                        bucket_id=resolved_output_path.bucket_id, add=[(tmp_file.name, shard_path_in_repo)]
+                    )
+                else:
+                    raise NotImplementedError(f"Bad HF path: {resolved_output_path}")
             except (Exception, KeyboardInterrupt):
                 tmp_file.close()
                 Path(tmp_file.name).unlink()
                 raise
             tmp_file.close()
             Path(tmp_file.name).unlink()
-            additions.append(shard_addition)
             yield job_id, False, 1
 
-        yield job_id, True, (additions, dataset_nbytes, num_examples)
+        yield job_id, True, (additions, new_parquet_paths, features, dataset_nbytes, num_examples)
 
     def _push_parquet_shards_to_hub(
         self,
-        repo_id: str,
+        resolved_output_path: HfFileSystemResolvedPath,
         data_dir: str,
         split: str,
         token: Optional[str],
-        revision: Optional[str],
         create_pr: Optional[bool],
-        # max_shard_size: Optional[Union[int, str]],  # TODO(QL): add arg
+        max_shard_size: Optional[Union[int, str]],
         num_shards: Optional[int],
         embed_external_files: bool,
         num_proc: Optional[int],
-    ) -> tuple[list[CommitOperationAdd], int, int, int]:
+    ) -> tuple[list[CommitOperationAdd], list[str], Features, SplitInfo, int]:
         """Pushes the dataset shards as Parquet files to the hub.
 
         Returns:
             additions (`List[CommitOperation]`): list of the `CommitOperationAdd` of the uploaded shards
-            uploaded_size (`int`): number of uploaded bytes to the repository
-            dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset after uncompression
-            num_examples (`int`): number of examples of the uploaded dataset
+            new_parquet_paths (`List[str]`): list of paths of the new files uploaded to the output path,
+                relative to output path
+            features (`features`): features of the uploaded dataset
+            split_info (`int`): info of the uploaded split, including the approximate size in bytes of
+                the uploaded dataset after uncompression
+            uploaded_size (`int`): number of uploaded bytes to the repository or bucket
         """
 
         # Find decodable columns, because if there are any, we need to:
@@ -4502,23 +4656,45 @@ class IterableDataset(DatasetInfoMixin):
         embed_external_files = embed_external_files and bool(decodable_columns)
 
         if num_shards is None:
-            # TODO(QL): this can depend on max_shard_size later
-            num_shards = self.num_shards
+            if max_shard_size is None:
+                num_shards = self.num_shards
+            else:
+                max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+                estimated_nbytes = 0
+                for pa_table in self.with_format("arrow").iter(batch_size=config.DEFAULT_MAX_BATCH_SIZE):
+                    estimated_nbytes += pa_table.nbytes
+                num_shards = int(estimated_nbytes / max_shard_size) + 1
+                num_shards = max(num_shards, num_proc or 1)
 
         additions: list[CommitOperationAdd] = []
-        dataset_nbytes = num_examples = 0
+        new_parquet_paths: list[str] = []
+        uploaded_size = 0
+        dataset_nbytes = 0
+        num_examples = 0
+        features = self.features
 
         num_jobs = num_proc or 1
+        if num_shards <= 1:
+            logger.warning(
+                f"Setting num_proc from {num_jobs} back to 1 for the {split} split to disable multiprocessing as it only contains one shard."
+            )
+            num_proc = None
+            num_jobs = 1
+        elif num_shards < num_jobs:
+            logger.warning(
+                f"Setting num_proc from {num_jobs} to {num_shards} for the {split} split as it only contains {num_shards} shards."
+            )
+            num_proc = num_shards
+            num_jobs = num_shards
         kwargs_iterable = [
             {
                 "self": self.shard(num_shards=num_jobs, index=job_id, contiguous=True),
                 "job_id": job_id,
                 "num_jobs": num_jobs,
-                "repo_id": repo_id,
+                "resolved_output_path": resolved_output_path,
                 "data_dir": data_dir,
                 "split": split,
                 "token": token,
-                "revision": revision,
                 "create_pr": create_pr,
                 "num_shards": num_shards,
                 "embed_external_files": embed_external_files,
@@ -4532,7 +4708,11 @@ class IterableDataset(DatasetInfoMixin):
             total=num_shards,
             desc=desc,
         )
-        with contextlib.nullcontext() if num_proc is None or num_proc < 1 else Pool(num_proc) as pool:
+        with (
+            contextlib.nullcontext()
+            if num_proc is None or num_proc < 1
+            else mp.get_context("spawn").Pool(num_proc) as pool
+        ):
             update_stream = (
                 IterableDataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
                 if pool is None
@@ -4546,15 +4726,19 @@ class IterableDataset(DatasetInfoMixin):
                 if not done:
                     pbar.update(content)
                 else:
-                    additions += content[0]
-                    dataset_nbytes += content[1]
-                    num_examples += content[2]
+                    job_additions, job_new_parquet_paths, job_features, job_uploaded_size, job_num_examples = content
+                    additions += job_additions
+                    new_parquet_paths += job_new_parquet_paths
+                    uploaded_size += job_uploaded_size
+                    num_examples += job_num_examples
+                    features = job_features
             if pool is not None:
                 pool.close()
                 pool.join()
 
         uploaded_size = sum(addition.upload_info.size for addition in additions)
-        return additions, uploaded_size, dataset_nbytes, num_examples
+        split_info = SplitInfo(split, num_bytes=dataset_nbytes, num_examples=num_examples)
+        return additions, new_parquet_paths, features, split_info, uploaded_size
 
     def push_to_hub(
         self,
@@ -4569,7 +4753,7 @@ class IterableDataset(DatasetInfoMixin):
         token: Optional[str] = None,
         revision: Optional[str] = None,
         create_pr: Optional[bool] = False,
-        # max_shard_size: Optional[Union[int, str]] = None,  # TODO(QL): add arg
+        max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[int] = None,
         embed_external_files: bool = True,
         num_proc: Optional[int] = None,
@@ -4586,6 +4770,8 @@ class IterableDataset(DatasetInfoMixin):
                 The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
                 `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
                 of the logged-in user.
+
+                It could also be a location inside a bucket, e.g. `buckets/<user_or_org>/<bucket_name>/...`
             config_name (`str`, defaults to "default"):
                 The configuration name (or subset) of a dataset. Defaults to "default".
             set_default (`bool`, *optional*):
@@ -4612,8 +4798,12 @@ class IterableDataset(DatasetInfoMixin):
                 Branch to push the uploaded files to. Defaults to the `"main"` branch.
             create_pr (`bool`, *optional*, defaults to `False`):
                 Whether to create a PR with the uploaded files or directly commit.
+            max_shard_size (`int` or `str`, *optional*):
+                Optional maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed
+                by a unit (like `"5MB"`). If not provided, shard count defaults to this dataset's `.num_shards`.
             num_shards (`int`, *optional*):
-                Number of shards to write. Equals to this dataset's `.num_shards` by default.
+                Number of shards to write. If `max_shard_size` is provided and `num_shards` is not, then the number of shards is estimated
+                from `max_shard_size`.
             embed_external_files (`bool`, defaults to `True`):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
@@ -4622,6 +4812,7 @@ class IterableDataset(DatasetInfoMixin):
             num_proc (`int`, *optional*, defaults to `None`):
                 Number of processes when preparing and uploading the dataset.
                 This is helpful if the dataset is made of many samples and transformations.
+                I uses "spawn" context to work with hf_xet, the rust client for fast uploads to HF.
                 Multiprocessing is disabled by default.
 
         Return:
@@ -4632,6 +4823,7 @@ class IterableDataset(DatasetInfoMixin):
         ```python
         >>> dataset.push_to_hub("<organization>/<dataset_id>")
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", private=True)
+        >>> dataset.push_to_hub("<organization>/<dataset_id>", max_shard_size="1GB")
         >>> dataset.push_to_hub("<organization>/<dataset_id>", num_shards=1024)
         ```
 
@@ -4671,10 +4863,10 @@ class IterableDataset(DatasetInfoMixin):
         if config_name == "data":
             raise ValueError("`config_name` cannot be 'data'. Please, choose another name for configuration.")
 
-        # if max_shard_size is not None and num_shards is not None:
-        #     raise ValueError(
-        #         "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
-        #     )
+        if max_shard_size is not None and num_shards is not None:
+            raise ValueError(
+                "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
+            )
 
         if split is None:
             split = str(self.split) if self.split is not None else "train"
@@ -4682,290 +4874,66 @@ class IterableDataset(DatasetInfoMixin):
         if not re.match(_split_re, split):
             raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
 
-        api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
-
-        try:
-            repo_id = api.repo_info(repo_id, repo_type="dataset").id
-        except RepositoryNotFoundError:
-            repo_url = api.create_repo(
-                repo_id,
-                repo_type="dataset",
-                private=private,
-                exist_ok=True,
-            )
-            repo_id = repo_url.repo_id
-
-        if revision is not None and not revision.startswith("refs/pr/"):
-            # We do not call create_branch for a PR reference: 400 Bad Request
-            api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
-
         if not data_dir:
             data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
 
-        additions, uploaded_size, dataset_nbytes, num_examples = self._push_parquet_shards_to_hub(
-            repo_id=repo_id,
-            data_dir=data_dir,
-            split=split,
-            token=token,
-            revision=revision,
-            # max_shard_size=max_shard_size,  # TODO(QL): add arg
-            num_shards=num_shards,
-            create_pr=create_pr,
-            embed_external_files=embed_external_files,
-            num_proc=num_proc,
-        )
-
-        def get_deletions_and_dataset_card() -> tuple[str, list[CommitOperationDelete], str, Optional[str]]:
-            parent_commit = api.repo_info(repo_id, repo_type="dataset", revision=revision).sha
-
-            # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
-            # and delete old split shards (if they exist)
-            repo_with_dataset_card, repo_with_dataset_infos = False, False
-            deletions: list[CommitOperationDelete] = []
-            deleted_size = 0
-            repo_splits: list[str] = []  # use a list to keep the order of the splits
-            repo_files_to_add = [addition.path_in_repo for addition in additions]
-            for repo_file in api.list_repo_tree(
-                repo_id=repo_id, revision=parent_commit, repo_type="dataset", token=token, recursive=True
-            ):
-                if not isinstance(repo_file, RepoFile):
-                    continue
-                if repo_file.rfilename == config.REPOCARD_FILENAME:
-                    repo_with_dataset_card = True
-                elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
-                    repo_with_dataset_infos = True
-                elif (
-                    repo_file.rfilename.startswith(f"{data_dir}/{split}-")
-                    and repo_file.rfilename not in repo_files_to_add
-                ):
-                    deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
-                    deleted_size += repo_file.size
-                elif fnmatch.fnmatch(
-                    repo_file.rfilename,
-                    PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
-                ):
-                    pattern = glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
-                    split_pattern_fields = string_to_dict(repo_file.rfilename, pattern)
-                    assert split_pattern_fields is not None
-                    repo_split = split_pattern_fields["split"]
-                    if repo_split not in repo_splits:
-                        repo_splits.append(repo_split)
-
-            organization, dataset_name = repo_id.split("/") if "/" in repo_id else (None, repo_id)
-            info_to_dump = self.info.copy()
-            info_to_dump.download_checksums = None
-            info_to_dump.download_size = uploaded_size
-            info_to_dump.dataset_size = dataset_nbytes
-            info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
-            info_to_dump.config_name = config_name
-            info_to_dump.splits = SplitDict(
-                {
-                    split: SplitInfo(
-                        split, num_bytes=dataset_nbytes, num_examples=num_examples, dataset_name=dataset_name
-                    )
-                }
-            )
-            # get the info from the README to update them
-            if repo_with_dataset_card:
-                dataset_card_path = api.hf_hub_download(
-                    repo_id, config.REPOCARD_FILENAME, repo_type="dataset", revision=parent_commit
-                )
-                dataset_card = DatasetCard.load(Path(dataset_card_path))
-                dataset_card_data = dataset_card.data
-                metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
-                dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
-                if dataset_infos and config_name in dataset_infos:
-                    repo_info = dataset_infos[config_name]
-                else:
-                    repo_info = None
-            # get the deprecated dataset_infos.json to update them
-            elif repo_with_dataset_infos:
-                dataset_card = None
-                dataset_card_data = DatasetCardData()
-                metadata_configs = MetadataConfigs()
-                dataset_infos_path = api.hf_hub_download(
-                    repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=parent_commit
-                )
-                with open(dataset_infos_path, encoding="utf-8") as f:
-                    dataset_infos: dict = json.load(f)
-                    dataset_info = dataset_infos.get(config_name, None) if dataset_infos else None
-                    repo_info = DatasetInfo.from_dict(dataset_info) if dataset_info else None
-            else:
-                dataset_card = None
-                dataset_card_data = DatasetCardData()
-                metadata_configs = MetadataConfigs()
-                repo_info = None
-            # update the total info to dump from existing info
-            if repo_info is not None:
-                logger.info("Updating downloaded metadata with the new split.")
-                if repo_info.splits and list(repo_info.splits) != [split]:
-                    if self._info.features != repo_info.features:
-                        raise ValueError(
-                            f"Features of the new split don't match the features of the existing splits on the hub: {self._info.features} != {repo_info.features}"
-                        )
-
-                    if split in repo_info.splits:
-                        repo_info.download_size -= deleted_size
-                        repo_info.dataset_size -= repo_info.splits.get(split, SplitInfo()).num_bytes or 0
-
-                    repo_info.download_checksums = None
-                    repo_info.download_size = (repo_info.download_size or 0) + uploaded_size
-                    repo_info.dataset_size = (repo_info.dataset_size or 0) + dataset_nbytes
-                    repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
-                    repo_info.splits.pop(split, None)
-                    repo_info.splits[split] = SplitInfo(
-                        split, num_bytes=dataset_nbytes, num_examples=num_examples, dataset_name=dataset_name
-                    )
-                    info_to_dump = repo_info
-            # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
-            if not metadata_configs and repo_splits:
-                default_metadata_configs_to_dump = {
-                    "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
-                }
-                MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
-            # update the metadata configs
-            if config_name in metadata_configs:
-                metadata_config = metadata_configs[config_name]
-                if "data_files" in metadata_config:
-                    data_files_to_dump = sanitize_patterns(metadata_config["data_files"])
-                else:
-                    data_files_to_dump = {}
-                # add the new split
-                data_files_to_dump[split] = [f"{data_dir}/{split}-*"]
-                metadata_config_to_dump = {
-                    "data_files": [
-                        {
-                            "split": _split,
-                            "path": _pattern[0] if len(_pattern) == 1 else _pattern,
-                        }
-                        for _split, _pattern in data_files_to_dump.items()
-                    ]
-                }
-            else:
-                metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
-            configs_to_dump = {config_name: metadata_config_to_dump}
-            if set_default and config_name != "default":
-                if metadata_configs:
-                    current_default_config_name = metadata_configs.get_default_config_name()
-                    if current_default_config_name == "default":
-                        raise ValueError(
-                            "There exists a configuration named 'default'. To set a different configuration as default, "
-                            "rename the 'default' one first."
-                        )
-                    if current_default_config_name:
-                        _ = metadata_configs[current_default_config_name].pop("default")
-                        configs_to_dump[current_default_config_name] = metadata_configs[current_default_config_name]
-                metadata_config_to_dump["default"] = True
-            # push to the deprecated dataset_infos.json
-            if repo_with_dataset_infos:
-                dataset_infos_path = api.hf_hub_download(
-                    repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=parent_commit
-                )
-                with open(dataset_infos_path, encoding="utf-8") as f:
-                    dataset_infos: dict = json.load(f)
-                dataset_infos[config_name] = asdict(info_to_dump)
-                new_dataset_infos = json.dumps(dataset_infos, indent=4)
-            else:
-                new_dataset_infos = None
-            # push to README
-            DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
-            MetadataConfigs(configs_to_dump).to_dataset_card_data(dataset_card_data)
-            new_dataset_card = (
-                DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
-            )
-            return parent_commit, deletions, new_dataset_card, new_dataset_infos
-
-        commit_message = commit_message if commit_message is not None else "Upload dataset"
-        if len(additions) > config.UPLOADS_MAX_NUMBER_PER_COMMIT:
-            logger.info(
-                f"Number of files to upload is larger than {config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
-            )
-            num_commits = math.ceil(len(additions) / config.UPLOADS_MAX_NUMBER_PER_COMMIT)
-            for i in range(0, num_commits):
-                operations = additions[
-                    i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
-                ]
-                for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
-                    # We need to retry if another commit happens at the same time
-                    sleep_time *= 1 + random.random()
-                    try:
-                        commit_info = api.create_commit(
-                            repo_id,
-                            operations=operations,
-                            commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
-                            commit_description=commit_description,
-                            repo_type="dataset",
-                            revision=revision,
-                            create_pr=create_pr,
-                        )
-                    except HfHubHTTPError as err:
-                        if (
-                            err.__context__
-                            and isinstance(err.__context__, HfHubHTTPError)
-                            and err.__context__.response.status_code == 409
-                        ):
-                            # 409 is Conflict (another commit is in progress)
-                            time.sleep(sleep_time)
-                            logger.info(
-                                f"Retrying intermediate commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
-                            )
-                            continue
-                        else:
-                            raise
-                    break
-                logger.info(
-                    f"Commit #{i + 1} completed"
-                    + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
-                    + "."
-                )
-            last_commit_additions = []
-        else:
-            last_commit_additions = additions
-
-        for retry, sleep_time in enumerate(itertools.chain(range(10), itertools.repeat(30)), start=1):
-            # We need to retry if there was a commit in between in case it touched the dataset card data
-            sleep_time *= 1 + random.random()
-            parent_commit, deletions, dataset_card, dataset_infos = get_deletions_and_dataset_card()
-            dataset_card_additions = []
-            if dataset_infos:
-                dataset_card_additions.append(
-                    CommitOperationAdd(
-                        path_in_repo=config.DATASETDICT_INFOS_FILENAME,
-                        path_or_fileobj=dataset_infos.encode("utf-8"),
-                    )
-                )
-            dataset_card_additions.append(
-                CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
-            )
+        api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+        if repo_id.startswith("buckets/"):
+            if BucketNotFoundError is None:
+                raise ImportError("Pushing datasets to buckets requires huggingface_hub>=1.6.0")
+            _, _namespace, _bucket_name, *_path_segments = repo_id.split("/")
             try:
-                commit_info = api.create_commit(
+                bucket_id = api.bucket_info(_namespace + "/" + _bucket_name).id
+            except BucketNotFoundError:
+                bucket_url = api.create_bucket(_namespace + "/" + _bucket_name, private=private, exist_ok=True)
+                bucket_id = bucket_url.bucket_id
+            path = "/".join(s for s in _path_segments if s)
+            return _push_to_bucket(
+                self,
+                bucket_id=bucket_id,
+                path=path,
+                config_name=config_name,
+                set_default=set_default,
+                split=split,
+                data_dir=data_dir,
+                token=token,
+                max_shard_size=max_shard_size,
+                num_shards=num_shards,
+                embed_external_files=embed_external_files,
+                num_proc=num_proc,
+            )
+        else:
+            try:
+                repo_id = api.repo_info(repo_id, repo_type="dataset").id
+            except RepositoryNotFoundError:
+                repo_url = api.create_repo(
                     repo_id,
-                    operations=last_commit_additions + dataset_card_additions + deletions,
-                    commit_message=commit_message,
-                    commit_description=commit_description,
                     repo_type="dataset",
-                    revision=revision,
-                    create_pr=create_pr,
-                    parent_commit=parent_commit,
+                    private=private,
+                    exist_ok=True,
                 )
-            except HfHubHTTPError as err:
-                if (
-                    err.__context__
-                    and isinstance(err.__context__, HfHubHTTPError)
-                    and err.__context__.response.status_code in (412, 409)
-                ):
-                    # 412 is Precondition failed (parent_commit isn't satisfied)
-                    # 409 is Conflict (another commit is in progress)
-                    time.sleep(sleep_time)
-                    logger.info(
-                        f"Retrying commit for {repo_id}, {config_name} ({retry}/n with status_code {err.__context__.response.status_code})"
-                    )
-                    continue
-                else:
-                    raise
-            break
+                repo_id = repo_url.repo_id
 
-        return commit_info
+            if revision is not None and not revision.startswith("refs/pr/"):
+                # We do not call create_branch for a PR reference: 400 Bad Request
+                api.create_branch(repo_id, branch=revision, repo_type="dataset", exist_ok=True)
+            return _push_to_repo(
+                self,
+                repo_id=repo_id,
+                config_name=config_name,
+                set_default=set_default,
+                split=split,
+                data_dir=data_dir,
+                commit_message=commit_message,
+                commit_description=commit_description,
+                token=token,
+                revision=revision,
+                create_pr=create_pr,
+                max_shard_size=max_shard_size,
+                num_shards=num_shards,
+                embed_external_files=embed_external_files,
+                num_proc=num_proc,
+            )
 
 
 def _concatenate_iterable_datasets(
@@ -5033,6 +5001,13 @@ def _concatenate_iterable_datasets(
     if axis == 0:
         ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
     else:
+        if all(ex_iterable.iter_arrow for ex_iterable in ex_iterables):
+            from .arrow_writer import get_arrow_writer_batch_size_from_features
+
+            batch_size = get_arrow_writer_batch_size_from_features(features) or config.DEFAULT_MAX_BATCH_SIZE
+            ex_iterables = [
+                RebatchedArrowExamplesIterable(ex_iterable, batch_size=batch_size) for ex_iterable in ex_iterables
+            ]
         ex_iterable = HorizontallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
     # Set new info - we update the features
     # setting the features also ensures to fill missing columns with None

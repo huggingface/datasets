@@ -51,11 +51,11 @@ def find_mixed_struct_types_field_paths(examples: list, allow_root=False) -> lis
     while paths_and_content_to_check:
         path, content = paths_and_content_to_check.pop(0)
         if all(isinstance(x, dict) for x in content):
-            if (allow_root or path) and any(set(x) != set(content[0]) for x in content):
+            if (allow_root or path) and (any(set(x) != set(content[0]) for x in content) or not content[0]):
                 mixed_struct_types_field_paths.append(path)
             else:
-                for subfield in content[0]:
-                    examples = [x[subfield] for x in content if x[subfield] is not None]
+                for subfield in {field for x in content for field in x}:
+                    examples = [x[subfield] for x in content if subfield in x and x[subfield] is not None]
                     if not examples:
                         continue
                     paths_and_content_to_check.append((path + [subfield], examples))

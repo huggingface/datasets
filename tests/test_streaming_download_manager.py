@@ -84,6 +84,15 @@ def test_streaming_dl_manager_extract(text_gz_path, text_path):
         assert f.read() == expected_file.read()
 
 
+@pytest.mark.parametrize("archive_jsonl", ["tar_jsonl_path", "zip_jsonl_path"])
+def test_iter_files_in_archive(archive_jsonl, request):
+    archive_path = str(request.getfixturevalue(archive_jsonl))
+    protocol = "tar" if archive_path.endswith(".tar") else "zip"
+    files = list(StreamingDownloadManager().iter_files(f"{protocol}://::{archive_path}"))
+    assert sorted(xbasename(file) for file in files) == ["dataset.jsonl", "dataset2.jsonl"]
+    assert all(file.endswith(f"::{archive_path}") for file in files)
+
+
 def test_streaming_dl_manager_download_and_extract_with_extraction(text_gz_path, text_path):
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.download_and_extract(text_gz_path)
