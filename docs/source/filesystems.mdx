@@ -8,6 +8,10 @@ It's more than a cloud storage: the Dataset Hub is a platform that provides data
 
 This guide shows how to import data from other cloud storage using the filesystems implementations from `fsspec`.
 
+## Hugging Face Storage Buckets
+
+Storage Buckets are a repo type on the Hugging Face Hub providing S3-like object storage, powered by the Xet storage backend. Unlike Git-based dataset repositories, buckets are non-versioned and mutable, designed for use cases where you need simple, fast storage such as logs, intermediate artifacts, or any large collection of files that doesn’t need version control.
+
 ## Import data from a cloud storage
 
 Most cloud storage providers have a `fsspec` FileSystem implementation, which is useful to import data from any cloud provider with the same code.
@@ -37,20 +41,23 @@ First, instantiate your cloud storage filesystem and list the files you'd like t
 ["path/to/my/data/0001.parquet", "path/to/my/data/0001.parquet", ...]
 ```
 
+### Publish a Dataset
+
 Then you can create a dataset on Hugging Face and import the data files, using for example:
 
 ```python
->>> from huggingface_hub import create_repo, upload_file
+>>> from huggingface_hub import create_repo, upload_folder
 >>> from tqdm.auto import tqdm
 >>> destination_dataset = "username/my-dataset"
 >>> create_repo(destination_dataset, repo_type="dataset")
->>> for data_file in tqdm(fs.glob(data_dir + pattern)):
-...     with fs.open(data_file) as fileobj:
-...         path_in_repo = data_file[len(data_dir):]
-...         upload_file(
-...             path_or_fileobj=fileobj,
-...             path_in_repo=path_in_repo,
+>>> batch_size = 100
+>>> for data_files in batched(tqdm(fs.glob(data_dir + pattern)), batch_size):
+...     with TemporaryDirectory() as tmp_dir:
+...         tmp_files = [os.path.join(tmp_dir, x[len(data_dir):]) for x in data_files]
+...         fs.download(data_files, tmp_files)
+...         upload_folder(
 ...             repo_id=destination_dataset,
+...             folder_path=tmp_dir,
 ...             repo_type="dataset",
 ...         )
 ```
@@ -61,5 +68,57 @@ Finally you can now load the dataset using 🤗 Datasets:
 
 ```python
 >>> from datasets import load_dataset
+>>> ds = load_dataset("username/my-dataset")
+```
+
+### Import raw data to Storage Buckets
+
+Alternatively if you wish not to publish a dataset but simply import raw data files in a Hugging Face [Storage Bucket](https://huggingface.co/docs/hub/storage-buckets), you can use:
+
+```python
+>>> from huggingface_hub import create_bucket, sync_bucket
+>>> from tqdm.auto import tqdm
+>>> from itertools import batched
+>>> from tempfile import TemporaryDirectory
+>>> import os
+>>> create_bucket("username/my-bucket")
+>>> bucket_files_location = "hf://buckets/username/my-bucket/path/to/raw/files"
+>>> batch_size = 100
+>>> for data_files in batched(tqdm(fs.glob(data_dir + pattern)), batch_size):
+...     with TemporaryDirectory() as tmp_dir:
+...         tmp_files = [os.path.join(tmp_dir, x[len(data_dir):]) for x in data_files]
+...         fs.download(data_files, tmp_files)
+...         sync_bucket(tmp_dir, bucket_files_location)
+```
+
+Check out the [huggingface_hub](https://huggingface.co/docs/huggingface_hub) documentation on Storage Buckets [here](https://huggingface.co/docs/hub/storage-buckets) if you're looking for more upload options.
+
+Then later you can load the raw files using 🤗 Datasets, transform them and upload the final AI-ready datasets, e.g. in a streaming manner:
+
+If the files are in a format supported by 🤗 Datasets:
+
+```python
+>>> from datasets import load_dataset
+>>> ds = load_dataset(bucket_files_location, streaming=True)
+>>> ds = ds.map(...).filter(...)
+>>> ds.push_to_hub("username/my-dataset", num_proc=4)
+>>> # and later
+>>> ds = load_dataset("username/my-dataset")
+```
+
+Otherwise you can use your own file parsing function:
+
+```python
+>>> from datasets import IterableDataset
+>>> from huggingface_hub import hffs
+>>> data_files = hffs.find(bucket_files_location)
+>>> num_shards = 1024  # For parallelism. PS: every shard should fit in RAM
+>>> ds = IterableDataset.from_dict({"data_file": data_files}, num_shards=num_shards)
+>>> def parse_data_files(data_files):
+...     ...
+...     return {"col_1": [...], "col_2": [...]}
+>>> ds = ds.map(parse_data_files, batched=True, input_column=["data_file"])
+>>> ds.push_to_hub("username/my-dataset", num_proc=4)
+>>> # and later
 >>> ds = load_dataset("username/my-dataset")
 ```

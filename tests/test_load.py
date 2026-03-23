@@ -5,6 +5,7 @@ import shutil
 import tempfile
 from multiprocessing import Pool
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -44,6 +45,7 @@ from .utils import (
     offline,
     require_pil,
     require_torchcodec,
+    require_zstandard,
     set_current_working_directory_to_temp_dir,
 )
 
@@ -805,6 +807,34 @@ def test_load_dataset_builder_config_kwargs_passed_as_arguments():
     assert builder_custom.config.drop_metadata is True
 
 
+def test_load_dataset_builder_config_kwargs_override_builder_kwargs():
+    class DummyBuilder:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+
+        # make sure that the builder is not trying to use the legacy cache dir
+        def _use_legacy_cache_dir_if_possible(self, dataset_module):
+            pass
+
+    dataset_module = SimpleNamespace(
+        builder_kwargs={"base_path": "from_builder"},
+        builder_configs_parameters=SimpleNamespace(
+            default_config_name="default",
+            builder_configs=[SimpleNamespace(data_files={"train": ["dummy.txt"]})],
+        ),
+        dataset_infos={},
+        hash="dummy_hash",
+    )
+
+    with (
+        patch("datasets.load.dataset_module_factory", return_value=dataset_module),
+        patch("datasets.load.get_dataset_builder_class", return_value=DummyBuilder),
+    ):
+        builder = datasets.load_dataset_builder("dummy/path", base_path="from_user")
+
+    assert builder.kwargs["base_path"] == "from_user"
+
+
 @pytest.mark.integration
 def test_load_dataset_builder_with_two_configs_in_metadata():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "v1")
@@ -921,14 +951,21 @@ def test_load_dataset_streaming_gz_json(jsonl_gz_path):
 
 @pytest.mark.integration
 @pytest.mark.parametrize(
-    "path", ["sample.jsonl", "sample.jsonl.gz", "sample.tar", "sample.jsonl.xz", "sample.zip", "sample.jsonl.zst"]
+    "path",
+    [
+        "sample.jsonl",
+        "sample.jsonl.gz",
+        "sample.tar",
+        "sample.jsonl.xz",
+        "sample.zip",
+        pytest.param("sample.jsonl.zst", marks=require_zstandard),
+    ],
 )
 def test_load_dataset_streaming_compressed_files(path):
     repo_id = "hf-internal-testing/compressed_files"
     data_files = f"https://huggingface.co/datasets/{repo_id}/resolve/main/{path}"
     if data_files[-3:] in ("zip", "tar"):  # we need to glob "*" inside archives
         data_files = data_files[-3:] + "://*::" + data_files
-        return  # TODO(QL, albert): support re-add support for ZIP and TAR archives streaming
     ds = load_dataset("json", split="train", data_files=data_files, streaming=True)
     assert isinstance(ds, IterableDataset)
     ds_item = next(iter(ds))
@@ -1088,6 +1125,7 @@ def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_da
     assert next(iter(ds)) is not None
 
 
+@require_pil
 @pytest.mark.integration
 def test_load_dataset_config_kwargs_passed_as_arguments():
     ds_default = load_dataset(SAMPLE_DATASET_IDENTIFIER4)

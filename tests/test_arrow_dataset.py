@@ -34,6 +34,7 @@ from datasets.features import (
     ClassLabel,
     Features,
     Image,
+    Json,
     LargeList,
     List,
     Translation,
@@ -1443,21 +1444,13 @@ class BaseDatasetTest(TestCase):
             self._caplog.clear()
             with self._caplog.at_level(INFO, logger=get_logger().name):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                    with patch(
-                        "datasets.arrow_dataset.Pool",
-                        new_callable=PickableMagicMock,
-                        side_effect=datasets.arrow_dataset.Pool,
-                    ) as mock_pool:
-                        with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
-                            dset_test1_data_files = list(dset_test1.cache_files)
-                        self.assertEqual(mock_pool.call_count, 1)
-                        with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test2:
-                            self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
-                            self.assertTrue(
-                                (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 1)
-                                ^ in_memory
-                            )
-                        self.assertEqual(mock_pool.call_count, 2 if in_memory else 1)
+                    with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
+                        dset_test1_data_files = list(dset_test1.cache_files)
+                    with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test2:
+                        self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                        self.assertTrue(
+                            (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 1) ^ in_memory
+                        )
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
@@ -1908,6 +1901,21 @@ class BaseDatasetTest(TestCase):
                     "One of the subprocesses has abruptly died during map operation."
                     "To debug the error, disable multiprocessing."
                 )
+
+    def test_map_on_mixed_types(self, in_memory):
+        mixed_data = {
+            "mixed_type": [-1, 1, "foo"],
+            "mix_struct_and_non_struct": [{"a": 0}, [0]],
+            "mixed_dict_keys": [{"a": 0}, {"b": 0}, {"c": 0}],
+            "mixed_dict_keys2": [[{"a": 0}, {"b": 0}], [{"c": 0}, {"d": 0}]],
+            "messages": _messages,
+        }
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(
+                    lambda x: mixed_data, on_mixed_types="use_json", remove_columns=dset.column_names
+                ) as dset:
+                    self.assertDictEqual(dset[0], mixed_data)
 
     def test_filter(self, in_memory):
         # keep only first five examples
@@ -3286,6 +3294,32 @@ class BaseDatasetTest(TestCase):
         del tf_dataset_with_drop
 
 
+_messages = [
+    {"role": "user", "content": "Turn on the living room lights and play my electronic music playlist."},
+    {
+        "role": "assistant",
+        "tool_calls": [
+            {
+                "type": "function",
+                "function": {"name": "control_light", "arguments": {"room": "living room", "state": "on"}},
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "play_music",
+                    "arguments": {
+                        "playlist": "electronic"
+                    },  # mixed-type here since keys ["playlist"] and ["room", "state"] are different
+                },
+            },
+        ],
+    },
+    {"role": "tool", "name": "control_light", "content": "The lights in the living room are now on."},
+    {"role": "tool", "name": "play_music", "content": "The music is now playing."},
+    {"role": "assistant", "content": "Done!"},
+]
+
+
 class MiscellaneousDatasetTest(TestCase):
     def test_from_pandas(self):
         data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
@@ -3388,6 +3422,27 @@ class MiscellaneousDatasetTest(TestCase):
 
         features = Features({"col_1": Value("int64"), "col_2": Value("int64"), "col_3": Value("bool")})
         self.assertRaises(ValueError, Dataset.from_dict, data, features=features)
+
+    def test_from_dict_on_mixed_types(self):
+        data = {"col_1": [-1, 1, "foo"]}
+        with Dataset.from_dict(data, on_mixed_types="use_json") as dset:
+            self.assertEqual(dset[:], data)
+        data = {"col_1": [{"a": 0}, [0]]}
+        with Dataset.from_dict(data, on_mixed_types="use_json") as dset:
+            self.assertEqual(dset[:], data)
+        data = {"col_1": [{"a": 0}, {"b": 0}, {"c": 0}]}
+        with Dataset.from_dict(data, on_mixed_types="use_json") as dset:
+            self.assertEqual(dset[:], data)
+        data = {"col_1": [[{"a": 0}, {"b": 0}], [{"c": 0}, {"d": 0}]]}
+        with Dataset.from_dict(data, on_mixed_types="use_json") as dset:
+            self.assertEqual(dset[:], data)
+        data = {"messages": [_messages]}
+        with Dataset.from_dict(data, on_mixed_types="use_json") as dset:
+            self.assertEqual(dset[:], data)
+        data = {"empty_struct": [{}]}
+        with Dataset.from_dict(data, on_mixed_types="use_json") as dset:
+            self.assertEqual(dset[:], data)
+            self.assertEqual(dset.features["empty_struct"], Json())
 
     def test_concatenate_mixed_memory_and_disk(self):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}

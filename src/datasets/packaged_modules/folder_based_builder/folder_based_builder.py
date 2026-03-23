@@ -223,10 +223,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                             feature_not_found = False
                         elif (key == "file_names" or key.endswith("_file_names")) and (
                             feature[key]
-                            == datasets.List(
-                                datasets.Value("string")
-                                or feature[key] == datasets.List(datasets.Value("large_string"))
-                            )
+                            in [datasets.List(datasets.Value("string")), datasets.List(datasets.Value("large_string"))]
                         ):
                             key = key[: -len("_file_names")] or (self.BASE_COLUMN_NAME + "s")
                             out[key] = datasets.List(self.BASE_FEATURE())
@@ -247,7 +244,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
             if feature_not_found:
                 raise ValueError(
-                    "`file_name` or `*_file_name` must be present as dictionary key (with type string) in metadata files"
+                    "`file_name`, `*_file_name`, `file_names` or `*_file_names` must be present as dictionary key in metadata files"
                 )
         else:
             metadata_features = None

@@ -269,11 +269,11 @@ WebDataset.AUDIO_EXTENSIONS = AUDIO_EXTENSIONS
 
 # TODO: initial list, we should check the compatibility of other formats
 VIDEO_EXTENSIONS = [
-    ".mkv",
-    ".mp4",
-    ".avi",
-    ".mpeg",
-    ".mov",
+    "mkv",
+    "mp4",
+    "avi",
+    "mpeg",
+    "mov",
 ]
 WebDataset.VIDEO_EXTENSIONS = VIDEO_EXTENSIONS
 

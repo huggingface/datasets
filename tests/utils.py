@@ -71,6 +71,20 @@ require_numpy1_on_windows = pytest.mark.skipif(
 IS_HF_HUB_1_x = config.HF_HUB_VERSION >= version.parse("0.99")  # clunky but works with pre-releases
 
 
+def require_buckets_support_in_huggingface_hub(test_case):
+    """
+    Decorator marking a test that requires buckets support in huggingface_hub.
+
+    These tests are skipped when huggingface_hub's version doesn't support buckets.
+
+    """
+    try:
+        from huggingface_hub.utils import BucketNotFoundError  # noqa
+    except ImportError:
+        test_case = unittest.skip("test requires buckets support in huggingface_hub")(test_case)
+    return test_case
+
+
 def require_regex(test_case):
     """
     Decorator marking a test that requires regex.

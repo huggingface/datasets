@@ -9,13 +9,14 @@ import pytest
 
 from datasets import Array2D
 from datasets.arrow_dataset import Column, Dataset
-from datasets.features import Audio, ClassLabel, Features, Image, LargeList, List, Sequence, Value
+from datasets.features import Audio, ClassLabel, Features, Image, Json, LargeList, List, Sequence, Value
 from datasets.features.features import (
     _align_features,
     _arrow_to_datasets_dtype,
     _cast_to_python_objects,
     _check_if_features_can_be_aligned,
     _check_non_null_non_empty_recursive,
+    _is_null_feature,
     _visit,
     cast_to_python_objects,
     decode_nested_example,
@@ -659,6 +660,8 @@ CUSTOM_FEATURES = [
     Features({"audio": Audio(decode=False)}),
     Features({"translation": Translation(["en", "fr"])}),
     Features({"translation": TranslationVariableLanguages(["en", "fr"])}),
+    Features({"json": Json()}),
+    Features({"json": Json(decode=False)}),
 ]
 
 NESTED_FEATURES = [
@@ -839,6 +842,50 @@ NESTED_COMPARISON = [
             Features({"speaker": {"email": Value(dtype="string", id=None)}}),
         ],
     ],
+    # List(Value("null")) should be aligned with List(Struct(...))
+    [
+        [
+            Features({"label": List({"type": Value("string"), "score": Value("float64")})}),
+            Features({"label": List(Value("null"))}),
+        ],
+        [
+            Features({"label": List({"type": Value("string"), "score": Value("float64")})}),
+            Features({"label": List({"type": Value("string"), "score": Value("float64")})}),
+        ],
+    ],
+    # List(Value("null")) should be aligned with List(Value("string"))
+    [
+        [
+            Features({"tags": List(Value("string"))}),
+            Features({"tags": List(Value("null"))}),
+        ],
+        [
+            Features({"tags": List(Value("string"))}),
+            Features({"tags": List(Value("string"))}),
+        ],
+    ],
+    # LargeList(Value("null")) should be aligned with LargeList(Value("string"))
+    [
+        [
+            Features({"tags": LargeList(Value("string"))}),
+            Features({"tags": LargeList(Value("null"))}),
+        ],
+        [
+            Features({"tags": LargeList(Value("string"))}),
+            Features({"tags": LargeList(Value("string"))}),
+        ],
+    ],
+    # Reversed order: null feature first, non-null second
+    [
+        [
+            Features({"label": List(Value("null"))}),
+            Features({"label": List({"type": Value("string"), "score": Value("float64")})}),
+        ],
+        [
+            Features({"label": List({"type": Value("string"), "score": Value("float64")})}),
+            Features({"label": List({"type": Value("string"), "score": Value("float64")})}),
+        ],
+    ],
 ]
 
 
@@ -981,3 +1028,22 @@ def test_visit_with_list_types(feature, expected):
 
     result = _visit(feature, func)
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    "feature, expected",
+    [
+        (Value("null"), True),
+        (Value("string"), False),
+        (Value("int64"), False),
+        (List(Value("null")), True),
+        (List(Value("string")), False),
+        (List({"a": Value("string")}), False),
+        (LargeList(Value("null")), True),
+        (LargeList(Value("string")), False),
+        (LargeList({"a": Value("string")}), False),
+        (ClassLabel(names=["a", "b"]), False),
+    ],
+)
+def test_is_null_feature(feature, expected):
+    assert _is_null_feature(feature) == expected

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from io import StringIO
-from typing import Optional
+from typing import Literal, Optional
 
 import pyarrow as pa
 
@@ -15,14 +15,31 @@ logger = datasets.utils.logging.get_logger(__name__)
 
 @dataclass
 class TextConfig(datasets.BuilderConfig):
-    """BuilderConfig for text files."""
+    """BuilderConfig for text files.
+
+    Args:
+        features: (`Features`, *optional*):
+            Cast the data to `features`.
+        encoding: (`str`, defaults to "utf-8"):
+            Encoding to decode the file.
+        encoding_errors: (`str`, *optional*):
+            Argument to define what to do in case of encoding error.
+            This is the same as the `error` argument in `open()`.
+        chunksize: (`Features`, *optional*, defaults to "10MB"):
+            Chunk size to read the data.
+        keep_linebreaks: (`bool`, defaults to False):
+            Whether to keep line breaks.
+        sample_by (`Literal["line", "paragraph", "document"]`, defaults to "line"):
+            Whether to load data per line, praragraph or document.
+            By default one row in the dataset = one line.
+    """
 
     features: Optional[datasets.Features] = None
     encoding: str = "utf-8"
     encoding_errors: Optional[str] = None
     chunksize: int = 10 << 20  # 10MB
     keep_linebreaks: bool = False
-    sample_by: str = "line"
+    sample_by: Literal["line", "paragraph", "document"] = "line"
 
 
 class Text(datasets.ArrowBasedBuilder):

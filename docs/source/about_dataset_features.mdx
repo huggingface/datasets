@@ -133,3 +133,68 @@ And in this case the numpy arrays are encoded into PNG (or TIFF if the pixels va
 
 For multi-channels arrays like RGB or RGBA, only uint8 is supported. If you use a larger precision, you get a warning and the array is downcasted to uint8.
 For gray-scale images you can use the integer or float precision you want as long as it is compatible with `Pillow`. A warning is shown if your image integer or float precision is too high, and in this case the array is downcated: an int64 array is downcasted to int32, and a float64 array is downcasted to float32.
+
+## Json feature
+
+Datasets are based on Arrow which is a columnar format, and therefore they expect every example to have the same type and subtypes, and dictionaries to have the same keys and values types.
+Loading a dataset errors out when fields have mismatching types, and fills missing fields in dictionaries with None so all dictionaries have the same keys and value types.
+
+To avoid this and allow mixed-types without errors, you can use `on_mixed_types="use_json"` or specify `features=` with a [`Json`] type:
+
+```python
+>>> ds = Dataset.from_dict({"a": [0, "foo", {"subfield": "bar"}]})
+Traceback (most recent call last):
+  ...
+  File "pyarrow/error.pxi", line 92, in pyarrow.lib.check_status
+pyarrow.lib.ArrowInvalid: Could not convert 'foo' with type str: tried to convert to int64
+
+>>> features = Features({"a": Json()})
+>>> ds = Dataset.from_dict({"a": [0, "foo", {"subfield": "bar"}]}, features=features)
+>>> ds.features
+{'a': Json()}
+>>> list(ds["a"])
+[0, "foo", {"subfield": "bar"}]
+```
+
+This is also useful for lists of dictionaries with arbitrary keys and values, to avoid filling missing fields with None:
+
+```python
+>>> ds = Dataset.from_dict({"a": [[{"b": 0}, {"c": 0}]]})
+>>> ds.features
+{'a': List({'b': Value('int64'), 'c': Value('int64')})}
+>>> list(ds["a"])
+[[{'b': 0, 'c': None}, {'b': None, 'c': 0}]]  # missing fields are filled with None
+
+>>> features = Features({"a": List(Json())})
+>>> ds = Dataset.from_dict({"a": [[{"b": 0}, {"c": 0}]]}, features=features)
+>>> ds.features
+{'a': List(Json())}
+>>> list(ds["a"])
+[[{'b': 0}, {'c': 0}]]  # OK
+```
+
+Another example with tool calling data and the `on_mixed_types="use_json"` argument (useful to not have to specify `features=` manually):
+
+```python
+>>> messages = [
+...     {"role": "user", "content": "Turn on the living room lights and play my electronic music playlist."},
+...     {"role": "assistant", "tool_calls": [
+...         {"type": "function", "function": {
+...             "name": "control_light",
+...             "arguments": {"room": "living room", "state": "on"}
+...         }},
+...         {"type": "function", "function": {
+...             "name": "play_music",
+...             "arguments": {"playlist": "electronic"}  # mixed-type here since keys ["playlist"] and ["room", "state"] are different
+...         }}]
+...     },
+...     {"role": "tool", "name": "control_light", "content": "The lights in the living room are now on."},
+...     {"role": "tool", "name": "play_music", "content": "The music is now playing."},
+...     {"role": "assistant", "content": "Done!"}
+... ]
+>>> ds = Dataset.from_dict({"messages": [messages]}, on_mixed_types="use_json")
+>>> ds.features
+{'messages': List({'role': Value('string'), 'content': Value('string'), 'tool_calls': List(Json()), 'name': Value('string')})}
+>>> ds[0][1]["tool_calls"][0]["function"]["arguments"]
+{"room": "living room", "state": "on"}
+```

@@ -165,11 +165,7 @@ jobs:
       - name: Install uv
         run: pip install --upgrade uv
       - name: Install dependencies
-        run: |
-          uv pip install --system "datasets[tests_numpy2] @ ."
-          # TODO: remove once transformers v5 / huggingface_hub v1 are released officially
-          uv pip uninstall --system transformers huggingface_hub
-          uv pip install --system --prerelease=allow git+https://github.com/huggingface/transformers.git
+        run: uv pip install --system "datasets[tests_numpy2] @ ."
       - name: Print dependencies
         run: pip list
 

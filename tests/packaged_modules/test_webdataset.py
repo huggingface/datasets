@@ -1,9 +1,10 @@
 import json
 import tarfile
+from pathlib import Path
 
 import pytest
 
-from datasets import Audio, DownloadManager, Features, Image, List, Value
+from datasets import Audio, DownloadManager, Features, Image, List, Value, Video
 from datasets.packaged_modules.webdataset.webdataset import WebDataset
 
 from ..utils import (
@@ -70,6 +71,21 @@ def audio_wds_file(tmp_path, audio_file):
         for example_idx in range(num_examples):
             f.add(json_file, f"{example_idx:05d}.json")
             f.add(audio_file, f"{example_idx:05d}.wav")
+    return str(filename)
+
+
+@pytest.fixture
+def video_wds_file(tmp_path):
+    json_file = tmp_path / "data.json"
+    filename = tmp_path / "file.tar"
+    video_file = Path(__file__).resolve().parents[1] / "features" / "data" / "test_video_66x50.mov"
+    num_examples = 3
+    with json_file.open("w", encoding="utf-8") as f:
+        f.write(json.dumps({"caption": "this is a video"}))
+    with tarfile.open(str(filename), "w") as f:
+        for example_idx in range(num_examples):
+            f.add(json_file, f"{example_idx:05d}.json")
+            f.add(video_file, f"{example_idx:05d}.mov")
     return str(filename)
 
 
@@ -257,6 +273,29 @@ def test_audio_webdataset(audio_wds_file):
     assert isinstance(decoded["json"], dict)
     assert isinstance(decoded["json"]["transcript"], str)
     assert isinstance(decoded["wav"], AudioDecoder)
+
+
+def test_video_webdataset(video_wds_file):
+    data_files = {"train": [video_wds_file]}
+    webdataset = WebDataset(data_files=data_files)
+    split_generators = webdataset._split_generators(DownloadManager())
+    assert webdataset.info.features == Features(
+        {
+            "__key__": Value("string"),
+            "__url__": Value("string"),
+            "json": {"caption": Value("string")},
+            "mov": Video(),
+        }
+    )
+    assert len(split_generators) == 1
+    split_generator = split_generators[0]
+    assert split_generator.name == "train"
+    generator = webdataset._generate_examples(**split_generator.gen_kwargs)
+    _, examples = zip(*generator)
+    assert len(examples) == 3
+    assert isinstance(examples[0]["json"], dict)
+    assert isinstance(examples[0]["json"]["caption"], str)
+    assert isinstance(examples[0]["mov"], bytes)
 
 
 def test_webdataset_errors_on_bad_file(bad_wds_file):
