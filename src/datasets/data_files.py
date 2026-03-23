@@ -112,6 +112,7 @@ FILES_TO_IGNORE = [
     "dummy_data.zip",
     "dataset_dict.json",
 ]
+DIRECTORY_BASED_EXTENSIONS = {".zarr", ".lance"}
 
 
 def contains_wildcards(pattern: str) -> bool:
@@ -362,11 +363,26 @@ def resolve_pattern(
     if protocol == "hf":
         # 10 times faster glob with detail=True (ignores costly info like lastCommit)
         glob_kwargs["expand_info"] = False
+    pattern_targets_directory_store = any(ext in fs_pattern.lower() for ext in DIRECTORY_BASED_EXTENSIONS)
     matched_paths = [
         filepath if "://" in filepath else protocol_prefix + filepath
         for filepath, info in fs.glob(pattern, detail=True, **glob_kwargs).items()
         if (
             info["type"] == "file"
+            or (
+                info["type"] == "directory"
+                and (
+                    (
+                        allowed_extensions is not None
+                        and pattern_targets_directory_store
+                        and any("." + suffix in allowed_extensions for suffix in xbasename(filepath).split(".")[1:])
+                    )
+                    or (
+                        allowed_extensions is None
+                        and any(xbasename(filepath).lower().endswith(ext) for ext in DIRECTORY_BASED_EXTENSIONS)
+                    )
+                )
+            )
             or (info.get("islink") and os.path.isfile(os.path.realpath(filepath)))
         )
         and (xbasename(filepath) not in files_to_ignore)

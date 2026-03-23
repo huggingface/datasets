@@ -45,14 +45,6 @@ def _create_array_compat(zarr_group, name: str, data: np.ndarray, chunks: tuple[
         zarr_group.create_dataset(name, data=data, chunks=chunks)
 
 
-def _get_store_probe_file(store_root: str) -> str:
-    for metadata_name in [".zgroup", "zarr.json", ".zmetadata"]:
-        metadata_path = Path(store_root) / metadata_name
-        if metadata_path.exists():
-            return str(metadata_path)
-    raise AssertionError(f"Expected a Zarr metadata file in {store_root}")
-
-
 @pytest.fixture
 def zarr_root_metadata_file(tmp_path) -> str:
     zarr = pytest.importorskip("zarr")
@@ -157,6 +149,18 @@ def zarr_v2_non_consolidated_store_root(tmp_path) -> str:
     return str(store_dir)
 
 
+@pytest.fixture
+def zarr_store_root_glob_pattern(tmp_path) -> str:
+    zarr = pytest.importorskip("zarr")
+    for shard_id in range(2):
+        store_dir = tmp_path / f"shard_{shard_id:02d}.zarr"
+        root = zarr.open_group(store=str(store_dir), mode="w")
+        values = np.arange(3, dtype=np.int32) + shard_id * 3
+        _create_array_compat(root, "int32", values, chunks=(2,))
+        _create_array_compat(root, "float32", values.astype(np.float32), chunks=(2,))
+    return str(tmp_path / "*.zarr")
+
+
 def test_config_raises_when_invalid_name() -> None:
     with pytest.raises(InvalidConfigName, match="Bad characters"):
         _ = ZarrConfig(name="name-with-*-invalid-character")
@@ -176,8 +180,7 @@ def test_zarr_basic_loading(zarr_root_metadata_file):
 
 def test_zarr_loading_from_store_root_directory(zarr_root_metadata_file):
     store_root = str(Path(zarr_root_metadata_file).parent)
-    probe_file = _get_store_probe_file(store_root)
-    ds = load_dataset("zarr", data_files=[probe_file], split="train")
+    ds = load_dataset("zarr", data_files=[store_root], split="train")
     assert set(ds.column_names) == {"int32", "float32", "matrix_2d"}
     assert ds["int32"] == [0, 1, 2, 3, 4]
 
@@ -208,9 +211,20 @@ def test_zarr_count_examples(zarr_root_metadata_file):
 
 def test_zarr_count_examples_from_store_root_directory(zarr_root_metadata_file):
     store_root = str(Path(zarr_root_metadata_file).parent)
-    probe_file = _get_store_probe_file(store_root)
-    builder = load_dataset_builder("zarr", data_files=[probe_file])
+    builder = load_dataset_builder("zarr", data_files=[store_root])
     assert builder.count_examples(DownloadManager()) == {"train": 5}
+
+
+def test_zarr_loading_from_store_root_glob_pattern(zarr_store_root_glob_pattern):
+    ds = load_dataset("zarr", data_files=[zarr_store_root_glob_pattern], split="train", streaming=True)
+    rows = list(ds)
+    assert len(rows) == 6
+    assert sorted(example["int32"] for example in rows) == [0, 1, 2, 3, 4, 5]
+
+
+def test_zarr_count_examples_from_store_root_glob_pattern(zarr_store_root_glob_pattern):
+    builder = load_dataset_builder("zarr", data_files=[zarr_store_root_glob_pattern])
+    assert builder.count_examples(DownloadManager()) == {"train": 6}
 
 
 def test_zarr_count_examples_with_custom_sharding(zarr_root_metadata_file):
@@ -254,15 +268,13 @@ def test_zarr_loading_prefers_nd_arrays_for_row_dimension(zarr_root_metadata_fil
 
 
 def test_zarr_loading_from_v2_non_consolidated_store_root(zarr_v2_non_consolidated_store_root):
-    probe_file = str(Path(zarr_v2_non_consolidated_store_root) / ".zgroup")
-    ds = load_dataset("zarr", data_files=[probe_file], split="train", consolidated=False)
+    ds = load_dataset("zarr", data_files=[zarr_v2_non_consolidated_store_root], split="train", consolidated=False)
     assert set(ds.column_names) == {"int32", "float32"}
     assert ds["int32"] == [0, 1, 2, 3, 4]
 
 
 def test_zarr_count_examples_from_v2_non_consolidated_store_root(zarr_v2_non_consolidated_store_root):
-    probe_file = str(Path(zarr_v2_non_consolidated_store_root) / ".zgroup")
-    builder = load_dataset_builder("zarr", data_files=[probe_file], consolidated=False)
+    builder = load_dataset_builder("zarr", data_files=[zarr_v2_non_consolidated_store_root], consolidated=False)
     assert builder.count_examples(DownloadManager()) == {"train": 5}
 
 
