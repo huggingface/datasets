@@ -4090,7 +4090,7 @@ class IterableDataset(DatasetInfoMixin):
 
         * audio -> dict of "array" and "sampling_rate" and "path"
         * image -> PIL.Image
-        * video -> torchvision.io.VideoReader
+        * video -> torchcodec.decoders.VideoDecoder
 
         You can enable multithreading using `num_threads`. This is especially useful to speed up remote
         data streaming. However it can be slower than `num_threads=0` for local data on fast disks.

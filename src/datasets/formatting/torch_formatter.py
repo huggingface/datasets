@@ -77,10 +77,13 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
 
                 value = value.transpose((2, 0, 1))
         if config.TORCHVISION_AVAILABLE and "torchvision" in sys.modules:
-            from torchvision.io import VideoReader
+            try:
+                from torchvision.io import VideoReader
 
-            if isinstance(value, VideoReader):
-                return value  # TODO(QL): set output to torch tensors ?
+                if isinstance(value, VideoReader):
+                    return value  # TODO(QL): set output to torch tensors ?
+            except ImportError:
+                pass
         if config.TORCHCODEC_AVAILABLE and "torchcodec" in sys.modules:
             from torchcodec.decoders import AudioDecoder, VideoDecoder
 
