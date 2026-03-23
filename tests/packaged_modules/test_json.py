@@ -11,6 +11,22 @@ from datasets.packaged_modules.json.json import Json, JsonConfig
 
 
 @pytest.fixture
+def json_file(tmp_path):
+    filename = tmp_path / "file.json"
+    data = textwrap.dedent(
+        """\
+        {
+            "col_1": 1,
+            "col_2": 2
+        }
+        """
+    )
+    with open(filename, "w") as f:
+        f.write(data)
+    return str(filename)
+
+
+@pytest.fixture
 def jsonl_file(tmp_path):
     filename = tmp_path / "file.jsonl"
     data = textwrap.dedent(
@@ -259,7 +275,8 @@ _messages = [
     {"role": "assistant", "content": "Done!"},
 ]
 
-EXPECTED_SIMPLE = {"col_1": [-1, 1, 10], "col_2": [None, 2, 20]}
+EXPECTED_ONE = {"col_1": [1], "col_2": [2]}
+EXPECTED_THREE = {"col_1": [-1, 1, 10], "col_2": [None, 2, 20]}
 EXPECTED_LIST_OF_STRINGS = {"text": ["First text.", "Second text.", "Third text."]}
 EXPECTED_MIX = {"col_1": [-1, 1, "foo"]}
 EXPECTED_DICTS_WITH_VARYING_KEYS = {"col_1": [{"a": 0}, {"b": 0}, {"c": 0}]}
@@ -290,14 +307,15 @@ def test_config_raises_when_invalid_data_files(data_files) -> None:
 @pytest.mark.parametrize(
     "file_fixture, config_kwargs, expected",
     [
-        ("jsonl_file", {}, EXPECTED_SIMPLE),
-        ("ndjson_file", {}, EXPECTED_SIMPLE),
-        ("jsonl_file_utf16_encoded", {"encoding": "utf-16"}, EXPECTED_SIMPLE),
-        ("json_file_with_list_of_dicts", {}, EXPECTED_SIMPLE),
-        ("json_file_with_list_of_dicts_field", {"field": "field3"}, EXPECTED_SIMPLE),
+        ("json_file", {}, EXPECTED_ONE),
+        ("jsonl_file", {}, EXPECTED_THREE),
+        ("ndjson_file", {}, EXPECTED_THREE),
+        ("jsonl_file_utf16_encoded", {"encoding": "utf-16"}, EXPECTED_THREE),
+        ("json_file_with_list_of_dicts", {}, EXPECTED_THREE),
+        ("json_file_with_list_of_dicts_field", {"field": "field3"}, EXPECTED_THREE),
         ("json_file_with_list_of_strings", {}, EXPECTED_LIST_OF_STRINGS),
         ("json_file_with_list_of_strings_field", {"field": "field3"}, EXPECTED_LIST_OF_STRINGS),
-        ("json_file_with_dict_of_lists_field", {"field": "field3"}, EXPECTED_SIMPLE),
+        ("json_file_with_dict_of_lists_field", {"field": "field3"}, EXPECTED_THREE),
         ("jsonl_file_with_mix_of_str_and_int", {}, EXPECTED_MIX),
         ("jsonl_file_with_dicts_of_varying_keys", {}, EXPECTED_DICTS_WITH_VARYING_KEYS),
         ("jsonl_file_with_lists_of_dicts_of_varying_keys", {}, EXPECTED_LISTS_OF_DICTS_WITH_VARYING_KEYS),
