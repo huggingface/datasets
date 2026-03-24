@@ -159,7 +159,8 @@ class Parquet(datasets.ArrowBasedBuilder):
 
     def _generate_more_gen_kwargs(self, files, row_groups_list, num_shards=None):
         """Generate more gen_kwargs for resharding"""
-        if not row_groups_list:
+        # Check if row_groups_list is empty or contains only None values (meaning no specific row groups are specified)
+        if not row_groups_list or all(rg is None for rg in row_groups_list):
             parquet_file_format = ds.ParquetFileFormat(default_fragment_scan_options=self.config.fragment_scan_options)
             for file in files:
                 with open(file, "rb") as f:
@@ -208,7 +209,7 @@ class Parquet(datasets.ArrowBasedBuilder):
                 with open(file, "rb") as f:
                     parquet_fragment = parquet_file_format.make_fragment(f)
                     if row_groups is not None:
-                        parquet_fragment.subset(row_group_ids=row_groups)
+                        parquet_fragment = parquet_fragment.subset(row_group_ids=row_groups)
                     if parquet_fragment.row_groups:
                         batch_size = self.config.batch_size or parquet_fragment.row_groups[0].num_rows
                         for batch_idx, record_batch in enumerate(

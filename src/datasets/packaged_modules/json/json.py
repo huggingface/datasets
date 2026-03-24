@@ -1,4 +1,5 @@
 import io
+import os
 from dataclasses import dataclass
 from typing import Literal, Optional
 
@@ -127,63 +128,106 @@ class Json(datasets.ArrowBasedBuilder):
     def _generate_shards(self, base_files, files_iterables):
         yield from base_files
 
-    def _generate_more_gen_kwargs(self, base_files, files_iterables, num_shards=None):
-        """Generate more gen_kwargs for resharding"""
-        # Only reshard if num_shards is specified
-        if num_shards is None:
-            # No resharding - return the original gen_kwargs
-            for base_file, files_iterable in zip(base_files, files_iterables):
-                for file in files_iterable:
-                    yield {
-                        "base_files": [base_file],
-                        "files_iterables": [[file]],
-                        "shard_start_line": [0],
-                        "shard_end_line": [None],
-                    }
-            return
-
-        for base_file, files_iterable in zip(base_files, files_iterables):
-            for file in files_iterable:
-                # Check if the file is a JSON Lines file (one JSON object per line)
-                if self.config.field is None:
-                    # Split the file into multiple shards based on line boundaries
+    def _estimate_line_count(self, file, max_bytes=20 << 20):
+        """Estimate the number of lines in a JSON Lines file by reading the first max_bytes (default 20MB).
+        
+        Args:
+            file: Path to the file
+            max_bytes: Maximum bytes to read (default 20MB)
+            
+        Returns:
+            Estimated line count
+        """
+        try:
+            with open(file, "rb") as f:
+                line_count = 0
+                bytes_read = 0
+                
+                while bytes_read < max_bytes:
+                    line = f.readline()
+                    if not line:
+                        break
+                    line_count += 1
+                    bytes_read += len(line)
+                
+                # If we hit the byte limit, estimate the total based on file size
+                if bytes_read >= max_bytes:
                     try:
-                        with open(file, "rb") as f:
-                            # Read the file to count lines
-                            line_count = 0
-                            while f.readline():
-                                line_count += 1
-
-                        # Use the specified number of shards
-                        # But limit to the number of lines to avoid empty shards
-                        target_num_shards = min(num_shards, line_count)
-
-                        lines_per_shard = (line_count + target_num_shards - 1) // target_num_shards
-
-                        # Generate gen_kwargs for each shard
-                        for shard_idx in range(target_num_shards):
-                            yield {
-                                "base_files": [base_file],
-                                "files_iterables": [[file]],
-                                "shard_start_line": [shard_idx * lines_per_shard],
-                                "shard_end_line": [(shard_idx + 1) * lines_per_shard],
-                            }
-                    except Exception:
-                        # If we can't split the file, just use the whole file as one shard
-                        yield {
-                            "base_files": [base_file],
-                            "files_iterables": [[file]],
-                            "shard_start_line": [0],
-                            "shard_end_line": [None],
-                        }
+                        file_size = os.path.getsize(file)
+                        if bytes_read > 0:
+                            estimated_line_count = int((file_size / bytes_read) * line_count)
+                        else:
+                            estimated_line_count = line_count
+                    except OSError:
+                        estimated_line_count = line_count
                 else:
-                    # For single JSON object files, we can't split them further
+                    estimated_line_count = line_count
+                return estimated_line_count
+        except Exception:
+            return 0
+
+    def _generate_more_gen_kwargs(self, base_files, files_iterables, num_shards=None):
+        """Generate more gen_kwargs for resharding.
+        
+        When num_shards is specified, create that many shards.
+        When num_shards is None, maximize sharding by aiming for self.config.chunksize bytes per shard.
+        """
+        for base_file, files_iterable in zip(base_files, files_iterables):
+            files_list = list(files_iterable)
+            
+            if not files_list:
+                continue
+            
+            # Check if the file is a JSON Lines file (one JSON object per line)
+            # For single JSON object files, we can't split them further
+            if self.config.field is not None:
+                for file in files_list:
                     yield {
                         "base_files": [base_file],
-                        "files_iterables": [[file]],
-                        "shard_start_line": [0],
-                        "shard_end_line": [None],
+                        "files_iterables": [[(file, 0, None)]],
                     }
+                continue
+            
+            # Estimate total line count from the first file only (assuming similar structure)
+            total_line_count = 0
+            for file in files_list:
+                line_count = self._estimate_line_count(file)
+                if line_count > 0:
+                    # If we got a good estimate from the first file, use it for all files
+                    # This avoids expensive line counting on every file
+                    total_line_count = line_count
+                    break
+            
+            # Determine target number of shards
+            if num_shards is None:
+                # Maximum sharding: aim for self.config.chunksize bytes per shard (10MB by default)
+                # We use line count as a proxy: assume average line size and target for chunksize bytes
+                target_num_shards = max(1, (total_line_count + (self.config.chunksize // 100) - 1) // (self.config.chunksize // 100))
+            else:
+                target_num_shards = num_shards if total_line_count == 0 else min(num_shards, total_line_count)
+            
+            # If only one shard, return the original gen_kwargs
+            if target_num_shards <= 1:
+                for file in files_list:
+                    yield {
+                        "base_files": [base_file],
+                        "files_iterables": [[(file, 0, None)]],
+                    }
+                continue
+            
+            # Calculate lines per shard
+            lines_per_shard = (total_line_count + target_num_shards - 1) // target_num_shards
+            
+            # Generate gen_kwargs for each shard
+            for shard_idx in range(target_num_shards):
+                shard_start = shard_idx * lines_per_shard
+                shard_end = (shard_idx + 1) * lines_per_shard
+                
+                # Distribute files across shards, keeping shard info with files
+                yield {
+                    "base_files": [base_file],
+                    "files_iterables": [[(file, shard_start, shard_end) for file in files_list]],
+                }
 
     def _generate_tables(
         self, base_files, files_iterables, allow_full_read=True, shard_start_line=0, shard_end_line=None
@@ -193,14 +237,22 @@ class Json(datasets.ArrowBasedBuilder):
         if self.info.features is not None:
             json_field_paths = get_json_field_paths_from_feature(self.info.features)
 
-        # Handle list parameters (from resharding)
+        # Handle list parameters (from resharding) - kept for backward compatibility
         if isinstance(shard_start_line, list):
             shard_start_line = shard_start_line[0]
         if isinstance(shard_end_line, list):
             shard_end_line = shard_end_line[0]
 
         for shard_idx, files_iterable in enumerate(files_iterables):
-            for file in files_iterable:
+            for file_item in files_iterable:
+                # Handle both tuple format (file, shard_start, shard_end) and plain file format
+                if isinstance(file_item, tuple):
+                    file, shard_start, shard_end = file_item
+                else:
+                    file = file_item
+                    shard_start = shard_start_line
+                    shard_end = shard_end_line
+                
                 # If the file is one json object and if we need to look at the items in one specific field
                 if self.config.field is not None:
                     if not allow_full_read:
