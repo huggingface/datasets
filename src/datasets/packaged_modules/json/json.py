@@ -190,8 +190,13 @@ class Json(datasets.ArrowBasedBuilder):
                                 and self.info.features is None
                                 and self.config.on_mixed_types == "use_json"
                             ):
-                                examples = [ujson_loads(line) for line in batch.splitlines()]
-                                json_field_paths += find_mixed_struct_types_field_paths(examples)
+                                try:
+                                    examples = [ujson_loads(line) for line in batch.splitlines()]
+                                except ValueError:
+                                    # the file is likely not JSON Lines and may contain one single multi-line JSON object
+                                    pass
+                                else:
+                                    json_field_paths += find_mixed_struct_types_field_paths(examples)
                             # Re-encode JSON fields
                             original_batch = batch
                             if json_field_paths:
