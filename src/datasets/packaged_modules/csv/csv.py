@@ -279,7 +279,7 @@ class Csv(datasets.ArrowBasedBuilder):
                     file, start_byte, end_byte = file_item
                 else:
                     file, start_byte, end_byte = file_item, 0, None
-
+                file_path = file
                 with open(file, "rb") as f:
                     header_line = f.readline()
                     header_end_pos = f.tell()
@@ -320,5 +320,5 @@ class Csv(datasets.ArrowBasedBuilder):
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                         yield Key(shard_idx, batch_idx), self._cast_table(pa_table)
                 except ValueError as e:
-                    logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                    logger.error(f"Failed to read file '{file_path}' with error {type(e)}: {e}")
                     raise
