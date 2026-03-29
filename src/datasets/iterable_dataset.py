@@ -620,7 +620,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
             self.ex_iterable.reshard_data_sources(num_shards=num_shards),
             self.batch_size,
             self.drop_last_batch,
-            self.force_convert_to_arrow
+            self.force_convert_to_arrow,
         )
 
     @property

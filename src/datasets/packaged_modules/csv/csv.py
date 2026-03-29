@@ -1,3 +1,4 @@
+import io
 import os
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, Union
@@ -181,16 +182,8 @@ class Csv(datasets.ArrowBasedBuilder):
     def _generate_shards(self, base_files, files_iterables):
         yield from base_files
 
-    def _estimate_line_count(self, file, max_bytes=20 << 20):
-        """Estimate the number of lines in a file by reading the first max_bytes (default 20MB).
-        
-        Args:
-            file: Path to the file
-            max_bytes: Maximum bytes to read (default 20MB)
-            
-        Returns:
-            Estimated line count
-        """
+    def _estimate_byte_size_per_line(self, file, max_bytes=20 << 20):
+        """Estimate the byte size per line by reading the first max_bytes (default 20MB)."""
         try:
             with open(
                 file,
@@ -200,83 +193,75 @@ class Csv(datasets.ArrowBasedBuilder):
             ) as f:
                 line_count = 0
                 bytes_read = 0
-                
+
                 while bytes_read < max_bytes:
                     line = f.readline()
                     if not line:
                         break
                     line_count += 1
                     bytes_read += len(line.encode())
-                
-                # If we hit the byte limit, estimate the total based on file size
-                if bytes_read >= max_bytes:
-                    try:
-                        file_size = os.path.getsize(file)
-                        if bytes_read > 0:
-                            estimated_line_count = int((file_size / bytes_read) * line_count)
-                        else:
-                            estimated_line_count = line_count
-                    except OSError:
-                        estimated_line_count = line_count
+                if line_count > 0:
+                    return bytes_read // line_count
                 else:
-                    estimated_line_count = line_count
-                return estimated_line_count
+                    return 0
         except Exception:
             return 0
 
     def _generate_more_gen_kwargs(self, base_files, files_iterables, num_shards=None):
         """Generate more gen_kwargs for resharding.
-        
         When num_shards is specified, create that many shards.
         When num_shards is None, maximize sharding by aiming for self.config.chunksize lines per shard.
         """
         for base_file, files_iterable in zip(base_files, files_iterables):
             files_list = list(files_iterable)
-            
+
             if not files_list:
                 continue
-            
+
             # Estimate total line count from the first file only (assuming similar structure)
-            total_line_count = 0
+            line_size = 0
             for file in files_list:
-                line_count = self._estimate_line_count(file)
-                if line_count > 0:
-                    # If we got a good estimate from the first file, use it for all files
-                    # This avoids expensive line counting on every file
-                    total_line_count = line_count
-                    break
-            
-            # Determine target number of shards
-            if num_shards is None:
-                # Maximum sharding: aim for self.config.chunksize lines per shard
-                target_num_shards = max(1, (total_line_count + self.config.chunksize - 1) // self.config.chunksize)
-            else:
-                target_num_shards = num_shards if total_line_count == 0 else min(num_shards, total_line_count)
-            
-            # If only one shard, return the original gen_kwargs
-            if target_num_shards <= 1:
-                for file in files_list:
+                file_size = os.path.getsize(file)
+                if line_size == 0:
+                    line_size = self._estimate_byte_size_per_line(file)
+                    if line_size == 0:
+                        yield {"base_files": [base_file], "files_iterables": [[(file, 0, file_size)]]}
+                        continue
+
+                # Calculate shard size and number of shards
+                # If num_shards is specified, use that number of shards
+                # If num_shards is None, aim use self.config.chunksize lines per shard
+                if num_shards is None:
+                    target_num_shards = max(1, file_size // (self.config.chunksize * line_size))
+                else:
+                    target_num_shards = max(1, num_shards)
+                shard_size = max(1, file_size // target_num_shards)
+
+                if target_num_shards <= 1:
                     yield {
                         "base_files": [base_file],
-                        "files_iterables": [[(file, 0, None)]],
+                        "files_iterables": [[(file, 0, file_size)]],
                     }
-                continue
-            
-            # Calculate lines per shard
-            lines_per_shard = (total_line_count + target_num_shards - 1) // target_num_shards
-            
-            # Generate gen_kwargs for each shard
-            for shard_idx in range(target_num_shards):
-                shard_start = shard_idx * lines_per_shard
-                shard_end = (shard_idx + 1) * lines_per_shard
-                
-                # Distribute files across shards, keeping shard info with files
-                yield {
-                    "base_files": [base_file],
-                    "files_iterables": [[(file, shard_start, shard_end) for file in files_list]],
-                }
+                    continue
 
-    def _generate_tables(self, base_files, files_iterables, shard_start_line=0, shard_end_line=None):
+                for i in range(target_num_shards):
+                    start = i * shard_size
+                    if start >= file_size:
+                        break
+
+                    end = (i + 1) * shard_size if i < target_num_shards - 1 else file_size
+
+                    if end > file_size:
+                        end = file_size
+
+                    yield {
+                        "base_files": [base_file],
+                        "files_iterables": [[(file, start, end)]],
+                    }
+                    if end >= file_size:
+                        break
+
+    def _generate_tables(self, base_files, files_iterables):
         schema = self.config.features.arrow_schema if self.config.features else None
         # dtype allows reading an int column as str
         dtype = (
@@ -288,29 +273,44 @@ class Csv(datasets.ArrowBasedBuilder):
             else None
         )
 
-        # Handle list parameters (from resharding) - kept for backward compatibility
-        if isinstance(shard_start_line, list):
-            shard_start_line = shard_start_line[0]
-        if isinstance(shard_end_line, list):
-            shard_end_line = shard_end_line[0]
-
         for shard_idx, files_iterable in enumerate(files_iterables):
             for file_item in files_iterable:
-                # Handle both tuple format (file, shard_start, shard_end) and plain file format
                 if isinstance(file_item, tuple):
-                    file, shard_start, shard_end = file_item
+                    file, start_byte, end_byte = file_item
                 else:
-                    file = file_item
-                    shard_start = shard_start_line
-                    shard_end = shard_end_line
-                
-                # Handle shard_start_line and shard_end_line
-                read_csv_kwargs = self.config.pd_read_csv_kwargs.copy()
-                if shard_start > 0:
-                    read_csv_kwargs["skiprows"] = shard_start
-                if shard_end is not None:
-                    read_csv_kwargs["nrows"] = shard_end - shard_start
+                    file, start_byte, end_byte = file_item, 0, None
 
+                with open(file, "rb") as f:
+                    header_line = f.readline()
+                    header_end_pos = f.tell()
+                    if start_byte > 0:
+                        # If start_byte is before the header, skip the header
+                        if start_byte < header_end_pos:
+                            f.seek(header_end_pos)
+                        else:
+                            f.seek(start_byte)
+                        f.readline()
+
+                    current_pos = f.tell()
+
+                    if end_byte is not None and current_pos >= end_byte:
+                        if not (start_byte < header_end_pos and current_pos == header_end_pos):
+                            continue
+
+                    if end_byte is not None:
+                        bytes_to_read = max(0, end_byte - current_pos)
+                        content = f.read(bytes_to_read)
+                        if f.tell() < os.path.getsize(file):
+                            content += f.readline()
+                    else:
+                        content = f.read()
+
+                    if not content or not content.strip(b"\r\n "):
+                        continue
+                    shard_data = header_line + content
+                    file = io.BytesIO(shard_data)
+
+                read_csv_kwargs = self.config.pd_read_csv_kwargs.copy()
                 csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **read_csv_kwargs)
                 try:
                     for batch_idx, df in enumerate(csv_file_reader):
