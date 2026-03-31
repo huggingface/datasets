@@ -377,3 +377,12 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
     generator = json._generate_tables(base_files=base_files, files_iterables=files_iterables)
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.column_names == ["ID", "Language", "Topic"]
+
+
+def test_json_sample_by_document(jsonl_file):
+    with open(jsonl_file, encoding="utf-8") as f:
+        expected_content = f.read()
+    json = Json(sample_by="document")
+    generator = json._generate_tables(base_files=[jsonl_file], files_iterables=[[jsonl_file]])
+    generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()["text"]
+    assert generated_content == [expected_content]

@@ -50,6 +50,7 @@ class JsonConfig(datasets.BuilderConfig):
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
     on_mixed_types: Optional[Literal["use_json"]] = "use_json"
+    sample_by: Literal["line", "document"] = "line"
 
     def __post_init__(self):
         super().__post_init__()
@@ -135,6 +136,17 @@ class Json(datasets.ArrowBasedBuilder):
 
         for shard_idx, files_iterable in enumerate(files_iterables):
             for file in files_iterable:
+                # If sample_by="document", yield one row per file with the raw content as a string
+                if self.config.sample_by == "document":
+                    encoding_errors = (
+                        self.config.encoding_errors if self.config.encoding_errors is not None else "strict"
+                    )
+                    with open(file, encoding=self.config.encoding, errors=encoding_errors) as f:
+                        content = f.read()
+                    pa_table = pa.table({"text": [content]})
+                    yield Key(shard_idx, 0), self._cast_table(pa_table)
+                    continue
+
                 # If the file is one json object and if we need to look at the items in one specific field
                 if self.config.field is not None:
                     if not allow_full_read:
