@@ -1,4 +1,5 @@
 import io
+import os
 from dataclasses import dataclass
 from typing import Literal, Optional
 
@@ -161,8 +162,14 @@ class Json(datasets.ArrowBasedBuilder):
                     with open(file, "r", encoding="utf-8") as f:
                         traces = f.readlines()
                     harness, session_id = parse_traces_info(traces)
+                    file_name = os.path.basename(file)
                     pa_table = pa.Table.from_pydict(
-                        {"harness": [harness], "session_id": [session_id], "traces": [traces]}
+                        {
+                            "harness": [harness],
+                            "session_id": [session_id],
+                            "traces": [traces],
+                            "file_name": [file_name],
+                        }
                     )
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
 
@@ -321,6 +328,7 @@ AGENT_TRACES_FEATURES = datasets.Features(
         "harness": datasets.Value("string"),
         "session_id": datasets.Value("string"),
         "traces": datasets.List(datasets.Json()),
+        "file_name": datasets.Value("string"),
     }
 )
 
