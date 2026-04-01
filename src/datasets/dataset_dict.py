@@ -9,7 +9,7 @@ import re
 import time
 from collections.abc import Sequence
 from functools import partial
-from typing import Callable, Literal, Optional, Union
+from typing import Callable, Literal, Optional, Sequence, Union
 
 import fsspec
 import numpy as np
@@ -342,7 +342,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         self._check_values_type()
         return DatasetDict({k: dataset.cast_column(column=column, feature=feature) for k, dataset in self.items()})
 
-    def remove_columns(self, column_names: Union[str, list[str]]) -> "DatasetDict":
+    def remove_columns(self, column_names: Union[str, Sequence[str]]) -> "DatasetDict":
         """
         Remove one or several column(s) from each split in the dataset
         and the features associated to the column(s).
@@ -470,7 +470,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         self._check_values_type()
         return DatasetDict({k: dataset.rename_columns(column_mapping=column_mapping) for k, dataset in self.items()})
 
-    def select_columns(self, column_names: Union[str, list[str]]) -> "DatasetDict":
+    def select_columns(self, column_names: Union[str, Sequence[str]]) -> "DatasetDict":
         """Select one or several column(s) from each split in the dataset and
         the features associated to the column(s).
 
@@ -1534,7 +1534,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
-        columns: Optional[list[str]] = None,
+        columns: Optional[Sequence[str]] = None,
         **kwargs,
     ) -> "DatasetDict":
         """Create [`DatasetDict`] from Parquet file(s).
@@ -2208,7 +2208,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
             {k: dataset.rename_columns(column_mapping=column_mapping) for k, dataset in self.items()}
         )
 
-    def remove_columns(self, column_names: Union[str, list[str]]) -> "IterableDatasetDict":
+    def remove_columns(self, column_names: Union[str, Sequence[str]]) -> "IterableDatasetDict":
         """
         Remove one or several column(s) in the dataset and the features associated to them.
         The removal is done on-the-fly on the examples when iterating over the dataset.
@@ -2234,7 +2234,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         """
         return IterableDatasetDict({k: dataset.remove_columns(column_names) for k, dataset in self.items()})
 
-    def select_columns(self, column_names: Union[str, list[str]]) -> "IterableDatasetDict":
+    def select_columns(self, column_names: Union[str, Sequence[str]]) -> "IterableDatasetDict":
         """Select one or several column(s) in the dataset and the features
         associated to them. The selection is done on-the-fly on the examples
         when iterating over the dataset. The selection is applied to all the
