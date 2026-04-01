@@ -50,6 +50,7 @@ class JsonConfig(datasets.BuilderConfig):
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
     on_mixed_types: Optional[Literal["use_json"]] = "use_json"
+    parse_agent_traces: bool = True
 
     def __post_init__(self):
         super().__post_init__()
@@ -90,6 +91,8 @@ class Json(datasets.ArrowBasedBuilder):
             try:
                 pa_table = next(iter(self._generate_tables(**splits[0].gen_kwargs, allow_full_read=False)))[1]
                 self.info.features = datasets.Features.from_arrow_schema(pa_table.schema)
+                if self.config.parse_agent_traces and has_agent_traces_markers(self.info.features):
+                    self.info.features = AGENT_TRACES_FEATURES
             except FullReadDisallowed:
                 pass
         return splits
@@ -129,9 +132,13 @@ class Json(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self, base_files, files_iterables, allow_full_read=True):
         json_field_paths = []
+        is_agent_traces = False
 
         if self.info.features is not None:
-            json_field_paths = get_json_field_paths_from_feature(self.info.features)
+            if self.info.features == AGENT_TRACES_FEATURES:
+                is_agent_traces = True
+            else:
+                json_field_paths = get_json_field_paths_from_feature(self.info.features)
 
         for shard_idx, files_iterable in enumerate(files_iterables):
             for file in files_iterable:
@@ -147,6 +154,16 @@ class Json(datasets.ArrowBasedBuilder):
                     if df.columns.tolist() == [0]:
                         df.columns = list(self.config.features) if self.config.features else ["text"]
                     pa_table = pa.Table.from_pandas(df, preserve_index=False)
+                    yield Key(shard_idx, 0), self._cast_table(pa_table)
+
+                # If the files are agent traces (one row = one file)
+                elif is_agent_traces:
+                    with open(file, "r", encoding="utf-8") as f:
+                        traces = f.readlines()
+                    harness, session_id = parse_traces_info(traces)
+                    pa_table = pa.Table.from_pydict(
+                        {"harness": [harness], "session_id": [session_id], "traces": [traces]}
+                    )
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
 
                 # If the file has one json object per line
@@ -265,3 +282,83 @@ class Json(datasets.ArrowBasedBuilder):
                                 self._cast_table(pa_table, json_field_paths=json_field_paths),
                             )
                             batch_idx += 1
+
+
+AGENT_TRACES_TYPES_VALUES = {
+    "claude_code": ["user", "assistant", "system"],
+    "pi": ["session", "message"],
+    "codex": ["session_meta", "turn_context", "response_item", "event_msg"],
+}
+AGENT_TRACES_TYPE_TO_HARNESS = {}
+for _harness, _trace_types in AGENT_TRACES_TYPES_VALUES.items():
+    for _trace_type in _trace_types:
+        AGENT_TRACES_TYPE_TO_HARNESS[_trace_type] = _harness
+
+
+AGENT_TRACES_FEATURES_MARKERS = {
+    "claude_code": datasets.Features(
+        {
+            "type": datasets.Value("string"),
+            "message": datasets.Json(),
+        }
+    ),
+    "pi": datasets.Features(
+        {
+            "type": datasets.Value("string"),
+            "message": datasets.Json(),
+        }
+    ),
+    "codex": datasets.Features(
+        {
+            "type": datasets.Value("string"),
+            "payload": datasets.Json(),
+        }
+    ),
+}
+
+AGENT_TRACES_FEATURES = datasets.Features(
+    {
+        "harness": datasets.Value("string"),
+        "session_id": datasets.Value("string"),
+        "traces": datasets.List(datasets.Json()),
+    }
+)
+
+
+def has_agent_traces_markers(features: datasets.Features) -> bool:
+    for agent_traces_features_marker in AGENT_TRACES_FEATURES_MARKERS.values():
+        if all(features.get(key) == feature for key, feature in agent_traces_features_marker.items()):
+            return True
+    return False
+
+
+def parse_traces_info(traces: list[str]) -> tuple[Optional[str], Optional[str]]:
+    harness, session_id = None, None
+    for trace in traces:
+        decoded_trace = ujson_loads(trace)
+        if harness is None:
+            if "type" in decoded_trace and isinstance(decoded_trace["type"], str):
+                harness = AGENT_TRACES_TYPE_TO_HARNESS.get(decoded_trace["type"])
+        if session_id is None:
+            # claude
+            if "sessionId" in decoded_trace and isinstance(decoded_trace["sessionId"], str):
+                session_id = decoded_trace["sessionId"]
+            # codex
+            elif (
+                "payload" in decoded_trace
+                and isinstance(decoded_trace["payload"], dict)
+                and "id" in decoded_trace["payload"]
+                and isinstance(decoded_trace["payload"]["id"], str)
+            ):
+                session_id = decoded_trace["payload"]["id"]
+            # pi
+            elif (
+                "type" in decoded_trace
+                and decoded_trace["type"] == "session"
+                and "id" in decoded_trace
+                and isinstance(decoded_trace["id"], str)
+            ):
+                session_id = decoded_trace["id"]
+        if harness and session_id:
+            break
+    return harness, session_id
