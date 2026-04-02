@@ -3848,7 +3848,13 @@ class IterableDataset(DatasetInfoMixin):
         Returns:
             `IterableDataset`
         """
-        return self.map(partial(add_column_fn, name=name, column=column), with_indices=True)
+        # Preserve existing features and extend them with the new column's inferred type.
+        # Without this, map() would set info.features=None (its default), losing all schema info.
+        new_features = None
+        if self._info.features is not None:
+            column_features = _infer_features_from_batch({name: list(column)})
+            new_features = Features({**self._info.features, **column_features})
+        return self.map(partial(add_column_fn, name=name, column=column), with_indices=True, features=new_features)
 
     def rename_column(self, original_column_name: str, new_column_name: str) -> "IterableDataset":
         """
