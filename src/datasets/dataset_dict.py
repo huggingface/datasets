@@ -9,7 +9,7 @@ import re
 import time
 from collections.abc import Sequence
 from functools import partial
-from typing import Callable, Literal, Optional, Sequence, Union
+from typing import Callable, Literal, Optional, Union
 
 import fsspec
 import numpy as np
