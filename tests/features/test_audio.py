@@ -501,6 +501,41 @@ def test_resampling_after_loading_dataset_with_audio_feature_mp3(shared_datadir)
     assert samples.sample_rate == 16000
     assert samples.data.shape == (2, 40124)
 
+def test_cast_column_audio_from_csv_large_string(tmp_path):
+    import wave
+    import struct
+    import math
+
+    from datasets import Audio, load_dataset
+
+    audio_path = tmp_path / "example.wav"
+    csv_path = tmp_path / "audio.csv"
+
+    sr = 16000
+    duration = 0.25
+    freq = 440.0
+    samples = int(sr * duration)
+
+    with wave.open(str(audio_path), "w") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(sr)
+        frames = bytearray()
+        for i in range(samples):
+            x = int(16000 * math.sin(2 * math.pi * freq * i / sr))
+            frames.extend(struct.pack("<h", x))
+        wf.writeframes(frames)
+
+    csv_path.write_text(f"audio\n{audio_path}\n", encoding="utf-8")
+
+    dset = load_dataset("csv", data_files=str(csv_path), split="train")
+    assert str(dset.features["audio"]) == "Value('large_string')"
+
+    dset = dset.cast_column("audio", Audio(decode=False))
+
+    assert isinstance(dset.features["audio"], Audio)
+    item = dset[0]["audio"]
+    assert item["path"] == str(audio_path)
 
 @require_torchcodec
 @pytest.mark.parametrize(
