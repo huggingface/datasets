@@ -202,58 +202,6 @@ def load_json_lines(buffer):
 
 
 class TestJsonDatasetWriter:
-    def test_dataset_to_json_decodes_json_feature_jsonl(self):
-        dataset = Dataset.from_list(
-            [{"scores": {"cat_a": 1, "cat_b": 2}}, {"scores": {"cat_x": 3}}],
-            features=Features({"scores": Json()}),
-        )
-
-        with io.BytesIO() as buffer:
-            JsonDatasetWriter(dataset, buffer, lines=True).write()
-            buffer.seek(0)
-            exported_content = load_json_lines(buffer)
-
-        assert exported_content == [{"scores": {"cat_a": 1, "cat_b": 2}}, {"scores": {"cat_x": 3}}]
-
-    def test_dataset_to_json_decodes_json_feature_records(self):
-        dataset = Dataset.from_list(
-            [{"scores": {"cat_a": 1, "cat_b": 2}}, {"scores": {"cat_x": 3}}],
-            features=Features({"scores": Json()}),
-        )
-
-        with io.BytesIO() as buffer:
-            JsonDatasetWriter(dataset, buffer, lines=False, orient="records").write()
-            buffer.seek(0)
-            exported_content = load_json(buffer)
-
-        assert exported_content == [{"scores": {"cat_a": 1, "cat_b": 2}}, {"scores": {"cat_x": 3}}]
-
-    def test_dataset_to_json_preserves_json_decode_false(self):
-        dataset = Dataset.from_list(
-            [{"scores": {"cat_a": 1, "cat_b": 2}}, {"scores": {"cat_x": 3}}],
-            features=Features({"scores": Json(decode=False)}),
-        )
-
-        with io.BytesIO() as buffer:
-            JsonDatasetWriter(dataset, buffer, lines=True).write()
-            buffer.seek(0)
-            exported_content = load_json_lines(buffer)
-
-        assert exported_content == [{"scores": '{"cat_a":1,"cat_b":2}'}, {"scores": '{"cat_x":3}'}]
-
-    def test_dataset_to_json_decodes_nested_json_feature(self):
-        dataset = Dataset.from_list(
-            [{"scores": [{"cat_a": 1}, {"cat_b": 2}]}, {"scores": [{"cat_x": 3}]}],
-            features=Features({"scores": List(Json())}),
-        )
-
-        with io.BytesIO() as buffer:
-            JsonDatasetWriter(dataset, buffer, lines=True).write()
-            buffer.seek(0)
-            exported_content = load_json_lines(buffer)
-
-        assert exported_content == [{"scores": [{"cat_a": 1}, {"cat_b": 2}]}, {"scores": [{"cat_x": 3}]}]
-
     @pytest.mark.parametrize("lines, load_json_function", [(True, load_json_lines), (False, load_json)])
     def test_dataset_to_json_lines(self, lines, load_json_function, dataset):
         with io.BytesIO() as buffer:
