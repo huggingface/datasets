@@ -6,6 +6,7 @@ import fsspec
 
 from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
+from ..formatting.formatting import PandasFeaturesDecoder
 from ..packaged_modules.json.json import Json
 from ..utils import tqdm as hf_tqdm
 from ..utils.typing import NestedDataStructureLike, PathLike
@@ -131,7 +132,9 @@ class JsonDatasetWriter:
             key=slice(offset, offset + self.batch_size),
             indices=self.dataset._indices,
         )
-        json_str = batch.to_pandas().to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
+        batch = batch.to_pandas()
+        batch = PandasFeaturesDecoder(self.dataset.features).decode_batch(batch)
+        json_str = batch.to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
         if not json_str.endswith("\n"):
             json_str += "\n"
         return json_str.encode(self.encoding)
