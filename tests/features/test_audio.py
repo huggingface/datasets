@@ -502,9 +502,9 @@ def test_resampling_after_loading_dataset_with_audio_feature_mp3(shared_datadir)
     assert samples.data.shape == (2, 40124)
 
 def test_cast_column_audio_from_csv_large_string(tmp_path):
-    import wave
-    import struct
     import math
+    import struct
+    import wave
 
     from datasets import Audio, load_dataset
 
