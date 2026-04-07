@@ -133,7 +133,9 @@ class JsonDatasetWriter:
             indices=self.dataset._indices,
         )
         batch = batch.to_pandas()
-        batch = PandasFeaturesDecoder(self.dataset.features).decode_batch(batch)
+        for json_field_path in get_json_field_paths_from_feature(self.dataset.features):
+            col, *json_field_subpath = json_field_path
+            batch[col] = batch[col].apply(partial(json_encode_field, json_field_path=json_field_subpath))
         json_str = batch.to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
         if not json_str.endswith("\n"):
             json_str += "\n"
