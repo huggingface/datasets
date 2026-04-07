@@ -351,6 +351,9 @@ def parse_traces_info(traces: list[str]) -> tuple[Optional[str], Optional[str]]:
             # claude
             if "sessionId" in decoded_trace and isinstance(decoded_trace["sessionId"], str):
                 session_id = decoded_trace["sessionId"]
+            # claude (not sure but this format does exist online)
+            elif "session_id" in decoded_trace and isinstance(decoded_trace["session_id"], str):
+                session_id = decoded_trace["session_id"]
             # codex
             elif (
                 "payload" in decoded_trace
