@@ -8,7 +8,17 @@ from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
 from ..formatting.formatting import PandasFeaturesDecoder
 from ..packaged_modules.json.json import Json
+from functools import partial
+from typing import BinaryIO, Optional, Union
+
+import fsspec
+
+from .. import Dataset, Features, NamedSplit, config
+from ..formatting import query_table
+from ..formatting.formatting import PandasFeaturesDecoder
+from ..packaged_modules.json.json import Json
 from ..utils import tqdm as hf_tqdm
+from ..utils.json import get_json_field_paths_from_feature, json_encode_field
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
