@@ -345,7 +345,9 @@ def parse_traces_info(traces: list[str]) -> tuple[Optional[str], Optional[str]]:
     for trace in traces:
         decoded_trace = ujson_loads(trace)
         if harness is None:
-            if "type" in decoded_trace and isinstance(decoded_trace["type"], str):
+            if "harness" in decoded_trace and isinstance(decoded_trace["harness"], str):
+                harness = decoded_trace["harness"]
+            elif "type" in decoded_trace and isinstance(decoded_trace["type"], str):
                 harness = AGENT_TRACES_TYPE_TO_HARNESS.get(decoded_trace["type"])
         if session_id is None:
             # claude
