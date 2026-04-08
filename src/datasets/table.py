@@ -59,6 +59,15 @@ def read_schema_from_file(filename: str) -> pa.Schema:
     return schema
 
 
+def _batch_arrow_table(table: pa.Table) -> pa.Table:
+    batched_columns = []
+    for column_name in table.column_names:
+        column = table[column_name].combine_chunks()
+        offsets = pa.array([0, len(column)], type=pa.int32())
+        batched_columns.append(pa.ListArray.from_arrays(offsets, column))
+    return pa.Table.from_arrays(batched_columns, names=table.column_names)
+
+
 def _memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
     opened_stream = _memory_mapped_record_batch_reader_from_file(filename)
     pa_table = opened_stream.read_all()
