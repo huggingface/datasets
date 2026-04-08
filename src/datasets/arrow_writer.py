@@ -652,7 +652,7 @@ class ArrowWriter:
                     row[0][col].to_pylist()[0] if isinstance(row[0][col], (pa.Array, pa.ChunkedArray)) else row[0][col]
                     for row in self.current_examples
                 ]
-        self.write_batch(batch_examples=batch_examples)
+        self._write_batch(batch_examples=batch_examples)
         self.current_examples = []
 
     def write_rows_on_file(self):
@@ -660,7 +660,7 @@ class ArrowWriter:
         if not self.current_rows:
             return
         table = pa.concat_tables(self.current_rows)
-        self.write_table(table)
+        self._write_table(table)
         self.current_rows = []
 
     def write(
@@ -709,6 +709,15 @@ class ArrowWriter:
             batch_examples: the batch of examples to add.
             try_original_type: use `try_type` when instantiating OptimizedTypedSequence if `True`, otherwise `try_type = None`.
         """
+        self.write_examples_on_file()  # in case there are buffered examples to write first
+        self._write_batch(batch_examples, writer_batch_size=writer_batch_size, try_original_type=try_original_type)
+
+    def _write_batch(
+        self,
+        batch_examples: dict[str, list],
+        writer_batch_size: Optional[int] = None,
+        try_original_type: Optional[bool] = True,
+    ):
         if batch_examples and len(next(iter(batch_examples.values()))) == 0:
             return
         features = None if self.pa_writer is None and self.update_features else self._features
@@ -752,6 +761,10 @@ class ArrowWriter:
         Args:
             example: the Table to add.
         """
+        self.write_rows_on_file()  # in case there are buffered rows to write first
+        self._write_table(pa_table, writer_batch_size=writer_batch_size)
+
+    def _write_table(self, pa_table: pa.Table, writer_batch_size: Optional[int] = None):
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
         if self.pa_writer is None:

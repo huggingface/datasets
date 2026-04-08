@@ -1887,7 +1887,10 @@ class ArrowBasedBuilder(DatasetBuilder):
                             embed_local_files=embed_local_files,
                         )
                     try:
-                        writer.write_table(table)
+                        if len(table) == 1:
+                            writer.write_row(table)
+                        else:
+                            writer.write_table(table)
                     except CastError as cast_error:
                         raise DatasetGenerationCastError.from_cast_error(
                             cast_error=cast_error,
