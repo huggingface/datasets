@@ -55,6 +55,16 @@ class SplitInfo:
         )
         return instructions.file_instructions
 
+    def __repr__(self):
+        return (
+            self.__class__.__qualname__
+            + "("
+            + ", ".join(
+                [f"{f.name}={repr(getattr(self, f.name))}" for f in dataclasses.fields(self) if getattr(self, f.name)]
+            )
+            + ")"
+        )
+
 
 @dataclass
 class SubSplitInfo:
