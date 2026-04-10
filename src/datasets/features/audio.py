@@ -236,6 +236,7 @@ class Audio:
         The Arrow types that can be converted to the Audio pyarrow storage type are:
 
         - `pa.string()` - it must contain the "path" data
+        - `pa.large_string()` - it must contain the "path" data (will be cast to string if possible)
         - `pa.binary()` - it must contain the audio bytes
         - `pa.struct({"bytes": pa.binary()})`
         - `pa.struct({"path": pa.string()})`
