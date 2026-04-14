@@ -1,5 +1,4 @@
 import io
-import os
 from dataclasses import dataclass
 from typing import Literal, Optional
 
@@ -162,7 +161,7 @@ class Json(datasets.ArrowBasedBuilder):
                     with open(file, "r", encoding="utf-8") as f:
                         traces = f.readlines()
                     harness, session_id = parse_traces_info(traces)
-                    file_name = os.path.basename(file)
+                    file_name = get_agent_traces_file_path(base_files[shard_idx])
                     pa_table = pa.Table.from_pydict(
                         {
                             "harness": [harness],
@@ -373,3 +372,13 @@ def parse_traces_info(traces: list[str]) -> tuple[Optional[str], Optional[str]]:
         if harness and session_id:
             break
     return harness, session_id
+
+
+def get_agent_traces_file_path(file: str) -> str:
+    origin = file.get_origin() if hasattr(file, "get_origin") else str(file)
+    if origin.startswith("hf://"):
+        # origin is set in data_files.py as "hf://datasets/{id}@{sha}/{path}"
+        _, _, revision_and_path = origin.partition("@")
+        _, _, path = revision_and_path.partition("/")
+        return path
+    return origin
