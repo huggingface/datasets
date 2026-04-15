@@ -480,6 +480,10 @@ class OmeZarrProxy:
     def ndim(self):
         return self.get_level(0).ndim
 
+    @property
+    def chunks(self):
+        return self.get_level(0).chunks
+
     def __getitem__(self, key):
         """Access level 0 (highest resolution) by default."""
         return self.get_level(0)[key]

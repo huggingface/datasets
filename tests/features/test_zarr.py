@@ -193,6 +193,7 @@ class TestZarrDecodeExample:
         assert result.shape == (20, 20)
         assert result.dtype == np.dtype("float32")
         assert result.ndim == 2
+        assert result.chunks == (10, 10)
         assert result.channel_names == ["DAPI", "GFP"]
         level0 = result.get_level(0)
         assert isinstance(level0, ZarrArrayProxy)
