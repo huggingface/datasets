@@ -669,7 +669,7 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
             ]
             default_config_name = None
         builder_kwargs = {
-            "base_path": hf_dataset_url(self.name, "", revision=self.commit_hash).rstrip("/"),
+            "base_path": base_path,
             "repo_id": self.name,
             "dataset_name": camelcase_to_snakecase(Path(self.name).name),
         }
