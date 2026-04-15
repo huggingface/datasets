@@ -17,6 +17,7 @@ __all__ = [
     "Video",
     "Pdf",
     "Nifti",
+    "Zarr",
 ]
 from .audio import Audio
 from .features import Array2D, Array3D, Array4D, Array5D, ClassLabel, Features, Json, LargeList, List, Sequence, Value
@@ -25,3 +26,4 @@ from .nifti import Nifti
 from .pdf import Pdf
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video
+from .zarr import Zarr

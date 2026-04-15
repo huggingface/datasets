@@ -47,6 +47,7 @@ from .nifti import Nifti, encode_nibabel_image
 from .pdf import Pdf, encode_pdfplumber_pdf
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video
+from .zarr import Zarr
 
 
 logger = logging.get_logger(__name__)
@@ -1525,6 +1526,7 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     Video.__name__: Video,
     Pdf.__name__: Pdf,
     Nifti.__name__: Nifti,
+    Zarr.__name__: Zarr,
     Json.__name__: Json,
 }
 
