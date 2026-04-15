@@ -41,6 +41,22 @@ def json_encode_field(example: Any, json_field_path: list[str]) -> Any:
             return example
 
 
+def json_decode_field(example: Any, json_field_path: str) -> Any:
+    if json_field_path:
+        field, *json_field_path = json_field_path
+        if example is None:
+            return None
+        elif field == 0:
+            return [json_decode_field(x, json_field_path) for x in example]
+        else:
+            return {**example, field: json_decode_field(example.get(field), json_field_path)}
+    else:
+        try:
+            return ujson_loads(example)
+        except Exception:
+            return example
+
+
 def find_mixed_struct_types_field_paths(examples: list, allow_root=False) -> list[list[str]]:
     mixed_struct_types_field_paths = []
     examples = [example for example in examples if example is not None]

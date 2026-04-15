@@ -1,5 +1,6 @@
 import multiprocessing
 import os
+from functools import partial
 from typing import BinaryIO, Optional, Union
 
 import fsspec
@@ -8,6 +9,7 @@ from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
 from ..packaged_modules.json.json import Json
 from ..utils import tqdm as hf_tqdm
+from ..utils.json import get_json_field_paths_from_feature, json_decode_field
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
@@ -131,7 +133,12 @@ class JsonDatasetWriter:
             key=slice(offset, offset + self.batch_size),
             indices=self.dataset._indices,
         )
-        json_str = batch.to_pandas().to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
+        batch = batch.to_pandas()
+        for json_field_path in get_json_field_paths_from_feature(self.dataset.features):
+            col, *json_field_subpath = json_field_path
+            print(col, json_field_subpath)
+            batch[col] = batch[col].apply(partial(json_decode_field, json_field_path=json_field_subpath))
+        json_str = batch.to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
         if not json_str.endswith("\n"):
             json_str += "\n"
         return json_str.encode(self.encoding)

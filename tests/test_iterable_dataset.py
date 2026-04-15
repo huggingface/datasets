@@ -1,5 +1,6 @@
 import asyncio
 import pickle
+import sys
 import time
 from copy import deepcopy
 from dataclasses import dataclass
@@ -80,6 +81,28 @@ SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/dataset_with_data_files"
 DEFAULT_N_EXAMPLES = 20
 DEFAULT_BATCH_SIZE = 4
 DEFAULT_FILEPATH = "file.txt"
+
+
+def _normalize_batched_output(batch):
+    def to_python(value):
+        if isinstance(value, np.ndarray):
+            return [to_python(item) for item in value.tolist()]
+        if isinstance(value, list):
+            return [to_python(item) for item in value]
+        if isinstance(value, tuple):
+            return [to_python(item) for item in value]
+        return value
+
+    if isinstance(batch, pa.Table):
+        return {column: to_python(values) for column, values in batch.to_pydict().items()}
+    if isinstance(batch, pd.DataFrame):
+        return {column: to_python(batch[column].tolist()) for column in batch.columns}
+    if config.POLARS_AVAILABLE and "polars" in sys.modules:
+        import polars as pl
+
+        if isinstance(batch, pl.DataFrame):
+            return {column: to_python(values) for column, values in batch.to_dict(as_series=False).items()}
+    return to_python(batch)
 
 
 def generate_examples_fn(**kwargs):
@@ -2828,6 +2851,33 @@ def test_iterable_dataset_batch():
         assert len(batch["text"]) == 3
         assert batch["id"] == [3 * i, 3 * i + 1, 3 * i + 2]
         assert batch["text"] == [f"Text {3 * i}", f"Text {3 * i + 1}", f"Text {3 * i + 2}"]
+
+
+@pytest.mark.parametrize("format_type", ["pyarrow", "pandas"])
+def test_iterable_dataset_batch_with_table_format(format_type):
+    ds = IterableDataset.from_dict({"a": [1, 2, 3, 4]})
+
+    left = list(ds.with_format(format_type).batch(2))
+    right = list(ds.batch(2).with_format(format_type))
+
+    assert len(left) == len(right) == 2
+    assert all(type(lhs) is type(rhs) for lhs, rhs in zip(left, right))
+    assert [_normalize_batched_output(batch) for batch in left] == [
+        _normalize_batched_output(batch) for batch in right
+    ]
+
+
+@require_polars
+def test_iterable_dataset_batch_with_polars_format():
+    ds = IterableDataset.from_dict({"a": [1, 2, 3, 4]})
+
+    left = list(ds.with_format("polars").batch(2))
+    right = list(ds.batch(2).with_format("polars"))
+
+    assert len(left) == len(right) == 2
+    assert [_normalize_batched_output(batch) for batch in left] == [
+        _normalize_batched_output(batch) for batch in right
+    ]
 
 
 @dataclass
