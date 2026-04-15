@@ -1,4 +1,5 @@
 import io
+import os
 from dataclasses import dataclass
 from typing import Literal, Optional
 
@@ -84,7 +85,11 @@ class Json(datasets.ArrowBasedBuilder):
             splits.append(
                 datasets.SplitGenerator(
                     name=split_name,
-                    gen_kwargs={"files_iterables": files_iterables, "base_files": base_data_files[split_name]},
+                    gen_kwargs={
+                        "files_iterables": files_iterables,
+                        "base_files": base_data_files[split_name],
+                        "original_files": self.config.data_files[split_name],
+                    },
                 )
             )
         if self.info.features is None:
@@ -127,10 +132,10 @@ class Json(datasets.ArrowBasedBuilder):
             pa_table = table_cast(pa_table, features.arrow_schema)
         return pa_table
 
-    def _generate_shards(self, base_files, files_iterables):
+    def _generate_shards(self, base_files, files_iterables, original_files):
         yield from base_files
 
-    def _generate_tables(self, base_files, files_iterables, allow_full_read=True):
+    def _generate_tables(self, base_files, files_iterables, original_files, allow_full_read=True):
         json_field_paths = []
         is_agent_traces = False
 
@@ -161,13 +166,15 @@ class Json(datasets.ArrowBasedBuilder):
                     with open(file, "r", encoding="utf-8") as f:
                         traces = f.readlines()
                     harness, session_id = parse_traces_info(traces)
-                    file_name = get_agent_traces_file_path(base_files[shard_idx])
+                    file_path = original_files[shard_idx]
+                    if file_path.startswith(self.base_path):
+                        file_path = os.path.relpath(file_path, self.base_path)
                     pa_table = pa.Table.from_pydict(
                         {
                             "harness": [harness],
                             "session_id": [session_id],
                             "traces": [traces],
-                            "file_name": [file_name],
+                            "file_path": [file_path],
                         }
                     )
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
@@ -327,7 +334,7 @@ AGENT_TRACES_FEATURES = datasets.Features(
         "harness": datasets.Value("string"),
         "session_id": datasets.Value("string"),
         "traces": datasets.List(datasets.Json()),
-        "file_name": datasets.Value("string"),
+        "file_path": datasets.Value("string"),
     }
 )
 
@@ -372,13 +379,3 @@ def parse_traces_info(traces: list[str]) -> tuple[Optional[str], Optional[str]]:
         if harness and session_id:
             break
     return harness, session_id
-
-
-def get_agent_traces_file_path(file: str) -> str:
-    origin = file.get_origin() if hasattr(file, "get_origin") else str(file)
-    if origin.startswith("hf://"):
-        # origin is set in data_files.py as "hf://datasets/{id}@{sha}/{path}"
-        _, _, revision_and_path = origin.partition("@")
-        _, _, path = revision_and_path.partition("/")
-        return path
-    return origin
