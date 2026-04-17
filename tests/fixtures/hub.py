@@ -19,7 +19,7 @@ if config.HF_HUB_VERSION >= version.parse("1.6.0"):
 else:
     BucketNotFoundError = None
 
-CI_HUB_USER = "__DUMMY_TRANSFORMERS_USER__"
+CI_HUB_USER = "__DUMMY_DATASETS_USER__"
 CI_HUB_USER_FULL_NAME = "Dummy User"
 CI_HUB_USER_TOKEN = "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"
 

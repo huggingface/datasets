@@ -65,9 +65,7 @@ class JsonDatasetReader(AbstractDatasetReader):
                 base_path=base_path,
                 num_proc=self.num_proc,
             )
-            dataset = self.builder.as_dataset(
-                split=self.split, verification_mode=verification_mode, in_memory=self.keep_in_memory
-            )
+            dataset = self.builder.as_dataset(split=self.split, in_memory=self.keep_in_memory)
         return dataset
 
 
@@ -136,7 +134,6 @@ class JsonDatasetWriter:
         batch = batch.to_pandas()
         for json_field_path in get_json_field_paths_from_feature(self.dataset.features):
             col, *json_field_subpath = json_field_path
-            print(col, json_field_subpath)
             batch[col] = batch[col].apply(partial(json_decode_field, json_field_path=json_field_subpath))
         json_str = batch.to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
         if not json_str.endswith("\n"):

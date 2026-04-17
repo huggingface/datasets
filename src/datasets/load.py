@@ -1717,7 +1717,7 @@ def load_dataset(
     keep_in_memory = (
         keep_in_memory if keep_in_memory is not None else is_small_dataset(builder_instance.info.dataset_size)
     )
-    ds = builder_instance.as_dataset(split=split, verification_mode=verification_mode, in_memory=keep_in_memory)
+    ds = builder_instance.as_dataset(split=split, in_memory=keep_in_memory)
 
     return ds
 
