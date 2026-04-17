@@ -77,7 +77,7 @@ def verify_splits(expected_splits: Optional[dict], recorded_splits: dict):
     logger.info("All the splits matched successfully.")
 
 
-def get_size_checksum_dict(path: str, record_checksum: bool = True) -> dict:
+def get_size_checksum_dict(path: str, record_checksum: bool = False) -> dict:
     """Compute the file size and the sha256 checksum of a file"""
     if record_checksum:
         m = insecure_hashlib.sha256()
