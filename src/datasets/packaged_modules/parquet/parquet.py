@@ -157,18 +157,37 @@ class Parquet(datasets.ArrowBasedBuilder):
                     "fragment_row_groups": row_groups,
                 }
 
-    def _generate_more_gen_kwargs(self, files, row_groups_list):
-        if not row_groups_list:
+    def _generate_more_gen_kwargs(self, files, row_groups_list, num_shards=None):
+        """Generate more gen_kwargs for resharding"""
+        # Check if row_groups_list is empty or contains only None values (meaning no specific row groups are specified)
+        if not row_groups_list or all(rg is None for rg in row_groups_list):
             parquet_file_format = ds.ParquetFileFormat(default_fragment_scan_options=self.config.fragment_scan_options)
             for file in files:
                 with open(file, "rb") as f:
                     parquet_fragment = parquet_file_format.make_fragment(f)
-                    yield {
-                        "files": [file] * parquet_fragment.num_row_groups,
-                        "row_groups_list": [
-                            (row_group_id,) for row_group_id in range(parquet_fragment.num_row_groups)
-                        ],
-                    }
+                    if num_shards is not None and parquet_fragment.num_row_groups > num_shards:
+                        # If num_shards is specified and we have more row groups than requested shards,
+                        # distribute row groups evenly across shards
+                        row_groups_per_shard = parquet_fragment.num_row_groups // num_shards
+                        remainder = parquet_fragment.num_row_groups % num_shards
+
+                        current_row_group = 0
+                        for shard_idx in range(num_shards):
+                            num_row_groups = row_groups_per_shard + (1 if shard_idx < remainder else 0)
+                            row_group_ids = tuple(range(current_row_group, current_row_group + num_row_groups))
+                            current_row_group += num_row_groups
+                            yield {
+                                "files": [file],
+                                "row_groups_list": [row_group_ids],
+                            }
+                    else:
+                        # Split by row groups
+                        yield {
+                            "files": [file] * parquet_fragment.num_row_groups,
+                            "row_groups_list": [
+                                (row_group_id,) for row_group_id in range(parquet_fragment.num_row_groups)
+                            ],
+                        }
         else:
             for file, row_groups in zip(files, row_groups_list):
                 yield {"files": [file], "row_groups_list": [row_groups]}
@@ -190,7 +209,7 @@ class Parquet(datasets.ArrowBasedBuilder):
                 with open(file, "rb") as f:
                     parquet_fragment = parquet_file_format.make_fragment(f)
                     if row_groups is not None:
-                        parquet_fragment.subset(row_group_ids=row_groups)
+                        parquet_fragment = parquet_fragment.subset(row_group_ids=row_groups)
                     if parquet_fragment.row_groups:
                         batch_size = self.config.batch_size or parquet_fragment.row_groups[0].num_rows
                         for batch_idx, record_batch in enumerate(

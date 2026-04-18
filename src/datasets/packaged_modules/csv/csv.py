@@ -1,3 +1,5 @@
+import io
+import os
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, Union
 
@@ -180,6 +182,85 @@ class Csv(datasets.ArrowBasedBuilder):
     def _generate_shards(self, base_files, files_iterables):
         yield from base_files
 
+    def _estimate_byte_size_per_line(self, file, max_bytes=20 << 20):
+        """Estimate the byte size per line by reading the first max_bytes (default 20MB)."""
+        try:
+            with open(
+                file,
+                "r",
+                encoding=self.config.encoding or "utf-8",
+                errors=self.config.encoding_errors or "strict",
+            ) as f:
+                line_count = 0
+                bytes_read = 0
+
+                while bytes_read < max_bytes:
+                    line = f.readline()
+                    if not line:
+                        break
+                    line_count += 1
+                    bytes_read += len(line.encode())
+                if line_count > 0:
+                    return bytes_read // line_count
+                else:
+                    return 0
+        except Exception:
+            return 0
+
+    def _generate_more_gen_kwargs(self, base_files, files_iterables, num_shards=None):
+        """Generate more gen_kwargs for resharding.
+        When num_shards is specified, create that many shards.
+        When num_shards is None, maximize sharding by aiming for self.config.chunksize lines per shard.
+        """
+        for base_file, files_iterable in zip(base_files, files_iterables):
+            files_list = list(files_iterable)
+
+            if not files_list:
+                continue
+
+            # Estimate total line count from the first file only (assuming similar structure)
+            line_size = 0
+            for file in files_list:
+                file_size = os.path.getsize(file)
+                if line_size == 0:
+                    line_size = self._estimate_byte_size_per_line(file)
+                    if line_size == 0:
+                        yield {"base_files": [base_file], "files_iterables": [[(file, 0, file_size)]]}
+                        continue
+
+                # Calculate shard size and number of shards
+                # If num_shards is specified, use that number of shards
+                # If num_shards is None, aim use self.config.chunksize lines per shard
+                if num_shards is None:
+                    target_num_shards = max(1, file_size // (self.config.chunksize * line_size))
+                else:
+                    target_num_shards = max(1, num_shards)
+                shard_size = max(1, file_size // target_num_shards)
+
+                if target_num_shards <= 1:
+                    yield {
+                        "base_files": [base_file],
+                        "files_iterables": [[(file, 0, file_size)]],
+                    }
+                    continue
+
+                for i in range(target_num_shards):
+                    start = i * shard_size
+                    if start >= file_size:
+                        break
+
+                    end = (i + 1) * shard_size if i < target_num_shards - 1 else file_size
+
+                    if end > file_size:
+                        end = file_size
+
+                    yield {
+                        "base_files": [base_file],
+                        "files_iterables": [[(file, start, end)]],
+                    }
+                    if end >= file_size:
+                        break
+
     def _generate_tables(self, base_files, files_iterables):
         schema = self.config.features.arrow_schema if self.config.features else None
         # dtype allows reading an int column as str
@@ -191,16 +272,53 @@ class Csv(datasets.ArrowBasedBuilder):
             if schema is not None
             else None
         )
+
         for shard_idx, files_iterable in enumerate(files_iterables):
-            for file in files_iterable:
-                csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.pd_read_csv_kwargs)
+            for file_item in files_iterable:
+                if isinstance(file_item, tuple):
+                    file, start_byte, end_byte = file_item
+                else:
+                    file, start_byte, end_byte = file_item, 0, None
+                file_path = file
+                with open(file, "rb") as f:
+                    header_line = f.readline()
+                    header_end_pos = f.tell()
+                    if start_byte > 0:
+                        # If start_byte is before the header, skip the header
+                        if start_byte < header_end_pos:
+                            f.seek(header_end_pos)
+                        else:
+                            f.seek(start_byte)
+                        f.readline()
+
+                    current_pos = f.tell()
+
+                    if end_byte is not None and current_pos >= end_byte:
+                        if not (start_byte < header_end_pos and current_pos == header_end_pos):
+                            continue
+
+                    if end_byte is not None:
+                        bytes_to_read = max(0, end_byte - current_pos)
+                        content = f.read(bytes_to_read)
+                        if f.tell() < os.path.getsize(file):
+                            content += f.readline()
+                    else:
+                        content = f.read()
+
+                    if not content or not content.strip(b"\r\n "):
+                        continue
+                    shard_data = header_line + content
+                    file = io.BytesIO(shard_data)
+
+                read_csv_kwargs = self.config.pd_read_csv_kwargs.copy()
+                csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **read_csv_kwargs)
                 try:
                     for batch_idx, df in enumerate(csv_file_reader):
                         pa_table = pa.Table.from_pandas(df)
-                        # Uncomment for debugging (will print the Arrow table size and elements)
+                        # Uncomment for debugging (will print Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                         yield Key(shard_idx, batch_idx), self._cast_table(pa_table)
                 except ValueError as e:
-                    logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                    logger.error(f"Failed to read file '{file_path}' with error {type(e)}: {e}")
                     raise
