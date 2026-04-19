@@ -54,7 +54,7 @@ class TestTqdmUtils(unittest.TestCase):
         disable_progress_bars()
         self.assertTrue(are_progress_bars_disabled())
 
-        with self.assertWarns(UserWarning):
+        with pytest.warns(UserWarning):
             enable_progress_bars()
         self.assertTrue(are_progress_bars_disabled())  # Still disabled !
 
@@ -67,7 +67,7 @@ class TestTqdmUtils(unittest.TestCase):
         enable_progress_bars()
         self.assertFalse(are_progress_bars_disabled())
 
-        with self.assertWarns(UserWarning):
+        with pytest.warns(UserWarning):
             disable_progress_bars()
         self.assertFalse(are_progress_bars_disabled())  # Still enabled !
 

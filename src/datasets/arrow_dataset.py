@@ -113,6 +113,7 @@ from .table import (
     InMemoryTable,
     MemoryMappedTable,
     Table,
+    _batch_arrow_table,
     _memory_mapped_record_batch_reader_from_file,
     cast_array_to_feature,
     concat_tables,
@@ -4098,6 +4099,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         def batch_fn(example):
             return {k: [v] for k, v in example.items()}
+
+        if self._format_type in ("arrow", "pandas", "polars"):
+            return self.with_format("arrow").map(
+                _batch_arrow_table,
+                batched=True,
+                batch_size=batch_size,
+                drop_last_batch=drop_last_batch,
+                num_proc=num_proc,
+                new_fingerprint=new_fingerprint,
+                desc="Batching examples",
+            )
 
         return self.map(
             batch_fn,

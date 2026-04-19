@@ -32,13 +32,28 @@ def json_encode_field(example: Any, json_field_path: str) -> Any:
             return [json_encode_field(x, json_field_path) for x in example]
         else:
             return {**example, field: json_encode_field(example.get(field), json_field_path)}
-        return example
     else:
         try:
             ujson_loads(example)
         except Exception:
             return ujson_dumps(example)
         else:
+            return example
+
+
+def json_decode_field(example: Any, json_field_path: str) -> Any:
+    if json_field_path:
+        field, *json_field_path = json_field_path
+        if example is None:
+            return None
+        elif field == 0:
+            return [json_decode_field(x, json_field_path) for x in example]
+        else:
+            return {**example, field: json_decode_field(example.get(field), json_field_path)}
+    else:
+        try:
+            return ujson_loads(example)
+        except Exception:
             return example
 
 
