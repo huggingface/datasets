@@ -342,7 +342,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         self._check_values_type()
         return DatasetDict({k: dataset.cast_column(column=column, feature=feature) for k, dataset in self.items()})
 
-    def remove_columns(self, column_names: Union[str, list[str]]) -> "DatasetDict":
+    def remove_columns(self, column_names: Union[str, Sequence[str]]) -> "DatasetDict":
         """
         Remove one or several column(s) from each split in the dataset
         and the features associated to the column(s).
@@ -470,7 +470,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         self._check_values_type()
         return DatasetDict({k: dataset.rename_columns(column_mapping=column_mapping) for k, dataset in self.items()})
 
-    def select_columns(self, column_names: Union[str, list[str]]) -> "DatasetDict":
+    def select_columns(self, column_names: Union[str, Sequence[str]]) -> "DatasetDict":
         """Select one or several column(s) from each split in the dataset and
         the features associated to the column(s).
 
