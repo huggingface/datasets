@@ -368,7 +368,7 @@ def parse_traces_info(traces: list[str]) -> tuple[Optional[str], Optional[str]]:
                 and isinstance(decoded_trace["payload"]["id"], str)
             ):
                 session_id = decoded_trace["payload"]["id"]
-            # pi
+            # pi / openclaw (openclaw embeds pi-agent; distinguish via cwd)
             elif (
                 "type" in decoded_trace
                 and decoded_trace["type"] == "session"
@@ -376,6 +376,8 @@ def parse_traces_info(traces: list[str]) -> tuple[Optional[str], Optional[str]]:
                 and isinstance(decoded_trace["id"], str)
             ):
                 session_id = decoded_trace["id"]
+                if isinstance(decoded_trace.get("cwd"), str) and "/.openclaw/" in decoded_trace["cwd"]:
+                    harness = "openclaw"
         if harness and session_id:
             break
     return harness, session_id
