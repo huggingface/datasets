@@ -327,7 +327,9 @@ def test_json_generate_tables(file_fixture, config_kwargs, expected, request):
     base_files = [request.getfixturevalue(file_fixture)]
     files_iterables = [[file] for file in base_files]
     original_files = list(base_files)
-    generator = json._generate_tables(base_files=base_files, files_iterables=files_iterables, original_files=original_files)
+    generator = json._generate_tables(
+        base_files=base_files, files_iterables=files_iterables, original_files=original_files
+    )
     pa_table = pa.concat_tables([table for _, table in generator])
     out = Features.from_arrow_schema(pa_table.schema).decode_batch(pa_table.to_pydict())
     assert out == expected
