@@ -4046,7 +4046,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shutil.move(tmp_file.name, cache_file_name)
             umask = os.umask(0o666)
             os.umask(umask)
-            os.chmod(cache_file_name, 0o666 & ~umask)
+            try:
+                os.chmod(cache_file_name, 0o666 & ~umask)
+            except OSError as e:
+                # Flat-permission filesystems (e.g. GCS FUSE, S3 FUSE mounts)
+                # reject chmod. The cache file is already written, so treat
+                # the permission update as best-effort rather than fatal.
+                logger.debug("Could not chmod %s: %s", cache_file_name, e)
 
         if update_data:
             # Create new Dataset from buffer or file
@@ -4591,7 +4597,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shutil.move(tmp_file.name, indices_cache_file_name)
             umask = os.umask(0o666)
             os.umask(umask)
-            os.chmod(indices_cache_file_name, 0o666 & ~umask)
+            try:
+                os.chmod(indices_cache_file_name, 0o666 & ~umask)
+            except OSError as e:
+                # See note on the matching chmod in _map_single — best-effort
+                # so writes succeed on flat-permission filesystems.
+                logger.debug("Could not chmod %s: %s", indices_cache_file_name, e)
 
         # Return new Dataset object
         if buf_writer is None:
