@@ -2222,7 +2222,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
         # It's ok to use _iter_arrow here without fancy state_dict logic since it's
         # used with RebatchedArrowExamplesIterable with the right batch_size to
         # never lose examples
-        if self.ex_iterable.iter_arrow:
+        if self.ex_iterable.iter_arrow and not self.force_convert_to_python:
             # feature casting (inc column addition) handled within self._iter_arrow()
             for key, pa_table in self._iter_arrow():
                 batch = formatter.format_batch(pa_table)
