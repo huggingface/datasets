@@ -12,7 +12,7 @@ import pyarrow as pa
 from .. import config
 from ..download.download_config import DownloadConfig
 from ..table import array_cast
-from ..utils.file_utils import is_local_path, xopen
+from ..utils.file_utils import is_local_path, is_remote_url, xopen
 from ..utils.py_utils import first_non_null_value, no_op_if_value_is_null, string_to_dict
 
 
@@ -272,12 +272,25 @@ class Image:
             )
         return array_cast(storage, self.pa_type)
 
-    def embed_storage(self, storage: pa.StructArray, token_per_repo_id=None) -> pa.StructArray:
+    def embed_storage(
+        self, storage: pa.StructArray, token_per_repo_id=None, local_files: bool = True, remote_files: bool = True
+    ) -> pa.StructArray:
         """Embed image files into the Arrow array.
 
         Args:
             storage (`pa.StructArray`):
                 PyArrow array to embed.
+            token_per_repo_id (`dict`, optional):
+                Dictionary repo_id -> token to fetch the files bytes.
+            local_files (`bool`, defaults to `True`)
+                Whether to embed local files data in the array
+
+                <Added version="4.8.5"/>
+            remote_files (`bool`, defaults to `True`)
+                Whether to embed remote files data in the array.
+                E.g. files with paths that start with hf:// or https://
+
+                <Added version="4.8.5"/>
 
         Returns:
             `pa.StructArray`: Array in the Image arrow storage type, that is
@@ -300,13 +313,29 @@ class Image:
 
         bytes_array = pa.array(
             [
-                (path_to_bytes(x["path"]) if x["bytes"] is None else x["bytes"]) if x is not None else None
+                (
+                    path_to_bytes(x["path"])
+                    if x["bytes"] is None
+                    and ((local_files and is_local_path(x["path"])) or (remote_files and is_remote_url(x["path"])))
+                    else x["bytes"]
+                )
+                if x is not None
+                else None
                 for x in storage.to_pylist()
             ],
             type=pa.binary(),
         )
         path_array = pa.array(
-            [os.path.basename(path) if path is not None else None for path in storage.field("path").to_pylist()],
+            [
+                (
+                    os.path.basename(path)
+                    if (local_files and is_local_path(path)) or (remote_files and is_remote_url(path))
+                    else path
+                )
+                if path is not None
+                else None
+                for path in storage.field("path").to_pylist()
+            ],
             type=pa.string(),
         )
         storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())

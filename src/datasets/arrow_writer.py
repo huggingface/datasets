@@ -759,7 +759,7 @@ class ArrowWriter:
         pa_table = pa_table.combine_chunks()
         pa_table = table_cast(pa_table, self._schema)
         if self.embed_local_files:
-            pa_table = embed_table_storage(pa_table)
+            pa_table = embed_table_storage(pa_table, local_files=True, remote_files=False)
         self._num_bytes += pa_table.nbytes
         self._num_examples += pa_table.num_rows
         self.pa_writer.write_table(pa_table, writer_batch_size)
