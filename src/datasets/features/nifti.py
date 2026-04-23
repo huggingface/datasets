@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
 
 import pyarrow as pa
+import pyarrow.compute as pc
 
 from .. import config
 from ..download.download_config import DownloadConfig
@@ -276,7 +277,9 @@ class Nifti:
             ],
             type=pa.string(),
         )
-        storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
+        storage = pa.StructArray.from_arrays(
+            [bytes_array, path_array], ["bytes", "path"], mask=pc.and_(bytes_array.is_null(), path_array.is_null())
+        )
         return array_cast(storage, self.pa_type)
 
     def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
