@@ -380,6 +380,7 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
     json = Json(**config_kwargs)
     base_files = [request.getfixturevalue(file_fixture)]
     files_iterables = [[file] for file in base_files]
-    generator = json._generate_tables(base_files=base_files, files_iterables=files_iterables)
+    original_files = list(base_files)
+    generator = json._generate_tables(base_files=base_files, files_iterables=files_iterables, original_files=original_files)
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.column_names == ["ID", "Language", "Topic"]
