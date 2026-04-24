@@ -2222,7 +2222,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
         # It's ok to use _iter_arrow here without fancy state_dict logic since it's
         # used with RebatchedArrowExamplesIterable with the right batch_size to
         # never lose examples
-        if self.ex_iterable.iter_arrow and not self.force_convert_to_python:
+        if self.ex_iterable.iter_arrow:
             # feature casting (inc column addition) handled within self._iter_arrow()
             for key, pa_table in self._iter_arrow():
                 batch = formatter.format_batch(pa_table)
@@ -3428,10 +3428,11 @@ class IterableDataset(DatasetInfoMixin):
                 force_convert_to_arrow=True,
             )
         else:
-            if self._formatting and self._ex_iterable.iter_arrow:
-                ex_iterable = RebatchedArrowExamplesIterable(
-                    self._ex_iterable, batch_size=batch_size if batched else 1, drop_last_batch=drop_last_batch
-                )
+            if self._ex_iterable.iter_arrow:
+                if self._formatting or input_features:
+                    ex_iterable = RebatchedArrowExamplesIterable(
+                        self._ex_iterable, batch_size=batch_size if batched else 1, drop_last_batch=drop_last_batch
+                    )
             if self._formatting or input_features:
                 # apply formatting after iter_arrow to avoid re-encoding the examples
                 ex_iterable = FormattedExamplesIterable(
