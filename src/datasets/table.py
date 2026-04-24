@@ -2102,7 +2102,13 @@ def cast_array_to_feature(
 
 
 @_wrap_for_chunked_arrays
-def embed_array_storage(array: pa.Array, feature: "FeatureType", token_per_repo_id=None):
+def embed_array_storage(
+    array: pa.Array,
+    feature: "FeatureType",
+    token_per_repo_id=None,
+    local_files: bool = True,
+    remote_files: bool = True,
+):
     """Embed data into an arrays's storage.
     For custom features like Audio or Image, it takes into account the "embed_storage" methods
     they define to embed external data (e.g. an image file) into an array.
@@ -2114,6 +2120,15 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType", token_per_repo_
             The PyArrow array in which to embed data.
         feature (`datasets.features.FeatureType`):
             Array features.
+        local_files (`bool`, defaults to `True`)
+            Whether to embed local files data in the array
+
+            <Added version="4.8.5"/>
+        remote_files (`bool`, defaults to `True`)
+            Whether to embed remote files data in the array.
+            E.g. files with paths that start with hf:// or https://
+
+            <Added version="4.8.5"/>
 
     Raises:
         `TypeError`: if the target type is not supported according, e.g.
@@ -2123,14 +2138,21 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType", token_per_repo_
     Returns:
          array (`pyarrow.Array`): the casted array
     """
+    if not local_files and not remote_files:
+        return array
+
     from .features import LargeList, List
 
-    _e = partial(embed_array_storage, token_per_repo_id=token_per_repo_id)
+    _e = partial(
+        embed_array_storage, token_per_repo_id=token_per_repo_id, local_files=local_files, remote_files=remote_files
+    )
 
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
     if hasattr(feature, "embed_storage"):
-        return feature.embed_storage(array, token_per_repo_id=token_per_repo_id)
+        return feature.embed_storage(
+            array, token_per_repo_id=token_per_repo_id, local_files=local_files, remote_files=remote_files
+        )
     elif pa.types.is_struct(array.type):
         # feature must be a dict
         if isinstance(feature, dict):
@@ -2239,7 +2261,7 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
     return pa.Table.from_arrays(arrays, schema=schema)
 
 
-def embed_table_storage(table: pa.Table, token_per_repo_id=None):
+def embed_table_storage(table: pa.Table, token_per_repo_id=None, local_files: bool = True, remote_files: bool = True):
     """Embed external data into a table's storage.
 
     <Added version="2.4.0"/>
@@ -2247,15 +2269,33 @@ def embed_table_storage(table: pa.Table, token_per_repo_id=None):
     Args:
         table (`pyarrow.Table`):
             PyArrow table in which to embed data.
+        local_files (`bool`, defaults to `True`)
+            Whether to embed local files data in the table
+
+            <Added version="4.8.5"/>
+        remote_files (`bool`, defaults to `True`)
+            Whether to embed remote files data in the table.
+            E.g. files with paths that start with hf:// or https://
+
+            <Added version="4.8.5"/>
 
     Returns:
         table (`pyarrow.Table`): the table with embedded data
     """
+    if not local_files and not remote_files:
+        return table
+
     from .features.features import Features, require_storage_embed
 
     features = Features.from_arrow_schema(table.schema)
     arrays = [
-        embed_array_storage(table[name], feature, token_per_repo_id=token_per_repo_id)
+        embed_array_storage(
+            table[name],
+            feature,
+            token_per_repo_id=token_per_repo_id,
+            local_files=local_files,
+            remote_files=remote_files,
+        )
         if require_storage_embed(feature)
         else table[name]
         for name, feature in features.items()
