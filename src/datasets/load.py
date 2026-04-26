@@ -798,9 +798,11 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
         self,
         name: str,
         cache_dir: Optional[str] = None,
+        revision: Optional[Union[str, Version]] = None,
     ):
         self.name = name
         self.cache_dir = cache_dir
+        self.revision = revision
         assert self.name.count("/") <= 1
 
     def get_module(self) -> DatasetModule:
@@ -815,6 +817,42 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             if os.path.isdir(cached_directory_path)
         ]
         if cached_directory_paths:
+            if self.revision is not None:
+                revision_str = str(self.revision)
+                _is_sha_like = len(revision_str) >= 7 and all(c in "0123456789abcdefABCDEF" for c in revision_str)
+                if not _is_sha_like:
+                    raise DatasetNotFoundError(
+                        f"Revision '{self.revision}' for dataset '{self.name}' couldn't be resolved from the local cache: "
+                        f"branch and tag names cannot be matched without Hub access. "
+                        f"Use a commit SHA instead, or omit `revision` to load the most recently cached version."
+                    )
+                matching_paths = [p for p in cached_directory_paths if Path(p).parts[-1].startswith(revision_str)]
+                if not matching_paths:
+                    available = sorted({Path(p).parts[-1][:8] for p in cached_directory_paths})
+                    raise DatasetNotFoundError(
+                        f"Revision '{self.revision}' is not available in the local cache for dataset '{self.name}'. "
+                        f"Cached revisions (short): {available}"
+                    )
+                if len(matching_paths) > 1:
+                    raise DatasetNotFoundError(
+                        f"Revision '{self.revision}' is ambiguous for dataset '{self.name}': "
+                        f"it matches multiple cached commits. Provide a longer commit SHA prefix."
+                    )
+                matched_path = Path(matching_paths[0])
+                logger.warning(
+                    f"Using cached version of dataset '{self.name}' at revision {matched_path.parts[-1][:8]} "
+                    f"since the Hub couldn't be reached."
+                )
+                return DatasetModule(
+                    "datasets.packaged_modules.cache.cache",
+                    matched_path.parts[-1],
+                    {
+                        "repo_id": self.name,
+                        "dataset_name": self.name.split("/")[-1],
+                        "config_name": matched_path.parts[-3],
+                        "version": matched_path.parts[-2],
+                    },
+                )
             builder_kwargs = {
                 "repo_id": self.name,
                 "dataset_name": self.name.split("/")[-1],
@@ -1192,8 +1230,10 @@ def dataset_module_factory(
         except Exception as e1:
             # All the attempts failed, before raising the error we should check if the module is already cached
             try:
-                return CachedDatasetModuleFactory(path, cache_dir=cache_dir).get_module()
-            except Exception:
+                return CachedDatasetModuleFactory(path, cache_dir=cache_dir, revision=revision).get_module()
+            except Exception as e2:
+                if isinstance(e2, DatasetNotFoundError):
+                    raise e2 from None
                 # If it's not in the cache, then it doesn't exist.
                 if isinstance(e1, OfflineModeIsEnabled):
                     raise ConnectionError(f"Couldn't reach the Hugging Face Hub for dataset '{path}': {e1}") from None
