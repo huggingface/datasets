@@ -33,7 +33,7 @@ from huggingface_hub import (
 from huggingface_hub.utils import RepositoryNotFoundError
 from packaging import version
 
-from . import config
+from . import __version__, config
 from .arrow_dataset import Dataset, DatasetInfoMixin, _push_to_bucket, _push_to_repo
 from .features import Features
 from .features.features import (
@@ -4574,7 +4574,7 @@ class IterableDataset(DatasetInfoMixin):
             (start + i, self.shard(num_shards=end - start, index=i, contiguous=True)) for i in range(end - start)
         )
 
-        api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+        api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
 
         dataset_nbytes = 0
         num_examples = 0
@@ -4890,7 +4890,7 @@ class IterableDataset(DatasetInfoMixin):
         if not data_dir:
             data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
 
-        api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+        api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
         if repo_id.startswith("buckets/"):
             if BucketNotFoundError is None:
                 raise ImportError("Pushing datasets to buckets requires huggingface_hub>=1.6.0")

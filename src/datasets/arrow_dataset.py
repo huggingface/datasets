@@ -75,7 +75,7 @@ from huggingface_hub.utils import EntryNotFoundError, HfHubHTTPError, Repository
 from packaging import version
 from tqdm.contrib.concurrent import thread_map
 
-from . import config
+from . import __version__, config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .data_files import sanitize_patterns
@@ -5861,7 +5861,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             (start + i, self.shard(num_shards=end - start, index=i, contiguous=True)) for i in range(end - start)
         )
 
-        api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+        api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
 
         additions: list[CommitOperationAdd] = []
         new_parquet_paths: list[str] = []
@@ -6159,7 +6159,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if not data_dir:
             data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
 
-        api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+        api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
         if repo_id.startswith("buckets/"):
             if BucketNotFoundError is None:
                 raise ImportError("Pushing datasets to buckets requires huggingface_hub>=1.6.0")
@@ -6628,7 +6628,7 @@ def _push_to_repo(
     embed_external_files: bool = True,
     num_proc: Optional[int] = None,
 ) -> CommitInfo:
-    api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+    api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
     resolved_output_path = HfFileSystemResolvedRepositoryPath(
         repo_id=repo_id, repo_type="dataset", revision=revision or "main", path_in_repo=""
     )
@@ -6791,7 +6791,7 @@ def _push_to_bucket(
     embed_external_files: bool = True,
     num_proc: Optional[int] = None,
 ) -> None:
-    api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+    api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
     resolved_output_path = HfFileSystemResolvedBucketPath(bucket_id=bucket_id, path=path)
     hf_path = resolved_output_path.unresolve()
     hffs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=token)
