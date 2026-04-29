@@ -7,7 +7,7 @@ import pytest
 from datasets import Features, Value
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
-from datasets.packaged_modules.json.json import Json, JsonConfig
+from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig
 
 
 @pytest.fixture
@@ -293,6 +293,22 @@ def jsonl_file_with_messages(tmp_path):
     return str(filename)
 
 
+def write_jsonl(path, rows):
+    with open(path, "w") as f:
+        for row in rows:
+            f.write(json.dumps(row) + "\n")
+    return str(path)
+
+
+def generate_agent_traces_output(trace_file):
+    json_builder = Json(features=AGENT_TRACES_FEATURES)
+    base_files = [trace_file]
+    files_iterables = [[trace_file]]
+    generator = json_builder._generate_tables(base_files=base_files, files_iterables=files_iterables)
+    pa_table = pa.concat_tables([table for _, table in generator])
+    return Features.from_arrow_schema(pa_table.schema).decode_batch(pa_table.to_pydict())
+
+
 def test_config_raises_when_invalid_name() -> None:
     with pytest.raises(InvalidConfigName, match="Bad characters"):
         _ = JsonConfig(name="name-with-*-invalid-character")
@@ -377,3 +393,151 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
     generator = json._generate_tables(base_files=base_files, files_iterables=files_iterables)
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.column_names == ["ID", "Language", "Topic"]
+
+
+def test_json_generate_tables_with_codex_agent_trace_metadata(tmp_path):
+    trace_file = write_jsonl(
+        tmp_path / "codex.jsonl",
+        [
+            {
+                "timestamp": "2026-04-01T10:00:00.000Z",
+                "type": "session_meta",
+                "payload": {"id": "codex-session"},
+            },
+            {
+                "timestamp": "2026-04-01T10:00:30.000Z",
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": "context-wrapped codex prompt"}],
+                },
+            },
+            {
+                "timestamp": "2026-04-01T10:01:00.000Z",
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": "actual codex prompt"}],
+                },
+            },
+            {
+                "timestamp": "2026-04-01T10:01:00.000Z",
+                "type": "event_msg",
+                "payload": {"type": "user_message", "message": "actual codex prompt"},
+            },
+        ],
+    )
+
+    out = generate_agent_traces_output(trace_file)
+
+    assert out["harness"] == ["codex"]
+    assert out["session_id"] == ["codex-session"]
+    assert out["prompt"] == ["actual codex prompt"]
+    assert out["sent_at"] == ["2026-04-01T10:01:00.000Z"]
+    assert "models" not in out
+
+
+def test_json_generate_tables_with_codex_response_item_prompt_fallback(tmp_path):
+    trace_file = write_jsonl(
+        tmp_path / "codex_response_item_only.jsonl",
+        [
+            {
+                "timestamp": "2026-04-01T10:00:00.000Z",
+                "type": "session_meta",
+                "payload": {"id": "codex-session"},
+            },
+            {
+                "timestamp": "2026-04-01T10:02:00.000Z",
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": "codex response item prompt"}],
+                },
+            },
+        ],
+    )
+
+    out = generate_agent_traces_output(trace_file)
+
+    assert out["harness"] == ["codex"]
+    assert out["session_id"] == ["codex-session"]
+    assert out["prompt"] == ["codex response item prompt"]
+    assert out["sent_at"] == ["2026-04-01T10:02:00.000Z"]
+
+
+def test_json_generate_tables_with_claude_agent_trace_metadata(tmp_path):
+    trace_file = write_jsonl(
+        tmp_path / "claude.jsonl",
+        [
+            {
+                "timestamp": "2026-04-02T10:00:00.000Z",
+                "type": "user",
+                "sessionId": "claude-session",
+                "message": {"role": "user", "content": "claude prompt"},
+            }
+        ],
+    )
+
+    out = generate_agent_traces_output(trace_file)
+
+    assert out["harness"] == ["claude_code"]
+    assert out["session_id"] == ["claude-session"]
+    assert out["prompt"] == ["claude prompt"]
+    assert out["sent_at"] == ["2026-04-02T10:00:00.000Z"]
+
+
+def test_json_generate_tables_with_pi_agent_trace_metadata(tmp_path):
+    trace_file = write_jsonl(
+        tmp_path / "pi.jsonl",
+        [
+            {
+                "timestamp": "2026-04-03T10:00:00.000Z",
+                "type": "session",
+                "id": "pi-session",
+            },
+            {
+                "timestamp": "2026-04-03T10:01:00.000Z",
+                "type": "message",
+                "message": {"role": "user", "content": "pi prompt"},
+            },
+        ],
+    )
+
+    out = generate_agent_traces_output(trace_file)
+
+    assert out["harness"] == ["pi"]
+    assert out["session_id"] == ["pi-session"]
+    assert out["prompt"] == ["pi prompt"]
+    assert out["sent_at"] == ["2026-04-03T10:01:00.000Z"]
+
+
+def test_json_generate_tables_with_missing_agent_trace_prompt(tmp_path):
+    trace_file = write_jsonl(
+        tmp_path / "missing_prompt.jsonl",
+        [
+            {
+                "timestamp": "2026-04-04T10:00:00.000Z",
+                "type": "session_meta",
+                "payload": {"id": "codex-session"},
+            },
+            {
+                "timestamp": "2026-04-04T10:01:00.000Z",
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "assistant",
+                    "content": [{"type": "output_text", "text": "assistant response"}],
+                },
+            },
+        ],
+    )
+
+    out = generate_agent_traces_output(trace_file)
+
+    assert out["harness"] == ["codex"]
+    assert out["session_id"] == ["codex-session"]
+    assert out["prompt"] == [None]
+    assert out["sent_at"] == [None]

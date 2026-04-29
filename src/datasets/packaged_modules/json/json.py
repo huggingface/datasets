@@ -160,12 +160,14 @@ class Json(datasets.ArrowBasedBuilder):
                 elif is_agent_traces:
                     with open(file, "r", encoding="utf-8") as f:
                         traces = f.readlines()
-                    harness, session_id = parse_traces_info(traces)
+                    harness, session_id, prompt, sent_at = parse_traces_info(traces)
                     file_name = get_agent_traces_file_path(base_files[shard_idx])
                     pa_table = pa.Table.from_pydict(
                         {
                             "harness": [harness],
                             "session_id": [session_id],
+                            "prompt": [prompt],
+                            "sent_at": [sent_at],
                             "traces": [traces],
                             "file_name": [file_name],
                         }
@@ -326,6 +328,8 @@ AGENT_TRACES_FEATURES = datasets.Features(
     {
         "harness": datasets.Value("string"),
         "session_id": datasets.Value("string"),
+        "prompt": datasets.Value("string"),
+        "sent_at": datasets.Value("string"),
         "traces": datasets.List(datasets.Json()),
         "file_name": datasets.Value("string"),
     }
@@ -339,39 +343,95 @@ def has_agent_traces_markers(features: datasets.Features) -> bool:
     return False
 
 
-def parse_traces_info(traces: list[str]) -> tuple[Optional[str], Optional[str]]:
-    harness, session_id = None, None
+def parse_traces_info(traces: list[str]) -> tuple[Optional[str], Optional[str], Optional[str], Optional[str]]:
+    harness, session_id, prompt, sent_at = None, None, None, None
+    codex_response_prompt, codex_response_sent_at = None, None
     for trace in traces:
         decoded_trace = ujson_loads(trace)
         if harness is None:
             if "type" in decoded_trace and isinstance(decoded_trace["type"], str):
                 harness = AGENT_TRACES_TYPE_TO_HARNESS.get(decoded_trace["type"])
         if session_id is None:
-            # claude
-            if "sessionId" in decoded_trace and isinstance(decoded_trace["sessionId"], str):
-                session_id = decoded_trace["sessionId"]
-            # claude (not sure but this format does exist online)
-            elif "session_id" in decoded_trace and isinstance(decoded_trace["session_id"], str):
-                session_id = decoded_trace["session_id"]
-            # codex
-            elif (
-                "payload" in decoded_trace
-                and isinstance(decoded_trace["payload"], dict)
-                and "id" in decoded_trace["payload"]
-                and isinstance(decoded_trace["payload"]["id"], str)
-            ):
-                session_id = decoded_trace["payload"]["id"]
-            # pi
-            elif (
-                "type" in decoded_trace
-                and decoded_trace["type"] == "session"
-                and "id" in decoded_trace
-                and isinstance(decoded_trace["id"], str)
-            ):
-                session_id = decoded_trace["id"]
-        if harness and session_id:
-            break
-    return harness, session_id
+            session_id = get_session_id(decoded_trace)
+        if prompt is None:
+            prompt = get_user_prompt(decoded_trace)
+            if prompt is not None:
+                sent_at = get_trace_timestamp(decoded_trace)
+        if codex_response_prompt is None:
+            codex_response_prompt = get_codex_response_user_prompt(decoded_trace)
+            if codex_response_prompt is not None:
+                codex_response_sent_at = get_trace_timestamp(decoded_trace)
+    if prompt is None:
+        prompt = codex_response_prompt
+        sent_at = codex_response_sent_at
+    return harness, session_id, prompt, sent_at
+
+
+def get_session_id(trace: dict) -> Optional[str]:
+    if isinstance(trace.get("sessionId"), str):
+        return trace["sessionId"]
+    if isinstance(trace.get("session_id"), str):
+        return trace["session_id"]
+    if isinstance(trace.get("payload"), dict) and isinstance(trace["payload"].get("id"), str):
+        return trace["payload"]["id"]
+    if trace.get("type") == "session" and isinstance(trace.get("id"), str):
+        return trace["id"]
+    return None
+
+
+def get_user_prompt(trace: dict) -> Optional[str]:
+    if trace.get("type") == "user" and isinstance(trace.get("message"), dict):
+        message = trace["message"]
+        if message.get("role") == "user":
+            return get_content_text(message.get("content"))
+
+    if trace.get("type") == "message":
+        if isinstance(trace.get("message"), dict):
+            message = trace["message"]
+            if message.get("role") == "user":
+                return get_content_text(message.get("content"))
+        if trace.get("role") == "user":
+            return get_content_text(trace.get("content"))
+
+    if trace.get("type") == "event_msg" and isinstance(trace.get("payload"), dict):
+        payload = trace["payload"]
+        if payload.get("type") == "user_message":
+            return get_content_text(payload.get("message"))
+
+    return None
+
+
+def get_codex_response_user_prompt(trace: dict) -> Optional[str]:
+    if trace.get("type") != "response_item" or not isinstance(trace.get("payload"), dict):
+        return None
+    payload = trace["payload"]
+    if payload.get("type") == "message" and payload.get("role") == "user":
+        return get_content_text(payload.get("content"))
+    return None
+
+
+def get_trace_timestamp(trace: dict) -> Optional[str]:
+    timestamp = trace.get("timestamp")
+    if isinstance(timestamp, str):
+        return timestamp
+    return None
+
+
+def get_content_text(content) -> Optional[str]:
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        content_parts = []
+        for content_part in content:
+            if isinstance(content_part, str):
+                content_parts.append(content_part)
+            elif isinstance(content_part, dict):
+                text = content_part.get("text")
+                if isinstance(text, str):
+                    content_parts.append(text)
+        if content_parts:
+            return "\n".join(content_parts)
+    return None
 
 
 def get_agent_traces_file_path(file: str) -> str:
