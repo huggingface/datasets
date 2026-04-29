@@ -160,7 +160,7 @@ class Json(datasets.ArrowBasedBuilder):
                 elif is_agent_traces:
                     with open(file, "r", encoding="utf-8") as f:
                         traces = f.readlines()
-                    harness, session_id, prompt, sent_at = parse_traces_info(traces)
+                    harness, session_id, prompt, sent_at, num_user_messages, num_tool_calls = parse_traces_info(traces)
                     file_name = get_agent_traces_file_path(base_files[shard_idx])
                     pa_table = pa.Table.from_pydict(
                         {
@@ -168,6 +168,8 @@ class Json(datasets.ArrowBasedBuilder):
                             "session_id": [session_id],
                             "prompt": [prompt],
                             "sent_at": [sent_at],
+                            "num_user_messages": [num_user_messages],
+                            "num_tool_calls": [num_tool_calls],
                             "traces": [traces],
                             "file_name": [file_name],
                         }
@@ -330,6 +332,8 @@ AGENT_TRACES_FEATURES = datasets.Features(
         "session_id": datasets.Value("string"),
         "prompt": datasets.Value("string"),
         "sent_at": datasets.Value("string"),
+        "num_user_messages": datasets.Value("int64"),
+        "num_tool_calls": datasets.Value("int64"),
         "traces": datasets.List(datasets.Json()),
         "file_name": datasets.Value("string"),
     }
@@ -343,9 +347,16 @@ def has_agent_traces_markers(features: datasets.Features) -> bool:
     return False
 
 
-def parse_traces_info(traces: list[str]) -> tuple[Optional[str], Optional[str], Optional[str], Optional[str]]:
+def parse_traces_info(
+    traces: list[str],
+) -> tuple[Optional[str], Optional[str], Optional[str], Optional[str], int, int]:
     harness, session_id, prompt, sent_at = None, None, None, None
+    # Codex response_item user messages can include context files (for example AGENTS.md) before the real prompt.
+    # Prefer event_msg user messages, and use response_item user messages only as a fallback.
     codex_response_prompt, codex_response_sent_at = None, None
+    num_user_messages = 0
+    num_codex_response_user_messages = 0
+    num_tool_calls = 0
     for trace in traces:
         decoded_trace = ujson_loads(trace)
         if harness is None:
@@ -353,18 +364,24 @@ def parse_traces_info(traces: list[str]) -> tuple[Optional[str], Optional[str], 
                 harness = AGENT_TRACES_TYPE_TO_HARNESS.get(decoded_trace["type"])
         if session_id is None:
             session_id = get_session_id(decoded_trace)
-        if prompt is None:
-            prompt = get_user_prompt(decoded_trace)
-            if prompt is not None:
+        user_prompt = get_user_prompt(decoded_trace)
+        if user_prompt is not None:
+            num_user_messages += 1
+            if prompt is None:
+                prompt = user_prompt
                 sent_at = get_trace_timestamp(decoded_trace)
-        if codex_response_prompt is None:
-            codex_response_prompt = get_codex_response_user_prompt(decoded_trace)
-            if codex_response_prompt is not None:
+        codex_response_user_prompt = get_codex_response_user_prompt(decoded_trace)
+        if codex_response_user_prompt is not None:
+            num_codex_response_user_messages += 1
+            if codex_response_prompt is None:
+                codex_response_prompt = codex_response_user_prompt
                 codex_response_sent_at = get_trace_timestamp(decoded_trace)
+        num_tool_calls += get_tool_call_count(decoded_trace)
     if prompt is None:
         prompt = codex_response_prompt
         sent_at = codex_response_sent_at
-    return harness, session_id, prompt, sent_at
+        num_user_messages = num_codex_response_user_messages
+    return harness, session_id, prompt, sent_at, num_user_messages, num_tool_calls
 
 
 def get_session_id(trace: dict) -> Optional[str]:
@@ -408,6 +425,26 @@ def get_codex_response_user_prompt(trace: dict) -> Optional[str]:
     if payload.get("type") == "message" and payload.get("role") == "user":
         return get_content_text(payload.get("content"))
     return None
+
+
+def get_tool_call_count(trace: dict) -> int:
+    if trace.get("type") == "response_item" and isinstance(trace.get("payload"), dict):
+        if trace["payload"].get("type") == "function_call":
+            return 1
+
+    if not isinstance(trace.get("message"), dict):
+        return 0
+    message = trace["message"]
+    if message.get("role") != "assistant":
+        return 0
+    content = message.get("content")
+    if not isinstance(content, list):
+        return 0
+    return sum(
+        1
+        for content_part in content
+        if isinstance(content_part, dict) and content_part.get("type") in {"tool_use", "toolCall"}
+    )
 
 
 def get_trace_timestamp(trace: dict) -> Optional[str]:

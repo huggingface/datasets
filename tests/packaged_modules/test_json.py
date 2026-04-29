@@ -427,6 +427,24 @@ def test_json_generate_tables_with_codex_agent_trace_metadata(tmp_path):
                 "type": "event_msg",
                 "payload": {"type": "user_message", "message": "actual codex prompt"},
             },
+            {
+                "timestamp": "2026-04-01T10:02:00.000Z",
+                "type": "response_item",
+                "payload": {
+                    "type": "function_call",
+                    "name": "exec_command",
+                    "call_id": "call_1",
+                },
+            },
+            {
+                "timestamp": "2026-04-01T10:03:00.000Z",
+                "type": "response_item",
+                "payload": {
+                    "type": "function_call_output",
+                    "call_id": "call_1",
+                    "output": "done",
+                },
+            },
         ],
     )
 
@@ -436,6 +454,8 @@ def test_json_generate_tables_with_codex_agent_trace_metadata(tmp_path):
     assert out["session_id"] == ["codex-session"]
     assert out["prompt"] == ["actual codex prompt"]
     assert out["sent_at"] == ["2026-04-01T10:01:00.000Z"]
+    assert out["num_user_messages"] == [1]
+    assert out["num_tool_calls"] == [1]
     assert "models" not in out
 
 
@@ -457,6 +477,15 @@ def test_json_generate_tables_with_codex_response_item_prompt_fallback(tmp_path)
                     "content": [{"type": "input_text", "text": "codex response item prompt"}],
                 },
             },
+            {
+                "timestamp": "2026-04-01T10:03:00.000Z",
+                "type": "response_item",
+                "payload": {
+                    "type": "function_call",
+                    "name": "exec_command",
+                    "call_id": "call_1",
+                },
+            },
         ],
     )
 
@@ -466,6 +495,8 @@ def test_json_generate_tables_with_codex_response_item_prompt_fallback(tmp_path)
     assert out["session_id"] == ["codex-session"]
     assert out["prompt"] == ["codex response item prompt"]
     assert out["sent_at"] == ["2026-04-01T10:02:00.000Z"]
+    assert out["num_user_messages"] == [1]
+    assert out["num_tool_calls"] == [1]
 
 
 def test_json_generate_tables_with_claude_agent_trace_metadata(tmp_path):
@@ -477,7 +508,28 @@ def test_json_generate_tables_with_claude_agent_trace_metadata(tmp_path):
                 "type": "user",
                 "sessionId": "claude-session",
                 "message": {"role": "user", "content": "claude prompt"},
-            }
+            },
+            {
+                "timestamp": "2026-04-02T10:01:00.000Z",
+                "type": "assistant",
+                "sessionId": "claude-session",
+                "message": {
+                    "role": "assistant",
+                    "content": [
+                        {"type": "tool_use", "id": "toolu_1", "name": "Bash", "input": {}},
+                        {"type": "tool_use", "id": "toolu_2", "name": "Read", "input": {}},
+                    ],
+                },
+            },
+            {
+                "timestamp": "2026-04-02T10:02:00.000Z",
+                "type": "user",
+                "sessionId": "claude-session",
+                "message": {
+                    "role": "user",
+                    "content": [{"type": "tool_result", "tool_use_id": "toolu_1", "content": "done"}],
+                },
+            },
         ],
     )
 
@@ -487,6 +539,8 @@ def test_json_generate_tables_with_claude_agent_trace_metadata(tmp_path):
     assert out["session_id"] == ["claude-session"]
     assert out["prompt"] == ["claude prompt"]
     assert out["sent_at"] == ["2026-04-02T10:00:00.000Z"]
+    assert out["num_user_messages"] == [1]
+    assert out["num_tool_calls"] == [2]
 
 
 def test_json_generate_tables_with_pi_agent_trace_metadata(tmp_path):
@@ -503,6 +557,27 @@ def test_json_generate_tables_with_pi_agent_trace_metadata(tmp_path):
                 "type": "message",
                 "message": {"role": "user", "content": "pi prompt"},
             },
+            {
+                "timestamp": "2026-04-03T10:02:00.000Z",
+                "type": "message",
+                "message": {
+                    "role": "assistant",
+                    "content": [
+                        {"type": "toolCall", "id": "call_1", "name": "read"},
+                        {"type": "toolCall", "id": "call_2", "name": "bash"},
+                    ],
+                },
+            },
+            {
+                "timestamp": "2026-04-03T10:03:00.000Z",
+                "type": "message",
+                "message": {"role": "toolResult", "content": [{"type": "text", "text": "done"}]},
+            },
+            {
+                "timestamp": "2026-04-03T10:04:00.000Z",
+                "type": "message",
+                "message": {"role": "user", "content": [{"type": "text", "text": "second pi prompt"}]},
+            },
         ],
     )
 
@@ -512,6 +587,8 @@ def test_json_generate_tables_with_pi_agent_trace_metadata(tmp_path):
     assert out["session_id"] == ["pi-session"]
     assert out["prompt"] == ["pi prompt"]
     assert out["sent_at"] == ["2026-04-03T10:01:00.000Z"]
+    assert out["num_user_messages"] == [2]
+    assert out["num_tool_calls"] == [2]
 
 
 def test_json_generate_tables_with_missing_agent_trace_prompt(tmp_path):
@@ -541,3 +618,5 @@ def test_json_generate_tables_with_missing_agent_trace_prompt(tmp_path):
     assert out["session_id"] == ["codex-session"]
     assert out["prompt"] == [None]
     assert out["sent_at"] == [None]
+    assert out["num_user_messages"] == [0]
+    assert out["num_tool_calls"] == [0]
