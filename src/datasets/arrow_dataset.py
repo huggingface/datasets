@@ -5384,11 +5384,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds.to_dict()
         ```
         """
-        return query_table(
+        result = query_table(
             table=self._data,
             key=slice(0, len(self)),
             indices=self._indices,
         ).to_pydict()
+        from .utils.json import get_json_field_paths_from_feature, json_decode_field
+
+        for json_field_path in get_json_field_paths_from_feature(self.features):
+            col, *json_field_subpath = json_field_path
+            result[col] = [json_decode_field(row, json_field_subpath) for row in result[col]]
+        return result
 
     def to_list(self) -> list:
         """Returns the dataset as a Python list.
@@ -5402,11 +5408,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds.to_list()
         ```
         """
-        return query_table(
+        result = query_table(
             table=self._data,
             key=slice(0, len(self)),
             indices=self._indices,
         ).to_pylist()
+        from .utils.json import get_json_field_paths_from_feature, json_decode_field
+
+        for json_field_path in get_json_field_paths_from_feature(self.features):
+            col, *json_field_subpath = json_field_path
+            for row in result:
+                row[col] = json_decode_field(row[col], json_field_subpath)
+        return result
 
     def to_json(
         self,

@@ -400,8 +400,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                             feature_path[0] + "_file_name", None
                         )
                     elif len(feature_path) == 0:
-                        file_relpath = os.path.normpath(item).replace("\\", "/")
-                        item = os.path.join(downloaded_metadata_dir, file_relpath)
+                        if item is not None:
+                            file_relpath = os.path.normpath(item).replace("\\", "/")
+                            item = os.path.join(downloaded_metadata_dir, file_relpath)
                     return item
 
                 for pa_metadata_table in self._read_metadata(downloaded_metadata_file, metadata_ext=metadata_ext):

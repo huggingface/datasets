@@ -3466,6 +3466,36 @@ class MiscellaneousDatasetTest(TestCase):
             self.assertEqual(dset[:], data)
             self.assertEqual(dset.features["empty_struct"], Json())
 
+    def test_to_list_and_to_dict_decode_json(self):
+        # Regression test for the addition of JSON type. to_list() and to_dict() should not return raw JSON strings for Json() columns.
+        data = {"col": [{"a": 1}, {"b": 2}]}
+        test_dataset = Dataset.from_dict(data, features=Features({"col": Json()}))
+
+        # access through list
+        result_list = test_dataset.to_list()
+        assert isinstance(result_list[0]["col"], dict), f"expected dict, got {type(result_list[0]['col'])}"
+        assert result_list == [{"col": {"a": 1}}, {"col": {"b": 2}}]
+
+        # access through dict
+        result_dict = test_dataset.to_dict()
+        assert isinstance(result_dict["col"][0], dict), f"expected dict, got {type(result_dict[0]['col'])}"
+        assert result_dict == {"col": [{"a": 1}, {"b": 2}]}
+
+    def test_to_list_and_to_dict_decode_nested_json(self):
+        # Regression test for the addition of JSON type. to_list() and to_dict() should not return raw JSON strings for Json() columns.
+        data = {"col": [{"a": {"b": {"c": 1}}, "d": [2, {"e": 3}]}]}
+        test_dataset = Dataset.from_dict(data, features=Features({"col": Json()}))
+
+        # access through list
+        result_list = test_dataset.to_list()
+        assert isinstance(result_list[0]["col"], dict), f"expected dict, got {type(result_list[0]['col'])}"
+        assert result_list == [{"col": {"a": {"b": {"c": 1}}, "d": [2, {"e": 3}]}}]
+
+        # access through dict
+        result_dict = test_dataset.to_dict()
+        assert isinstance(result_dict["col"][0], dict), f"expected dict, got {type(result_dict[0]['col'])}"
+        assert result_dict == {"col": [{"a": {"b": {"c": 1}}, "d": [2, {"e": 3}]}]}
+
     def test_concatenate_mixed_memory_and_disk(self):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
         info1 = DatasetInfo(description="Dataset1")
