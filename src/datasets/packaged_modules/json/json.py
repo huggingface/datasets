@@ -167,7 +167,7 @@ class Json(datasets.ArrowBasedBuilder):
                         traces = f.readlines()
                     harness, session_id, prompt, sent_at, num_user_messages, num_tool_calls = parse_traces_info(traces)
                     file_path = original_files[shard_idx]
-                    if file_path.startswith(self.base_path):
+                    if self.base_path is not None and file_path.startswith(self.base_path):
                         file_path = os.path.relpath(file_path, self.base_path)
                     pa_table = pa.Table.from_pydict(
                         {
@@ -358,11 +358,10 @@ def parse_traces_info(
     traces: list[str],
 ) -> tuple[Optional[str], Optional[str], Optional[str], Optional[str], int, int]:
     harness, session_id, prompt, sent_at = None, None, None, None
-    # Codex response_item user messages can include context files (for example AGENTS.md) before the real prompt.
-    # Prefer event_msg user messages, and use response_item user messages only as a fallback.
-    codex_response_prompt, codex_response_sent_at = None, None
+    # prompt/sent_at describe the first user message; the counters summarize the whole trace file.
+    # Codex response_item user messages can include context files (for example AGENTS.md), so only event_msg
+    # user_message records are treated as Codex user messages.
     num_user_messages = 0
-    num_codex_response_user_messages = 0
     num_tool_calls = 0
     for trace in traces:
         decoded_trace = ujson_loads(trace)
@@ -384,17 +383,7 @@ def parse_traces_info(
             if prompt is None:
                 prompt = user_prompt
                 sent_at = get_trace_timestamp(decoded_trace)
-        codex_response_user_prompt = get_codex_response_user_prompt(decoded_trace)
-        if codex_response_user_prompt is not None:
-            num_codex_response_user_messages += 1
-            if codex_response_prompt is None:
-                codex_response_prompt = codex_response_user_prompt
-                codex_response_sent_at = get_trace_timestamp(decoded_trace)
         num_tool_calls += get_tool_call_count(decoded_trace)
-    if prompt is None:
-        prompt = codex_response_prompt
-        sent_at = codex_response_sent_at
-        num_user_messages = num_codex_response_user_messages
     return harness, session_id, prompt, sent_at, num_user_messages, num_tool_calls
 
 
@@ -436,21 +425,15 @@ def get_user_prompt(trace: dict) -> Optional[str]:
     return None
 
 
-def get_codex_response_user_prompt(trace: dict) -> Optional[str]:
-    if trace.get("type") != "response_item" or not isinstance(trace.get("payload"), dict):
-        return None
-    payload = trace["payload"]
-    if payload.get("type") == "message" and payload.get("role") == "user":
-        return get_content_text(payload.get("content"))
-    return None
-
-
 def get_tool_call_count(trace: dict) -> int:
-    if trace.get("type") == "response_item" and isinstance(trace.get("payload"), dict):
-        if trace["payload"].get("type") == "function_call":
+    trace_type = trace.get("type")
+    if trace_type == "response_item":
+        payload = trace.get("payload")
+        if isinstance(payload, dict) and payload.get("type") == "function_call":
             return 1
+        return 0
 
-    if not isinstance(trace.get("message"), dict):
+    if trace_type not in {"assistant", "message"} or not isinstance(trace.get("message"), dict):
         return 0
     message = trace["message"]
     if message.get("role") != "assistant":

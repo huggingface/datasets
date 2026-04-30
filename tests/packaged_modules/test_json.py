@@ -301,7 +301,7 @@ def write_jsonl(path, rows):
 
 
 def generate_agent_traces_output(trace_file):
-    json_builder = Json(features=AGENT_TRACES_FEATURES, base_path="/not/a/prefix")
+    json_builder = Json(features=AGENT_TRACES_FEATURES)
     base_files = [trace_file]
     files_iterables = [[trace_file]]
     original_files = list(base_files)
@@ -472,7 +472,7 @@ def test_json_generate_tables_with_codex_agent_trace_metadata(tmp_path):
     assert "models" not in out
 
 
-def test_json_generate_tables_with_codex_response_item_prompt_fallback(tmp_path):
+def test_json_generate_tables_ignores_codex_response_item_user_without_event_msg(tmp_path):
     trace_file = write_jsonl(
         tmp_path / "codex_response_item_only.jsonl",
         [
@@ -506,9 +506,9 @@ def test_json_generate_tables_with_codex_response_item_prompt_fallback(tmp_path)
 
     assert out["harness"] == ["codex"]
     assert out["session_id"] == ["codex-session"]
-    assert out["prompt"] == ["codex response item prompt"]
-    assert out["sent_at"] == ["2026-04-01T10:02:00.000Z"]
-    assert out["num_user_messages"] == [1]
+    assert out["prompt"] == [None]
+    assert out["sent_at"] == [None]
+    assert out["num_user_messages"] == [0]
     assert out["num_tool_calls"] == [1]
 
 
