@@ -168,6 +168,7 @@ TESTS_REQUIRE = [
     "faiss-cpu>=1.8.0.post1",  # Pins numpy < 2
     "h5py",
     "pylance",
+    "pyiceberg[sql-sqlite,pyarrow]",
     "jax>=0.3.14; sys_platform != 'win32'",
     "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4; python_version < '3.14'",  # python 3.14 gives ImportError: cannot import name '_compression' from partially initialized module 'lz4.frame
@@ -211,6 +212,8 @@ PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
 NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 
+ICEBERG_REQUIRE = ["pyiceberg>=0.7.0"]
+
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
@@ -229,6 +232,7 @@ EXTRAS_REQUIRE = {
     "docs": DOCS_REQUIRE,
     "pdfs": PDFS_REQUIRE,
     "nibabel": NIBABEL_REQUIRE,
+    "iceberg": ICEBERG_REQUIRE,
 }
 
 setup(
