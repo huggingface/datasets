@@ -3500,8 +3500,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             num_shards = min(existing_cache_file_map, key=select_existing_cache_files)
 
-        existing_cache_files = existing_cache_file_map[num_shards]
-
         def format_cache_file_name(
             cache_file_name: Optional[str],
             rank: Union[int, Literal["*"]],  # noqa: F722
