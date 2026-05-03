@@ -1510,6 +1510,21 @@ class BaseDatasetTest(TestCase):
             finally:
                 datasets.enable_caching()
 
+    def test_map_load_from_cache_file_false_progress_bar_starts_at_zero(self, in_memory):
+        # regression test for https://github.com/huggingface/datasets/issues/8167
+        # when load_from_cache_file=False and cache files exist on disk, pbar_initial must be 0
+        if not in_memory:
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                    cache_file = os.path.join(tmp_dir, "mapped.arrow")
+                    with dset.map(lambda x: {"foo": "bar"}, cache_file_name=cache_file):
+                        pass
+                    with patch("datasets.arrow_dataset.hf_tqdm") as mock_tqdm:
+                        with dset.map(lambda x: {"foo": "bar"}, cache_file_name=cache_file, load_from_cache_file=False):
+                            pass
+                        mock_tqdm.assert_called_once()
+                        self.assertEqual(mock_tqdm.call_args.kwargs.get("initial", 0), 0)
+
     def test_suffix_template_format(self, in_memory):
         with (
             tempfile.TemporaryDirectory() as tmp_dir,
