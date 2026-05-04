@@ -1,6 +1,5 @@
 import os
 from dataclasses import dataclass, field
-from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
 
@@ -9,7 +8,7 @@ import pyarrow as pa
 from .. import config
 from ..download.download_config import DownloadConfig
 from ..table import array_cast
-from ..utils.file_utils import is_local_path, xopen
+from ..utils.file_utils import is_local_path, is_remote_url, xopen
 from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
 
 
@@ -17,6 +16,48 @@ if TYPE_CHECKING:
     import nibabel as nib
 
     from .features import FeatureType
+
+if config.NIBABEL_AVAILABLE:
+    import nibabel as nib
+
+    class Nifti1ImageWrapper(nib.nifti1.Nifti1Image):
+        """
+        A wrapper around nibabel's Nifti1Image to customize its representation.
+        """
+
+        def __init__(self, nifti_image: nib.nifti1.Nifti1Image):
+            super().__init__(
+                dataobj=nifti_image.dataobj,
+                affine=nifti_image.affine,
+                header=nifti_image.header,
+                extra=nifti_image.extra,
+                file_map=nifti_image.file_map,
+                dtype=nifti_image.get_data_dtype(),
+            )
+            self.nifti_image = nifti_image
+
+        def _repr_html_(self):
+            from ipyniivue import NiiVue, ShowRender, SliceType, Volume
+            from IPython.display import display
+
+            bytes_ = self.nifti_image.to_bytes()
+            nv = NiiVue()
+            nv.set_slice_type(SliceType.MULTIPLANAR)
+            nv.opts.multiplanar_show_render = ShowRender.ALWAYS
+            nv.opts.show_3d_crosshair = True
+            nv.opts.multiplanar_force_render = True
+            name = None
+            if hasattr(self.nifti_image, "file_map"):
+                if (
+                    "image" in self.nifti_image.file_map
+                    and getattr(self.nifti_image.file_map["image"], "filename", None) is not None
+                ):
+                    name = self.nifti_image.file_map["image"].filename
+            if name is None:
+                name = "volume.nii.gz"
+            volume = Volume(name=name, data=bytes_)
+            nv.load_volumes([volume])
+            display(nv)
 
 
 @dataclass
@@ -106,7 +147,7 @@ class Nifti:
                 f"A nifti sample should be a string, bytes, Path, nibabel image, or dict, but got {type(value)}."
             )
 
-    def decode_example(self, value: dict, token_per_repo_id=None) -> "nib.nifti1.Nifti1Image":
+    def decode_example(self, value: dict, token_per_repo_id=None) -> "Nifti1ImageWrapper":
         """Decode example NIfTI file into nibabel image object.
 
         Args:
@@ -165,18 +206,29 @@ class Nifti:
             ):  # gzip magic number, see https://stackoverflow.com/a/76055284/9534390 or "Magic number" on https://en.wikipedia.org/wiki/Gzip
                 bytes_ = gzip.decompress(bytes_)
 
-            bio = BytesIO(bytes_)
-            fh = nib.FileHolder(fileobj=bio)
-            nifti = nib.Nifti1Image.from_file_map({"header": fh, "image": fh})
+            nifti = nib.Nifti1Image.from_bytes(bytes_)
 
-        return nifti
+        return Nifti1ImageWrapper(nifti)
 
-    def embed_storage(self, storage: pa.StructArray, token_per_repo_id=None) -> pa.StructArray:
+    def embed_storage(
+        self, storage: pa.StructArray, token_per_repo_id=None, local_files: bool = True, remote_files: bool = True
+    ) -> pa.StructArray:
         """Embed NifTI files into the Arrow array.
 
         Args:
             storage (`pa.StructArray`):
                 PyArrow array to embed.
+            token_per_repo_id (`dict`, optional):
+                Dictionary repo_id -> token to fetch the files bytes.
+            local_files (`bool`, defaults to `True`)
+                Whether to embed local files data in the array
+
+                <Added version="4.8.5"/>
+            remote_files (`bool`, defaults to `True`)
+                Whether to embed remote files data in the array.
+                E.g. files with paths that start with hf:// or https://
+
+                <Added version="4.8.5"/>
 
         Returns:
             `pa.StructArray`: Array in the NifTI arrow storage type, that is
@@ -199,16 +251,32 @@ class Nifti:
 
         bytes_array = pa.array(
             [
-                (path_to_bytes(x["path"]) if x["bytes"] is None else x["bytes"]) if x is not None else None
+                (
+                    path_to_bytes(x["path"])
+                    if x["bytes"] is None
+                    and ((local_files and is_local_path(x["path"])) or (remote_files and is_remote_url(x["path"])))
+                    else x["bytes"]
+                )
+                if x is not None
+                else None
                 for x in storage.to_pylist()
             ],
             type=pa.binary(),
         )
         path_array = pa.array(
-            [os.path.basename(path) if path is not None else None for path in storage.field("path").to_pylist()],
+            [
+                (
+                    os.path.basename(path)
+                    if (local_files and is_local_path(path)) or (remote_files and is_remote_url(path))
+                    else path
+                )
+                if path is not None
+                else None
+                for path in storage.field("path").to_pylist()
+            ],
             type=pa.string(),
         )
-        storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
+        storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
         return array_cast(storage, self.pa_type)
 
     def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
@@ -261,7 +329,7 @@ class Nifti:
         return array_cast(storage, self.pa_type)
 
 
-def encode_nibabel_image(img: "nib.Nifti1Image") -> dict[str, Optional[Union[str, bytes]]]:
+def encode_nibabel_image(img: "nib.Nifti1Image", force_bytes: bool = False) -> dict[str, Optional[Union[str, bytes]]]:
     """
     Encode a nibabel image object into a dictionary.
 
@@ -270,11 +338,12 @@ def encode_nibabel_image(img: "nib.Nifti1Image") -> dict[str, Optional[Union[str
 
     Args:
         img: A nibabel image object (e.g., Nifti1Image).
+        force_bytes: If `True`, always serialize to bytes even if a file path exists. Needed to upload bytes properly.
 
     Returns:
         dict: A dictionary with "path" or "bytes" field.
     """
-    if hasattr(img, "file_map") and img.file_map is not None:
+    if hasattr(img, "file_map") and img.file_map is not None and not force_bytes:
         filename = img.file_map["image"].filename
         return {"path": filename, "bytes": None}
 

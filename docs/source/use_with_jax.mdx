@@ -195,11 +195,11 @@ part.
 
 The easiest way to get JAX arrays out of a dataset is to use the `with_format('jax')` method. Lets assume
 that we want to train a neural network on the [MNIST dataset](http://yann.lecun.com/exdb/mnist/) available
-at the HuggingFace Hub at https://huggingface.co/datasets/mnist.
+at the HuggingFace Hub at https://huggingface.co/datasets/ylecun/mnist.
 
 ```py
 >>> from datasets import load_dataset
->>> ds = load_dataset("mnist")
+>>> ds = load_dataset("ylecun/mnist")
 >>> ds = ds.with_format("jax")
 >>> ds["train"][0]
 {'image': DeviceArray([[  0,   0,   0, ...],

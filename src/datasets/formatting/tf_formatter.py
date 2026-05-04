@@ -71,10 +71,13 @@ class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
             if isinstance(value, PIL.Image.Image):
                 value = np.asarray(value)
         if config.TORCHVISION_AVAILABLE and "torchvision" in sys.modules:
-            from torchvision.io import VideoReader
+            try:
+                from torchvision.io import VideoReader
 
-            if isinstance(value, VideoReader):
-                return value  # TODO(QL): set output to tf tensors ?
+                if isinstance(value, VideoReader):
+                    return value  # TODO(QL): set output to tf tensors ?
+            except ImportError:
+                pass
         if config.TORCHCODEC_AVAILABLE and "torchcodec" in sys.modules:
             from torchcodec.decoders import AudioDecoder, VideoDecoder
 

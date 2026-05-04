@@ -5,6 +5,7 @@ import shutil
 import tempfile
 from multiprocessing import Pool
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -13,7 +14,7 @@ import pyarrow as pa
 import pytest
 
 import datasets
-from datasets import config, load_dataset
+from datasets import load_dataset
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_writer import ArrowWriter
 from datasets.builder import DatasetBuilder
@@ -44,6 +45,7 @@ from .utils import (
     offline,
     require_pil,
     require_torchcodec,
+    require_zstandard,
     set_current_working_directory_to_temp_dir,
 )
 
@@ -515,7 +517,7 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
-        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert module_factory_result.builder_kwargs["base_path"].startswith("hf://")
 
     @pytest.mark.integration
     def test_HubDatasetModuleFactory_with_data_dir(self):
@@ -529,7 +531,7 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         builder_config = module_factory_result.builder_configs_parameters.builder_configs[0]
-        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert module_factory_result.builder_kwargs["base_path"].startswith("hf://")
         assert (
             builder_config.data_files is not None
             and len(builder_config.data_files["train"]) == 1
@@ -548,7 +550,7 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         builder_config = module_factory_result.builder_configs_parameters.builder_configs[0]
-        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert module_factory_result.builder_kwargs["base_path"].startswith("hf://")
         assert (
             builder_config.data_files is not None
             and len(builder_config.data_files["train"]) > 0
@@ -563,7 +565,7 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         builder_config = module_factory_result.builder_configs_parameters.builder_configs[0]
-        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert module_factory_result.builder_kwargs["base_path"].startswith("hf://")
         assert (
             builder_config.data_files is not None
             and len(builder_config.data_files) == 1
@@ -580,7 +582,7 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
-        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert module_factory_result.builder_kwargs["base_path"].startswith("hf://")
 
         module_metadata_configs = module_factory_result.builder_configs_parameters.metadata_configs
         assert module_metadata_configs is not None
@@ -763,6 +765,18 @@ class LoadTest(TestCase):
                         str(context.exception),
                     )
 
+    @pytest.mark.integration
+    def test_load_dataset_invalid_revision_with_cache(self):
+        repo_id = SAMPLE_DATASET_IDENTIFIER2
+        builder = load_dataset_builder(repo_id, cache_dir=self.cache_dir)
+        builder.download_and_prepare()
+        with self.assertRaises(DatasetNotFoundError) as context:
+            datasets.load_dataset(repo_id, revision="invalid_revision", cache_dir=self.cache_dir)
+        self.assertIn(
+            "Revision 'invalid_revision' doesn't exist for dataset",
+            str(context.exception),
+        )
+
     def test_load_dataset_namespace(self):
         with self.assertRaises(DatasetNotFoundError) as context:
             datasets.load_dataset("hf-internal-testing/_dummy")
@@ -791,6 +805,34 @@ def test_load_dataset_builder_config_kwargs_passed_as_arguments():
     builder_custom = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER4, drop_metadata=True)
     assert builder_custom.config.drop_metadata != builder_default.config.drop_metadata
     assert builder_custom.config.drop_metadata is True
+
+
+def test_load_dataset_builder_config_kwargs_override_builder_kwargs():
+    class DummyBuilder:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+
+        # make sure that the builder is not trying to use the legacy cache dir
+        def _use_legacy_cache_dir_if_possible(self, dataset_module):
+            pass
+
+    dataset_module = SimpleNamespace(
+        builder_kwargs={"base_path": "from_builder"},
+        builder_configs_parameters=SimpleNamespace(
+            default_config_name="default",
+            builder_configs=[SimpleNamespace(data_files={"train": ["dummy.txt"]})],
+        ),
+        dataset_infos={},
+        hash="dummy_hash",
+    )
+
+    with (
+        patch("datasets.load.dataset_module_factory", return_value=dataset_module),
+        patch("datasets.load.get_dataset_builder_class", return_value=DummyBuilder),
+    ):
+        builder = datasets.load_dataset_builder("dummy/path", base_path="from_user")
+
+    assert builder.kwargs["base_path"] == "from_user"
 
 
 @pytest.mark.integration
@@ -909,14 +951,21 @@ def test_load_dataset_streaming_gz_json(jsonl_gz_path):
 
 @pytest.mark.integration
 @pytest.mark.parametrize(
-    "path", ["sample.jsonl", "sample.jsonl.gz", "sample.tar", "sample.jsonl.xz", "sample.zip", "sample.jsonl.zst"]
+    "path",
+    [
+        "sample.jsonl",
+        "sample.jsonl.gz",
+        "sample.tar",
+        "sample.jsonl.xz",
+        "sample.zip",
+        pytest.param("sample.jsonl.zst", marks=require_zstandard),
+    ],
 )
 def test_load_dataset_streaming_compressed_files(path):
     repo_id = "hf-internal-testing/compressed_files"
     data_files = f"https://huggingface.co/datasets/{repo_id}/resolve/main/{path}"
     if data_files[-3:] in ("zip", "tar"):  # we need to glob "*" inside archives
         data_files = data_files[-3:] + "://*::" + data_files
-        return  # TODO(QL, albert): support re-add support for ZIP and TAR archives streaming
     ds = load_dataset("json", split="train", data_files=data_files, streaming=True)
     assert isinstance(ds, IterableDataset)
     ds_item = next(iter(ds))
@@ -1076,6 +1125,7 @@ def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_da
     assert next(iter(ds)) is not None
 
 
+@require_pil
 @pytest.mark.integration
 def test_load_dataset_config_kwargs_passed_as_arguments():
     ds_default = load_dataset(SAMPLE_DATASET_IDENTIFIER4)

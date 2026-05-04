@@ -107,10 +107,13 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
             if isinstance(value, PIL.Image.Image):
                 value = np.asarray(value)
         if config.TORCHVISION_AVAILABLE and "torchvision" in sys.modules:
-            from torchvision.io import VideoReader
+            try:
+                from torchvision.io import VideoReader
 
-            if isinstance(value, VideoReader):
-                return value  # TODO(QL): set output to jax arrays ?
+                if isinstance(value, VideoReader):
+                    return value  # TODO(QL): set output to jax arrays ?
+            except ImportError:
+                pass
         if config.TORCHCODEC_AVAILABLE and "torchcodec" in sys.modules:
             from torchcodec.decoders import AudioDecoder, VideoDecoder
 

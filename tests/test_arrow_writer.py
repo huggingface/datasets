@@ -14,7 +14,6 @@ from datasets import config
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence
 from datasets.features import Array2D, ClassLabel, Features, Image, Value
 from datasets.features.features import Array2DExtensionType, cast_to_python_objects
-from datasets.keyhash import DuplicatedKeysError, InvalidKeyError
 
 from .utils import require_pil
 
@@ -133,46 +132,15 @@ def test_write_with_features():
     assert features == Features.from_arrow_schema(schema)
 
 
-@pytest.mark.parametrize("writer_batch_size", [None, 1, 10])
-def test_key_datatype(writer_batch_size):
-    output = pa.BufferOutputStream()
-    with ArrowWriter(
-        stream=output,
-        writer_batch_size=writer_batch_size,
-        hash_salt="split_name",
-        check_duplicates=True,
-    ) as writer:
-        with pytest.raises(InvalidKeyError):
-            writer.write({"col_1": "foo", "col_2": 1}, key=[1, 2])
-            num_examples, num_bytes = writer.finalize()
-
-
-@pytest.mark.parametrize("writer_batch_size", [None, 2, 10])
-def test_duplicate_keys(writer_batch_size):
-    output = pa.BufferOutputStream()
-    with ArrowWriter(
-        stream=output,
-        writer_batch_size=writer_batch_size,
-        hash_salt="split_name",
-        check_duplicates=True,
-    ) as writer:
-        with pytest.raises(DuplicatedKeysError):
-            writer.write({"col_1": "foo", "col_2": 1}, key=10)
-            writer.write({"col_1": "bar", "col_2": 2}, key=10)
-            num_examples, num_bytes = writer.finalize()
-
-
 @pytest.mark.parametrize("writer_batch_size", [None, 2, 10])
 def test_write_with_keys(writer_batch_size):
     output = pa.BufferOutputStream()
     with ArrowWriter(
         stream=output,
         writer_batch_size=writer_batch_size,
-        hash_salt="split_name",
-        check_duplicates=True,
     ) as writer:
-        writer.write({"col_1": "foo", "col_2": 1}, key=1)
-        writer.write({"col_1": "bar", "col_2": 2}, key=2)
+        writer.write({"col_1": "foo", "col_2": 1})
+        writer.write({"col_1": "bar", "col_2": 2})
         num_examples, num_bytes = writer.finalize()
     assert num_examples == 2
     assert num_bytes > 0

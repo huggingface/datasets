@@ -282,7 +282,7 @@ def test_split_order_in_metadata_configs_from_exported_parquet_files_and_dataset
             "dataset": "AI-Lab-Makerere/beans",
             "config": "default",
             "split": "test",
-            "url": "https://huggingface.co/datasets/beans/resolve/refs%2Fconvert%2Fparquet/default/test/0000.parquet",
+            "url": "https://huggingface.co/datasets/AI-Lab-Makerere/beans/resolve/refs%2Fconvert%2Fparquet/default/test/0000.parquet",
             "filename": "0000.parquet",
             "size": 17707203,
         },
@@ -290,7 +290,7 @@ def test_split_order_in_metadata_configs_from_exported_parquet_files_and_dataset
             "dataset": "AI-Lab-Makerere/beans",
             "config": "default",
             "split": "train",
-            "url": "https://huggingface.co/datasets/beans/resolve/refs%2Fconvert%2Fparquet/default/train/0000.parquet",
+            "url": "https://huggingface.co/datasets/AI-Lab-Makerere/beans/resolve/refs%2Fconvert%2Fparquet/default/train/0000.parquet",
             "filename": "0000.parquet",
             "size": 143780164,
         },
@@ -298,7 +298,7 @@ def test_split_order_in_metadata_configs_from_exported_parquet_files_and_dataset
             "dataset": "AI-Lab-Makerere/beans",
             "config": "default",
             "split": "validation",
-            "url": "https://huggingface.co/datasets/beans/resolve/refs%2Fconvert%2Fparquet/default/validation/0000.parquet",
+            "url": "https://huggingface.co/datasets/AI-Lab-Makerere/beans/resolve/refs%2Fconvert%2Fparquet/default/validation/0000.parquet",
             "filename": "0000.parquet",
             "size": 18500862,
         },
@@ -332,15 +332,15 @@ def test_split_order_in_metadata_configs_from_exported_parquet_files_and_dataset
                 },
             },
             download_checksums={
-                "https://huggingface.co/datasets/beans/resolve/main/data/train.zip": {
+                "https://huggingface.co/datasets/AI-Lab-Makerere/beans/resolve/main/data/train.zip": {
                     "num_bytes": 143812152,
                     "checksum": None,
                 },
-                "https://huggingface.co/datasets/beans/resolve/main/data/validation.zip": {
+                "https://huggingface.co/datasets/AI-Lab-Makerere/beans/resolve/main/data/validation.zip": {
                     "num_bytes": 18504213,
                     "checksum": None,
                 },
-                "https://huggingface.co/datasets/beans/resolve/main/data/test.zip": {
+                "https://huggingface.co/datasets/AI-Lab-Makerere/beans/resolve/main/data/test.zip": {
                     "num_bytes": 17708541,
                     "checksum": None,
                 },

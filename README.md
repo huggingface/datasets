@@ -66,7 +66,7 @@ For more details on installation, check the installation page in the documentati
 
 ## Installation to use with Machine Learning & Data frameworks frameworks
 
-If you plan to use 🤗 Datasets with PyTorch (2.0+), TensorFlow (2.6+) or JAX (3.14+) you should also install PyTorch, TensorFlow or JAX.
+If you plan to use 🤗 Datasets with PyTorch (2.0+), TensorFlow (2.6+) or JAX (0.4+) you should also install PyTorch, TensorFlow or JAX.
 🤗 Datasets is also well integrated with data frameworks like PyArrow, Pandas, Polars and Spark, which should be installed separately.
 
 For more details on using the library with these frameworks, check the quick start page in the documentation: https://huggingface.co/docs/datasets/quickstart
@@ -84,7 +84,7 @@ from datasets import load_dataset
 
 # Print all the available datasets
 from huggingface_hub import list_datasets
-print([dataset.id for dataset in list_datasets()])
+print([dataset.id for dataset in list_datasets(limit=20)])
 
 # Load a dataset and print the first example in the training set
 squad_dataset = load_dataset('rajpurkar/squad')

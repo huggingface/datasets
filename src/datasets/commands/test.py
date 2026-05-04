@@ -144,7 +144,7 @@ class TestCommand(BaseDatasetsCLICommand):
 
         for j, builder in enumerate(get_builders()):
             print(f"Testing builder '{builder.config.name}' ({j + 1}/{n_builders})")
-            builder._record_infos = os.path.exists(
+            builder._record_checksums = os.path.exists(
                 os.path.join(builder.get_imported_module_dir(), datasets.config.DATASETDICT_INFOS_FILENAME)
             )  # record checksums only if we need to update a (deprecated) dataset_infos.json
             builder.download_and_prepare(

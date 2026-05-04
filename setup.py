@@ -113,7 +113,7 @@ REQUIRED_PKGS = [
     # Minimum 21.0.0 to support `use_content_defined_chunking` in ParquetWriter
     "pyarrow>=21.0.0",
     # For smart caching dataset processing
-    "dill>=0.3.0,<0.4.1",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
+    "dill>=0.3.0,<0.4.2",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
@@ -124,10 +124,10 @@ REQUIRED_PKGS = [
     # for fast hashing
     "xxhash",
     # for better multiprocessing
-    "multiprocess<0.70.19",  # to align with dill<0.3.9 (see above)
+    "multiprocess<0.70.20",  # to align with dill<0.3.9 (see above)
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0,<=2025.10.0",
+    "fsspec[http]>=2023.1.0,<=2026.2.0",
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface-hub>=0.25.0,<2.0",
     # Utilities from PyPA to e.g., compare versions
@@ -167,6 +167,7 @@ TESTS_REQUIRE = [
     "elasticsearch>=7.17.12,<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch(); 7.9.1 has legacy numpy.float_ which was fixed in https://github.com/elastic/elasticsearch-py/pull/2551.
     "faiss-cpu>=1.8.0.post1",  # Pins numpy < 2
     "h5py",
+    "pylance",
     "jax>=0.3.14; sys_platform != 'win32'",
     "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4; python_version < '3.14'",  # python 3.14 gives ImportError: cannot import name '_compression' from partially initialized module 'lz4.frame
@@ -208,7 +209,7 @@ DOCS_REQUIRE = [
 
 PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
-NIBABEL_REQUIRE = ["nibabel>=5.3.2"]
+NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
@@ -232,7 +233,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="4.4.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="4.8.6.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
@@ -248,7 +249,7 @@ setup(
         "datasets.utils.resources": ["*.json", "*.yaml", "*.tsv"],
     },
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
-    python_requires=">=3.9.0",
+    python_requires=">=3.10.0",
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
     classifiers=[
@@ -259,7 +260,6 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",

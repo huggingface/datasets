@@ -123,8 +123,8 @@ class StreamingDownloadManager:
 
     def _extract(self, urlpath: str) -> str:
         urlpath = str(urlpath)
-        protocol = _get_extraction_protocol(urlpath, download_config=self.download_config)
         # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
+        protocol = _get_extraction_protocol(urlpath, download_config=self.download_config)
         path = urlpath.split("::")[0]
         extension = _get_path_extension(path)
         if extension in ["tgz", "tar"] or path.endswith((".tar.gz", ".tar.bz2", ".tar.xz")):
@@ -206,7 +206,7 @@ class StreamingDownloadManager:
         Example:
 
         ```py
-        >>> files = dl_manager.download_and_extract('https://huggingface.co/datasets/beans/resolve/main/data/train.zip')
+        >>> files = dl_manager.download_and_extract('https://huggingface.co/datasets/AI-Lab-Makerere/beans/resolve/main/data/train.zip')
         >>> files = dl_manager.iter_files(files)
         ```
         """

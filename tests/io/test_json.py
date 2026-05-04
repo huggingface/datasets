@@ -4,9 +4,10 @@ import json
 import fsspec
 import pytest
 
-from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
+from datasets import Dataset, DatasetDict, Features, Json, List, NamedSplit, Value
 from datasets.io.json import JsonDatasetReader, JsonDatasetWriter
 
+from ..fixtures.files import DATA_MIXED_TYPES
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
 
 
@@ -87,6 +88,33 @@ def test_dataset_from_json_with_mismatched_features(jsonl_312_path, tmp_path):
     assert dataset.column_names == ["col_2", "col_3", "col_1"]
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
+
+
+def test_dataset_from_json_with_missing_fields(jsonl_missing_fields_path, tmp_path):
+    expected_features = {"col_1": Value("int64"), "col_2": Value("int64"), "col_3": Value("int64")}
+
+    cache_dir = tmp_path / "cache"
+    dataset = JsonDatasetReader(jsonl_missing_fields_path, cache_dir=cache_dir).read()
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 2
+    assert dataset.num_columns == 3
+    assert dataset.features == expected_features
+    assert list(dataset) == [
+        {"col_1": 1, "col_2": 2, "col_3": None},
+        {"col_1": 1, "col_2": None, "col_3": 3},
+    ]
+
+
+def test_dataset_from_json_with_mixed_types(jsonl_mixed_types_path, tmp_path):
+    expected_features = {"col_1": Json(), "col_2": Json(), "col_3": List(Json())}
+
+    cache_dir = tmp_path / "cache"
+    dataset = JsonDatasetReader(jsonl_mixed_types_path, cache_dir=cache_dir).read()
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 3
+    assert dataset.num_columns == 3
+    assert dataset.features == expected_features
+    assert list(dataset) == DATA_MIXED_TYPES
 
 
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])

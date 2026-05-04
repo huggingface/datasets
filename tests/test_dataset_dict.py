@@ -1,17 +1,20 @@
 import os
 import tempfile
+from types import SimpleNamespace
 from unittest import TestCase
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
 import pytest
+from fsspec.implementations.memory import MemoryFileSystem
 
 from datasets import load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.features import ClassLabel, Features, List, Value
 from datasets.iterable_dataset import IterableDataset
-from datasets.splits import NamedSplit
+from datasets.splits import NamedSplit, SplitInfo
 
 from .utils import (
     assert_arrow_memory_doesnt_increase,
@@ -400,6 +403,66 @@ class DatasetDictTest(TestCase):
         self.assertListEqual(list(example.keys()), list(filtered_example.keys()))
         self.assertEqual(int(filtered_example["filename"].split("_")[-1]), 4)  # id starts from 3
         del dsets, filtered_dsets
+
+    def test_iterable_dataset_dict_push_to_hub_max_shard_size_and_num_shards_are_mutually_exclusive(self):
+        dsets = self._create_dummy_iterable_dataset_dict()
+        with pytest.raises(ValueError, match="either max_shard_size or num_shards"):
+            dsets.push_to_hub("user/dataset", max_shard_size="1MB", num_shards={"train": 1, "test": 1})
+
+    def test_iterable_dataset_dict_push_to_hub_forwards_max_shard_size_to_each_split(self):
+        class DummyApi:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def repo_info(self, repo_id, repo_type="dataset", revision=None):
+                return SimpleNamespace(id=repo_id, sha="dummy-sha")
+
+            def create_branch(self, *args, **kwargs):
+                pass
+
+            def list_repo_tree(self, *args, **kwargs):
+                return []
+
+            def create_commit(self, *args, **kwargs):
+                return SimpleNamespace(commit_url="https://hf.co/commit/dummy")
+
+        dummy_fs = MemoryFileSystem(skip_instance_cache=True)
+        dummy_fs.touch("datasets/user/dataset@dummy-sha/README.md")
+
+        forwarded_calls = []
+
+        def mock_push_parquet_shards_to_hub(
+            resolved_output_path,
+            data_dir,
+            split,
+            token,
+            create_pr,
+            max_shard_size,
+            num_shards,
+            embed_external_files,
+            num_proc,
+        ):
+            forwarded_calls.append(
+                {
+                    "split": split,
+                    "max_shard_size": max_shard_size,
+                    "num_shards": num_shards,
+                }
+            )
+            return [], [], Features(), SplitInfo(name=split), 0
+
+        dsets = self._create_dummy_iterable_dataset_dict()
+        max_shard_size = sum(split_dataset.num_shards for split_dataset in dsets.values())
+        with (
+            patch("datasets.dataset_dict.HfApi", DummyApi),
+            patch("datasets.dataset_dict.HfFileSystem", return_value=dummy_fs),
+            patch.object(IterableDataset, "_push_parquet_shards_to_hub", side_effect=mock_push_parquet_shards_to_hub),
+        ):
+            dsets.push_to_hub("user/dataset", max_shard_size=max_shard_size)
+
+        assert {call["split"] for call in forwarded_calls} == set(dsets.keys())
+        assert all(call["max_shard_size"] == max_shard_size for call in forwarded_calls)
+        assert all(call["num_shards"] is None for call in forwarded_calls)
 
     def test_sort(self):
         with tempfile.TemporaryDirectory() as tmp_dir:

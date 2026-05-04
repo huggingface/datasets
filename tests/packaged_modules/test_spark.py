@@ -25,7 +25,7 @@ def _get_expected_row_ids_and_row_dicts_for_partition_order(df, partition_order)
     for part_id in partition_order:
         partition = df.where(f"SPARK_PARTITION_ID() = {part_id}").collect()
         for row_idx, row in enumerate(partition):
-            expected_row_ids_and_row_dicts.append((f"{part_id}_{row_idx}", row.asDict()))
+            expected_row_ids_and_row_dicts.append(((part_id, row_idx), row.asDict()))
     return expected_row_ids_and_row_dicts
 
 
@@ -75,8 +75,8 @@ def test_spark_examples_iterable():
     df = spark.range(10).repartition(1)
     it = SparkExamplesIterable(df)
     assert it.num_shards == 1
-    for i, (row_id, row_dict) in enumerate(it):
-        assert row_id == f"0_{i}"
+    for i, (row_key, row_dict) in enumerate(it):
+        assert row_key == (0, i)
         assert row_dict == {"id": i}
 
 

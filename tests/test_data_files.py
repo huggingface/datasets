@@ -189,6 +189,18 @@ def test_resolve_pattern_locally_with_dot_in_base_path(complex_data_dir):
     assert len(resolved_data_files) == 1
 
 
+@pytest.mark.parametrize("archive_jsonl", ["tar_jsonl_path", "zip_jsonl_path"])
+def test_resolve_pattern_locally_prefixed_archive_glob(archive_jsonl, request):
+    archive_path = str(request.getfixturevalue(archive_jsonl))
+    protocol = "tar" if archive_path.endswith(".tar") else "zip"
+    resolved_data_files = resolve_pattern(f"{protocol}://*::{archive_path}", base_path="")
+    assert sorted(os.path.basename(path.split("::")[0]) for path in resolved_data_files) == [
+        "dataset.jsonl",
+        "dataset2.jsonl",
+    ]
+    assert all(path.endswith(f"::{archive_path}") for path in resolved_data_files)
+
+
 def test_resolve_pattern_locally_with_absolute_path(tmp_path, complex_data_dir):
     abs_path = os.path.join(complex_data_dir, "data", "train.txt")
     resolved_data_files = resolve_pattern(abs_path, str(tmp_path / "blabla"))
