@@ -68,6 +68,53 @@ def _batch_arrow_table(table: pa.Table) -> pa.Table:
     return pa.Table.from_arrays(batched_columns, names=table.column_names)
 
 
+def _batch_accumulate_arrow_table_by_columns(
+    table: pa.Table, indices: list[int], columns: tuple[str], tables_accumulator: list[pa.Table], length: Optional[int]
+) -> pa.Table:
+    accumulate_last_batch = length is None or indices[-1] + 1 < length
+    # keep accumulating if key is the same, otherwise include the accumulated tables
+    if tables_accumulator and accumulate_last_batch:
+        for column in columns:
+            if any(pc.not_equal(table[column], tables_accumulator[0][column][0]).to_pylist()):
+                break
+        else:
+            empty_batched_table = pa.Table.from_arrays(
+                [
+                    pa.ListArray.from_arrays(pa.array([0], type=pa.int32()), table[column].chunk(0))
+                    for column in table.column_names
+                ],
+                names=table.column_names,
+            )
+            return empty_batched_table
+    table = pa.concat_tables(tables_accumulator + [table])
+    tables_accumulator[:] = []
+    if len(table) == 0:
+        return table
+    # cut the table per key, i.e. when the columns change value
+    if len(table) > 1:
+        cut_array = pc.not_equal(table[columns[0]][1:], table[columns[0]][:-1])
+        for column in columns[1:]:
+            cut_array = pc.or_(cut_array, pc.not_equal(table[column][1:], table[column][:-1]))
+    else:
+        cut_array = pa.array([], type=pa.uint64())
+    offsets = pc.indices_nonzero(cut_array)
+    # make the batched table
+    offsets = pc.add(1, offsets)
+    offsets = pa.concat_arrays([pa.array([0], type=pa.int32()), offsets.cast(pa.int32())])
+    if not accumulate_last_batch:
+        offsets = pa.concat_arrays([offsets, pa.array([len(table)], type=pa.int32())])
+    batched_columns = []
+    for column_name in table.column_names:
+        column = table[column_name].combine_chunks()
+        batched_columns.append(pa.ListArray.from_arrays(offsets, column))
+    batched_table = pa.Table.from_arrays(batched_columns, names=table.column_names)
+    # add the last batch to the accumulator since it might not be full yet
+    if accumulate_last_batch:
+        last_offset = offsets[-1].as_py()
+        tables_accumulator.append(table.slice(last_offset, len(table) - last_offset))
+    return batched_table
+
+
 def _memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
     opened_stream = _memory_mapped_record_batch_reader_from_file(filename)
     pa_table = opened_stream.read_all()

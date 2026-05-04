@@ -58,7 +58,14 @@ from .formatting import (
 from .info import DatasetInfo
 from .naming import _split_re
 from .splits import NamedSplit, Split, SplitInfo
-from .table import _batch_arrow_table, cast_table_to_features, embed_table_storage, read_schema_from_file, table_cast
+from .table import (
+    _batch_accumulate_arrow_table_by_columns,
+    _batch_arrow_table,
+    cast_table_to_features,
+    embed_table_storage,
+    read_schema_from_file,
+    table_cast,
+)
 from .utils import tqdm as hf_tqdm
 from .utils.logging import get_logger
 from .utils.py_utils import (
@@ -1251,6 +1258,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         formatting: Optional["FormattingConfig"] = None,
         features: Optional[Features] = None,
         max_num_running_async_map_functions_in_parallel: Optional[int] = None,
+        is_batch_accumulate_arrow_table_function: bool = False,
     ):
         super().__init__()
         self.ex_iterable = ex_iterable
@@ -1267,6 +1275,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         self.max_num_running_async_map_functions_in_parallel = (
             max_num_running_async_map_functions_in_parallel or config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL
         )
+        self.is_batch_accumulate_arrow_table_function = is_batch_accumulate_arrow_table_function
         # sanity checks
         if formatting and formatting.is_table:
             # batch_size should match for iter_arrow
@@ -1534,6 +1543,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             self._state_dict["previous_state"] = self.ex_iterable.state_dict()
             self._state_dict["num_examples_since_previous_state"] = 0
         current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
+        tables_accumulator: list[pa.Table] = []
+        length: Optional[int] = None
         for key, pa_table in iterator:
             if (
                 self.batched
@@ -1554,7 +1565,9 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 else:
                     function_args.append(current_idx)
             # then apply the transform
-            output = self.function(*function_args, **self.fn_kwargs)
+            output = self.function(
+                *function_args, **self.fn_kwargs, tables_accumulator=tables_accumulator, length=length
+            )
             output_table = _table_output_to_arrow(output)
             if not isinstance(output_table, pa.Table):
                 raise TypeError(
@@ -1582,10 +1595,25 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                         num_examples_to_skip -= 1
                         continue
                     yield f"{key}_{i}", pa_subtable
-                if self._state_dict:
+            if self._state_dict:
+                if self.is_batch_accumulate_arrow_table_function:
+                    output_batch_size = len(output_table)
+                    if output_batch_size > 0:  # skip checkpoint if function is accumulating
+                        self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                        self._state_dict["num_examples_since_previous_state"] = 0
+                        self._state_dict["previous_state_example_idx"] = current_idx
+                else:
                     self._state_dict["previous_state"] = self.ex_iterable.state_dict()
                     self._state_dict["num_examples_since_previous_state"] = 0
                     self._state_dict["previous_state_example_idx"] += len(pa_table)
+        if tables_accumulator:
+            pa_table = tables_accumulator.pop(-1)
+            indices = [current_idx + i for i in range(len(pa_table))]
+            function_args = (pa_table, indices)
+            output_table = self.function(
+                *function_args, **self.fn_kwargs, tables_accumulator=tables_accumulator, length=indices[-1] + 1
+            )
+            yield "last_batch_from_tables_accumulator", output_table
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "MappedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
@@ -3394,6 +3422,31 @@ class IterableDataset(DatasetInfoMixin):
          {'label': 1, 'text': 'Review: effective but too-tepid biopic'}]
         ```
         """
+        return self._map(
+            function=function,
+            with_indices=with_indices,
+            input_columns=input_columns,
+            batched=batched,
+            batch_size=batch_size,
+            drop_last_batch=drop_last_batch,
+            remove_columns=remove_columns,
+            features=features,
+            fn_kwargs=fn_kwargs,
+        )
+
+    def _map(
+        self,
+        function: Optional[Callable] = None,
+        with_indices: bool = False,
+        input_columns: Optional[Union[str, list[str]]] = None,
+        batched: bool = False,
+        batch_size: Optional[int] = 1000,
+        drop_last_batch: bool = False,
+        remove_columns: Optional[Union[str, list[str]]] = None,
+        features: Optional[Features] = None,
+        fn_kwargs: Optional[dict] = None,
+        is_batch_accumulate_arrow_table_function: bool = False,
+    ) -> "IterableDataset":
         if isinstance(input_columns, str):
             input_columns = [input_columns]
         if isinstance(remove_columns, str):
@@ -3455,6 +3508,7 @@ class IterableDataset(DatasetInfoMixin):
             fn_kwargs=fn_kwargs,
             formatting=self._formatting,
             features=features,
+            is_batch_accumulate_arrow_table_function=is_batch_accumulate_arrow_table_function,
         )
         info = self.info.copy()
         info.features = features
@@ -4205,13 +4259,28 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-    def batch(self, batch_size: int, drop_last_batch: bool = False) -> "IterableDataset":
+    def batch(
+        self,
+        batch_size: Optional[int] = None,
+        by_column: Optional[Union[str, list[str]]] = None,
+        drop_last_batch: bool = False,
+    ) -> "IterableDataset":
         """
         Group samples from the dataset into batches.
 
         Args:
-            batch_size (`int`): The number of samples in each batch.
-            drop_last_batch (`bool`, defaults to `False`): Whether to drop the last incomplete batch.
+            batch_size (`int`, optional):
+                The number of samples in each batch.
+            by_column (`Union[str, list[str]`, optional):
+                The column used to batch examples together.
+                Successive examples with the same value for that column are in grouped the same batch.
+                This can also be a list of columns if you want to batch by multiple columns.
+                If batching by column, the batch_size is only used to control the size of internal batches
+                during acculumation.
+
+                <Added version="4.9.0"/>
+            drop_last_batch (`bool`, defaults to `False`):
+                Whether to drop the last incomplete batch.
 
         Example:
         ```py
@@ -4219,11 +4288,28 @@ class IterableDataset(DatasetInfoMixin):
         >>> batched_ds = ds.batch(batch_size=32)
         ```
         """
-
+        if batch_size is None and by_column is None:
+            raise ValueError("IterableDataset.batch() misses `batch_size` or `by_column` argument.")
         if self.features:
             features = Features({col: List(feature) for col, feature in self.features.items()})
         else:
             features = None
+        if by_column is not None:
+            columns = [by_column] if isinstance(by_column, str) else by_column
+            ds = (
+                self.with_format("arrow")
+                ._map(
+                    partial(_batch_accumulate_arrow_table_by_columns, columns=columns),
+                    with_indices=True,
+                    batched=True,
+                    batch_size=batch_size,
+                    drop_last_batch=drop_last_batch,
+                    features=features,
+                    is_batch_accumulate_arrow_table_function=True,
+                )
+                .with_format(self._formatting.format_type if self._formatting else None)
+            )
+            return ds
         if self._formatting and self._formatting.is_table:
             return (
                 self.with_format("arrow")
