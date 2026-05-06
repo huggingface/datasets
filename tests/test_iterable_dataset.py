@@ -2912,6 +2912,26 @@ def test_decode():
     assert DecodableFeature.decode_example_num_calls == 4
 
 
+def test_decode_on_error_propagates_to_features():
+    from datasets import Image
+
+    data = [{"img": {"path": None, "bytes": b"not an image"}}]
+    features = Features({"img": Image()})
+    ds = IterableDataset.from_generator(lambda: (x for x in data), features=features)
+
+    ds_raise = ds.decode(on_error="raise")
+    assert ds_raise.features["img"].on_error == "raise"
+
+    ds_none = ds.decode(on_error="return_none")
+    assert ds_none.features["img"].on_error == "return_none"
+
+    ds_warn = ds.decode(on_error="warn_and_return_none")
+    assert ds_warn.features["img"].on_error == "warn_and_return_none"
+
+    with pytest.raises(ValueError, match="Invalid on_error"):
+        ds.decode(on_error="not_a_mode")
+
+
 ############################
 #
 #   IterableColumn tests

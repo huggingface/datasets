@@ -4083,7 +4083,12 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-    def decode(self, enable: bool = True, num_threads: int = 0) -> "IterableDataset":
+    def decode(
+        self,
+        enable: bool = True,
+        num_threads: int = 0,
+        on_error: Optional[str] = None,
+    ) -> "IterableDataset":
         """
         Enable or disable the dataset features decoding for audio, image, video.
 
@@ -4101,11 +4106,22 @@ class IterableDataset(DatasetInfoMixin):
         is equivalent to calling `.cast()` or `.cast_column()` with all the Audio, Image and Video types
         set to `decode=False`.
 
+        Use `on_error` to control what happens when an individual example fails to decode (e.g. a
+        corrupted image in a large web-scraped dataset). When set, it is propagated to every Image,
+        Audio and Video feature in the schema.
+
         Args:
             enable (`bool`, defaults to `True`):
                 Enable or disable features decoding.
             num_threads (`int`, defaults to `0`):
                 Enable multithreading for features decoding.
+            on_error (`str`, *optional*):
+                If set, override the `on_error` behavior of every Image / Audio / Video feature
+                in this dataset. One of:
+
+                - `"raise"`: re-raise the exception (default behavior of the underlying features).
+                - `"return_none"`: silently yield `None` for the failing example.
+                - `"warn_and_return_none"`: emit a warning and yield `None`.
 
         Returns:
             `IterableDataset`: A copy of the dataset with casted features.
@@ -4152,11 +4168,20 @@ class IterableDataset(DatasetInfoMixin):
                 "Features decoding is only available for datasets with known features, but features are Unknown. "
                 "Please set the datasets features with `ds = ds.cast(features)`."
             )
+        if on_error is not None and on_error not in ("raise", "return_none", "warn_and_return_none"):
+            raise ValueError(
+                f"Invalid on_error={on_error!r}. Must be one of: "
+                "'raise', 'return_none', 'warn_and_return_none'."
+            )
         ds = self
 
         def set_decoding(decode: bool, feature):
             if hasattr(feature, "decode"):
                 feature.decode = decode
+
+        def set_on_error(value: str, feature):
+            if hasattr(feature, "on_error"):
+                feature.on_error = value
 
         if enable and num_threads > 0:
             disabled_decoding_features = self.features.copy()
@@ -4164,6 +4189,8 @@ class IterableDataset(DatasetInfoMixin):
 
             _visit(disabled_decoding_features, partial(set_decoding, False))
             _visit(enabled_decoding_features, partial(set_decoding, True))
+            if on_error is not None:
+                _visit(enabled_decoding_features, partial(set_on_error, on_error))
             ds = ds.cast(disabled_decoding_features)
             pool = multiprocessing.pool.ThreadPool(num_threads)
             func = partial(_apply_async, pool, enabled_decoding_features.decode_example)
@@ -4173,6 +4200,8 @@ class IterableDataset(DatasetInfoMixin):
         else:
             features = ds.features.copy()
             _visit(features, partial(set_decoding, enable))
+            if on_error is not None:
+                _visit(features, partial(set_on_error, on_error))
             ds = ds.cast(features)
         return ds
 
