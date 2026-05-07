@@ -78,6 +78,7 @@ def _batch_accumulate_arrow_table_by_columns(
             if any(pc.not_equal(table[column], tables_accumulator[0][column][0]).to_pylist()):
                 break
         else:
+            tables_accumulator.append(table)
             empty_batched_table = pa.Table.from_arrays(
                 [
                     pa.ListArray.from_arrays(pa.array([0], type=pa.int32()), table[column].chunk(0))

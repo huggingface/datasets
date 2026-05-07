@@ -4085,8 +4085,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The column used to batch examples together.
                 Successive examples with the same value for that column are in grouped the same batch.
                 This can also be a list of columns if you want to batch by multiple columns.
-                If batching by column, the batch_size is only used to control the size of internal batches
-                during acculumation.
+                If batching by column, the batch_size is only used to control the size of the batches
+                to group together or slice during acculumation.
 
                 <Added version="4.9.0"/>
             drop_last_batch (`bool`, defaults to `False`):

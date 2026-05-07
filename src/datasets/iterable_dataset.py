@@ -1543,8 +1543,12 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             self._state_dict["previous_state"] = self.ex_iterable.state_dict()
             self._state_dict["num_examples_since_previous_state"] = 0
         current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
-        tables_accumulator: list[pa.Table] = []
-        length: Optional[int] = None
+        fn_kwargs = self.fn_kwargs.copy()
+        if self.is_batch_accumulate_arrow_table_function:
+            tables_accumulator: list[pa.Table] = []
+            length: Optional[int] = None
+            fn_kwargs["tables_accumulator"] = tables_accumulator
+            fn_kwargs["length"] = length
         for key, pa_table in iterator:
             if (
                 self.batched
@@ -1565,9 +1569,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 else:
                     function_args.append(current_idx)
             # then apply the transform
-            output = self.function(
-                *function_args, **self.fn_kwargs, tables_accumulator=tables_accumulator, length=length
-            )
+            output = self.function(*function_args, **fn_kwargs)
             output_table = _table_output_to_arrow(output)
             if not isinstance(output_table, pa.Table):
                 raise TypeError(
@@ -1596,16 +1598,9 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                         continue
                     yield f"{key}_{i}", pa_subtable
             if self._state_dict:
-                if self.is_batch_accumulate_arrow_table_function:
-                    output_batch_size = len(output_table)
-                    if output_batch_size > 0:  # skip checkpoint if function is accumulating
-                        self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                        self._state_dict["num_examples_since_previous_state"] = 0
-                        self._state_dict["previous_state_example_idx"] = current_idx
-                else:
-                    self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                    self._state_dict["num_examples_since_previous_state"] = 0
-                    self._state_dict["previous_state_example_idx"] += len(pa_table)
+                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                self._state_dict["num_examples_since_previous_state"] = 0
+                self._state_dict["previous_state_example_idx"] = current_idx
         if tables_accumulator:
             pa_table = tables_accumulator.pop(-1)
             indices = [current_idx + i for i in range(len(pa_table))]
@@ -4275,8 +4270,8 @@ class IterableDataset(DatasetInfoMixin):
                 The column used to batch examples together.
                 Successive examples with the same value for that column are in grouped the same batch.
                 This can also be a list of columns if you want to batch by multiple columns.
-                If batching by column, the batch_size is only used to control the size of internal batches
-                during acculumation.
+                If batching by column, the batch_size is only used to control the size of the batches
+                to group together or slice during acculumation.
 
                 <Added version="4.9.0"/>
             drop_last_batch (`bool`, defaults to `False`):
