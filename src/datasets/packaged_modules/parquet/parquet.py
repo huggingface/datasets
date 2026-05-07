@@ -1,11 +1,14 @@
+import gc
 from dataclasses import dataclass
 from typing import Literal, Optional, Union
 
 import pyarrow as pa
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
+from packaging import version
 
 import datasets
+import datasets.config
 from datasets.builder import Key
 from datasets.table import table_cast
 
@@ -189,24 +192,32 @@ class Parquet(datasets.ArrowBasedBuilder):
             try:
                 with open(file, "rb") as f:
                     parquet_fragment = parquet_file_format.make_fragment(f)
-                    if row_groups is not None:
-                        parquet_fragment.subset(row_group_ids=row_groups)
-                    if parquet_fragment.row_groups:
-                        batch_size = self.config.batch_size or parquet_fragment.row_groups[0].num_rows
-                        for batch_idx, record_batch in enumerate(
-                            parquet_fragment.to_batches(
-                                batch_size=batch_size,
-                                columns=self.config.columns,
-                                filter=filter_expr,
-                                batch_readahead=0,
-                                fragment_readahead=0,
-                            )
-                        ):
-                            pa_table = pa.Table.from_batches([record_batch])
-                            # Uncomment for debugging (will print the Arrow table size and elements)
-                            # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
-                            # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                            yield Key(file_idx, batch_idx), self._cast_table(pa_table)
+                    fragment_is_closed = False
+                    try:
+                        if row_groups is not None:
+                            parquet_fragment.subset(row_group_ids=row_groups)
+                        if parquet_fragment.row_groups:
+                            batch_size = self.config.batch_size or parquet_fragment.row_groups[0].num_rows
+                            for batch_idx, record_batch in enumerate(
+                                parquet_fragment.to_batches(
+                                    batch_size=batch_size,
+                                    columns=self.config.columns,
+                                    filter=filter_expr,
+                                    batch_readahead=0,
+                                    fragment_readahead=0,
+                                )
+                            ):
+                                pa_table = pa.Table.from_batches([record_batch])
+                                # Uncomment for debugging (will print the Arrow table size and elements)
+                                # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
+                                # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+                                yield Key(file_idx, batch_idx), self._cast_table(pa_table)
+                            fragment_is_closed = True
+                    finally:
+                        # Fix for https://github.com/apache/arrow/issues/45214
+                        if not fragment_is_closed and datasets.config.PYARROW_VERSION <= version.parse("24.0.0"):
+                            del parquet_fragment
+                            gc.collect()
             except (pa.ArrowInvalid, ValueError) as e:
                 if self.config.on_bad_files == "error":
                     logger.error(f"Failed to read file '{file}' with error {type(e).__name__}: {e}")
