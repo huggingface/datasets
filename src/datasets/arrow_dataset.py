@@ -113,6 +113,7 @@ from .table import (
     InMemoryTable,
     MemoryMappedTable,
     Table,
+    _batch_accumulate_arrow_table_by_columns,
     _batch_arrow_table,
     _memory_mapped_record_batch_reader_from_file,
     cast_array_to_feature,
@@ -4063,7 +4064,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @fingerprint_transform(inplace=False)
     def batch(
         self,
-        batch_size: int,
+        batch_size: Optional[int] = None,
+        by_column: Optional[Union[str, list[str]]] = None,
         drop_last_batch: bool = False,
         num_proc: Optional[int] = None,
         new_fingerprint: Optional[str] = None,
@@ -4071,9 +4073,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         Group samples from the dataset into batches.
 
+        Specify either `batch_size` to make batches of `batch_size` examples.
+
+        Or use `by_column=column_name` to make batches of successive examples that share
+        the same value in column `column_name`.
+
         Args:
-            batch_size (`int`):
+            batch_size (`int`, optional):
                 The number of samples in each batch.
+            by_column (`Union[str, list[str]`, optional):
+                The column used to batch examples together.
+                Successive examples with the same value for that column are in grouped the same batch.
+                This can also be a list of columns if you want to batch by multiple columns.
+                If batching by column, the batch_size is only used to control the size of the batches
+                to group together or slice during acculumation.
+
+                <Added version="4.9.0"/>
             drop_last_batch (`bool`, defaults to `False`):
                 Whether to drop the last incomplete batch.
             num_proc (`int`, *optional*, defaults to `None`):
@@ -4096,29 +4111,30 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         'label': [1, 1, 1, 1]}
         ```
         """
-
-        def batch_fn(example):
-            return {k: [v] for k, v in example.items()}
-
-        if self._format_type in ("arrow", "pandas", "polars"):
-            return self.with_format("arrow").map(
-                _batch_arrow_table,
-                batched=True,
-                batch_size=batch_size,
-                drop_last_batch=drop_last_batch,
-                num_proc=num_proc,
-                new_fingerprint=new_fingerprint,
-                desc="Batching examples",
+        if batch_size is None and by_column is None:
+            raise ValueError("IterableDataset.batch() misses `batch_size` or `by_column` argument.")
+        if by_column is not None:
+            if num_proc:
+                raise NotImplementedError("Multiprocessed batching by column is not implemented yet")
+            columns = [by_column] if isinstance(by_column, str) else by_column
+            _batch_fn = partial(
+                _batch_accumulate_arrow_table_by_columns, columns=columns, tables_accumulator=[], length=len(self)
             )
+            with_indices = True
+        else:
+            _batch_fn = _batch_arrow_table
+            with_indices = False
 
-        return self.map(
-            batch_fn,
+        return self.with_format("arrow").map(
+            _batch_fn,
+            with_indices=with_indices,
             batched=True,
             batch_size=batch_size,
             drop_last_batch=drop_last_batch,
             num_proc=num_proc,
             new_fingerprint=new_fingerprint,
             desc="Batching examples",
+            features=Features({col: List(feature) for col, feature in self.features.items()}),
         )
 
     @transmit_format
