@@ -1597,11 +1597,11 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                         num_examples_to_skip -= 1
                         continue
                     yield f"{key}_{i}", pa_subtable
-            if self._state_dict:
-                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                self._state_dict["num_examples_since_previous_state"] = 0
-                self._state_dict["previous_state_example_idx"] = current_idx
-        if tables_accumulator:
+                if self._state_dict:
+                    self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                    self._state_dict["num_examples_since_previous_state"] = 0
+                    self._state_dict["previous_state_example_idx"] = current_idx
+        if self.is_batch_accumulate_arrow_table_function and tables_accumulator:
             pa_table = tables_accumulator.pop(-1)
             indices = [current_idx + i for i in range(len(pa_table))]
             function_args = (pa_table, indices)
