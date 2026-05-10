@@ -5306,6 +5306,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         if not 0 <= index < num_shards:
             raise ValueError("index should be in [0, num_shards-1]")
+        if len(self) > 0 and num_shards > len(self):
+            # Without this guard, shard indices >= len(self) silently produce empty
+            # shards (contiguous=True) or trigger an `IndexError` deep in `.select`
+            # (contiguous=False). Fail fast so callers like `push_to_hub` /
+            # `save_to_disk` surface the misuse upfront — see issue #7443.
+            # (Empty datasets are exempt: pipeline code may legitimately call
+            # `shard(1, 0)` on an empty result and expect the empty dataset back.)
+            raise ValueError(
+                f"num_shards ({num_shards}) must be smaller than or equal to the number of rows "
+                f"in the dataset ({len(self)}). Reduce num_shards or, when used through "
+                f"`push_to_hub` / `save_to_disk`, increase max_shard_size so num_shards <= len(dataset)."
+            )
         if contiguous:
             div = len(self) // num_shards
             mod = len(self) % num_shards
