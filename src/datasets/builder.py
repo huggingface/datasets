@@ -1114,6 +1114,18 @@ class DatasetBuilder:
         elif split in splits_generators:
             splits_generator = splits_generators[split]
         else:
+            # Streaming requires a known dataset size to translate percentages or row
+            # indices into a slice, which we don't have until iteration. Surface that
+            # explicitly instead of the generic "Bad split" message — see issue #7721.
+            if isinstance(split, str) and "[" in split and "]" in split:
+                base_split = split[: split.index("[")]
+                if base_split in splits_generators:
+                    raise ValueError(
+                        f"Sliced splits like {split!r} (e.g. 'train[:10%]', 'train[:90000]') are not supported "
+                        f"with streaming=True because the dataset size is not known ahead of iteration. "
+                        f"Use streaming=True with split={base_split!r} and apply .skip(...) / .take(...) "
+                        f"on the resulting IterableDataset instead, or load with streaming=False."
+                    )
             raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
 
         # Create a dataset for each of the given splits

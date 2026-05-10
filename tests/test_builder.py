@@ -590,6 +590,32 @@ def test_builder_as_streaming_dataset(tmp_path):
     assert len(list(dset)) == 100
 
 
+@pytest.mark.parametrize(
+    "split",
+    ["train[0%:10%]", "train[:90000]", "train[10%]", "train[10:20]"],
+)
+def test_builder_as_streaming_dataset_rejects_slices_with_helpful_message(tmp_path, split):
+    # Regression for https://github.com/huggingface/datasets/issues/7721:
+    # `as_streaming_dataset` previously raised a generic "Bad split" message for any
+    # split string it didn't recognize (including the legitimate slice/percentage
+    # syntax that works for the non-streaming path), leaving users to guess that
+    # streaming has different semantics. Surface that explicitly with a message
+    # that points at .skip()/.take() as the streaming-friendly alternative.
+    dummy_builder = DummyGeneratorBasedBuilder(cache_dir=str(tmp_path))
+    check_streaming(dummy_builder)
+    with pytest.raises(ValueError, match=r"Sliced splits like .* are not supported with streaming=True"):
+        dummy_builder.as_streaming_dataset(split=split)
+
+
+def test_builder_as_streaming_dataset_unknown_split_keeps_generic_message(tmp_path):
+    # Splits that aren't of the form "<name>[...]" still fall through to the
+    # generic "Bad split" error.
+    dummy_builder = DummyGeneratorBasedBuilder(cache_dir=str(tmp_path))
+    check_streaming(dummy_builder)
+    with pytest.raises(ValueError, match=r"Bad split: nope\. Available splits"):
+        dummy_builder.as_streaming_dataset(split="nope")
+
+
 def _run_test_builder_streaming_works_in_subprocesses(builder):
     check_streaming(builder)
     dset = builder.as_streaming_dataset(split="train")
