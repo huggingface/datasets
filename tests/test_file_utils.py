@@ -11,6 +11,7 @@ from huggingface_hub.errors import OfflineModeIsEnabled
 
 from datasets.download.download_config import DownloadConfig
 from datasets.utils.file_utils import (
+    _as_str,
     _get_extraction_protocol,
     _prepare_single_hop_path_and_storage_options,
     cached_path,
@@ -686,6 +687,28 @@ def test_xwalk_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
 def test_xrelpath(input_path, start_path, expected_path):
     output_path = xrelpath(input_path, start=start_path)
     assert output_path == expected_path
+
+
+@pytest.mark.parametrize(
+    "input_path",
+    [
+        # Triple-slash schemes (default-host / empty authority) — issue #7934.
+        "hdfs:///user/path/data.parquet",
+        "file:///etc/hosts",
+        # Two-slash forms must continue to round-trip unchanged.
+        "hdfs://host/user/path",
+        "s3://bucket/key",
+        "https://host.com/archive.zip",
+        # Compound chained URLs.
+        "zip://file.txt::https://host.com/archive.zip",
+    ],
+)
+def test_as_str_preserves_remote_url_slashes(input_path):
+    # Regression for https://github.com/huggingface/datasets/issues/7934:
+    # `_as_str` previously routed string inputs through `xPath()`, whose pathlib
+    # base collapses runs of slashes ("hdfs:///x" -> "hdfs:/x") so the downstream
+    # `://` reconstruction could only restore two slashes, breaking triple-slash URIs.
+    assert _as_str(input_path) == input_path
 
 
 class TestxPath:
