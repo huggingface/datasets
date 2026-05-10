@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from functools import partial
 from itertools import cycle, islice
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Optional, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Optional, Sequence, Union
 
 import fsspec.asyn
 import multiprocess as mp
@@ -3052,7 +3052,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_csv(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3095,7 +3095,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_json(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3142,7 +3142,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_parquet(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3227,7 +3227,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_text(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
