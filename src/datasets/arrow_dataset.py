@@ -4092,7 +4092,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             drop_last_batch (`bool`, defaults to `False`):
                 Whether to drop the last incomplete batch.
             num_proc (`int`, *optional*, defaults to `None`):
-                Max number of processes when generating cache. Already cached shards are loaded sequentially.
+                The number of processes to use for multiprocessing.
+                - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.
+                - If greater than `1`, one or multiple worker processes are used to process data in parallel.
+                Already cached shards are loaded sequentially.
             new_fingerprint (`str`, *optional*, defaults to `None`):
                 The new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
@@ -4314,11 +4317,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 instead of the automatically generated one.
             disable_nullable (`bool`, defaults to `False`):
                 Allow null values in the table.
-            num_proc (`int`, optional, default `None`):
-                Max number of processes when generating cache. Already cached shards are loaded sequentially
+            num_proc (`int`, *optional*, defaults to `None`):
+                The number of processes to use for multiprocessing.
+                - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.
+                - If greater than `1`, one or multiple worker processes are used to process data in parallel.
+                Already cached shards are loaded sequentially.
             new_fingerprint (`str`, *optional*, defaults to `None`):
                 The new fingerprint of the dataset after transform.
-                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
         """
 
         return self.map(
