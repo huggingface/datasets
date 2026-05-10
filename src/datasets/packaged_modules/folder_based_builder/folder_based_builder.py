@@ -148,6 +148,14 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         if self.config.drop_labels is None
                         else not self.config.drop_labels
                     )
+                    # If the only "labels" we inferred are the split-name directories themselves
+                    # (e.g. data is laid out as `train/file.mp3`, `test/file.mp3` with no class
+                    # subdirectories), don't promote the split names to a `label` column —
+                    # see issue #7880. Only do this when the user hasn't explicitly opted in
+                    # via drop_labels=False, since they may legitimately want labels named
+                    # after the split-level directories.
+                    if add_labels and self.config.drop_labels is None and labels.issubset(set(data_files)):
+                        add_labels = False
 
                 if add_labels:
                     logger.info("Adding the labels inferred from data directories to the dataset's features...")

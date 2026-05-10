@@ -272,6 +272,45 @@ def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cac
     assert all(example["label"] in {"class0", "class1"} for _, example in generator)
 
 
+@pytest.fixture
+def data_files_with_split_dirs_no_metadata(tmp_path, auto_text_file):
+    # Files are placed directly under split-named directories (no class subdirs).
+    data_dir = tmp_path / "data_files_with_split_dirs"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    train_dir = data_dir / "train"
+    train_dir.mkdir(parents=True, exist_ok=True)
+    test_dir = data_dir / "test"
+    test_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(auto_text_file, train_dir / "file0.txt")
+    shutil.copyfile(auto_text_file, test_dir / "file1.txt")
+    return DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
+
+
+def test_no_label_inferred_when_directories_match_split_names(data_files_with_split_dirs_no_metadata, cache_dir):
+    # Regression for https://github.com/huggingface/datasets/issues/7880:
+    # when files are laid out under directories that match split names (no class
+    # subdirectories), `audiofolder`/`imagefolder` previously created a spurious
+    # `label` column with the split names as classes. With drop_labels=None (default),
+    # we now skip label inference in that case.
+    autofolder = DummyFolderBasedBuilder(
+        data_files=data_files_with_split_dirs_no_metadata, cache_dir=cache_dir, drop_labels=None
+    )
+    autofolder._split_generators(StreamingDownloadManager())
+    assert "label" not in autofolder.info.features
+
+
+def test_explicit_drop_labels_false_still_uses_split_dirs_as_labels(data_files_with_split_dirs_no_metadata, cache_dir):
+    # Inverse of the above: an explicit `drop_labels=False` is the user opting in
+    # to whatever directory-based labels happen to be present, so the spurious
+    # `label` column should still appear (matching the prior behavior). This
+    # guards the issue #7880 fix from over-reaching.
+    autofolder = DummyFolderBasedBuilder(
+        data_files=data_files_with_split_dirs_no_metadata, cache_dir=cache_dir, drop_labels=False
+    )
+    autofolder._split_generators(StreamingDownloadManager())
+    assert "label" in autofolder.info.features
+
+
 def test_default_folder_builder_not_usable(data_files_with_labels_no_metadata, cache_dir):
     # builder would try to access non-existing attributes of a default `BuilderConfig` class
     # as a custom one is not provided
