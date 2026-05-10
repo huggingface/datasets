@@ -2335,6 +2335,31 @@ def test_iterable_dataset_remove_columns(dataset_with_several_columns: IterableD
     assert all(c not in new_dataset.column_names for c in ["id", "filepath"])
 
 
+def test_iterable_dataset_map_remove_columns_preserves_features():
+    # Regression for https://github.com/huggingface/datasets/issues/7568:
+    # `IterableDataset.map(remove_columns=[...])` (no `function`, no explicit
+    # `features`) used to overwrite `info.features` with `None`, so
+    # `column_names` silently became `None` after a column-removal map. Now
+    # we carry over the existing schema minus the dropped columns.
+    from datasets import Features, IterableDataset, Value
+
+    ds = IterableDataset.from_generator(
+        lambda: ({"text": f"hi {i}", "foo": i} for i in range(3)),
+        features=Features({"text": Value("string"), "foo": Value("int64")}),
+    )
+    out = ds.map(remove_columns=["foo"])
+    assert out.features == Features({"text": Value("string")})
+    assert out.column_names == ["text"]
+    # `remove_columns` accepts a single string too.
+    out = ds.map(remove_columns="foo")
+    assert out.column_names == ["text"]
+    # When a `function` is also passed, the resulting schema is unknown ahead
+    # of iteration, so we keep the prior conservative behavior of dropping the
+    # schema (matches existing assumptions in test_map_async etc.).
+    out = ds.map(lambda x: x, remove_columns=["foo"])
+    assert out.features is None
+
+
 def test_iterable_dataset_select_columns(dataset_with_several_columns: IterableDataset):
     new_dataset = dataset_with_several_columns.select_columns("id")
     assert list(new_dataset) == [
