@@ -1844,6 +1844,22 @@ def test_iterable_dataset_shuffle_with_multiple_workers_different_rng():
         assert len(set(values)) != 1, "Make sure not all values are identical"
 
 
+def test_iterable_dataset_shuffle_buffer_uses_multiple_input_shards():
+    ds = IterableDataset.from_dict({"i": range(100)}, num_shards=10)
+
+    shuffled_ds = ds.shuffle(buffer_size=10, seed=1234)
+    shard_indices_of_first_ten_examples = {i // 10 for i in shuffled_ds.take(10)["i"]}
+    assert len(shard_indices_of_first_ten_examples) == 7
+
+    shuffled_ds = ds.shuffle(buffer_size=10, seed=1234, max_buffer_input_shards=1)
+    shard_indices_of_first_ten_examples = {i // 10 for i in shuffled_ds.take(10)["i"]}
+    assert len(shard_indices_of_first_ten_examples) == 2
+
+    shuffled_ds = ds.shuffle(buffer_size=10, seed=1234, max_buffer_input_shards=4)
+    shard_indices_of_first_ten_examples = {i // 10 for i in shuffled_ds.take(10)["i"]}
+    assert len(shard_indices_of_first_ten_examples) == 4
+
+
 def gen_with_value(shard, value):
     for i in range(100):
         yield {"value": value}
@@ -2060,7 +2076,7 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, seed, epoch):
     buffer_size = 3
     dataset = deepcopy(dataset)
     dataset._ex_iterable.kwargs["filepaths"] = ["0.txt", "1.txt"]
-    dataset = dataset.shuffle(seed, buffer_size=buffer_size)
+    dataset = dataset.shuffle(seed, buffer_size=buffer_size, max_buffer_input_shards=1)
     # Effective seed is mix of seed and epoch
     if epoch is None or epoch == 0:
         effective_seed = seed
