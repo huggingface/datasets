@@ -3602,7 +3602,11 @@ class IterableDataset(DatasetInfoMixin):
         )
 
     def shuffle(
-        self, seed=None, generator: Optional[np.random.Generator] = None, buffer_size: int = 1000, max_buffer_input_shards: int = 10,
+        self,
+        seed=None,
+        generator: Optional[np.random.Generator] = None,
+        buffer_size: int = 1000,
+        max_buffer_input_shards: int = 10,
     ) -> "IterableDataset":
         """
         Randomly shuffles the elements of this dataset.
@@ -3674,7 +3678,10 @@ class IterableDataset(DatasetInfoMixin):
         if max_buffer_input_shards > 1:
             num_shards_to_interleave = min(ex_iterable.num_shards, max_buffer_input_shards)
             ex_iterable = CyclingMultiSourcesExamplesIterable(
-                [ex_iterable.shard_data_sources(num_shards=num_shards_to_interleave, index=index) for index in range(num_shards_to_interleave)],
+                [
+                    ex_iterable.shard_data_sources(num_shards=num_shards_to_interleave, index=index)
+                    for index in range(num_shards_to_interleave)
+                ],
                 stopping_strategy="all_exhausted_without_replacement",
             )
         ex_iterable = BufferShuffledExamplesIterable(ex_iterable, buffer_size=buffer_size, generator=generator)
