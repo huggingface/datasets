@@ -3602,7 +3602,7 @@ class IterableDataset(DatasetInfoMixin):
         )
 
     def shuffle(
-        self, seed=None, generator: Optional[np.random.Generator] = None, buffer_size: int = 1000
+        self, seed=None, generator: Optional[np.random.Generator] = None, buffer_size: int = 1000, max_buffer_input_shards: int = 10,
     ) -> "IterableDataset":
         """
         Randomly shuffles the elements of this dataset.
@@ -3616,9 +3616,11 @@ class IterableDataset(DatasetInfoMixin):
         selected, its space in the buffer is replaced by the next (i.e. 1,001-st) element,
         maintaining the 1000 element buffer.
 
-        If the dataset is made of several shards, it also does shuffle the order of the shards.
-        However if the order has been fixed by using [`~datasets.IterableDataset.skip`] or [`~datasets.IterableDataset.take`]
-        then the order of the shards is kept unchanged.
+        If the dataset is made of several shards, it fills the buffer using up to `max_buffer_input_shards` shards
+        at a time and also does shuffle the order of the shards. This greatly improves the quality of the shuffling.
+
+        However if the order has been fixed by using [`~datasets.IterableDataset.skip`]
+        or [`~datasets.IterableDataset.take`] then the order of the shards is kept unchanged.
 
         Args:
             seed (`int`, *optional*, defaults to `None`):
@@ -3629,6 +3631,8 @@ class IterableDataset(DatasetInfoMixin):
                 If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
             buffer_size (`int`, defaults to `1000`):
                 Size of the buffer.
+            max_buffer_input_shards (`int`, defaults to `101000`):
+                Maximum number of shards to use to feed the buffer at a time.
 
         Example:
 
@@ -3636,33 +3640,46 @@ class IterableDataset(DatasetInfoMixin):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> list(ds.take(3))
-        [{'label': 1,
-         'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
-         {'label': 1,
-         'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'},
-         {'label': 1, 'text': 'effective but too-tepid biopic'}]
+        [{'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .',
+         'label': 1},
+         {'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .',
+         'label': 1},
+         {'text': 'effective but too-tepid biopic', 'label': 1}]
         >>> shuffled_ds = ds.shuffle(seed=42)
         >>> list(shuffled_ds.take(3))
-        [{'label': 1,
-         'text': "a sports movie with action that's exciting on the field and a story you care about off it ."},
-         {'label': 1,
-         'text': 'at its best , the good girl is a refreshingly adult take on adultery . . .'},
-         {'label': 1,
-         'text': "sam jones became a very lucky filmmaker the day wilco got dropped from their record label , proving that one man's ruin may be another's fortune ."}]
+        [{'text': "a sports movie with action that's exciting on the field and a story you care about off it .",
+         'label': 1},
+         {'text': 'at its best , the good girl is a refreshingly adult take on adultery . . .',
+         'label': 1},
+         {'text': "sam jones became a very lucky filmmaker the day wilco got dropped from their record label , proving that one man's ruin may be another's fortune .",
+         'label': 1}]
+        >>> resharded_ds = ds.reshard()  # useful to shard Parquet datasets by row group instead of by file, improving shuffling quality on dataset with one or few files.
+        >>> shuffled_resharded_ds = resharded_ds.shuffle(seed=42)
+        >>> list(shuffled_resharded_ds.take(3))
+        [{'text': 'this mistaken-identity picture is so film-culture referential that the final product is a ghost .',
+         'label': 0},
+         {'text': 'woody allen used to ridicule movies like hollywood ending . now he makes them .',
+         'label': 0},
+         {'text': "not only is undercover brother as funny , if not more so , than both austin powers films , but it's also one of the smarter , savvier spoofs to come along in some time .",
+         'label': 1}]
         ```
         """
         if generator is None:
             generator = np.random.default_rng(seed)
         else:
             generator = deepcopy(generator)
+        ex_iterable = self._ex_iterable.shuffle_data_sources(generator)
+        if ex_iterable.iter_arrow:
+            ex_iterable = RebatchedArrowExamplesIterable(ex_iterable, batch_size=1)
+        if max_buffer_input_shards > 1:
+            num_shards_to_interleave = min(ex_iterable.num_shards, max_buffer_input_shards)
+            ex_iterable = CyclingMultiSourcesExamplesIterable(
+                [ex_iterable.shard_data_sources(num_shards=num_shards_to_interleave, index=index) for index in range(num_shards_to_interleave)],
+                stopping_strategy="all_exhausted_without_replacement",
+            )
+        ex_iterable = BufferShuffledExamplesIterable(ex_iterable, buffer_size=buffer_size, generator=generator)
         return IterableDataset(
-            BufferShuffledExamplesIterable(
-                RebatchedArrowExamplesIterable(self._ex_iterable.shuffle_data_sources(generator), batch_size=1)
-                if self._ex_iterable.iter_arrow
-                else self._ex_iterable.shuffle_data_sources(generator),
-                buffer_size=buffer_size,
-                generator=generator,
-            ),
+            ex_iterable,
             info=self._info.copy(),
             split=self._split,
             formatting=self._formatting,
