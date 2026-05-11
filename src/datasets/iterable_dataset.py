@@ -1886,6 +1886,10 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.num_shards
 
 
+class DataSourcesShufflingDisallowed(Exception):
+    """skip() or take() freeze the order of data sources shards"""
+
+
 class SkipExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
@@ -1960,7 +1964,7 @@ class SkipExamplesIterable(_BaseExamplesIterable):
     def shuffle_data_sources(self, generator: np.random.Generator) -> "SkipExamplesIterable":
         """May not shuffle the wrapped examples iterable since it would skip examples from other shards instead."""
         if self.block_sources_order_when_shuffling:
-            return self
+            raise DataSourcesShufflingDisallowed()
         else:
             return SkipExamplesIterable(
                 self.ex_iterable.shuffle_data_sources(generator),
@@ -2129,7 +2133,7 @@ class TakeExamplesIterable(_BaseExamplesIterable):
     def shuffle_data_sources(self, generator: np.random.Generator) -> "TakeExamplesIterable":
         """May not shuffle the wrapped examples iterable since it would take examples from other shards instead."""
         if self.block_sources_order_when_shuffling:
-            return self
+            raise DataSourcesShufflingDisallowed()
         else:
             return TakeExamplesIterable(
                 self.ex_iterable.shuffle_data_sources(generator),
@@ -3624,7 +3628,8 @@ class IterableDataset(DatasetInfoMixin):
         at a time and also does shuffle the order of the shards. This greatly improves the quality of the shuffling.
 
         However if the order has been fixed by using [`~datasets.IterableDataset.skip`]
-        or [`~datasets.IterableDataset.take`] then the order of the shards is kept unchanged.
+        or [`~datasets.IterableDataset.take`] then the order of the shards is kept unchanged and only one shard at
+        a time is used to fill the buffer.
 
         Args:
             seed (`int`, *optional*, defaults to `None`):
@@ -3672,7 +3677,11 @@ class IterableDataset(DatasetInfoMixin):
             generator = np.random.default_rng(seed)
         else:
             generator = deepcopy(generator)
-        ex_iterable = self._ex_iterable.shuffle_data_sources(generator)
+        ex_iterable = self._ex_iterable
+        try:
+            ex_iterable = ex_iterable.shuffle_data_sources(generator)
+        except DataSourcesShufflingDisallowed:
+            max_buffer_input_shards = 1
         if ex_iterable.iter_arrow:
             ex_iterable = RebatchedArrowExamplesIterable(ex_iterable, batch_size=1)
         if max_buffer_input_shards > 1:
