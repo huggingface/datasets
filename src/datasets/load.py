@@ -1303,6 +1303,13 @@ def load_dataset_builder(
      'text': Value('string')}
     ```
     """
+    args = {"name", "data_dir", "data_files", "cache_dir", "features", "download_config", "download_mode", "revision", "token", "storage_options"}
+    conf = set(config_kwargs.keys())
+    dupes = args & conf
+    
+    if dupes:
+        err = f"Duplicate keys found: {dupes}"
+        raise ValueError(err)
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     if token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
