@@ -1,6 +1,7 @@
 import os
 import re
 from functools import partial
+from glob import escape as glob_escape
 from glob import has_magic
 from pathlib import Path, PurePath
 from typing import Callable, Optional, Union
@@ -347,6 +348,14 @@ def resolve_pattern(
         List[str]: List of paths or URLs to the local or remote files that match the patterns.
     """
     if is_relative_path(pattern):
+        # Escape glob-special characters (`[`, `]`, `*`, `?`) in `base_path` before
+        # joining: callers pass a literal directory there, so any of those
+        # characters in the directory name (e.g. `/foo/[D_DATA]/bar`) would
+        # otherwise be interpreted as a glob character class and trigger a
+        # whole-disk traversal that returns no files (#7468). The pattern
+        # part keeps its glob semantics.
+        if is_local_path(base_path):
+            base_path = glob_escape(base_path)
         pattern = xjoin(base_path, pattern)
     elif is_local_path(pattern):
         base_path = os.path.splitdrive(pattern)[0] + os.sep
