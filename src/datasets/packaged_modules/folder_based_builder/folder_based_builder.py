@@ -142,9 +142,12 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     # if `all_metadata_files` are not found, don't add metadata
                     add_metadata = False
                     # if `all_metadata_files` are not found and `drop_labels` is None (default) -
-                    # add labels if files are on the same level in directory hierarchy and there is more than one label
+                    # add labels if files are on the same level in directory hierarchy and there is more than one label.
+                    # Skip inference when the inferred labels are just split-name directories
+                    # (e.g. `train/*.png`, `test/*.png`), which are splits, not classes.
+                    inferred_labels_are_split_dirs = bool(labels) and labels.issubset(set(data_files))
                     add_labels = (
-                        (len(labels) > 1 and len(path_depths) == 1)
+                        (len(labels) > 1 and len(path_depths) == 1 and not inferred_labels_are_split_dirs)
                         if self.config.drop_labels is None
                         else not self.config.drop_labels
                     )

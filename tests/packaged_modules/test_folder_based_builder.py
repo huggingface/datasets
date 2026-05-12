@@ -102,6 +102,23 @@ def data_files_with_one_label_no_metadata(tmp_path, auto_text_file):
 
 
 @pytest.fixture
+def data_files_with_split_dirs_no_metadata(tmp_path, auto_text_file):
+    # directory names match split names: `train/`, `test/`. These are splits, not class labels.
+    data_dir = tmp_path / "data_files_with_split_dirs"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    subdir_train = data_dir / "train"
+    subdir_train.mkdir(parents=True, exist_ok=True)
+    subdir_test = data_dir / "test"
+    subdir_test.mkdir(parents=True, exist_ok=True)
+
+    shutil.copyfile(auto_text_file, subdir_train / "file0.txt")
+    shutil.copyfile(auto_text_file, subdir_train / "file1.txt")
+    shutil.copyfile(auto_text_file, subdir_test / "file2.txt")
+
+    return DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
+
+
+@pytest.fixture
 def files_with_labels_and_duplicated_label_key_in_metadata(tmp_path, auto_text_file):
     data_dir = tmp_path / "files_with_labels_and_label_key_in_metadata"
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -389,6 +406,30 @@ def test_data_files_with_one_label_no_metadata(data_files_with_one_label_no_meta
         assert "label" in autofolder.info.features
         assert isinstance(autofolder.info.features["label"], ClassLabel)
         assert all(example.keys() == {"base", "label"} for _, example in generator)
+
+
+@pytest.mark.parametrize("drop_labels", [None, True, False])
+def test_data_files_with_split_dirs_no_metadata(data_files_with_split_dirs_no_metadata, drop_labels, cache_dir):
+    # When directory names match split names (e.g. `train/`, `test/`), the directories
+    # are splits, not class labels: no `label` column should be inferred under the default
+    # `drop_labels=None`. Passing `drop_labels=False` still force-adds labels.
+    autofolder = DummyFolderBasedBuilder(
+        data_files=data_files_with_split_dirs_no_metadata,
+        cache_dir=cache_dir,
+        drop_labels=drop_labels,
+    )
+    split_generators = autofolder._split_generators(StreamingDownloadManager())
+    if drop_labels is False:
+        # explicit opt-in to labels: split-name dirs are surfaced as ClassLabel
+        assert "label" in autofolder.info.features
+        assert isinstance(autofolder.info.features["label"], ClassLabel)
+        assert set(autofolder.info.features["label"].names) == {"train", "test"}
+    else:
+        # default (None) and explicit drop: no spurious `label` column
+        assert "label" not in autofolder.info.features
+        for split_generator in split_generators:
+            generator = autofolder._generate_examples(**split_generator.gen_kwargs)
+            assert all(example.keys() == {"base"} for _, example in generator)
 
 
 @pytest.mark.parametrize("streaming", [False, True])
