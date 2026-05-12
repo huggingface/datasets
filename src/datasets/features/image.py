@@ -68,6 +68,12 @@ class Image:
         decode (`bool`, defaults to `True`):
             Whether to decode the image data. If `False`,
             returns the underlying dictionary in the format `{"path": image_path, "bytes": image_bytes}`.
+        on_error (`str`, defaults to `"raise"`):
+            How to handle exceptions raised during decoding. One of:
+
+            - `"raise"`: re-raise the original exception (preserves current behavior).
+            - `"return_none"`: silently return `None` for the failing example.
+            - `"warn_and_return_none"`: log a warning and return `None` for the failing example.
 
     Examples:
 
@@ -86,11 +92,19 @@ class Image:
 
     mode: Optional[str] = None
     decode: bool = True
+    on_error: str = "raise"
     id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     dtype: ClassVar[str] = "PIL.Image.Image"
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
     _type: str = field(default="Image", init=False, repr=False)
+
+    def __post_init__(self):
+        if self.on_error not in ("raise", "return_none", "warn_and_return_none"):
+            raise ValueError(
+                f"Invalid on_error={self.on_error!r}. Must be one of: "
+                "'raise', 'return_none', 'warn_and_return_none'."
+            )
 
     def __call__(self):
         return self.pa_type
@@ -166,36 +180,43 @@ class Image:
         if token_per_repo_id is None:
             token_per_repo_id = {}
 
-        path, bytes_ = value["path"], value["bytes"]
-        if bytes_ is None:
-            if path is None:
-                raise ValueError(f"An image should have one of 'path' or 'bytes' but both are None in {value}.")
-            else:
-                if is_local_path(path):
-                    image = PIL.Image.open(path)
+        try:
+            path, bytes_ = value["path"], value["bytes"]
+            if bytes_ is None:
+                if path is None:
+                    raise ValueError(f"An image should have one of 'path' or 'bytes' but both are None in {value}.")
                 else:
-                    source_url = path.split("::")[-1]
-                    pattern = (
-                        config.HUB_DATASETS_URL
-                        if source_url.startswith(config.HF_ENDPOINT)
-                        else config.HUB_DATASETS_HFFS_URL
-                    )
-                    source_url_fields = string_to_dict(source_url, pattern)
-                    token = (
-                        token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
-                    )
-                    download_config = DownloadConfig(token=token)
-                    with xopen(path, "rb", download_config=download_config) as f:
-                        bytes_ = BytesIO(f.read())
-                    image = PIL.Image.open(bytes_)
-        else:
-            image = PIL.Image.open(BytesIO(bytes_))
-        image.load()  # to avoid "Too many open files" errors
-        if image.getexif().get(PIL.Image.ExifTags.Base.Orientation) is not None:
-            image = PIL.ImageOps.exif_transpose(image)
-        if self.mode and self.mode != image.mode:
-            image = image.convert(self.mode)
-        return image
+                    if is_local_path(path):
+                        image = PIL.Image.open(path)
+                    else:
+                        source_url = path.split("::")[-1]
+                        pattern = (
+                            config.HUB_DATASETS_URL
+                            if source_url.startswith(config.HF_ENDPOINT)
+                            else config.HUB_DATASETS_HFFS_URL
+                        )
+                        source_url_fields = string_to_dict(source_url, pattern)
+                        token = (
+                            token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
+                        )
+                        download_config = DownloadConfig(token=token)
+                        with xopen(path, "rb", download_config=download_config) as f:
+                            bytes_ = BytesIO(f.read())
+                        image = PIL.Image.open(bytes_)
+            else:
+                image = PIL.Image.open(BytesIO(bytes_))
+            image.load()  # to avoid "Too many open files" errors
+            if image.getexif().get(PIL.Image.ExifTags.Base.Orientation) is not None:
+                image = PIL.ImageOps.exif_transpose(image)
+            if self.mode and self.mode != image.mode:
+                image = image.convert(self.mode)
+            return image
+        except Exception as e:
+            if self.on_error == "raise":
+                raise
+            if self.on_error == "warn_and_return_none":
+                warnings.warn(f"Failed to decode image (path={value.get('path') if isinstance(value, dict) else value!r}): {e!r}")
+            return None
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """If in the decodable state, return the feature itself, otherwise flatten the feature into a dictionary."""
