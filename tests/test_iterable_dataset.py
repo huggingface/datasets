@@ -31,6 +31,7 @@ from datasets.iterable_dataset import (
     ArrowExamplesIterable,
     BufferShuffledExamplesIterable,
     CyclingMultiSourcesExamplesIterable,
+    DataSourcesShufflingDisallowed,
     ExamplesIterable,
     FilteredExamplesIterable,
     FormattedExamplesIterable,
@@ -1249,9 +1250,8 @@ def test_skip_examples_iterable():
     skip_ex_iterable = SkipExamplesIterable(base_ex_iterable, n=count)
     expected = list(generate_examples_fn(n=total))[count:]
     assert list(skip_ex_iterable) == expected
-    assert skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is skip_ex_iterable, (
-        "skip examples makes the shards order fixed"
-    )
+    with pytest.raises(DataSourcesShufflingDisallowed):
+        skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42))
     assert_load_state_dict_resumes_iteration(skip_ex_iterable)
 
 
@@ -1261,9 +1261,8 @@ def test_take_examples_iterable():
     take_ex_iterable = TakeExamplesIterable(base_ex_iterable, n=count)
     expected = list(generate_examples_fn(n=total))[:count]
     assert list(take_ex_iterable) == expected
-    assert take_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is take_ex_iterable, (
-        "skip examples makes the shards order fixed"
-    )
+    with pytest.raises(DataSourcesShufflingDisallowed):
+        take_ex_iterable.shuffle_data_sources(np.random.default_rng(42))
     assert_load_state_dict_resumes_iteration(take_ex_iterable)
 
 
@@ -1282,9 +1281,8 @@ def test_skip_arrow_examples_iterable():
     skip_ex_iterable = SkipExamplesIterable(base_ex_iterable, n=count)
     expected = [x for _, pa_table in generate_tables_fn(n=total) for x in pa_table.to_pylist()][count:]
     assert [example for _, example in skip_ex_iterable] == expected
-    assert skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is skip_ex_iterable, (
-        "skip examples makes the shards order fixed"
-    )
+    with pytest.raises(DataSourcesShufflingDisallowed):
+        skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42))
     assert_load_state_dict_resumes_iteration(skip_ex_iterable)
 
 
@@ -1294,9 +1292,8 @@ def test_take_arrow_examples_iterable():
     take_ex_iterable = TakeExamplesIterable(base_ex_iterable, n=count)
     expected = [x for _, pa_table in generate_tables_fn(n=total) for x in pa_table.to_pylist()][:count]
     assert [example for _, example in take_ex_iterable] == expected
-    assert take_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is take_ex_iterable, (
-        "skip examples makes the shards order fixed"
-    )
+    with pytest.raises(DataSourcesShufflingDisallowed):
+        take_ex_iterable.shuffle_data_sources(np.random.default_rng(42))
     assert_load_state_dict_resumes_iteration(take_ex_iterable)
 
 
