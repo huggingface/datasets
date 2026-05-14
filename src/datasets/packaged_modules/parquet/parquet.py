@@ -92,6 +92,7 @@ class ParquetConfig(datasets.BuilderConfig):
 
 class Parquet(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = ParquetConfig
+    SLEEP_ON_THREADS_SHUTDOWNS = True  # Related to https://github.com/apache/arrow/issues/45214
 
     def _info(self):
         if (

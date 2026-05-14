@@ -297,6 +297,9 @@ class DatasetBuilder:
     # None means that the ArrowWriter will use its default value
     DEFAULT_WRITER_BATCH_SIZE = None
 
+    # Useful to make sure PyArrow threads in c++ have time to shut down before gargabe collection
+    SLEEP_ON_THREADS_SHUTDOWNS = False
+
     def __init__(
         self,
         cache_dir: Optional[str] = None,
@@ -1850,6 +1853,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             self._generate_tables,
             kwargs=split_generator.gen_kwargs,
             generate_more_kwargs_fn=getattr(self, "_generate_more_gen_kwargs", None),
+            sleep_on_threads_shutdown=self.SLEEP_ON_THREADS_SHUTDOWNS,
         )
 
 

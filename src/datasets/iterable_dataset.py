@@ -7,6 +7,7 @@ import multiprocessing.pool
 import re
 import sys
 import tempfile
+import time
 from collections import Counter
 from collections.abc import Iterable, Iterator
 from copy import copy, deepcopy
@@ -102,29 +103,6 @@ Key = Union[int, str, tuple[int, int], "BuilderKey"]
 
 def identity_func(x):
     return x
-
-
-def _copy_state_dict(state_dict: dict) -> dict:
-    return deepcopy(state_dict)
-
-    def _copy_item(item):
-        if isinstance(item, dict):
-            # no need to copy the current state since we use the previous one anyways
-            uses_previous_state_only = (
-                item.get("previous_states") is not None or item.get("previous_state") is not None
-            )
-            return {
-                k: ([None] * len(v) if isinstance(v, list) else None)
-                if uses_previous_state_only and k == "ex_iterable" or k == "ex_iterabkes"
-                else _copy_item(v)
-                for k, v in item.items()
-            }
-        if isinstance(item, list):
-            return [_copy_item(x) for x in item]
-        else:
-            return item
-
-    return _copy_item(state_dict)
 
 
 def _rename_columns_fn(example: dict, column_mapping: dict[str, str]):
@@ -296,8 +274,16 @@ class _BaseExamplesIterable:
 
     def state_dict(self) -> dict:
         if self._state_dict:
-            return _copy_state_dict(self._state_dict)
+            return deepcopy(self._state_dict)
         raise RuntimeError("State dict is not initialized, please call ex_iterable._init_state_dict() first.")
+
+    @property
+    def sleep_on_threads_shutdown(self):
+        if hasattr(self, "_sleep_on_threads_shutdown"):
+            return self._sleep_on_threads_shutdown
+        else:
+            ex_iterables = [self.ex_iterable] if hasattr(self, "ex_iterable") else self.ex_iterables
+            return any(ex_iterable.sleep_on_threads_shutdown for ex_iterable in ex_iterables)
 
 
 class ExamplesIterable(_BaseExamplesIterable):
@@ -306,6 +292,7 @@ class ExamplesIterable(_BaseExamplesIterable):
         generate_examples_fn: Callable[..., Iterator[tuple[Key, dict]]],
         kwargs: dict,
         generate_more_kwargs_fn: Optional[Callable[..., Iterator[dict]]] = None,
+        sleep_on_threads_shutdown: bool = False,
     ):
         super().__init__()
         self.generate_examples_fn = generate_examples_fn
@@ -313,6 +300,9 @@ class ExamplesIterable(_BaseExamplesIterable):
 
         # for resharding
         self.generate_more_kwargs_fn = generate_more_kwargs_fn
+
+        # for threads shutdowns
+        self._sleep_on_threads_shutdown = sleep_on_threads_shutdown
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {"shard_idx": 0, "shard_example_idx": 0, "type": self.__class__.__name__}
@@ -335,6 +325,7 @@ class ExamplesIterable(_BaseExamplesIterable):
             self.generate_examples_fn,
             _shuffle_gen_kwargs(deepcopy(generator), self.kwargs),
             self.generate_more_kwargs_fn,
+            self.sleep_on_threads_shutdown,
         )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ExamplesIterable":
@@ -342,12 +333,19 @@ class ExamplesIterable(_BaseExamplesIterable):
         gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
         shard_indices = self.split_shard_indices_by_worker(num_shards, index, contiguous=contiguous)
         requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
-        return ExamplesIterable(self.generate_examples_fn, requested_gen_kwargs, self.generate_more_kwargs_fn)
+        return ExamplesIterable(
+            self.generate_examples_fn,
+            requested_gen_kwargs,
+            self.generate_more_kwargs_fn,
+            self.sleep_on_threads_shutdown,
+        )
 
     def reshard_data_sources(self) -> "ExamplesIterable":
         """Split shars into more shards if possible."""
         if not self.generate_more_kwargs_fn:
-            return ExamplesIterable(self.generate_examples_fn, self.kwargs, self.generate_more_kwargs_fn)
+            return ExamplesIterable(
+                self.generate_examples_fn, self.kwargs, self.generate_more_kwargs_fn, self.sleep_on_threads_shutdown
+            )
         gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
         new_gen_kwargs = _merge_gen_kwargs(
             [
@@ -356,7 +354,9 @@ class ExamplesIterable(_BaseExamplesIterable):
                 for new_gen_kwargs in self.generate_more_kwargs_fn(**gen_kwargs)
             ]
         )
-        return ExamplesIterable(self.generate_examples_fn, new_gen_kwargs, self.generate_more_kwargs_fn)
+        return ExamplesIterable(
+            self.generate_examples_fn, new_gen_kwargs, self.generate_more_kwargs_fn, self.sleep_on_threads_shutdown
+        )
 
     @property
     def num_shards(self) -> int:
@@ -369,6 +369,7 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
         generate_tables_fn: Callable[..., Iterator[tuple[Key, pa.Table]]],
         kwargs: dict,
         generate_more_kwargs_fn: Optional[Callable[..., Iterator[dict]]] = None,
+        sleep_on_threads_shutdown: bool = False,
     ):
         super().__init__()
         self.generate_tables_fn = generate_tables_fn
@@ -376,6 +377,9 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
 
         # for resharding
         self.generate_more_kwargs_fn = generate_more_kwargs_fn
+
+        # for threads shutdowns
+        self._sleep_on_threads_shutdown = sleep_on_threads_shutdown
 
     @property
     def iter_arrow(self):
@@ -425,7 +429,10 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "ArrowExamplesIterable":
         return ArrowExamplesIterable(
-            self.generate_tables_fn, _shuffle_gen_kwargs(deepcopy(generator), self.kwargs), generator
+            self.generate_tables_fn,
+            _shuffle_gen_kwargs(deepcopy(generator), self.kwargs),
+            self.generate_more_kwargs_fn,
+            self.sleep_on_threads_shutdown,
         )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ArrowExamplesIterable":
@@ -433,7 +440,9 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
         gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
         shard_indices = self.split_shard_indices_by_worker(num_shards, index, contiguous=contiguous)
         requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
-        return ArrowExamplesIterable(self.generate_tables_fn, requested_gen_kwargs)
+        return ArrowExamplesIterable(
+            self.generate_tables_fn, requested_gen_kwargs, self.generate_more_kwargs_fn, self.sleep_on_threads_shutdown
+        )
 
     def reshard_data_sources(self) -> "ArrowExamplesIterable":
         """Split shars into more shards if possible."""
@@ -447,7 +456,9 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
                 for new_gen_kwargs in self.generate_more_kwargs_fn(**gen_kwargs)
             ]
         )
-        return ArrowExamplesIterable(self.generate_tables_fn, new_gen_kwargs, self.generate_more_kwargs_fn)
+        return ArrowExamplesIterable(
+            self.generate_tables_fn, new_gen_kwargs, self.generate_more_kwargs_fn, self.sleep_on_threads_shutdown
+        )
 
     @property
     def num_shards(self) -> int:
@@ -853,7 +864,8 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             while iterators:
                 iterator = iterators.pop()
                 del iterator
-            executor.shutdown(wait=True)
+            if any(ex_iterable.sleep_on_threads_shutdown for ex_iterable in self.ex_iterables):
+                time.sleep(config.SLEEP_TIME_ON_THREADS_SHUTDOWN)
 
     def __iter__(self):
         # we use this to buffer one example of each iterator to know if an iterator is exhausted
@@ -928,6 +940,8 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
                 iterator = iterators.pop()
                 del iterator
             executor.shutdown(wait=True)
+            if any(ex_iterable.sleep_on_threads_shutdown for ex_iterable in self.ex_iterables):
+                time.sleep(config.SLEEP_TIME_ON_THREADS_SHUTDOWN)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "CyclingMultiSourcesExamplesIterable":
         """Shuffle each underlying examples iterable."""
@@ -2573,7 +2587,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> dataloader.load_state_dict(state_dict)  # uses ds.load_state_dict() under the hood
         ```
         """
-        return _copy_state_dict(self._state_dict)
+        return deepcopy(self._state_dict)
 
     def load_state_dict(self, state_dict: dict) -> None:
         """Load the state_dict of the dataset.
