@@ -394,6 +394,33 @@ def test_cycling_multi_sources_examples_iterable():
     assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
+def test_sharded_cycling_multi_sources_examples_iterable():
+    ex_iterable1 = ExamplesIterable(
+        generate_examples_fn, {"text": "foo", "filepaths": [f"{i}.txt" for i in range(3)], "n": 2}
+    )
+    ex_iterable2 = ExamplesIterable(
+        generate_examples_fn, {"text": "bar", "filepaths": [f"{i}.txt" for i in range(2)], "n": 2}
+    )
+    ex_iterable = CyclingMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
+    expected = [
+        x
+        for i in range(2)
+        for x in chain(
+            *zip(
+                generate_examples_fn(text="foo", filepaths=[f"{i}.txt"], n=2),
+                generate_examples_fn(text="bar", filepaths=[f"{i}.txt"], n=2),
+            )
+        )
+    ]
+
+    # The cycling stops as soon as one iterable is out of examples (here ex_iterable2 since it has 2 shards and ex_iterable1 has 3)
+
+    assert next(iter(ex_iterable)) == expected[0]
+    assert list(ex_iterable) == expected
+    assert all(x["text"] == "bar" if i % 2 else "foo" for i, (_, x) in enumerate(ex_iterable))
+    assert_load_state_dict_resumes_iteration(ex_iterable)
+
+
 @pytest.mark.parametrize("probabilities", [None, (0.5, 0.5), (0.9, 0.1)])
 def test_randomly_cycling_multi_sources_examples_iterable(probabilities):
     seed = 42
