@@ -663,12 +663,7 @@ class StepExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         ex_iterator = iter(self.ex_iterable)
-        while True:
-            batch = list(islice(ex_iterator, self.step))
-            if len(batch) > self.offset:
-                yield batch[self.offset]
-            else:
-                break
+        return islice(ex_iterator, self.offset, None, self.step)
 
     def _iter_arrow(self):
         stepped = self._state_dict["stepped"] if self._state_dict else 0
