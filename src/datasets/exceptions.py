@@ -84,6 +84,11 @@ class DatasetGenerationCastError(DatasetGenerationError):
         if formatted_tracked_gen_kwargs:
             explanation_message += f"\n\nThis happened while the {builder_name} dataset builder was generating data using\n\n{', '.join(formatted_tracked_gen_kwargs)}"
         help_message = "\n\nPlease either edit the data files to have matching columns, or separate them into different configurations (see docs at https://hf.co/docs/hub/datasets-manual-configuration#multiple-configurations)"
+        if builder_name == "csv":
+            help_message += (
+                "\n\nIf the files are headerless CSV/TSV files, specify `header=None` and optionally `column_names` "
+                "when loading them."
+            )
         return cls("An error occurred while generating the dataset" + explanation_message + help_message)
 
 
