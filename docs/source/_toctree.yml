@@ -30,6 +30,8 @@
       title: Process
     - local: stream
       title: Stream
+    - local: stream_best_practices
+      title: Streaming best practices
     - local: use_with_pytorch
       title: Use with PyTorch
     - local: use_with_tensorflow
