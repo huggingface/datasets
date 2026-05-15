@@ -28,9 +28,9 @@ from fsspec.core import url_to_fs
 
 from . import config
 from .features import Audio, Features, Image, Pdf, Value, Video
+from collections.abc import Sequence as Sequence_
 from .features.features import (
     FeatureType,
-    List,
     _ArrayXDExtensionType,
     _visit,
     cast_to_python_objects,
@@ -274,7 +274,7 @@ class TypedSequence:
             if isinstance(non_null_value, list) and isinstance(non_null_value[0], PIL.Image.Image):
                 return [
                     [Image().encode_example(x) for x in value] if value is not None else None for value in data
-                ], List(Image())
+                ], Sequence_(Image())
         if config.PDFPLUMBER_AVAILABLE and "pdfplumber" in sys.modules:
             import pdfplumber
 
@@ -284,7 +284,7 @@ class TypedSequence:
             if isinstance(non_null_value, list) and isinstance(non_null_value[0], pdfplumber.pdf.PDF):
                 return [
                     [Pdf().encode_example(x) for x in value] if value is not None else None for value in data
-                ], List(Pdf())
+                ], Sequence_(Pdf())
         return data, None
 
     def __arrow_array__(self, type: Optional[pa.DataType] = None):
