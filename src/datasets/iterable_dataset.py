@@ -100,11 +100,11 @@ logger = get_logger(__name__)
 Key = Union[int, str, tuple[int, int], "BuilderKey"]
 
 
-def identity_func(x):
+def identity_func(x: Any) -> Any:
     return x
 
 
-def _rename_columns_fn(example: dict, column_mapping: dict[str, str]):
+def _rename_columns_fn(example: dict, column_mapping: dict[str, str]) -> dict:
     if any(col not in example for col in column_mapping):
         raise ValueError(
             f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_mapping) - set(example)} are not in the dataset."
@@ -644,6 +644,12 @@ class StepExamplesIterable(_BaseExamplesIterable):
     @property
     def iter_arrow(self):
         return self._iter_arrow if self.ex_iterable.iter_arrow else None
+
+    @property
+    def iter_arrow(self):
+        if self.ex_iterable.iter_arrow:
+            return self._iter_arrow
+        return None
 
     @property
     def is_typed(self):
@@ -1905,6 +1911,12 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         return self._iter_arrow if self.ex_iterable.iter_arrow else None
 
     @property
+    def iter_arrow(self):
+        if self.ex_iterable.iter_arrow:
+            return self._iter_arrow
+        return None
+
+    @property
     def is_typed(self):
         return self.ex_iterable.is_typed
 
@@ -1947,6 +1959,22 @@ class SkipExamplesIterable(_BaseExamplesIterable):
                 yield key, pa_table.slice(offset, len(pa_table) - offset)
             else:
                 yield key, pa_table
+
+    def _iter_arrow(self) -> Iterator[tuple[Key, pa.Table]]:
+        ex_iterable_idx_start = 0 if self._state_dict and self._state_dict["skipped"] else self.n
+        if self._state_dict:
+            self._state_dict["skipped"] = True
+
+        num_skipped = 0
+        for key, pa_table in self.ex_iterable.iter_arrow():
+            if num_skipped < ex_iterable_idx_start:
+                if num_skipped + len(pa_table) <= ex_iterable_idx_start:
+                    num_skipped += len(pa_table)
+                    continue
+                else:
+                    pa_table = pa_table.slice(ex_iterable_idx_start - num_skipped)
+                    num_skipped = ex_iterable_idx_start
+            yield key, pa_table
 
     @staticmethod
     def split_number(num, n):
@@ -2068,6 +2096,12 @@ class TakeExamplesIterable(_BaseExamplesIterable):
         return self._iter_arrow if self.ex_iterable.iter_arrow else None
 
     @property
+    def iter_arrow(self):
+        if self.ex_iterable.iter_arrow:
+            return self._iter_arrow
+        return None
+
+    @property
     def is_typed(self):
         return self.ex_iterable.is_typed
 
@@ -2115,6 +2149,26 @@ class TakeExamplesIterable(_BaseExamplesIterable):
                     self._state_dict["taken"] = taken
                 yield key, pa_table.slice(0, length)
             else:
+                break
+
+    def _iter_arrow(self) -> Iterator[tuple[Key, pa.Table]]:
+        ex_iterable_num_taken = self._state_dict["num_taken"] if self._state_dict else 0
+        n_to_take = self.n - ex_iterable_num_taken
+
+        num_taken = 0
+        for key, pa_table in self.ex_iterable.iter_arrow():
+            if num_taken < n_to_take:
+                if num_taken + len(pa_table) <= n_to_take:
+                    if self._state_dict:
+                        self._state_dict["num_taken"] += len(pa_table)
+                    yield key, pa_table
+                    num_taken += len(pa_table)
+                else:
+                    yield key, pa_table.slice(0, n_to_take - num_taken)
+                    if self._state_dict:
+                        self._state_dict["num_taken"] += n_to_take - num_taken
+                    num_taken = n_to_take
+            if num_taken >= n_to_take:
                 break
 
     @staticmethod
@@ -3361,7 +3415,7 @@ class IterableDataset(DatasetInfoMixin):
           Note that the last batch may have less than `n` examples.
           A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
 
-        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simulatenous calls.
+        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simultaneous calls.
         It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
 
         Args:
@@ -3528,7 +3582,7 @@ class IterableDataset(DatasetInfoMixin):
         """Apply a filter function to all the elements so that the dataset only includes examples according to the filter function.
         The filtering is done on-the-fly when iterating over the dataset.
 
-        If the function is asynchronous, then `filter` will run your function in parallel, with up to one thousand simulatenous calls (configurable).
+        If the function is asynchronous, then `filter` will run your function in parallel, with up to one thousand simultaneous calls (configurable).
         It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
 
         Args:

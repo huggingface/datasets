@@ -20,7 +20,7 @@
 
 🤗 Datasets is a lightweight library providing **two** main features:
 
-- **one-line dataloaders for many public datasets**: one-liners to download and pre-process any of the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) major public datasets (image datasets, audio datasets, text datasets in 467 languages and dialects, etc.) provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets). With a simple command like `squad_dataset = load_dataset("rajpurkar/squad")`, get any of these datasets ready to use in a dataloader for training/evaluating a ML model (Numpy/Pandas/PyTorch/TensorFlow/JAX),
+- **one-line dataloaders for many public datasets**: one-liners to download and pre-process any of the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) major public datasets (image datasets, audio datasets, text datasets in 467 languages and dialects, etc.) provided on the [Hugging Face Datasets Hub](https://huggingface.co/datasets). With a simple command like `squad_dataset = load_dataset("rajpurkar/squad")`, get any of these datasets ready to use in a dataloader for training/evaluating a ML model (Numpy/Pandas/PyTorch/TensorFlow/JAX),
 - **efficient data pre-processing**: simple, fast and reproducible data pre-processing for the public datasets as well as your own local datasets in CSV, JSON, text, PNG, JPEG, WAV, MP3, Parquet, HDF5, etc. With simple commands like `processed_dataset = dataset.map(process_example)`, efficiently prepare the dataset for inspection and ML model evaluation and training.
 
 [🎓 **Documentation**](https://huggingface.co/docs/datasets/) [🔎 **Find a dataset in the Hub**](https://huggingface.co/datasets) [🌟 **Share a dataset on the Hub**](https://huggingface.co/docs/datasets/share)
@@ -40,7 +40,7 @@
 - Native support for audio, image and video data.
 - Enable streaming mode to save disk space and start iterating over the dataset immediately.
 
-🤗 Datasets originated from a fork of the awesome [TensorFlow Datasets](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library.
+🤗 Datasets originated from a fork of the awesome [TensorFlow Datasets](https://github.com/tensorflow/datasets) and the Hugging Face team want to deeply thank the TensorFlow Datasets team for building this amazing library.
 
 # Installation
 
@@ -60,11 +60,19 @@ pip install datasets
 conda install -c huggingface -c conda-forge datasets
 ```
 
+## With uv
+
+🤗 Datasets can be installed using uv (fastest) as follows:
+
+```bash
+uv pip install datasets
+```
+
 Follow the installation pages of TensorFlow and PyTorch to see how to install them with conda.
 
 For more details on installation, check the installation page in the documentation: https://huggingface.co/docs/datasets/installation
 
-## Installation to use with Machine Learning & Data frameworks frameworks
+## Installation to use with Machine Learning & Data frameworks
 
 If you plan to use 🤗 Datasets with PyTorch (2.0+), TensorFlow (2.6+) or JAX (0.4+) you should also install PyTorch, TensorFlow or JAX.
 🤗 Datasets is also well integrated with data frameworks like PyArrow, Pandas, Polars and Spark, which should be installed separately.
@@ -122,7 +130,7 @@ For more details on using the library, check the quick start page in the documen
 
 # Add a new dataset to the Hub
 
-We have a very detailed step-by-step guide to add a new dataset to the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) datasets already provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets).
+We have a very detailed step-by-step guide to add a new dataset to the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) datasets already provided on the [Hugging Face Datasets Hub](https://huggingface.co/datasets).
 
 You can find:
 - [how to upload a dataset to the Hub using your web browser or Python](https://huggingface.co/docs/datasets/upload_dataset) and also

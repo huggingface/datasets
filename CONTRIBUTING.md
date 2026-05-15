@@ -57,6 +57,11 @@ If you want to add a dataset see specific instructions in the section [*How to a
     pip install -e ".[dev]"
     ```
 
+    Alternatively, with uv:
+    ```bash
+    uv pip install -e ".[dev]"
+    ```
+
    (If datasets was already installed in the virtual environment, remove
    it with `pip uninstall datasets` before reinstalling it in editable
    mode with the `-e` flag.)
@@ -71,7 +76,7 @@ If you want to add a dataset see specific instructions in the section [*How to a
    
 7. _(Optional)_ You can also use [`pre-commit`](https://pre-commit.com/) to format your code automatically each time run `git commit`, instead of running `make style` manually. 
 To do this, install `pre-commit` via `pip install pre-commit` and then run `pre-commit install` in the project's root directory to set up the hooks.
-Note that if any files were formatted by `pre-commit` hooks during committing, you have to run `git commit` again .
+Note that if any files were formatted by `pre-commit` hooks during committing, you have to run `git commit` again.
 
 
 8. Once you're happy with your contribution, add your changed files and make a commit to record your changes locally:
@@ -110,7 +115,7 @@ You can share your dataset on https://huggingface.co/datasets directly using you
 
 Improving the documentation of datasets is an ever-increasing effort, and we invite users to contribute by sharing their insights with the community in the `README.md` dataset cards provided for each dataset.
 
-If you see that a dataset card is missing information that you are in a position to provide (as an author of the dataset or as an experienced user), the best thing you can do is to open a Pull Request on the Hugging Face Hub. To do, go to the "Files and versions" tab of the dataset page and edit the `README.md` file. We provide:
+If you see that a dataset card is missing information that you are in a position to provide (as an author of the dataset or as an experienced user), the best thing you can do is to open a Pull Request on the Hugging Face Hub. To do so, go to the "Files and versions" tab of the dataset page and edit the `README.md` file. We provide:
 
 * a [template](https://github.com/huggingface/datasets/blob/main/templates/README.md)
 * a [guide](https://github.com/huggingface/datasets/blob/main/templates/README_guide.md) describing what information should go into each of the paragraphs
@@ -126,5 +131,5 @@ Thank you for your contribution!
 
 ## Code of conduct
 
-This project adheres to the HuggingFace [code of conduct](CODE_OF_CONDUCT.md).
+This project adheres to the Hugging Face [code of conduct](CODE_OF_CONDUCT.md).
 By participating, you are expected to abide by this code.
