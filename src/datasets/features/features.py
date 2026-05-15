@@ -1282,7 +1282,10 @@ class Sequence:
             which are converted to `dict` of lists of sub-features for compatibility with TFDS.
 
     """
-
+    @property
+    def dtype(self) -> str:
+        return "list"
+    
     def __new__(cls, feature=None, length=-1, **kwargs):
         # useful to still get isinstance(Sequence(Value("int64")), Sequence)
         if (
@@ -1322,7 +1325,10 @@ class List(Sequence):
             return f"{type(self).__name__}({self.feature}, length={self.length})"
         else:
             return f"{type(self).__name__}({self.feature})"
-
+        
+    @property
+    def dtype(self) -> str:
+        return "list"
 
 @dataclass(repr=False)
 class LargeList:
@@ -1343,7 +1349,10 @@ class LargeList:
 
     def __repr__(self):
         return f"{type(self).__name__}({self.feature})"
-
+    
+    @property
+    def dtype(self) -> str:
+        return "list"
 
 FeatureType = Union[
     dict,
