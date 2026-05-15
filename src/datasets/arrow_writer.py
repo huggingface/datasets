@@ -284,7 +284,7 @@ class TypedSequence:
             if isinstance(non_null_value, list) and isinstance(non_null_value[0], pdfplumber.pdf.PDF):
                 return [
                     [Pdf().encode_example(x) for x in value] if value is not None else None for value in data
-                ], Sequence_(Pdf())
+                ], Sequence(Pdf())
         return data, None
 
     def __arrow_array__(self, type: Optional[pa.DataType] = None):
