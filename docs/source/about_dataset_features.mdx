@@ -198,3 +198,36 @@ Another example with tool calling data and the `on_mixed_types="use_json"` argum
 >>> ds[0][1]["tool_calls"][0]["function"]["arguments"]
 {"room": "living room", "state": "on"}
 ```
+
+## Zarr feature
+
+Use [`Zarr`] for path-based lazy access to Zarr and OME-Zarr stores.
+
+```py
+>>> from datasets import Dataset, Features, Zarr
+>>>
+>>> ds = Dataset.from_dict(
+...     {"scan": ["/path/to/sample.zarr"]},
+...     features=Features({"scan": Zarr()}),
+... )
+>>> proxy = ds[0]["scan"]  # lazy
+>>> proxy.shape
+(1937, 2048, 2048)
+```
+
+A `Zarr` value resolves lazily to a proxy (`ZarrArrayProxy`, `ZarrGroupProxy`, or `OmeZarrProxy`) depending on store content.
+
+For Hub paths, use `hf://datasets/...` and cast as usual:
+
+```py
+>>> from datasets import Dataset, Features, Zarr
+>>>
+>>> ds = Dataset.from_dict(
+...     {"scan": ["hf://datasets/username/my-zarr-data@main"]},
+...     features=Features({"scan": Zarr()}),
+... )
+>>> ds[0]["scan"].shape
+(1937, 2048, 2048)
+```
+
+For OME-Zarr stores, multiscale helpers like `num_levels`, `get_level`, and `thumbnail` are available on the resolved proxy.

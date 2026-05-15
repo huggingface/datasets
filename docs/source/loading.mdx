@@ -246,6 +246,23 @@ If you have remote files likely stored as a `csv`, `json`, `txt`, `parquet` or a
 - `https://` URLs for public online files, e.g. `data_files=["https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v2.0.json"]`
 - `hf://` URLs for files in any [Dataset repository](https://huggingface.co/docs/hub/datasets-overview) or [Storage Bucket](https://huggingface.co/docs/hub/storage-buckets) on Hugging Face, e.g. `data_files=["hf://datasets/karpathy/tinystories-gpt4-clean/tinystories_gpt4_clean.parquet"]` or `data_files=["hf://buckets/julien-c/my-training-bucket/julien/affluence.csv"]`
 
+### Zarr stores on the Hub (index + cast)
+
+For raw Zarr data on the Hub, the recommended approach is to load a lightweight index dataset and cast a path column to [`Zarr`].
+
+```py
+>>> from datasets import Zarr, load_dataset
+>>>
+>>> stream_ds = load_dataset("username/my-zarr-index", split="train", streaming=True)
+>>> stream_ds = stream_ds.cast_column("scan", Zarr())
+>>>
+>>> sample = next(iter(stream_ds))
+>>> sample["scan"].shape
+(1937, 2048, 2048)
+```
+
+This pattern keeps indexing and metadata in a small tabular dataset while storing heavy Zarr bytes in a separate data repository.
+
 ## Multiprocessing
 
 When a dataset is made of several files (that we call "shards"), it is possible to significantly speed up the dataset downloading and preparation step.

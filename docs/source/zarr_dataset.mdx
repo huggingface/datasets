@@ -1,0 +1,109 @@
+# Create a Zarr dataset
+
+This guide shows how to create and share datasets backed by Zarr stores, including OME-Zarr multiscale images.
+
+## Recommended workflow
+
+For Hub usage, the recommended pattern is:
+
+1. Store raw Zarr data in a data repository.
+2. Create a lightweight index repository (Parquet or JSONL) with one row per sample and a `scan` path column.
+3. Load the index with [`load_dataset`] and cast the path column to [`Zarr`].
+
+This gives you the standard `load_dataset(..., streaming=True)` API and lazy access to Zarr content.
+
+## Local loading (fast)
+
+Use [`datasets.utils.zarr_utils.load_zarr_dataset`] to discover `.zarr` directories locally without enumerating all internal chunk files.
+
+```py
+>>> from datasets.utils.zarr_utils import load_zarr_dataset
+>>>
+>>> ds = load_zarr_dataset("/path/to/local/zarr_folder")
+>>> ds[0]["zarr"].shape
+(1937, 2048, 2048)
+```
+
+You can also build a dataset directly from paths:
+
+```py
+>>> from datasets import Dataset, Features, Zarr
+>>>
+>>> ds = Dataset.from_dict(
+...     {"scan": ["/path/to/sample.zarr"]},
+...     features=Features({"scan": Zarr()}),
+... )
+>>> ds[0]["scan"].shape
+(1937, 2048, 2048)
+```
+
+## Upload a Zarr store to the Hub
+
+Use [`datasets.utils.zarr_utils.push_to_hub_zarr`] to upload a local store. If file count exceeds the configured limit, the store is rechunked and sharded to Zarr v3 before upload.
+
+```py
+>>> from datasets.utils.zarr_utils import push_to_hub_zarr
+>>>
+>>> push_to_hub_zarr(
+...     local_path="/path/to/sample.zarr",
+...     repo_id="username/my-zarr-data",
+...     file_limit=10_000,
+... )
+```
+
+## Create an index (manifest) dataset
+
+Create a small dataset with one row per sample and a `scan` path column:
+
+```py
+>>> from datasets import Dataset, DatasetDict
+>>>
+>>> record = {
+...     "sample_id": "sample_001",
+...     "scan": "hf://datasets/username/my-zarr-data@main",
+... }
+>>> index_ds = DatasetDict({"train": Dataset.from_list([record])})
+>>> index_ds.push_to_hub("username/my-zarr-index", private=True)
+```
+
+If your Zarr store is nested in the repo, use the full path, for example:
+`hf://datasets/username/my-zarr-data@main/sample_001.zarr`.
+
+## Stream with the standard API (index + cast)
+
+```py
+>>> from datasets import Zarr, load_dataset
+>>>
+>>> stream_ds = load_dataset("username/my-zarr-index", split="train", streaming=True)
+>>> stream_ds = stream_ds.cast_column("scan", Zarr())
+>>>
+>>> sample = next(iter(stream_ds))
+>>> proxy = sample["scan"]
+>>> proxy.shape, proxy.num_levels
+((1937, 2048, 2048), 6)
+```
+
+## OME-Zarr helpers
+
+For OME-Zarr stores, [`Zarr`] resolves to an object with multiscale helpers such as:
+
+- `num_levels`
+- `get_level(level)`
+- `thumbnail(level=-1)`
+- `iter_patches(...)`
+- `random_patch(...)`
+
+```py
+>>> proxy = sample["scan"]
+>>> proxy.num_levels
+6
+>>> arr_l0 = proxy.get_level(0)
+>>> patch = proxy.random_patch((1, 128, 128), level=0)
+```
+
+## Notes
+
+- `load_dataset("zarrfolder", data_dir=...)` may be slow on very large local stores with many internal chunk files.
+- For production-scale workflows, prefer:
+  - local: [`datasets.utils.zarr_utils.load_zarr_dataset`] or `Dataset.from_dict(...).cast_column(..., Zarr())`
+  - Hub: index + cast pattern shown above.
