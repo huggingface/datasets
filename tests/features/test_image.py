@@ -113,6 +113,36 @@ def test_image_decode_example_with_exif_orientation_tag(shared_datadir):
 
 
 @require_pil
+def test_image_decode_example_with_corrupted_exif_orientation_tag(shared_datadir):
+    """Corrupted EXIF data (e.g. rational tag with denominator=0) must not raise;
+    the image should be returned without orientation correction."""
+    import warnings
+
+    import PIL.Image
+
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    buffer = BytesIO()
+    exif = PIL.Image.Exif()
+    exif[PIL.Image.ExifTags.Base.Orientation] = 8  # rotate tag present…
+    PIL.Image.open(image_path).save(buffer, format="JPEG", exif=exif.tobytes())
+
+    image = Image()
+
+    from unittest.mock import patch
+
+    with warnings.catch_warnings(record=True) as caught, patch(
+        "PIL.ImageOps.exif_transpose", side_effect=ZeroDivisionError("denominator is zero")
+    ):
+        warnings.simplefilter("always")
+        decoded_example = image.decode_example({"path": None, "bytes": buffer.getvalue()})
+
+    assert isinstance(decoded_example, PIL.Image.Image)
+    assert decoded_example.size == (640, 480)  # NOT rotated – orientation fix was skipped
+    assert decoded_example.mode == "RGB"
+    assert any(issubclass(w.category, UserWarning) and "EXIF" in str(w.message) for w in caught)
+
+
+@require_pil
 def test_image_change_mode(shared_datadir):
     import PIL.Image
 
