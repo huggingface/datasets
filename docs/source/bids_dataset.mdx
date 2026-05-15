@@ -1,0 +1,63 @@
+# BIDS Dataset
+
+[BIDS (Brain Imaging Data Structure)](https://bids.neuroimaging.io/) is a standard for organizing and describing neuroimaging and behavioral data. The `datasets` library supports loading BIDS datasets directly, leveraging `pybids` for parsing and `nibabel` for handling NIfTI files.
+
+<Tip>
+
+To use the BIDS loader, you need to install the `bids` extra (which installs `pybids` and `nibabel`):
+
+```bash
+pip install datasets[bids]
+```
+
+</Tip>
+
+## Loading a BIDS Dataset
+
+You can load a BIDS dataset by pointing to its root directory (containing `dataset_description.json`):
+
+```python
+from datasets import load_dataset
+
+# Load a local BIDS dataset
+ds = load_dataset("bids", data_dir="/path/to/bids/dataset")
+
+# Access the first example
+print(ds["train"][0])
+# {
+#     'subject': '01',
+#     'session': 'baseline',
+#     'datatype': 'anat',
+#     'suffix': 'T1w',
+#     'nifti': <nibabel.nifti1.Nifti1Image>,
+#     ...
+# }
+```
+
+The `nifti` column contains `nibabel` image objects, which can be visualized interactively in Jupyter notebooks.
+
+## Filtering
+
+You can filter the dataset by BIDS entities like `subject`, `session`, and `datatype` when loading:
+
+```python
+# Load only specific subjects and datatypes
+ds = load_dataset(
+    "bids",
+    data_dir="/path/to/bids/dataset",
+    subjects=["01", "05", "10"],
+    sessions=["pre", "post"],
+    datatypes=["func"],
+)
+```
+
+## Metadata
+
+BIDS datasets often include JSON sidecar files with metadata (e.g., scanner parameters). This metadata is loaded into the `metadata` column as a JSON string.
+
+```python
+import json
+
+metadata = json.loads(ds["train"][0]["metadata"])
+print(metadata["RepetitionTime"])
+```
