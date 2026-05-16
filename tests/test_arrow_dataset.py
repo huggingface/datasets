@@ -1520,7 +1520,9 @@ class BaseDatasetTest(TestCase):
                     with dset.map(lambda x: {"foo": "bar"}, cache_file_name=cache_file):
                         pass
                     with patch("datasets.arrow_dataset.hf_tqdm") as mock_tqdm:
-                        with dset.map(lambda x: {"foo": "bar"}, cache_file_name=cache_file, load_from_cache_file=False):
+                        with dset.map(
+                            lambda x: {"foo": "bar"}, cache_file_name=cache_file, load_from_cache_file=False
+                        ):
                             pass
                         mock_tqdm.assert_called_once()
                         self.assertEqual(mock_tqdm.call_args.kwargs.get("initial", 0), 0)
