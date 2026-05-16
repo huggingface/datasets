@@ -5893,7 +5893,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 format = shard.format
                 shard = shard.with_format("arrow")
                 shard = shard.map(
-                    embed_table_storage,
+                    partial(embed_table_storage, token_per_repo_id=token_per_repo_id),
                     batched=True,
                     batch_size=writer_batch_size,
                     keep_in_memory=True,
