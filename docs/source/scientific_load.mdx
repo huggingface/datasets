@@ -1,0 +1,52 @@
+# Load scientific data
+
+Scientific datasets are often stored in formats like HDF5 or Zarr (chunked, N-dimensional arrays). 🤗 Datasets can stream these formats directly from local files (and remote filesystems supported by `fsspec`) without converting the full dataset to Arrow first.
+
+## HDF5
+
+```py
+>>> from datasets import load_dataset
+>>> ds = load_dataset("hdf5", data_files=["/path/to/data.h5"], split="train", streaming=True)
+>>> print(next(iter(ds)))
+{'temperature': 280.12, 'pressure': 101325.0, ...}
+```
+
+## Zarr
+
+Zarr support is currently experimental. Install it with `pip install "datasets[zarr]"` (or `pip install zarr`).
+
+Zarr stores are directory-based. You can point `data_files` to either the Zarr store root directory (recommended for convenience) or the Zarr root metadata file:
+
+- Zarr store root directory: `.../store.zarr` (auto-detects metadata)
+- Zarr v3: `.../store.zarr/zarr.json`
+- Zarr v2 (consolidated): `.../store.zarr/.zmetadata`
+
+For Zarr v2 non-consolidated stores, pass the store root (`.../store.zarr`) with `consolidated=False`.
+
+```py
+>>> from datasets import load_dataset
+>>> ds = load_dataset("zarr", data_files=["/path/to/store.zarr"], split="train", streaming=True)
+>>> print(next(iter(ds)))
+{'int32': 0, 'float32': 0.0, 'matrix_2d': [[...], ...]}
+```
+
+In streaming mode, Zarr is sharded by row ranges aligned to axis-0 chunk boundaries (instead of one shard per metadata file). You can control this with:
+
+- `rows_per_shard`: target number of rows per shard (rounded up to chunk boundaries)
+- `target_num_shards`: target number of shards across each input store
+
+If a root group contains arrays with different axis-0 lengths (for example coordinate arrays and time-varying arrays together), 🤗 Datasets automatically infers the primary row dimension (preferring N-D data arrays) and ignores non-row-aligned arrays. You can also target a specific subgroup with `group=...` for more control.
+
+You can also load from the Hub via the `hf://` protocol:
+
+```py
+>>> from datasets import DownloadConfig, load_dataset
+>>> download_config = DownloadConfig(storage_options={"hf": {"token": None}})  # set token for private/gated repos
+>>> ds = load_dataset(
+...     "zarr",
+...     data_files=["hf://datasets/<user>/<repo>@main/path/to/store.zarr"],
+...     split="train",
+...     streaming=True,
+...     download_config=download_config,
+... )
+```

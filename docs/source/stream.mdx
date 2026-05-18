@@ -55,6 +55,8 @@ Parquet is a columnar format that allows you to stream and load only a subset of
  'language_score': 0.9900368452072144, 'token_count': 716}
 ```
 
+To stream scientific formats like HDF5 and Zarr, see the [Load scientific data](./scientific_load) guide.
+
 Loading a dataset in streaming mode creates a new dataset type instance (instead of the classic [`Dataset`] object), known as an [`IterableDataset`].
 This special type of dataset has its own set of processing methods shown below.
 
