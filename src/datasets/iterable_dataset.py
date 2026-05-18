@@ -101,11 +101,11 @@ logger = get_logger(__name__)
 Key = Union[int, str, tuple[int, int], "BuilderKey"]
 
 
-def identity_func(x):
+def identity_func(x: Any) -> Any:
     return x
 
 
-def _rename_columns_fn(example: dict, column_mapping: dict[str, str]):
+def _rename_columns_fn(example: dict, column_mapping: dict[str, str]) -> dict:
     if any(col not in example for col in column_mapping):
         raise ValueError(
             f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_mapping) - set(example)} are not in the dataset."
@@ -3463,7 +3463,7 @@ class IterableDataset(DatasetInfoMixin):
           Note that the last batch may have less than `n` examples.
           A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
 
-        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simulatenous calls.
+        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simultaneous calls.
         It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
 
         Args:
@@ -3630,7 +3630,7 @@ class IterableDataset(DatasetInfoMixin):
         """Apply a filter function to all the elements so that the dataset only includes examples according to the filter function.
         The filtering is done on-the-fly when iterating over the dataset.
 
-        If the function is asynchronous, then `filter` will run your function in parallel, with up to one thousand simulatenous calls (configurable).
+        If the function is asynchronous, then `filter` will run your function in parallel, with up to one thousand simultaneous calls (configurable).
         It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
 
         Args:
