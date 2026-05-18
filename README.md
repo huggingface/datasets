@@ -112,6 +112,20 @@ from transformers import AutoTokenizer
 tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 
 tokenized_dataset = squad_dataset.map(lambda x: tokenizer(x['context']), batched=True)
+
+# Tokenize chat conversations with a chat template (using a model that supports chat templates)
+# This is useful for fine-tuning instruction/chat models
+
+# Load a popular chat dataset (ultrachat_200k contains ~200k AI assistant conversations)
+chat_dataset = load_dataset('HuggingFaceH4/ultrachat_200k', split='train_sft')
+
+chat_tokenizer = AutoTokenizer.from_pretrained('Qwen/Qwen2.5-7B-Instruct')
+
+def tokenize_chat(examples):
+    # Apply the chat template and tokenize in one step
+    return chat_tokenizer.apply_chat_template(examples["messages"])
+
+tokenized_chat_dataset = chat_dataset.map(tokenize_chat, batched=True)
 ```
 
 ## Streaming mode
