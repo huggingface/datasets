@@ -3304,6 +3304,26 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Disallow null values in the table.
             fn_kwargs (`Dict`, *optional*, defaults to `None`):
                 Keyword arguments to be passed to `function`.
+
+                Tip: prefer passing extra parameters via `fn_kwargs` over defining a
+                closure that captures them from the surrounding scope. When `function` is a
+                closure, the caching fingerprint is computed from the serialized function
+                object, which includes **all** captured variables. If any captured variable
+                has non-deterministic state across Python sessions (e.g. a UUID, a random
+                seed, or a mutable attribute of a class instance), the fingerprint will
+                differ between runs and the cache will never be reused. Passing the same
+                values through `fn_kwargs` instead keeps the fingerprint stable:
+
+                ```python
+                # Unstable fingerprint: closure captures `self`, including any
+                # non-deterministic attributes like UUIDs or random seeds.
+                ds.map(lambda x: my_fn(x, param=self.param))
+
+                # Stable fingerprint: only the explicit value is hashed.
+                ds.map(my_fn, fn_kwargs={"param": self.param})
+                ```
+
+                `functools.partial` can also be used as a stable alternative to closures.
             num_proc (`int`, *optional*, defaults to `None`):
                  The number of processes to use for multiprocessing.
                 - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.
@@ -4203,7 +4223,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 This value is a good trade-off between memory usage during the processing, and processing speed.
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
             fn_kwargs (`dict`, *optional*):
-                Keyword arguments to be passed to `function`.
+                Keyword arguments to be passed to `function`. Prefer this over closures
+                when the extra parameters are extracted from objects with non-deterministic
+                state, as it produces a stable cache fingerprint. See
+                [`~datasets.Dataset.map`] for a detailed explanation.
             num_proc (`int`, *optional*, defaults to `None`):
                  The number of processes to use for multiprocessing.
                 - If `None` or `0`, no multiprocessing is used and the operation runs in the main process.
