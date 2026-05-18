@@ -1,7 +1,7 @@
 import io
 import os
 from dataclasses import dataclass
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
 import pandas as pd
 import pyarrow as pa
@@ -32,6 +32,38 @@ def pandas_read_json(path_or_buf, **kwargs):
     if datasets.config.PANDAS_VERSION.major >= 2:
         kwargs["dtype_backend"] = "pyarrow"
     return pd.read_json(path_or_buf, **kwargs)
+
+
+def _arrow_table_from_field(
+    dataset: Any, features: Optional["datasets.Features"] = None
+) -> pa.Table:
+    # Build directly from the parsed Python object instead of routing through
+    # pandas.read_json. Pandas with the pyarrow dtype_backend coerces columns
+    # like [0.0, 1.0, 2.0] to int64, dropping the float semantics (#6937,
+    # pandas-dev/pandas#58866). PyArrow's own inference preserves float64,
+    # and CPython dict key iteration order already gives us the
+    # column-insertion-order invariant from #6914.
+    if isinstance(dataset, list):
+        if not dataset:
+            if features is not None:
+                return pa.Table.from_pydict({name: [] for name in features})
+            return pa.Table.from_pydict({})
+        if not isinstance(dataset[0], dict):
+            # List of scalars; mirror the prior `df.columns == [0]` rename.
+            column_name = next(iter(features)) if features is not None else "text"
+            return pa.Table.from_pydict({column_name: dataset})
+        keys: dict[str, None] = {}
+        for row in dataset:
+            for key in row.keys():
+                keys.setdefault(key, None)
+        column_order = list(keys)
+        mapping = {col: [row.get(col) for row in dataset] for col in column_order}
+        return pa.Table.from_pydict(mapping)
+    if isinstance(dataset, dict):
+        return pa.Table.from_pydict(dataset)
+    raise ValueError(
+        f"Cannot build a table from the JSON field at type {type(dataset).__name__}"
+    )
 
 
 class FullReadDisallowed(Exception):
@@ -155,10 +187,7 @@ class Json(datasets.ArrowBasedBuilder):
                         dataset = ujson_loads(f.read())
                     # We keep only the field we are interested in
                     dataset = dataset[self.config.field]
-                    df = pandas_read_json(io.StringIO(ujson_dumps(dataset)))
-                    if df.columns.tolist() == [0]:
-                        df.columns = list(self.config.features) if self.config.features else ["text"]
-                    pa_table = pa.Table.from_pandas(df, preserve_index=False)
+                    pa_table = _arrow_table_from_field(dataset, self.config.features)
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
 
                 # If the files are agent traces (one row = one file)
