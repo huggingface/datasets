@@ -20,8 +20,8 @@
 
 🤗 Datasets is a lightweight library providing **two** main features:
 
-- **one-line dataloaders for many public datasets**: one-liners to download and pre-process any of the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) major public datasets (image datasets, audio datasets, text datasets in 467 languages and dialects, etc.) provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets). With a simple command like `squad_dataset = load_dataset("rajpurkar/squad")`, get any of these datasets ready to use in a dataloader for training/evaluating a ML model (Numpy/Pandas/PyTorch/TensorFlow/JAX),
-- **efficient data pre-processing**: simple, fast and reproducible data pre-processing for the public datasets as well as your own local datasets in CSV, JSON, text, PNG, JPEG, WAV, MP3, Parquet, HDF5, etc. With simple commands like `processed_dataset = dataset.map(process_example)`, efficiently prepare the dataset for inspection and ML model evaluation and training.
+- **one-line dataloaders for many public datasets**: one-liners to download and pre-process any of the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) major public datasets (image datasets, audio datasets, text datasets in 467 languages and dialects, 3D medical images, video datasets, agent traces, etc.) provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets). With a simple command like `squad_dataset = load_dataset("rajpurkar/squad")`, get any of these datasets ready to use in a dataloader for training/evaluating a ML model (Numpy/Pandas/PyTorch/TensorFlow/JAX/Polars),
+- **efficient data pre-processing**: simple, fast and reproducible data pre-processing for the public datasets as well as your own local datasets in CSV, JSON, JSONL, Parquet, HDF5, XML, text, PNG, JPEG, WAV, MP3, PDF, NIfTI, and more. With simple commands like `processed_dataset = dataset.map(process_example)`, efficiently prepare the dataset for inspection and ML model evaluation and training.
 
 [🎓 **Documentation**](https://huggingface.co/docs/datasets/) [🔎 **Find a dataset in the Hub**](https://huggingface.co/datasets) [🌟 **Share a dataset on the Hub**](https://huggingface.co/docs/datasets/share)
 
@@ -29,62 +29,76 @@
     <a href="https://hf.co/course"><img src="https://raw.githubusercontent.com/huggingface/datasets/main/docs/source/imgs/course_banner.png"></a>
 </h3>
 
-🤗 Datasets is designed to let the community easily add and share new datasets.
+# 🚀 Key Features
 
-🤗 Datasets has many additional interesting features:
+🤗 Datasets is designed to let the community easily add and share new datasets, and provides powerful capabilities for data manipulation:
 
-- Thrive on large datasets: 🤗 Datasets naturally frees the user from RAM memory limitation, all datasets are memory-mapped using an efficient zero-serialization cost backend (Apache Arrow).
-- Smart caching: never wait for your data to process several times.
-- Lightweight and fast with a transparent and pythonic API (multi-processing/caching/memory-mapping).
-- Built-in interoperability with NumPy, PyTorch, TensorFlow 2, JAX, Pandas, Polars and more.
-- Native support for audio, image and video data.
-- Enable streaming mode to save disk space and start iterating over the dataset immediately.
-
-🤗 Datasets originated from a fork of the awesome [TensorFlow Datasets](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library.
+| Feature | Description |
+|---------|-------------|
+| 📦 **One-line dataset loading** | Load AI-ready datasets from the [Hugging Face Hub](https://huggingface.co/datasets) or local files with `load_dataset()` |
+| 🔍 **Multiple formats** | Native support for CSV, JSON, JSONL, Parquet, Arrow, XML, Text, Webdataset, and more |
+| 🖼️ **Multi-modal data** | Built-in support for text, audio, image, video, PDF, and NIfTI (3D medical) data |
+| 🚀 **Streaming mode** | Stream datasets without downloading — iterate over data on-the-fly with `streaming=True` (now up to **100x faster** with Xet backend) |
+| 💾 **HF Storage Buckets** | Read and write directly from/to [Hugging Face Storage Buckets](https://huggingface.co/docs/hub/storage-buckets) for mutable, large-scale raw data |
+| 🧠 **AI Agent Traces** | Load and process AI agent traces (prompts, tool calls, responses) from the Hub |
+| ⚡ **Apache Arrow backend** | Zero-copy memory-mapped storage — datasets naturally free you from RAM limitations |
+| 🔄 **Smart caching** | Never wait for your data to process twice — cached results are automatically reused |
+| 📊 **Multi-framework interoperability** | Native conversion to/from NumPy, Pandas, Polars, Arrow, PyTorch, TensorFlow, JAX, and Spark |
+| 🏎️ **Multi-processing** | Fast parallel data processing with `map(num_proc=N)` |
+| 🔎 **Search & index** | Built-in FAISS and Elasticsearch index support for similarity search |
+| 📦 **JSON type** | Flexible JSON/structured data support with `Json()` feature type |
 
 # Installation
 
 ## With pip
 
-🤗 Datasets can be installed from PyPi and has to be installed in a virtual environment (venv or conda for instance)
+🤗 Datasets can be installed from PyPi and should be installed in a virtual environment (venv or conda for instance):
 
 ```bash
 pip install datasets
 ```
 
-## With conda
+For the latest development version:
 
-🤗 Datasets can be installed using conda as follows:
+```bash
+pip install "datasets @ git+https://github.com/huggingface/datasets.git"
+```
+
+## With conda
 
 ```bash
 conda install -c huggingface -c conda-forge datasets
 ```
 
-Follow the installation pages of TensorFlow and PyTorch to see how to install them with conda.
+## Optional dependencies
 
-For more details on installation, check the installation page in the documentation: https://huggingface.co/docs/datasets/installation
+🤗 Datasets supports various optional features via extras:
 
-## Installation to use with Machine Learning & Data frameworks frameworks
+```bash
+# For audio (torchcodec)
+pip install datasets[audio]
 
-If you plan to use 🤗 Datasets with PyTorch (2.0+), TensorFlow (2.6+) or JAX (0.4+) you should also install PyTorch, TensorFlow or JAX.
-🤗 Datasets is also well integrated with data frameworks like PyArrow, Pandas, Polars and Spark, which should be installed separately.
+# For image/video (Pillow, torchcodec)
+pip install datasets[vision]
 
-For more details on using the library with these frameworks, check the quick start page in the documentation: https://huggingface.co/docs/datasets/quickstart
+# For PDFs/NIfTI (pdfplumber, nibabel)
+pip install datasets[pdfs,nibabel]
 
-# Usage
+# For PyTorch/TensorFlow/JAX integration
+pip install datasets[torch,tensorflow,jax]
 
-🤗 Datasets is made to be very simple to use - the API is centered around a single function, `datasets.load_dataset(dataset_name, **kwargs)`, that instantiates a dataset.
+```
 
-This library can be used for text/image/audio/etc. datasets. Here is an example to load a text dataset:
+For more details on installation, check the [installation page](https://huggingface.co/docs/datasets/installation).
+
+# Quick Start
+
+🤗 Datasets is made to be very simple to use — the API is centered around a single function, `datasets.load_dataset(dataset_name, **kwargs)`, that instantiates a dataset.
 
 Here is a quick example:
 
 ```python
 from datasets import load_dataset
-
-# Print all the available datasets
-from huggingface_hub import list_datasets
-print([dataset.id for dataset in list_datasets(limit=20)])
 
 # Load a dataset and print the first example in the training set
 squad_dataset = load_dataset('rajpurkar/squad')
@@ -93,32 +107,104 @@ print(squad_dataset['train'][0])
 # Process the dataset - add a column with the length of the context texts
 dataset_with_length = squad_dataset.map(lambda x: {"length": len(x["context"])})
 
-# Process the dataset - tokenize the context texts (using a tokenizer from the 🤗 Transformers library)
+# Tokenize the context texts (using a tokenizer from the 🤗 Transformers library)
 from transformers import AutoTokenizer
 tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 
 tokenized_dataset = squad_dataset.map(lambda x: tokenizer(x['context']), batched=True)
 ```
 
+## Streaming mode
+
 If your dataset is bigger than your disk or if you don't want to wait to download the data, you can use streaming:
 
 ```python
-# If you want to use the dataset immediately and efficiently stream the data as you iterate over the dataset
+# Stream the dataset without downloading anything
 image_dataset = load_dataset('timm/imagenet-1k-wds', streaming=True)
 for example in image_dataset["train"]:
+    print(example["image"])
     break
 ```
 
-For more details on using the library, check the quick start page in the documentation: https://huggingface.co/docs/datasets/quickstart and the specific pages on:
+## Multi-modal data
 
-- Loading a dataset: https://huggingface.co/docs/datasets/loading
-- What's in a Dataset: https://huggingface.co/docs/datasets/access
-- Processing data with 🤗 Datasets: https://huggingface.co/docs/datasets/process
-    - Processing audio data: https://huggingface.co/docs/datasets/audio_process
-    - Processing image data: https://huggingface.co/docs/datasets/image_process
-    - Processing text data: https://huggingface.co/docs/datasets/nlp_process
-- Streaming a dataset: https://huggingface.co/docs/datasets/stream
-- etc.
+🤗 Datasets supports a wide variety of data types out of the box:
+
+```python
+# Audio dataset
+dataset = load_dataset("openslr/librispeech_asr", "clean")
+
+# Image dataset
+dataset = load_dataset("ILSVRC/imagenet-1k")
+
+# Video dataset
+dataset = load_dataset("Shofo/shofo-tiktok-general-small")
+
+# PDF documents
+dataset = load_dataset("pixparse/pdfa-eng-wds")
+
+# NIfTI (3D medical imaging)
+dataset = load_dataset("dartbrains/localizer", "betas")
+```
+
+## From local files
+
+```python
+# Load from local CSV
+dataset = load_dataset('csv', data_files='my_data.csv')
+
+# Load from local Parquet
+dataset = load_dataset('parquet', data_files='data/*.parquet')
+
+# Load from a local directory (auto-detect format)
+dataset = load_dataset('./path/to/data')
+```
+
+## From Python objects
+
+```python
+from datasets import Dataset
+
+# From a dictionary
+dataset = Dataset.from_dict({"text": ["Hello world", "How are you?"]})
+
+# From a list
+dataset = Dataset.from_list([{"text": "Hello world"}, {"text": "How are you?"}])
+
+# From Pandas
+import pandas as pd
+df = pd.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]})
+dataset = Dataset.from_pandas(df)
+
+# From a generator
+def gen():
+    for i in range(10):
+        yield {"value": i}
+dataset = Dataset.from_generator(gen)
+```
+
+For more details on using the library, check the [quick start guide](https://huggingface.co/docs/datasets/quickstart) and the specific pages on:
+
+- [Loading a dataset](https://huggingface.co/docs/datasets/loading)
+- [What's in a Dataset](https://huggingface.co/docs/datasets/access)
+- [Processing data with 🤗 Datasets](https://huggingface.co/docs/datasets/process)
+  - [Processing audio data](https://huggingface.co/docs/datasets/audio_process)
+  - [Processing image data](https://huggingface.co/docs/datasets/image_process)
+  - [Processing text data](https://huggingface.co/docs/datasets/nlp_process)
+  - [Processing PDF data](https://huggingface.co/docs/datasets/pdf_process)
+  - [Processing video data](https://huggingface.co/docs/datasets/video_process)
+- [Streaming a dataset](https://huggingface.co/docs/datasets/stream)
+
+# Core Classes
+
+The library provides two main dataset classes:
+
+| Class | Description |
+|-------|-------------|
+| `Dataset` | In-memory / memory-mapped dataset backed by Apache Arrow. Supports indexing, slicing, random access and caching. |
+| `IterableDataset` | Lazy, streamable dataset for large-scale / out-of-core processing. Supports streaming and infinite iteration. |
+
+Both are wrapped in `DatasetDict` / `IterableDatasetDict` for multi-split datasets (e.g., train/test/val).
 
 # Add a new dataset to the Hub
 
@@ -134,7 +220,16 @@ You can use 🤗 Datasets to load datasets based on versioned git repositories m
 
 If you're a dataset owner and wish to update any part of it (description, citation, license, etc.), or do not want your dataset to be included in the Hugging Face Hub, please get in touch by opening a discussion or a pull request in the Community tab of the dataset page. Thanks for your contribution to the ML community!
 
-## BibTeX
+# Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
+
+- How to submit issues and pull requests
+- Code style guidelines (we use [Ruff](https://docs.astral.sh/ruff/))
+- Testing requirements
+- Documentation standards
+
+# BibTeX
 
 If you want to cite our 🤗 Datasets library, you can use our [paper](https://huggingface.co/papers/2109.02846):
 
