@@ -1329,6 +1329,7 @@ def load_dataset_builder(
         "config_name", name or dataset_module.builder_configs_parameters.default_config_name
     )
     dataset_name = builder_kwargs.pop("dataset_name", None)
+    base_path = builder_kwargs.pop("base_path", None)
     info = dataset_module.dataset_infos.get(config_name) if dataset_module.dataset_infos else None
 
     if (
@@ -1365,6 +1366,14 @@ def load_dataset_builder(
         **config_kwargs,
     )
     builder_instance._use_legacy_cache_dir_if_possible(dataset_module)
+    if base_path is not None:
+        builder_kwargs_for_init["base_path"] = base_path
+
+    builder_instance: DatasetBuilder = builder_cls(
+    **builder_kwargs_for_init,
+    **builder_kwargs,
+    **config_kwargs,
+    )
 
     return builder_instance
 
