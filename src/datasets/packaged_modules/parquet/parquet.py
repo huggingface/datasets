@@ -106,9 +106,7 @@ class Parquet(datasets.ArrowBasedBuilder):
                     f"{self.config.columns} and {self.config.features}",
                 )
             else:
-                features = datasets.Features(
-                    {col: self.config.features[col] for col in self.config.columns}
-                )
+                features = datasets.Features({col: self.config.features[col] for col in self.config.columns})
         else:
             features = self.config.features
         return datasets.DatasetInfo(features=features)
