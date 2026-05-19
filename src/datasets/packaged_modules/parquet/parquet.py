@@ -100,11 +100,16 @@ class Parquet(datasets.ArrowBasedBuilder):
             and self.config.features is not None
             and set(self.config.columns) != set(self.config.features)
         ):
-            raise ValueError(
-                "The columns and features argument must contain the same columns, but got ",
-                f"{self.config.columns} and {self.config.features}",
-            )
-        return datasets.DatasetInfo(features=self.config.features)
+            if any(col not in self.config.features for col in self.config.columns):
+                raise ValueError(
+                    "The columns and features argument must match, but got ",
+                    f"{self.config.columns} and {self.config.features}",
+                )
+            else:
+                features = datasets.Features({col: self.config.features[col] for col in self.config.columns})
+        else:
+            features = self.config.features
+        return datasets.DatasetInfo(features=features)
 
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
