@@ -1,15 +1,16 @@
 import asyncio
+import concurrent.futures
 import contextlib
-import copy
 import inspect
 import itertools
 import multiprocessing.pool
 import re
 import sys
 import tempfile
+import time
 from collections import Counter
 from collections.abc import Iterable, Iterator
-from copy import deepcopy
+from copy import copy, deepcopy
 from dataclasses import dataclass
 from functools import partial
 from itertools import cycle, islice
@@ -266,14 +267,23 @@ class _BaseExamplesIterable:
                 for i in range(len(state)):
                     state[i] = _inner_load_state_dict(state[i], new_state[i])
                 return state
-            return new_state
+            return deepcopy(new_state)
 
+        self._init_state_dict()
         return _inner_load_state_dict(self._state_dict, state_dict)
 
     def state_dict(self) -> dict:
         if self._state_dict:
-            return copy.deepcopy(self._state_dict)
+            return deepcopy(self._state_dict)
         raise RuntimeError("State dict is not initialized, please call ex_iterable._init_state_dict() first.")
+
+    @property
+    def sleep_on_threads_shutdown(self):
+        if hasattr(self, "_sleep_on_threads_shutdown"):
+            return self._sleep_on_threads_shutdown
+        else:
+            ex_iterables = [self.ex_iterable] if hasattr(self, "ex_iterable") else self.ex_iterables
+            return any(ex_iterable.sleep_on_threads_shutdown for ex_iterable in ex_iterables)
 
 
 class ExamplesIterable(_BaseExamplesIterable):
@@ -282,6 +292,7 @@ class ExamplesIterable(_BaseExamplesIterable):
         generate_examples_fn: Callable[..., Iterator[tuple[Key, dict]]],
         kwargs: dict,
         generate_more_kwargs_fn: Optional[Callable[..., Iterator[dict]]] = None,
+        sleep_on_threads_shutdown: bool = False,
     ):
         super().__init__()
         self.generate_examples_fn = generate_examples_fn
@@ -289,6 +300,9 @@ class ExamplesIterable(_BaseExamplesIterable):
 
         # for resharding
         self.generate_more_kwargs_fn = generate_more_kwargs_fn
+
+        # for threads shutdowns
+        self._sleep_on_threads_shutdown = sleep_on_threads_shutdown
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {"shard_idx": 0, "shard_example_idx": 0, "type": self.__class__.__name__}
@@ -309,8 +323,9 @@ class ExamplesIterable(_BaseExamplesIterable):
     def shuffle_data_sources(self, generator: np.random.Generator) -> "ExamplesIterable":
         return ExamplesIterable(
             self.generate_examples_fn,
-            _shuffle_gen_kwargs(copy.deepcopy(generator), self.kwargs),
+            _shuffle_gen_kwargs(deepcopy(generator), self.kwargs),
             self.generate_more_kwargs_fn,
+            self.sleep_on_threads_shutdown,
         )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ExamplesIterable":
@@ -318,12 +333,19 @@ class ExamplesIterable(_BaseExamplesIterable):
         gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
         shard_indices = self.split_shard_indices_by_worker(num_shards, index, contiguous=contiguous)
         requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
-        return ExamplesIterable(self.generate_examples_fn, requested_gen_kwargs, self.generate_more_kwargs_fn)
+        return ExamplesIterable(
+            self.generate_examples_fn,
+            requested_gen_kwargs,
+            self.generate_more_kwargs_fn,
+            self.sleep_on_threads_shutdown,
+        )
 
     def reshard_data_sources(self) -> "ExamplesIterable":
         """Split shars into more shards if possible."""
         if not self.generate_more_kwargs_fn:
-            return ExamplesIterable(self.generate_examples_fn, self.kwargs, self.generate_more_kwargs_fn)
+            return ExamplesIterable(
+                self.generate_examples_fn, self.kwargs, self.generate_more_kwargs_fn, self.sleep_on_threads_shutdown
+            )
         gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
         new_gen_kwargs = _merge_gen_kwargs(
             [
@@ -332,7 +354,9 @@ class ExamplesIterable(_BaseExamplesIterable):
                 for new_gen_kwargs in self.generate_more_kwargs_fn(**gen_kwargs)
             ]
         )
-        return ExamplesIterable(self.generate_examples_fn, new_gen_kwargs, self.generate_more_kwargs_fn)
+        return ExamplesIterable(
+            self.generate_examples_fn, new_gen_kwargs, self.generate_more_kwargs_fn, self.sleep_on_threads_shutdown
+        )
 
     @property
     def num_shards(self) -> int:
@@ -345,6 +369,7 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
         generate_tables_fn: Callable[..., Iterator[tuple[Key, pa.Table]]],
         kwargs: dict,
         generate_more_kwargs_fn: Optional[Callable[..., Iterator[dict]]] = None,
+        sleep_on_threads_shutdown: bool = False,
     ):
         super().__init__()
         self.generate_tables_fn = generate_tables_fn
@@ -352,6 +377,9 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
 
         # for resharding
         self.generate_more_kwargs_fn = generate_more_kwargs_fn
+
+        # for threads shutdowns
+        self._sleep_on_threads_shutdown = sleep_on_threads_shutdown
 
     @property
     def iter_arrow(self):
@@ -401,7 +429,10 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "ArrowExamplesIterable":
         return ArrowExamplesIterable(
-            self.generate_tables_fn, _shuffle_gen_kwargs(copy.deepcopy(generator), self.kwargs), generator
+            self.generate_tables_fn,
+            _shuffle_gen_kwargs(deepcopy(generator), self.kwargs),
+            self.generate_more_kwargs_fn,
+            self.sleep_on_threads_shutdown,
         )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "ArrowExamplesIterable":
@@ -409,7 +440,9 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
         gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
         shard_indices = self.split_shard_indices_by_worker(num_shards, index, contiguous=contiguous)
         requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
-        return ArrowExamplesIterable(self.generate_tables_fn, requested_gen_kwargs)
+        return ArrowExamplesIterable(
+            self.generate_tables_fn, requested_gen_kwargs, self.generate_more_kwargs_fn, self.sleep_on_threads_shutdown
+        )
 
     def reshard_data_sources(self) -> "ArrowExamplesIterable":
         """Split shars into more shards if possible."""
@@ -423,7 +456,9 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
                 for new_gen_kwargs in self.generate_more_kwargs_fn(**gen_kwargs)
             ]
         )
-        return ArrowExamplesIterable(self.generate_tables_fn, new_gen_kwargs, self.generate_more_kwargs_fn)
+        return ArrowExamplesIterable(
+            self.generate_tables_fn, new_gen_kwargs, self.generate_more_kwargs_fn, self.sleep_on_threads_shutdown
+        )
 
     @property
     def num_shards(self) -> int:
@@ -747,9 +782,10 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             ex_iterable_idx = next_ex_iterable_idx
 
     def _init_state_dict(self) -> dict:
+        for ex_iterable in self.ex_iterables:
+            ex_iterable._init_state_dict()
         self._state_dict = {
             "ex_iterable_idx": 0,
-            "ex_iterables": [ex_iterable._init_state_dict() for ex_iterable in self.ex_iterables],
             "previous_states": [None] * len(self.ex_iterables),
             "is_exhausted": [False] * len(self.ex_iterables),
             "type": self.__class__.__name__,
@@ -764,43 +800,72 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             for i in range(len(self.ex_iterables)):
                 if self._state_dict["previous_states"][i] is not None:
                     self.ex_iterables[i].load_state_dict(self._state_dict["previous_states"][i])
+            previous_states = [ex_iterable.state_dict() for ex_iterable in self.ex_iterables]
         iterators = [ex_iterable.iter_arrow() for ex_iterable in self.ex_iterables]
+
+        # Pre-populate futures for next samples from each iterator using threads for prefetching
+        def fetch_next_sample(iterator):
+            return next(iterator, False)
+
+        # Use ThreadPoolExecutor to fetch next samples in parallel
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=len(self.ex_iterables))
+        futures = [executor.submit(fetch_next_sample, iterator) for iterator in iterators]
 
         indices_iterator = self._get_indices_iterator()
 
         is_exhausted = (
             np.array(self._state_dict["is_exhausted"]) if self._state_dict else np.full(len(self.ex_iterables), False)
         )
-        for i in indices_iterator:
-            # if the stopping criteria is met, break the main for loop
-            if self.bool_strategy_func(is_exhausted):
-                break
-            # Skip exhausted iterators if we sample without replacement
-            if is_exhausted[i] and self.stopping_strategy in ["all_exhausted_without_replacement"]:
-                continue
-            # let's pick one example from the iterator at index i
-            if nexts[i] is None:
-                nexts[i] = next(iterators[i], False)
-            result = nexts[i]
-            if self._state_dict:
-                self._state_dict["previous_states"][i] = deepcopy(self._state_dict["ex_iterables"][i])
-            nexts[i] = next(iterators[i], False)
-
-            # the iterator is exhausted
-            if nexts[i] is False:
-                is_exhausted[i] = True
-                if self._state_dict:
-                    self._state_dict["is_exhausted"][i] = True
-                # we reset it in case the stopping crtieria isn't met yet and we sample with replacement
-                if self.stopping_strategy not in ["all_exhausted_without_replacement"]:
-                    nexts[i] = None
+        try:
+            for i in indices_iterator:
+                # if the stopping criteria is met, break the main for loop
+                if self.bool_strategy_func(is_exhausted):
+                    break
+                # Skip exhausted iterators if we sample without replacement
+                if is_exhausted[i] and self.stopping_strategy in ["all_exhausted_without_replacement"]:
+                    continue
+                # let's pick one example from the iterator at index i
+                # Resolve the future to get the current sample
+                if nexts[i] is None:
+                    nexts[i] = futures[i].result()
                     if self._state_dict:
-                        self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
-                        self._state_dict["previous_states"][i] = None
-                    iterators[i] = self.ex_iterables[i]._iter_arrow()
+                        self._state_dict["previous_states"][i] = previous_states[i]
+                        previous_states[i] = self.ex_iterables[i].state_dict()
+                    futures[i] = executor.submit(fetch_next_sample, iterators[i])
+                result = nexts[i]
+                # Fetch the next sample for this iterator (prefetching)
+                nexts[i] = futures[i].result()
+                if self._state_dict:
+                    self._state_dict["previous_states"][i] = previous_states[i]
+                    previous_states[i] = self.ex_iterables[i].state_dict()
 
-            if result is not False:
-                yield result
+                if nexts[i] is not False:
+                    futures[i] = executor.submit(fetch_next_sample, iterators[i])
+                else:
+                    # the iterator is exhausted
+                    is_exhausted[i] = True
+                    if self._state_dict:
+                        self._state_dict["is_exhausted"][i] = True
+                    # we reset it in case the stopping criteria isn't met yet
+                    if self.stopping_strategy not in ["all_exhausted_without_replacement"]:
+                        if self._state_dict:
+                            self.ex_iterables[i]._init_state_dict()
+                            previous_states[i] = self.ex_iterables[i].state_dict()
+                            self._state_dict["previous_states"][i] = None
+                        iterators[i] = self.ex_iterables[i].iter_arrow()
+                        nexts[i] = None
+                        futures[i] = executor.submit(fetch_next_sample, iterators[i])
+                if result is not False:
+                    yield result
+        finally:
+            # Related to https://github.com/apache/arrow/issues/45214
+            for future in futures:
+                future.result()
+            while iterators:
+                iterator = iterators.pop()
+                del iterator
+            if any(ex_iterable.sleep_on_threads_shutdown for ex_iterable in self.ex_iterables):
+                time.sleep(config.SLEEP_TIME_ON_THREADS_SHUTDOWN)
 
     def __iter__(self):
         # we use this to buffer one example of each iterator to know if an iterator is exhausted
@@ -810,41 +875,73 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             for i in range(len(self.ex_iterables)):
                 if self._state_dict["previous_states"][i] is not None:
                     self.ex_iterables[i].load_state_dict(self._state_dict["previous_states"][i])
+            previous_states = [ex_iterable.state_dict() for ex_iterable in self.ex_iterables]
         iterators = [iter(ex_iterable) for ex_iterable in self.ex_iterables]
+
+        # Pre-populate futures for next samples from each iterator using threads for prefetching
+        def fetch_next_sample(iterator):
+            return next(iterator, False)
+
+        # Use ThreadPoolExecutor to fetch next samples in parallel
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=len(self.ex_iterables))
+        futures = [executor.submit(fetch_next_sample, iterator) for iterator in iterators]
 
         indices_iterator = self._get_indices_iterator()
 
         is_exhausted = (
             np.array(self._state_dict["is_exhausted"]) if self._state_dict else np.full(len(self.ex_iterables), False)
         )
-        for i in indices_iterator:
-            # if the stopping criteria is met, break the main for loop
-            if self.bool_strategy_func(is_exhausted):
-                break
-            # let's pick one example from the iterator at index i
-            if is_exhausted[i] and self.stopping_strategy in ["all_exhausted_without_replacement"]:
-                continue
-            if nexts[i] is None:
-                nexts[i] = next(iterators[i], False)
-            result = nexts[i]
-            if self._state_dict:
-                self._state_dict["previous_states"][i] = deepcopy(self._state_dict["ex_iterables"][i])
-            nexts[i] = next(iterators[i], False)
-
-            # the iterator is exhausted
-            if nexts[i] is False:
-                is_exhausted[i] = True
-                if self._state_dict:
-                    self._state_dict["is_exhausted"][i] = True
-                # we reset it in case the stopping crtieria isn't met yet
-                if self.stopping_strategy not in ["all_exhausted_without_replacement"]:
-                    nexts[i] = None
+        try:
+            for i in indices_iterator:
+                # if the stopping criteria is met, break the main for loop
+                if self.bool_strategy_func(is_exhausted):
+                    break
+                # Skip exhausted iterators if we sample without replacement
+                if is_exhausted[i] and self.stopping_strategy in ["all_exhausted_without_replacement"]:
+                    continue
+                # let's pick one example from the iterator at index i
+                # Resolve the future to get the current sample
+                if nexts[i] is None:
+                    nexts[i] = futures[i].result()
                     if self._state_dict:
-                        self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
-                        self._state_dict["previous_states"][i] = None
-                    iterators[i] = iter(self.ex_iterables[i])
-            if result is not False:
-                yield result
+                        self._state_dict["previous_states"][i] = previous_states[i]
+                        previous_states[i] = self.ex_iterables[i].state_dict()
+                    futures[i] = executor.submit(fetch_next_sample, iterators[i])
+                result = nexts[i]
+                # Fetch the next sample for this iterator (prefetching)
+                nexts[i] = futures[i].result()
+                if self._state_dict:
+                    self._state_dict["previous_states"][i] = previous_states[i]
+                    previous_states[i] = self.ex_iterables[i].state_dict()
+
+                if nexts[i] is not False:
+                    futures[i] = executor.submit(fetch_next_sample, iterators[i])
+                else:
+                    # the iterator is exhausted
+                    is_exhausted[i] = True
+                    if self._state_dict:
+                        self._state_dict["is_exhausted"][i] = True
+                    # we reset it in case the stopping criteria isn't met yet
+                    if self.stopping_strategy not in ["all_exhausted_without_replacement"]:
+                        if self._state_dict:
+                            self.ex_iterables[i]._init_state_dict()
+                            previous_states[i] = self.ex_iterables[i].state_dict()
+                            self._state_dict["previous_states"][i] = None
+                        iterators[i] = iter(self.ex_iterables[i])
+                        nexts[i] = None
+                        futures[i] = executor.submit(fetch_next_sample, iterators[i])
+                if result is not False:
+                    yield result
+        finally:
+            # Related to https://github.com/apache/arrow/issues/45214
+            for future in futures:
+                future.result()
+            while iterators:
+                iterator = iterators.pop()
+                del iterator
+            executor.shutdown(wait=True)
+            if any(ex_iterable.sleep_on_threads_shutdown for ex_iterable in self.ex_iterables):
+                time.sleep(config.SLEEP_TIME_ON_THREADS_SHUTDOWN)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "CyclingMultiSourcesExamplesIterable":
         """Shuffle each underlying examples iterable."""
@@ -1168,10 +1265,11 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
                     yield int(i)
 
     def _init_state_dict(self) -> dict:
+        for ex_iterable in self.ex_iterables:
+            ex_iterable._init_state_dict()
         self._state_dict = {
             "bit_generator_state": self.generator.bit_generator.state,
             "bit_generator_index_offset": 0,
-            "ex_iterables": [ex_iterable._init_state_dict() for ex_iterable in self.ex_iterables],
             "previous_states": [None] * len(self.ex_iterables),
             "is_exhausted": [False] * len(self.ex_iterables),
             "type": self.__class__.__name__,
@@ -1886,6 +1984,10 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.num_shards
 
 
+class DataSourcesShufflingDisallowed(Exception):
+    """skip() or take() freeze the order of data sources shards"""
+
+
 class SkipExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
@@ -1960,7 +2062,7 @@ class SkipExamplesIterable(_BaseExamplesIterable):
     def shuffle_data_sources(self, generator: np.random.Generator) -> "SkipExamplesIterable":
         """May not shuffle the wrapped examples iterable since it would skip examples from other shards instead."""
         if self.block_sources_order_when_shuffling:
-            return self
+            raise DataSourcesShufflingDisallowed()
         else:
             return SkipExamplesIterable(
                 self.ex_iterable.shuffle_data_sources(generator),
@@ -2129,7 +2231,7 @@ class TakeExamplesIterable(_BaseExamplesIterable):
     def shuffle_data_sources(self, generator: np.random.Generator) -> "TakeExamplesIterable":
         """May not shuffle the wrapped examples iterable since it would take examples from other shards instead."""
         if self.block_sources_order_when_shuffling:
-            return self
+            raise DataSourcesShufflingDisallowed()
         else:
             return TakeExamplesIterable(
                 self.ex_iterable.shuffle_data_sources(generator),
@@ -2271,9 +2373,9 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
         if not self.features:
             yield from self.ex_iterable._iter_arrow()
             return
+        schema = self.features.arrow_schema
         for key, pa_table in self.ex_iterable._iter_arrow():
             columns = set(pa_table.column_names)
-            schema = self.features.arrow_schema
             # add missing columns
             for column_name in self.features:
                 if column_name not in columns:
@@ -2392,7 +2494,7 @@ class IterableDataset(DatasetInfoMixin):
         info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
 
-        self._ex_iterable = copy.copy(ex_iterable)
+        self._ex_iterable = copy(ex_iterable)
         self._formatting = formatting
         self._distributed = distributed
         self._token_per_repo_id: dict[str, Union[str, bool, None]] = token_per_repo_id or {}
@@ -2485,7 +2587,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> dataloader.load_state_dict(state_dict)  # uses ds.load_state_dict() under the hood
         ```
         """
-        return copy.deepcopy(self._state_dict)
+        return deepcopy(self._state_dict)
 
     def load_state_dict(self, state_dict: dict) -> None:
         """Load the state_dict of the dataset.
@@ -3330,7 +3432,7 @@ class IterableDataset(DatasetInfoMixin):
             info=self._info.copy(),
             split=self._split,
             formatting=FormattingConfig(format_type=type),
-            distributed=copy.deepcopy(self._distributed),
+            distributed=deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -3465,7 +3567,7 @@ class IterableDataset(DatasetInfoMixin):
             # apply formatting before iter_arrow to keep map examples iterable happy
             ex_iterable = FormattedExamplesIterable(
                 ex_iterable,
-                formatting=copy.deepcopy(self._formatting),
+                formatting=deepcopy(self._formatting),
                 features=input_features,
                 token_per_repo_id=self._token_per_repo_id,
             )
@@ -3485,7 +3587,7 @@ class IterableDataset(DatasetInfoMixin):
                 # apply formatting after iter_arrow to avoid re-encoding the examples
                 ex_iterable = FormattedExamplesIterable(
                     ex_iterable,
-                    formatting=copy.deepcopy(self._formatting),
+                    formatting=deepcopy(self._formatting),
                     features=input_features,
                     token_per_repo_id=self._token_per_repo_id,
                     force_convert_to_python=True,
@@ -3512,7 +3614,7 @@ class IterableDataset(DatasetInfoMixin):
             info=info,
             split=self._split,
             formatting=self._formatting,
-            distributed=copy.deepcopy(self._distributed),
+            distributed=deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -3597,12 +3699,16 @@ class IterableDataset(DatasetInfoMixin):
             info=self._info,
             split=self._split,
             formatting=self._formatting,
-            distributed=copy.deepcopy(self._distributed),
+            distributed=deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
     def shuffle(
-        self, seed=None, generator: Optional[np.random.Generator] = None, buffer_size: int = 1000
+        self,
+        seed=None,
+        generator: Optional[np.random.Generator] = None,
+        buffer_size: int = 1000,
+        max_buffer_input_shards: int = 10,
     ) -> "IterableDataset":
         """
         Randomly shuffles the elements of this dataset.
@@ -3616,9 +3722,12 @@ class IterableDataset(DatasetInfoMixin):
         selected, its space in the buffer is replaced by the next (i.e. 1,001-st) element,
         maintaining the 1000 element buffer.
 
-        If the dataset is made of several shards, it also does shuffle the order of the shards.
-        However if the order has been fixed by using [`~datasets.IterableDataset.skip`] or [`~datasets.IterableDataset.take`]
-        then the order of the shards is kept unchanged.
+        If the dataset is made of several shards, it fills the buffer using up to `max_buffer_input_shards` shards
+        at a time and also does shuffle the order of the shards. This greatly improves the quality of the shuffling.
+
+        However if the order has been fixed by using [`~datasets.IterableDataset.skip`]
+        or [`~datasets.IterableDataset.take`] then the order of the shards is kept unchanged and only one shard at
+        a time is used to fill the buffer.
 
         Args:
             seed (`int`, *optional*, defaults to `None`):
@@ -3629,6 +3738,8 @@ class IterableDataset(DatasetInfoMixin):
                 If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
             buffer_size (`int`, defaults to `1000`):
                 Size of the buffer.
+            max_buffer_input_shards (`int`, defaults to `101000`):
+                Maximum number of shards to use to feed the buffer at a time.
 
         Example:
 
@@ -3636,37 +3747,57 @@ class IterableDataset(DatasetInfoMixin):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
         >>> list(ds.take(3))
-        [{'label': 1,
-         'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
-         {'label': 1,
-         'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'},
-         {'label': 1, 'text': 'effective but too-tepid biopic'}]
+        [{'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .',
+         'label': 1},
+         {'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .',
+         'label': 1},
+         {'text': 'effective but too-tepid biopic', 'label': 1}]
         >>> shuffled_ds = ds.shuffle(seed=42)
         >>> list(shuffled_ds.take(3))
-        [{'label': 1,
-         'text': "a sports movie with action that's exciting on the field and a story you care about off it ."},
-         {'label': 1,
-         'text': 'at its best , the good girl is a refreshingly adult take on adultery . . .'},
-         {'label': 1,
-         'text': "sam jones became a very lucky filmmaker the day wilco got dropped from their record label , proving that one man's ruin may be another's fortune ."}]
+        [{'text': "a sports movie with action that's exciting on the field and a story you care about off it .",
+         'label': 1},
+         {'text': 'at its best , the good girl is a refreshingly adult take on adultery . . .',
+         'label': 1},
+         {'text': "sam jones became a very lucky filmmaker the day wilco got dropped from their record label , proving that one man's ruin may be another's fortune .",
+         'label': 1}]
+        >>> resharded_ds = ds.reshard()  # useful to shard Parquet datasets by row group instead of by file, improving shuffling quality on dataset with one or few files.
+        >>> shuffled_resharded_ds = resharded_ds.shuffle(seed=42)
+        >>> list(shuffled_resharded_ds.take(3))
+        [{'text': 'this mistaken-identity picture is so film-culture referential that the final product is a ghost .',
+         'label': 0},
+         {'text': 'woody allen used to ridicule movies like hollywood ending . now he makes them .',
+         'label': 0},
+         {'text': "not only is undercover brother as funny , if not more so , than both austin powers films , but it's also one of the smarter , savvier spoofs to come along in some time .",
+         'label': 1}]
         ```
         """
         if generator is None:
             generator = np.random.default_rng(seed)
         else:
             generator = deepcopy(generator)
+        ex_iterable = self._ex_iterable
+        try:
+            ex_iterable = ex_iterable.shuffle_data_sources(generator)
+        except DataSourcesShufflingDisallowed:
+            max_buffer_input_shards = 1
+        if ex_iterable.iter_arrow:
+            ex_iterable = RebatchedArrowExamplesIterable(ex_iterable, batch_size=1)
+        if max_buffer_input_shards > 1:
+            num_shards_to_interleave = min(ex_iterable.num_shards, max_buffer_input_shards)
+            ex_iterable = CyclingMultiSourcesExamplesIterable(
+                [
+                    ex_iterable.shard_data_sources(num_shards=num_shards_to_interleave, index=index)
+                    for index in range(num_shards_to_interleave)
+                ],
+                stopping_strategy="all_exhausted_without_replacement",
+            )
+        ex_iterable = BufferShuffledExamplesIterable(ex_iterable, buffer_size=buffer_size, generator=generator)
         return IterableDataset(
-            BufferShuffledExamplesIterable(
-                RebatchedArrowExamplesIterable(self._ex_iterable.shuffle_data_sources(generator), batch_size=1)
-                if self._ex_iterable.iter_arrow
-                else self._ex_iterable.shuffle_data_sources(generator),
-                buffer_size=buffer_size,
-                generator=generator,
-            ),
+            ex_iterable,
             info=self._info.copy(),
             split=self._split,
             formatting=self._formatting,
-            distributed=copy.deepcopy(self._distributed),
+            distributed=deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -3711,7 +3842,7 @@ class IterableDataset(DatasetInfoMixin):
             info=self._info.copy(),
             split=self._split,
             formatting=self._formatting,
-            distributed=copy.deepcopy(self._distributed),
+            distributed=deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -3753,7 +3884,7 @@ class IterableDataset(DatasetInfoMixin):
             info=self._info,
             split=self._split,
             formatting=self._formatting,
-            distributed=copy.deepcopy(self._distributed),
+            distributed=deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -3788,7 +3919,7 @@ class IterableDataset(DatasetInfoMixin):
             info=self._info.copy(),
             split=self._split,
             formatting=self._formatting,
-            distributed=copy.deepcopy(self._distributed),
+            distributed=deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -3844,7 +3975,7 @@ class IterableDataset(DatasetInfoMixin):
             info=self._info.copy(),
             split=self._split,
             formatting=self._formatting,
-            distributed=copy.deepcopy(self._distributed),
+            distributed=deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -3884,7 +4015,7 @@ class IterableDataset(DatasetInfoMixin):
             info=self._info.copy(),
             split=self._split,
             formatting=self._formatting,
-            distributed=copy.deepcopy(self._distributed),
+            distributed=deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -4019,7 +4150,7 @@ class IterableDataset(DatasetInfoMixin):
             column_names = [column_names]
 
         if self._info:
-            info = copy.deepcopy(self._info)
+            info = deepcopy(self._info)
             if self._info.features is not None:
                 missing_columns = set(column_names) - set(self._info.features.keys())
                 if missing_columns:
@@ -4082,7 +4213,7 @@ class IterableDataset(DatasetInfoMixin):
             info=info,
             split=self._split,
             formatting=self._formatting,
-            distributed=copy.deepcopy(self._distributed),
+            distributed=deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -4128,7 +4259,7 @@ class IterableDataset(DatasetInfoMixin):
             info=info,
             split=self._split,
             formatting=self._formatting,
-            distributed=copy.deepcopy(self._distributed),
+            distributed=deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -4232,7 +4363,7 @@ class IterableDataset(DatasetInfoMixin):
             info=self._info.copy(),
             split=self._split,
             formatting=self._formatting,
-            distributed=copy.deepcopy(self._distributed),
+            distributed=deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -4250,7 +4381,7 @@ class IterableDataset(DatasetInfoMixin):
             info=info,
             split=self._split,
             formatting=self._formatting,
-            distributed=copy.deepcopy(self._distributed),
+            distributed=deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -5091,7 +5222,7 @@ def _concatenate_iterable_datasets(
         {k: v for features in _align_features([dset.features for dset in dsets]) for k, v in features.items()}
     )
 
-    ex_iterables = [copy.deepcopy(d._ex_iterable) for d in dsets]
+    ex_iterables = [deepcopy(d._ex_iterable) for d in dsets]
     if axis == 0:
         ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
     else:
@@ -5172,7 +5303,7 @@ def _interleave_iterable_datasets(
         {k: v for features in _align_features([dset.features for dset in datasets]) for k, v in features.items()}
     )
 
-    ex_iterables = [copy.deepcopy(d._ex_iterable) for d in datasets]
+    ex_iterables = [deepcopy(d._ex_iterable) for d in datasets]
     if all(ex_iterable.iter_arrow for ex_iterable in ex_iterables):
         ex_iterables = [RebatchedArrowExamplesIterable(ex_iterable, batch_size=1) for ex_iterable in ex_iterables]
     # Use cycling or random cycling of sources
