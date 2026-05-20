@@ -24,3 +24,18 @@ def test_parquet_reshard(multi_row_groups_parquet_path):
     resharded_ds = ds.reshard()
     assert resharded_ds.num_shards == 4
     assert list(resharded_ds) == expected
+
+
+def test_parquet_columns(parquet_path):
+    ds = load_dataset("parquet", data_files=parquet_path, split="train", streaming=True)
+    full_features = ds.features
+    assert len(ds.features) == 3
+    assert len(next(iter(ds))) == 3
+    ds = load_dataset("parquet", data_files=parquet_path, split="train", streaming=True, columns=["col_1"])
+    assert len(ds.features) == 1
+    assert len(next(iter(ds))) == 1
+    ds = load_dataset(
+        "parquet", data_files=parquet_path, split="train", streaming=True, columns=["col_1"], features=full_features
+    )
+    assert len(ds.features) == 1
+    assert len(next(iter(ds))) == 1
