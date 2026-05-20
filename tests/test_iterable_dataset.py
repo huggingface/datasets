@@ -31,6 +31,7 @@ from datasets.iterable_dataset import (
     ArrowExamplesIterable,
     BufferShuffledExamplesIterable,
     CyclingMultiSourcesExamplesIterable,
+    DataSourcesShufflingDisallowed,
     ExamplesIterable,
     FilteredExamplesIterable,
     FormattedExamplesIterable,
@@ -390,6 +391,33 @@ def test_cycling_multi_sources_examples_iterable():
     assert next(iter(ex_iterable)) == expected[0]
     assert list(ex_iterable) == expected
     assert all((x["id"], x["text"]) == (i // 2, "bar" if i % 2 else "foo") for i, (_, x) in enumerate(ex_iterable))
+    assert_load_state_dict_resumes_iteration(ex_iterable)
+
+
+def test_sharded_cycling_multi_sources_examples_iterable():
+    ex_iterable1 = ExamplesIterable(
+        generate_examples_fn, {"text": "foo", "filepaths": [f"{i}.txt" for i in range(3)], "n": 2}
+    )
+    ex_iterable2 = ExamplesIterable(
+        generate_examples_fn, {"text": "bar", "filepaths": [f"{i}.txt" for i in range(2)], "n": 2}
+    )
+    ex_iterable = CyclingMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
+    expected = [
+        x
+        for i in range(2)
+        for x in chain(
+            *zip(
+                generate_examples_fn(text="foo", filepaths=[f"{i}.txt"], n=2),
+                generate_examples_fn(text="bar", filepaths=[f"{i}.txt"], n=2),
+            )
+        )
+    ]
+
+    # The cycling stops as soon as one iterable is out of examples (here ex_iterable2 since it has 2 shards and ex_iterable1 has 3)
+
+    assert next(iter(ex_iterable)) == expected[0]
+    assert list(ex_iterable) == expected
+    assert all(x["text"] == "bar" if i % 2 else "foo" for i, (_, x) in enumerate(ex_iterable))
     assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
@@ -1249,9 +1277,8 @@ def test_skip_examples_iterable():
     skip_ex_iterable = SkipExamplesIterable(base_ex_iterable, n=count)
     expected = list(generate_examples_fn(n=total))[count:]
     assert list(skip_ex_iterable) == expected
-    assert skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is skip_ex_iterable, (
-        "skip examples makes the shards order fixed"
-    )
+    with pytest.raises(DataSourcesShufflingDisallowed):
+        skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42))
     assert_load_state_dict_resumes_iteration(skip_ex_iterable)
 
 
@@ -1261,9 +1288,8 @@ def test_take_examples_iterable():
     take_ex_iterable = TakeExamplesIterable(base_ex_iterable, n=count)
     expected = list(generate_examples_fn(n=total))[:count]
     assert list(take_ex_iterable) == expected
-    assert take_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is take_ex_iterable, (
-        "skip examples makes the shards order fixed"
-    )
+    with pytest.raises(DataSourcesShufflingDisallowed):
+        take_ex_iterable.shuffle_data_sources(np.random.default_rng(42))
     assert_load_state_dict_resumes_iteration(take_ex_iterable)
 
 
@@ -1282,9 +1308,8 @@ def test_skip_arrow_examples_iterable():
     skip_ex_iterable = SkipExamplesIterable(base_ex_iterable, n=count)
     expected = [x for _, pa_table in generate_tables_fn(n=total) for x in pa_table.to_pylist()][count:]
     assert [example for _, example in skip_ex_iterable] == expected
-    assert skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is skip_ex_iterable, (
-        "skip examples makes the shards order fixed"
-    )
+    with pytest.raises(DataSourcesShufflingDisallowed):
+        skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42))
     assert_load_state_dict_resumes_iteration(skip_ex_iterable)
 
 
@@ -1294,9 +1319,8 @@ def test_take_arrow_examples_iterable():
     take_ex_iterable = TakeExamplesIterable(base_ex_iterable, n=count)
     expected = [x for _, pa_table in generate_tables_fn(n=total) for x in pa_table.to_pylist()][:count]
     assert [example for _, example in take_ex_iterable] == expected
-    assert take_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is take_ex_iterable, (
-        "skip examples makes the shards order fixed"
-    )
+    with pytest.raises(DataSourcesShufflingDisallowed):
+        take_ex_iterable.shuffle_data_sources(np.random.default_rng(42))
     assert_load_state_dict_resumes_iteration(take_ex_iterable)
 
 
@@ -1844,6 +1868,22 @@ def test_iterable_dataset_shuffle_with_multiple_workers_different_rng():
         assert len(set(values)) != 1, "Make sure not all values are identical"
 
 
+def test_iterable_dataset_shuffle_buffer_uses_multiple_input_shards():
+    ds = IterableDataset.from_dict({"i": range(100)}, num_shards=10)
+
+    shuffled_ds = ds.shuffle(buffer_size=10, seed=1234)
+    shard_indices_of_first_ten_examples = {i // 10 for i in shuffled_ds.take(10)["i"]}
+    assert len(shard_indices_of_first_ten_examples) == 7
+
+    shuffled_ds = ds.shuffle(buffer_size=10, seed=1234, max_buffer_input_shards=1)
+    shard_indices_of_first_ten_examples = {i // 10 for i in shuffled_ds.take(10)["i"]}
+    assert len(shard_indices_of_first_ten_examples) == 2
+
+    shuffled_ds = ds.shuffle(buffer_size=10, seed=1234, max_buffer_input_shards=4)
+    shard_indices_of_first_ten_examples = {i // 10 for i in shuffled_ds.take(10)["i"]}
+    assert len(shard_indices_of_first_ten_examples) == 4
+
+
 def gen_with_value(shard, value):
     for i in range(100):
         yield {"value": value}
@@ -2060,7 +2100,7 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, seed, epoch):
     buffer_size = 3
     dataset = deepcopy(dataset)
     dataset._ex_iterable.kwargs["filepaths"] = ["0.txt", "1.txt"]
-    dataset = dataset.shuffle(seed, buffer_size=buffer_size)
+    dataset = dataset.shuffle(seed, buffer_size=buffer_size, max_buffer_input_shards=1)
     # Effective seed is mix of seed and epoch
     if epoch is None or epoch == 0:
         effective_seed = seed
