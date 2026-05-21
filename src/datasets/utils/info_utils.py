@@ -1,5 +1,6 @@
 import enum
 import os
+import warnings
 from typing import Optional
 
 from huggingface_hub.utils import insecure_hashlib
@@ -59,7 +60,7 @@ def verify_checksums(expected_checksums: Optional[dict], recorded_checksums: dic
     logger.info("All the checksums matched successfully" + for_verification_name)
 
 
-def verify_splits(expected_splits: Optional[dict], recorded_splits: dict):
+def verify_splits(expected_splits: Optional[dict], recorded_splits: dict, user_provided_data_files: bool = False):
     if expected_splits is None:
         logger.info("Unable to verify splits sizes.")
         return
@@ -73,7 +74,21 @@ def verify_splits(expected_splits: Optional[dict], recorded_splits: dict):
         if expected_splits[name].num_examples != recorded_splits[name].num_examples
     ]
     if len(bad_splits) > 0:
-        raise NonMatchingSplitsSizesError(str(bad_splits))
+        # When the user explicitly provides data_files, a smaller recorded split is
+        # usually intentional (loading a known subset of a larger dataset). Downgrade
+        # the size mismatch to a warning so partial loads work without requiring
+        # verification_mode='no_checks', which silences every check.
+        undersized_only = all(split["recorded"].num_examples < split["expected"].num_examples for split in bad_splits)
+        if user_provided_data_files and undersized_only:
+            warnings.warn(
+                f"Recorded split sizes are smaller than expected: {bad_splits}. "
+                "This is expected when loading a subset of the dataset via the `data_files` argument. "
+                "Pass `verification_mode='no_checks'` to silence this warning.",
+                UserWarning,
+                stacklevel=2,
+            )
+        else:
+            raise NonMatchingSplitsSizesError(str(bad_splits))
     logger.info("All the splits matched successfully.")
 
 

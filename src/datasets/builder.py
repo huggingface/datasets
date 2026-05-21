@@ -949,7 +949,11 @@ class DatasetBuilder:
             dl_manager.manage_extracted_files()
 
         if verification_mode == VerificationMode.BASIC_CHECKS or verification_mode == VerificationMode.ALL_CHECKS:
-            verify_splits(self.info.splits, split_dict)
+            verify_splits(
+                self.info.splits,
+                split_dict,
+                user_provided_data_files=getattr(self.config, "data_files", None) is not None,
+            )
 
         # Update the info object with the splits.
         self.info.splits = split_dict
