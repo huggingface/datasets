@@ -7,6 +7,7 @@ from huggingface_hub.utils import insecure_hashlib
 from .arrow import arrow
 from .audiofolder import audiofolder
 from .cache import cache
+from .conll import conll
 from .csv import csv
 from .eval import eval
 from .hdf5 import hdf5
@@ -45,6 +46,7 @@ _PACKAGED_DATASETS_MODULES = {
     "parquet": (parquet.__name__, _hash_python_lines(inspect.getsource(parquet).splitlines())),
     "arrow": (arrow.__name__, _hash_python_lines(inspect.getsource(arrow).splitlines())),
     "text": (text.__name__, _hash_python_lines(inspect.getsource(text).splitlines())),
+    "conll": (conll.__name__, _hash_python_lines(inspect.getsource(conll).splitlines())),
     "imagefolder": (imagefolder.__name__, _hash_python_lines(inspect.getsource(imagefolder).splitlines())),
     "audiofolder": (audiofolder.__name__, _hash_python_lines(inspect.getsource(audiofolder).splitlines())),
     "videofolder": (videofolder.__name__, _hash_python_lines(inspect.getsource(videofolder).splitlines())),
@@ -82,6 +84,8 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".gpq": ("parquet", {}),
     ".arrow": ("arrow", {}),
     ".txt": ("text", {}),
+    ".conll": ("conll", {}),
+    ".conllu": ("conll", {"comment_prefix": "#"}),
     ".tar": ("webdataset", {}),
     ".xml": ("xml", {}),
     ".hdf5": ("hdf5", {}),
