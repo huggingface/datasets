@@ -7,7 +7,16 @@ import tempfile
 import unittest
 from contextlib import contextmanager
 from copy import deepcopy
-from distutils.util import strtobool
+try:
+    from distutils.util import strtobool
+except ImportError:
+    def strtobool(val):
+        val = val.lower().strip()
+        if val in ("y", "yes", "t", "true", "on", "1"):
+            return 1
+        if val in ("n", "no", "f", "false", "off", "0"):
+            return 0
+        raise ValueError(f"invalid truth value {val!r}")
 from enum import Enum
 from importlib.util import find_spec
 from pathlib import Path
@@ -246,6 +255,18 @@ def require_nibabel(test_case):
     """
     if not config.NIBABEL_AVAILABLE:
         test_case = unittest.skip("test requires nibabel")(test_case)
+    return test_case
+
+
+def require_zarr(test_case):
+    """
+    Decorator marking a test that requires zarr.
+
+    These tests are skipped when zarr isn't installed.
+
+    """
+    if not getattr(config, "ZARR_AVAILABLE", False):
+        test_case = unittest.skip("test requires zarr")(test_case)
     return test_case
 
 
