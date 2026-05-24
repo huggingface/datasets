@@ -192,7 +192,17 @@ class Image:
             image = PIL.Image.open(BytesIO(bytes_))
         image.load()  # to avoid "Too many open files" errors
         if image.getexif().get(PIL.Image.ExifTags.Base.Orientation) is not None:
-            image = PIL.ImageOps.exif_transpose(image)
+            try:
+                image = PIL.ImageOps.exif_transpose(image)
+            except Exception:
+                # Malformed EXIF data (e.g. rational tag with denominator=0) must not
+                # kill the streaming iterator.  Return the image without orientation fix.
+                warnings.warn(
+                    f"Could not apply EXIF orientation to image {value.get('path')!r}: "
+                    "corrupted EXIF data; returning image without orientation correction.",
+                    UserWarning,
+                    stacklevel=2,
+                )
         if self.mode and self.mode != image.mode:
             image = image.convert(self.mode)
         return image
