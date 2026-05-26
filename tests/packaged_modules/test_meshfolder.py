@@ -1,4 +1,5 @@
 import shutil
+import tempfile
 import textwrap
 
 import pytest
@@ -10,8 +11,9 @@ from datasets.packaged_modules.meshfolder.meshfolder import MeshFolder, MeshFold
 
 
 @pytest.fixture
-def cache_dir(tmp_path):
-    return str(tmp_path / "meshfolder_cache_dir")
+def cache_dir():
+    with tempfile.TemporaryDirectory(prefix="meshfolder_cache_") as tmpdir:
+        yield tmpdir
 
 
 @pytest.fixture
