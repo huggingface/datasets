@@ -8,7 +8,6 @@ from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
-import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
@@ -22,24 +21,23 @@ from datasets.builder import (
     DatasetBuilder,
     GeneratorBasedBuilder,
     InvalidConfigName,
+    Key,
 )
 from datasets.data_files import DataFilesList
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.download.download_manager import DownloadMode
-from datasets.features import Features, List, Value
-from datasets.info import DatasetInfo, PostProcessedInfo
+from datasets.features import Features, Value
+from datasets.info import DatasetInfo
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import configure_builder_class
 from datasets.splits import Split, SplitDict, SplitGenerator, SplitInfo
 from datasets.streaming import xjoin
 from datasets.utils.file_utils import is_local_path
-from datasets.utils.info_utils import VerificationMode
 from datasets.utils.logging import INFO, get_logger
 
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
-    require_faiss,
     set_current_working_directory_to_temp_dir,
 )
 
@@ -69,7 +67,7 @@ class DummyGeneratorBasedBuilder(GeneratorBasedBuilder):
 
     def _generate_examples(self):
         for i in range(100):
-            yield i, {"text": "foo"}
+            yield (0, i), {"text": "foo"}
 
 
 class DummyArrowBasedBuilder(ArrowBasedBuilder):
@@ -81,7 +79,7 @@ class DummyArrowBasedBuilder(ArrowBasedBuilder):
 
     def _generate_tables(self):
         for i in range(10):
-            yield i, pa.table({"text": ["foo"] * 10})
+            yield (0, i), pa.table({"text": ["foo"] * 10})
 
 
 class DummyGeneratorBasedBuilderWithIntegers(GeneratorBasedBuilder):
@@ -93,7 +91,7 @@ class DummyGeneratorBasedBuilderWithIntegers(GeneratorBasedBuilder):
 
     def _generate_examples(self):
         for i in range(100):
-            yield i, {"id": i}
+            yield (0, i), {"id": i}
 
 
 class DummyGeneratorBasedBuilderConfig(BuilderConfig):
@@ -114,7 +112,7 @@ class DummyGeneratorBasedBuilderWithConfig(GeneratorBasedBuilder):
 
     def _generate_examples(self):
         for i in range(100):
-            yield i, {"text": self.config.content * self.config.times}
+            yield (0, i), {"text": self.config.content * self.config.times}
 
 
 class DummyBuilderWithMultipleConfigs(DummyBuilder):
@@ -142,17 +140,6 @@ class DummyBuilderWithDownload(DummyBuilder):
         return [SplitGenerator(name=Split.TRAIN)]
 
 
-class DummyBuilderWithManualDownload(DummyBuilderWithMultipleConfigs):
-    @property
-    def manual_download_instructions(self):
-        return "To use the dataset you have to download some stuff manually and pass the data path to data_dir"
-
-    def _split_generators(self, dl_manager):
-        if not os.path.exists(self.config.data_dir):
-            raise FileNotFoundError(f"data_dir {self.config.data_dir} doesn't exist.")
-        return [SplitGenerator(name=Split.TRAIN)]
-
-
 class DummyArrowBasedBuilderWithShards(ArrowBasedBuilder):
     def _info(self):
         return DatasetInfo(features=Features({"id": Value("int8"), "filepath": Value("string")}))
@@ -161,11 +148,9 @@ class DummyArrowBasedBuilderWithShards(ArrowBasedBuilder):
         return [SplitGenerator(name=Split.TRAIN, gen_kwargs={"filepaths": [f"data{i}.txt" for i in range(4)]})]
 
     def _generate_tables(self, filepaths):
-        idx = 0
-        for filepath in filepaths:
+        for shard_idx, filepath in enumerate(filepaths):
             for i in range(10):
-                yield idx, pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
-                idx += 1
+                yield Key(shard_idx, i), pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
 
 
 class DummyGeneratorBasedBuilderWithShards(GeneratorBasedBuilder):
@@ -176,11 +161,9 @@ class DummyGeneratorBasedBuilderWithShards(GeneratorBasedBuilder):
         return [SplitGenerator(name=Split.TRAIN, gen_kwargs={"filepaths": [f"data{i}.txt" for i in range(4)]})]
 
     def _generate_examples(self, filepaths):
-        idx = 0
-        for filepath in filepaths:
+        for shard_idx, filepath in enumerate(filepaths):
             for i in range(100):
-                yield idx, {"id": i, "filepath": filepath}
-                idx += 1
+                yield Key(shard_idx, i), {"id": i, "filepath": filepath}
 
 
 class DummyArrowBasedBuilderWithAmbiguousShards(ArrowBasedBuilder):
@@ -199,11 +182,9 @@ class DummyArrowBasedBuilderWithAmbiguousShards(ArrowBasedBuilder):
         ]
 
     def _generate_tables(self, filepaths, dummy_kwarg_with_different_length):
-        idx = 0
-        for filepath in filepaths:
+        for shard_idx, filepath in enumerate(filepaths):
             for i in range(10):
-                yield idx, pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
-                idx += 1
+                yield Key(shard_idx, i), pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
 
 
 class DummyGeneratorBasedBuilderWithAmbiguousShards(GeneratorBasedBuilder):
@@ -222,11 +203,9 @@ class DummyGeneratorBasedBuilderWithAmbiguousShards(GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepaths, dummy_kwarg_with_different_length):
-        idx = 0
-        for filepath in filepaths:
+        for shard_idx, filepath in enumerate(filepaths):
             for i in range(100):
-                yield idx, {"id": i, "filepath": filepath}
-                idx += 1
+                yield Key(shard_idx, i), {"id": i, "filepath": filepath}
 
 
 def _run_concurrent_download_and_prepare(tmp_dir):
@@ -261,18 +240,14 @@ class BuilderTest(TestCase):
 
     def test_download_and_prepare_checksum_computation(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            builder_no_verification = DummyBuilder(cache_dir=tmp_dir)
-            builder_no_verification.download_and_prepare(download_mode=DownloadMode.FORCE_REDOWNLOAD)
+            builder_default = DummyBuilder(cache_dir=tmp_dir)
+            builder_default.download_and_prepare(download_mode=DownloadMode.FORCE_REDOWNLOAD)
+            self.assertIsNone(builder_default.info.download_checksums)
+            builder_with_checksums = DummyBuilder(cache_dir=tmp_dir)
+            builder_with_checksums._record_checksums = True
+            builder_with_checksums.download_and_prepare(download_mode=DownloadMode.FORCE_REDOWNLOAD)
             self.assertTrue(
-                all(v["checksum"] is not None for _, v in builder_no_verification.info.download_checksums.items())
-            )
-            builder_with_verification = DummyBuilder(cache_dir=tmp_dir)
-            builder_with_verification.download_and_prepare(
-                download_mode=DownloadMode.FORCE_REDOWNLOAD,
-                verification_mode=VerificationMode.ALL_CHECKS,
-            )
-            self.assertTrue(
-                all(v["checksum"] is None for _, v in builder_with_verification.info.download_checksums.items())
+                all(v["checksum"] is not None for _, v in builder_with_checksums.info.download_checksums.items())
             )
 
     def test_concurrent_download_and_prepare(self):
@@ -333,304 +308,6 @@ class BuilderTest(TestCase):
                 )
             )
 
-    def test_as_dataset_with_post_process(self):
-        def _post_process(self, dataset, resources_paths):
-            def char_tokenize(example):
-                return {"tokens": list(example["text"])}
-
-            return dataset.map(char_tokenize, cache_file_name=resources_paths["tokenized_dataset"])
-
-        def _post_processing_resources(self, split):
-            return {"tokenized_dataset": f"tokenized_dataset-{split}.arrow"}
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            builder = DummyBuilder(cache_dir=tmp_dir)
-            builder.info.post_processed = PostProcessedInfo(
-                features=Features({"text": Value("string"), "tokens": List(Value("string"))})
-            )
-            builder._post_process = types.MethodType(_post_process, builder)
-            builder._post_processing_resources = types.MethodType(_post_processing_resources, builder)
-            os.makedirs(builder.cache_dir)
-
-            builder.info.splits = SplitDict()
-            builder.info.splits.add(SplitInfo("train", num_examples=10))
-            builder.info.splits.add(SplitInfo("test", num_examples=10))
-
-            for split in builder.info.splits:
-                with ArrowWriter(
-                    path=os.path.join(builder.cache_dir, f"{builder.dataset_name}-{split}.arrow"),
-                    features=Features({"text": Value("string")}),
-                ) as writer:
-                    writer.write_batch({"text": ["foo"] * 10})
-                    writer.finalize()
-
-                with ArrowWriter(
-                    path=os.path.join(builder.cache_dir, f"tokenized_dataset-{split}.arrow"),
-                    features=Features({"text": Value("string"), "tokens": List(Value("string"))}),
-                ) as writer:
-                    writer.write_batch({"text": ["foo"] * 10, "tokens": [list("foo")] * 10})
-                    writer.finalize()
-
-            dsets = builder.as_dataset()
-            self.assertIsInstance(dsets, DatasetDict)
-            self.assertListEqual(list(dsets.keys()), ["train", "test"])
-            self.assertEqual(len(dsets["train"]), 10)
-            self.assertEqual(len(dsets["test"]), 10)
-            self.assertDictEqual(
-                dsets["train"].features, Features({"text": Value("string"), "tokens": List(Value("string"))})
-            )
-            self.assertDictEqual(
-                dsets["test"].features, Features({"text": Value("string"), "tokens": List(Value("string"))})
-            )
-            self.assertListEqual(dsets["train"].column_names, ["text", "tokens"])
-            self.assertListEqual(dsets["test"].column_names, ["text", "tokens"])
-            del dsets
-
-            dset = builder.as_dataset("train")
-            self.assertIsInstance(dset, Dataset)
-            self.assertEqual(dset.split, "train")
-            self.assertEqual(len(dset), 10)
-            self.assertDictEqual(dset.features, Features({"text": Value("string"), "tokens": List(Value("string"))}))
-            self.assertListEqual(dset.column_names, ["text", "tokens"])
-            self.assertGreater(builder.info.post_processing_size, 0)
-            self.assertGreater(
-                builder.info.post_processed.resources_checksums["train"]["tokenized_dataset"]["num_bytes"], 0
-            )
-            del dset
-
-            dset = builder.as_dataset("train+test[:30%]")
-            self.assertIsInstance(dset, Dataset)
-            self.assertEqual(dset.split, "train+test[:30%]")
-            self.assertEqual(len(dset), 13)
-            self.assertDictEqual(dset.features, Features({"text": Value("string"), "tokens": List(Value("string"))}))
-            self.assertListEqual(dset.column_names, ["text", "tokens"])
-            del dset
-
-            dset = builder.as_dataset("all")
-            self.assertIsInstance(dset, Dataset)
-            self.assertEqual(dset.split, "train+test")
-            self.assertEqual(len(dset), 20)
-            self.assertDictEqual(dset.features, Features({"text": Value("string"), "tokens": List(Value("string"))}))
-            self.assertListEqual(dset.column_names, ["text", "tokens"])
-            del dset
-
-        def _post_process(self, dataset, resources_paths):
-            return dataset.select([0, 1], keep_in_memory=True)
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            builder = DummyBuilder(cache_dir=tmp_dir)
-            builder._post_process = types.MethodType(_post_process, builder)
-            os.makedirs(builder.cache_dir)
-
-            builder.info.splits = SplitDict()
-            builder.info.splits.add(SplitInfo("train", num_examples=10))
-            builder.info.splits.add(SplitInfo("test", num_examples=10))
-
-            for split in builder.info.splits:
-                with ArrowWriter(
-                    path=os.path.join(builder.cache_dir, f"{builder.dataset_name}-{split}.arrow"),
-                    features=Features({"text": Value("string")}),
-                ) as writer:
-                    writer.write_batch({"text": ["foo"] * 10})
-                    writer.finalize()
-
-                with ArrowWriter(
-                    path=os.path.join(builder.cache_dir, f"small_dataset-{split}.arrow"),
-                    features=Features({"text": Value("string")}),
-                ) as writer:
-                    writer.write_batch({"text": ["foo"] * 2})
-                    writer.finalize()
-
-            dsets = builder.as_dataset()
-            self.assertIsInstance(dsets, DatasetDict)
-            self.assertListEqual(list(dsets.keys()), ["train", "test"])
-            self.assertEqual(len(dsets["train"]), 2)
-            self.assertEqual(len(dsets["test"]), 2)
-            self.assertDictEqual(dsets["train"].features, Features({"text": Value("string")}))
-            self.assertDictEqual(dsets["test"].features, Features({"text": Value("string")}))
-            self.assertListEqual(dsets["train"].column_names, ["text"])
-            self.assertListEqual(dsets["test"].column_names, ["text"])
-            del dsets
-
-            dset = builder.as_dataset("train")
-            self.assertIsInstance(dset, Dataset)
-            self.assertEqual(dset.split, "train")
-            self.assertEqual(len(dset), 2)
-            self.assertDictEqual(dset.features, Features({"text": Value("string")}))
-            self.assertListEqual(dset.column_names, ["text"])
-            del dset
-
-            dset = builder.as_dataset("train+test[:30%]")
-            self.assertIsInstance(dset, Dataset)
-            self.assertEqual(dset.split, "train+test[:30%]")
-            self.assertEqual(len(dset), 2)
-            self.assertDictEqual(dset.features, Features({"text": Value("string")}))
-            self.assertListEqual(dset.column_names, ["text"])
-            del dset
-
-    @require_faiss
-    def test_as_dataset_with_post_process_with_index(self):
-        def _post_process(self, dataset, resources_paths):
-            if os.path.exists(resources_paths["index"]):
-                dataset.load_faiss_index("my_index", resources_paths["index"])
-                return dataset
-            else:
-                dataset.add_faiss_index_from_external_arrays(
-                    external_arrays=np.ones((len(dataset), 8)), string_factory="Flat", index_name="my_index"
-                )
-                dataset.save_faiss_index("my_index", resources_paths["index"])
-                return dataset
-
-        def _post_processing_resources(self, split):
-            return {"index": f"Flat-{split}.faiss"}
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            builder = DummyBuilder(cache_dir=tmp_dir)
-            builder._post_process = types.MethodType(_post_process, builder)
-            builder._post_processing_resources = types.MethodType(_post_processing_resources, builder)
-            os.makedirs(builder.cache_dir)
-
-            builder.info.splits = SplitDict()
-            builder.info.splits.add(SplitInfo("train", num_examples=10))
-            builder.info.splits.add(SplitInfo("test", num_examples=10))
-
-            for split in builder.info.splits:
-                with ArrowWriter(
-                    path=os.path.join(builder.cache_dir, f"{builder.dataset_name}-{split}.arrow"),
-                    features=Features({"text": Value("string")}),
-                ) as writer:
-                    writer.write_batch({"text": ["foo"] * 10})
-                    writer.finalize()
-
-                with ArrowWriter(
-                    path=os.path.join(builder.cache_dir, f"small_dataset-{split}.arrow"),
-                    features=Features({"text": Value("string")}),
-                ) as writer:
-                    writer.write_batch({"text": ["foo"] * 2})
-                    writer.finalize()
-
-            dsets = builder.as_dataset()
-            self.assertIsInstance(dsets, DatasetDict)
-            self.assertListEqual(list(dsets.keys()), ["train", "test"])
-            self.assertEqual(len(dsets["train"]), 10)
-            self.assertEqual(len(dsets["test"]), 10)
-            self.assertDictEqual(dsets["train"].features, Features({"text": Value("string")}))
-            self.assertDictEqual(dsets["test"].features, Features({"text": Value("string")}))
-            self.assertListEqual(dsets["train"].column_names, ["text"])
-            self.assertListEqual(dsets["test"].column_names, ["text"])
-            self.assertListEqual(dsets["train"].list_indexes(), ["my_index"])
-            self.assertListEqual(dsets["test"].list_indexes(), ["my_index"])
-            self.assertGreater(builder.info.post_processing_size, 0)
-            self.assertGreater(builder.info.post_processed.resources_checksums["train"]["index"]["num_bytes"], 0)
-            del dsets
-
-            dset = builder.as_dataset("train")
-            self.assertIsInstance(dset, Dataset)
-            self.assertEqual(dset.split, "train")
-            self.assertEqual(len(dset), 10)
-            self.assertDictEqual(dset.features, Features({"text": Value("string")}))
-            self.assertListEqual(dset.column_names, ["text"])
-            self.assertListEqual(dset.list_indexes(), ["my_index"])
-            del dset
-
-            dset = builder.as_dataset("train+test[:30%]")
-            self.assertIsInstance(dset, Dataset)
-            self.assertEqual(dset.split, "train+test[:30%]")
-            self.assertEqual(len(dset), 13)
-            self.assertDictEqual(dset.features, Features({"text": Value("string")}))
-            self.assertListEqual(dset.column_names, ["text"])
-            self.assertListEqual(dset.list_indexes(), ["my_index"])
-            del dset
-
-    def test_download_and_prepare_with_post_process(self):
-        def _post_process(self, dataset, resources_paths):
-            def char_tokenize(example):
-                return {"tokens": list(example["text"])}
-
-            return dataset.map(char_tokenize, cache_file_name=resources_paths["tokenized_dataset"])
-
-        def _post_processing_resources(self, split):
-            return {"tokenized_dataset": f"tokenized_dataset-{split}.arrow"}
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            builder = DummyBuilder(cache_dir=tmp_dir)
-            builder.info.post_processed = PostProcessedInfo(
-                features=Features({"text": Value("string"), "tokens": List(Value("string"))})
-            )
-            builder._post_process = types.MethodType(_post_process, builder)
-            builder._post_processing_resources = types.MethodType(_post_processing_resources, builder)
-            builder.download_and_prepare(download_mode=DownloadMode.FORCE_REDOWNLOAD)
-            self.assertTrue(
-                os.path.exists(
-                    os.path.join(
-                        tmp_dir, builder.dataset_name, "default", "0.0.0", f"{builder.dataset_name}-train.arrow"
-                    )
-                )
-            )
-            self.assertDictEqual(builder.info.features, Features({"text": Value("string")}))
-            self.assertDictEqual(
-                builder.info.post_processed.features,
-                Features({"text": Value("string"), "tokens": List(Value("string"))}),
-            )
-            self.assertEqual(builder.info.splits["train"].num_examples, 100)
-            self.assertTrue(
-                os.path.exists(os.path.join(tmp_dir, builder.dataset_name, "default", "0.0.0", "dataset_info.json"))
-            )
-
-        def _post_process(self, dataset, resources_paths):
-            return dataset.select([0, 1], keep_in_memory=True)
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            builder = DummyBuilder(cache_dir=tmp_dir)
-            builder._post_process = types.MethodType(_post_process, builder)
-            builder.download_and_prepare(download_mode=DownloadMode.FORCE_REDOWNLOAD)
-            self.assertTrue(
-                os.path.exists(
-                    os.path.join(
-                        tmp_dir, builder.dataset_name, "default", "0.0.0", f"{builder.dataset_name}-train.arrow"
-                    )
-                )
-            )
-            self.assertDictEqual(builder.info.features, Features({"text": Value("string")}))
-            self.assertIsNone(builder.info.post_processed)
-            self.assertEqual(builder.info.splits["train"].num_examples, 100)
-            self.assertTrue(
-                os.path.exists(os.path.join(tmp_dir, builder.dataset_name, "default", "0.0.0", "dataset_info.json"))
-            )
-
-        def _post_process(self, dataset, resources_paths):
-            if os.path.exists(resources_paths["index"]):
-                dataset.load_faiss_index("my_index", resources_paths["index"])
-                return dataset
-            else:
-                dataset = dataset.add_faiss_index_from_external_arrays(
-                    external_arrays=np.ones((len(dataset), 8)), string_factory="Flat", index_name="my_index"
-                )
-                dataset.save_faiss_index("my_index", resources_paths["index"])
-                return dataset
-
-        def _post_processing_resources(self, split):
-            return {"index": f"Flat-{split}.faiss"}
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            builder = DummyBuilder(cache_dir=tmp_dir)
-            builder._post_process = types.MethodType(_post_process, builder)
-            builder._post_processing_resources = types.MethodType(_post_processing_resources, builder)
-            builder.download_and_prepare(download_mode=DownloadMode.FORCE_REDOWNLOAD)
-            self.assertTrue(
-                os.path.exists(
-                    os.path.join(
-                        tmp_dir, builder.dataset_name, "default", "0.0.0", f"{builder.dataset_name}-train.arrow"
-                    )
-                )
-            )
-            self.assertDictEqual(builder.info.features, Features({"text": Value("string")}))
-            self.assertIsNone(builder.info.post_processed)
-            self.assertEqual(builder.info.splits["train"].num_examples, 100)
-            self.assertTrue(
-                os.path.exists(os.path.join(tmp_dir, builder.dataset_name, "default", "0.0.0", "dataset_info.json"))
-            )
-
     def test_error_download_and_prepare(self):
         def _prepare_split(self, split_generator, **kwargs):
             raise ValueError()
@@ -665,26 +342,6 @@ class BuilderTest(TestCase):
             self.assertTrue(
                 os.path.exists(os.path.join(tmp_dir, builder.dataset_name, "default", "0.0.0", "dataset_info.json"))
             )
-
-        # Test that duplicated keys are ignored if verification_mode is "no_checks"
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir)
-            with patch("datasets.builder.ArrowWriter", side_effect=ArrowWriter) as mock_arrow_writer:
-                builder.download_and_prepare(
-                    download_mode=DownloadMode.FORCE_REDOWNLOAD, verification_mode=VerificationMode.NO_CHECKS
-                )
-                mock_arrow_writer.assert_called_once()
-                args, kwargs = mock_arrow_writer.call_args_list[0]
-                self.assertFalse(kwargs["check_duplicates"])
-
-                mock_arrow_writer.reset_mock()
-
-                builder.download_and_prepare(
-                    download_mode=DownloadMode.FORCE_REDOWNLOAD, verification_mode=VerificationMode.BASIC_CHECKS
-                )
-                mock_arrow_writer.assert_called_once()
-                args, kwargs = mock_arrow_writer.call_args_list[0]
-                self.assertTrue(kwargs["check_duplicates"])
 
     def test_cache_dir_no_args(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -803,16 +460,16 @@ class BuilderTest(TestCase):
 
     def test_cache_dir_for_data_dir(self):
         with tempfile.TemporaryDirectory() as tmp_dir, tempfile.TemporaryDirectory() as data_dir:
-            builder = DummyBuilderWithManualDownload(cache_dir=tmp_dir, config_name="a", data_dir=data_dir)
-            other_builder = DummyBuilderWithManualDownload(cache_dir=tmp_dir, config_name="a", data_dir=data_dir)
+            builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, config_name="a", data_dir=data_dir)
+            other_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, config_name="a", data_dir=data_dir)
             self.assertEqual(builder.cache_dir, other_builder.cache_dir)
-            other_builder = DummyBuilderWithManualDownload(cache_dir=tmp_dir, config_name="a", data_dir=tmp_dir)
+            other_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, config_name="a", data_dir=tmp_dir)
             self.assertNotEqual(builder.cache_dir, other_builder.cache_dir)
 
     def test_cache_dir_for_configured_builder(self):
         with tempfile.TemporaryDirectory() as tmp_dir, tempfile.TemporaryDirectory() as data_dir:
             builder_cls = configure_builder_class(
-                DummyBuilderWithManualDownload,
+                DummyGeneratorBasedBuilder,
                 builder_configs=[BuilderConfig(data_dir=data_dir)],
                 default_config_name=None,
                 dataset_name="dummy",
@@ -1072,6 +729,8 @@ def test_generator_based_builder_download_and_prepare_sharded(tmp_path):
         builder.download_and_prepare(file_format="parquet")
     expected_num_shards = 100 // writer_batch_size
     assert builder.info.splits["train"].num_examples == 100
+    assert builder.info.splits["train"].shard_lengths == [25] * 4
+    assert builder.info.splits["train"].original_shard_lengths is None
     parquet_path = os.path.join(
         tmp_path,
         builder.dataset_name,
@@ -1120,6 +779,7 @@ def test_generator_based_builder_download_and_prepare_with_num_proc(tmp_path):
     expected_num_shards = 2
     assert builder.info.splits["train"].num_examples == 400
     assert builder.info.splits["train"].shard_lengths == [200, 200]
+    assert builder.info.splits["train"].original_shard_lengths == [100] * 4
     arrow_path = os.path.join(
         tmp_path,
         builder.dataset_name,
@@ -1162,6 +822,8 @@ def test_arrow_based_builder_download_and_prepare_sharded(tmp_path):
         builder.download_and_prepare(file_format="parquet")
     expected_num_shards = 10
     assert builder.info.splits["train"].num_examples == 100
+    assert builder.info.splits["train"].shard_lengths == [10] * 10
+    assert builder.info.splits["train"].original_shard_lengths is None
     parquet_path = os.path.join(
         tmp_path,
         builder.dataset_name,
@@ -1209,6 +871,7 @@ def test_arrow_based_builder_download_and_prepare_with_num_proc(tmp_path):
     expected_num_shards = 2
     assert builder.info.splits["train"].num_examples == 400
     assert builder.info.splits["train"].shard_lengths == [200, 200]
+    assert builder.info.splits["train"].original_shard_lengths == [100] * 4
     arrow_path = os.path.join(
         tmp_path,
         builder.dataset_name,

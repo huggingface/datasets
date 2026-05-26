@@ -29,8 +29,7 @@ class VerificationMode(enum.Enum):
 
     |                           | Verification checks                                                           |
     |---------------------------|------------------------------------------------------------------------------ |
-    | `ALL_CHECKS`              | Split checks, uniqueness of the keys yielded in case of the GeneratorBuilder  |
-    |                           | and the validity (number of files, checksums, etc.) of downloaded files       |
+    | `ALL_CHECKS`              | Split checks and validity (number of files, checksums) of downloaded files    |
     | `BASIC_CHECKS` (default)  | Same as `ALL_CHECKS` but without checking downloaded files                    |
     | `NO_CHECKS`               | None                                                                          |
 
@@ -78,7 +77,7 @@ def verify_splits(expected_splits: Optional[dict], recorded_splits: dict):
     logger.info("All the splits matched successfully.")
 
 
-def get_size_checksum_dict(path: str, record_checksum: bool = True) -> dict:
+def get_size_checksum_dict(path: str, record_checksum: bool = False) -> dict:
     """Compute the file size and the sha256 checksum of a file"""
     if record_checksum:
         m = insecure_hashlib.sha256()

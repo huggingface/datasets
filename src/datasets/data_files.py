@@ -94,8 +94,11 @@ DEFAULT_PATTERNS_ALL = {
     Split.TRAIN: ["**"],
 }
 
+DEFAULT_PATTERNS_LOGS = {"logs": ["**/*.eval"]}
+
 ALL_SPLIT_PATTERNS = [SPLIT_PATTERN_SHARDED]
 ALL_DEFAULT_PATTERNS = [
+    DEFAULT_PATTERNS_LOGS,
     DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME,
     DEFAULT_PATTERNS_SPLIT_IN_FILENAME,
     DEFAULT_PATTERNS_ALL,
@@ -138,7 +141,10 @@ def sanitize_patterns(patterns: Union[dict, list, str]) -> dict[str, Union[list[
                     and isinstance(pattern.get("path"), (str, list))
                 ):
                     raise ValueError(
-                        f"Expected each split to have a 'path' key which can be a string or a list of strings, but got {pattern}"
+                        "Invalid format for data_files entry. "
+                        "Each item must be a dictionary with the structure "
+                        "{'split': <split_name>, 'path': <path_or_list_of_paths>}.\n"
+                        f"Received: {pattern}"
                     )
             splits = [pattern["split"] for pattern in patterns]
             if len(set(splits)) != len(splits):
@@ -359,14 +365,24 @@ def resolve_pattern(
     if protocol == "hf":
         # 10 times faster glob with detail=True (ignores costly info like lastCommit)
         glob_kwargs["expand_info"] = False
-    matched_paths = [
-        filepath if "://" in filepath else protocol_prefix + filepath
-        for filepath, info in fs.glob(pattern, detail=True, **glob_kwargs).items()
-        if (info["type"] == "file" or (info.get("islink") and os.path.isfile(os.path.realpath(filepath))))
-        and (xbasename(filepath) not in files_to_ignore)
-        and not _is_inside_unrequested_special_dir(filepath, fs_pattern)
-        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(filepath, fs_pattern)
-    ]  # ignore .ipynb and __pycache__, but keep /../
+
+    # if the pattern contains hops like "zip://csv/*.csv::data.zip", we need to keep them after globbing
+    _, *rest_hops = pattern.split("::")
+    matched_paths = []
+    for filepath, info in fs.glob(fs_pattern, detail=True, **glob_kwargs).items():
+        if not (info["type"] == "file" or (info.get("islink") and os.path.isfile(os.path.realpath(filepath)))) or (
+            xbasename(filepath) in files_to_ignore
+        ):
+            continue
+        if _is_inside_unrequested_special_dir(filepath, fs_pattern):
+            continue
+        if _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(filepath, fs_pattern):
+            continue
+        filepath = filepath if "://" in filepath else protocol_prefix + filepath
+        if rest_hops:
+            filepath = "::".join([filepath] + rest_hops)
+        matched_paths.append(filepath)
+    # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [
             filepath
@@ -483,17 +499,19 @@ def _get_single_origin_metadata(
     data_file: str,
     download_config: Optional[DownloadConfig] = None,
 ) -> SingleOriginMetadata:
-    data_file, storage_options = _prepare_path_and_storage_options(data_file, download_config=download_config)
-    fs, *_ = url_to_fs(data_file, **storage_options)
+    if data_file.startswith(config.HF_ENDPOINT):
+        fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
+        data_file = "hf://" + data_file[len(config.HF_ENDPOINT) + 1 :]
+        data_file = data_file.replace("/resolve/", "/" if data_file.startswith("hf://buckets/") else "@", 1)
+        fs_path = data_file
+    else:
+        data_file, storage_options = _prepare_path_and_storage_options(data_file, download_config=download_config)
+        fs, fs_path = url_to_fs(data_file, **storage_options)
     if isinstance(fs, HfFileSystem):
-        resolved_path = fs.resolve_path(data_file)
-        return resolved_path.repo_id, resolved_path.revision
-    elif data_file.startswith(config.HF_ENDPOINT):
-        hffs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
-        data_file = "hf://" + data_file[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
-        resolved_path = hffs.resolve_path(data_file)
-        return resolved_path.repo_id, resolved_path.revision
-    info = fs.info(data_file)
+        resolved_path = fs.resolve_path(fs_path)
+        if hasattr(resolved_path, "revision"):  # no revision for buckets
+            return resolved_path.repo_id, resolved_path.revision
+    info = fs.info(fs_path)
     # s3fs uses "ETag", gcsfs uses "etag", and for local we simply check mtime
     for key in ["ETag", "etag", "mtime"]:
         if key in info:

@@ -128,3 +128,22 @@ def test_load_zipped_file_locally(shared_datadir):
 
     ds = load_dataset("niftifolder", data_files=nifti_path)
     assert isinstance(ds["train"][0]["nifti"], nib.nifti1.Nifti1Image)
+
+
+@require_nibabel
+def test_nifti_lazy_loading(shared_datadir):
+    import nibabel as nib
+    import numpy as np
+
+    nifti_path = str(shared_datadir / "test_nifti.nii.gz")
+    nifti = Nifti()
+    encoded_example = nifti.encode_example(nifti_path)
+    decoded_example = nifti.decode_example(encoded_example)
+
+    # Verify that the data object is an ArrayProxy (lazy) and not a numpy array (dense)
+    assert nib.is_proxy(decoded_example.dataobj)
+    assert not isinstance(decoded_example.dataobj, np.ndarray)
+
+    # Verify that we can still access the data
+    data = decoded_example.get_fdata()
+    assert data.shape == (80, 80, 10)

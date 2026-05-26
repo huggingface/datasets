@@ -230,6 +230,17 @@ DATA_STR = [
     {"col_1": "s3", "col_2": 3, "col_3": 3.0},
 ]
 
+DATA_MISSING_FIELDS = [
+    {"col_1": 1, "col_2": 2},
+    {"col_1": 1, "col_3": 3},
+]
+
+DATA_MIXED_TYPES = [
+    {"col_1": 1, "col_2": {"a": "a"}, "col_3": [{"x": "x"}]},
+    {"col_1": "one", "col_2": {"b": "b"}, "col_3": [{"y": "y"}]},
+    {"col_1": None, "col_2": None, "col_3": [None]},
+]
+
 
 @pytest.fixture(scope="session")
 def dataset_dict():
@@ -337,6 +348,26 @@ def parquet_path(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def multi_row_groups_parquet_path(tmp_path_factory):
+    num_row_groups = 4
+    path = str(tmp_path_factory.mktemp("data") / "multi_row_groups_dataset.parquet")
+    schema = pa.schema(
+        {
+            "col_1": pa.string(),
+            "col_2": pa.int64(),
+            "col_3": pa.float64(),
+        }
+    )
+    with open(path, "wb") as f:
+        writer = pq.ParquetWriter(f, schema=schema)
+        pa_table = pa.Table.from_pydict({k: [DATA[i][k] for i in range(len(DATA))] for k in DATA[0]}, schema=schema)
+        for _ in range(num_row_groups):
+            writer.write_table(pa_table)
+        writer.close()
+    return path
+
+
+@pytest.fixture(scope="session")
 def geoparquet_path(tmp_path_factory):
     df = pd.read_parquet(path="https://github.com/opengeospatial/geoparquet/raw/v1.0.0/examples/example.parquet")
     path = str(tmp_path_factory.mktemp("data") / "dataset.geoparquet")
@@ -394,6 +425,24 @@ def jsonl_str_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset-str.jsonl")
     with open(path, "w") as f:
         for item in DATA_STR:
+            f.write(json.dumps(item) + "\n")
+    return path
+
+
+@pytest.fixture(scope="session")
+def jsonl_missing_fields_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset-missing-fields.jsonl")
+    with open(path, "w") as f:
+        for item in DATA_MISSING_FIELDS:
+            f.write(json.dumps(item) + "\n")
+    return path
+
+
+@pytest.fixture(scope="session")
+def jsonl_mixed_types_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset-mixed-types.jsonl")
+    with open(path, "w") as f:
+        for item in DATA_MIXED_TYPES:
             f.write(json.dumps(item) + "\n")
     return path
 

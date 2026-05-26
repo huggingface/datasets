@@ -13,14 +13,16 @@
 # Lint as: python3
 """To write records into Parquet files."""
 
+import io
 import json
 import sys
 from collections.abc import Iterable
-from typing import Any, Optional, Union
+from typing import Any, Literal, Optional
 
 import fsspec
 import numpy as np
 import pyarrow as pa
+import pyarrow.json as paj
 import pyarrow.parquet as pq
 from fsspec.core import url_to_fs
 
@@ -36,13 +38,23 @@ from .features.features import (
     get_nested_type,
     list_of_np_array_to_pyarrow_listarray,
     numpy_to_pyarrow_listarray,
+    require_storage_embed,
     to_pyarrow_listarray,
 )
 from .filesystems import is_remote_filesystem
 from .info import DatasetInfo
-from .keyhash import DuplicatedKeysError, KeyHasher
 from .table import array_cast, cast_array_to_feature, embed_table_storage, table_cast
 from .utils import logging
+from .utils.json import (
+    find_mixed_struct_types_field_paths,
+    get_json_field_path_from_pyarrow_json_error,
+    get_json_field_paths_from_feature,
+    insert_json_field_path,
+    json_encode_field,
+    json_encode_fields_in_json_lines,
+    set_json_types_in_feature,
+    ujson_dumps,
+)
 from .utils.py_utils import asdict, convert_file_size_to_int, first_non_null_non_empty_value
 
 
@@ -151,7 +163,7 @@ def get_writer_batch_size_from_data_size(num_rows: int, num_bytes: int) -> int:
         writer_batch_size (`Optional[int]`):
             Writer batch size to pass to a parquet writer.
     """
-    return max(10, num_rows * convert_file_size_to_int(config.MAX_ROW_GROUP_SIZE) // num_bytes) if num_bytes > 0 else 1
+    return max(1, num_rows * convert_file_size_to_int(config.MAX_ROW_GROUP_SIZE) // num_bytes) if num_bytes > 0 else 1
 
 
 class SchemaInferenceError(ValueError):
@@ -204,6 +216,7 @@ class TypedSequence:
         type: Optional[FeatureType] = None,
         try_type: Optional[FeatureType] = None,
         optimized_int_type: Optional[FeatureType] = None,
+        on_mixed_types: Optional[Literal["use_json"]] = None,
     ):
         # assert type is None or try_type is None,
         if type is not None and try_type is not None:
@@ -213,6 +226,7 @@ class TypedSequence:
         self.type = type
         self.try_type = try_type  # is ignored if it doesn't match the data
         self.optimized_int_type = optimized_int_type
+        self.on_mixed_types = on_mixed_types
         # when trying a type (is ignored if data is not compatible)
         self.trying_type = self.try_type is not None
         self.trying_int_optimization = optimized_int_type is not None and type is None and try_type is None
@@ -231,7 +245,7 @@ class TypedSequence:
             FeatureType: inferred feature type of the sequence.
         """
         if self._inferred_type is None:
-            self._inferred_type = generate_from_arrow_type(pa.array(self).type)
+            pa.array(self)
         return self._inferred_type
 
     @staticmethod
@@ -274,6 +288,12 @@ class TypedSequence:
         return data, None
 
     def __arrow_array__(self, type: Optional[pa.DataType] = None):
+        out = self._arrow_array(type=type)
+        if self._inferred_type is None:
+            self._inferred_type = generate_from_arrow_type(out.type)
+        return out
+
+    def _arrow_array(self, type: Optional[pa.DataType] = None):
         """This function is called when calling pa.array(typed_sequence)"""
 
         if type is not None:
@@ -292,6 +312,7 @@ class TypedSequence:
             get_nested_type(self.optimized_int_type) if self.optimized_int_type is not None else None
         )
         trying_cast_to_python_objects = False
+        json_field_paths = []
         try:
             # custom pyarrow types
             if isinstance(pa_type, _ArrayXDExtensionType):
@@ -305,7 +326,25 @@ class TypedSequence:
                 out = list_of_np_array_to_pyarrow_listarray(data)
             else:
                 trying_cast_to_python_objects = True
-                out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
+                examples = data
+                # find fields to json-encode
+                if self.on_mixed_types == "use_json" and type is None:
+                    json_field_paths = find_mixed_struct_types_field_paths(examples, allow_root=True)
+                elif type is not None:
+                    json_field_paths = get_json_field_paths_from_feature(type)
+                # json encode if needed
+                if json_field_paths:
+                    for json_field_path in json_field_paths:
+                        examples = [json_encode_field(examples, json_field_path) for examples in examples]
+                # to arrow array
+                out = pa.array(cast_to_python_objects(examples, only_1d_for_numpy=True))
+                # cast to json type if needed
+                if json_field_paths:
+                    pa_table = pa.Table.from_arrays([out], names=["obj"])
+                    features = Features.from_arrow_schema(pa_table.schema)
+                    feature = set_json_types_in_feature(features["obj"], json_field_paths)
+                    pa_table = table_cast(pa_table, Features({"obj": feature}).arrow_schema)
+                    out = pa_table[0]  # get the "obj" column
             # use smaller integer precisions if possible
             if self.trying_int_optimization:
                 if pa.types.is_int64(out.type):
@@ -326,6 +365,7 @@ class TypedSequence:
             return out
         except (
             TypeError,
+            pa.lib.ArrowTypeError,
             pa.lib.ArrowInvalid,
             pa.lib.ArrowNotImplementedError,
         ) as e:  # handle type errors and overflows
@@ -372,8 +412,46 @@ class TypedSequence:
                 optimized_int_pa_type_str = np.dtype(optimized_int_pa_type.to_pandas_dtype()).name
                 logger.info(f"Failed to cast a sequence to {optimized_int_pa_type_str}. Falling back to int64.")
                 return out
-            elif trying_cast_to_python_objects and "Could not convert" in str(e):
-                out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False))
+            elif trying_cast_to_python_objects and (
+                "Could not convert" in str(e) or "cannot mix struct and non-struct" in str(e) or "Expected " in str(e)
+            ):
+                try:  # third chance
+                    out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False))
+                except (pa.ArrowInvalid, pa.ArrowTypeError) as ee:
+                    # in case of mixed types, we use the JSON Lines reader in pyarrow to locate them and set them to json fields
+                    if self.on_mixed_types == "use_json" and (
+                        "Could not convert " in str(ee)
+                        or "cannot mix struct and non-struct" in str(ee)
+                        or "Expected " in str(ee)
+                    ):
+                        # we use "obj" to have valid JSON Lines since data may contain lists
+                        original_batch = "\n".join([ujson_dumps({"obj": example}) for example in data]).encode()
+                        json_field_paths = [["obj"] + json_field_path for json_field_path in json_field_paths]
+                        batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
+                        pa_table = None
+                        while True:
+                            try:  # fourth chance
+                                pa_table = paj.read_json(
+                                    io.BytesIO(batch), read_options=paj.ReadOptions(use_threads=False)
+                                )
+                                break
+                            except pa.ArrowInvalid as eee:
+                                if "JSON parse error: Column(" in str(eee) and ") changed from" in str(eee):
+                                    json_field_path = get_json_field_path_from_pyarrow_json_error(str(eee))
+                                    insert_json_field_path(json_field_paths, json_field_path)
+                                    batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
+                                else:
+                                    break
+                        if pa_table is not None:
+                            features = Features.from_arrow_schema(pa_table.schema)
+                            features = set_json_types_in_feature(features, json_field_paths)
+                            pa_table = table_cast(pa_table, features.arrow_schema)
+                            out = pa_table[0]  # get the "obj" column
+                            return out
+                        else:
+                            raise
+                    else:
+                        raise
                 if type is not None:
                     out = cast_array_to_feature(out, type, allow_primitive_to_str=True, allow_decimal_to_str=True)
                 return out
@@ -389,6 +467,7 @@ class OptimizedTypedSequence(TypedSequence):
         try_type: Optional[FeatureType] = None,
         col: Optional[str] = None,
         optimized_int_type: Optional[FeatureType] = None,
+        on_mixed_types: Optional[Literal["use_json"]] = None,
     ):
         optimized_int_type_by_col = {
             "attention_mask": Value("int8"),  # binary tensor
@@ -400,7 +479,9 @@ class OptimizedTypedSequence(TypedSequence):
         }
         if type is None and try_type is None:
             optimized_int_type = optimized_int_type_by_col.get(col, None)
-        super().__init__(data, type=type, try_type=try_type, optimized_int_type=optimized_int_type)
+        super().__init__(
+            data, type=type, try_type=try_type, optimized_int_type=optimized_int_type, on_mixed_types=on_mixed_types
+        )
 
 
 class ArrowWriter:
@@ -414,10 +495,9 @@ class ArrowWriter:
         stream: Optional[pa.NativeFile] = None,
         fingerprint: Optional[str] = None,
         writer_batch_size: Optional[int] = None,
-        hash_salt: Optional[str] = None,
-        check_duplicates: Optional[bool] = False,
         disable_nullable: bool = False,
         update_features: bool = False,
+        on_mixed_types: Optional[Literal["use_json"]] = "use_json",
         with_metadata: bool = True,
         unit: str = "examples",
         embed_local_files: bool = False,
@@ -435,13 +515,6 @@ class ArrowWriter:
             self._features = None
             self._schema = None
 
-        if hash_salt is not None:
-            # Create KeyHasher instance using split name as hash salt
-            self._hasher = KeyHasher(hash_salt)
-        else:
-            self._hasher = KeyHasher("")
-
-        self._check_duplicates = check_duplicates
         self._disable_nullable = disable_nullable
 
         if stream is None:
@@ -464,6 +537,7 @@ class ArrowWriter:
             or config.DEFAULT_MAX_BATCH_SIZE
         )
         self.update_features = update_features
+        self.on_mixed_types = on_mixed_types
         self.with_metadata = with_metadata
         self.unit = unit
         self.embed_local_files = embed_local_files
@@ -578,7 +652,7 @@ class ArrowWriter:
                     row[0][col].to_pylist()[0] if isinstance(row[0][col], (pa.Array, pa.ChunkedArray)) else row[0][col]
                     for row in self.current_examples
                 ]
-        self.write_batch(batch_examples=batch_examples)
+        self._write_batch(batch_examples=batch_examples)
         self.current_examples = []
 
     def write_rows_on_file(self):
@@ -586,56 +660,26 @@ class ArrowWriter:
         if not self.current_rows:
             return
         table = pa.concat_tables(self.current_rows)
-        self.write_table(table)
+        self._write_table(table)
         self.current_rows = []
 
     def write(
         self,
         example: dict[str, Any],
-        key: Optional[Union[str, int, bytes]] = None,
         writer_batch_size: Optional[int] = None,
     ):
         """Add a given (Example,Key) pair to the write-pool of examples which is written to file.
 
         Args:
             example: the Example to add.
-            key: Optional, a unique identifier(str, int or bytes) associated with each example
         """
-        # Utilize the keys and duplicate checking when `self._check_duplicates` is passed True
-        if self._check_duplicates:
-            # Create unique hash from key and store as (key, example) pairs
-            hash = self._hasher.hash(key)
-            self.current_examples.append((example, hash))
-            # Maintain record of keys and their respective hashes for checking duplicates
-            self.hkey_record.append((hash, key))
-        else:
-            # Store example as a tuple so as to keep the structure of `self.current_examples` uniform
-            self.current_examples.append((example, ""))
+        # Store example as a tuple so as to keep the structure of `self.current_examples` uniform
+        self.current_examples.append((example, ""))
 
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
         if writer_batch_size is not None and len(self.current_examples) >= writer_batch_size:
-            if self._check_duplicates:
-                self.check_duplicate_keys()
-                # Re-initializing to empty list for next batch
-                self.hkey_record = []
-
             self.write_examples_on_file()
-
-    def check_duplicate_keys(self):
-        """Raises error if duplicates found in a batch"""
-        tmp_record = set()
-        for hash, key in self.hkey_record:
-            if hash in tmp_record:
-                duplicate_key_indices = [
-                    str(self._num_examples + index)
-                    for index, (duplicate_hash, _) in enumerate(self.hkey_record)
-                    if duplicate_hash == hash
-                ]
-
-                raise DuplicatedKeysError(key, duplicate_key_indices)
-            else:
-                tmp_record.add(hash)
 
     def write_row(self, row: pa.Table, writer_batch_size: Optional[int] = None):
         """Add a given single-row Table to the write-pool of rows which is written to file.
@@ -665,6 +709,15 @@ class ArrowWriter:
             batch_examples: the batch of examples to add.
             try_original_type: use `try_type` when instantiating OptimizedTypedSequence if `True`, otherwise `try_type = None`.
         """
+        self.write_examples_on_file()  # in case there are buffered examples to write first
+        self._write_batch(batch_examples, writer_batch_size=writer_batch_size, try_original_type=try_original_type)
+
+    def _write_batch(
+        self,
+        batch_examples: dict[str, list],
+        writer_batch_size: Optional[int] = None,
+        try_original_type: Optional[bool] = True,
+    ):
         if batch_examples and len(next(iter(batch_examples.values()))) == 0:
             return
         features = None if self.pa_writer is None and self.update_features else self._features
@@ -693,7 +746,9 @@ class ArrowWriter:
                     if try_features is not None and col in try_features and try_original_type
                     else None
                 )
-                typed_sequence = OptimizedTypedSequence(col_values, type=col_type, try_type=col_try_type, col=col)
+                typed_sequence = OptimizedTypedSequence(
+                    col_values, type=col_type, try_type=col_try_type, col=col, on_mixed_types=self.on_mixed_types
+                )
                 arrays.append(pa.array(typed_sequence))
                 inferred_features[col] = typed_sequence.get_inferred_type()
         schema = inferred_features.arrow_schema if self.pa_writer is None else self.schema
@@ -706,6 +761,10 @@ class ArrowWriter:
         Args:
             example: the Table to add.
         """
+        self.write_rows_on_file()  # in case there are buffered rows to write first
+        self._write_table(pa_table, writer_batch_size=writer_batch_size)
+
+    def _write_table(self, pa_table: pa.Table, writer_batch_size: Optional[int] = None):
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
         if self.pa_writer is None:
@@ -713,7 +772,7 @@ class ArrowWriter:
         pa_table = pa_table.combine_chunks()
         pa_table = table_cast(pa_table, self._schema)
         if self.embed_local_files:
-            pa_table = embed_table_storage(pa_table)
+            pa_table = embed_table_storage(pa_table, local_files=True, remote_files=False)
         self._num_bytes += pa_table.nbytes
         self._num_examples += pa_table.num_rows
         self.pa_writer.write_table(pa_table, writer_batch_size)
@@ -721,10 +780,6 @@ class ArrowWriter:
     def finalize(self, close_stream=True):
         self.write_rows_on_file()
         # In case current_examples < writer_batch_size, but user uses finalize()
-        if self._check_duplicates:
-            self.check_duplicate_keys()
-            # Re-initializing to empty list for next batch
-            self.hkey_record = []
         self.write_examples_on_file()
         # If schema is known, infer features even if no examples were written
         if self.pa_writer is None and self.schema:
@@ -759,6 +814,13 @@ class ParquetWriter(ArrowWriter):
             self._schema,
             use_content_defined_chunking=self.use_content_defined_chunking,
             write_page_index=self.write_page_index,
+            compression={
+                col: "none" if require_storage_embed(feature) else "snappy" for col, feature in self._features.items()
+            },
+            use_dictionary=[col for col, feature in self._features.items() if not require_storage_embed(feature)],
+            column_encoding={
+                col: "PLAIN" for col, feature in self._features.items() if require_storage_embed(feature)
+            },
         )
         if self.use_content_defined_chunking is not False:
             self.pa_writer.add_key_value_metadata(

@@ -22,17 +22,17 @@ import inspect
 import os
 import posixpath
 import shutil
-import textwrap
 import time
 import urllib
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterator
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 from unittest.mock import patch
 
 import fsspec
+import pyarrow as pa
 from fsspec.core import url_to_fs
 from multiprocess import Pool
 from tqdm.contrib.concurrent import thread_map
@@ -49,16 +49,15 @@ from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadManager, DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager, xjoin
-from .exceptions import DatasetGenerationCastError, DatasetGenerationError, FileFormatError, ManualDownloadError
+from .exceptions import DatasetGenerationCastError, DatasetGenerationError, FileFormatError
 from .features import Features
 from .filesystems import (
     is_remote_filesystem,
     rename,
 )
 from .fingerprint import Hasher
-from .info import DatasetInfo, PostProcessedInfo
+from .info import DatasetInfo
 from .iterable_dataset import ArrowExamplesIterable, ExamplesIterable, IterableDataset
-from .keyhash import DuplicatedKeysError
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator, SplitInfo
 from .streaming import extend_dataset_builder_for_streaming
@@ -67,7 +66,7 @@ from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils._filelock import FileLock
 from .utils.file_utils import is_remote_url
-from .utils.info_utils import VerificationMode, get_size_checksum_dict, verify_checksums, verify_splits
+from .utils.info_utils import VerificationMode, verify_checksums, verify_splits
 from .utils.py_utils import (
     classproperty,
     convert_file_size_to_int,
@@ -298,6 +297,9 @@ class DatasetBuilder:
     # None means that the ArrowWriter will use its default value
     DEFAULT_WRITER_BATCH_SIZE = None
 
+    # Useful to make sure PyArrow threads in c++ have time to shut down before gargabe collection
+    SLEEP_ON_THREADS_SHUTDOWNS = False
+
     def __init__(
         self,
         cache_dir: Optional[str] = None,
@@ -407,7 +409,7 @@ class DatasetBuilder:
         self.dl_manager = None
 
         # Set to True by "datasets-cli test" to generate file checksums for (deprecated) dataset_infos.json independently of verification_mode value.
-        self._record_infos = False
+        self._record_checksums = False
 
         # Set in `.download_and_prepare` once the format of the generated dataset is known
         self._file_format = None
@@ -422,16 +424,6 @@ class DatasetBuilder:
         self.__dict__ = d
         # Re-enable streaming, since patched functions are not kept when pickling
         extend_dataset_builder_for_streaming(self)
-
-    # Must be set for datasets that use 'data_dir' functionality - the ones
-    # that require users to do additional steps to download the data
-    # (this is usually due to some external regulations / rules).
-    # This field should contain a string with user instructions, including
-    # the list of files that should be present. It will be
-    # displayed in the dataset documentation.
-    @property
-    def manual_download_instructions(self) -> Optional[str]:
-        return None
 
     def _check_legacy_cache(self) -> Optional[str]:
         """Check for the old cache directory template {cache_dir}/{namespace}___{builder_name} from 2.13"""
@@ -816,7 +808,7 @@ class DatasetBuilder:
                 download_config=download_config,
                 data_dir=self.config.data_dir,
                 base_path=base_path,
-                record_checksums=(self._record_infos or verification_mode == VerificationMode.ALL_CHECKS),
+                record_checksums=self._record_checksums,
             )
 
         is_local = not is_remote_filesystem(self._fs)
@@ -837,7 +829,6 @@ class DatasetBuilder:
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
                 self.info = self._load_info()
-                self.download_post_processing_resources(dl_manager)
                 return
 
             logger.info(f"Generating dataset {self.dataset_name} ({self._output_dir})")
@@ -846,7 +837,7 @@ class DatasetBuilder:
                     self.info.size_in_bytes or 0, directory=Path(self._output_dir).parent
                 ):
                     raise OSError(
-                        f"Not enough disk space. Needed: {size_str(self.info.size_in_bytes or 0)} (download: {size_str(self.info.download_size or 0)}, generated: {size_str(self.info.dataset_size or 0)}, post-processed: {size_str(self.info.post_processing_size or 0)})"
+                        f"Not enough disk space. Needed: {size_str(self.info.size_in_bytes or 0)} (download: {size_str(self.info.download_size or 0)}, generated: {size_str(self.info.dataset_size or 0)}"
                     )
 
             @contextlib.contextmanager
@@ -875,14 +866,11 @@ class DatasetBuilder:
                 logger.info(
                     f"Downloading and preparing dataset {self.dataset_name}/{self.config.name} "
                     f"(download: {size_str(self.info.download_size)}, generated: {size_str(self.info.dataset_size)}, "
-                    f"post-processed: {size_str(self.info.post_processing_size)}, "
                     f"total: {size_str(self.info.size_in_bytes)}) to {self._output_dir}..."
                 )
             else:
                 _dest = self._fs._strip_protocol(self._output_dir) if is_local else self._output_dir
                 logger.info(f"Downloading and preparing dataset {self.dataset_name}/{self.config.name} to {_dest}...")
-
-            self._check_manual_download(dl_manager)
 
             # Create a tmp dir and rename to self._output_dir on successful exit.
             with incomplete_dir(self._output_dir) as tmp_output_dir:
@@ -902,31 +890,16 @@ class DatasetBuilder:
                     )
                     # Sync info
                     self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
-                    self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
+                    if dl_manager.record_checksums:
+                        self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
                     if self.info.download_size is not None:
                         self.info.size_in_bytes = self.info.dataset_size + self.info.download_size
                     # Save info
                     self._save_info()
 
-            # Download post processing resources
-            self.download_post_processing_resources(dl_manager)
-
             logger.info(
                 f"Dataset {self.dataset_name} downloaded and prepared to {self._output_dir}. "
                 f"Subsequent calls will reuse this data."
-            )
-
-    def _check_manual_download(self, dl_manager):
-        if self.manual_download_instructions is not None and dl_manager.manual_dir is None:
-            raise ManualDownloadError(
-                textwrap.dedent(
-                    f"""\
-                    The dataset {self.dataset_name} with config {self.config.name} requires manual data.
-                    Please follow the manual download instructions:
-                     {self.manual_download_instructions}
-                    Manual data can be loaded with:
-                     datasets.load_dataset("{self.repo_id or self.dataset_name}", data_dir="<path/to/manual/data>")"""
-                )
             )
 
     def _download_and_prepare(self, dl_manager, verification_mode, **prepare_split_kwargs):
@@ -948,7 +921,7 @@ class DatasetBuilder:
         # Generating data for all splits
         split_dict = SplitDict(dataset_name=self.dataset_name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
-        split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
+        split_generators: list[SplitGenerator] = self._split_generators(dl_manager, **split_generators_kwargs)
 
         # Checksums verification
         if verification_mode == VerificationMode.ALL_CHECKS and dl_manager.record_checksums:
@@ -972,19 +945,7 @@ class DatasetBuilder:
                 # Prepare split will record examples associated to the split
                 self._prepare_split(split_generator, **prepare_split_kwargs)
             except OSError as e:
-                raise OSError(
-                    "Cannot find data file. "
-                    + (self.manual_download_instructions or "")
-                    + "\nOriginal error:\n"
-                    + str(e)
-                ) from None
-            # If check_duplicates is set to True , then except DuplicatedKeysError
-            except DuplicatedKeysError as e:
-                raise DuplicatedKeysError(
-                    e.key,
-                    e.duplicate_key_indices,
-                    fix_msg=f"To avoid duplicate keys, please fix the dataset splits for {self.name}",
-                ) from None
+                raise OSError("Cannot find data file. " + "\nOriginal error:\n" + str(e)) from None
             dl_manager.manage_extracted_files()
 
         if verification_mode == VerificationMode.BASIC_CHECKS or verification_mode == VerificationMode.ALL_CHECKS:
@@ -993,22 +954,6 @@ class DatasetBuilder:
         # Update the info object with the splits.
         self.info.splits = split_dict
         self.info.download_size = dl_manager.downloaded_size
-
-    def download_post_processing_resources(self, dl_manager):
-        for split in self.info.splits or []:
-            for resource_name, resource_file_name in self._post_processing_resources(split).items():
-                if not not is_remote_filesystem(self._fs):
-                    raise NotImplementedError(f"Post processing is not supported on filesystem {self._fs}")
-                if os.sep in resource_file_name:
-                    raise ValueError(f"Resources shouldn't be in a sub-directory: {resource_file_name}")
-                resource_path = os.path.join(self._output_dir, resource_file_name)
-                if not os.path.exists(resource_path):
-                    downloaded_resource_path = self._download_post_processing_resources(
-                        split, resource_name, dl_manager
-                    )
-                    if downloaded_resource_path:
-                        logger.info(f"Downloaded post-processing resource {resource_name} as {resource_file_name}")
-                        shutil.move(downloaded_resource_path, resource_path)
 
     def _load_info(self) -> DatasetInfo:
         return DatasetInfo.from_directory(self._output_dir, storage_options=self._fs.storage_options)
@@ -1030,8 +975,6 @@ class DatasetBuilder:
     def as_dataset(
         self,
         split: Optional[Union[str, Split, list[str], list[Split]]] = None,
-        run_post_process=True,
-        verification_mode: Optional[Union[VerificationMode, str]] = None,
         in_memory=False,
     ) -> Union[Dataset, DatasetDict]:
         """Return a Dataset for the specified split.
@@ -1039,9 +982,6 @@ class DatasetBuilder:
         Args:
             split (`datasets.Split`):
                 Which subset of the data to return.
-            run_post_process (`bool`, defaults to `True`):
-                Whether to run post-processing dataset transforms and/or add
-                indexes.
             verification_mode ([`VerificationMode`] or `str`, defaults to `BASIC_CHECKS`):
                 Verification mode determining the checks to run on the
                 downloaded/processed dataset information (checksums/size/splits/...).
@@ -1084,14 +1024,10 @@ class DatasetBuilder:
         if split is None:
             split = {s: s for s in self.info.splits}
 
-        verification_mode = VerificationMode(verification_mode or VerificationMode.BASIC_CHECKS)
-
         # Create a dataset for each of the given splits
         datasets = map_nested(
             partial(
                 self._build_single_dataset,
-                run_post_process=run_post_process,
-                verification_mode=verification_mode,
                 in_memory=in_memory,
             ),
             split,
@@ -1105,8 +1041,6 @@ class DatasetBuilder:
     def _build_single_dataset(
         self,
         split: Union[str, ReadInstruction, Split],
-        run_post_process: bool,
-        verification_mode: VerificationMode,
         in_memory: bool = False,
     ):
         """as_dataset for a single split."""
@@ -1121,54 +1055,6 @@ class DatasetBuilder:
             split=split,
             in_memory=in_memory,
         )
-        if run_post_process:
-            for resource_file_name in self._post_processing_resources(split).values():
-                if os.sep in resource_file_name:
-                    raise ValueError(f"Resources shouldn't be in a sub-directory: {resource_file_name}")
-            resources_paths = {
-                resource_name: os.path.join(self._output_dir, resource_file_name)
-                for resource_name, resource_file_name in self._post_processing_resources(split).items()
-            }
-            post_processed = self._post_process(ds, resources_paths)
-            if post_processed is not None:
-                ds = post_processed
-                recorded_checksums = {}
-                record_checksums = False
-                for resource_name, resource_path in resources_paths.items():
-                    size_checksum = get_size_checksum_dict(resource_path)
-                    recorded_checksums[resource_name] = size_checksum
-                if verification_mode == VerificationMode.ALL_CHECKS and record_checksums:
-                    if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
-                        expected_checksums = None
-                    else:
-                        expected_checksums = self.info.post_processed.resources_checksums.get(split)
-                    verify_checksums(expected_checksums, recorded_checksums, "post processing resources")
-                if self.info.post_processed is None:
-                    self.info.post_processed = PostProcessedInfo()
-                if self.info.post_processed.resources_checksums is None:
-                    self.info.post_processed.resources_checksums = {}
-                self.info.post_processed.resources_checksums[str(split)] = recorded_checksums
-                self.info.post_processing_size = sum(
-                    checksums_dict["num_bytes"]
-                    for split_checksums_dicts in self.info.post_processed.resources_checksums.values()
-                    for checksums_dict in split_checksums_dicts.values()
-                )
-                if self.info.dataset_size is not None and self.info.download_size is not None:
-                    self.info.size_in_bytes = (
-                        self.info.dataset_size + self.info.download_size + self.info.post_processing_size
-                    )
-                self._save_info()
-                ds._info.post_processed = self.info.post_processed
-                ds._info.post_processing_size = self.info.post_processing_size
-                ds._info.size_in_bytes = self.info.size_in_bytes
-                if self.info.post_processed.features is not None:
-                    if self.info.post_processed.features.type != ds.features.type:
-                        raise ValueError(
-                            f"Post-processed features info don't match the dataset:\nGot\n{self.info.post_processed.features}\nbut expected something like\n{ds.features}"
-                        )
-                    else:
-                        ds.info.features = self.info.post_processed.features
-
         return ds
 
     def _as_dataset(self, split: Union[ReadInstruction, Split] = Split.TRAIN, in_memory: bool = False) -> Dataset:
@@ -1224,7 +1110,6 @@ class DatasetBuilder:
             dataset_name=self.dataset_name,
             data_dir=self.config.data_dir,
         )
-        self._check_manual_download(dl_manager)
         splits_generators = {sg.name: sg for sg in self._split_generators(dl_manager)}
         # By default, return all splits
         if split is None:
@@ -1254,20 +1139,6 @@ class DatasetBuilder:
         return IterableDataset(
             ex_iterable, info=self.info, split=splits_generator.name, token_per_repo_id=token_per_repo_id
         )
-
-    def _post_process(self, dataset: Dataset, resources_paths: Mapping[str, str]) -> Optional[Dataset]:
-        """Run dataset transforms or add indexes"""
-        return None
-
-    def _post_processing_resources(self, split: str) -> dict[str, str]:
-        """Mapping resource_name -> resource_file_name"""
-        return {}
-
-    def _download_post_processing_resources(
-        self, split: str, resource_name: str, dl_manager: DownloadManager
-    ) -> Optional[str]:
-        """Download the resource using the download manager and return the downloaded path."""
-        return None
 
     @abc.abstractmethod
     def _split_generators(self, dl_manager: Union[DownloadManager, StreamingDownloadManager]):
@@ -1356,6 +1227,15 @@ class DatasetBuilder:
         raise NotImplementedError()
 
 
+@dataclass
+class Key:
+    original_shard_id: int
+    item_or_batch_id: int
+
+    def __str__(self):
+        return str((self.original_shard_id, self.item_or_batch_id))
+
+
 class GeneratorBasedBuilder(DatasetBuilder):
     """Base class for datasets with data generation based on dict generators.
 
@@ -1365,8 +1245,28 @@ class GeneratorBasedBuilder(DatasetBuilder):
     (`_split_generators`). See the method docstrings for details.
     """
 
+    def _generate_shards(self, **kwargs) -> Iterator[Union[str, dict[str, Any]]]:
+        """Default function generating shards paths for each `SplitGenerator`.
+
+        This function is useful to list the original shards from where the data
+        comes from and is either converted to Arrow or streamed to an IterableDataset.
+
+        This is optional and only used for certain utilities, but not in Dataset
+        nor IterableDataset. E.g. it's used to map original shard files to Parquet
+        files in the Dataset Viewer after conversion.
+
+        Args:
+            **kwargs (additional keyword arguments):
+                Arguments forwarded from the SplitGenerator.gen_kwargs
+
+        Yields:
+            shard: generally a string representing the shard path, or a dict
+                representing the shard in case of shards spanning intra or inter-files.
+        """
+        raise NotImplementedError()
+
     @abc.abstractmethod
-    def _generate_examples(self, **kwargs):
+    def _generate_examples(self, **kwargs) -> Iterator[tuple[Key, dict[str, Any]]]:
         """Default function generating examples for each `SplitGenerator`.
 
         This function preprocess the examples from the raw data to the preprocessed
@@ -1399,7 +1299,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
     def _prepare_split(
         self,
         split_generator: SplitGenerator,
-        check_duplicate_keys: bool,
         file_format="arrow",
         num_proc: Optional[int] = None,
         max_shard_size: Optional[Union[int, str]] = None,
@@ -1416,17 +1315,17 @@ class GeneratorBasedBuilder(DatasetBuilder):
         fpath = posixpath.join(self._output_dir, fname)
 
         if num_proc and num_proc > 1:
-            num_input_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
-            if num_input_shards <= 1:
+            num_original_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
+            if num_original_shards <= 1:
                 logger.warning(
                     f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
                 )
                 num_proc = 1
-            elif num_input_shards < num_proc:
+            elif num_original_shards < num_proc:
                 logger.warning(
-                    f"Setting num_proc from {num_proc} to {num_input_shards} for the {split_info.name} split as it only contains {num_input_shards} shards."
+                    f"Setting num_proc from {num_proc} to {num_original_shards} for the {split_info.name} split as it only contains {num_original_shards} shards."
                 )
-                num_proc = num_input_shards
+                num_proc = num_original_shards
 
         pbar = hf_tqdm(
             unit=" examples",
@@ -1439,7 +1338,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
             "file_format": file_format,
             "max_shard_size": max_shard_size,
             "split_info": split_info,
-            "check_duplicate_keys": check_duplicate_keys,
         }
 
         if num_proc is None or num_proc == 1:
@@ -1456,9 +1354,15 @@ class GeneratorBasedBuilder(DatasetBuilder):
                         pbar.update(content)
             # wrapping everything into lists for consistency with the multiprocessed code path
             assert result is not None, "Failed to retrieve results from prepare_split"
-            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = (
-                [item] for item in result
-            )
+            (
+                examples_per_job,
+                bytes_per_job,
+                features_per_job,
+                shards_per_job,
+                shard_lengths_per_job,
+                original_shards_per_job,
+                original_shard_lengths_per_job,
+            ) = ([item] for item in result)
         else:
             kwargs_per_job = [
                 {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
@@ -1473,6 +1377,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
             features_per_job = [None] * num_jobs
             shards_per_job = [None] * num_jobs
             shard_lengths_per_job = [None] * num_jobs
+            original_shards_per_job = [None] * num_jobs
+            original_shard_lengths_per_job = [None] * num_jobs
 
             with Pool(num_proc) as pool:
                 with pbar:
@@ -1487,6 +1393,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
                                 features_per_job[job_id],
                                 shards_per_job[job_id],
                                 shard_lengths_per_job[job_id],
+                                original_shards_per_job[job_id],
+                                original_shard_lengths_per_job[job_id],
                             ) = content
                         else:
                             # the content is the number of examples progress update
@@ -1497,6 +1405,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             )
 
         total_shards = sum(shards_per_job)
+        total_original_shards = sum(original_shards_per_job)
         total_num_examples = sum(examples_per_job)
         total_num_bytes = sum(bytes_per_job)
         features = features_per_job[0]
@@ -1535,6 +1444,13 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 fpath.replace(SUFFIX, ""),
             )
 
+        if total_original_shards > 1 and config.SAVE_ORIGINAL_SHARD_LENGTHS:
+            split_generator.split_info.original_shard_lengths = [
+                original_shard_length
+                for original_shard_lengths in original_shard_lengths_per_job
+                for original_shard_length in original_shard_lengths
+            ]
+
         if self.info.features is None:
             self.info.features = features
 
@@ -1545,30 +1461,31 @@ class GeneratorBasedBuilder(DatasetBuilder):
         file_format: str,
         max_shard_size: int,
         split_info: SplitInfo,
-        check_duplicate_keys: bool,
         job_id: int,
-    ) -> Iterable[tuple[int, bool, Union[int, tuple]]]:
+    ) -> Iterator[tuple[int, bool, tuple[int, int, Features, int, int, int]]]:
         generator = self._generate_examples(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
         shard_lengths = []
+        original_shard_lengths = []
         total_num_examples, total_num_bytes = 0, 0
 
         shard_id = 0
+        original_shard_id = 0
         num_examples_progress_update = 0
         try:
             writer = writer_class(
                 features=self.info.features,
                 path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
                 writer_batch_size=self._writer_batch_size,
-                hash_salt=split_info.name,
-                check_duplicates=check_duplicate_keys,
                 storage_options=self._fs.storage_options,
                 embed_local_files=embed_local_files,
             )
             try:
                 _time = time.time()
                 for key, record in generator:
+                    if isinstance(key, Key):  # old custom builders may not use Key
+                        original_shard_id = key.original_shard_id
                     if max_shard_size is not None and writer._num_bytes > max_shard_size:
                         num_examples, num_bytes = writer.finalize()
                         writer.close()
@@ -1580,13 +1497,14 @@ class GeneratorBasedBuilder(DatasetBuilder):
                             features=writer._features,
                             path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
                             writer_batch_size=self._writer_batch_size,
-                            hash_salt=split_info.name,
-                            check_duplicates=check_duplicate_keys,
                             storage_options=self._fs.storage_options,
                             embed_local_files=embed_local_files,
                         )
                     example = self.info.features.encode_example(record) if self.info.features is not None else record
-                    writer.write(example, key)
+                    writer.write(example)
+                    if len(original_shard_lengths) <= original_shard_id:
+                        original_shard_lengths.extend([0] * (1 + original_shard_id - len(original_shard_lengths)))
+                    original_shard_lengths[original_shard_id] += 1
                     num_examples_progress_update += 1
                     if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()
@@ -1595,6 +1513,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             finally:
                 yield job_id, False, num_examples_progress_update
                 num_shards = shard_id + 1
+                num_original_shards = original_shard_id + 1
                 num_examples, num_bytes = writer.finalize()
                 writer.close()
                 shard_lengths.append(num_examples)
@@ -1606,26 +1525,60 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 e = e.__context__
             raise DatasetGenerationError("An error occurred while generating the dataset") from e
 
-        yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
+        yield (
+            job_id,
+            True,
+            (
+                total_num_examples,
+                total_num_bytes,
+                writer._features,
+                num_shards,
+                shard_lengths,
+                num_original_shards,
+                original_shard_lengths,
+            ),
+        )
 
     def _download_and_prepare(self, dl_manager, verification_mode, **prepare_splits_kwargs):
         super()._download_and_prepare(
             dl_manager,
             verification_mode,
-            check_duplicate_keys=verification_mode == VerificationMode.BASIC_CHECKS
-            or verification_mode == VerificationMode.ALL_CHECKS,
             **prepare_splits_kwargs,
         )
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
-        return ExamplesIterable(self._generate_examples, split_generator.gen_kwargs)
+        return ExamplesIterable(
+            self._generate_examples,
+            split_generator.gen_kwargs,
+            generate_more_kwargs_fn=getattr(self, "_generate_more_gen_kwargs", None),
+        )
 
 
 class ArrowBasedBuilder(DatasetBuilder):
     """Base class for datasets with data generation based on Arrow loading functions (CSV/JSON/Parquet)."""
 
+    def _generate_shards(self, **kwargs) -> Iterator[Union[str, dict[str, Any]]]:
+        """Default function generating shards paths for each `SplitGenerator`.
+
+        This function is useful to list the original shards from where the data
+        comes from and is either converted to Arrow or streamed to an IterableDataset.
+
+        This is optional and only used for certain utilities, but not in Dataset
+        nor IterableDataset. E.g. it's used to map original shard files to Parquet
+        files in the Dataset Viewer after conversion.
+
+        Args:
+            **kwargs (additional keyword arguments):
+                Arguments forwarded from the SplitGenerator.gen_kwargs
+
+        Yields:
+            shard: generally a string representing the shard path, or a dict
+                representing the shard in case of shards spanning intra or inter-files.
+        """
+        raise NotImplementedError()
+
     @abc.abstractmethod
-    def _generate_tables(self, **kwargs):
+    def _generate_tables(self, **kwargs) -> Iterator[tuple[Key, pa.Table]]:
         """Default function generating examples for each `SplitGenerator`.
 
         This function preprocess the examples from the raw data to the preprocessed
@@ -1639,16 +1592,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                 Arguments forwarded from the SplitGenerator.gen_kwargs
 
         Yields:
-            key: `str` or `int`, a unique deterministic example identification key.
-                * Unique: An error will be raised if two examples are yield with the
-                    same key.
-                * Deterministic: When generating the dataset twice, the same example
-                    should have the same key.
-                Good keys can be the image id, or line number if examples are extracted
-                from a text file.
-                The key will be hashed and sorted to shuffle examples deterministically,
-                such as generating the dataset multiple times keep examples in the
-                same order.
+            key: tuple[int, int] original_shard_id and table_idx within that shard
             example: `pyarrow.Table`, a feature table
                 ready to be encoded and written to disk.
         """
@@ -1673,17 +1617,17 @@ class ArrowBasedBuilder(DatasetBuilder):
         fpath = posixpath.join(self._output_dir, fname)
 
         if num_proc and num_proc > 1:
-            num_input_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
-            if num_input_shards <= 1:
+            num_original_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
+            if num_original_shards <= 1:
                 logger.warning(
                     f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
                 )
                 num_proc = 1
-            elif num_input_shards < num_proc:
+            elif num_original_shards < num_proc:
                 logger.warning(
-                    f"Setting num_proc from {num_proc} to {num_input_shards} for the {split_info.name} split as it only contains {num_input_shards} shards."
+                    f"Setting num_proc from {num_proc} to {num_original_shards} for the {split_info.name} split as it only contains {num_original_shards} shards."
                 )
-                num_proc = num_input_shards
+                num_proc = num_original_shards
 
         pbar = hf_tqdm(
             unit=" examples",
@@ -1711,9 +1655,15 @@ class ArrowBasedBuilder(DatasetBuilder):
                         pbar.update(content)
             # wrapping everything into lists for consistency with the multiprocessed code path
             assert result is not None, "Failed to retrieve results from prepare_split"
-            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = (
-                [item] for item in result
-            )
+            (
+                examples_per_job,
+                bytes_per_job,
+                features_per_job,
+                shards_per_job,
+                shard_lengths_per_job,
+                original_shards_per_job,
+                original_shard_lengths_per_job,
+            ) = ([item] for item in result)
         else:
             kwargs_per_job = [
                 {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
@@ -1728,6 +1678,8 @@ class ArrowBasedBuilder(DatasetBuilder):
             features_per_job = [None] * num_jobs
             shards_per_job = [None] * num_jobs
             shard_lengths_per_job = [None] * num_jobs
+            original_shards_per_job = [None] * num_jobs
+            original_shard_lengths_per_job = [None] * num_jobs
 
             with Pool(num_proc) as pool:
                 with pbar:
@@ -1742,6 +1694,8 @@ class ArrowBasedBuilder(DatasetBuilder):
                                 features_per_job[job_id],
                                 shards_per_job[job_id],
                                 shard_lengths_per_job[job_id],
+                                original_shards_per_job[job_id],
+                                original_shard_lengths_per_job[job_id],
                             ) = content
                         else:
                             # the content is the number of examples progress update
@@ -1752,6 +1706,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             )
 
         total_shards = sum(shards_per_job)
+        total_original_shards = sum(original_shards_per_job)
         total_num_examples = sum(examples_per_job)
         total_num_bytes = sum(bytes_per_job)
         features = features_per_job[0]
@@ -1790,20 +1745,29 @@ class ArrowBasedBuilder(DatasetBuilder):
                 fpath.replace(SUFFIX, ""),
             )
 
+        if total_original_shards > 1 and config.SAVE_ORIGINAL_SHARD_LENGTHS:
+            split_generator.split_info.original_shard_lengths = [
+                original_shard_length
+                for original_shard_lengths in original_shard_lengths_per_job
+                for original_shard_length in original_shard_lengths
+            ]
+
         if self.info.features is None:
             self.info.features = features
 
     def _prepare_split_single(
         self, gen_kwargs: dict, fpath: str, file_format: str, max_shard_size: int, job_id: int
-    ) -> Iterable[tuple[int, bool, Union[int, tuple]]]:
+    ) -> Iterator[tuple[int, bool, tuple[int, int, Features, int, int, int]]]:
         gen_kwargs = {k: tracked_list(v) if isinstance(v, list) else v for k, v in gen_kwargs.items()}
         generator = self._generate_tables(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
         shard_lengths = []
+        original_shard_lengths = []
         total_num_examples, total_num_bytes = 0, 0
 
         shard_id = 0
+        original_shard_id = 0
         num_examples_progress_update = 0
         try:
             writer = writer_class(
@@ -1815,7 +1779,9 @@ class ArrowBasedBuilder(DatasetBuilder):
             )
             try:
                 _time = time.time()
-                for _, table in generator:
+                for key, table in generator:
+                    if isinstance(key, Key):  # old custom builders may not use Key
+                        original_shard_id = key.original_shard_id
                     if max_shard_size is not None and writer._num_bytes > max_shard_size:
                         num_examples, num_bytes = writer.finalize()
                         writer.close()
@@ -1831,7 +1797,10 @@ class ArrowBasedBuilder(DatasetBuilder):
                             embed_local_files=embed_local_files,
                         )
                     try:
-                        writer.write_table(table)
+                        if len(table) == 1:
+                            writer.write_row(table)
+                        else:
+                            writer.write_table(table)
                     except CastError as cast_error:
                         raise DatasetGenerationCastError.from_cast_error(
                             cast_error=cast_error,
@@ -1839,6 +1808,10 @@ class ArrowBasedBuilder(DatasetBuilder):
                             gen_kwargs=gen_kwargs,
                             token=self.token,
                         )
+                    if len(original_shard_lengths) == original_shard_id:
+                        original_shard_lengths.append(len(table))
+                    else:
+                        original_shard_lengths[original_shard_id] += len(table)
                     num_examples_progress_update += len(table)
                     if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()
@@ -1847,6 +1820,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             finally:
                 yield job_id, False, num_examples_progress_update
                 num_shards = shard_id + 1
+                num_original_shards = original_shard_id + 1
                 num_examples, num_bytes = writer.finalize()
                 writer.close()
                 shard_lengths.append(num_examples)
@@ -1860,7 +1834,49 @@ class ArrowBasedBuilder(DatasetBuilder):
                 raise
             raise DatasetGenerationError("An error occurred while generating the dataset") from e
 
-        yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
+        yield (
+            job_id,
+            True,
+            (
+                total_num_examples,
+                total_num_bytes,
+                writer._features,
+                num_shards,
+                shard_lengths,
+                num_original_shards,
+                original_shard_lengths,
+            ),
+        )
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
-        return ArrowExamplesIterable(self._generate_tables, kwargs=split_generator.gen_kwargs)
+        return ArrowExamplesIterable(
+            self._generate_tables,
+            kwargs=split_generator.gen_kwargs,
+            generate_more_kwargs_fn=getattr(self, "_generate_more_gen_kwargs", None),
+            sleep_on_threads_shutdown=self.SLEEP_ON_THREADS_SHUTDOWNS,
+        )
+
+
+class _CountableBuilderMixin(DatasetBuilder):
+    @abc.abstractmethod
+    def _generate_num_examples(self, **kwargs) -> Iterator[int]:
+        raise NotImplementedError()
+
+    def count_examples(self, dl_manager: DownloadManager) -> dict[str, int]:
+        split_generators_kwargs = self._make_split_generators_kwargs({})
+        split_generators: list[SplitGenerator] = self._split_generators(dl_manager, **split_generators_kwargs)
+        return {split_generator.name: self._count_examples(split_generator) for split_generator in split_generators}
+
+    def _count_examples(self, split_generator: SplitGenerator) -> int:
+        max_workers = min(32, os.cpu_count() + 4)
+        return sum(
+            thread_map(
+                self._count_examples_single,
+                _split_gen_kwargs(split_generator.gen_kwargs, max_workers),
+                delay=5,
+                desc=f"Counting rows for split={split_generator.name}",
+            )
+        )
+
+    def _count_examples_single(self, gen_kwargs: dict[str, Any]) -> int:
+        return sum(self._generate_num_examples(**gen_kwargs))
