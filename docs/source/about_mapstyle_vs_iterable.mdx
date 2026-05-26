@@ -134,7 +134,7 @@ for example in my_iterable_dataset:
     break
 ```
 
-But using a shuffle buffer is not enough to provide a satisfactory shuffling for machine learning model training. So [`IterableDataset.shuffle`] also shuffles the dataset shards if your dataset is made of multiple files or sources:
+But using a shuffle buffer is not enough to provide a satisfactory shuffling for machine learning model training. So [`IterableDataset.shuffle`] also shuffles the dataset shards if your dataset is made of multiple files or sources. Additionally, it fills the buffer using up to `max_buffer_input_shards` shards at a time (default is 10), which greatly improves the quality of the shuffling:
 
 ```python
 # Stream from the internet
@@ -156,6 +156,10 @@ gen_kwargs = {"n": 10, "sources": [f"path/to/data_{i}" for i in range(1024)]}
 my_iterable_dataset = IterableDataset.from_generator(my_generator, gen_kwargs=gen_kwargs)
 my_iterable_dataset.num_shards  # 1024
 ```
+
+> [!TIP]
+>
+> If your dataset has few files, you can improve shuffling quality by calling [`~IterableDataset.reshard`] before shuffling. For example, for Parquet datasets this reshards using row groups instead of having one file per shard, giving you many more shards to shuffle from.
 
 ## Speed differences
 

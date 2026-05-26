@@ -4,10 +4,10 @@ import textwrap
 import pyarrow as pa
 import pytest
 
-from datasets import Features, Value
+from datasets import Features, Value, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
-from datasets.packaged_modules.json.json import Json, JsonConfig
+from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig
 
 
 @pytest.fixture
@@ -293,6 +293,65 @@ def jsonl_file_with_messages(tmp_path):
     return str(filename)
 
 
+def write_jsonl(path, rows):
+    with open(path, "w") as f:
+        for row in rows:
+            f.write(json.dumps(row) + "\n")
+    return str(path)
+
+
+def generate_agent_traces_output(trace_file):
+    json_builder = Json(features=AGENT_TRACES_FEATURES)
+    base_files = [trace_file]
+    files_iterables = [[trace_file]]
+    original_files = list(base_files)
+    generator = json_builder._generate_tables(
+        base_files=base_files, files_iterables=files_iterables, original_files=original_files
+    )
+    pa_table = pa.concat_tables([table for _, table in generator])
+    return Features.from_arrow_schema(pa_table.schema).decode_batch(pa_table.to_pydict())
+
+
+def assert_agent_traces_output(tmp_path, filename, rows, expected):
+    trace_file = write_jsonl(tmp_path / filename, rows)
+    out = generate_agent_traces_output(trace_file)
+    for key, value in zip(AGENT_TRACE_FIELD_NAMES, expected):
+        assert out[key] == [value]
+    assert out["file_path"] == [trace_file]
+    return trace_file, out
+
+
+AGENT_TRACE_FIELD_NAMES = ("harness", "session_id", "prompt", "sent_at", "num_user_messages", "num_tool_calls")
+CODEX_AGENT_TRACE_ROWS = [
+    {"type": "session_meta", "payload": {"id": "codex-session"}},
+    {
+        "type": "response_item",
+        "payload": {"type": "message", "role": "user", "content": [{"text": "context-wrapped codex prompt"}]},
+    },
+    {
+        "timestamp": "2026-04-01T10:01:00.000Z",
+        "type": "event_msg",
+        "payload": {"type": "user_message", "message": "actual codex prompt"},
+    },
+    {
+        "type": "response_item",
+        "payload": {"type": "function_call", "name": "exec_command", "call_id": "call_1"},
+    },
+    {
+        "type": "response_item",
+        "payload": {"type": "function_call_output", "call_id": "call_1", "output": "done"},
+    },
+]
+CODEX_EXPECTED_AGENT_TRACE_FIELDS = (
+    "codex",
+    "codex-session",
+    "actual codex prompt",
+    "2026-04-01T10:01:00.000Z",
+    1,
+    1,
+)
+
+
 def test_config_raises_when_invalid_name() -> None:
     with pytest.raises(InvalidConfigName, match="Bad characters"):
         _ = JsonConfig(name="name-with-*-invalid-character")
@@ -386,3 +445,137 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
     )
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.column_names == ["ID", "Language", "Topic"]
+
+
+@pytest.mark.parametrize(
+    "filename, rows, expected",
+    [
+        pytest.param("codex.jsonl", CODEX_AGENT_TRACE_ROWS, CODEX_EXPECTED_AGENT_TRACE_FIELDS, id="codex"),
+        pytest.param(
+            "codex_response_item_only.jsonl",
+            [
+                {"type": "session_meta", "payload": {"id": "codex-session"}},
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "type": "message",
+                        "role": "user",
+                        "content": [{"text": "codex response item prompt"}],
+                    },
+                },
+                {
+                    "type": "response_item",
+                    "payload": {"type": "function_call", "name": "exec_command", "call_id": "call_1"},
+                },
+            ],
+            ("codex", "codex-session", None, None, 0, 1),
+            id="codex-response-item-only",
+        ),
+        pytest.param(
+            "claude.jsonl",
+            [
+                {
+                    "timestamp": "2026-04-02T10:00:00.000Z",
+                    "type": "user",
+                    "sessionId": "claude-session",
+                    "message": {"role": "user", "content": "claude prompt"},
+                },
+                {
+                    "type": "assistant",
+                    "sessionId": "claude-session",
+                    "message": {
+                        "role": "assistant",
+                        "content": [{"type": "tool_use", "id": "toolu_1"}, {"type": "tool_use", "id": "toolu_2"}],
+                    },
+                },
+                {
+                    "type": "user",
+                    "sessionId": "claude-session",
+                    "message": {"role": "user", "content": [{"type": "tool_result", "content": "done"}]},
+                },
+            ],
+            ("claude_code", "claude-session", "claude prompt", "2026-04-02T10:00:00.000Z", 1, 2),
+            id="claude",
+        ),
+        pytest.param(
+            "pi.jsonl",
+            [
+                {"type": "session", "id": "pi-session"},
+                {
+                    "timestamp": "2026-04-03T10:01:00.000Z",
+                    "type": "message",
+                    "message": {"role": "user", "content": "pi prompt"},
+                },
+                {
+                    "type": "message",
+                    "message": {
+                        "role": "assistant",
+                        "content": [{"type": "toolCall", "id": "call_1"}, {"type": "toolCall", "id": "call_2"}],
+                    },
+                },
+                {
+                    "type": "message",
+                    "message": {"role": "toolResult", "content": [{"type": "text", "text": "done"}]},
+                },
+                {
+                    "type": "message",
+                    "message": {"role": "user", "content": [{"type": "text", "text": "second pi prompt"}]},
+                },
+            ],
+            ("pi", "pi-session", "pi prompt", "2026-04-03T10:01:00.000Z", 2, 2),
+            id="pi",
+        ),
+        pytest.param(
+            "openclaw.jsonl",
+            [
+                {
+                    "type": "session",
+                    "id": "openclaw-session",
+                    "cwd": "/Users/test/.openclaw/agents/main",
+                },
+                {
+                    "timestamp": "2026-04-03T10:01:00.000Z",
+                    "type": "message",
+                    "message": {"role": "user", "content": "openclaw prompt"},
+                },
+            ],
+            ("openclaw", "openclaw-session", "openclaw prompt", "2026-04-03T10:01:00.000Z", 1, 0),
+            id="openclaw",
+        ),
+        pytest.param(
+            "missing_prompt.jsonl",
+            [
+                {"type": "session_meta", "payload": {"id": "codex-session"}},
+                {
+                    "type": "response_item",
+                    "payload": {"type": "message", "role": "assistant", "content": [{"text": "assistant response"}]},
+                },
+            ],
+            ("codex", "codex-session", None, None, 0, 0),
+            id="missing-prompt",
+        ),
+    ],
+)
+def test_json_generate_tables_with_agent_trace_metadata(tmp_path, filename, rows, expected):
+    _, out = assert_agent_traces_output(tmp_path, filename, rows, expected)
+    assert "models" not in out
+
+
+def test_json_load_dataset_with_agent_trace_metadata(tmp_path):
+    trace_file = write_jsonl(tmp_path / "codex.jsonl", CODEX_AGENT_TRACE_ROWS)
+
+    dataset = load_dataset("json", data_files=trace_file, split="train", cache_dir=str(tmp_path / "cache"))
+    row = dataset[0]
+
+    assert dataset.column_names == [
+        "harness",
+        "session_id",
+        "prompt",
+        "sent_at",
+        "num_user_messages",
+        "num_tool_calls",
+        "traces",
+        "file_path",
+    ]
+    for key, value in zip(AGENT_TRACE_FIELD_NAMES, CODEX_EXPECTED_AGENT_TRACE_FIELDS):
+        assert row[key] == value

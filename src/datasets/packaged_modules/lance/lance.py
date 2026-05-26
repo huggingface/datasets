@@ -118,7 +118,7 @@ class Lance(datasets.ArrowBasedBuilder, datasets.builder._CountableBuilderMixin)
 
         splits: list[datasets.SplitGenerator] = []
         for split_name, files in data_files.items():
-            storage_options = dl_manager.download_config.storage_options.get(files[0].split("://", 0)[0] + "://")
+            storage_options = dl_manager.download_config.storage_options.get(files[0].split("://", 1)[0])
 
             lance_dataset_uris = resolve_dataset_uris(files)
             if lance_dataset_uris:

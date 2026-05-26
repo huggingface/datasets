@@ -974,7 +974,14 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
     disconnect_err = None
     for retry in range(1, max_retries + 1):
         try:
-            file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
+            fs, fs_token, paths = fsspec.get_fs_token_paths(
+                file,
+                mode,
+                storage_options=kwargs,
+            )
+            file_obj = fs.open(paths[0], mode)
+            if hasattr(fs, "of") and hasattr(fs.of, "__exit__"):
+                file_obj._fs = fs  # keep a reference or the fs might close the file on gc
             break
         except CONNECTION_ERRORS_TO_RETRY as err:
             disconnect_err = err

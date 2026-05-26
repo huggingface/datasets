@@ -2751,6 +2751,15 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(sql_dset.shape, dset.shape)
                 self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
 
+            # Test writing with multiprocessors
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, num_proc=3, if_exists="replace")
+                self.assertTrue(os.path.isfile(file_path))
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
     def test_train_test_split(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -4830,6 +4839,116 @@ def test_dataset_batch():
     assert len(batches[2]["text"]) == 2
     assert batches[2]["id"] == [8, 9]
     assert batches[2]["text"] == ["Text 8", "Text 9"]
+
+
+def test_dataset_batch_by_column():
+    # Create a Dataset with a column to group by
+    data = {
+        "id": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "category": ["A", "A", "B", "B", "B", "C", "B", "B", "B", "B"],
+        "value": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+    }
+    ds = Dataset.from_dict(data)
+
+    # Test batching by a single column
+    batched_ds = ds.batch(by_column="category")
+    batches = list(batched_ds)
+
+    # Should have 4 batches (one for each series of the same category)
+    assert len(batches) == 4
+
+    # Check first batch (category A)
+    assert batches[0]["id"] == [1, 2]
+    assert batches[0]["category"] == ["A", "A"]
+    assert batches[0]["value"] == [10, 20]
+
+    # Check second batch (category B)
+    assert batches[1]["id"] == [3, 4, 5]
+    assert batches[1]["category"] == ["B", "B", "B"]
+    assert batches[1]["value"] == [30, 40, 50]
+
+    # Check third batch (category C)
+    assert batches[2]["id"] == [6]
+    assert batches[2]["category"] == ["C"]
+    assert batches[2]["value"] == [60]
+
+    # Check fourth batch (category B again)
+    assert batches[3]["id"] == [7, 8, 9, 10]
+    assert batches[3]["category"] == ["B", "B", "B", "B"]
+    assert batches[3]["value"] == [70, 80, 90, 100]
+
+    # Test batching by multiple columns
+    data_multi = {
+        "id": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "category": ["A", "A", "B", "B", "B", "C", "B", "B", "B", "B"],
+        "subcategory": ["X", "X", "Y", "Y", "Z", "X", "Y", "Y", "Y", "Y"],
+        "value": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+    }
+    ds_multi = Dataset.from_dict(data_multi)
+
+    # Batch by both category and subcategory
+    batched_ds_multi = ds_multi.batch(by_column=["category", "subcategory"])
+    batches_multi = list(batched_ds_multi)
+
+    # Should have 4 batches (A-X, B-Y, B-Z, C-X, B-Y again)
+    assert len(batches_multi) == 5
+
+    # Check first batch (category A, subcategory X)
+    assert batches_multi[0]["id"] == [1, 2]
+    assert batches_multi[0]["category"] == ["A", "A"]
+    assert batches_multi[0]["subcategory"] == ["X", "X"]
+    assert batches_multi[0]["value"] == [10, 20]
+
+    # Check second batch (category B, subcategory Y)
+    assert batches_multi[1]["id"] == [3, 4]
+    assert batches_multi[1]["category"] == ["B", "B"]
+    assert batches_multi[1]["subcategory"] == ["Y", "Y"]
+    assert batches_multi[1]["value"] == [30, 40]
+
+    # Check third batch (category B, subcategory Z)
+    assert batches_multi[2]["id"] == [5]
+    assert batches_multi[2]["category"] == ["B"]
+    assert batches_multi[2]["subcategory"] == ["Z"]
+    assert batches_multi[2]["value"] == [50]
+
+    # Check fourth batch (category C, subcategory X)
+    assert batches_multi[3]["id"] == [6]
+    assert batches_multi[3]["category"] == ["C"]
+    assert batches_multi[3]["subcategory"] == ["X"]
+    assert batches_multi[3]["value"] == [60]
+
+    # Check fifth batch (category B, subcategory Y again)
+    assert batches_multi[4]["id"] == [7, 8, 9, 10]
+    assert batches_multi[4]["category"] == ["B", "B", "B", "B"]
+    assert batches_multi[4]["subcategory"] == ["Y", "Y", "Y", "Y"]
+    assert batches_multi[4]["value"] == [70, 80, 90, 100]
+
+    # Test batching by column with batch_size parameter
+    # Create a dataset where one category has more elements than batch_size
+    data_with_large_category = {
+        "id": list(range(1, 11)),  # 10 items
+        "category": ["A"] * 7 + ["B"] * 3,  # 7 items in category A, 3 in category B
+        "value": list(range(10, 20)),
+    }
+    ds_large_category = Dataset.from_dict(data_with_large_category)
+
+    # Batch by category with a small batch_size
+    # The batch_size should only be used for buffering, not for limiting the final batch sizes
+    batched_ds_with_buffer = ds_large_category.batch(by_column="category", batch_size=3)
+    batches_with_buffer = list(batched_ds_with_buffer)
+
+    # Should still have 2 batches (one for each category), regardless of batch_size
+    assert len(batches_with_buffer) == 2
+
+    # Check first batch (category A) - should contain all 7 items despite batch_size=3
+    assert batches_with_buffer[0]["id"] == list(range(1, 8))
+    assert batches_with_buffer[0]["category"] == ["A"] * 7
+    assert batches_with_buffer[0]["value"] == list(range(10, 17))
+
+    # Check second batch (category B) - should contain all 3 items
+    assert batches_with_buffer[1]["id"] == list(range(8, 11))
+    assert batches_with_buffer[1]["category"] == ["B"] * 3
+    assert batches_with_buffer[1]["value"] == list(range(17, 20))
 
 
 @pytest.mark.parametrize("format_type", ["pyarrow", "pandas"])

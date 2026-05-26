@@ -75,7 +75,7 @@ from huggingface_hub.utils import EntryNotFoundError, HfHubHTTPError, Repository
 from packaging import version
 from tqdm.contrib.concurrent import thread_map
 
-from . import config
+from . import __version__, config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .data_files import sanitize_patterns
@@ -113,6 +113,7 @@ from .table import (
     InMemoryTable,
     MemoryMappedTable,
     Table,
+    _batch_accumulate_arrow_table_by_columns,
     _batch_arrow_table,
     _memory_mapped_record_batch_reader_from_file,
     cast_array_to_feature,
@@ -4063,7 +4064,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @fingerprint_transform(inplace=False)
     def batch(
         self,
-        batch_size: int,
+        batch_size: Optional[int] = None,
+        by_column: Optional[Union[str, list[str]]] = None,
         drop_last_batch: bool = False,
         num_proc: Optional[int] = None,
         new_fingerprint: Optional[str] = None,
@@ -4071,9 +4073,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         Group samples from the dataset into batches.
 
+        Specify either `batch_size` to make batches of `batch_size` examples.
+
+        Or use `by_column=column_name` to make batches of successive examples that share
+        the same value in column `column_name`.
+
         Args:
-            batch_size (`int`):
+            batch_size (`int`, optional):
                 The number of samples in each batch.
+            by_column (`Union[str, list[str]`, optional):
+                The column used to batch examples together.
+                Successive examples with the same value for that column are in grouped the same batch.
+                This can also be a list of columns if you want to batch by multiple columns.
+                If batching by column, the batch_size is only used to control the size of the batches
+                to group together or slice during acculumation.
+
+                <Added version="4.9.0"/>
             drop_last_batch (`bool`, defaults to `False`):
                 Whether to drop the last incomplete batch.
             num_proc (`int`, *optional*, defaults to `None`):
@@ -4096,29 +4111,30 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         'label': [1, 1, 1, 1]}
         ```
         """
-
-        def batch_fn(example):
-            return {k: [v] for k, v in example.items()}
-
-        if self._format_type in ("arrow", "pandas", "polars"):
-            return self.with_format("arrow").map(
-                _batch_arrow_table,
-                batched=True,
-                batch_size=batch_size,
-                drop_last_batch=drop_last_batch,
-                num_proc=num_proc,
-                new_fingerprint=new_fingerprint,
-                desc="Batching examples",
+        if batch_size is None and by_column is None:
+            raise ValueError("IterableDataset.batch() misses `batch_size` or `by_column` argument.")
+        if by_column is not None:
+            if num_proc:
+                raise NotImplementedError("Multiprocessed batching by column is not implemented yet")
+            columns = [by_column] if isinstance(by_column, str) else by_column
+            _batch_fn = partial(
+                _batch_accumulate_arrow_table_by_columns, columns=columns, tables_accumulator=[], length=len(self)
             )
+            with_indices = True
+        else:
+            _batch_fn = _batch_arrow_table
+            with_indices = False
 
-        return self.map(
-            batch_fn,
+        return self.with_format("arrow").map(
+            _batch_fn,
+            with_indices=with_indices,
             batched=True,
             batch_size=batch_size,
             drop_last_batch=drop_last_batch,
             num_proc=num_proc,
             new_fingerprint=new_fingerprint,
             desc="Batching examples",
+            features=Features({col: List(feature) for col, feature in self.features.items()}),
         )
 
     @transmit_format
@@ -5627,6 +5643,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         name: str,
         con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
         batch_size: Optional[int] = None,
+        num_proc: Optional[int] = None,
         **sql_writer_kwargs,
     ) -> int:
         """Exports the dataset to a SQL database.
@@ -5639,6 +5656,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             batch_size (`int`, *optional*):
                 Size of the batch to load in memory and write at once.
                 Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            num_proc (`int`, *optional*):
+                Number of processes for multiprocessing. By default, it doesn't
+                use multiprocessing. `batch_size` in this case defaults to
+                `datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
+                value if you have sufficient compute power.
             **sql_writer_kwargs (additional keyword arguments):
                 Parameters to pass to pandas's [`pandas.DataFrame.to_sql`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_sql.html).
 
@@ -5669,7 +5691,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.sql import SqlDatasetWriter
 
-        return SqlDatasetWriter(self, name, con, batch_size=batch_size, **sql_writer_kwargs).write()
+        return SqlDatasetWriter(self, name, con, batch_size=batch_size, num_proc=num_proc, **sql_writer_kwargs).write()
 
     def _estimate_nbytes(self) -> int:
         dataset_nbytes = self.data.nbytes
@@ -5861,7 +5883,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             (start + i, self.shard(num_shards=end - start, index=i, contiguous=True)) for i in range(end - start)
         )
 
-        api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+        api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
 
         additions: list[CommitOperationAdd] = []
         new_parquet_paths: list[str] = []
@@ -6159,7 +6181,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if not data_dir:
             data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
 
-        api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+        api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
         if repo_id.startswith("buckets/"):
             if BucketNotFoundError is None:
                 raise ImportError("Pushing datasets to buckets requires huggingface_hub>=1.6.0")
@@ -6628,7 +6650,7 @@ def _push_to_repo(
     embed_external_files: bool = True,
     num_proc: Optional[int] = None,
 ) -> CommitInfo:
-    api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+    api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
     resolved_output_path = HfFileSystemResolvedRepositoryPath(
         repo_id=repo_id, repo_type="dataset", revision=revision or "main", path_in_repo=""
     )
@@ -6791,7 +6813,7 @@ def _push_to_bucket(
     embed_external_files: bool = True,
     num_proc: Optional[int] = None,
 ) -> None:
-    api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+    api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
     resolved_output_path = HfFileSystemResolvedBucketPath(bucket_id=bucket_id, path=path)
     hf_path = resolved_output_path.unresolve()
     hffs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=token)
