@@ -150,3 +150,6 @@ def test_mesh_embed_storage(mesh_file):
     # Test bytes are embedded
     storage = features["mesh"].embed_storage(pa.array([{"path": mesh_file, "bytes": None}]))
     assert storage.to_pylist() == [{"path": os.path.basename(mesh_file), "bytes": content}]
+
+    storage = features["mesh"].embed_storage(pa.array([{"path": mesh_file, "bytes": None}]), local_files=False)
+    assert storage.to_pylist() == [{"path": mesh_file, "bytes": None}]
