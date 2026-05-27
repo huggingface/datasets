@@ -2,7 +2,7 @@ import inspect
 
 import pytest
 
-from datasets.splits import Split, SplitDict, SplitInfo
+from datasets.splits import Split, SplitDict, SplitInfo, _check_split_names
 from datasets.utils.py_utils import asdict
 
 
@@ -41,3 +41,55 @@ def test_split_dict_asdict_has_dataset_name(split_info):
 def test_named_split_inequality():
     # Used while building the docs, when set as a default parameter value in a function signature
     assert Split.TRAIN != inspect.Parameter.empty
+
+
+# ---------------------------------------------------------------------------
+# _check_split_names
+# ---------------------------------------------------------------------------
+
+_SPLITS = SplitDict(
+    {
+        "train": SplitInfo(name="train", num_examples=100),
+        "test": SplitInfo(name="test", num_examples=50),
+    }
+)
+
+
+@pytest.mark.parametrize(
+    "split",
+    [
+        "train",
+        "test",
+        "train[:50%]",
+        "train[10:20]",
+        "train+test",
+        "train[:50%]+test",
+        ["train", "test"],
+        {"my_train": "train", "my_test": "test"},
+        None,
+        "all",
+    ],
+)
+def test_check_split_names_valid(split):
+    # should not raise
+    _check_split_names(split, _SPLITS)
+
+
+@pytest.mark.parametrize(
+    "split, bad_name",
+    [
+        ("blabla", "blabla"),
+        ("train+blabla", "blabla"),
+        ("blabla[:50%]", "blabla"),
+        (["train", "blabla"], "blabla"),
+        ({"a": "train", "b": "blabla"}, "blabla"),
+    ],
+)
+def test_check_split_names_invalid(split, bad_name):
+    with pytest.raises(ValueError, match=f'Unknown split "{bad_name}"'):
+        _check_split_names(split, _SPLITS)
+
+
+def test_check_split_names_empty_known_splits():
+    # can't validate anything without known splits – should be a no-op
+    _check_split_names("whatever", SplitDict())

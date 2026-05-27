@@ -59,7 +59,7 @@ from .fingerprint import Hasher
 from .info import DatasetInfo
 from .iterable_dataset import ArrowExamplesIterable, ExamplesIterable, IterableDataset
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
-from .splits import Split, SplitDict, SplitGenerator, SplitInfo
+from .splits import Split, SplitDict, SplitGenerator, SplitInfo, _check_split_names
 from .streaming import extend_dataset_builder_for_streaming
 from .table import CastError
 from .utils import logging
@@ -1023,6 +1023,10 @@ class DatasetBuilder:
         # By default, return all splits
         if split is None:
             split = {s: s for s in self.info.splits}
+
+        # Validate before doing any work so the error is clear rather than
+        # something cryptic bubbling up from inside arrow_reader.
+        _check_split_names(split, self.info.splits)
 
         # Create a dataset for each of the given splits
         datasets = map_nested(
