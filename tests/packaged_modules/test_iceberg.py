@@ -1,15 +1,16 @@
 import numpy as np
 import pyarrow as pa
 import pytest
-from pyiceberg.catalog.sql import SqlCatalog
-from pyiceberg.schema import Schema
-from pyiceberg.types import DoubleType, FloatType, ListType, LongType, NestedField, StringType
 
 from datasets import IterableDataset, load_dataset
+
+from ..utils import require_not_windows, require_pyiceberg
 
 
 @pytest.fixture
 def catalog(tmp_path):
+    from pyiceberg.catalog.sql import SqlCatalog
+
     cat = SqlCatalog(
         "test_catalog",
         **{
@@ -23,6 +24,9 @@ def catalog(tmp_path):
 
 @pytest.fixture
 def sample_table(catalog):
+    from pyiceberg.schema import Schema
+    from pyiceberg.types import DoubleType, FloatType, ListType, LongType, NestedField, StringType
+
     schema = Schema(
         NestedField(1, "id", LongType()),
         NestedField(2, "name", StringType()),
@@ -43,6 +47,8 @@ def sample_table(catalog):
     return table
 
 
+@require_not_windows
+@require_pyiceberg
 def test_load_iceberg_basic(catalog, sample_table):
     ds = load_dataset("iceberg", catalog=catalog, table="test_db.sample")
     assert "train" in ds
@@ -56,6 +62,8 @@ def test_load_iceberg_basic(catalog, sample_table):
     assert list(dataset["name"]) == ["alice", "bob", "carol"]
 
 
+@require_not_windows
+@require_pyiceberg
 def test_load_vectors(catalog, sample_table):
     ds = load_dataset("iceberg", catalog=catalog, table="test_db.sample", columns=["vector"])
     dataset = ds["train"]
@@ -64,6 +72,8 @@ def test_load_vectors(catalog, sample_table):
     assert np.allclose(vectors, np.full(12, 0.1), atol=1e-6)
 
 
+@require_not_windows
+@require_pyiceberg
 def test_load_iceberg_columns(catalog, sample_table):
     ds = load_dataset("iceberg", catalog=catalog, table="test_db.sample", columns=["id", "name"])
     dataset = ds["train"]
@@ -72,6 +82,8 @@ def test_load_iceberg_columns(catalog, sample_table):
     assert "value" not in dataset.column_names
 
 
+@require_not_windows
+@require_pyiceberg
 def test_load_iceberg_filters(catalog, sample_table):
     ds = load_dataset("iceberg", catalog=catalog, table="test_db.sample", filters="value > 2.0")
     dataset = ds["train"]
@@ -79,7 +91,12 @@ def test_load_iceberg_filters(catalog, sample_table):
     assert list(dataset["name"]) == ["bob", "carol"]
 
 
+@require_not_windows
+@require_pyiceberg
 def test_load_iceberg_multi_split(catalog):
+    from pyiceberg.schema import Schema
+    from pyiceberg.types import LongType, NestedField
+
     schema = Schema(
         NestedField(1, "x", LongType()),
     )
@@ -100,6 +117,8 @@ def test_load_iceberg_multi_split(catalog):
     assert ds["test"].num_rows == 2
 
 
+@require_not_windows
+@require_pyiceberg
 @pytest.mark.parametrize("streaming", [False, True])
 def test_load_iceberg_streaming(catalog, sample_table, streaming):
     ds = load_dataset("iceberg", catalog=catalog, table="test_db.sample", split="train", streaming=streaming)
@@ -110,7 +129,12 @@ def test_load_iceberg_streaming(catalog, sample_table, streaming):
     assert all("id" in item for item in items)
 
 
+@require_not_windows
+@require_pyiceberg
 def test_load_iceberg_snapshot(catalog):
+    from pyiceberg.schema import Schema
+    from pyiceberg.types import LongType, NestedField
+
     schema = Schema(
         NestedField(1, "id", LongType()),
     )
@@ -132,8 +156,13 @@ def test_load_iceberg_snapshot(catalog):
     assert ds_old["train"].num_rows == 2
 
 
+@require_not_windows
+@require_pyiceberg
 def test_load_iceberg_num_proc(catalog):
     """Test that num_proc > 1 works for parallel processing."""
+    from pyiceberg.schema import Schema
+    from pyiceberg.types import LongType, NestedField
+
     schema = Schema(
         NestedField(1, "id", LongType()),
     )
@@ -147,11 +176,15 @@ def test_load_iceberg_num_proc(catalog):
     assert sorted(dataset["id"]) == [1, 2, 3, 4, 5, 6]
 
 
+@require_not_windows
+@require_pyiceberg
 def test_load_iceberg_missing_catalog_raises():
     with pytest.raises(ValueError, match="catalog"):
         load_dataset("iceberg", catalog=None, table="db.table")
 
 
+@require_not_windows
+@require_pyiceberg
 def test_load_iceberg_missing_table_raises(catalog):
     with pytest.raises(ValueError, match="table"):
         load_dataset("iceberg", catalog=catalog, table=None)
