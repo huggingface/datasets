@@ -127,6 +127,20 @@ def require_sqlalchemy(test_case):
     return test_case
 
 
+def require_pyiceberg(test_case):
+    """
+    Decorator marking a test that requires PyIceberg.
+
+    These tests are skipped when PyIceberg isn't installed.
+
+    """
+    try:
+        import pyiceberg  # noqa F401
+    except ImportError:
+        test_case = unittest.skip("test requires pyiceberg")(test_case)
+    return test_case
+
+
 def require_torch(test_case):
     """
     Decorator marking a test that requires PyTorch.

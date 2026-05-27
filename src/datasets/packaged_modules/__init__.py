@@ -11,6 +11,7 @@ from .conll import conll
 from .csv import csv
 from .eval import eval
 from .hdf5 import hdf5
+from .iceberg import iceberg
 from .imagefolder import imagefolder
 from .json import json
 from .lance import lance
@@ -57,6 +58,7 @@ _PACKAGED_DATASETS_MODULES = {
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
     "eval": (eval.__name__, _hash_python_lines(inspect.getsource(eval).splitlines())),
     "lance": (lance.__name__, _hash_python_lines(inspect.getsource(lance).splitlines())),
+    "iceberg": (iceberg.__name__, _hash_python_lines(inspect.getsource(iceberg).splitlines())),
 }
 
 # get importable module names and hash for caching
