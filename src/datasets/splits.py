@@ -610,6 +610,41 @@ class SplitDict(dict[str, SplitInfo]):
         return cls.from_split_dict(yaml_data)
 
 
+def _check_split_names(split, known_splits):
+    """Raise ValueError if any requested split name isn't in the dataset's known splits.
+
+    Handles composite specs like ``"train+test"`` and sliced specs like
+    ``"train[:1000]"`` by extracting the base split name before checking.
+
+    Args:
+        split: The split argument passed by the user – a string, :class:`Split`,
+            list, or dict (as accepted by ``load_dataset``).
+        known_splits: Mapping of available split names, e.g. ``builder.info.splits``.
+    """
+    if not known_splits:
+        return
+
+    if isinstance(split, dict):
+        specs = list(split.values())
+    elif isinstance(split, (list, tuple)):
+        specs = list(split)
+    else:
+        specs = [split]
+
+    available = sorted(known_splits)
+    for spec in specs:
+        if spec is None:
+            continue
+        spec = str(spec).strip().strip("()")
+        if not spec or spec == "all":
+            continue
+        # "train+test[:50%]" → check "train" and "test" separately
+        for part in spec.split("+"):
+            name = part.strip().split("[")[0].strip()
+            if name and name not in known_splits:
+                raise ValueError(f'Unknown split "{name}". Should be one of {available}.')
+
+
 @dataclass
 class SplitGenerator:
     """Defines the split information for the generator.

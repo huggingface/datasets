@@ -75,7 +75,7 @@ from .packaged_modules import (
     _PACKAGED_DATASETS_MODULES,
 )
 from .packaged_modules.folder_based_builder.folder_based_builder import FolderBasedBuilder
-from .splits import Split
+from .splits import Split, _check_split_names
 from .utils import _dataset_viewer
 from .utils.file_utils import (
     _raise_if_offline_mode_is_enabled,
@@ -1699,6 +1699,12 @@ def load_dataset(
         storage_options=storage_options,
         **config_kwargs,
     )
+
+    # If split info is already known (from Hub YAML metadata or a previously cached
+    # dataset_info.json) we can catch a bad split name right here, before starting
+    # what could be a very large download.
+    if split is not None and builder_instance.info.splits:
+        _check_split_names(split, builder_instance.info.splits)
 
     # Return iterable dataset in case of streaming
     if streaming:

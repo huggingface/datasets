@@ -552,6 +552,30 @@ def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_leng
         dataset.column_names == ["text"]
 
 
+def test_builder_as_dataset_unknown_split_raises(tmp_path):
+    builder = DummyBuilder(cache_dir=str(tmp_path))
+    os.makedirs(builder.cache_dir)
+
+    builder.info.splits = SplitDict()
+    builder.info.splits.add(SplitInfo("train", num_examples=10))
+    builder.info.splits.add(SplitInfo("test", num_examples=10))
+
+    for split_name in builder.info.splits:
+        with ArrowWriter(
+            path=os.path.join(builder.cache_dir, f"{builder.dataset_name}-{split_name}.arrow"),
+            features=Features({"text": Value("string")}),
+        ) as writer:
+            writer.write_batch({"text": ["foo"] * 10})
+            writer.finalize()
+
+    with pytest.raises(ValueError, match='Unknown split "validation"'):
+        builder.as_dataset(split="validation")
+
+    # compound spec – one part is valid, one isn't
+    with pytest.raises(ValueError, match='Unknown split "oops"'):
+        builder.as_dataset(split="train+oops")
+
+
 @pytest.mark.parametrize("in_memory", [False, True])
 def test_generator_based_builder_as_dataset(in_memory, tmp_path):
     cache_dir = tmp_path / "data"
