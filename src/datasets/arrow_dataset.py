@@ -2322,6 +2322,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             new_fingerprint (`str`, *optional*):
                 The new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
+            max_depth (`int`, defaults to `16`):
+                Maximum number of nesting levels to flatten. Flattening stops when either
+                all struct columns have been resolved or `max_depth` iterations have been completed.
 
         Returns:
             [`Dataset`]: A copy of the dataset with flattened columns.
