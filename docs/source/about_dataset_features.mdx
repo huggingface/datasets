@@ -134,6 +134,33 @@ And in this case the numpy arrays are encoded into PNG (or TIFF if the pixels va
 For multi-channels arrays like RGB or RGBA, only uint8 is supported. If you use a larger precision, you get a warning and the array is downcasted to uint8.
 For gray-scale images you can use the integer or float precision you want as long as it is compatible with `Pillow`. A warning is shown if your image integer or float precision is too high, and in this case the array is downcated: an int64 array is downcasted to int32, and a float64 array is downcasted to float32.
 
+## Mesh feature
+
+Mesh datasets have a column with type [`Mesh`], which loads 3D mesh files with `trimesh`.
+
+When you load a mesh dataset and call the mesh column, the [`Mesh`] feature automatically decodes the mesh file:
+
+```py
+>>> from datasets import Dataset, Features, Mesh
+
+>>> dataset = Dataset.from_dict({"mesh": ["path/to/model.glb"]}, features=Features({"mesh": Mesh()}))
+>>> dataset[0]["mesh"]
+<trimesh.scene.scene.Scene object at 0x125506CF8>
+```
+
+Depending on the file content, `trimesh` may return a `trimesh.Trimesh` object or a `trimesh.Scene` object. GLB files commonly decode to scenes, while STL and PLY files commonly decode to meshes.
+
+With `decode=False`, the [`Mesh`] type gives you the path or bytes of the mesh file without decoding it with `trimesh`:
+
+```py
+>>> dataset = dataset.cast_column("mesh", Mesh(decode=False))
+>>> dataset[0]["mesh"]
+{'bytes': None,
+ 'path': 'path/to/model.glb'}
+```
+
+For embedded bytes, the stored `path` is used to infer the mesh file type.
+
 ## Json feature
 
 Datasets are based on Arrow which is a columnar format, and therefore they expect every example to have the same type and subtypes, and dictionaries to have the same keys and values types.
