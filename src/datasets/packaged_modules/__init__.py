@@ -128,6 +128,7 @@ _MODULE_TO_METADATA_FILE_NAMES["videofolder"] = imagefolder.ImageFolder.METADATA
 _MODULE_TO_METADATA_FILE_NAMES["meshfolder"] = meshfolder.MeshFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["pdffolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["niftifolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
+_MODULE_TO_METADATA_FILE_NAMES["lance"] = lance.Lance.METADATA_FILE_NAMES
 
 _MODULE_TO_METADATA_EXTENSIONS: Dict[str, List[str]] = {}
 for _module in _MODULE_TO_EXTENSIONS:
@@ -139,3 +140,6 @@ _MODULE_TO_METADATA_EXTENSIONS["lance"] = lance.Lance.METADATA_EXTENSIONS
 _ALL_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + [".zip"]
 _ALL_METADATA_EXTENSIONS = sorted({_ext for _exts in _MODULE_TO_METADATA_EXTENSIONS.values() for _ext in _exts})
 _ALL_ALLOWED_EXTENSIONS = _ALL_EXTENSIONS + _ALL_METADATA_EXTENSIONS
+_ALL_METADATA_FILENAMES = sorted(
+    {file_name for file_names in _MODULE_TO_METADATA_FILE_NAMES.values() for file_name in file_names}
+)
