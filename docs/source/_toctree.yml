@@ -84,6 +84,10 @@
       title: Load video data
     - local: video_dataset
       title: Create a video dataset
+    - local: mesh_load
+      title: Load mesh data
+    - local: mesh_dataset
+      title: Create a mesh dataset
     - local: document_load
       title: Load document data
     - local: document_dataset
