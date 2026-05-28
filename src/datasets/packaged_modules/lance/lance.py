@@ -92,6 +92,7 @@ def _fix_local_version_file(uri: str) -> str:
 class Lance(datasets.ArrowBasedBuilder, datasets.builder._CountableBuilderMixin):
     BUILDER_CONFIG_CLASS = LanceConfig
     METADATA_EXTENSIONS = [".idx", ".txn", ".manifest"]
+    METADATA_FILE_NAMES = ["latest_version_hint.json"]
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
