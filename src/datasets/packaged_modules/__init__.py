@@ -10,6 +10,7 @@ from .cache import cache
 from .conll import conll
 from .csv import csv
 from .eval import eval
+from .fasta import fasta
 from .hdf5 import hdf5
 from .iceberg import iceberg
 from .imagefolder import imagefolder
@@ -58,6 +59,7 @@ _PACKAGED_DATASETS_MODULES = {
     "webdataset": (webdataset.__name__, _hash_python_lines(inspect.getsource(webdataset).splitlines())),
     "xml": (xml.__name__, _hash_python_lines(inspect.getsource(xml).splitlines())),
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
+    "fasta": (fasta.__name__, _hash_python_lines(inspect.getsource(fasta).splitlines())),
     "eval": (eval.__name__, _hash_python_lines(inspect.getsource(eval).splitlines())),
     "lance": (lance.__name__, _hash_python_lines(inspect.getsource(lance).splitlines())),
     "iceberg": (iceberg.__name__, _hash_python_lines(inspect.getsource(iceberg).splitlines())),
@@ -94,6 +96,11 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".xml": ("xml", {}),
     ".hdf5": ("hdf5", {}),
     ".h5": ("hdf5", {}),
+    ".fa": ("fasta", {}),
+    ".fasta": ("fasta", {}),
+    ".fna": ("fasta", {}),
+    ".ffn": ("fasta", {}),
+    ".frn": ("fasta", {}),
     ".eval": ("eval", {}),
     ".lance": ("lance", {}),
 }
