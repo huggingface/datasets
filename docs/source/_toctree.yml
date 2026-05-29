@@ -84,10 +84,6 @@
       title: Load video data
     - local: video_dataset
       title: Create a video dataset
-    - local: mesh_load
-      title: Load mesh data
-    - local: mesh_dataset
-      title: Create a mesh dataset
     - local: document_load
       title: Load document data
     - local: document_dataset
@@ -95,6 +91,12 @@
     - local: nifti_dataset
       title: Create a medical imaging dataset
     title: "Vision"
+  - sections:
+    - local: mesh_load
+      title: Load mesh data
+    - local: mesh_dataset
+      title: Create a mesh dataset
+    title: "3D"
   - sections:
     - local: nlp_load
       title: Load text data
