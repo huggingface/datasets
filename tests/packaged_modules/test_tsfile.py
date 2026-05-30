@@ -8,13 +8,20 @@ from typing import Any, Sequence
 
 import pyarrow as pa
 import pytest
-from tsfile import ColumnCategory, ColumnSchema, TableSchema, Tablet, TsFileWriter
-from tsfile.constants import TSDataType
 
-from datasets import IterableDataset, load_dataset
-from datasets.builder import InvalidConfigName
-from datasets.data_files import DataFilesList
-from datasets.packaged_modules.tsfile.tsfile import TsFileConfig, _to_epoch
+
+# `tsfile` requires pyarrow<20 for python<3.14, which conflicts with datasets'
+# pyarrow>=21.0.0. It is therefore only installed in the py3.14 CI. Skip this
+# whole module (at collection time) when tsfile is not importable.
+pytest.importorskip("tsfile")
+
+from tsfile import ColumnCategory, ColumnSchema, TableSchema, Tablet, TsFileWriter  # noqa: E402
+from tsfile.constants import TSDataType  # noqa: E402
+
+from datasets import IterableDataset, load_dataset  # noqa: E402
+from datasets.builder import InvalidConfigName  # noqa: E402
+from datasets.data_files import DataFilesList  # noqa: E402
+from datasets.packaged_modules.tsfile.tsfile import TsFileConfig, _to_epoch  # noqa: E402
 
 
 # ---------------------------------------------------------------------------

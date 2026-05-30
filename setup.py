@@ -188,7 +188,6 @@ TESTS_REQUIRE = [
     "torch>=2.8.0",
     "torchdata",
     "transformers>=4.42.0",  # Pins numpy < 2
-    "tsfile>=2.3.0",
     "zstandard",
     "polars[timezone]>=0.20.0",
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
