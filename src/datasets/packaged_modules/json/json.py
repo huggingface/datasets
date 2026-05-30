@@ -1,4 +1,5 @@
 import io
+import os
 from dataclasses import dataclass
 from typing import Literal, Optional
 
@@ -50,6 +51,7 @@ class JsonConfig(datasets.BuilderConfig):
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
     on_mixed_types: Optional[Literal["use_json"]] = "use_json"
+    parse_agent_traces: bool = True
 
     def __post_init__(self):
         super().__post_init__()
@@ -83,13 +85,19 @@ class Json(datasets.ArrowBasedBuilder):
             splits.append(
                 datasets.SplitGenerator(
                     name=split_name,
-                    gen_kwargs={"files_iterables": files_iterables, "base_files": base_data_files[split_name]},
+                    gen_kwargs={
+                        "files_iterables": files_iterables,
+                        "base_files": base_data_files[split_name],
+                        "original_files": self.config.data_files[split_name],
+                    },
                 )
             )
         if self.info.features is None:
             try:
                 pa_table = next(iter(self._generate_tables(**splits[0].gen_kwargs, allow_full_read=False)))[1]
                 self.info.features = datasets.Features.from_arrow_schema(pa_table.schema)
+                if self.config.parse_agent_traces and has_agent_traces_markers(self.info.features):
+                    self.info.features = AGENT_TRACES_FEATURES
             except FullReadDisallowed:
                 pass
         return splits
@@ -124,14 +132,18 @@ class Json(datasets.ArrowBasedBuilder):
             pa_table = table_cast(pa_table, features.arrow_schema)
         return pa_table
 
-    def _generate_shards(self, base_files, files_iterables):
+    def _generate_shards(self, base_files, files_iterables, original_files):
         yield from base_files
 
-    def _generate_tables(self, base_files, files_iterables, allow_full_read=True):
+    def _generate_tables(self, base_files, files_iterables, original_files, allow_full_read=True):
         json_field_paths = []
+        is_agent_traces = False
 
         if self.info.features is not None:
-            json_field_paths = get_json_field_paths_from_feature(self.info.features)
+            if self.info.features == AGENT_TRACES_FEATURES:
+                is_agent_traces = True
+            else:
+                json_field_paths = get_json_field_paths_from_feature(self.info.features)
 
         for shard_idx, files_iterable in enumerate(files_iterables):
             for file in files_iterable:
@@ -147,6 +159,28 @@ class Json(datasets.ArrowBasedBuilder):
                     if df.columns.tolist() == [0]:
                         df.columns = list(self.config.features) if self.config.features else ["text"]
                     pa_table = pa.Table.from_pandas(df, preserve_index=False)
+                    yield Key(shard_idx, 0), self._cast_table(pa_table)
+
+                # If the files are agent traces (one row = one file)
+                elif is_agent_traces:
+                    with open(file, "r", encoding="utf-8") as f:
+                        traces = f.readlines()
+                    harness, session_id, prompt, sent_at, num_user_messages, num_tool_calls = parse_traces_info(traces)
+                    file_path = original_files[shard_idx]
+                    if self.base_path is not None and file_path.startswith(self.base_path):
+                        file_path = os.path.relpath(file_path, self.base_path)
+                    pa_table = pa.Table.from_pydict(
+                        {
+                            "harness": [harness],
+                            "session_id": [session_id],
+                            "prompt": [prompt],
+                            "sent_at": [sent_at],
+                            "num_user_messages": [num_user_messages],
+                            "num_tool_calls": [num_tool_calls],
+                            "traces": [traces],
+                            "file_path": [file_path],
+                        }
+                    )
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
 
                 # If the file has one json object per line
@@ -265,3 +299,174 @@ class Json(datasets.ArrowBasedBuilder):
                                 self._cast_table(pa_table, json_field_paths=json_field_paths),
                             )
                             batch_idx += 1
+
+
+AGENT_TRACES_TYPES_VALUES = {
+    "claude_code": ["user", "assistant", "system"],
+    "pi": ["session", "message"],
+    "codex": ["session_meta", "turn_context", "response_item", "event_msg"],
+}
+AGENT_TRACES_TYPE_TO_HARNESS = {}
+for _harness, _trace_types in AGENT_TRACES_TYPES_VALUES.items():
+    for _trace_type in _trace_types:
+        AGENT_TRACES_TYPE_TO_HARNESS[_trace_type] = _harness
+
+
+AGENT_TRACES_FEATURES_MARKERS = {
+    "claude_code": datasets.Features(
+        {
+            "type": datasets.Value("string"),
+            "message": datasets.Json(),
+        }
+    ),
+    "pi": datasets.Features(
+        {
+            "type": datasets.Value("string"),
+            "message": datasets.Json(),
+        }
+    ),
+    "codex": datasets.Features(
+        {
+            "type": datasets.Value("string"),
+            "payload": datasets.Json(),
+        }
+    ),
+}
+
+AGENT_TRACES_FEATURES = datasets.Features(
+    {
+        "harness": datasets.Value("string"),
+        "session_id": datasets.Value("string"),
+        "prompt": datasets.Value("string"),
+        "sent_at": datasets.Value("string"),
+        "num_user_messages": datasets.Value("int64"),
+        "num_tool_calls": datasets.Value("int64"),
+        "traces": datasets.List(datasets.Json()),
+        "file_path": datasets.Value("string"),
+    }
+)
+
+
+def has_agent_traces_markers(features: datasets.Features) -> bool:
+    for agent_traces_features_marker in AGENT_TRACES_FEATURES_MARKERS.values():
+        if all(features.get(key) == feature for key, feature in agent_traces_features_marker.items()):
+            return True
+    return False
+
+
+def parse_traces_info(
+    traces: list[str],
+) -> tuple[Optional[str], Optional[str], Optional[str], Optional[str], int, int]:
+    harness, session_id, prompt, sent_at = None, None, None, None
+    # prompt/sent_at describe the first user message; the counters summarize the whole trace file.
+    # Codex response_item user messages can include context files (for example AGENTS.md), so only event_msg
+    # user_message records are treated as Codex user messages.
+    num_user_messages = 0
+    num_tool_calls = 0
+    for trace in traces:
+        decoded_trace = ujson_loads(trace)
+        if harness is None:
+            if "type" in decoded_trace and isinstance(decoded_trace["type"], str):
+                harness = AGENT_TRACES_TYPE_TO_HARNESS.get(decoded_trace["type"])
+        if session_id is None:
+            session_id = get_session_id(decoded_trace)
+            if (
+                session_id is not None
+                and decoded_trace.get("type") == "session"
+                and isinstance(decoded_trace.get("cwd"), str)
+                and "/.openclaw/" in decoded_trace["cwd"]
+            ):
+                harness = "openclaw"
+        user_prompt = get_user_prompt(decoded_trace)
+        if user_prompt is not None:
+            num_user_messages += 1
+            if prompt is None:
+                prompt = user_prompt
+                sent_at = get_trace_timestamp(decoded_trace)
+        num_tool_calls += get_tool_call_count(decoded_trace)
+    return harness, session_id, prompt, sent_at, num_user_messages, num_tool_calls
+
+
+def get_session_id(trace: dict) -> Optional[str]:
+    # claude
+    if isinstance(trace.get("sessionId"), str):
+        return trace["sessionId"]
+    # claude (not sure but this format does exist online)
+    if isinstance(trace.get("session_id"), str):
+        return trace["session_id"]
+    # codex
+    if isinstance(trace.get("payload"), dict) and isinstance(trace["payload"].get("id"), str):
+        return trace["payload"]["id"]
+    # pi / openclaw (openclaw embeds pi-agent; distinguish via cwd)
+    if trace.get("type") == "session" and isinstance(trace.get("id"), str):
+        return trace["id"]
+    return None
+
+
+def get_user_prompt(trace: dict) -> Optional[str]:
+    if trace.get("type") == "user" and isinstance(trace.get("message"), dict):
+        message = trace["message"]
+        if message.get("role") == "user":
+            return get_content_text(message.get("content"))
+
+    if trace.get("type") == "message":
+        if isinstance(trace.get("message"), dict):
+            message = trace["message"]
+            if message.get("role") == "user":
+                return get_content_text(message.get("content"))
+        if trace.get("role") == "user":
+            return get_content_text(trace.get("content"))
+
+    if trace.get("type") == "event_msg" and isinstance(trace.get("payload"), dict):
+        payload = trace["payload"]
+        if payload.get("type") == "user_message":
+            return get_content_text(payload.get("message"))
+
+    return None
+
+
+def get_tool_call_count(trace: dict) -> int:
+    trace_type = trace.get("type")
+    if trace_type == "response_item":
+        payload = trace.get("payload")
+        if isinstance(payload, dict) and payload.get("type") == "function_call":
+            return 1
+        return 0
+
+    if trace_type not in {"assistant", "message"} or not isinstance(trace.get("message"), dict):
+        return 0
+    message = trace["message"]
+    if message.get("role") != "assistant":
+        return 0
+    content = message.get("content")
+    if not isinstance(content, list):
+        return 0
+    return sum(
+        1
+        for content_part in content
+        if isinstance(content_part, dict) and content_part.get("type") in {"tool_use", "toolCall"}
+    )
+
+
+def get_trace_timestamp(trace: dict) -> Optional[str]:
+    timestamp = trace.get("timestamp")
+    if isinstance(timestamp, str):
+        return timestamp
+    return None
+
+
+def get_content_text(content) -> Optional[str]:
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        content_parts = []
+        for content_part in content:
+            if isinstance(content_part, str):
+                content_parts.append(content_part)
+            elif isinstance(content_part, dict):
+                text = content_part.get("text")
+                if isinstance(text, str):
+                    content_parts.append(text)
+        if content_parts:
+            return "\n".join(content_parts)
+    return None

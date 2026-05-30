@@ -297,6 +297,9 @@ class DatasetBuilder:
     # None means that the ArrowWriter will use its default value
     DEFAULT_WRITER_BATCH_SIZE = None
 
+    # Useful to make sure PyArrow threads in c++ have time to shut down before gargabe collection
+    SLEEP_ON_THREADS_SHUTDOWNS = False
+
     def __init__(
         self,
         cache_dir: Optional[str] = None,
@@ -1794,7 +1797,10 @@ class ArrowBasedBuilder(DatasetBuilder):
                             embed_local_files=embed_local_files,
                         )
                     try:
-                        writer.write_table(table)
+                        if len(table) == 1:
+                            writer.write_row(table)
+                        else:
+                            writer.write_table(table)
                     except CastError as cast_error:
                         raise DatasetGenerationCastError.from_cast_error(
                             cast_error=cast_error,
@@ -1847,6 +1853,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             self._generate_tables,
             kwargs=split_generator.gen_kwargs,
             generate_more_kwargs_fn=getattr(self, "_generate_more_gen_kwargs", None),
+            sleep_on_threads_shutdown=self.SLEEP_ON_THREADS_SHUTDOWNS,
         )
 
 

@@ -92,6 +92,7 @@ def _fix_local_version_file(uri: str) -> str:
 class Lance(datasets.ArrowBasedBuilder, datasets.builder._CountableBuilderMixin):
     BUILDER_CONFIG_CLASS = LanceConfig
     METADATA_EXTENSIONS = [".idx", ".txn", ".manifest"]
+    METADATA_FILE_NAMES = ["latest_version_hint.json"]
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
@@ -118,7 +119,7 @@ class Lance(datasets.ArrowBasedBuilder, datasets.builder._CountableBuilderMixin)
 
         splits: list[datasets.SplitGenerator] = []
         for split_name, files in data_files.items():
-            storage_options = dl_manager.download_config.storage_options.get(files[0].split("://", 0)[0] + "://")
+            storage_options = dl_manager.download_config.storage_options.get(files[0].split("://", 1)[0])
 
             lance_dataset_uris = resolve_dataset_uris(files)
             if lance_dataset_uris:

@@ -18,7 +18,7 @@ pytestmark = pytest.mark.integration
     [
         ("rajpurkar/squad", "plain_text", ["train", "validation"]),
         ("dalle-mini/wit", "default", ["train"]),
-        ("paws", "labeled_final", ["train", "test", "validation"]),
+        ("google-research-datasets/paws", "labeled_final", ["train", "test", "validation"]),
     ],
 )
 def test_get_dataset_config_info(path, config_name, expected_splits):
@@ -35,7 +35,7 @@ def test_get_dataset_config_info_private(hf_token, hf_private_dataset_repo_txt_d
 @pytest.mark.parametrize(
     "path, config_name, expected_exception",
     [
-        ("paws", None, ValueError),
+        ("google-research-datasets/paws", None, ValueError),
         # non-existing, gated, private:
         ("hf-internal-testing/non-existing-dataset", "default", DatasetNotFoundError),
         ("hf-internal-testing/gated_dataset_with_data_files", "default", DatasetNotFoundError),
@@ -91,7 +91,11 @@ def test_get_dataset_default_config_name(path, expected):
     [
         ("rajpurkar/squad", ["plain_text"], ["train", "validation"]),
         ("dalle-mini/wit", ["default"], ["train"]),
-        ("paws", ["labeled_final", "labeled_swap", "unlabeled_final"], ["train", "test", "validation"]),
+        (
+            "google-research-datasets/paws",
+            ["labeled_final", "labeled_swap", "unlabeled_final"],
+            ["train", "test", "validation"],
+        ),
     ],
 )
 def test_get_dataset_info(path, expected_configs, expected_splits_in_first_config):
@@ -109,7 +113,7 @@ def test_get_dataset_info(path, expected_configs, expected_splits_in_first_confi
     [
         ("rajpurkar/squad", "plain_text", ["train", "validation"]),
         ("dalle-mini/wit", "default", ["train"]),
-        ("paws", "labeled_final", ["train", "test", "validation"]),
+        ("google-research-datasets/paws", "labeled_final", ["train", "test", "validation"]),
     ],
 )
 def test_get_dataset_split_names(path, expected_config, expected_splits):
@@ -123,7 +127,7 @@ def test_get_dataset_split_names(path, expected_config, expected_splits):
 @pytest.mark.parametrize(
     "path, config_name, expected_exception",
     [
-        ("paws", None, ValueError),
+        ("google-research-datasets/paws", None, ValueError),
     ],
 )
 def test_get_dataset_split_names_error(path, config_name, expected_exception):

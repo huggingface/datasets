@@ -68,6 +68,54 @@ def _batch_arrow_table(table: pa.Table) -> pa.Table:
     return pa.Table.from_arrays(batched_columns, names=table.column_names)
 
 
+def _batch_accumulate_arrow_table_by_columns(
+    table: pa.Table, indices: list[int], columns: tuple[str], tables_accumulator: list[pa.Table], length: Optional[int]
+) -> pa.Table:
+    accumulate_last_batch = length is None or indices[-1] + 1 < length
+    # keep accumulating if key is the same, otherwise include the accumulated tables
+    if tables_accumulator and accumulate_last_batch:
+        for column in columns:
+            if any(pc.not_equal(table[column], tables_accumulator[0][column][0]).to_pylist()):
+                break
+        else:
+            tables_accumulator.append(table)
+            empty_batched_table = pa.Table.from_arrays(
+                [
+                    pa.ListArray.from_arrays(pa.array([0], type=pa.int32()), table[column].chunk(0))
+                    for column in table.column_names
+                ],
+                names=table.column_names,
+            )
+            return empty_batched_table
+    table = pa.concat_tables(tables_accumulator + [table])
+    tables_accumulator[:] = []
+    if len(table) == 0:
+        return table
+    # cut the table per key, i.e. when the columns change value
+    if len(table) > 1:
+        cut_array = pc.not_equal(table[columns[0]][1:], table[columns[0]][:-1])
+        for column in columns[1:]:
+            cut_array = pc.or_(cut_array, pc.not_equal(table[column][1:], table[column][:-1]))
+    else:
+        cut_array = pa.array([], type=pa.uint64())
+    offsets = pc.indices_nonzero(cut_array)
+    # make the batched table
+    offsets = pc.add(1, offsets)
+    offsets = pa.concat_arrays([pa.array([0], type=pa.int32()), offsets.cast(pa.int32())])
+    if not accumulate_last_batch:
+        offsets = pa.concat_arrays([offsets, pa.array([len(table)], type=pa.int32())])
+    batched_columns = []
+    for column_name in table.column_names:
+        column = table[column_name].combine_chunks()
+        batched_columns.append(pa.ListArray.from_arrays(offsets, column))
+    batched_table = pa.Table.from_arrays(batched_columns, names=table.column_names)
+    # add the last batch to the accumulator since it might not be full yet
+    if accumulate_last_batch:
+        last_offset = offsets[-1].as_py()
+        tables_accumulator.append(table.slice(last_offset, len(table) - last_offset))
+    return batched_table
+
+
 def _memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
     opened_stream = _memory_mapped_record_batch_reader_from_file(filename)
     pa_table = opened_stream.read_all()
@@ -2102,7 +2150,13 @@ def cast_array_to_feature(
 
 
 @_wrap_for_chunked_arrays
-def embed_array_storage(array: pa.Array, feature: "FeatureType", token_per_repo_id=None):
+def embed_array_storage(
+    array: pa.Array,
+    feature: "FeatureType",
+    token_per_repo_id=None,
+    local_files: bool = True,
+    remote_files: bool = True,
+):
     """Embed data into an arrays's storage.
     For custom features like Audio or Image, it takes into account the "embed_storage" methods
     they define to embed external data (e.g. an image file) into an array.
@@ -2114,6 +2168,15 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType", token_per_repo_
             The PyArrow array in which to embed data.
         feature (`datasets.features.FeatureType`):
             Array features.
+        local_files (`bool`, defaults to `True`)
+            Whether to embed local files data in the array
+
+            <Added version="4.8.5"/>
+        remote_files (`bool`, defaults to `True`)
+            Whether to embed remote files data in the array.
+            E.g. files with paths that start with hf:// or https://
+
+            <Added version="4.8.5"/>
 
     Raises:
         `TypeError`: if the target type is not supported according, e.g.
@@ -2123,14 +2186,21 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType", token_per_repo_
     Returns:
          array (`pyarrow.Array`): the casted array
     """
+    if not local_files and not remote_files:
+        return array
+
     from .features import LargeList, List
 
-    _e = partial(embed_array_storage, token_per_repo_id=token_per_repo_id)
+    _e = partial(
+        embed_array_storage, token_per_repo_id=token_per_repo_id, local_files=local_files, remote_files=remote_files
+    )
 
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
     if hasattr(feature, "embed_storage"):
-        return feature.embed_storage(array, token_per_repo_id=token_per_repo_id)
+        return feature.embed_storage(
+            array, token_per_repo_id=token_per_repo_id, local_files=local_files, remote_files=remote_files
+        )
     elif pa.types.is_struct(array.type):
         # feature must be a dict
         if isinstance(feature, dict):
@@ -2239,7 +2309,7 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
     return pa.Table.from_arrays(arrays, schema=schema)
 
 
-def embed_table_storage(table: pa.Table, token_per_repo_id=None):
+def embed_table_storage(table: pa.Table, token_per_repo_id=None, local_files: bool = True, remote_files: bool = True):
     """Embed external data into a table's storage.
 
     <Added version="2.4.0"/>
@@ -2247,15 +2317,33 @@ def embed_table_storage(table: pa.Table, token_per_repo_id=None):
     Args:
         table (`pyarrow.Table`):
             PyArrow table in which to embed data.
+        local_files (`bool`, defaults to `True`)
+            Whether to embed local files data in the table
+
+            <Added version="4.8.5"/>
+        remote_files (`bool`, defaults to `True`)
+            Whether to embed remote files data in the table.
+            E.g. files with paths that start with hf:// or https://
+
+            <Added version="4.8.5"/>
 
     Returns:
         table (`pyarrow.Table`): the table with embedded data
     """
+    if not local_files and not remote_files:
+        return table
+
     from .features.features import Features, require_storage_embed
 
     features = Features.from_arrow_schema(table.schema)
     arrays = [
-        embed_array_storage(table[name], feature, token_per_repo_id=token_per_repo_id)
+        embed_array_storage(
+            table[name],
+            feature,
+            token_per_repo_id=token_per_repo_id,
+            local_files=local_files,
+            remote_files=remote_files,
+        )
         if require_storage_embed(feature)
         else table[name]
         for name, feature in features.items()

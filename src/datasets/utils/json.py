@@ -23,7 +23,7 @@ def ujson_loads(*args, **kwargs):
         return pd.io.json.loads(*args, **kwargs)
 
 
-def json_encode_field(example: Any, json_field_path: str) -> Any:
+def json_encode_field(example: Any, json_field_path: list[str]) -> Any:
     if json_field_path:
         field, *json_field_path = json_field_path
         if example is None:
@@ -57,7 +57,7 @@ def json_decode_field(example: Any, json_field_path: str) -> Any:
             return example
 
 
-def find_mixed_struct_types_field_paths(examples: list, allow_root=False) -> list[str]:
+def find_mixed_struct_types_field_paths(examples: list, allow_root=False) -> list[list[str]]:
     mixed_struct_types_field_paths = []
     examples = [example for example in examples if example is not None]
     if not examples:
@@ -84,7 +84,7 @@ def find_mixed_struct_types_field_paths(examples: list, allow_root=False) -> lis
     return mixed_struct_types_field_paths
 
 
-def get_json_field_path_from_pyarrow_json_error(err_str: str) -> str:
+def get_json_field_path_from_pyarrow_json_error(err_str: str) -> list[str]:
     # e.g. json_field_path_str = "col/subfield_containing_a_list/[]/subsubfield_in_item_in_the_list"
     json_field_path_str = err_str.split("Column(", 1)[1].rsplit(") changed from", 1)[0].strip("/")
     # e.g. json_field_path = ["col", "subfield_containing_a_list", 0, "subsubfield_in_item_in_the_list"]
@@ -92,7 +92,7 @@ def get_json_field_path_from_pyarrow_json_error(err_str: str) -> str:
     return json_field_path
 
 
-def insert_json_field_path(json_field_paths: list[str], json_field_path: str) -> None:
+def insert_json_field_path(json_field_paths: list[list[str]], json_field_path: list[str]) -> None:
     # Add to list of json_field_paths and check if other share a common path
     for i in range(len(json_field_paths)):
         if json_field_paths[i][: len(json_field_path)] == json_field_path:
@@ -102,7 +102,7 @@ def insert_json_field_path(json_field_paths: list[str], json_field_path: str) ->
         json_field_paths.append(json_field_path)
 
 
-def json_encode_fields_in_json_lines(original_batch: bytes, json_field_paths: list[str]) -> bytes:
+def json_encode_fields_in_json_lines(original_batch: bytes, json_field_paths: list[list[str]]) -> bytes:
     examples = [ujson_loads(line) for line in original_batch.splitlines()]
     for json_field_path in json_field_paths:
         examples = [json_encode_field(example, json_field_path) for example in examples]
@@ -110,7 +110,7 @@ def json_encode_fields_in_json_lines(original_batch: bytes, json_field_paths: li
     return batch
 
 
-def get_json_field_paths_from_feature(feature: "FeatureType") -> list[str]:
+def get_json_field_paths_from_feature(feature: "FeatureType") -> list[list[str]]:
     from datasets.features.features import Json, _visit_with_path
 
     json_field_paths = []
@@ -124,7 +124,7 @@ def get_json_field_paths_from_feature(feature: "FeatureType") -> list[str]:
     return json_field_paths
 
 
-def set_json_types_in_feature(feature: "FeatureType", json_field_paths: list[str]) -> None:
+def set_json_types_in_feature(feature: "FeatureType", json_field_paths: list[list[str]]) -> None:
     from datasets.features.features import Json, _visit_with_path
 
     def set_json_type(feature, feature_path):

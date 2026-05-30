@@ -29,7 +29,7 @@ def test_offline_with_timeout():
             get_session().request("GET", "https://huggingface.co", timeout=1.0)
 
         with pytest.raises(expected_exception), NamedTemporaryFile() as temp_file:
-            fsspec_get("hf://dummy", temp_file=temp_file)
+            fsspec_get("hf://username/dummy", temp_file=temp_file)
 
 
 @pytest.mark.integration
@@ -41,12 +41,12 @@ def test_offline_with_connection_error():
             get_session().request("GET", "https://huggingface.co")
 
         with pytest.raises(expected_exception), NamedTemporaryFile() as temp_file:
-            fsspec_get("hf://dummy", temp_file=temp_file)
+            fsspec_get("hf://username/dummy", temp_file=temp_file)
 
 
 def test_offline_with_datasets_offline_mode_enabled():
     with offline(OfflineSimulationMode.HF_HUB_OFFLINE_SET_TO_1):
         with pytest.raises(OfflineModeIsEnabled):
-            fsspec_head("hf://dummy")
+            fsspec_head("hf://username/dummy")
         with pytest.raises(OfflineModeIsEnabled), NamedTemporaryFile() as temp_file:
-            fsspec_get("hf://dummy", temp_file=temp_file)
+            fsspec_get("hf://username/dummy", temp_file=temp_file)

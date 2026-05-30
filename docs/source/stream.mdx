@@ -115,7 +115,11 @@ The `buffer_size` argument controls the size of the buffer to randomly sample ex
 
 > [!TIP]
 > 
-> [`IterableDataset.shuffle`] will also shuffle the order of the shards if the dataset is sharded into multiple files.
+> [`IterableDataset.shuffle`] fills the buffer using up to `max_buffer_input_shards` shards at a time (default is 10), which greatly improves the quality of the shuffling. It also shuffles the order of the shards if the dataset is sharded into multiple files.
+
+> [!TIP]
+>
+> If you're streaming a Parquet dataset with only one or few files, use [`~IterableDataset.reshard`] before shuffling. This is useful to shard the dataset by row group instead of by file, improving shuffling quality.
 
 ## Reshuffle
 

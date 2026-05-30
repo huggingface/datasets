@@ -127,7 +127,7 @@ REQUIRED_PKGS = [
     "multiprocess<0.70.20",  # to align with dill<0.3.9 (see above)
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0,<=2026.2.0",
+    "fsspec[http]>=2023.1.0,<=2026.4.0",
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface-hub>=0.25.0,<2.0",
     # Utilities from PyPA to e.g., compare versions
@@ -143,6 +143,10 @@ AUDIO_REQUIRE = [
 
 VISION_REQUIRE = [
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
+]
+
+MESH_REQUIRE = [
+    "trimesh>=4.10.0",
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -168,6 +172,7 @@ TESTS_REQUIRE = [
     "faiss-cpu>=1.8.0.post1",  # Pins numpy < 2
     "h5py",
     "pylance",
+    "pyiceberg[sql-sqlite,pyarrow]",
     "jax>=0.3.14; sys_platform != 'win32'",
     "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4; python_version < '3.14'",  # python 3.14 gives ImportError: cannot import name '_compression' from partially initialized module 'lz4.frame
@@ -189,6 +194,7 @@ TESTS_REQUIRE = [
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
     "torchcodec>=0.7.0; python_version < '3.14'",  # minium version to get windows support, torchcodec doesn't have wheels for 3.14 yet
     "nibabel>=5.3.1",
+    "trimesh>=4.10.0",
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
@@ -212,9 +218,12 @@ PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
 NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 
+ICEBERG_REQUIRE = ["pyiceberg>=0.7.0"]
+
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
+    "mesh": MESH_REQUIRE,
     "tensorflow": [
         "tensorflow>=2.6.0",
     ],
@@ -230,11 +239,12 @@ EXTRAS_REQUIRE = {
     "docs": DOCS_REQUIRE,
     "pdfs": PDFS_REQUIRE,
     "nibabel": NIBABEL_REQUIRE,
+    "iceberg": ICEBERG_REQUIRE,
 }
 
 setup(
     name="datasets",
-    version="4.8.5.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="4.8.6.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
