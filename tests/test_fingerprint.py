@@ -573,3 +573,26 @@ def test_dependency_on_dill():
     # AttributeError: module 'dill._dill' has no attribute 'stack'
     hasher = Hasher()
     hasher.update(lambda x: x)
+
+
+
+def test_map_fingerprint_stable_with_nondeterministic_closure():
+    import uuid
+    from datasets import Dataset
+
+    class DataModule:
+        def __init__(self):
+            self.max_length = 512
+            self._uid = uuid.uuid4()  # non-deterministic, changes every instantiation
+            self.ds = Dataset.from_dict({"text": ["hello", "world"]})
+
+        def process(self):
+            def fn(examples):
+                ml = self.max_length
+                return {"text": [t[:ml] for t in examples["text"]]}
+            return self.ds.map(fn, batched=True)
+
+    fp1 = DataModule().process()._fingerprint
+    fp2 = DataModule().process()._fingerprint
+
+    assert fp1 == fp2, f"Expected same fingerprint but got {fp1} != {fp2}"
