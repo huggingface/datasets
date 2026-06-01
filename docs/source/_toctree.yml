@@ -102,6 +102,10 @@
       title: Load tabular data
     title: "Tabular"
   - sections:
+    - local: tsfile_load
+      title: Load TsFile data
+    title: "Time-series"
+  - sections:
     - local: share
       title: Share
     - local: dataset_card
