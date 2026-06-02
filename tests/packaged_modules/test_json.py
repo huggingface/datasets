@@ -9,6 +9,8 @@ from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig
 
+from ..utils import require_teich
+
 
 @pytest.fixture
 def json_file(tmp_path):
@@ -315,18 +317,46 @@ def generate_agent_traces_output(trace_file):
 def assert_agent_traces_output(tmp_path, filename, rows, expected):
     trace_file = write_jsonl(tmp_path / filename, rows)
     out = generate_agent_traces_output(trace_file)
-    for key, value in zip(AGENT_TRACE_FIELD_NAMES, expected):
+    for key, value in zip(AGENT_TRACE_FIELD_NAMES_TO_CHECK, expected):
         assert out[key] == [value]
     assert out["file_path"] == [trace_file]
+    assert isinstance(out["messages"], list)
+    assert out["messages"]
+    assert all(
+        isinstance(message["role"], str) and isinstance(message["content"], str)
+        for messages in out["messages"]
+        for message in messages
+    )
+    assert isinstance(out["tools"], list)
+    assert isinstance(out["metadata"], (dict, list))
     return trace_file, out
 
 
-AGENT_TRACE_FIELD_NAMES = ("harness", "session_id", "prompt", "sent_at", "num_user_messages", "num_tool_calls")
+AGENT_TRACE_FIELD_NAMES_TO_CHECK = (
+    "harness",
+    "session_id",
+    "prompt",
+    "sent_at",
+    "num_user_messages",
+    "num_tool_calls",
+)
 CODEX_AGENT_TRACE_ROWS = [
     {"type": "session_meta", "payload": {"id": "codex-session"}},
     {
         "type": "response_item",
-        "payload": {"type": "message", "role": "user", "content": [{"text": "context-wrapped codex prompt"}]},
+        "payload": {
+            "type": "message",
+            "role": "user",
+            "content": [{"type": "input_text", "text": "context-wrapped codex prompt"}],
+        },
+    },
+    {
+        "type": "response_item",
+        "payload": {
+            "type": "message",
+            "role": "user",
+            "content": [{"type": "input_text", "text": "actual codex prompt"}],
+        },
     },
     {
         "timestamp": "2026-04-01T10:01:00.000Z",
@@ -556,11 +586,13 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
         ),
     ],
 )
+@require_teich
 def test_json_generate_tables_with_agent_trace_metadata(tmp_path, filename, rows, expected):
     _, out = assert_agent_traces_output(tmp_path, filename, rows, expected)
     assert "models" not in out
 
 
+@require_teich
 def test_json_load_dataset_with_agent_trace_metadata(tmp_path):
     trace_file = write_jsonl(tmp_path / "codex.jsonl", CODEX_AGENT_TRACE_ROWS)
 
@@ -571,11 +603,14 @@ def test_json_load_dataset_with_agent_trace_metadata(tmp_path):
         "harness",
         "session_id",
         "prompt",
+        "messages",
+        "tools",
+        "metadata",
         "sent_at",
         "num_user_messages",
         "num_tool_calls",
-        "traces",
+        "trace",
         "file_path",
     ]
-    for key, value in zip(AGENT_TRACE_FIELD_NAMES, CODEX_EXPECTED_AGENT_TRACE_FIELDS):
-        assert row[key] == value
+    for key, value in zip(AGENT_TRACE_FIELD_NAMES_TO_CHECK, CODEX_EXPECTED_AGENT_TRACE_FIELDS):
+        assert row[key] == value, key

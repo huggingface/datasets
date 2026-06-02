@@ -365,6 +365,21 @@ def require_torchdata_stateful_dataloader(test_case):
         return test_case
 
 
+def require_teich(test_case):
+    """
+    Decorator marking a test that requires teich.
+
+    These tests are skipped when teich isn't installed.
+
+    """
+    try:
+        import teich  # noqa F401
+    except ImportError:
+        return unittest.skip("test requires teich")(test_case)
+    else:
+        return test_case
+
+
 def slow(test_case):
     """
     Decorator marking a test as slow.
