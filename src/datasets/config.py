@@ -132,7 +132,7 @@ else:
 # Optional tools for data loading
 SQLALCHEMY_AVAILABLE = importlib.util.find_spec("sqlalchemy") is not None
 
-# Optional tools for feature decoding
+# Optional tools for file parsing and feature decoding
 PIL_AVAILABLE = importlib.util.find_spec("PIL") is not None
 IS_OPUS_SUPPORTED = True
 IS_MP3_SUPPORTED = True
@@ -141,6 +141,7 @@ TORCHVISION_AVAILABLE = importlib.util.find_spec("torchvision") is not None
 PDFPLUMBER_AVAILABLE = importlib.util.find_spec("pdfplumber") is not None
 NIBABEL_AVAILABLE = importlib.util.find_spec("nibabel") is not None
 TRIMESH_AVAILABLE = importlib.util.find_spec("trimesh") is not None
+TEICH_AVAILABLE = importlib.util.find_spec("teich") is not None
 
 # Optional compression tools
 RARFILE_AVAILABLE = importlib.util.find_spec("rarfile") is not None
