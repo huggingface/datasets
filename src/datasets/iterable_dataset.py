@@ -2041,6 +2041,7 @@ class SkipExamplesIterable(_BaseExamplesIterable):
                 skipped += len(pa_table)
                 if self._state_dict:
                     self._state_dict["skipped"] = skipped
+                continue
             if skipped + 1 <= self.n:
                 offset = self.n - skipped
                 skipped = self.n
