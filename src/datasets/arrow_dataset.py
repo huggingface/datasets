@@ -3652,7 +3652,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             logger.info(f"Concatenating {num_shards} shards")
             result = _concatenate_map_style_datasets(all_transformed_shards)
-
+            
+            original_columns = set(self.column_names)
+            result_columns = set(result.column_names)
+            
+            unchanged_columns = original_columns - result_columns
+            
+            for col in unchanged_columns:
+                # safe fallback: avoid overwriting existing columns
+                if col not in result.column_names:
+                    result = result.add_column(col, self[col])
+        
         # update fingerprint if the dataset changed
         result._fingerprint = (
             new_fingerprint
