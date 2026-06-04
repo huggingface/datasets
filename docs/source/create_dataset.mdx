@@ -2,10 +2,16 @@
 
 Sometimes, you may need to create a dataset if you're working with your own data. Creating a dataset with 🤗 Datasets confers all the advantages of the library to your dataset: fast loading and processing, [stream enormous datasets](stream), [memory-mapping](https://huggingface.co/course/chapter5/4?fw=pt#the-magic-of-memory-mapping), and more. You can easily and rapidly create a dataset with 🤗 Datasets low-code approaches, reducing the time it takes to start training a model. In many cases, it is as easy as [dragging and dropping](upload_dataset#upload-with-the-hub-ui) your data files into a dataset repository on the Hub.
 
-In this tutorial, you'll learn how to use 🤗 Datasets low-code methods for creating all types of datasets:
+In this tutorial, you'll learn how to use 🤗 Datasets low-code methods for creating datasets from your own data.
+
+> **Note**
+>
+> If you want to learn how to load existing datasets, or how to load local and remote files (CSV, JSON, Parquet, etc.), see the [Load guide](./loading).
+
+This tutorial covers:
 
 - Folder-based builders for quickly creating an image or audio dataset
-- `from_` methods for creating datasets from local files
+- `from_` methods for creating datasets from local Python objects
 
 ## File-based builders
 
