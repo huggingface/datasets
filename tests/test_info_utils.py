@@ -31,18 +31,14 @@ def test_verify_splits_raises_on_mismatch_by_default():
         verify_splits(expected, recorded)
 
 
-def test_verify_splits_warns_when_user_provided_data_files_yields_subset():
+def test_verify_splits_skipped_when_user_provided_data_files():
     expected = {"train": SplitInfo(name="train", num_bytes=1000, num_examples=100)}
-    recorded = {"train": SplitInfo(name="train", num_bytes=400, num_examples=40)}
-    with pytest.warns(UserWarning, match="subset of the dataset"):
-        verify_splits(expected, recorded, user_provided_data_files=True)
-
-
-def test_verify_splits_still_raises_when_recorded_is_larger_even_with_user_data_files():
-    expected = {"train": SplitInfo(name="train", num_bytes=1000, num_examples=100)}
-    recorded = {"train": SplitInfo(name="train", num_bytes=2000, num_examples=200)}
-    with pytest.raises(NonMatchingSplitsSizesError):
-        verify_splits(expected, recorded, user_provided_data_files=True)
+    smaller = {"train": SplitInfo(name="train", num_bytes=400, num_examples=40)}
+    larger = {"train": SplitInfo(name="train", num_bytes=2000, num_examples=200)}
+    different_names = {"test": SplitInfo(name="test", num_bytes=400, num_examples=40)}
+    verify_splits(expected, smaller, user_provided_data_files=True)
+    verify_splits(expected, larger, user_provided_data_files=True)
+    verify_splits(expected, different_names, user_provided_data_files=True)
 
 
 def test_verify_splits_passes_when_sizes_match():

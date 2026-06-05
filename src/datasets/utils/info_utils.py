@@ -1,6 +1,5 @@
 import enum
 import os
-import warnings
 from typing import Optional
 
 from huggingface_hub.utils import insecure_hashlib
@@ -64,6 +63,12 @@ def verify_splits(expected_splits: Optional[dict], recorded_splits: dict, user_p
     if expected_splits is None:
         logger.info("Unable to verify splits sizes.")
         return
+    if user_provided_data_files:
+        # When the user explicitly provides data_files, the resulting splits and sizes
+        # are expected to differ from the recorded ones (e.g. loading a subset of a
+        # larger dataset), so there is nothing meaningful to verify.
+        logger.info("Skipping splits verification because data_files were provided by the user.")
+        return
     if len(set(expected_splits) - set(recorded_splits)) > 0:
         raise ExpectedMoreSplitsError(str(set(expected_splits) - set(recorded_splits)))
     if len(set(recorded_splits) - set(expected_splits)) > 0:
@@ -74,21 +79,7 @@ def verify_splits(expected_splits: Optional[dict], recorded_splits: dict, user_p
         if expected_splits[name].num_examples != recorded_splits[name].num_examples
     ]
     if len(bad_splits) > 0:
-        # When the user explicitly provides data_files, a smaller recorded split is
-        # usually intentional (loading a known subset of a larger dataset). Downgrade
-        # the size mismatch to a warning so partial loads work without requiring
-        # verification_mode='no_checks', which silences every check.
-        undersized_only = all(split["recorded"].num_examples < split["expected"].num_examples for split in bad_splits)
-        if user_provided_data_files and undersized_only:
-            warnings.warn(
-                f"Recorded split sizes are smaller than expected: {bad_splits}. "
-                "This is expected when loading a subset of the dataset via the `data_files` argument. "
-                "Pass `verification_mode='no_checks'` to silence this warning.",
-                UserWarning,
-                stacklevel=2,
-            )
-        else:
-            raise NonMatchingSplitsSizesError(str(bad_splits))
+        raise NonMatchingSplitsSizesError(str(bad_splits))
     logger.info("All the splits matched successfully.")
 
 
