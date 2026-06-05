@@ -1226,6 +1226,8 @@ class Json:
         return self.pa_type
 
     def encode_example(self, example_data):
+        if example_data is None:
+            return None
         if not isinstance(example_data, str):
             example_data = ujson_dumps(example_data)
         else:
@@ -1238,6 +1240,8 @@ class Json:
     def decode_example(self, example_data, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Json(decode=True) instead.")
+        if example_data is None:
+            return None
         return ujson_loads(example_data)
 
     def cast_storage(self, storage: Union[pa.Array]) -> pa.JsonArray:
@@ -1256,11 +1260,14 @@ class Json:
             items = storage[:5].to_pylist()
             try:
                 for item in items:
-                    ujson_loads(item)
+                    if item is not None:
+                        ujson_loads(item)
             except Exception:
-                storage = pa.array([ujson_dumps(x) for x in storage.to_pylist()], pa.json_())
+                storage = pa.array(
+                    [ujson_dumps(x) if x is not None else None for x in storage.to_pylist()], pa.json_()
+                )
         else:
-            storage = pa.array([ujson_dumps(x) for x in storage.to_pylist()], pa.json_())
+            storage = pa.array([ujson_dumps(x) if x is not None else None for x in storage.to_pylist()], pa.json_())
         return array_cast(storage, self.pa_type)
 
 
