@@ -1302,15 +1302,18 @@ def test_step_examples_iterable():
     assert_load_state_dict_resumes_iteration(step_ex_iterable)
 
 
-def test_skip_arrow_examples_iterable():
-    total, count = 10, 2
+@pytest.mark.parametrize("count", [2, DEFAULT_BATCH_SIZE, DEFAULT_BATCH_SIZE + 2, DEFAULT_BATCH_SIZE * 3])
+def test_skip_arrow_examples_iterable(count):
+    total = 10
     base_ex_iterable = ArrowExamplesIterable(generate_tables_fn, {"n": total})
     skip_ex_iterable = SkipExamplesIterable(base_ex_iterable, n=count)
     expected = [x for _, pa_table in generate_tables_fn(n=total) for x in pa_table.to_pylist()][count:]
     assert [example for _, example in skip_ex_iterable] == expected
+    assert [example for _, pa_table in skip_ex_iterable.iter_arrow() for example in pa_table.to_pylist()] == expected
     with pytest.raises(DataSourcesShufflingDisallowed):
         skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42))
     assert_load_state_dict_resumes_iteration(skip_ex_iterable)
+    assert_load_state_dict_resumes_arrow_iteration(skip_ex_iterable)
 
 
 def test_take_arrow_examples_iterable():

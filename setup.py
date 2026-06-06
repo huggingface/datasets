@@ -194,6 +194,7 @@ TESTS_REQUIRE = [
     "torchcodec>=0.7.0; python_version < '3.14'",  # minium version to get windows support, torchcodec doesn't have wheels for 3.14 yet
     "nibabel>=5.3.1",
     "trimesh>=4.10.0",
+    "teich==0.1.1a76",
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
@@ -243,7 +244,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="4.8.6.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="5.0.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

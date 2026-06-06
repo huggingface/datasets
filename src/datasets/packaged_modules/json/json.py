@@ -1,6 +1,7 @@
 import io
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Literal, Optional
 
 import pandas as pd
@@ -9,6 +10,7 @@ import pyarrow.json as paj
 
 import datasets
 import datasets.config
+from datasets import List, Value
 from datasets.builder import Key
 from datasets.table import table_cast
 from datasets.utils.file_utils import readline
@@ -112,7 +114,7 @@ class Json(datasets.ArrowBasedBuilder):
             for i, column_name in enumerate(pa_table.column_names):
                 if pa.types.is_struct(pa_table[column_name].type) and self.info.features.get(
                     column_name, None
-                ) == datasets.Value("string"):
+                ) == Value("string"):
                     jsonl = (
                         pa_table[column_name]
                         .to_pandas(types_mapper=pd.ArrowDtype)
@@ -142,8 +144,11 @@ class Json(datasets.ArrowBasedBuilder):
         if self.info.features is not None:
             if self.info.features == AGENT_TRACES_FEATURES:
                 is_agent_traces = True
-            else:
-                json_field_paths = get_json_field_paths_from_feature(self.info.features)
+                if datasets.config.TEICH_AVAILABLE:
+                    from teich import convert_trace_to_training_example
+                else:
+                    raise ImportError("To support decoding agent traces, please install 'teich'.")
+            json_field_paths = get_json_field_paths_from_feature(self.info.features)
 
         for shard_idx, files_iterable in enumerate(files_iterables):
             for file in files_iterable:
@@ -163,24 +168,30 @@ class Json(datasets.ArrowBasedBuilder):
 
                 # If the files are agent traces (one row = one file)
                 elif is_agent_traces:
-                    with open(file, "r", encoding="utf-8") as f:
-                        traces = f.readlines()
-                    harness, session_id, prompt, sent_at, num_user_messages, num_tool_calls = parse_traces_info(traces)
+                    trace_file = Path(file)
+                    trace_events = trace_file.read_text(encoding="utf-8").splitlines()
+                    harness, session_id, prompt, sent_at, num_user_messages, num_tool_calls = parse_traces_info(
+                        trace_events
+                    )
                     file_path = original_files[shard_idx]
                     if self.base_path is not None and file_path.startswith(self.base_path):
                         file_path = os.path.relpath(file_path, self.base_path)
-                    pa_table = pa.Table.from_pydict(
-                        {
-                            "harness": [harness],
-                            "session_id": [session_id],
-                            "prompt": [prompt],
-                            "sent_at": [sent_at],
-                            "num_user_messages": [num_user_messages],
-                            "num_tool_calls": [num_tool_calls],
-                            "traces": [traces],
-                            "file_path": [file_path],
-                        }
-                    )
+                    training_example = convert_trace_to_training_example(trace_file)
+                    example = {
+                        **dict.fromkeys(AGENT_TRACES_FEATURES),
+                        **training_example.to_dict(),
+                        "harness": harness,
+                        "session_id": session_id,
+                        "prompt": prompt,
+                        "sent_at": sent_at,
+                        "num_user_messages": num_user_messages,
+                        "num_tool_calls": num_tool_calls,
+                        "trace": trace_events,
+                        "file_path": file_path,
+                    }
+                    for json_field_path in json_field_paths:
+                        example = json_encode_field(example, json_field_path)
+                    pa_table = pa.Table.from_pylist([example])
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
 
                 # If the file has one json object per line
@@ -236,7 +247,7 @@ class Json(datasets.ArrowBasedBuilder):
                             if json_field_paths:
                                 examples = [ujson_loads(line) for line in batch.splitlines()]
                                 for json_field_path in json_field_paths:
-                                    examples = [json_encode_field(examples, json_field_path) for examples in examples]
+                                    examples = [json_encode_field(example, json_field_path) for example in examples]
                                 batch = "\n".join(ujson_dumps(example) for example in examples).encode()
                             # Disable parallelism if block size is ~ len(batch) to avoid segfault
                             block_size = len(batch) if len(batch) // 8 > block_size else block_size
@@ -315,19 +326,19 @@ for _harness, _trace_types in AGENT_TRACES_TYPES_VALUES.items():
 AGENT_TRACES_FEATURES_MARKERS = {
     "claude_code": datasets.Features(
         {
-            "type": datasets.Value("string"),
+            "type": Value("string"),
             "message": datasets.Json(),
         }
     ),
     "pi": datasets.Features(
         {
-            "type": datasets.Value("string"),
+            "type": Value("string"),
             "message": datasets.Json(),
         }
     ),
     "codex": datasets.Features(
         {
-            "type": datasets.Value("string"),
+            "type": Value("string"),
             "payload": datasets.Json(),
         }
     ),
@@ -335,14 +346,20 @@ AGENT_TRACES_FEATURES_MARKERS = {
 
 AGENT_TRACES_FEATURES = datasets.Features(
     {
-        "harness": datasets.Value("string"),
-        "session_id": datasets.Value("string"),
-        "prompt": datasets.Value("string"),
-        "sent_at": datasets.Value("string"),
-        "num_user_messages": datasets.Value("int64"),
-        "num_tool_calls": datasets.Value("int64"),
-        "traces": datasets.List(datasets.Json()),
-        "file_path": datasets.Value("string"),
+        # basic features
+        "harness": Value("string"),
+        "session_id": Value("string"),
+        # teich features
+        "prompt": Value("string"),
+        "messages": List(datasets.Json()),
+        "tools": List(datasets.Json()),
+        "metadata": datasets.Json(),
+        # bonus features
+        "sent_at": Value("string"),
+        "num_user_messages": Value("int64"),
+        "num_tool_calls": Value("int64"),
+        "trace": List(datasets.Json()),
+        "file_path": Value("string"),
     }
 )
 
@@ -355,7 +372,7 @@ def has_agent_traces_markers(features: datasets.Features) -> bool:
 
 
 def parse_traces_info(
-    traces: list[str],
+    trace_events: list[str],
 ) -> tuple[Optional[str], Optional[str], Optional[str], Optional[str], int, int]:
     harness, session_id, prompt, sent_at = None, None, None, None
     # prompt/sent_at describe the first user message; the counters summarize the whole trace file.
@@ -363,27 +380,27 @@ def parse_traces_info(
     # user_message records are treated as Codex user messages.
     num_user_messages = 0
     num_tool_calls = 0
-    for trace in traces:
-        decoded_trace = ujson_loads(trace)
+    for event in trace_events:
+        decoded_event = ujson_loads(event)
         if harness is None:
-            if "type" in decoded_trace and isinstance(decoded_trace["type"], str):
-                harness = AGENT_TRACES_TYPE_TO_HARNESS.get(decoded_trace["type"])
+            if "type" in decoded_event and isinstance(decoded_event["type"], str):
+                harness = AGENT_TRACES_TYPE_TO_HARNESS.get(decoded_event["type"])
         if session_id is None:
-            session_id = get_session_id(decoded_trace)
+            session_id = get_session_id(decoded_event)
             if (
                 session_id is not None
-                and decoded_trace.get("type") == "session"
-                and isinstance(decoded_trace.get("cwd"), str)
-                and "/.openclaw/" in decoded_trace["cwd"]
+                and decoded_event.get("type") == "session"
+                and isinstance(decoded_event.get("cwd"), str)
+                and "/.openclaw/" in decoded_event["cwd"]
             ):
                 harness = "openclaw"
-        user_prompt = get_user_prompt(decoded_trace)
+        user_prompt = get_user_prompt(decoded_event)
         if user_prompt is not None:
             num_user_messages += 1
             if prompt is None:
                 prompt = user_prompt
-                sent_at = get_trace_timestamp(decoded_trace)
-        num_tool_calls += get_tool_call_count(decoded_trace)
+                sent_at = get_trace_event_timestamp(decoded_event)
+        num_tool_calls += get_tool_call_count(decoded_event)
     return harness, session_id, prompt, sent_at, num_user_messages, num_tool_calls
 
 
@@ -403,39 +420,39 @@ def get_session_id(trace: dict) -> Optional[str]:
     return None
 
 
-def get_user_prompt(trace: dict) -> Optional[str]:
-    if trace.get("type") == "user" and isinstance(trace.get("message"), dict):
-        message = trace["message"]
+def get_user_prompt(trace_event: dict) -> Optional[str]:
+    if trace_event.get("type") == "user" and isinstance(trace_event.get("message"), dict):
+        message = trace_event["message"]
         if message.get("role") == "user":
             return get_content_text(message.get("content"))
 
-    if trace.get("type") == "message":
-        if isinstance(trace.get("message"), dict):
-            message = trace["message"]
+    if trace_event.get("type") == "message":
+        if isinstance(trace_event.get("message"), dict):
+            message = trace_event["message"]
             if message.get("role") == "user":
                 return get_content_text(message.get("content"))
-        if trace.get("role") == "user":
-            return get_content_text(trace.get("content"))
+        if trace_event.get("role") == "user":
+            return get_content_text(trace_event.get("content"))
 
-    if trace.get("type") == "event_msg" and isinstance(trace.get("payload"), dict):
-        payload = trace["payload"]
+    if trace_event.get("type") == "event_msg" and isinstance(trace_event.get("payload"), dict):
+        payload = trace_event["payload"]
         if payload.get("type") == "user_message":
             return get_content_text(payload.get("message"))
 
     return None
 
 
-def get_tool_call_count(trace: dict) -> int:
-    trace_type = trace.get("type")
+def get_tool_call_count(trace_event: dict) -> int:
+    trace_type = trace_event.get("type")
     if trace_type == "response_item":
-        payload = trace.get("payload")
+        payload = trace_event.get("payload")
         if isinstance(payload, dict) and payload.get("type") == "function_call":
             return 1
         return 0
 
-    if trace_type not in {"assistant", "message"} or not isinstance(trace.get("message"), dict):
+    if trace_type not in {"assistant", "message"} or not isinstance(trace_event.get("message"), dict):
         return 0
-    message = trace["message"]
+    message = trace_event["message"]
     if message.get("role") != "assistant":
         return 0
     content = message.get("content")
@@ -448,8 +465,8 @@ def get_tool_call_count(trace: dict) -> int:
     )
 
 
-def get_trace_timestamp(trace: dict) -> Optional[str]:
-    timestamp = trace.get("timestamp")
+def get_trace_event_timestamp(trace_event: dict) -> Optional[str]:
+    timestamp = trace_event.get("timestamp")
     if isinstance(timestamp, str):
         return timestamp
     return None

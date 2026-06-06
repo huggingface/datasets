@@ -1510,6 +1510,23 @@ class BaseDatasetTest(TestCase):
             finally:
                 datasets.enable_caching()
 
+    def test_map_load_from_cache_file_false_progress_bar_starts_at_zero(self, in_memory):
+        # regression test for https://github.com/huggingface/datasets/issues/8167
+        # when load_from_cache_file=False and cache files exist on disk, pbar_initial must be 0
+        if not in_memory:
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                    cache_file = os.path.join(tmp_dir, "mapped.arrow")
+                    with dset.map(lambda x: {"foo": "bar"}, cache_file_name=cache_file):
+                        pass
+                    with patch("datasets.arrow_dataset.hf_tqdm") as mock_tqdm:
+                        with dset.map(
+                            lambda x: {"foo": "bar"}, cache_file_name=cache_file, load_from_cache_file=False
+                        ):
+                            pass
+                        mock_tqdm.assert_called_once()
+                        self.assertEqual(mock_tqdm.call_args.kwargs.get("initial", 0), 0)
+
     def test_suffix_template_format(self, in_memory):
         with (
             tempfile.TemporaryDirectory() as tmp_dir,
@@ -3504,6 +3521,30 @@ class MiscellaneousDatasetTest(TestCase):
         result_dict = test_dataset.to_dict()
         assert isinstance(result_dict["col"][0], dict), f"expected dict, got {type(result_dict[0]['col'])}"
         assert result_dict == {"col": [{"a": {"b": {"c": 1}}, "d": [2, {"e": 3}]}]}
+
+    def test_json_feature_keeps_none_as_null(self):
+        # Regression test for the JSON type: a missing value (None) must be stored as a real
+        # Arrow null, not as the JSON string "null". Otherwise null_count is wrong and a missing
+        # value becomes indistinguishable from the literal JSON value null.
+        data = {"col": [{"a": 1}, None, {"b": 2}]}
+        test_dataset = Dataset.from_dict(data, features=Features({"col": Json()}))
+
+        storage = test_dataset.data["col"].combine_chunks()
+        assert storage.null_count == 1
+        assert storage.is_null().to_pylist() == [False, True, False]
+        # the None must not be re-encoded as the string "null"
+        assert storage.to_pylist() == ['{"a":1}', None, '{"b":2}']
+
+        # decoded access preserves the None
+        assert test_dataset[:] == {"col": [{"a": 1}, None, {"b": 2}]}
+        assert test_dataset.to_list() == [{"col": {"a": 1}}, {"col": None}, {"col": {"b": 2}}]
+
+    def test_json_feature_all_none(self):
+        # An all-None JSON column should be all real Arrow nulls.
+        test_dataset = Dataset.from_dict({"col": [None, None]}, features=Features({"col": Json()}))
+        storage = test_dataset.data["col"].combine_chunks()
+        assert storage.null_count == 2
+        assert test_dataset[:] == {"col": [None, None]}
 
     def test_concatenate_mixed_memory_and_disk(self):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}

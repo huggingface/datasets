@@ -1,0 +1,164 @@
+# Create a mesh dataset
+
+There are two methods for creating and sharing a mesh dataset. This guide will show you how to:
+
+* Create a mesh dataset from local files in python with [`Dataset.push_to_hub`]. This is an easy way that requires only a few steps in python.
+
+* Create a mesh dataset with `MeshFolder` and some metadata. This is a no-code solution for quickly creating a mesh dataset with several thousand 3D files.
+
+> [!TIP]
+> You can control access to your dataset by requiring users to share their contact information first. Check out the [Gated datasets](https://huggingface.co/docs/hub/datasets-gated) guide for more information about how to enable this feature on the Hub.
+
+## Local files
+
+You can load your own dataset using the paths to your mesh files. Use the [`~Dataset.cast_column`] function to take a column of mesh file paths, and cast it to the [`Mesh`] feature:
+
+```py
+>>> from datasets import Dataset, Mesh
+
+>>> mesh_dataset = Dataset.from_dict({"mesh": ["path/to/model_1.glb", "path/to/model_2.ply", "path/to/model_3.stl"]}).cast_column("mesh", Mesh())
+>>> mesh_dataset[0]["mesh"]
+<trimesh.Scene(len(geometry)=33)>
+```
+
+Then upload the dataset to the Hugging Face Hub using [`Dataset.push_to_hub`]:
+
+```py
+mesh_dataset.push_to_hub("<username>/my_dataset")
+```
+
+This will create a dataset repository containing your mesh dataset:
+
+```text
+my_dataset/README.md
+my_dataset/data/train-00000-of-00001.parquet
+```
+
+## MeshFolder
+
+The `MeshFolder` is a dataset builder designed to quickly load a mesh dataset with several thousand mesh files without requiring you to write any code.
+
+> [!TIP]
+> Take a look at the [Split pattern hierarchy](repository_structure#split-pattern-hierarchy) to learn more about how `MeshFolder` creates dataset splits based on your dataset repository structure.
+
+`MeshFolder` automatically infers the class labels of your dataset based on the directory name. Store your dataset in a directory structure like:
+
+```text
+folder/train/diya/brass_diya.glb
+folder/train/diya/clay_diya.ply
+folder/train/diya/festival_diya.stl
+
+folder/train/kalash/copper_kalash.glb
+folder/train/kalash/pooja_kalash.ply
+folder/train/kalash/temple_kalash.stl
+```
+
+If the dataset follows the `MeshFolder` structure, then you can load it directly with [`load_dataset`]:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("path/to/folder")
+```
+
+This is equivalent to passing `meshfolder` manually in [`load_dataset`] and the directory in `data_dir`:
+
+```py
+>>> dataset = load_dataset("meshfolder", data_dir="/path/to/folder")
+```
+
+You can also use `meshfolder` to load datasets involving multiple splits. To do so, your dataset directory should have the following structure:
+
+```text
+folder/train/diya/brass_diya.glb
+folder/train/kalash/copper_kalash.glb
+folder/test/diya/clay_diya.ply
+folder/test/kalash/temple_kalash.stl
+```
+
+> [!WARNING]
+> If all mesh files are contained in a single directory or if they are not on the same level of directory structure, `label` column won't be added automatically. If you need it, set `drop_labels=False` explicitly.
+
+If there is additional information you'd like to include about your dataset, like text captions or 3D asset metadata, add it as a `metadata.csv` file in your folder. You can also use a JSONL file `metadata.jsonl` or a Parquet file `metadata.parquet`.
+
+```text
+folder/train/metadata.csv
+folder/train/0001.glb
+folder/train/0002.ply
+folder/train/0003.stl
+```
+
+You can also zip your mesh files, and in this case each zip should contain both the mesh files and the metadata.
+
+```text
+folder/train.zip
+folder/test.zip
+folder/validation.zip
+```
+
+Your `metadata.csv` file must have a `file_name` or `*_file_name` field which links mesh files with their metadata:
+
+```csv
+file_name,caption
+0001.glb,A brass diya with a small bowl and raised wick holder
+0002.ply,A copper kalash with a rounded body and narrow neck
+0003.stl,A carved jharokha window with an arched frame
+```
+
+or using `metadata.jsonl`:
+
+```jsonl
+{"file_name": "0001.glb", "caption": "A brass diya with a small bowl and raised wick holder"}
+{"file_name": "0002.ply", "caption": "A copper kalash with a rounded body and narrow neck"}
+{"file_name": "0003.stl", "caption": "A carved jharokha window with an arched frame"}
+```
+
+Here the `file_name` must be the name of the mesh file next to the metadata file. More generally, it must be the relative path from the directory containing the metadata to the mesh file.
+
+It's possible to point to more than one mesh in each row in your dataset, for example if both your input and output are mesh files:
+
+```jsonl
+{"input_file_name": "0001.glb", "output_file_name": "0001_output.glb"}
+{"input_file_name": "0002.ply", "output_file_name": "0002_output.ply"}
+{"input_file_name": "0003.stl", "output_file_name": "0003_output.stl"}
+```
+
+You can also define lists of meshes. In that case you need to name the field `file_names` or `*_file_names`. Here is an example:
+
+```jsonl
+{"parts_file_names": ["0001_bowl.glb", "0001_wick_holder.glb"], "label": "diya"}
+{"parts_file_names": ["0002_body.ply", "0002_neck.ply"], "label": "kalash"}
+{"parts_file_names": ["0003_frame.stl", "0003_arch.stl"], "label": "jharokha"}
+```
+
+### Mesh captioning
+
+Mesh captioning datasets have text describing a 3D mesh. An example `metadata.csv` may look like:
+
+```csv
+file_name,text
+0001.glb,A brass diya with a small bowl and raised wick holder
+0002.ply,A copper kalash with a rounded body and narrow neck
+0003.stl,A carved jharokha window with an arched frame
+```
+
+Load the dataset with `MeshFolder`, and it will create a `text` column for the mesh captions:
+
+```py
+>>> dataset = load_dataset("meshfolder", data_dir="/path/to/folder", split="train")
+>>> dataset[0]["text"]
+"A brass diya with a small bowl and raised wick holder"
+```
+
+### Upload dataset to the Hub
+
+Once you've created a dataset, you can share it to the Hub with the [`~datasets.DatasetDict.push_to_hub`] method. Make sure you have the [huggingface_hub](https://huggingface.co/docs/huggingface_hub/index) library installed and you're logged in to your Hugging Face account (see the [Upload with Python tutorial](upload_dataset#upload-with-python) for more details).
+
+Upload your dataset with [`~datasets.DatasetDict.push_to_hub`]:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("meshfolder", data_dir="/path/to/folder", split="train")
+>>> dataset.push_to_hub("username/my-mesh-captioning-dataset")
+```

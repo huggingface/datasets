@@ -68,13 +68,13 @@ from .iterable_dataset import IterableDataset
 from .naming import camelcase_to_snakecase, snakecase_to_camelcase
 from .packaged_modules import (
     _ALL_ALLOWED_EXTENSIONS,
+    _ALL_METADATA_FILENAMES,
     _EXTENSION_TO_MODULE,
     _MODULE_TO_EXTENSIONS,
     _MODULE_TO_METADATA_EXTENSIONS,
     _MODULE_TO_METADATA_FILE_NAMES,
     _PACKAGED_DATASETS_MODULES,
 )
-from .packaged_modules.folder_based_builder.folder_based_builder import FolderBasedBuilder
 from .splits import Split
 from .utils import _dataset_viewer
 from .utils.file_utils import (
@@ -225,7 +225,7 @@ def infer_module_for_data_files_list(
             - dict of builder kwargs
     """
     extensions_counter = Counter(
-        ("." + suffix.lower(), xbasename(filepath) in FolderBasedBuilder.METADATA_FILENAMES)
+        ("." + suffix.lower(), xbasename(filepath) in _ALL_METADATA_FILENAMES)
         for filepath in data_files_list
         for suffix in xbasename(filepath).split(".")[1:]
     )
@@ -234,7 +234,17 @@ def infer_module_for_data_files_list(
         def sort_key(ext_count: tuple[tuple[str, bool], int]) -> tuple[int, bool]:
             """Sort by count and set ".parquet" as the favorite in case of a draw, and ignore metadata files"""
             (ext, is_metadata), count = ext_count
-            return (not is_metadata, count, ext == ".parquet", ext == ".jsonl", ext == ".json", ext == ".csv", ext)
+            return (
+                not is_metadata,
+                count,
+                ext == ".parquet",
+                ext == ".lance",
+                ext == ".arrow",
+                ext == ".jsonl",
+                ext == ".json",
+                ext == ".csv",
+                ext,
+            )
 
         for (ext, _), _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
             if ext in _EXTENSION_TO_MODULE:

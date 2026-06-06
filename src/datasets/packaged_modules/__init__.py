@@ -22,6 +22,7 @@ from .parquet import parquet
 from .pdffolder import pdffolder
 from .sql import sql
 from .text import text
+from .tsfile import tsfile
 from .videofolder import videofolder
 from .webdataset import webdataset
 from .xml import xml
@@ -60,6 +61,7 @@ _PACKAGED_DATASETS_MODULES = {
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
     "eval": (eval.__name__, _hash_python_lines(inspect.getsource(eval).splitlines())),
     "lance": (lance.__name__, _hash_python_lines(inspect.getsource(lance).splitlines())),
+    "tsfile": (tsfile.__name__, _hash_python_lines(inspect.getsource(tsfile).splitlines())),
     "iceberg": (iceberg.__name__, _hash_python_lines(inspect.getsource(iceberg).splitlines())),
 }
 
@@ -96,6 +98,7 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".h5": ("hdf5", {}),
     ".eval": ("eval", {}),
     ".lance": ("lance", {}),
+    ".tsfile": ("tsfile", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
@@ -128,6 +131,7 @@ _MODULE_TO_METADATA_FILE_NAMES["videofolder"] = imagefolder.ImageFolder.METADATA
 _MODULE_TO_METADATA_FILE_NAMES["meshfolder"] = meshfolder.MeshFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["pdffolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["niftifolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
+_MODULE_TO_METADATA_FILE_NAMES["lance"] = lance.Lance.METADATA_FILE_NAMES
 
 _MODULE_TO_METADATA_EXTENSIONS: Dict[str, List[str]] = {}
 for _module in _MODULE_TO_EXTENSIONS:
@@ -139,3 +143,6 @@ _MODULE_TO_METADATA_EXTENSIONS["lance"] = lance.Lance.METADATA_EXTENSIONS
 _ALL_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + [".zip"]
 _ALL_METADATA_EXTENSIONS = sorted({_ext for _exts in _MODULE_TO_METADATA_EXTENSIONS.values() for _ext in _exts})
 _ALL_ALLOWED_EXTENSIONS = _ALL_EXTENSIONS + _ALL_METADATA_EXTENSIONS
+_ALL_METADATA_FILENAMES = sorted(
+    {file_name for file_names in _MODULE_TO_METADATA_FILE_NAMES.values() for file_name in file_names}
+)

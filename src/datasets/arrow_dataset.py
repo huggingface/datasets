@@ -3501,8 +3501,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             num_shards = min(existing_cache_file_map, key=select_existing_cache_files)
 
-        existing_cache_files = existing_cache_file_map[num_shards]
-
         def format_cache_file_name(
             cache_file_name: Optional[str],
             rank: Union[int, Literal["*"]],  # noqa: F722
@@ -3592,7 +3590,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
 
             pbar_total = len(self)
-            pbar_initial = len(existing_cache_files) * pbar_total // num_shards
+            num_shards_done = num_shards - len(unprocessed_kwargs_per_job)
+            pbar_initial = num_shards_done * pbar_total // num_shards
             if batched and drop_last_batch:
                 batch_size = batch_size or 1
                 pbar_initial = pbar_initial // num_shards // batch_size * num_shards * batch_size
