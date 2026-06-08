@@ -21,21 +21,23 @@ jobs:
         with:
           auto-update-conda: true
           auto-activate-base: false
-          activate-environment: "build-datasets"
           python-version: "3.10"
           channels: huggingface
 
       - name: Setup conda env
         run: |
-          conda install -c defaults anaconda-client conda-build
+          # Install conda-build into base so the command is available
+          conda install -y -c defaults -c conda-forge anaconda-client conda-build
+          # Create the build environment
+          conda create -y -n build-datasets python=3.10
+          conda activate build-datasets
 
       - name: Extract version
         run: echo "DATASETS_VERSION=`python setup.py --version`" >> $GITHUB_ENV
 
       - name: Build conda packages
         run: |
-          conda info
-          conda-build .github/conda
+          conda-build --override-channels -c conda-forge -c huggingface .github/conda
 
       - name: Upload to Anaconda
         run: |
