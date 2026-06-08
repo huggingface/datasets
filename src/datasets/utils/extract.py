@@ -49,8 +49,13 @@ class ExtractManager:
         if not extractor_format:
             return input_path
         output_path = self._get_output_path(input_path)
-        if self._do_extract(output_path, force_extract):
-            self.extractor.extract(input_path, output_path, extractor_format)
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        # Take the lock *before* the "is it already extracted?" check. Otherwise a second
+        # process can see a half-written output dir (a peer is mid-extraction), decide it's
+        # already done, and return a partial path. See #4661.
+        with FileLock(output_path + ".lock"):
+            if self._do_extract(output_path, force_extract):
+                self.extractor.extract(input_path, output_path, extractor_format)
         return output_path
 
 
@@ -436,9 +441,8 @@ class Extractor:
         extractor_format: str,
     ) -> None:
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        # Prevent parallel extractions
-        lock_path = str(Path(output_path).with_suffix(".lock"))
-        with FileLock(lock_path):
-            shutil.rmtree(output_path, ignore_errors=True)
-            extractor = cls.extractors[extractor_format]
-            return extractor.extract(input_path, output_path)
+        # Serialization across processes is handled by ExtractManager.extract, which holds the
+        # lock around the "already extracted?" check and this call (see #4661).
+        shutil.rmtree(output_path, ignore_errors=True)
+        extractor = cls.extractors[extractor_format]
+        return extractor.extract(input_path, output_path)

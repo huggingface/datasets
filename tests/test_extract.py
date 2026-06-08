@@ -1,9 +1,13 @@
+import multiprocessing
 import os
+import time
+import zipfile
 
 import pytest
 
 from datasets.utils.extract import (
     Bzip2Extractor,
+    ExtractManager,
     Extractor,
     GzipExtractor,
     Lz4Extractor,
@@ -200,3 +204,44 @@ def test_is_zipfile_false_positive(tmpdir):
         f.write(data)
     # zipfile.is_zipfile(str(not_a_zip_file)) could be a false positive for `zipfile`
     assert not ZipExtractor.is_extractable(not_a_zip_file)  # but we're right
+
+
+def _extract_in_subprocess(zip_path, cache_dir, start_delay, result_queue):
+    # Slow down the leaf extractor so a half-written output dir is observable while a peer extracts.
+    def _slow_zip_extract(input_path, output_path):
+        os.makedirs(output_path, exist_ok=True)
+        with zipfile.ZipFile(input_path) as zf:
+            names = zf.namelist()
+            with open(os.path.join(output_path, names[0]), "w") as f:
+                f.write("partial")
+            time.sleep(0.5)
+            zf.extractall(output_path)
+
+    ZipExtractor.extract = staticmethod(_slow_zip_extract)
+    time.sleep(start_delay)
+    output_path = ExtractManager(cache_dir=cache_dir).extract(zip_path)
+    result_queue.put(len(os.listdir(output_path)) if os.path.isdir(output_path) else -1)
+
+
+def test_extract_manager_concurrent_does_not_return_partial(tmp_path):
+    # Regression test for https://github.com/huggingface/datasets/issues/4661: two jobs sharing a
+    # cache must not observe a partially extracted archive. The second process should wait for the
+    # first instead of seeing a half-written directory and skipping extraction.
+    n_files = 5
+    zip_path = str(tmp_path / "data.zip")
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        for i in range(n_files):
+            zf.writestr(f"f{i}.txt", f"content {i}")
+    cache_dir = str(tmp_path / "cache")
+
+    ctx = multiprocessing.get_context("fork" if "fork" in multiprocessing.get_all_start_methods() else "spawn")
+    queue = ctx.Queue()
+    p1 = ctx.Process(target=_extract_in_subprocess, args=(zip_path, cache_dir, 0.0, queue))
+    p2 = ctx.Process(target=_extract_in_subprocess, args=(zip_path, cache_dir, 0.2, queue))
+    p1.start()
+    p2.start()
+    p1.join(30)
+    p2.join(30)
+
+    observed = sorted(queue.get() for _ in range(2))
+    assert observed == [n_files, n_files], f"a process observed a partial extraction: {observed}"
