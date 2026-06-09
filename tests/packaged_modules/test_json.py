@@ -252,6 +252,22 @@ def jsonl_file_with_lists_of_dicts_of_varying_keys(tmp_path):
     return str(filename)
 
 
+@pytest.fixture
+def jsonl_file_with_lists_of_dicts_of_varying_keys_and_bom(tmp_path):
+    # Same content as jsonl_file_with_lists_of_dicts_of_varying_keys, but the file
+    # starts with a UTF-8 BOM (written via the utf-8-sig codec).
+    filename = tmp_path / "file_with_bom.jsonl"
+    data = textwrap.dedent(
+        """\
+        {"col_1": [{"a": 0}, {"b": 0}]}
+        {"col_1": [{"c": 0}, {"d": 0}]}
+        """
+    )
+    with open(filename, "w", encoding="utf-8-sig") as f:
+        f.write(data)
+    return str(filename)
+
+
 _messages = [
     {"role": "user", "content": "Turn on the living room lights and play my electronic music playlist."},
     {
@@ -408,6 +424,11 @@ def test_config_raises_when_invalid_data_files(data_files) -> None:
         ("jsonl_file_with_mix_of_str_and_int", {}, EXPECTED_MIX),
         ("jsonl_file_with_dicts_of_varying_keys", {}, EXPECTED_DICTS_WITH_VARYING_KEYS),
         ("jsonl_file_with_lists_of_dicts_of_varying_keys", {}, EXPECTED_LISTS_OF_DICTS_WITH_VARYING_KEYS),
+        (
+            "jsonl_file_with_lists_of_dicts_of_varying_keys_and_bom",
+            {},
+            EXPECTED_LISTS_OF_DICTS_WITH_VARYING_KEYS,
+        ),
         ("jsonl_file_with_messages", {}, EXPECTED_MESSAGES),
     ],
 )
