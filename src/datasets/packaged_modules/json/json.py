@@ -351,23 +351,23 @@ for _harness, _trace_types in AGENT_TRACES_TYPES_VALUES.items():
 AGENT_TRACES_FEATURES_MARKERS = {
     "claude_code_or_pi_or_openclaw": datasets.Features(
         {
-            "type": Value("string"),
-            "message": datasets.Json(),
+            "type": lambda f: f == Value("string"),
+            "message": lambda f: f == datasets.Json(),
         }
     ),
     "codex": datasets.Features(
         {
-            "type": Value("string"),
-            "payload": datasets.Json(),
+            "type": lambda f: f == Value("string"),
+            "payload": lambda f: f == datasets.Json(),
         }
     ),
     "hermes": datasets.Features(
         {
-            "id": Value("string"),
-            "source": datasets.Value("string"),
-            "model": datasets.Value("string"),
-            "system_prompt": datasets.Value("string"),
-            "messages": datasets.Json(),
+            "id": lambda f: f == Value("string"),
+            "source": lambda f: f == datasets.Value("string"),
+            "model": lambda f: f == datasets.Value("string"),
+            "system_prompt": lambda f: f == datasets.Value("string"),
+            "messages": lambda f: isinstance(f, (datasets.List, datasets.Json)),
         }
     ),
 }
@@ -394,7 +394,7 @@ AGENT_TRACES_FEATURES = datasets.Features(
 
 def has_agent_traces_markers(features: datasets.Features) -> bool:
     for agent_traces_features_marker in AGENT_TRACES_FEATURES_MARKERS.values():
-        if all(features.get(key) == feature for key, feature in agent_traces_features_marker.items()):
+        if all(feature_marker(features.get(key)) for key, feature_marker in agent_traces_features_marker.items()):
             return True
     return False
 
