@@ -314,12 +314,12 @@ def generate_agent_traces_output(trace_file):
     return Features.from_arrow_schema(pa_table.schema).decode_batch(pa_table.to_pydict())
 
 
-def assert_agent_traces_output(tmp_path, filename, rows, expected):
+def assert_agent_traces_output(tmp_path, filename, rows, expected, num_sessions=1):
     trace_file = write_jsonl(tmp_path / filename, rows)
     out = generate_agent_traces_output(trace_file)
     for key, value in zip(AGENT_TRACE_FIELD_NAMES_TO_CHECK, expected):
-        assert out[key] == [value]
-    assert out["file_path"] == [trace_file]
+        assert out[key] == [value] * num_sessions
+    assert out["file_path"] == [trace_file] * num_sessions
     assert isinstance(out["messages"], list)
     assert out["messages"]
     assert all(
@@ -329,6 +329,7 @@ def assert_agent_traces_output(tmp_path, filename, rows, expected):
     )
     assert isinstance(out["tools"], list)
     assert isinstance(out["metadata"], (dict, list))
+    assert isinstance(out["trace"], (dict, list))
     return trace_file, out
 
 
@@ -380,6 +381,55 @@ CODEX_EXPECTED_AGENT_TRACE_FIELDS = (
     1,
     1,
 )
+
+HERMES_SESSION = {
+    "id": "20260605_092247_d018ec",
+    "source": "cli",
+    "model": "Qwen/Qwen3.5-35B-A3B",
+    "system_prompt": "You are Hermes.",
+    "started_at": 1_780_665_768.307,
+    "message_count": 4,
+    "tool_call_count": 1,
+    "messages": [
+        {
+            "session_id": "20260605_092247_d018ec",
+            "role": "user",
+            "content": "Run pwd and date.",
+            "timestamp": 1_780_665_767.307,
+        },
+        {
+            "session_id": "20260605_092247_d018ec",
+            "role": "assistant",
+            "content": "",
+            "reasoning_content": "The user asked for two shell commands.",
+            "timestamp": 1_780_665_767.308,
+            "tool_calls": [
+                {
+                    "id": "call_677f321e2b3047b4b8c7a1e1",
+                    "type": "function",
+                    "function": {
+                        "name": "terminal",
+                        "arguments": json.dumps({"command": "pwd && date -u +%Y-%m-%dT%H:%M:%SZ"}),
+                    },
+                },
+            ],
+        },
+        {
+            "session_id": "20260605_092247_d018ec",
+            "role": "tool",
+            "content": json.dumps({"output": "/tmp/work\n2026-06-05T13:22:47Z", "exit_code": 0, "error": None}),
+            "tool_call_id": "call_677f321e2b3047b4b8c7a1e1",
+            "timestamp": 1_780_665_767.309,
+        },
+        {
+            "session_id": "20260605_092247_d018ec",
+            "role": "assistant",
+            "content": "Working directory: `/tmp/work`.",
+            "reasoning": "The commands executed successfully.",
+            "timestamp": 1_780_665_767.31,
+        },
+    ],
+}
 
 
 def test_config_raises_when_invalid_name() -> None:
@@ -573,6 +623,16 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
             id="openclaw",
         ),
         pytest.param(
+            "hermes.jsonl",
+            [HERMES_SESSION],
+            ("hermes", "20260605_092247_d018ec", "Run pwd and date.", "2026-06-05T13:22:48.307Z", 1, 1),
+        ),
+        pytest.param(
+            "hermes_two_sessions.jsonl",
+            [HERMES_SESSION] * 2,
+            ("hermes", "20260605_092247_d018ec", "Run pwd and date.", "2026-06-05T13:22:48.307Z", 1, 1),
+        ),
+        pytest.param(
             "missing_prompt.jsonl",
             [
                 {"type": "session_meta", "payload": {"id": "codex-session"}},
@@ -588,7 +648,8 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
 )
 @require_teich
 def test_json_generate_tables_with_agent_trace_metadata(tmp_path, filename, rows, expected):
-    _, out = assert_agent_traces_output(tmp_path, filename, rows, expected)
+    num_sessions = 2 if filename == "hermes_two_sessions.jsonl" else 1
+    _, out = assert_agent_traces_output(tmp_path, filename, rows, expected, num_sessions=num_sessions)
     assert "models" not in out
 
 

@@ -1,6 +1,7 @@
 import io
 import os
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal, Optional
 
@@ -145,7 +146,7 @@ class Json(datasets.ArrowBasedBuilder):
             if self.info.features == AGENT_TRACES_FEATURES:
                 is_agent_traces = True
                 if datasets.config.TEICH_AVAILABLE:
-                    from teich import convert_trace_to_training_example
+                    from teich import convert_traces_to_training_data
                 else:
                     raise ImportError("To support decoding agent traces, please install 'teich'.")
             json_field_paths = get_json_field_paths_from_feature(self.info.features)
@@ -166,32 +167,56 @@ class Json(datasets.ArrowBasedBuilder):
                     pa_table = pa.Table.from_pandas(df, preserve_index=False)
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
 
-                # If the files are agent traces (one row = one file)
+                # If the files are agent traces (one row = one file except for hermes which can have multiple sessions per file)
                 elif is_agent_traces:
                     trace_file = Path(file)
-                    trace_events = trace_file.read_text(encoding="utf-8").splitlines()
-                    harness, session_id, prompt, sent_at, num_user_messages, num_tool_calls = parse_traces_info(
-                        trace_events
-                    )
+                    trace = trace_file.read_text(encoding="utf-8")
+                    lines = trace.splitlines()
                     file_path = original_files[shard_idx]
                     if self.base_path is not None and file_path.startswith(self.base_path):
                         file_path = os.path.relpath(file_path, self.base_path)
-                    training_example = convert_trace_to_training_example(trace_file)
-                    example = {
-                        **dict.fromkeys(AGENT_TRACES_FEATURES),
-                        **training_example.to_dict(),
-                        "harness": harness,
-                        "session_id": session_id,
-                        "prompt": prompt,
-                        "sent_at": sent_at,
-                        "num_user_messages": num_user_messages,
-                        "num_tool_calls": num_tool_calls,
-                        "trace": trace_events,
-                        "file_path": file_path,
-                    }
-                    for json_field_path in json_field_paths:
-                        example = json_encode_field(example, json_field_path)
-                    pa_table = pa.Table.from_pylist([example])
+                    training_examples = convert_traces_to_training_data(trace_file)
+                    examples = []
+                    for i, training_example in enumerate(training_examples):
+                        if training_example["metadata"]["trace_type"] == "hermes":
+                            timestamp = ujson_loads(lines[i])["started_at"]
+                            milliseconds = timestamp if timestamp <= 10_000_000_000 else timestamp * 1_000
+                            sent_at = (
+                                datetime.fromtimestamp(milliseconds, tz=timezone.utc)
+                                .isoformat(timespec="milliseconds")
+                                .replace("+00:00", "Z")
+                            )
+                            bonus_fields = {
+                                "harness": training_example["metadata"]["trace_type"],
+                                "session_id": training_example["metadata"]["session_id"],
+                                "sent_at": sent_at,
+                                "num_user_messages": training_example["metadata"]["turn_count"],
+                                "num_tool_calls": training_example["metadata"]["tool_call_count"],
+                                "trace": lines[i],
+                            }
+                        else:
+                            harness, session_id, prompt, sent_at, num_user_messages, num_tool_calls = (
+                                parse_traces_info(lines)
+                            )
+                            bonus_fields = {
+                                "harness": harness,
+                                "session_id": session_id,
+                                "prompt": prompt,
+                                "sent_at": sent_at,
+                                "num_user_messages": num_user_messages,
+                                "num_tool_calls": num_tool_calls,
+                                "trace": trace,
+                            }
+                        example = {
+                            **dict.fromkeys(AGENT_TRACES_FEATURES),
+                            **training_example,
+                            **bonus_fields,
+                            "file_path": file_path,
+                        }
+                        for json_field_path in json_field_paths:
+                            example = json_encode_field(example, json_field_path)
+                        examples.append(example)
+                    pa_table = pa.Table.from_pylist(examples)
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
 
                 # If the file has one json object per line
@@ -324,13 +349,7 @@ for _harness, _trace_types in AGENT_TRACES_TYPES_VALUES.items():
 
 
 AGENT_TRACES_FEATURES_MARKERS = {
-    "claude_code": datasets.Features(
-        {
-            "type": Value("string"),
-            "message": datasets.Json(),
-        }
-    ),
-    "pi": datasets.Features(
+    "claude_code_or_pi_or_openclaw": datasets.Features(
         {
             "type": Value("string"),
             "message": datasets.Json(),
@@ -340,6 +359,15 @@ AGENT_TRACES_FEATURES_MARKERS = {
         {
             "type": Value("string"),
             "payload": datasets.Json(),
+        }
+    ),
+    "hermes": datasets.Features(
+        {
+            "id": Value("string"),
+            "source": datasets.Value("string"),
+            "model": datasets.Value("string"),
+            "system_prompt": datasets.Value("string"),
+            "messages": datasets.Json(),
         }
     ),
 }
@@ -358,7 +386,7 @@ AGENT_TRACES_FEATURES = datasets.Features(
         "sent_at": Value("string"),
         "num_user_messages": Value("int64"),
         "num_tool_calls": Value("int64"),
-        "trace": List(datasets.Json()),
+        "trace": datasets.Json(),
         "file_path": Value("string"),
     }
 )
