@@ -4489,6 +4489,18 @@ def test_dummy_dataset_serialize_fs(dataset, mockfs):
     assert reloaded.to_dict() == dataset.to_dict()
 
 
+@pytest.mark.parametrize("dataset_path", ["mock://flat_ds", "mock://a/b/nested_ds"])
+def test_load_from_disk_remote_fs_repeated_load(dataset, mockfs, dataset_path):
+    # Calling load_from_disk twice for the same remote path must not double the local
+    # temp path (e.g. .../nested_ds/nested_ds/) because fsspec appends the source
+    # directory name when the destination already exists from the first load.
+    dataset.save_to_disk(dataset_path, storage_options=mockfs.storage_options)
+    first = Dataset.load_from_disk(dataset_path, storage_options=mockfs.storage_options)
+    assert first.to_dict() == dataset.to_dict()
+    second = Dataset.load_from_disk(dataset_path, storage_options=mockfs.storage_options)
+    assert second.to_dict() == dataset.to_dict()
+
+
 @pytest.mark.parametrize(
     "uri_or_path",
     [

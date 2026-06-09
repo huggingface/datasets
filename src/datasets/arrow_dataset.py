@@ -2058,6 +2058,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if is_remote_filesystem(fs):
             src_dataset_path = dest_dataset_path
             dest_dataset_path = Dataset._build_local_temp_path(src_dataset_path)
+            # Remove a stale local copy so fsspec treats dest as a new path rather than
+            # an existing directory.  When dest already exists, fs.download(src, dest)
+            # appends basename(src) inside dest, producing a doubled path such as
+            # /tmp/.../train/train/ instead of /tmp/.../train/.
+            if dest_dataset_path.exists():
+                shutil.rmtree(dest_dataset_path)
+            dest_dataset_path.parent.mkdir(parents=True, exist_ok=True)
             fs.download(src_dataset_path, dest_dataset_path.as_posix(), recursive=True)
             dataset_state_json_path = posixpath.join(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME)
             dataset_info_path = posixpath.join(dest_dataset_path, config.DATASET_INFO_FILENAME)
