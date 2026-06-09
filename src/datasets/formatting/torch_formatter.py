@@ -15,12 +15,15 @@
 # Lint as: python3
 import sys
 from collections.abc import Mapping
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Union
 
 import numpy as np
 import pyarrow as pa
 
 from .. import config
+from ..features import Features
+from ..features.features import decode_nested_example
+from ..utils.file_utils import is_local_path
 from ..utils.py_utils import map_nested
 from .formatting import TensorFormatter
 
@@ -28,11 +31,122 @@ from .formatting import TensorFormatter
 if TYPE_CHECKING:
     import torch
 
+    from ..features.image import Image
+
+
+_PIL_MODE_TO_TORCHVISION_MODE = {
+    "L": "GRAY",
+    "LA": "GRAY_ALPHA",
+    "RGB": "RGB",
+    "RGBA": "RGB_ALPHA",
+}
+
+
+def _decode_image_for_torch(value: dict, image_feature: "Image") -> "torch.Tensor":
+    """Decode an image dict {"bytes": ..., "path": ...} to a CHW torch.Tensor using torchvision.
+
+    Uses torchvision.io.decode_image for efficient decoding. Falls back to PIL
+    decoding + torchvision.transforms.v2.functional.pil_to_tensor on failure
+    (e.g. unsupported format).
+
+    Args:
+        value: dict with "bytes" and "path" keys from Arrow extraction
+        image_feature: the Image feature instance (carries mode/decode info)
+
+    Returns:
+        torch.Tensor in CHW format
+    """
+    import torch
+    from torchvision.io import decode_image
+
+    path, bytes_ = value["path"], value["bytes"]
+
+    tv_mode = _PIL_MODE_TO_TORCHVISION_MODE.get(image_feature.mode) if image_feature.mode else None
+
+    try:
+        if bytes_ is not None:
+            input_tensor = torch.frombuffer(bytearray(bytes_), dtype=torch.uint8)
+            return decode_image(input_tensor, mode=tv_mode or "UNCHANGED", apply_exif_orientation=True)
+        elif path is not None and is_local_path(path):
+            return decode_image(path, mode=tv_mode or "UNCHANGED", apply_exif_orientation=True)
+    except Exception:
+        pass
+
+    # Fallback: PIL decode + pil_to_tensor
+    from torchvision.transforms.v2.functional import pil_to_tensor
+
+    pil_image = image_feature.decode_example(value)
+    return pil_to_tensor(pil_image)
+
+
+class TorchFeaturesDecoder:
+    """Features decoder that uses torchvision for Image columns when available.
+
+    For Image columns, decodes directly to torch.Tensor via torchvision.io.decode_image,
+    bypassing PIL entirely. For all other decodable features (Audio, Video, nested Images, etc.),
+    delegates to the standard decode_nested_example path.
+    """
+
+    def __init__(
+        self,
+        features: Optional[Features],
+        token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None,
+    ):
+        self.features = features
+        self.token_per_repo_id = token_per_repo_id
+
+        # Pre-compute which columns should use the torchvision fast path.
+        # Only top-level Image columns with decode=True when torchvision is available.
+        self._torchvision_columns: set[str] = set()
+        if self.features and config.TORCHVISION_AVAILABLE:
+            from ..features.image import Image
+
+            for column_name, feature in self.features.items():
+                if isinstance(feature, Image) and feature.decode:
+                    self._torchvision_columns.add(column_name)
+
+    def decode_row(self, row: dict) -> dict:
+        if not self.features:
+            return row
+        return {column_name: self._decode_value(column_name, value) for column_name, value in row.items()}
+
+    def decode_column(self, column: list, column_name: str) -> list:
+        if not self.features:
+            return column
+        if column_name in self._torchvision_columns:
+            image_feature = self.features[column_name]
+            return [_decode_image_for_torch(value, image_feature) if value is not None else None for value in column]
+        if self.features._column_requires_decoding[column_name]:
+            return [
+                decode_nested_example(self.features[column_name], value, token_per_repo_id=self.token_per_repo_id)
+                if value is not None
+                else None
+                for value in column
+            ]
+        return column
+
+    def decode_batch(self, batch: dict) -> dict:
+        if not self.features:
+            return batch
+        return {column_name: self.decode_column(column, column_name) for column_name, column in batch.items()}
+
+    def _decode_value(self, column_name: str, value):
+        if column_name in self._torchvision_columns:
+            return _decode_image_for_torch(value, self.features[column_name]) if value is not None else None
+        if self.features._column_requires_decoding[column_name]:
+            return (
+                decode_nested_example(self.features[column_name], value, token_per_repo_id=self.token_per_repo_id)
+                if value is not None
+                else None
+            )
+        return value
+
 
 class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
     def __init__(self, features=None, token_per_repo_id=None, **torch_tensor_kwargs):
         super().__init__(features=features, token_per_repo_id=token_per_repo_id)
         self.torch_tensor_kwargs = torch_tensor_kwargs
+        self.torch_features_decoder = TorchFeaturesDecoder(self.features, self.token_per_repo_id)
         import torch  # noqa import torch at initialization
 
     def _consolidate(self, column):
@@ -48,6 +162,9 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
 
     def _tensorize(self, value):
         import torch
+
+        if isinstance(value, torch.Tensor):
+            return value
 
         if isinstance(value, (str, bytes, type(None))):
             return value
@@ -111,19 +228,19 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
 
     def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.numpy_arrow_extractor().extract_row(pa_table)
-        row = self.python_features_decoder.decode_row(row)
+        row = self.torch_features_decoder.decode_row(row)
         return self.recursive_tensorize(row)
 
     def format_column(self, pa_table: pa.Table) -> "torch.Tensor":
         column = self.numpy_arrow_extractor().extract_column(pa_table)
-        column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
+        column = self.torch_features_decoder.decode_column(column, pa_table.column_names[0])
         column = self.recursive_tensorize(column)
         column = self._consolidate(column)
         return column
 
     def format_batch(self, pa_table: pa.Table) -> Mapping:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
-        batch = self.python_features_decoder.decode_batch(batch)
+        batch = self.torch_features_decoder.decode_batch(batch)
         batch = self.recursive_tensorize(batch)
         for column_name in batch:
             batch[column_name] = self._consolidate(batch[column_name])

@@ -26,6 +26,7 @@ from .utils import (
     require_tf,
     require_torch,
     require_torchcodec,
+    require_torchvision,
 )
 
 
@@ -429,8 +430,84 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["image"][0].dtype, torch.uint8)
         self.assertEqual(batch["image"][0].shape, (3, 480, 640))
 
+    @require_numpy1_on_windows
     @require_torch
-    @require_torchcodec
+    @require_torchvision
+    @require_pil
+    def test_torch_formatter_image_from_bytes(self):
+        import torch
+
+        from datasets.formatting import TorchFormatter
+
+        with open(IMAGE_PATH_1, "rb") as f:
+            img_bytes = f.read()
+
+        pa_table = pa.table({"image": [{"bytes": img_bytes, "path": None}]})
+        formatter = TorchFormatter(features=Features({"image": Image()}))
+        row = formatter.format_row(pa_table)
+        self.assertEqual(row["image"].dtype, torch.uint8)
+        self.assertEqual(row["image"].shape, (3, 480, 640))
+        col = formatter.format_column(pa_table)
+        self.assertEqual(col.dtype, torch.uint8)
+        self.assertEqual(col.shape, (1, 3, 480, 640))
+        batch = formatter.format_batch(pa_table)
+        self.assertEqual(batch["image"].dtype, torch.uint8)
+        self.assertEqual(batch["image"].shape, (1, 3, 480, 640))
+
+    @require_numpy1_on_windows
+    @require_torch
+    @require_torchvision
+    @require_pil
+    def test_torch_formatter_image_torchvision_fallback(self):
+        from unittest.mock import patch
+
+        import torch
+
+        from datasets.formatting import TorchFormatter
+
+        pa_table = pa.table({"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}]})
+        formatter = TorchFormatter(features=Features({"image": Image()}))
+
+        # When decode_image raises, should fall back to PIL + pil_to_tensor
+        with patch("torchvision.io.decode_image", side_effect=RuntimeError("Simulated failure")):
+            row = formatter.format_row(pa_table)
+            self.assertEqual(row["image"].dtype, torch.uint8)
+            self.assertEqual(row["image"].shape, (3, 480, 640))
+
+    @require_numpy1_on_windows
+    @require_torch
+    @require_pil
+    def test_torch_formatter_image_no_torchvision(self):
+        from unittest.mock import patch
+
+        import torch
+
+        from datasets.formatting import TorchFormatter
+
+        # When TORCHVISION_AVAILABLE is False, should use the old PIL path entirely
+        pa_table = pa.table({"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}]})
+        with patch("datasets.formatting.torch_formatter.config.TORCHVISION_AVAILABLE", False):
+            formatter = TorchFormatter(features=Features({"image": Image()}))
+            row = formatter.format_row(pa_table)
+            self.assertEqual(row["image"].dtype, torch.uint8)
+            self.assertEqual(row["image"].shape, (3, 480, 640))
+
+    @require_numpy1_on_windows
+    @require_torch
+    @require_torchvision
+    @require_pil
+    def test_torch_formatter_image_mode(self):
+        import torch
+
+        from datasets.formatting import TorchFormatter
+
+        # RGB image decoded as grayscale
+        pa_table = pa.table({"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}]})
+        formatter = TorchFormatter(features=Features({"image": Image(mode="L")}))
+        row = formatter.format_row(pa_table)
+        self.assertEqual(row["image"].dtype, torch.uint8)
+        self.assertEqual(row["image"].shape, (1, 480, 640))
+
     def test_torch_formatter_audio(self):
         import torch
 
