@@ -573,3 +573,41 @@ def test_dependency_on_dill():
     # AttributeError: module 'dill._dill' has no attribute 'stack'
     hasher = Hasher()
     hasher.update(lambda x: x)
+
+
+def test_fn_kwargs_produces_stable_fingerprint_vs_closure():
+    """Closures that capture objects with non-deterministic state (e.g. UUIDs)
+    yield a different fingerprint on every instantiation, defeating caching.
+    Passing the same values through fn_kwargs instead keeps the fingerprint
+    stable because only the deterministic value—not the surrounding object—is
+    hashed.  See https://github.com/huggingface/datasets/issues/7986.
+    """
+    import uuid
+
+    class Config:
+        def __init__(self, multiplier):
+            self.multiplier = multiplier
+            # Simulates non-deterministic state (e.g. a logger id, a UUID, etc.)
+            self._internal_id = uuid.uuid4()
+
+    def apply_multiplier(batch, multiplier):
+        return {"x": [v * multiplier for v in batch["x"]]}
+
+    cfg1 = Config(multiplier=3)
+    cfg2 = Config(multiplier=3)  # same multiplier, different _internal_id
+
+    # Closures: the entire cfg object (including _internal_id) is serialized.
+    closure1 = lambda batch: {"x": [v * cfg1.multiplier for v in batch["x"]]}  # noqa: E731
+    closure2 = lambda batch: {"x": [v * cfg2.multiplier for v in batch["x"]]}  # noqa: E731
+    assert Hasher.hash(closure1) != Hasher.hash(closure2), (
+        "Closures capturing different Config instances should hash differently "
+        "even when the logic-relevant field (multiplier) is the same."
+    )
+
+    # fn_kwargs: only the deterministic value is hashed, not the Config object.
+    hash_kwargs1 = Hasher.hash({"multiplier": cfg1.multiplier})
+    hash_kwargs2 = Hasher.hash({"multiplier": cfg2.multiplier})
+    assert hash_kwargs1 == hash_kwargs2, (
+        "fn_kwargs dicts with the same deterministic values should always hash "
+        "identically, regardless of the surrounding object's state."
+    )
