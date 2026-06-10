@@ -7,7 +7,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Audio, Features, Image, IterableDataset
+from datasets import Audio, Features, Image, IterableDataset, Sequence
 from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter, query_table
 from datasets.formatting.formatting import (
     LazyBatch,
@@ -507,6 +507,31 @@ class FormatterTest(TestCase):
         row = formatter.format_row(pa_table)
         self.assertEqual(row["image"].dtype, torch.uint8)
         self.assertEqual(row["image"].shape, (1, 480, 640))
+
+    @require_numpy1_on_windows
+    @require_torch
+    @require_torchvision
+    @require_pil
+    def test_torch_formatter_nested_image(self):
+        import torch
+
+        from datasets.formatting import TorchFormatter
+
+        pa_table = pa.table(
+            {
+                "images": [
+                    [
+                        {"bytes": None, "path": str(IMAGE_PATH_1)},
+                        {"bytes": None, "path": str(IMAGE_PATH_1)},
+                    ]
+                ]
+            }
+        )
+        formatter = TorchFormatter(features=Features({"images": Sequence(Image())}))
+        row = formatter.format_row(pa_table)
+        self.assertIsInstance(row["images"], torch.Tensor)
+        self.assertEqual(row["images"].shape, (2, 3, 480, 640))
+        self.assertEqual(row["images"].dtype, torch.uint8)
 
     def test_torch_formatter_audio(self):
         import torch

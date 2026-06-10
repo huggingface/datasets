@@ -82,8 +82,9 @@ def _decode_image_for_torch(value: dict, image_feature: "Image") -> "torch.Tenso
 class TorchFeaturesDecoder:
     """Features decoder that uses torchvision for Image columns when available.
 
-    For Image columns, decodes directly to torch.Tensor via torchvision.io.decode_image,
-    bypassing PIL entirely. For all other decodable features (Audio, Video, nested Images, etc.),
+    For Image features, decodes directly to torch.Tensor via torchvision.io.decode_image,
+    bypassing PIL entirely. This works for both top-level and nested Image features
+    (e.g. List(Image())). For all other decodable features (Audio, Video, etc.),
     delegates to the standard decode_nested_example path.
     """
 
@@ -95,51 +96,50 @@ class TorchFeaturesDecoder:
         self.features = features
         self.token_per_repo_id = token_per_repo_id
 
-        # Pre-compute which columns should use the torchvision fast path.
-        # Only top-level Image columns with decode=True when torchvision is available.
-        self._torchvision_columns: set[str] = set()
+        self._decoder_overrides = None
         if self.features and config.TORCHVISION_AVAILABLE:
             from ..features.image import Image
 
-            for column_name, feature in self.features.items():
-                if isinstance(feature, Image) and feature.decode:
-                    self._torchvision_columns.add(column_name)
+            self._decoder_overrides = {Image: _decode_image_for_torch}
 
     def decode_row(self, row: dict) -> dict:
         if not self.features:
             return row
-        return {column_name: self._decode_value(column_name, value) for column_name, value in row.items()}
+        return {
+            column_name: (
+                decode_nested_example(
+                    self.features[column_name],
+                    value,
+                    token_per_repo_id=self.token_per_repo_id,
+                    decoder_overrides=self._decoder_overrides,
+                )
+                if self.features._column_requires_decoding[column_name]
+                else value
+            )
+            for column_name, value in row.items()
+        }
 
     def decode_column(self, column: list, column_name: str) -> list:
         if not self.features:
             return column
-        if column_name in self._torchvision_columns:
-            image_feature = self.features[column_name]
-            return [_decode_image_for_torch(value, image_feature) if value is not None else None for value in column]
-        if self.features._column_requires_decoding[column_name]:
-            return [
-                decode_nested_example(self.features[column_name], value, token_per_repo_id=self.token_per_repo_id)
-                if value is not None
-                else None
-                for value in column
-            ]
-        return column
+        if not self.features._column_requires_decoding[column_name]:
+            return column
+        return [
+            decode_nested_example(
+                self.features[column_name],
+                value,
+                token_per_repo_id=self.token_per_repo_id,
+                decoder_overrides=self._decoder_overrides,
+            )
+            if value is not None
+            else None
+            for value in column
+        ]
 
     def decode_batch(self, batch: dict) -> dict:
         if not self.features:
             return batch
         return {column_name: self.decode_column(column, column_name) for column_name, column in batch.items()}
-
-    def _decode_value(self, column_name: str, value):
-        if column_name in self._torchvision_columns:
-            return _decode_image_for_torch(value, self.features[column_name]) if value is not None else None
-        if self.features._column_requires_decoding[column_name]:
-            return (
-                decode_nested_example(self.features[column_name], value, token_per_repo_id=self.token_per_repo_id)
-                if value is not None
-                else None
-            )
-        return value
 
 
 class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
