@@ -117,6 +117,10 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
         return "large_string"
     elif pyarrow.types.is_string_view(arrow_type):
         return "string_view"
+    elif pyarrow.types.is_fixed_size_binary(arrow_type):
+        return f"fixed_size_binary[{arrow_type.byte_width}]"
+    elif pyarrow.types.is_list(arrow_type):
+        return f"list[{_arrow_to_datasets_dtype(arrow_type.value_type)}]"
     elif pyarrow.types.is_dictionary(arrow_type):
         return _arrow_to_datasets_dtype(arrow_type.value_type)
     else:
@@ -266,6 +270,11 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
                     ],
                 )
             )
+        
+    fixed_size_binary_matches = re.search(r"^fixed_size_binary\[(\d+)\]$", datasets_dtype)
+    if fixed_size_binary_matches:
+        byte_width = fixed_size_binary_matches.group(1)
+        return pa.binary(int(byte_width))
 
     raise ValueError(
         f"Neither {datasets_dtype} nor {datasets_dtype + '_'} seems to be a pyarrow data type. "
