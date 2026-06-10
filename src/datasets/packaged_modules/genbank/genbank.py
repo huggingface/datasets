@@ -40,6 +40,55 @@ class ParserState:
     COMPLETE = "COMPLETE"
 
 
+class _FeatureAccumulator:
+    """Collects the multi-line state of a GenBank FEATURES section.
+
+    A feature spans a feature line (type + location) followed by ``/key=value``
+    qualifier lines and their continuations. This buffers the feature and the
+    qualifier currently being read, flushing them onto ``features`` at the right
+    boundaries so the parser loop doesn't have to repeat that bookkeeping.
+    """
+
+    def __init__(self) -> None:
+        self.features: list[dict] = []
+        self._feature: Optional[dict] = None
+        self._qualifier_key: Optional[str] = None
+        self._qualifier_value: list[str] = []
+
+    @property
+    def has_open_qualifier(self) -> bool:
+        return self._qualifier_key is not None
+
+    def _commit_qualifier(self) -> None:
+        """Write the buffered qualifier (if any) onto the current feature."""
+        if self._feature is not None and self._qualifier_key is not None:
+            self._feature["qualifiers"][self._qualifier_key] = "".join(self._qualifier_value)
+        self._qualifier_key = None
+        self._qualifier_value = []
+
+    def finalize_feature(self) -> None:
+        """Flush the pending qualifier and append the current feature, if any."""
+        self._commit_qualifier()
+        if self._feature is not None:
+            self.features.append(self._feature)
+            self._feature = None
+
+    def begin_feature(self, feature_type: str, location: dict) -> None:
+        """Finalize the previous feature and start a new one."""
+        self.finalize_feature()
+        self._feature = {"type": feature_type, "location": location, "qualifiers": {}}
+
+    def begin_qualifier(self, key: str, value: str) -> None:
+        """Commit the previous qualifier and start buffering a new one."""
+        self._commit_qualifier()
+        self._qualifier_key = key
+        self._qualifier_value = [value]
+
+    def add_continuation(self, text: str) -> None:
+        """Append a continuation line to the qualifier currently being read."""
+        self._qualifier_value.append(text)
+
+
 @dataclass
 class GenBankConfig(datasets.BuilderConfig):
     """BuilderConfig for GenBank files.
@@ -209,138 +258,104 @@ class GenBank(datasets.ArrowBasedBuilder):
         """
         state = ParserState.HEADER
         record = self._new_record()
-        current_feature = None
-        current_qualifier_key = None
-        current_qualifier_value = []
-        features_list = []
+        features = _FeatureAccumulator()
 
         for line in fp:
-            # Record terminator
+            # Record terminator: finalize the pending feature and emit the record.
             if line.startswith("//"):
-                # Finalize any pending feature
-                if current_feature is not None:
-                    if current_qualifier_key is not None:
-                        current_feature["qualifiers"][current_qualifier_key] = "".join(current_qualifier_value)
-                    features_list.append(current_feature)
-
-                # Store features
-                if self.config.parse_features:
-                    record["features"] = json.dumps(features_list)
-                else:
-                    record["features"] = ""
-
+                features.finalize_feature()
+                record["features"] = json.dumps(features.features) if self.config.parse_features else ""
                 yield record
-
-                # Reset for next record
                 state = ParserState.HEADER
                 record = self._new_record()
-                current_feature = None
-                current_qualifier_key = None
-                current_qualifier_value = []
-                features_list = []
+                features = _FeatureAccumulator()
                 continue
 
-            # State: HEADER - Parse metadata fields
             if state == ParserState.HEADER:
-                if line.startswith("LOCUS"):
-                    self._parse_locus_line(line, record)
-                elif line.startswith("DEFINITION"):
-                    record["definition"] = line[12:].strip()
-                elif line.startswith("ACCESSION"):
-                    record["accession"] = line[12:].strip().split()[0]
-                elif line.startswith("VERSION"):
-                    record["version"] = line[12:].strip()
-                elif line.startswith("KEYWORDS"):
-                    keywords = line[12:].strip()
-                    if keywords != ".":
-                        record["keywords"] = keywords
-                elif line.startswith("SOURCE"):
-                    pass  # SOURCE line itself is less useful than ORGANISM
-                elif line.startswith("  ORGANISM"):
-                    record["organism"] = line[12:].strip()
-                elif line.startswith("            ") and record["organism"]:
-                    # Continuation of taxonomy
-                    taxonomy_part = line.strip()
-                    if taxonomy_part and not taxonomy_part.endswith("."):
-                        taxonomy_part += ";"
-                    if record["taxonomy"]:
-                        record["taxonomy"] += " " + taxonomy_part
-                    else:
-                        record["taxonomy"] = taxonomy_part
-                elif line.startswith("FEATURES"):
-                    state = ParserState.FEATURES
-                elif line.startswith("ORIGIN"):
-                    state = ParserState.ORIGIN
-
-            # State: FEATURES - Parse feature annotations
+                state = self._handle_header_line(line, record) or state
             elif state == ParserState.FEATURES:
-                if line.startswith("ORIGIN"):
-                    # Finalize any pending feature before transitioning
-                    if current_feature is not None:
-                        if current_qualifier_key is not None:
-                            current_feature["qualifiers"][current_qualifier_key] = "".join(current_qualifier_value)
-                        features_list.append(current_feature)
-                        current_feature = None
-                        current_qualifier_key = None
-                        current_qualifier_value = []
-                    state = ParserState.ORIGIN
-                    continue
-
-                # Feature line starts at column 5 with feature type
-                if len(line) > 5 and line[5] != " " and not line.startswith("FEATURES"):
-                    # Finalize previous feature
-                    if current_feature is not None:
-                        if current_qualifier_key is not None:
-                            current_feature["qualifiers"][current_qualifier_key] = "".join(current_qualifier_value)
-                        features_list.append(current_feature)
-
-                    # Parse new feature
-                    parts = line[5:].split()
-                    if len(parts) >= 2:
-                        feature_type = parts[0]
-                        location_str = parts[1]
-                        current_feature = {
-                            "type": feature_type,
-                            "location": self._parse_feature_location(location_str),
-                            "qualifiers": {},
-                        }
-                    current_qualifier_key = None
-                    current_qualifier_value = []
-
-                # Qualifier line starts at column 21
-                elif len(line) > 21 and line[21] == "/":
-                    # Save previous qualifier
-                    if current_qualifier_key is not None and current_feature is not None:
-                        current_feature["qualifiers"][current_qualifier_key] = "".join(current_qualifier_value)
-
-                    # Parse new qualifier
-                    qualifier_line = line[21:].strip()
-                    if "=" in qualifier_line:
-                        key, value = qualifier_line.split("=", 1)
-                        current_qualifier_key = key[1:]  # Remove leading /
-                        # Remove surrounding quotes if present
-                        value = value.strip('"')
-                        current_qualifier_value = [value]
-                    else:
-                        # Boolean qualifier like /pseudo
-                        current_qualifier_key = qualifier_line[1:]
-                        current_qualifier_value = ["true"]
-
-                # Continuation line for qualifier
-                elif len(line) > 21 and line[21] != "/" and current_qualifier_key is not None:
-                    continuation = line[21:].strip().strip('"')
-                    current_qualifier_value.append(continuation)
-
-            # State: ORIGIN - Parse sequence data
+                state = self._handle_features_line(line, features) or state
             elif state == ParserState.ORIGIN:
-                if line.startswith("//"):
-                    continue  # Will be handled at top of loop
+                self._handle_origin_line(line, record)
 
-                # Sequence lines have format: "   123 atcgatcg atcgatcg ..."
-                # Remove numbers and spaces, keep only sequence characters
-                seq_chars = re.sub(r"[\s\d]", "", line)
-                if seq_chars:
-                    record["sequence"] += seq_chars.upper()
+    def _handle_header_line(self, line: str, record: dict) -> Optional[str]:
+        """Parse one HEADER line into ``record``.
+
+        Returns the next parser state when a section boundary (FEATURES or
+        ORIGIN) is reached, otherwise ``None`` to stay in the HEADER state.
+        """
+        if line.startswith("LOCUS"):
+            self._parse_locus_line(line, record)
+        elif line.startswith("DEFINITION"):
+            record["definition"] = line[12:].strip()
+        elif line.startswith("ACCESSION"):
+            record["accession"] = line[12:].strip().split()[0]
+        elif line.startswith("VERSION"):
+            record["version"] = line[12:].strip()
+        elif line.startswith("KEYWORDS"):
+            keywords = line[12:].strip()
+            if keywords != ".":
+                record["keywords"] = keywords
+        elif line.startswith("SOURCE"):
+            pass  # The SOURCE line itself is less useful than ORGANISM.
+        elif line.startswith("  ORGANISM"):
+            record["organism"] = line[12:].strip()
+        elif line.startswith("            ") and record["organism"]:
+            # Continuation of the taxonomy listing under ORGANISM.
+            taxonomy_part = line.strip()
+            if taxonomy_part and not taxonomy_part.endswith("."):
+                taxonomy_part += ";"
+            if record["taxonomy"]:
+                record["taxonomy"] += " " + taxonomy_part
+            else:
+                record["taxonomy"] = taxonomy_part
+        elif line.startswith("FEATURES"):
+            return ParserState.FEATURES
+        elif line.startswith("ORIGIN"):
+            return ParserState.ORIGIN
+        return None
+
+    def _handle_features_line(self, line: str, features: "_FeatureAccumulator") -> Optional[str]:
+        """Parse one FEATURES line into ``features``.
+
+        Returns ``ParserState.ORIGIN`` when the ORIGIN section starts, otherwise
+        ``None`` to stay in the FEATURES state.
+        """
+        if line.startswith("ORIGIN"):
+            features.finalize_feature()
+            return ParserState.ORIGIN
+
+        # A feature starts with its type at column 5, e.g. "     gene   1..100".
+        if len(line) > 5 and line[5] != " " and not line.startswith("FEATURES"):
+            parts = line[5:].split()
+            if len(parts) >= 2:
+                features.begin_feature(parts[0], self._parse_feature_location(parts[1]))
+            else:
+                features.finalize_feature()
+
+        # A qualifier starts with "/key=value" at column 21.
+        elif len(line) > 21 and line[21] == "/":
+            qualifier_line = line[21:].strip()
+            if "=" in qualifier_line:
+                key, value = qualifier_line.split("=", 1)
+                features.begin_qualifier(key[1:], value.strip('"'))  # key[1:] drops the leading '/'
+            else:
+                features.begin_qualifier(qualifier_line[1:], "true")  # boolean qualifier, e.g. /pseudo
+
+        # Anything else at column 21+ is a continuation of the current qualifier's value.
+        elif len(line) > 21 and line[21] != "/" and features.has_open_qualifier:
+            features.add_continuation(line[21:].strip().strip('"'))
+
+        return None
+
+    def _handle_origin_line(self, line: str, record: dict) -> None:
+        """Accumulate sequence characters from one ORIGIN line into ``record``."""
+        if line.startswith("//"):
+            return  # Handled by the terminator at the top of the parse loop.
+        # ORIGIN lines look like "   123 atcgatcg atcgatcg ..."; keep only the bases.
+        seq_chars = re.sub(r"[\s\d]", "", line)
+        if seq_chars:
+            record["sequence"] += seq_chars.upper()
 
     def _new_record(self) -> dict:
         """Create a new empty record with default values."""
@@ -444,9 +459,9 @@ class GenBank(datasets.ArrowBasedBuilder):
                         record["length"] = len(record["sequence"])
 
                     # Calculate record size (approximate UTF-8 byte size)
-                    record_bytes = sum(
-                        len(str(record.get(col, ""))) for col in columns if col != "length"
-                    ) + 8  # 8 bytes for int64 length
+                    record_bytes = (
+                        sum(len(str(record.get(col, ""))) for col in columns if col != "length") + 8
+                    )  # 8 bytes for int64 length
 
                     # Check if adding this record would exceed byte limit
                     # Flush current batch first if needed (but only if batch is non-empty)
