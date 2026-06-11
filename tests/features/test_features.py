@@ -77,14 +77,19 @@ class FeaturesTest(TestCase):
             pa.float64(),
             pa.array([datetime.time(1, 1, 1)]).type,  # arrow type: DataType(time64[us])
             pa.binary(16),
+            pa.list_(pa.string()),
+            pa.list_(pa.float64()),
+            pa.large_list(pa.string()),
+            pa.struct({"a": pa.int32(), "b": pa.string()}),
+            pa.list_(pa.int32(), 5),  # fixed_size_list
+            pa.map_(pa.string(), pa.int32()),
+            pa.union([pa.field('a', pa.int32()), pa.field('b', pa.string())], 'dense'),
+            pa.union([pa.field('a', pa.int32()), pa.field('b', pa.string())], 'sparse'),
+            pa.run_end_encoded(pa.int32(), pa.int32()),
+            pa.month_day_nano_interval(),
         ]
         for dt in supported_pyarrow_datatypes:
             self.assertEqual(dt, string_to_arrow(_arrow_to_datasets_dtype(dt)))
-
-        unsupported_pyarrow_datatypes = [pa.list_(pa.float64())]
-        for dt in unsupported_pyarrow_datatypes:
-            with self.assertRaises(ValueError):
-                string_to_arrow(_arrow_to_datasets_dtype(dt))
 
         supported_datasets_dtypes = [
             "time32[s]",
@@ -94,6 +99,12 @@ class FeaturesTest(TestCase):
             "decimal128(30, -4)",
             "int32",
             "float64",
+            "fixed_size_list[int32](5)",
+            "struct{a: int32, b: string}",
+            "map[string, int32]",
+            "dense_union[{a: int32, b: string}, (0, 1)]",
+            "run_end_encoded[int32, int32]",
+            "month_day_nano_interval",
         ]
         for sdt in supported_datasets_dtypes:
             self.assertEqual(sdt, _arrow_to_datasets_dtype(string_to_arrow(sdt)))
