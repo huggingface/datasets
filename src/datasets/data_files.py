@@ -25,6 +25,14 @@ SingleOriginMetadata = Union[tuple[str, str], tuple[str], tuple[()]]
 
 
 SANITIZED_DEFAULT_SPLIT = str(Split.TRAIN)
+MEDIA_EXTENSIONS = {
+    # Images
+    ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff", ".tif"
+    # Audio
+    ".mp3", ".wav", ".flac", ".ogg", ".aac", ".m4a",
+    # Video
+    ".mp4", ".avi", ".mov", ".mkv", ".webm",
+}
 
 
 logger = logging.get_logger(__name__)
@@ -291,8 +299,14 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], list[str]]) -> di
                 except FileNotFoundError:
                     continue
                 if len(data_files) > 0:
+                    # Skip all matched files are media files and we're using filename patterns
+                    if patterns_dict is DEFAULT_PATTERNS_SPLIT_IN_FILENAME and all(
+                        any(f.lower().endswith(ext) for ext in MEDIA_EXTENSIONS)
+                        for f in data_files
+                    ):
+                        continue
                     non_empty_splits.append(split)
-                    break
+                    break            
         if non_empty_splits:
             return {split: patterns_dict[split] for split in non_empty_splits}
     raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
