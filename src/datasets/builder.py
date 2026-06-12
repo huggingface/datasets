@@ -714,8 +714,6 @@ class DatasetBuilder:
                 Specific download configuration parameters.
             download_mode ([`DownloadMode`] or `str`, *optional*):
                 Select the download/generate mode, default to `REUSE_DATASET_IF_EXISTS`.
-            verification_mode ([`VerificationMode`] or `str`, defaults to `BASIC_CHECKS`):
-                Verification mode determining the checks to run on the downloaded/processed dataset information (checksums/size/splits/...).
 
                 <Added version="2.9.1"/>
             dl_manager (`DownloadManager`, *optional*):
