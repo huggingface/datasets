@@ -30,6 +30,7 @@ import fsspec
 import httpx
 import huggingface_hub
 import huggingface_hub.errors
+import huggingface_hub.file_download
 import requests
 from fsspec.core import strip_protocol, url_to_fs
 from fsspec.utils import can_be_local
@@ -178,6 +179,22 @@ def cached_path(
             resolved_path = huggingface_hub.HfFileSystem(
                 endpoint=config.HF_ENDPOINT, token=download_config.token
             ).resolve_path(url_or_filename)
+            # If the revision is a commit hash, it is immutable, so we can reuse cached non-existence
+            # (the ".no_exist" entries written by huggingface_hub on EntryNotFoundError)
+            # instead of requesting the Hub again for files known to be missing at this revision
+            if not download_config.force_download and huggingface_hub.file_download.REGEX_COMMIT_HASH.match(
+                resolved_path.revision
+            ):
+                cached_file = huggingface_hub.try_to_load_from_cache(
+                    repo_id=resolved_path.repo_id,
+                    filename=resolved_path.path_in_repo,
+                    repo_type=resolved_path.repo_type,
+                    revision=resolved_path.revision,
+                )
+                if cached_file is huggingface_hub._CACHED_NO_EXIST:
+                    raise FileNotFoundError(
+                        f"{url_or_filename} doesn't exist on the Hub (cached non-existence at revision {resolved_path.revision})"
+                    )
             try:
                 output_path = huggingface_hub.HfApi(
                     endpoint=config.HF_ENDPOINT,
