@@ -194,7 +194,7 @@ TESTS_REQUIRE = [
     "torchcodec>=0.7.0; python_version < '3.14'",  # minium version to get windows support, torchcodec doesn't have wheels for 3.14 yet
     "nibabel>=5.3.1",
     "trimesh>=4.10.0",
-    "teich==0.1.1a76",
+    "teich==0.1.2",
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
