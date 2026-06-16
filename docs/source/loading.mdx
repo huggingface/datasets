@@ -271,14 +271,17 @@ To load remote WebDatasets via HTTP, pass the URLs instead:
 
 [mmCIF](https://mmcif.wwpdb.org/) (macromolecular Crystallographic Information File) is the modern standard format for representing 3D macromolecular structures, used by the Protein Data Bank (PDB) since 2014.
 
-To load an mmCIF file:
+Each row is one structure (one row = one structure), following the same folder layout
+as [`ImageFolder`]: subfolder names become labels and a `metadata.csv`/`metadata.jsonl`
+file adds per-structure metadata. To load mmCIF files from a directory:
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset("mmcif", data_files="structure.cif")
+>>> dataset = load_dataset("mmcif", data_dir="path/to/structures")
 ```
 
-This returns the `_atom_site` category containing atomic coordinates. The default columns include:
+The `structure` column is parsed from the `_atom_site` category into a struct of
+atom-level arrays. The default columns are:
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -297,16 +300,16 @@ This returns the `_atom_site` category containing atomic coordinates. The defaul
 You can select specific columns:
 
 ```py
->>> dataset = load_dataset("mmcif", data_files="structure.cif", columns=["label_atom_id", "Cartn_x", "Cartn_y", "Cartn_z"])
+>>> dataset = load_dataset("mmcif", data_dir="path/to/structures", columns=["label_atom_id", "Cartn_x", "Cartn_y", "Cartn_z"])
 ```
 
 To exclude HETATM records (ligands, water molecules):
 
 ```py
->>> dataset = load_dataset("mmcif", data_files="structure.cif", include_hetatm=False)
+>>> dataset = load_dataset("mmcif", data_dir="path/to/structures", include_hetatm=False)
 ```
 
-Compressed files (`.cif.gz`) are automatically detected and decompressed.
+Extensions `.cif` and `.mmcif` are supported.
 
 ## Remote files
 

@@ -26,8 +26,10 @@ def test_protein_structure_feature_encode_example(shared_datadir, build_example)
     assert isinstance(encoded_example, dict)
     assert encoded_example.keys() == {"bytes", "path"}
     assert encoded_example["bytes"] is not None or encoded_example["path"] is not None
+    # decode parses into a struct-of-arrays; a path-less bytes example defaults to the PDB parser.
     decoded_example = protein_structure.decode_example(encoded_example)
-    assert isinstance(decoded_example, str)
+    assert isinstance(decoded_example, dict)
+    assert "label_atom_id" in decoded_example
 
 
 def test_protein_structure_decode_example_pdb(shared_datadir):
@@ -35,9 +37,9 @@ def test_protein_structure_decode_example_pdb(shared_datadir):
     protein_structure = ProteinStructure()
     decoded_example = protein_structure.decode_example({"path": structure_path, "bytes": None})
 
-    assert isinstance(decoded_example, str)
-    assert "ATOM" in decoded_example
-    assert "HEADER" in decoded_example
+    assert isinstance(decoded_example, dict)
+    assert len(decoded_example["label_atom_id"]) == 9
+    assert decoded_example["label_comp_id"][0] == "ALA"
 
     with pytest.raises(RuntimeError):
         ProteinStructure(decode=False).decode_example({"path": structure_path, "bytes": None})
@@ -48,9 +50,9 @@ def test_protein_structure_decode_example_cif(shared_datadir):
     protein_structure = ProteinStructure()
     decoded_example = protein_structure.decode_example({"path": structure_path, "bytes": None})
 
-    assert isinstance(decoded_example, str)
-    assert "data_" in decoded_example
-    assert "_atom_site" in decoded_example
+    assert isinstance(decoded_example, dict)
+    assert len(decoded_example["label_atom_id"]) == 9
+    assert decoded_example["type_symbol"][0] == "N"
 
 
 def test_dataset_with_protein_structure_feature(shared_datadir):
@@ -60,23 +62,23 @@ def test_dataset_with_protein_structure_feature(shared_datadir):
     dset = Dataset.from_dict(data, features=features)
     item = dset[0]
     assert item.keys() == {"structure"}
-    assert isinstance(item["structure"], str)
-    assert "ATOM" in item["structure"]
+    assert isinstance(item["structure"], dict)
+    assert len(item["structure"]["label_atom_id"]) == 9
     batch = dset[:1]
     assert len(batch) == 1
     assert batch.keys() == {"structure"}
-    assert isinstance(batch["structure"], list) and all(isinstance(item, str) for item in batch["structure"])
+    assert isinstance(batch["structure"], list) and all(isinstance(s, dict) for s in batch["structure"])
     column = dset["structure"]
     assert len(column) == 1
-    assert all(isinstance(item, str) for item in column)
+    assert all(isinstance(s, dict) for s in column)
 
-    # from bytes
+    # from bytes (path-less -> PDB parser by default)
     with open(structure_path, "rb") as f:
         data = {"structure": [f.read()]}
     dset = Dataset.from_dict(data, features=features)
     item = dset[0]
     assert item.keys() == {"structure"}
-    assert isinstance(item["structure"], str)
+    assert isinstance(item["structure"], dict)
 
 
 def test_protein_structure_pa_type():

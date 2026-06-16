@@ -22,6 +22,8 @@ With metadata file:
         2def.mmcif
 """
 
+from dataclasses import dataclass
+
 import datasets
 
 from ..folder_based_builder import folder_based_builder
@@ -30,11 +32,25 @@ from ..folder_based_builder import folder_based_builder
 logger = datasets.utils.logging.get_logger(__name__)
 
 
+@dataclass
 class MmcifFolderConfig(folder_based_builder.FolderBasedBuilderConfig):
-    """BuilderConfig for MmcifFolder."""
+    """BuilderConfig for MmcifFolder.
+
+    Args:
+        drop_labels (`bool`, *optional*):
+            Whether to drop folder-name labels.
+        drop_metadata (`bool`, *optional*):
+            Whether to drop metadata columns.
+        include_hetatm (`bool`, defaults to `True`):
+            Whether to include HETATM records (ligands, water, …) when decoding each structure.
+        columns (`list[str]`, *optional*):
+            Subset of PDBx/mmCIF atom columns to return per structure. Defaults to all columns.
+    """
 
     drop_labels: bool = None
     drop_metadata: bool = None
+    include_hetatm: bool = True
+    columns: list[str] = None
 
     def __post_init__(self):
         super().__post_init__()
@@ -52,3 +68,6 @@ class MmcifFolder(folder_based_builder.FolderBasedBuilder):
     BASE_COLUMN_NAME = "structure"
     BUILDER_CONFIG_CLASS = MmcifFolderConfig
     EXTENSIONS: list[str] = [".cif", ".mmcif"]
+
+    def _base_feature(self):
+        return self.BASE_FEATURE(include_hetatm=self.config.include_hetatm, columns=self.config.columns)
