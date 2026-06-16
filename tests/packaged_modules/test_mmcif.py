@@ -209,15 +209,18 @@ class TestMmcifFolderFeatures:
         assert isinstance(dataset.features["structure"], ProteinStructure)
 
     def test_structure_content_decoded(self, mmcif_file):
-        """Test structure content is accessible when decoded (default)."""
+        """Test structure content is parsed into atom-level arrays when decoded (default)."""
         dataset = load_dataset("mmcif", data_files=mmcif_file, split="train")
         sample = dataset[0]
         structure = sample["structure"]
 
-        # With decode=True (default), structure is a string
-        assert isinstance(structure, str)
-        assert "data_TEST" in structure
-        assert "_atom_site" in structure
+        # With decode=True (default), structure is a parsed struct-of-arrays
+        assert isinstance(structure, dict)
+        assert len(structure["label_atom_id"]) == 2  # sample has 2 _atom_site rows
+        assert structure["label_atom_id"][0] == "N"
+        assert structure["label_atom_id"][1] == "CA"
+        assert structure["label_comp_id"][0] == "ALA"
+        assert structure["Cartn_x"][1] == pytest.approx(1.458)
 
     def test_structure_content_undecoded(self, mmcif_file):
         """Test structure content when decode=False."""
@@ -244,6 +247,37 @@ class TestMmcifFolderFeatures:
         field_names = [f.name for f in pa_type]
         assert "bytes" in field_names
         assert "path" in field_names
+
+
+@pytest.fixture
+def mmcif_file_with_hetatm(tmp_path):
+    """mmCIF file whose _atom_site loop mixes ATOM and HETATM records."""
+    content = MMCIF_CONTENT.replace(
+        "ATOM   2  C  CA  ALA A 1  1.458   0.000   0.000  1.00 20.00",
+        "ATOM   2  C  CA  ALA A 1  1.458   0.000   0.000  1.00 20.00\n"
+        "HETATM 3  O  O   HOH A 2  5.000   5.000   5.000  1.00 30.00",
+    )
+    path = tmp_path / "het.cif"
+    path.write_text(content)
+    return str(path)
+
+
+class TestMmcifFolderParsedConfig:
+    def test_include_hetatm_default_keeps_hetatm(self, mmcif_file_with_hetatm):
+        dataset = load_dataset("mmcif", data_files=mmcif_file_with_hetatm, split="train")
+        structure = dataset[0]["structure"]
+        assert len(structure["label_atom_id"]) == 3  # ATOM x2 + HETATM x1
+
+    def test_include_hetatm_false_drops_hetatm(self, mmcif_file_with_hetatm):
+        dataset = load_dataset("mmcif", data_files=mmcif_file_with_hetatm, split="train", include_hetatm=False)
+        structure = dataset[0]["structure"]
+        assert len(structure["label_atom_id"]) == 2  # HOH (HETATM) excluded
+        assert "HOH" not in structure["label_comp_id"]
+
+    def test_columns_subset(self, mmcif_file):
+        dataset = load_dataset("mmcif", data_files=mmcif_file, split="train", columns=["label_atom_id", "Cartn_x"])
+        structure = dataset[0]["structure"]
+        assert set(structure) == {"label_atom_id", "Cartn_x"}
 
 
 class TestMmcifFolderIntegration:
@@ -279,17 +313,13 @@ class TestMmcifFolderIntegration:
         """Test map function on dataset."""
         dataset = load_dataset("mmcif", data_dir=mmcif_data_dir, split="train")
 
-        def extract_entry_id(example):
-            # structure is decoded as a string by default
-            content = example["structure"]
-            # Extract entry ID from mmCIF content
-            for line in content.split("\n"):
-                if line.startswith("data_"):
-                    return {"entry_id": line.replace("data_", "")}
-            return {"entry_id": "unknown"}
+        def count_atoms(example):
+            # structure is decoded into a parsed struct-of-arrays by default
+            return {"n_atoms": len(example["structure"]["label_atom_id"])}
 
-        mapped = dataset.map(extract_entry_id)
-        assert "entry_id" in mapped.column_names
+        mapped = dataset.map(count_atoms)
+        assert "n_atoms" in mapped.column_names
+        assert all(n > 0 for n in mapped["n_atoms"])
 
     def test_save_and_load(self, mmcif_data_dir, tmp_path):
         """Test save and reload dataset."""
@@ -361,7 +391,7 @@ class TestMmcifFolderEdgeCases:
         dataset = load_dataset("mmcif", data_dir=str(data_dir), split="train")
         assert len(dataset) == 1
 
-        # Verify content is complete (decoded as string by default)
+        # Verify all atoms parsed (one row = one structure, parsed to atom arrays)
         content = dataset[0]["structure"]
-        assert isinstance(content, str)
-        assert "ALA A 100" in content
+        assert isinstance(content, dict)
+        assert len(content["label_atom_id"]) == 100

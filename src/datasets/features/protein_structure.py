@@ -22,8 +22,12 @@ class ProteinStructure:
     **Experimental.**
     ProteinStructure [`Feature`] to read protein 3D structure files (PDB/mmCIF).
 
-    This feature stores raw file content for lazy loading. The viewer or downstream
-    code handles parsing. Supports both PDB (.pdb, .ent) and mmCIF (.cif, .mmcif) formats.
+    The raw file content is stored for lazy loading and, on access, parsed into a
+    struct-of-arrays of atom-level columns keyed by
+    [PDBx/mmCIF dictionary](https://mmcif.wwpdb.org/) ``_atom_site`` names, so PDB
+    and mmCIF datasets expose the same column vocabulary. Supports both PDB
+    (.pdb, .ent) and mmCIF (.cif, .mmcif) formats. The format is inferred from the
+    file extension.
 
     Input: The ProteinStructure feature accepts as input:
     - A `str`: Absolute path to the structure file (i.e. random access is allowed).
@@ -36,18 +40,23 @@ class ProteinStructure:
 
     Args:
         decode (`bool`, defaults to `True`):
-            Whether to decode the structure data to a string. If `False`,
-            returns the underlying dictionary in the format `{"path": structure_path, "bytes": structure_bytes}`.
+            Whether to parse the structure into a struct-of-arrays of atom columns.
+            If `False`, returns the underlying dictionary in the format
+            `{"path": structure_path, "bytes": structure_bytes}` for a custom parser.
+        include_hetatm (`bool`, defaults to `True`):
+            Whether to include HETATM records (ligands, water, …) when parsing.
+        columns (`list[str]`, *optional*):
+            Subset of atom columns to return. Defaults to all default columns
+            (see [`~datasets.features.protein_parsing.DEFAULT_ATOM_COLUMNS`]).
 
     Examples:
 
     ```py
     >>> from datasets import Dataset, ProteinStructure
     >>> ds = Dataset.from_dict({"structure": ["path/to/structure.pdb"]}).cast_column("structure", ProteinStructure())
-    >>> ds.features["structure"]
-    ProteinStructure(decode=True, id=None)
     >>> ds[0]["structure"]
-    'HEADER    PLANT PROTEIN...\\nATOM      1  N   THR A   1...'
+    {'type_symbol': ['N', 'C', ...], 'label_atom_id': ['N', 'CA', ...], 'label_comp_id': ['ALA', 'ALA', ...],
+    'Cartn_x': [0.0, 1.458, ...], 'Cartn_y': [...], 'Cartn_z': [...], ...}
     >>> ds = ds.cast_column("structure", ProteinStructure(decode=False))
     >>> ds[0]["structure"]
     {'bytes': None,
@@ -56,10 +65,12 @@ class ProteinStructure:
     """
 
     decode: bool = True
+    include_hetatm: bool = True
+    columns: Optional[list[str]] = None
     id: Optional[str] = field(default=None, repr=False)
 
     # Automatically constructed
-    dtype: ClassVar[str] = "str"
+    dtype: ClassVar[str] = "dict"
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
     _type: str = field(default="ProteinStructure", init=False, repr=False)
 
@@ -99,8 +110,14 @@ class ProteinStructure:
                 f"Expected str, bytes, pathlib.Path, or dict."
             )
 
-    def decode_example(self, value: dict, token_per_repo_id=None) -> str:
-        """Decode example structure file into structure data.
+    def decode_example(self, value: dict, token_per_repo_id=None) -> dict:
+        """Decode example structure file into a parsed struct-of-arrays.
+
+        The raw PDB/mmCIF text is parsed into atom-level columns keyed by
+        PDBx/mmCIF dictionary names (see [`~datasets.features.protein_parsing.PROTEIN_ATOM_TYPES`]),
+        so PDB- and mmCIF-derived datasets share one column vocabulary. The format
+        is inferred from the file extension in `path`. Use `ProteinStructure(decode=False)`
+        to keep the raw `{path, bytes}` mapping for a custom parser.
 
         Args:
             value (`dict`):
@@ -113,13 +130,30 @@ class ProteinStructure:
                 the Hub, you can pass a dictionary repo_id (`str`) -> token (`bool` or `str`).
 
         Returns:
-            `str`: The structure file content as a string (PDB/mmCIF are text formats).
+            `dict[str, list]`: Mapping of atom column name to a list of per-atom values.
         """
         if not self.decode:
             raise RuntimeError(
                 "Decoding is disabled for this feature. Please use ProteinStructure(decode=True) instead."
             )
 
+        text = self._read_text(value, token_per_repo_id)
+        parser = self._parser_for_path(value["path"])
+        return parser(text, columns=self.columns, include_hetatm=self.include_hetatm)
+
+    @staticmethod
+    def _parser_for_path(path: Optional[str]):
+        """Select the format parser from the file extension (defaults to PDB)."""
+        from .protein_parsing import parse_mmcif_atoms, parse_pdb_atoms
+
+        suffix = os.path.splitext(path)[1].lower() if path else ""
+        if suffix in (".cif", ".mmcif"):
+            return parse_mmcif_atoms
+        return parse_pdb_atoms
+
+    @staticmethod
+    def _read_text(value: dict, token_per_repo_id=None) -> str:
+        """Read the raw structure text from a `{path, bytes}` mapping."""
         if token_per_repo_id is None:
             token_per_repo_id = {}
 
@@ -129,31 +163,24 @@ class ProteinStructure:
                 raise ValueError(
                     f"A protein structure should have one of 'path' or 'bytes' but both are None in {value}."
                 )
-            else:
-                if is_local_path(path):
-                    with open(path, "r", encoding="utf-8") as f:
-                        return f.read()
-                else:
-                    source_url = path.split("::")[-1]
-                    pattern = (
-                        config.HUB_DATASETS_URL
-                        if source_url.startswith(config.HF_ENDPOINT)
-                        else config.HUB_DATASETS_HFFS_URL
-                    )
-                    try:
-                        repo_id = string_to_dict(source_url, pattern)["repo_id"]
-                        token = token_per_repo_id.get(repo_id)
-                    except ValueError:
-                        token = None
-                    download_config = DownloadConfig(token=token)
-                    with xopen(path, "r", download_config=download_config) as f:
-                        return f.read()
-        else:
-            # PDB/mmCIF are text formats, decode bytes to string
-            if isinstance(bytes_, (bytes, bytearray)):
-                return bytes_.decode("utf-8")
-            # If it's already a string, return as-is
-            return str(bytes_)
+            if is_local_path(path):
+                with open(path, "r", encoding="utf-8") as f:
+                    return f.read()
+            source_url = path.split("::")[-1]
+            pattern = (
+                config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
+            )
+            try:
+                repo_id = string_to_dict(source_url, pattern)["repo_id"]
+                token = token_per_repo_id.get(repo_id)
+            except ValueError:
+                token = None
+            download_config = DownloadConfig(token=token)
+            with xopen(path, "r", download_config=download_config) as f:
+                return f.read()
+        if isinstance(bytes_, (bytes, bytearray)):
+            return bytes_.decode("utf-8")
+        return str(bytes_)
 
     def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
         """If in the decodable state, return the feature itself, otherwise flatten the feature into a dictionary."""
