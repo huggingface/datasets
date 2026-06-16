@@ -985,11 +985,6 @@ class DatasetBuilder:
         Args:
             split (`datasets.Split`):
                 Which subset of the data to return.
-            verification_mode ([`VerificationMode`] or `str`, defaults to `BASIC_CHECKS`):
-                Verification mode determining the checks to run on the
-                downloaded/processed dataset information (checksums/size/splits/...).
-
-                <Added version="2.9.1"/>
             in_memory (`bool`, defaults to `False`):
                 Whether to copy the data in-memory.
 
