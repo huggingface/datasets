@@ -218,9 +218,54 @@ def test_structure_content_decoded(data_files_with_labels_no_metadata, cache_dir
 
     for example in dataset:
         content = example["structure"]
-        assert isinstance(content, str)
-        # PDB files should contain standard PDB format markers
-        assert "HEADER" in content or "ATOM" in content
+        # decode now returns a parsed struct-of-arrays (one row = one structure)
+        assert isinstance(content, dict)
+        assert len(content["label_atom_id"]) > 0
+        assert content["label_comp_id"][0]
+
+
+@pytest.fixture
+def file_with_hetatm(tmp_path):
+    data_dir = tmp_path / "pdb_hetatm"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    structure = data_dir / "structure.pdb"
+    structure.write_text(
+        "ATOM      1  N   ALA A   1       0.000   0.000   0.000  1.00 20.00           N\n"
+        "ATOM      2  CA  ALA A   1       1.458   0.000   0.000  1.00 20.00           C\n"
+        "HETATM    3  O   HOH A   2       5.000   5.000   5.000  1.00 30.00           O\n"
+        "END\n"
+    )
+    return DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
+
+
+def test_include_hetatm_config_propagates(file_with_hetatm, cache_dir):
+    # include_hetatm=False on the loader config must reach the ProteinStructure feature.
+    builder = PdbFolder(data_files=file_with_hetatm, cache_dir=cache_dir, drop_labels=True, include_hetatm=False)
+    builder.download_and_prepare()
+    [row] = list(builder.as_dataset()["train"])
+    structure = row["structure"]
+    assert len(structure["label_atom_id"]) == 2  # HETATM (HOH) excluded
+    assert "HOH" not in structure["label_comp_id"]
+
+
+def test_include_hetatm_default_keeps_hetatm(file_with_hetatm, cache_dir):
+    builder = PdbFolder(data_files=file_with_hetatm, cache_dir=cache_dir, drop_labels=True)
+    builder.download_and_prepare()
+    [row] = list(builder.as_dataset()["train"])
+    structure = row["structure"]
+    assert len(structure["label_atom_id"]) == 3  # HETATM kept by default
+
+
+def test_columns_config_propagates(file_with_hetatm, cache_dir):
+    builder = PdbFolder(
+        data_files=file_with_hetatm,
+        cache_dir=cache_dir,
+        drop_labels=True,
+        columns=["label_atom_id", "Cartn_x"],
+    )
+    builder.download_and_prepare()
+    [row] = list(builder.as_dataset()["train"])
+    assert set(row["structure"]) == {"label_atom_id", "Cartn_x"}
 
 
 def test_extensions_supported():
