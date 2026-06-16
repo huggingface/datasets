@@ -1841,7 +1841,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
     @property
     def num_columns(self) -> dict[str, Optional[int]]:
         """Number of columns in each split of the dataset.
-        This can contain None valies if some splits have unknown features (e.g. after a map() operation).
+        This can contain None values if some splits have unknown features (e.g. after a map() operation).
 
         Example:
 
@@ -1858,7 +1858,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
     @property
     def column_names(self) -> dict[str, Optional[list[str]]]:
         """Names of the columns in each split of the dataset.
-        This can contain None valies if some splits have unknown features (e.g. after a map() operation).
+        This can contain None values if some splits have unknown features (e.g. after a map() operation).
 
         Example:
 
@@ -2431,7 +2431,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
         ```
         """
-        # check to make sure that the user doesnt specify the # of shards and max shard sdize at same time, since these are 2 different ways to specify the same thing
+        # check to make sure that the user doesn't specify the # of shards and max shard sdize at same time, since these are 2 different ways to specify the same thing
         if max_shard_size is not None and num_shards is not None:
             raise ValueError(
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
