@@ -348,6 +348,26 @@ def parquet_path(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def multi_row_groups_parquet_path(tmp_path_factory):
+    num_row_groups = 4
+    path = str(tmp_path_factory.mktemp("data") / "multi_row_groups_dataset.parquet")
+    schema = pa.schema(
+        {
+            "col_1": pa.string(),
+            "col_2": pa.int64(),
+            "col_3": pa.float64(),
+        }
+    )
+    with open(path, "wb") as f:
+        writer = pq.ParquetWriter(f, schema=schema)
+        pa_table = pa.Table.from_pydict({k: [DATA[i][k] for i in range(len(DATA))] for k in DATA[0]}, schema=schema)
+        for _ in range(num_row_groups):
+            writer.write_table(pa_table)
+        writer.close()
+    return path
+
+
+@pytest.fixture(scope="session")
 def geoparquet_path(tmp_path_factory):
     df = pd.read_parquet(path="https://github.com/opengeospatial/geoparquet/raw/v1.0.0/examples/example.parquet")
     path = str(tmp_path_factory.mktemp("data") / "dataset.geoparquet")
@@ -628,3 +648,18 @@ def data_dir_with_hidden_files(tmp_path_factory):
         f.write("bar\n" * 10)
 
     return data_dir
+
+
+@pytest.fixture(scope="session")
+def mesh_file():
+    return os.path.join("tests", "features", "data", "test_mesh_glb.glb")
+
+
+@pytest.fixture(scope="session")
+def mesh_file_ply():
+    return os.path.join("tests", "features", "data", "test_mesh_ply.ply")
+
+
+@pytest.fixture(scope="session")
+def mesh_file_stl():
+    return os.path.join("tests", "features", "data", "test_mesh_stl.stl")

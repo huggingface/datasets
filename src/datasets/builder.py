@@ -57,7 +57,12 @@ from .filesystems import (
 )
 from .fingerprint import Hasher
 from .info import DatasetInfo
-from .iterable_dataset import ArrowExamplesIterable, ExamplesIterable, IterableDataset
+from .iterable_dataset import (
+    ArrowExamplesIterable,
+    ExamplesIterable,
+    IterableDataset,
+    _concatenate_iterable_datasets,
+)
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator, SplitInfo
 from .streaming import extend_dataset_builder_for_streaming
@@ -296,6 +301,9 @@ class DatasetBuilder:
     # and also the length of the arrow chunks
     # None means that the ArrowWriter will use its default value
     DEFAULT_WRITER_BATCH_SIZE = None
+
+    # Useful to make sure PyArrow threads in c++ have time to shut down before gargabe collection
+    SLEEP_ON_THREADS_SHUTDOWNS = False
 
     def __init__(
         self,
@@ -1111,8 +1119,37 @@ class DatasetBuilder:
         # By default, return all splits
         if split is None:
             splits_generator = splits_generators
-        elif split in splits_generators:
-            splits_generator = splits_generators[split]
+        elif str(split) in splits_generators:
+            splits_generator = splits_generators[str(split)]
+        elif hasattr(split, "get_read_instruction"):
+            split_dict = SplitDict({name: sg.split_info for name, sg in splits_generators.items()})
+            split_instruction = split.get_read_instruction(split_dict)
+            split_infos = split_instruction.get_list_sliced_split_info()
+            if any(split_info.slice_value is not None for split_info in split_infos):
+                raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
+            return _concatenate_iterable_datasets(
+                [
+                    self._as_streaming_dataset_single(splits_generators[split_info.split_info.name])
+                    for split_info in split_infos
+                ],
+                info=self.info,
+                split=split,
+            )
+        elif str(split) == str(Split.ALL):
+            return _concatenate_iterable_datasets(
+                [self._as_streaming_dataset_single(sg) for sg in splits_generators.values()],
+                info=self.info,
+                split=split,
+            )
+        elif "+" in str(split) and "[" not in str(split) and "]" not in str(split):
+            split_names = [split_name.strip() for split_name in str(split).split("+")]
+            if not all(split_name in splits_generators for split_name in split_names):
+                raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
+            return _concatenate_iterable_datasets(
+                [self._as_streaming_dataset_single(splits_generators[split_name]) for split_name in split_names],
+                info=self.info,
+                split=split,
+            )
         else:
             raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
 
@@ -1794,7 +1831,10 @@ class ArrowBasedBuilder(DatasetBuilder):
                             embed_local_files=embed_local_files,
                         )
                     try:
-                        writer.write_table(table)
+                        if len(table) == 1:
+                            writer.write_row(table)
+                        else:
+                            writer.write_table(table)
                     except CastError as cast_error:
                         raise DatasetGenerationCastError.from_cast_error(
                             cast_error=cast_error,
@@ -1847,6 +1887,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             self._generate_tables,
             kwargs=split_generator.gen_kwargs,
             generate_more_kwargs_fn=getattr(self, "_generate_more_gen_kwargs", None),
+            sleep_on_threads_shutdown=self.SLEEP_ON_THREADS_SHUTDOWNS,
         )
 
 

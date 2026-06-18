@@ -43,6 +43,7 @@ from ..utils.json import ujson_dumps, ujson_loads
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
+from .mesh import Mesh
 from .nifti import Nifti, encode_nibabel_image
 from .pdf import Pdf, encode_pdfplumber_pdf
 from .translation import Translation, TranslationVariableLanguages
@@ -992,7 +993,7 @@ class ClassLabel:
      * `names_file`: File containing the list of labels.
 
     Under the hood the labels are stored as integers.
-    You can use negative integers to represent unknown/missing labels.
+    You can use -1 to represent unknown/missing labels.
 
     Args:
         num_classes (`int`, *optional*):
@@ -1225,6 +1226,8 @@ class Json:
         return self.pa_type
 
     def encode_example(self, example_data):
+        if example_data is None:
+            return None
         if not isinstance(example_data, str):
             example_data = ujson_dumps(example_data)
         else:
@@ -1237,6 +1240,8 @@ class Json:
     def decode_example(self, example_data, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Json(decode=True) instead.")
+        if example_data is None:
+            return None
         return ujson_loads(example_data)
 
     def cast_storage(self, storage: Union[pa.Array]) -> pa.JsonArray:
@@ -1255,11 +1260,14 @@ class Json:
             items = storage[:5].to_pylist()
             try:
                 for item in items:
-                    ujson_loads(item)
+                    if item is not None:
+                        ujson_loads(item)
             except Exception:
-                storage = pa.array([ujson_dumps(x) for x in storage.to_pylist()], pa.json_())
+                storage = pa.array(
+                    [ujson_dumps(x) if x is not None else None for x in storage.to_pylist()], pa.json_()
+                )
         else:
-            storage = pa.array([ujson_dumps(x) for x in storage.to_pylist()], pa.json_())
+            storage = pa.array([ujson_dumps(x) if x is not None else None for x in storage.to_pylist()], pa.json_())
         return array_cast(storage, self.pa_type)
 
 
@@ -1361,6 +1369,7 @@ FeatureType = Union[
     Array5D,
     Audio,
     Image,
+    Mesh,
     Video,
     Pdf,
     Nifti,
@@ -1522,6 +1531,7 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     Array5D.__name__: Array5D,
     Audio.__name__: Audio,
     Image.__name__: Image,
+    Mesh.__name__: Mesh,
     Video.__name__: Video,
     Pdf.__name__: Pdf,
     Nifti.__name__: Nifti,

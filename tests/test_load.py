@@ -14,7 +14,7 @@ import pyarrow as pa
 import pytest
 
 import datasets
-from datasets import config, load_dataset
+from datasets import load_dataset
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_writer import ArrowWriter
 from datasets.builder import DatasetBuilder
@@ -517,7 +517,7 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
-        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert module_factory_result.builder_kwargs["base_path"].startswith("hf://")
 
     @pytest.mark.integration
     def test_HubDatasetModuleFactory_with_data_dir(self):
@@ -531,7 +531,7 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         builder_config = module_factory_result.builder_configs_parameters.builder_configs[0]
-        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert module_factory_result.builder_kwargs["base_path"].startswith("hf://")
         assert (
             builder_config.data_files is not None
             and len(builder_config.data_files["train"]) == 1
@@ -550,7 +550,7 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         builder_config = module_factory_result.builder_configs_parameters.builder_configs[0]
-        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert module_factory_result.builder_kwargs["base_path"].startswith("hf://")
         assert (
             builder_config.data_files is not None
             and len(builder_config.data_files["train"]) > 0
@@ -565,7 +565,7 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         builder_config = module_factory_result.builder_configs_parameters.builder_configs[0]
-        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert module_factory_result.builder_kwargs["base_path"].startswith("hf://")
         assert (
             builder_config.data_files is not None
             and len(builder_config.data_files) == 1
@@ -582,7 +582,7 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
-        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert module_factory_result.builder_kwargs["base_path"].startswith("hf://")
 
         module_metadata_configs = module_factory_result.builder_configs_parameters.metadata_configs
         assert module_metadata_configs is not None
