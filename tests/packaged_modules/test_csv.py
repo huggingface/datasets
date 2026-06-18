@@ -151,3 +151,35 @@ def test_csv_convert_int_list(csv_file_with_int_list):
     assert pa.types.is_list(pa_table.schema.field("int_list").type)
     generated_content = pa_table.to_pydict()["int_list"]
     assert generated_content == [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+
+
+def test_csv_no_file_name_by_default(csv_file):
+    """Ensure backward compatibility: file_name column is absent when return_file_name is not set."""
+    csv = Csv()
+    base_files = [csv_file]
+    files_iterables = [[file] for file in base_files]
+    generator = csv._generate_tables(base_files=base_files, files_iterables=files_iterables)
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert "file_name" not in pa_table.column_names
+
+
+def test_csv_return_file_name_enabled(csv_file):
+    """When return_file_name=True, the file_name column should be present."""
+    csv = Csv(return_file_name=True)
+    base_files = [csv_file]
+    files_iterables = [[file] for file in base_files]
+    generator = csv._generate_tables(base_files=base_files, files_iterables=files_iterables)
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert "file_name" in pa_table.column_names
+
+
+def test_csv_file_name_values(csv_file):
+    """The file_name column should contain the basename of the source file for every row."""
+    csv = Csv(return_file_name=True)
+    base_files = [csv_file]
+    files_iterables = [[csv_file]]
+    generator = csv._generate_tables(base_files=base_files, files_iterables=files_iterables)
+    pa_table = pa.concat_tables([table for _, table in generator])
+    data = pa_table.to_pydict()
+    expected_name = os.path.basename(csv_file)
+    assert all(name == expected_name for name in data["file_name"])
