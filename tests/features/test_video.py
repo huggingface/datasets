@@ -71,6 +71,21 @@ def test_dataset_with_video_feature(shared_datadir):
     assert item["video"].get_frame_at(0).data.shape == (3, 50, 66)
     assert isinstance(item["video"].get_frame_at(0).data, torch.Tensor)
 
+def test_cast_column_video_from_csv_large_string(shared_datadir, tmp_path):
+    video_path = str(shared_datadir / "test_video_66x50.mov")
+    csv_path = tmp_path / "video.csv"
+
+    csv_path.write_text(f"video\n{video_path}\n", encoding="utf-8")
+
+    dset = load_dataset("csv", data_files=str(csv_path), split="train")
+    assert str(dset.features["video"]) == "Value('large_string')"
+
+    dset = dset.cast_column("video", Video(decode=False))
+
+    assert isinstance(dset.features["video"], Video)
+    item = dset[0]["video"]
+    assert item["path"] == video_path
+
 
 @require_torchcodec
 def test_dataset_with_video_map_and_formatted(shared_datadir):
