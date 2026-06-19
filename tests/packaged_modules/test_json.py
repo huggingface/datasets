@@ -563,6 +563,23 @@ CURSOR_SESSION = {
     },
 }
 
+CURSOR_NATIVE_SESSION = [
+    {
+        "role": "user",
+        "message": {"content": [{"type": "text", "text": "<user_query>\nInspect index.html\n</user_query>"}]},
+    },
+    {
+        "role": "assistant",
+        "message": {
+            "content": [
+                {"type": "text", "text": "I'll inspect it."},
+                {"type": "tool_use", "id": "read_file_0", "name": "read_file", "input": {"path": "index.html"}},
+            ]
+        },
+    },
+    {"type": "turn_ended", "status": "success"},
+]
+
 
 def test_config_raises_when_invalid_name() -> None:
     with pytest.raises(InvalidConfigName, match="Bad characters"):
@@ -782,6 +799,12 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
             id="cursor",
         ),
         pytest.param(
+            "cursor-native-session.jsonl",
+            CURSOR_NATIVE_SESSION,
+            ("cursor", "cursor-native-session", "Inspect index.html", None, 1, 1),
+            id="cursor-native",
+        ),
+        pytest.param(
             "missing_prompt.jsonl",
             [
                 {"type": "session_meta", "payload": {"id": "codex-session"}},
@@ -799,8 +822,9 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
 def test_json_generate_tables_with_agent_trace_metadata(tmp_path, filename, rows, expected):
     num_sessions = 2 if filename == "hermes_two_sessions.jsonl" else 1
     _, out = assert_agent_traces_output(tmp_path, filename, rows, expected, num_sessions=num_sessions)
-    if filename in ("cursor.jsonl", "droid.jsonl"):
-        assert out["metadata"][0]["trace_type"] == filename.removesuffix(".jsonl")
+    if filename in ("cursor.jsonl", "cursor-native-session.jsonl", "droid.jsonl"):
+        expected_trace_type = "cursor" if filename.startswith("cursor") else "droid"
+        assert out["metadata"][0]["trace_type"] == expected_trace_type
     assert "models" not in out
 
 
@@ -820,6 +844,12 @@ def test_json_generate_tables_with_agent_trace_metadata(tmp_path, filename, rows
             [CURSOR_SESSION],
             ("cursor", "cursor-session", "cursor prompt", "2025-07-03T07:06:08.368Z", 2, 1),
             id="cursor",
+        ),
+        pytest.param(
+            "cursor-native-session.jsonl",
+            CURSOR_NATIVE_SESSION,
+            ("cursor", "cursor-native-session", "Inspect index.html", None, 1, 1),
+            id="cursor-native",
         ),
     ],
 )
@@ -850,6 +880,9 @@ def test_json_load_dataset_with_agent_trace_metadata(tmp_path, filename, rows, e
     elif filename == "cursor.jsonl":
         assert row["metadata"]["trace_type"] == "cursor"
         assert row["trace"]["raw_cursor"]["composer_data"]["composerId"] == "cursor-session"
+    elif filename == "cursor-native-session.jsonl":
+        assert row["metadata"]["trace_type"] == "cursor"
+        assert json.loads(row["trace"].splitlines()[-1]) == {"type": "turn_ended", "status": "success"}
 
 
 def test_json_load_dataset_without_droid_marker_stays_ordinary_json(tmp_path):
@@ -870,3 +903,18 @@ def test_json_load_dataset_without_droid_marker_stays_ordinary_json(tmp_path):
 
     assert dataset.column_names == ["type", "id", "version", "timestamp", "message"]
     assert dataset[0]["type"] == "session_start"
+
+
+def test_json_load_dataset_without_cursor_native_marker_stays_ordinary_json(tmp_path):
+    trace_file = write_jsonl(
+        tmp_path / "cursor_missing_marker.jsonl",
+        [
+            {"role": "user", "message": {"content": [{"type": "text", "text": "Inspect index.html"}]}},
+            {"role": "assistant", "message": {"content": [{"type": "text", "text": "I'll inspect it."}]}},
+        ],
+    )
+
+    dataset = load_dataset("json", data_files=trace_file, split="train", cache_dir=str(tmp_path / "cache"))
+
+    assert dataset.column_names == ["role", "message"]
+    assert dataset[0]["role"] == "user"
