@@ -179,7 +179,8 @@ class Json(datasets.ArrowBasedBuilder):
                     training_examples = convert_traces_to_training_data(trace_file)
                     examples = []
                     for i, training_example in enumerate(training_examples):
-                        if training_example["metadata"]["trace_type"] == "hermes":
+                        trace_type = training_example["metadata"]["trace_type"]
+                        if trace_type == "hermes":
                             timestamp = ujson_loads(lines[i])["started_at"]
                             milliseconds = timestamp if timestamp <= 10_000_000_000 else timestamp * 1_000
                             sent_at = (
@@ -194,6 +195,20 @@ class Json(datasets.ArrowBasedBuilder):
                                 "num_user_messages": training_example["metadata"]["turn_count"],
                                 "num_tool_calls": training_example["metadata"]["tool_call_count"],
                                 "trace": lines[i],
+                            }
+                        elif trace_type == "cursor":
+                            source_line = training_example["metadata"].get("source_line")
+                            trace_line = lines[i]
+                            if isinstance(source_line, int) and 1 <= source_line <= len(lines):
+                                trace_line = lines[source_line - 1]
+                            bonus_fields = {
+                                "harness": trace_type,
+                                "session_id": get_cursor_session_id(training_example, trace_line),
+                                "prompt": training_example.get("prompt"),
+                                "sent_at": get_cursor_trace_timestamp(trace_line),
+                                "num_user_messages": get_training_example_user_message_count(training_example),
+                                "num_tool_calls": get_training_example_tool_call_count(training_example),
+                                "trace": trace_line,
                             }
                         else:
                             harness, session_id, prompt, sent_at, num_user_messages, num_tool_calls = (
@@ -388,6 +403,18 @@ AGENT_TRACES_FEATURES_MARKERS = {
             "cwd": lambda f: f == Value("string"),
         }
     ),
+    "cursor": datasets.Features(
+        {
+            "messages": lambda f: isinstance(f, datasets.List),
+            "metadata": lambda f: isinstance(f, dict)
+            and f.get("trace_type") == Value("string")
+            and f.get("source") == Value("string")
+            and f.get("cursor_composer_id") == Value("string"),
+            "raw_cursor": lambda f: isinstance(f, dict)
+            and isinstance(f.get("composer_data"), (dict, datasets.Json))
+            and isinstance(f.get("bubble_ids"), datasets.List),
+        }
+    ),
 }
 
 AGENT_TRACES_FEATURES = datasets.Features(
@@ -517,6 +544,60 @@ def get_trace_event_timestamp(trace_event: dict) -> Optional[str]:
     if isinstance(timestamp, str):
         return timestamp
     return None
+
+
+def get_cursor_session_id(training_example: dict, trace_line: str) -> Optional[str]:
+    metadata = training_example.get("metadata")
+    if isinstance(metadata, dict) and isinstance(metadata.get("cursor_composer_id"), str):
+        return metadata["cursor_composer_id"]
+    try:
+        trace_event = ujson_loads(trace_line)
+    except ValueError:
+        return None
+    raw_cursor = trace_event.get("raw_cursor")
+    if not isinstance(raw_cursor, dict):
+        return None
+    composer_data = raw_cursor.get("composer_data")
+    if isinstance(composer_data, dict) and isinstance(composer_data.get("composerId"), str):
+        return composer_data["composerId"]
+    return None
+
+
+def get_cursor_trace_timestamp(trace_line: str) -> Optional[str]:
+    try:
+        trace_event = ujson_loads(trace_line)
+    except ValueError:
+        return None
+    raw_cursor = trace_event.get("raw_cursor")
+    if not isinstance(raw_cursor, dict):
+        return None
+    composer_data = raw_cursor.get("composer_data")
+    if not isinstance(composer_data, dict):
+        return None
+    created_at = composer_data.get("createdAt")
+    if not isinstance(created_at, (int, float)):
+        return None
+    seconds = created_at / 1_000 if created_at > 10_000_000_000 else created_at
+    return datetime.fromtimestamp(seconds, tz=timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+def get_training_example_user_message_count(training_example: dict) -> int:
+    messages = training_example.get("messages")
+    if not isinstance(messages, list):
+        return 0
+    return sum(1 for message in messages if isinstance(message, dict) and message.get("role") == "user")
+
+
+def get_training_example_tool_call_count(training_example: dict) -> int:
+    messages = training_example.get("messages")
+    if not isinstance(messages, list):
+        return 0
+    return sum(
+        len(tool_calls)
+        for message in messages
+        if isinstance(message, dict)
+        and isinstance(tool_calls := message.get("tool_calls"), list)
+    )
 
 
 def get_content_text(content) -> Optional[str]:

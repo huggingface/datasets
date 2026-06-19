@@ -515,6 +515,54 @@ DROID_SESSION = [
     },
 ]
 
+CURSOR_SESSION = {
+    "messages": [
+        {"role": "user", "content": "cursor prompt"},
+        {
+            "role": "assistant",
+            "content": "cursor response",
+            "tool_calls": [
+                {
+                    "id": "call_1",
+                    "type": "function",
+                    "function": {"name": "read_file", "arguments": '{"path": "README.md"}'},
+                }
+            ],
+        },
+        {"role": "tool", "tool_call_id": "call_1", "name": "read_file", "content": "done"},
+        {"role": "user", "content": "second cursor prompt"},
+        {"role": "assistant", "content": "second response"},
+    ],
+    "prompt": "cursor prompt",
+    "response": "second response",
+    "model": "claude-4-sonnet",
+    "tools": [
+        {
+            "type": "function",
+            "function": {
+                "name": "read_file",
+                "description": "Read file",
+                "parameters": {"type": "object", "properties": {"path": {"type": "string"}}},
+            },
+        }
+    ],
+    "metadata": {
+        "trace_type": "cursor",
+        "source": "cursor",
+        "cursor_composer_id": "cursor-session",
+        "model": "claude-4-sonnet",
+    },
+    "raw_cursor": {
+        "composer_data": {
+            "composerId": "cursor-session",
+            "createdAt": 1751526368368,
+            "lastUpdatedAt": 1751526730702,
+            "status": "completed",
+        },
+        "bubble_ids": ["bubble-1"],
+    },
+}
+
 
 def test_config_raises_when_invalid_name() -> None:
     with pytest.raises(InvalidConfigName, match="Bad characters"):
@@ -728,6 +776,12 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
             id="droid",
         ),
         pytest.param(
+            "cursor.jsonl",
+            [CURSOR_SESSION],
+            ("cursor", "cursor-session", "cursor prompt", "2025-07-03T07:06:08.368Z", 2, 1),
+            id="cursor",
+        ),
+        pytest.param(
             "missing_prompt.jsonl",
             [
                 {"type": "session_meta", "payload": {"id": "codex-session"}},
@@ -745,8 +799,8 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
 def test_json_generate_tables_with_agent_trace_metadata(tmp_path, filename, rows, expected):
     num_sessions = 2 if filename == "hermes_two_sessions.jsonl" else 1
     _, out = assert_agent_traces_output(tmp_path, filename, rows, expected, num_sessions=num_sessions)
-    if filename == "droid.jsonl":
-        assert out["metadata"][0]["trace_type"] == "droid"
+    if filename in ("cursor.jsonl", "droid.jsonl"):
+        assert out["metadata"][0]["trace_type"] == filename.removesuffix(".jsonl")
     assert "models" not in out
 
 
@@ -760,6 +814,12 @@ def test_json_generate_tables_with_agent_trace_metadata(tmp_path, filename, rows
             DROID_SESSION,
             ("droid", "droid-session", "Inspect the project", "2026-06-02T18:55:30.274Z", 1, 1),
             id="droid",
+        ),
+        pytest.param(
+            "cursor.jsonl",
+            [CURSOR_SESSION],
+            ("cursor", "cursor-session", "cursor prompt", "2025-07-03T07:06:08.368Z", 2, 1),
+            id="cursor",
         ),
     ],
 )
@@ -787,6 +847,9 @@ def test_json_load_dataset_with_agent_trace_metadata(tmp_path, filename, rows, e
     if filename == "droid.jsonl":
         assert row["metadata"]["trace_type"] == "droid"
         assert json.loads(row["trace"].splitlines()[0])["type"] == "session_start"
+    elif filename == "cursor.jsonl":
+        assert row["metadata"]["trace_type"] == "cursor"
+        assert row["trace"]["raw_cursor"]["composer_data"]["composerId"] == "cursor-session"
 
 
 def test_json_load_dataset_without_droid_marker_stays_ordinary_json(tmp_path):
