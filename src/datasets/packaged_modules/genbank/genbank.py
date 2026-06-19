@@ -103,15 +103,12 @@ class GenBankConfig(datasets.BuilderConfig):
         columns: Subset of columns to include. Options: ["locus_name", "accession",
             "version", "definition", "organism", "taxonomy", "keywords", "sequence",
             "features", "length", "molecule_type"].
-        parse_features: Whether to parse FEATURES section into structured JSON.
-            If False, stores raw text.
     """
 
     features: Optional[datasets.Features] = None
     batch_size: int = 10000
     max_batch_bytes: Optional[int] = DEFAULT_MAX_BATCH_BYTES
     columns: Optional[list[str]] = None
-    parse_features: bool = True
 
     def __post_init__(self):
         super().__post_init__()
@@ -125,23 +122,33 @@ class GenBank(datasets.ArrowBasedBuilder):
     # All supported GenBank extensions
     EXTENSIONS: list[str] = [".gb", ".gbk", ".genbank"]
 
-    # All available columns
-    ALL_COLUMNS: list[str] = [
-        "locus_name",
-        "accession",
-        "version",
-        "definition",
-        "organism",
-        "taxonomy",
-        "keywords",
-        "sequence",
-        "features",
-        "length",
-        "molecule_type",
-    ]
+    # Canonical features for a GenBank record. The schema is always the same, so it is
+    # declared here and passed to DatasetInfo; users can still override via config.features.
+    DEFAULT_FEATURES: "datasets.Features" = datasets.Features(
+        {
+            "locus_name": datasets.Value("string"),
+            "accession": datasets.Value("string"),
+            "version": datasets.Value("string"),
+            "definition": datasets.Value("string"),
+            "organism": datasets.Value("string"),
+            "taxonomy": datasets.Value("string"),
+            "keywords": datasets.Value("string"),
+            "sequence": datasets.Value("large_string"),
+            "features": datasets.Json(),
+            "length": datasets.Value("int64"),
+            "molecule_type": datasets.Value("string"),
+        }
+    )
+
+    # All available columns (the canonical feature order).
+    ALL_COLUMNS: list[str] = list(DEFAULT_FEATURES)
 
     def _info(self):
-        return datasets.DatasetInfo(features=self.config.features)
+        if self.config.features is not None:
+            features = self.config.features
+        else:
+            features = datasets.Features({col: self.DEFAULT_FEATURES[col] for col in self._get_columns()})
+        return datasets.DatasetInfo(features=features)
 
     def _split_generators(self, dl_manager):
         """Generate splits from data files.
@@ -165,15 +172,16 @@ class GenBank(datasets.ArrowBasedBuilder):
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
-        """Cast Arrow table to configured features schema."""
-        if self.config.features is not None:
-            schema = self.config.features.arrow_schema
-            if all(not require_storage_cast(feature) for feature in self.config.features.values()):
-                pa_table = pa_table.cast(schema)
-            else:
-                pa_table = table_cast(pa_table, schema)
-            return pa_table
-        return pa_table
+        """Cast the raw Arrow table to the resolved features schema.
+
+        The resolved features are ``config.features`` if the user provided them,
+        otherwise the canonical ``DEFAULT_FEATURES`` projected to the selected columns.
+        This is what turns the JSON-encoded ``features`` column into the ``Json()`` type.
+        """
+        features = self._info().features
+        if all(not require_storage_cast(feature) for feature in features.values()):
+            return pa_table.cast(features.arrow_schema)
+        return table_cast(pa_table, features.arrow_schema)
 
     def _open_file(self, filepath: str):
         """Open file with automatic compression detection based on magic bytes.
@@ -264,7 +272,7 @@ class GenBank(datasets.ArrowBasedBuilder):
             # Record terminator: finalize the pending feature and emit the record.
             if line.startswith("//"):
                 features.finalize_feature()
-                record["features"] = json.dumps(features.features) if self.config.parse_features else ""
+                record["features"] = features.features
                 yield record
                 state = ParserState.HEADER
                 record = self._new_record()
@@ -368,7 +376,7 @@ class GenBank(datasets.ArrowBasedBuilder):
             "taxonomy": "",
             "keywords": "",
             "sequence": "",
-            "features": "",
+            "features": [],
             "length": 0,
             "molecule_type": "",
         }
@@ -413,16 +421,21 @@ class GenBank(datasets.ArrowBasedBuilder):
             return self.config.columns
         return self.ALL_COLUMNS
 
-    def _get_schema(self, columns: list[str]) -> pa.Schema:
-        """Return Arrow schema with appropriate types for each column.
+    def _get_storage_schema(self, columns: list[str]) -> pa.Schema:
+        """Return the Arrow schema used to build raw batches before casting to features.
 
-        Uses large_string for sequence and features columns to handle very long data
-        that can exceed the 2GB limit of regular string type.
+        The ``features`` column is built directly as the JSON arrow type from JSON-encoded
+        strings, so casting to the ``Json()`` feature is a no-op (no double-encoding).
+        ``sequence`` uses large_string to handle data that can exceed the 2GB limit of
+        regular string type.
         """
         fields = []
         for col in columns:
-            if col in ("sequence", "features"):
-                # Use large_string for potentially very long data
+            if col == "features":
+                # JSON arrow type; matches the Json() feature so _cast_table won't re-encode.
+                fields.append(pa.field(col, pa.json_()))
+            elif col == "sequence":
+                # Use large_string for potentially very long sequence data.
                 fields.append(pa.field(col, pa.large_string()))
             elif col == "length":
                 fields.append(pa.field(col, pa.int64()))
@@ -444,7 +457,7 @@ class GenBank(datasets.ArrowBasedBuilder):
             Tuple of (Key, pa.Table) for each batch.
         """
         columns = self._get_columns()
-        schema = self._get_schema(columns)
+        schema = self._get_storage_schema(columns)
         max_batch_bytes = self.config.max_batch_bytes
 
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
@@ -457,6 +470,11 @@ class GenBank(datasets.ArrowBasedBuilder):
                     # Update length from actual sequence if not set
                     if record["length"] == 0 and record["sequence"]:
                         record["length"] = len(record["sequence"])
+
+                    # Serialize the features list to a JSON string for storage; the
+                    # Json() feature parses it back into an object on read.
+                    if "features" in record:
+                        record["features"] = json.dumps(record["features"])
 
                     # Calculate record size (approximate UTF-8 byte size)
                     record_bytes = (

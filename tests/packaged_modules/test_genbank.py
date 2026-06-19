@@ -336,7 +336,7 @@ def test_genbank_xz(genbank_file_xz):
 
 def test_genbank_feature_parsing(genbank_file_complex_features):
     """Test parsing of complex feature locations."""
-    genbank = GenBank(parse_features=True)
+    genbank = GenBank()
     generator = genbank._generate_tables([[genbank_file_complex_features]])
     pa_table = pa.concat_tables([table for _, table in generator])
 
@@ -355,18 +355,6 @@ def test_genbank_feature_parsing(genbank_file_complex_features):
     assert split_gene is not None
     assert "parts" in split_gene["location"]
     assert len(split_gene["location"]["parts"]) == 3
-
-
-def test_genbank_feature_parsing_disabled(genbank_file):
-    """Test that feature parsing can be disabled."""
-    genbank = GenBank(parse_features=False)
-    generator = genbank._generate_tables([[genbank_file]])
-    pa_table = pa.concat_tables([table for _, table in generator])
-
-    result = pa_table.to_pydict()
-
-    # Features should be empty string when parsing is disabled
-    assert result["features"][0] == ""
 
 
 def test_genbank_column_filtering(genbank_file):
@@ -393,10 +381,13 @@ def test_genbank_column_filtering_single(genbank_file):
 
 
 def test_genbank_invalid_column():
-    """Test that invalid column names raise an error."""
-    genbank = GenBank(columns=["sequence", "invalid_column"])
+    """Test that invalid column names raise an error.
+
+    Validation happens at builder construction time (via _info -> _get_columns),
+    so the error surfaces as soon as the invalid columns are configured.
+    """
     with pytest.raises(ValueError, match="Invalid column 'invalid_column'"):
-        list(genbank._generate_tables([[]]))
+        GenBank(columns=["sequence", "invalid_column"])
 
 
 def test_genbank_batch_size(genbank_file_multi_record):
@@ -451,9 +442,11 @@ def test_genbank_schema_types(genbank_file):
     assert schema.field("keywords").type == pa.string()
     assert schema.field("molecule_type").type == pa.string()
 
-    # Large string for sequence and features
+    # Large string for sequence
     assert schema.field("sequence").type == pa.large_string()
-    assert schema.field("features").type == pa.large_string()
+
+    # JSON extension type for features (parsed into objects on read)
+    assert schema.field("features").type == pa.json_()
 
     # Integer for length
     assert schema.field("length").type == pa.int64()
@@ -685,7 +678,7 @@ def test_genbank_feature_boolean_qualifier(tmp_path):
     with open(filename, "w", encoding="utf-8") as f:
         f.write(data)
 
-    genbank = GenBank(parse_features=True)
+    genbank = GenBank()
     generator = genbank._generate_tables([[str(filename)]])
     pa_table = pa.concat_tables([table for _, table in generator])
 
