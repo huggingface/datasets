@@ -42,7 +42,7 @@ _PIL_MODE_TO_TORCHVISION_MODE = {
 }
 
 
-def _decode_image_for_torch(value: dict, image_feature: "Image") -> "torch.Tensor":
+def _decode_image_for_torch(value: dict, image_feature: "Image", token_per_repo_id=None) -> "torch.Tensor":
     """Decode an image dict {"bytes": ..., "path": ...} to a CHW torch.Tensor using torchvision.
 
     Uses torchvision.io.decode_image for efficient decoding. Falls back to PIL
@@ -52,6 +52,7 @@ def _decode_image_for_torch(value: dict, image_feature: "Image") -> "torch.Tenso
     Args:
         value: dict with "bytes" and "path" keys from Arrow extraction
         image_feature: the Image feature instance (carries mode/decode info)
+        token_per_repo_id: mapping repo_id -> token to access remote private repositories
 
     Returns:
         torch.Tensor in CHW format
@@ -59,15 +60,19 @@ def _decode_image_for_torch(value: dict, image_feature: "Image") -> "torch.Tenso
     import torch
     from torchvision.io import decode_image
 
+    from ..features.image import _read_remote_image_bytes
+
     path, bytes_ = value["path"], value["bytes"]
 
     tv_mode = _PIL_MODE_TO_TORCHVISION_MODE.get(image_feature.mode) if image_feature.mode else None
 
     try:
+        if bytes_ is None and path is not None and not is_local_path(path):
+            bytes_ = _read_remote_image_bytes(path, token_per_repo_id=token_per_repo_id)
         if bytes_ is not None:
             input_tensor = torch.frombuffer(bytearray(bytes_), dtype=torch.uint8)
             return decode_image(input_tensor, mode=tv_mode or "UNCHANGED", apply_exif_orientation=True)
-        elif path is not None and is_local_path(path):
+        elif path is not None:
             return decode_image(path, mode=tv_mode or "UNCHANGED", apply_exif_orientation=True)
     except Exception:
         pass
@@ -75,7 +80,7 @@ def _decode_image_for_torch(value: dict, image_feature: "Image") -> "torch.Tenso
     # Fallback: PIL decode + pil_to_tensor
     from torchvision.transforms.v2.functional import pil_to_tensor
 
-    pil_image = image_feature.decode_example(value)
+    pil_image = image_feature.decode_example(value, token_per_repo_id=token_per_repo_id)
     return pil_to_tensor(pil_image)
 
 

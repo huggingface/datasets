@@ -1474,7 +1474,7 @@ def decode_nested_example(
     Args:
         decoder_overrides: optional dict mapping feature types to custom decode functions.
             When the python type of a leaf feature matches a key, the override function is called
-            as ``override_fn(obj, schema)`` instead of ``schema.decode_example(obj, ...)``.
+            as ``override_fn(obj, schema, token_per_repo_id=...)`` instead of ``schema.decode_example(obj, ...)``.
     """
     _kwargs = {"token_per_repo_id": token_per_repo_id, "decoder_overrides": decoder_overrides}
     # Nested structures: we allow dict, list/tuples, sequences
@@ -1519,7 +1519,7 @@ def decode_nested_example(
             return None
         if decoder_overrides:
             if override_fn := decoder_overrides.get(type(schema)):
-                return override_fn(obj, schema)
+                return override_fn(obj, schema, token_per_repo_id=token_per_repo_id)
         # we pass the token to read and decode files from private repositories in streaming mode
         return schema.decode_example(obj, token_per_repo_id=token_per_repo_id)
     return obj
