@@ -119,8 +119,6 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
         return "string_view"
     elif pyarrow.types.is_fixed_size_binary(arrow_type):
         return f"fixed_size_binary[{arrow_type.byte_width}]"
-    elif pyarrow.types.is_list(arrow_type):
-        return f"list[{_arrow_to_datasets_dtype(arrow_type.value_type)}]"
     elif pyarrow.types.is_dictionary(arrow_type):
         return _arrow_to_datasets_dtype(arrow_type.value_type)
     else:
