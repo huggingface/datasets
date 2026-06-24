@@ -2897,6 +2897,25 @@ def test_iterable_dataset_batch(num_shards: int):
         assert batch["text"] == [f"Text {3 * i}", f"Text {3 * i + 1}", f"Text {3 * i + 2}"]
 
 
+def test_iterable_dataset_batch_by_column_survives_resharding():
+    # Re-creating the iterable (shard / shuffle / split_by_node, e.g. inside torch DataLoader
+    # workers) must keep accumulating whole groups instead of crashing with a missing
+    # tables_accumulator argument (regression test).
+    data = {
+        "id": list(range(10)),
+        "category": ["A"] * 5 + ["B"] * 5,
+    }
+    ds = IterableDataset.from_dict(data, num_shards=2)
+    batched_ds = ds.batch(by_column="category")
+
+    sharded = [batch["category"][0] for i in range(2) for batch in batched_ds.shard(num_shards=2, index=i)]
+    assert sorted(sharded) == ["A", "B"]
+
+    shuffled = list(batched_ds.shuffle(seed=0, buffer_size=2))
+    assert sorted(batch["category"][0] for batch in shuffled) == ["A", "B"]
+    assert all(len(set(batch["category"])) == 1 for batch in shuffled)
+
+
 @pytest.mark.parametrize("num_shards", [1, 2, 3, 7, 10])
 def test_iterable_dataset_batch_by_column(num_shards: int):
     # Create a Dataset with a column to group by

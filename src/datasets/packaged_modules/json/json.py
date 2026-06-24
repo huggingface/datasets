@@ -1,6 +1,8 @@
+import codecs
 import io
 import os
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal, Optional
 
@@ -145,7 +147,7 @@ class Json(datasets.ArrowBasedBuilder):
             if self.info.features == AGENT_TRACES_FEATURES:
                 is_agent_traces = True
                 if datasets.config.TEICH_AVAILABLE:
-                    from teich import convert_trace_to_training_example
+                    from teich import convert_traces_to_training_data
                 else:
                     raise ImportError("To support decoding agent traces, please install 'teich'.")
             json_field_paths = get_json_field_paths_from_feature(self.info.features)
@@ -166,32 +168,56 @@ class Json(datasets.ArrowBasedBuilder):
                     pa_table = pa.Table.from_pandas(df, preserve_index=False)
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
 
-                # If the files are agent traces (one row = one file)
+                # If the files are agent traces (one row = one file except for hermes which can have multiple sessions per file)
                 elif is_agent_traces:
                     trace_file = Path(file)
-                    trace_events = trace_file.read_text(encoding="utf-8").splitlines()
-                    harness, session_id, prompt, sent_at, num_user_messages, num_tool_calls = parse_traces_info(
-                        trace_events
-                    )
+                    trace = trace_file.read_text(encoding="utf-8")
+                    lines = trace.splitlines()
                     file_path = original_files[shard_idx]
                     if self.base_path is not None and file_path.startswith(self.base_path):
                         file_path = os.path.relpath(file_path, self.base_path)
-                    training_example = convert_trace_to_training_example(trace_file)
-                    example = {
-                        **dict.fromkeys(AGENT_TRACES_FEATURES),
-                        **training_example.to_dict(),
-                        "harness": harness,
-                        "session_id": session_id,
-                        "prompt": prompt,
-                        "sent_at": sent_at,
-                        "num_user_messages": num_user_messages,
-                        "num_tool_calls": num_tool_calls,
-                        "trace": trace_events,
-                        "file_path": file_path,
-                    }
-                    for json_field_path in json_field_paths:
-                        example = json_encode_field(example, json_field_path)
-                    pa_table = pa.Table.from_pylist([example])
+                    training_examples = convert_traces_to_training_data(trace_file)
+                    examples = []
+                    for i, training_example in enumerate(training_examples):
+                        if training_example["metadata"]["trace_type"] == "hermes":
+                            timestamp = ujson_loads(lines[i])["started_at"]
+                            milliseconds = timestamp if timestamp <= 10_000_000_000 else timestamp * 1_000
+                            sent_at = (
+                                datetime.fromtimestamp(milliseconds, tz=timezone.utc)
+                                .isoformat(timespec="milliseconds")
+                                .replace("+00:00", "Z")
+                            )
+                            bonus_fields = {
+                                "harness": training_example["metadata"]["trace_type"],
+                                "session_id": training_example["metadata"]["session_id"],
+                                "sent_at": sent_at,
+                                "num_user_messages": training_example["metadata"]["turn_count"],
+                                "num_tool_calls": training_example["metadata"]["tool_call_count"],
+                                "trace": lines[i],
+                            }
+                        else:
+                            harness, session_id, prompt, sent_at, num_user_messages, num_tool_calls = (
+                                parse_traces_info(lines)
+                            )
+                            bonus_fields = {
+                                "harness": harness,
+                                "session_id": session_id,
+                                "prompt": prompt,
+                                "sent_at": sent_at,
+                                "num_user_messages": num_user_messages,
+                                "num_tool_calls": num_tool_calls,
+                                "trace": trace,
+                            }
+                        example = {
+                            **dict.fromkeys(AGENT_TRACES_FEATURES),
+                            **training_example,
+                            **bonus_fields,
+                            "file_path": file_path,
+                        }
+                        for json_field_path in json_field_paths:
+                            example = json_encode_field(example, json_field_path)
+                        examples.append(example)
+                    pa_table = pa.Table.from_pylist(examples)
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
 
                 # If the file has one json object per line
@@ -208,6 +234,13 @@ class Json(datasets.ArrowBasedBuilder):
                             batch = f.read(self.config.chunksize)
                             if not batch:
                                 break
+                            # A leading UTF-8 BOM makes the ujson pre-scan below raise
+                            # ValueError, silently skipping mixed-struct detection, while
+                            # PyArrow tolerates the BOM -- so the inferred schema differed
+                            # depending on whether the file started with a BOM. Strip it so
+                            # both see the same bytes (a BOM only appears at the start of the file).
+                            if shard_idx == 0 and batch_idx == 0 and batch.startswith(codecs.BOM_UTF8):
+                                batch = batch[len(codecs.BOM_UTF8) :]
                             if batch.startswith(b"["):
                                 if not allow_full_read:
                                     raise FullReadDisallowed()
@@ -316,6 +349,8 @@ AGENT_TRACES_TYPES_VALUES = {
     "claude_code": ["user", "assistant", "system"],
     "pi": ["session", "message"],
     "codex": ["session_meta", "turn_context", "response_item", "event_msg"],
+    # droid message events share pi's "message" type, but droid traces always start with a session_start event
+    "droid": ["session_start"],
 }
 AGENT_TRACES_TYPE_TO_HARNESS = {}
 for _harness, _trace_types in AGENT_TRACES_TYPES_VALUES.items():
@@ -324,22 +359,33 @@ for _harness, _trace_types in AGENT_TRACES_TYPES_VALUES.items():
 
 
 AGENT_TRACES_FEATURES_MARKERS = {
-    "claude_code": datasets.Features(
+    "claude_code_or_pi_or_openclaw": datasets.Features(
         {
-            "type": Value("string"),
-            "message": datasets.Json(),
-        }
-    ),
-    "pi": datasets.Features(
-        {
-            "type": Value("string"),
-            "message": datasets.Json(),
+            "type": lambda f: f == Value("string"),
+            "message": lambda f: f == datasets.Json(),
         }
     ),
     "codex": datasets.Features(
         {
-            "type": Value("string"),
-            "payload": datasets.Json(),
+            "type": lambda f: f == Value("string"),
+            "payload": lambda f: f == datasets.Json(),
+        }
+    ),
+    "hermes": datasets.Features(
+        {
+            "id": lambda f: f == Value("string"),
+            "source": lambda f: f == datasets.Value("string"),
+            "model": lambda f: f == datasets.Value("string"),
+            "system_prompt": lambda f: f == datasets.Value("string"),
+            "messages": lambda f: isinstance(f, (datasets.List, datasets.Json)),
+        }
+    ),
+    "droid": datasets.Features(
+        {
+            "type": lambda f: f == Value("string"),
+            "id": lambda f: f == Value("string"),
+            "version": lambda f: f == Value("int64"),
+            "cwd": lambda f: f == Value("string"),
         }
     ),
 }
@@ -358,7 +404,7 @@ AGENT_TRACES_FEATURES = datasets.Features(
         "sent_at": Value("string"),
         "num_user_messages": Value("int64"),
         "num_tool_calls": Value("int64"),
-        "trace": List(datasets.Json()),
+        "trace": datasets.Json(),
         "file_path": Value("string"),
     }
 )
@@ -366,7 +412,7 @@ AGENT_TRACES_FEATURES = datasets.Features(
 
 def has_agent_traces_markers(features: datasets.Features) -> bool:
     for agent_traces_features_marker in AGENT_TRACES_FEATURES_MARKERS.values():
-        if all(features.get(key) == feature for key, feature in agent_traces_features_marker.items()):
+        if all(feature_marker(features.get(key)) for key, feature_marker in agent_traces_features_marker.items()):
             return True
     return False
 
@@ -414,8 +460,8 @@ def get_session_id(trace: dict) -> Optional[str]:
     # codex
     if isinstance(trace.get("payload"), dict) and isinstance(trace["payload"].get("id"), str):
         return trace["payload"]["id"]
-    # pi / openclaw (openclaw embeds pi-agent; distinguish via cwd)
-    if trace.get("type") == "session" and isinstance(trace.get("id"), str):
+    # pi / openclaw on "session" (openclaw embeds pi-agent; distinguish via cwd), droid on "session_start"
+    if trace.get("type") in ("session", "session_start") and isinstance(trace.get("id"), str):
         return trace["id"]
     return None
 
@@ -429,7 +475,8 @@ def get_user_prompt(trace_event: dict) -> Optional[str]:
     if trace_event.get("type") == "message":
         if isinstance(trace_event.get("message"), dict):
             message = trace_event["message"]
-            if message.get("role") == "user":
+            # droid marks injected context as llm_only and local-only notes as user_only, neither is a real user prompt
+            if message.get("role") == "user" and message.get("visibility") not in ("llm_only", "user_only"):
                 return get_content_text(message.get("content"))
         if trace_event.get("role") == "user":
             return get_content_text(trace_event.get("content"))
