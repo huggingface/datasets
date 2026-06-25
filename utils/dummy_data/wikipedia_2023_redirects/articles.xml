@@ -1,0 +1,19 @@
+<mediawiki>
+  <page>
+    <title>Py</title>
+    <id>1</id>
+    <redirect title="Python (programming language)"/>
+    <revision>
+      <timestamp>2023-06-01T00:00:00Z</timestamp>
+      <text>redirect</text>
+    </revision>
+  </page>
+  <page>
+    <title>Python (programming language)</title>
+    <id>2</id>
+    <revision>
+      <timestamp>2023-06-02T00:00:00Z</timestamp>
+      <text>Python is a programming language.</text>
+    </revision>
+  </page>
+</mediawiki>
