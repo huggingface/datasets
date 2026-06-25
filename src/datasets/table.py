@@ -2283,8 +2283,8 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
     Args:
         table (`pa.Table`):
             PyArrow table to cast.
-        features ([`Features`]):
-            Target features.
+        schema (`pa.Schema`):
+            Target PyArrow schema.
 
     Returns:
         `pa.Table`: the casted table
