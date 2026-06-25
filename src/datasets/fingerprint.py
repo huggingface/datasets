@@ -315,7 +315,7 @@ def validate_fingerprint(fingerprint: str, max_length=64):
             )
     if len(fingerprint) > max_length:
         raise ValueError(
-            f"Invalid fingerprint. Maximum lenth is {max_length} but '{fingerprint}' has length {len(fingerprint)}."
+            f"Invalid fingerprint. Maximum length is {max_length} but '{fingerprint}' has length {len(fingerprint)}."
             "It could create issues when creating cache files."
         )
 
