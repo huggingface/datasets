@@ -1362,3 +1362,31 @@ def test_update_dataset_card_data_with_standalone_yaml():
     assert isinstance(
         builder.info.features["label"], datasets.ClassLabel
     )  # correctly loaded from long labels list in standalone yaml
+    
+def test_load_dataset_builder_base_path_kwarg_override():
+    """Test that base_path from config_kwargs overrides builder_kwargs"""
+    class DummyBuilder:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+
+        def _use_legacy_cache_dir_if_possible(self, dataset_module):
+            pass
+
+    dataset_module = SimpleNamespace(
+        builder_kwargs={"base_path": "from_builder_module"},
+        builder_configs_parameters=SimpleNamespace(
+            default_config_name="default",
+            builder_configs=[SimpleNamespace(data_files={"train": ["dummy.txt"]})],
+        ),
+        dataset_infos={},
+        hash="dummy_hash",
+    )
+
+    with (
+        patch("datasets.load.dataset_module_factory", return_value=dataset_module),
+        patch("datasets.load.get_dataset_builder_class", return_value=DummyBuilder),
+    ):
+        builder = datasets.load_dataset_builder("dummy/path", base_path="from_user_kwarg")
+
+    # User-provided base_path should override module default
+    assert builder.kwargs["base_path"] == "from_user_kwarg"
