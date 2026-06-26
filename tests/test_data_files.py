@@ -1,5 +1,6 @@
 import copy
 import os
+import threading
 from pathlib import Path
 from typing import List
 from unittest.mock import patch
@@ -15,6 +16,8 @@ from datasets.data_files import (
     DataFilesPatternsDict,
     DataFilesPatternsList,
     _get_data_files_patterns,
+    _get_origin_metadata,
+    _get_single_origin_metadata,
     _is_inside_unrequested_special_dir,
     _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir,
     get_data_patterns,
@@ -398,6 +401,44 @@ def test_DataFilesList_from_patterns_locally_with_extra_files(complex_data_dir, 
 def test_DataFilesList_from_patterns_raises_FileNotFoundError(complex_data_dir):
     with pytest.raises(FileNotFoundError):
         DataFilesList.from_patterns(["file_that_doesnt_exist.txt"], complex_data_dir)
+
+
+def test_get_origin_metadata_shares_filesystem_across_threads(tmp_path, monkeypatch):
+    # fsspec caches filesystem instances per thread (its cache key includes threading.get_ident()),
+    # so without sharing each worker thread would build its own filesystem. The main thread should
+    # instantiate it once and pass it down, so that no filesystem is ever built inside a worker.
+    from fsspec.implementations.local import LocalFileSystem
+
+    data_files = []
+    for i in range(20):
+        path = tmp_path / f"file_{i}.txt"
+        path.write_text(str(i))
+        data_files.append(path.as_posix())
+
+    init_threads = []
+    original_init = LocalFileSystem.__init__
+
+    def counting_init(self, *args, **kwargs):
+        init_threads.append(threading.get_ident())
+        return original_init(self, *args, **kwargs)
+
+    monkeypatch.setattr(LocalFileSystem, "__init__", counting_init)
+    # start from a clean cache so the (single) instantiation is observable and deterministic
+    # (each fsspec class keeps its own instance cache, so clear LocalFileSystem's specifically)
+    LocalFileSystem.clear_instance_cache()
+
+    main_thread = threading.get_ident()
+    origin_metadata = _get_origin_metadata(data_files, max_workers=8)
+
+    # the filesystem is built once in the main thread; workers must reuse it and build nothing
+    assert init_threads, "expected the shared filesystem to be instantiated in the main thread"
+    assert all(tid == main_thread for tid in init_threads), (
+        f"filesystem was instantiated inside worker thread(s): {set(init_threads) - {main_thread}}"
+    )
+    # the shared filesystem must not change the resolved metadata
+    expected = [_get_single_origin_metadata(data_file) for data_file in data_files]
+    assert origin_metadata == expected
+    assert len(origin_metadata) == len(data_files)
 
 
 class TestDataFilesDict:
