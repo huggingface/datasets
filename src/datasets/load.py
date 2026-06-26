@@ -1231,6 +1231,8 @@ def load_dataset_builder(
     revision: Optional[Union[str, Version]] = None,
     token: Optional[Union[bool, str]] = None,
     storage_options: Optional[dict] = None,
+    *,
+    streaming: bool = False,
     **config_kwargs,
 ) -> DatasetBuilder:
     """Load a dataset builder which can be used to:
@@ -1357,6 +1359,19 @@ def load_dataset_builder(
     # When users pass config kwargs, they should override module-provided defaults
     # instead of colliding at constructor call time.
     builder_kwargs = {key: value for key, value in builder_kwargs.items() if key not in config_kwargs}
+
+    if streaming and data_files is not None and not isinstance(data_files, DataFilesDict):
+        download_config_for_data_files = download_config.copy() if download_config else DownloadConfig()
+        if token is not None:
+            download_config_for_data_files.token = token
+        if storage_options is not None:
+            download_config_for_data_files.storage_options.update(storage_options)
+        data_files = DataFilesDict.from_patterns(
+            sanitize_patterns(data_files),
+            base_path=builder_kwargs.get("base_path"),
+            download_config=download_config_for_data_files,
+            skip_origin_metadata=True,
+        )
 
     builder_cls = get_dataset_builder_class(dataset_module, dataset_name=dataset_name)
     # Instantiate the dataset builder
@@ -1707,6 +1722,7 @@ def load_dataset(
         revision=revision,
         token=token,
         storage_options=storage_options,
+        streaming=streaming,
         **config_kwargs,
     )
 
