@@ -2,6 +2,7 @@ import json
 import os
 import pickle
 import subprocess
+import sys
 from functools import partial
 from pathlib import Path
 from tempfile import gettempdir
@@ -291,6 +292,16 @@ class HashingTest(TestCase):
         hash3 = Hasher.hash(set_)
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
+
+    def test_frozenset_stable(self):
+        # Python randomizes the string hash seed per process, so a frozenset of strings
+        # iterates in a different order in each session. Without a deterministic reducer
+        # the fingerprint of a transform that captures a frozenset changes every session
+        # and the cache never hits. This mirrors the guarantee made for `set`.
+        code = "from datasets.fingerprint import Hasher; print(Hasher.hash(frozenset('abcdefghij')))"
+        hash1 = subprocess.check_output([sys.executable, "-c", code], env={**os.environ, "PYTHONHASHSEED": "0"})
+        hash2 = subprocess.check_output([sys.executable, "-c", code], env={**os.environ, "PYTHONHASHSEED": "1"})
+        self.assertEqual(hash1, hash2)
 
     @require_tiktoken
     def test_hash_tiktoken_encoding(self):
