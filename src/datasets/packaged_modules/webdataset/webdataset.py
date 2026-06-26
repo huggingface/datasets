@@ -25,6 +25,7 @@ class WebDataset(datasets.GeneratorBasedBuilder):
     MESH_EXTENSIONS: list[str]  # definition at the bottom of the script
     DECODERS: dict[str, Callable[[Any], Any]]  # definition at the bottom of the script
     NUM_EXAMPLES_FOR_FEATURES_INFERENCE = 5
+    MAX_NUM_EXAMPLES_FOR_FEATURES_INFERENCE = 1_000  # max number of examples to scan to resolve null-typed fields
 
     @classmethod
     def _get_pipeline_from_tar(cls, tar_path, tar_iterator):
@@ -89,6 +90,30 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                 for example in first_examples
             ]
             inferred_arrow_schema = pa.concat_tables(pa_tables, promote_options="default").schema
+            # Some fields may be null-typed at this point if their values are null in all the first examples
+            # (e.g. a JSON field that is null in the beginning of the dataset).
+            # Scan more examples to infer the types of these fields, otherwise writing
+            # subsequent non-null values would fail with e.g. "Couldn't cast array of type string to null".
+            num_scanned_examples = len(first_examples)
+            while any(_contains_null_type(field.type) for field in inferred_arrow_schema):
+                example = None
+                if num_scanned_examples < self.MAX_NUM_EXAMPLES_FOR_FEATURES_INFERENCE:
+                    example = next(pipeline, None)
+                if example is None:
+                    null_fields = [field.name for field in inferred_arrow_schema if _contains_null_type(field.type)]
+                    logger.warning(
+                        f"Failed to infer the type of the fields {null_fields} since their values are null in "
+                        f"the first {num_scanned_examples} examples. Pass `features` manually to set their types."
+                    )
+                    break
+                example_table = pa.Table.from_pylist(cast_to_python_objects([example], only_1d_for_numpy=True))
+                example_schema = pa.schema(
+                    field for field in example_table.schema if field.name in inferred_arrow_schema.names
+                )
+                inferred_arrow_schema = pa.unify_schemas(
+                    [inferred_arrow_schema, example_schema], promote_options="permissive"
+                )
+                num_scanned_examples += 1
             features = datasets.Features.from_arrow_schema(inferred_arrow_schema)
 
             for field_name in first_examples[0]:
@@ -138,6 +163,13 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                             "bytes": example[field_name],
                         }
                 yield Key(tar_idx, example_idx), example
+
+
+def _contains_null_type(pa_type: pa.DataType) -> bool:
+    """Check if a pyarrow type is or contains a null type, i.e. if it has fields whose type couldn't be inferred."""
+    if pa.types.is_null(pa_type):
+        return True
+    return any(_contains_null_type(pa_type.field(i).type) for i in range(pa_type.num_fields))
 
 
 # Source: https://github.com/webdataset/webdataset/blob/87bd5aa41602d57f070f65a670893ee625702f2f/webdataset/tariterators.py#L25
