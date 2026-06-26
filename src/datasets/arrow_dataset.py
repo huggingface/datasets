@@ -89,6 +89,7 @@ from .features.features import (
     generate_from_arrow_type,
     pandas_types_mapper,
     require_decoding,
+    require_storage_embed,
 )
 from .filesystems import is_remote_filesystem
 from .fingerprint import (
@@ -713,6 +714,45 @@ class Column(Sequence_):
             return list(self) == list(value)
         else:
             return value == list(self)
+
+
+def _get_token_per_repo_id_for_embed(
+    table: pa.Table,
+    token: Optional[str],
+    resolved_output_path: Optional[HfFileSystemResolvedPath] = None,
+    dataset_name: Optional[str] = None,
+) -> dict[str, Union[str, bool, None]]:
+    """Build a repo_id -> token mapping for embedding remote files during push_to_hub."""
+    token_per_repo_id: dict[str, Union[str, bool, None]] = {}
+    if token is None:
+        return token_per_repo_id
+
+    repo_ids: set[str] = set()
+    if dataset_name:
+        repo_ids.add(dataset_name)
+    if isinstance(resolved_output_path, HfFileSystemResolvedRepositoryPath) and resolved_output_path.repo_id:
+        repo_ids.add(resolved_output_path.repo_id)
+
+    def collect_repo_ids(array, feature):
+        if not require_storage_embed(feature) or not pa.types.is_struct(array.type):
+            return
+        if array.type.get_field_index("path") < 0:
+            return
+        for path in array.field("path").to_pylist():
+            if path is None:
+                continue
+            source_url = path.split("::")[-1]
+            if not source_url.startswith(("hf://", config.HF_ENDPOINT)):
+                continue
+            pattern = (
+                config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
+            )
+            source_url_fields = string_to_dict(source_url, pattern)
+            if source_url_fields is not None and "repo_id" in source_url_fields:
+                repo_ids.add(source_url_fields["repo_id"])
+
+    table_visitor(table, collect_repo_ids)
+    return {repo_id: token for repo_id in repo_ids}
 
 
 class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
@@ -5891,8 +5931,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if embed_external_files:
                 format = shard.format
                 shard = shard.with_format("arrow")
+                token_per_repo_id = _get_token_per_repo_id_for_embed(
+                    shard.data,
+                    token=token,
+                    resolved_output_path=resolved_output_path,
+                    dataset_name=shard._info.dataset_name,
+                )
                 shard = shard.map(
-                    embed_table_storage,
+                    partial(embed_table_storage, token_per_repo_id=token_per_repo_id),
                     batched=True,
                     batch_size=writer_batch_size,
                     keep_in_memory=True,
