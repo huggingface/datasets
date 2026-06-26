@@ -146,6 +146,21 @@ def _save_set(pickler, obj):
     log(pickler, "# Se")
 
 
+@pklregister(frozenset)
+def _save_frozenset(pickler, obj):
+    log(pickler, f"Fr: {obj}")
+    try:
+        # Faster, but fails for unorderable elements
+        args = (sorted(obj),)
+    except Exception:  # TypeError, decimal.InvalidOperation, etc.
+        from datasets.fingerprint import Hasher
+
+        args = (sorted(obj, key=Hasher.hash),)
+
+    pickler.save_reduce(frozenset, args, obj=obj)
+    log(pickler, "# Fr")
+
+
 def _save_regexPattern(pickler, obj):
     import regex  # type: ignore
 
