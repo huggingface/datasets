@@ -5,6 +5,7 @@ from glob import has_magic
 from pathlib import Path, PurePath
 from typing import Callable, Optional, Union
 
+import fsspec
 import huggingface_hub
 from fsspec.core import url_to_fs
 from huggingface_hub import HfFileSystem
@@ -498,6 +499,7 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 def _get_single_origin_metadata(
     data_file: str,
     download_config: Optional[DownloadConfig] = None,
+    fs_per_protocol: Optional[dict[str, fsspec.AbstractFileSystem]] = None,
 ) -> SingleOriginMetadata:
     if data_file.startswith(config.HF_ENDPOINT):
         fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
@@ -505,8 +507,16 @@ def _get_single_origin_metadata(
         data_file = data_file.replace("/resolve/", "/" if data_file.startswith("hf://buckets/") else "@", 1)
         fs_path = data_file
     else:
+        # fsspec caches filesystems per thread, so reuse the one built in the main thread instead
+        # of rebuilding it here (which re-auths and reopens connections for s3://, gcs://, ...).
+        protocol = data_file.split("://")[0] if "://" in data_file else "file"
         data_file, storage_options = _prepare_path_and_storage_options(data_file, download_config=download_config)
-        fs, fs_path = url_to_fs(data_file, **storage_options)
+        fs = fs_per_protocol.get(protocol) if fs_per_protocol is not None else None
+        if fs is None or "::" in data_file:
+            # chained urls like "zip://*.csv::s3://..." need url_to_fs to build the nested fs
+            fs, fs_path = url_to_fs(data_file, **storage_options)
+        else:
+            fs_path = fs._strip_protocol(data_file)
     if isinstance(fs, HfFileSystem):
         resolved_path = fs.resolve_path(fs_path)
         if hasattr(resolved_path, "revision"):  # no revision for buckets
@@ -537,8 +547,21 @@ def _get_origin_metadata(
                 disable=len(data_files) <= 16 or None,
             )
         ]
+    # Build one filesystem per protocol here and share it with the workers (see
+    # _get_single_origin_metadata). hf:// and chained "::" urls are skipped on purpose:
+    # hf origin metadata is already cached, and chained urls need their nested fs rebuilt.
+    fs_per_protocol: dict[str, fsspec.AbstractFileSystem] = {}
+    for data_file in data_files:
+        if data_file.startswith(config.HF_ENDPOINT) or "::" in data_file:
+            continue
+        protocol = data_file.split("://")[0] if "://" in data_file else "file"
+        if protocol == "hf" or protocol in fs_per_protocol:
+            continue
+        prepared_path, storage_options = _prepare_path_and_storage_options(data_file, download_config=download_config)
+        if "::" not in prepared_path:
+            fs_per_protocol[protocol], _ = url_to_fs(prepared_path, **storage_options)
     return thread_map(
-        partial(_get_single_origin_metadata, download_config=download_config),
+        partial(_get_single_origin_metadata, download_config=download_config, fs_per_protocol=fs_per_protocol),
         data_files,
         max_workers=max_workers,
         tqdm_class=hf_tqdm,
