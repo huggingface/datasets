@@ -194,7 +194,7 @@ class BaseReader:
             in_memory (bool, default False): Whether to copy the data in-memory.
         """
         if len(files) == 0 or not all(isinstance(f, dict) for f in files):
-            raise ValueError("please provide valid file informations")
+            raise ValueError("please provide valid file information")
         files = copy.deepcopy(files)
         for f in files:
             f["filename"] = os.path.join(self._path, f["filename"])
@@ -499,7 +499,7 @@ class ReadInstruction:
     @classmethod
     def _read_instruction_from_relative_instructions(cls, relative_instructions):
         """Returns ReadInstruction obj initialized with relative_instructions."""
-        # Use __new__ to bypass __init__ used by public API and not conveniant here.
+        # Use __new__ to bypass __init__ used by public API and not convenient here.
         result = cls.__new__(cls)
         result._init(relative_instructions)  # pylint: disable=protected-access
         return result
