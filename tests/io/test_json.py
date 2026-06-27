@@ -212,6 +212,16 @@ class TestJsonDatasetWriter:
         assert isinstance(exported_content[0], dict)
         assert len(exported_content) == 10
 
+    @pytest.mark.parametrize("batch_size", [3, 5])
+    def test_dataset_to_json_records_batched_without_lines(self, batch_size, dataset):
+        with io.BytesIO() as buffer:
+            JsonDatasetWriter(dataset, buffer, lines=False, orient="records", batch_size=batch_size).write()
+            buffer.seek(0)
+            exported_content = json.load(buffer)
+        assert isinstance(exported_content, list)
+        assert len(exported_content) == 10
+        assert isinstance(exported_content[0], dict)
+
     @pytest.mark.parametrize(
         "orient, container, keys, len_at",
         [
