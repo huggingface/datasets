@@ -1302,15 +1302,18 @@ def test_step_examples_iterable():
     assert_load_state_dict_resumes_iteration(step_ex_iterable)
 
 
-def test_skip_arrow_examples_iterable():
-    total, count = 10, 2
+@pytest.mark.parametrize("count", [2, DEFAULT_BATCH_SIZE, DEFAULT_BATCH_SIZE + 2, DEFAULT_BATCH_SIZE * 3])
+def test_skip_arrow_examples_iterable(count):
+    total = 10
     base_ex_iterable = ArrowExamplesIterable(generate_tables_fn, {"n": total})
     skip_ex_iterable = SkipExamplesIterable(base_ex_iterable, n=count)
     expected = [x for _, pa_table in generate_tables_fn(n=total) for x in pa_table.to_pylist()][count:]
     assert [example for _, example in skip_ex_iterable] == expected
+    assert [example for _, pa_table in skip_ex_iterable.iter_arrow() for example in pa_table.to_pylist()] == expected
     with pytest.raises(DataSourcesShufflingDisallowed):
         skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42))
     assert_load_state_dict_resumes_iteration(skip_ex_iterable)
+    assert_load_state_dict_resumes_arrow_iteration(skip_ex_iterable)
 
 
 def test_take_arrow_examples_iterable():
@@ -2892,6 +2895,25 @@ def test_iterable_dataset_batch(num_shards: int):
         assert len(batch["text"]) == 3
         assert batch["id"] == [3 * i, 3 * i + 1, 3 * i + 2]
         assert batch["text"] == [f"Text {3 * i}", f"Text {3 * i + 1}", f"Text {3 * i + 2}"]
+
+
+def test_iterable_dataset_batch_by_column_survives_resharding():
+    # Re-creating the iterable (shard / shuffle / split_by_node, e.g. inside torch DataLoader
+    # workers) must keep accumulating whole groups instead of crashing with a missing
+    # tables_accumulator argument (regression test).
+    data = {
+        "id": list(range(10)),
+        "category": ["A"] * 5 + ["B"] * 5,
+    }
+    ds = IterableDataset.from_dict(data, num_shards=2)
+    batched_ds = ds.batch(by_column="category")
+
+    sharded = [batch["category"][0] for i in range(2) for batch in batched_ds.shard(num_shards=2, index=i)]
+    assert sorted(sharded) == ["A", "B"]
+
+    shuffled = list(batched_ds.shuffle(seed=0, buffer_size=2))
+    assert sorted(batch["category"][0] for batch in shuffled) == ["A", "B"]
+    assert all(len(set(batch["category"])) == 1 for batch in shuffled)
 
 
 @pytest.mark.parametrize("num_shards", [1, 2, 3, 7, 10])

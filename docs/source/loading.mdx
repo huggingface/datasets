@@ -10,7 +10,7 @@ This guide will show you how to load a dataset from:
 - Offline
 - A specific slice of a split
 
-For more details specific to loading other dataset modalities, take a look at the <a class="underline decoration-pink-400 decoration-2 font-semibold" href="./audio_load">load audio dataset guide</a>, the <a class="underline decoration-yellow-400 decoration-2 font-semibold" href="./image_load">load image dataset guide</a>, the <a class="underline decoration-blue-400 decoration-2 font-semibold" href="./video_load">load video dataset guide</a>, or the <a class="underline decoration-green-400 decoration-2 font-semibold" href="./nlp_load">load text dataset guide</a>.
+For more details specific to loading other dataset modalities, take a look at the <a class="underline decoration-pink-400 decoration-2 font-semibold" href="./audio_load">load audio dataset guide</a>, the <a class="underline decoration-yellow-400 decoration-2 font-semibold" href="./image_load">load image dataset guide</a>, the <a class="underline decoration-blue-400 decoration-2 font-semibold" href="./video_load">load video dataset guide</a>, the <a class="underline decoration-purple-400 decoration-2 font-semibold" href="./mesh_load">load mesh dataset guide</a>, or the <a class="underline decoration-green-400 decoration-2 font-semibold" href="./nlp_load">load text dataset guide</a>.
 
 <a id='load-from-the-hub'></a>
 
@@ -68,7 +68,7 @@ The `split` parameter can also map a data file to a specific split:
 
 ## Local and remote files
 
-Datasets can be loaded from local files stored on your computer and from remote files. The datasets are most likely stored as a `csv`, `json`, `txt` or `parquet` file. The [`load_dataset`] function can load each of these file types.
+Datasets can be loaded from local files stored on your computer and from remote files. The datasets are most likely stored as a `csv`, `json`, `txt`, `parquet` or `tsfile` file. The [`load_dataset`] function can load each of these file types.
 
 ### CSV
 
@@ -199,6 +199,34 @@ This will return the image caption and the image bytes in a single request.
 ```
 
 Note that the HDF5 loader assumes that the file has "tabular" structure, i.e. that all datasets in the file have (the same number of) rows on their first dimension.
+
+### TsFile
+
+[TsFile](https://tsfile.apache.org/) is a columnar file format designed for time-series data, used as the native storage layer of [Apache IoTDB](https://iotdb.apache.org/). It natively represents timestamps, device tags, and measurement fields, and maintains an internal time index that enables efficient time-range pruning.
+
+Each row in the resulting dataset corresponds to one **device** (identified by its TAG columns); the `time` column and every FIELD column are list columns containing that device's full time series, sorted in ascending time order.
+
+To load a TsFile:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("tsfile", data_files="my_data.tsfile")
+```
+
+Filter by time range — bounds are pushed down to TsFile's internal time index and accept `int` epochs, `datetime`, `date`, ISO-8601 strings, or `pyarrow` timestamp scalars:
+
+```py
+>>> from datetime import datetime
+>>> dataset = load_dataset(
+...     "tsfile",
+...     data_files="my_data.tsfile",
+...     start_time=datetime(2023, 11, 14),
+...     end_time=datetime(2023, 11, 15),
+... )
+```
+
+> [!TIP]
+> For more details, check out the [how to load TsFile data](tsfile_load) guide.
 
 ### SQL
 

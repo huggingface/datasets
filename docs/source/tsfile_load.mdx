@@ -1,0 +1,172 @@
+# Load TsFile data
+
+[TsFile](https://tsfile.apache.org/) is a columnar file format designed for time-series data and used as the native storage layer of [Apache IoTDB](https://iotdb.apache.org/). Compared with general-purpose columnar formats such as Parquet, TsFile is aware of the time-series data model (timestamps, devices, and measurements) and maintains an internal time index that enables time-range pruning without scanning entire files.
+
+This loader is provided as a separate guide because it does not follow the usual one-row-per-record tabular convention: each output row corresponds to one *device*, and per-measurement values are returned as Arrow `list<...>` columns. The mapping is described in detail below.
+
+## Installation
+
+The loader depends on the [`tsfile`](https://pypi.org/project/tsfile/) Python package:
+
+```bash
+pip install "tsfile>=2.3.0"
+```
+
+## Data model and output layout
+
+The loader follows the TsFile *table model*. Each table column is one of:
+
+- **TAG** — a string-typed identifier; the tuple of TAG values uniquely identifies a *device* (i.e. a single time-series source).
+- **FIELD** — a measurement whose value evolves over time.
+- **TIME** — the timestamp column, named `time` by default.
+
+The loader emits one dataset row per device. Within a row, the `time` column and every FIELD column are Arrow `list<...>` columns containing that device's full time series, sorted in ascending time order. TAG columns appear as scalar `string` columns.
+
+Concretely, the output schema has the form:
+
+```text
+<tag_1>:    string
+<tag_2>:    string                       # one column per TAG
+...
+time:       list<timestamp[unit, tz]>
+<field_1>:  list<original_type>          # one column per FIELD
+<field_2>:  list<original_type>
+...
+```
+
+When the same device appears in multiple input files of a split, its per-file chunks are concatenated and sorted by timestamp before being emitted as a single row. Duplicate timestamps for the same device raise `ValueError`.
+
+## Basic usage
+
+Load a single TsFile:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("tsfile", data_files="my_data.tsfile")
+```
+
+Map files to splits explicitly:
+
+```py
+>>> dataset = load_dataset(
+...     "tsfile",
+...     data_files={"train": "train_data.tsfile", "test": "test_data.tsfile"},
+... )
+```
+
+## Example dataset on the Hub
+
+A ready-to-use example is available at [`tsfile/lotsa_data`](https://huggingface.co/datasets/tsfile/lotsa_data). Because `.tsfile` files are recognized automatically, you can load it by repository id without specifying `data_files`:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("tsfile/lotsa_data")
+>>> dataset
+DatasetDict({
+    train: Dataset({
+        features: ['timeseries_id', 'time', 'value'],
+        num_rows: 91
+    })
+})
+```
+
+Each row is one device. The TAG column `timeseries_id` identifies the device, while `time` and `value` are `list<...>` columns holding that device's full series:
+
+```py
+>>> row = dataset["train"][0]
+>>> row["timeseries_id"]
+'Bear_assembly_Angel'
+>>> len(row["time"]), len(row["value"])
+(8760, 8760)
+>>> row["time"][:3]
+[datetime.datetime(2017, 1, 1, 0, 0), datetime.datetime(2017, 1, 1, 1, 0), datetime.datetime(2017, 1, 1, 2, 0)]
+```
+
+## Selecting a table
+
+A TsFile can contain multiple tables. When `table_name` is omitted, the first table found in the first valid file is used. Lookups are case-insensitive.
+
+```py
+>>> dataset = load_dataset("tsfile", data_files="my_data.tsfile", table_name="sensor_data")
+```
+
+## Selecting columns
+
+`columns` restricts the FIELD columns that are read. The TAG columns and the `time` column are always returned because they identify the device and its timeline. Names in `columns` that refer to a TAG or to the `time` column are silently ignored (they are emitted as usual, just once); names that match a field absent from every file become all-null list columns.
+
+```py
+>>> dataset = load_dataset(
+...     "tsfile",
+...     data_files="my_data.tsfile",
+...     columns=["temperature", "humidity"],
+... )
+```
+
+## Filtering by time range
+
+`start_time` and `end_time` are inclusive bounds; either may be omitted. The bounds are pushed down to TsFile's internal time index, so only the matching data blocks are read from disk. Both bounds accept any of:
+
+- `int` — raw epoch in `timestamp_unit` (default milliseconds);
+- `datetime.datetime` — naive values are interpreted as UTC, tz-aware values are converted to UTC;
+- `datetime.date`;
+- ISO-8601 `str`, e.g. `"2024-01-01T00:00:00"`;
+- `pyarrow.TimestampScalar`.
+
+```py
+>>> from datetime import datetime
+>>> dataset = load_dataset(
+...     "tsfile",
+...     data_files="my_data.tsfile",
+...     start_time=datetime(2023, 11, 14),
+...     end_time="2023-11-15T00:00:00",
+... )
+```
+
+## Schema evolution across files
+
+When different files expose different columns — for example a new sensor field is introduced later — the loader takes the union of all FIELD columns and fills missing values with nulls. Numeric FIELD types are promoted following IoTDB's widening rules (`INT32 → INT64 → DOUBLE`, `INT32 → FLOAT → DOUBLE`).
+
+```py
+>>> dataset = load_dataset("tsfile", data_files=["day1.tsfile", "day2.tsfile"])
+```
+
+## Handling unreadable files
+
+By default, an unreadable or non-TsFile input raises an error. Set `on_bad_files` to `"warn"` to log and continue, or `"skip"` to silently drop the file.
+
+```py
+>>> dataset = load_dataset("tsfile", data_files="data/*.tsfile", on_bad_files="skip")
+```
+
+## Timestamp unit and time zone
+
+`timestamp_unit` (default `"ms"`, matching IoTDB) controls the resolution of the `time` column and the interpretation of integer time bounds. `timestamp_tz` attaches a time zone to the Arrow timestamp type; `None` (the default) yields a timezone-naive type.
+
+```py
+>>> dataset = load_dataset(
+...     "tsfile",
+...     data_files="my_data.tsfile",
+...     timestamp_unit="us",
+...     timestamp_tz="UTC",
+... )
+```
+
+## Memory and batching
+
+Two parameters control memory usage:
+
+- `input_batch_size` (default `65_536`) — maximum number of rows fetched per Arrow batch from `TsFileReader.query_table`. Bounds peak memory while streaming a single device.
+- `output_batch_size` (default `32`) — number of devices packed into each Arrow record batch yielded to the writer. Smaller values give more responsive progress reporting; larger values reduce per-batch overhead.
+
+```py
+>>> dataset = load_dataset(
+...     "tsfile",
+...     data_files="large_data.tsfile",
+...     input_batch_size=32_768,
+...     output_batch_size=128,
+... )
+```
+
+Peak memory is bounded by the payload of a single device across the split, not by the size of the split as a whole.
+
+See [`~datasets.packaged_modules.tsfile.TsFileConfig`] for the full list of parameters.

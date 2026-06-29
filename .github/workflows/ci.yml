@@ -121,6 +121,8 @@ jobs:
         run: pip install --upgrade uv
       - name: Install dependencies
         run: uv pip install --system "datasets[tests] @ ."
+      - name: Install tsfile (py3.14 only)
+        run: uv pip install --system "tsfile>=2.3.0"
       - name: Print dependencies
         run: uv pip list
       - name: Test with pytest

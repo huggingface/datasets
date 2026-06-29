@@ -1723,6 +1723,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             formatting=self.formatting,
             features=self.features,
             max_num_running_async_map_functions_in_parallel=self.max_num_running_async_map_functions_in_parallel,
+            is_batch_accumulate_arrow_table_function=self.is_batch_accumulate_arrow_table_function,
         )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "MappedExamplesIterable":
@@ -1740,6 +1741,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             formatting=self.formatting,
             features=self.features,
             max_num_running_async_map_functions_in_parallel=self.max_num_running_async_map_functions_in_parallel,
+            is_batch_accumulate_arrow_table_function=self.is_batch_accumulate_arrow_table_function,
         )
 
     def reshard_data_sources(self) -> "MappedExamplesIterable":
@@ -1756,6 +1758,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             formatting=self.formatting,
             features=self.features,
             max_num_running_async_map_functions_in_parallel=self.max_num_running_async_map_functions_in_parallel,
+            is_batch_accumulate_arrow_table_function=self.is_batch_accumulate_arrow_table_function,
         )
 
     @property
@@ -2041,7 +2044,7 @@ class SkipExamplesIterable(_BaseExamplesIterable):
                 skipped += len(pa_table)
                 if self._state_dict:
                     self._state_dict["skipped"] = skipped
-            if skipped + 1 <= self.n:
+            elif skipped + 1 <= self.n:
                 offset = self.n - skipped
                 skipped = self.n
                 if self._state_dict:

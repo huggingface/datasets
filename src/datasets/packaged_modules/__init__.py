@@ -22,6 +22,7 @@ from .parquet import parquet
 from .pdffolder import pdffolder
 from .sql import sql
 from .text import text
+from .tsfile import tsfile
 from .videofolder import videofolder
 from .webdataset import webdataset
 from .xml import xml
@@ -60,6 +61,7 @@ _PACKAGED_DATASETS_MODULES = {
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
     "eval": (eval.__name__, _hash_python_lines(inspect.getsource(eval).splitlines())),
     "lance": (lance.__name__, _hash_python_lines(inspect.getsource(lance).splitlines())),
+    "tsfile": (tsfile.__name__, _hash_python_lines(inspect.getsource(tsfile).splitlines())),
     "iceberg": (iceberg.__name__, _hash_python_lines(inspect.getsource(iceberg).splitlines())),
 }
 
@@ -96,6 +98,7 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".h5": ("hdf5", {}),
     ".eval": ("eval", {}),
     ".lance": ("lance", {}),
+    ".tsfile": ("tsfile", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
