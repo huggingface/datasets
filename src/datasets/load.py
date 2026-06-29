@@ -1679,6 +1679,12 @@ def load_dataset(
             "To parallelize streaming, you can wrap the dataset with a PyTorch DataLoader using `num_workers` > 1 instead."
         )
 
+    if not streaming and config_kwargs.get("skip_origin_metadata", False):
+        logger.warning(
+            "`skip_origin_metadata` is only supported when `streaming=True`. Forcing `skip_origin_metadata=False`."
+        )
+        config_kwargs["skip_origin_metadata"] = False
+
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     verification_mode = VerificationMode(
         (verification_mode or VerificationMode.BASIC_CHECKS) if not save_infos else VerificationMode.ALL_CHECKS
