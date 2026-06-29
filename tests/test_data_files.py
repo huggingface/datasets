@@ -682,6 +682,18 @@ def test_get_data_files_patterns(base_path, data_file_per_split):
         assert matched == expected
 
 
+@pytest.mark.parametrize("split_named_media_file", ["train.png", "valid.mp3", "test.mp4"])
+def test_get_data_files_patterns_ignores_split_named_media_files(split_named_media_file):
+    file_paths = [split_named_media_file, "metadata.csv", "sample.png"]
+    DummyTestFS = mock_fs(file_paths)
+    fs = DummyTestFS()
+
+    def resolver(pattern):
+        return [file_path.lstrip("/") for file_path in fs.glob(pattern) if fs.isfile(file_path)]
+
+    assert _get_data_files_patterns(resolver) == {"train": ["**"]}
+
+
 def test_get_data_patterns_from_directory_with_the_word_data_twice(tmp_path):
     repo_dir = tmp_path / "directory-name-ending-with-the-word-data"  # parent directory contains the word "data/"
     data_dir = repo_dir / "data"
