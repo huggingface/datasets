@@ -843,7 +843,7 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
 
 class HubBucketDatasetModuleFactory(_DatasetModuleFactory):
     """
-    Get the module of a dataset loaded from data files of a a Storage Bucket.
+    Get the module of a dataset loaded from data files of a Storage Bucket.
     The dataset builder module to use is inferred from the data files extensions.
     """
 
