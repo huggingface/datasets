@@ -2834,39 +2834,36 @@ def test_resume_dataloader(dataset: IterableDataset):
 
 
 @require_torchdata_stateful_dataloader
-def test_resume_dataloader_twice(dataset: IterableDataset):
-    # Regression test: a checkpoint taken from an already-resumed dataloader must itself
-    # resume correctly. Previously, once load_state_dict() had been called the dataset's
-    # state_dict froze at the initial position (the example-iterable rebound its _state_dict
-    # and detached from IterableDataset._state_dict["examples_iterable"]), so the second
-    # checkpoint restarted iteration from the beginning.
+@pytest.mark.parametrize("num_workers", [0, 1, 2])
+def test_resume_dataloader_twice(num_workers):
     from torchdata.stateful_dataloader import StatefulDataLoader
 
-    all_examples = list(StatefulDataLoader(dataset))
-    assert len(all_examples) >= 6
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"file{i}.txt" for i in range(4)]})
+    dataset = IterableDataset(ex_iterable)
 
-    # checkpoint #1 after consuming 2 examples
-    dl = StatefulDataLoader(dataset)
-    for i, _ in enumerate(dl):
-        if i == 1:
-            state_1 = dl.state_dict()
-            break
+    def make_dataloader():
+        return StatefulDataLoader(dataset, batch_size=None, num_workers=num_workers)
+
+    all_examples = list(make_dataloader())
+
+    # consume 2 examples, then checkpoint #1
+    dl = make_dataloader()
+    it = iter(dl)
+    consumed = [next(it) for _ in range(2)]
+    state_1 = dl.state_dict()
 
     # resume from #1, consume 2 more, then checkpoint #2 (taken from a resumed loader)
-    dl = StatefulDataLoader(dataset)
+    dl = make_dataloader()
     dl.load_state_dict(state_1)
-    resumed_after_1 = []
-    for i, x in enumerate(dl):
-        resumed_after_1.append(x)
-        if i == 1:
-            state_2 = dl.state_dict()
-            break
-    assert resumed_after_1 == all_examples[2:4]
+    it = iter(dl)
+    consumed += [next(it) for _ in range(2)]
+    state_2 = dl.state_dict()
 
-    # resume from #2: must continue from example 4, not restart from the beginning
-    dl = StatefulDataLoader(dataset)
+    # resuming from #2 must continue from where it left off, not restart from the beginning
+    dl = make_dataloader()
     dl.load_state_dict(state_2)
-    assert list(dl) == all_examples[4:]
+    remainder = list(dl)
+    assert consumed + remainder == all_examples
 
 
 @pytest.mark.parametrize("num_shards", [1, 2, 3, 7])
