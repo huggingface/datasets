@@ -279,6 +279,9 @@ class DatasetBuilder:
             It defines the number of samples that are kept in memory before writing them
             and also the length of the arrow chunks.
             None means that the ArrowWriter will use its default value.
+        skip_origin_metadata (`bool`, *optional*):
+            Whether to skip fetching origin metadata (ETag/mtime) for the data files.
+            It should only be true when streaming is true.
         **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the corresponding builder
             configuration class, set on the class attribute [`DatasetBuilder.BUILDER_CONFIG_CLASS`]. The builder
             configuration class is [`BuilderConfig`] or a subclass of it.
@@ -321,6 +324,7 @@ class DatasetBuilder:
         storage_options: Optional[dict] = None,
         writer_batch_size: Optional[int] = None,
         config_id: Optional[str] = None,
+        skip_origin_metadata: bool = False,
         **config_kwargs,
     ):
         # DatasetBuilder name
@@ -338,6 +342,7 @@ class DatasetBuilder:
                 sanitize_patterns(data_files),
                 base_path=base_path,
                 download_config=DownloadConfig(token=token, storage_options=self.storage_options),
+                skip_origin_metadata=skip_origin_metadata,
             )
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
