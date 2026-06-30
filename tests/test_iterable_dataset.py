@@ -2833,6 +2833,42 @@ def test_resume_dataloader(dataset: IterableDataset):
     assert remaining == list(dl)
 
 
+@require_torchdata_stateful_dataloader
+def test_resume_dataloader_twice(dataset: IterableDataset):
+    # Regression test: a checkpoint taken from an already-resumed dataloader must itself
+    # resume correctly. Previously, once load_state_dict() had been called the dataset's
+    # state_dict froze at the initial position (the example-iterable rebound its _state_dict
+    # and detached from IterableDataset._state_dict["examples_iterable"]), so the second
+    # checkpoint restarted iteration from the beginning.
+    from torchdata.stateful_dataloader import StatefulDataLoader
+
+    all_examples = list(StatefulDataLoader(dataset))
+    assert len(all_examples) >= 6
+
+    # checkpoint #1 after consuming 2 examples
+    dl = StatefulDataLoader(dataset)
+    for i, _ in enumerate(dl):
+        if i == 1:
+            state_1 = dl.state_dict()
+            break
+
+    # resume from #1, consume 2 more, then checkpoint #2 (taken from a resumed loader)
+    dl = StatefulDataLoader(dataset)
+    dl.load_state_dict(state_1)
+    resumed_after_1 = []
+    for i, x in enumerate(dl):
+        resumed_after_1.append(x)
+        if i == 1:
+            state_2 = dl.state_dict()
+            break
+    assert resumed_after_1 == all_examples[2:4]
+
+    # resume from #2: must continue from example 4, not restart from the beginning
+    dl = StatefulDataLoader(dataset)
+    dl.load_state_dict(state_2)
+    assert list(dl) == all_examples[4:]
+
+
 @pytest.mark.parametrize("num_shards", [1, 2, 3, 7])
 def test_iterable_dataset_batch(num_shards: int):
     # Create a simple IterableDataset
