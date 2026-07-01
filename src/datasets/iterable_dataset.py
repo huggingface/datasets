@@ -4032,7 +4032,15 @@ class IterableDataset(DatasetInfoMixin):
         Returns:
             `IterableDataset`
         """
-        return self.map(partial(add_column_fn, name=name, column=column), with_indices=True)
+        # GH#5752: Infer feature type for the new column and merge with existing
+        # features so that the returned dataset's .features are preserved.
+        column_features = _infer_features_from_batch({name: list(column) if not isinstance(column, list) else column})
+        if self.features is not None:
+            features = self.features.copy()
+            features.update(column_features)
+        else:
+            features = column_features
+        return self.map(partial(add_column_fn, name=name, column=column), with_indices=True, features=features)
 
     def rename_column(self, original_column_name: str, new_column_name: str) -> "IterableDataset":
         """

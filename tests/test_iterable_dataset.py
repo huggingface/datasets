@@ -2327,6 +2327,20 @@ def test_iterable_dataset_add_column(dataset_with_several_columns: IterableDatas
     assert "new_column" in new_dataset.column_names
 
 
+def test_iterable_dataset_add_column_preserves_features(dataset_with_several_columns: IterableDataset):
+    # GH#5752 - .features was lost (became None) after .add_column
+    ds_with_features = dataset_with_several_columns._resolve_features()
+    assert ds_with_features.features is not None
+    original_feature_names = set(ds_with_features.features)
+
+    new_column = ["x"] * (3 * DEFAULT_N_EXAMPLES)
+    new_dataset = ds_with_features.add_column("new_column", new_column)
+
+    assert new_dataset.features is not None, ".features should be preserved after add_column"
+    assert "new_column" in new_dataset.features, "new_column should appear in features"
+    assert original_feature_names.issubset(new_dataset.features), "original features should be preserved"
+
+
 def test_iterable_dataset_rename_column(dataset_with_several_columns: IterableDataset):
     new_dataset = dataset_with_several_columns.rename_column("id", "new_id")
     assert list(new_dataset) == [
