@@ -7,7 +7,6 @@ import tempfile
 import unittest
 from contextlib import contextmanager
 from copy import deepcopy
-from distutils.util import strtobool
 from enum import Enum
 from importlib.util import find_spec
 from pathlib import Path
@@ -20,6 +19,24 @@ import requests
 from packaging import version
 
 from datasets import config
+
+
+def strtobool(value: str) -> int:
+    """Convert a string representation of truth to 1 (true) or 0 (false).
+
+    True values are ``y``, ``yes``, ``t``, ``true``, ``on`` and ``1``; false values are
+    ``n``, ``no``, ``f``, ``false``, ``off`` and ``0``. Raises :class:`ValueError` if
+    ``value`` is anything else.
+
+    This mirrors the behaviour of the now-removed ``distutils.util.strtobool``
+    (``distutils`` was dropped from the standard library in Python 3.12, see PEP 632).
+    """
+    value = value.lower()
+    if value in {"y", "yes", "t", "true", "on", "1"}:
+        return 1
+    if value in {"n", "no", "f", "false", "off", "0"}:
+        return 0
+    raise ValueError(f"invalid truth value {value!r}")
 
 
 def parse_flag_from_env(key, default=False):
