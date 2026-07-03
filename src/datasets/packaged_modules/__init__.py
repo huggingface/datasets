@@ -90,6 +90,7 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".ffn": ("fasta", {}),  # FASTA nucleotide of gene regions
     ".faa": ("fasta", {}),  # FASTA amino acid
     ".frn": ("fasta", {}),  # FASTA non-coding RNA
+    ".afa": ("fasta", {}),  # aligned FASTA (multiple sequence alignment)
     ".json": ("json", {}),
     ".jsonl": ("json", {}),
     # ndjson is no longer maintained (see: https://github.com/ndjson/ndjson-spec/issues/35#issuecomment-1285673417)
