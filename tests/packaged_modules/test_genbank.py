@@ -4,6 +4,7 @@ import bz2
 import gzip
 import json
 import lzma
+import os
 import textwrap
 
 import pyarrow as pa
@@ -12,7 +13,22 @@ import pytest
 from datasets import Features, Value
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
+from datasets.download.streaming_download_manager import _get_extraction_protocol
 from datasets.packaged_modules.genbank.genbank import GenBank, GenBankConfig
+
+
+def _compression_uri(path):
+    """Build the chained fsspec URI datasets uses to read a single compressed file.
+
+    The builder opens files with the streaming-patched ``open()`` (``xopen``), which
+    handles compression via ``<protocol>://<inner>::<outer>`` URIs rather than by
+    sniffing magic bytes. The protocol is derived from datasets' own extraction logic
+    so the test tracks the loader's real behavior. ``inner`` is the decompressed name.
+    """
+    path = str(path)
+    protocol = _get_extraction_protocol(path)
+    inner = os.path.basename(path).rsplit(".", 1)[0]
+    return f"{protocol}://{inner}::{path}"
 
 
 @pytest.fixture
@@ -118,7 +134,7 @@ def genbank_file_gzipped(tmp_path):
     )
     with gzip.open(filename, "wt", encoding="utf-8") as f:
         f.write(data)
-    return str(filename)
+    return _compression_uri(filename)
 
 
 @pytest.fixture
@@ -145,7 +161,7 @@ def genbank_file_bz2(tmp_path):
     )
     with bz2.open(filename, "wt", encoding="utf-8") as f:
         f.write(data)
-    return str(filename)
+    return _compression_uri(filename)
 
 
 @pytest.fixture
@@ -172,7 +188,7 @@ def genbank_file_xz(tmp_path):
     )
     with lzma.open(filename, "wt", encoding="utf-8") as f:
         f.write(data)
-    return str(filename)
+    return _compression_uri(filename)
 
 
 @pytest.fixture
