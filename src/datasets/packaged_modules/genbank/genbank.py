@@ -7,11 +7,8 @@ This implementation uses a lightweight pure Python state machine parser,
 requiring zero external dependencies.
 """
 
-import bz2
-import gzip
 import itertools
 import json
-import lzma
 import re
 from dataclasses import dataclass
 from typing import Optional
@@ -182,23 +179,6 @@ class GenBank(datasets.ArrowBasedBuilder):
         if all(not require_storage_cast(feature) for feature in features.values()):
             return pa_table.cast(features.arrow_schema)
         return table_cast(pa_table, features.arrow_schema)
-
-    def _open_file(self, filepath: str):
-        """Open file with automatic compression detection based on magic bytes.
-
-        Supports gzip, bzip2, and xz/lzma compression formats.
-        """
-        with open(filepath, "rb") as f:
-            magic = f.read(6)
-
-        if magic[:2] == b"\x1f\x8b":  # gzip magic number
-            return gzip.open(filepath, "rt", encoding="utf-8")
-        elif magic[:3] == b"BZh":  # bzip2 magic number
-            return bz2.open(filepath, "rt", encoding="utf-8")
-        elif magic[:6] == b"\xfd7zXZ\x00":  # xz magic number
-            return lzma.open(filepath, "rt", encoding="utf-8")
-        else:
-            return open(filepath, "r", encoding="utf-8")
 
     def _parse_feature_location(self, location_str: str) -> dict:
         """Parse a GenBank feature location string into a structured dict.
@@ -465,7 +445,7 @@ class GenBank(datasets.ArrowBasedBuilder):
             batch = {col: [] for col in columns}
             batch_bytes = 0
 
-            with self._open_file(file) as fp:
+            with open(file, encoding="utf-8") as fp:
                 for record in self._parse_genbank(fp):
                     # Update length from actual sequence if not set
                     if record["length"] == 0 and record["sequence"]:
