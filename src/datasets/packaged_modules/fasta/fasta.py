@@ -59,7 +59,7 @@ class Fasta(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = FastaConfig
 
     # All supported FASTA extensions
-    EXTENSIONS: list[str] = [".fa", ".fasta", ".fna", ".ffn", ".faa", ".frn"]
+    EXTENSIONS: list[str] = [".fa", ".fasta", ".fna", ".ffn", ".faa", ".frn", ".afa"]
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)

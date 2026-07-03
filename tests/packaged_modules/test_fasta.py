@@ -144,6 +144,25 @@ def test_fasta_fa_extension(fasta_file_fa):
     assert pa_table.num_rows == 3
 
 
+def test_fasta_afa_extension(tmp_path):
+    """Test that .afa (aligned FASTA) files are recognized and loaded."""
+    from datasets.packaged_modules import _EXTENSION_TO_MODULE
+
+    # .afa routes to the FASTA builder in auto-detection and is a supported extension
+    assert _EXTENSION_TO_MODULE.get(".afa") == ("fasta", {})
+    assert ".afa" in Fasta.EXTENSIONS
+
+    filename = tmp_path / "alignment.afa"
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(FASTA_CONTENT)
+
+    fasta = Fasta()
+    tables = list(fasta._generate_tables([[str(filename)]]))
+    assert len(tables) == 1
+    _, pa_table = tables[0]
+    assert pa_table.num_rows == 3
+
+
 def test_fasta_gzip_compression(fasta_gz_file):
     """Test loading gzipped FASTA files."""
     fasta = Fasta()
