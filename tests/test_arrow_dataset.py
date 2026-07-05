@@ -5100,6 +5100,27 @@ def test_add_column():
     assert ds[1] == {"a": 2, "b": 4}
 
 
+def test_add_column_feature_argument():
+    # https://github.com/huggingface/datasets/issues/7864
+    # `feature` is the documented third argument of add_column, so passing it
+    # positionally must work (previously this raised TypeError because
+    # `new_fingerprint` sat before `feature` in the signature).
+    from datasets import Dataset
+
+    ds = Dataset.from_dict({"a": [1, 2]})
+
+    ds_positional = ds.add_column("b", [3, 4], Value("int32"))
+    assert ds_positional.features["b"] == Value("int32")
+    assert ds_positional[0] == {"a": 1, "b": 3}
+
+    ds_keyword = ds.add_column("b", [3, 4], feature=Value("int32"))
+    assert ds_keyword.features["b"] == Value("int32")
+
+    # `new_fingerprint` keyword still works and is honored.
+    ds_fingerprint = ds.add_column("b", [3, 4], new_fingerprint="fixed_fingerprint")
+    assert ds_fingerprint._fingerprint == "fixed_fingerprint"
+
+
 def test_process_large_few_examples(tmp_path):
     # GH 7911
     from datasets import Dataset
