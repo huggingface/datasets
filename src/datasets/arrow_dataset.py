@@ -2655,6 +2655,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if empty_new_columns:
             raise ValueError(f"New column names {empty_new_columns} are empty.")
 
+        colliding_new_columns = set(column_mapping.values()) & (
+            set(dataset.column_names) - set(column_mapping.keys())
+        )
+        if colliding_new_columns:
+            raise ValueError(
+                f"New column names {colliding_new_columns} already in the dataset. "
+                f"Please choose column names which are not already in the dataset. "
+                f"Current columns in the dataset: {dataset._data.column_names}"
+            )
+
         def rename(columns):
             return [column_mapping[col] if col in column_mapping else col for col in columns]
 
