@@ -1332,7 +1332,6 @@ def load_dataset_builder(
         download_config.storage_options.update(storage_options)
     if features is not None:
         features = _fix_for_backward_compatible_features(features)
-    skip_origin_metadata = config_kwargs.pop("skip_origin_metadata", False)
     dataset_module = dataset_module_factory(
         path,
         revision=revision,
@@ -1341,7 +1340,7 @@ def load_dataset_builder(
         data_dir=data_dir,
         data_files=data_files,
         cache_dir=cache_dir,
-        skip_origin_metadata=skip_origin_metadata,
+        skip_origin_metadata=config_kwargs.get("skip_origin_metadata", False),
     )
     # Get dataset builder class
     builder_kwargs = dataset_module.builder_kwargs
@@ -1383,7 +1382,7 @@ def load_dataset_builder(
         features=features,
         token=token,
         storage_options=storage_options,
-        skip_origin_metadata=skip_origin_metadata,
+        skip_origin_metadata=config_kwargs.pop("skip_origin_metadata", False),
         **builder_kwargs,
         **config_kwargs,
     )

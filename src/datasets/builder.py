@@ -779,7 +779,7 @@ class DatasetBuilder:
         >>> builder.download_and_prepare("s3://my-bucket/my_rotten_tomatoes", storage_options=storage_options, file_format="parquet")
         ```
         """
-        if getattr(self, "_skip_origin_metadata", False):
+        if self._skip_origin_metadata:
             raise ValueError("This function is not intended for streaming.")
 
         output_dir = output_dir if output_dir is not None else self._cache_dir

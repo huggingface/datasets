@@ -1125,6 +1125,13 @@ def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_da
     assert next(iter(ds)) is not None
 
 
+def test_load_dataset_builder_skip_origin_metadata(csv_path):
+    builder = load_dataset_builder("csv", data_files={"train": csv_path}, skip_origin_metadata=True)
+    assert builder._skip_origin_metadata is True
+    with pytest.raises(ValueError, match="This function is not intended for streaming."):
+        builder.download_and_prepare()
+
+
 def test_load_dataset_skip_origin_metadata_warning(caplog, csv_path):
     load_dataset("csv", data_files={"train": csv_path}, skip_origin_metadata=True)
     assert "`skip_origin_metadata` is only supported when `streaming=True`" in caplog.text
