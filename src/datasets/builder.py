@@ -200,10 +200,17 @@ class BuilderConfig:
         else:
             return self.name
 
-    def _resolve_data_files(self, base_path: str, download_config: DownloadConfig) -> None:
+    def _resolve_data_files(
+        self,
+        base_path: str,
+        download_config: DownloadConfig,
+        skip_origin_metadata: bool = False,
+    ) -> None:
         if isinstance(self.data_files, DataFilesPatternsDict):
             base_path = xjoin(base_path, self.data_dir) if self.data_dir else base_path
-            self.data_files = self.data_files.resolve(base_path, download_config)
+            self.data_files = self.data_files.resolve(
+                base_path, download_config, skip_origin_metadata=skip_origin_metadata
+            )
 
 
 class DatasetBuilder:
@@ -328,6 +335,7 @@ class DatasetBuilder:
         self.storage_options = storage_options or {}
         self.dataset_name = camelcase_to_snakecase(dataset_name) if dataset_name else self.name
         self._writer_batch_size = writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
+        self._skip_origin_metadata = skip_origin_metadata
 
         if data_files is not None and not isinstance(data_files, DataFilesDict):
             data_files = DataFilesDict.from_patterns(
@@ -563,6 +571,7 @@ class DatasetBuilder:
         builder_config._resolve_data_files(
             base_path=self.base_path,
             download_config=DownloadConfig(token=self.token, storage_options=self.storage_options),
+            skip_origin_metadata=self._skip_origin_metadata,
         )
 
         # compute the config id that is going to be used for caching
@@ -770,6 +779,9 @@ class DatasetBuilder:
         >>> builder.download_and_prepare("s3://my-bucket/my_rotten_tomatoes", storage_options=storage_options, file_format="parquet")
         ```
         """
+        if getattr(self, "_skip_origin_metadata", False):
+            raise ValueError("This function is not intended for streaming.")
+
         output_dir = output_dir if output_dir is not None else self._cache_dir
         # output_dir can be a remote bucket on GCS or S3
         fs, output_dir = url_to_fs(output_dir, **(storage_options or {}))
