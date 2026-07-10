@@ -280,6 +280,17 @@ class TestJsonDatasetWriter:
         else:
             assert len(exported_content) == 10
 
+    @pytest.mark.parametrize("orient", ["records", "values"])
+    def test_dataset_to_json_lines_false_batched(self, orient, dataset):
+        """lines=False with batch_size < num_rows should produce a single valid JSON array (issue #7037)."""
+        # Use batch_size=3 so the 10-row dataset spans multiple batches
+        with io.BytesIO() as buffer:
+            JsonDatasetWriter(dataset, buffer, lines=False, orient=orient, batch_size=3).write()
+            buffer.seek(0)
+            exported_content = load_json(buffer)
+        assert isinstance(exported_content, list)
+        assert len(exported_content) == 10
+
     def test_dataset_to_json_orient_invalidproc(self, dataset):
         with pytest.raises(ValueError):
             with io.BytesIO() as buffer:
