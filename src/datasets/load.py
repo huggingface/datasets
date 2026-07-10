@@ -1383,6 +1383,7 @@ def load_dataset_builder(
         features=features,
         token=token,
         storage_options=storage_options,
+        skip_origin_metadata=skip_origin_metadata,
         **builder_kwargs,
         **config_kwargs,
     )
