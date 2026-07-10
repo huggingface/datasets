@@ -7222,45 +7222,56 @@ def _interleave_map_style_datasets(
         # since we consume the RNG in the exact same 1000-sized `choice` blocks.
         lengths_arr = np.asarray(lengths, dtype=np.int64)
         n_datasets = len(lengths)
-        rng = np.random.default_rng(seed)
 
-        # Draw source indices in 1000-sized blocks (matching the original
-        # iter_random_indices) until the stopping condition can be evaluated,
-        # i.e. until enough sources have reached their length.
-        blocks = []
-        counts = np.zeros(n_datasets, dtype=np.int64)
-        reached = np.zeros(n_datasets, dtype=bool)
-        while not (reached.any() if not oversampling else reached.all()):
-            block = rng.choice(n_datasets, size=1000, p=probabilities)
-            blocks.append(block)
-            counts += np.bincount(block, minlength=n_datasets)
-            reached = counts >= lengths_arr
-        draws = np.concatenate(blocks)
+        # Empty sources: a length-0 dataset can never be sampled to its length,
+        # so the stopping condition is ill-defined. The previous implementation
+        # crashed here with a cryptic `IndexError: Index N out of range` (it
+        # sampled the empty source and indexed into it). Raise a clear error
+        # instead -- for both strategies, since an empty source is degenerate
+        # either way and silently dropping it would change results.
+        if np.any(lengths_arr == 0):
+            empty = [i for i, ln in enumerate(lengths) if ln == 0]
+            raise ValueError(
+                "interleave_datasets with probabilities requires every dataset "
+                f"to be non-empty; datasets at indices {empty} are empty."
+            )
+        else:
+            rng = np.random.default_rng(seed)
 
-        # For each source, the draw-position of its `length`-th occurrence (when
-        # it becomes exhausted). The original loop checks the stop condition
-        # BEFORE appending, so the last kept draw is at:
-        #   - first_exhausted: the earliest such position (min over sources that
-        #     reached length) minus... no: stop fires as soon as ANY source is
-        #     exhausted, which happens right AFTER that source's length-th draw.
-        #     So we keep draws up to and including that length-th occurrence.
-        #   - all_exhausted: the latest such position (max), inclusive.
-        exhaust_pos = np.full(n_datasets, -1, dtype=np.int64)
-        for s in range(n_datasets):
-            occ = np.flatnonzero(draws == s)
-            if len(occ) >= lengths[s]:
-                exhaust_pos[s] = occ[lengths[s] - 1]
-        valid_pos = exhaust_pos[exhaust_pos >= 0]
-        stop_at = valid_pos.min() if not oversampling else valid_pos.max()
-        used = draws[: stop_at + 1]
+            # Draw source indices in 1000-sized blocks (matching the original
+            # iter_random_indices) until the stopping condition can be evaluated,
+            # i.e. until enough sources have reached their length.
+            blocks = []
+            counts = np.zeros(n_datasets, dtype=np.int64)
+            reached = np.zeros(n_datasets, dtype=bool)
+            while not (reached.any() if not oversampling else reached.all()):
+                block = rng.choice(n_datasets, size=1000, p=probabilities)
+                blocks.append(block)
+                counts += np.bincount(block, minlength=n_datasets)
+                reached = counts >= lengths_arr
+            draws = np.concatenate(blocks)
 
-        # Map each source's k-th appearance to its k-th index with wrap-around:
-        # concatenated row = (k % length) + offset.
-        indices_arr = np.empty(len(used), dtype=np.int64)
-        for s in range(n_datasets):
-            pos = np.flatnonzero(used == s)
-            indices_arr[pos] = (np.arange(len(pos)) % lengths[s]) + offsets[s]
-        indices = indices_arr.tolist()
+            # A source becomes exhausted right AFTER its `length`-th draw, and
+            # the original loop checks the stop condition BEFORE appending. So
+            # the last draw we keep (inclusive) is at that length-th occurrence:
+            #   - first_exhausted (any): the earliest such position over sources
+            #   - all_exhausted (all):   the latest such position over sources
+            exhaust_pos = np.full(n_datasets, -1, dtype=np.int64)
+            for s in range(n_datasets):
+                occ = np.flatnonzero(draws == s)
+                if len(occ) >= lengths[s]:
+                    exhaust_pos[s] = occ[lengths[s] - 1]
+            valid_pos = exhaust_pos[exhaust_pos >= 0]
+            stop_at = valid_pos.min() if not oversampling else valid_pos.max()
+            used = draws[: stop_at + 1]
+
+            # Map each source's k-th appearance to its k-th index with
+            # wrap-around: concatenated row = (k % length) + offset.
+            indices_arr = np.empty(len(used), dtype=np.int64)
+            for s in range(n_datasets):
+                pos = np.flatnonzero(used == s)
+                indices_arr[pos] = (np.arange(len(pos)) % lengths[s]) + offsets[s]
+            indices = indices_arr.tolist()
 
     else:
         # all_exhausted_without_replacement: each sample appears exactly once, so

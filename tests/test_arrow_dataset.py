@@ -3836,6 +3836,20 @@ def test_interleave_datasets_probabilities_is_deterministic_and_balanced(stoppin
     assert src["d1"] > src["d3"]
 
 
+@pytest.mark.parametrize("stopping_strategy", ["first_exhausted", "all_exhausted"])
+def test_interleave_datasets_probabilities_empty_source(stopping_strategy):
+    # A length-0 source can never be sampled to its length; the stop condition
+    # is ill-defined. Previously this crashed with a cryptic IndexError -- now
+    # it raises a clear ValueError for both strategies.
+    d_full = Dataset.from_dict({"a": [0, 1, 2]})
+    d_empty = Dataset.from_dict({"a": []})
+    with pytest.raises(ValueError):
+        interleave_datasets(
+            [d_full, d_empty], probabilities=[0.5, 0.5], seed=42,
+            stopping_strategy=stopping_strategy,
+        )
+
+
 @pytest.mark.parametrize("batch_size", [4, 5])
 @pytest.mark.parametrize("drop_last_batch", [False, True])
 def test_dataset_iter_batch(batch_size, drop_last_batch):
