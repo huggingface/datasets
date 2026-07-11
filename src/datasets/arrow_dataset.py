@@ -1290,7 +1290,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_csv(
-        path_or_paths: Union[PathLike, Sequence_[PathLike]],
+        path_or_paths: Union[PathLike, ListLike[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1303,7 +1303,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Read the CSV files, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
-            path_or_paths (`path-like` or list of `path-like`):
+            path_or_paths (`path-like` or `Sequence` of `path-like`):
                 Path(s) of the CSV file(s).
             split ([`NamedSplit`], *optional*):
                 Split name to be assigned to the dataset.
@@ -1430,7 +1430,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_json(
-        path_or_paths: Union[PathLike, Sequence_[PathLike]],
+        path_or_paths: Union[PathLike, ListLike[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1444,7 +1444,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Read the JSON files, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
-            path_or_paths (`path-like` or list of `path-like`):
+            path_or_paths (`path-like` or `Sequence` of `path-like`):
                 Path(s) of the JSON or JSON Lines file(s).
             split ([`NamedSplit`], *optional*):
                 Split name to be assigned to the dataset.
@@ -1489,7 +1489,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_parquet(
-        path_or_paths: Union[PathLike, Sequence_[PathLike]],
+        path_or_paths: Union[PathLike, ListLike[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1506,7 +1506,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Read the Parquet files, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
-            path_or_paths (`path-like` or list of `path-like`):
+            path_or_paths (`path-like` or `Sequence` of `path-like`):
                 Path(s) of the Parquet file(s).
             split (`NamedSplit`, *optional*):
                 Split name to be assigned to the dataset.
@@ -1586,7 +1586,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_text(
-        path_or_paths: Union[PathLike, Sequence_[PathLike]],
+        path_or_paths: Union[PathLike, ListLike[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1601,7 +1601,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Read the text files, cache the data in Arrow format on disk and return the Dataset from the memory-mapped Arrow data on disk.
 
         Args:
-            path_or_paths (`path-like` or list of `path-like`):
+            path_or_paths (`path-like` or `Sequence` of `path-like`):
                 Path(s) of the text file(s).
             split (`NamedSplit`, *optional*):
                 Split name to be assigned to the dataset.
