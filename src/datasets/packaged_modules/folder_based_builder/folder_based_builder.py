@@ -402,7 +402,41 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     elif len(feature_path) == 0:
                         if item is not None:
                             file_relpath = os.path.normpath(item).replace("\\", "/")
+                            # Guard against path traversal (CWE-22): a crafted `file_name` such as
+                            # "../../etc/passwd" or an absolute path must not be able to escape the
+                            # metadata file's directory and read arbitrary files on the host. The
+                            # check is performed on the relative reference (not the joined result)
+                            # so that it works both for local directories and for the fsspec URLs
+                            # (e.g. "zip://...::...") used when reading from downloaded archives.
+                            if (
+                                os.path.isabs(item)
+                                or os.path.isabs(file_relpath)
+                                or file_relpath == ".."
+                                or file_relpath.startswith("../")
+                            ):
+                                raise ValueError(
+                                    f"Invalid metadata file_name '{item}': `file_name` must be a relative path "
+                                    f"pointing inside the directory containing the metadata file. Absolute paths "
+                                    f"and parent-directory ('..') traversal that escape the dataset directory are "
+                                    f"not allowed."
+                                )
                             item = os.path.join(downloaded_metadata_dir, file_relpath)
+                            # For local paths, additionally resolve symlinks and confirm containment.
+                            # Skipped for fsspec URLs (which contain "://") since realpath is not
+                            # aware of them and would corrupt the URL.
+                            if "://" not in item:
+                                real_root = os.path.realpath(downloaded_metadata_dir)
+                                real_path = os.path.realpath(item)
+                                try:
+                                    is_contained = os.path.commonpath([real_root, real_path]) == real_root
+                                except ValueError:
+                                    # commonpath raises ValueError for paths on different drives (Windows)
+                                    is_contained = False
+                                if not is_contained:
+                                    raise ValueError(
+                                        f"Invalid metadata file_name '{item}': the resolved path escapes the "
+                                        f"dataset directory containing the metadata file."
+                                    )
                     return item
 
                 for pa_metadata_table in self._read_metadata(downloaded_metadata_file, metadata_ext=metadata_ext):

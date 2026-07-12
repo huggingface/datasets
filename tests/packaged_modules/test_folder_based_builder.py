@@ -1,4 +1,6 @@
 import importlib
+import json
+import os
 import shutil
 import textwrap
 
@@ -447,6 +449,88 @@ def test_data_files_with_wrong_metadata_file_name(cache_dir, tmp_path, auto_text
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     generator = autofolder._generate_examples(**gen_kwargs)
     assert all("additional_feature" not in example for _, example in generator)
+
+
+@pytest.mark.parametrize(
+    "malicious_file_name",
+    [
+        "../outside/secret.txt",  # relative traversal
+        "../../outside/secret.txt",  # deeper relative traversal
+        "subdir/../../outside/secret.txt",  # traversal hidden after a valid segment
+    ],
+)
+def test_data_files_with_metadata_path_traversal_is_rejected(cache_dir, tmp_path, auto_text_file, malicious_file_name):
+    # Regression test for https://github.com/huggingface/datasets/issues/8324
+    # A crafted `file_name` must not be able to escape the metadata file's directory.
+    secret_dir = tmp_path / "outside"
+    secret_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(auto_text_file, secret_dir / "secret.txt")
+
+    data_dir = tmp_path / "data_dir_with_traversal_metadata"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(auto_text_file, data_dir / "file.txt")
+    metadata_filename = data_dir / "metadata.jsonl"
+    metadata = f'{{"file_name": {json.dumps(malicious_file_name)}, "additional_feature": "Malicious file"}}\n'
+    with open(metadata_filename, "w", encoding="utf-8") as f:
+        f.write(metadata)
+
+    data_files = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
+    autofolder = DummyFolderBasedBuilder(data_files=data_files, cache_dir=cache_dir)
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    with pytest.raises(ValueError, match="Invalid metadata file_name"):
+        list(autofolder._generate_examples(**gen_kwargs))
+
+
+def test_data_files_with_metadata_absolute_path_is_rejected(cache_dir, tmp_path, auto_text_file):
+    # Regression test for https://github.com/huggingface/datasets/issues/8324
+    # An absolute `file_name` must not be able to read files outside the dataset directory.
+    secret_dir = tmp_path / "outside"
+    secret_dir.mkdir(parents=True, exist_ok=True)
+    secret_file = secret_dir / "secret.txt"
+    shutil.copyfile(auto_text_file, secret_file)
+
+    data_dir = tmp_path / "data_dir_with_absolute_metadata"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(auto_text_file, data_dir / "file.txt")
+    metadata_filename = data_dir / "metadata.jsonl"
+    metadata = f'{{"file_name": {json.dumps(str(secret_file))}, "additional_feature": "Malicious file"}}\n'
+    with open(metadata_filename, "w", encoding="utf-8") as f:
+        f.write(metadata)
+
+    data_files = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
+    autofolder = DummyFolderBasedBuilder(data_files=data_files, cache_dir=cache_dir)
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    with pytest.raises(ValueError, match="Invalid metadata file_name"):
+        list(autofolder._generate_examples(**gen_kwargs))
+
+
+def test_data_files_with_metadata_legitimate_subdir_reference(cache_dir, tmp_path, auto_text_file):
+    # A legitimate `file_name` pointing to a file in a subdirectory of the metadata
+    # file's directory must keep working after the path traversal fix (#8324).
+    data_dir = tmp_path / "data_dir_with_subdir_metadata"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    subdir = data_dir / "subdir"
+    subdir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(auto_text_file, data_dir / "file.txt")
+    shutil.copyfile(auto_text_file, subdir / "file2.txt")
+    metadata_filename = data_dir / "metadata.jsonl"
+    metadata = textwrap.dedent(
+        """\
+        {"file_name": "file.txt", "additional_feature": "Same-dir file"}
+        {"file_name": "subdir/file2.txt", "additional_feature": "Subdir file"}
+        {"file_name": "./subdir/file2.txt", "additional_feature": "Subdir file with dot prefix"}
+        """
+    )
+    with open(metadata_filename, "w", encoding="utf-8") as f:
+        f.write(metadata)
+
+    data_files = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
+    autofolder = DummyFolderBasedBuilder(data_files=data_files, cache_dir=cache_dir)
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    examples = [example for _, example in autofolder._generate_examples(**gen_kwargs)]
+    assert len(examples) == 3
+    assert all(example["base"] is not None for example in examples)
+    assert all(os.path.isfile(example["base"]) for example in examples)
 
 
 def test_data_files_with_custom_file_name_column_in_metadata_file(cache_dir, tmp_path, auto_text_file):
