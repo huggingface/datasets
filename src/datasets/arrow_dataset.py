@@ -5399,17 +5399,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds.to_dict()
         ```
         """
-        result = query_table(
-            table=self._data,
-            key=slice(0, len(self)),
-            indices=self._indices,
-        ).to_pydict()
         from .utils.json import get_json_field_paths_from_feature, json_decode_field
 
-        for json_field_path in get_json_field_paths_from_feature(self.features):
-            col, *json_field_subpath = json_field_path
-            result[col] = [json_decode_field(row, json_field_subpath) for row in result[col]]
-        return result
+        json_field_paths = get_json_field_paths_from_feature(self.features)
+
+        def query_to_dict(key: slice) -> dict:
+            result = query_table(
+                table=self._data,
+                key=key,
+                indices=self._indices,
+            ).to_pydict()
+            for json_field_path in json_field_paths:
+                col, *json_field_subpath = json_field_path
+                result[col] = [json_decode_field(row, json_field_subpath) for row in result[col]]
+            return result
+
+        if not batched:
+            return query_to_dict(slice(0, len(self)))
+        else:
+            batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+            return (
+                query_to_dict(slice(offset, offset + batch_size)) for offset in range(0, len(self), batch_size)
+            )
 
     def to_list(self) -> list:
         """Returns the dataset as a Python list.
