@@ -249,7 +249,7 @@ class TensorflowDatasetMixin:
         dataset: "Dataset",
         collate_fn: Callable,
         collate_fn_args: dict,
-        cols_to_retain: Optional[list[str]] = None,
+        cols_to_retain: Optional[Sequence_[str]] = None,
         batch_size: Optional[int] = None,
         num_test_batches: int = 20,
     ):
@@ -345,12 +345,12 @@ class TensorflowDatasetMixin:
     def to_tf_dataset(
         self,
         batch_size: Optional[int] = None,
-        columns: Optional[Union[str, list[str]]] = None,
+        columns: Optional[Union[str, Sequence_[str]]] = None,
         shuffle: bool = False,
         collate_fn: Optional[Callable] = None,
         drop_remainder: bool = False,
         collate_fn_args: Optional[dict[str, Any]] = None,
-        label_cols: Optional[Union[str, list[str]]] = None,
+        label_cols: Optional[Union[str, Sequence_[str]]] = None,
         prefetch: bool = True,
         num_workers: int = 0,
         num_test_batches: int = 20,
@@ -625,7 +625,7 @@ def _check_table(table) -> Table:
         raise TypeError(f"Expected a pyarrow.Table or a datasets.table.Table object, but got {table}.")
 
 
-def _check_column_names(column_names: list[str]):
+def _check_column_names(column_names: Sequence_[str]):
     """Check the column names to make sure they don't contain duplicates."""
     counter = Counter(column_names)
     if not all(count == 1 for count in counter.values()):
@@ -684,7 +684,7 @@ class Column(Sequence_):
         for example in source:
             yield example[self.column_name]
 
-    def __getitem__(self, key: Union[int, str, list[int]]) -> Any:
+    def __getitem__(self, key: Union[int, str, Sequence_[int]]) -> Any:
         if isinstance(key, str):
             return Column(self, key)
         elif isinstance(self.source, Dataset):
@@ -1157,7 +1157,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @classmethod
     def from_list(
         cls,
-        mapping: list[dict],
+        mapping: Sequence_[dict],
         features: Optional[Features] = None,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
@@ -1290,7 +1290,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_csv(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence_[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1430,7 +1430,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_json(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence_[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1489,14 +1489,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_parquet(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence_[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
-        columns: Optional[list[str]] = None,
+        columns: Optional[Sequence_[str]] = None,
         num_proc: Optional[int] = None,
-        filters: Optional[Union[pds.Expression, list[tuple], list[list[tuple]]]] = None,
+        filters: Optional[Union[pds.Expression, Sequence_[tuple], Sequence_[Sequence_[tuple]]]] = None,
         fragment_scan_options: Optional[pds.ParquetFragmentScanOptions] = None,
         on_bad_files: Literal["error", "warn", "skip"] = "error",
         **kwargs,
@@ -1586,7 +1586,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_text(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence_[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -2488,7 +2488,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(inplace=False)
-    def remove_columns(self, column_names: Union[str, list[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
+    def remove_columns(self, column_names: Union[str, Sequence_[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
         """
         Remove one or several column(s) in the dataset and the features associated to them.
 
@@ -2676,7 +2676,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(inplace=False)
-    def select_columns(self, column_names: Union[str, list[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
+    def select_columns(self, column_names: Union[str, Sequence_[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
         """Select one or several column(s) in the dataset and the features
         associated to them.
 
@@ -3216,11 +3216,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         function: Optional[Callable] = None,
         with_indices: bool = False,
         with_rank: bool = False,
-        input_columns: Optional[Union[str, list[str]]] = None,
+        input_columns: Optional[Union[str, Sequence_[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[Union[str, list[str]]] = None,
+        remove_columns: Optional[Union[str, Sequence_[str]]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: Optional[bool] = None,
         cache_file_name: Optional[str] = None,
@@ -3671,11 +3671,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         function: Optional[Callable] = None,
         with_indices: bool = False,
         with_rank: bool = False,
-        input_columns: Optional[list[str]] = None,
+        input_columns: Optional[Sequence_[str]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[list[str]] = None,
+        remove_columns: Optional[Sequence_[str]] = None,
         keep_in_memory: bool = False,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
@@ -4064,7 +4064,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def batch(
         self,
         batch_size: Optional[int] = None,
-        by_column: Optional[Union[str, list[str]]] = None,
+        by_column: Optional[Union[str, Sequence_[str]]] = None,
         drop_last_batch: bool = False,
         num_proc: Optional[int] = None,
         new_fingerprint: Optional[str] = None,
@@ -4145,7 +4145,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         function: Optional[Callable] = None,
         with_indices: bool = False,
         with_rank: bool = False,
-        input_columns: Optional[Union[str, list[str]]] = None,
+        input_columns: Optional[Union[str, Sequence_[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         keep_in_memory: bool = False,
@@ -4717,9 +4717,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Create a new dataset sorted according to a single or multiple columns.
 
         Args:
-            column_names (`Union[str, Sequence[str]]`):
+            column_names (`Union[str, Sequence_[str]]`):
                 Column name(s) to sort by.
-            reverse (`Union[bool, Sequence[bool]]`, defaults to `False`):
+            reverse (`Union[bool, Sequence_[bool]]`, defaults to `False`):
                 If `True`, sort by descending order rather than ascending. If a single bool is provided,
                 the value is applied to the sorting of all column names. Otherwise a list of bools with the
                 same length and order as column_names must be provided.
@@ -5725,7 +5725,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset_nbytes
 
     @staticmethod
-    def _generate_tables_from_shards(shards: list["Dataset"], batch_size: int):
+    def _generate_tables_from_shards(shards: Sequence_["Dataset"], batch_size: int):
         for shard_idx, shard in enumerate(shards):
             for pa_table in shard.with_format("arrow").iter(batch_size):
                 yield shard_idx, pa_table
@@ -6872,12 +6872,12 @@ def _push_to_bucket(
 def _get_updated_dataset_card(
     fs: DirFileSystem,
     config_name: str,
-    splits_info: list[SplitInfo],
+    splits_info: Sequence_[SplitInfo],
     features: Features,
     data_dir: str,
     set_default: Optional[bool],
-    uploaded_sizes: list[int],
-    deleted_sizes: list[int],
+    uploaded_sizes: Sequence_[int],
+    deleted_sizes: Sequence_[int],
     remove_other_splits: bool,
 ) -> tuple[DatasetCard, Optional[dict]]:
     """Update a dataset card in push_to_hub"""
@@ -7003,7 +7003,7 @@ def _get_updated_dataset_card(
 
 
 def _concatenate_map_style_datasets(
-    dsets: list[Dataset],
+    dsets: Sequence_[Dataset],
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
     axis: int = 0,
@@ -7117,8 +7117,8 @@ def _concatenate_map_style_datasets(
 
 
 def _interleave_map_style_datasets(
-    datasets: list["Dataset"],
-    probabilities: Optional[list[float]] = None,
+    datasets: Sequence_["Dataset"],
+    probabilities: Optional[Sequence_[float]] = None,
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
@@ -7279,7 +7279,7 @@ def get_indices_from_mask_function(
     batched: bool,
     with_indices: bool,
     with_rank: bool,
-    input_columns: Optional[Union[str, list[str]]],
+    input_columns: Optional[Union[str, Sequence_[str]]],
     indices_mapping: Optional[Table] = None,
     *args,
     **fn_kwargs,
@@ -7337,7 +7337,7 @@ async def async_get_indices_from_mask_function(
     batched: bool,
     with_indices: bool,
     with_rank: bool,
-    input_columns: Optional[Union[str, list[str]]],
+    input_columns: Optional[Union[str, Sequence_[str]]],
     indices_mapping: Optional[Table] = None,
     *args,
     **fn_kwargs,
