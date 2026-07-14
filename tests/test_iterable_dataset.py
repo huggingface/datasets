@@ -713,6 +713,93 @@ def test_iterable_dataset_vs_dataset_map(batched, batch_size, input_columns, rem
     assert all(x == y for x, y in zip(*r))
 
 
+def test_iterable_dataset_map_batched_shrink_without_all_columns_raises():
+    # A batched function that shrinks the batch but does not re-emit every retained input column
+    # used to silently produce misaligned/truncated rows instead of raising.
+    # Eager Dataset.map raises pyarrow.lib.ArrowInvalid on the same input, so streaming should
+    # fail loudly too (this code path mimics Dataset.map).
+    data = [{"a": i, "b": i} for i in range(6)]
+
+    def shrink(batch):
+        return {"a": [x for x in batch["a"] if x >= 3]}
+
+    ds = IterableDataset.from_generator(lambda: iter(data)).map(shrink, batched=True, batch_size=6)
+    with pytest.raises(ValueError, match="Column lengths mismatch"):
+        list(ds)
+
+    # Parity with eager Dataset.map, which already raises on the identical input.
+    with pytest.raises(pa.lib.ArrowInvalid, match="expected length"):
+        Dataset.from_list(data).map(shrink, batched=True, batch_size=6)
+
+
+def test_iterable_dataset_map_batched_expand_without_all_columns_raises():
+    # A batched function that grows the returned column beyond the batch length without re-emitting
+    # the retained input columns used to raise a bare IndexError; it should raise a clear ValueError.
+    data = [{"a": i, "b": i} for i in range(6)]
+
+    def expand(batch):
+        return {"a": [x for x in batch["a"] for _ in range(2)]}
+
+    ds = IterableDataset.from_generator(lambda: iter(data)).map(expand, batched=True, batch_size=6)
+    with pytest.raises(ValueError, match="Column lengths mismatch"):
+        list(ds)
+
+
+def test_iterable_dataset_map_batched_new_shorter_column_raises():
+    # A batched function that only returns a new column shorter than the batch, while keeping the
+    # input columns, used to raise a bare IndexError; it should raise a clear ValueError.
+    data = [{"a": i, "b": i} for i in range(6)]
+
+    def new_shorter(batch):
+        return {"c": [x for x in batch["a"] if x >= 3]}
+
+    ds = IterableDataset.from_generator(lambda: iter(data)).map(new_shorter, batched=True, batch_size=6)
+    with pytest.raises(ValueError, match="Column lengths mismatch"):
+        list(ds)
+
+
+def test_iterable_dataset_map_batched_length_change_valid_patterns():
+    # Legitimate batched patterns that change the row count must keep working after the length check.
+    data = [{"a": i, "b": i} for i in range(6)]
+
+    def mk():
+        return IterableDataset.from_generator(lambda: iter(data))
+
+    # 1) Every column re-emitted at a new (doubled) length.
+    doubled = list(
+        mk().map(
+            lambda b: {k: [v for v in vals for _ in range(2)] for k, vals in b.items()},
+            batched=True,
+            batch_size=3,
+        )
+    )
+    assert len(doubled) == 12
+    assert doubled[0] == {"a": 0, "b": 0} and doubled[1] == {"a": 0, "b": 0}
+
+    # 2) Every column re-emitted at a shrunk (filtered) length.
+    shrunk = list(
+        mk().map(
+            lambda b: {k: [v for i, v in enumerate(vals) if b["a"][i] >= 3] for k, vals in b.items()},
+            batched=True,
+            batch_size=6,
+        )
+    )
+    assert shrunk == [{"a": 3, "b": 3}, {"a": 4, "b": 4}, {"a": 5, "b": 5}]
+
+    # 3) Same-length overwrite of an existing column.
+    overwritten = list(mk().map(lambda b: {"a": [x + 1 for x in b["a"]]}, batched=True, batch_size=6))
+    assert [x["a"] for x in overwritten] == [1, 2, 3, 4, 5, 6]
+    assert [x["b"] for x in overwritten] == [0, 1, 2, 3, 4, 5]
+
+    # 4) New column at batch length.
+    with_new_col = list(mk().map(lambda b: {"c": [x * 10 for x in b["a"]]}, batched=True, batch_size=6))
+    assert [x["c"] for x in with_new_col] == [0, 10, 20, 30, 40, 50]
+
+    # 5) New column at a different length while dropping every input column via remove_columns.
+    replaced = list(mk().map(lambda b: {"c": [1, 2]}, batched=True, batch_size=6, remove_columns=["a", "b"]))
+    assert replaced == [{"c": 1}, {"c": 2}]
+
+
 @pytest.mark.parametrize(
     "n, func, batched, batch_size, fn_kwargs",
     [

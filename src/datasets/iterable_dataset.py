@@ -1512,6 +1512,24 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                         del inputs[c]
                     if processed_inputs is key_example[1] and c in processed_inputs:
                         del processed_inputs[c]
+            # A batched function may change the number of rows. When it does, every retained input
+            # column must match the new length, otherwise merging them below would zip mismatched
+            # columns positionally and silently drop or misalign rows (see _batch_to_examples, which
+            # derives the row count from the first column). Dataset.map raises pyarrow.lib.ArrowInvalid
+            # in this case, so we validate here to fail loudly and consistently.
+            if self.batched and processed_inputs:
+                first_col = next(iter(processed_inputs))
+                expected_length = len(processed_inputs[first_col])
+                bad_cols = [
+                    col for col in inputs if col not in processed_inputs and len(inputs[col]) != expected_length
+                ]
+                if bad_cols:
+                    raise ValueError(
+                        f"Column lengths mismatch: columns {bad_cols} have length "
+                        f"{[len(inputs[col]) for col in bad_cols]} while {first_col} has length {expected_length}. "
+                        "Make sure the mapped function returns all columns at the same length, or drop the "
+                        "offending input columns with `remove_columns`."
+                    )
             transformed_inputs = {**inputs, **processed_inputs}
             # no need to do features decoding here
             return transformed_inputs
