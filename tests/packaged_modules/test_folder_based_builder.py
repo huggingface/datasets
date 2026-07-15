@@ -504,6 +504,39 @@ def test_data_files_with_metadata_absolute_path_is_rejected(cache_dir, tmp_path,
         list(autofolder._generate_examples(**gen_kwargs))
 
 
+@pytest.mark.parametrize(
+    "malicious_file_name",
+    [
+        "file://../../outside/secret.txt",  # fsspec local scheme + traversal
+        "local://../../outside/secret.txt",  # fsspec local scheme + traversal
+        "file://../outside/secret.txt",  # scheme where os.path.normpath mangles the "../" away
+        "file:///etc/passwd",  # absolute-looking local scheme
+        "file://outside/secret.txt",  # scheme without traversal
+    ],
+)
+def test_data_files_with_metadata_url_scheme_is_rejected(cache_dir, tmp_path, auto_text_file, malicious_file_name):
+    # Regression test for the review on https://github.com/huggingface/datasets/pull/8325:
+    # fsspec schemes such as `file://` / `local://` resolve to local files and previously bypassed
+    # the containment check. A `file_name` carrying any URL scheme ("://") must be rejected.
+    secret_dir = tmp_path / "outside"
+    secret_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(auto_text_file, secret_dir / "secret.txt")
+
+    data_dir = tmp_path / "data_dir_with_scheme_metadata"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(auto_text_file, data_dir / "file.txt")
+    metadata_filename = data_dir / "metadata.jsonl"
+    metadata = f'{{"file_name": {json.dumps(malicious_file_name)}, "additional_feature": "Malicious file"}}\n'
+    with open(metadata_filename, "w", encoding="utf-8") as f:
+        f.write(metadata)
+
+    data_files = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
+    autofolder = DummyFolderBasedBuilder(data_files=data_files, cache_dir=cache_dir)
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    with pytest.raises(ValueError, match="Invalid metadata file_name"):
+        list(autofolder._generate_examples(**gen_kwargs))
+
+
 def test_data_files_with_metadata_legitimate_subdir_reference(cache_dir, tmp_path, auto_text_file):
     # A legitimate `file_name` pointing to a file in a subdirectory of the metadata
     # file's directory must keep working after the path traversal fix (#8324).
