@@ -2523,6 +2523,20 @@ def test_concatenate_datasets_axis_1_with_different_lengths():
     assert list(concatenated_dataset) == [{**x, **y} for x, y in zip(extended_dataset2_list, dataset1)]
 
 
+def test_concatenate_datasets_axis_1_arrow_backed():
+    # Arrow-backed iterables iterate via the `_iter_arrow` path, which previously
+    # dropped the first dataset's columns during horizontal concatenation (it
+    # appended onto the last source's table instead of the running accumulator).
+    dataset1 = Dataset.from_dict({"a": [1, 2, 3]}).to_iterable_dataset()
+    dataset2 = Dataset.from_dict({"b": [4, 5, 6]}).to_iterable_dataset()
+    concatenated_dataset = concatenate_datasets([dataset1, dataset2], axis=1)
+    assert list(concatenated_dataset) == [
+        {"a": 1, "b": 4},
+        {"a": 2, "b": 5},
+        {"a": 3, "b": 6},
+    ]
+
+
 @require_torch
 @require_tf
 @require_jax
