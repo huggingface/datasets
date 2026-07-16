@@ -690,3 +690,17 @@ def test_get_data_patterns_from_directory_with_the_word_data_twice(tmp_path):
     data_file.touch()
     data_file_patterns = get_data_patterns(repo_dir.as_posix())
     assert data_file_patterns == {"train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"]}
+
+
+from unittest.mock import MagicMock, patch
+from datasets.data_files import _get_single_origin_metadata
+
+@patch("datasets.data_files.url_to_fs")
+def test_get_single_origin_metadata_includes_size(mock_url_to_fs):
+    mock_fs = MagicMock()
+    mock_fs.info.return_value = {"etag": "my_etag_123", "size": 1024}
+    mock_url_to_fs.return_value = (mock_fs, "some_path.txt")
+    
+    metadata = _get_single_origin_metadata("http://example.com/some_path.txt")
+    
+    assert metadata == ("my_etag_123-1024",)
