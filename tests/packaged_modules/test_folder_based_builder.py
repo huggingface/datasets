@@ -13,6 +13,7 @@ from datasets.download.streaming_download_manager import StreamingDownloadManage
 from datasets.packaged_modules.folder_based_builder.folder_based_builder import (
     FolderBasedBuilder,
     FolderBasedBuilderConfig,
+    _metadata_reference_is_contained,
 )
 
 
@@ -457,6 +458,8 @@ def test_data_files_with_wrong_metadata_file_name(cache_dir, tmp_path, auto_text
         "../outside/secret.txt",  # relative traversal
         "../../outside/secret.txt",  # deeper relative traversal
         "subdir/../../outside/secret.txt",  # traversal hidden after a valid segment
+        "dummy/../../../etc/passwd",  # valid segment then escapes past the root (review on #8325)
+        "subdir/../../../../outside/secret.txt",  # deep escape after a valid segment
     ],
 )
 def test_data_files_with_metadata_path_traversal_is_rejected(cache_dir, tmp_path, auto_text_file, malicious_file_name):
@@ -535,6 +538,49 @@ def test_data_files_with_metadata_url_scheme_is_rejected(cache_dir, tmp_path, au
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     with pytest.raises(ValueError, match="Invalid metadata file_name"):
         list(autofolder._generate_examples(**gen_kwargs))
+
+
+def test_metadata_reference_containment_across_scheme_forms(tmp_path):
+    # Regression test for the review on https://github.com/huggingface/datasets/pull/8325:
+    # the containment check must actually run (not be skipped) for URLs and correctly handle
+    # chained "::" references. It must work for the four forms `downloaded_metadata_dir` can take:
+    #   1. a local path                          -> /path/to/metadata_dir
+    #   2. a remote URL                          -> hf://path/to/metadata_dir
+    #   3. a chained URL over a local archive    -> zip://metadata_dir::/path/to/archive.zip
+    #   4. a chained URL over a remote archive   -> zip://metadata_dir::hf://path/to/archive.zip
+    # `os.path.join` is patched to the fsspec-aware `xjoin` once a builder is instantiated, which is
+    # exactly how `set_feature` joins the reference at runtime, so use it here too.
+    _ = DummyFolderBasedBuilder(data_dir=".")  # triggers the streaming patch of os.path.join
+    from datasets.packaged_modules.folder_based_builder import folder_based_builder as fbb
+
+    xjoin = fbb.os.path.join
+
+    # a real local metadata dir (with a real subdir) so realpath-based containment can resolve
+    local_dir = tmp_path / "metadata_dir"
+    (local_dir / "subdir").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "outside").mkdir(parents=True, exist_ok=True)
+
+    forms = {
+        "local": local_dir.as_posix(),
+        "hf_remote": "hf://datasets/user/repo@main/metadata_dir",
+        "zip_local": "zip://metadata_dir::/data/local/archive.zip",
+        "zip_remote": "zip://metadata_dir::hf://datasets/user/repo@main/archive.zip",
+    }
+    for name, metadata_dir in forms.items():
+        # a legitimate relative reference must be considered contained
+        legit = xjoin(metadata_dir, "subdir/file2.txt")
+        assert _metadata_reference_is_contained(metadata_dir, legit), f"legit ref rejected for {name}"
+
+        # a reference pointing at a sibling of the metadata dir must be rejected
+        head, _, _ = metadata_dir.partition("::")
+        sibling_head = head.rsplit("/", 1)[0] + "/evil_sibling"
+        escaping = sibling_head + metadata_dir[len(head) :]
+        assert not _metadata_reference_is_contained(metadata_dir, escaping), f"sibling escape allowed for {name}"
+
+        # for chained URLs, tampering with the container part (after "::") must be rejected
+        if "::" in metadata_dir:
+            tampered = legit.split("::")[0] + "::/attacker/other.zip"
+            assert not _metadata_reference_is_contained(metadata_dir, tampered), f"container tamper allowed for {name}"
 
 
 def test_data_files_with_metadata_legitimate_subdir_reference(cache_dir, tmp_path, auto_text_file):
