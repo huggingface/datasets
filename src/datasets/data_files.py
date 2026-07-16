@@ -515,7 +515,11 @@ def _get_single_origin_metadata(
     # s3fs uses "ETag", gcsfs uses "etag", and for local we simply check mtime
     for key in ["ETag", "etag", "mtime"]:
         if key in info:
-            return (str(info[key]),)
+            return (
+                str(info[key]) + "-" + str(info["size"])
+                if "size" in info
+                else str(info[key]),
+            )
     return ()
 
 
