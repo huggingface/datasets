@@ -239,6 +239,21 @@ class HashingTest(TestCase):
         self.assertEqual(hash1, hash2)
         self.assertNotEqual(hash1, hash3)
 
+    def test_hash_arrow_table_is_independent_of_chunking(self):
+        import pyarrow as pa
+
+        def table_with_chunks(num_chunks, num_rows=600):
+            rows_per_chunk = num_rows // num_chunks
+            values = pa.array(["a" * 40] * num_rows)
+            chunks = [values.slice(i * rows_per_chunk, rows_per_chunk) for i in range(num_chunks)]
+            return pa.table({"text": pa.chunked_array(chunks)})
+
+        hash_few_chunks = Hasher.hash(InMemoryTable(table_with_chunks(2)))
+        hash_many_chunks = Hasher.hash(InMemoryTable(table_with_chunks(600)))
+        hash_other_data = Hasher.hash(InMemoryTable(pa.table({"text": pa.array(["b" * 40] * 600)})))
+        self.assertEqual(hash_few_chunks, hash_many_chunks)
+        self.assertNotEqual(hash_few_chunks, hash_other_data)
+
     def test_hash_update(self):
         hasher = Hasher()
         for x in ["hello", Foo("hello")]:
