@@ -2712,6 +2712,8 @@ class IterableDataset(DatasetInfoMixin):
             }
             if self._starting_state_dict and self.epoch == self._starting_state_dict["epoch"]:
                 ex_iterable.load_state_dict(self._starting_state_dict["examples_iterable"])
+                # re-point at the live ex_iterable state so progress tracking
+                self._state_dict["examples_iterable"] = ex_iterable._state_dict
 
             if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
                 formatter = get_formatter(self._formatting.format_type, features=self.features)
@@ -2796,6 +2798,8 @@ class IterableDataset(DatasetInfoMixin):
         }
         if self._starting_state_dict and self.epoch == self._starting_state_dict["epoch"]:
             ex_iterable.load_state_dict(self._starting_state_dict["examples_iterable"])
+            # re-point at the live ex_iterable state so progress tracking
+            self._state_dict["examples_iterable"] = ex_iterable._state_dict
         return ex_iterable
 
     def __iter__(self):
