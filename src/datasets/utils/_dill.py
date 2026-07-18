@@ -157,7 +157,7 @@ def _save_arrowTable(pickler, obj):
     # regardless of chunking. See
     # https://github.com/huggingface/datasets/issues/8327.
     def create_arrowTable(schema, columns):
-        return pa.table({field.name: column for field, column in zip(schema, columns)}).cast(schema)
+        return pa.Table.from_arrays(columns, schema=schema)
 
     log(pickler, f"Ta: {obj}")
     args = (obj.schema, [column.combine_chunks() for column in obj.columns])
