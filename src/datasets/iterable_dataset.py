@@ -1176,7 +1176,7 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
                         new_pa_table = table
                     else:
                         for name, col in zip(table.column_names, table.columns):
-                            new_pa_table = pa_table.append_column(name, col)
+                            new_pa_table = new_pa_table.append_column(name, col)
                 new_key = "_".join(str(key) for key in keys)
                 yield new_key, new_pa_table
             else:
