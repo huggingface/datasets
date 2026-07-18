@@ -92,6 +92,12 @@
       title: Create a medical imaging dataset
     title: "Vision"
   - sections:
+    - local: mesh_load
+      title: Load mesh data
+    - local: mesh_dataset
+      title: Create a mesh dataset
+    title: "3D"
+  - sections:
     - local: nlp_load
       title: Load text data
     - local: nlp_process
@@ -101,6 +107,10 @@
     - local: tabular_load
       title: Load tabular data
     title: "Tabular"
+  - sections:
+    - local: tsfile_load
+      title: Load TsFile data
+    title: "Time-series"
   - sections:
     - local: share
       title: Share

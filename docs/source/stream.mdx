@@ -115,7 +115,11 @@ The `buffer_size` argument controls the size of the buffer to randomly sample ex
 
 > [!TIP]
 > 
-> [`IterableDataset.shuffle`] will also shuffle the order of the shards if the dataset is sharded into multiple files.
+> [`IterableDataset.shuffle`] fills the buffer using up to `max_buffer_input_shards` shards at a time (default is 10), which greatly improves the quality of the shuffling. It also shuffles the order of the shards if the dataset is sharded into multiple files.
+
+> [!TIP]
+>
+> If you're streaming a Parquet dataset with only one or few files, use [`~IterableDataset.reshard`] before shuffling. This is useful to shard the dataset by row group instead of by file, improving shuffling quality.
 
 ## Reshuffle
 
@@ -577,7 +581,7 @@ This can be used with the `StatefulDataLoader` from `torchdata`:
 
 Once your iterable dataset is ready, you can save it as a Hugging Face Dataset in Parquet format and reuse it later with [`load_dataset`].
 
-Save your dataset by providing the name of the dataset repository on Hugging Face you wish to save it to to [`~Dataset.push_to_hub`]. This iterates over the dataset and progressively uploads the data to Hugging Face:
+Save your dataset by providing the name of the dataset repository on Hugging Face you wish to save it to as an argument to [`~Dataset.push_to_hub`]. This iterates over the dataset and progressively uploads the data to Hugging Face:
 
 ```python
 dataset.push_to_hub("username/my_dataset")

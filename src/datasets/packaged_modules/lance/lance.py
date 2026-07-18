@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Dict, List, Optional
 
 import pyarrow as pa
-from huggingface_hub import HfApi
+from huggingface_hub import HfApi, get_token
 
 import datasets
 from datasets import Audio, Image, Video
@@ -92,6 +92,7 @@ def _fix_local_version_file(uri: str) -> str:
 class Lance(datasets.ArrowBasedBuilder, datasets.builder._CountableBuilderMixin):
     BUILDER_CONFIG_CLASS = LanceConfig
     METADATA_EXTENSIONS = [".idx", ".txn", ".manifest"]
+    METADATA_FILE_NAMES = ["latest_version_hint.json"]
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
@@ -118,7 +119,11 @@ class Lance(datasets.ArrowBasedBuilder, datasets.builder._CountableBuilderMixin)
 
         splits: list[datasets.SplitGenerator] = []
         for split_name, files in data_files.items():
-            storage_options = dl_manager.download_config.storage_options.get(files[0].split("://", 0)[0] + "://")
+            protocol = files[0].split("://", 1)[0]
+            storage_options = dict(dl_manager.download_config.storage_options.get(protocol, {}))
+            # lance doesn't allow "token": None for hf and expects a string
+            if protocol == "hf" and storage_options.get("token") is None:
+                storage_options["token"] = get_token()
 
             lance_dataset_uris = resolve_dataset_uris(files)
             if lance_dataset_uris:

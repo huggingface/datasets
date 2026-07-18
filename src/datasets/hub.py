@@ -12,6 +12,7 @@ from huggingface_hub import (
 )
 
 import datasets.config
+from datasets import __version__
 from datasets.info import DatasetInfosDict
 from datasets.load import load_dataset_builder
 from datasets.utils.metadata import MetadataConfigs
@@ -74,7 +75,12 @@ def delete_from_hub(
     operations.append(
         CommitOperationAdd(path_in_repo=datasets.config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
     )
-    api = HfApi(endpoint=datasets.config.HF_ENDPOINT, token=token)
+    api = HfApi(
+        endpoint=datasets.config.HF_ENDPOINT,
+        token=token,
+        library_name="datasets",
+        library_version=__version__,
+    )
     commit_info = api.create_commit(
         repo_id,
         operations=operations,
@@ -90,7 +96,12 @@ def delete_from_hub(
 
 
 def _delete_files(dataset_id, revision=None, token=None):
-    hf_api = HfApi(endpoint=datasets.config.HF_ENDPOINT, token=token)
+    hf_api = HfApi(
+        endpoint=datasets.config.HF_ENDPOINT,
+        token=token,
+        library_name="datasets",
+        library_version=__version__,
+    )
     repo_files = hf_api.list_repo_files(
         dataset_id,
         repo_type="dataset",
