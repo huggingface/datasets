@@ -3522,6 +3522,32 @@ class MiscellaneousDatasetTest(TestCase):
         assert isinstance(result_dict["col"][0], dict), f"expected dict, got {type(result_dict[0]['col'])}"
         assert result_dict == {"col": [{"a": {"b": {"c": 1}}, "d": [2, {"e": 3}]}]}
 
+    def test_to_pandas_decode_json(self):
+        # Regression test: to_pandas() must decode Json() columns to Python objects, matching
+        # to_dict()/to_list() and with_format("pandas"), instead of returning raw JSON strings.
+        data = {"col": [{"a": 1}, None, {"b": 2}]}
+        test_dataset = Dataset.from_dict(data, features=Features({"col": Json()}))
+
+        df = test_dataset.to_pandas()
+        assert isinstance(df["col"][0], dict), f"expected dict, got {type(df['col'][0])}"
+        assert df["col"].tolist() == [{"a": 1}, None, {"b": 2}]
+
+        # the batched generator path decodes too
+        batched = pd.concat(list(test_dataset.to_pandas(batched=True, batch_size=2)), ignore_index=True)
+        assert batched["col"].tolist() == [{"a": 1}, None, {"b": 2}]
+
+    def test_to_pandas_decode_nested_json(self):
+        # Regression test: nested Json() and List(Json()) columns must also decode in to_pandas().
+        nested = {"col": [{"a": {"b": {"c": 1}}, "d": [2, {"e": 3}]}]}
+        test_dataset = Dataset.from_dict(nested, features=Features({"col": Json()}))
+        assert test_dataset.to_pandas()["col"][0] == {"a": {"b": {"c": 1}}, "d": [2, {"e": 3}]}
+
+        list_of_json = {"col": [[{"a": 1}], [{"b": 2}]]}
+        test_dataset = Dataset.from_dict(list_of_json, features=Features({"col": List(Json())}))
+        df = test_dataset.to_pandas()
+        assert list(df["col"][0]) == [{"a": 1}]
+        assert list(df["col"][1]) == [{"b": 2}]
+
     def test_json_feature_keeps_none_as_null(self):
         # Regression test for the JSON type: a missing value (None) must be stored as a real
         # Arrow null, not as the JSON string "null". Otherwise null_count is wrong and a missing
