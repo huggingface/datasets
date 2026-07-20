@@ -283,7 +283,10 @@ class DatasetBuilder:
             None means that the ArrowWriter will use its default value.
         skip_origin_metadata (`bool`, *optional*):
             Whether to skip fetching origin metadata (ETag/mtime) for the data files.
-            It should only be true when streaming is true.
+            It should only be set to `True` when streaming from cloud storage
+            (e.g., Google Cloud Storage) to optimize startup time. It should be
+            `False` for local files, when not streaming, or when origin metadata
+            is required for cache invalidation.
         **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the corresponding builder
             configuration class, set on the class attribute [`DatasetBuilder.BUILDER_CONFIG_CLASS`]. The builder
             configuration class is [`BuilderConfig`] or a subclass of it.
