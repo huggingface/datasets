@@ -324,7 +324,7 @@ class Json(datasets.ArrowBasedBuilder):
                                         df = pandas_read_json(f)
                                 except ValueError:
                                     logger.error(f"Failed to load JSON from file '{file}' with error {type(e)}: {e}")
-                                    raise e
+                                    raise
                                 if df.columns.tolist() == [0]:
                                     df.columns = list(self.config.features) if self.config.features else ["text"]
                                 try:
