@@ -47,7 +47,9 @@ from typing import (
     Any,
     BinaryIO,
     Callable,
+    Generic,
     Optional,
+    TypeVar,
     Union,
     overload,
 )
@@ -715,7 +717,12 @@ class Column(Sequence_):
             return value == list(self)
 
 
-class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
+# TypeVar used to optionally parametrize `Dataset` with a `TypedDict` describing its
+# column names and types, e.g. `Dataset[MyRow]`, so that `dataset[i]` type-checks as `MyRow`.
+DatasetColumns = TypeVar("DatasetColumns", bound=Mapping[str, Any])
+
+
+class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin, Generic[DatasetColumns]):
     """A Dataset backed by an Arrow table."""
 
     def __init__(
@@ -3143,7 +3150,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return formatted_output
 
     @overload
-    def __getitem__(self, key: Union[int, slice, Iterable[int]]) -> dict:  # noqa: F811
+    def __getitem__(self, key: int) -> DatasetColumns:  # noqa: F811
+        ...
+
+    @overload
+    def __getitem__(self, key: Union[slice, Iterable[int]]) -> dict:  # noqa: F811
         ...
 
     @overload
