@@ -1018,6 +1018,13 @@ def test_require_storage_embed_with_list_types(feature):
     assert require_storage_embed(feature)
 
 
+@pytest.mark.parametrize("feature", [LargeList(ClassLabel(names=["a", "b"])), List(ClassLabel(names=["a", "b"]))])
+def test_require_storage_embed_with_non_embeddable_list_types(feature):
+    # ClassLabel implements cast_storage but not embed_storage, so a nested
+    # ClassLabel does not require storage embedding
+    assert require_storage_embed(feature) is False
+
+
 @pytest.mark.parametrize(
     "feature, expected",
     [(List(Value("int32")), List(1)), (LargeList(Value("int32")), LargeList(1)), (List(Value("int32")), List(1))],
