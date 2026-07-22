@@ -370,16 +370,32 @@ def test_webdataset_read_error_includes_tar_path_while_reading_member(truncated_
     assert isinstance(raised.value.__cause__, tarfile.ReadError)
 
 
-def test_webdataset_read_error_does_not_include_tracked_origin(corrupted_wds_file):
+def test_webdataset_read_error_includes_path_and_tracked_origin(corrupted_wds_file):
+    origin = "hf://datasets/org/name@main/data/corrupted.tar"
     tar_path = tracked_str(corrupted_wds_file)
-    tar_path.set_origin("https://user:password@example.com/corrupted.tar?signature=SECRET")
+    tar_path.set_origin(origin)
     tar_iterator = DownloadManager().iter_archive(str(tar_path))
 
     with pytest.raises(tarfile.ReadError) as raised:
         next(WebDataset._get_pipeline_from_tar(tar_path, tar_iterator))
 
-    assert corrupted_wds_file in str(raised.value)
-    assert "SECRET" not in str(raised.value)
+    message = str(raised.value)
+    assert corrupted_wds_file in message
+    assert origin in message
+    assert message.startswith(f"Failed to read TAR archive {corrupted_wds_file!r} (origin={origin}):")
+
+
+def test_webdataset_read_error_omits_origin_when_same_as_path(corrupted_wds_file):
+    tar_path = tracked_str(corrupted_wds_file)
+    tar_path.set_origin(corrupted_wds_file)
+    tar_iterator = DownloadManager().iter_archive(str(tar_path))
+
+    with pytest.raises(tarfile.ReadError) as raised:
+        next(WebDataset._get_pipeline_from_tar(tar_path, tar_iterator))
+
+    message = str(raised.value)
+    assert corrupted_wds_file in message
+    assert "origin=" not in message
 
 
 @require_pil

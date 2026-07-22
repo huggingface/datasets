@@ -13,6 +13,7 @@ from datasets.builder import Key
 from datasets.features.features import cast_to_python_objects
 from datasets.filesystems import EXTENSION_TO_COMPRESSION_FS_FILE_CLS
 from datasets.utils.file_utils import xbasename
+from datasets.utils.track import tracked_str
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -32,8 +33,16 @@ class WebDataset(datasets.GeneratorBasedBuilder):
         try:
             yield from cls._get_pipeline_from_tar_without_error_context(tar_path, tar_iterator)
         except tarfile.ReadError as error:
-            # Avoid tracked_str.__repr__, which can include a presigned origin URL in the traceback.
-            raise tarfile.ReadError(f"Failed to read TAR archive {str(tar_path)!r}: {error}") from error
+            # Include both the resolved local path and origin (e.g. hf://…) for debugging.
+            # Prefer str()/get_origin() over tracked_str.__repr__ so formatting stays explicit.
+            archive = str(tar_path)
+            if isinstance(tar_path, tracked_str):
+                origin = tar_path.get_origin()
+                if origin != archive:
+                    raise tarfile.ReadError(
+                        f"Failed to read TAR archive {archive!r} (origin={origin}): {error}"
+                    ) from error
+            raise tarfile.ReadError(f"Failed to read TAR archive {archive!r}: {error}") from error
 
     @classmethod
     def _get_pipeline_from_tar_without_error_context(cls, tar_path, tar_iterator):
