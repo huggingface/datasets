@@ -1018,6 +1018,22 @@ def test_require_storage_embed_with_list_types(feature):
     assert require_storage_embed(feature)
 
 
+@pytest.mark.parametrize("feature", [LargeList(ClassLabel(names=["a", "b"])), List(ClassLabel(names=["a", "b"]))])
+def test_require_storage_embed_with_non_embeddable_list_types(feature):
+    # ClassLabel implements cast_storage but not embed_storage, so a nested
+    # ClassLabel does not require storage embedding
+    assert require_storage_embed(feature) is False
+
+
+@pytest.mark.parametrize("feature", [[Audio()], (Audio(),)])
+def test_require_storage_cast_and_embed_recurse_into_raw_list_schema(feature):
+    # A bare list/tuple such as [Audio()] is a valid FeatureType that
+    # get_nested_type accepts, so the storage helpers must recurse into it
+    # like require_decoding does instead of falling through to the leaf check.
+    assert require_storage_cast(feature)
+    assert require_storage_embed(feature)
+
+
 @pytest.mark.parametrize(
     "feature, expected",
     [(List(Value("int32")), List(1)), (LargeList(Value("int32")), LargeList(1)), (List(Value("int32")), List(1))],
