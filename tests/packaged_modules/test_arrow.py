@@ -1,3 +1,5 @@
+import struct
+
 import pyarrow as pa
 import pytest
 
@@ -34,6 +36,27 @@ def arrow_file_file_format(tmp_path):
     return str(filename)
 
 
+@pytest.fixture
+def arrow_file_with_invalid_offsets(tmp_path):
+    filename = tmp_path / "invalid-offsets.arrow"
+    table = pa.table({"col": pa.array([b"A", b"B"])})
+    with open(filename, "wb") as f:
+        with pa.ipc.new_stream(f, table.schema) as writer:
+            writer.write_table(table)
+
+    payload = bytearray(filename.read_bytes())
+    schema_message_start = payload.index(b"\xff\xff\xff\xff")
+    schema_metadata_length = struct.unpack_from("<I", payload, schema_message_start + 4)[0]
+    record_batch_start = (schema_message_start + 8 + schema_metadata_length + 7) & ~7
+    record_batch_metadata_length = struct.unpack_from("<I", payload, record_batch_start + 4)[0]
+    record_batch_body_start = (record_batch_start + 8 + record_batch_metadata_length + 7) & ~7
+
+    assert struct.unpack_from("<iii", payload, record_batch_body_start) == (0, 1, 2)
+    struct.pack_into("<iii", payload, record_batch_body_start, 0, 2, 1)
+    filename.write_bytes(payload)
+    return str(filename)
+
+
 @pytest.mark.parametrize(
     "file_fixture, config_kwargs",
     [
@@ -48,6 +71,19 @@ def test_arrow_generate_tables(file_fixture, config_kwargs, request):
 
     expected = {"input_ids": [[1, 1, 1], [0, 100, 6], [1, 90, 900]]}
     assert pa_table.to_pydict() == expected
+
+
+def test_arrow_generate_tables_rejects_invalid_record_batch(arrow_file_with_invalid_offsets):
+    with open(arrow_file_with_invalid_offsets, "rb") as f:
+        record_batch = pa.ipc.open_stream(f).read_next_batch()
+
+    record_batch.validate()
+    with pytest.raises(pa.ArrowInvalid):
+        record_batch.validate(full=True)
+
+    arrow = Arrow()
+    with pytest.raises(pa.ArrowInvalid):
+        next(arrow._generate_tables([arrow_file_with_invalid_offsets]))
 
 
 def test_config_raises_when_invalid_name() -> None:
