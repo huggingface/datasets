@@ -101,6 +101,23 @@ def test_patch_submodule_missing_builtin():
     assert _test_patching.len is len
 
 
+def test_patch_submodule_builtin_when_builtins_is_module(monkeypatch):
+    # In the __main__ module and under PyPy, a module's ``__builtins__`` global
+    # is the ``builtins`` module rather than its dict. patch_submodule must
+    # handle both. Simulate the module case for datasets.utils.patching itself.
+    import builtins
+
+    from datasets.utils import patching
+
+    monkeypatch.setattr(patching, "__builtins__", builtins)
+
+    mock = "__test_patch_submodule_builtins_is_module_mock__"
+    assert _test_patching.open is open
+    with patch_submodule(_test_patching, "open", mock):
+        assert _test_patching.open is mock
+    assert _test_patching.open is open
+
+
 def test_patch_submodule_start_and_stop():
     mock = "__test_patch_submodule_start_and_stop_mock__"
     patch = patch_submodule(_test_patching, "open", mock)
