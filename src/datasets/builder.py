@@ -719,7 +719,7 @@ class DatasetBuilder:
 
                 <Added version="2.9.1"/>
             dl_manager (`DownloadManager`, *optional*):
-                Specific `DownloadManger` to use.
+                Specific `DownloadManager` to use.
             base_path (`str`, *optional*):
                 Base path for relative paths that are used to download files. This can be a remote url.
                 If not specified, the value of the `base_path` attribute (`self.base_path`) will be used instead.

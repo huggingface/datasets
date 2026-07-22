@@ -1385,7 +1385,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             elif not ex_iterable.iter_arrow:
                 raise ValueError(
                     f"The {formatting.format_type.capitalize()}-formatted {type(self).__name__} has underlying iterable "
-                    f"that is a {type(ex_iterable).__name__} but doesnt' implement iter_arrow(), a possible fix could be "
+                    f"that is a {type(ex_iterable).__name__} but doesn't implement iter_arrow(), a possible fix could be "
                     "to use RebatchedArrowExamplesIterable(..., force_convert_to_arrow=True)."
                 )
             elif ex_iterable.batch_size != (batch_size if batched else 1):
@@ -3470,7 +3470,7 @@ class IterableDataset(DatasetInfoMixin):
           Note that the last batch may have less than `n` examples.
           A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
 
-        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simulatenous calls.
+        If the function is asynchronous, then `map` will run your function in parallel, with up to one thousand simultaneous calls.
         It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
 
         Args:
@@ -3637,7 +3637,7 @@ class IterableDataset(DatasetInfoMixin):
         """Apply a filter function to all the elements so that the dataset only includes examples according to the filter function.
         The filtering is done on-the-fly when iterating over the dataset.
 
-        If the function is asynchronous, then `filter` will run your function in parallel, with up to one thousand simulatenous calls (configurable).
+        If the function is asynchronous, then `filter` will run your function in parallel, with up to one thousand simultaneous calls (configurable).
         It is recommended to use a `asyncio.Semaphore` in your function if you want to set a maximum number of operations that can run at the same time.
 
         Args:
@@ -4409,7 +4409,7 @@ class IterableDataset(DatasetInfoMixin):
                 Successive examples with the same value for that column are in grouped the same batch.
                 This can also be a list of columns if you want to batch by multiple columns.
                 If batching by column, the batch_size is only used to control the size of the batches
-                to group together or slice during acculumation.
+                to group together or slice during accumulation.
 
                 <Added version="4.9.0"/>
             drop_last_batch (`bool`, defaults to `False`):

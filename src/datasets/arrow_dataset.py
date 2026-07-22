@@ -4085,7 +4085,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Successive examples with the same value for that column are in grouped the same batch.
                 This can also be a list of columns if you want to batch by multiple columns.
                 If batching by column, the batch_size is only used to control the size of the batches
-                to group together or slice during acculumation.
+                to group together or slice during accumulation.
 
                 <Added version="4.9.0"/>
             drop_last_batch (`bool`, defaults to `False`):
@@ -7176,7 +7176,7 @@ def _interleave_map_style_datasets(
 
         # Reasoning behind the following operation: keeping the first indices of each dataset
         # while offsetting in order to correspond to the right indices of the concatenated dataset
-        # and flattening to effectively interleave the datasets. Then we remove the exausted datasets
+        # and flattening to effectively interleave the datasets. Then we remove the exhausted datasets
         # and we continue with the following indices, until all datasets are exhausted
         chunks_boundaries = [0] + sorted(set(lengths))
         chunks = zip(chunks_boundaries[:-1], chunks_boundaries[1:])
