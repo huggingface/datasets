@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from functools import partial
 from itertools import cycle, islice
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Optional, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Optional, Sequence, Union
 
 import fsspec.asyn
 import multiprocess as mp
@@ -1347,11 +1347,11 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         ex_iterable: _BaseExamplesIterable,
         function: Callable,
         with_indices: bool = False,
-        input_columns: Optional[list[str]] = None,
+        input_columns: Optional[Sequence[str]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[list[str]] = None,
+        remove_columns: Optional[Sequence[str]] = None,
         fn_kwargs: Optional[dict] = None,
         formatting: Optional["FormattingConfig"] = None,
         features: Optional[Features] = None,
@@ -1799,7 +1799,7 @@ class FilteredExamplesIterable(MappedExamplesIterable):
         ex_iterable: _BaseExamplesIterable,
         function: Callable,
         with_indices: bool = False,
-        input_columns: Optional[list[str]] = None,
+        input_columns: Optional[Sequence[str]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
@@ -3161,7 +3161,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_csv(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3204,7 +3204,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_json(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3251,11 +3251,11 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_parquet(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
-        columns: Optional[list[str]] = None,
+        columns: Optional[Sequence[str]] = None,
         filters: Optional[Union[pds.Expression, list[tuple], list[list[tuple]]]] = None,
         fragment_scan_options: Optional[pds.ParquetFragmentScanOptions] = None,
         on_bad_files: Literal["error", "warn", "skip"] = "error",
@@ -3336,7 +3336,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_text(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3447,11 +3447,11 @@ class IterableDataset(DatasetInfoMixin):
         self,
         function: Optional[Callable] = None,
         with_indices: bool = False,
-        input_columns: Optional[Union[str, list[str]]] = None,
+        input_columns: Optional[Union[str, Sequence[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[Union[str, list[str]]] = None,
+        remove_columns: Optional[Union[str, Sequence[str]]] = None,
         features: Optional[Features] = None,
         fn_kwargs: Optional[dict] = None,
     ) -> "IterableDataset":
@@ -3629,7 +3629,7 @@ class IterableDataset(DatasetInfoMixin):
         self,
         function: Optional[Callable] = None,
         with_indices=False,
-        input_columns: Optional[Union[str, list[str]]] = None,
+        input_columns: Optional[Union[str, Sequence[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
