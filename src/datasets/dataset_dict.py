@@ -2253,7 +2253,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", streaming=True)
-        >>> ds = ds.select("text")
+        >>> ds = ds.select_columns("text")
         >>> next(iter(ds["train"]))
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
         ```
