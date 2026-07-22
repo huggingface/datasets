@@ -56,6 +56,7 @@ class JsonConfig(datasets.BuilderConfig):
     newlines_in_values: Optional[bool] = None
     on_mixed_types: Optional[Literal["use_json"]] = "use_json"
     parse_agent_traces: bool = True
+    return_file_name: bool = False
 
     def __post_init__(self):
         super().__post_init__()
@@ -74,7 +75,11 @@ class Json(datasets.ArrowBasedBuilder):
             )
         if self.config.newlines_in_values is not None:
             raise ValueError("The JSON loader parameter `newlines_in_values` is no longer supported")
-        return datasets.DatasetInfo(features=self.config.features)
+        features = self.config.features
+        if self.config.return_file_name and features is not None and "file_name" not in features:
+            features = features.copy()
+            features["file_name"] = Value("string")
+        return datasets.DatasetInfo(features=features)
 
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
@@ -162,10 +167,18 @@ class Json(datasets.ArrowBasedBuilder):
                         dataset = ujson_loads(f.read())
                     # We keep only the field we are interested in
                     dataset = dataset[self.config.field]
-                    df = pandas_read_json(io.StringIO(ujson_dumps(dataset)))
-                    if df.columns.tolist() == [0]:
-                        df.columns = list(self.config.features) if self.config.features else ["text"]
-                    pa_table = pa.Table.from_pandas(df, preserve_index=False)
+                    if self.config.return_file_name:
+                        file_path = original_files[shard_idx]
+                        if self.base_path is not None and file_path.startswith(self.base_path):
+                            file_path = os.path.relpath(file_path, self.base_path)
+                        for example in dataset:
+                            example["file_name"] = file_path
+                        pa_table = pa.Table.from_pylist(dataset)
+                    else:
+                        df = pandas_read_json(io.StringIO(ujson_dumps(dataset)))
+                        if df.columns.tolist() == [0]:
+                            df.columns = list(self.config.features) if self.config.features else ["text"]
+                        pa_table = pa.Table.from_pandas(df, preserve_index=False)
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
 
                 # If the files are agent traces (one row = one file except for hermes which can have multiple sessions per file)
@@ -214,6 +227,8 @@ class Json(datasets.ArrowBasedBuilder):
                             **bonus_fields,
                             "file_path": file_path,
                         }
+                        if self.config.return_file_name:
+                            example["file_name"] = file_path
                         for json_field_path in json_field_paths:
                             example = json_encode_field(example, json_field_path)
                         examples.append(example)
@@ -277,67 +292,83 @@ class Json(datasets.ArrowBasedBuilder):
                                     json_field_paths += find_mixed_struct_types_field_paths(examples)
                             # Re-encode JSON fields
                             original_batch = batch
-                            if json_field_paths:
+                            if json_field_paths or self.config.return_file_name:
                                 examples = [ujson_loads(line) for line in batch.splitlines()]
+                                if self.config.return_file_name:
+                                    file_path = original_files[shard_idx]
+                                    if self.base_path is not None and file_path.startswith(self.base_path):
+                                        file_path = os.path.relpath(file_path, self.base_path)
+                                    for example in examples:
+                                        example["file_name"] = file_path
                                 for json_field_path in json_field_paths:
                                     examples = [json_encode_field(example, json_field_path) for example in examples]
-                                batch = "\n".join(ujson_dumps(example) for example in examples).encode()
+                                if self.config.return_file_name:
+                                    pa_table = pa.Table.from_pylist(examples)
+                                else:
+                                    batch = "\n".join(ujson_dumps(example) for example in examples).encode()
                             # Disable parallelism if block size is ~ len(batch) to avoid segfault
                             block_size = len(batch) if len(batch) // 8 > block_size else block_size
-                            try:
-                                while True:
-                                    try:
-                                        pa_table = paj.read_json(
-                                            io.BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
-                                        )
-                                        break
-                                    except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
-                                        if batch.startswith(b"["):  # paj.read_json only supports json lines
-                                            raise
-                                        elif self.config.on_mixed_types == "use_json" and (
-                                            isinstance(e, pa.ArrowInvalid)
-                                            and "JSON parse error: Column(" in str(e)
-                                            and ") changed from" in str(e)
-                                        ):
-                                            json_field_path = get_json_field_path_from_pyarrow_json_error(str(e))
-                                            insert_json_field_path(json_field_paths, json_field_path)
-                                            batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
-                                        elif (
-                                            "straddling" in str(e) or "JSON conversion to" in str(e)
-                                        ) and block_size < len(batch):
-                                            # Increase the block size in case it was too small.
-                                            # The block size will be reset for the next file.
-                                            # this is needed in case of "stradding" or for some JSON conversions (see https://github.com/huggingface/datasets/issues/2799)
-                                            logger.debug(
-                                                f"Batch of {len(batch)} bytes couldn't be parsed with block_size={block_size}. Retrying with block_size={block_size * 2}."
+                            if self.config.return_file_name:
+                                pass
+                            else:
+                                try:
+                                    while True:
+                                        try:
+                                            pa_table = paj.read_json(
+                                                io.BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
                                             )
-                                            block_size *= 2
-                                        else:
-                                            raise
-                            except pa.ArrowInvalid as e:
-                                if not allow_full_read:
-                                    raise FullReadDisallowed()
-                                try:
-                                    with open(
-                                        file, encoding=self.config.encoding, errors=self.config.encoding_errors
-                                    ) as f:
-                                        df = pandas_read_json(f)
-                                except ValueError:
-                                    logger.error(f"Failed to load JSON from file '{file}' with error {type(e)}: {e}")
-                                    raise e
-                                if df.columns.tolist() == [0]:
-                                    df.columns = list(self.config.features) if self.config.features else ["text"]
-                                try:
-                                    pa_table = pa.Table.from_pandas(df, preserve_index=False)
+                                            break
+                                        except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
+                                            if batch.startswith(b"["):  # paj.read_json only supports json lines
+                                                raise
+                                            elif self.config.on_mixed_types == "use_json" and (
+                                                isinstance(e, pa.ArrowInvalid)
+                                                and "JSON parse error: Column(" in str(e)
+                                                and ") changed from" in str(e)
+                                            ):
+                                                json_field_path = get_json_field_path_from_pyarrow_json_error(str(e))
+                                                insert_json_field_path(json_field_paths, json_field_path)
+                                                batch = json_encode_fields_in_json_lines(
+                                                    original_batch, json_field_paths
+                                                )
+                                            elif (
+                                                "straddling" in str(e) or "JSON conversion to" in str(e)
+                                            ) and block_size < len(batch):
+                                                # Increase the block size in case it was too small.
+                                                # The block size will be reset for the next file.
+                                                # this is needed in case of "stradding" or for some JSON conversions (see https://github.com/huggingface/datasets/issues/2799)
+                                                logger.debug(
+                                                    f"Batch of {len(batch)} bytes couldn't be parsed with block_size={block_size}. Retrying with block_size={block_size * 2}."
+                                                )
+                                                block_size *= 2
+                                            else:
+                                                raise
                                 except pa.ArrowInvalid as e:
-                                    logger.error(
-                                        f"Failed to convert pandas DataFrame to Arrow Table from file '{file}' with error {type(e)}: {e}"
-                                    )
-                                    raise ValueError(
-                                        f"Failed to convert pandas DataFrame to Arrow Table from file {file}."
-                                    ) from None
-                                yield Key(shard_idx, 0), self._cast_table(pa_table)
-                                break
+                                    if not allow_full_read:
+                                        raise FullReadDisallowed()
+                                    try:
+                                        with open(
+                                            file, encoding=self.config.encoding, errors=self.config.encoding_errors
+                                        ) as f:
+                                            df = pandas_read_json(f)
+                                    except ValueError:
+                                        logger.error(
+                                            f"Failed to load JSON from file '{file}' with error {type(e)}: {e}"
+                                        )
+                                        raise e
+                                    if df.columns.tolist() == [0]:
+                                        df.columns = list(self.config.features) if self.config.features else ["text"]
+                                    try:
+                                        pa_table = pa.Table.from_pandas(df, preserve_index=False)
+                                    except pa.ArrowInvalid as e:
+                                        logger.error(
+                                            f"Failed to convert pandas DataFrame to Arrow Table from file '{file}' with error {type(e)}: {e}"
+                                        )
+                                        raise ValueError(
+                                            f"Failed to convert pandas DataFrame to Arrow Table from file {file}."
+                                        ) from None
+                                    yield Key(shard_idx, 0), self._cast_table(pa_table)
+                                    break
                             yield (
                                 Key(shard_idx, batch_idx),
                                 self._cast_table(pa_table, json_field_paths=json_field_paths),
