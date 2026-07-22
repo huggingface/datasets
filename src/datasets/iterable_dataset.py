@@ -127,7 +127,7 @@ def add_column_fn(example: dict, idx: int, name: str, column: list[dict]):
 
 
 def _infer_features_from_batch(batch: dict[str, list], try_features: Optional[Features] = None) -> Features:
-    pa_table = pa.Table.from_pydict(batch)
+    pa_table = pa.Table.from_pydict(cast_to_python_objects(batch, only_1d_for_numpy=True))
     if try_features is not None:
         try:
             pa_table = table_cast(pa_table, pa.schema(try_features.type))

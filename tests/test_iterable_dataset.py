@@ -3281,3 +3281,19 @@ class TestIterableColumn:
         texts = ds["text"]
         assert isinstance(texts, IterableColumn)
         assert list(texts) == [["Good", "Bad"], ["Good again", "Bad again"]]
+
+
+def test_iterable_dataset_resolve_features_from_multidim_numpy():
+    # Regression for https://github.com/huggingface/datasets/issues/7100: resolving
+    # the features of an IterableDataset whose map yields multi-dimensional numpy
+    # arrays must not raise "Can only convert 1-dimensional array values". The batch
+    # is routed through cast_to_python_objects(..., only_1d_for_numpy=True) like the
+    # other Arrow-table builders in iterable_dataset.py.
+    ds = (
+        Dataset.from_dict({"a": [[[1, 2, 3], [1, 2, 3]]]})
+        .to_iterable_dataset()
+        .map(lambda x: {"a": [np.array(x["a"])]})
+    )
+    ds = ds._resolve_features()
+    assert ds.features is not None
+    assert "a" in ds.features
