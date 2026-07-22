@@ -1876,7 +1876,7 @@ def _combine_list_array_offsets_with_mask(array: pa.ListArray) -> pa.Array:
     if array.null_count > 0:
         offsets = pa.concat_arrays(
             [
-                pc.replace_with_mask(offsets[:-1], array.is_null(), pa.nulls(len(array), pa.int32())),
+                pc.replace_with_mask(offsets[:-1], array.is_null(), pa.nulls(len(array), offsets.type)),
                 offsets[-1:],
             ]
         )
