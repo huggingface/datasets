@@ -1875,7 +1875,7 @@ class Features(dict):
           or a dictionary with the relative path to a NIfTI file ("path" key) and its bytes content ("bytes" key).
           This feature loads the NIfTI file lazily with nibabel.
         - [`Translation`] or [`TranslationVariableLanguages`] feature specific to Machine Translation.
-        - [`Json`] feature to store unstructred data, e.g. containing mixed/abritrary types. Under the hood
+        - [`Json`] feature to store unstructured data, e.g. containing mixed/arbitrary types. Under the hood
     """
 
     def __init__(*args, **kwargs):
