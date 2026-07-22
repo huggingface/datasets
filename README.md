@@ -297,3 +297,7 @@ If you want to cite our 🤗 Datasets library, you can use our [paper](https://h
 ```
 
 If you need to cite a specific version of our 🤗 Datasets library for reproducibility, you can use the corresponding version Zenodo DOI from this [list](https://zenodo.org/search?q=conceptrecid:%224817768%22&sort=-version&all_versions=True).
+
+---
+
+*[Mukller](https://github.com/Mukller)*
