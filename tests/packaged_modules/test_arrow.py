@@ -52,6 +52,7 @@ def arrow_file_with_invalid_offsets(tmp_path):
     record_batch_body_start = (record_batch_start + 8 + record_batch_metadata_length + 7) & ~7
 
     assert struct.unpack_from("<iii", payload, record_batch_body_start) == (0, 1, 2)
+    # Keep every offset inside the data buffer while making them non-monotonic.
     struct.pack_into("<iii", payload, record_batch_body_start, 0, 2, 1)
     filename.write_bytes(payload)
     return str(filename)
