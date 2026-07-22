@@ -10,6 +10,7 @@ from .cache import cache
 from .conll import conll
 from .csv import csv
 from .eval import eval
+from .genbank import genbank
 from .hdf5 import hdf5
 from .iceberg import iceberg
 from .imagefolder import imagefolder
@@ -63,6 +64,7 @@ _PACKAGED_DATASETS_MODULES = {
     "lance": (lance.__name__, _hash_python_lines(inspect.getsource(lance).splitlines())),
     "tsfile": (tsfile.__name__, _hash_python_lines(inspect.getsource(tsfile).splitlines())),
     "iceberg": (iceberg.__name__, _hash_python_lines(inspect.getsource(iceberg).splitlines())),
+    "genbank": (genbank.__name__, _hash_python_lines(inspect.getsource(genbank).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -99,6 +101,9 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".eval": ("eval", {}),
     ".lance": ("lance", {}),
     ".tsfile": ("tsfile", {}),
+    ".gb": ("genbank", {}),
+    ".gbk": ("genbank", {}),
+    ".genbank": ("genbank", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
