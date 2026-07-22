@@ -5418,9 +5418,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return query_to_dict(slice(0, len(self)))
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
-            return (
-                query_to_dict(slice(offset, offset + batch_size)) for offset in range(0, len(self), batch_size)
-            )
+            return (query_to_dict(slice(offset, offset + batch_size)) for offset in range(0, len(self), batch_size))
 
     def to_list(self) -> list:
         """Returns the dataset as a Python list.
