@@ -1796,6 +1796,8 @@ def require_storage_cast(feature: FeatureType) -> bool:
     """
     if isinstance(feature, dict):
         return any(require_storage_cast(f) for f in feature.values())
+    elif isinstance(feature, (list, tuple)):
+        return require_storage_cast(feature[0])
     elif isinstance(feature, LargeList):
         return require_storage_cast(feature.feature)
     elif isinstance(feature, List):
@@ -1814,6 +1816,8 @@ def require_storage_embed(feature: FeatureType) -> bool:
     """
     if isinstance(feature, dict):
         return any(require_storage_embed(f) for f in feature.values())
+    elif isinstance(feature, (list, tuple)):
+        return require_storage_embed(feature[0])
     elif isinstance(feature, LargeList):
         return require_storage_embed(feature.feature)
     elif isinstance(feature, List):
