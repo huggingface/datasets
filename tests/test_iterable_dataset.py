@@ -2523,6 +2523,18 @@ def test_concatenate_datasets_axis_1_with_different_lengths():
     assert list(concatenated_dataset) == [{**x, **y} for x, y in zip(extended_dataset2_list, dataset1)]
 
 
+def test_concatenate_datasets_axis_1_arrow_format():
+    # Regression test: the arrow fast-path (_iter_arrow) of horizontal concatenation must
+    # accumulate every source's columns onto new_pa_table, exactly like the plain-Python
+    # __iter__ path above. It previously appended onto the leaked outer-loop table variable,
+    # dropping the first source's columns.
+    ds1 = Dataset.from_dict({"a": [1, 2], "b": [3, 4]}).to_iterable_dataset()
+    ds2 = Dataset.from_dict({"c": [5, 6]}).to_iterable_dataset()
+    table = pa.concat_tables(concatenate_datasets([ds1, ds2], axis=1).with_format("arrow"))
+    assert table.column_names == ["a", "b", "c"]
+    assert table.to_pydict() == {"a": [1, 2], "b": [3, 4], "c": [5, 6]}
+
+
 @require_torch
 @require_tf
 @require_jax
