@@ -1471,17 +1471,28 @@ def encode_nested_example(schema, obj, level=0):
     return obj
 
 
-def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
+def decode_nested_example(
+    schema, obj, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None, decoder_overrides=None
+):
     """Decode a nested example.
     This is used since some features (in particular Audio and Image) have some logic during decoding.
 
     To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be decoded.
     If the first element needs to be decoded, then all the elements of the list will be decoded, otherwise they'll stay the same.
+
+    Args:
+        decoder_overrides: optional dict mapping feature types to custom decode functions.
+            When the python type of a leaf feature matches a key, the override function is called
+            as ``override_fn(obj, schema, token_per_repo_id=...)`` instead of ``schema.decode_example(obj, ...)``.
     """
+    _kwargs = {"token_per_repo_id": token_per_repo_id, "decoder_overrides": decoder_overrides}
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
         return (
-            {k: decode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in zip_dict(schema, obj)}
+            {
+                k: decode_nested_example(sub_schema, sub_obj, **_kwargs)
+                for k, (sub_schema, sub_obj) in zip_dict(schema, obj)
+            }
             if obj is not None
             else None
         )
@@ -1494,8 +1505,8 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Uni
                 for first_elmt in obj:
                     if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
                         break
-                if decode_nested_example(sub_schema, first_elmt) != first_elmt:
-                    return [decode_nested_example(sub_schema, o) for o in obj]
+                if decode_nested_example(sub_schema, first_elmt, **_kwargs) != first_elmt:
+                    return [decode_nested_example(sub_schema, o, **_kwargs) for o in obj]
             return list(obj)
     elif isinstance(schema, (LargeList, List)):
         if obj is None:
@@ -1503,18 +1514,23 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Uni
         else:
             sub_schema = schema.feature
             if isinstance(sub_schema, dict):
-                return [decode_nested_example(sub_schema, o) for o in obj]
+                return [decode_nested_example(sub_schema, o, **_kwargs) for o in obj]
             if len(obj) > 0:
                 for first_elmt in obj:
                     if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
                         break
-                if decode_nested_example(sub_schema, first_elmt) != first_elmt:
-                    return [decode_nested_example(sub_schema, o) for o in obj]
+                if decode_nested_example(sub_schema, first_elmt, **_kwargs) != first_elmt:
+                    return [decode_nested_example(sub_schema, o, **_kwargs) for o in obj]
             return list(obj)
     # Object with special decoding:
     elif hasattr(schema, "decode_example") and getattr(schema, "decode", True):
+        if obj is None:
+            return None
+        if decoder_overrides:
+            if override_fn := decoder_overrides.get(type(schema)):
+                return override_fn(obj, schema, token_per_repo_id=token_per_repo_id)
         # we pass the token to read and decode files from private repositories in streaming mode
-        return schema.decode_example(obj, token_per_repo_id=token_per_repo_id) if obj is not None else None
+        return schema.decode_example(obj, token_per_repo_id=token_per_repo_id)
     return obj
 
 
