@@ -6992,7 +6992,7 @@ def _get_updated_dataset_card(
     if legacy_dataset_info:
         legacy_dataset_infos: dict = json.loads(fs.read_text(config.DATASETDICT_INFOS_FILENAME, encoding="utf-8"))
         legacy_dataset_infos[config_name] = asdict(info_to_dump)
-        new_legacy_dataset_infos = json.dumps(dataset_infos, indent=4)
+        new_legacy_dataset_infos = legacy_dataset_infos
     else:
         new_legacy_dataset_infos = None
     # push to README
