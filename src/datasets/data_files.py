@@ -347,6 +347,12 @@ def resolve_pattern(
         List[str]: List of paths or URLs to the local or remote files that match the patterns.
     """
     if is_relative_path(pattern):
+        # remove single dot segments (e.g. "./data/*" -> "data/*"), since remote filesystems
+        # like HfFileSystem treat "." as a literal directory name when globbing
+        while pattern.startswith("./"):
+            pattern = pattern[2:].lstrip("/")
+        while "/./" in pattern:
+            pattern = pattern.replace("/./", "/")
         pattern = xjoin(base_path, pattern)
     elif is_local_path(pattern):
         base_path = os.path.splitdrive(pattern)[0] + os.sep
