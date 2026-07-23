@@ -540,6 +540,46 @@ def test_data_files_with_metadata_url_scheme_is_rejected(cache_dir, tmp_path, au
         list(autofolder._generate_examples(**gen_kwargs))
 
 
+def test_data_files_with_metadata_symlink_escape_is_rejected(cache_dir, tmp_path, auto_text_file):
+    # Regression test for the review on https://github.com/huggingface/datasets/pull/8325:
+    # the string-based checks (URL scheme / absolute path / ".." traversal) only see a plain,
+    # innocent-looking relative `file_name` and let it through. If a subdirectory of the dataset
+    # is actually a symlink pointing outside the dataset directory, a reference such as
+    # "evil_link/secret.txt" resolves to a file outside the dataset root. Only the realpath-based
+    # containment check (`_metadata_reference_is_contained`) catches this, so this test guards that
+    # second layer of defense: with the string checks alone the reference would be read.
+    secret_dir = tmp_path / "outside"
+    secret_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(auto_text_file, secret_dir / "secret.txt")
+
+    data_dir = tmp_path / "data_dir_with_symlink_metadata"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(auto_text_file, data_dir / "file.txt")
+
+    # A subdirectory of the dataset that is really a symlink escaping the dataset root. Creating
+    # symlinks may require privileges (e.g. Windows without Developer Mode); skip when unavailable.
+    # The test still runs on Linux CI, where this attack matters.
+    evil_link = data_dir / "evil_link"
+    try:
+        evil_link.symlink_to(secret_dir, target_is_directory=True)
+    except (OSError, NotImplementedError) as e:
+        pytest.skip(f"symlink creation not available on this platform: {e!r}")
+
+    metadata_filename = data_dir / "metadata.jsonl"
+    metadata = '{"file_name": "evil_link/secret.txt", "additional_feature": "Malicious file"}\n'
+    with open(metadata_filename, "w", encoding="utf-8") as f:
+        f.write(metadata)
+
+    data_files = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
+    autofolder = DummyFolderBasedBuilder(data_files=data_files, cache_dir=cache_dir)
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    # The string checks accept this relative path; only the realpath-based containment check
+    # rejects it, with this specific message. Asserting on that message ensures the test would
+    # fail (the file would be read) if the containment check were removed.
+    with pytest.raises(ValueError, match="the resolved path escapes the dataset directory"):
+        list(autofolder._generate_examples(**gen_kwargs))
+
+
 def test_metadata_reference_containment_across_scheme_forms(tmp_path):
     # Regression test for the review on https://github.com/huggingface/datasets/pull/8325:
     # the containment check must actually run (not be skipped) for URLs and correctly handle
