@@ -5120,3 +5120,22 @@ def test_process_large_few_examples(tmp_path):
     # make sure this is split into 2 shards
     ds.save_to_disk(dataset_path, max_shard_size="1KB")
     assert (dataset_path / "data-00000-of-00001.arrow").exists()
+
+
+def test_get_token_per_repo_id_for_embed():
+    from datasets.arrow_dataset import _get_token_per_repo_id_for_embed
+    from datasets.features import Features, Image
+
+    table = pa.table(
+        {
+            "image": [
+                {
+                    "bytes": None,
+                    "path": "hf://datasets/hf-internal-testing/fixtures_image_utils@main/image.jpg",
+                }
+            ]
+        }
+    )
+    table = table.cast(Features({"image": Image()}).arrow_schema)
+    token_per_repo_id = _get_token_per_repo_id_for_embed(table, token="hf_test_token")
+    assert token_per_repo_id == {"hf-internal-testing/fixtures_image_utils": "hf_test_token"}
