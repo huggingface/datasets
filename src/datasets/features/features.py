@@ -46,6 +46,7 @@ from .image import Image, encode_pil_image
 from .mesh import Mesh
 from .nifti import Nifti, encode_nibabel_image
 from .pdf import Pdf, encode_pdfplumber_pdf
+from .protein_structure import ProteinStructure
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video
 
@@ -1536,6 +1537,7 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     Pdf.__name__: Pdf,
     Nifti.__name__: Nifti,
     Json.__name__: Json,
+    ProteinStructure.__name__: ProteinStructure,
 }
 
 
