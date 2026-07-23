@@ -75,7 +75,13 @@ class Json(datasets.ArrowBasedBuilder):
             )
         if self.config.newlines_in_values is not None:
             raise ValueError("The JSON loader parameter `newlines_in_values` is no longer supported")
-        return datasets.DatasetInfo(features=self.config.features)
+        features = self.config.features
+        # If the caller passed an explicit schema, make sure it accounts for the
+        # extra `file_name` column we append when return_file_name=True, otherwise
+        # `_cast_table` rejects the column since it isn't part of the schema.
+        if self.config.return_file_name and features is not None and "file_name" not in features:
+            features = datasets.Features({**features, "file_name": Value("string")})
+        return datasets.DatasetInfo(features=features)
 
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
