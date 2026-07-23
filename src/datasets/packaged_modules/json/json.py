@@ -56,6 +56,7 @@ class JsonConfig(datasets.BuilderConfig):
     newlines_in_values: Optional[bool] = None
     on_mixed_types: Optional[Literal["use_json"]] = "use_json"
     parse_agent_traces: bool = True
+    return_file_name: bool = False
 
     def __post_init__(self):
         super().__post_init__()
@@ -139,6 +140,14 @@ class Json(datasets.ArrowBasedBuilder):
     def _generate_shards(self, base_files, files_iterables, original_files):
         yield from base_files
 
+    def _add_file_name_column(self, pa_table: pa.Table, file) -> pa.Table:
+        """Append a 'file_name' column with the source file path, when return_file_name=True."""
+        if self.config.return_file_name:
+            pa_table = pa_table.append_column(
+                "file_name", pa.array([str(file)] * len(pa_table), type=pa.string())
+            )
+        return pa_table
+
     def _generate_tables(self, base_files, files_iterables, original_files, allow_full_read=True):
         json_field_paths = []
         is_agent_traces = False
@@ -166,6 +175,7 @@ class Json(datasets.ArrowBasedBuilder):
                     if df.columns.tolist() == [0]:
                         df.columns = list(self.config.features) if self.config.features else ["text"]
                     pa_table = pa.Table.from_pandas(df, preserve_index=False)
+                    pa_table = self._add_file_name_column(pa_table, file)
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
 
                 # If the files are agent traces (one row = one file except for hermes which can have multiple sessions per file)
@@ -218,6 +228,7 @@ class Json(datasets.ArrowBasedBuilder):
                             example = json_encode_field(example, json_field_path)
                         examples.append(example)
                     pa_table = pa.Table.from_pylist(examples)
+                    pa_table = self._add_file_name_column(pa_table, file)
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
 
                 # If the file has one json object per line
@@ -336,8 +347,10 @@ class Json(datasets.ArrowBasedBuilder):
                                     raise ValueError(
                                         f"Failed to convert pandas DataFrame to Arrow Table from file {file}."
                                     ) from None
+                                pa_table = self._add_file_name_column(pa_table, file)
                                 yield Key(shard_idx, 0), self._cast_table(pa_table)
                                 break
+                            pa_table = self._add_file_name_column(pa_table, file)
                             yield (
                                 Key(shard_idx, batch_idx),
                                 self._cast_table(pa_table, json_field_paths=json_field_paths),
