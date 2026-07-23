@@ -5219,7 +5219,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             " be less than 2."
                         )
                     else:
-                        raise error
+                        raise
 
             # random partition
             else:
