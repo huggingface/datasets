@@ -102,6 +102,41 @@ def bad_wds_file(tmp_path, image_file, text_file):
 
 
 @pytest.fixture
+def null_fields_wds_file(tmp_path):
+    json_file = tmp_path / "data.json"
+    filename = tmp_path / "file.tar"
+    num_examples = 20
+    with tarfile.open(str(filename), "w") as f:
+        for example_idx in range(num_examples):
+            # null/empty values in the first examples used for feature inference, actual values afterwards
+            null_values = example_idx < 10
+            json_file.write_text(
+                json.dumps(
+                    {
+                        "id": example_idx,
+                        "caption": None if null_values else f"this is an image {example_idx}",
+                        "tags": [] if null_values else ["foo", "bar"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            f.add(json_file, f"{example_idx:05d}.json")
+    return str(filename)
+
+
+@pytest.fixture
+def only_null_field_wds_file(tmp_path):
+    json_file = tmp_path / "data.json"
+    filename = tmp_path / "file.tar"
+    num_examples = 20
+    with tarfile.open(str(filename), "w") as f:
+        for example_idx in range(num_examples):
+            json_file.write_text(json.dumps({"id": example_idx, "caption": None}), encoding="utf-8")
+            f.add(json_file, f"{example_idx:05d}.json")
+    return str(filename)
+
+
+@pytest.fixture
 def tensor_wds_file(tmp_path, tensor_file):
     json_file = tmp_path / "data.json"
     filename = tmp_path / "file.tar"
@@ -331,6 +366,43 @@ def test_webdataset_with_features(image_wds_file):
     assert isinstance(decoded["json"], dict)
     assert isinstance(decoded["json"]["caption"], str)
     assert isinstance(decoded["jpg"], PIL.Image.Image)
+
+
+def test_webdataset_with_null_values_in_first_examples(tmp_path, null_fields_wds_file):
+    data_files = {"train": [null_fields_wds_file]}
+    webdataset = WebDataset(data_files=data_files, cache_dir=str(tmp_path / "cache"))
+    split_generators = webdataset._split_generators(DownloadManager())
+    assert webdataset.info.features == Features(
+        {
+            "__key__": Value("string"),
+            "__url__": Value("string"),
+            "json": {"id": Value("int64"), "caption": Value("string"), "tags": List(Value("string"))},
+        }
+    )
+    assert len(split_generators) == 1
+    split_generator = split_generators[0]
+    assert split_generator.name == "train"
+    generator = webdataset._generate_examples(**split_generator.gen_kwargs)
+    _, examples = zip(*generator)
+    assert len(examples) == 20
+    # it used to raise "Couldn't cast array of type string to null" when writing the non-null values
+    webdataset.download_and_prepare()
+    ds = webdataset.as_dataset(split="train")
+    assert ds[0]["json"] == {"id": 0, "caption": None, "tags": []}
+    assert ds[-1]["json"] == {"id": 19, "caption": "this is an image 19", "tags": ["foo", "bar"]}
+
+
+def test_webdataset_with_only_null_values(only_null_field_wds_file):
+    data_files = {"train": [only_null_field_wds_file]}
+    webdataset = WebDataset(data_files=data_files)
+    webdataset._split_generators(DownloadManager())
+    assert webdataset.info.features == Features(
+        {
+            "__key__": Value("string"),
+            "__url__": Value("string"),
+            "json": {"id": Value("int64"), "caption": Value("null")},
+        }
+    )
 
 
 @require_numpy1_on_windows
