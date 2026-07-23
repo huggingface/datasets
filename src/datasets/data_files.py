@@ -579,7 +579,7 @@ def _get_single_origin_metadata(
     return ()
 
 
-def _get_origin_metadata(
+def _fetch_origin_metadata(
     data_files_with_info: list[tuple[str, dict]],
     download_config: Optional[DownloadConfig] = None,
     max_workers: Optional[int] = None,
@@ -606,6 +606,32 @@ def _get_origin_metadata(
         # set `disable=None` rather than `disable=False` by default to disable progress bar when no TTY attached
         disable=len(data_files_with_info) <= 16 or None,
     )
+
+
+def _get_origin_metadata(
+    data_files_with_info: list[tuple[str, dict]],
+    download_config: Optional[DownloadConfig] = None,
+    max_workers: Optional[int] = None,
+) -> list[SingleOriginMetadata]:
+    origin_metadata = [None] * len(data_files_with_info)
+    to_fetch = []
+    for i, (filepath, info) in enumerate(data_files_with_info):
+        found = False
+        if not filepath.startswith(config.HF_ENDPOINT) and not filepath.startswith("hf://"):
+            for key in ["ETag", "etag", "mtime"]:
+                if key in info:
+                    origin_metadata[i] = (str(info[key]),)
+                    found = True
+                    break
+        if not found:
+            to_fetch.append((i, (filepath, info)))
+    if to_fetch:
+        fetched_metadata = _fetch_origin_metadata(
+            [item[1] for item in to_fetch], download_config=download_config, max_workers=max_workers
+        )
+        for (i, _), metadata in zip(to_fetch, fetched_metadata):
+            origin_metadata[i] = metadata
+    return origin_metadata
 
 
 class DataFilesList(list[str]):
