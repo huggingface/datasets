@@ -201,7 +201,17 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
             ):
                 if np.lib.NumpyVersion(np.__version__) >= "2.0.0b1":
                     return np.asarray(array, dtype=object)
-                return np.array(array, copy=False, dtype=object)
+            for first_subarray in array:
+                if isinstance(first_subarray, np.ndarray):
+                    if any(
+                        (isinstance(x, np.ndarray) and (x.dtype == object or x.shape != first_subarray.shape))
+                        or ((isinstance(x, float) and np.isnan(x) or x is None) and first_subarray.ndim > 0)
+                        for x in array
+                    ):
+                        if np.lib.NumpyVersion(np.__version__) >= "2.0.0b1":
+                            return np.asarray(array, dtype=object)
+                        return np.array(array, copy=False, dtype=object)
+                    break
         if np.lib.NumpyVersion(np.__version__) >= "2.0.0b1":
             return np.asarray(array)
         else:
