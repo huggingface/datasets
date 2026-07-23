@@ -1244,6 +1244,12 @@ class xPath(type(Path())):
 
 
 def _as_str(path: Union[str, Path, xPath]):
+    # For raw strings, return as-is. Routing them through `xPath()` -> pathlib silently
+    # collapses runs of slashes ("hdfs:///user/path" -> "hdfs:/user/path") and the
+    # downstream `://` reconstruction can only restore two slashes, so triple-slash
+    # URIs (HDFS default-host, file://, ...) lose a slash and become invalid (#7934).
+    if isinstance(path, str):
+        return path
     return str(path) if isinstance(path, xPath) else str(xPath(str(path)))
 
 
