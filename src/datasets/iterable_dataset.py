@@ -3573,6 +3573,10 @@ class IterableDataset(DatasetInfoMixin):
             input_columns = [input_columns]
         if isinstance(remove_columns, str):
             remove_columns = [remove_columns]
+        # Track whether the caller asked for the identity map (no `function` passed)
+        # so we can carry over the original `info.features` minus `remove_columns`
+        # below — see #7568.
+        function_was_none = function is None
         if function is None:
             function = identity_func
         if fn_kwargs is None:
@@ -3634,6 +3638,16 @@ class IterableDataset(DatasetInfoMixin):
         )
         info = self.info.copy()
         info.features = features
+        # When the caller passes only `remove_columns` (no `features`, no `function`
+        # that would add columns), we can carry over the existing schema minus the
+        # dropped columns rather than blowing it away to `None` — otherwise
+        # `column_names` silently becomes `None` after `.map(remove_columns=...)`
+        # (#7568). For arbitrary-`function` calls the resulting schema is unknown
+        # ahead of iteration, so we keep the prior conservative behavior of
+        # `info.features = None` to avoid lying about the columns.
+        if features is None and function_was_none and remove_columns is not None and self.info.features is not None:
+            removed = {remove_columns} if isinstance(remove_columns, str) else set(remove_columns)
+            info.features = Features({k: v for k, v in self.info.features.items() if k not in removed})
         return IterableDataset(
             ex_iterable=ex_iterable,
             info=info,
