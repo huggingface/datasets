@@ -2885,6 +2885,23 @@ class BaseDatasetTest(TestCase):
                 with dset.shard(num_shards=3, index=0) as dset_sharded_formatted:
                     self.assertEqual(dset_sharded_formatted.format["type"], "numpy")
 
+    def test_take(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                n = len(dset)
+                with dset.take(2) as taken:
+                    self.assertEqual(len(taken), 2)
+                    self.assertEqual(taken["filename"], dset["filename"][:2])
+                with dset.take(n) as taken:
+                    self.assertEqual(len(taken), n)
+                # taking more elements than available returns the whole dataset instead
+                # of raising an IndexError, matching the behavior of IterableDataset.take
+                with dset.take(n + 10) as taken:
+                    self.assertEqual(len(taken), n)
+                    self.assertEqual(taken["filename"], dset["filename"])
+                with dset.take(0) as taken:
+                    self.assertEqual(len(taken), 0)
+
     def test_flatten_indices(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
