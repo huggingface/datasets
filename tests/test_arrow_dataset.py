@@ -2885,6 +2885,28 @@ class BaseDatasetTest(TestCase):
                 with dset.shard(num_shards=3, index=0) as dset_sharded_formatted:
                     self.assertEqual(dset_sharded_formatted.format["type"], "numpy")
 
+    def test_shard_rejects_num_shards_greater_than_len(self, in_memory):
+        # Regression for https://github.com/huggingface/datasets/issues/7443:
+        # `num_shards > len(dataset)` previously silently produced empty shards
+        # (contiguous=True) or crashed with `IndexError` deep in `.select`
+        # (contiguous=False) — and bubbled up unhelpfully through `push_to_hub`
+        # / `save_to_disk`. Fail fast with an informative ValueError.
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict({"x": [1, 2, 3]}) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    with self.assertRaisesRegex(ValueError, r"num_shards \(10\) must be smaller"):
+                        dset.shard(num_shards=10, index=0)
+                    with self.assertRaisesRegex(ValueError, r"num_shards \(10\) must be smaller"):
+                        dset.shard(num_shards=10, index=5)
+                    with self.assertRaisesRegex(ValueError, r"num_shards \(4\) must be smaller"):
+                        dset.shard(num_shards=4, index=0, contiguous=False)
+                    # Boundary case: num_shards == len works.
+                    self.assertEqual(len(dset.shard(num_shards=3, index=0)), 1)
+                    # Empty datasets are exempt: pipeline code may legitimately call
+                    # `shard(1, 0)` on an empty result and expect the empty dataset back.
+                    with Dataset.from_dict({"x": []}) as empty:
+                        self.assertEqual(len(empty.shard(num_shards=1, index=0)), 0)
+
     def test_flatten_indices(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
