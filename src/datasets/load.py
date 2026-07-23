@@ -1767,6 +1767,7 @@ def load_from_disk(
     ```
     """
     fs: fsspec.AbstractFileSystem
+    dataset_path = str(dataset_path)
     fs, *_ = url_to_fs(dataset_path, **(storage_options or {}))
     if not fs.exists(dataset_path):
         raise FileNotFoundError(f"Directory {dataset_path} not found")
