@@ -3825,8 +3825,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         def prepare_outputs(pa_inputs, inputs, processed_inputs):
             nonlocal update_data
-            if not (update_data := (processed_inputs is not None)):
+            if processed_inputs is None:
+                # Don't reset `update_data` here: once a previous example/batch returned a
+                # dict, the writer has been initialized and we need to finalize it after the
+                # loop, even if subsequent examples/batches return `None` (issue #7990).
                 return None
+            update_data = True
             if isinstance(processed_inputs, LazyDict):
                 processed_inputs = {
                     k: v for k, v in processed_inputs.data.items() if k not in processed_inputs.keys_to_format
@@ -3971,8 +3975,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if not batched:
                     _time = time.time()
                     for i, example in iter_outputs(shard_iterable):
-                        if update_data:
-                            if i == 0:
+                        # `example is None` means the user's function returned None for this
+                        # example: don't write anything, but `update_data` may already be True
+                        # (latched) from a previous non-`None` return — see issue #7990.
+                        if update_data and example is not None:
+                            # Init the writer the first time a non-`None` example is produced,
+                            # not at `i == 0`: the user's function may legitimately return `None`
+                            # for early examples and a dict for later ones.
+                            if writer is None:
                                 buf_writer, writer, tmp_file = init_buffer_and_writer()
                                 stack.enter_context(writer)
                             if isinstance(example, pa.Table):
@@ -3997,8 +4007,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     _time = time.time()
                     for i, batch in iter_outputs(shard_iterable):
                         num_examples_in_batch = len(i)
-                        if update_data:
-                            if i and i[0] == 0:
+                        # See note above (issue #7990): init lazily on first non-`None` batch,
+                        # and skip writes for batches that returned `None`.
+                        if update_data and batch is not None:
+                            if writer is None:
                                 buf_writer, writer, tmp_file = init_buffer_and_writer()
                                 stack.enter_context(writer)
                             if isinstance(batch, pa.Table):
