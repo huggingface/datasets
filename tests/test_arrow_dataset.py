@@ -5120,3 +5120,37 @@ def test_process_large_few_examples(tmp_path):
     # make sure this is split into 2 shards
     ds.save_to_disk(dataset_path, max_shard_size="1KB")
     assert (dataset_path / "data-00000-of-00001.arrow").exists()
+
+
+def test_map_survives_chmod_permission_error(tmp_path):
+    """
+    Regression test for https://github.com/huggingface/datasets/issues/8125.
+
+    Flat-permission filesystems (GCS FUSE, S3 FUSE mounts) reject os.chmod
+    with PermissionError. The cache file is already written at that point,
+    so the chmod is best-effort — map() must not abort on it.
+    """
+    from datasets import Dataset
+
+    real_chmod = os.chmod
+    chmod_calls = []
+
+    def chmod_raising_permission_error(path, mode):
+        # Only fail for paths inside the cache dir. Let pytest's tmp-path
+        # housekeeping and unrelated chmod calls still work.
+        if str(path).startswith(str(tmp_path)):
+            chmod_calls.append(path)
+            raise PermissionError(f"[Errno 1] Operation not permitted: {path!r}")
+        return real_chmod(path, mode)
+
+    ds = Dataset.from_dict({"a": [1, 2, 3]})
+    cache_file = str(tmp_path / "mapped.arrow")
+
+    with patch("datasets.arrow_dataset.os.chmod", side_effect=chmod_raising_permission_error):
+        mapped = ds.map(lambda x: {"b": x["a"] * 2}, cache_file_name=cache_file)
+
+    # Map completed despite chmod failing — output is correct and file exists.
+    assert mapped["b"][:] == [2, 4, 6]
+    assert os.path.exists(cache_file)
+    # And the chmod was actually attempted (so the guard isn't a no-op).
+    assert len(chmod_calls) >= 1
