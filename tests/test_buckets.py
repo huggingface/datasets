@@ -1,16 +1,3 @@
-"""Regression tests for the storage-bucket (``buckets/...``) read/write code paths.
-
-Each test targets one fix and is written to fail on the pre-fix code:
-
-1. `test_bucket_module_uses_dataset_card_data_not_card`  -> src/datasets/load.py
-2. `test_bucket_module_preserves_card_when_standalone_yaml_missing` -> src/datasets/load.py
-3. `test_push_parquet_shards_reports_dataset_nbytes` -> src/datasets/iterable_dataset.py
-4. `test_get_updated_dataset_card_returns_legacy_infos_as_dict` -> src/datasets/arrow_dataset.py
-
-The full bucket read/write flow needs live Hub credentials; these drive the exact
-buggy code in isolation over in-memory filesystems / stubbed uploads instead.
-"""
-
 import io
 import json
 from dataclasses import asdict
@@ -36,8 +23,7 @@ README_WITH_CONFIG = (
 
 
 class _FakeHfFileSystem:
-    """Minimal in-memory stand-in for ``HfFileSystem``, keyed by basename."""
-
+    # minimal in-memory stand-in for HfFileSystem, keyed by basename
     def __init__(self, files):
         self._files = dict(files)
 
@@ -65,9 +51,8 @@ class _FakeHfFileSystem:
 
 
 def _load_bucket_module(monkeypatch, files):
-    """Run ``HubBucketDatasetModuleFactory.get_module()`` against an in-memory FS,
-    stubbing out the network-bound data-file resolution so only the card / metadata
-    handling under test runs for real."""
+    # run get_module() over an in-memory FS, stubbing the network-bound data-file
+    # resolution so only the card / metadata handling under test runs for real
     fake_fs = _FakeHfFileSystem(files)
     monkeypatch.setattr(datasets_load, "HfFileSystem", lambda **kwargs: fake_fs)
     monkeypatch.setattr(
@@ -85,13 +70,8 @@ def _load_bucket_module(monkeypatch, files):
 
 @pytest.mark.unit
 def test_bucket_module_uses_dataset_card_data_not_card(monkeypatch):
-    """Fix 1 (load.py): the factory must pass ``DatasetCard.data`` to the metadata
-    parsers. Passing the ``DatasetCard`` object raises
-    ``AttributeError: 'DatasetCard' object has no attribute 'get'`` on load.
-
-    A standalone YAML is present here so the failure isolates fix 1 (fix 2's
-    ``except`` branch is not reached).
-    """
+    # get_module() must pass DatasetCard.data, not the DatasetCard, to the metadata
+    # parsers. A standalone YAML is present so this isolates the .data fix.
     module = _load_bucket_module(
         monkeypatch,
         {config.REPOCARD_FILENAME: README_WITH_CONFIG, config.REPOYAML_FILENAME: "license: mit\n"},
@@ -101,10 +81,8 @@ def test_bucket_module_uses_dataset_card_data_not_card(monkeypatch):
 
 @pytest.mark.unit
 def test_bucket_module_preserves_card_when_standalone_yaml_missing(monkeypatch):
-    """Fix 2 (load.py): when the standalone ``.huggingface.yaml`` is absent, the
-    parsed README card must survive. The buggy ``except FileNotFoundError`` reset
-    ``dataset_card_data`` to an empty ``DatasetCardData``, dropping the configs.
-    """
+    # when the standalone .huggingface.yaml is absent, the parsed README card must
+    # survive (the buggy except branch reset it to an empty DatasetCardData)
     module = _load_bucket_module(monkeypatch, {config.REPOCARD_FILENAME: README_WITH_CONFIG})
     metadata_configs = module.builder_configs_parameters.metadata_configs
     assert "default" in metadata_configs
@@ -113,11 +91,6 @@ def test_bucket_module_preserves_card_when_standalone_yaml_missing(monkeypatch):
 
 @pytest.mark.unit
 def test_push_parquet_shards_reports_dataset_nbytes(monkeypatch):
-    """Fix 3 (iterable_dataset.py): the collector must accumulate the worker's
-    ``dataset_nbytes`` into ``SplitInfo.num_bytes``. The buggy code unpacked that
-    4th tuple element as ``uploaded_size`` and left ``num_bytes`` at 0.
-    """
-
     def gen():
         for i in range(3):
             yield {"x": i}
@@ -142,17 +115,13 @@ def test_push_parquet_shards_reports_dataset_nbytes(monkeypatch):
         embed_external_files=False,
         num_proc=None,
     )
+    # dataset_nbytes must reach SplitInfo.num_bytes (was dropped -> 0)
     assert split_info.num_bytes == 4242
     assert split_info.num_examples == 3
 
 
 @pytest.mark.unit
 def test_get_updated_dataset_card_returns_legacy_infos_as_dict():
-    """Fix 4 (arrow_dataset.py): ``_get_updated_dataset_card`` must return the legacy
-    dataset_infos as a ``dict`` (its declared ``Optional[dict]``), which the call
-    sites ``json.dumps`` once. The buggy line serialized the wrong variable
-    (``dataset_infos``), which is unbound when no README exists -> ``UnboundLocalError``.
-    """
     mem = MemoryFileSystem(skip_instance_cache=True)
     fs = DirFileSystem("/repo", fs=mem)
 
@@ -176,7 +145,7 @@ def test_get_updated_dataset_card_returns_legacy_infos_as_dict():
         remove_other_splits=False,
     )
 
+    # must be a dict (Optional[dict]) so the call site json.dumps writes an object, not a string
     assert isinstance(new_legacy_dataset_infos, dict)
     assert "default" in new_legacy_dataset_infos
-    # What gets written to dataset_infos.json parses back to an object, not a string.
     assert isinstance(json.loads(json.dumps(new_legacy_dataset_infos)), dict)
