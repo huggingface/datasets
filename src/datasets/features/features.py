@@ -117,10 +117,52 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
         return "large_string"
     elif pyarrow.types.is_string_view(arrow_type):
         return "string_view"
+    elif pyarrow.types.is_fixed_size_binary(arrow_type):
+        return f"fixed_size_binary[{arrow_type.byte_width}]"
+    elif pyarrow.types.is_fixed_size_list(arrow_type):
+        return f"fixed_size_list[{_arrow_to_datasets_dtype(arrow_type.value_type)}]({arrow_type.list_size})"
+    elif pyarrow.types.is_list(arrow_type):
+        return f"list[{_arrow_to_datasets_dtype(arrow_type.value_type)}]"
+    elif pyarrow.types.is_large_list(arrow_type):
+        return f"large_list[{_arrow_to_datasets_dtype(arrow_type.value_type)}]"
+    elif pyarrow.types.is_struct(arrow_type):
+        return f"struct{{{', '.join(f'{arrow_type[i].name}: {_arrow_to_datasets_dtype(arrow_type[i].type)}' for i in range(len(arrow_type)))}}}"
+    elif pyarrow.types.is_map(arrow_type):
+        return f"map[{_arrow_to_datasets_dtype(arrow_type.key_type)}, {_arrow_to_datasets_dtype(arrow_type.item_type)}]"
+    elif pyarrow.types.is_union(arrow_type):
+        fields_str = ', '.join(f'{arrow_type[i].name}: {_arrow_to_datasets_dtype(arrow_type[i].type)}' for i in range(len(arrow_type)))
+        type_codes = ', '.join(str(code) for code in arrow_type.type_codes)
+        return f"{arrow_type.mode}_union[{{{fields_str}}}, ({type_codes})]"
+    elif pyarrow.types.is_run_end_encoded(arrow_type):
+        return f"run_end_encoded[{_arrow_to_datasets_dtype(arrow_type.run_end_type)}, {_arrow_to_datasets_dtype(arrow_type.value_type)}]"
     elif pyarrow.types.is_dictionary(arrow_type):
         return _arrow_to_datasets_dtype(arrow_type.value_type)
+    elif str(arrow_type) == "month_day_nano_interval":
+        return "month_day_nano_interval"
     else:
         raise ValueError(f"Arrow type {arrow_type} does not have a datasets dtype equivalent.")
+
+
+def _split_on_top_level_comma(s: str) -> list[str]:
+    """Split a string on commas that are at the top nesting level (respecting brackets and braces)."""
+    parts = []
+    depth = 0
+    current = []
+    for ch in s:
+        if ch in '[{(':
+            depth += 1
+            current.append(ch)
+        elif ch in ']})':
+            depth -= 1
+            current.append(ch)
+        elif ch == ',' and depth == 0:
+            parts.append(''.join(current).strip())
+            current = []
+        else:
+            current.append(ch)
+    if current:
+        parts.append(''.join(current).strip())
+    return parts
 
 
 def string_to_arrow(datasets_dtype: str) -> pa.DataType:
@@ -266,6 +308,111 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
                     ],
                 )
             )
+        
+    fixed_size_binary_matches = re.search(r"^fixed_size_binary\[(\d+)\]$", datasets_dtype)
+    if fixed_size_binary_matches:
+        byte_width = fixed_size_binary_matches.group(1)
+        return pa.binary(int(byte_width))
+    
+    list_matches = re.search(r"^list\[(.*)\]$", datasets_dtype)
+    if list_matches:
+        value_type = list_matches.group(1)
+        return pa.list_(string_to_arrow(value_type))
+    
+    large_list_matches = re.search(r"^large_list\[(.*)\]$", datasets_dtype)
+    if large_list_matches:
+        value_type = large_list_matches.group(1)
+        return pa.large_list(string_to_arrow(value_type))
+
+    fixed_size_list_matches = re.search(r"^fixed_size_list\[(.*)\]\((\d+)\)$", datasets_dtype)
+    if fixed_size_list_matches:
+        value_type = fixed_size_list_matches.group(1)
+        list_size = int(fixed_size_list_matches.group(2))
+        return pa.list_(string_to_arrow(value_type), list_size)
+
+    struct_matches = re.search(r"^struct\{(.*)\}$", datasets_dtype)
+    if struct_matches:
+        fields_content = struct_matches.group(1)
+        fields = []
+        for field_str in _split_on_top_level_comma(fields_content):
+            name, dtype_str = field_str.split(':', 1)
+            fields.append(pa.field(name.strip(), string_to_arrow(dtype_str.strip())))
+        return pa.struct(fields)
+
+    map_matches = re.search(r"^map\[(.*)\]$", datasets_dtype)
+    if map_matches:
+        content = map_matches.group(1)
+        parts = _split_on_top_level_comma(content)
+        if len(parts) != 2:
+            raise ValueError(
+                _dtype_error_msg(
+                    datasets_dtype,
+                    "map",
+                    examples=["map[string, int32]", "map[string, list[float64]]"],
+                    urls=["https://arrow.apache.org/docs/python/generated/pyarrow.map_.html"],
+                )
+            )
+        return pa.map_(string_to_arrow(parts[0].strip()), string_to_arrow(parts[1].strip()))
+
+    union_matches = re.search(r"^(dense|sparse)_union\[(.*)\]$", datasets_dtype)
+    if union_matches:
+        mode = union_matches.group(1)
+        content = union_matches.group(2)
+        parts = _split_on_top_level_comma(content)
+        if len(parts) != 2:
+            raise ValueError(
+                _dtype_error_msg(
+                    datasets_dtype,
+                    "union",
+                    examples=["dense_union[{a: int32, b: string}, (0, 1)]"],
+                    urls=["https://arrow.apache.org/docs/python/generated/pyarrow.union.html"],
+                )
+            )
+        fields_str = parts[0].strip()
+        codes_str = parts[1].strip()
+        # Extract fields from {FIELDS}
+        fields_inner = re.search(r"^\{(.*)\}$", fields_str)
+        if not fields_inner:
+            raise ValueError(
+                _dtype_error_msg(
+                    datasets_dtype,
+                    "union",
+                    examples=["dense_union[{a: int32, b: string}, (0, 1)]"],
+                    urls=["https://arrow.apache.org/docs/python/generated/pyarrow.union.html"],
+                )
+            )
+        fields = []
+        for field_str in _split_on_top_level_comma(fields_inner.group(1)):
+            name, dtype_str = field_str.split(':', 1)
+            fields.append(pa.field(name.strip(), string_to_arrow(dtype_str.strip())))
+        # Extract type codes from (CODES)
+        codes_inner = re.search(r"^\((.*)\)$", codes_str)
+        if not codes_inner:
+            raise ValueError(
+                _dtype_error_msg(
+                    datasets_dtype,
+                    "union",
+                    examples=["dense_union[{a: int32, b: string}, (0, 1)]"],
+                    urls=["https://arrow.apache.org/docs/python/generated/pyarrow.union.html"],
+                )
+            )
+        type_codes = [int(c.strip()) for c in codes_inner.group(1).split(',')]
+        return pa.union(fields, mode, type_codes)
+
+    run_end_encoded_matches = re.search(r"^run_end_encoded\[(.*)\]$", datasets_dtype)
+    if run_end_encoded_matches:
+        content = run_end_encoded_matches.group(1)
+        parts = _split_on_top_level_comma(content)
+        if len(parts) != 2:
+            raise ValueError(
+                _dtype_error_msg(
+                    datasets_dtype,
+                    "run_end_encoded",
+                    examples=["run_end_encoded[int32, int32]"],
+                    urls=["https://arrow.apache.org/docs/python/generated/pyarrow.run_end_encoded.html"],
+                )
+            )
+        return pa.run_end_encoded(string_to_arrow(parts[0].strip()), string_to_arrow(parts[1].strip()))
 
     raise ValueError(
         f"Neither {datasets_dtype} nor {datasets_dtype + '_'} seems to be a pyarrow data type. "
