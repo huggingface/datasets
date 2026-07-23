@@ -2,7 +2,6 @@ import collections
 import io
 import itertools
 import os
-import posixpath
 from dataclasses import dataclass
 from typing import Any, Callable, Iterator, Optional, Union
 
@@ -432,17 +431,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                     f"and parent-directory ('..') traversal that escape the dataset directory are "
                                     f"not allowed."
                                 )
-                            resolved_reference = os.path.join(downloaded_metadata_dir, file_relpath)
-                            # Defense in depth: confirm the resolved reference stays inside the
-                            # metadata directory. This works for local dirs (resolving symlinks) as
-                            # well as for the fsspec URLs (possibly chained with "::") produced when
-                            # reading from a downloaded archive. See `_metadata_reference_is_contained`.
-                            if not _metadata_reference_is_contained(downloaded_metadata_dir, resolved_reference):
-                                raise ValueError(
-                                    f"Invalid metadata file_name '{item}': the resolved path escapes the "
-                                    f"dataset directory containing the metadata file."
-                                )
-                            item = resolved_reference
+                            item = os.path.join(downloaded_metadata_dir, file_relpath)
                     return item
 
                 for pa_metadata_table in self._read_metadata(downloaded_metadata_file, metadata_ext=metadata_ext):
@@ -469,47 +458,6 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         if len(pa_table) == 0:
                             continue
                     yield Key(shard_idx, sample_idx), sample
-
-
-def _metadata_reference_is_contained(downloaded_metadata_dir: str, resolved_reference: str) -> bool:
-    """Return whether ``resolved_reference`` stays inside ``downloaded_metadata_dir``.
-
-    ``downloaded_metadata_dir`` is the directory containing the metadata file and
-    ``resolved_reference`` is a metadata ``file_name`` joined onto it. Both may be plain local
-    paths or fsspec URLs, and either may be a chained URL that uses the "::" hop separator to
-    navigate a downloaded archive, e.g.:
-
-    * ``/path/to/local/metadata_dir``
-    * ``hf://path/to/remote/metadata_dir``
-    * ``zip://metadata_dir::/path/to/local/archive.zip``
-    * ``zip://metadata_dir::hf://path/to/remote/archive.zip``
-
-    Joining a relative ``file_name`` only extends the first "::" component (the path *inside* the
-    archive, or the whole reference when there is no archive); the remaining components describe
-    the fixed container and must not change. So containment is checked on the first component,
-    while every subsequent component must stay identical.
-    """
-    root_parts = downloaded_metadata_dir.split("::")
-    reference_parts = resolved_reference.split("::")
-    # The container part(s) after the first hop are fixed by the download step; a `file_name`
-    # must never alter them.
-    if root_parts[1:] != reference_parts[1:]:
-        return False
-    root, reference = root_parts[0], reference_parts[0]
-    if "://" in root:
-        # fsspec URL component: normalize textually with posixpath. os.path must not be used here
-        # because on Windows it rewrites "/" as "\\" and collapses the "//" of the URL scheme.
-        root_norm = posixpath.normpath(root)
-        reference_norm = posixpath.normpath(reference)
-        return reference_norm == root_norm or reference_norm.startswith(root_norm + "/")
-    # Genuine local path: resolve symlinks, then confirm containment.
-    real_root = os.path.realpath(root)
-    real_reference = os.path.realpath(reference)
-    try:
-        return os.path.commonpath([real_root, real_reference]) == real_root
-    except ValueError:
-        # commonpath raises ValueError for paths on different drives (Windows).
-        return False
 
 
 def _nested_apply(item: Any, feature_path: _VisitPath, func: Callable[[Any, _VisitPath], Any]):

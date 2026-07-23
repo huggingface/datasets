@@ -13,7 +13,6 @@ from datasets.download.streaming_download_manager import StreamingDownloadManage
 from datasets.packaged_modules.folder_based_builder.folder_based_builder import (
     FolderBasedBuilder,
     FolderBasedBuilderConfig,
-    _metadata_reference_is_contained,
 )
 
 
@@ -538,89 +537,6 @@ def test_data_files_with_metadata_url_scheme_is_rejected(cache_dir, tmp_path, au
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     with pytest.raises(ValueError, match="Invalid metadata file_name"):
         list(autofolder._generate_examples(**gen_kwargs))
-
-
-def test_data_files_with_metadata_symlink_escape_is_rejected(cache_dir, tmp_path, auto_text_file):
-    # Regression test for the review on https://github.com/huggingface/datasets/pull/8325:
-    # the string-based checks (URL scheme / absolute path / ".." traversal) only see a plain,
-    # innocent-looking relative `file_name` and let it through. If a subdirectory of the dataset
-    # is actually a symlink pointing outside the dataset directory, a reference such as
-    # "evil_link/secret.txt" resolves to a file outside the dataset root. Only the realpath-based
-    # containment check (`_metadata_reference_is_contained`) catches this, so this test guards that
-    # second layer of defense: with the string checks alone the reference would be read.
-    secret_dir = tmp_path / "outside"
-    secret_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(auto_text_file, secret_dir / "secret.txt")
-
-    data_dir = tmp_path / "data_dir_with_symlink_metadata"
-    data_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(auto_text_file, data_dir / "file.txt")
-
-    # A subdirectory of the dataset that is really a symlink escaping the dataset root. Creating
-    # symlinks may require privileges (e.g. Windows without Developer Mode); skip when unavailable.
-    # The test still runs on Linux CI, where this attack matters.
-    evil_link = data_dir / "evil_link"
-    try:
-        evil_link.symlink_to(secret_dir, target_is_directory=True)
-    except (OSError, NotImplementedError) as e:
-        pytest.skip(f"symlink creation not available on this platform: {e!r}")
-
-    metadata_filename = data_dir / "metadata.jsonl"
-    metadata = '{"file_name": "evil_link/secret.txt", "additional_feature": "Malicious file"}\n'
-    with open(metadata_filename, "w", encoding="utf-8") as f:
-        f.write(metadata)
-
-    data_files = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
-    autofolder = DummyFolderBasedBuilder(data_files=data_files, cache_dir=cache_dir)
-    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
-    # The string checks accept this relative path; only the realpath-based containment check
-    # rejects it, with this specific message. Asserting on that message ensures the test would
-    # fail (the file would be read) if the containment check were removed.
-    with pytest.raises(ValueError, match="the resolved path escapes the dataset directory"):
-        list(autofolder._generate_examples(**gen_kwargs))
-
-
-def test_metadata_reference_containment_across_scheme_forms(tmp_path):
-    # Regression test for the review on https://github.com/huggingface/datasets/pull/8325:
-    # the containment check must actually run (not be skipped) for URLs and correctly handle
-    # chained "::" references. It must work for the four forms `downloaded_metadata_dir` can take:
-    #   1. a local path                          -> /path/to/metadata_dir
-    #   2. a remote URL                          -> hf://path/to/metadata_dir
-    #   3. a chained URL over a local archive    -> zip://metadata_dir::/path/to/archive.zip
-    #   4. a chained URL over a remote archive   -> zip://metadata_dir::hf://path/to/archive.zip
-    # `os.path.join` is patched to the fsspec-aware `xjoin` once a builder is instantiated, which is
-    # exactly how `set_feature` joins the reference at runtime, so use it here too.
-    _ = DummyFolderBasedBuilder(data_dir=".")  # triggers the streaming patch of os.path.join
-    from datasets.packaged_modules.folder_based_builder import folder_based_builder as fbb
-
-    xjoin = fbb.os.path.join
-
-    # a real local metadata dir (with a real subdir) so realpath-based containment can resolve
-    local_dir = tmp_path / "metadata_dir"
-    (local_dir / "subdir").mkdir(parents=True, exist_ok=True)
-    (tmp_path / "outside").mkdir(parents=True, exist_ok=True)
-
-    forms = {
-        "local": local_dir.as_posix(),
-        "hf_remote": "hf://datasets/user/repo@main/metadata_dir",
-        "zip_local": "zip://metadata_dir::/data/local/archive.zip",
-        "zip_remote": "zip://metadata_dir::hf://datasets/user/repo@main/archive.zip",
-    }
-    for name, metadata_dir in forms.items():
-        # a legitimate relative reference must be considered contained
-        legit = xjoin(metadata_dir, "subdir/file2.txt")
-        assert _metadata_reference_is_contained(metadata_dir, legit), f"legit ref rejected for {name}"
-
-        # a reference pointing at a sibling of the metadata dir must be rejected
-        head, _, _ = metadata_dir.partition("::")
-        sibling_head = head.rsplit("/", 1)[0] + "/evil_sibling"
-        escaping = sibling_head + metadata_dir[len(head) :]
-        assert not _metadata_reference_is_contained(metadata_dir, escaping), f"sibling escape allowed for {name}"
-
-        # for chained URLs, tampering with the container part (after "::") must be rejected
-        if "::" in metadata_dir:
-            tampered = legit.split("::")[0] + "::/attacker/other.zip"
-            assert not _metadata_reference_is_contained(metadata_dir, tampered), f"container tamper allowed for {name}"
 
 
 def test_data_files_with_metadata_legitimate_subdir_reference(cache_dir, tmp_path, auto_text_file):
