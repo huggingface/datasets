@@ -1,6 +1,5 @@
 import os
 from argparse import ArgumentParser
-from typing import List
 
 import torch.utils.data
 
@@ -16,7 +15,7 @@ class FailedTestError(RuntimeError):
     pass
 
 
-def gen(shards: List[str]):
+def gen(shards: list[str]):
     for shard in shards:
         for i in range(NUM_ITEMS_PER_SHARD):
             yield {"i": i, "shard": shard}
