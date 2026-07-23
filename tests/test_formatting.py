@@ -98,6 +98,36 @@ class ArrowExtractorTest(TestCase):
         self.assertEqual(batch["c"][0].dtype, object)
         self.assertEqual(batch["c"].dtype, object)
 
+    def test_numpy_extractor_flat_numeric_with_nulls(self):
+        # A flat homogeneous numeric column with nulls must stay numeric (nulls -> nan),
+        # not be promoted to dtype=object. Previously only float32 was spared because
+        # np.float64/np.int64 nulls surface as np.float64(nan), which is a Python float
+        # subclass and wrongly tripped the object-dtype promotion.
+        extractor = NumpyArrowExtractor()
+        for pa_type, expected_dtype in [
+            (pa.float64(), np.float64),
+            (pa.float32(), np.float32),
+            (pa.int64(), np.float64),  # nulls force pyarrow to a floating result
+        ]:
+            pa_table = pa.table({"c": pa.array([1.0, None, 3.0], type=pa_type)})
+            col = extractor.extract_column(pa_table)
+            self.assertEqual(col.dtype, expected_dtype)
+            self.assertTrue(np.isnan(col[1]))
+            np.testing.assert_array_equal(col[[0, 2]], np.array([1.0, 3.0], dtype=expected_dtype))
+            batch = extractor.extract_batch(pa_table)
+            self.assertEqual(batch["c"].dtype, expected_dtype)
+
+    def test_numpy_extractor_nested_with_nulls(self):
+        # A per-row array column with a null row cannot be stacked into a homogeneous
+        # numeric array, so it must still be returned as dtype=object (the case the
+        # object-dtype promotion exists for). The flat-column fix must not regress this.
+        extractor = NumpyArrowExtractor()
+        pa_table = pa.table({"c": pa.array([[1.0, 2.0], [3.0, 4.0, 5.0], None], type=pa.list_(pa.float64()))})
+        col = extractor.extract_column(pa_table)
+        self.assertEqual(col.dtype, object)
+        batch = extractor.extract_batch(pa_table)
+        self.assertEqual(batch["c"].dtype, object)
+
     def test_numpy_extractor_temporal(self):
         pa_table = self._create_dummy_table().drop(["a", "b", "c"])
         extractor = NumpyArrowExtractor()

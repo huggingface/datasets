@@ -188,7 +188,13 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
                 array: list = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
 
         if len(array) > 0:
-            if any(
+            # Only promote to dtype=object when the column is made of per-row arrays
+            # (ArrayXD/list columns) that cannot be stacked into a homogeneous numeric
+            # array: ragged shapes, an already-object element, or a null row arriving as
+            # a scalar nan among the ndarrays. A flat homogeneous numeric column whose
+            # nulls surface as scalar nan must stay numeric, so guard the whole check on
+            # the presence of an ndarray element first.
+            if any(isinstance(x, np.ndarray) for x in array) and any(
                 (isinstance(x, np.ndarray) and (x.dtype == object or x.shape != array[0].shape))
                 or (isinstance(x, float) and np.isnan(x))
                 for x in array
