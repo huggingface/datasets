@@ -2557,6 +2557,16 @@ class BaseDatasetTest(TestCase):
                 for col_name in dset.column_names:
                     self.assertLessEqual(len(dset_to_dict[col_name]), len(dset))
 
+                # Batched
+                batch_size = dset.num_rows - 1
+                to_dict_generator = dset.to_dict(batched=True, batch_size=batch_size)
+
+                for batch in to_dict_generator:
+                    self.assertIsInstance(batch, dict)
+                    self.assertListEqual(sorted(batch.keys()), sorted(dset.column_names))
+                    for col_name in dset.column_names:
+                        self.assertLessEqual(len(batch[col_name]), batch_size)
+
                 # With index mapping
                 with dset.select([1, 0, 3]) as dset:
                     dset_to_dict = dset.to_dict()
