@@ -4054,7 +4054,14 @@ class IterableDataset(DatasetInfoMixin):
         Returns:
             `IterableDataset`
         """
-        return self.map(partial(add_column_fn, name=name, column=column), with_indices=True)
+        original_features = self._info.features.copy() if self._info.features else None
+        ds_iterable = self.map(partial(add_column_fn, name=name, column=column), with_indices=True)
+        if original_features is not None:
+            col_table = pa.table({name: column})
+            new_features = original_features.copy()
+            new_features[name] = Features.from_arrow_schema(col_table.schema)[name]
+            ds_iterable._info.features = new_features
+        return ds_iterable
 
     def rename_column(self, original_column_name: str, new_column_name: str) -> "IterableDataset":
         """
