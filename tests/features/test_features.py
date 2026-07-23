@@ -294,6 +294,21 @@ class FeaturesTest(TestCase):
         assert_features_dicts_are_synced(features)
 
 
+def test_list_sequence_largelist_dtype():
+    # Regression test for https://github.com/huggingface/datasets/issues/8002:
+    # `List`, `Sequence` (when not given a dict) and `LargeList` should expose a
+    # descriptive `dtype` like the other feature types (e.g. `Image.dtype == "PIL.Image.Image"`),
+    # so that downstream code (e.g. transformers' `run_classification.py`) can branch
+    # on `feature.dtype == "list"`.
+    assert List(Value("int64")).dtype == "list"
+    assert LargeList(Value("int64")).dtype == "list"
+    # Sequence(non_dict) returns a List under the hood, so the same check applies.
+    assert Sequence(ClassLabel(names=["No", "Yes"])).dtype == "list"
+    # Sequence(dict) intentionally returns a regular dict — not a feature class —
+    # so it has no `dtype`. Make sure we didn't accidentally change that.
+    assert isinstance(Sequence({"a": Value("int64")}), dict)
+
+
 def test_classlabel_init(tmp_path_factory):
     names = ["negative", "positive"]
     names_file = str(tmp_path_factory.mktemp("features") / "labels.txt")
