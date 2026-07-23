@@ -385,6 +385,24 @@ def test_webdataset_read_error_includes_path_and_tracked_origin(corrupted_wds_fi
     assert message.startswith(f"Failed to read TAR archive {corrupted_wds_file!r} (origin={origin}):")
 
 
+def test_webdataset_read_error_strips_userinfo_and_query_from_origin(corrupted_wds_file):
+    origin = "https://user:pass@example.com/bucket/file.tar?X-Amz-Signature=abc&Expires=1"
+    safe_origin = "https://example.com/bucket/file.tar"
+    tar_path = tracked_str(corrupted_wds_file)
+    tar_path.set_origin(origin)
+    tar_iterator = DownloadManager().iter_archive(str(tar_path))
+
+    with pytest.raises(tarfile.ReadError) as raised:
+        next(WebDataset._get_pipeline_from_tar(tar_path, tar_iterator))
+
+    message = str(raised.value)
+    assert corrupted_wds_file in message
+    assert safe_origin in message
+    assert "user:pass" not in message
+    assert "X-Amz-Signature" not in message
+    assert message.startswith(f"Failed to read TAR archive {corrupted_wds_file!r} (origin={safe_origin}):")
+
+
 def test_webdataset_read_error_omits_origin_when_same_as_path(corrupted_wds_file):
     tar_path = tracked_str(corrupted_wds_file)
     tar_path.set_origin(corrupted_wds_file)
