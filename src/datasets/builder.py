@@ -714,8 +714,6 @@ class DatasetBuilder:
                 Specific download configuration parameters.
             download_mode ([`DownloadMode`] or `str`, *optional*):
                 Select the download/generate mode, default to `REUSE_DATASET_IF_EXISTS`.
-            verification_mode ([`VerificationMode`] or `str`, defaults to `BASIC_CHECKS`):
-                Verification mode determining the checks to run on the downloaded/processed dataset information (checksums/size/splits/...).
 
                 <Added version="2.9.1"/>
             dl_manager (`DownloadManager`, *optional*):
@@ -987,11 +985,6 @@ class DatasetBuilder:
         Args:
             split (`datasets.Split`):
                 Which subset of the data to return.
-            verification_mode ([`VerificationMode`] or `str`, defaults to `BASIC_CHECKS`):
-                Verification mode determining the checks to run on the
-                downloaded/processed dataset information (checksums/size/splits/...).
-
-                <Added version="2.9.1"/>
             in_memory (`bool`, defaults to `False`):
                 Whether to copy the data in-memory.
 
