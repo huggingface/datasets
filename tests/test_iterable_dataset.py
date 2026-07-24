@@ -2965,6 +2965,26 @@ def test_resume_dataloader_twice(num_workers):
     assert consumed + remainder == all_examples
 
 
+@pytest.mark.parametrize("consume", [1, 500, 1500])
+@pytest.mark.parametrize("batched", [False, True])
+def test_iterable_dataset_filter_resume_state_dict(consume, batched):
+    # Resuming an arrow-backed `filter()` must not skip rows: the formatter reads one
+    # example ahead instead of a whole arrow table, so state_dict() records the shard
+    # position at the emitted example and resume replays every unemitted row exactly once.
+    n = 2000
+    filter_fn = (lambda batch: [True] * len(batch["a"])) if batched else (lambda example: True)
+    ds = Dataset.from_dict({"a": list(range(n))}).to_iterable_dataset(num_shards=1).filter(filter_fn, batched=batched)
+    it = iter(ds)
+    seen = [next(it)["a"] for _ in range(consume)]
+    state_dict = ds.state_dict()
+    resumed = (
+        Dataset.from_dict({"a": list(range(n))}).to_iterable_dataset(num_shards=1).filter(filter_fn, batched=batched)
+    )
+    resumed.load_state_dict(state_dict)
+    rest = [example["a"] for example in resumed]
+    assert seen + rest == list(range(n))
+
+
 @pytest.mark.parametrize("num_shards", [1, 2, 3, 7])
 def test_iterable_dataset_batch(num_shards: int):
     # Create a simple IterableDataset
