@@ -329,6 +329,13 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(dset[0]["filename"], "my_name-train_0")
                 self.assertEqual(dset["filename"][0], "my_name-train_0")
 
+            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
+                dataset_path = Path(tmp_dir) / "my_dataset_pathlib"
+                dset.save_to_disk(dataset_path)
+
+            with Dataset.load_from_disk(dataset_path) as dset:
+                self.assertEqual(len(dset), 10)
+
             with self._create_dummy_dataset(in_memory, tmp_dir).select(
                 range(10), indices_cache_file_name=os.path.join(tmp_dir, "ind.arrow")
             ) as dset:
