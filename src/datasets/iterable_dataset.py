@@ -3702,10 +3702,17 @@ class IterableDataset(DatasetInfoMixin):
         # format and type before filtering
         ex_iterable = self._ex_iterable
         if self._info.features or self._formatting:
+            if ex_iterable.iter_arrow:
+                # Rebatch before formatting so the formatter reads at most one batch ahead
+                # instead of a whole arrow table. Without this, a non-batched filter consumes
+                # a table in full while emitting examples one at a time, so state_dict()
+                # records the shard position at the table end and resume skips every unemitted
+                # row of that table (mirrors `map`, see #8147).
+                ex_iterable = RebatchedArrowExamplesIterable(ex_iterable, batch_size=batch_size if batched else 1)
             ex_iterable = FormattedExamplesIterable(
                 ex_iterable,
                 formatting=self._formatting,
-                features=ex_iterable.features if ex_iterable.is_typed else self._info.features,
+                features=self._ex_iterable.features if self._ex_iterable.is_typed else self._info.features,
                 token_per_repo_id=self._token_per_repo_id,
             )
 
