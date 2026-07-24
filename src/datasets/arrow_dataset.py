@@ -5507,6 +5507,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             **to_json_kwargs,
         ).write()
 
+    def _decode_json_columns_pandas(self, df: "pd.DataFrame") -> "pd.DataFrame":
+        """Decode `Json` feature columns of a pandas `DataFrame` from their raw Arrow string
+        storage back to Python objects, in place. Keeps `to_pandas` consistent with
+        `to_dict`/`to_list`/`to_json` and `with_format("pandas")`, which already decode."""
+        from functools import partial
+
+        from .utils.json import get_json_field_paths_from_feature, json_decode_field
+
+        for json_field_path in get_json_field_paths_from_feature(self.features):
+            col, *json_field_subpath = json_field_path
+            df[col] = df[col].apply(partial(json_decode_field, json_field_path=json_field_subpath))
+        return df
+
     def to_pandas(
         self, batch_size: Optional[int] = None, batched: bool = False
     ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
@@ -5530,19 +5543,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         if not batched:
-            return query_table(
+            df = query_table(
                 table=self._data,
                 key=slice(0, len(self)),
                 indices=self._indices,
             ).to_pandas(types_mapper=pandas_types_mapper)
+            return self._decode_json_columns_pandas(df)
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
-                query_table(
-                    table=self._data,
-                    key=slice(offset, offset + batch_size),
-                    indices=self._indices,
-                ).to_pandas(types_mapper=pandas_types_mapper)
+                self._decode_json_columns_pandas(
+                    query_table(
+                        table=self._data,
+                        key=slice(offset, offset + batch_size),
+                        indices=self._indices,
+                    ).to_pandas(types_mapper=pandas_types_mapper)
+                )
                 for offset in range(0, len(self), batch_size)
             )
 
