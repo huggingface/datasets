@@ -104,11 +104,6 @@ class JsonDatasetWriter:
         if compression not in [None, "infer", "gzip", "bz2", "xz"]:
             raise NotImplementedError(f"`datasets` currently does not support {compression} compression")
 
-        if not lines and self.batch_size < self.dataset.num_rows:
-            raise NotImplementedError(
-                "Output JSON will not be formatted correctly when lines = False and batch_size < number of rows in the dataset. Use pandas.DataFrame.to_json() instead."
-            )
-
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
             with fsspec.open(
                 self.path_or_buf, "wb", compression=compression, **(self.storage_options or {})
@@ -140,6 +135,18 @@ class JsonDatasetWriter:
             json_str += "\n"
         return json_str.encode(self.encoding)
 
+    @staticmethod
+    def _strip_json_array_brackets(json_bytes):
+        """Strip leading '[' and trailing ']\\n' (or ']') from a JSON array byte string."""
+        inner = json_bytes
+        if inner.startswith(b"["):
+            inner = inner[1:]
+        if inner.endswith(b"]\n"):
+            inner = inner[:-2]
+        elif inner.endswith(b"]"):
+            inner = inner[:-1]
+        return inner
+
     def _write(
         self,
         file_obj: BinaryIO,
@@ -152,27 +159,70 @@ class JsonDatasetWriter:
         Caller is responsible for opening and closing the handle.
         """
         written = 0
+        num_rows, batch_size = len(self.dataset), self.batch_size
 
-        if self.num_proc is None or self.num_proc == 1:
-            for offset in hf_tqdm(
-                range(0, len(self.dataset), self.batch_size),
-                unit="ba",
-                desc="Creating json from Arrow format",
-            ):
-                json_str = self._batch_json((offset, orient, lines, to_json_kwargs))
-                written += file_obj.write(json_str)
-        else:
-            num_rows, batch_size = len(self.dataset), self.batch_size
-            with multiprocessing.Pool(self.num_proc) as pool:
-                for json_str in hf_tqdm(
-                    pool.imap(
-                        self._batch_json,
-                        [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
-                    ),
-                    total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
+        if lines:
+            if self.num_proc is None or self.num_proc == 1:
+                for offset in hf_tqdm(
+                    range(0, num_rows, batch_size),
                     unit="ba",
                     desc="Creating json from Arrow format",
                 ):
-                    written += file_obj.write(json_str)
+                    json_bytes = self._batch_json((offset, orient, lines, to_json_kwargs))
+                    written += file_obj.write(json_bytes)
+            else:
+                with multiprocessing.Pool(self.num_proc) as pool:
+                    for json_bytes in hf_tqdm(
+                        pool.imap(
+                            self._batch_json,
+                            [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
+                        ),
+                        total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
+                        unit="ba",
+                        desc="Creating json from Arrow format",
+                    ):
+                        written += file_obj.write(json_bytes)
+        elif orient == "records":
+            written += file_obj.write(b"[")
+            if self.num_proc is None or self.num_proc == 1:
+                for i, offset in enumerate(hf_tqdm(
+                    range(0, num_rows, batch_size),
+                    unit="ba",
+                    desc="Creating json from Arrow format",
+                )):
+                    json_bytes = self._batch_json((offset, orient, lines, to_json_kwargs))
+                    inner = self._strip_json_array_brackets(json_bytes)
+                    if i > 0:
+                        written += file_obj.write(b",")
+                    written += file_obj.write(inner)
+            else:
+                with multiprocessing.Pool(self.num_proc) as pool:
+                    batch_args = [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)]
+                    total_batches = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
+                    for i, json_bytes in enumerate(hf_tqdm(
+                        pool.imap(self._batch_json, batch_args),
+                        total=total_batches,
+                        unit="ba",
+                        desc="Creating json from Arrow format",
+                    )):
+                        inner = self._strip_json_array_brackets(json_bytes)
+                        if i > 0:
+                            written += file_obj.write(b",")
+                        written += file_obj.write(inner)
+            written += file_obj.write(b"]\n")
+        else:
+            batch = query_table(
+                table=self.dataset.data,
+                key=slice(0, num_rows),
+                indices=self.dataset._indices,
+            )
+            batch = batch.to_pandas()
+            for json_field_path in get_json_field_paths_from_feature(self.dataset.features):
+                col, *json_field_subpath = json_field_path
+                batch[col] = batch[col].apply(partial(json_decode_field, json_field_path=json_field_subpath))
+            json_str = batch.to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
+            if not json_str.endswith("\n"):
+                json_str += "\n"
+            written += file_obj.write(json_str.encode(self.encoding))
 
         return written
