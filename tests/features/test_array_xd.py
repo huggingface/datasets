@@ -397,6 +397,28 @@ def test_array_xd_with_none():
     assert np.isnan(arr[1]) and np.isnan(arr[3])  # a single np.nan value - np.all not needed
 
 
+def test_array_xd_with_none_python_format_keeps_integers():
+    # Fixed-shape integer column with a null row: the python read path (to_dict /
+    # to_pylist) must keep the non-null values as integers and surface the null as
+    # None, not cast the whole column to float to make room for np.nan.
+    features = datasets.Features({"foo": datasets.Array2D(dtype="int64", shape=(1, 2))})
+    dataset = datasets.Dataset.from_dict({"foo": [[[10, 20]], [[30, 40]], None]}, features=features)
+    assert dataset.to_dict()["foo"] == [[[10, 20]], [[30, 40]], None]
+    assert all(isinstance(v, int) for row in (dataset[0]["foo"], dataset[1]["foo"]) for v in row[0])
+
+    # Integers above 2**53 are not representable as float64, so the old float cast
+    # silently altered them; the python path must round-trip them exactly.
+    big = 9007199254740993  # 2**53 + 1
+    features = datasets.Features({"foo": datasets.Array2D(dtype="int64", shape=(1, 1))})
+    dataset = datasets.Dataset.from_dict({"foo": [[[big]], None]}, features=features)
+    assert dataset.to_dict()["foo"] == [[[big]], None]
+
+    # The numpy format is unchanged: a fixed-shape column keeps its dense float64 +
+    # np.nan representation (numpy cannot hold both integers and a missing marker).
+    arr = NumpyArrowExtractor().extract_column(dataset._data)
+    assert arr.dtype == np.float64 and np.isnan(arr[1]).all()
+
+
 @pytest.mark.parametrize("seq_type", ["no_sequence", "sequence", "sequence_of_sequence"])
 @pytest.mark.parametrize(
     "dtype",
