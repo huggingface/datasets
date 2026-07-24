@@ -2444,6 +2444,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
 class DistributedConfig:
     rank: int
     world_size: int
+    force_sample_level: bool = False
 
 
 def _maybe_add_torch_iterable_dataset_parent_class(cls):
@@ -2684,8 +2685,11 @@ class IterableDataset(DatasetInfoMixin):
 
     @property
     def num_shards(self) -> int:
-        if self._distributed and self._ex_iterable.num_shards % self._distributed.world_size == 0:
-            return self._ex_iterable.num_shards // self._distributed.world_size
+        if self._distributed:
+            world_size = self._distributed.world_size
+            divisible = self._ex_iterable.num_shards % world_size == 0
+            if divisible and not self._distributed.force_sample_level:
+                return self._ex_iterable.num_shards // world_size
         return self._ex_iterable.num_shards
 
     @property
@@ -2773,7 +2777,8 @@ class IterableDataset(DatasetInfoMixin):
         if self._distributed:
             rank = self._distributed.rank
             world_size = self._distributed.world_size
-            if ex_iterable.num_shards % world_size == 0:
+            divisible = ex_iterable.num_shards % world_size == 0
+            if divisible and not self._distributed.force_sample_level:
                 if self._is_main_process():
                     num_shards_per_node = ex_iterable.num_shards // world_size
                     plural = "s" if num_shards_per_node > 1 else ""
@@ -2786,11 +2791,12 @@ class IterableDataset(DatasetInfoMixin):
                     logger.info(
                         f"Assigning 1 out of {world_size} examples of the dataset to each node. The others are skipped during the iteration."
                     )
-                    logger.info(
-                        f"It is more optimized to distribute the dataset shards (or data sources) across nodes. "
-                        f"You can do that by using a dataset with number of shards that is a factor of world_size={world_size}. "
-                        f"The current dataset has {ex_iterable.num_shards} which is not a factor of {world_size}"
-                    )
+                    if not self._distributed.force_sample_level and not divisible:
+                        logger.info(
+                            f"It is more optimized to distribute the dataset shards (or data sources) across nodes. "
+                            f"You can do that by using a dataset with number of shards that is a factor of world_size={world_size}. "
+                            f"The current dataset has {ex_iterable.num_shards} which is not a factor of {world_size}"
+                        )
                 ex_iterable = StepExamplesIterable(ex_iterable, step=world_size, offset=rank)
 
         if ex_iterable.iter_arrow:
@@ -5363,13 +5369,24 @@ def _interleave_iterable_datasets(
     )
 
 
-def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_size: int) -> IterableDataset:
+def _split_by_node_iterable_dataset(
+    dataset: IterableDataset,
+    rank: int,
+    world_size: int,
+    force_sample_level: bool = False,
+) -> IterableDataset:
     """
     Split an iterable dataset for the node at rank `rank` in a pool of nodes of size `world_size`.
 
-    If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.num_shards % world_size == 0`),
-    then the shards are evenly assigned across the nodes, which is the most optimized.
-    Otherwise, each node keeps 1 example out of `world_size`, skipping the other examples.
+    By default, if the dataset has a number of shards that is a factor of `world_size` (i.e. if
+    `dataset.num_shards % world_size == 0`), then the shards are evenly assigned across the nodes,
+    which is the most optimized. Otherwise, each node keeps 1 example out of `world_size`, skipping
+    the other examples.
+
+    Pass `force_sample_level=True` to force sample-level splitting regardless of shard count
+    (each node keeps 1 example out of `world_size`). This is useful when the number of physical
+    shards is small or imbalanced relative to `world_size`, so that expensive transformations applied
+    after `split_dataset_by_node` are not duplicated across nodes.
 
     Args:
         dataset ([`IterableDataset`]):
@@ -5378,6 +5395,8 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
             Rank of the current node.
         world_size (`int`):
             Total number of nodes.
+        force_sample_level (`bool`, defaults to `False`):
+            If `True`, force sample-level splitting even when shards divide evenly across nodes.
 
     Returns:
         [`IterableDataset`]: The iterable dataset to be used on the node at rank `rank`.
@@ -5385,7 +5404,8 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
     if dataset._distributed:
         rank = world_size * dataset._distributed.rank + rank
         world_size = world_size * dataset._distributed.world_size
-    distributed = DistributedConfig(rank=rank, world_size=world_size)
+        force_sample_level = force_sample_level or dataset._distributed.force_sample_level
+    distributed = DistributedConfig(rank=rank, world_size=world_size, force_sample_level=force_sample_level)
     return IterableDataset(
         ex_iterable=dataset._ex_iterable,
         info=dataset._info.copy(),
