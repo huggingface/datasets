@@ -870,13 +870,13 @@ class HubBucketDatasetModuleFactory(_DatasetModuleFactory):
         readme_path = xjoin(self.path, config.REPOCARD_FILENAME)
         standalone_yaml_path = xjoin(self.path, config.REPOYAML_FILENAME)
         try:
-            dataset_card_data = DatasetCard(hffs.read_text(readme_path, newline="", encoding="utf-8"))
+            dataset_card_data = DatasetCard(hffs.read_text(readme_path, newline="", encoding="utf-8")).data
         except FileNotFoundError:
             dataset_card_data = DatasetCardData()
         try:
             standalone_yaml_data = yaml.safe_load(hffs.read_text(standalone_yaml_path, newline="", encoding="utf-8"))
         except FileNotFoundError:
-            dataset_card_data = DatasetCardData()
+            standalone_yaml_data = None
         if hffs.exists(standalone_yaml_path):
             with hffs.open(standalone_yaml_path, "r", encoding="utf-8") as f:
                 standalone_yaml_data = yaml.safe_load(f.read())

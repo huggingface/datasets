@@ -4976,10 +4976,10 @@ class IterableDataset(DatasetInfoMixin):
                 if not done:
                     pbar.update(content)
                 else:
-                    job_additions, job_new_parquet_paths, job_features, job_uploaded_size, job_num_examples = content
+                    job_additions, job_new_parquet_paths, job_features, job_dataset_nbytes, job_num_examples = content
                     additions += job_additions
                     new_parquet_paths += job_new_parquet_paths
-                    uploaded_size += job_uploaded_size
+                    dataset_nbytes += job_dataset_nbytes
                     num_examples += job_num_examples
                     features = job_features
             if pool is not None:
