@@ -4,7 +4,6 @@ import re
 import tarfile
 from itertools import islice
 from typing import Any, Callable
-from urllib.parse import urlsplit, urlunsplit
 
 import numpy as np
 import pyarrow as pa
@@ -14,25 +13,9 @@ from datasets.builder import Key
 from datasets.features.features import cast_to_python_objects
 from datasets.filesystems import EXTENSION_TO_COMPRESSION_FS_FILE_CLS
 from datasets.utils.file_utils import xbasename
-from datasets.utils.track import tracked_str
 
 
 logger = datasets.utils.logging.get_logger(__name__)
-
-
-def _sanitize_origin_for_error(origin: str) -> str:
-    """Strip userinfo and query from origin URLs before embedding in exceptions.
-
-    Keeps scheme/host/path (e.g. hf://…) for debugging while avoiding leaking
-    basic-auth credentials or presigned URL query parameters into logs/tracebacks.
-    """
-    parts = urlsplit(origin)
-    if not parts.scheme:
-        return origin
-    netloc = parts.netloc.rsplit("@", 1)[-1] if "@" in parts.netloc else parts.netloc
-    if netloc == parts.netloc and not parts.query:
-        return origin
-    return urlunsplit((parts.scheme, netloc, parts.path, "", parts.fragment))
 
 
 class WebDataset(datasets.GeneratorBasedBuilder):
@@ -49,17 +32,9 @@ class WebDataset(datasets.GeneratorBasedBuilder):
         try:
             yield from cls._get_pipeline_from_tar_without_error_context(tar_path, tar_iterator)
         except tarfile.ReadError as error:
-            # Include both the resolved local path and origin (e.g. hf://…) for debugging.
-            # Prefer str()/get_origin() over tracked_str.__repr__ so formatting stays explicit.
-            archive = str(tar_path)
-            if isinstance(tar_path, tracked_str):
-                origin = tar_path.get_origin()
-                if origin != archive:
-                    safe_origin = _sanitize_origin_for_error(origin)
-                    raise tarfile.ReadError(
-                        f"Failed to read TAR archive {archive!r} (origin={safe_origin}): {error}"
-                    ) from error
-            raise tarfile.ReadError(f"Failed to read TAR archive {archive!r}: {error}") from error
+            # tar_path is a tracked_str whose repr appends its sanitized origin (e.g. hf://…),
+            # so every loader that reprs a tracked path gets the same safe error context.
+            raise tarfile.ReadError(f"Failed to read TAR archive {tar_path!r}: {error}") from error
 
     @classmethod
     def _get_pipeline_from_tar_without_error_context(cls, tar_path, tar_iterator):
