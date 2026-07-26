@@ -11,10 +11,11 @@ import datasets.load as datasets_load
 from datasets import DownloadConfig, config
 from datasets.arrow_dataset import _get_updated_dataset_card
 from datasets.features import Features, Value
-from datasets.info import DatasetInfo
+from datasets.info import DatasetInfo, DatasetInfosDict
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import HubBucketDatasetModuleFactory
 from datasets.splits import SplitDict, SplitInfo
+from datasets.utils.metadata import MetadataConfigs
 
 
 README_WITH_CONFIG = (
@@ -149,3 +150,61 @@ def test_get_updated_dataset_card_returns_legacy_infos_as_dict():
     assert isinstance(new_legacy_dataset_infos, dict)
     assert "default" in new_legacy_dataset_infos
     assert isinstance(json.loads(json.dumps(new_legacy_dataset_infos)), dict)
+
+
+@pytest.mark.unit
+def test_get_updated_dataset_card_drops_removed_splits_when_replacing_split_set():
+    mem = MemoryFileSystem(skip_instance_cache=True)
+    fs = DirFileSystem("/shrink", fs=mem)
+
+    with fs.open(config.REPOCARD_FILENAME, "w") as f:
+        f.write(
+            "---\nconfigs:\n- config_name: default\n  data_files:\n"
+            "  - split: train\n    path: data/train-*\n"
+            "  - split: test\n    path: data/test-*\n---\n"
+        )
+
+    # push "train" only: "test" shards are deleted by the caller, so its pattern must go too
+    dataset_card, _ = _get_updated_dataset_card(
+        fs=fs,
+        config_name="default",
+        splits_info=[SplitInfo(name="train", num_bytes=40, num_examples=5)],
+        features=Features({"x": Value("int64")}),
+        data_dir="data",
+        set_default=None,
+        uploaded_sizes=[40],
+        deleted_sizes=[],
+        remove_other_splits=True,
+    )
+
+    data_files = MetadataConfigs.from_dataset_card_data(dataset_card.data)["default"]["data_files"]
+    assert [entry["split"] for entry in data_files] == ["train"]
+    # the card must agree with itself: a split listed in dataset_info but not in data_files
+    # (or vice versa) makes the dataset unloadable
+    dataset_info = DatasetInfosDict.from_dataset_card_data(dataset_card.data)["default"]
+    assert list(dataset_info.splits) == ["train"]
+
+
+@pytest.mark.unit
+def test_get_updated_dataset_card_keeps_existing_splits_when_appending():
+    mem = MemoryFileSystem(skip_instance_cache=True)
+    fs = DirFileSystem("/append", fs=mem)
+
+    with fs.open(config.REPOCARD_FILENAME, "w") as f:
+        f.write(README_WITH_CONFIG)
+
+    # Dataset.push_to_hub passes remove_other_splits=False and must stay additive
+    dataset_card, _ = _get_updated_dataset_card(
+        fs=fs,
+        config_name="default",
+        splits_info=[SplitInfo(name="test", num_bytes=40, num_examples=5)],
+        features=Features({"x": Value("int64")}),
+        data_dir="data",
+        set_default=None,
+        uploaded_sizes=[40],
+        deleted_sizes=[0],
+        remove_other_splits=False,
+    )
+
+    data_files = MetadataConfigs.from_dataset_card_data(dataset_card.data)["default"]["data_files"]
+    assert [entry["split"] for entry in data_files] == ["train", "test"]
