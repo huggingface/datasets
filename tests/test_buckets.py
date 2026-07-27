@@ -1,13 +1,13 @@
-import io
 import json
+import posixpath
 from dataclasses import asdict
-from unittest.mock import MagicMock
 
 import pytest
 from fsspec.implementations.dirfs import DirFileSystem
 from fsspec.implementations.memory import MemoryFileSystem
 
 import datasets.load as datasets_load
+import datasets.data_files as datasets_data_files
 from datasets import DownloadConfig, config
 from datasets.arrow_dataset import _get_updated_dataset_card
 from datasets.features import Features, Value
@@ -22,49 +22,35 @@ README_WITH_CONFIG = (
 )
 
 
-class _FakeHfFileSystem:
-    # minimal in-memory stand-in for HfFileSystem, keyed by basename
-    def __init__(self, files):
-        self._files = dict(files)
-
-    @staticmethod
-    def _basename(path):
-        return str(path).rstrip("/").rsplit("/", 1)[-1]
-
-    def read_text(self, path, **kwargs):
-        name = self._basename(path)
-        if name in self._files:
-            return self._files[name]
-        raise FileNotFoundError(path)
-
-    def exists(self, path):
-        return self._basename(path) in self._files
-
-    def isfile(self, path):
-        return self._basename(path) in self._files
-
-    def open(self, path, *args, **kwargs):
-        name = self._basename(path)
-        if name in self._files:
-            return io.StringIO(self._files[name])
-        raise FileNotFoundError(path)
-
-
-def _load_bucket_module(monkeypatch, files):
+def _load_bucket_module(monkeypatch, files, path="buckets/ns/name"):
     # run get_module() over an in-memory FS, stubbing the network-bound data-file
     # resolution so only the card / metadata handling under test runs for real
-    fake_fs = _FakeHfFileSystem(files)
-    monkeypatch.setattr(datasets_load, "HfFileSystem", lambda **kwargs: fake_fs)
+    mem = MemoryFileSystem(skip_instance_cache=True)
+    # Write files with full paths relative to the bucket path (forward slashes for MemoryFileSystem)
+    for filename, content in files.items():
+        full_path = posixpath.join("/", path, filename)
+        mem.open(full_path, "w").write(content)
+
+    fake_fs = mem
+
+    def fake_hffs(**kwargs):
+        return fake_fs
+
+    monkeypatch.setattr(datasets_load, "HfFileSystem", fake_hffs)
+    monkeypatch.setattr(datasets_data_files, "url_to_fs", lambda pattern, **kwargs: (fake_fs, pattern))
     monkeypatch.setattr(
         datasets_load.DataFilesDict,
         "from_patterns",
-        classmethod(lambda cls, *args, **kwargs: MagicMock(name="DataFilesDict")),
+        classmethod(lambda cls, *args, **kwargs: datasets_load.DataFilesDict({})),
     )
     monkeypatch.setattr(datasets_load, "infer_module_for_data_files", lambda *args, **kwargs: ("parquet", {}))
     monkeypatch.setattr(
         datasets_load, "create_builder_configs_from_metadata_configs", lambda *args, **kwargs: ([], "default")
     )
-    factory = HubBucketDatasetModuleFactory("buckets/ns/name", download_config=DownloadConfig())
+    monkeypatch.setattr(datasets_load, "get_data_patterns", lambda *args, **kwargs: {})
+    # Use forward-slash join to match MemoryFileSystem conventions (avoids Windows backslash issues)
+    monkeypatch.setattr(datasets_load, "xjoin", posixpath.join)
+    factory = HubBucketDatasetModuleFactory(path, download_config=DownloadConfig())
     return factory.get_module()
 
 
