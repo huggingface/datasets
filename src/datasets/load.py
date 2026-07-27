@@ -867,8 +867,8 @@ class HubBucketDatasetModuleFactory(_DatasetModuleFactory):
             endpoint=config.HF_ENDPOINT,
             token=self.download_config.token,
         )
-        readme_path = xjoin(self.path, config.REPOCARD_FILENAME)
-        standalone_yaml_path = xjoin(self.path, config.REPOYAML_FILENAME)
+        readme_path = posixpath.join(self.path, config.REPOCARD_FILENAME)
+        standalone_yaml_path = posixpath.join(self.path, config.REPOYAML_FILENAME)
         try:
             dataset_card_data = DatasetCard(hffs.read_text(readme_path, newline="", encoding="utf-8")).data
         except FileNotFoundError:
