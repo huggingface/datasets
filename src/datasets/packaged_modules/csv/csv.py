@@ -124,7 +124,7 @@ class CsvConfig(datasets.BuilderConfig):
                 del pd_read_csv_kwargs[pd_read_csv_parameter]
 
         # Remove 1.3 new arguments
-        if not (datasets.config.PANDAS_VERSION.major >= 1 and datasets.config.PANDAS_VERSION.minor >= 3):
+        if datasets.config.PANDAS_VERSION.release < (1, 3):
             for pd_read_csv_parameter in _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS:
                 del pd_read_csv_kwargs[pd_read_csv_parameter]
 

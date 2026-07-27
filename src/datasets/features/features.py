@@ -835,6 +835,13 @@ class ArrayExtensionArray(pa.ExtensionArray):
         numpy_arr = self.to_numpy(zero_copy_only=zero_copy_only)
         if self.type.shape[0] is None and numpy_arr.dtype == object:
             return [arr.tolist() for arr in numpy_arr.tolist()]
+        elif self.type.shape[0] is not None and self.storage.null_count:
+            # For a fixed-shape array, to_numpy casts the whole column to float64 to
+            # hold np.nan in the null rows. On the python read path that silently
+            # corrupts every non-null value: integers become floats and values above
+            # 2**53 lose precision. The nested-list storage already carries the exact
+            # values and None for the null rows, so build the list from it directly.
+            return self.storage.to_pylist()
         else:
             return numpy_arr.tolist()
 
@@ -1813,11 +1820,13 @@ def require_storage_embed(feature: FeatureType) -> bool:
         :obj:`bool`
     """
     if isinstance(feature, dict):
-        return any(require_storage_cast(f) for f in feature.values())
+        return any(require_storage_embed(f) for f in feature.values())
+    elif isinstance(feature, (list, tuple)):
+        return require_storage_embed(feature[0])
     elif isinstance(feature, LargeList):
-        return require_storage_cast(feature.feature)
+        return require_storage_embed(feature.feature)
     elif isinstance(feature, List):
-        return require_storage_cast(feature.feature)
+        return require_storage_embed(feature.feature)
     else:
         return hasattr(feature, "embed_storage")
 
