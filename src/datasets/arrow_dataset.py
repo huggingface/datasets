@@ -2716,6 +2716,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"{self._data.column_names}."
             )
 
+        number_of_duplicates = len(column_names) - len(set(column_names))
+        if number_of_duplicates != 0:
+            raise ValueError(
+                "Selected column names must all be different, but this selection "
+                f"has {number_of_duplicates} duplicates."
+            )
+
         dataset = copy.deepcopy(self)
         dataset._data = dataset._data.select(column_names)
         dataset._info.features = Features({col: self._info.features[col] for col in dataset._data.column_names})
