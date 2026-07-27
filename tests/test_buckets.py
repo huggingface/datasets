@@ -6,8 +6,8 @@ import pytest
 from fsspec.implementations.dirfs import DirFileSystem
 from fsspec.implementations.memory import MemoryFileSystem
 
-import datasets.load as datasets_load
 import datasets.data_files as datasets_data_files
+import datasets.load as datasets_load
 from datasets import DownloadConfig, config
 from datasets.arrow_dataset import _get_updated_dataset_card
 from datasets.features import Features, Value
