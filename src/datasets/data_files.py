@@ -27,7 +27,7 @@ SingleOriginMetadata = Union[tuple[str, str], tuple[str], tuple[()]]
 SANITIZED_DEFAULT_SPLIT = str(Split.TRAIN)
 MEDIA_EXTENSIONS = {
     # Images
-    ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff", ".tif"
+    ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff", ".tif",
     # Audio
     ".mp3", ".wav", ".flac", ".ogg", ".aac", ".m4a",
     # Video
