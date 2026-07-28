@@ -6977,7 +6977,8 @@ def _get_updated_dataset_card(
     # update the metadata configs
     if config_name in metadata_configs:
         metadata_config = metadata_configs[config_name]
-        if "data_files" in metadata_config:
+        # keep the existing splits, unless they are meant to be removed
+        if "data_files" in metadata_config and not remove_other_splits:
             data_files_to_dump = sanitize_patterns(metadata_config["data_files"])
         else:
             data_files_to_dump = {}
