@@ -87,7 +87,7 @@ class SqlDatasetWriter:
             key=slice(offset, offset + self.batch_size),
             indices=self.dataset._indices,
         )
-        df = batch.to_pandas()
+        df = batch.to_pandas(integer_object_nulls=True)
         num_rows = df.to_sql(self.name, self.con, index=index, **to_sql_kwargs)
         return num_rows or len(df)
 
