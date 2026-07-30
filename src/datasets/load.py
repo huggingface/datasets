@@ -867,16 +867,16 @@ class HubBucketDatasetModuleFactory(_DatasetModuleFactory):
             endpoint=config.HF_ENDPOINT,
             token=self.download_config.token,
         )
-        readme_path = xjoin(self.path, config.REPOCARD_FILENAME)
-        standalone_yaml_path = xjoin(self.path, config.REPOYAML_FILENAME)
+        readme_path = posixpath.join(self.path, config.REPOCARD_FILENAME)
+        standalone_yaml_path = posixpath.join(self.path, config.REPOYAML_FILENAME)
         try:
-            dataset_card_data = DatasetCard(hffs.read_text(readme_path, newline="", encoding="utf-8"))
+            dataset_card_data = DatasetCard(hffs.read_text(readme_path, newline="", encoding="utf-8")).data
         except FileNotFoundError:
             dataset_card_data = DatasetCardData()
         try:
             standalone_yaml_data = yaml.safe_load(hffs.read_text(standalone_yaml_path, newline="", encoding="utf-8"))
         except FileNotFoundError:
-            dataset_card_data = DatasetCardData()
+            standalone_yaml_data = None
         if hffs.exists(standalone_yaml_path):
             with hffs.open(standalone_yaml_path, "r", encoding="utf-8") as f:
                 standalone_yaml_data = yaml.safe_load(f.read())
@@ -1022,8 +1022,6 @@ def dataset_module_factory(
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
-    download_config.extract_compressed_file = True
-    download_config.force_extract = True
     download_config.force_download = download_mode == DownloadMode.FORCE_REDOWNLOAD
 
     filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
