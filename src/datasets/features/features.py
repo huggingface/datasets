@@ -268,7 +268,7 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
                     ],
                 )
             )
-        
+
     fixed_size_binary_matches = re.search(r"^fixed_size_binary\[(\d+)\]$", datasets_dtype)
     if fixed_size_binary_matches:
         byte_width = fixed_size_binary_matches.group(1)
