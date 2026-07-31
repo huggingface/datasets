@@ -351,6 +351,7 @@ class Json(datasets.ArrowBasedBuilder):
         """Add a column with the file name of each row."""
         return pa_table.append_column("file_name", pa.array([str(file)] * pa_table.num_rows))
 
+
 AGENT_TRACES_TYPES_VALUES = {
     "claude_code": ["user", "assistant", "system"],
     "pi": ["session", "message"],
