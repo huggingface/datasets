@@ -346,7 +346,7 @@ class Json(datasets.ArrowBasedBuilder):
                                 self._cast_table(pa_table, json_field_paths=json_field_paths),
                             )
                             batch_idx += 1
-                            
+
     def _add_file_name_column(self, pa_table, file):
         """Add a column with the file name of each row."""
         return pa_table.append_column("file_name", pa.array([str(file)] * pa_table.num_rows))
