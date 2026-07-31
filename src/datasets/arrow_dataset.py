@@ -1839,13 +1839,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if self.list_indexes():
             raise ValueError("please remove all the indexes using `dataset.drop_index` before saving a dataset")
 
+        from .arrow_writer import get_arrow_writer_batch_size_from_features, get_writer_batch_size_from_data_size
+
+        dataset_nbytes = self._estimate_nbytes()
         if num_shards is None:
-            dataset_nbytes = self._estimate_nbytes()
             max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
             num_shards = int(dataset_nbytes / max_shard_size) + 1
             num_shards = max(num_shards, num_proc or 1)
             # if we have only a few large samples, we should only create as many shards as samples
             num_shards = min(len(self.data), num_shards)
+
+        writer_batch_size = get_arrow_writer_batch_size_from_features(
+            self.features
+        ) or get_writer_batch_size_from_data_size(len(self), dataset_nbytes)
 
         fs: fsspec.AbstractFileSystem
         fs, _ = url_to_fs(dataset_path, **(storage_options or {}))
@@ -1899,6 +1905,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "shard": self.shard(num_shards=num_shards, index=shard_idx, contiguous=True),
                 "fpath": posixpath.join(dataset_path, f"data-{shard_idx:05d}-of-{num_shards:05d}.arrow"),
                 "storage_options": storage_options,
+                "writer_batch_size": writer_batch_size,
             }
             for shard_idx in range(num_shards)
         )
@@ -1940,8 +1947,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             json.dump(sorted_keys_dataset_info, dataset_info_file, indent=2)
 
     @staticmethod
-    def _save_to_disk_single(job_id: int, shard: "Dataset", fpath: str, storage_options: Optional[dict]):
-        batch_size = config.DEFAULT_MAX_BATCH_SIZE
+    def _save_to_disk_single(
+        job_id: int,
+        shard: "Dataset",
+        fpath: str,
+        storage_options: Optional[dict],
+        writer_batch_size: Optional[int],
+    ):
+        batch_size = writer_batch_size or config.DEFAULT_MAX_BATCH_SIZE
 
         num_examples_progress_update = 0
         writer = ArrowWriter(
