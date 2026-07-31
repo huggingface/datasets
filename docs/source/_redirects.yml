@@ -6,7 +6,8 @@ dataset_streaming: stream
 torch_tensorflow: use_dataset
 splits: loading#slice-splits
 processing: process
-faiss_and_ea: faiss_es
+faiss_es: faiss_es_qdrant
+faiss_and_ea: faiss_es_qdrant
 features: about_dataset_features
 exploring: access
 package_reference/logging_methods: package_reference/utilities

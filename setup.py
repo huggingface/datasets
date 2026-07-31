@@ -145,6 +145,8 @@ VISION_REQUIRE = [
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
 ]
 
+QDRANT_REQUIRE = ["qdrant-client>=1.10.0,<2.0.0"]
+
 MESH_REQUIRE = [
     "trimesh>=4.10.0",
 ]
@@ -170,6 +172,7 @@ TESTS_REQUIRE = [
     "aiohttp",
     "elasticsearch>=7.17.12,<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch(); 7.9.1 has legacy numpy.float_ which was fixed in https://github.com/elastic/elasticsearch-py/pull/2551.
     "faiss-cpu>=1.8.0.post1",  # Pins numpy < 2
+    *QDRANT_REQUIRE,
     "h5py",
     "pylance",
     "pyiceberg[sql-sqlite,pyarrow]",
@@ -230,6 +233,7 @@ EXTRAS_REQUIRE = {
     "tensorflow_gpu": ["tensorflow>=2.6.0"],
     "torch": ["torch"],
     "jax": ["jax>=0.3.14", "jaxlib>=0.3.14"],
+    "qdrant": QDRANT_REQUIRE,
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
     "tests": TESTS_REQUIRE,

@@ -2,7 +2,7 @@ import os
 import tempfile
 from functools import partial
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
@@ -10,7 +10,7 @@ import pytest
 from datasets.arrow_dataset import Dataset
 from datasets.search import ElasticSearchIndex, FaissIndex, MissingIndex
 
-from .utils import require_elasticsearch, require_faiss
+from .utils import require_elasticsearch, require_faiss, require_qdrant
 
 
 pytestmark = pytest.mark.integration
@@ -242,3 +242,63 @@ class ElasticSearchIndexTest(TestCase):
             best_indices = [indices[0] for indices in total_indices]
             self.assertGreater(np.min(best_scores), 0)
             self.assertListEqual([1, 1, 1], best_indices)
+
+
+@require_qdrant
+class QdrantIndexTest(TestCase):
+    def test_dataset_index(self):
+        from qdrant_client import models
+
+        client = Mock()
+        uploaded_points = []
+        client.upload_points.side_effect = lambda **kwargs: uploaded_points.extend(kwargs["points"])
+        client.query_points.return_value = Mock(points=[Mock(score=1.0, id=1)])
+        client.query_batch_points.return_value = [
+            Mock(points=[Mock(score=1.0, id=1)]),
+            Mock(points=[Mock(score=1.0, id=0)]),
+        ]
+        client.count.return_value = Mock(count=2)
+        dset = Dataset.from_dict(
+            {
+                "text": ["zero", "one"],
+                "category": ["even", "odd"],
+                "embeddings": np.eye(2, dtype=np.float32),
+            }
+        )
+
+        self.assertIs(
+            dset.add_qdrant_index(
+                "embeddings",
+                qdrant_client=client,
+                collection_name="documents",
+                distance="Dot",
+                payload_indexes={"category": "keyword"},
+                batch_size=1,
+            ),
+            dset,
+        )
+        self.assertEqual(
+            client.create_payload_index.call_args.kwargs,
+            {
+                "collection_name": "documents",
+                "field_name": "category",
+                "field_schema": models.PayloadSchemaType.KEYWORD,
+                "wait": True,
+            },
+        )
+        method_names = [call[0] for call in client.method_calls]
+        self.assertLess(method_names.index("create_payload_index"), method_names.index("upload_points"))
+        self.assertEqual([point.id for point in uploaded_points], [0, 1])
+        self.assertEqual(dset.get_nearest_examples("embeddings", [0, 1], k=1).examples["text"], ["one"])
+        query_filter = models.Filter(must=[])
+        self.assertEqual(
+            dset.search_batch(
+                "embeddings", np.eye(2, dtype=np.float32)[::-1], k=1, query_filter=query_filter
+            ).total_indices,
+            [[1], [0]],
+        )
+        Dataset.from_dict(dset.to_dict()).load_qdrant_index(
+            "embeddings", qdrant_client=client, collection_name="documents"
+        )
+        self.assertEqual([point.payload for point in uploaded_points], [{"category": "even"}, {"category": "odd"}])
+        self.assertEqual(client.query_batch_points.call_args.kwargs["requests"][0].filter, query_filter)
