@@ -76,6 +76,7 @@ class FeaturesTest(TestCase):
             pa.int32(),
             pa.float64(),
             pa.array([datetime.time(1, 1, 1)]).type,  # arrow type: DataType(time64[us])
+            pa.binary(16),
         ]
         for dt in supported_pyarrow_datatypes:
             self.assertEqual(dt, string_to_arrow(_arrow_to_datasets_dtype(dt)))
