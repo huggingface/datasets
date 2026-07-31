@@ -2414,6 +2414,15 @@ def test_iterable_dataset_add_column(dataset_with_several_columns: IterableDatas
     assert "new_column" in new_dataset.column_names
 
 
+def test_iterable_dataset_add_column_preserves_features(dataset_with_several_columns: IterableDataset):
+    dataset = dataset_with_several_columns._resolve_features()
+    new_column = list(range(3 * DEFAULT_N_EXAMPLES))
+    new_dataset = dataset.add_column("new_column", new_column)
+    assert new_dataset.features is not None
+    assert new_dataset.features["new_column"] == Value("int64")
+    assert new_dataset.column_names == [*dataset.column_names, "new_column"]
+
+
 def test_iterable_dataset_rename_column(dataset_with_several_columns: IterableDataset):
     new_dataset = dataset_with_several_columns.rename_column("id", "new_id")
     assert list(new_dataset) == [

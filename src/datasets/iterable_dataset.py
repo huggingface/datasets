@@ -4061,7 +4061,10 @@ class IterableDataset(DatasetInfoMixin):
         Returns:
             `IterableDataset`
         """
-        return self.map(partial(add_column_fn, name=name, column=column), with_indices=True)
+        features = self.features.copy() if self.features is not None else None
+        if features is not None:
+            features.update(_infer_features_from_batch({name: column}))
+        return self.map(partial(add_column_fn, name=name, column=column), with_indices=True, features=features)
 
     def rename_column(self, original_column_name: str, new_column_name: str) -> "IterableDataset":
         """
