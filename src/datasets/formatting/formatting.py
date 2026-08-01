@@ -143,7 +143,12 @@ class PythonArrowExtractor(BaseArrowExtractor[dict, list, dict]):
     def extract_row(self, pa_table: pa.Table) -> dict:
         # Convert only the single row that is asked for. to_pydict() builds a
         # one-element list per column and _unnest then throws those lists away.
-        return {name: col[0].as_py() for name, col in zip(pa_table.column_names, pa_table.columns)}
+        # ArrayXD implements additional shape and null conversion in to_pylist(),
+        # so keep that conversion consistent with the column and batch paths.
+        return {
+            name: col.to_pylist()[0] if isinstance(col.type, _ArrayXDExtensionType) else col[0].as_py()
+            for name, col in zip(pa_table.column_names, pa_table.columns)
+        }
 
     def extract_column(self, pa_table: pa.Table) -> list:
         return pa_table.column(0).to_pylist()
