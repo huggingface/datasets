@@ -141,7 +141,9 @@ class SimpleArrowExtractor(BaseArrowExtractor[pa.Table, pa.Array, pa.Table]):
 
 class PythonArrowExtractor(BaseArrowExtractor[dict, list, dict]):
     def extract_row(self, pa_table: pa.Table) -> dict:
-        return _unnest(pa_table.to_pydict())
+        # Convert only the single row that is asked for. to_pydict() builds a
+        # one-element list per column and _unnest then throws those lists away.
+        return {name: col[0].as_py() for name, col in zip(pa_table.column_names, pa_table.columns)}
 
     def extract_column(self, pa_table: pa.Table) -> list:
         return pa_table.column(0).to_pylist()
@@ -468,23 +470,26 @@ class PythonFormatter(Formatter[Mapping, list, Mapping]):
     def __init__(self, features=None, lazy=False, token_per_repo_id=None):
         super().__init__(features, token_per_repo_id)
         self.lazy = lazy
+        # PythonArrowExtractor is stateless, so build it once instead of once per
+        # row. format_row() is called for every row of every iteration.
+        self._python_arrow_extractor = self.python_arrow_extractor()
 
     def format_row(self, pa_table: pa.Table) -> Mapping:
         if self.lazy:
             return LazyRow(pa_table, self)
-        row = self.python_arrow_extractor().extract_row(pa_table)
+        row = self._python_arrow_extractor.extract_row(pa_table)
         row = self.python_features_decoder.decode_row(row)
         return row
 
     def format_column(self, pa_table: pa.Table) -> list:
-        column = self.python_arrow_extractor().extract_column(pa_table)
+        column = self._python_arrow_extractor.extract_column(pa_table)
         column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
         return column
 
     def format_batch(self, pa_table: pa.Table) -> Mapping:
         if self.lazy:
             return LazyBatch(pa_table, self)
-        batch = self.python_arrow_extractor().extract_batch(pa_table)
+        batch = self._python_arrow_extractor.extract_batch(pa_table)
         batch = self.python_features_decoder.decode_batch(batch)
         return batch
 
