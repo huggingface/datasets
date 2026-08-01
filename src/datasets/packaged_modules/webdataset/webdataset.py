@@ -1,6 +1,7 @@
 import io
 import json
 import re
+import tarfile
 from itertools import islice
 from typing import Any, Callable
 
@@ -28,6 +29,15 @@ class WebDataset(datasets.GeneratorBasedBuilder):
 
     @classmethod
     def _get_pipeline_from_tar(cls, tar_path, tar_iterator):
+        try:
+            yield from cls._get_pipeline_from_tar_without_error_context(tar_path, tar_iterator)
+        except tarfile.ReadError as error:
+            # tar_path is a tracked_str whose repr appends its sanitized origin (e.g. hf://…),
+            # so every loader that reprs a tracked path gets the same safe error context.
+            raise tarfile.ReadError(f"Failed to read TAR archive {tar_path!r}: {error}") from error
+
+    @classmethod
+    def _get_pipeline_from_tar_without_error_context(cls, tar_path, tar_iterator):
         current_example = {}
         for filename, f in tar_iterator:
             example_key, field_name = base_plus_ext(filename)
