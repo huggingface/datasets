@@ -250,9 +250,16 @@ Each node is assigned a chunk of data, e.g. rank 0 is given the first chunk of t
 
 For iterable datasets:
 
-If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.num_shards % world_size == 0`),
+By default, if the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.num_shards % world_size == 0`),
 then the shards are evenly assigned across the nodes, which is the most optimized.
 Otherwise, each node keeps 1 example out of `world_size`, skipping the other examples.
+
+When the number of physical shards is small or imbalanced relative to `world_size`, you can pass `force_sample_level=True` to force sample-level splitting even when shard counts divide evenly. Each node then keeps 1 example out of `world_size`, which avoids duplicating expensive transformations applied after `split_dataset_by_node` across nodes:
+
+```python
+ds = split_dataset_by_node(ds, rank=rank, world_size=world_size, force_sample_level=True)
+ds = ds.map(tokenize_fn)  # only runs on the examples this rank will actually consume
+```
 
 This can also be combined with a `torch.utils.data.DataLoader` if you want each node to use multiple workers to load the data.
 
