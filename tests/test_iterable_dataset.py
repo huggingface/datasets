@@ -2445,6 +2445,24 @@ def test_iterable_dataset_rename_columns(dataset_with_several_columns: IterableD
     assert all(c in new_dataset.column_names for c in ["new_id", "filename"])
 
 
+def test_iterable_dataset_rename_columns_swap(dataset_with_several_columns: IterableDataset):
+    column_mapping = {"id": "filepath", "filepath": "id"}
+    expected = [{column_mapping.get(k, k): v for k, v in example.items()} for example in dataset_with_several_columns]
+
+    assert list(dataset_with_several_columns.rename_columns(column_mapping)) == expected
+    assert list(dataset_with_several_columns._resolve_features().rename_columns(column_mapping)) == expected
+
+
+def test_iterable_dataset_rename_columns_collision(dataset_with_several_columns: IterableDataset):
+    column_mapping = {"id": "filepath"}
+
+    with pytest.raises(ValueError, match="already in the dataset"):
+        list(dataset_with_several_columns.rename_columns(column_mapping))
+
+    with pytest.raises(ValueError, match="already in the dataset"):
+        dataset_with_several_columns._resolve_features().rename_columns(column_mapping)
+
+
 def test_iterable_dataset_remove_columns(dataset_with_several_columns: IterableDataset):
     new_dataset = dataset_with_several_columns.remove_columns("id")
     assert list(new_dataset) == [

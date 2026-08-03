@@ -2655,9 +2655,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if empty_new_columns:
             raise ValueError(f"New column names {empty_new_columns} are empty.")
 
-        colliding_new_columns = set(column_mapping.values()) & (
-            set(dataset.column_names) - set(column_mapping.keys())
-        )
+        colliding_new_columns = set(column_mapping.values()) & (set(dataset.column_names) - set(column_mapping.keys()))
         if colliding_new_columns:
             raise ValueError(
                 f"New column names {colliding_new_columns} already in the dataset. "
