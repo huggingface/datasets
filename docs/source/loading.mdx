@@ -228,6 +228,39 @@ Filter by time range — bounds are pushed down to TsFile's internal time index 
 > [!TIP]
 > For more details, check out the [how to load TsFile data](tsfile_load) guide.
 
+### PDB
+
+[PDB](https://www.wwpdb.org/documentation/file-format) (Protein Data Bank) is the legacy fixed-width format for representing 3D macromolecular structures. While mmCIF is the modern standard, PDB remains widely used and many historical datasets are in this format.
+
+Each row is one structure (one row = one structure), following the same folder layout
+as [`ImageFolder`]: subfolder names become labels and a `metadata.csv`/`metadata.jsonl`
+file adds per-structure metadata. The `structure` column is parsed into a struct of
+atom-level arrays keyed by [PDBx/mmCIF dictionary](https://mmcif.wwpdb.org/) names
+(`type_symbol`, `label_atom_id`, `label_comp_id`, `label_asym_id`, `label_seq_id`,
+`Cartn_x`, `Cartn_y`, `Cartn_z`, `occupancy`, `B_iso_or_equiv`).
+
+To load PDB files from a directory:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("pdb", data_dir="path/to/structures")
+```
+
+By default, both ATOM and HETATM records are parsed. To exclude HETATM (ligands/water):
+
+```py
+>>> dataset = load_dataset("pdb", data_dir="path/to/structures", include_hetatm=False)
+```
+
+You can also select a subset of atom columns to reduce memory usage:
+
+```py
+>>> dataset = load_dataset("pdb", data_dir="path/to/structures",
+...                        columns=["label_atom_id", "label_comp_id", "Cartn_x", "Cartn_y", "Cartn_z"])
+```
+
+Extensions `.pdb` and `.ent` are supported.
+
 ### SQL
 
 Read database contents with [`~datasets.Dataset.from_sql`] by specifying the URI to connect to your database. You can read both table names and queries:
