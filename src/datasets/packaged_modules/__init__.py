@@ -16,6 +16,7 @@ from .imagefolder import imagefolder
 from .json import json
 from .lance import lance
 from .meshfolder import meshfolder
+from .mmcif import mmcif
 from .niftifolder import niftifolder
 from .pandas import pandas
 from .parquet import parquet
@@ -63,6 +64,7 @@ _PACKAGED_DATASETS_MODULES = {
     "lance": (lance.__name__, _hash_python_lines(inspect.getsource(lance).splitlines())),
     "tsfile": (tsfile.__name__, _hash_python_lines(inspect.getsource(tsfile).splitlines())),
     "iceberg": (iceberg.__name__, _hash_python_lines(inspect.getsource(iceberg).splitlines())),
+    "mmcif": (mmcif.__name__, _hash_python_lines(inspect.getsource(mmcif).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -99,6 +101,8 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".eval": ("eval", {}),
     ".lance": ("lance", {}),
     ".tsfile": ("tsfile", {}),
+    ".cif": ("mmcif", {}),
+    ".mmcif": ("mmcif", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
@@ -132,6 +136,7 @@ _MODULE_TO_METADATA_FILE_NAMES["meshfolder"] = meshfolder.MeshFolder.METADATA_FI
 _MODULE_TO_METADATA_FILE_NAMES["pdffolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["niftifolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["lance"] = lance.Lance.METADATA_FILE_NAMES
+_MODULE_TO_METADATA_FILE_NAMES["mmcif"] = imagefolder.ImageFolder.METADATA_FILENAMES
 
 _MODULE_TO_METADATA_EXTENSIONS: Dict[str, List[str]] = {}
 for _module in _MODULE_TO_EXTENSIONS:
