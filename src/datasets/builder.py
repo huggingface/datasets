@@ -355,6 +355,17 @@ class DatasetBuilder:
             **config_kwargs,
         )
 
+        # Ensure files are in the repo
+        if repo_id is not None and self.config.data_files is not None:
+            for split in self.config.data_files:
+                for data_file in self.config.data_files[split]:
+                    if not posixpath.relpath(data_file, start="hf://").startswith(f"datasets/{repo_id}@"):
+                        raise ValueError(
+                            f"Data files don't belong to {repo_id}. "
+                            "Make sure the dataset `data_files` (e.g. in the config README.md) are valid. "
+                            "They should be relative paths to the dataset repository root."
+                        )
+
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
         if info is None:

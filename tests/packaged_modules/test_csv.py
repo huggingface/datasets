@@ -3,7 +3,9 @@ import textwrap
 
 import pyarrow as pa
 import pytest
+from packaging import version
 
+import datasets.config
 from datasets import ClassLabel, Features, Image
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
@@ -151,3 +153,40 @@ def test_csv_convert_int_list(csv_file_with_int_list):
     assert pa.types.is_list(pa_table.schema.field("int_list").type)
     generated_content = pa_table.to_pydict()["int_list"]
     assert generated_content == [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+
+
+@pytest.mark.parametrize("pandas_version", ["2.0.3", "2.1.4", "2.2.3"])
+def test_csv_pd_read_csv_kwargs_keeps_new_1_3_0_params_on_pandas_2x(monkeypatch, pandas_version):
+    # pandas 2.x supports encoding_errors / on_bad_lines (added in 1.3.0), so they must be
+    # forwarded to pd.read_csv. Regression for the ">= 1.3" guard that compared major and minor
+    # independently, wrongly dropping them on pandas 2.0-2.2 (minor 0/1/2 fails minor >= 3).
+    monkeypatch.setattr(datasets.config, "PANDAS_VERSION", version.parse(pandas_version))
+    kwargs = CsvConfig(encoding_errors="replace", on_bad_lines="skip").pd_read_csv_kwargs
+    assert kwargs["encoding_errors"] == "replace"
+    assert kwargs["on_bad_lines"] == "skip"
+
+
+@pytest.mark.parametrize("pandas_version", ["1.1.5", "1.2.5"])
+def test_csv_pd_read_csv_kwargs_drops_new_1_3_0_params_below_pandas_1_3(monkeypatch, pandas_version):
+    # The other half of the invariant: pandas < 1.3 lacks these params, so they must still be dropped.
+    monkeypatch.setattr(datasets.config, "PANDAS_VERSION", version.parse(pandas_version))
+    kwargs = CsvConfig(encoding_errors="replace", on_bad_lines="skip").pd_read_csv_kwargs
+    assert "encoding_errors" not in kwargs
+    assert "on_bad_lines" not in kwargs
+
+
+@pytest.mark.skipif(
+    datasets.config.PANDAS_VERSION.release < (1, 3),
+    reason="on_bad_lines requires pandas >= 1.3",
+)
+def test_csv_generate_tables_skips_malformed_row_with_on_bad_lines_skip(csv_file, malformed_csv_file):
+    # End-to-end on the installed pandas: on_bad_lines="skip" must reach pd.read_csv, so the
+    # malformed row is skipped instead of raising. On pandas 2.0-2.2 the buggy guard dropped it
+    # and this raised "Error tokenizing data".
+    csv = Csv(on_bad_lines="skip")
+    base_files = [malformed_csv_file]
+    files_iterables = [[file] for file in base_files]
+    generator = csv._generate_tables(base_files=base_files, files_iterables=files_iterables)
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa_table.num_rows == 1
+    assert pa_table.to_pydict() == {"header1": [1], "header2": [2]}
