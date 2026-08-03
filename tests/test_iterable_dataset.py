@@ -1796,6 +1796,29 @@ def test_iterable_dataset_to_pandas_casts_when_schema_mismatch():
     assert len(batches) == 2
 
 
+def test_iterable_dataset_to_dict():
+    dataset = Dataset.from_dict({"col": [0, 1, 2]}).to_iterable_dataset()
+
+    assert dataset.to_dict() == {"col": [0, 1, 2]}
+
+    batches = list(dataset.to_dict(batch_size=2, batched=True))
+    assert batches == [{"col": [0, 1]}, {"col": [2]}]
+
+
+@require_polars
+def test_iterable_dataset_to_polars():
+    import polars as pl
+
+    dataset = Dataset.from_dict({"col": [0, 1, 2]}).to_iterable_dataset()
+
+    df = dataset.to_polars()
+    assert isinstance(df, pl.DataFrame)
+    assert df["col"].to_list() == [0, 1, 2]
+
+    batches = list(dataset.to_polars(batch_size=2, batched=True))
+    assert [batch["col"].to_list() for batch in batches] == [[0, 1], [2]]
+
+
 @require_numpy1_on_windows
 def test_iterable_dataset_from_file(dataset: IterableDataset, arrow_file: str):
     with assert_arrow_memory_doesnt_increase():
