@@ -267,6 +267,25 @@ To load remote WebDatasets via HTTP, pass the URLs instead:
 >>> dataset = load_dataset("webdataset", data_files={"train": urls}, split="train", streaming=True)
 ```
 
+### GenBank
+
+[GenBank](https://www.ncbi.nlm.nih.gov/genbank/) is a text-based format from NCBI for nucleotide and protein sequences together with their annotations. Files use the `.gb`, `.gbk`, or `.genbank` extension (optionally compressed), and each record's `FEATURES` section is decoded into structured objects.
+
+To load GenBank files:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("genbank", data_files="*.gb", split="train")
+```
+
+You can try it on a small example dataset of real NCBI records (one of them is gzipped to show that compressed files load transparently):
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("ermiaazarkhalili/datasets-genbank-test", data_files="*.gb*", split="train")
+>>> dataset[0]["locus_name"], dataset[0]["organism"], dataset[0]["length"]
+```
+
 ## Remote files
 
 If you have remote files likely stored as a `csv`, `json`, `txt`, `parquet` or any supported format, the [`load_dataset`] function can load load them if you specify their remote paths:
