@@ -3649,6 +3649,20 @@ def test_class_encode_column_with_none(include_nulls):
     assert (None in dataset.unique("col_1")) == (not include_nulls)
 
 
+def test_align_labels_with_mapping_on_list_of_class_labels():
+    features = Features({"ner_tags": List(ClassLabel(names=["O", "PER", "LOC"]))})
+    dataset = Dataset.from_dict({"ner_tags": [[0, 1], [2]]}, features=features)
+    aligned_dataset = dataset.align_labels_with_mapping({"O": 0, "LOC": 1, "PER": 2}, "ner_tags")
+    assert aligned_dataset.features["ner_tags"] == List(ClassLabel(names=["O", "LOC", "PER"]))
+    assert aligned_dataset["ner_tags"] == [[0, 2], [1]]
+
+
+def test_align_labels_with_mapping_on_unsupported_column():
+    dataset = Dataset.from_dict({"col_1": ["a", "b"]})
+    with pytest.raises(ValueError):
+        dataset.align_labels_with_mapping({"a": 0, "b": 1}, "col_1")
+
+
 @pytest.mark.parametrize("null_placement", ["first", "last"])
 def test_sort_with_none(null_placement):
     dataset = Dataset.from_dict({"col_1": ["item_2", "item_3", "item_1", None, "item_4", None]})
