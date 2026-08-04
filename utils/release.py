@@ -30,7 +30,7 @@ REPLACE_FILES = {
 
 def update_version_in_file(fname, version, pattern):
     """Update the version in one file using a specific pattern."""
-    with open(fname, "r", encoding="utf-8", newline="\n") as f:
+    with open(fname, encoding="utf-8", newline="\n") as f:
         code = f.read()
     re_pattern, replace = REPLACE_PATTERNS[pattern]
     replace = replace.replace("VERSION", version)
@@ -47,7 +47,7 @@ def global_version_update(version):
 
 def get_version():
     """Reads the current version in the __init__."""
-    with open(REPLACE_FILES["init"], "r") as f:
+    with open(REPLACE_FILES["init"]) as f:
         code = f.read()
     default_version = REPLACE_PATTERNS["init"][0].search(code).groups()[0]
     return packaging.version.parse(default_version)
