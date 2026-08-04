@@ -241,6 +241,7 @@ class Video:
         The Arrow types that can be converted to the Video pyarrow storage type are:
 
         - `pa.string()` - it must contain the "path" data
+        - `pa.large_string()` - it must contain the "path" data (will be cast to string if possible)
         - `pa.binary()` - it must contain the video bytes
         - `pa.struct({"bytes": pa.binary()})`
         - `pa.struct({"path": pa.string()})`
@@ -255,6 +256,15 @@ class Video:
             `pa.StructArray`: Array in the Video arrow storage type, that is
                 `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
+        if pa.types.is_large_string(storage.type):
+            try:
+                storage = storage.cast(pa.string())
+            except pa.ArrowInvalid as e:
+                raise ValueError(
+                    f"Failed to cast large_string to string for Video feature. "
+                    f"This can happen if string values exceed 2GB. "
+                    f"Original error: {e}"
+                ) from e
         if pa.types.is_string(storage.type):
             bytes_array = pa.array([None] * len(storage), type=pa.binary())
             storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"], mask=storage.is_null())
