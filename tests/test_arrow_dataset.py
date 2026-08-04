@@ -3649,6 +3649,20 @@ def test_class_encode_column_with_none(include_nulls):
     assert (None in dataset.unique("col_1")) == (not include_nulls)
 
 
+def test_unique_with_indices_mapping_of_same_length():
+    dataset = Dataset.from_dict({"col_1": ["a", "b", "c"]})
+    # the indices mapping has as many rows as the table but doesn't select every row
+    dataset = dataset.select([0, 0, 1])
+    assert dataset["col_1"] == ["a", "a", "b"]
+    assert dataset.unique("col_1") == ["a", "b"]
+
+
+def test_class_encode_column_with_indices_mapping_of_same_length():
+    dataset = Dataset.from_dict({"col_1": ["a", "b", "c"]})
+    dataset = dataset.select([0, 0, 1]).class_encode_column("col_1")
+    assert dataset.features["col_1"].names == ["a", "b"]
+
+
 @pytest.mark.parametrize("null_placement", ["first", "last"])
 def test_sort_with_none(null_placement):
     dataset = Dataset.from_dict({"col_1": ["item_2", "item_3", "item_1", None, "item_4", None]})
