@@ -137,6 +137,25 @@ def convert_file_size_to_int(size: Union[int, str]) -> int:
 
 
 def glob_pattern_to_regex(pattern):
+    """Convert a glob pattern to an equivalent regular expression string.
+
+    Special glob characters (``*``, ``?``, ``**``) are translated to their
+    regex equivalents.  The implementation is partially derived from
+    `fsspec <https://github.com/fsspec/filesystem_spec/blob/697d0f8133d8a5fbc3926e4761d7ecd51337ce50/fsspec/asyn.py#L735>`_.
+
+    Args:
+        pattern (`str`): A glob-style pattern, e.g. ``"data/*.parquet"``.
+
+    Returns:
+        `str`: A regex string that matches the same paths as *pattern*.
+
+    Example:
+        ```py
+        >>> import re
+        >>> re.match(glob_pattern_to_regex("data/*.parquet"), "data/train.parquet") is not None
+        True
+        ```
+    """
     # partially taken from fsspec:
     # https://github.com/fsspec/filesystem_spec/blob/697d0f8133d8a5fbc3926e4761d7ecd51337ce50/fsspec/asyn.py#L735
     return (
@@ -565,6 +584,25 @@ class NestedDataStructure:
 
 
 def has_sufficient_disk_space(needed_bytes, directory="."):
+    """Check whether a directory has enough free disk space.
+
+    Args:
+        needed_bytes (`int`): Number of bytes required.
+        directory (`str`, *optional*, defaults to ``"."``): Path to the
+            directory to check.  The free space of the filesystem that
+            contains this directory is used.
+
+    Returns:
+        `bool`: ``True`` if the directory's filesystem has at least
+        *needed_bytes* free, or if the free-space check fails with an
+        :class:`OSError` (e.g. unsupported filesystem).  ``False`` otherwise.
+
+    Example:
+        ```py
+        >>> has_sufficient_disk_space(1024, directory="/tmp")
+        True
+        ```
+    """
     try:
         free_bytes = disk_usage(os.path.abspath(directory)).free
     except OSError:
@@ -573,6 +611,29 @@ def has_sufficient_disk_space(needed_bytes, directory="."):
 
 
 def copyfunc(func):
+    """Return a shallow copy of a Python function.
+
+    Creates a new :class:`types.FunctionType` object that shares the same
+    bytecode, globals, name, defaults, and closure as *func*.  Useful when
+    you need to attach different attributes or decorators to a function
+    without mutating the original.
+
+    Args:
+        func (`Callable`): The function to copy.
+
+    Returns:
+        `Callable`: A new function object with the same code and metadata as *func*.
+
+    Example:
+        ```py
+        >>> def add(x, y): return x + y
+        >>> add_copy = copyfunc(add)
+        >>> add_copy(1, 2)
+        3
+        >>> add_copy is add
+        False
+        ```
+    """
     result = types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
     result.__kwdefaults__ = func.__kwdefaults__
     return result
@@ -597,6 +658,28 @@ def iflatmap_unordered(
     *,
     kwargs_iterable: Iterable[dict],
 ) -> Iterable[Y]:
+    """Apply *func* to each kwargs dict in *kwargs_iterable* using *pool* and yield results as they arrive.
+
+    Results are yielded in completion order (unordered) rather than submission
+    order, which maximises throughput when individual calls have variable
+    runtime.  Each call to *func* must return an :class:`~collections.abc.Iterable`;
+    the items from all iterables are flattened into a single output stream.
+
+    Args:
+        pool (`multiprocessing.pool.Pool` or `multiprocess.pool.Pool`):
+            Worker pool used to dispatch the calls.
+        func (`Callable[..., Iterable[Y]]`): A callable that accepts keyword
+            arguments and returns an iterable of results.
+        kwargs_iterable (`Iterable[dict]`): Sequence of keyword-argument dicts,
+            one per call to *func*.
+
+    Yields:
+        `Y`: Individual items produced by each *func* call, in unordered
+        completion order.
+
+    Raises:
+        `RuntimeError`: If a worker process dies unexpectedly during execution.
+    """
     initial_pool_pid = _get_pool_pid(pool)
     pool_changed = False
     with pool._ctx.Manager() as manager:
@@ -628,6 +711,27 @@ T = TypeVar("T")
 
 
 def iter_batched(iterable: Iterable[T], n: int) -> Iterable[list[T]]:
+    """Iterate over *iterable* in fixed-size batches.
+
+    The last batch may contain fewer than *n* items if the total number of
+    elements is not divisible by *n*.
+
+    Args:
+        iterable (`Iterable[T]`): The source iterable to batch.
+        n (`int`): Batch size.  Must be a positive integer.
+
+    Yields:
+        `list[T]`: Successive non-overlapping batches of up to *n* items.
+
+    Raises:
+        `ValueError`: If *n* is less than 1.
+
+    Example:
+        ```py
+        >>> list(iter_batched(range(7), 3))
+        [[0, 1, 2], [3, 4, 5], [6]]
+        ```
+    """
     if n < 1:
         raise ValueError(f"Invalid batch size {n}")
     batch = []
