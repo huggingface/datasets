@@ -4181,6 +4181,13 @@ class IterableDataset(DatasetInfoMixin):
         if isinstance(column_names, str):
             column_names = [column_names]
 
+        number_of_duplicates = len(column_names) - len(set(column_names))
+        if number_of_duplicates != 0:
+            raise ValueError(
+                "Selected column names must all be different, but this selection "
+                f"has {number_of_duplicates} duplicates."
+            )
+
         if self._info:
             info = deepcopy(self._info)
             if self._info.features is not None:

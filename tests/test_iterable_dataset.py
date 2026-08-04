@@ -2484,6 +2484,20 @@ def test_iterable_dataset_select_columns(dataset_with_several_columns: IterableD
     assert all(c in new_dataset.column_names for c in ["id", "filepath"])
 
 
+def test_iterable_dataset_select_columns_duplicates(dataset_with_several_columns: IterableDataset):
+    with pytest.raises(ValueError, match="duplicates"):
+        dataset_with_several_columns.select_columns(["id", "id"])
+
+    with pytest.raises(ValueError, match="duplicates"):
+        dataset_with_several_columns.select_columns(["id", "filepath", "id"])
+
+    # Selecting distinct columns, including reordered, is unaffected.
+    new_dataset = dataset_with_several_columns.select_columns(["filepath", "id"])
+    assert list(new_dataset) == [
+        {k: v for k, v in example.items() if k in ("id", "filepath")} for example in dataset_with_several_columns
+    ]
+
+
 def test_iterable_dataset_cast_column():
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
     features = Features({"id": Value("int64"), "label": Value("int64")})
