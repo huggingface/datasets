@@ -108,9 +108,7 @@ class Mesh:
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Mesh(decode=True) instead.")
 
-        if config.TRIMESH_AVAILABLE:
-            import trimesh
-        else:
+        if not config.TRIMESH_AVAILABLE:
             raise ImportError("To support decoding meshes, please install 'trimesh'.")
 
         if token_per_repo_id is None:
@@ -124,7 +122,7 @@ class Mesh:
                 file_type = _infer_mesh_file_type(path)
                 if file_type is None:
                     raise ValueError("A mesh path should have a .glb, .ply, or .stl extension.")
-                return trimesh.load(path, file_type=file_type)
+                return _load_mesh(path, file_type)
             source_url = path.split("::")[-1]
             pattern = (
                 config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
@@ -141,7 +139,7 @@ class Mesh:
                 "Decoding mesh bytes requires a 'path' value with a .glb, .ply, or .stl extension "
                 "to infer the mesh file type."
             )
-        return trimesh.load(BytesIO(bytes_), file_type=file_type)
+        return _load_mesh(BytesIO(bytes_), file_type)
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """If in the decodable state, return the feature itself, otherwise flatten the feature into a dictionary."""
@@ -273,6 +271,21 @@ class Mesh:
         )
         storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
         return array_cast(storage, self.pa_type)
+
+
+def _load_mesh(source: Union[str, BytesIO], file_type: str) -> Union["trimesh.Trimesh", "trimesh.Scene"]:
+    import trimesh
+
+    try:
+        return trimesh.load(source, file_type=file_type)
+    except RecursionError as e:
+        # A GLB whose glTF JSON chunk is deeply nested (malformed or malicious) can
+        # exceed Python's recursion limit while trimesh parses it, crashing the whole
+        # load. Surface a clear error instead. See #8246.
+        raise ValueError(
+            f"Could not decode mesh (file_type={file_type!r}): the data is too deeply nested "
+            "and may be malformed or malicious."
+        ) from e
 
 
 def _infer_mesh_file_type(path: Optional[str]) -> Optional[str]:
