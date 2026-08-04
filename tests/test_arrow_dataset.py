@@ -4341,7 +4341,7 @@ def test_from_spark():
         ("2", 2, 2.0),
         ("3", 3, 3.0),
     ]
-    df = spark.createDataFrame(data, "col_1: string, col_2: int, col_3: float")
+    df = spark.createDataFrame(data, "col_1: string, col_2: int, col_3: float").repartition(2)
     dataset = Dataset.from_spark(df)
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 4
