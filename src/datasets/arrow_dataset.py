@@ -2230,12 +2230,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if column not in self._data.column_names:
             raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
 
-        if self._indices is not None and self._indices.num_rows != self._data.num_rows:
-            dataset = self.flatten_indices()
+        if self._indices is not None:
+            # the indices mapping can also repeat or drop rows without changing the number of rows,
+            # so it always has to be applied - only the requested column is materialized
+            column_data = query_table(table=self._data, key=column, indices=self._indices).column(0)
         else:
-            dataset = self
+            column_data = self._data.column(column)
 
-        return dataset._data.column(column).unique().to_pylist()
+        return column_data.unique().to_pylist()
 
     def class_encode_column(self, column: str, include_nulls: bool = False) -> "Dataset":
         """Casts the given column as [`~datasets.features.ClassLabel`] and updates the table.
