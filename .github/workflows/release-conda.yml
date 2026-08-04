@@ -5,8 +5,7 @@ on:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+*"
 
-env:
-  ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
+env: {}
 
 jobs:
   build_and_package:
@@ -36,12 +35,21 @@ jobs:
           conda activate build-datasets
 
       - name: Extract version
-        run: echo "DATASETS_VERSION=`python setup.py --version`" >> $GITHUB_ENV
+        run: |
+          VERSION=$(python setup.py --version)
+          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(\.[a-zA-Z0-9]+)?$ ]]; then
+            echo "DATASETS_VERSION=$VERSION" >> $GITHUB_ENV
+          else
+            echo "Invalid version format: $VERSION" >&2
+            exit 1
+          fi
 
       - name: Build conda packages
         run: |
           conda-build --override-channels -c conda-forge -c huggingface .github/conda
 
       - name: Upload to Anaconda
+        env:
+          ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
         run: |
           anaconda upload `conda-build .github/conda --output -c conda-forge` --force
