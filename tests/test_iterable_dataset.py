@@ -2465,6 +2465,15 @@ def test_iterable_dataset_remove_columns(dataset_with_several_columns: IterableD
     assert all(c not in new_dataset.column_names for c in ["id", "filepath"])
 
 
+def test_iterable_dataset_remove_columns_str():
+    # the column name must not be matched character by character against the other column names
+    dataset = Dataset.from_dict({"label": [0, 1], "label_text": ["a", "b"]}).to_iterable_dataset()
+    new_dataset = dataset.remove_columns("label_text")
+    assert new_dataset.column_names == ["label"]
+    assert list(new_dataset.features) == ["label"]
+    assert list(new_dataset) == [{"label": 0}, {"label": 1}]
+
+
 def test_iterable_dataset_select_columns(dataset_with_several_columns: IterableDataset):
     new_dataset = dataset_with_several_columns.select_columns("id")
     assert list(new_dataset) == [
