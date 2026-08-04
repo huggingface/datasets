@@ -254,6 +254,23 @@ def test_resolve_pattern_locally_special_base_path(tmp_path):
     assert len(resolved_data_files) == 1
 
 
+def test_resolve_pattern_locally_base_path_with_glob_chars(tmp_path):
+    # Regression for https://github.com/huggingface/datasets/issues/7468:
+    # `[`, `]`, `*`, `?` in the literal directory name used to be interpreted
+    # as glob character classes by `fs.glob`, which caused a whole-disk
+    # traversal that returned no files. Escape them in `base_path` so the
+    # directory part is treated literally while the pattern keeps its glob
+    # semantics.
+    weird = tmp_path / "[D_DATA]"
+    weird.mkdir()
+    (weird / "a.txt").touch()
+    (weird / "b.txt").touch()
+    resolved = resolve_pattern("*", str(weird))
+    assert len(resolved) == 2
+    resolved = resolve_pattern("*.txt", str(weird))
+    assert len(resolved) == 2
+
+
 @pytest.mark.parametrize("pattern,size,extensions", [("**", 4, [".txt"]), ("**", 4, None), ("**", 0, [".blablabla"])])
 def test_resolve_pattern_locally_with_extensions(complex_data_dir, pattern, size, extensions):
     if size > 0:
