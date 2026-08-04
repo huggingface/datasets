@@ -1272,6 +1272,25 @@ def test_cast_list_array_to_features_sequence(arr, slice, target_value_feature):
     assert casted_array.to_pylist() == arr.to_pylist()
 
 
+@pytest.mark.parametrize(
+    "arr",
+    [
+        pa.array([None, [1, 2], [3, 4]], pa.list_(pa.int32())),  # first row holds no value
+        pa.array([[7], [1, 2], [3, 4]], pa.list_(pa.int32())),  # first row is shorter
+        pa.array([[7, 8, 9], [1, 2], [3, 4]], pa.list_(pa.int32())),  # first row is longer
+    ],
+)
+def test_cast_sliced_list_array_to_fixed_size_list(arr):
+    # the sliced array is uniform and has no null, only the rows before the slice differ
+    sliced_arr = arr.slice(1)
+    casted_array = cast_array_to_feature(sliced_arr, List(Value("int64"), length=2))
+    assert casted_array.type == get_nested_type(List(Value("int64"), length=2))
+    assert casted_array.to_pylist() == sliced_arr.to_pylist()
+    casted_array = array_cast(sliced_arr, pa.list_(pa.int64(), 2))
+    assert casted_array.type == pa.list_(pa.int64(), 2)
+    assert casted_array.to_pylist() == sliced_arr.to_pylist()
+
+
 @pytest.mark.parametrize("sequence_feature_dtype", ["string", "int64"])
 @pytest.mark.parametrize("from_list_type", ["list", "fixed_size_list", "large_list"])
 @pytest.mark.parametrize("list_within_struct", [False, True])

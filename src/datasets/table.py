@@ -1969,9 +1969,8 @@ def array_cast(
                         _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
                     )
                 else:
-                    array_values = array.values[
-                        array.offset * pa_type.list_size : (array.offset + len(array)) * pa_type.list_size
-                    ]
+                    # flatten() applies the array offsets, unlike .values which is the unsliced child array
+                    array_values = array.flatten()
                     return pa.FixedSizeListArray.from_arrays(_c(array_values, pa_type.value_type), pa_type.list_size)
         elif pa.types.is_list(pa_type):
             # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
@@ -2110,9 +2109,8 @@ def cast_array_to_feature(
                             casted_array_values, feature.length, mask=array.is_null()
                         )
                     else:
-                        array_values = array.values[
-                            array.offset * feature.length : (array.offset + len(array)) * feature.length
-                        ]
+                        # flatten() applies the array offsets, unlike .values which is the unsliced child array
+                        array_values = array.flatten()
                         return pa.FixedSizeListArray.from_arrays(_c(array_values, feature.feature), feature.length)
             else:
                 casted_array_values = _c(array.values, feature.feature)

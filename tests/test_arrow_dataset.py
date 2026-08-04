@@ -3637,6 +3637,14 @@ def test_cast_with_sliced_list():
     assert casted_dataset.features == new_features
 
 
+@pytest.mark.parametrize("batch_size", [1, 2, 3, 4])
+def test_cast_with_sliced_list_to_fixed_length_list(batch_size):
+    values = [None, [1, 2], [3, 4], [5, 6]]
+    dataset = Dataset.from_dict({"foo": values}, features=Features({"foo": List(Value("int64"))}))
+    casted_dataset = dataset.cast(Features({"foo": List(Value("int64"), length=2)}), batch_size=batch_size)
+    assert casted_dataset["foo"] == values
+
+
 @pytest.mark.parametrize("include_nulls", [False, True])
 def test_class_encode_column_with_none(include_nulls):
     dataset = Dataset.from_dict({"col_1": ["a", "b", "c", None, "d", None]})
