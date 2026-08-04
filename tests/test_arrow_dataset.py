@@ -3954,6 +3954,20 @@ def test_dataset_add_item(item, in_memory, dataset_dict, arrow_path, transform):
         assert dataset_indices == dataset_to_test_indices + [len(dataset_to_test._data)]
 
 
+def test_align_labels_with_mapping_on_list_of_class_labels():
+    features = Features({"ner_tags": List(ClassLabel(names=["O", "PER", "LOC"]))})
+    dataset = Dataset.from_dict({"ner_tags": [[0, 1], [2]]}, features=features)
+    aligned_dataset = dataset.align_labels_with_mapping({"O": 0, "LOC": 1, "PER": 2}, "ner_tags")
+    assert aligned_dataset.features["ner_tags"] == List(ClassLabel(names=["O", "LOC", "PER"]))
+    assert aligned_dataset["ner_tags"] == [[0, 2], [1]]
+
+
+def test_align_labels_with_mapping_on_unsupported_column():
+    dataset = Dataset.from_dict({"col_1": ["a", "b"]})
+    with pytest.raises(ValueError):
+        dataset.align_labels_with_mapping({"a": 0, "b": 1}, "col_1")
+
+
 def test_dataset_add_item_new_columns():
     dataset = Dataset.from_dict({"col_1": [0, 1, 2]}, features=Features({"col_1": Value("uint8")}))
     dataset = dataset.add_item({"col_1": 3, "col_2": "a"})
