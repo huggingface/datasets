@@ -952,7 +952,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
          'Review: effective but too-tepid biopic']
 
         # process a batch of examples
-        >>> ds = ds.map(lambda example: tokenizer(example["text"]), batched=True)
+        >>> ds = ds.map(lambda batch: {"text": [t.upper() for t in batch["text"]]}, batched=True)
         # set number of processors
         >>> ds = ds.map(add_prefix, num_proc=4)
         ```
