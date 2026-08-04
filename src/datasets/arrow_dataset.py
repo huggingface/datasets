@@ -169,6 +169,12 @@ PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED = (
 )
 
 
+def _normalize_path_or_paths(path_or_paths: Union[PathLike, Sequence_[PathLike]]) -> Union[PathLike, list[PathLike]]:
+    if isinstance(path_or_paths, Sequence_) and not isinstance(path_or_paths, (str, bytes, os.PathLike)):
+        return list(path_or_paths)
+    return path_or_paths
+
+
 class DatasetInfoMixin:
     """This base class exposes some attributes of DatasetInfo
     at the base level of the Dataset for easy access.
@@ -1290,7 +1296,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_csv(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence_[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1334,7 +1340,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .io.csv import CsvDatasetReader
 
         return CsvDatasetReader(
-            path_or_paths,
+            _normalize_path_or_paths(path_or_paths),
             split=split,
             features=features,
             cache_dir=cache_dir,
@@ -1430,7 +1436,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_json(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence_[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1477,7 +1483,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .io.json import JsonDatasetReader
 
         return JsonDatasetReader(
-            path_or_paths,
+            _normalize_path_or_paths(path_or_paths),
             split=split,
             features=features,
             cache_dir=cache_dir,
@@ -1489,7 +1495,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_parquet(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence_[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1571,7 +1577,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .io.parquet import ParquetDatasetReader
 
         return ParquetDatasetReader(
-            path_or_paths,
+            _normalize_path_or_paths(path_or_paths),
             split=split,
             features=features,
             cache_dir=cache_dir,
@@ -1586,7 +1592,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_text(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence_[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1637,7 +1643,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .io.text import TextDatasetReader
 
         return TextDatasetReader(
-            path_or_paths,
+            _normalize_path_or_paths(path_or_paths),
             split=split,
             features=features,
             cache_dir=cache_dir,
