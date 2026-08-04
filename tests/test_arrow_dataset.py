@@ -4650,6 +4650,17 @@ def test_dataset_to_iterable_dataset(dataset: Dataset):
         dataset.with_format("torch", columns=[dataset.column_names[0]]).to_iterable_dataset()
 
 
+def test_dataset_to_iterable_dataset_empty():
+    dataset = Dataset.from_dict({"col_1": []})
+    iterable_dataset = dataset.to_iterable_dataset()
+    assert isinstance(iterable_dataset, IterableDataset)
+    assert list(iterable_dataset) == []
+    assert iterable_dataset.features == dataset.features
+    assert iterable_dataset.num_shards == 1
+    with pytest.raises(ValueError):
+        dataset.to_iterable_dataset(num_shards=2)
+
+
 @require_pil
 def test_dataset_format_with_unformatted_image():
     import PIL
