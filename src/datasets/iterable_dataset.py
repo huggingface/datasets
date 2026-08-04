@@ -2131,6 +2131,18 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
         self.ex_iterable = ex_iterable
         self.num_times = num_times
 
+    @property
+    def iter_arrow(self):
+        return self._iter_arrow if self.ex_iterable.iter_arrow else None
+
+    @property
+    def is_typed(self):
+        return self.ex_iterable.is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterable.features
+
     def _init_state_dict(self) -> dict:
         self._state_dict = {
             "repeat_index": 0,
@@ -2145,6 +2157,17 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
             if self.num_times is not None and repeat_index >= max(self.num_times, 0):
                 break
             yield from self.ex_iterable
+            repeat_index += 1
+            if self._state_dict:
+                self._state_dict["repeat_index"] = repeat_index
+                self._state_dict["examples_iterable"] = self.ex_iterable._init_state_dict()
+
+    def _iter_arrow(self):
+        repeat_index = self._state_dict["repeat_index"] if self._state_dict else 0
+        while True:
+            if self.num_times is not None and repeat_index >= max(self.num_times, 0):
+                break
+            yield from self.ex_iterable.iter_arrow()
             repeat_index += 1
             if self._state_dict:
                 self._state_dict["repeat_index"] = repeat_index

@@ -1445,6 +1445,26 @@ def test_repeat_examples_iterable(n, num_times):
             assert next(iterator)[1] == all_examples[i % len(all_examples)], f"iteration {i} failed,"
 
 
+@pytest.mark.parametrize("num_times", [2, 0])
+def test_repeat_examples_iterable_arrow(num_times):
+    base_ex_iterable = ArrowExamplesIterable(generate_tables_fn, {"n": 10})
+    ex_iterable = RepeatExamplesIterable(base_ex_iterable, num_times=num_times)
+    assert ex_iterable.iter_arrow is not None
+    assert ex_iterable.is_typed == base_ex_iterable.is_typed
+    assert ex_iterable.features == base_ex_iterable.features
+    expected = sum([pa_table.to_pylist() for _, pa_table in generate_tables_fn(n=10)], []) * num_times
+    assert [example for _, pa_table in ex_iterable.iter_arrow() for example in pa_table.to_pylist()] == expected
+    assert [example for _, example in ex_iterable] == expected
+    assert_load_state_dict_resumes_iteration(ex_iterable)
+    assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
+
+
+def test_repeat_examples_iterable_without_arrow_stays_without_arrow():
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": 3})
+    ex_iterable = RepeatExamplesIterable(base_ex_iterable, num_times=2)
+    assert ex_iterable.iter_arrow is None
+
+
 def test_vertically_concatenated_examples_iterable():
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label": 10})
     ex_iterable2 = ExamplesIterable(generate_examples_fn, {"label": 5})
@@ -2320,6 +2340,14 @@ def test_iterable_dataset_repeat(dataset: IterableDataset, n):
     assert isinstance(repeat_dataset._ex_iterable, RepeatExamplesIterable)
     assert repeat_dataset._ex_iterable.num_times == n
     assert list(repeat_dataset) == list(dataset) * n
+
+
+def test_iterable_dataset_repeat_keeps_numpy_dtypes():
+    features = Features({"i32": Value("int32"), "f32": Value("float32"), "u8": Value("uint8")})
+    ds = Dataset.from_dict({"i32": [1, 2], "f32": [1.5, 2.5], "u8": [3, 4]}, features=features)
+    ds = ds.to_iterable_dataset().with_format("numpy")
+    expected = {key: value.dtype for key, value in next(iter(ds)).items()}
+    assert {key: value.dtype for key, value in next(iter(ds.repeat(2))).items()} == expected
 
 
 def test_iterable_dataset_shard():
