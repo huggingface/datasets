@@ -153,3 +153,53 @@ def test_load_dataset_with_video_feature(streaming, jsonl_video_dataset_path, sh
     assert isinstance(item["video"], VideoDecoder)
     assert item["video"].get_frame_at(0).data.shape == (3, 50, 66)
     assert item["video"].metadata.path == video_path
+
+
+# ----- on_error tests -----
+
+
+def test_video_on_error_invalid_value():
+    with pytest.raises(ValueError, match="Invalid on_error"):
+        Video(on_error="not_a_mode")
+
+
+@require_torchcodec
+def test_video_on_error_normal_decode(shared_datadir):
+    # on_error only affects the failure path; for valid input the result is the same
+    # regardless of mode, so it is enough to exercise this path once.
+    from torchcodec.decoders import VideoDecoder
+
+    video_path = str(shared_datadir / "test_video_66x50.mov")
+    video = Video()
+    decoded = video.decode_example({"path": video_path, "bytes": None})
+    assert isinstance(decoded, VideoDecoder)
+
+
+@require_torchcodec
+def test_video_on_error_raise_corrupted():
+    video = Video(on_error="raise")
+    with pytest.raises(Exception):
+        video.decode_example({"path": None, "bytes": b"not a video file"})
+
+
+@require_torchcodec
+def test_video_on_error_return_none_corrupted():
+    import warnings as _warnings
+
+    video = Video(on_error="return_none")
+    with _warnings.catch_warnings():
+        _warnings.simplefilter("error")
+        result = video.decode_example({"path": None, "bytes": b"not a video file"})
+    assert result is None
+
+
+@require_torchcodec
+def test_video_on_error_warn_and_return_none_corrupted():
+    import warnings as _warnings
+
+    video = Video(on_error="warn_and_return_none")
+    with _warnings.catch_warnings(record=True) as caught:
+        _warnings.simplefilter("always")
+        result = video.decode_example({"path": None, "bytes": b"not a video file"})
+    assert result is None
+    assert any("Failed to decode video" in str(w.message) for w in caught)

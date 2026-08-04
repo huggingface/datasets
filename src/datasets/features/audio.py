@@ -1,4 +1,5 @@
 import os
+import warnings
 from dataclasses import dataclass, field
 from io import BytesIO
 from pathlib import Path
@@ -61,6 +62,12 @@ class Audio:
             returns the underlying dictionary in the format `{"path": audio_path, "bytes": audio_bytes}`.
         stream_index (`int`, *optional*):
             The streaming index to use from the file. If `None` defaults to the "best" index.
+        on_error (`str`, defaults to `"raise"`):
+            Behavior when audio decoding fails. One of:
+
+            - `"raise"`: re-raise the exception (default, current behavior).
+            - `"return_none"`: silently return `None` for the failing example.
+            - `"warn_and_return_none"`: emit a warning and return `None`.
 
     Example:
 
@@ -84,11 +91,19 @@ class Audio:
     decode: bool = True
     num_channels: Optional[int] = None
     stream_index: Optional[int] = None
+    on_error: str = "raise"
     id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
     _type: str = field(default="Audio", init=False, repr=False)
+
+    def __post_init__(self):
+        if self.on_error not in ("raise", "return_none", "warn_and_return_none"):
+            raise ValueError(
+                f"Invalid on_error={self.on_error!r}. Must be one of: "
+                "'raise', 'return_none', 'warn_and_return_none'."
+            )
 
     def __call__(self):
         return self.pa_type
@@ -188,37 +203,45 @@ class Audio:
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Audio(decode=True) instead.")
 
-        path, bytes = (value["path"], value["bytes"]) if value["bytes"] is not None else (value["path"], None)
-        if path is None and bytes is None:
-            raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
+        try:
+            path, bytes = (value["path"], value["bytes"]) if value["bytes"] is not None else (value["path"], None)
+            if path is None and bytes is None:
+                raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
 
-        if bytes is None and is_local_path(path):
-            audio = AudioDecoder(
-                path, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=self.num_channels
-            )
+            if bytes is None and is_local_path(path):
+                audio = AudioDecoder(
+                    path, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=self.num_channels
+                )
 
-        elif bytes is None:
-            token_per_repo_id = token_per_repo_id or {}
-            source_url = path.split("::")[-1]
-            pattern = (
-                config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
-            )
-            source_url_fields = string_to_dict(source_url, pattern)
-            token = token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
+            elif bytes is None:
+                token_per_repo_id = token_per_repo_id or {}
+                source_url = path.split("::")[-1]
+                pattern = (
+                    config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
+                )
+                source_url_fields = string_to_dict(source_url, pattern)
+                token = token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
 
-            download_config = DownloadConfig(token=token)
-            f = xopen(path, "rb", download_config=download_config)
-            audio = AudioDecoder(
-                f, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=self.num_channels
-            )
+                download_config = DownloadConfig(token=token)
+                f = xopen(path, "rb", download_config=download_config)
+                audio = AudioDecoder(
+                    f, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=self.num_channels
+                )
 
-        else:
-            audio = AudioDecoder(
-                bytes, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=self.num_channels
-            )
-        audio._hf_encoded = {"path": path, "bytes": bytes}
-        audio.metadata.path = path
-        return audio
+            else:
+                audio = AudioDecoder(
+                    bytes, stream_index=self.stream_index, sample_rate=self.sampling_rate, num_channels=self.num_channels
+                )
+            audio._hf_encoded = {"path": path, "bytes": bytes}
+            audio.metadata.path = path
+            return audio
+        except Exception as e:
+            if self.on_error == "raise":
+                raise
+            if self.on_error == "warn_and_return_none":
+                path_repr = value.get("path") if isinstance(value, dict) else value
+                warnings.warn(f"Failed to decode audio (path={path_repr!r}): {e!r}")
+            return None
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """If in the decodable state, raise an error, otherwise flatten the feature into a dictionary."""
