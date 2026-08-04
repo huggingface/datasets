@@ -18,6 +18,7 @@ from datasets.features.features import (
     _check_non_null_non_empty_recursive,
     _is_null_feature,
     _visit,
+    _visit_with_path,
     cast_to_python_objects,
     decode_nested_example,
     encode_nested_example,
@@ -1036,6 +1037,22 @@ def test_visit_with_list_types(feature, expected):
 
     result = _visit(feature, func)
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    "feature",
+    [
+        List(Value("int32"), id="my feature"),
+        List(Value("int32"), length=2, id="my feature"),
+        LargeList(Value("int32"), id="my feature"),
+    ],
+)
+def test_visit_with_list_types_keeps_id(feature):
+    assert _visit(feature, lambda x: x).id == "my feature"
+    assert _visit_with_path(feature, lambda x, path: x).id == "my feature"
+    # Features() visits every column to convert the legacy [feature] syntax
+    assert Features({"col": feature})["col"].id == "my feature"
+    assert Features({"col": {"sub": feature}})["col"]["sub"].id == "my feature"
 
 
 @pytest.mark.parametrize(
