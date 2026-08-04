@@ -3823,6 +3823,20 @@ def test_interleave_datasets_oversampling_strategy():
     assert dataset._fingerprint == interleave_datasets([d1, d2, d3], stopping_strategy="all_exhausted")._fingerprint
 
 
+@pytest.mark.parametrize("empty_index", [0, 1, 2])
+def test_interleave_datasets_oversampling_strategy_with_empty_dataset(empty_index):
+    dsets = [Dataset.from_dict({"a": [0, 1, 2]}), Dataset.from_dict({"a": [10, 11]})]
+    dsets.insert(empty_index, Dataset.from_dict({"a": []}))
+    dataset = interleave_datasets(dsets, stopping_strategy="all_exhausted")
+    # the empty dataset is exhausted from the start and contributes no example
+    assert dataset["a"] == [0, 10, 1, 11, 2, 10]
+
+
+def test_interleave_datasets_oversampling_strategy_with_only_empty_datasets():
+    dsets = [Dataset.from_dict({"a": []}), Dataset.from_dict({"a": []})]
+    assert interleave_datasets(dsets, stopping_strategy="all_exhausted")["a"] == []
+
+
 def test_interleave_datasets_probabilities_oversampling_strategy():
     seed = 42
     probabilities = [0.3, 0.5, 0.2]
