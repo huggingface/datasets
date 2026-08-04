@@ -205,10 +205,17 @@ class BuilderConfig:
         else:
             return self.name
 
-    def _resolve_data_files(self, base_path: str, download_config: DownloadConfig) -> None:
+    def _resolve_data_files(
+        self,
+        base_path: str,
+        download_config: DownloadConfig,
+        skip_origin_metadata: bool = False,
+    ) -> None:
         if isinstance(self.data_files, DataFilesPatternsDict):
             base_path = xjoin(base_path, self.data_dir) if self.data_dir else base_path
-            self.data_files = self.data_files.resolve(base_path, download_config)
+            self.data_files = self.data_files.resolve(
+                base_path, download_config, skip_origin_metadata=skip_origin_metadata
+            )
 
 
 class DatasetBuilder:
@@ -279,6 +286,12 @@ class DatasetBuilder:
             It defines the number of samples that are kept in memory before writing them
             and also the length of the arrow chunks.
             None means that the ArrowWriter will use its default value.
+        skip_origin_metadata (`bool`, *optional*):
+            Whether to skip fetching origin metadata (ETag/mtime) for the data files.
+            It should only be set to `True` when streaming from cloud storage
+            (e.g., Google Cloud Storage) to optimize startup time. It should be
+            `False` for local files, when not streaming, or when origin metadata
+            is required for cache invalidation.
         **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the corresponding builder
             configuration class, set on the class attribute [`DatasetBuilder.BUILDER_CONFIG_CLASS`]. The builder
             configuration class is [`BuilderConfig`] or a subclass of it.
@@ -321,6 +334,7 @@ class DatasetBuilder:
         storage_options: Optional[dict] = None,
         writer_batch_size: Optional[int] = None,
         config_id: Optional[str] = None,
+        skip_origin_metadata: bool = False,
         **config_kwargs,
     ):
         # DatasetBuilder name
@@ -332,12 +346,14 @@ class DatasetBuilder:
         self.storage_options = storage_options or {}
         self.dataset_name = camelcase_to_snakecase(dataset_name) if dataset_name else self.name
         self._writer_batch_size = writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
+        self._skip_origin_metadata = skip_origin_metadata
 
         if data_files is not None and not isinstance(data_files, DataFilesDict):
             data_files = DataFilesDict.from_patterns(
                 sanitize_patterns(data_files),
                 base_path=base_path,
                 download_config=DownloadConfig(token=token, storage_options=self.storage_options),
+                skip_origin_metadata=skip_origin_metadata,
             )
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
@@ -577,6 +593,7 @@ class DatasetBuilder:
         builder_config._resolve_data_files(
             base_path=self.base_path,
             download_config=DownloadConfig(token=self.token, storage_options=self.storage_options),
+            skip_origin_metadata=self._skip_origin_metadata,
         )
 
         # compute the config id that is going to be used for caching
@@ -784,6 +801,9 @@ class DatasetBuilder:
         >>> builder.download_and_prepare("s3://my-bucket/my_rotten_tomatoes", storage_options=storage_options, file_format="parquet")
         ```
         """
+        if self._skip_origin_metadata:
+            raise ValueError("This function is not intended for streaming.")
+
         output_dir = output_dir if output_dir is not None else self._cache_dir
         # output_dir can be a remote bucket on GCS or S3
         fs, output_dir = url_to_fs(output_dir, **(storage_options or {}))

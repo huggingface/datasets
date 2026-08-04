@@ -416,6 +416,7 @@ class LocalDatasetModuleFactory(_DatasetModuleFactory):
         data_dir: Optional[str] = None,
         data_files: Optional[Union[str, list, dict]] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
+        skip_origin_metadata: bool = False,
     ):
         if data_dir and os.path.isabs(data_dir):
             raise ValueError(f"`data_dir` must be relative to a dataset directory's root: {path}")
@@ -425,6 +426,7 @@ class LocalDatasetModuleFactory(_DatasetModuleFactory):
         self.data_files = data_files
         self.data_dir = data_dir
         self.download_mode = download_mode
+        self.skip_origin_metadata = skip_origin_metadata
 
     def get_module(self) -> DatasetModule:
         readme_path = os.path.join(self.path, config.REPOCARD_FILENAME)
@@ -452,6 +454,7 @@ class LocalDatasetModuleFactory(_DatasetModuleFactory):
             patterns,
             base_path=base_path,
             allowed_extensions=_ALL_ALLOWED_EXTENSIONS,
+            skip_origin_metadata=self.skip_origin_metadata,
         )
         module_name, default_builder_kwargs = infer_module_for_data_files(
             data_files=data_files,
@@ -525,12 +528,14 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         data_files: Optional[Union[str, list, dict]] = None,
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
+        skip_origin_metadata: bool = False,
     ):
         self.name = name
         self.data_files = data_files
         self.data_dir = data_dir
         self.download_config = download_config
         self.download_mode = download_mode
+        self.skip_origin_metadata = skip_origin_metadata
         increase_load_count(name)
 
     def get_module(self) -> DatasetModule:
@@ -544,6 +549,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             patterns,
             download_config=self.download_config,
             base_path=base_path,
+            skip_origin_metadata=self.skip_origin_metadata,
         )
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
@@ -571,6 +577,7 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
         use_exported_dataset_infos: bool = False,
+        skip_origin_metadata: bool = False,
     ):
         self.name = name
         self.commit_hash = commit_hash
@@ -579,6 +586,7 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.use_exported_dataset_infos = use_exported_dataset_infos
+        self.skip_origin_metadata = skip_origin_metadata
         increase_load_count(name)
 
     def get_module(self) -> DatasetModule:
@@ -651,6 +659,7 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
             base_path=base_path,
             allowed_extensions=_ALL_ALLOWED_EXTENSIONS,
             download_config=self.download_config,
+            skip_origin_metadata=self.skip_origin_metadata,
         )
         module_name, default_builder_kwargs = infer_module_for_data_files(
             data_files=data_files,
@@ -854,6 +863,7 @@ class HubBucketDatasetModuleFactory(_DatasetModuleFactory):
         data_files: Optional[Union[str, list, dict]] = None,
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
+        skip_origin_metadata: bool = False,
     ):
         self.path = Path(path).as_posix()
         self.name = Path(path).stem
@@ -861,6 +871,7 @@ class HubBucketDatasetModuleFactory(_DatasetModuleFactory):
         self.data_dir = data_dir
         self.download_config = download_config
         self.download_mode = download_mode
+        self.skip_origin_metadata = skip_origin_metadata
 
     def get_module(self) -> DatasetModule:
         hffs = HfFileSystem(
@@ -899,6 +910,7 @@ class HubBucketDatasetModuleFactory(_DatasetModuleFactory):
             patterns,
             base_path=base_path,
             allowed_extensions=_ALL_ALLOWED_EXTENSIONS,
+            skip_origin_metadata=self.skip_origin_metadata,
         )
         module_name, default_builder_kwargs = infer_module_for_data_files(
             data_files=data_files,
@@ -970,6 +982,7 @@ def dataset_module_factory(
     data_dir: Optional[str] = None,
     data_files: Optional[Union[dict, list, str, DataFilesDict]] = None,
     cache_dir: Optional[str] = None,
+    skip_origin_metadata: bool = False,
     **download_kwargs,
 ) -> DatasetModule:
     """
@@ -1060,6 +1073,7 @@ def dataset_module_factory(
             data_files=data_files,
             download_config=download_config,
             download_mode=download_mode,
+            skip_origin_metadata=skip_origin_metadata,
         ).get_module()
     # Try locally
     elif path.endswith(filename):
@@ -1068,7 +1082,11 @@ def dataset_module_factory(
         raise RuntimeError(f"Dataset scripts are no longer supported, but found {filename}")
     elif os.path.isdir(path) and not remote_only:
         return LocalDatasetModuleFactory(
-            path, data_dir=data_dir, data_files=data_files, download_mode=download_mode
+            path,
+            data_dir=data_dir,
+            data_files=data_files,
+            download_mode=download_mode,
+            skip_origin_metadata=skip_origin_metadata,
         ).get_module()
     # Try remotely
     elif path.startswith("buckets/"):
@@ -1105,6 +1123,7 @@ def dataset_module_factory(
             data_files=data_files,
             download_config=download_config,
             download_mode=download_mode,
+            skip_origin_metadata=skip_origin_metadata,
         ).get_module()
     elif is_relative_path(path) and path.count("/") <= 1:
         try:
@@ -1187,6 +1206,7 @@ def dataset_module_factory(
                     download_config=download_config,
                     download_mode=download_mode,
                     use_exported_dataset_infos=use_exported_dataset_infos,
+                    skip_origin_metadata=skip_origin_metadata,
                 ).get_module()
             except GatedRepoError as e:
                 message = f"Dataset '{path}' is a gated dataset on the Hub."
@@ -1328,6 +1348,7 @@ def load_dataset_builder(
         data_dir=data_dir,
         data_files=data_files,
         cache_dir=cache_dir,
+        skip_origin_metadata=config_kwargs.get("skip_origin_metadata", False),
     )
     # Get dataset builder class
     builder_kwargs = dataset_module.builder_kwargs
@@ -1369,6 +1390,7 @@ def load_dataset_builder(
         features=features,
         token=token,
         storage_options=storage_options,
+        skip_origin_metadata=config_kwargs.pop("skip_origin_metadata", False),
         **builder_kwargs,
         **config_kwargs,
     )
@@ -1686,6 +1708,12 @@ def load_dataset(
             "Loading a streaming dataset in parallel with `num_proc` is not implemented. "
             "To parallelize streaming, you can wrap the dataset with a PyTorch DataLoader using `num_workers` > 1 instead."
         )
+
+    if not streaming and config_kwargs.get("skip_origin_metadata", False):
+        logger.warning(
+            "`skip_origin_metadata` is only supported when `streaming=True`. Forcing `skip_origin_metadata=False`."
+        )
+        config_kwargs["skip_origin_metadata"] = False
 
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     verification_mode = VerificationMode(
