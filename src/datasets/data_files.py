@@ -1,6 +1,6 @@
 import os
 import re
-from functools import partial
+from functools import lru_cache, partial
 from glob import has_magic
 from pathlib import Path, PurePath
 from typing import Callable, Optional, Union
@@ -45,6 +45,7 @@ SPLIT_KEYWORDS = {
     Split.VALIDATION: ["validation", "valid", "dev", "val"],
     Split.TEST: ["test", "testing", "eval", "evaluation"],
 }
+SPLIT_KEYWORDS_VALUES = {keyword for keywords in SPLIT_KEYWORDS.values() for keyword in keywords}
 NON_WORDS_CHARS = "-._ 0-9"
 if config.FSSPEC_VERSION < version.parse("2023.9.0"):
     KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
@@ -112,6 +113,21 @@ FILES_TO_IGNORE = [
     "dummy_data.zip",
     "dataset_dict.json",
 ]
+
+
+@lru_cache(maxsize=1)
+def _get_media_extensions() -> set[str]:
+    from .packaged_modules.audiofolder.audiofolder import AudioFolder
+    from .packaged_modules.imagefolder.imagefolder import ImageFolder
+    from .packaged_modules.videofolder.videofolder import VideoFolder
+
+    return set(ImageFolder.EXTENSIONS + AudioFolder.EXTENSIONS + VideoFolder.EXTENSIONS)
+
+
+def _is_split_named_media_file(data_file: str) -> bool:
+    file_name = xbasename(data_file.split("::")[0]).lower()
+    stem, extension = os.path.splitext(file_name)
+    return extension in _get_media_extensions() and stem in SPLIT_KEYWORDS_VALUES
 
 
 def contains_wildcards(pattern: str) -> bool:
@@ -290,6 +306,8 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], list[str]]) -> di
                     data_files = pattern_resolver(pattern)
                 except FileNotFoundError:
                     continue
+                if patterns_dict is DEFAULT_PATTERNS_SPLIT_IN_FILENAME:
+                    data_files = [data_file for data_file in data_files if not _is_split_named_media_file(data_file)]
                 if len(data_files) > 0:
                     non_empty_splits.append(split)
                     break
