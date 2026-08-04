@@ -43,6 +43,28 @@ _VALID_IMAGE_ARRAY_DTPYES = [
 ]
 
 
+def _read_remote_image_bytes(path: str, token_per_repo_id: Optional[dict] = None) -> bytes:
+    """Read the raw bytes of a remote image file (e.g. a Hub URL), handling auth tokens.
+
+    Args:
+        path (`str`): A remote (non-local) path to the image file.
+        token_per_repo_id (`dict`, *optional*): Mapping repo_id (`str`) -> token (`bool` or `str`)
+            used to access files from private repositories on the Hub.
+
+    Returns:
+        `bytes`: The raw encoded bytes of the image file.
+    """
+    if token_per_repo_id is None:
+        token_per_repo_id = {}
+    source_url = path.split("::")[-1]
+    pattern = config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
+    source_url_fields = string_to_dict(source_url, pattern)
+    token = token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
+    download_config = DownloadConfig(token=token)
+    with xopen(path, "rb", download_config=download_config) as f:
+        return f.read()
+
+
 @dataclass
 class Image:
     """Image [`Feature`] to read image data from an image file.
@@ -174,19 +196,7 @@ class Image:
                 if is_local_path(path):
                     image = PIL.Image.open(path)
                 else:
-                    source_url = path.split("::")[-1]
-                    pattern = (
-                        config.HUB_DATASETS_URL
-                        if source_url.startswith(config.HF_ENDPOINT)
-                        else config.HUB_DATASETS_HFFS_URL
-                    )
-                    source_url_fields = string_to_dict(source_url, pattern)
-                    token = (
-                        token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
-                    )
-                    download_config = DownloadConfig(token=token)
-                    with xopen(path, "rb", download_config=download_config) as f:
-                        bytes_ = BytesIO(f.read())
+                    bytes_ = BytesIO(_read_remote_image_bytes(path, token_per_repo_id=token_per_repo_id))
                     image = PIL.Image.open(bytes_)
         else:
             image = PIL.Image.open(BytesIO(bytes_))
