@@ -499,6 +499,23 @@ def _get_single_origin_metadata(
     data_file: str,
     download_config: Optional[DownloadConfig] = None,
 ) -> SingleOriginMetadata:
+    """
+    Returns a unique fingerprint identifying the specific version of a data file.
+
+    For HuggingFace-hosted files, this is derived from the repo ID and revision.
+    For other file systems (S3, GCS, local), this falls back to an ETag or
+    modification time pulled from the file system's metadata.
+
+    Args:
+        data_file (str): URL or path to the data file.
+        download_config (Optional[DownloadConfig]): Download settings including
+            auth token. Defaults to None.
+
+    Returns:
+        SingleOriginMetadata: A tuple containing either (repo_id, revision) for
+        HuggingFace files, an ETag/mtime tuple for cloud/local files, or an
+        empty tuple if no metadata could be determined.
+    """
     if data_file.startswith(config.HF_ENDPOINT):
         fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
         data_file = "hf://" + data_file[len(config.HF_ENDPOINT) + 1 :]
@@ -524,6 +541,29 @@ def _get_origin_metadata(
     download_config: Optional[DownloadConfig] = None,
     max_workers: Optional[int] = None,
 ) -> list[SingleOriginMetadata]:
+    """
+    Returns version fingerprints for a list of data files by calling
+    _get_single_origin_metadata on each one.
+
+    Uses single-threaded processing for HuggingFace-hosted files, since their
+    metadata is cached after the first call and parallelism adds no benefit.
+    Falls back to multithreaded processing for all other file sources (S3, GCS,
+    local, etc.) where network or I/O latency makes parallelism worthwhile.
+
+    A progress bar is shown when resolving more than 16 files, and suppressed
+    when no TTY is attached (e.g. in CI pipelines).
+
+    Args:
+        data_files (list[str]): List of URLs or file paths to resolve.
+        download_config (Optional[DownloadConfig]): Download settings including
+            auth token. Defaults to None.
+        max_workers (Optional[int]): Max threads for parallel resolution.
+            Defaults to HF_DATASETS_MULTITHREADING_MAX_WORKERS if not set.
+
+    Returns:
+        list[SingleOriginMetadata]: A list of version fingerprint tuples,
+        one per input file, in the same order as data_files.
+    """
     max_workers = max_workers if max_workers is not None else config.HF_DATASETS_MULTITHREADING_MAX_WORKERS
     if all("hf://" in data_file for data_file in data_files):
         # No need for multithreading here since the origin metadata of HF files
@@ -793,7 +833,18 @@ class DataFilesPatternsList(list[str]):
 
 class DataFilesPatternsDict(dict[str, DataFilesPatternsList]):
     """
-    Dict of split_name -> list of data files patterns (absolute local paths or URLs).
+    A dictionary mapping split names to their corresponding file patterns.
+
+    Keys are split names (e.g. "train", "test", "validation") and values are
+    DataFilesPatternsList instances containing glob patterns, local paths, or URLs
+    for that split.
+
+    This class operates in two stages:
+    - Pattern stage: holds unresolved glob patterns (e.g. "data/train/*.parquet")
+    - Resolved stage: call resolve() to expand patterns into a concrete DataFilesDict
+
+    Use from_patterns() to construct an instance from a plain dict, and
+    filter_extensions() to narrow patterns down to specific file types before resolving.
     """
 
     @classmethod
