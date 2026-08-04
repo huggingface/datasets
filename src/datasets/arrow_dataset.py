@@ -1848,7 +1848,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_shards = min(len(self.data), num_shards)
 
         fs: fsspec.AbstractFileSystem
-        fs, _ = url_to_fs(dataset_path, **(storage_options or {}))
+        fs, _ = url_to_fs(str(dataset_path), **(storage_options or {}))
 
         if not is_remote_filesystem(fs):
             parent_cache_files_paths = {
@@ -2019,7 +2019,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         fs: fsspec.AbstractFileSystem
-        fs, dataset_path = url_to_fs(dataset_path, **(storage_options or {}))
+        fs, dataset_path = url_to_fs(str(dataset_path), **(storage_options or {}))
 
         dest_dataset_path = dataset_path
         dataset_dict_json_path = posixpath.join(dest_dataset_path, config.DATASETDICT_JSON_FILENAME)
