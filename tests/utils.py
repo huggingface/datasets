@@ -249,6 +249,42 @@ def require_nibabel(test_case):
     return test_case
 
 
+def require_zarr(test_case):
+    """
+    Decorator marking a test that requires zarr.
+
+    These tests are skipped when zarr isn't installed.
+
+    """
+    if not getattr(config, "ZARR_AVAILABLE", False):
+        test_case = unittest.skip("test requires zarr")(test_case)
+    return test_case
+
+
+def require_trimesh(test_case):
+    """
+    Decorator marking a test that requires trimesh.
+
+    These tests are skipped when trimesh isn't installed.
+
+    """
+    if not config.TRIMESH_AVAILABLE:
+        test_case = unittest.skip("test requires trimesh")(test_case)
+    return test_case
+
+
+def require_zarr(test_case):
+    """
+    Decorator marking a test that requires zarr.
+
+    These tests are skipped when zarr isn't installed.
+
+    """
+    if not getattr(config, "ZARR_AVAILABLE", False):
+        test_case = unittest.skip("test requires zarr")(test_case)
+    return test_case
+
+
 def require_transformers(test_case):
     """
     Decorator marking a test that requires transformers.
