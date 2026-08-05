@@ -199,6 +199,22 @@ def shift_ex_examples_rngs(ex_iterable: "_BaseExamplesIterable", value: int) -> 
     return set_seed_recursively(ex_iterable)
 
 
+def _fast_copy(state):
+    """Fast acyclic copy of state_dict data structures, bypassing slow pickle/deepcopy introspection."""
+    if isinstance(state, dict):
+        return {k: _fast_copy(v) for k, v in state.items()}
+    elif isinstance(state, list):
+        return [_fast_copy(v) for v in state]
+    elif isinstance(state, tuple):
+        return tuple(_fast_copy(v) for v in state)
+    elif isinstance(state, (int, float, bool, str, bytes, type(None))):
+        return state
+    elif hasattr(state, "copy") and callable(state.copy):
+        return state.copy()
+    else:
+        raise TypeError(f"Unsupported type for _fast_copy: {type(state)}")
+
+
 class _BaseExamplesIterable:
     """Base class for the examples iterable used by an IterableDataset"""
 
@@ -274,23 +290,6 @@ class _BaseExamplesIterable:
 
     def state_dict(self) -> dict:
         if self._state_dict:
-
-            def _fast_copy(state):
-                # Native copy.deepcopy() is extremely slow because it does extensive memoization
-                # (to prevent infinite loops on cyclical references) and dynamic introspection
-                # (checking for __deepcopy__, __reduce__, etc. using the pickle module).
-                # Furthermore, pickle crashes when encountering generators/iterators.
-                # Since we know dataset state_dicts contain strictly acyclic standard collections
-                # (dict, list) and primitive state objects, we can bypass deepcopy overhead
-                # entirely and cleanly clone the exact state needed natively.
-                if isinstance(state, dict):
-                    return {k: _fast_copy(v) for k, v in state.items()}
-                elif isinstance(state, list):
-                    return [_fast_copy(v) for v in state]
-                elif hasattr(state, "copy"):
-                    return state.copy()
-                return state
-
             return _fast_copy(self._state_dict)
         raise RuntimeError("State dict is not initialized, please call ex_iterable._init_state_dict() first.")
 
@@ -2627,8 +2626,7 @@ class IterableDataset(DatasetInfoMixin):
         """
         if not self._state_dict:
             return {}
-        # Since ex_iterable.state_dict() returns a fresh isolated dict, we don't need a full recursive deepcopy.
-        return dict(self._state_dict)
+        return _fast_copy(self._state_dict)
 
     def load_state_dict(self, state_dict: dict) -> None:
         """Load the state_dict of the dataset.
