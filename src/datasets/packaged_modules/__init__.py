@@ -22,6 +22,7 @@ from .text import text
 from .videofolder import videofolder
 from .webdataset import webdataset
 from .xml import xml
+from .zarrfolder import zarrfolder
 
 
 def _hash_python_lines(lines: list[str]) -> str:
@@ -55,6 +56,7 @@ _PACKAGED_DATASETS_MODULES = {
     "hdf5": (hdf5.__name__, _hash_python_lines(inspect.getsource(hdf5).splitlines())),
     "eval": (eval.__name__, _hash_python_lines(inspect.getsource(eval).splitlines())),
     "lance": (lance.__name__, _hash_python_lines(inspect.getsource(lance).splitlines())),
+    "zarrfolder": (zarrfolder.__name__, _hash_python_lines(inspect.getsource(zarrfolder).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -117,6 +119,7 @@ _MODULE_TO_METADATA_FILE_NAMES["audiofolder"] = imagefolder.ImageFolder.METADATA
 _MODULE_TO_METADATA_FILE_NAMES["videofolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["pdffolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["niftifolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
+_MODULE_TO_METADATA_FILE_NAMES["zarrfolder"] = zarrfolder.ZarrFolder.METADATA_FILENAMES
 
 _MODULE_TO_METADATA_EXTENSIONS: Dict[str, List[str]] = {}
 for _module in _MODULE_TO_EXTENSIONS:
