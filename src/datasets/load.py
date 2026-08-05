@@ -82,6 +82,7 @@ from .utils.file_utils import (
     cached_path,
     get_datasets_user_agent,
     is_relative_path,
+    is_remote_url,
     relative_to_absolute_path,
 )
 from .utils.hub import hf_dataset_url
@@ -524,24 +525,42 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name)
 
     def get_module(self) -> DatasetModule:
-        base_path = Path(self.data_dir or "").expanduser().resolve().as_posix()
-        patterns = (
-            sanitize_patterns(self.data_files)
-            if self.data_files is not None
-            else get_data_patterns(base_path, download_config=self.download_config)
-        )
-        data_files = DataFilesDict.from_patterns(
-            patterns,
-            download_config=self.download_config,
-            base_path=base_path,
-        )
+        if self.data_dir is not None and is_remote_url(str(self.data_dir)):
+            # Remote data directories (e.g. hf://datasets/..., hf://buckets/...,
+            # s3://...) are passed through to the builder which discovers the
+            # content itself. Path resolution and pattern inference are local-only.
+            data_dir = str(self.data_dir)
+            if self.data_files is not None:
+                data_files = DataFilesDict.from_patterns(
+                    sanitize_patterns(self.data_files),
+                    download_config=self.download_config,
+                    base_path=data_dir,
+                )
+            else:
+                data_files = DataFilesDict()
+            builder_kwargs = {
+                "data_files": data_files,
+                "dataset_name": self.name,
+                "data_dir": data_dir,
+            }
+        else:
+            base_path = Path(self.data_dir or "").expanduser().resolve().as_posix()
+            patterns = (
+                sanitize_patterns(self.data_files)
+                if self.data_files is not None
+                else get_data_patterns(base_path, download_config=self.download_config)
+            )
+            data_files = DataFilesDict.from_patterns(
+                patterns,
+                download_config=self.download_config,
+                base_path=base_path,
+            )
+            builder_kwargs = {
+                "data_files": data_files,
+                "dataset_name": self.name,
+            }
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
-
-        builder_kwargs = {
-            "data_files": data_files,
-            "dataset_name": self.name,
-        }
 
         return DatasetModule(module_path, hash, builder_kwargs)
 
