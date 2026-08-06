@@ -3481,6 +3481,25 @@ class MiscellaneousDatasetTest(TestCase):
         features = Features({"col_1": Value("int64"), "col_2": Value("int64"), "col_3": Value("bool")})
         self.assertRaises(ValueError, Dataset.from_dict, data, features=features)
 
+    def test_python_construction_preserves_nanosecond_temporal_precision(self):
+        features = Features({"timestamp": Value("timestamp[ns]"), "duration": Value("duration[ns]")})
+        row = {
+            "timestamp": pd.Timestamp("2024-01-01 00:00:00.123456789"),
+            "duration": pd.Timedelta("1 days 00:00:00.123456789"),
+        }
+        expected = {"timestamp": row["timestamp"].value, "duration": row["duration"].value}
+        datasets = {
+            "from_dict": Dataset.from_dict({key: [value] for key, value in row.items()}, features=features),
+            "from_list": Dataset.from_list([row], features=features),
+            "map": Dataset.from_dict({"index": [0]}).map(lambda _: row, remove_columns=["index"], features=features),
+        }
+
+        for constructor, dataset in datasets.items():
+            with self.subTest(constructor=constructor):
+                self.assertEqual(dataset[0], row)
+                actual = {key: dataset.data.column(key).cast(pa.int64()).to_pylist()[0] for key in expected}
+                self.assertEqual(actual, expected)
+
     def test_from_dict_on_mixed_types(self):
         data = {"col_1": [-1, 1, "foo"]}
         with Dataset.from_dict(data, on_mixed_types="use_json") as dset:
