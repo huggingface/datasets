@@ -8,6 +8,7 @@ import pyarrow as pa
 
 from .. import config
 from ..table import array_cast
+from .zarr_cache import STORE_REGISTRY, cached_array_getitem, store_key
 
 
 if TYPE_CHECKING:
@@ -45,6 +46,11 @@ def _open_zarr_store(
         if token is None:
             token = next(iter(token_per_repo_id.values()), None)
 
+    key = store_key(path, token, storage_options)
+    cached = STORE_REGISTRY.get(key)
+    if cached is not None:
+        return cached
+
     if path.startswith("hf://"):
         from zarr.storage import FsspecStore
 
@@ -52,17 +58,20 @@ def _open_zarr_store(
         if token is not None:
             options["token"] = token
         store = FsspecStore.from_url(path, read_only=True, storage_options=options or None)
-        return zarr.open(store=store, mode="r")
+        root = zarr.open(store=store, mode="r")
     elif os.path.isdir(path):
-        return zarr.open(path, mode="r")
+        root = zarr.open(path, mode="r")
     else:
         try:
             from zarr.storage import FsspecStore
 
             store = FsspecStore.from_url(path, mode="r", storage_options=storage_options)
-            return zarr.open(store=store, mode="r")
+            root = zarr.open(store=store, mode="r")
         except Exception:
-            return zarr.open(path, mode="r")
+            root = zarr.open(path, mode="r")
+
+    STORE_REGISTRY.put(key, root)
+    return root
 
 
 def _extract_repo_id_from_hf_path(path: str) -> Optional[str]:
@@ -234,7 +243,7 @@ class ZarrArrayProxy:
         return dict(self._array.attrs)
 
     def __getitem__(self, key):
-        return self._array[key]
+        return cached_array_getitem(self._array, self._path, key)
 
     def asarray(self):
         """Load the full array into memory and return it as a numpy array.
@@ -352,7 +361,7 @@ class ZarrArrayProxy:
                 for i in range(ndim)
             )
             coords = tuple(int(s) for s in spatial_starts)
-            yield coords, self._array[slices]
+            yield coords, self[slices]
 
     def random_patch(self, patch_size, rng=None):
         """Extract a random patch from the array.
@@ -402,7 +411,7 @@ class ZarrArrayProxy:
             slice(int(s), min(int(s) + ps, shape[n_leading + i]))
             for i, (s, ps) in enumerate(zip(spatial_starts, patch_size))
         )
-        return self._array[leading_slices + spatial_slices]
+        return self[leading_slices + spatial_slices]
 
     def __getstate__(self):
         # Drop the zarr.Array reference on pickle; it will be re-opened
@@ -885,6 +894,15 @@ class Zarr:
     store on first access, enabling efficient streaming of large arrays with
     minimal memory overhead — only the chunks needed for a given slice are
     fetched from the store.
+
+    Reads are optimized with two internal, read-only-safe caches:
+
+    - Open stores are reused per ``(path, token, storage_options)`` instead
+      of being re-opened (and re-reading metadata) on every decode.
+    - Decoded chunks are memoized in a bytes-bounded LRU cache (256 MiB by
+      default, configurable via the ``DATASETS_ZARR_CHUNK_CACHE_SIZE``
+      environment variable in bytes; ``0`` disables it), so overlapping
+      patch/ROI reads decode each shared chunk exactly once.
 
     Input: The Zarr feature accepts as input:
 

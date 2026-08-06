@@ -233,6 +233,14 @@ HF_DATASETS_DISABLE_PROGRESS_BARS: Optional[bool] = (
 DEFAULT_IN_MEMORY_MAX_SIZE = 0  # Disabled
 IN_MEMORY_MAX_SIZE = float(os.environ.get("HF_DATASETS_IN_MEMORY_MAX_SIZE", DEFAULT_IN_MEMORY_MAX_SIZE))
 
+# Zarr decoded-chunk cache size (in bytes). A bounded LRU cache of decoded
+# chunks speeds up repeated patch/ROI reads (overlapping patches decode each
+# shared chunk once) for both local and remote (hf://buckets) stores.
+# Set to 0 to disable.
+DEFAULT_ZARR_CHUNK_CACHE_SIZE = 256 * 1024 * 1024  # 256 MiB
+ZARR_CHUNK_CACHE_SIZE = int(os.environ.get("DATASETS_ZARR_CHUNK_CACHE_SIZE", DEFAULT_ZARR_CHUNK_CACHE_SIZE))
+
+
 # File names
 DATASET_ARROW_FILENAME = "dataset.arrow"
 DATASET_INDICES_FILENAME = "indices.arrow"

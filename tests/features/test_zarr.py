@@ -21,8 +21,18 @@ from datasets.features.zarr import (
     _open_zarr_store,
     _render_array_as_png,
 )
+from datasets.features.zarr_cache import CHUNK_CACHE, STORE_REGISTRY, cached_array_getitem
 
 from ..utils import require_zarr
+
+
+@pytest.fixture(autouse=True)
+def _clean_zarr_caches():
+    CHUNK_CACHE.clear()
+    STORE_REGISTRY.clear()
+    yield
+    CHUNK_CACHE.clear()
+    STORE_REGISTRY.clear()
 
 
 def _create_zarr_array(tmp_path, shape=(10, 20), dtype="float32", chunks=(5, 10)):
@@ -931,3 +941,97 @@ class TestDatasetWithZarrFeature:
         ds = Dataset.from_dict({"zarr": [store_path]}, features=features)
         col = ds["zarr"]
         assert len(col) == 1
+
+
+@require_zarr
+class TestZarrStoreRegistryReuse:
+    def test_two_proxies_open_store_once(self, tmp_path):
+        import zarr
+
+        store_path = _create_zarr_array(tmp_path)
+        with patch("zarr.open", wraps=zarr.open) as mock_open:
+            p1 = ZarrProxy(path=store_path)
+            p2 = ZarrProxy(path=store_path)
+            _ = p1.shape, p2.shape
+            assert mock_open.call_count == 1
+
+    def test_different_paths_open_separately(self, tmp_path):
+        import zarr
+
+        array_path = _create_zarr_array(tmp_path)
+        group_path = _create_zarr_group(tmp_path)
+        with patch("zarr.open", wraps=zarr.open) as mock_open:
+            ZarrProxy(path=array_path)._resolve()
+            ZarrProxy(path=group_path)._resolve()
+            assert mock_open.call_count == 2
+
+
+@require_zarr
+class TestZarrChunkCache:
+    def test_overlapping_reads_share_chunks(self, tmp_path):
+        store_path = _create_zarr_array(tmp_path, shape=(32, 32), dtype="float32", chunks=(16, 16))
+        proxy = ZarrProxy(path=store_path)
+        expected = np.asarray(proxy[:])
+        CHUNK_CACHE.clear()
+        first = proxy[0:20, 0:20]
+        assert len(CHUNK_CACHE._cache) == 4
+        second = proxy[0:20, 0:20]
+        assert len(CHUNK_CACHE._cache) == 4
+        overlap = proxy[0:20, 5:21]
+        assert len(CHUNK_CACHE._cache) == 4
+        assert np.array_equal(first, expected[0:20, 0:20])
+        assert np.array_equal(second, expected[0:20, 0:20])
+        assert np.array_equal(overlap, expected[0:20, 5:21])
+
+    def test_evicts_to_bounded_bytes(self, tmp_path, monkeypatch):
+        store_path = _create_zarr_array(tmp_path, shape=(32, 32), dtype="float32", chunks=(16, 16))
+        proxy = ZarrProxy(path=store_path)
+        monkeypatch.setattr(CHUNK_CACHE, "_max_bytes", 2048)
+        result = np.asarray(proxy[:])
+        assert CHUNK_CACHE._bytes <= 2048
+        assert np.array_equal(result, np.arange(1024, dtype="float32").reshape(32, 32))
+
+    def test_disabled_cache_returns_plain_results(self, tmp_path, monkeypatch):
+        store_path = _create_zarr_array(tmp_path)
+        proxy = ZarrProxy(path=store_path)
+        monkeypatch.setattr(CHUNK_CACHE, "_max_bytes", 0)
+        result = proxy[1:5, 2:8]
+        assert np.array_equal(result, np.arange(200, dtype="float32").reshape(10, 20)[1:5, 2:8])
+        assert len(CHUNK_CACHE._cache) == 0
+
+
+@require_zarr
+class TestZarrCachedSelectionSemantics:
+    @pytest.mark.parametrize(
+        "key",
+        [
+            (slice(None), slice(None)),
+            (slice(2, 8), slice(1, 4)),
+            (slice(None, None, 2), slice(None, None, 3)),
+            (5, slice(None)),
+            (slice(2, 8), 3),
+            (5, 7),
+            (Ellipsis,),
+            (slice(3), Ellipsis),
+        ],
+    )
+    def test_cached_equals_plain(self, tmp_path, key):
+        import zarr
+
+        store_path = _create_zarr_array(tmp_path, shape=(10, 20), dtype="int32", chunks=(5, 10))
+        proxy = ZarrProxy(path=store_path)
+        expected = np.asarray(zarr.open(store_path, mode="r")[key])
+        got = np.asarray(proxy[key])
+        assert got.shape == expected.shape
+        assert np.array_equal(got, expected)
+
+    def test_negative_step_propagates_zarr_error(self, tmp_path):
+        import zarr
+
+        store_path = _create_zarr_array(tmp_path, shape=(10, 20), dtype="int32", chunks=(5, 10))
+        proxy = ZarrProxy(path=store_path)
+        key = (slice(None, None, -1), slice(None))
+        with pytest.raises(zarr.errors.NegativeStepError):
+            proxy[key]
+        with pytest.raises(zarr.errors.NegativeStepError):
+            zarr.open(store_path, mode="r")[key]
