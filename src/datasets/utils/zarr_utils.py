@@ -355,7 +355,13 @@ def _push_to_hub_bucket(
     if BucketNotFoundError is None:
         raise ImportError("Pushing Zarr stores to buckets requires huggingface_hub>=1.6.0")
 
-    _, _namespace, _bucket_name, *_path_segments = repo_id.split("/")
+    parts = repo_id.split("/")
+    if len(parts) < 3:
+        raise ValueError(
+            f"Bucket destinations must be 'buckets/<namespace>/<bucket_name>' "
+            f"(optionally followed by a subpath), got: {repo_id!r}"
+        )
+    _, _namespace, _bucket_name, *_path_segments = parts
     api = HfApi(token=token)
     try:
         bucket_id = api.bucket_info(_namespace + "/" + _bucket_name).id

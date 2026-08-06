@@ -160,6 +160,16 @@ class TestZarrEncodeExample:
         assert "path" in result
         assert result["path"] is not None
 
+    def test_encode_zarr_object_without_path_raises(self):
+        import zarr
+
+        zarr_feat = Zarr()
+        arr = zarr.create_array(
+            store=zarr.storage.MemoryStore(), shape=(4, 4), chunks=(2, 2), dtype="int32"
+        )
+        with pytest.raises(ValueError, match="extractable store path"):
+            zarr_feat.encode_example(arr)
+
     def test_encode_unsupported_type_raises(self):
         zarr_feat = Zarr()
         with pytest.raises(ValueError, match="must be a string path"):
@@ -379,6 +389,40 @@ class TestReprHtml:
         assert _render_array_as_png(np.zeros((0, 0))) is None
         assert _render_array_as_png(np.zeros(5)) is None
         assert _render_array_as_png(np.array([])) is None
+
+
+@require_zarr
+class TestZarrProxyPickleRoundTrip:
+    def test_wrapped_zarr_proxy(self, tmp_path):
+        store_path = _create_ome_zarr(tmp_path)
+        proxy = ZarrProxy(path=store_path)
+        restored = pickle.loads(pickle.dumps(proxy))
+        assert restored.shape == (20, 20)
+        np.testing.assert_array_equal(restored[0], proxy[0])
+
+    def test_array_proxy(self, tmp_path):
+        store_path = _create_zarr_array(tmp_path, shape=(10, 20), dtype="float32", chunks=(5, 10))
+        proxy = ZarrProxy(path=store_path)._resolve()
+        restored = pickle.loads(pickle.dumps(proxy))
+        assert isinstance(restored, ZarrArrayProxy)
+        assert restored.shape == (10, 20)
+        np.testing.assert_array_equal(restored[:], proxy[:])
+
+    def test_group_proxy(self, tmp_path):
+        store_path = _create_zarr_group(tmp_path)
+        proxy = ZarrProxy(path=store_path)._resolve()
+        restored = pickle.loads(pickle.dumps(proxy))
+        assert isinstance(restored, ZarrGroupProxy)
+        assert sorted(restored.keys()) == sorted(proxy.keys())
+
+    def test_ome_proxy(self, tmp_path):
+        store_path = _create_ome_zarr(tmp_path)
+        proxy = ZarrProxy(path=store_path)._resolve()
+        restored = pickle.loads(pickle.dumps(proxy))
+        assert isinstance(restored, OmeZarrProxy)
+        assert restored.shape == (20, 20)
+        assert restored.default_plane(level=-1).shape == (10, 10)
+        np.testing.assert_array_equal(restored[0], proxy[0])
 
 
 @require_zarr

@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from datasets.config import ZARR_AVAILABLE
-from datasets.utils.zarr_utils import ZarrCollator, _count_files
+from datasets.utils.zarr_utils import ZarrCollator, _count_files, push_to_hub_zarr
 
 require_zarr = pytest.mark.skipif(not ZARR_AVAILABLE, reason="test requires zarr")
 
@@ -76,6 +76,12 @@ class TestPushToHubZarr:
 
         with pytest.raises(ValueError, match="must be a directory"):
             push_to_hub_zarr(str(file_path), repo_id="test/repo")
+
+    def test_rejects_malformed_bucket_repo_id(self, tmp_path):
+        from datasets.utils.zarr_utils import push_to_hub_zarr
+
+        with pytest.raises(ValueError, match="Bucket destinations must be"):
+            push_to_hub_zarr(str(tmp_path), repo_id="buckets/only-namespace")
 
     def test_small_store_direct_upload(self, tmp_path):
         from unittest.mock import MagicMock, patch

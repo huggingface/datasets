@@ -74,6 +74,25 @@ def _open_zarr_store(
     return root
 
 
+def _reopen_zarr_node(path: str, token_per_repo_id, storage_options, kind: str):
+    """Re-open a Zarr node by path, used when unpickling resolved proxies.
+
+    ``kind`` is ``"array"`` or ``"group"``. Raises a clear error if the
+    node at ``path`` is no longer the expected type.
+    """
+    import zarr
+
+    root = _open_zarr_store(path, token_per_repo_id, storage_options)
+    if kind == "array" and isinstance(root, zarr.Array):
+        return root
+    if kind == "group" and isinstance(root, zarr.Group):
+        return root
+    raise ValueError(
+        f"Cannot reopen {path!r} as a Zarr {kind} (got {type(root).__name__}); "
+        f"the store may have been renamed or removed"
+    )
+
+
 def _extract_repo_id_from_hf_path(path: str) -> Optional[str]:
     """Extract repo_id from an ``hf://datasets/...`` URL path.
 
@@ -426,7 +445,9 @@ class ZarrArrayProxy:
         self._path = state["path"]
         self._token_per_repo_id = state.get("token_per_repo_id", {})
         self._storage_options = state.get("storage_options")
-        self._array = None  # Will be re-opened lazily via ZarrProxy._resolve()
+        self._array = _reopen_zarr_node(
+            self._path, self._token_per_repo_id, self._storage_options, "array"
+        )
 
 
 class ZarrGroupProxy:
@@ -509,7 +530,9 @@ class ZarrGroupProxy:
         self._path = state["path"]
         self._token_per_repo_id = state.get("token_per_repo_id", {})
         self._storage_options = state.get("storage_options")
-        self._group = None
+        self._group = _reopen_zarr_node(
+            self._path, self._token_per_repo_id, self._storage_options, "group"
+        )
 
 
 class OmeZarrProxy:
@@ -936,7 +959,9 @@ class OmeZarrProxy:
         self._path = state["path"]
         self._token_per_repo_id = state.get("token_per_repo_id", {})
         self._storage_options = state.get("storage_options")
-        self._group = None
+        self._group = _reopen_zarr_node(
+            self._path, self._token_per_repo_id, self._storage_options, "group"
+        )
         self._multiscales = None
 
 
@@ -1133,7 +1158,12 @@ class Zarr:
 
             if isinstance(value, (zarr.Array, zarr.Group)):
                 path = self._extract_zarr_path(value)
-                return {"path": path} if path else {"path": str(value)}
+                if path:
+                    return {"path": path}
+                raise ValueError(
+                    f"Cannot encode a zarr {type(value).__name__} without an extractable "
+                    f"store path (its store has no 'path'/'root'); pass a string path instead"
+                )
         raise ValueError(
             f"A Zarr sample must be a string path, pathlib.Path, dict with 'path' key, "
             f"or a zarr.Array/zarr.Group object, but got {type(value).__name__}"

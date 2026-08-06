@@ -1,3 +1,4 @@
+import logging
 import os
 
 import numpy as np
@@ -5,6 +6,8 @@ import pytest
 
 from datasets.data_files import DataFilesDict, get_data_patterns
 from datasets.download.streaming_download_manager import StreamingDownloadManager
+from datasets.features import Features
+from datasets.features.zarr import Zarr
 from datasets.packaged_modules.zarrfolder.zarrfolder import (
     ZarrFolder,
     ZarrFolderConfig,
@@ -236,6 +239,114 @@ class TestZarrFolderWithMetadata:
         assert list(builder.info.features.keys()) == ["zarr", "caption", "score"]
         assert examples[0][1]["caption"] == "first"
         assert examples[0][1]["score"] == 1.5
+
+    def test_metadata_columns_union_across_splits(self, tmp_path):
+        import csv
+
+        data_dir = tmp_path / "zarr_union"
+        train_dir = data_dir / "train"
+        test_dir = data_dir / "test"
+        train_dir.mkdir(parents=True)
+        test_dir.mkdir()
+        _create_zarr_array_on_disk(train_dir / "scan1.zarr")
+        _create_zarr_array_on_disk(test_dir / "scan2.zarr")
+
+        with open(train_dir / "metadata.csv", "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["file_name", "caption"])
+            writer.writerow(["scan1.zarr", "train cap"])
+        with open(test_dir / "metadata.csv", "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["file_name", "score"])
+            writer.writerow(["scan2.zarr", "3.0"])
+
+        data_files = DataFilesDict(
+            {
+                "train": [str(train_dir / "metadata.csv"), str(train_dir / "scan1.zarr")],
+                "test": [str(test_dir / "metadata.csv"), str(test_dir / "scan2.zarr")],
+            }
+        )
+        builder = ZarrFolder(data_files=data_files, drop_labels=True, drop_metadata=False)
+        gen_kwargs_list = [sg.gen_kwargs for sg in builder._split_generators(StreamingDownloadManager())]
+        examples = []
+        for gen_kwargs in gen_kwargs_list:
+            examples.extend(list(builder._generate_examples(**gen_kwargs)))
+        assert len(examples) == 2
+        assert set(builder.info.features.keys()) == {"zarr", "caption", "score"}
+        caps = [sample["caption"] for _, sample in examples if "caption" in sample]
+        scores = [sample["score"] for _, sample in examples if "score" in sample]
+        assert caps == ["train cap"]
+        assert scores == [3.0]
+
+    def test_metadata_dangling_path_is_skipped_with_warning(self, tmp_path, caplog):
+        import csv
+
+        data_dir = tmp_path / "zarr_dangle"
+        data_dir.mkdir()
+        _create_zarr_array_on_disk(data_dir / "scan1.zarr")
+
+        metadata_path = data_dir / "metadata.csv"
+        with open(metadata_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["file_name", "caption"])
+            writer.writerow(["scan1.zarr", "ok"])
+            writer.writerow(["missing.zarr", "dangling"])
+
+        data_files = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), str(data_dir))
+        builder = ZarrFolder(data_files=data_files, drop_labels=True, drop_metadata=False)
+        with caplog.at_level(logging.WARNING):
+            gen_kwargs = builder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+            examples = list(builder._generate_examples(**gen_kwargs))
+        assert len(examples) == 1
+        assert any("not found among the discovered .zarr stores" in r.message for r in caplog.records)
+
+    def test_metadata_row_without_file_name_is_skipped_with_warning(self, tmp_path, caplog):
+        import csv
+
+        data_dir = tmp_path / "zarr_no_filename"
+        data_dir.mkdir()
+        _create_zarr_array_on_disk(data_dir / "scan1.zarr")
+
+        metadata_path = data_dir / "metadata.csv"
+        with open(metadata_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["caption"])
+            writer.writerow(["no file_name here"])
+
+        data_files = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), str(data_dir))
+        builder = ZarrFolder(data_files=data_files, drop_labels=True, drop_metadata=False)
+        with caplog.at_level(logging.WARNING):
+            gen_kwargs = builder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+            examples = list(builder._generate_examples(**gen_kwargs))
+        assert len(examples) == 0
+        assert any("without 'file_name'/'zarr_file_name'" in r.message for r in caplog.records)
+
+    def test_metadata_unknown_column_dropped_with_warning(self, tmp_path, caplog):
+        import csv
+
+        data_dir = tmp_path / "zarr_unknown_col"
+        data_dir.mkdir()
+        _create_zarr_array_on_disk(data_dir / "scan1.zarr")
+
+        metadata_path = data_dir / "metadata.csv"
+        with open(metadata_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["file_name", "caption"])
+            writer.writerow(["scan1.zarr", "some caption"])
+
+        data_files = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), str(data_dir))
+        builder = ZarrFolder(
+            data_files=data_files,
+            features=Features({"zarr": Zarr()}),
+            drop_labels=True,
+            drop_metadata=False,
+        )
+        with caplog.at_level(logging.WARNING):
+            gen_kwargs = builder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+            examples = list(builder._generate_examples(**gen_kwargs))
+        assert len(examples) == 1
+        assert "caption" not in examples[0][1]
+        assert any("Dropping metadata column 'caption'" in r.message for r in caplog.records)
 
     def test_generate_examples_with_remote_metadata_url(self, tmp_path):
         import csv

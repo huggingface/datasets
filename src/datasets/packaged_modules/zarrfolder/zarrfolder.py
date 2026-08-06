@@ -265,9 +265,7 @@ class ZarrFolder(datasets.GeneratorBasedBuilder):
 
         if self.config.features is None:
             if add_metadata and any(metadata_by_split.values()):
-                metadata_columns = self._read_metadata_columns(
-                    next(iter(metadata_by_split.values()), [])
-                )
+                metadata_columns = self._union_metadata_columns(metadata_by_split)
                 self.info.features = datasets.Features(
                     {self.BASE_COLUMN_NAME: self.BASE_FEATURE(), **metadata_columns}
                 )
@@ -296,6 +294,20 @@ class ZarrFolder(datasets.GeneratorBasedBuilder):
             )
 
         return splits
+
+    def _union_metadata_columns(self, metadata_by_split):
+        """Merge metadata columns from every split's metadata files (union).
+
+        Split metadata files may declare different columns; the resulting
+        ``Features`` must cover them all so per-split rows never exceed the
+        declared schema.
+        """
+        merged = {}
+        for split_files in metadata_by_split.values():
+            for metadata_file in split_files:
+                for name, feature in self._read_metadata_columns([metadata_file]).items():
+                    merged.setdefault(name, feature)
+        return merged
 
     def _read_metadata_columns(self, metadata_files):
         """Read the column names and types from the first readable metadata file.
@@ -348,6 +360,8 @@ class ZarrFolder(datasets.GeneratorBasedBuilder):
         from datasets.utils.file_utils import xopen
 
         zarr_dir = _dirname_urlsafe(zarr_roots[0]) if zarr_roots else ""
+        zarr_root_set = {p.replace("\\", "/") for p in zarr_roots}
+        known_features = set(self.info.features) if self.info.features else None
 
         row_idx = 0
         for metadata_file in metadata_files:
@@ -373,13 +387,31 @@ class ZarrFolder(datasets.GeneratorBasedBuilder):
 
             for row in table.to_pylist():
                 file_name = row.pop("file_name", None) or row.pop("zarr_file_name", None)
-                if file_name:
-                    if not file_name.endswith(".zarr"):
-                        base = os.path.splitext(file_name)[0] if os.path.splitext(file_name)[1] else file_name
-                        file_name = base.rstrip("/") + ".zarr"
-                    zarr_path = _join_urlsafe(zarr_dir, file_name) if not os.path.isabs(file_name) else file_name
-                else:
+                if not file_name:
+                    logger.warning(
+                        f"Skipping metadata row without 'file_name'/'zarr_file_name' in {metadata_file}"
+                    )
                     continue
+                if not file_name.endswith(".zarr"):
+                    base = os.path.splitext(file_name)[0] if os.path.splitext(file_name)[1] else file_name
+                    file_name = base.rstrip("/") + ".zarr"
+                zarr_path = _join_urlsafe(zarr_dir, file_name) if not os.path.isabs(file_name) else file_name
+
+                if zarr_path.replace("\\", "/") not in zarr_root_set:
+                    logger.warning(
+                        f"Skipping metadata row referencing {zarr_path!r}: "
+                        "not found among the discovered .zarr stores"
+                    )
+                    continue
+
+                if known_features is not None:
+                    for key in list(row.keys()):
+                        if key not in known_features:
+                            logger.warning(
+                                f"Dropping metadata column {key!r} from {metadata_file}: "
+                                "not declared in the dataset features"
+                            )
+                            del row[key]
 
                 sample = {self.BASE_COLUMN_NAME: zarr_path}
                 sample.update(row)
