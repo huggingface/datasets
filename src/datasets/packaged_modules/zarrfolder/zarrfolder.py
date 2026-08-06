@@ -265,7 +265,12 @@ class ZarrFolder(datasets.GeneratorBasedBuilder):
 
         if self.config.features is None:
             if add_metadata and any(metadata_by_split.values()):
-                self.info.features = datasets.Features({self.BASE_COLUMN_NAME: self.BASE_FEATURE()})
+                metadata_columns = self._read_metadata_columns(
+                    next(iter(metadata_by_split.values()), [])
+                )
+                self.info.features = datasets.Features(
+                    {self.BASE_COLUMN_NAME: self.BASE_FEATURE(), **metadata_columns}
+                )
             elif add_labels:
                 self.info.features = datasets.Features(
                     {
@@ -291,6 +296,42 @@ class ZarrFolder(datasets.GeneratorBasedBuilder):
             )
 
         return splits
+
+    def _read_metadata_columns(self, metadata_files):
+        """Read the column names and types from the first readable metadata file.
+
+        Returns a dict of features for the metadata columns, excluding the
+        ``file_name`` / ``zarr_file_name`` keys that are consumed by
+        :meth:`_generate_examples_with_metadata`.
+        """
+        import pyarrow
+        import pyarrow.csv
+        import pyarrow.json
+        import pyarrow.parquet
+
+        from datasets.utils.file_utils import xopen
+
+        for metadata_file in metadata_files:
+            ext = os.path.splitext(metadata_file)[1].lower()
+            try:
+                with xopen(metadata_file, "rb") as f:
+                    if ext == ".csv":
+                        table = pyarrow.csv.read_csv(f)
+                    elif ext == ".jsonl":
+                        table = pyarrow.json.read_json(f)
+                    elif ext == ".parquet":
+                        table = pyarrow.parquet.read_table(f)
+                    else:
+                        continue
+            except Exception:
+                continue
+            features = datasets.Features.from_arrow_schema(table.schema)
+            return {
+                name: feature
+                for name, feature in features.items()
+                if name not in ("file_name", "zarr_file_name")
+            }
+        return {}
 
     def _generate_examples(self, zarr_roots, metadata_files, add_labels, add_metadata):
         if add_metadata and metadata_files:

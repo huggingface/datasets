@@ -212,6 +212,31 @@ class TestZarrFolderWithMetadata:
         examples = list(builder._generate_examples(**gen_kwargs))
         assert len(examples) == 1
 
+    def test_generate_examples_with_metadata_columns(self, tmp_path):
+        import csv
+
+        data_dir = tmp_path / "zarr_meta_cols"
+        data_dir.mkdir()
+        _create_zarr_array_on_disk(data_dir / "scan1.zarr")
+        _create_zarr_array_on_disk(data_dir / "scan2.zarr")
+
+        metadata_path = data_dir / "metadata.csv"
+        with open(metadata_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["file_name", "caption", "score"])
+            writer.writerow(["scan1.zarr", "first", "1.5"])
+            writer.writerow(["scan2.zarr", "second", "2.5"])
+
+        data_files = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), str(data_dir))
+        builder = ZarrFolder(data_files=data_files, drop_labels=True, drop_metadata=False)
+        gen_kwargs = builder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+        examples = list(builder._generate_examples(**gen_kwargs))
+        assert len(examples) == 2
+        # metadata columns are kept in the features, not silently dropped
+        assert list(builder.info.features.keys()) == ["zarr", "caption", "score"]
+        assert examples[0][1]["caption"] == "first"
+        assert examples[0][1]["score"] == 1.5
+
     def test_generate_examples_with_remote_metadata_url(self, tmp_path):
         import csv
 
