@@ -367,6 +367,42 @@ class TestZarrCollator:
         result = collator(batch)
         assert "labels" in result
 
+    def test_collator_batch_concurrent_deterministic(self, tmp_path):
+        from datasets.features.zarr import ZarrProxy
+
+        store_path = str(tmp_path / "arr.zarr")
+        _create_v2_array(tmp_path / "arr.zarr", shape=(30, 40), chunks=(5, 10))
+
+        proxies = [ZarrProxy(path=store_path) for _ in range(4)]
+        batch = [{"zarr": p, "label": i} for i, p in enumerate(proxies)]
+        first = ZarrCollator(patch_size=(8, 8), column_name="zarr", label_column="label", rng=np.random.default_rng(42))(batch)
+        second = ZarrCollator(patch_size=(8, 8), column_name="zarr", label_column="label", rng=np.random.default_rng(42))(batch)
+        assert first["pixel_values"].shape == (4, 8, 8)
+        assert np.array_equal(first["pixel_values"], second["pixel_values"])
+        assert list(first["labels"]) == [0, 1, 2, 3]
+
+    def test_collator_streaming_batch(self, tmp_path, monkeypatch):
+        # Windows: numcodecs.blosc may load libomp before datasets' internal
+        # torch import; allow both OpenMP runtimes to coexist.
+        monkeypatch.setenv("KMP_DUPLICATE_LIB_OK", "TRUE")
+
+        from datasets.utils.zarr_utils import load_zarr_dataset
+
+        healthy = tmp_path / "healthy"
+        healthy.mkdir()
+        diseased = tmp_path / "diseased"
+        diseased.mkdir()
+        _create_v2_array(healthy / "scan1.zarr", shape=(20, 20), chunks=(10, 10))
+        _create_v2_array(diseased / "scan2.zarr", shape=(20, 20), chunks=(10, 10))
+
+        ds = load_zarr_dataset(str(tmp_path), drop_labels=False)
+        iterable = ds.to_iterable_dataset()
+        collator = ZarrCollator(patch_size=(4, 4), column_name="zarr", label_column="label")
+        batches = [collator(batch) for batch in iterable.iter(batch_size=2)]
+        assert len(batches) == 1
+        assert batches[0]["pixel_values"].shape == (2, 4, 4)
+        assert batches[0]["labels"].shape == (2,)
+
 
 @require_zarr
 class TestLoadZarrDataset:

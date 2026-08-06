@@ -408,7 +408,7 @@ class ZarrCollator:
 
     Example
     -------
-    Using with a PyTorch DataLoader for training:
+    Using with a streaming dataset and ``IterableDataset.batch`` for training:
 
     ```python
     from datasets import load_dataset
@@ -416,13 +416,19 @@ class ZarrCollator:
 
     ds = load_dataset("username/brain-tissue-ome-zarr", streaming=True)
     collator = ZarrCollator(patch_size=(256, 256), level=0)
-    loader = DataLoader(ds["train"], batch_size=8, collate_fn=collator)
 
-    for batch in loader:
+    for batch in ds["train"].batch(batch_size=8):
         # batch = {"pixel_values": torch.Tensor [8, C, 256, 256],
         #          "labels": torch.Tensor [8]}
         loss = model(batch["pixel_values"], batch["labels"])
     ```
+
+    The collator extracts patches concurrently across the batch (up to 8
+    workers); reads go through a shared decoded-chunk cache, so overlapping
+    patches fetch each chunk only once.
+
+    For map-style datasets the same collator works as a ``collate_fn`` for a
+    PyTorch ``DataLoader`` (without ``streaming=True``).
     """
 
     def __init__(
@@ -439,56 +445,91 @@ class ZarrCollator:
         self.column_name = column_name
         self._rng = rng
 
+    def _extract(self, sample, rng):
+        """Extract a (patch, label-or-None) pair from a single sample."""
+        import numpy as np
+
+        proxy = sample[self.column_name]
+
+        # Resolve proxy to get the actual array
+        if hasattr(proxy, "random_patch"):
+            # OmeZarrProxy or ZarrArrayProxy
+            if self.patch_size is not None:
+                if hasattr(proxy, "get_level"):
+                    # OmeZarrProxy — has level parameter
+                    arr = proxy.random_patch(self.patch_size, level=self.level, rng=rng)
+                else:
+                    # ZarrArrayProxy — no level parameter
+                    arr = proxy.random_patch(self.patch_size, rng=rng)
+            else:
+                arr = np.asarray(proxy[:])
+        else:
+            # ZarrGroupProxy or unresolved ZarrProxy — resolve and try again
+            resolved = proxy._resolve() if hasattr(proxy, "_resolve") else proxy
+            if hasattr(resolved, "random_patch"):
+                if self.patch_size is not None:
+                    arr = resolved.random_patch(self.patch_size, rng=rng)
+                else:
+                    arr = np.asarray(resolved[:])
+            else:
+                raise TypeError(
+                    f"Cannot extract patch from {type(resolved).__name__}. "
+                    f"For Zarr groups, specify which array to access "
+                    f"(e.g., proxy['array_name']) or use an OME-Zarr "
+                    f"multiscale store where iter_patches/random_patch are "
+                    f"available on level arrays."
+                )
+
+        label = sample.get(self.label_column, None) if self.label_column in sample else None
+        return np.asarray(arr), label
+
     def __call__(self, batch):
         import numpy as np
 
-        arrays = []
-        labels = []
-        has_labels = False
+        if isinstance(batch, dict):
+            # Columnar batch (e.g. from ``IterableDataset.batch`` or
+            # ``iter(batch_size=...)``): {"zarr": [p1, p2], "label": [0, 1]}
+            first = next(iter(batch.values()))
+            if isinstance(first, (list, tuple)):
+                lengths = {len(values) for values in batch.values()}
+                if len(lengths) != 1:
+                    raise ValueError(
+                        f"Columnar batch columns have mismatched lengths: {lengths}"
+                    )
+                n = next(iter(lengths))
+                batch = [{key: batch[key][i] for key in batch} for i in range(n)]
+            else:
+                # A single sample, not a columnar batch
+                batch = [batch]
 
         rng = self._rng
         if rng is None:
             rng = np.random.default_rng()
 
-        for sample in batch:
-            proxy = sample[self.column_name]
+        if self.patch_size is not None and len(batch) > 1:
+            # Concurrent batch pass: spawn a deterministic child rng per
+            # sample (Generator is not thread-safe) and extract patches in
+            # parallel. Reads go through the shared decoded-chunk cache, so
+            # overlapping chunks across the batch are fetched/decoded once.
+            child_rngs = [np.random.default_rng(int(rng.integers(0, 2**32))) for _ in batch]
+            from concurrent.futures import ThreadPoolExecutor
 
-            # Resolve proxy to get the actual array
-            if hasattr(proxy, "random_patch"):
-                # OmeZarrProxy or ZarrArrayProxy
-                if self.patch_size is not None:
-                    if hasattr(proxy, "get_level"):
-                        # OmeZarrProxy — has level parameter
-                        arr = proxy.random_patch(self.patch_size, level=self.level, rng=rng)
-                    else:
-                        # ZarrArrayProxy — no level parameter
-                        arr = proxy.random_patch(self.patch_size, rng=rng)
-                else:
-                    arr = np.asarray(proxy[:])
-            else:
-                # ZarrGroupProxy or unresolved ZarrProxy — resolve and try again
-                resolved = proxy._resolve() if hasattr(proxy, "_resolve") else proxy
-                if hasattr(resolved, "random_patch"):
-                    if self.patch_size is not None:
-                        arr = resolved.random_patch(self.patch_size, rng=rng)
-                    else:
-                        arr = np.asarray(resolved[:])
-                else:
-                    raise TypeError(
-                        f"Cannot extract patch from {type(resolved).__name__}. "
-                        f"For Zarr groups, specify which array to access "
-                        f"(e.g., proxy['array_name']) or use an OME-Zarr "
-                        f"multiscale store where iter_patches/random_patch are "
-                        f"available on level arrays."
-                    )
+            with ThreadPoolExecutor(max_workers=min(8, len(batch))) as pool:
+                extras = list(pool.map(self._extract, batch, child_rngs))
+        else:
+            extras = [self._extract(sample, rng) for sample in batch]
 
-            arrays.append(np.asarray(arr))
-
-            if self.label_column in sample:
-                has_labels = True
-                labels.append(sample[self.label_column])
+        arrays = [arr for arr, _ in extras]
+        labels = [label for _, label in extras]
+        present_labels = [label for label in labels if label is not None]
+        has_labels = bool(present_labels)
 
         try:
+            # On Windows, torch's bundled libomp.dll conflicts with the copy
+            # bundled by numcodecs.blosc (zarr reads load it first). Allow
+            # both runtimes to coexist instead of aborting on import.
+            if os.name == "nt":
+                os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
             import torch
 
             pixel_values = torch.stack([torch.from_numpy(a) for a in arrays])
@@ -499,10 +540,12 @@ class ZarrCollator:
 
         if has_labels:
             try:
+                if os.name == "nt":
+                    os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
                 import torch
 
-                result["labels"] = torch.tensor(labels)
+                result["labels"] = torch.tensor(present_labels)
             except ImportError:
-                result["labels"] = np.array(labels)
+                result["labels"] = np.array(present_labels)
 
         return result
