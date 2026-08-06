@@ -118,6 +118,11 @@ For OME-Zarr stores, [`Zarr`] resolves to an object with multiscale helpers such
 - `thumbnail(level=-1)`
 - `iter_patches(...)`
 - `random_patch(...)`
+- `roi(start, stop, level=0)` — read a region of interest in physical
+  coordinates (e.g. micrometers), converting and clipping to the pixel grid of
+  the requested level. Accepts `None` for open-ended bounds; per-axis scales
+  and translations from the OME-Zarr `coordinateTransformations` metadata are
+  honored.
 
 ```py
 >>> proxy = sample["scan"]
@@ -125,6 +130,7 @@ For OME-Zarr stores, [`Zarr`] resolves to an object with multiscale helpers such
 6
 >>> arr_l0 = proxy.get_level(0)
 >>> patch = proxy.random_patch((1, 128, 128), level=0)
+>>> roi = proxy.roi((0, 0, 0), (1, 10, 10), level=0)  # 10 µm × 10 µm
 ```
 
 ## Training with random patches

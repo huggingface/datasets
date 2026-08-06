@@ -944,6 +944,128 @@ class TestDatasetWithZarrFeature:
 
 
 @require_zarr
+class TestOmeZarrRoi:
+    def _create_scaled_ome(self, tmp_path):
+        import zarr
+
+        store_path = str(tmp_path / "scaled_ome.zarr")
+        root = zarr.open_group(store_path, mode="w")
+        root.attrs["multiscales"] = [
+            {
+                "version": "0.4",
+                "axes": [
+                    {"name": "c", "type": "channel"},
+                    {"name": "y", "type": "space", "unit": "micrometer"},
+                    {"name": "x", "type": "space", "unit": "micrometer"},
+                ],
+                "datasets": [
+                    {
+                        "path": "0",
+                        "coordinateTransformations": [
+                            {"type": "scale", "scale": [1.0, 0.5, 0.5]},
+                        ],
+                    },
+                    {
+                        "path": "1",
+                        "coordinateTransformations": [
+                            {"type": "scale", "scale": [2.0, 1.0, 1.0]},
+                        ],
+                    },
+                ],
+            }
+        ]
+        arr0 = root.create_array("0", shape=(1, 20, 20), dtype="int32", chunks=(1, 10, 10))
+        arr0[:] = np.arange(400, dtype="int32").reshape(1, 20, 20)
+        arr1 = root.create_array("1", shape=(1, 10, 10), dtype="int32", chunks=(1, 5, 5))
+        arr1[:] = np.arange(100, dtype="int32").reshape(1, 10, 10)
+        return store_path
+
+    def _create_translated_ome(self, tmp_path):
+        import zarr
+
+        store_path = str(tmp_path / "translated_ome.zarr")
+        root = zarr.open_group(store_path, mode="w")
+        root.attrs["multiscales"] = [
+            {
+                "version": "0.4",
+                "axes": [
+                    {"name": "c", "type": "channel"},
+                    {"name": "y", "type": "space", "unit": "micrometer"},
+                    {"name": "x", "type": "space", "unit": "micrometer"},
+                ],
+                "datasets": [
+                    {
+                        "path": "0",
+                        "coordinateTransformations": [
+                            {"type": "scale", "scale": [1.0, 0.5, 0.5]},
+                            {"type": "translation", "translation": [0.0, 5.0, 5.0]},
+                        ],
+                    },
+                ],
+            }
+        ]
+        arr0 = root.create_array("0", shape=(1, 20, 20), dtype="int32", chunks=(1, 10, 10))
+        arr0[:] = np.arange(400, dtype="int32").reshape(1, 20, 20)
+        return store_path
+
+    def test_roi_level0_pixel_equivalent(self, tmp_path):
+        proxy = ZarrProxy(path=self._create_scaled_ome(tmp_path))
+        expected = proxy.get_level(0)[0:1, 2:6, 2:6]
+        got = proxy.roi((0, 1.0, 1.0), (1, 3.0, 3.0), level=0)
+        assert np.array_equal(got, expected)
+
+    def test_roi_level_conversion(self, tmp_path):
+        proxy = ZarrProxy(path=self._create_scaled_ome(tmp_path))
+        expected = proxy.get_level(1)[0:1, 1:3, 1:3]
+        got = proxy.roi((0, 1.0, 1.0), (1, 3.0, 3.0), level=1)
+        assert np.array_equal(got, expected)
+
+    def test_roi_respects_translation(self, tmp_path):
+        proxy = ZarrProxy(path=self._create_translated_ome(tmp_path))
+        expected = proxy.get_level(0)[0:1, 2:6, 2:6]
+        got = proxy.roi((0, 6.0, 6.0), (1, 8.0, 8.0), level=0)
+        assert np.array_equal(got, expected)
+
+    def test_roi_none_bounds(self, tmp_path):
+        proxy = ZarrProxy(path=self._create_scaled_ome(tmp_path))
+        expected = proxy.get_level(0)[0:1, 0:4, 0:4]
+        got = proxy.roi((None, None, None), (1, 2.0, 2.0), level=0)
+        assert np.array_equal(got, expected)
+
+    def test_roi_clips_to_extent(self, tmp_path):
+        proxy = ZarrProxy(path=self._create_scaled_ome(tmp_path))
+        expected = proxy.get_level(0)[0:1, 0:20, 0:20]
+        got = proxy.roi((0, -10, 0), (1, 100, 100), level=0)
+        assert np.array_equal(got, expected)
+
+    def test_roi_negative_level(self, tmp_path):
+        proxy = ZarrProxy(path=self._create_scaled_ome(tmp_path))
+        expected = proxy.get_level(1)[0:1, 1:3, 1:3]
+        got = proxy.roi((0, 1.0, 1.0), (1, 3.0, 3.0), level=-1)
+        assert np.array_equal(got, expected)
+
+    def test_roi_missing_scale_raises(self, tmp_path):
+        import zarr
+
+        store_path = str(tmp_path / "noscale.zarr")
+        root = zarr.open_group(store_path, mode="w")
+        root.attrs["multiscales"] = [
+            {"version": "0.4", "axes": [{"name": "y"}, {"name": "x"}], "datasets": [{"path": "0"}]}
+        ]
+        root.create_array("0", shape=(10, 10), dtype="int32", chunks=(5, 5))
+        proxy = ZarrProxy(path=store_path)
+        with pytest.raises(ValueError, match="scale coordinate transformation"):
+            proxy.roi((0.0, 0.0), (1.0, 1.0))
+
+    def test_roi_wrong_length_raises(self, tmp_path):
+        proxy = ZarrProxy(path=self._create_scaled_ome(tmp_path))
+        with pytest.raises(ValueError, match="same number of entries"):
+            proxy.roi((0, 1.0), (1, 3.0, 3.0))
+        with pytest.raises(ValueError, match="one entry per axis"):
+            proxy.roi((0, 1.0, 1.0, 0.0), (1, 3.0, 3.0, 1.0))
+
+
+@require_zarr
 class TestZarrStoreRegistryReuse:
     def test_two_proxies_open_store_once(self, tmp_path):
         import zarr

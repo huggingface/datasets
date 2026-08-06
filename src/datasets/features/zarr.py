@@ -652,6 +652,93 @@ class OmeZarrProxy:
     def __len__(self):
         return self.get_level(0).shape[0] if self.get_level(0).ndim > 0 else 1
 
+    def _level_transform(self, level: int = 0):
+        """Return the ``(scale, translation)`` coordinate transform for a level.
+
+        ``scale`` and ``translation`` are lists with one entry per array
+        axis (physical units per voxel / origin offset), taken from the
+        OME-Zarr ``coordinateTransformations`` metadata. Either may be
+        ``None`` when the metadata omits it.
+        """
+        if not self.multiscales:
+            return None, None
+        datasets = self.multiscales[0].get("datasets", [])
+        if level < 0:
+            level = len(datasets) + level
+        if level < 0 or level >= len(datasets):
+            raise IndexError(f"Level {level} out of range for {len(datasets)} levels")
+        transforms = datasets[level].get("coordinateTransformations", [])
+        scale, translation = None, None
+        for t in transforms:
+            if t.get("type") == "scale":
+                scale = t["scale"]
+            elif t.get("type") == "translation":
+                translation = t["translation"]
+        return scale, translation
+
+    def roi(self, start, stop, level: int = 0):
+        """Read a region of interest given in physical (world) coordinates.
+
+        Coordinates are converted to pixel indices with the selected
+        level's own ``scale``/``translation`` metadata, so the region is
+        independent of the resolution level. Non-spatial axes (e.g. a
+        channel axis) usually have scale 1 and translation 0, in which
+        case their entries behave like plain pixel indices.
+
+        Parameters
+        ----------
+        start : tuple of float
+            Start of the region per axis, in physical units (e.g.
+            micrometers when the OME metadata declares micrometer axes).
+            Entries may be ``None`` to start from the array origin.
+        stop : tuple of float
+            End of the region per axis, in physical units. Entries may be
+            ``None`` to extend to the end of the array.
+        level : int, optional
+            Resolution level. Level 0 is highest resolution; negative
+            indices supported (e.g., -1 for lowest resolution).
+
+        Returns
+        -------
+        numpy.ndarray
+            The requested region at the given level. The region is
+            clipped to the array extent.
+
+        Example
+        -------
+        >>> region = proxy.roi((0.0, 100.0, 200.0), (1.0, 300.0, 400.0), level=0)
+        """
+        import numpy as np
+
+        arr = self.get_level(level)
+        shape = arr.shape
+        scale, translation = self._level_transform(level)
+        if scale is None:
+            raise ValueError("No scale coordinate transformation found in multiscales metadata")
+        if len(scale) != len(shape):
+            raise ValueError(
+                f"Scale metadata has {len(scale)} entries but the array has {len(shape)} axes"
+            )
+        if len(start) != len(stop):
+            raise ValueError("start and stop must have the same number of entries")
+        if len(start) != len(shape):
+            raise ValueError(
+                f"start and stop must have one entry per axis ({len(shape)}), got {len(start)}"
+            )
+
+        slices = []
+        for i, (s, e) in enumerate(zip(start, stop)):
+            sc = scale[i]
+            tr = translation[i] if translation is not None else 0.0
+            start_idx = int(np.floor((s - tr) / sc)) if s is not None else 0
+            stop_idx = int(np.ceil((e - tr) / sc)) if e is not None else shape[i]
+            start_idx = max(start_idx, 0)
+            stop_idx = min(stop_idx, shape[i])
+            if stop_idx < start_idx:
+                stop_idx = start_idx
+            slices.append(slice(start_idx, stop_idx))
+        return arr[tuple(slices)]
+
     def iter_patches(self, patch_size, stride=None, level=0):
         """Iterate over non-overlapping or strided patches at a given resolution level.
 

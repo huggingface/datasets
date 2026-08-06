@@ -230,7 +230,7 @@ For Hub paths, use `hf://datasets/...` and cast as usual:
 (1937, 2048, 2048)
 ```
 
-For OME-Zarr stores, multiscale helpers like `num_levels`, `get_level`, and `thumbnail` are available on the resolved proxy.
+For OME-Zarr stores, multiscale helpers like `num_levels`, `get_level`, `roi` (physical-coordinate region reads), and `thumbnail` are available on the resolved proxy.
 
 Reads are optimized with internal, read-only-safe caches: open stores are reused per `(path, token, storage_options)`, and decoded chunks are memoized in a bytes-bounded LRU cache (256 MiB by default, configurable via the `DATASETS_ZARR_CHUNK_CACHE_SIZE` environment variable in bytes; `0` disables it) so overlapping patches decode each shared chunk exactly once.
 
