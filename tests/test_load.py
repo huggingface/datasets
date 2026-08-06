@@ -510,6 +510,32 @@ class ModuleFactoryTest(TestCase):
         assert any(Path(data_file).name == "metadata.jsonl" for data_file in data_files["train"])
         assert any(Path(data_file).name == "metadata.jsonl" for data_file in data_files["test"])
 
+    def test_PackagedDatasetModuleFactory_with_remote_data_dir(self):
+        factory = PackagedDatasetModuleFactory(
+            "zarrfolder",
+            data_dir="file:///" + self._data_dir.replace("\\", "/"),
+            download_config=self.download_config,
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["data_dir"] == "file:///" + self._data_dir.replace("\\", "/")
+        # no local pattern inference is attempted for remote data dirs
+        assert len(module_factory_result.builder_kwargs["data_files"]) == 0
+
+    def test_PackagedDatasetModuleFactory_with_remote_data_dir_and_data_files(self):
+        factory = PackagedDatasetModuleFactory(
+            "text",
+            data_dir="file:///" + self._data_dir.replace("\\", "/"),
+            data_files={"train": "train.txt"},
+            download_config=self.download_config,
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["data_dir"] == "file:///" + self._data_dir.replace("\\", "/")
+        data_files = module_factory_result.builder_kwargs["data_files"]
+        assert len(data_files["train"]) == 1
+        assert data_files["train"][0].endswith("train.txt")
+
     @pytest.mark.integration
     def test_HubDatasetModuleFactory(self):
         factory = HubDatasetModuleFactory(

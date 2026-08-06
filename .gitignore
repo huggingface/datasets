@@ -58,3 +58,6 @@ report.md
 
 # Ruff
 .ruff_cache
+
+# Demo notebook downloaded data
+/notebooks/zarr_demo_data/
