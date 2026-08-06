@@ -1963,32 +1963,33 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         yield from mem_buffer
 
     def _iter_arrow(self):
+        from copy import deepcopy
+
         import pyarrow as pa
         import pyarrow.compute as pc
-        from copy import deepcopy
-        
+
         rng = deepcopy(self.generator)
         tables = []
         current_len = 0
         last_key = None
-        
+
         for key, pa_table in self.ex_iterable.iter_arrow():
             last_key = key
             tables.append(pa_table)
             current_len += len(pa_table)
-            
+
             # Amortize shuffle cost by waiting until buffer is 2x full
             if current_len >= 2 * self.buffer_size:
                 buffer_table = pa.concat_tables(tables)
                 indices = rng.permutation(current_len)
                 shuffled_table = pc.take(buffer_table, indices)
-                
+
                 rows_to_yield = current_len - self.buffer_size
                 yield key, shuffled_table.slice(0, rows_to_yield)
-                
+
                 tables = [shuffled_table.slice(rows_to_yield)]
                 current_len = self.buffer_size
-                
+
         if current_len > 0:
             buffer_table = pa.concat_tables(tables)
             indices = rng.permutation(current_len)
