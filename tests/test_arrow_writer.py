@@ -1,4 +1,5 @@
 import copy
+import datetime
 import json
 import os
 import tempfile
@@ -6,13 +7,14 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import numpy as np
+import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
 from datasets import config
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence
-from datasets.features import Array2D, ClassLabel, Features, Image, Value
+from datasets.features import Array2D, ClassLabel, Features, Image, List, Value
 from datasets.features.features import Array2DExtensionType, cast_to_python_objects
 
 from .utils import require_pil
@@ -46,6 +48,50 @@ class TypedSequenceTest(TestCase):
     def test_try_incompatible_type(self):
         arr = pa.array(TypedSequence(["foo", "bar"], try_type=Value("int64")))
         self.assertEqual(arr.type, pa.string())
+
+    def test_nanosecond_temporal_type_preserves_precision(self):
+        timestamp = pd.Timestamp("2024-01-01 00:00:00.123456789")
+        zoned_timestamp = pd.Timestamp("2024-01-01 00:00:00.123456789", tz="America/Toronto")
+        python_datetime = datetime.datetime(2024, 1, 2, 3, 4, 5, 123456)
+        duration = pd.Timedelta("1 days 00:00:00.123456789")
+        python_timedelta = datetime.timedelta(seconds=2, microseconds=123456)
+
+        for feature, data, expected in [
+            (
+                Value("timestamp[ns]"),
+                [timestamp, python_datetime, None],
+                [timestamp.value, pd.Timestamp(python_datetime).value, None],
+            ),
+            (
+                Value("duration[ns]"),
+                [duration, python_timedelta, None],
+                [duration.value, pd.Timedelta(python_timedelta).value, None],
+            ),
+            (
+                Value("timestamp[ns, tz=America/Toronto]"),
+                [zoned_timestamp, None],
+                [zoned_timestamp.value, None],
+            ),
+        ]:
+            with self.subTest(feature=feature):
+                arr = pa.array(TypedSequence(data, type=feature))
+                self.assertEqual(arr.cast(pa.int64()).to_pylist(), expected)
+
+    def test_try_nanosecond_temporal_type_preserves_precision(self):
+        timestamp = pd.Timestamp("2024-01-01 00:00:00.123456789")
+        arr = pa.array(TypedSequence([timestamp], try_type=Value("timestamp[ns]")))
+        self.assertEqual(arr.cast(pa.int64()).to_pylist(), [timestamp.value])
+
+    def test_nested_nanosecond_temporal_type_preserves_precision(self):
+        timestamp = pd.Timestamp("2024-01-01 00:00:00.123456789")
+        list_arr = pa.array(TypedSequence([[timestamp], None], type=List(Value("timestamp[ns]"))))
+        self.assertEqual(list_arr.cast(pa.list_(pa.int64())).to_pylist(), [[timestamp.value], None])
+
+        struct_feature = {"event": {"timestamp": Value("timestamp[ns]"), "name": Value("string")}}
+        struct_arr = pa.array(
+            TypedSequence([{"event": {"timestamp": timestamp, "name": "launch"}}], type=struct_feature)
+        )
+        self.assertEqual(struct_arr.field("event").field("timestamp").cast(pa.int64()).to_pylist(), [timestamp.value])
 
     def test_compatible_extension_type(self):
         arr = pa.array(TypedSequence([[[1, 2, 3]]], type=Array2D((1, 3), "int64")))
