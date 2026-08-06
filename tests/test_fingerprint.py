@@ -588,3 +588,44 @@ def test_dependency_on_dill():
     # AttributeError: module 'dill._dill' has no attribute 'stack'
     hasher = Hasher()
     hasher.update(lambda x: x)
+
+
+def test_hash_is_insensitive_to_dict_key_order():
+    # The default Pickler sorts dict items, so insertion order must not change the hash
+    assert Hasher.hash({"train": ["train.csv"], "test": ["test.csv"]}) == Hasher.hash(
+        {"test": ["test.csv"], "train": ["train.csv"]}
+    )
+
+
+def test_legacy_no_dict_keys_sorting_preserves_dict_key_order():
+    # `_check_legacy_cache2` patches this flag on to reproduce the 2.15.0 config_id,
+    # which was computed without sorting dict items
+    from datasets.utils._dill import Pickler
+
+    with patch.object(Pickler, "_legacy_no_dict_keys_sorting", True):
+        assert Hasher.hash({"train": ["train.csv"], "test": ["test.csv"]}) != Hasher.hash(
+            {"test": ["test.csv"], "train": ["train.csv"]}
+        )
+
+
+def test_legacy_no_dict_keys_sorting_forwards_extra_args():
+    # The legacy branch must forward *args/**kwargs like the sorting branch does,
+    # because Python 3.14 calls `_batch_setitems(items, obj=obj)`
+    import dill
+
+    from datasets.utils._dill import Pickler
+
+    calls = []
+
+    def fake_batch_setitems(self, items, *args, **kwargs):
+        calls.append((list(items), args, kwargs))
+
+    pickler = Pickler.__new__(Pickler)
+    with patch.object(dill.Pickler, "_batch_setitems", fake_batch_setitems):
+        with patch.object(Pickler, "_legacy_no_dict_keys_sorting", True):
+            pickler._batch_setitems(iter([("b", 1), ("a", 2)]), "positional", keyword=3)
+
+    items, args, kwargs = calls[0]
+    assert items == [("b", 1), ("a", 2)]  # unsorted -> the legacy branch ran
+    assert args == ("positional",)
+    assert kwargs == {"keyword": 3}
