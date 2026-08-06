@@ -204,6 +204,11 @@ def cached_array_getitem(array, array_path: str, key):
     int, a single slice/Ellipsis, or a tuple of int/slice/Ellipsis with no
     ``None`` and no negative steps. Anything else (or a disabled cache)
     falls back to the exact ``array[key]`` read, preserving semantics.
+
+    Chunks overlapping the selection are fetched concurrently (bounded by
+    the chunk count) and assembled in selection order. All fetches ride the
+    same shared Zarr event loop, so remote store requests overlap without
+    needing per-request connections.
     """
     if CHUNK_CACHE.max_bytes <= 0:
         return array[key]
@@ -235,7 +240,9 @@ def cached_array_getitem(array, array_path: str, key):
     from zarr.core.indexing import BasicIndexer
     from zarr.core.sync import sync
 
-    for projection in BasicIndexer(key, shape, chunk_grid):
+    projections = list(BasicIndexer(key, shape, chunk_grid))
+
+    def _fetch(projection):
         coords = tuple(int(c) for c in projection.chunk_coords)
         cache_key = (array_path, coords)
         chunk = CHUNK_CACHE.get(cache_key)
@@ -244,10 +251,22 @@ def cached_array_getitem(array, array_path: str, key):
                 async_array.get_orthogonal_selection(_chunk_abs_slice(coords, chunks, shape))
             )
             CHUNK_CACHE.put(cache_key, chunk)
-        try:
+        return projection, chunk
+
+    if len(projections) == 1:
+        fetched = [_fetch(projections[0])]
+    else:
+        from concurrent.futures import ThreadPoolExecutor
+
+        n = min(8, len(projections))
+        with ThreadPoolExecutor(max_workers=n) as pool:
+            fetched = list(pool.map(_fetch, projections))
+
+    try:
+        for projection, chunk in fetched:
             out[projection.out_selection] = chunk[projection.chunk_selection]
-        except (IndexError, ValueError):
-            return array[key]
+    except (IndexError, ValueError):
+        return array[key]
     return out
 
 

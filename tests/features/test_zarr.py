@@ -1226,3 +1226,17 @@ class TestZarrCachedSelectionSemantics:
             proxy[key]
         with pytest.raises(zarr.errors.NegativeStepError):
             zarr.open(store_path, mode="r")[key]
+
+    def test_parallel_multi_chunk_read_equals_plain(self, tmp_path):
+        import zarr
+
+        store_path = _create_zarr_array(
+            tmp_path, shape=(32, 48, 64), dtype="uint16", chunks=(8, 8, 16)
+        )
+        proxy = ZarrProxy(path=store_path)
+        CHUNK_CACHE.clear()
+        expected = np.asarray(zarr.open(store_path, mode="r")[1:31, 3:45, 2:62])
+        got = np.asarray(proxy[1:31, 3:45, 2:62])
+        assert got.shape == expected.shape
+        assert np.array_equal(got, expected)
+        assert len(CHUNK_CACHE._cache) == 4 * 6 * 4
