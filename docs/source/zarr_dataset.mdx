@@ -4,13 +4,23 @@ This guide shows how to create and share datasets backed by Zarr stores, includi
 
 ## Recommended workflow
 
-For Hub usage, the recommended pattern is:
+There are two supported ways to build a dataset from Zarr stores:
 
-1. Store raw Zarr data in a data repository.
-2. Create a lightweight index repository (Parquet or JSONL) with one row per sample and a `scan` path column.
-3. Load the index with [`load_dataset`] and cast the path column to [`Zarr`].
+**Folder layout (no manifest needed).** If your stores live together in one directory (locally or in a Hub repository / Storage Bucket), load the folder directly with `load_dataset("zarrfolder", data_dir=...)`. Each `.zarr` store becomes one row, and any `metadata.csv`, `metadata.jsonl`, or `metadata.parquet` file in that directory acts as the index — one metadata row per store, joined on `file_name`:
 
-This gives you the standard `load_dataset(..., streaming=True)` API and lazy access to Zarr content.
+```py
+>>> from datasets import load_dataset
+>>>
+>>> ds = load_dataset(
+...     "zarrfolder",
+...     data_dir="hf://buckets/username/my-zarr-data",
+...     streaming=True,
+... )
+>>> row = next(iter(ds["train"]))
+>>> row["caption"]  # from metadata.csv, no separate index dataset
+```
+
+**Index + cast (for scattered or custom layouts).** If stores are spread across arbitrary paths, repositories, or need a custom row structure, build a small index dataset — one row per sample with a `scan` path column — then load it and cast the column to [`Zarr`]. The index dataset *is* the metadata; it is a lightweight table of paths and columns, not a copy of the data.
 
 ## Local loading (fast)
 
@@ -70,6 +80,8 @@ stores are never re-chunked: if the store has more files than `file_limit`
 ```
 
 ## Create an index (manifest) dataset
+
+Use this only when your stores aren't in a single `data_dir` folder — e.g. stores scattered across paths or repositories, or when you need a custom row structure (splits, ordering, extra per-sample columns). If stores already live in one folder, `zarrfolder` reads a `metadata.csv`/`metadata.jsonl`/`metadata.parquet` next to them as the index instead.
 
 Create a small dataset with one row per sample and a `scan` path column. Use
 `hf://buckets/...` paths for bucket-hosted stores:
@@ -180,7 +192,8 @@ can never go stale.
 
 ## Notes
 
-- `load_dataset("zarrfolder", data_dir=...)` may be slow on very large local stores with many internal chunk files.
+- `load_dataset("zarrfolder", data_dir=...)` may be slow on very large local stores with many internal chunk files; remote `hf://`/`s3://` folders are discovered by enumerating files, so very large remote folders are also enumerations-first (still lazy per store).
+- `zarrfolder` reads metadata files from both local and remote (`hf://`, `s3://`, `file://`) folders — a `metadata.csv`/`metadata.jsonl`/`metadata.parquet` next to the stores is used as the index, so no separate manifest dataset is required.
 - For production-scale workflows, prefer:
   - local: [`datasets.utils.zarr_utils.load_zarr_dataset`] or `Dataset.from_dict(...).cast_column(..., Zarr())`
-  - Hub: index + cast pattern shown above, with large stores hosted in a Storage Bucket.
+  - Hub: a folder layout loaded with `load_dataset("zarrfolder", data_dir=...)` (with a `metadata.csv` index when needed), or the index + cast pattern for scattered/custom layouts — with large stores hosted in a Storage Bucket.

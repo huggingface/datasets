@@ -99,6 +99,33 @@ def _discover_metadata_files_local(base_path, metadata_filenames):
     return metadata
 
 
+def _discover_metadata_files_remote(data_dir, metadata_filenames):
+    """Find metadata files (csv, jsonl, parquet) in a remote directory via fsspec.
+
+    Mirrors :func:`_discover_metadata_files_local` for remote paths
+    (``hf://``, ``s3://``, ``file://``, ...): files at the root of
+    ``data_dir`` whose basename matches a known metadata filename are
+    returned as full remote paths.
+    """
+    import fsspec
+
+    url_prefix = str(data_dir).rstrip("/")
+    fs, root = fsspec.core.url_to_fs(url_prefix)
+
+    try:
+        listing = fs.ls(root)
+    except FileNotFoundError:
+        return []
+
+    metadata = []
+    for entry in listing:
+        name = os.path.basename(entry)
+        if name in metadata_filenames:
+            metadata.append(url_prefix + "/" + name)
+    return metadata
+
+
+
 def _parent_dir(path):
     """Get the parent directory name from a path (works for local and hf:// paths)."""
     parts = path.replace("\\", "/").rstrip("/").split("/")
@@ -214,7 +241,8 @@ class ZarrFolder(datasets.GeneratorBasedBuilder):
             return None
 
         zarr_roots = _discover_zarr_dirs_remote(data_dir)
-        return {"train": zarr_roots}, {"train": []}
+        metadata_files = _discover_metadata_files_remote(data_dir, self.METADATA_FILENAMES)
+        return {"train": zarr_roots}, {"train": metadata_files}
 
     def _split_generators(self, dl_manager):
         dl_manager.download_config.extract_on_the_fly = True

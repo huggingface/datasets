@@ -12,6 +12,7 @@ from datasets.packaged_modules.zarrfolder.zarrfolder import (
     ZarrFolder,
     ZarrFolderConfig,
     _dirname_urlsafe,
+    _discover_metadata_files_remote,
     _discover_zarr_dirs_remote,
     _find_zarr_roots,
     _join_urlsafe,
@@ -53,6 +54,19 @@ class TestDiscoverZarrDirsRemote:
     def test_empty_dir(self, tmp_path):
         url = "file:///" + str(tmp_path).replace("\\", "/")
         assert _discover_zarr_dirs_remote(url) == []
+
+    def test_metadata_files_remote_found(self, tmp_path):
+        import csv
+
+        (tmp_path / "metadata.csv").write_text("file_name,caption\n")
+        (tmp_path / "metadata.jsonl").write_text("")
+        url = "file:///" + str(tmp_path).replace("\\", "/")
+        found = _discover_metadata_files_remote(url, ["metadata.csv", "metadata.jsonl", "metadata.parquet"])
+        assert found == [url + "/metadata.csv", url + "/metadata.jsonl"]
+
+    def test_metadata_files_remote_missing(self, tmp_path):
+        url = "file:///" + str(tmp_path).replace("\\", "/")
+        assert _discover_metadata_files_remote(url, ["metadata.csv", "metadata.jsonl"]) == []
 
 
 class TestFindZarrRoots:
@@ -383,6 +397,32 @@ class TestZarrFolderWithMetadata:
         assert sample["caption"] == "first scan"
         assert sample["zarr"].startswith("file:///")
         assert "scan1.zarr" in sample["zarr"]
+
+    def test_remote_data_dir_reads_metadata_as_index(self, tmp_path):
+        import csv
+
+        data_dir = tmp_path / "zarr_remote_index"
+        data_dir.mkdir()
+        _create_zarr_array_on_disk(data_dir / "scan1.zarr")
+        _create_zarr_array_on_disk(data_dir / "scan2.zarr")
+
+        with open(data_dir / "metadata.csv", "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["file_name", "caption"])
+            writer.writerow(["scan1.zarr", "first scan"])
+            writer.writerow(["scan2.zarr", "second scan"])
+
+        url = "file:///" + str(data_dir).replace("\\", "/")
+        builder = ZarrFolder(
+            data_dir=url,
+            drop_labels=True,
+            drop_metadata=False,
+        )
+        gen_kwargs = builder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+        examples = list(builder._generate_examples(**gen_kwargs))
+        assert len(examples) == 2
+        captions = {sample["zarr"].split("/")[-1]: sample["caption"] for _, sample in examples}
+        assert captions == {"scan1.zarr": "first scan", "scan2.zarr": "second scan"}
 
 
 @require_zarr
