@@ -1927,57 +1927,99 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         return self._iter_arrow if self.ex_iterable.iter_arrow else None
 
     def _init_state_dict(self) -> dict:
+        # the buffer state is stored in the same dict as the wrapped iterable's state, so that
+        # state dicts from versions that didn't save the buffer content can still be loaded.
+        # The buffer content is stored as a tuple so that state merging and copying treat it
+        # as an atomic value.
         self._state_dict = self.ex_iterable._init_state_dict()
-        self._original_state_dict = self.state_dict()
+        self._state_dict["shuffle_buffer"] = ()
+        self._state_dict["shuffle_buffer_num_picks"] = 0
+        self._state_dict["shuffle_buffer_end_of_data_shuffled"] = False
         return self._state_dict
 
-    def load_state_dict(self, state_dict: dict) -> dict:
+    def state_dict(self) -> dict:
         if self._state_dict:
-            if state_dict != self._original_state_dict:
-                logger.warning(
-                    "Loading a state dict of a shuffle buffer of a dataset without the buffer content."
-                    "The shuffle buffer will be refilled before starting to yield new examples."
-                )
-        return super().load_state_dict(state_dict)
+            # avoid deep-copying the buffer content: the tuple is immutable and its entries are
+            # only ever replaced, never mutated in place. This runs on every state capture.
+            return {
+                key: (value if key == "shuffle_buffer" else deepcopy(value)) for key, value in self._state_dict.items()
+            }
+        raise RuntimeError("State dict is not initialized, please call ex_iterable._init_state_dict() first.")
+
+    def load_state_dict(self, state_dict: dict) -> dict:
+        if "shuffle_buffer" not in state_dict:
+            # state dict from a version that didn't save the buffer content
+            logger.warning(
+                "Loading a state dict of a shuffle buffer of a dataset without the buffer content."
+                "The shuffle buffer will be refilled before starting to yield new examples."
+            )
+        inner_state_dict = {key: value for key, value in state_dict.items() if not key.startswith("shuffle_buffer")}
+        self.ex_iterable.load_state_dict(inner_state_dict)
+        self._state_dict = self.ex_iterable._state_dict
+        self._state_dict["shuffle_buffer"] = tuple(state_dict.get("shuffle_buffer", ()))
+        self._state_dict["shuffle_buffer_num_picks"] = state_dict.get("shuffle_buffer_num_picks", 0)
+        self._state_dict["shuffle_buffer_end_of_data_shuffled"] = state_dict.get(
+            "shuffle_buffer_end_of_data_shuffled", False
+        )
+        return self._state_dict
 
     @staticmethod
     def _iter_random_indices(rng: np.random.Generator, buffer_size: int, random_batch_size=1000) -> Iterator[int]:
         while True:
             yield from (int(i) for i in rng.integers(0, buffer_size, size=random_batch_size))
 
-    def __iter__(self):
+    def _iter_with_buffer(self, iterator: Iterator):
         buffer_size = self.buffer_size
         rng = deepcopy(self.generator)
         indices_iterator = self._iter_random_indices(rng, buffer_size)
-        # this is the shuffle buffer that we keep in memory
-        mem_buffer = []
-        for x in self.ex_iterable:
-            if len(mem_buffer) == buffer_size:  # if the buffer is full, pick and example from it
+        if self._state_dict:
+            # resume from the saved buffer content and advance the rng to where it stopped
+            mem_buffer = list(self._state_dict["shuffle_buffer"])
+            for _ in range(self._state_dict["shuffle_buffer_num_picks"]):
+                next(indices_iterator)
+        else:
+            mem_buffer = []
+        for x in iterator:
+            if len(mem_buffer) == buffer_size:  # if the buffer is full, pick an example from it
                 i = next(indices_iterator)
-                yield mem_buffer[i]
+                selected = mem_buffer[i]
                 mem_buffer[i] = x  # replace the picked example by a new one
+                if self._state_dict:
+                    self._state_dict["shuffle_buffer"] = tuple(mem_buffer)
+                    self._state_dict["shuffle_buffer_num_picks"] += 1
+                yield selected
             else:  # otherwise, keep filling the buffer
                 mem_buffer.append(x)
         # when we run out of examples, we shuffle the remaining examples in the buffer and yield them
-        rng.shuffle(mem_buffer)
-        yield from mem_buffer
+        if not (self._state_dict and self._state_dict["shuffle_buffer_end_of_data_shuffled"]):
+            rng.shuffle(mem_buffer)
+            if self._state_dict:
+                self._state_dict["shuffle_buffer_end_of_data_shuffled"] = True
+        while mem_buffer:
+            selected = mem_buffer.pop(0)
+            if self._state_dict:
+                self._state_dict["shuffle_buffer"] = tuple(mem_buffer)
+            yield selected
+
+    def __iter__(self):
+        yield from self._iter_with_buffer(iter(self.ex_iterable))
 
     def _iter_arrow(self):
-        buffer_size = self.buffer_size
-        rng = deepcopy(self.generator)
-        indices_iterator = self._iter_random_indices(rng, buffer_size)
-        # this is the shuffle buffer that we keep in memory
-        mem_buffer = []
-        for key, pa_table in self.ex_iterable.iter_arrow():
-            if len(mem_buffer) == buffer_size:  # if the buffer is full, pick and example from it
-                i = next(indices_iterator)
-                yield mem_buffer[i]
-                mem_buffer[i] = (key, pa_table)  # replace the picked example by a new one
-            else:  # otherwise, keep filling the buffer
-                mem_buffer.append((key, pa_table))
-        # when we run out of examples, we shuffle the remaining examples in the buffer and yield them
-        rng.shuffle(mem_buffer)
-        yield from mem_buffer
+        iterator = self.ex_iterable.iter_arrow()
+        if self._state_dict:
+            iterator = self._iter_compacted(iterator)
+        yield from self._iter_with_buffer(iterator)
+
+    @staticmethod
+    def _iter_compacted(iterator: Iterator[tuple[Key, pa.Table]]) -> Iterator[tuple[Key, pa.Table]]:
+        # buffered tables are often zero-copy slices that reference the buffers of a whole
+        # source table, in which case copying or serializing the buffer state would write
+        # the full source buffers for every buffered example. Rewrite those slices as
+        # stand-alone tables before they enter the buffer.
+        for key, pa_table in iterator:
+            if pa_table.get_total_buffer_size() > 2 * pa_table.nbytes:
+                pa_table = pa_table.take(list(range(len(pa_table))))
+            yield key, pa_table
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "BufferShuffledExamplesIterable":
         """Shuffle the wrapped examples iterable as well as the shuffling buffer."""
