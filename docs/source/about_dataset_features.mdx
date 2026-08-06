@@ -134,6 +134,36 @@ And in this case the numpy arrays are encoded into PNG (or TIFF if the pixels va
 For multi-channels arrays like RGB or RGBA, only uint8 is supported. If you use a larger precision, you get a warning and the array is downcasted to uint8.
 For gray-scale images you can use the integer or float precision you want as long as it is compatible with `Pillow`. A warning is shown if your image integer or float precision is too high, and in this case the array is downcated: an int64 array is downcasted to int32, and a float64 array is downcasted to float32.
 
+## Mesh feature
+
+Mesh datasets have a column with type [`Mesh`], which loads 3D mesh files as `trimesh` objects.
+
+When you load a mesh dataset and call the mesh column, the [`Mesh`] feature automatically decodes the mesh file:
+
+```py
+>>> from datasets import load_dataset, Mesh
+
+>>> dataset = load_dataset("VINAY-UMRETHE/My-Mesh-Dataset", split="train")
+>>> dataset[0]["mesh"]
+<trimesh.Scene(len(geometry)=33)>
+```
+
+Depending on the file content, `trimesh` may return a `trimesh.Trimesh` object or a `trimesh.Scene` object.
+
+> [!WARNING]
+> Index into a mesh dataset using the row index first and then the `mesh` column - `dataset[0]["mesh"]` - to avoid decoding all the mesh files in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
+
+With `decode=False`, the [`Mesh`] type gives you the path or bytes of the mesh file without decoding it with `trimesh`:
+
+```py
+>>> dataset = load_dataset("VINAY-UMRETHE/My-Mesh-Dataset", split="train").cast_column("mesh", Mesh(decode=False))
+>>> dataset[0]["mesh"]
+{'bytes': b'...',
+ 'path': '00001.glb'}
+```
+
+The [`Mesh`] feature supports `.glb`, `.ply`, and `.stl` files. For embedded bytes, the stored `path` is used to infer the mesh file type.
+
 ## Json feature
 
 Datasets are based on Arrow which is a columnar format, and therefore they expect every example to have the same type and subtypes, and dictionaries to have the same keys and values types.

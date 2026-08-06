@@ -70,6 +70,14 @@ To work with image datasets, you need to install the [`Image`] feature as an ext
 pip install datasets[vision]
 ```
 
+## Mesh
+
+To work with mesh datasets, you need to install the [`Mesh`] feature as an extra dependency:
+
+```bash
+pip install datasets[mesh]
+```
+
 ## source
 
 Building 🤗 Datasets from source lets you make changes to the code base. To install from the source, clone the repository and install with the following commands:

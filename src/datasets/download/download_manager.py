@@ -77,7 +77,7 @@ class DownloadManager:
         data_dir: Optional[str] = None,
         download_config: Optional[DownloadConfig] = None,
         base_path: Optional[str] = None,
-        record_checksums=True,
+        record_checksums=False,
     ):
         """Download manager constructor.
 
@@ -93,7 +93,7 @@ class DownloadManager:
             base_path (`str`):
                 base path that is used when relative paths are used to
                 download files. This can be a remote url.
-            record_checksums (`bool`, defaults to `True`):
+            record_checksums (`bool`, defaults to `False`):
                 Whether to record the checksums of the downloaded files. If None, the value is inferred from the builder.
         """
         self._dataset_name = dataset_name

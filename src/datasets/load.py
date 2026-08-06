@@ -68,13 +68,13 @@ from .iterable_dataset import IterableDataset
 from .naming import camelcase_to_snakecase, snakecase_to_camelcase
 from .packaged_modules import (
     _ALL_ALLOWED_EXTENSIONS,
+    _ALL_METADATA_FILENAMES,
     _EXTENSION_TO_MODULE,
     _MODULE_TO_EXTENSIONS,
     _MODULE_TO_METADATA_EXTENSIONS,
     _MODULE_TO_METADATA_FILE_NAMES,
     _PACKAGED_DATASETS_MODULES,
 )
-from .packaged_modules.folder_based_builder.folder_based_builder import FolderBasedBuilder
 from .splits import Split
 from .utils import _dataset_viewer
 from .utils.file_utils import (
@@ -226,7 +226,7 @@ def infer_module_for_data_files_list(
             - dict of builder kwargs
     """
     extensions_counter = Counter(
-        ("." + suffix.lower(), xbasename(filepath) in FolderBasedBuilder.METADATA_FILENAMES)
+        ("." + suffix.lower(), xbasename(filepath) in _ALL_METADATA_FILENAMES)
         for filepath in data_files_list
         for suffix in xbasename(filepath).split(".")[1:]
     )
@@ -235,7 +235,17 @@ def infer_module_for_data_files_list(
         def sort_key(ext_count: tuple[tuple[str, bool], int]) -> tuple[int, bool]:
             """Sort by count and set ".parquet" as the favorite in case of a draw, and ignore metadata files"""
             (ext, is_metadata), count = ext_count
-            return (not is_metadata, count, ext == ".parquet", ext == ".jsonl", ext == ".json", ext == ".csv", ext)
+            return (
+                not is_metadata,
+                count,
+                ext == ".parquet",
+                ext == ".lance",
+                ext == ".arrow",
+                ext == ".jsonl",
+                ext == ".json",
+                ext == ".csv",
+                ext,
+            )
 
         for (ext, _), _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
             if ext in _EXTENSION_TO_MODULE:
@@ -688,7 +698,7 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
             ]
             default_config_name = None
         builder_kwargs = {
-            "base_path": hf_dataset_url(self.name, "", revision=self.commit_hash).rstrip("/"),
+            "base_path": base_path,
             "repo_id": self.name,
             "dataset_name": camelcase_to_snakecase(Path(self.name).name),
         }
@@ -876,16 +886,16 @@ class HubBucketDatasetModuleFactory(_DatasetModuleFactory):
             endpoint=config.HF_ENDPOINT,
             token=self.download_config.token,
         )
-        readme_path = xjoin(self.path, config.REPOCARD_FILENAME)
-        standalone_yaml_path = xjoin(self.path, config.REPOYAML_FILENAME)
+        readme_path = posixpath.join(self.path, config.REPOCARD_FILENAME)
+        standalone_yaml_path = posixpath.join(self.path, config.REPOYAML_FILENAME)
         try:
-            dataset_card_data = DatasetCard(hffs.read_text(readme_path, newline="", encoding="utf-8"))
+            dataset_card_data = DatasetCard(hffs.read_text(readme_path, newline="", encoding="utf-8")).data
         except FileNotFoundError:
             dataset_card_data = DatasetCardData()
         try:
             standalone_yaml_data = yaml.safe_load(hffs.read_text(standalone_yaml_path, newline="", encoding="utf-8"))
         except FileNotFoundError:
-            dataset_card_data = DatasetCardData()
+            standalone_yaml_data = None
         if hffs.exists(standalone_yaml_path):
             with hffs.open(standalone_yaml_path, "r", encoding="utf-8") as f:
                 standalone_yaml_data = yaml.safe_load(f.read())
@@ -1031,8 +1041,6 @@ def dataset_module_factory(
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
-    download_config.extract_compressed_file = True
-    download_config.force_extract = True
     download_config.force_download = download_mode == DownloadMode.FORCE_REDOWNLOAD
 
     filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
@@ -1251,7 +1259,7 @@ def load_dataset_builder(
     You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
 
     A dataset is a directory that contains some data files in generic formats (JSON, CSV, Parquet, etc.) and possibly
-    in a generic structure (Webdataset, ImageFolder, AudioFolder, VideoFolder, etc.)
+    in a generic structure (Webdataset, ImageFolder, AudioFolder, VideoFolder, MeshFolder, etc.)
 
     Args:
 
@@ -1271,7 +1279,7 @@ def load_dataset_builder(
               e.g. `'./path/to/directory/with/my/csv/data'`.
 
             - if `path` is the name of a dataset builder and `data_files` or `data_dir` is specified
-              (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder")
+              (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder", "meshfolder")
               -> load the dataset builder from the files in `data_files` or `data_dir`
               e.g. `'parquet'`.
 
@@ -1508,13 +1516,13 @@ def load_dataset(
     You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
 
     A dataset is a directory that contains some data files in generic formats (JSON, CSV, Parquet, etc.) and possibly
-    in a generic structure (Webdataset, ImageFolder, AudioFolder, VideoFolder, etc.)
+    in a generic structure (Webdataset, ImageFolder, AudioFolder, VideoFolder, MeshFolder, etc.)
 
     This function does the following under the hood:
 
         1. Load a dataset builder:
 
-            * Find the most common data format in the dataset and pick its associated builder (JSON, CSV, Parquet, Webdataset, ImageFolder, AudioFolder, etc.)
+            * Find the most common data format in the dataset and pick its associated builder (JSON, CSV, Parquet, Webdataset, ImageFolder, AudioFolder, MeshFolder, etc.)
             * Find which file goes into which split (e.g. train/test) based on file and directory names or on the YAML configuration
             * It is also possible to specify `data_files` manually, and which dataset builder to use (e.g. "parquet").
 
@@ -1552,7 +1560,7 @@ def load_dataset(
               e.g. `'./path/to/directory/with/my/csv/data'`.
 
             - if `path` is the name of a dataset builder and `data_files` or `data_dir` is specified
-              (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder")
+              (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder", "meshfolder")
               -> load the dataset from the files in `data_files` or `data_dir`
               e.g. `'parquet'`.
 
@@ -1736,7 +1744,7 @@ def load_dataset(
     keep_in_memory = (
         keep_in_memory if keep_in_memory is not None else is_small_dataset(builder_instance.info.dataset_size)
     )
-    ds = builder_instance.as_dataset(split=split, verification_mode=verification_mode, in_memory=keep_in_memory)
+    ds = builder_instance.as_dataset(split=split, in_memory=keep_in_memory)
 
     return ds
 

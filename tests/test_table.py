@@ -1334,6 +1334,16 @@ def test_cast_array_to_feature_with_list_array_and_large_list_feature(from_list_
     assert cast_array.type == expected_array_type
 
 
+def test_cast_array_to_feature_with_nullable_large_list_and_new_inner_type():
+    # A nullable LargeList has int64 offsets, but the null bitmap was combined
+    # with an int32 null-fill in _combine_list_array_offsets_with_mask, so
+    # casting it to a different inner type raised ArrowNotImplementedError.
+    array = pa.array([[1, 2], None, [3]], type=pa.large_list(pa.int64()))
+    cast_array = cast_array_to_feature(array, LargeList(Value("int32")))
+    assert cast_array.type == pa.large_list(pa.int32())
+    assert cast_array.to_pylist() == [[1, 2], None, [3]]
+
+
 def test_cast_array_xd_to_features_sequence():
     arr = np.random.randint(0, 10, size=(8, 2, 3)).tolist()
     arr = Array2DExtensionType(shape=(2, 3), dtype="int64").wrap_array(pa.array(arr, pa.list_(pa.list_(pa.int64()))))

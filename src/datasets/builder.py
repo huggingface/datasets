@@ -24,7 +24,7 @@ import posixpath
 import shutil
 import time
 import urllib
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterator
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
@@ -56,8 +56,13 @@ from .filesystems import (
     rename,
 )
 from .fingerprint import Hasher
-from .info import DatasetInfo, PostProcessedInfo
-from .iterable_dataset import ArrowExamplesIterable, ExamplesIterable, IterableDataset
+from .info import DatasetInfo
+from .iterable_dataset import (
+    ArrowExamplesIterable,
+    ExamplesIterable,
+    IterableDataset,
+    _concatenate_iterable_datasets,
+)
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator, SplitInfo
 from .streaming import extend_dataset_builder_for_streaming
@@ -66,7 +71,7 @@ from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils._filelock import FileLock
 from .utils.file_utils import is_remote_url
-from .utils.info_utils import VerificationMode, get_size_checksum_dict, verify_checksums, verify_splits
+from .utils.info_utils import VerificationMode, verify_checksums, verify_splits
 from .utils.py_utils import (
     classproperty,
     convert_file_size_to_int,
@@ -297,6 +302,9 @@ class DatasetBuilder:
     # None means that the ArrowWriter will use its default value
     DEFAULT_WRITER_BATCH_SIZE = None
 
+    # Useful to make sure PyArrow threads in c++ have time to shut down before gargabe collection
+    SLEEP_ON_THREADS_SHUTDOWNS = False
+
     def __init__(
         self,
         cache_dir: Optional[str] = None,
@@ -346,6 +354,17 @@ class DatasetBuilder:
             config_id=config_id,
             **config_kwargs,
         )
+
+        # Ensure files are in the repo
+        if repo_id is not None and self.config.data_files is not None:
+            for split in self.config.data_files:
+                for data_file in self.config.data_files[split]:
+                    if not posixpath.relpath(data_file, start="hf://").startswith(f"datasets/{repo_id}@"):
+                        raise ValueError(
+                            f"Data files don't belong to {repo_id}. "
+                            "Make sure the dataset `data_files` (e.g. in the config README.md) are valid. "
+                            "They should be relative paths to the dataset repository root."
+                        )
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
@@ -406,7 +425,7 @@ class DatasetBuilder:
         self.dl_manager = None
 
         # Set to True by "datasets-cli test" to generate file checksums for (deprecated) dataset_infos.json independently of verification_mode value.
-        self._record_infos = False
+        self._record_checksums = False
 
         # Set in `.download_and_prepare` once the format of the generated dataset is known
         self._file_format = None
@@ -805,7 +824,7 @@ class DatasetBuilder:
                 download_config=download_config,
                 data_dir=self.config.data_dir,
                 base_path=base_path,
-                record_checksums=(self._record_infos or verification_mode == VerificationMode.ALL_CHECKS),
+                record_checksums=self._record_checksums,
             )
 
         is_local = not is_remote_filesystem(self._fs)
@@ -826,7 +845,6 @@ class DatasetBuilder:
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
                 self.info = self._load_info()
-                self.download_post_processing_resources(dl_manager)
                 return
 
             logger.info(f"Generating dataset {self.dataset_name} ({self._output_dir})")
@@ -835,7 +853,7 @@ class DatasetBuilder:
                     self.info.size_in_bytes or 0, directory=Path(self._output_dir).parent
                 ):
                     raise OSError(
-                        f"Not enough disk space. Needed: {size_str(self.info.size_in_bytes or 0)} (download: {size_str(self.info.download_size or 0)}, generated: {size_str(self.info.dataset_size or 0)}, post-processed: {size_str(self.info.post_processing_size or 0)})"
+                        f"Not enough disk space. Needed: {size_str(self.info.size_in_bytes or 0)} (download: {size_str(self.info.download_size or 0)}, generated: {size_str(self.info.dataset_size or 0)}"
                     )
 
             @contextlib.contextmanager
@@ -864,7 +882,6 @@ class DatasetBuilder:
                 logger.info(
                     f"Downloading and preparing dataset {self.dataset_name}/{self.config.name} "
                     f"(download: {size_str(self.info.download_size)}, generated: {size_str(self.info.dataset_size)}, "
-                    f"post-processed: {size_str(self.info.post_processing_size)}, "
                     f"total: {size_str(self.info.size_in_bytes)}) to {self._output_dir}..."
                 )
             else:
@@ -889,14 +906,12 @@ class DatasetBuilder:
                     )
                     # Sync info
                     self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
-                    self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
+                    if dl_manager.record_checksums:
+                        self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
                     if self.info.download_size is not None:
                         self.info.size_in_bytes = self.info.dataset_size + self.info.download_size
                     # Save info
                     self._save_info()
-
-            # Download post processing resources
-            self.download_post_processing_resources(dl_manager)
 
             logger.info(
                 f"Dataset {self.dataset_name} downloaded and prepared to {self._output_dir}. "
@@ -956,22 +971,6 @@ class DatasetBuilder:
         self.info.splits = split_dict
         self.info.download_size = dl_manager.downloaded_size
 
-    def download_post_processing_resources(self, dl_manager):
-        for split in self.info.splits or []:
-            for resource_name, resource_file_name in self._post_processing_resources(split).items():
-                if not not is_remote_filesystem(self._fs):
-                    raise NotImplementedError(f"Post processing is not supported on filesystem {self._fs}")
-                if os.sep in resource_file_name:
-                    raise ValueError(f"Resources shouldn't be in a sub-directory: {resource_file_name}")
-                resource_path = os.path.join(self._output_dir, resource_file_name)
-                if not os.path.exists(resource_path):
-                    downloaded_resource_path = self._download_post_processing_resources(
-                        split, resource_name, dl_manager
-                    )
-                    if downloaded_resource_path:
-                        logger.info(f"Downloaded post-processing resource {resource_name} as {resource_file_name}")
-                        shutil.move(downloaded_resource_path, resource_path)
-
     def _load_info(self) -> DatasetInfo:
         return DatasetInfo.from_directory(self._output_dir, storage_options=self._fs.storage_options)
 
@@ -992,8 +991,6 @@ class DatasetBuilder:
     def as_dataset(
         self,
         split: Optional[Union[str, Split, list[str], list[Split]]] = None,
-        run_post_process=True,
-        verification_mode: Optional[Union[VerificationMode, str]] = None,
         in_memory=False,
     ) -> Union[Dataset, DatasetDict]:
         """Return a Dataset for the specified split.
@@ -1001,9 +998,6 @@ class DatasetBuilder:
         Args:
             split (`datasets.Split`):
                 Which subset of the data to return.
-            run_post_process (`bool`, defaults to `True`):
-                Whether to run post-processing dataset transforms and/or add
-                indexes.
             verification_mode ([`VerificationMode`] or `str`, defaults to `BASIC_CHECKS`):
                 Verification mode determining the checks to run on the
                 downloaded/processed dataset information (checksums/size/splits/...).
@@ -1046,14 +1040,10 @@ class DatasetBuilder:
         if split is None:
             split = {s: s for s in self.info.splits}
 
-        verification_mode = VerificationMode(verification_mode or VerificationMode.BASIC_CHECKS)
-
         # Create a dataset for each of the given splits
         datasets = map_nested(
             partial(
                 self._build_single_dataset,
-                run_post_process=run_post_process,
-                verification_mode=verification_mode,
                 in_memory=in_memory,
             ),
             split,
@@ -1067,8 +1057,6 @@ class DatasetBuilder:
     def _build_single_dataset(
         self,
         split: Union[str, ReadInstruction, Split],
-        run_post_process: bool,
-        verification_mode: VerificationMode,
         in_memory: bool = False,
     ):
         """as_dataset for a single split."""
@@ -1083,54 +1071,6 @@ class DatasetBuilder:
             split=split,
             in_memory=in_memory,
         )
-        if run_post_process:
-            for resource_file_name in self._post_processing_resources(split).values():
-                if os.sep in resource_file_name:
-                    raise ValueError(f"Resources shouldn't be in a sub-directory: {resource_file_name}")
-            resources_paths = {
-                resource_name: os.path.join(self._output_dir, resource_file_name)
-                for resource_name, resource_file_name in self._post_processing_resources(split).items()
-            }
-            post_processed = self._post_process(ds, resources_paths)
-            if post_processed is not None:
-                ds = post_processed
-                recorded_checksums = {}
-                record_checksums = False
-                for resource_name, resource_path in resources_paths.items():
-                    size_checksum = get_size_checksum_dict(resource_path)
-                    recorded_checksums[resource_name] = size_checksum
-                if verification_mode == VerificationMode.ALL_CHECKS and record_checksums:
-                    if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
-                        expected_checksums = None
-                    else:
-                        expected_checksums = self.info.post_processed.resources_checksums.get(split)
-                    verify_checksums(expected_checksums, recorded_checksums, "post processing resources")
-                if self.info.post_processed is None:
-                    self.info.post_processed = PostProcessedInfo()
-                if self.info.post_processed.resources_checksums is None:
-                    self.info.post_processed.resources_checksums = {}
-                self.info.post_processed.resources_checksums[str(split)] = recorded_checksums
-                self.info.post_processing_size = sum(
-                    checksums_dict["num_bytes"]
-                    for split_checksums_dicts in self.info.post_processed.resources_checksums.values()
-                    for checksums_dict in split_checksums_dicts.values()
-                )
-                if self.info.dataset_size is not None and self.info.download_size is not None:
-                    self.info.size_in_bytes = (
-                        self.info.dataset_size + self.info.download_size + self.info.post_processing_size
-                    )
-                self._save_info()
-                ds._info.post_processed = self.info.post_processed
-                ds._info.post_processing_size = self.info.post_processing_size
-                ds._info.size_in_bytes = self.info.size_in_bytes
-                if self.info.post_processed.features is not None:
-                    if self.info.post_processed.features.type != ds.features.type:
-                        raise ValueError(
-                            f"Post-processed features info don't match the dataset:\nGot\n{self.info.post_processed.features}\nbut expected something like\n{ds.features}"
-                        )
-                    else:
-                        ds.info.features = self.info.post_processed.features
-
         return ds
 
     def _as_dataset(self, split: Union[ReadInstruction, Split] = Split.TRAIN, in_memory: bool = False) -> Dataset:
@@ -1190,8 +1130,37 @@ class DatasetBuilder:
         # By default, return all splits
         if split is None:
             splits_generator = splits_generators
-        elif split in splits_generators:
-            splits_generator = splits_generators[split]
+        elif str(split) in splits_generators:
+            splits_generator = splits_generators[str(split)]
+        elif hasattr(split, "get_read_instruction"):
+            split_dict = SplitDict({name: sg.split_info for name, sg in splits_generators.items()})
+            split_instruction = split.get_read_instruction(split_dict)
+            split_infos = split_instruction.get_list_sliced_split_info()
+            if any(split_info.slice_value is not None for split_info in split_infos):
+                raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
+            return _concatenate_iterable_datasets(
+                [
+                    self._as_streaming_dataset_single(splits_generators[split_info.split_info.name])
+                    for split_info in split_infos
+                ],
+                info=self.info,
+                split=split,
+            )
+        elif str(split) == str(Split.ALL):
+            return _concatenate_iterable_datasets(
+                [self._as_streaming_dataset_single(sg) for sg in splits_generators.values()],
+                info=self.info,
+                split=split,
+            )
+        elif "+" in str(split) and "[" not in str(split) and "]" not in str(split):
+            split_names = [split_name.strip() for split_name in str(split).split("+")]
+            if not all(split_name in splits_generators for split_name in split_names):
+                raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
+            return _concatenate_iterable_datasets(
+                [self._as_streaming_dataset_single(splits_generators[split_name]) for split_name in split_names],
+                info=self.info,
+                split=split,
+            )
         else:
             raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
 
@@ -1215,20 +1184,6 @@ class DatasetBuilder:
         return IterableDataset(
             ex_iterable, info=self.info, split=splits_generator.name, token_per_repo_id=token_per_repo_id
         )
-
-    def _post_process(self, dataset: Dataset, resources_paths: Mapping[str, str]) -> Optional[Dataset]:
-        """Run dataset transforms or add indexes"""
-        return None
-
-    def _post_processing_resources(self, split: str) -> dict[str, str]:
-        """Mapping resource_name -> resource_file_name"""
-        return {}
-
-    def _download_post_processing_resources(
-        self, split: str, resource_name: str, dl_manager: DownloadManager
-    ) -> Optional[str]:
-        """Download the resource using the download manager and return the downloaded path."""
-        return None
 
     @abc.abstractmethod
     def _split_generators(self, dl_manager: Union[DownloadManager, StreamingDownloadManager]):
@@ -1887,7 +1842,10 @@ class ArrowBasedBuilder(DatasetBuilder):
                             embed_local_files=embed_local_files,
                         )
                     try:
-                        writer.write_table(table)
+                        if len(table) == 1:
+                            writer.write_row(table)
+                        else:
+                            writer.write_table(table)
                     except CastError as cast_error:
                         raise DatasetGenerationCastError.from_cast_error(
                             cast_error=cast_error,
@@ -1940,6 +1898,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             self._generate_tables,
             kwargs=split_generator.gen_kwargs,
             generate_more_kwargs_fn=getattr(self, "_generate_more_gen_kwargs", None),
+            sleep_on_threads_shutdown=self.SLEEP_ON_THREADS_SHUTDOWNS,
         )
 
 

@@ -109,7 +109,7 @@ class DatasetInfo:
         features ([`Features`], *optional*):
             The features used to specify the dataset's column types.
         post_processed (`PostProcessedInfo`, *optional*):
-            Information regarding the resources of a possible post-processing of a dataset. For example, it can contain the information of an index.
+            Deprecated. Information regarding the resources of a possible post-processing of a dataset. For example, it can contain the information of an index.
         supervised_keys (`SupervisedKeysData`, *optional*):
             Specifies the input feature and the label for supervised learning if applicable for the dataset (legacy from TFDS).
         builder_name (`str`, *optional*):
@@ -125,7 +125,7 @@ class DatasetInfo:
         download_size (`int`, *optional*):
             The size of the files to download to generate the dataset, in bytes.
         post_processing_size (`int`, *optional*):
-            Size of the dataset in bytes after post-processing, if any.
+            Deprecated. Size of the dataset in bytes after post-processing, if any.
         dataset_size (`int`, *optional*):
             The combined size in bytes of the Arrow tables for all splits.
         size_in_bytes (`int`, *optional*):
@@ -140,7 +140,7 @@ class DatasetInfo:
     homepage: str = dataclasses.field(default_factory=str)
     license: str = dataclasses.field(default_factory=str)
     features: Optional[Features] = None
-    post_processed: Optional[PostProcessedInfo] = None
+    post_processed: Optional[PostProcessedInfo] = None  # kept for bawkard compat
     supervised_keys: Optional[SupervisedKeysData] = None
 
     # Set later by the builder
@@ -319,6 +319,16 @@ class DatasetInfo:
             yaml_data["splits"] = SplitDict._from_yaml_list(yaml_data["splits"])
         field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in yaml_data.items() if k in field_names})
+
+    def __repr__(self):
+        return (
+            self.__class__.__qualname__
+            + "("
+            + ", ".join(
+                [f"{f.name}={repr(getattr(self, f.name))}" for f in dataclasses.fields(self) if getattr(self, f.name)]
+            )
+            + ")"
+        )
 
 
 class DatasetInfosDict(dict[str, DatasetInfo]):

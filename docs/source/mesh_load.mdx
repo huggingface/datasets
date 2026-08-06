@@ -1,0 +1,123 @@
+# Load mesh data
+
+Mesh datasets have [`Mesh`] type columns, which contain `trimesh.Trimesh` or `trimesh.Scene` objects.
+
+> [!TIP]
+> To work with mesh datasets, you need to have the `mesh` dependency installed. Check out the [installation](./installation#mesh) guide to learn how to install it.
+
+When you load a mesh dataset and call the mesh column, the meshes are decoded with `trimesh`:
+
+```py
+>>> from datasets import load_dataset, Mesh
+
+>>> dataset = load_dataset("VINAY-UMRETHE/My-Mesh-Dataset", split="train")
+>>> dataset[0]["mesh"]
+<trimesh.Scene(len(geometry)=33)>
+```
+
+Depending on the file content, `trimesh` may return a `trimesh.Trimesh` object or a `trimesh.Scene` object.
+
+> [!WARNING]
+> Index into a mesh dataset using the row index first and then the `mesh` column - `dataset[0]["mesh"]` - to avoid decoding all the mesh files in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
+
+For a guide on how to load any type of dataset, take a look at the <a class="underline decoration-sky-400 decoration-2 font-semibold" href="./loading">general loading guide</a>.
+
+## Local files
+
+You can load a dataset from mesh paths. Use the [`~Dataset.cast_column`] function to accept a column of mesh file paths, and decode it into a `trimesh` object with the [`Mesh`] feature:
+
+```py
+>>> from datasets import Dataset, Mesh
+
+>>> dataset = Dataset.from_dict({"mesh": ["path/to/model_1.glb", "path/to/model_2.ply", "path/to/model_3.stl"]}).cast_column("mesh", Mesh())
+>>> dataset[0]["mesh"]
+<trimesh.Scene(len(geometry)=33)>
+```
+
+If you only want to load the underlying path or bytes of the mesh dataset without decoding the mesh object, set `decode=False` in the [`Mesh`] feature:
+
+```py
+>>> dataset = load_dataset("VINAY-UMRETHE/My-Mesh-Dataset", split="train").cast_column("mesh", Mesh(decode=False))
+>>> dataset[0]["mesh"]
+{'bytes': b'...',
+ 'path': '00001.glb'}
+```
+
+The [`Mesh`] feature supports `.glb`, `.ply`, and `.stl` files. Depending on the file content, `trimesh` may return a `trimesh.Trimesh` object or a `trimesh.Scene` object.
+
+## MeshFolder
+
+You can also load a dataset with a `MeshFolder` dataset builder which does not require writing a custom dataloader. This makes `MeshFolder` useful for quickly creating and loading mesh datasets with several thousand 3D files. Your mesh dataset structure should look like this:
+
+```text
+folder/train/diya/brass_diya.glb
+folder/train/diya/clay_diya.ply
+folder/train/diya/festival_diya.stl
+
+folder/train/kalash/copper_kalash.glb
+folder/train/kalash/pooja_kalash.ply
+folder/train/kalash/temple_kalash.stl
+```
+
+If the dataset follows the `MeshFolder` structure, then you can load it directly with [`load_dataset`]:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("username/dataset_name")
+>>> # OR locally:
+>>> dataset = load_dataset("/path/to/folder")
+```
+
+For local datasets, this is equivalent to passing `meshfolder` manually in [`load_dataset`] and the directory in `data_dir`:
+
+```py
+>>> dataset = load_dataset("meshfolder", data_dir="/path/to/folder")
+```
+
+Then you can access the meshes as `trimesh` objects:
+
+```py
+>>> dataset["train"][0]
+{"mesh": <trimesh.Scene(len(geometry)=33)>, "label": 0}
+```
+
+To ignore the information in the metadata file, set `drop_metadata=True` in [`load_dataset`]:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("username/dataset_with_metadata", drop_metadata=True)
+```
+
+If you don't have a metadata file, `MeshFolder` automatically infers the label name from the directory name.
+If you want to drop automatically created labels, set `drop_labels=True`.
+In this case, your dataset will only contain a mesh column:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("username/dataset_without_metadata", drop_labels=True)
+```
+
+Finally the `filters` argument lets you load only a subset of the dataset, based on a condition on the label or the metadata. This is especially useful if the metadata is in Parquet format, since this format enables fast filtering. It is also recommended to use this argument with `streaming=True`, because by default the dataset is fully downloaded before filtering.
+
+```python
+>>> filters = [("label", "=", 0)]
+>>> dataset = load_dataset("username/dataset_name", streaming=True, filters=filters)
+```
+
+> [!TIP]
+> For more information about creating your own `MeshFolder` dataset, take a look at the [Create a mesh dataset](./mesh_dataset) guide.
+
+## Mesh decoding
+
+By default, meshes are decoded sequentially as `trimesh.Trimesh` or `trimesh.Scene` objects when you iterate on a dataset.
+
+If you are not interested in the meshes decoded as `trimesh` objects and would like to access the path or bytes instead, you can disable decoding:
+
+```python
+>>> dataset = dataset.decode(False)
+```
+
+Note: [`IterableDataset.decode`] is only available for streaming datasets at the moment.

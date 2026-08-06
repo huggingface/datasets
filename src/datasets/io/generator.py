@@ -56,9 +56,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
                 base_path=base_path,
                 num_proc=self.num_proc,
             )
-            dataset = self.builder.as_dataset(
-                split=self.builder.config.split, verification_mode=verification_mode, in_memory=self.keep_in_memory
-            )
+            dataset = self.builder.as_dataset(split=self.builder.config.split, in_memory=self.keep_in_memory)
             if self.fingerprint:
                 dataset._fingerprint = self.fingerprint
         return dataset

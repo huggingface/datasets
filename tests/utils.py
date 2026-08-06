@@ -127,6 +127,20 @@ def require_sqlalchemy(test_case):
     return test_case
 
 
+def require_pyiceberg(test_case):
+    """
+    Decorator marking a test that requires PyIceberg.
+
+    These tests are skipped when PyIceberg isn't installed.
+
+    """
+    try:
+        import pyiceberg  # noqa F401
+    except ImportError:
+        test_case = unittest.skip("test requires pyiceberg")(test_case)
+    return test_case
+
+
 def require_torch(test_case):
     """
     Decorator marking a test that requires PyTorch.
@@ -273,18 +287,6 @@ def require_trimesh(test_case):
     return test_case
 
 
-def require_zarr(test_case):
-    """
-    Decorator marking a test that requires zarr.
-
-    These tests are skipped when zarr isn't installed.
-
-    """
-    if not getattr(config, "ZARR_AVAILABLE", False):
-        test_case = unittest.skip("test requires zarr")(test_case)
-    return test_case
-
-
 def require_transformers(test_case):
     """
     Decorator marking a test that requires transformers.
@@ -371,6 +373,21 @@ def require_torchdata_stateful_dataloader(test_case):
         import torchdata.stateful_dataloader  # noqa F401
     except (ImportError, AssertionError):
         return unittest.skip("test requires torchdata.stateful_dataloader")(test_case)
+    else:
+        return test_case
+
+
+def require_teich(test_case):
+    """
+    Decorator marking a test that requires teich.
+
+    These tests are skipped when teich isn't installed.
+
+    """
+    try:
+        import teich  # noqa F401
+    except ImportError:
+        return unittest.skip("test requires teich")(test_case)
     else:
         return test_case
 

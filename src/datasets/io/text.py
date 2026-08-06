@@ -54,7 +54,5 @@ class TextDatasetReader(AbstractDatasetReader):
                 base_path=base_path,
                 num_proc=self.num_proc,
             )
-            dataset = self.builder.as_dataset(
-                split=self.split, verification_mode=verification_mode, in_memory=self.keep_in_memory
-            )
+            dataset = self.builder.as_dataset(split=self.split, in_memory=self.keep_in_memory)
         return dataset
