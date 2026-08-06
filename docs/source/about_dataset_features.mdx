@@ -232,6 +232,8 @@ For Hub paths, use `hf://datasets/...` and cast as usual:
 
 For OME-Zarr stores, multiscale helpers like `num_levels`, `get_level`, and `thumbnail` are available on the resolved proxy.
 
+Reads are optimized with internal, read-only-safe caches: open stores are reused per `(path, token, storage_options)`, and decoded chunks are memoized in a bytes-bounded LRU cache (256 MiB by default, configurable via the `DATASETS_ZARR_CHUNK_CACHE_SIZE` environment variable in bytes; `0` disables it) so overlapping patches decode each shared chunk exactly once.
+
 <Tip>
 
 The [`Zarr`] feature provides lazy, path-based access to individual Zarr stores — it does not parse a store's contents into rows and columns by itself. To load the contents of a store as a tabular dataset (for example, one row per chunk or slice), see the experimental Zarr dataset builder proposal in [`huggingface/datasets#7983`](https://github.com/huggingface/datasets/issues/7983).

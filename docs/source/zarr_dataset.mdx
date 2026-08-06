@@ -103,7 +103,7 @@ directly from it, no download or authentication required:
 ...     data_dir="hf://buckets/tiagolubiana/ome-vip-dataset-bucket",
 ...     streaming=True,
 ... )
->>> row = next(iter(stream_ds))
+>>> row = next(iter(stream_ds["train"]))
 >>> proxy = row["zarr"]
 >>> proxy.shape, proxy.num_levels
 ((1937, 2048, 2048), 6)
@@ -126,6 +126,43 @@ For OME-Zarr stores, [`Zarr`] resolves to an object with multiscale helpers such
 >>> arr_l0 = proxy.get_level(0)
 >>> patch = proxy.random_patch((1, 128, 128), level=0)
 ```
+
+## Training with random patches
+
+[`datasets.utils.zarr_utils.ZarrCollator`] turns batches of lazy Zarr proxies
+into stacked `pixel_values` (and optional `labels`) tensors, fetching only the
+chunks each random patch needs:
+
+```py
+>>> from datasets import load_dataset
+>>> from datasets.utils.zarr_utils import ZarrCollator
+>>>
+>>> collator = ZarrCollator(patch_size=(256, 256), level=0, label_column="label")
+>>> for batch in stream_ds.batch(batch_size=8):
+...     # batch = {"pixel_values": torch.Tensor [8, C, 256, 256],
+...     #          "labels": torch.Tensor [8]}
+...     loss = model(batch["pixel_values"], batch["labels"])
+```
+
+Patches within a batch are extracted concurrently (up to 8 workers). The same
+collator also works as a `collate_fn` for a PyTorch `DataLoader` on
+map-style datasets.
+
+## Performance
+
+Zarr reads are optimized transparently with two internal, read-only-safe
+caches:
+
+- Open stores are reused per `(path, token, storage_options)` instead of being
+  re-opened (and re-reading metadata) on every decode.
+- Decoded chunks are memoized in a bytes-bounded LRU cache (256 MiB by
+  default, configurable via the `DATASETS_ZARR_CHUNK_CACHE_SIZE` environment
+  variable in bytes; `0` disables it). Overlapping patches or ROI reads decode
+  each shared chunk exactly once — the main win for remote stores, where
+  decode, not bandwidth, usually dominates.
+
+Because stores are always opened read-only, cached chunks and shared handles
+can never go stale.
 
 ## Notes
 

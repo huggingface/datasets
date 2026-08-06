@@ -93,6 +93,15 @@ To split the stream across multiple workers (for example for distributed trainin
 >>> worker_ds = worker_ds.cast_column("scan", Zarr())
 ```
 
+> [!TIP]
+> Zarr reads are served by an internal store registry (one open handle per
+> `(path, token, storage_options)`) and a bytes-bounded LRU cache of decoded
+> chunks (256 MiB by default, see `DATASETS_ZARR_CHUNK_CACHE_SIZE`), so
+> overlapping patches across a batch are fetched and decoded only once. Use
+> [`datasets.utils.zarr_utils.ZarrCollator`] with
+> `stream_ds.batch(batch_size=...)` to train on random patches directly from
+> the stream.
+
 ## Column indexing
 
 Sometimes it is convenient to iterate over values of a specific column. Fortunately, an [`IterableDataset`] supports column indexing:
