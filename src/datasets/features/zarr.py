@@ -796,6 +796,14 @@ class OmeZarrProxy:
         Convenience method for visualization and quick inspection. Loads
         the entire array at the specified level, which is typically small.
 
+        Note that a resolution level is an N-D array: per the NGFF
+        specification, downsampling is per axis and "defaults to 1.0 if
+        there is no downsampling along the axis", so non-spatial axes
+        (e.g. ``z`` stacks) may stay at full size at every level. The
+        lowest level is therefore not guaranteed to be small. Prefer
+        :meth:`default_plane` or a single ``get_level(level)[i]`` /
+        :meth:`roi` read for one plane, especially on remote stores.
+
         Parameters
         ----------
         level : int, optional
@@ -809,6 +817,56 @@ class OmeZarrProxy:
         """
         arr = self.get_level(level)
         return arr[:]
+
+    def default_plane(self, level=-1):
+        """Get the default 2D viewing plane at a resolution level.
+
+        The NGFF ``omero.rdefs`` metadata (``defaultT`` / ``defaultZ``)
+        declares which plane a reader should show for an N-D image. This
+        maps those indices onto the level's axes (rescaling ``defaultZ``
+        to the level's z-size if the z axis is downsampled) and returns a
+        single 2D ``(Y, X)`` plane. Stores without ``omero`` metadata fall
+        back to the first plane along each leading axis.
+
+        Unlike :meth:`thumbnail` — which loads the entire level and can be
+        expensive when non-spatial axes are never downsampled — this reads
+        at most a few chunks, making it suitable for remote stores.
+
+        Parameters
+        ----------
+        level : int, optional
+            Resolution level. Defaults to -1 (lowest resolution).
+
+        Returns
+        -------
+        numpy.ndarray
+            A single 2D plane of shape ``(Y, X)`` at the requested level.
+        """
+        arr = self.get_level(level)
+        names = self.axis_names
+        rdefs = {}
+        omero = _get_ome_attr(self._group.attrs, "omero", {})
+        if isinstance(omero, dict):
+            rdefs = omero.get("rdefs", {}) or {}
+        level0_shape = self.get_level(0).shape
+        index = []
+        for i, name in enumerate(names):
+            if name in ("y", "x"):
+                index.append(slice(None))
+                continue
+            if name == "t":
+                idx = int(rdefs.get("defaultT", 0))
+            elif name == "z":
+                idx = int(rdefs.get("defaultZ", 0))
+                if i < len(level0_shape) and level0_shape[i] != arr.shape[i]:
+                    idx = round(idx * arr.shape[i] / level0_shape[i])
+            else:
+                idx = 0
+            size = arr.shape[i] if i < arr.ndim else 0
+            if size > 0:
+                idx = min(max(idx, 0), size - 1)
+            index.append(idx)
+        return arr[tuple(index)]
 
     def asarray(self, level: int = 0):
         """Load a resolution level into memory and return it as a numpy array.
@@ -833,18 +891,18 @@ class OmeZarrProxy:
     def _repr_html_(self):
         """HTML representation with an embedded thumbnail image.
 
-        Renders the lowest-resolution level as a base64-encoded PNG inside
-        an ``<img>`` tag, so large volumes can be previewed without loading
-        many chunks. Returns ``None`` if no imaging backend (Pillow/
-        matplotlib) is available or if rendering fails — Jupyter then falls
-        back to ``__repr__``.
+        Renders the default 2D plane of the lowest-resolution level as a
+        base64-encoded PNG inside an ``<img>`` tag, so large volumes can be
+        previewed without loading many chunks. Returns ``None`` if no
+        imaging backend (Pillow/matplotlib) is available or if rendering
+        fails — Jupyter then falls back to ``__repr__``.
         """
         if self.num_levels == 0:
             return None
         try:
             import base64
 
-            img = _render_array_as_png(self.thumbnail(level=-1))
+            img = _render_array_as_png(self.default_plane(level=-1))
             if img is None:
                 return None
             b64 = base64.b64encode(img).decode("ascii")

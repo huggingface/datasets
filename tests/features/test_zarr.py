@@ -759,6 +759,75 @@ class TestOmeZarrV05:
         thumb = proxy.thumbnail(level=-1)
         assert thumb.shape == (10, 32, 32)
 
+    def test_default_plane_no_omero_falls_back_to_first(self, tmp_path):
+        store_path = _create_ome_zarr_v05(tmp_path)
+        zarr_feat = Zarr()
+        proxy = zarr_feat.decode_example(zarr_feat.encode_example(store_path))
+        plane = proxy.default_plane(level=-1)
+        assert plane.shape == (32, 32)
+        np.testing.assert_array_equal(plane, proxy.get_level(-1)[0])
+
+    def test_default_plane_uses_omero_rdefs_default_z(self, tmp_path):
+        import zarr
+
+        store_path = _create_ome_zarr_v05(tmp_path)
+        root = zarr.open_group(store_path, mode="a")
+        ome = dict(root.attrs["ome"])
+        ome["omero"] = dict(ome.get("omero", {}))
+        ome["omero"]["rdefs"] = {"defaultT": 0, "defaultZ": 7, "model": "greyscale"}
+        root.attrs["ome"] = ome
+        zarr_feat = Zarr()
+        proxy = zarr_feat.decode_example(zarr_feat.encode_example(store_path))
+        plane = proxy.default_plane(level=-1)
+        assert plane.shape == (32, 32)
+        np.testing.assert_array_equal(plane, proxy.get_level(-1)[7])
+
+    def test_default_plane_rescales_default_z_across_levels(self, tmp_path):
+        import zarr
+
+        store_path = str(tmp_path / "ome_down.zarr")
+        root = zarr.open_group(store_path, mode="w")
+        root.attrs["multiscales"] = [
+            {
+                "version": "0.4",
+                "axes": [
+                    {"name": "z", "type": "space", "unit": "micrometer"},
+                    {"name": "y", "type": "space", "unit": "micrometer"},
+                    {"name": "x", "type": "space", "unit": "micrometer"},
+                ],
+                "datasets": [
+                    {
+                        "path": "0",
+                        "coordinateTransformations": [{"type": "scale", "scale": [1.0, 1.0, 1.0]}],
+                    },
+                    {
+                        "path": "1",
+                        "coordinateTransformations": [{"type": "scale", "scale": [2.0, 2.0, 2.0]}],
+                    },
+                ],
+            }
+        ]
+        root.attrs["omero"] = {
+            "channels": [{"label": "DAPI"}],
+            "rdefs": {"defaultT": 0, "defaultZ": 14, "model": "greyscale"},
+        }
+        a0 = root.create_array("0", shape=(16, 16, 16), dtype="uint16", chunks=(1, 16, 16))
+        a0[:] = np.arange(4096, dtype="uint16").reshape(16, 16, 16)
+        a1 = root.create_array("1", shape=(8, 8, 8), dtype="uint16", chunks=(1, 8, 8))
+        a1[:] = np.arange(512, dtype="uint16").reshape(8, 8, 8)
+        zarr_feat = Zarr()
+        proxy = zarr_feat.decode_example(zarr_feat.encode_example(store_path))
+        np.testing.assert_array_equal(proxy.default_plane(level=0), proxy.get_level(0)[14])
+        np.testing.assert_array_equal(proxy.default_plane(level=1), proxy.get_level(1)[7])
+
+    def test_default_plane_2d_store_returns_level(self, tmp_path):
+        store_path = _create_ome_zarr(tmp_path)
+        zarr_feat = Zarr()
+        proxy = zarr_feat.decode_example(zarr_feat.encode_example(store_path))
+        plane = proxy.default_plane(level=-1)
+        assert plane.shape == (10, 10)
+        np.testing.assert_array_equal(plane, proxy.get_level(-1)[:])
+
 
 @require_zarr
 class TestGetOmeAttr:

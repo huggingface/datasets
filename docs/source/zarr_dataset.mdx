@@ -115,7 +115,15 @@ For OME-Zarr stores, [`Zarr`] resolves to an object with multiscale helpers such
 
 - `num_levels`
 - `get_level(level)`
-- `thumbnail(level=-1)`
+- `thumbnail(level=-1)` — the full level array. Levels are N-D arrays and,
+  per the NGFF spec, downsampling is per axis (`scale` defaults to 1.0 on
+  axes that are never downsampled), so the lowest level is not guaranteed
+  to be small. Prefer `default_plane(level=-1)` or `get_level(level)[i]`
+  for a single plane, especially on remote stores.
+- `default_plane(level=-1)` — the 2D plane declared as the default view in
+  the OME-Zarr `omero.rdefs` metadata (`defaultZ`/`defaultT`, rescaled to
+  the level's z-size), falling back to the first plane when absent. Reads
+  a single chunk and is safe to call on remote stores.
 - `iter_patches(...)`
 - `random_patch(...)`
 - `roi(start, stop, level=0)` — read a region of interest in physical
