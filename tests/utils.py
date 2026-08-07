@@ -5,7 +5,7 @@ import re
 import sys
 import tempfile
 import unittest
-from contextlib import ExitStack, contextmanager
+from contextlib import contextmanager
 from copy import deepcopy
 from distutils.util import strtobool
 from enum import Enum
@@ -499,21 +499,14 @@ def offline(mode: OfflineSimulationMode):
         # `None`. The first attempt would hit the mock, then the retry would rebuild a real client
         # through the factory and reach the network. Patch the factory too so any client rebuilt
         # mid-retry is the mock as well.
-        patch_targets = [
-            {"target": "huggingface_hub.utils._http._GLOBAL_CLIENT", "new": client_mock},
-            {"target": "huggingface_hub.utils._http._GLOBAL_CLIENT_FACTORY", "new": lambda: client_mock},
-        ]
+        with (
+            patch("huggingface_hub.utils._http._GLOBAL_CLIENT", client_mock),
+            patch("huggingface_hub.utils._http._GLOBAL_CLIENT_FACTORY", lambda: client_mock),
+        ):
+            yield
     else:
-        patch_targets = [
-            {
-                "target": "huggingface_hub.utils._http._get_session_from_cache",
-                "return_value": client_mock,
-            }
-        ]
-    with ExitStack() as stack:
-        for patch_target in patch_targets:
-            stack.enter_context(patch(**patch_target))
-        yield
+        with patch("huggingface_hub.utils._http._get_session_from_cache", return_value=client_mock):
+            yield
 
 
 @contextmanager
