@@ -5,7 +5,7 @@ import re
 import sys
 import tempfile
 import unittest
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from copy import deepcopy
 from distutils.util import strtobool
 from enum import Enum
@@ -493,15 +493,26 @@ def offline(mode: OfflineSimulationMode):
         setattr(client_mock, method, Mock(side_effect=error_response))
 
     # Patching is slightly different depending on hfh internals
-    patch_target = (
-        {"target": "huggingface_hub.utils._http._GLOBAL_CLIENT", "new": client_mock}
-        if IS_HF_HUB_1_x
-        else {
-            "target": "huggingface_hub.utils._http._get_session_from_cache",
-            "return_value": client_mock,
-        }
-    )
-    with patch(**patch_target):
+    if IS_HF_HUB_1_x:
+        # Patching `_GLOBAL_CLIENT` alone is not enough: `_http_backoff` re-fetches the client on
+        # every attempt, and `close_session()` (called on `httpx.ConnectError`) resets the global to
+        # `None`. The first attempt would hit the mock, then the retry would rebuild a real client
+        # through the factory and reach the network. Patch the factory too so any client rebuilt
+        # mid-retry is the mock as well.
+        patch_targets = [
+            {"target": "huggingface_hub.utils._http._GLOBAL_CLIENT", "new": client_mock},
+            {"target": "huggingface_hub.utils._http._GLOBAL_CLIENT_FACTORY", "new": lambda: client_mock},
+        ]
+    else:
+        patch_targets = [
+            {
+                "target": "huggingface_hub.utils._http._get_session_from_cache",
+                "return_value": client_mock,
+            }
+        ]
+    with ExitStack() as stack:
+        for patch_target in patch_targets:
+            stack.enter_context(patch(**patch_target))
         yield
 
 
