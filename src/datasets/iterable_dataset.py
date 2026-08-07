@@ -199,31 +199,31 @@ def shift_ex_examples_rngs(ex_iterable: "_BaseExamplesIterable", value: int) -> 
     return set_seed_recursively(ex_iterable)
 
 
+_PRIMITIVE_TYPES = (int, float, bool, str, bytes, type(None))
+
 def _fast_copy(state):
     """Fast acyclic copy of state_dict data structures, bypassing slow pickle/deepcopy introspection."""
     # Use type() instead of isinstance() for 2x faster type checks
     state_type = type(state)
-    if state_type in (int, float, bool, str, bytes, type(None)):
+    if state_type in _PRIMITIVE_TYPES:
         return state
     elif state_type is list:
         return [
-            v if type(v) in (int, float, bool, str, bytes, type(None)) else _fast_copy(v)
+            v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v)
             for v in state
         ]
     elif state_type is dict:
         return {
-            k: (v if type(v) in (int, float, bool, str, bytes, type(None)) else _fast_copy(v))
+            k: (v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v))
             for k, v in state.items()
         }
     elif state_type is tuple:
         return tuple(
-            v if type(v) in (int, float, bool, str, bytes, type(None)) else _fast_copy(v)
+            v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v)
             for v in state
         )
-    elif hasattr(state, "copy") and callable(state.copy):
-        return state.copy()
     else:
-        raise TypeError(f"Unsupported type for _fast_copy: {type(state)}")
+        return deepcopy(state)
 
 
 class _BaseExamplesIterable:
@@ -300,7 +300,7 @@ class _BaseExamplesIterable:
         return _inner_load_state_dict(self._state_dict, state_dict)
 
     def state_dict(self) -> dict:
-        if self._state_dict:
+        if self._state_dict is not None:
             return _fast_copy(self._state_dict)
         raise RuntimeError("State dict is not initialized, please call ex_iterable._init_state_dict() first.")
 
@@ -2635,8 +2635,6 @@ class IterableDataset(DatasetInfoMixin):
         >>> dataloader.load_state_dict(state_dict)  # uses ds.load_state_dict() under the hood
         ```
         """
-        if not self._state_dict:
-            return {}
         return _fast_copy(self._state_dict)
 
     def load_state_dict(self, state_dict: dict) -> None:
