@@ -2,10 +2,11 @@ import logging
 import os
 import posixpath
 from dataclasses import dataclass
-from typing import Iterator, Optional
+from typing import Optional
 
 import datasets
 from datasets.builder import BuilderConfig
+
 
 logger = logging.getLogger(__name__)
 

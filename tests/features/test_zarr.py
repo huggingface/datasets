@@ -1,6 +1,4 @@
 import pickle
-import sys
-import types
 from pathlib import Path
 from unittest.mock import patch
 
@@ -10,18 +8,14 @@ import pytest
 
 from datasets import Dataset, Features
 from datasets.features.zarr import (
-    OmeZarrProxy,
     Zarr,
     ZarrArrayProxy,
     ZarrGroupProxy,
     ZarrProxy,
     _extract_repo_id_from_hf_path,
-    _get_ome_attr,
-    _is_ome_zarr,
     _open_zarr_store,
-    _render_array_as_png,
 )
-from datasets.features.zarr_cache import CHUNK_CACHE, STORE_REGISTRY, cached_array_getitem
+from datasets.features.zarr_cache import CHUNK_CACHE, STORE_REGISTRY
 
 from ..utils import require_zarr
 
@@ -57,65 +51,6 @@ def _create_zarr_group(tmp_path):
     return store_path
 
 
-def _create_ome_zarr(tmp_path):
-    import zarr
-
-    store_path = str(tmp_path / "ome.zarr")
-    root = zarr.open_group(store_path, mode="w")
-    root.attrs["multiscales"] = [
-        {
-            "version": "0.4",
-            "axes": [
-                {"name": "y", "type": "space", "unit": "micrometer"},
-                {"name": "x", "type": "space", "unit": "micrometer"},
-            ],
-            "datasets": [
-                {"path": "0", "coordinateTransformations": [{"type": "scale", "scale": [1.0, 1.0]}]},
-                {"path": "1", "coordinateTransformations": [{"type": "scale", "scale": [2.0, 2.0]}]},
-            ],
-        }
-    ]
-    root.attrs["omero"] = {
-        "channels": [{"label": "DAPI"}, {"label": "GFP"}],
-    }
-    arr0 = root.create_array("0", shape=(20, 20), dtype="float32", chunks=(10, 10))
-    arr0[:] = np.arange(400, dtype="float32").reshape(20, 20)
-    arr1 = root.create_array("1", shape=(10, 10), dtype="float32", chunks=(5, 5))
-    arr1[:] = np.arange(100, dtype="float32").reshape(10, 10)
-    return store_path
-
-
-def _create_ome_zarr_v05(tmp_path):
-    import zarr
-
-    store_path = str(tmp_path / "ome_v05.zarr")
-    root = zarr.open_group(store_path, mode="w")
-    root.attrs["ome"] = {
-        "version": "0.5",
-        "multiscales": [
-            {
-                "axes": [
-                    {"name": "z", "type": "space", "unit": "micrometer"},
-                    {"name": "y", "type": "space", "unit": "micrometer"},
-                    {"name": "x", "type": "space", "unit": "micrometer"},
-                ],
-                "datasets": [
-                    {"path": "0", "coordinateTransformations": [{"type": "scale", "scale": [5.0, 1.0, 1.0]}]},
-                    {"path": "1", "coordinateTransformations": [{"type": "scale", "scale": [5.0, 2.0, 2.0]}]},
-                ],
-            }
-        ],
-        "omero": {
-            "channels": [{"label": "tdTomato", "color": "FFFFFF"}],
-            "id": 1,
-            "rdefs": {"defaultT": 0, "defaultZ": 0, "model": "greyscale"},
-        },
-    }
-    arr0 = root.create_array("0", shape=(10, 64, 64), dtype="uint16", chunks=(1, 64, 64))
-    arr0[:] = np.arange(40960, dtype="uint16").reshape(10, 64, 64)
-    arr1 = root.create_array("1", shape=(10, 32, 32), dtype="uint16", chunks=(1, 32, 32))
-    arr1[:] = np.arange(10240, dtype="uint16").reshape(10, 32, 32)
-    return store_path
 
 
 @require_zarr
@@ -205,26 +140,6 @@ class TestZarrDecodeExample:
         assert sorted(result.keys()) == ["data", "mask"]
         assert result.attrs == {"description": "test group"}
 
-    def test_decode_ome_zarr(self, tmp_path):
-        store_path = _create_ome_zarr(tmp_path)
-        zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        result = zarr_feat.decode_example(encoded)
-        assert isinstance(result, ZarrProxy)
-        assert isinstance(result._resolve(), OmeZarrProxy)
-        assert result.num_levels == 2
-        assert result.shape == (20, 20)
-        assert result.dtype == np.dtype("float32")
-        assert result.ndim == 2
-        assert result.chunks == (10, 10)
-        assert result.channel_names == ["DAPI", "GFP"]
-        level0 = result.get_level(0)
-        assert isinstance(level0, ZarrArrayProxy)
-        assert level0.shape == (20, 20)
-        level_last = result.get_level(-1)
-        assert level_last.shape == (10, 10)
-        levels = result.levels
-        assert len(levels) == 2
 
     def test_decode_no_decode(self, tmp_path):
         store_path = _create_zarr_array(tmp_path)
@@ -278,13 +193,6 @@ class TestAsArray:
         assert isinstance(arr, np.ndarray)
         np.testing.assert_array_equal(arr, np.arange(200, dtype="float32").reshape(10, 20))
 
-    def test_ome_proxy_asarray(self, tmp_path):
-        store_path = _create_ome_zarr(tmp_path)
-        zarr_feat = Zarr()
-        proxy = zarr_feat.decode_example(zarr_feat.encode_example(store_path))
-        assert proxy.asarray().shape == (20, 20)
-        assert proxy.asarray(level=-1).shape == (10, 10)
-
     def test_group_proxy_asarray_raises(self, tmp_path):
         store_path = _create_zarr_group(tmp_path)
         zarr_feat = Zarr()
@@ -293,112 +201,9 @@ class TestAsArray:
             proxy.asarray()
 
 
-@require_zarr
-class TestAxisNames:
-    def test_v04_axis_names_and_types(self, tmp_path):
-        store_path = _create_ome_zarr(tmp_path)
-        zarr_feat = Zarr()
-        proxy = zarr_feat.decode_example(zarr_feat.encode_example(store_path))
-        assert proxy.axis_names == ["y", "x"]
-        assert proxy.axis_types == ["space", "space"]
-
-    def test_v05_axis_names_and_types(self, tmp_path):
-        store_path = _create_ome_zarr_v05(tmp_path)
-        zarr_feat = Zarr()
-        proxy = zarr_feat.decode_example(zarr_feat.encode_example(store_path))
-        assert proxy.axis_names == ["z", "y", "x"]
-        assert proxy.axis_types == ["space", "space", "space"]
-
-    def test_empty_axes(self, tmp_path):
-        import zarr
-
-        store_path = str(tmp_path / "noaxes.zarr")
-        root = zarr.open_group(store_path, mode="w")
-        root.attrs["multiscales"] = [{"datasets": [{"path": "0"}]}]
-        root.create_array("0", shape=(4, 4), dtype="uint8")
-        grp = zarr.open_group(store_path, mode="r")
-        proxy = OmeZarrProxy(grp, store_path)
-        assert proxy.axis_names == []
-        assert proxy.axis_types == []
-
-
-def _install_fake_pil(monkeypatch):
-    """Install a minimal PIL stub so ``_render_array_as_png`` uses it."""
-    fake = types.ModuleType("PIL")
-
-    class _FakeImage:
-        def __init__(self, arr):
-            self._arr = arr
-
-        def thumbnail(self, size, resample=None):
-            pass
-
-        def save(self, buf, format=None):
-            buf.write(b"FAKEPNGDATA")
-
-    fake.Image = type(
-        "Image",
-        (),
-        {"LANCZOS": 1, "fromarray": staticmethod(lambda arr, mode=None: _FakeImage(arr))},
-    )
-    monkeypatch.setitem(sys.modules, "PIL", fake)
-
-
-@require_zarr
-class TestReprHtml:
-    def test_ome_proxy_repr_html_embeds_thumbnail(self, tmp_path, monkeypatch):
-        _install_fake_pil(monkeypatch)
-        store_path = _create_ome_zarr(tmp_path)
-        zarr_feat = Zarr()
-        proxy = zarr_feat.decode_example(zarr_feat.encode_example(store_path))
-        html = proxy._repr_html_()
-        assert html is not None
-        assert "data:image/png;base64," in html
-        assert "RkFLRVBOR0RBVEE=" in html  # base64 of the fake PNG bytes
-        assert "shape=(20, 20)" in html
-
-    def test_array_proxy_repr_html_embeds_thumbnail(self, tmp_path, monkeypatch):
-        _install_fake_pil(monkeypatch)
-        store_path = _create_zarr_array(tmp_path)
-        zarr_feat = Zarr()
-        proxy = zarr_feat.decode_example(zarr_feat.encode_example(store_path))
-        html = proxy._repr_html_()
-        assert html is not None
-        assert "data:image/png;base64," in html
-
-    def test_zarr_proxy_delegates_repr_html(self, tmp_path, monkeypatch):
-        _install_fake_pil(monkeypatch)
-        store_path = _create_ome_zarr(tmp_path)
-        proxy = ZarrProxy(path=store_path)
-        html = proxy._repr_html_()
-        assert html is not None
-        assert "data:image/png;base64," in html
-
-    def test_1d_array_repr_html_none(self, tmp_path, monkeypatch):
-        _install_fake_pil(monkeypatch)
-        import zarr
-
-        store_path = str(tmp_path / "oned.zarr")
-        z = zarr.open_array(store_path, mode="w", shape=(10,), dtype="float32")
-        z[:] = np.arange(10)
-        arr = zarr.open_array(store_path, mode="r")
-        proxy = ZarrArrayProxy(arr, store_path)
-        assert proxy._repr_html_() is None
-
-    def test_render_array_as_png_invalid_inputs(self):
-        assert _render_array_as_png(np.zeros((0, 0))) is None
-        assert _render_array_as_png(np.zeros(5)) is None
-        assert _render_array_as_png(np.array([])) is None
-
 
 @require_zarr
 class TestZarrProxyPickleRoundTrip:
-    def test_wrapped_zarr_proxy(self, tmp_path):
-        store_path = _create_ome_zarr(tmp_path)
-        proxy = ZarrProxy(path=store_path)
-        restored = pickle.loads(pickle.dumps(proxy))
-        assert restored.shape == (20, 20)
-        np.testing.assert_array_equal(restored[0], proxy[0])
 
     def test_array_proxy(self, tmp_path):
         store_path = _create_zarr_array(tmp_path, shape=(10, 20), dtype="float32", chunks=(5, 10))
@@ -414,16 +219,6 @@ class TestZarrProxyPickleRoundTrip:
         restored = pickle.loads(pickle.dumps(proxy))
         assert isinstance(restored, ZarrGroupProxy)
         assert sorted(restored.keys()) == sorted(proxy.keys())
-
-    def test_ome_proxy(self, tmp_path):
-        store_path = _create_ome_zarr(tmp_path)
-        proxy = ZarrProxy(path=store_path)._resolve()
-        restored = pickle.loads(pickle.dumps(proxy))
-        assert isinstance(restored, OmeZarrProxy)
-        assert restored.shape == (20, 20)
-        assert restored.default_plane(level=-1).shape == (10, 10)
-        np.testing.assert_array_equal(restored[0], proxy[0])
-
 
 @require_zarr
 class TestZarrProxy:
@@ -507,8 +302,8 @@ class TestZarrArrayProxy:
         proxy = ZarrArrayProxy(arr, store_path)
         patches = list(proxy.iter_patches((5, 10)))
         assert len(patches) == 4
-        for (y, x), patch in patches:
-            assert patch.shape == (5, 10)
+        for (y, x), p in patches:
+            assert p.shape == (5, 10)
 
     def test_iter_patches_with_stride(self, tmp_path):
         import zarr
@@ -609,77 +404,6 @@ class TestZarrGroupProxy:
 
 
 @require_zarr
-class TestOmeZarrProxy:
-    def test_multiscales_and_axes(self, tmp_path):
-        store_path = _create_ome_zarr(tmp_path)
-        zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        proxy = zarr_feat.decode_example(encoded)
-        assert isinstance(proxy._resolve(), OmeZarrProxy)
-        ms = proxy.multiscales
-        assert len(ms) == 1
-        axes = proxy.axes
-        assert len(axes) == 2
-        assert axes[0]["name"] == "y"
-
-    def test_scale(self, tmp_path):
-        store_path = _create_ome_zarr(tmp_path)
-        zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        proxy = zarr_feat.decode_example(encoded)
-        assert proxy.scale == [1.0, 1.0]
-
-    def test_channel_names(self, tmp_path):
-        store_path = _create_ome_zarr(tmp_path)
-        zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        proxy = zarr_feat.decode_example(encoded)
-        assert proxy.channel_names == ["DAPI", "GFP"]
-
-    def test_getitem_default_level0(self, tmp_path):
-        store_path = _create_ome_zarr(tmp_path)
-        zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        proxy = zarr_feat.decode_example(encoded)
-        result = proxy[0:5, 0:5]
-        assert result.shape == (5, 5)
-
-    def test_len(self, tmp_path):
-        store_path = _create_ome_zarr(tmp_path)
-        zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        proxy = zarr_feat.decode_example(encoded)
-        assert len(proxy) == 20
-
-    def test_thumbnail(self, tmp_path):
-        store_path = _create_ome_zarr(tmp_path)
-        zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        proxy = zarr_feat.decode_example(encoded)
-        thumb = proxy.thumbnail(level=-1)
-        assert thumb.shape == (10, 10)
-
-    def test_iter_patches_ome(self, tmp_path):
-        store_path = _create_ome_zarr(tmp_path)
-        zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        proxy = zarr_feat.decode_example(encoded)
-        patches = list(proxy.iter_patches((10, 10), level=0))
-        assert len(patches) == 4
-        for (y, x), patch in patches:
-            assert patch.shape == (10, 10)
-
-    def test_random_patch_ome(self, tmp_path):
-        store_path = _create_ome_zarr(tmp_path)
-        zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        proxy = zarr_feat.decode_example(encoded)
-        rng = np.random.default_rng(0)
-        patch = proxy.random_patch((5, 5), level=-1, rng=rng)
-        assert patch.shape == (5, 5)
-
-
-@require_zarr
 class TestZarrFeatureCastAndFlatten:
     def test_cast_storage_from_string(self):
         zarr_feat = Zarr()
@@ -700,8 +424,6 @@ class TestZarrFeatureCastAndFlatten:
         assert isinstance(Zarr(decode=True).flatten(), Zarr)
 
     def test_flatten_decode_false(self):
-        from datasets.features.features import Value
-
         result = Zarr(decode=False).flatten()
         assert isinstance(result, dict)
         assert "path" in result
@@ -716,183 +438,6 @@ class TestZarrFeatureCastAndFlatten:
         assert result.field("path")[0].as_py() == "/path/a.zarr"
         assert result.field("path")[1].as_py() == "/path/b.zarr"
 
-
-@require_zarr
-class TestIsOmeZarr:
-    def test_ome_zarr_detected(self, tmp_path):
-        import zarr
-
-        store_path = _create_ome_zarr(tmp_path)
-        root = zarr.open_group(store_path, mode="r")
-        assert _is_ome_zarr(root) is True
-
-    def test_plain_group_not_ome(self, tmp_path):
-        import zarr
-
-        store_path = _create_zarr_group(tmp_path)
-        root = zarr.open_group(store_path, mode="r")
-        assert _is_ome_zarr(root) is False
-
-
-@require_zarr
-class TestOmeZarrV05:
-    def test_v05_ome_detected(self, tmp_path):
-        import zarr
-
-        store_path = _create_ome_zarr_v05(tmp_path)
-        root = zarr.open_group(store_path, mode="r")
-        assert _is_ome_zarr(root) is True
-
-    def test_v05_multiscales(self, tmp_path):
-        store_path = _create_ome_zarr_v05(tmp_path)
-        zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        proxy = zarr_feat.decode_example(encoded)
-        assert isinstance(proxy._resolve(), OmeZarrProxy)
-        assert proxy.num_levels == 2
-
-    def test_v05_axes(self, tmp_path):
-        store_path = _create_ome_zarr_v05(tmp_path)
-        zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        proxy = zarr_feat.decode_example(encoded)
-        axes = proxy.axes
-        assert len(axes) == 3
-        assert axes[0]["name"] == "z"
-        assert axes[1]["name"] == "y"
-        assert axes[2]["name"] == "x"
-
-    def test_v05_scale(self, tmp_path):
-        store_path = _create_ome_zarr_v05(tmp_path)
-        zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        proxy = zarr_feat.decode_example(encoded)
-        assert proxy.scale == [5.0, 1.0, 1.0]
-
-    def test_v05_channel_names(self, tmp_path):
-        store_path = _create_ome_zarr_v05(tmp_path)
-        zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        proxy = zarr_feat.decode_example(encoded)
-        assert proxy.channel_names == ["tdTomato"]
-
-    def test_v05_shape_dtype(self, tmp_path):
-        store_path = _create_ome_zarr_v05(tmp_path)
-        zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        proxy = zarr_feat.decode_example(encoded)
-        assert proxy.shape == (10, 64, 64)
-        assert proxy.dtype == np.dtype("uint16")
-
-    def test_v05_get_level(self, tmp_path):
-        store_path = _create_ome_zarr_v05(tmp_path)
-        zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        proxy = zarr_feat.decode_example(encoded)
-        level0 = proxy.get_level(0)
-        assert isinstance(level0, ZarrArrayProxy)
-        assert level0.shape == (10, 64, 64)
-        level1 = proxy.get_level(1)
-        assert level1.shape == (10, 32, 32)
-
-    def test_v05_thumbnail(self, tmp_path):
-        store_path = _create_ome_zarr_v05(tmp_path)
-        zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        proxy = zarr_feat.decode_example(encoded)
-        thumb = proxy.thumbnail(level=-1)
-        assert thumb.shape == (10, 32, 32)
-
-    def test_default_plane_no_omero_falls_back_to_first(self, tmp_path):
-        store_path = _create_ome_zarr_v05(tmp_path)
-        zarr_feat = Zarr()
-        proxy = zarr_feat.decode_example(zarr_feat.encode_example(store_path))
-        plane = proxy.default_plane(level=-1)
-        assert plane.shape == (32, 32)
-        np.testing.assert_array_equal(plane, proxy.get_level(-1)[0])
-
-    def test_default_plane_uses_omero_rdefs_default_z(self, tmp_path):
-        import zarr
-
-        store_path = _create_ome_zarr_v05(tmp_path)
-        root = zarr.open_group(store_path, mode="a")
-        ome = dict(root.attrs["ome"])
-        ome["omero"] = dict(ome.get("omero", {}))
-        ome["omero"]["rdefs"] = {"defaultT": 0, "defaultZ": 7, "model": "greyscale"}
-        root.attrs["ome"] = ome
-        zarr_feat = Zarr()
-        proxy = zarr_feat.decode_example(zarr_feat.encode_example(store_path))
-        plane = proxy.default_plane(level=-1)
-        assert plane.shape == (32, 32)
-        np.testing.assert_array_equal(plane, proxy.get_level(-1)[7])
-
-    def test_default_plane_rescales_default_z_across_levels(self, tmp_path):
-        import zarr
-
-        store_path = str(tmp_path / "ome_down.zarr")
-        root = zarr.open_group(store_path, mode="w")
-        root.attrs["multiscales"] = [
-            {
-                "version": "0.4",
-                "axes": [
-                    {"name": "z", "type": "space", "unit": "micrometer"},
-                    {"name": "y", "type": "space", "unit": "micrometer"},
-                    {"name": "x", "type": "space", "unit": "micrometer"},
-                ],
-                "datasets": [
-                    {
-                        "path": "0",
-                        "coordinateTransformations": [{"type": "scale", "scale": [1.0, 1.0, 1.0]}],
-                    },
-                    {
-                        "path": "1",
-                        "coordinateTransformations": [{"type": "scale", "scale": [2.0, 2.0, 2.0]}],
-                    },
-                ],
-            }
-        ]
-        root.attrs["omero"] = {
-            "channels": [{"label": "DAPI"}],
-            "rdefs": {"defaultT": 0, "defaultZ": 14, "model": "greyscale"},
-        }
-        a0 = root.create_array("0", shape=(16, 16, 16), dtype="uint16", chunks=(1, 16, 16))
-        a0[:] = np.arange(4096, dtype="uint16").reshape(16, 16, 16)
-        a1 = root.create_array("1", shape=(8, 8, 8), dtype="uint16", chunks=(1, 8, 8))
-        a1[:] = np.arange(512, dtype="uint16").reshape(8, 8, 8)
-        zarr_feat = Zarr()
-        proxy = zarr_feat.decode_example(zarr_feat.encode_example(store_path))
-        np.testing.assert_array_equal(proxy.default_plane(level=0), proxy.get_level(0)[14])
-        np.testing.assert_array_equal(proxy.default_plane(level=1), proxy.get_level(1)[7])
-
-    def test_default_plane_2d_store_returns_level(self, tmp_path):
-        store_path = _create_ome_zarr(tmp_path)
-        zarr_feat = Zarr()
-        proxy = zarr_feat.decode_example(zarr_feat.encode_example(store_path))
-        plane = proxy.default_plane(level=-1)
-        assert plane.shape == (10, 10)
-        np.testing.assert_array_equal(plane, proxy.get_level(-1)[:])
-
-
-@require_zarr
-class TestGetOmeAttr:
-    def test_v04_top_level(self):
-        attrs = {"multiscales": [{"axes": []}], "omero": {"channels": []}}
-        assert _get_ome_attr(attrs, "multiscales") == [{"axes": []}]
-        assert _get_ome_attr(attrs, "omero") == {"channels": []}
-
-    def test_v05_namespaced(self):
-        attrs = {"ome": {"version": "0.5", "multiscales": [{"axes": []}], "omero": {"channels": [{"label": "DAPI"}]}}}
-        assert _get_ome_attr(attrs, "multiscales") == [{"axes": []}]
-        assert _get_ome_attr(attrs, "omero") == {"channels": [{"label": "DAPI"}]}
-
-    def test_missing_key(self):
-        attrs = {"description": "plain group"}
-        assert _get_ome_attr(attrs, "multiscales") is None
-        assert _get_ome_attr(attrs, "multiscales", []) == []
-
-    def test_v04_takes_precedence(self):
-        attrs = {"multiscales": [{"axes": []}], "ome": {"multiscales": [{"axes": []}, {"axes": []}]}}
-        assert len(_get_ome_attr(attrs, "multiscales")) == 1
 
 
 @require_zarr
@@ -1056,129 +601,6 @@ class TestDatasetWithZarrFeature:
         assert len(col) == 1
 
 
-@require_zarr
-class TestOmeZarrRoi:
-    def _create_scaled_ome(self, tmp_path):
-        import zarr
-
-        store_path = str(tmp_path / "scaled_ome.zarr")
-        root = zarr.open_group(store_path, mode="w")
-        root.attrs["multiscales"] = [
-            {
-                "version": "0.4",
-                "axes": [
-                    {"name": "c", "type": "channel"},
-                    {"name": "y", "type": "space", "unit": "micrometer"},
-                    {"name": "x", "type": "space", "unit": "micrometer"},
-                ],
-                "datasets": [
-                    {
-                        "path": "0",
-                        "coordinateTransformations": [
-                            {"type": "scale", "scale": [1.0, 0.5, 0.5]},
-                        ],
-                    },
-                    {
-                        "path": "1",
-                        "coordinateTransformations": [
-                            {"type": "scale", "scale": [2.0, 1.0, 1.0]},
-                        ],
-                    },
-                ],
-            }
-        ]
-        arr0 = root.create_array("0", shape=(1, 20, 20), dtype="int32", chunks=(1, 10, 10))
-        arr0[:] = np.arange(400, dtype="int32").reshape(1, 20, 20)
-        arr1 = root.create_array("1", shape=(1, 10, 10), dtype="int32", chunks=(1, 5, 5))
-        arr1[:] = np.arange(100, dtype="int32").reshape(1, 10, 10)
-        return store_path
-
-    def _create_translated_ome(self, tmp_path):
-        import zarr
-
-        store_path = str(tmp_path / "translated_ome.zarr")
-        root = zarr.open_group(store_path, mode="w")
-        root.attrs["multiscales"] = [
-            {
-                "version": "0.4",
-                "axes": [
-                    {"name": "c", "type": "channel"},
-                    {"name": "y", "type": "space", "unit": "micrometer"},
-                    {"name": "x", "type": "space", "unit": "micrometer"},
-                ],
-                "datasets": [
-                    {
-                        "path": "0",
-                        "coordinateTransformations": [
-                            {"type": "scale", "scale": [1.0, 0.5, 0.5]},
-                            {"type": "translation", "translation": [0.0, 5.0, 5.0]},
-                        ],
-                    },
-                ],
-            }
-        ]
-        arr0 = root.create_array("0", shape=(1, 20, 20), dtype="int32", chunks=(1, 10, 10))
-        arr0[:] = np.arange(400, dtype="int32").reshape(1, 20, 20)
-        return store_path
-
-    def test_roi_level0_pixel_equivalent(self, tmp_path):
-        proxy = ZarrProxy(path=self._create_scaled_ome(tmp_path))
-        expected = proxy.get_level(0)[0:1, 2:6, 2:6]
-        got = proxy.roi((0, 1.0, 1.0), (1, 3.0, 3.0), level=0)
-        assert np.array_equal(got, expected)
-
-    def test_roi_level_conversion(self, tmp_path):
-        proxy = ZarrProxy(path=self._create_scaled_ome(tmp_path))
-        expected = proxy.get_level(1)[0:1, 1:3, 1:3]
-        got = proxy.roi((0, 1.0, 1.0), (1, 3.0, 3.0), level=1)
-        assert np.array_equal(got, expected)
-
-    def test_roi_respects_translation(self, tmp_path):
-        proxy = ZarrProxy(path=self._create_translated_ome(tmp_path))
-        expected = proxy.get_level(0)[0:1, 2:6, 2:6]
-        got = proxy.roi((0, 6.0, 6.0), (1, 8.0, 8.0), level=0)
-        assert np.array_equal(got, expected)
-
-    def test_roi_none_bounds(self, tmp_path):
-        proxy = ZarrProxy(path=self._create_scaled_ome(tmp_path))
-        expected = proxy.get_level(0)[0:1, 0:4, 0:4]
-        got = proxy.roi((None, None, None), (1, 2.0, 2.0), level=0)
-        assert np.array_equal(got, expected)
-
-    def test_roi_clips_to_extent(self, tmp_path):
-        proxy = ZarrProxy(path=self._create_scaled_ome(tmp_path))
-        expected = proxy.get_level(0)[0:1, 0:20, 0:20]
-        got = proxy.roi((0, -10, 0), (1, 100, 100), level=0)
-        assert np.array_equal(got, expected)
-
-    def test_roi_negative_level(self, tmp_path):
-        proxy = ZarrProxy(path=self._create_scaled_ome(tmp_path))
-        expected = proxy.get_level(1)[0:1, 1:3, 1:3]
-        got = proxy.roi((0, 1.0, 1.0), (1, 3.0, 3.0), level=-1)
-        assert np.array_equal(got, expected)
-
-    def test_roi_missing_scale_raises(self, tmp_path):
-        import zarr
-
-        store_path = str(tmp_path / "noscale.zarr")
-        root = zarr.open_group(store_path, mode="w")
-        root.attrs["multiscales"] = [
-            {"version": "0.4", "axes": [{"name": "y"}, {"name": "x"}], "datasets": [{"path": "0"}]}
-        ]
-        root.create_array("0", shape=(10, 10), dtype="int32", chunks=(5, 5))
-        proxy = ZarrProxy(path=store_path)
-        with pytest.raises(ValueError, match="scale coordinate transformation"):
-            proxy.roi((0.0, 0.0), (1.0, 1.0))
-
-    def test_roi_wrong_length_raises(self, tmp_path):
-        proxy = ZarrProxy(path=self._create_scaled_ome(tmp_path))
-        with pytest.raises(ValueError, match="same number of entries"):
-            proxy.roi((0, 1.0), (1, 3.0, 3.0))
-        with pytest.raises(ValueError, match="one entry per axis"):
-            proxy.roi((0, 1.0, 1.0, 0.0), (1, 3.0, 3.0, 1.0))
-
-
-@require_zarr
 class TestZarrStoreRegistryReuse:
     def test_two_proxies_open_store_once(self, tmp_path):
         import zarr
