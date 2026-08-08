@@ -1130,7 +1130,8 @@ class ClassLabel:
         'neg'
         ```
         """
-        if not isinstance(values, int) and not isinstance(values, Iterable):
+        # str is Iterable but not a valid label, so reject it explicitly (as str2int does).
+        if isinstance(values, str) or (not isinstance(values, int) and not isinstance(values, Iterable)):
             raise ValueError(
                 f"Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
             )

@@ -342,6 +342,10 @@ def test_classlabel_int2str():
         classlabel.int2str(-1)
     with pytest.raises(ValueError):
         classlabel.int2str(None)
+    # A string is iterable but not a valid integer label: reject it clearly
+    # instead of iterating over its characters (which raised a cryptic TypeError).
+    with pytest.raises(ValueError):
+        classlabel.int2str("1")
 
 
 def test_classlabel_cast_storage():
