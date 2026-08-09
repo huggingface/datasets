@@ -6302,12 +6302,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
 
+        column_table = InMemoryTable.from_pydict({name: column})
         if feature:
-            pyarrow_schema = Features({name: feature}).arrow_schema
-        else:
-            pyarrow_schema = None
-
-        column_table = InMemoryTable.from_pydict({name: column}, schema=pyarrow_schema)
+            # cast instead of building the table with the target schema directly, so that features
+            # with a custom storage (e.g. ClassLabel) can encode the values like in `Dataset.from_dict`
+            column_table = table_cast(column_table, Features({name: feature}).arrow_schema)
         _check_column_names(self._data.column_names + column_table.column_names)
         dataset = self.flatten_indices() if self._indices is not None else self
         # Concatenate tables horizontally
