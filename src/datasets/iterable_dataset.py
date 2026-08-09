@@ -5389,6 +5389,8 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
     Returns:
         [`IterableDataset`]: The iterable dataset to be used on the node at rank `rank`.
     """
+    if not 0 <= rank < world_size:
+        raise ValueError("rank should be in [0, world_size-1]")
     if dataset._distributed:
         rank = world_size * dataset._distributed.rank + rank
         world_size = world_size * dataset._distributed.world_size

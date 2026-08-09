@@ -137,3 +137,12 @@ def test_torch_distributed_run_streaming_with_num_workers(nproc_per_node, num_wo
     """.split()
     cmd = [sys.executable] + distributed_args + args
     execute_subprocess_async(cmd, env=os.environ.copy())
+
+
+@pytest.mark.parametrize("rank, world_size", [(0, 0), (-1, 2), (2, 2), (5, 2)])
+def test_split_dataset_by_node_iterable_invalid_rank(rank, world_size):
+    # invalid ranks used to be accepted: rank=-1 silently returned the whole dataset,
+    # while the map-style version raises for all of them
+    full_ds = Dataset.from_dict({"i": range(17)}).to_iterable_dataset(num_shards=2)
+    with pytest.raises(ValueError, match=r"rank should be in \[0, world_size-1\]"):
+        split_dataset_by_node(full_ds, rank=rank, world_size=world_size)
