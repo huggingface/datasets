@@ -3367,17 +3367,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # If the array is empty we do nothing (but we make sure to handle an empty indices mapping and remove the requested columns anyway)
         if len(self) == 0:
-            if self._indices is not None:  # empty indices mapping
-                self = Dataset(
-                    self.data.slice(0, 0),
-                    info=self.info.copy(),
-                    split=self.split,
-                    fingerprint=new_fingerprint,
-                )
-            if remove_columns:
-                return self.remove_columns(remove_columns)
-            else:
-                return self
+            dataset = Dataset(
+                self.data.slice(0, 0),  # also resolves an empty indices mapping
+                info=self.info.copy(),
+                split=self.split,
+                fingerprint=new_fingerprint,
+            )
+            return dataset.remove_columns(remove_columns) if remove_columns else dataset
 
         if function is None:
             function = lambda x: x  # noqa: E731
@@ -4242,8 +4238,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if function is None:
             function = lambda x: True  # noqa: E731
 
+        # If the array is empty we do nothing, but we still return a new dataset with the new fingerprint
         if len(self) == 0:
-            return self
+            return self._select_contiguous(0, 0, new_fingerprint=new_fingerprint)
 
         # We generally batch the underlying map() to get faster throughput,
         # but in case of async we force batch_size=1 to enable parallelism
@@ -4415,9 +4412,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "Using `.select` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
             )
 
-        # If the array is empty we do nothing
+        # If the array is empty we do nothing, but we still return a new dataset with the new fingerprint
         if len(self) == 0:
-            return self
+            return self._select_contiguous(0, 0, new_fingerprint=new_fingerprint)
 
         # If indices is a PyArrow array, we convert to NumPy
         if isinstance(indices, (pa.Array, pa.ChunkedArray)):
@@ -4487,9 +4484,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "Using `.select` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
             )
 
-        # If the array is empty we do nothing
+        # If the array is empty we do nothing, but we still return a new dataset with the new fingerprint
         if len(self) == 0:
-            return self
+            return Dataset(
+                self.data,
+                info=self.info.copy(),
+                split=self.split,
+                indices_table=self._indices,
+                fingerprint=new_fingerprint,
+            )
 
         _check_valid_indices_value(start, len(self))
         _check_valid_indices_value(start + length - 1, len(self))
@@ -4553,9 +4556,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "Using `.select` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
             )
 
-        # If the array is empty we do nothing
+        # If the array is empty we do nothing, but we still return a new dataset with the new fingerprint
         if len(self) == 0:
-            return self
+            return self._select_contiguous(0, 0, new_fingerprint=new_fingerprint)
 
         # Prepare the writer for our indices arrow table
         if keep_in_memory or indices_cache_file_name is None:
@@ -4761,9 +4764,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise DatasetTransformationNotAllowedError(
                 "Using `.sort` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
             )
-        # If the array is empty we do nothing
+        # If the array is empty we do nothing, but we still return a new dataset with the new fingerprint
         if len(self) == 0:
-            return self
+            return self._select_contiguous(0, 0, new_fingerprint=new_fingerprint)
 
         # Check proper format of and for duplicates in column_names
         if isinstance(column_names, str):
@@ -4918,9 +4921,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise DatasetTransformationNotAllowedError(
                 "Using `.shuffle` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
             )
-        # If the array is empty we do nothing
+        # If the array is empty we do nothing, but we still return a new dataset with the new fingerprint
         if len(self) == 0:
-            return self
+            return self._select_contiguous(0, 0, new_fingerprint=new_fingerprint)
 
         if keep_in_memory and indices_cache_file_name is not None:
             raise ValueError("Please use either `keep_in_memory` or `indices_cache_file_name` but not both.")
@@ -5079,9 +5082,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise DatasetTransformationNotAllowedError(
                 "Using `.train_test_split` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
             )
-        # If the array is empty we do nothing
+        # If the array is empty we do nothing, but we still return new datasets with the new fingerprints
         if len(self) == 0:
-            return DatasetDict({"train": self, "test": self})
+            return DatasetDict(
+                {
+                    "train": self._select_contiguous(0, 0, new_fingerprint=train_new_fingerprint),
+                    "test": self._select_contiguous(0, 0, new_fingerprint=test_new_fingerprint),
+                }
+            )
 
         if test_size is None and train_size is None:
             test_size = 0.25
