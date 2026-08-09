@@ -3694,6 +3694,13 @@ def test_concatenate_datasets(dataset_type, axis, expected_shape, dataset_dict, 
     assert_arrow_metadata_are_synced_with_dataset_features(dataset)
 
 
+@pytest.mark.parametrize("num_shards", [0, -1])
+def test_dataset_to_iterable_dataset_with_non_positive_num_shards(num_shards):
+    dataset = Dataset.from_dict({"col_1": [1, 2, 3]})
+    with pytest.raises(ValueError):
+        dataset.to_iterable_dataset(num_shards=num_shards)
+
+
 def test_concatenate_datasets_new_columns():
     dataset1 = Dataset.from_dict({"col_1": ["a", "b", "c"]})
     dataset2 = Dataset.from_dict({"col_1": ["d", "e", "f"], "col_2": [True, False, True]})
