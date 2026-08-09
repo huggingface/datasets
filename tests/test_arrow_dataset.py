@@ -3659,6 +3659,27 @@ def test_sort_with_none(null_placement):
         assert dataset["col_1"] == ["item_1", "item_2", "item_3", "item_4", None, None]
 
 
+@pytest.mark.parametrize("transform", ["sort", "shuffle", "train_test_split"])
+def test_keep_in_memory_on_dataset_with_cache_files(transform, tmp_path):
+    # `sort`, `shuffle` and `train_test_split` fall back to an automatically generated indices cache file name
+    # when the dataset has cache files: it must not be combined with `keep_in_memory=True`
+    dataset_path = str(tmp_path / "dataset")
+    Dataset.from_dict({"col_1": [3, 1, 2]}).save_to_disk(dataset_path)
+    dataset = Dataset.load_from_disk(dataset_path)
+    assert dataset.cache_files
+    if transform == "train_test_split":
+        output = dataset.train_test_split(test_size=1, keep_in_memory=True)
+        assert sorted(list(output["train"]["col_1"]) + list(output["test"]["col_1"])) == [1, 2, 3]
+    elif transform == "sort":
+        output = dataset.sort("col_1", keep_in_memory=True)
+        assert list(output["col_1"]) == [1, 2, 3]
+    else:
+        output = dataset.shuffle(seed=42, keep_in_memory=True)
+        assert sorted(output["col_1"]) == [1, 2, 3]
+    # no indices cache file was written next to the dataset
+    assert not list((tmp_path / "dataset").glob("cache-*.arrow"))
+
+
 def test_update_metadata_with_features(dataset_dict):
     table1 = pa.Table.from_pydict(dataset_dict)
     features1 = Features.from_arrow_schema(table1.schema)
