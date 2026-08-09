@@ -633,6 +633,12 @@ def _check_column_names(column_names: list[str]):
         raise ValueError(f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated.")
 
 
+def _check_batch_size(batch_size: Optional[int]):
+    """Check the `batch_size` of the methods that export a dataset by batches."""
+    if batch_size is not None and batch_size <= 0:
+        raise ValueError(f"batch_size must be a positive integer, but got {batch_size}.")
+
+
 def _check_valid_indices_value(index, size):
     if (index < 0 and index + size < 0) or (index >= size):
         raise IndexError(f"Index {index} out of range for dataset of size {size}.")
@@ -5371,6 +5377,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.csv import CsvDatasetWriter
 
+        _check_batch_size(batch_size)
         return CsvDatasetWriter(
             self,
             path_or_buf,
@@ -5414,6 +5421,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 result[col] = [json_decode_field(row, json_field_subpath) for row in result[col]]
             return result
 
+        _check_batch_size(batch_size)
         if not batched:
             return query_to_dict(slice(0, len(self)))
         else:
@@ -5498,6 +5506,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.json import JsonDatasetWriter
 
+        _check_batch_size(batch_size)
         return JsonDatasetWriter(
             self,
             path_or_buf,
@@ -5542,6 +5551,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds.to_pandas()
         ```
         """
+        _check_batch_size(batch_size)
         if not batched:
             df = query_table(
                 table=self._data,
@@ -5592,6 +5602,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds.to_polars()
         ```
         """
+        _check_batch_size(batch_size)
         if config.POLARS_AVAILABLE:
             import polars as pl
 
@@ -5658,6 +5669,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.parquet import ParquetDatasetWriter
 
+        _check_batch_size(batch_size)
         return ParquetDatasetWriter(
             self, path_or_buf, batch_size=batch_size, storage_options=storage_options, **parquet_writer_kwargs
         ).write()
@@ -5715,6 +5727,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.sql import SqlDatasetWriter
 
+        _check_batch_size(batch_size)
         return SqlDatasetWriter(self, name, con, batch_size=batch_size, num_proc=num_proc, **sql_writer_kwargs).write()
 
     def _estimate_nbytes(self) -> int:
