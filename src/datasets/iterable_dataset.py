@@ -4500,6 +4500,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> ds.to_dict()
         ```
         """
+        batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
         if batched:
             for table in self.with_format("arrow").iter(batch_size=batch_size):
                 yield Dataset(table, fingerprint="unset").to_dict()
@@ -4551,6 +4552,7 @@ class IterableDataset(DatasetInfoMixin):
                 return cast_table_to_features(table, self.features)
             return table
 
+        batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
         if batched:
             return (
                 Dataset(maybe_cast_to_declared_features(table), info=info, fingerprint="unset").to_pandas()
@@ -4592,6 +4594,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> ds.to_polars()
         ```
         """
+        batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
         if batched:
             for table in self.with_format("arrow").iter(batch_size=batch_size):
                 yield Dataset(table, fingerprint="unset").to_polars(schema_overrides=schema_overrides, rechunk=rechunk)
