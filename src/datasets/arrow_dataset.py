@@ -3439,7 +3439,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # we create a unique hash from the function,
             # current dataset file and the mapping args
             transform = format_transform_for_fingerprint(Dataset._map_single)
-            kwargs_for_fingerprint = format_kwargs_for_fingerprint(Dataset._map_single, (), dataset_kwargs)
+            kwargs_for_fingerprint = format_kwargs_for_fingerprint(
+                Dataset._map_single, (), dataset_kwargs, ignore_kwargs=["writer_batch_size"]
+            )
             kwargs_for_fingerprint["fingerprint_name"] = "new_fingerprint"
             new_fingerprint = update_fingerprint(self._fingerprint, transform, kwargs_for_fingerprint)
         else:
@@ -4138,7 +4140,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(
-        inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc"], version="2.0.1"
+        inplace=False,
+        ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc", "writer_batch_size"],
+        version="2.0.1",
     )
     def filter(
         self,
@@ -4285,7 +4289,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return new_dataset
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["cache_file_name"])
+    @fingerprint_transform(inplace=False, ignore_kwargs=["cache_file_name", "writer_batch_size", "num_proc"])
     def flatten_indices(
         self,
         keep_in_memory: bool = False,
@@ -4364,7 +4368,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["indices_cache_file_name"])
+    @fingerprint_transform(inplace=False, ignore_kwargs=["indices_cache_file_name", "writer_batch_size"])
     def select(
         self,
         indices: Iterable,
@@ -4510,7 +4514,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["indices_cache_file_name"])
+    @fingerprint_transform(inplace=False, ignore_kwargs=["indices_cache_file_name", "writer_batch_size"])
     def _select_with_indices_mapping(
         self,
         indices: Iterable,
@@ -4702,7 +4706,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return self.select(range(n))
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"])
+    @fingerprint_transform(
+        inplace=False, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name", "writer_batch_size"]
+    )
     def sort(
         self,
         column_names: Union[str, Sequence_[str]],
@@ -4831,7 +4837,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(
-        inplace=False, randomized_function=True, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"]
+        inplace=False,
+        randomized_function=True,
+        ignore_kwargs=["load_from_cache_file", "indices_cache_file_name", "writer_batch_size"],
     )
     def shuffle(
         self,
@@ -4966,7 +4974,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         inplace=False,
         randomized_function=True,
         fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"],
-        ignore_kwargs=["load_from_cache_file", "train_indices_cache_file_name", "test_indices_cache_file_name"],
+        ignore_kwargs=[
+            "load_from_cache_file",
+            "train_indices_cache_file_name",
+            "test_indices_cache_file_name",
+            "writer_batch_size",
+        ],
     )
     def train_test_split(
         self,
