@@ -1054,6 +1054,12 @@ class ClassLabel:
                 raise ValueError("Please provide either num_classes, names or names_file.")
         elif not isinstance(self.names, SequenceABC):
             raise TypeError(f"Please provide names as a list, is {type(self.names)}")
+        else:
+            # Coerce each name to a plain `str` (e.g. `numpy.str_` instances slip in when `names` is
+            # built from `numpy.unique(...)` or a pandas column). Leaving non-native strings in place
+            # causes the dataset card YAML metadata dump to fall back to unsafe `!!python/object` tags,
+            # producing a README.md that fails to parse back (see issue #6919).
+            self.names = [str(name) for name in self.names]
         # Set self.num_classes
         if self.num_classes is None:
             self.num_classes = len(self.names)

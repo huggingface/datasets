@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pytest
+import yaml
 
 from datasets import Array2D
 from datasets.arrow_dataset import Column, Dataset
@@ -137,6 +138,26 @@ class FeaturesTest(TestCase):
         ds_info = DatasetInfo(features=features)
         reloaded_features = Features.from_dict(asdict(ds_info)["features"])
         assert features == reloaded_features
+
+    def test_class_label_names_are_coerced_to_str(self):
+        """reference: issue #6919
+
+        ClassLabel.names built from numpy.unique(...) (or any other numpy-backed
+        source) contains numpy.str_ elements. Left as-is, those leak into the dataset
+        card YAML metadata dump and force PyYAML to emit unsafe !!python/object tags,
+        producing a README.md that fails to parse back with yaml.safe_load.
+        """
+        names = np.array(["negative", "positive"])
+        assert type(names[0]) is not str  # sanity check: numpy.str_, not a plain str
+
+        class_label = ClassLabel(names=list(names))
+        assert class_label.names == ["negative", "positive"]
+        assert all(type(name) is str for name in class_label.names)
+
+        yaml_list = Features({"label": class_label})._to_yaml_list()
+        dumped = yaml.dump(yaml_list)
+        # must round-trip through the strict loader used to validate README.md metadata
+        assert yaml.safe_load(dumped) == yaml_list
 
     def test_reorder_fields_as(self):
         features = Features(
