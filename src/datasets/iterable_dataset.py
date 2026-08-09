@@ -4106,6 +4106,27 @@ class IterableDataset(DatasetInfoMixin):
         """
 
         original_features = self._info.features.copy() if self._info.features else None
+        if original_features is not None:
+            # same checks as in _rename_columns_fn(), but early so that the features
+            # of the returned dataset are never inconsistent with the examples it yields
+            missing_columns = set(column_mapping) - set(original_features)
+            if missing_columns:
+                raise ValueError(
+                    f"Original column names {missing_columns} not in the dataset. "
+                    f"Current columns in the dataset: {list(original_features)}"
+                )
+            number_of_duplicates_in_new_columns = len(column_mapping.values()) - len(set(column_mapping.values()))
+            if number_of_duplicates_in_new_columns != 0:
+                raise ValueError(
+                    "New column names must all be different, but this column mapping "
+                    f"has {number_of_duplicates_in_new_columns} duplicates"
+                )
+            already_existing_columns = set(column_mapping.values()) & set(original_features)
+            if already_existing_columns:
+                raise ValueError(
+                    f"New column names {already_existing_columns} are already in the dataset. "
+                    f"Current columns in the dataset: {list(original_features)}"
+                )
         ds_iterable = self.map(
             partial(_rename_columns_fn, column_mapping=column_mapping), remove_columns=list(column_mapping)
         )

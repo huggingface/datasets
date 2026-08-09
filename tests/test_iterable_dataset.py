@@ -2445,6 +2445,23 @@ def test_iterable_dataset_rename_columns(dataset_with_several_columns: IterableD
     assert all(c in new_dataset.column_names for c in ["new_id", "filename"])
 
 
+def test_iterable_dataset_rename_columns_invalid(dataset_with_several_columns: IterableDataset):
+    # when the features are known, renaming must fail right away instead of returning
+    # a dataset whose features don't match the examples it yields
+    dataset = dataset_with_several_columns._resolve_features()
+    with pytest.raises(ValueError, match="not in the dataset"):
+        dataset.rename_columns({"id": "new_id", "missing_column": "foo"})
+    with pytest.raises(ValueError, match="not in the dataset"):
+        dataset.rename_column("missing_column", "foo")
+    with pytest.raises(ValueError, match="must all be different"):
+        dataset.rename_columns({"id": "foo", "filepath": "foo"})
+    with pytest.raises(ValueError, match="already in the dataset"):
+        dataset.rename_column("id", "filepath")
+    # the features are still unknown here, so the error is only raised when iterating
+    with pytest.raises(ValueError):
+        list(dataset_with_several_columns.rename_column("missing_column", "foo"))
+
+
 def test_iterable_dataset_remove_columns(dataset_with_several_columns: IterableDataset):
     new_dataset = dataset_with_several_columns.remove_columns("id")
     assert list(new_dataset) == [
