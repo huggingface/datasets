@@ -4056,6 +4056,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 yield rank, True, Dataset.from_file(cache_file_name, info=info, split=shard.split)
             else:
                 yield rank, True, Dataset.from_buffer(buf_writer.getvalue(), info=info, split=shard.split)
+        elif batched and drop_last_batch and len(shard) > 0 and len(shard) < batch_size:
+            # Every batch was incomplete and therefore dropped, so the function was never called.
+            # Return an empty dataset (matching `IterableDataset.batch`/`Dataset.iter`) instead of
+            # silently passing through the original, unprocessed shard.
+            yield rank, True, shard.select([])
         else:
             yield rank, True, shard
 
