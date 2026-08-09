@@ -3803,6 +3803,8 @@ class IterableDataset(DatasetInfoMixin):
          'label': 1}]
         ```
         """
+        if buffer_size <= 0:
+            raise ValueError(f"buffer_size must be a positive integer, but got {buffer_size}.")
         if generator is None:
             generator = np.random.default_rng(seed)
         else:
