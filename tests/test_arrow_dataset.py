@@ -3862,6 +3862,17 @@ def test_dataset_iter_batch(batch_size, drop_last_batch):
         assert len(batches[-1]["i"]) <= batch_size
 
 
+@pytest.mark.parametrize("batch_size", [0, -1])
+@pytest.mark.parametrize("with_indices_mapping", [False, True])
+def test_dataset_iter_non_positive_batch_size(batch_size, with_indices_mapping):
+    dset = Dataset.from_dict({"i": list(range(5))})
+    if with_indices_mapping:
+        dset = dset.select([4, 0, 1, 2, 3])
+        assert dset._indices is not None
+    with pytest.raises(ValueError):
+        next(dset.iter(batch_size))
+
+
 @pytest.mark.parametrize(
     "column, expected_dtype",
     [(["a", "b", "c", "d"], "string"), ([1, 2, 3, 4], "int64"), ([1.0, 2.0, 3.0, 4.0], "float64")],
