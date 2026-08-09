@@ -93,8 +93,15 @@ if TYPE_CHECKING:
     import polars as pl
     import sqlalchemy
     import torch
+    from torch.utils.data import IterableDataset as _TorchIterableDatasetBase
 
     from .builder import Key as BuilderKey
+else:
+
+    class _TorchIterableDatasetBase:
+        def __class_getitem__(cls, item):
+            return cls
+
 
 logger = get_logger(__name__)
 
@@ -2500,7 +2507,7 @@ class IterableColumn:
         return IterableColumn(self, column_name)
 
 
-class IterableDataset(DatasetInfoMixin):
+class IterableDataset(DatasetInfoMixin, _TorchIterableDatasetBase[Any]):
     """A Dataset backed by an iterable."""
 
     def __init__(

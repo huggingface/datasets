@@ -6,6 +6,7 @@ import json
 import os
 import pickle
 import re
+import subprocess
 import sys
 import tempfile
 import time
@@ -78,6 +79,14 @@ class Unpicklable:
 
     def __getstate__(self):
         raise pickle.PicklingError()
+
+
+def test_import_datasets_does_not_import_torch():
+    output = subprocess.check_output(
+        [sys.executable, "-c", "import sys; import datasets; print('torch' in sys.modules)"],
+        text=True,
+    )
+    assert output.strip() == "False"
 
 
 def _normalize_batched_output(batch):

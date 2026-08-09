@@ -158,9 +158,16 @@ if TYPE_CHECKING:
     import polars as pl
     import pyspark
     import sqlalchemy
+    from torch.utils.data import Dataset as _TorchDatasetBase
 
     from .dataset_dict import DatasetDict
     from .iterable_dataset import IterableDataset
+else:
+
+    class _TorchDatasetBase:
+        def __class_getitem__(cls, item):
+            return cls
+
 
 logger = logging.get_logger(__name__)
 
@@ -715,7 +722,7 @@ class Column(Sequence_):
             return value == list(self)
 
 
-class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
+class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin, _TorchDatasetBase[Any]):
     """A Dataset backed by an Arrow table."""
 
     def __init__(
