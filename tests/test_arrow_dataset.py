@@ -3780,6 +3780,18 @@ def test_concatenate_datasets_duplicate_columns(dataset):
     assert "duplicated" in str(excinfo.value)
 
 
+def test_train_test_split_with_seed_and_generator():
+    dataset = Dataset.from_dict({"col_1": list(range(10))})
+    with pytest.raises(ValueError):
+        dataset.train_test_split(test_size=2, seed=42, generator=np.random.default_rng(42))
+
+
+def test_train_test_split_with_invalid_generator():
+    dataset = Dataset.from_dict({"col_1": list(range(10))})
+    with pytest.raises(ValueError):
+        dataset.train_test_split(test_size=2, generator=np.random.RandomState(42))
+
+
 def test_interleave_datasets():
     d1 = Dataset.from_dict({"a": [0, 1, 2]})
     d2 = Dataset.from_dict({"a": [10, 11, 12, 13]})
