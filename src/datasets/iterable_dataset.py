@@ -152,6 +152,18 @@ def _batch_to_examples(batch: dict[str, list]) -> Iterator[dict[str, Any]]:
         yield {col: array[i] for col, array in batch.items()}
 
 
+def _concat_tables(tables: list[pa.Table], features: Optional[Features]) -> pa.Table:
+    """Concatenate the tables of an IterableDataset.
+
+    Unlike `pa.concat_tables`, it supports an empty list of tables, which happens when the
+    dataset doesn't yield any example. In that case an empty table is returned, using the
+    features of the dataset as the schema when they are known.
+    """
+    if tables:
+        return pa.concat_tables(tables)
+    return pa.Table.from_pylist([], schema=features.arrow_schema if features is not None else None)
+
+
 def _convert_to_arrow(
     iterable: Iterable[tuple[Key, dict]],
     batch_size: int,
@@ -4504,7 +4516,7 @@ class IterableDataset(DatasetInfoMixin):
             for table in self.with_format("arrow").iter(batch_size=batch_size):
                 yield Dataset(table, fingerprint="unset").to_dict()
         else:
-            table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+            table = _concat_tables(list(self.with_format("arrow").iter(batch_size=1000)), self.features)
             return Dataset(table, fingerprint="unset").to_dict()
 
     def to_list(self) -> list:
@@ -4519,7 +4531,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> ds.to_list()
         ```
         """
-        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+        table = _concat_tables(list(self.with_format("arrow").iter(batch_size=1000)), self.features)
         return Dataset(table, fingerprint="unset").to_list()
 
     def to_pandas(
@@ -4557,8 +4569,9 @@ class IterableDataset(DatasetInfoMixin):
                 for table in self.with_format("arrow").iter(batch_size=batch_size)
             )
         else:
-            table = pa.concat_tables(
-                [maybe_cast_to_declared_features(table) for table in self.with_format("arrow").iter(batch_size=1000)]
+            table = _concat_tables(
+                [maybe_cast_to_declared_features(table) for table in self.with_format("arrow").iter(batch_size=1000)],
+                self.features,
             )
             return Dataset(table, info=info, fingerprint="unset").to_pandas()
 
@@ -4596,7 +4609,7 @@ class IterableDataset(DatasetInfoMixin):
             for table in self.with_format("arrow").iter(batch_size=batch_size):
                 yield Dataset(table, fingerprint="unset").to_polars(schema_overrides=schema_overrides, rechunk=rechunk)
         else:
-            table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+            table = _concat_tables(list(self.with_format("arrow").iter(batch_size=1000)), self.features)
             return Dataset(table, fingerprint="unset").to_polars(schema_overrides=schema_overrides, rechunk=rechunk)
 
     def to_csv(
@@ -4634,7 +4647,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> ds.to_csv("path/to/dataset/directory")
         ```
         """
-        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+        table = _concat_tables(list(self.with_format("arrow").iter(batch_size=1000)), self.features)
         return Dataset(table, fingerprint="unset").to_csv(
             path_or_buf,
             batch_size=batch_size,
@@ -4688,7 +4701,7 @@ class IterableDataset(DatasetInfoMixin):
         ```
 
         """
-        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+        table = _concat_tables(list(self.with_format("arrow").iter(batch_size=1000)), self.features)
         return Dataset(table, fingerprint="unset").to_json(
             path_or_buf,
             batch_size=batch_size,
@@ -4735,7 +4748,7 @@ class IterableDataset(DatasetInfoMixin):
         ...     ds.to_sql("data", con)
         ```
         """
-        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
+        table = _concat_tables(list(self.with_format("arrow").iter(batch_size=1000)), self.features)
         return Dataset(table, fingerprint="unset").to_sql(name, con, batch_size=batch_size, **sql_writer_kwargs)
 
     def to_parquet(
@@ -4781,7 +4794,7 @@ class IterableDataset(DatasetInfoMixin):
         from .arrow_writer import get_arrow_writer_batch_size_from_features
 
         batch_size = get_arrow_writer_batch_size_from_features(self.features) or config.DEFAULT_MAX_BATCH_SIZE
-        table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=batch_size)))
+        table = _concat_tables(list(self.with_format("arrow").iter(batch_size=batch_size)), self.features)
         return Dataset(table, fingerprint="unset").to_parquet(
             path_or_buf, storage_options=storage_options, **parquet_writer_kwargs
         )
