@@ -7054,6 +7054,9 @@ def _concatenate_map_style_datasets(
     >>> ds3 = _concatenate_map_style_datasets([ds1, ds2])
     ```
     """
+    if axis not in (0, 1):
+        raise ValueError(f"axis must be 0 (rows) or 1 (columns), but got {axis}.")
+
     # Ignore datasets with no rows
     if any(dset.num_rows > 0 for dset in dsets):
         dsets = [dset for dset in dsets if dset.num_rows > 0]

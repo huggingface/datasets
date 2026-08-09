@@ -3712,6 +3712,14 @@ def test_concatenate_datasets_new_columns():
     }
 
 
+@pytest.mark.parametrize("axis", [2, -1, "1"])
+def test_concatenate_datasets_with_invalid_axis(axis):
+    dataset1 = Dataset.from_dict({"col_1": [0, 1, 2]})
+    dataset2 = Dataset.from_dict({"col_2": [3, 4, 5]})
+    with pytest.raises(ValueError):
+        concatenate_datasets([dataset1, dataset2], axis=axis)
+
+
 @pytest.mark.parametrize("axis", [0, 1])
 def test_concatenate_datasets_complex_features(axis):
     n = 5
