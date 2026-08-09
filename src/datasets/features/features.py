@@ -964,13 +964,17 @@ class PandasArrayExtensionArray(PandasExtensionArray):
     ) -> "PandasArrayExtensionArray":
         indices: np.ndarray = np.asarray(indices, dtype=int)
         if allow_fill:
-            fill_value = (
-                self.dtype.na_value if fill_value is None else np.asarray(fill_value, dtype=self.dtype.value_type)
-            )
             mask = indices == -1
             if (indices < -1).any():
                 raise ValueError("Invalid value in `indices`, must be all >= -1 for `allow_fill` is True")
-            elif len(self) > 0:
+            if mask.any():
+                # Only materialize the fill value when some position actually has to be filled:
+                # pandas passes `allow_fill=True` with a NaN `fill_value` even when `indices` has no -1
+                # (e.g. when masking a `DataFrame`), and NaN can't be cast to an integer value type.
+                fill_value = (
+                    self.dtype.na_value if fill_value is None else np.asarray(fill_value, dtype=self.dtype.value_type)
+                )
+            if len(self) > 0:
                 pass
             elif not np.all(mask):
                 raise IndexError("Invalid take for empty PandasArrayExtensionArray, must be all -1.")
