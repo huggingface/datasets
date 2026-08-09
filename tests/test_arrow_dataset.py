@@ -5085,6 +5085,20 @@ def test_dataset_save_to_disk_and_load_from_disk_round_trip_with_large_list(tmp_
     assert loaded_ds.to_dict() == ds.to_dict()
 
 
+@pytest.mark.parametrize("num_shards", [0, -1])
+def test_dataset_save_to_disk_with_non_positive_num_shards(num_shards, tmp_path):
+    ds = Dataset.from_dict({"col_1": [1, 2, 3]})
+    dataset_path = tmp_path / "dataset_dir"
+    with pytest.raises(ValueError):
+        ds.save_to_disk(dataset_path, num_shards=num_shards)
+
+
+def test_dataset_save_to_disk_with_num_shards_and_max_shard_size(tmp_path):
+    ds = Dataset.from_dict({"col_1": [1, 2, 3]})
+    with pytest.raises(ValueError, match="save_to_disk"):
+        ds.save_to_disk(tmp_path / "dataset_dir", num_shards=2, max_shard_size="1GB")
+
+
 @require_polars
 def test_from_polars_with_large_list():
     import polars as pl
