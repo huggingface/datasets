@@ -2343,6 +2343,20 @@ def test_iterable_dataset_shard():
     ) == list(dataset)
 
 
+def test_iterable_dataset_shard_invalid_args():
+    dataset = Dataset.from_dict({"a": range(20)}).to_iterable_dataset(num_shards=4)
+    # index out of [0, num_shards-1], like in Dataset.shard
+    with pytest.raises(ValueError, match=r"index should be in \[0, num_shards-1\]"):
+        dataset.shard(num_shards=2, index=2)
+    with pytest.raises(ValueError, match=r"index should be in \[0, num_shards-1\]"):
+        dataset.shard(num_shards=2, index=-1)
+    with pytest.raises(ValueError, match=r"index should be in \[0, num_shards-1\]"):
+        dataset.shard(num_shards=0, index=0)
+    # more shards requested than the dataset has
+    with pytest.raises(ValueError, match="exceeds dataset.num_shards"):
+        dataset.shard(num_shards=dataset.num_shards + 1, index=0)
+
+
 @pytest.mark.parametrize("method", ["skip", "take"])
 @pytest.mark.parametrize("after_shuffle", [False, True])
 @pytest.mark.parametrize("count", [2, 5, 11])
