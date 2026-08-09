@@ -4831,6 +4831,17 @@ def test_filter_async():
     assert len(out) == 1
 
 
+@pytest.mark.parametrize("dtype", ["int32", "int64", "uint8"])
+def test_train_test_split_with_numpy_integer_sizes(dtype):
+    dataset = Dataset.from_dict({"col_1": list(range(10))})
+    split = dataset.train_test_split(test_size=getattr(np, dtype)(2), seed=42)
+    assert len(split["test"]) == 2
+    assert len(split["train"]) == 8
+    split = dataset.train_test_split(train_size=getattr(np, dtype)(4), seed=42)
+    assert len(split["train"]) == 4
+    assert len(split["test"]) == 6
+
+
 def test_dataset_getitem_int_np_equivalence():
     ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
 
