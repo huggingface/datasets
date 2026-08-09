@@ -2388,17 +2388,19 @@ class Features(dict):
         """
         for depth in range(1, max_depth):
             no_change = True
-            flattened = self.copy()
+            # build a new dict rather than updating a copy, so that the subfields of a column
+            # take the place of that column instead of being appended at the end
+            flattened = {}
             for column_name, subfeature in self.items():
                 if isinstance(subfeature, dict):
                     no_change = False
                     flattened.update({f"{column_name}.{k}": v for k, v in subfeature.items()})
-                    del flattened[column_name]
                 elif hasattr(subfeature, "flatten") and subfeature.flatten() != subfeature:
                     no_change = False
                     flattened.update({f"{column_name}.{k}": v for k, v in subfeature.flatten().items()})
-                    del flattened[column_name]
-            self = flattened
+                else:
+                    flattened[column_name] = subfeature
+            self = Features(flattened)
             if no_change:
                 break
         return self
