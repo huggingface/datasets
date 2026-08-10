@@ -4,6 +4,7 @@ from functools import partial
 from typing import BinaryIO, Optional, Union
 
 import fsspec
+import pyarrow as pa  # needed to detect and cast timestamp/duration columns before to_pandas()
 
 from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
@@ -131,6 +132,29 @@ class JsonDatasetWriter:
             key=slice(offset, offset + self.batch_size),
             indices=self.dataset._indices,
         )
+        
+        # Timestamp/duration columns are cast to their own raw, unit-native int64
+        # representation *before* to_pandas() below. This must happen here, while the
+        # data is still a pyarrow Table and each column still carries its true Arrow
+        # unit (s/ms/us/ns) — to_pandas() converts every temporal column to a generic
+        # datetime64[ns] dtype, at which point the original per-column unit is gone.
+        #
+        # Without this, batch.to_json() (pandas) falls back to its own single global
+        # date_unit ("ms") for every temporal column regardless of its real unit. That
+        # silently rescales the value, and depending on the declared unit the round
+        # trip either raises OverflowError or comes back with the wrong datetime.
+        #
+        # Writing the raw native-unit integer instead is symmetric with how the JSON
+        # loader already reads temporal columns back: table_cast() in
+        # packaged_modules/json/json.py casts a raw int64 straight to the declared
+        # timestamp/duration unit, treating the integer as already being in that unit.
+        # Fixes #8390
+        for i, column_type in enumerate(batch.schema.types):
+            if pa.types.is_timestamp(column_type) or pa.types.is_duration(column_type):
+                new_column = batch.column(i).cast(pa.int64())
+                new_field = batch.schema.field(i).with_type(pa.int64())
+                batch = batch.set_column(i, new_field, new_column)
+
         batch = batch.to_pandas(integer_object_nulls=True)
         for json_field_path in get_json_field_paths_from_feature(self.dataset.features):
             col, *json_field_subpath = json_field_path

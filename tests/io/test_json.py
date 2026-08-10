@@ -1,5 +1,6 @@
 import io
 import json
+import datetime
 
 import fsspec
 import pytest
@@ -322,3 +323,28 @@ class TestJsonDatasetWriter:
             rows = load_json_lines(buffer)
         assert [row["a"] for row in rows] == [big, None, 5]
         assert all(isinstance(row["a"], int) for row in rows if row["a"] is not None)
+
+    @pytest.mark.parametrize(
+        "unit, value",
+        [
+            ("s", datetime.datetime(2024, 1, 1, 12, 30, 45)),
+            ("ms", datetime.datetime(2024, 1, 1, 12, 30, 45, 123000)),
+            ("us", datetime.datetime(2024, 1, 1, 12, 30, 45, 123456)),
+            ("ns", datetime.datetime(2024, 1, 1, 12, 30, 45, 123456)),
+        ],
+    )
+    def test_dataset_to_json_temporal_round_trip(self, unit, value, tmp_path):
+        # Regression test: Dataset.to_json() used to write every temporal column via
+        # pandas.DataFrame.to_json()'s single global `date_unit` (defaulting to "ms"),
+        # ignoring the column's actual Arrow unit. Depending on the declared unit, the
+        # round trip either overflowed (`timestamp[s]`) or silently came back with the
+        # wrong value (`timestamp[us]`/`timestamp[ns]` misread as milliseconds).
+        features = Features({"t": Value(f"timestamp[{unit}]")})
+        dataset = Dataset.from_dict({"t": [value, None]}, features=features)
+
+        path = tmp_path / "temporal.jsonl"
+        dataset.to_json(path)
+        reloaded = Dataset.from_json(str(path), features=features)
+
+        assert reloaded[0]["t"] == value
+        assert reloaded[1]["t"] is None
