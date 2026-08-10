@@ -73,21 +73,18 @@ def _open_zarr_store(
     return root
 
 
-def _reopen_zarr_node(path: str, token_per_repo_id, storage_options, kind: str):
-    """Re-open a Zarr node by path, used when unpickling resolved proxies.
+def _reopen_zarr_node(path: str, token_per_repo_id, storage_options):
+    """Re-open a Zarr array by path, used when unpickling resolved proxies.
 
-    ``kind`` is ``"array"`` or ``"group"``. Raises a clear error if the
-    node at ``path`` is no longer the expected type.
+    Raises a clear error if the node at ``path`` is no longer an array.
     """
     import zarr
 
     root = _open_zarr_store(path, token_per_repo_id, storage_options)
-    if kind == "array" and isinstance(root, zarr.Array):
-        return root
-    if kind == "group" and isinstance(root, zarr.Group):
+    if isinstance(root, zarr.Array):
         return root
     raise ValueError(
-        f"Cannot reopen {path!r} as a Zarr {kind} (got {type(root).__name__}); "
+        f"Cannot reopen {path!r} as a Zarr array (got {type(root).__name__}); "
         f"the store may have been renamed or removed"
     )
 
@@ -113,7 +110,7 @@ def _extract_repo_id_from_hf_path(path: str) -> Optional[str]:
 
 
 class ZarrProxy:
-    """Lazy proxy for a Zarr array or group store.
+    """Lazy proxy for a Zarr array store.
 
     Stores only the path and optional auth tokens. The underlying Zarr store
     is opened on first property access (shape, dtype, __getitem__, etc.) and
@@ -137,14 +134,17 @@ class ZarrProxy:
             import zarr
 
             root = _open_zarr_store(self._path, self._token_per_repo_id, self._storage_options)
-            if isinstance(root, zarr.Group):
-                self._resolved = ZarrGroupProxy(
-                    root, self._path, self._token_per_repo_id, self._storage_options
+            if not isinstance(root, zarr.Array):
+                raise ValueError(
+                    f"The default Zarr feature only supports Zarr arrays, but {self._path!r} "
+                    f"is a {type(root).__name__}. Point the feature at the array inside the "
+                    f"store (e.g. '{self._path}/array_name'), or use load_dataset('zarr', ...) "
+                    f"to load a whole store as a table; OME-Zarr (multiscale) stores are "
+                    f"supported in a separate integration."
                 )
-            else:
-                self._resolved = ZarrArrayProxy(
-                    root, self._path, self._token_per_repo_id, self._storage_options
-                )
+            self._resolved = ZarrArrayProxy(
+                root, self._path, self._token_per_repo_id, self._storage_options
+            )
         return self._resolved
 
     @property
@@ -169,18 +169,6 @@ class ZarrProxy:
 
     def __getitem__(self, key):
         return self._resolve().__getitem__(key)
-
-    def __contains__(self, key):
-        resolved = self._resolve()
-        if hasattr(resolved, "__contains__"):
-            return key in resolved
-        return False
-
-    def __iter__(self):
-        resolved = self._resolve()
-        if hasattr(resolved, "keys"):
-            return iter(resolved.keys())
-        raise TypeError(f"'{type(resolved).__name__}' object is not iterable")
 
     def __len__(self):
         return len(self._resolve())
@@ -409,92 +397,7 @@ class ZarrArrayProxy:
         self._token_per_repo_id = state.get("token_per_repo_id", {})
         self._storage_options = state.get("storage_options")
         self._array = _reopen_zarr_node(
-            self._path, self._token_per_repo_id, self._storage_options, "array"
-        )
-
-
-class ZarrGroupProxy:
-    """Lazy proxy for a Zarr group.
-
-    Provides navigation of group members (arrays and sub-groups) without
-    loading data. Access individual arrays via subscript notation
-    (``group["array_name"]``).
-    """
-
-    def __init__(
-        self,
-        group,
-        path: str,
-        token_per_repo_id: Optional[Dict[str, str]] = None,
-        storage_options: Optional[Dict[str, Any]] = None,
-    ):
-        self._group = group
-        self._path = path
-        self._token_per_repo_id = token_per_repo_id or {}
-        self._storage_options = dict(storage_options) if storage_options else None
-
-    def __getitem__(self, key):
-        item = self._group[key]
-        if config.ZARR_AVAILABLE:
-            import zarr
-
-            if isinstance(item, zarr.Array):
-                return ZarrArrayProxy(
-                    item, f"{self._path}/{key}", self._token_per_repo_id, self._storage_options
-                )
-            return ZarrGroupProxy(
-                item, f"{self._path}/{key}", self._token_per_repo_id, self._storage_options
-            )
-        return item
-
-    def __contains__(self, key):
-        return key in self._group
-
-    def keys(self):
-        return list(self._group.keys())
-
-    @property
-    def path(self):
-        return self._path
-
-    @property
-    def attrs(self):
-        return dict(self._group.attrs)
-
-    @property
-    def shape(self):
-        raise ValueError("ZarrGroup does not have a shape. Access individual arrays via group[key].shape")
-
-    @property
-    def dtype(self):
-        raise ValueError("ZarrGroup does not have a dtype. Access individual arrays via group[key].dtype")
-
-    @property
-    def ndim(self):
-        raise ValueError("ZarrGroup does not have ndim. Access individual arrays via group[key].ndim")
-
-    def asarray(self):
-        raise TypeError(
-            "ZarrGroup cannot be converted to a numpy array. "
-            "Access individual arrays via group[key].asarray()"
-        )
-
-    def __repr__(self):
-        return f"ZarrGroupProxy(path={self._path!r}, members={list(self._group.keys())})"
-
-    def __getstate__(self):
-        return {
-            "path": self._path,
-            "token_per_repo_id": self._token_per_repo_id,
-            "storage_options": self._storage_options,
-        }
-
-    def __setstate__(self, state):
-        self._path = state["path"]
-        self._token_per_repo_id = state.get("token_per_repo_id", {})
-        self._storage_options = state.get("storage_options")
-        self._group = _reopen_zarr_node(
-            self._path, self._token_per_repo_id, self._storage_options, "group"
+            self._path, self._token_per_repo_id, self._storage_options
         )
 
 
@@ -502,11 +405,11 @@ class ZarrGroupProxy:
 class Zarr:
     """Zarr feature for lazy loading of n-dimensional arrays from Zarr stores.
 
-    Supports plain Zarr arrays and groups. The feature stores only the path
-    to the Zarr store in Arrow format. When decoded, it returns a lazy proxy
-    object (``ZarrProxy``) that opens the store on first access, enabling
-    efficient streaming of large arrays with minimal memory overhead — only
-    the chunks needed for a given slice are fetched from the store.
+    Supports plain Zarr arrays. The feature stores only the path to the Zarr
+    store in Arrow format. When decoded, it returns a lazy proxy object
+    (``ZarrProxy``) that opens the store on first access, enabling efficient
+    streaming of large arrays with minimal memory overhead — only the chunks
+    needed for a given slice are fetched from the store.
 
     Reads are optimized with two internal, read-only-safe caches:
 
@@ -525,7 +428,7 @@ class Zarr:
 
         - ``path``: String with path to the Zarr store.
 
-    - A ``zarr.Array`` or ``zarr.Group`` object.
+    - A ``zarr.Array`` object.
 
     Args:
         decode (``bool``, defaults to ``True``):
@@ -581,7 +484,7 @@ class Zarr:
         """Encode example into the Arrow storage format.
 
         Args:
-            value (``str``, ``pathlib.Path``, ``dict``, ``zarr.Array``, or ``zarr.Group``):
+            value (``str``, ``pathlib.Path``, ``dict``, or ``zarr.Array``):
                 Data passed as input to Zarr feature.
 
         Returns:
@@ -599,7 +502,7 @@ class Zarr:
         elif config.ZARR_AVAILABLE:
             import zarr
 
-            if isinstance(value, (zarr.Array, zarr.Group)):
+            if isinstance(value, zarr.Array):
                 path = self._extract_zarr_path(value)
                 if path:
                     return {"path": path}
@@ -609,12 +512,12 @@ class Zarr:
                 )
         raise ValueError(
             f"A Zarr sample must be a string path, pathlib.Path, dict with 'path' key, "
-            f"or a zarr.Array/zarr.Group object, but got {type(value).__name__}"
+            f"or a zarr.Array object, but got {type(value).__name__}"
         )
 
     @staticmethod
     def _extract_zarr_path(zarr_obj) -> Optional[str]:
-        """Attempt to extract a file path from a zarr.Array or zarr.Group."""
+        """Attempt to extract a file path from a zarr.Array."""
         store = getattr(zarr_obj, "store", None)
         if store is not None:
             path = getattr(store, "path", None)

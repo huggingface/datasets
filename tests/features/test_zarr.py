@@ -10,7 +10,6 @@ from datasets import Dataset, Features
 from datasets.features.zarr import (
     Zarr,
     ZarrArrayProxy,
-    ZarrGroupProxy,
     ZarrProxy,
     _extract_repo_id_from_hf_path,
     _open_zarr_store,
@@ -85,15 +84,14 @@ class TestZarrEncodeExample:
         assert "path" in result
         assert result["path"] is not None
 
-    def test_encode_zarr_group(self, tmp_path):
+    def test_encode_zarr_group_raises(self, tmp_path):
         import zarr
 
         store_path = _create_zarr_group(tmp_path)
         grp = zarr.open_group(store_path, mode="r")
         zarr_feat = Zarr()
-        result = zarr_feat.encode_example(grp)
-        assert "path" in result
-        assert result["path"] is not None
+        with pytest.raises(ValueError, match="zarr.Array object"):
+            zarr_feat.encode_example(grp)
 
     def test_encode_zarr_object_without_path_raises(self):
         import zarr
@@ -127,19 +125,20 @@ class TestZarrDecodeExample:
         assert result.chunks == (5, 10)
         np.testing.assert_array_equal(np.asarray(result[:]), np.arange(200, dtype="float32").reshape(10, 20))
 
-    def test_decode_local_group(self, tmp_path):
+    def test_decode_group_store_raises(self, tmp_path):
         store_path = _create_zarr_group(tmp_path)
         zarr_feat = Zarr()
-        encoded = zarr_feat.encode_example(store_path)
-        result = zarr_feat.decode_example(encoded)
-        assert isinstance(result, ZarrProxy)
-        resolved = result._resolve()
-        assert isinstance(resolved, ZarrGroupProxy)
-        assert "data" in result
-        assert "mask" in result
-        assert sorted(result.keys()) == ["data", "mask"]
-        assert result.attrs == {"description": "test group"}
+        result = zarr_feat.decode_example(zarr_feat.encode_example(store_path))
+        with pytest.raises(ValueError, match="only supports Zarr arrays"):
+            result.shape
 
+    def test_decode_array_subpath_in_group(self, tmp_path):
+        store_path = _create_zarr_group(tmp_path)
+        zarr_feat = Zarr()
+        result = zarr_feat.decode_example(zarr_feat.encode_example(store_path + "/data"))
+        resolved = result._resolve()
+        assert isinstance(resolved, ZarrArrayProxy)
+        assert result.shape == (5, 5)
 
     def test_decode_no_decode(self, tmp_path):
         store_path = _create_zarr_array(tmp_path)
@@ -193,13 +192,6 @@ class TestAsArray:
         assert isinstance(arr, np.ndarray)
         np.testing.assert_array_equal(arr, np.arange(200, dtype="float32").reshape(10, 20))
 
-    def test_group_proxy_asarray_raises(self, tmp_path):
-        store_path = _create_zarr_group(tmp_path)
-        zarr_feat = Zarr()
-        proxy = zarr_feat.decode_example(zarr_feat.encode_example(store_path))
-        with pytest.raises(TypeError, match="ZarrGroup"):
-            proxy.asarray()
-
 
 
 @require_zarr
@@ -212,13 +204,6 @@ class TestZarrProxyPickleRoundTrip:
         assert isinstance(restored, ZarrArrayProxy)
         assert restored.shape == (10, 20)
         np.testing.assert_array_equal(restored[:], proxy[:])
-
-    def test_group_proxy(self, tmp_path):
-        store_path = _create_zarr_group(tmp_path)
-        proxy = ZarrProxy(path=store_path)._resolve()
-        restored = pickle.loads(pickle.dumps(proxy))
-        assert isinstance(restored, ZarrGroupProxy)
-        assert sorted(restored.keys()) == sorted(proxy.keys())
 
 @require_zarr
 class TestZarrProxy:
@@ -343,64 +328,6 @@ class TestZarrArrayProxy:
         proxy = ZarrArrayProxy(arr, store_path)
         with pytest.raises(ValueError, match="dimensions"):
             list(proxy.iter_patches((5, 10, 20)))
-
-
-@require_zarr
-class TestZarrGroupProxy:
-    def test_keys_and_contains(self, tmp_path):
-        import zarr
-
-        store_path = _create_zarr_group(tmp_path)
-        grp = zarr.open_group(store_path, mode="r")
-        proxy = ZarrGroupProxy(grp, store_path)
-        assert "data" in proxy
-        assert "mask" in proxy
-        assert sorted(proxy.keys()) == ["data", "mask"]
-
-    def test_getitem_returns_proxy(self, tmp_path):
-        import zarr
-
-        store_path = _create_zarr_group(tmp_path)
-        grp = zarr.open_group(store_path, mode="r")
-        proxy = ZarrGroupProxy(grp, store_path)
-        data_proxy = proxy["data"]
-        assert isinstance(data_proxy, ZarrArrayProxy)
-        assert data_proxy.shape == (5, 5)
-
-    def test_shape_raises(self, tmp_path):
-        import zarr
-
-        store_path = _create_zarr_group(tmp_path)
-        grp = zarr.open_group(store_path, mode="r")
-        proxy = ZarrGroupProxy(grp, store_path)
-        with pytest.raises(ValueError, match="shape"):
-            proxy.shape
-
-    def test_dtype_raises(self, tmp_path):
-        import zarr
-
-        store_path = _create_zarr_group(tmp_path)
-        grp = zarr.open_group(store_path, mode="r")
-        proxy = ZarrGroupProxy(grp, store_path)
-        with pytest.raises(ValueError, match="dtype"):
-            proxy.dtype
-
-    def test_ndim_raises(self, tmp_path):
-        import zarr
-
-        store_path = _create_zarr_group(tmp_path)
-        grp = zarr.open_group(store_path, mode="r")
-        proxy = ZarrGroupProxy(grp, store_path)
-        with pytest.raises(ValueError, match="ndim"):
-            proxy.ndim
-
-    def test_attrs(self, tmp_path):
-        import zarr
-
-        store_path = _create_zarr_group(tmp_path)
-        grp = zarr.open_group(store_path, mode="r")
-        proxy = ZarrGroupProxy(grp, store_path)
-        assert proxy.attrs == {"description": "test group"}
 
 
 @require_zarr
@@ -616,10 +543,12 @@ class TestZarrStoreRegistryReuse:
         import zarr
 
         array_path = _create_zarr_array(tmp_path)
-        group_path = _create_zarr_group(tmp_path)
+        other_path = str(tmp_path / "other.zarr")
+        other = zarr.open_array(other_path, mode="w", shape=(4, 4), dtype="float32", chunks=(2, 2))
+        other[:] = np.ones((4, 4))
         with patch("zarr.open", wraps=zarr.open) as mock_open:
             ZarrProxy(path=array_path)._resolve()
-            ZarrProxy(path=group_path)._resolve()
+            ZarrProxy(path=other_path)._resolve()
             assert mock_open.call_count == 2
 
 
