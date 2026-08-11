@@ -1978,12 +1978,15 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
             tables.append(pa_table)
             current_len += len(pa_table)
 
-            # Amortize shuffle cost by waiting until buffer is full
+            # Amortize shuffle cost by waiting until buffer is full.
+            # Once the buffer reaches `buffer_size`, we shuffle it, yield half, and keep half.
+            # This maintains a rolling randomized buffer while strictly bounding memory usage.
             if current_len >= self.buffer_size:
                 buffer_table = pa.concat_tables(tables)
                 indices = rng.permutation(current_len)
                 shuffled_table = pc.take(buffer_table, indices)
 
+                # Keep half of the buffer to mix with incoming data on the next iteration
                 keep_rows = self.buffer_size // 2
                 rows_to_yield = current_len - keep_rows
                 yield key, shuffled_table.slice(0, rows_to_yield)

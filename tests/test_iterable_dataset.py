@@ -2003,6 +2003,9 @@ def test_iterable_dataset_shuffle_with_multiple_workers_different_rng():
 def test_iterable_dataset_shuffle_buffer_uses_multiple_input_shards():
     ds = IterableDataset.from_dict({"i": range(100)}, num_shards=10)
 
+    # Note: We use inequalities rather than exact hardcoded lengths because `numpy.random.default_rng()`
+    # does not guarantee stream stability across NumPy versions. This ensures the test robustly verifies
+    # that multiple upstream shards are interleaved, without breaking when a user's NumPy version changes.
     shuffled_ds = ds.shuffle(buffer_size=10, seed=1234)
     shard_indices_of_first_ten_examples = {i // 10 for i in shuffled_ds.take(10)["i"]}
     assert len(shard_indices_of_first_ten_examples) > 5
