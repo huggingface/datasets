@@ -3610,6 +3610,40 @@ class MiscellaneousDatasetTest(TestCase):
             dset.set_transform(transform=encode)
             self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
 
+    @require_transformers
+    @pytest.mark.integration
+    def test_map_with_tokenizer_and_stride(self):
+        """Test that Dataset.map works with tokenizers using stride parameter (issue #4769)."""
+        from transformers import AutoTokenizer
+
+        tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+        # Create a dataset with longer text that will require multiple chunks with stride
+        data = {
+            "text": [
+                "Sodium chloride is a chemical compound with the formula NaCl. " * 20,
+            ]
+        }
+
+        def tokenize_with_stride(examples):
+            # This mimics the QA preprocessing pipeline
+            # The issue occurred when stride was close to max_length
+            result = tokenizer(
+                examples["text"],
+                max_length=128,
+                truncation=True,
+                return_overflowing_tokens=True,
+                stride=96,
+            )
+            return result
+
+        with Dataset.from_dict(data) as dset:
+            # This should not raise an assertion error about stride < max_len
+            result = dset.map(tokenize_with_stride, batched=True, remove_columns=["text"])
+            # Verify that we got results back
+            self.assertGreater(len(result), 0)
+            self.assertIn("input_ids", result.column_names)
+
     @require_tf
     def test_tf_string_encoding(self):
         data = {"col_1": ["á", "é", "í", "ó", "ú"], "col_2": ["à", "è", "ì", "ò", "ù"]}
