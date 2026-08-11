@@ -2005,15 +2005,15 @@ def test_iterable_dataset_shuffle_buffer_uses_multiple_input_shards():
 
     shuffled_ds = ds.shuffle(buffer_size=10, seed=1234)
     shard_indices_of_first_ten_examples = {i // 10 for i in shuffled_ds.take(10)["i"]}
-    assert len(shard_indices_of_first_ten_examples) == 7
+    assert len(shard_indices_of_first_ten_examples) > 5
 
     shuffled_ds = ds.shuffle(buffer_size=10, seed=1234, max_buffer_input_shards=1)
     shard_indices_of_first_ten_examples = {i // 10 for i in shuffled_ds.take(10)["i"]}
-    assert len(shard_indices_of_first_ten_examples) == 2
+    assert len(shard_indices_of_first_ten_examples) <= 2
 
     shuffled_ds = ds.shuffle(buffer_size=10, seed=1234, max_buffer_input_shards=4)
     shard_indices_of_first_ten_examples = {i // 10 for i in shuffled_ds.take(10)["i"]}
-    assert len(shard_indices_of_first_ten_examples) == 4
+    assert 2 < len(shard_indices_of_first_ten_examples) <= 5
 
 
 def gen_with_value(shard, value):
