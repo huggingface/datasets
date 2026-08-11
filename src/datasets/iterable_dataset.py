@@ -1978,17 +1978,18 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
             tables.append(pa_table)
             current_len += len(pa_table)
 
-            # Amortize shuffle cost by waiting until buffer is 2x full
-            if current_len >= 2 * self.buffer_size:
+            # Amortize shuffle cost by waiting until buffer is full
+            if current_len >= self.buffer_size:
                 buffer_table = pa.concat_tables(tables)
                 indices = rng.permutation(current_len)
                 shuffled_table = pc.take(buffer_table, indices)
 
-                rows_to_yield = current_len - self.buffer_size
+                keep_rows = self.buffer_size // 2
+                rows_to_yield = current_len - keep_rows
                 yield key, shuffled_table.slice(0, rows_to_yield)
 
                 tables = [shuffled_table.slice(rows_to_yield)]
-                current_len = self.buffer_size
+                current_len = keep_rows
 
         if current_len > 0:
             buffer_table = pa.concat_tables(tables)
