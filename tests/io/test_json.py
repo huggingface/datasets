@@ -1,6 +1,6 @@
+import datetime
 import io
 import json
-import datetime
 
 import fsspec
 import pytest
@@ -334,6 +334,10 @@ class TestJsonDatasetWriter:
         ],
     )
     def test_dataset_to_json_temporal_round_trip(self, unit, value, tmp_path):
+        # NOTE: These tests cover top-level temporal columns only, matching #8390's
+        # reproducer. A timestamp/duration field nested inside a struct still takes
+        # the old, unconverted path (pandas' millisecond default) — see PR discussion
+        # for the repro. Left as a follow-up rather than expanding this PR's scope.
         # Regression test: Dataset.to_json() used to write every temporal column via
         # pandas.DataFrame.to_json()'s single global `date_unit` (defaulting to "ms"),
         # ignoring the column's actual Arrow unit. Depending on the declared unit, the
