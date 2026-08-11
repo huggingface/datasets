@@ -110,8 +110,8 @@ REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 21.0.0 to support `use_content_defined_chunking` in ParquetWriter
-    "pyarrow>=21.0.0",
+    # Minimum 24.0.0 for view-type `nbytes` support used by Vortex
+    "pyarrow>=24.0.0",
     # For smart caching dataset processing
     "dill>=0.3.0,<0.4.2",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
@@ -173,6 +173,7 @@ TESTS_REQUIRE = [
     "h5py",
     "pylance",
     "pyiceberg[sql-sqlite,pyarrow]",
+    "vortex-data; python_version >= '3.11' and sys_platform != 'win32'",
     "jax>=0.3.14; sys_platform != 'win32'",
     "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4; python_version < '3.14'",  # python 3.14 gives ImportError: cannot import name '_compression' from partially initialized module 'lz4.frame
