@@ -10,8 +10,8 @@ def test_map_with_question_and_context_stride():
 
     tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 
-    # Make a long question to reduce the available context budget
-    question = "".join(["What is the role of sodium chloride in the industrial process? "] * 35)
+    # Make a long question of ~35 tokens to reduce the available context budget
+    question = " ".join(["what"] * 35)
     # Make a long context that will be chunked
     context = ("Sodium chloride is widely used in many industrial processes. " * 200).strip()
 
