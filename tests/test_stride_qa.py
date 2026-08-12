@@ -31,7 +31,7 @@ def test_map_with_question_and_context_stride():
 
     dset = Dataset.from_dict(data)
     try:
-        processed = dset.map(tokenize_batch, batched=True, remove_columns=["question", "context"], load_from_cache_file=False, num_proc=1)
+        processed = dset.map(tokenize_batch, batched=True, remove_columns=["question", "context"], load_from_cache_file=False, num_proc=$null)
     except BaseException as e:
         msg = str(e)
         # Tokenizers (Rust backend) may panic with messages about stride < max_len.
