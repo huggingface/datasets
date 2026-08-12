@@ -4819,7 +4819,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             (col, "ascending" if not col_reverse else "descending") for col, col_reverse in zip(column_names, reverse)
         ]
 
-        indices = pc.sort_indices(sort_table, sort_keys=sort_keys, null_placement=null_placement)
+        if config.PYARROW_VERSION.major >= 25:
+            # pyarrow 25 deprecated the top-level `null_placement` in favour of a per-key one.
+            # The three-tuple form does not exist before 25, so both spellings are needed to
+            # cover the supported range without a warning.
+            indices = pc.sort_indices(sort_table, sort_keys=[(col, order, null_placement) for col, order in sort_keys])
+        else:
+            indices = pc.sort_indices(sort_table, sort_keys=sort_keys, null_placement=null_placement)
 
         return self.select(
             indices=indices,
