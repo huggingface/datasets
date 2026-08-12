@@ -4842,6 +4842,30 @@ def test_train_test_split_with_numpy_integer_sizes(dtype):
     assert len(split["test"]) == 6
 
 
+@pytest.mark.parametrize("dtype", ["float16", "float32", "float64"])
+def test_train_test_split_with_numpy_float_sizes(dtype):
+    # Only np.float64 subclasses Python float, so a float32/float16 ratio -- what you
+    # get from a float32 column or anything that has been through a tensor -- used to
+    # be rejected as an invalid test_size.
+    #
+    # The split is asserted against `float(value)` rather than a fixed row count,
+    # because a narrow float does not hold the ratio exactly: np.float32(0.2) is
+    # 0.20000000298..., which legitimately rounds to a different split size than 0.2.
+    # What matters is that the numpy scalar behaves like the Python float it equals.
+    dataset = Dataset.from_dict({"col_1": list(range(10))})
+    for size in (0.2, 0.5):
+        value = getattr(np, dtype)(size)
+        expected = dataset.train_test_split(test_size=float(value), seed=42)
+        actual = dataset.train_test_split(test_size=value, seed=42)
+        assert len(actual["test"]) == len(expected["test"])
+        assert len(actual["train"]) == len(expected["train"])
+
+        expected = dataset.train_test_split(train_size=float(value), seed=42)
+        actual = dataset.train_test_split(train_size=value, seed=42)
+        assert len(actual["train"]) == len(expected["train"])
+        assert len(actual["test"]) == len(expected["test"])
+
+
 def test_dataset_getitem_int_np_equivalence():
     ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
 
