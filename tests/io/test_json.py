@@ -348,7 +348,14 @@ class TestJsonDatasetWriter:
 
         path = tmp_path / "temporal.jsonl"
         dataset.to_json(path)
-        reloaded = Dataset.from_json(str(path), features=features)
 
+        if unit == "s":
+            # Assert the raw on-disk value directly, not just the round trip, so a
+            # future change to the loader can't silently re-break the writer while
+            # keeping this test green by cancelling the two bugs out.
+            first_line = path.read_text().splitlines()[0]
+            assert first_line == '{"t":1704112245}'
+
+        reloaded = Dataset.from_json(str(path), features=features)
         assert reloaded[0]["t"] == value
         assert reloaded[1]["t"] is None

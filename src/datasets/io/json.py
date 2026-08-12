@@ -132,7 +132,7 @@ class JsonDatasetWriter:
             key=slice(offset, offset + self.batch_size),
             indices=self.dataset._indices,
         )
-        
+
         # Timestamp/duration columns are cast to their own raw, unit-native int64
         # representation *before* to_pandas() below. This must happen here, while the
         # data is still a pyarrow Table and each column still carries its true Arrow
