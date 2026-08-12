@@ -1337,7 +1337,11 @@ def load_dataset_builder(
         "config_name", name or dataset_module.builder_configs_parameters.default_config_name
     )
     dataset_name = builder_kwargs.pop("dataset_name", None)
-    info = dataset_module.dataset_infos.get(config_name) if dataset_module.dataset_infos else None
+    info = (
+        dataset_module.dataset_infos.get(config_name)
+        if dataset_module.dataset_infos and not data_dir and not data_files
+        else None
+    )
 
     if (
         path in _PACKAGED_DATASETS_MODULES
