@@ -854,7 +854,10 @@ class ArrayExtensionArray(pa.ExtensionArray):
 
 
 class PandasArrayExtensionDtype(PandasExtensionDtype):
-    _metadata = "value_type"
+    # Pandas iterates over ``_metadata`` to compare and hash dtypes, so it has to be a
+    # tuple of attribute names. A plain string is iterated character by character, which
+    # makes ``__eq__`` and ``__hash__`` look up attributes named "v", "a", "l", ...
+    _metadata = ("value_type",)
 
     def __init__(self, value_type: Union["PandasArrayExtensionDtype", np.dtype]):
         self._value_type = value_type
