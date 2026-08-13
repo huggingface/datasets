@@ -4579,7 +4579,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         size = len(self)
         if indices:
             _check_valid_indices_value(int(max(indices)), size=size)
-            _check_valid_indices_value(int(min(indices)), size=size)
+            min_index = int(min(indices))
+            _check_valid_indices_value(min_index, size=size)
+            if min_index < 0:
+                # In-range negative indices (allowed by the check above) are normalized
+                # to positive values, since the indices mapping is stored as uint64
+                indices = [int(i) % size for i in indices]
         else:
             return self._select_contiguous(0, 0, new_fingerprint=new_fingerprint)
 
