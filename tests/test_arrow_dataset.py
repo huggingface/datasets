@@ -4918,6 +4918,16 @@ def test_dataset_batch():
     assert batches[2]["text"] == ["Text 8", "Text 9"]
 
 
+@pytest.mark.parametrize("batch_size", [0, -1])
+def test_dataset_batch_with_non_positive_batch_size(batch_size):
+    ds = Dataset.from_dict({"a": [0, 1, 2]})
+
+    with pytest.raises(ValueError) as error:
+        ds.batch(batch_size)
+
+    assert str(error.value) == f"batch_size must be a positive integer, but got {batch_size}."
+
+
 def test_dataset_batch_by_column():
     # Create a Dataset with a column to group by
     data = {
