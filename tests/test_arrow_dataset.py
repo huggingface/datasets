@@ -89,6 +89,13 @@ def test_import_datasets_does_not_import_torch():
     assert output.strip() == "False"
 
 
+def test_dataset_mro_has_no_fake_torch_bases():
+    # The torch-compatibility base is typing-only: it must not show up in the runtime
+    # __bases__/__mro__ (see review on #8457).
+    assert not any("Torch" in base.__name__ for base in Dataset.__bases__)
+    assert not any("Torch" in base.__name__ for base in IterableDataset.__bases__)
+
+
 def _normalize_batched_output(batch):
     def to_python(value):
         if isinstance(value, np.ndarray):

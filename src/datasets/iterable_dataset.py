@@ -99,8 +99,19 @@ if TYPE_CHECKING:
 else:
 
     class _TorchIterableDatasetBase:
+        """Runtime stand-in for :class:`torch.utils.data.IterableDataset`.
+
+        Only the type checker sees the real torch class (imported under
+        ``TYPE_CHECKING``); at runtime PEP 560 ``__mro_entries__`` drops the base so
+        ``IterableDataset.__bases__`` stays identical to main and
+        :func:`_maybe_add_torch_iterable_dataset_parent_class` keeps working.
+        """
+
         def __class_getitem__(cls, item):
-            return cls
+            return cls()
+
+        def __mro_entries__(self, bases):
+            return ()
 
 
 logger = get_logger(__name__)

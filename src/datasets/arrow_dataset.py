@@ -165,8 +165,20 @@ if TYPE_CHECKING:
 else:
 
     class _TorchDatasetBase:
+        """Runtime stand-in for :class:`torch.utils.data.Dataset`.
+
+        The class statement below uses ``_TorchDatasetBase[Any]`` as a base so type
+        checkers (which see the real torch class imported under ``TYPE_CHECKING``)
+        accept ``Dataset`` as a ``torch.utils.data.DataLoader`` input. At runtime the
+        base is dropped through PEP 560 ``__mro_entries__``, so ``Dataset.__mro__``
+        stays identical to main and no fake torch class leaks into introspection.
+        """
+
         def __class_getitem__(cls, item):
-            return cls
+            return cls()
+
+        def __mro_entries__(self, bases):
+            return ()
 
 
 logger = logging.get_logger(__name__)
