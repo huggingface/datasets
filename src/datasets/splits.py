@@ -607,6 +607,16 @@ class SplitDict(dict[str, SplitInfo]):
 
     @classmethod
     def _from_yaml_list(cls, yaml_data: list) -> "SplitDict":
+        if not all(
+            isinstance(split_info, dict)
+            and "name" in split_info
+            and "num_examples" in split_info
+            and "num_bytes" in split_info
+            for split_info in yaml_data
+        ):
+            raise ValueError(
+                "The `splits` field in YAML is malformed or missing the name/num_examples/num_bytes fields"
+            )
         return cls.from_split_dict(yaml_data)
 
 
