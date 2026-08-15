@@ -964,19 +964,23 @@ class PandasArrayExtensionArray(PandasExtensionArray):
     ) -> "PandasArrayExtensionArray":
         indices: np.ndarray = np.asarray(indices, dtype=int)
         if allow_fill:
-            fill_value = (
-                self.dtype.na_value if fill_value is None else np.asarray(fill_value, dtype=self.dtype.value_type)
-            )
             mask = indices == -1
             if (indices < -1).any():
                 raise ValueError("Invalid value in `indices`, must be all >= -1 for `allow_fill` is True")
-            elif len(self) > 0:
-                pass
-            elif not np.all(mask):
+            elif len(self) == 0 and not np.all(mask):
                 raise IndexError("Invalid take for empty PandasArrayExtensionArray, must be all -1.")
-            else:
-                data = np.array([fill_value] * len(indices), dtype=self.dtype.value_type)
-                return PandasArrayExtensionArray(data, copy=False)
+            elif mask.any():
+                # Only coerce the fill value when something actually needs filling:
+                # the coercion can fail (e.g. NaN on an integer dtype) even when
+                # the fill value would never be used.
+                fill_value = (
+                    self.dtype.na_value
+                    if fill_value is None
+                    else np.asarray(fill_value, dtype=self.dtype.value_type)
+                )
+                if len(self) == 0:
+                    data = np.array([fill_value] * len(indices), dtype=self.dtype.value_type)
+                    return PandasArrayExtensionArray(data, copy=False)
         took = self._data.take(indices, axis=0)
         if allow_fill and mask.any():
             took[mask] = [fill_value] * np.sum(mask)
