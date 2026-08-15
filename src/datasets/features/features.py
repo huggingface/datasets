@@ -1141,8 +1141,12 @@ class ClassLabel:
             return_list = False
 
         for v in values:
-            if not 0 <= v < self.num_classes:
-                raise ValueError(f"Invalid integer class label {v:d}")
+            try:
+                in_range = 0 <= v < self.num_classes
+            except TypeError:  # not comparable to an int, so not a label
+                in_range = False
+            if not in_range:
+                raise ValueError(f"Invalid integer class label {v!r}")
 
         output = [self._int2str[int(v)] for v in values]
         return output if return_list else output[0]
