@@ -1160,6 +1160,21 @@ class TestLoadFromHub:
                 "train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"]
             }
 
+    def test_load_dataset_after_repo_rename(self, temporary_repo):
+        # See https://github.com/huggingface/datasets/issues/4911: the Hub redirects renamed/moved
+        # repositories, and loading via the old name must keep working.
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        with temporary_repo() as old_repo_id:
+            ds.push_to_hub(old_repo_id, token=self._token)
+            with temporary_repo() as new_repo_id:
+                self._api.move_repo(from_id=old_repo_id, to_id=new_repo_id, repo_type="dataset", token=self._token)
+                # sanity check that the repo now lives under the new name (i.e. the move really happened)
+                assert self._api.repo_info(new_repo_id, repo_type="dataset", token=self._token).id == new_repo_id
+                hub_ds = load_dataset(old_repo_id, split="train", download_mode="force_redownload")
+                assert hub_ds.to_dict() == ds.to_dict()
+                hub_ds_streaming = load_dataset(old_repo_id, split="train", streaming=True)
+                assert list(hub_ds_streaming) == [ds[i] for i in range(len(ds))]
+
     @pytest.mark.parametrize("dataset", ["gated", "private"])
     def test_load_dataset_raises_for_unauthenticated_user(
         self, dataset, hf_gated_dataset_repo_txt_data, hf_private_dataset_repo_txt_data
