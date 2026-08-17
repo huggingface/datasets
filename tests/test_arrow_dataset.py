@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import copy
+import errno
 import itertools
 import json
 import os
@@ -27,6 +28,7 @@ import datasets.arrow_dataset
 import datasets.config
 from datasets import concatenate_datasets, interleave_datasets, load_from_disk
 from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
+from datasets.arrow_writer import ArrowWriter
 from datasets.dataset_dict import DatasetDict
 from datasets.features import (
     Array2D,
@@ -4807,6 +4809,25 @@ def test_map_async():
     out = dset.map(f, batched=True)
     assert time.time() - _start < 2.0
     assert out[0]["y"] == 1
+
+
+def test_map_keeps_the_error_raised_when_finalizing():
+    dset = Dataset.from_dict({"x": range(10)})
+    finalize = ArrowWriter.finalize
+    num_calls = 0
+
+    def finalize_and_fail_once(self, *args, **kwargs):
+        # the stream is closed but finalize() raises, e.g. when close() is interrupted by a signal
+        nonlocal num_calls
+        num_calls += 1
+        out = finalize(self, *args, **kwargs)
+        if num_calls == 1:
+            raise InterruptedError(errno.EINTR, "Interrupted system call")
+        return out
+
+    with patch.object(ArrowWriter, "finalize", finalize_and_fail_once):
+        with pytest.raises(InterruptedError):
+            dset.map(lambda x: x)
 
 
 def test_filter_async():
