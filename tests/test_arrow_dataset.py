@@ -5136,6 +5136,20 @@ def test_add_column():
     assert ds[1] == {"a": 2, "b": 4}
 
 
+@pytest.mark.parametrize("n", [0, 1, 2, 3, 4, 10])
+def test_dataset_take_beyond_length(n):
+    # take(n) with n > len(ds) used to raise IndexError, while IterableDataset.take
+    # returned the elements it had.
+    ds = Dataset.from_dict({"a": [1, 2, 3]})
+
+    taken = ds.take(n)
+
+    assert len(taken) == min(n, len(ds))
+    assert taken["a"] == [1, 2, 3][:n]
+    # and it agrees with the IterableDataset counterpart
+    assert len(list(ds.to_iterable_dataset().take(n))) == len(taken)
+
+
 def test_process_large_few_examples(tmp_path):
     # GH 7911
     from datasets import Dataset
