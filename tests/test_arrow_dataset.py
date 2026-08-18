@@ -3637,6 +3637,24 @@ def test_cast_with_sliced_list():
     assert casted_dataset.features == new_features
 
 
+def test_cast_column_to_class_label_out_of_range():
+    names = ["negative", "positive", "irrelevant"]
+    dataset = Dataset.from_dict({"label": [5, 1]})
+    with pytest.raises(ValueError, match="Class label 5 greater than configured num_classes 3"):
+        dataset.cast_column("label", ClassLabel(names=names))
+    features = Features({"label": ClassLabel(names=names)})
+    with pytest.raises(ValueError, match="Class label 5 greater than configured num_classes 3"):
+        dataset.cast(features)
+
+
+def test_cast_column_to_class_label_in_range():
+    names = ["negative", "positive"]
+    dataset = Dataset.from_dict({"label": [1, 0]})
+    casted_dataset = dataset.cast_column("label", ClassLabel(names=names))
+    assert casted_dataset["label"] == [1, 0]
+    assert casted_dataset.features["label"].int2str(1) == "positive"
+
+
 @pytest.mark.parametrize("include_nulls", [False, True])
 def test_class_encode_column_with_none(include_nulls):
     dataset = Dataset.from_dict({"col_1": ["a", "b", "c", None, "d", None]})
