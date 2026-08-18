@@ -4491,8 +4491,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if len(self) == 0:
             return self
 
-        _check_valid_indices_value(start, len(self))
-        _check_valid_indices_value(start + length - 1, len(self))
+        # Bounds only constrain a non-empty slice. An empty one is valid at any start,
+        # including start == len(self): `ds.skip(len(ds))` asks for range(len, len), which
+        # is contiguous and lands here with length == 0.
+        if length > 0:
+            _check_valid_indices_value(start, len(self))
+            _check_valid_indices_value(start + length - 1, len(self))
         if self._indices is None or length == 0:
             return Dataset(
                 self.data.slice(start, length),
