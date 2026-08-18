@@ -4830,6 +4830,25 @@ def test_map_keeps_the_error_raised_when_finalizing():
             dset.map(lambda x: x)
 
 
+def test_map_ignores_interrupted_close(tmp_path):
+    dset = Dataset.from_dict({"x": range(10)})
+    finalize = ArrowWriter.finalize
+
+    def finalize_with_interrupted_close(self, *args, **kwargs):
+        stream_close = self.stream.close
+
+        def close():
+            stream_close()
+            raise InterruptedError(errno.EINTR, "Interrupted system call")
+
+        with patch.object(self.stream, "close", close):
+            return finalize(self, *args, **kwargs)
+
+    with patch.object(ArrowWriter, "finalize", finalize_with_interrupted_close):
+        out = dset.map(lambda x: {"y": x["x"] + 1}, cache_file_name=str(tmp_path / "cache.arrow"))
+    assert out["y"] == list(range(1, 11))
+
+
 def test_filter_async():
     dset = Dataset.from_dict({"x": range(100)})
 

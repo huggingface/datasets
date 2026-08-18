@@ -4027,8 +4027,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     if writer is not None:
                         try:
                             writer.finalize()
-                        except Exception:  # the writer may be broken already, don't hide the error we are handling
-                            logger.debug("Failed to finalize the writer.")
+                        except Exception as e:  # the writer may be broken already, don't hide the original error
+                            logger.warning(f"Failed to finalize the writer while handling an error: {e!r}")
                     if tmp_file is not None:
                         tmp_file.close()
                         if os.path.exists(tmp_file.name):

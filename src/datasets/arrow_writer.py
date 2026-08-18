@@ -788,7 +788,13 @@ class ArrowWriter:
             self.pa_writer.close()
             self.pa_writer = None
             if close_stream:
-                self.stream.close()
+                try:
+                    self.stream.close()
+                except InterruptedError:
+                    # close(2) was interrupted by a signal: the data is already flushed and, on Linux, the file
+                    # descriptor is already closed. Retrying close() would be wrong since the descriptor may have
+                    # been reused (see `man 2 close`), so just carry on.
+                    logger.debug("Closing the stream was interrupted by a signal, ignoring.")
         else:
             if close_stream:
                 self.stream.close()
