@@ -201,6 +201,7 @@ def shift_ex_examples_rngs(ex_iterable: "_BaseExamplesIterable", value: int) -> 
 
 _PRIMITIVE_TYPES = (int, float, bool, str, bytes, type(None))
 
+
 def _fast_copy(state):
     """Fast acyclic copy of state_dict data structures, bypassing slow pickle/deepcopy introspection."""
     # Use type() instead of isinstance() for 2x faster type checks
@@ -208,20 +209,11 @@ def _fast_copy(state):
     if state_type in _PRIMITIVE_TYPES:
         return state
     elif state_type is list:
-        return [
-            v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v)
-            for v in state
-        ]
+        return [v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v) for v in state]
     elif state_type is dict:
-        return {
-            k: (v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v))
-            for k, v in state.items()
-        }
+        return {k: (v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v)) for k, v in state.items()}
     elif state_type is tuple:
-        return tuple(
-            v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v)
-            for v in state
-        )
+        return tuple(v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v) for v in state)
     else:
         return deepcopy(state)
 
