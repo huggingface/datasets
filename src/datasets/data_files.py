@@ -390,7 +390,9 @@ def _resolve_pattern(
             if any("." + suffix in allowed_extensions for suffix in xbasename(filepath).split(".")[1:])
         ]
         if len(out) < len(matched_paths):
-            invalid_matched_files = list({filepath for filepath, _ in matched_paths} - {filepath for filepath, _ in out})
+            invalid_matched_files = list(
+                {filepath for filepath, _ in matched_paths} - {filepath for filepath, _ in out}
+            )
             logger.info(
                 f"Some files matched the pattern '{pattern}' but don't have valid data file extensions: {invalid_matched_files}"
             )
