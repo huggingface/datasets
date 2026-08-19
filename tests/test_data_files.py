@@ -698,7 +698,7 @@ def test_get_single_origin_metadata_includes_size(mock_url_to_fs):
     mock_fs = MagicMock()
     mock_fs.info.return_value = {"etag": "my_etag_123", "size": 1024}
     mock_url_to_fs.return_value = (mock_fs, "some_path.txt")
-    
+
     metadata = _get_single_origin_metadata("http://example.com/some_path.txt")
-    
+
     assert metadata == ("my_etag_123-1024",)
