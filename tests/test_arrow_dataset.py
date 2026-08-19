@@ -2311,6 +2311,27 @@ class BaseDatasetTest(TestCase):
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(dset_select_five.features, Features({"filename": Value("string")}))
 
+    def test_take(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                # normal take
+                taken_3 = dset.take(3)
+                self.assertEqual(len(taken_3), 3)
+                self.assertEqual(list(taken_3["filename"]), [f"my_name-train_{i}" for i in range(3)])
+
+                # take more than dataset size returns whole dataset instead of raising IndexError
+                taken_all = dset.take(len(dset) + 10)
+                self.assertEqual(len(taken_all), len(dset))
+                self.assertEqual(list(taken_all["filename"]), list(dset["filename"]))
+
+                # take 0 returns empty dataset
+                taken_zero = dset.take(0)
+                self.assertEqual(len(taken_zero), 0)
+
+                # take negative returns empty dataset
+                taken_neg = dset.take(-5)
+                self.assertEqual(len(taken_neg), 0)
+
     def test_select_then_map(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
