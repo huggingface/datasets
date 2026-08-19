@@ -4060,7 +4060,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # Every batch was incomplete and therefore dropped, so the function was never called.
             # Return an empty dataset (matching `IterableDataset.batch`/`Dataset.iter`) instead of
             # silently passing through the original, unprocessed shard.
-            yield rank, True, shard.select([])
+            if features is not None:
+                # An explicit `features` was requested for the output: honor it instead of falling
+                # back to the (pre-map) input schema, since the caller already knows the intended
+                # output schema and it can't be inferred from a function that was never called.
+                empty_shard = Dataset.from_dict({col: [] for col in features}, features=features, split=shard.split)
+            else:
+                empty_shard = shard.select([])
+                if remove_columns:
+                    empty_shard = empty_shard.remove_columns(
+                        [col for col in remove_columns if col in empty_shard.column_names]
+                    )
+            yield rank, True, empty_shard
         else:
             yield rank, True, shard
 
