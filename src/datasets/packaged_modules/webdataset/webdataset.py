@@ -32,8 +32,6 @@ class WebDataset(datasets.GeneratorBasedBuilder):
         try:
             yield from cls._get_pipeline_from_tar_without_error_context(tar_path, tar_iterator)
         except tarfile.ReadError as error:
-            # tar_path is a tracked_str whose repr appends its sanitized origin (e.g. hf://…),
-            # so every loader that reprs a tracked path gets the same safe error context.
             raise tarfile.ReadError(f"Failed to read TAR archive {tar_path!r}: {error}") from error
 
     @classmethod
