@@ -3821,7 +3821,7 @@ def test_interleave_datasets_probabilities_is_deterministic_and_balanced(stoppin
     d1 = Dataset.from_dict({"a": list(range(0, 500))})
     d2 = Dataset.from_dict({"a": list(range(1000, 1200))})
     d3 = Dataset.from_dict({"a": list(range(2000, 2050))})
-    kwargs = dict(probabilities=probabilities, seed=seed, stopping_strategy=stopping_strategy)
+    kwargs = {"probabilities": probabilities, "seed": seed, "stopping_strategy": stopping_strategy}
     ds_a = interleave_datasets([d1, d2, d3], **kwargs)
     ds_b = interleave_datasets([d1, d2, d3], **kwargs)
     # deterministic: identical values and fingerprint across calls
@@ -3832,22 +3832,52 @@ def test_interleave_datasets_probabilities_is_deterministic_and_balanced(stoppin
     assert set(ds_a["a"]) <= allowed
     # source 0 (prob 0.6) is drawn more than source 2 (prob 0.1)
     from collections import Counter
+
     src = Counter("d1" if v < 1000 else ("d2" if v < 2000 else "d3") for v in ds_a["a"])
     assert src["d1"] > src["d3"]
 
 
 @pytest.mark.parametrize("stopping_strategy", ["first_exhausted", "all_exhausted"])
 def test_interleave_datasets_probabilities_empty_source(stopping_strategy):
-    # A length-0 source can never be sampled to its length; the stop condition
-    # is ill-defined. Previously this crashed with a cryptic IndexError -- now
-    # it raises a clear ValueError for both strategies.
+    # A length-0 source that can actually be drawn can never be sampled to its
+    # length, so the stop condition is ill-defined. Previously this crashed with
+    # a cryptic IndexError -- now it raises a clear ValueError for both
+    # strategies.
     d_full = Dataset.from_dict({"a": [0, 1, 2]})
     d_empty = Dataset.from_dict({"a": []})
     with pytest.raises(ValueError):
         interleave_datasets(
-            [d_full, d_empty], probabilities=[0.5, 0.5], seed=42,
+            [d_full, d_empty],
+            probabilities=[0.5, 0.5],
+            seed=42,
             stopping_strategy=stopping_strategy,
         )
+
+
+def test_interleave_datasets_probabilities_zero_probability_source():
+    # A source with probability 0 is never drawn, so under "first_exhausted" it
+    # neither contributes rows nor blocks the stop condition -- even when it is
+    # empty. This worked before the vectorization and must keep working.
+    d_full = Dataset.from_dict({"a": [0, 1, 2]})
+    d_empty = Dataset.from_dict({"a": []})
+    d_other = Dataset.from_dict({"a": [10, 11, 12, 13, 14]})
+    assert interleave_datasets(
+        [d_full, d_empty], probabilities=[1.0, 0.0], seed=7, stopping_strategy="first_exhausted"
+    )["a"] == [0, 1, 2]
+    assert interleave_datasets(
+        [d_full, d_other], probabilities=[1.0, 0.0], seed=7, stopping_strategy="first_exhausted"
+    )["a"] == [0, 1, 2]
+
+
+@pytest.mark.parametrize("other", [[], [10, 11, 12, 13, 14]])
+def test_interleave_datasets_probabilities_zero_probability_all_exhausted_raises(other):
+    # "all_exhausted" requires every source to be exhausted, but a source with
+    # probability 0 is never drawn and so never can be -- the pre-vectorization
+    # loop spun forever here. It must raise instead of hanging.
+    d_full = Dataset.from_dict({"a": [0, 1, 2]})
+    d_other = Dataset.from_dict({"a": other})
+    with pytest.raises(ValueError):
+        interleave_datasets([d_full, d_other], probabilities=[1.0, 0.0], seed=7, stopping_strategy="all_exhausted")
 
 
 @pytest.mark.parametrize("batch_size", [4, 5])
