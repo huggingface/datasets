@@ -5379,6 +5379,26 @@ def _split_by_node_iterable_dataset(
     Returns:
         [`IterableDataset`]: The iterable dataset to be used on the node at rank `rank`.
     """
+    if force_sample_level:
+        ex_iterable = dataset._ex_iterable
+        if dataset._distributed:
+            distributed = dataset._distributed
+            divisible = ex_iterable.num_shards % distributed.world_size == 0
+            if divisible and not distributed.force_sample_level:
+                ex_iterable = ex_iterable.shard_data_sources(
+                    num_shards=distributed.world_size, index=distributed.rank, contiguous=False
+                )
+            else:
+                ex_iterable = StepExamplesIterable(ex_iterable, step=distributed.world_size, offset=distributed.rank)
+        ex_iterable = StepExamplesIterable(ex_iterable, step=world_size, offset=rank)
+        return IterableDataset(
+            ex_iterable=ex_iterable,
+            info=dataset._info.copy(),
+            split=dataset._split,
+            formatting=dataset._formatting,
+            token_per_repo_id=dataset._token_per_repo_id,
+        )
+
     if dataset._distributed:
         rank = world_size * dataset._distributed.rank + rank
         world_size = world_size * dataset._distributed.world_size
