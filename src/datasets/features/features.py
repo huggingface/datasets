@@ -1715,9 +1715,25 @@ def to_pyarrow_listarray(data: Any, pa_type: _ArrayXDExtensionType) -> pa.Array:
         pyarrow.Array
     """
     if contains_any_np_array(data):
-        return any_np_array_to_pyarrow_listarray(data, type=pa_type.value_type)
+        out = any_np_array_to_pyarrow_listarray(data, type=pa_type.value_type)
     else:
-        return pa.array(data, pa_type.storage_dtype)
+        out = pa.array(data, pa_type.storage_dtype)
+
+    nested_array = out
+    for dimension, expected_length in enumerate(pa_type.shape):
+        if expected_length is not None:
+            lengths = nested_array.value_lengths()
+            valid_lengths = pc.equal(lengths, expected_length)
+            valid_lengths = pc.fill_null(valid_lengths, dimension == 0)
+            if pc.any(pc.invert(valid_lengths)).as_py():
+                observed_lengths = pc.unique(lengths).to_pylist()
+                raise TypeError(
+                    f"Array shape mismatch at dimension {dimension}: expected {expected_length}, "
+                    f"but found lengths {observed_lengths}"
+                )
+        nested_array = nested_array.flatten()
+
+    return out
 
 
 def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureType]]) -> FeatureType:
