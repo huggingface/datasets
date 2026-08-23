@@ -707,6 +707,15 @@ class InMemoryTable(TableBlock):
     stay low.
     """
 
+    def __getstate__(self):
+        # Serialize only the underlying table: the `_batches`/`_offsets` index is
+        # derived and rebuilt in `__init__`, and pickling it makes the fingerprint
+        # cost scale with the number of chunks (see #8327).
+        return {"table": self.table}
+
+    def __setstate__(self, state):
+        InMemoryTable.__init__(self, state["table"])
+
     @classmethod
     def from_file(cls, filename: str):
         table = _in_memory_arrow_table_from_file(filename)
@@ -1867,7 +1876,7 @@ def _combine_list_array_offsets_with_mask(array: pa.ListArray) -> pa.Array:
     if array.null_count > 0:
         offsets = pa.concat_arrays(
             [
-                pc.replace_with_mask(offsets[:-1], array.is_null(), pa.nulls(len(array), pa.int32())),
+                pc.replace_with_mask(offsets[:-1], array.is_null(), pa.nulls(len(array), offsets.type)),
                 offsets[-1:],
             ]
         )
