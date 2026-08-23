@@ -304,6 +304,24 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["a"].dtype, np.dtype(np.float16))
         self.assertEqual(batch["c"].dtype, np.dtype(np.float16))
 
+    def test_numpy_formatter_special_scalars_and_durations(self):
+        table = pa.table(
+            {
+                "boolean": pa.array([True], type=pa.bool_()),
+                "timestamp": pa.array([datetime.datetime(2024, 1, 1)], type=pa.timestamp("us")),
+                "duration": pa.array([datetime.timedelta(seconds=5)], type=pa.duration("us")),
+            }
+        )
+        formatter = NumpyFormatter()
+
+        row = formatter.format_row(table)
+        batch = formatter.format_batch(table)
+
+        self.assertIsInstance(row["boolean"], np.bool_)
+        self.assertIsInstance(row["timestamp"], np.datetime64)
+        self.assertIsInstance(row["duration"], np.timedelta64)
+        self.assertEqual(batch["duration"].dtype, np.dtype("timedelta64[us]"))
+
     @require_pil
     def test_numpy_formatter_image(self):
         # same dimensions
