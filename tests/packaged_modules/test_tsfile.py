@@ -13,6 +13,8 @@ import pytest
 # `tsfile` requires pyarrow<20 for python<3.14, which conflicts with datasets'
 # pyarrow>=21.0.0. It is therefore only installed in the py3.14 CI. Skip this
 # whole module (at collection time) when tsfile is not importable.
+# `@require_tsfile` is the per-test equivalent (see tests/utils.py); importorskip
+# is still required here because the module imports TsFileWriter at import time.
 pytest.importorskip("tsfile")
 
 from tsfile import ColumnCategory, ColumnSchema, TableSchema, Tablet, TsFileWriter  # noqa: E402
@@ -22,6 +24,7 @@ from datasets import IterableDataset, load_dataset  # noqa: E402
 from datasets.builder import InvalidConfigName  # noqa: E402
 from datasets.data_files import DataFilesList  # noqa: E402
 from datasets.packaged_modules.tsfile.tsfile import TsFileConfig, _to_epoch  # noqa: E402
+from ..utils import require_tsfile  # noqa: F401  (marker lives in tests.utils; collection skip is importorskip)
 
 
 # ---------------------------------------------------------------------------

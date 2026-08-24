@@ -48,6 +48,24 @@ from datasets.utils.tqdm import tqdm
 
 logger = datasets.utils.logging.get_logger(__name__)
 
+_TSFILE_INSTALL_ERROR = (
+    "Loading TsFile datasets requires the Apache TsFile Python SDK. "
+    "Please install it with `pip install 'datasets[tsfile]'`."
+)
+
+
+def _require_tsfile() -> None:
+    """Import the optional ``tsfile`` SDK or raise an actionable error.
+
+    The SDK is an extra (``datasets[tsfile]``), not a hard dependency. Bare
+    ``ModuleNotFoundError: No module named 'tsfile'`` is what dataset-viewer
+    workers currently surface (huggingface/datasets#8256, #8499).
+    """
+    try:
+        import tsfile  # noqa: F401
+    except ImportError as err:
+        raise ImportError(_TSFILE_INSTALL_ERROR) from err
+
 
 # ---------------------------------------------------------------------------
 # Type helpers
@@ -56,6 +74,7 @@ logger = datasets.utils.logging.get_logger(__name__)
 
 def _arrow_type(ts_dtype, *, unit: str, tz: Optional[str]) -> pa.DataType:
     """Map a tsfile ``TSDataType`` to its Arrow representation."""
+    _require_tsfile()
     from tsfile.constants import TSDataType
 
     return {
@@ -86,6 +105,7 @@ def _promote_tsdatatype(a, b):
     if a == b:
         return a
 
+    _require_tsfile()
     from tsfile.constants import TSDataType
 
     table = {
@@ -301,6 +321,7 @@ class TsFile(datasets.ArrowBasedBuilder):
 
     def _scan_metadata(self, files) -> Optional[dict]:
         """Walk every file and unify table name, TAG columns, FIELD types."""
+        _require_tsfile()
         from tsfile.constants import TIME_COLUMN, ColumnCategory
 
         wanted_table = self._table
@@ -431,6 +452,7 @@ class TsFile(datasets.ArrowBasedBuilder):
         - ``file_meta``: maps each readable file to its per-file context
           (``tag_cols``, ``field_cols``, ``time_col``).
         """
+        _require_tsfile()
         from tsfile.constants import ColumnCategory
 
         device_to_files: dict[tuple, list[str]] = {}
@@ -541,6 +563,7 @@ class TsFile(datasets.ArrowBasedBuilder):
         field columns that this file owns *and* that the builder requested;
         callers fill missing fields with all-null contributions.
         """
+        _require_tsfile()
         from tsfile import tag_eq
 
         file_tag_cols: list[str] = meta["tag_cols"]
@@ -730,6 +753,7 @@ class TsFile(datasets.ArrowBasedBuilder):
         segfaults. The 6-byte ``TsFile`` magic header is checked first to
         bail out cleanly.
         """
+        _require_tsfile()
         from tsfile import TsFileReader
 
         try:

@@ -213,6 +213,12 @@ To load a TsFile:
 >>> dataset = load_dataset("tsfile", data_files="my_data.tsfile")
 ```
 
+The Apache TsFile SDK is an optional extra:
+
+```bash
+pip install "datasets[tsfile]"
+```
+
 Filter by time range — bounds are pushed down to TsFile's internal time index and accept `int` epochs, `datetime`, `date`, ISO-8601 strings, or `pyarrow` timestamp scalars:
 
 ```py

@@ -195,6 +195,7 @@ TESTS_REQUIRE = [
     "nibabel>=5.3.1",
     "trimesh>=4.10.0",
     "teich==0.1.5",
+    "tsfile>=2.3.0; python_version >= '3.14'",
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
@@ -220,6 +221,11 @@ NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 
 ICEBERG_REQUIRE = ["pyiceberg>=0.7.0"]
 
+# Optional: Apache TsFile SDK. On Python < 3.14 the published wheels pin
+# pyarrow<20, which conflicts with datasets' pyarrow>=21, so CI only installs
+# this extra on 3.14 (see .github/workflows/ci.yml).
+TSFILE_REQUIRE = ["tsfile>=2.3.0"]
+
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
@@ -240,6 +246,7 @@ EXTRAS_REQUIRE = {
     "pdfs": PDFS_REQUIRE,
     "nibabel": NIBABEL_REQUIRE,
     "iceberg": ICEBERG_REQUIRE,
+    "tsfile": TSFILE_REQUIRE,
 }
 
 setup(

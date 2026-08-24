@@ -84,6 +84,9 @@ pip install datasets[vision]
 # For PDFs/NIfTI (pdfplumber, nibabel)
 pip install datasets[pdfs,nibabel]
 
+# For Apache TsFile (time-series)
+pip install datasets[tsfile]
+
 # For PyTorch/TensorFlow/JAX integration
 pip install datasets[torch,tensorflow,jax]
 
