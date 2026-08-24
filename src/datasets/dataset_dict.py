@@ -1841,7 +1841,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
     @property
     def num_columns(self) -> dict[str, Optional[int]]:
         """Number of columns in each split of the dataset.
-        This can contain None valies if some splits have unknown features (e.g. after a map() operation).
+        This can contain None values if some splits have unknown features (e.g. after a map() operation).
 
         Example:
 
@@ -1858,7 +1858,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
     @property
     def column_names(self) -> dict[str, Optional[list[str]]]:
         """Names of the columns in each split of the dataset.
-        This can contain None valies if some splits have unknown features (e.g. after a map() operation).
+        This can contain None values if some splits have unknown features (e.g. after a map() operation).
 
         Example:
 
