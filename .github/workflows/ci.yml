@@ -122,7 +122,9 @@ jobs:
       - name: Install dependencies
         run: uv pip install --system "datasets[tests] @ ."
       - name: Install tsfile (py3.14 only)
-        run: uv pip install --system "tsfile>=2.3.0"
+        # --no-deps because tsfile caps pyarrow<24, which silently downgrades
+        # the pyarrow that datasets needs. Its other deps come from datasets.
+        run: uv pip install --system --no-deps "tsfile>=2.3.0"
       - name: Print dependencies
         run: uv pip list
       - name: Test with pytest
