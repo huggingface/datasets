@@ -24,6 +24,9 @@ logger = datasets.utils.logging.get_logger(__name__)
 # carrying the `token` and `endpoint` that `load_dataset` was given, which a URI cannot express.
 _HF_URI_PATTERN = re.compile(r"^hf://datasets/([^/@]+/[^/@]+?)(?:@([^/]+))?/(.+)$")
 
+# `hf://buckets/...` URIs point at HF Buckets, which `HfStore` cannot root a read on yet.
+_HF_BUCKETS_URI_PATTERN = re.compile(r"^hf://buckets/")
+
 # The comparisons `pyarrow.parquet.filters_to_expression` accepts, mapped to the Python operators
 # that build the equivalent Vortex expression.
 _FILTER_COMPARISONS = {
@@ -155,7 +158,13 @@ def _open_vortex_file(file: str, hf_storage_options: Optional[dict] = None) -> "
     Vortex resolves `hf://` URIs itself, taking credentials from `HF_TOKEN` or the saved login, but
     the `token` and `endpoint` `load_dataset` was given cannot be expressed in a URI. So a Hub read
     is re-rooted on an `HfStore` carrying them, against which the in-repository path is opened.
+
+    Only `hf://datasets/...` URIs are re-rooted this way. `hf://buckets/...` URIs are refused until
+    `HfStore` supports HF Buckets.
     """
+    if _HF_BUCKETS_URI_PATTERN.match(file):
+        raise NotImplementedError(f"Vortex cannot read from HF Buckets yet: {file}")
+
     import vortex
 
     matched = _HF_URI_PATTERN.match(file)

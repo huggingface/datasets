@@ -257,6 +257,13 @@ def test_open_vortex_file_decodes_the_revision(monkeypatch):
     assert stores == ["refs/convert/parquet"]  # `HfStore` percent-encodes it again itself
 
 
+def test_open_vortex_file_refuses_hf_buckets():
+    from datasets.packaged_modules.vortex import vortex as vortex_module
+
+    with pytest.raises(NotImplementedError, match="HF Buckets"):
+        vortex_module._open_vortex_file("hf://buckets/org/name/data/train.vortex", {})
+
+
 @pytest.mark.parametrize("path", ["/local/data.vortex", "https://example.com/data.vortex"])
 def test_open_vortex_file_leaves_non_hub_paths_to_vortex(monkeypatch, path):
     from datasets.packaged_modules.vortex import vortex as vortex_module
