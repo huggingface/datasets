@@ -5156,3 +5156,23 @@ def test_process_large_few_examples(tmp_path):
     # make sure this is split into 2 shards
     ds.save_to_disk(dataset_path, max_shard_size="1KB")
     assert (dataset_path / "data-00000-of-00001.arrow").exists()
+
+
+def test_cast_column_to_class_label_rejects_out_of_range_label():
+    """The cast path has to validate the way the write path already does.
+
+    `pa.Schema.__eq__` ignores metadata, so casting int64 storage to a
+    `ClassLabel` leaves the arrow schema equal. That used to take the
+    metadata-only branch of `table_cast` and skip `cast_array_to_feature`, and
+    with it the range check in `ClassLabel.cast_storage`.
+    """
+    dset = Dataset.from_dict({"label": [5, 1]})
+    with pytest.raises(ValueError, match="greater than configured num_classes"):
+        dset.cast_column("label", ClassLabel(names=["neg", "pos", "oth"]))
+
+
+def test_cast_column_to_class_label_keeps_in_range_labels():
+    dset = Dataset.from_dict({"label": [2, 1]})
+    casted = dset.cast_column("label", ClassLabel(names=["neg", "pos", "oth"]))
+    assert casted["label"][:] == [2, 1]
+    assert casted.features["label"].int2str(2) == "oth"

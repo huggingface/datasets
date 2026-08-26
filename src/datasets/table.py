@@ -2374,10 +2374,12 @@ def table_cast(table: pa.Table, schema: pa.Schema):
     Returns:
         table (`pyarrow.Table`): the casted table
     """
-    if table.schema != schema:
+    # NOTE: pa.Schema.__eq__ ignores metadata, so a cast that only changes the
+    # feature types (int64 -> ClassLabel, say) leaves the arrow schema equal.
+    # Replacing the metadata alone would skip cast_array_to_feature, and with it
+    # the validation each feature does in cast_storage.
+    if table.schema != schema or table.schema.metadata != schema.metadata:
         return cast_table_to_schema(table, schema)
-    elif table.schema.metadata != schema.metadata:
-        return table.replace_schema_metadata(schema.metadata)
     else:
         return table
 
