@@ -712,3 +712,22 @@ def test_encode_np_array(array, dtype_cast, expected_image_format):
     decoded_image = Image().decode_example(encoded_image)
     assert decoded_image.format == expected_image_format
     np.testing.assert_array_equal(np.array(decoded_image), array)
+
+
+@require_pil
+@pytest.mark.parametrize(
+    "value_type, warns",
+    [(pa.uint8(), False), (pa.int64(), True), (pa.int32(), True)],
+)
+def test_image_cast_storage_list_keeps_arrow_dtype(value_type, warns):
+    array = np.random.default_rng(0).integers(0, 256, (2, 4, 4, 3), dtype=np.uint8)
+    storage = pa.array(array.tolist(), type=pa.list_(pa.list_(pa.list_(value_type))))
+    if warns:
+        with pytest.warns(UserWarning, match="Downcasting array dtype"):
+            casted = Image().cast_storage(storage)
+    else:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            casted = Image().cast_storage(storage)
+    decoded = np.stack([np.array(Image().decode_example(row)) for row in casted.to_pylist()])
+    np.testing.assert_array_equal(decoded, array)
