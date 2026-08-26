@@ -195,6 +195,9 @@ TESTS_REQUIRE = [
     "nibabel>=5.3.1",
     "trimesh>=4.10.0",
     "teich==0.1.5",
+    # Apache TsFile SDK — only co-installable with datasets on Python 3.14+
+    # (pyarrow pins: SDK <20 on 3.10-3.13 vs datasets >=21). See #8499.
+    "tsfile>=2.3.0; python_version >= '3.14'",
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
@@ -220,6 +223,10 @@ NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 
 ICEBERG_REQUIRE = ["pyiceberg>=0.7.0"]
 
+# Optional: Apache TsFile SDK. Environment marker keeps the extra empty on
+# Python < 3.14 where pyarrow pins conflict with datasets (see #8499).
+TSFILE_REQUIRE = ["tsfile>=2.3.0; python_version >= '3.14'"]
+
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
@@ -240,6 +247,7 @@ EXTRAS_REQUIRE = {
     "pdfs": PDFS_REQUIRE,
     "nibabel": NIBABEL_REQUIRE,
     "iceberg": ICEBERG_REQUIRE,
+    "tsfile": TSFILE_REQUIRE,
 }
 
 setup(

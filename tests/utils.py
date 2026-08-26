@@ -239,6 +239,18 @@ def require_torchcodec(test_case):
     return test_case
 
 
+def require_tsfile(test_case):
+    """
+    Decorator marking a test that requires the Apache TsFile Python SDK.
+
+    These tests are skipped when tsfile isn't installed.
+
+    """
+    if not config.TSFILE_AVAILABLE:
+        test_case = unittest.skip("test requires tsfile")(test_case)
+    return test_case
+
+
 def require_pdfplumber(test_case):
     """
     Decorator marking a test that requires pdfplumber.
