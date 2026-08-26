@@ -34,6 +34,7 @@ not by the split's total size.
 from __future__ import annotations
 
 import datetime as _dt
+import sys
 from dataclasses import dataclass
 from typing import Any, Literal, Optional
 
@@ -48,6 +49,50 @@ from datasets.utils.tqdm import tqdm
 
 logger = datasets.utils.logging.get_logger(__name__)
 
+# The Apache TsFile SDK pins pyarrow per Python version:
+#     3.9        -> pyarrow>=16,<18
+#     3.10-3.13  -> pyarrow>=18,<20
+#     3.14+      -> pyarrow>=22,<24
+# `datasets` requires pyarrow>=21 (since 4.8.5), so the SDK is only co-installable
+# on Python 3.14+. Verified against tsfile 2.3.0/2.3.1/2.4.0 on 2026-08-25.
+# Lower bound is 2.3.0 on purpose: 2.2.1 declares no pyarrow constraint at all.
+# Revisit if the SDK relaxes the <20 bound -- see #8499.
+_TSFILE_MIN_PYTHON = (3, 14)
+
+
+def _tsfile_install_message() -> str:
+    base = (
+        "Loading TsFile datasets requires the Apache TsFile Python SDK, "
+        "which is not installed."
+    )
+    # [:2] so tests can monkeypatch sys.version_info with a plain tuple.
+    py = sys.version_info[:2]
+    if py >= _TSFILE_MIN_PYTHON:
+        return f"{base} Install it with `pip install 'datasets[tsfile]'`."
+    return (
+        f"{base} On Python {py[0]}.{py[1]} it "
+        "cannot be installed alongside `datasets`: the SDK requires pyarrow<20 on "
+        "Python 3.10-3.13, while `datasets` requires pyarrow>=21, and no set of "
+        "versions satisfies both. Note that `pip install 'datasets[tsfile]'` will "
+        "report success without installing anything on this interpreter. "
+        f"Python {_TSFILE_MIN_PYTHON[0]}.{_TSFILE_MIN_PYTHON[1]}+ is currently the "
+        "only combination that resolves. "
+        "See https://github.com/huggingface/datasets/issues/8499"
+    )
+
+
+def _require_tsfile() -> None:
+    """Import the optional ``tsfile`` SDK or raise an actionable error.
+
+    The SDK is an extra (``datasets[tsfile]``), not a hard dependency. Bare
+    ``ModuleNotFoundError: No module named 'tsfile'`` is what dataset-viewer
+    workers currently surface (huggingface/datasets#8256, #8499).
+    """
+    try:
+        import tsfile  # noqa: F401
+    except ImportError as err:
+        raise ImportError(_tsfile_install_message()) from err
+
 
 # ---------------------------------------------------------------------------
 # Type helpers
@@ -56,6 +101,7 @@ logger = datasets.utils.logging.get_logger(__name__)
 
 def _arrow_type(ts_dtype, *, unit: str, tz: Optional[str]) -> pa.DataType:
     """Map a tsfile ``TSDataType`` to its Arrow representation."""
+    _require_tsfile()
     from tsfile.constants import TSDataType
 
     return {
@@ -86,6 +132,7 @@ def _promote_tsdatatype(a, b):
     if a == b:
         return a
 
+    _require_tsfile()
     from tsfile.constants import TSDataType
 
     table = {
@@ -301,6 +348,7 @@ class TsFile(datasets.ArrowBasedBuilder):
 
     def _scan_metadata(self, files) -> Optional[dict]:
         """Walk every file and unify table name, TAG columns, FIELD types."""
+        _require_tsfile()
         from tsfile.constants import TIME_COLUMN, ColumnCategory
 
         wanted_table = self._table
@@ -431,6 +479,7 @@ class TsFile(datasets.ArrowBasedBuilder):
         - ``file_meta``: maps each readable file to its per-file context
           (``tag_cols``, ``field_cols``, ``time_col``).
         """
+        _require_tsfile()
         from tsfile.constants import ColumnCategory
 
         device_to_files: dict[tuple, list[str]] = {}
@@ -541,6 +590,7 @@ class TsFile(datasets.ArrowBasedBuilder):
         field columns that this file owns *and* that the builder requested;
         callers fill missing fields with all-null contributions.
         """
+        _require_tsfile()
         from tsfile import tag_eq
 
         file_tag_cols: list[str] = meta["tag_cols"]
@@ -730,6 +780,7 @@ class TsFile(datasets.ArrowBasedBuilder):
         segfaults. The 6-byte ``TsFile`` magic header is checked first to
         bail out cleanly.
         """
+        _require_tsfile()
         from tsfile import TsFileReader
 
         try:

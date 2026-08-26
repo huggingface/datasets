@@ -3,7 +3,9 @@
 To host and share your dataset, create a dataset repository on the Hugging Face Hub and upload your data files.
 
 This guide will show you how to structure your dataset repository when you upload it.
-A dataset with a supported structure and file format (`.txt`, `.csv`, `.parquet`, `.jsonl`, `.mp3`, `.jpg`, `.zip` etc.) are loaded automatically with [`~datasets.load_dataset`], and it'll have a dataset viewer on its dataset page on the Hub.
+A dataset with a supported structure and file format (`.txt`, `.csv`, `.parquet`, `.jsonl`, `.mp3`, `.jpg`, `.zip`, `.tsfile` etc.) are loaded automatically with [`~datasets.load_dataset`], and it'll have a dataset viewer on its dataset page on the Hub.
+
+`.tsfile` — requires the optional Apache TsFile SDK (`datasets[tsfile]`). The SDK's pyarrow requirement currently only resolves against `datasets` on Python 3.14+.
 
 ## Main use-case
 

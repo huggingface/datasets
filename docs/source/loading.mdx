@@ -213,6 +213,13 @@ To load a TsFile:
 >>> dataset = load_dataset("tsfile", data_files="my_data.tsfile")
 ```
 
+Install the optional Apache TsFile SDK first (`datasets[tsfile]`). The SDK's
+pyarrow requirement currently only resolves against `datasets` on Python 3.14+:
+
+```bash
+pip install "datasets[tsfile]"
+```
+
 Filter by time range — bounds are pushed down to TsFile's internal time index and accept `int` epochs, `datetime`, `date`, ISO-8601 strings, or `pyarrow` timestamp scalars:
 
 ```py

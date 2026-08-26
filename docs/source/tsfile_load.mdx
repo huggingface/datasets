@@ -6,11 +6,13 @@ This loader is provided as a separate guide because it does not follow the usual
 
 ## Installation
 
-The loader depends on the [`tsfile`](https://pypi.org/project/tsfile/) Python package:
+The loader depends on the [`tsfile`](https://pypi.org/project/tsfile/) Python package, installed via the optional extra:
 
 ```bash
-pip install "tsfile>=2.3.0"
+pip install "datasets[tsfile]"
 ```
+
+The SDK's pyarrow requirement currently only resolves against `datasets` on Python 3.14+.
 
 ## Data model and output layout
 
