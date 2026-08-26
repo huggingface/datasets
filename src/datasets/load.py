@@ -239,6 +239,7 @@ def infer_module_for_data_files_list(
                 count,
                 ext == ".parquet",
                 ext == ".lance",
+                ext == ".vortex",
                 ext == ".arrow",
                 ext == ".jsonl",
                 ext == ".json",
