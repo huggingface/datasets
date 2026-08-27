@@ -46,6 +46,16 @@ def _reorder_dataframe_by_partition(df: "pyspark.sql.DataFrame", new_partition_o
     return df_combined
 
 
+def _get_partition_ids(df: "pyspark.sql.DataFrame") -> list[int]:
+    import pyspark
+
+    partition_ids = (
+        df.select(pyspark.sql.functions.spark_partition_id().alias("part_id")).select("part_id").distinct().collect()
+    )
+    # Keep one logical shard for an empty DataFrame so that it can still be iterated.
+    return sorted(row.part_id for row in partition_ids) or [0]
+
+
 def _generate_iterable_examples(
     df: "pyspark.sql.DataFrame",
     partition_order: list[int],
@@ -83,7 +93,7 @@ class SparkExamplesIterable(_BaseExamplesIterable):
     ):
         super().__init__()
         self.df = df
-        self.partition_order = partition_order or range(self.df.rdd.getNumPartitions())
+        self.partition_order = partition_order or _get_partition_ids(self.df)
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {"partition_idx": 0, "partition_example_idx": 0}
@@ -97,7 +107,7 @@ class SparkExamplesIterable(_BaseExamplesIterable):
         yield from _generate_iterable_examples(self.df, self.partition_order, self._state_dict)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "SparkExamplesIterable":
-        partition_order = list(range(self.df.rdd.getNumPartitions()))
+        partition_order = list(self.partition_order)
         generator.shuffle(partition_order)
         return SparkExamplesIterable(self.df, partition_order=partition_order)
 
@@ -134,19 +144,20 @@ class Spark(datasets.DatasetBuilder):
 
     def _validate_cache_dir(self):
         # Define this so that we don't reference self in create_cache_and_write_probe, which will result in a pickling
-        # error due to pickling the SparkContext.
+        # error due to pickling the Spark session.
         cache_dir = self._cache_dir
 
         # Returns the path of the created file.
-        def create_cache_and_write_probe(context):
+        def create_cache_and_write_probe(iterator):
             # makedirs with exist_ok will recursively create the directory. It will not throw an error if directories
             # already exist.
             os.makedirs(cache_dir, exist_ok=True)
             probe_file = os.path.join(cache_dir, "fs_test" + uuid.uuid4().hex)
             # Opening the file in append mode will create a new file unless it already exists, in which case it will not
             # change the file contents.
-            open(probe_file, "a")
-            return [probe_file]
+            with open(probe_file, "a"):
+                pass
+            yield pa.RecordBatch.from_pydict({"probe_file": [probe_file]})
 
         if self._spark.conf.get("spark.master", "").startswith("local"):
             return
@@ -155,10 +166,11 @@ class Spark(datasets.DatasetBuilder):
         # accessible to the driver.
         # TODO: Stream batches to the driver using ArrowCollectSerializer instead of throwing an error.
         if self._cache_dir:
-            probe = (
-                self._spark.sparkContext.parallelize(range(1), 1).mapPartitions(create_cache_and_write_probe).collect()
+            probe = self._spark.range(1, numPartitions=1).mapInArrow(
+                create_cache_and_write_probe, "probe_file: string"
             )
-            if os.path.isfile(probe[0]):
+            probe_file = probe.collect()[0].probe_file
+            if os.path.isfile(probe_file):
                 return
 
         raise ValueError(
@@ -328,7 +340,7 @@ class Spark(datasets.DatasetBuilder):
             split_generator.split_info.shard_lengths = all_shard_lengths
 
             # Define fs outside of _rename_shard so that we don't reference self in the function, which will result in a
-            # pickling error due to pickling the SparkContext.
+            # pickling error due to pickling the Spark session.
             fs = self._fs
 
             # use the -SSSSS-of-NNNNN pattern
@@ -350,7 +362,21 @@ class Spark(datasets.DatasetBuilder):
                 for shard_id in range(num_shards):
                     args.append([task_id, shard_id, global_shard_id])
                     global_shard_id += 1
-            self._spark.sparkContext.parallelize(args, len(args)).map(lambda args: _rename_shard(*args)).collect()
+
+            def _rename_shards(iterator):
+                for batch in iterator:
+                    for task_id, shard_id, global_shard_id in zip(
+                        batch["task_id"].to_pylist(),
+                        batch["shard_id"].to_pylist(),
+                        batch["global_shard_id"].to_pylist(),
+                    ):
+                        _rename_shard(task_id, shard_id, global_shard_id)
+                    yield batch
+
+            schema = "task_id: long, shard_id: long, global_shard_id: long"
+            self._spark.createDataFrame(args, schema).repartition(len(args)).mapInArrow(
+                _rename_shards, schema
+            ).collect()
         else:
             # don't use any pattern
             shard_id = 0
