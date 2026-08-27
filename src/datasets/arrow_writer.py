@@ -32,6 +32,7 @@ from .features.features import (
     FeatureType,
     List,
     _ArrayXDExtensionType,
+    _contains_nanosecond_temporal_feature,
     _visit,
     cast_to_python_objects,
     generate_from_arrow_type,
@@ -337,7 +338,22 @@ class TypedSequence:
                     for json_field_path in json_field_paths:
                         examples = [json_encode_field(examples, json_field_path) for examples in examples]
                 # to arrow array
-                out = pa.array(cast_to_python_objects(examples, only_1d_for_numpy=True))
+                if type is not None and _contains_nanosecond_temporal_feature(type):
+                    try:
+                        # Let PyArrow convert pandas temporal scalars directly. Converting them to Python objects first
+                        # limits their resolution to microseconds, before the declared Arrow type can be applied.
+                        out = pa.array(examples, type=pa_type)
+                    except (
+                        TypeError,
+                        pa.lib.ArrowTypeError,
+                        pa.lib.ArrowInvalid,
+                        pa.lib.ArrowNotImplementedError,
+                    ):
+                        trying_cast_to_python_objects = True
+                        out = pa.array(cast_to_python_objects(examples, only_1d_for_numpy=True))
+                else:
+                    trying_cast_to_python_objects = True
+                    out = pa.array(cast_to_python_objects(examples, only_1d_for_numpy=True))
                 # cast to json type if needed
                 if json_field_paths:
                     pa_table = pa.Table.from_arrays([out], names=["obj"])
