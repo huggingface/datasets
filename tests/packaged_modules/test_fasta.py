@@ -1,12 +1,31 @@
 """Tests for the FASTA file loader."""
 
+import os
+
 import pyarrow as pa
 import pytest
 
 from datasets import Features, Value
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
+from datasets.download.streaming_download_manager import _get_extraction_protocol
 from datasets.packaged_modules.fasta.fasta import Fasta, FastaConfig
+
+from ..utils import require_zstandard
+
+
+def _compression_uri(path):
+    """Build the chained fsspec URI datasets uses to read a single compressed file.
+
+    The builder opens files with the streaming-patched ``open()`` (``xopen``), which
+    handles compression via ``<protocol>://<inner>::<outer>`` URIs rather than by
+    sniffing magic bytes. The protocol is derived from datasets' own extraction logic
+    so the test tracks the loader's real behavior. ``inner`` is the decompressed name.
+    """
+    path = str(path)
+    protocol = _get_extraction_protocol(path)
+    inner = os.path.basename(path).rsplit(".", 1)[0]
+    return f"{protocol}://{inner}::{path}"
 
 
 # Sample FASTA content for inline fixtures
@@ -46,7 +65,7 @@ def fasta_gz_file(tmp_path):
     filename = tmp_path / "sequences.fasta.gz"
     with gzip.open(filename, "wt", encoding="utf-8") as f:
         f.write(FASTA_CONTENT)
-    return str(filename)
+    return _compression_uri(filename)
 
 
 @pytest.fixture
@@ -56,7 +75,7 @@ def fasta_bz2_file(tmp_path):
     filename = tmp_path / "sequences.fasta.bz2"
     with bz2.open(filename, "wt", encoding="utf-8") as f:
         f.write(FASTA_CONTENT)
-    return str(filename)
+    return _compression_uri(filename)
 
 
 @pytest.fixture
@@ -66,7 +85,17 @@ def fasta_xz_file(tmp_path):
     filename = tmp_path / "sequences.fasta.xz"
     with lzma.open(filename, "wt", encoding="utf-8") as f:
         f.write(FASTA_CONTENT)
-    return str(filename)
+    return _compression_uri(filename)
+
+
+@pytest.fixture
+def fasta_zst_file(tmp_path):
+    import zstandard
+
+    filename = tmp_path / "sequences.fasta.zst"
+    with open(filename, "wb") as f:
+        f.write(zstandard.ZstdCompressor().compress(FASTA_CONTENT.encode("utf-8")))
+    return _compression_uri(filename)
 
 
 @pytest.fixture
@@ -191,6 +220,19 @@ def test_fasta_xz_compression(fasta_xz_file):
     """Test loading xz-compressed FASTA files."""
     fasta = Fasta()
     generator = fasta._generate_tables([[fasta_xz_file]])
+    tables = list(generator)
+
+    assert len(tables) == 1
+    _, pa_table = tables[0]
+    data = pa_table.to_pydict()
+    assert data["id"] == ["seq1", "seq2", "seq3"]
+
+
+@require_zstandard
+def test_fasta_zstd_compression(fasta_zst_file):
+    """Test loading zstd-compressed FASTA files, which is common for large FASTA data."""
+    fasta = Fasta()
+    generator = fasta._generate_tables([[fasta_zst_file]])
     tables = list(generator)
 
     assert len(tables) == 1
