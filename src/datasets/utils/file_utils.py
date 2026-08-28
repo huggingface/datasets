@@ -1113,6 +1113,28 @@ class xPath(type(Path())):
         """
         return xexists(str(self), download_config=download_config)
 
+    def is_file(self, download_config: Optional[DownloadConfig] = None):
+        """Extend `pathlib.Path.is_file` method to support both local and remote files.
+
+        Args:
+            download_config : mainly use token or storage_options to support different platforms and auth types.
+
+        Returns:
+            `bool`
+        """
+        return xisfile(str(self), download_config=download_config)
+
+    def is_dir(self, download_config: Optional[DownloadConfig] = None):
+        """Extend `pathlib.Path.is_dir` method to support both local and remote files.
+
+        Args:
+            download_config : mainly use token or storage_options to support different platforms and auth types.
+
+        Returns:
+            `bool`
+        """
+        return xisdir(str(self), download_config=download_config)
+
     def glob(self, pattern, download_config: Optional[DownloadConfig] = None):
         """Glob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
