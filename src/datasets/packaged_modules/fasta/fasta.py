@@ -7,10 +7,7 @@ This implementation uses a lightweight pure Python parser based on Heng Li's rea
 requiring zero external dependencies.
 """
 
-import bz2
-import gzip
 import itertools
-import lzma
 from dataclasses import dataclass
 from typing import Optional
 
@@ -95,23 +92,6 @@ class Fasta(datasets.ArrowBasedBuilder):
                 pa_table = table_cast(pa_table, schema)
             return pa_table
         return pa_table
-
-    def _open_file(self, filepath: str):
-        """Open file with automatic compression detection based on magic bytes.
-
-        Supports gzip, bzip2, and xz/lzma compression formats.
-        """
-        with open(filepath, "rb") as f:
-            magic = f.read(6)
-
-        if magic[:2] == b"\x1f\x8b":  # gzip magic number
-            return gzip.open(filepath, "rt", encoding="utf-8")
-        elif magic[:3] == b"BZh":  # bzip2 magic number
-            return bz2.open(filepath, "rt", encoding="utf-8")
-        elif magic[:6] == b"\xfd7zXZ\x00":  # xz magic number
-            return lzma.open(filepath, "rt", encoding="utf-8")
-        else:
-            return open(filepath, "r", encoding="utf-8")
 
     def _parse_fasta(self, fp):
         """Lightweight FASTA parser based on Heng Li's readfq.py.
@@ -212,7 +192,7 @@ class Fasta(datasets.ArrowBasedBuilder):
             batch = {col: [] for col in columns}
             batch_bytes = 0
 
-            with self._open_file(file) as fp:
+            with open(file, encoding="utf-8") as fp:
                 for seq_id, description, sequence in self._parse_fasta(fp):
                     # Calculate record size (approximate UTF-8 byte size)
                     record_bytes = len(seq_id) + len(description) + len(sequence)
