@@ -46,8 +46,6 @@ class HDF5(datasets.ArrowBasedBuilder):
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
-        import h5py
-
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         data_files = dl_manager.download(self.config.data_files)
@@ -57,7 +55,7 @@ class HDF5(datasets.ArrowBasedBuilder):
             if self.info.features is None:
                 for first_file in files:
                     with open(first_file, "rb") as f:
-                        with h5py.File(f, "r") as h5:
+                        with _safe_open_h5py(f, "r") as h5:
                             self.info.features = _recursive_infer_features(h5)
                     break
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
@@ -67,13 +65,11 @@ class HDF5(datasets.ArrowBasedBuilder):
         yield from files
 
     def _generate_tables(self, files):
-        import h5py
-
         batch_size_cfg = self.config.batch_size
         for file_idx, file in enumerate(files):
             try:
                 with open(file, "rb") as f:
-                    with h5py.File(f, "r") as h5:
+                    with _safe_open_h5py(f, "r") as h5:
                         # Infer features and lengths from first file
                         if self.info.features is None:
                             self.info.features = _recursive_infer_features(h5)
@@ -387,3 +383,32 @@ def _has_zero_dimensions(feature):
         return _has_zero_dimensions(feature.feature)
     else:
         return False
+
+
+def _safe_open_h5py(file, mode):
+    """Open an HDF5 file, rejecting any external file references."""
+    import h5py
+
+    f = h5py.File(file, mode)
+
+    def _check_obj(name, obj):
+        if isinstance(obj, h5py.Dataset):
+            # Check for external file references (HDF5 external storage)
+            if obj.external:
+                raise ValueError(
+                    f"Dataset '{obj.name}' uses EXTERNAL storage (references: {obj.external}). "
+                    f"Refused to open HDF5 file with external file references."
+                )
+
+            layout = obj.id.get_create_plist().get_layout()
+            if layout not in (
+                h5py.h5d.COMPACT,
+                h5py.h5d.CONTIGUOUS,
+                h5py.h5d.CHUNKED,
+            ):
+                raise ValueError(
+                    f"Dataset '{obj.name}' uses unknown storage. Refused to open HDF5 file with unknown layout"
+                )
+
+    f.visititems(_check_obj)
+    return f
