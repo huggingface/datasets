@@ -1176,7 +1176,7 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
                         new_pa_table = table
                     else:
                         for name, col in zip(table.column_names, table.columns):
-                            new_pa_table = pa_table.append_column(name, col)
+                            new_pa_table = new_pa_table.append_column(name, col)
                 new_key = "_".join(str(key) for key in keys)
                 yield new_key, new_pa_table
             else:
@@ -1512,6 +1512,24 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                         del inputs[c]
                     if processed_inputs is key_example[1] and c in processed_inputs:
                         del processed_inputs[c]
+            # A batched function may change the number of rows. When it does, every retained input
+            # column must match the new length, otherwise merging them below would zip mismatched
+            # columns positionally and silently drop or misalign rows (see _batch_to_examples, which
+            # derives the row count from the first column). Dataset.map raises pyarrow.lib.ArrowInvalid
+            # in this case, so we validate here to fail loudly and consistently.
+            if self.batched and processed_inputs:
+                first_col = next(iter(processed_inputs))
+                expected_length = len(processed_inputs[first_col])
+                bad_cols = [
+                    col for col in inputs if col not in processed_inputs and len(inputs[col]) != expected_length
+                ]
+                if bad_cols:
+                    raise ValueError(
+                        f"Column lengths mismatch: columns {bad_cols} have length "
+                        f"{[len(inputs[col]) for col in bad_cols]} while {first_col} has length {expected_length}. "
+                        "Make sure the mapped function returns all columns at the same length, or drop the "
+                        "offending input columns with `remove_columns`."
+                    )
             transformed_inputs = {**inputs, **processed_inputs}
             # no need to do features decoding here
             return transformed_inputs
@@ -2712,6 +2730,8 @@ class IterableDataset(DatasetInfoMixin):
             }
             if self._starting_state_dict and self.epoch == self._starting_state_dict["epoch"]:
                 ex_iterable.load_state_dict(self._starting_state_dict["examples_iterable"])
+                # re-point at the live ex_iterable state so progress tracking
+                self._state_dict["examples_iterable"] = ex_iterable._state_dict
 
             if self._formatting and (ex_iterable.iter_arrow or self._formatting.is_table):
                 formatter = get_formatter(self._formatting.format_type, features=self.features)
@@ -2796,6 +2816,8 @@ class IterableDataset(DatasetInfoMixin):
         }
         if self._starting_state_dict and self.epoch == self._starting_state_dict["epoch"]:
             ex_iterable.load_state_dict(self._starting_state_dict["examples_iterable"])
+            # re-point at the live ex_iterable state so progress tracking
+            self._state_dict["examples_iterable"] = ex_iterable._state_dict
         return ex_iterable
 
     def __iter__(self):
@@ -3680,10 +3702,17 @@ class IterableDataset(DatasetInfoMixin):
         # format and type before filtering
         ex_iterable = self._ex_iterable
         if self._info.features or self._formatting:
+            if ex_iterable.iter_arrow:
+                # Rebatch before formatting so the formatter reads at most one batch ahead
+                # instead of a whole arrow table. Without this, a non-batched filter consumes
+                # a table in full while emitting examples one at a time, so state_dict()
+                # records the shard position at the table end and resume skips every unemitted
+                # row of that table (mirrors `map`, see #8147).
+                ex_iterable = RebatchedArrowExamplesIterable(ex_iterable, batch_size=batch_size if batched else 1)
             ex_iterable = FormattedExamplesIterable(
                 ex_iterable,
                 formatting=self._formatting,
-                features=ex_iterable.features if ex_iterable.is_typed else self._info.features,
+                features=self._ex_iterable.features if self._ex_iterable.is_typed else self._info.features,
                 token_per_repo_id=self._token_per_repo_id,
             )
 
@@ -3990,6 +4019,7 @@ class IterableDataset(DatasetInfoMixin):
         The resharding mechanism depends on the dataset file format:
 
         * Parquet: shard per row group instead of per file
+        * Vortex: shard per range of consecutive chunks (about 64MB of file data each) instead of per file
         * Other: not implemented yet (contributions are welcome !)
 
         Be sure to reshard/shard before using any randomizing operator (such as `shuffle`).
@@ -4954,10 +4984,10 @@ class IterableDataset(DatasetInfoMixin):
                 if not done:
                     pbar.update(content)
                 else:
-                    job_additions, job_new_parquet_paths, job_features, job_uploaded_size, job_num_examples = content
+                    job_additions, job_new_parquet_paths, job_features, job_dataset_nbytes, job_num_examples = content
                     additions += job_additions
                     new_parquet_paths += job_new_parquet_paths
-                    uploaded_size += job_uploaded_size
+                    dataset_nbytes += job_dataset_nbytes
                     num_examples += job_num_examples
                     features = job_features
             if pool is not None:

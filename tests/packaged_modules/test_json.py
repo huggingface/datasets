@@ -448,6 +448,74 @@ HERMES_SESSION = {
 }
 
 
+DROID_SESSION = [
+    {
+        "type": "session_start",
+        "id": "droid-session",
+        "title": "inspect the project",
+        "sessionTitle": "Inspect project files",
+        "owner": "caleb",
+        "version": 2,
+        "cwd": "/workspace/project",
+    },
+    {
+        "type": "message",
+        "id": "context-1",
+        "timestamp": "2026-06-02T18:55:29.000Z",
+        "message": {
+            "role": "user",
+            "visibility": "llm_only",
+            "content": [{"type": "text", "text": "<system-reminder>injected context</system-reminder>"}],
+        },
+        "parentId": None,
+    },
+    {
+        "type": "message",
+        "id": "message-1",
+        "timestamp": "2026-06-02T18:55:30.274Z",
+        "message": {
+            "role": "user",
+            "content": [{"type": "text", "text": "Inspect the project"}],
+        },
+        "parentId": "context-1",
+    },
+    {
+        "type": "message",
+        "id": "message-2",
+        "timestamp": "2026-06-02T18:55:35.000Z",
+        "message": {
+            "role": "assistant",
+            "content": [
+                {
+                    "type": "thinking",
+                    "thinking": "I should list the files first.",
+                    "signature": "reasoning_content",
+                    "signatureProvider": "generic-chat-completion-api",
+                    "durationMs": 1200,
+                },
+                {"type": "text", "text": "I'll list the files."},
+                {"type": "tool_use", "id": "LS_0", "name": "LS", "input": {"directory_path": "/workspace/project"}},
+            ],
+            "chatCompletionReasoningField": "reasoning_content",
+            "chatCompletionReasoningContent": "I should list the files first.",
+        },
+        "parentId": "message-1",
+    },
+    {
+        "type": "message",
+        "id": "message-3",
+        "timestamp": "2026-06-02T18:55:36.000Z",
+        "message": {
+            "role": "user",
+            "content": [
+                {"type": "tool_result", "tool_use_id": "LS_0", "is_error": False, "content": "README.md\nsrc"},
+            ],
+        },
+        "parentId": "message-2",
+    },
+]
+
+
 def test_config_raises_when_invalid_name() -> None:
     with pytest.raises(InvalidConfigName, match="Bad characters"):
         _ = JsonConfig(name="name-with-*-invalid-character")
@@ -654,6 +722,12 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
             ("hermes", "20260605_092247_d018ec", "Run pwd and date.", "2026-06-05T13:22:48.307Z", 1, 1),
         ),
         pytest.param(
+            "droid.jsonl",
+            DROID_SESSION,
+            ("droid", "droid-session", "Inspect the project", "2026-06-02T18:55:30.274Z", 1, 1),
+            id="droid",
+        ),
+        pytest.param(
             "missing_prompt.jsonl",
             [
                 {"type": "session_meta", "payload": {"id": "codex-session"}},
@@ -671,12 +745,26 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
 def test_json_generate_tables_with_agent_trace_metadata(tmp_path, filename, rows, expected):
     num_sessions = 2 if filename == "hermes_two_sessions.jsonl" else 1
     _, out = assert_agent_traces_output(tmp_path, filename, rows, expected, num_sessions=num_sessions)
+    if filename == "droid.jsonl":
+        assert out["metadata"][0]["trace_type"] == "droid"
     assert "models" not in out
 
 
 @require_teich
-def test_json_load_dataset_with_agent_trace_metadata(tmp_path):
-    trace_file = write_jsonl(tmp_path / "codex.jsonl", CODEX_AGENT_TRACE_ROWS)
+@pytest.mark.parametrize(
+    "filename, rows, expected",
+    [
+        pytest.param("codex.jsonl", CODEX_AGENT_TRACE_ROWS, CODEX_EXPECTED_AGENT_TRACE_FIELDS, id="codex"),
+        pytest.param(
+            "droid.jsonl",
+            DROID_SESSION,
+            ("droid", "droid-session", "Inspect the project", "2026-06-02T18:55:30.274Z", 1, 1),
+            id="droid",
+        ),
+    ],
+)
+def test_json_load_dataset_with_agent_trace_metadata(tmp_path, filename, rows, expected):
+    trace_file = write_jsonl(tmp_path / filename, rows)
 
     dataset = load_dataset("json", data_files=trace_file, split="train", cache_dir=str(tmp_path / "cache"))
     row = dataset[0]
@@ -694,5 +782,28 @@ def test_json_load_dataset_with_agent_trace_metadata(tmp_path):
         "trace",
         "file_path",
     ]
-    for key, value in zip(AGENT_TRACE_FIELD_NAMES_TO_CHECK, CODEX_EXPECTED_AGENT_TRACE_FIELDS):
+    for key, value in zip(AGENT_TRACE_FIELD_NAMES_TO_CHECK, expected):
         assert row[key] == value, key
+    if filename == "droid.jsonl":
+        assert row["metadata"]["trace_type"] == "droid"
+        assert json.loads(row["trace"].splitlines()[0])["type"] == "session_start"
+
+
+def test_json_load_dataset_without_droid_marker_stays_ordinary_json(tmp_path):
+    trace_file = write_jsonl(
+        tmp_path / "droid_missing_marker.jsonl",
+        [
+            {"type": "session_start", "id": "droid-session", "version": 2},
+            {
+                "type": "message",
+                "id": "message-1",
+                "timestamp": "2026-06-02T18:55:30.274Z",
+                "message": {"role": "user", "content": [{"type": "text", "text": "Inspect the project"}]},
+            },
+        ],
+    )
+
+    dataset = load_dataset("json", data_files=trace_file, split="train", cache_dir=str(tmp_path / "cache"))
+
+    assert dataset.column_names == ["type", "id", "version", "timestamp", "message"]
+    assert dataset[0]["type"] == "session_start"

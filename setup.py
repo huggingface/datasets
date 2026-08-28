@@ -110,8 +110,8 @@ REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 21.0.0 to support `use_content_defined_chunking` in ParquetWriter
-    "pyarrow>=21.0.0",
+    # Minimum 24.0.0 for view-type `nbytes` support used by Vortex
+    "pyarrow>=24.0.0",
     # For smart caching dataset processing
     "dill>=0.3.0,<0.4.2",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
@@ -127,7 +127,7 @@ REQUIRED_PKGS = [
     "multiprocess<0.70.20",  # to align with dill<0.3.9 (see above)
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0,<=2026.4.0",
+    "fsspec[http]>=2023.1.0,<=2026.6.0",
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface-hub>=0.25.0,<2.0",
     # Utilities from PyPA to e.g., compare versions
@@ -173,6 +173,7 @@ TESTS_REQUIRE = [
     "h5py",
     "pylance",
     "pyiceberg[sql-sqlite,pyarrow]",
+    "vortex-data; python_version >= '3.11' and sys_platform != 'win32'",
     "jax>=0.3.14; sys_platform != 'win32'",
     "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4; python_version < '3.14'",  # python 3.14 gives ImportError: cannot import name '_compression' from partially initialized module 'lz4.frame
@@ -181,7 +182,9 @@ TESTS_REQUIRE = [
     "py7zr",
     "rarfile>=4.0",
     "sqlalchemy",
-    "protobuf<4.0.0",  # 4.0.0 breaks compatibility with tensorflow<2.12
+    # Pinned for the tensorflow<2.12 builds; tensorflow has no python 3.14 wheels, where
+    # `substrait` (a vortex-data dependency) needs the protobuf 5 runtime.
+    "protobuf<4.0.0; python_version < '3.14'",
     "tensorflow>=2.6.0; python_version<'3.10' and sys_platform != 'win32'",  # numpy-2 is not supported for Python < 3.10
     "tensorflow>=2.16.0; python_version>='3.10' and sys_platform != 'win32' and python_version < '3.14'",  # Pins numpy < 2
     "tiktoken",
@@ -194,7 +197,7 @@ TESTS_REQUIRE = [
     "torchcodec>=0.7.0; python_version < '3.14'",  # minium version to get windows support, torchcodec doesn't have wheels for 3.14 yet
     "nibabel>=5.3.1",
     "trimesh>=4.10.0",
-    "teich==0.1.2",
+    "teich==0.1.5",
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
@@ -244,7 +247,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="5.0.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="5.0.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

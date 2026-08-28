@@ -349,6 +349,8 @@ AGENT_TRACES_TYPES_VALUES = {
     "claude_code": ["user", "assistant", "system"],
     "pi": ["session", "message"],
     "codex": ["session_meta", "turn_context", "response_item", "event_msg"],
+    # droid message events share pi's "message" type, but droid traces always start with a session_start event
+    "droid": ["session_start"],
 }
 AGENT_TRACES_TYPE_TO_HARNESS = {}
 for _harness, _trace_types in AGENT_TRACES_TYPES_VALUES.items():
@@ -376,6 +378,14 @@ AGENT_TRACES_FEATURES_MARKERS = {
             "model": lambda f: f == datasets.Value("string"),
             "system_prompt": lambda f: f == datasets.Value("string"),
             "messages": lambda f: isinstance(f, (datasets.List, datasets.Json)),
+        }
+    ),
+    "droid": datasets.Features(
+        {
+            "type": lambda f: f == Value("string"),
+            "id": lambda f: f == Value("string"),
+            "version": lambda f: f == Value("int64"),
+            "cwd": lambda f: f == Value("string"),
         }
     ),
 }
@@ -450,8 +460,8 @@ def get_session_id(trace: dict) -> Optional[str]:
     # codex
     if isinstance(trace.get("payload"), dict) and isinstance(trace["payload"].get("id"), str):
         return trace["payload"]["id"]
-    # pi / openclaw (openclaw embeds pi-agent; distinguish via cwd)
-    if trace.get("type") == "session" and isinstance(trace.get("id"), str):
+    # pi / openclaw on "session" (openclaw embeds pi-agent; distinguish via cwd), droid on "session_start"
+    if trace.get("type") in ("session", "session_start") and isinstance(trace.get("id"), str):
         return trace["id"]
     return None
 
@@ -465,7 +475,8 @@ def get_user_prompt(trace_event: dict) -> Optional[str]:
     if trace_event.get("type") == "message":
         if isinstance(trace_event.get("message"), dict):
             message = trace_event["message"]
-            if message.get("role") == "user":
+            # droid marks injected context as llm_only and local-only notes as user_only, neither is a real user prompt
+            if message.get("role") == "user" and message.get("visibility") not in ("llm_only", "user_only"):
                 return get_content_text(message.get("content"))
         if trace_event.get("role") == "user":
             return get_content_text(trace_event.get("content"))
