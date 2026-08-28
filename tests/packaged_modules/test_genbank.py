@@ -362,12 +362,12 @@ def test_genbank_feature_parsing(genbank_file_complex_features):
     assert len(features) >= 3
 
     # Find the complement feature
-    rev_gene = next((f for f in features if f.get("qualifiers", {}).get("gene") == "revGene"), None)
+    rev_gene = next((f for f in features if f.get("qualifiers", {}).get("gene") == ["revGene"]), None)
     assert rev_gene is not None
     assert rev_gene["location"]["strand"] == -1
 
     # Find the join feature
-    split_gene = next((f for f in features if f.get("qualifiers", {}).get("gene") == "splitGene"), None)
+    split_gene = next((f for f in features if f.get("qualifiers", {}).get("gene") == ["splitGene"]), None)
     assert split_gene is not None
     assert "parts" in split_gene["location"]
     assert len(split_gene["location"]["parts"]) == 3
@@ -703,4 +703,100 @@ def test_genbank_feature_boolean_qualifier(tmp_path):
 
     gene_feature = next((f for f in features if f["type"] == "gene"), None)
     assert gene_feature is not None
-    assert gene_feature["qualifiers"].get("pseudo") == "true"
+    assert gene_feature["qualifiers"].get("pseudo") == ["true"]
+
+
+# ---------------------------------------------------------------------------
+# Regression tests for parser defects found in review. Each one reproduces a
+# case that valid GenBank files hit routinely: repeated qualifiers, locations
+# and header fields wrapped across lines, and protein LOCUS records.
+# ---------------------------------------------------------------------------
+
+_LOCUS_DNA = "LOCUS       T           100 bp    DNA     linear   PLN 01-JAN-2024\n"
+_ORIGIN = "ORIGIN\n        1 atcgatcgat\n//\n"
+
+
+def _parse_one(tmp_path, text, name="reg.gb"):
+    """Load a single inline GenBank record and return (record, decoded features)."""
+    filename = tmp_path / name
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(text)
+    tables = [table for _, table in GenBank()._generate_tables([[str(filename)]])]
+    result = pa.concat_tables(tables).to_pydict()
+    features = json.loads(result["features"][0]) if result["features"][0] else []
+    return result, features
+
+
+def test_genbank_repeated_qualifiers_are_all_kept(tmp_path):
+    """A feature with two /db_xref entries must keep both, not just the last."""
+    _, features = _parse_one(
+        tmp_path,
+        _LOCUS_DNA
+        + "FEATURES             Location/Qualifiers\n"
+        + "     gene            1..100\n"
+        + '                     /gene="g1"\n'
+        + '                     /db_xref="TAX:1"\n'
+        + '                     /db_xref="TAX:2"\n'
+        + _ORIGIN,
+    )
+    qualifiers = features[0]["qualifiers"]
+    assert qualifiers["db_xref"] == ["TAX:1", "TAX:2"]
+    assert qualifiers["gene"] == ["g1"]
+
+
+def test_genbank_wrapped_join_location(tmp_path):
+    """A join(...) location wrapped onto a second line must parse completely."""
+    _, features = _parse_one(
+        tmp_path,
+        _LOCUS_DNA
+        + "FEATURES             Location/Qualifiers\n"
+        + "     CDS             join(1..10,20..30,\n"
+        + "                     40..50)\n"
+        + '                     /gene="split"\n'
+        + _ORIGIN,
+    )
+    location = features[0]["location"]
+    assert location["parts"] == [[1, 10], [20, 30], [40, 50]]
+    assert location["start"] == 1
+    assert location["end"] == 50
+
+
+def test_genbank_wrapped_definition_is_complete(tmp_path):
+    """A DEFINITION wrapped onto a second line must not be truncated."""
+    result, _ = _parse_one(
+        tmp_path,
+        "LOCUS       T           100 bp    DNA     linear   PLN 01-JAN-2024\n"
+        "DEFINITION  First line of a long definition that\n"
+        "            continues on a second line.\n"
+        "ACCESSION   T\n" + _ORIGIN,
+    )
+    assert result["definition"][0] == "First line of a long definition that continues on a second line."
+
+
+def test_genbank_taxonomy_separators_and_no_reference_bleed(tmp_path):
+    """Taxonomy keeps the file's own delimiters and ignores later header blocks."""
+    result, _ = _parse_one(
+        tmp_path,
+        "LOCUS       T           100 bp    DNA     linear   PLN 01-JAN-2024\n"
+        "SOURCE      Test organism\n"
+        "  ORGANISM  Test organism\n"
+        "            Eukaryota; Fungi;\n"
+        "            Ascomycota.\n"
+        "REFERENCE   1  (bases 1 to 100)\n"
+        "  AUTHORS   Someone,A.\n"
+        "            Wrapped author line here\n" + _ORIGIN,
+    )
+    taxonomy = result["taxonomy"][0]
+    assert taxonomy == "Eukaryota; Fungi; Ascomycota."
+    assert ";;" not in taxonomy
+    assert "author" not in taxonomy.lower()
+
+
+def test_genbank_protein_locus_lowercase_aa(tmp_path):
+    """A protein LOCUS line using the lowercase `aa` unit is a protein record."""
+    result, _ = _parse_one(
+        tmp_path,
+        "LOCUS       P            50 aa            linear   PLN 01-JAN-2024\nORIGIN\n        1 mkwvtfisll\n//\n",
+    )
+    assert result["length"][0] == 50
+    assert result["molecule_type"][0] == "protein"

@@ -10,6 +10,7 @@ requiring zero external dependencies.
 import itertools
 import json
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Optional
 
@@ -46,9 +47,12 @@ class _FeatureAccumulator:
     boundaries so the parser loop doesn't have to repeat that bookkeeping.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, location_parser: Callable[[str], dict]) -> None:
         self.features: list[dict] = []
+        self._location_parser = location_parser
         self._feature: Optional[dict] = None
+        self._location_text: list[str] = []
+        self._qualifier_seen = False
         self._qualifier_key: Optional[str] = None
         self._qualifier_value: list[str] = []
 
@@ -56,10 +60,30 @@ class _FeatureAccumulator:
     def has_open_qualifier(self) -> bool:
         return self._qualifier_key is not None
 
+    @property
+    def has_open_location(self) -> bool:
+        """Whether the current feature's location is still being read.
+
+        An operator location such as ``join(1..10,20..30,\n 40..50)`` may wrap, and
+        it is incomplete for exactly as long as its parentheses are unbalanced. Once
+        a qualifier line has been seen the location cannot continue, so that also
+        closes it.
+        """
+        if self._feature is None or self._qualifier_seen:
+            return False
+        text = "".join(self._location_text)
+        return text.count("(") > text.count(")")
+
     def _commit_qualifier(self) -> None:
-        """Write the buffered qualifier (if any) onto the current feature."""
+        """Write the buffered qualifier (if any) onto the current feature.
+
+        A qualifier key may repeat within one feature -- ``/db_xref`` routinely does --
+        so each key holds the list of its values, as Biopython's
+        ``SeqFeature.qualifiers`` does, instead of the last value overwriting the rest.
+        """
         if self._feature is not None and self._qualifier_key is not None:
-            self._feature["qualifiers"][self._qualifier_key] = "".join(self._qualifier_value)
+            values = self._feature["qualifiers"].setdefault(self._qualifier_key, [])
+            values.append("".join(self._qualifier_value))
         self._qualifier_key = None
         self._qualifier_value = []
 
@@ -67,23 +91,54 @@ class _FeatureAccumulator:
         """Flush the pending qualifier and append the current feature, if any."""
         self._commit_qualifier()
         if self._feature is not None:
+            self._feature["location"] = self._location_parser("".join(self._location_text))
             self.features.append(self._feature)
             self._feature = None
+            self._location_text = []
 
-    def begin_feature(self, feature_type: str, location: dict) -> None:
-        """Finalize the previous feature and start a new one."""
+    def begin_feature(self, feature_type: str, location_text: str) -> None:
+        """Finalize the previous feature and start a new one.
+
+        The location is kept as text and parsed on finalize, because it may still
+        gain continuation lines.
+        """
         self.finalize_feature()
-        self._feature = {"type": feature_type, "location": location, "qualifiers": {}}
+        self._feature = {"type": feature_type, "location": None, "qualifiers": {}}
+        self._location_text = [location_text]
+        self._qualifier_seen = False
+
+    def add_location_continuation(self, text: str) -> None:
+        """Append a wrapped line to the location currently being read."""
+        self._location_text.append(text)
 
     def begin_qualifier(self, key: str, value: str) -> None:
         """Commit the previous qualifier and start buffering a new one."""
         self._commit_qualifier()
+        self._qualifier_seen = True
         self._qualifier_key = key
         self._qualifier_value = [value]
 
     def add_continuation(self, text: str) -> None:
         """Append a continuation line to the qualifier currently being read."""
         self._qualifier_value.append(text)
+
+
+@dataclass
+class _HeaderState:
+    """Tracks which header field the next continuation line belongs to.
+
+    A header value may wrap onto following lines indented into the value column, and a
+    continuation belongs to the field whose keyword opened it. Each keyword handler
+    records that field here; keywords this loader does not read (REFERENCE, COMMENT and
+    the rest) clear it, so their continuation lines are dropped rather than appended to
+    whichever field happened to come before them.
+    """
+
+    #: Column at which header values start. Keywords occupy the margin to its left,
+    #: so a line that is blank up to this column is a continuation.
+    VALUE_COLUMN = 12
+
+    active_field: Optional[str] = None
 
 
 @dataclass
@@ -246,7 +301,8 @@ class GenBank(datasets.ArrowBasedBuilder):
         """
         state = ParserState.HEADER
         record = self._new_record()
-        features = _FeatureAccumulator()
+        header = _HeaderState()
+        features = _FeatureAccumulator(self._parse_feature_location)
 
         for line in fp:
             # Record terminator: finalize the pending feature and emit the record.
@@ -256,52 +312,79 @@ class GenBank(datasets.ArrowBasedBuilder):
                 yield record
                 state = ParserState.HEADER
                 record = self._new_record()
-                features = _FeatureAccumulator()
+                header = _HeaderState()
+                features = _FeatureAccumulator(self._parse_feature_location)
                 continue
 
             if state == ParserState.HEADER:
-                state = self._handle_header_line(line, record) or state
+                state = self._handle_header_line(line, record, header) or state
             elif state == ParserState.FEATURES:
                 state = self._handle_features_line(line, features) or state
             elif state == ParserState.ORIGIN:
                 self._handle_origin_line(line, record)
 
-    def _handle_header_line(self, line: str, record: dict) -> Optional[str]:
+    def _handle_header_line(self, line: str, record: dict, header: "_HeaderState") -> Optional[str]:
         """Parse one HEADER line into ``record``.
+
+        ``header`` carries the field that a continuation line would extend, and this
+        updates it on every keyword line.
 
         Returns the next parser state when a section boundary (FEATURES or
         ORIGIN) is reached, otherwise ``None`` to stay in the HEADER state.
         """
+        value = line[header.VALUE_COLUMN :].strip()
+        if not line.strip():
+            return None
+
+        # Blank in the keyword margin means this line continues the field above it.
+        if not line[: header.VALUE_COLUMN].strip():
+            if header.active_field:
+                self._append_header_continuation(record, header.active_field, line.strip())
+            return None
+
+        if line.startswith("FEATURES"):
+            header.active_field = None
+            return ParserState.FEATURES
+        if line.startswith("ORIGIN"):
+            header.active_field = None
+            return ParserState.ORIGIN
+
         if line.startswith("LOCUS"):
             self._parse_locus_line(line, record)
+            header.active_field = None
         elif line.startswith("DEFINITION"):
-            record["definition"] = line[12:].strip()
+            record["definition"] = value
+            header.active_field = "definition"
         elif line.startswith("ACCESSION"):
-            record["accession"] = line[12:].strip().split()[0]
+            record["accession"] = value.split()[0] if value else ""
+            header.active_field = None
         elif line.startswith("VERSION"):
-            record["version"] = line[12:].strip()
+            record["version"] = value
+            header.active_field = None
         elif line.startswith("KEYWORDS"):
-            keywords = line[12:].strip()
-            if keywords != ".":
-                record["keywords"] = keywords
+            if value != ".":
+                record["keywords"] = value
+            header.active_field = "keywords"
         elif line.startswith("SOURCE"):
-            pass  # The SOURCE line itself is less useful than ORGANISM.
+            # The SOURCE line itself is less useful than ORGANISM.
+            header.active_field = None
         elif line.startswith("  ORGANISM"):
-            record["organism"] = line[12:].strip()
-        elif line.startswith("            ") and record["organism"]:
-            # Continuation of the taxonomy listing under ORGANISM.
-            taxonomy_part = line.strip()
-            if taxonomy_part and not taxonomy_part.endswith("."):
-                taxonomy_part += ";"
-            if record["taxonomy"]:
-                record["taxonomy"] += " " + taxonomy_part
-            else:
-                record["taxonomy"] = taxonomy_part
-        elif line.startswith("FEATURES"):
-            return ParserState.FEATURES
-        elif line.startswith("ORIGIN"):
-            return ParserState.ORIGIN
+            record["organism"] = value
+            # The lines under ORGANISM are the taxonomy listing, not more organism name.
+            header.active_field = "taxonomy"
+        else:
+            # A keyword this loader does not read; its continuations belong to nothing.
+            header.active_field = None
         return None
+
+    @staticmethod
+    def _append_header_continuation(record: dict, field: str, text: str) -> None:
+        """Append a wrapped line to ``field``, joining with a single space.
+
+        No delimiter is inserted: a wrapped value already carries its own punctuation,
+        so a taxonomy listing that ends a line with ``;`` keeps exactly that one ``;``.
+        """
+        record[field] = f"{record[field]} {text}".strip() if record[field] else text
 
     def _handle_features_line(self, line: str, features: "_FeatureAccumulator") -> Optional[str]:
         """Parse one FEATURES line into ``features``.
@@ -315,9 +398,9 @@ class GenBank(datasets.ArrowBasedBuilder):
 
         # A feature starts with its type at column 5, e.g. "     gene   1..100".
         if len(line) > 5 and line[5] != " " and not line.startswith("FEATURES"):
-            parts = line[5:].split()
+            parts = line[5:].split(None, 1)
             if len(parts) >= 2:
-                features.begin_feature(parts[0], self._parse_feature_location(parts[1]))
+                features.begin_feature(parts[0], parts[1].strip())
             else:
                 features.finalize_feature()
 
@@ -329,6 +412,10 @@ class GenBank(datasets.ArrowBasedBuilder):
                 features.begin_qualifier(key[1:], value.strip('"'))  # key[1:] drops the leading '/'
             else:
                 features.begin_qualifier(qualifier_line[1:], "true")  # boolean qualifier, e.g. /pseudo
+
+        # An unbalanced location wraps onto the next line before any qualifier appears.
+        elif len(line) > 21 and line[21] != "/" and features.has_open_location:
+            features.add_location_continuation(line[21:].strip())
 
         # Anything else at column 21+ is a continuation of the current qualifier's value.
         elif len(line) > 21 and line[21] != "/" and features.has_open_qualifier:
@@ -375,21 +462,28 @@ class GenBank(datasets.ArrowBasedBuilder):
         if len(parts) >= 2:
             record["locus_name"] = parts[1]
 
-        # Find length (number followed by 'bp' or 'aa')
+        # The length is a number followed by its unit: "bp" for nucleotides, "aa" for
+        # amino acids. The unit is also what identifies a protein record, whose LOCUS
+        # line carries no molecule-type token of its own.
+        unit = None
         for i, part in enumerate(parts):
-            if part in ("bp", "aa") and i > 0:
+            if part.lower() in ("bp", "aa") and i > 0:
+                unit = part.lower()
                 try:
                     record["length"] = int(parts[i - 1])
                 except ValueError:
                     pass
                 break
 
-        # Find molecule type (DNA, RNA, mRNA, etc.)
-        molecule_types = {"DNA", "RNA", "mRNA", "rRNA", "tRNA", "protein", "AA"}
+        # Nucleotide records name their molecule type explicitly.
+        molecule_types = {"DNA", "RNA", "mRNA", "rRNA", "tRNA", "protein"}
         for part in parts:
             if part in molecule_types:
                 record["molecule_type"] = part
                 break
+        else:
+            if unit == "aa":
+                record["molecule_type"] = "protein"
 
     def _get_columns(self) -> list[str]:
         """Get the list of columns to include in output."""
