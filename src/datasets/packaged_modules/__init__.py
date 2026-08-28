@@ -25,6 +25,7 @@ from .sql import sql
 from .text import text
 from .tsfile import tsfile
 from .videofolder import videofolder
+from .vortex import vortex
 from .webdataset import webdataset
 from .xml import xml
 
@@ -64,6 +65,7 @@ _PACKAGED_DATASETS_MODULES = {
     "lance": (lance.__name__, _hash_python_lines(inspect.getsource(lance).splitlines())),
     "tsfile": (tsfile.__name__, _hash_python_lines(inspect.getsource(tsfile).splitlines())),
     "iceberg": (iceberg.__name__, _hash_python_lines(inspect.getsource(iceberg).splitlines())),
+    "vortex": (vortex.__name__, _hash_python_lines(inspect.getsource(vortex).splitlines())),
     "mmcif": (mmcif.__name__, _hash_python_lines(inspect.getsource(mmcif).splitlines())),
 }
 
@@ -101,6 +103,7 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".eval": ("eval", {}),
     ".lance": ("lance", {}),
     ".tsfile": ("tsfile", {}),
+    ".vortex": ("vortex", {}),
     ".cif": ("mmcif", {}),
     ".mmcif": ("mmcif", {}),
 }

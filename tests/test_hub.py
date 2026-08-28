@@ -66,21 +66,27 @@ def test_delete_from_hub(temporary_repo, hf_api, hf_token, csv_path, ci_hub_conf
     assert mock_method.called
     assert mock_method.call_args.kwargs.get("commit_message") == "Delete 'dogs' config"
     assert mock_method.call_args.kwargs.get("create_pr")
-    expected_operations = [
-        CommitOperationDelete(path_in_repo="dogs/train/0000.csv", is_folder=False),
-        CommitOperationAdd(
-            path_in_repo="README.md",
-            path_or_fileobj=dedent(
-                f"""\
-            ---
-            {METADATA_CONFIGS_FIELD}:
-            - config_name: cats
-              data_files:
-              - split: train
-                path: cats/train/*
-            ---
-            """
-            ).encode(),
-        ),
-    ]
-    assert mock_method.call_args.kwargs.get("operations") == expected_operations
+    expected_readme = dedent(
+        f"""\
+        ---
+        {METADATA_CONFIGS_FIELD}:
+        - config_name: cats
+          data_files:
+          - split: train
+            path: cats/train/*
+        ---
+        """
+    ).encode()
+    # Note: we compare operations attribute by attribute rather than relying on `==`. Since
+    # huggingface_hub 1.20.0 (https://github.com/huggingface/huggingface_hub/pull/4331),
+    # `CommitOperationAdd`/`CommitOperationDelete` no longer implement value equality, so two
+    # operations with identical content are not considered equal.
+    operations = mock_method.call_args.kwargs.get("operations")
+    assert len(operations) == 2
+    delete_operation, add_operation = operations
+    assert isinstance(delete_operation, CommitOperationDelete)
+    assert delete_operation.path_in_repo == "dogs/train/0000.csv"
+    assert delete_operation.is_folder is False
+    assert isinstance(add_operation, CommitOperationAdd)
+    assert add_operation.path_in_repo == "README.md"
+    assert add_operation.path_or_fileobj == expected_readme

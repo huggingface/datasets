@@ -355,6 +355,17 @@ class DatasetBuilder:
             **config_kwargs,
         )
 
+        # Ensure files are in the repo
+        if repo_id is not None and self.config.data_files is not None:
+            for split in self.config.data_files:
+                for data_file in self.config.data_files[split]:
+                    if not posixpath.relpath(data_file, start="hf://").startswith(f"datasets/{repo_id}@"):
+                        raise ValueError(
+                            f"Data files don't belong to {repo_id}. "
+                            "Make sure the dataset `data_files` (e.g. in the config README.md) are valid. "
+                            "They should be relative paths to the dataset repository root."
+                        )
+
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
         if info is None:
@@ -1842,10 +1853,9 @@ class ArrowBasedBuilder(DatasetBuilder):
                             gen_kwargs=gen_kwargs,
                             token=self.token,
                         )
-                    if len(original_shard_lengths) == original_shard_id:
-                        original_shard_lengths.append(len(table))
-                    else:
-                        original_shard_lengths[original_shard_id] += len(table)
+                    if len(original_shard_lengths) <= original_shard_id:
+                        original_shard_lengths.extend([0] * (1 + original_shard_id - len(original_shard_lengths)))
+                    original_shard_lengths[original_shard_id] += len(table)
                     num_examples_progress_update += len(table)
                     if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()
