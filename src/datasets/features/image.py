@@ -277,6 +277,11 @@ class Image:
                 if pa.types.is_integer(value_type) or pa.types.is_floating(value_type)
                 else None
             )
+            # encode_np_array only narrows within a kind, and int8 and float16 have
+            # no valid target to narrow to, so keep a dtype it can already encode
+            # and otherwise leave the inference alone.
+            if dtype is not None and np.dtype(dtype) not in _VALID_IMAGE_ARRAY_DTPYES:
+                dtype = None
             bytes_array = pa.array(
                 [
                     encode_np_array(np.array(arr, dtype=dtype))["bytes"] if arr is not None else None
