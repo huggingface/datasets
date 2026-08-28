@@ -316,7 +316,10 @@ class DatasetInfo:
         if yaml_data.get("features") is not None:
             yaml_data["features"] = Features._from_yaml_list(yaml_data["features"])
         if yaml_data.get("splits") is not None:
-            yaml_data["splits"] = SplitDict._from_yaml_list(yaml_data["splits"])
+            try:
+                yaml_data["splits"] = SplitDict._from_yaml_list(yaml_data["splits"])
+            except ValueError as e:
+                logger.warning(f"Ignoring part of dataset_info from the dataset card: {e}")
         field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in yaml_data.items() if k in field_names})
 

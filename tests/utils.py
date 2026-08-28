@@ -493,16 +493,20 @@ def offline(mode: OfflineSimulationMode):
         setattr(client_mock, method, Mock(side_effect=error_response))
 
     # Patching is slightly different depending on hfh internals
-    patch_target = (
-        {"target": "huggingface_hub.utils._http._GLOBAL_CLIENT", "new": client_mock}
-        if IS_HF_HUB_1_x
-        else {
-            "target": "huggingface_hub.utils._http._get_session_from_cache",
-            "return_value": client_mock,
-        }
-    )
-    with patch(**patch_target):
-        yield
+    if IS_HF_HUB_1_x:
+        # Patching `_GLOBAL_CLIENT` alone is not enough: `_http_backoff` re-fetches the client on
+        # every attempt, and `close_session()` (called on `httpx.ConnectError`) resets the global to
+        # `None`. The first attempt would hit the mock, then the retry would rebuild a real client
+        # through the factory and reach the network. Patch the factory too so any client rebuilt
+        # mid-retry is the mock as well.
+        with (
+            patch("huggingface_hub.utils._http._GLOBAL_CLIENT", client_mock),
+            patch("huggingface_hub.utils._http._GLOBAL_CLIENT_FACTORY", lambda: client_mock),
+        ):
+            yield
+    else:
+        with patch("huggingface_hub.utils._http._get_session_from_cache", return_value=client_mock):
+            yield
 
 
 @contextmanager

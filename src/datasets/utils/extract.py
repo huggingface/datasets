@@ -439,6 +439,8 @@ class Extractor:
         # Prevent parallel extractions
         lock_path = str(Path(output_path).with_suffix(".lock"))
         with FileLock(lock_path):
+            if os.path.islink(output_path):
+                os.unlink(output_path)
             shutil.rmtree(output_path, ignore_errors=True)
             extractor = cls.extractors[extractor_format]
             return extractor.extract(input_path, output_path)

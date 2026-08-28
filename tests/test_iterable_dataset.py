@@ -713,6 +713,93 @@ def test_iterable_dataset_vs_dataset_map(batched, batch_size, input_columns, rem
     assert all(x == y for x, y in zip(*r))
 
 
+def test_iterable_dataset_map_batched_shrink_without_all_columns_raises():
+    # A batched function that shrinks the batch but does not re-emit every retained input column
+    # used to silently produce misaligned/truncated rows instead of raising.
+    # Eager Dataset.map raises pyarrow.lib.ArrowInvalid on the same input, so streaming should
+    # fail loudly too (this code path mimics Dataset.map).
+    data = [{"a": i, "b": i} for i in range(6)]
+
+    def shrink(batch):
+        return {"a": [x for x in batch["a"] if x >= 3]}
+
+    ds = IterableDataset.from_generator(lambda: iter(data)).map(shrink, batched=True, batch_size=6)
+    with pytest.raises(ValueError, match="Column lengths mismatch"):
+        list(ds)
+
+    # Parity with eager Dataset.map, which already raises on the identical input.
+    with pytest.raises(pa.lib.ArrowInvalid, match="expected length"):
+        Dataset.from_list(data).map(shrink, batched=True, batch_size=6)
+
+
+def test_iterable_dataset_map_batched_expand_without_all_columns_raises():
+    # A batched function that grows the returned column beyond the batch length without re-emitting
+    # the retained input columns used to raise a bare IndexError; it should raise a clear ValueError.
+    data = [{"a": i, "b": i} for i in range(6)]
+
+    def expand(batch):
+        return {"a": [x for x in batch["a"] for _ in range(2)]}
+
+    ds = IterableDataset.from_generator(lambda: iter(data)).map(expand, batched=True, batch_size=6)
+    with pytest.raises(ValueError, match="Column lengths mismatch"):
+        list(ds)
+
+
+def test_iterable_dataset_map_batched_new_shorter_column_raises():
+    # A batched function that only returns a new column shorter than the batch, while keeping the
+    # input columns, used to raise a bare IndexError; it should raise a clear ValueError.
+    data = [{"a": i, "b": i} for i in range(6)]
+
+    def new_shorter(batch):
+        return {"c": [x for x in batch["a"] if x >= 3]}
+
+    ds = IterableDataset.from_generator(lambda: iter(data)).map(new_shorter, batched=True, batch_size=6)
+    with pytest.raises(ValueError, match="Column lengths mismatch"):
+        list(ds)
+
+
+def test_iterable_dataset_map_batched_length_change_valid_patterns():
+    # Legitimate batched patterns that change the row count must keep working after the length check.
+    data = [{"a": i, "b": i} for i in range(6)]
+
+    def mk():
+        return IterableDataset.from_generator(lambda: iter(data))
+
+    # 1) Every column re-emitted at a new (doubled) length.
+    doubled = list(
+        mk().map(
+            lambda b: {k: [v for v in vals for _ in range(2)] for k, vals in b.items()},
+            batched=True,
+            batch_size=3,
+        )
+    )
+    assert len(doubled) == 12
+    assert doubled[0] == {"a": 0, "b": 0} and doubled[1] == {"a": 0, "b": 0}
+
+    # 2) Every column re-emitted at a shrunk (filtered) length.
+    shrunk = list(
+        mk().map(
+            lambda b: {k: [v for i, v in enumerate(vals) if b["a"][i] >= 3] for k, vals in b.items()},
+            batched=True,
+            batch_size=6,
+        )
+    )
+    assert shrunk == [{"a": 3, "b": 3}, {"a": 4, "b": 4}, {"a": 5, "b": 5}]
+
+    # 3) Same-length overwrite of an existing column.
+    overwritten = list(mk().map(lambda b: {"a": [x + 1 for x in b["a"]]}, batched=True, batch_size=6))
+    assert [x["a"] for x in overwritten] == [1, 2, 3, 4, 5, 6]
+    assert [x["b"] for x in overwritten] == [0, 1, 2, 3, 4, 5]
+
+    # 4) New column at batch length.
+    with_new_col = list(mk().map(lambda b: {"c": [x * 10 for x in b["a"]]}, batched=True, batch_size=6))
+    assert [x["c"] for x in with_new_col] == [0, 10, 20, 30, 40, 50]
+
+    # 5) New column at a different length while dropping every input column via remove_columns.
+    replaced = list(mk().map(lambda b: {"c": [1, 2]}, batched=True, batch_size=6, remove_columns=["a", "b"]))
+    assert replaced == [{"c": 1}, {"c": 2}]
+
+
 @pytest.mark.parametrize(
     "n, func, batched, batch_size, fn_kwargs",
     [
@@ -2523,6 +2610,18 @@ def test_concatenate_datasets_axis_1_with_different_lengths():
     assert list(concatenated_dataset) == [{**x, **y} for x, y in zip(extended_dataset2_list, dataset1)]
 
 
+def test_concatenate_datasets_axis_1_arrow_format():
+    # Regression test: the arrow fast-path (_iter_arrow) of horizontal concatenation must
+    # accumulate every source's columns onto new_pa_table, exactly like the plain-Python
+    # __iter__ path above. It previously appended onto the leaked outer-loop table variable,
+    # dropping the first source's columns.
+    ds1 = Dataset.from_dict({"a": [1, 2], "b": [3, 4]}).to_iterable_dataset()
+    ds2 = Dataset.from_dict({"c": [5, 6]}).to_iterable_dataset()
+    table = pa.concat_tables(concatenate_datasets([ds1, ds2], axis=1).with_format("arrow"))
+    assert table.column_names == ["a", "b", "c"]
+    assert table.to_pydict() == {"a": [1, 2], "b": [3, 4], "c": [5, 6]}
+
+
 @require_torch
 @require_tf
 @require_jax
@@ -2833,6 +2932,59 @@ def test_resume_dataloader(dataset: IterableDataset):
     assert remaining == list(dl)
 
 
+@require_torchdata_stateful_dataloader
+@pytest.mark.parametrize("num_workers", [0, 1, 2])
+def test_resume_dataloader_twice(num_workers):
+    from torchdata.stateful_dataloader import StatefulDataLoader
+
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"file{i}.txt" for i in range(4)]})
+    dataset = IterableDataset(ex_iterable)
+
+    def make_dataloader():
+        return StatefulDataLoader(dataset, batch_size=None, num_workers=num_workers)
+
+    all_examples = list(make_dataloader())
+
+    # consume 2 examples, then checkpoint #1
+    dl = make_dataloader()
+    it = iter(dl)
+    consumed = [next(it) for _ in range(2)]
+    state_1 = dl.state_dict()
+
+    # resume from #1, consume 2 more, then checkpoint #2 (taken from a resumed loader)
+    dl = make_dataloader()
+    dl.load_state_dict(state_1)
+    it = iter(dl)
+    consumed += [next(it) for _ in range(2)]
+    state_2 = dl.state_dict()
+
+    # resuming from #2 must continue from where it left off, not restart from the beginning
+    dl = make_dataloader()
+    dl.load_state_dict(state_2)
+    remainder = list(dl)
+    assert consumed + remainder == all_examples
+
+
+@pytest.mark.parametrize("consume", [1, 500, 1500])
+@pytest.mark.parametrize("batched", [False, True])
+def test_iterable_dataset_filter_resume_state_dict(consume, batched):
+    # Resuming an arrow-backed `filter()` must not skip rows: the formatter reads one
+    # example ahead instead of a whole arrow table, so state_dict() records the shard
+    # position at the emitted example and resume replays every unemitted row exactly once.
+    n = 2000
+    filter_fn = (lambda batch: [True] * len(batch["a"])) if batched else (lambda example: True)
+    ds = Dataset.from_dict({"a": list(range(n))}).to_iterable_dataset(num_shards=1).filter(filter_fn, batched=batched)
+    it = iter(ds)
+    seen = [next(it)["a"] for _ in range(consume)]
+    state_dict = ds.state_dict()
+    resumed = (
+        Dataset.from_dict({"a": list(range(n))}).to_iterable_dataset(num_shards=1).filter(filter_fn, batched=batched)
+    )
+    resumed.load_state_dict(state_dict)
+    rest = [example["a"] for example in resumed]
+    assert seen + rest == list(range(n))
+
+
 @pytest.mark.parametrize("num_shards", [1, 2, 3, 7])
 def test_iterable_dataset_batch(num_shards: int):
     # Create a simple IterableDataset
@@ -2895,6 +3047,25 @@ def test_iterable_dataset_batch(num_shards: int):
         assert len(batch["text"]) == 3
         assert batch["id"] == [3 * i, 3 * i + 1, 3 * i + 2]
         assert batch["text"] == [f"Text {3 * i}", f"Text {3 * i + 1}", f"Text {3 * i + 2}"]
+
+
+def test_iterable_dataset_batch_by_column_survives_resharding():
+    # Re-creating the iterable (shard / shuffle / split_by_node, e.g. inside torch DataLoader
+    # workers) must keep accumulating whole groups instead of crashing with a missing
+    # tables_accumulator argument (regression test).
+    data = {
+        "id": list(range(10)),
+        "category": ["A"] * 5 + ["B"] * 5,
+    }
+    ds = IterableDataset.from_dict(data, num_shards=2)
+    batched_ds = ds.batch(by_column="category")
+
+    sharded = [batch["category"][0] for i in range(2) for batch in batched_ds.shard(num_shards=2, index=i)]
+    assert sorted(sharded) == ["A", "B"]
+
+    shuffled = list(batched_ds.shuffle(seed=0, buffer_size=2))
+    assert sorted(batch["category"][0] for batch in shuffled) == ["A", "B"]
+    assert all(len(set(batch["category"])) == 1 for batch in shuffled)
 
 
 @pytest.mark.parametrize("num_shards", [1, 2, 3, 7, 10])
