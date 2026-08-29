@@ -219,6 +219,8 @@ DOCS_REQUIRE = [
 
 PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
+BIO_REQUIRE = ["biopython>=1.80"]
+
 NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 
 ICEBERG_REQUIRE = ["pyiceberg>=0.7.0"]
@@ -241,6 +243,7 @@ EXTRAS_REQUIRE = {
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": DOCS_REQUIRE,
     "pdfs": PDFS_REQUIRE,
+    "bio": BIO_REQUIRE,
     "nibabel": NIBABEL_REQUIRE,
     "iceberg": ICEBERG_REQUIRE,
 }
