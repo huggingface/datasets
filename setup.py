@@ -110,8 +110,8 @@ REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 21.0.0 to support `use_content_defined_chunking` in ParquetWriter
-    "pyarrow>=21.0.0",
+    # Minimum 24.0.0 for view-type `nbytes` support used by Vortex
+    "pyarrow>=24.0.0",
     # For smart caching dataset processing
     "dill>=0.3.0,<0.4.2",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
@@ -176,6 +176,7 @@ TESTS_REQUIRE = [
     "h5py",
     "pylance",
     "pyiceberg[sql-sqlite,pyarrow]",
+    "vortex-data; python_version >= '3.11' and sys_platform != 'win32'",
     "jax>=0.3.14; sys_platform != 'win32'",
     "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4; python_version < '3.14'",  # python 3.14 gives ImportError: cannot import name '_compression' from partially initialized module 'lz4.frame
@@ -184,7 +185,9 @@ TESTS_REQUIRE = [
     "py7zr",
     "rarfile>=4.0",
     "sqlalchemy",
-    "protobuf<4.0.0",  # 4.0.0 breaks compatibility with tensorflow<2.12
+    # Pinned for the tensorflow<2.12 builds; tensorflow has no python 3.14 wheels, where
+    # `substrait` (a vortex-data dependency) needs the protobuf 5 runtime.
+    "protobuf<4.0.0; python_version < '3.14'",
     "tensorflow>=2.6.0; python_version<'3.10' and sys_platform != 'win32'",  # numpy-2 is not supported for Python < 3.10
     "tensorflow>=2.16.0; python_version>='3.10' and sys_platform != 'win32' and python_version < '3.14'",  # Pins numpy < 2
     "tiktoken",

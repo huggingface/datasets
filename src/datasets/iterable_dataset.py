@@ -4019,6 +4019,7 @@ class IterableDataset(DatasetInfoMixin):
         The resharding mechanism depends on the dataset file format:
 
         * Parquet: shard per row group instead of per file
+        * Vortex: shard per range of consecutive chunks (about 64MB of file data each) instead of per file
         * Other: not implemented yet (contributions are welcome !)
 
         Be sure to reshard/shard before using any randomizing operator (such as `shuffle`).
