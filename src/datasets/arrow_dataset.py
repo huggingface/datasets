@@ -2429,7 +2429,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset = self.with_format("arrow")
         # capture the PyArrow version here to make the lambda serializable on Windows
         dataset = dataset.map(
-            partial(table_cast, schema=schema),
+            partial(table_cast, schema=schema, validate_features=True),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,

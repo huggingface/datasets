@@ -2360,7 +2360,7 @@ def embed_table_storage(table: pa.Table, token_per_repo_id=None, local_files: bo
     return pa.Table.from_arrays(arrays, schema=features.arrow_schema)
 
 
-def table_cast(table: pa.Table, schema: pa.Schema):
+def table_cast(table: pa.Table, schema: pa.Schema, validate_features: bool = False):
     """Improved version of `pa.Table.cast`.
 
     It supports casting to feature types stored in the schema metadata.
@@ -2370,16 +2370,24 @@ def table_cast(table: pa.Table, schema: pa.Schema):
             PyArrow table to cast.
         schema (`pyarrow.Schema`):
             Target PyArrow schema.
+        validate_features (`bool`, defaults to `False`):
+            Cast through the features even when only the schema metadata
+            differs, so each feature validates its storage. Used by the
+            user-facing cast; loaders leave it off to keep the cheap path.
 
     Returns:
         table (`pyarrow.Table`): the casted table
     """
-    # NOTE: pa.Schema.__eq__ ignores metadata, so a cast that only changes the
-    # feature types (int64 -> ClassLabel, say) leaves the arrow schema equal.
-    # Replacing the metadata alone would skip cast_array_to_feature, and with it
-    # the validation each feature does in cast_storage.
-    if table.schema != schema or table.schema.metadata != schema.metadata:
+    if table.schema != schema:
         return cast_table_to_schema(table, schema)
+    elif table.schema.metadata != schema.metadata:
+        # pa.Schema.__eq__ ignores metadata, so a change of feature type alone
+        # (int64 -> ClassLabel, say) arrives here with the arrow schema already
+        # equal. Only a requested cast pays for the feature round trip; every
+        # loader attaches metadata to a matching table and keeps the cheap path.
+        if validate_features:
+            return cast_table_to_schema(table, schema)
+        return table.replace_schema_metadata(schema.metadata)
     else:
         return table
 
