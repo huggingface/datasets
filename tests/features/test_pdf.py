@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from datasets import Dataset, Features, Pdf
+from datasets import Dataset, Features, Pdf, load_dataset
 
 from ..utils import require_pdfplumber
 
@@ -60,3 +60,18 @@ def test_dataset_with_pdf_feature(shared_datadir):
     item = dset[0]
     assert item.keys() == {"pdf"}
     assert isinstance(item["pdf"], pdfplumber.pdf.PDF)
+
+def test_cast_column_pdf_from_csv_large_string(shared_datadir, tmp_path):
+    pdf_path = str(shared_datadir / "test_pdf.pdf")
+    csv_path = tmp_path / "pdf.csv"
+
+    csv_path.write_text(f"pdf\n{pdf_path}\n", encoding="utf-8")
+
+    dset = load_dataset("csv", data_files=str(csv_path), split="train")
+    assert str(dset.features["pdf"]) == "Value('large_string')"
+
+    dset = dset.cast_column("pdf", Pdf(decode=False))
+
+    assert isinstance(dset.features["pdf"], Pdf)
+    item = dset[0]["pdf"]
+    assert item["path"] == pdf_path
