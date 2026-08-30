@@ -2347,6 +2347,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         dataset = copy.deepcopy(self)
+        depth = 0  # `max_depth` can be small enough for the loop below to not run at all
         for depth in range(1, max_depth):
             if any(isinstance(field.type, pa.StructType) for field in dataset._data.schema):
                 dataset._data = dataset._data.flatten()
