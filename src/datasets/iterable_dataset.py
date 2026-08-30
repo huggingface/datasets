@@ -3864,6 +3864,8 @@ class IterableDataset(DatasetInfoMixin):
          'text': 'if you sometimes like to go to the movies to have fun , wasabi is a good place to start .'}]
         ```
         """
+        if n < 0:
+            raise ValueError(f"Number of elements to skip must be non-negative, but got {n}.")
         ex_iterable = SkipExamplesIterable(
             self._ex_iterable,
             n,
@@ -3941,6 +3943,8 @@ class IterableDataset(DatasetInfoMixin):
          'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'}]
         ```
         """
+        if n < 0:
+            raise ValueError(f"Number of elements to take must be non-negative, but got {n}.")
         ex_iterable = TakeExamplesIterable(
             self._ex_iterable,
             n,
