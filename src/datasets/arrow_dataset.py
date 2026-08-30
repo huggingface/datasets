@@ -1834,8 +1834,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         if max_shard_size is not None and num_shards is not None:
             raise ValueError(
-                "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
+                "Failed to save_to_disk: please specify either max_shard_size or num_shards, but not both."
             )
+        if num_shards is not None and num_shards <= 0:
+            raise ValueError(f"Failed to save_to_disk: num_shards must be a positive integer, but got {num_shards}.")
         if self.list_indexes():
             raise ValueError("please remove all the indexes using `dataset.drop_index` before saving a dataset")
 
