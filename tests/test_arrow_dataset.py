@@ -4616,6 +4616,42 @@ class StratifiedTest(TestCase):
             assert len(d1["test"]["text"]) == test_size
 
 
+@pytest.mark.parametrize(
+    "transform",
+    [
+        lambda ds: ds.map(lambda x: x),
+        lambda ds: ds.filter(lambda x: True),
+        lambda ds: ds.select([]),
+        lambda ds: ds.sort("col_1"),
+        lambda ds: ds.shuffle(seed=42),
+        lambda ds: ds.shard(2, 0),
+        lambda ds: ds.take(2),
+        lambda ds: ds.skip(1),
+    ],
+)
+def test_transform_on_dataset_with_no_rows_returns_a_new_dataset(transform):
+    dataset = Dataset.from_dict({"col_1": []}, features=Features({"col_1": Value("int64")}))
+    output = transform(dataset)
+    assert output is not dataset
+    assert len(output) == 0
+    assert output.features == dataset.features
+    # in-place methods on the output must not affect the input dataset
+    output.set_format("numpy")
+    assert dataset.format["type"] is None
+
+
+def test_train_test_split_on_dataset_with_no_rows_returns_new_datasets():
+    dataset = Dataset.from_dict({"col_1": []}, features=Features({"col_1": Value("int64")}))
+    output = dataset.train_test_split(test_size=0.5)
+    assert output["train"] is not dataset
+    assert output["test"] is not dataset
+    assert output["train"] is not output["test"]
+    assert output["train"]._fingerprint != output["test"]._fingerprint
+    output["train"].set_format("numpy")
+    assert dataset.format["type"] is None
+    assert output["test"].format["type"] is None
+
+
 def test_dataset_estimate_nbytes():
     ds = Dataset.from_dict({"a": ["0" * 100] * 100})
     assert 0.9 * ds._estimate_nbytes() < 100 * 100, "must be smaller than full dataset size"
