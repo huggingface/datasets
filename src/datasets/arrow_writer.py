@@ -718,7 +718,7 @@ class ArrowWriter:
         writer_batch_size: Optional[int] = None,
         try_original_type: Optional[bool] = True,
     ):
-        if batch_examples and len(next(iter(batch_examples.values()))) == 0:
+        if batch_examples and all(len(col_values) == 0 for col_values in batch_examples.values()):
             return
         features = None if self.pa_writer is None and self.update_features else self._features
         try_features = self._features if self.pa_writer is None and self.update_features else None
