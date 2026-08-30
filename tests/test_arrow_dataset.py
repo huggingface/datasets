@@ -5136,6 +5136,14 @@ def test_add_column():
     assert ds[1] == {"a": 2, "b": 4}
 
 
+def test_add_column_with_feature_that_requires_encoding():
+    ds = Dataset.from_dict({"a": [1, 2]})
+    label = ClassLabel(names=["neg", "pos"])
+    ds = ds.add_column("b", ["neg", "pos"], feature=label)
+    assert ds.features["b"] == label
+    assert ds.with_format(None)["b"] == [0, 1]
+
+
 def test_process_large_few_examples(tmp_path):
     # GH 7911
     from datasets import Dataset
