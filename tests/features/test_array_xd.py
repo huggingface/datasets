@@ -510,3 +510,21 @@ def test_dataset_map(with_none):
             assert example["image"].shape == (3, 3, 3)
             if with_none and i == 0:
                 assert np.all(np.isnan(example["image"]))
+
+
+def test_array_xd_dynamic_shape_isna_keeps_rows_with_inner_nan():
+    """isna is a per-value mask, so a NaN inside a present row is not a missing row."""
+    ds = datasets.Dataset.from_dict(
+        {"a": [[[1.0, np.nan]], None, [[5.0, 6.0]]]},
+        features=datasets.Features({"a": Array2D((None, 2), "float32")}),
+    )
+    column = ds.data.column("a")
+    arrow_nulls = [not column[i].is_valid for i in range(len(column))]
+
+    df = ds.with_format("pandas")[:]
+    assert list(map(bool, df["a"].array.isna())) == arrow_nulls == [False, True, False]
+
+    # the present row that holds a NaN must survive to_csv rather than blanking
+    csv_rows = df.to_csv(index=False).strip().split("\n")[1:]
+    assert csv_rows[0].strip() != ""
+    assert csv_rows[1].strip() in ("", '""')

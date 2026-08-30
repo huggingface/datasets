@@ -948,9 +948,14 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         return self._data.nbytes
 
     def isna(self) -> np.ndarray:
-        # A null row of a dynamic-shape ArrayXD column is a scalar np.nan rather than an
-        # array, and the plain bool `pd.isna` returns for it has no `.any()`.
-        return np.array([np.any(pd.isna(arr)) for arr in self._data])
+        if self._data.dtype == object:
+            # Dynamic shape: a missing row is a scalar sentinel, present rows are
+            # arrays. isna is a per-value mask, so a NaN inside a present row must
+            # not mark the row missing.
+            return np.array([not isinstance(arr, np.ndarray) and bool(pd.isna(arr)) for arr in self._data])
+        # Fixed shape: every row is an array and the null row is materialised as
+        # NaNs, so the validity bitmap is already gone by this point.
+        return np.array([pd.isna(arr).any() for arr in self._data])
 
     def __setitem__(self, key: Union[int, slice, np.ndarray], value: Any) -> None:
         raise NotImplementedError()
