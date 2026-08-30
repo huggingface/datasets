@@ -4144,6 +4144,9 @@ class IterableDataset(DatasetInfoMixin):
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
         ```
         """
+        if isinstance(column_names, str):
+            column_names = [column_names]
+
         original_features = self._info.features.copy() if self._info.features else None
         ds_iterable = self.map(remove_columns=column_names)
         if original_features is not None:
