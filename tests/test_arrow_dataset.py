@@ -4473,6 +4473,14 @@ def test_dataset_to_json(dataset, tmp_path):
     assert list(df.columns) == list(dataset.column_names)
 
 
+def test_dataset_to_json_records_without_lines(dataset, tmp_path):
+    file_path = tmp_path / "test_path.json"
+    dataset.to_json(path_or_buf=file_path, lines=False, batch_size=1)
+    with file_path.open(encoding="utf-8") as f:
+        data = json.load(f)
+    assert data == dataset.to_list()
+
+
 @pytest.mark.parametrize("in_memory", [False, True])
 @pytest.mark.parametrize(
     "method_and_params",

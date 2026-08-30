@@ -104,7 +104,7 @@ class JsonDatasetWriter:
         if compression not in [None, "infer", "gzip", "bz2", "xz"]:
             raise NotImplementedError(f"`datasets` currently does not support {compression} compression")
 
-        if not lines and self.batch_size < self.dataset.num_rows:
+        if not lines and orient != "records" and self.batch_size < self.dataset.num_rows:
             raise NotImplementedError(
                 "Output JSON will not be formatted correctly when lines = False and batch_size < number of rows in the dataset. Use pandas.DataFrame.to_json() instead."
             )
@@ -136,6 +136,9 @@ class JsonDatasetWriter:
             col, *json_field_subpath = json_field_path
             batch[col] = batch[col].apply(partial(json_decode_field, json_field_path=json_field_subpath))
         json_str = batch.to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
+        if not lines and orient == "records":
+            # Return only the records so the caller can combine batches into one array.
+            return json_str.strip()[1:-1].encode(self.encoding)
         if not json_str.endswith("\n"):
             json_str += "\n"
         return json_str.encode(self.encoding)
@@ -152,6 +155,10 @@ class JsonDatasetWriter:
         Caller is responsible for opening and closing the handle.
         """
         written = 0
+        combine_records = not lines and orient == "records"
+        if combine_records:
+            written += file_obj.write(b"[")
+        first_batch = True
 
         if self.num_proc is None or self.num_proc == 1:
             for offset in hf_tqdm(
@@ -160,6 +167,10 @@ class JsonDatasetWriter:
                 desc="Creating json from Arrow format",
             ):
                 json_str = self._batch_json((offset, orient, lines, to_json_kwargs))
+                if combine_records:
+                    if not first_batch:
+                        written += file_obj.write(b",")
+                    first_batch = False
                 written += file_obj.write(json_str)
         else:
             num_rows, batch_size = len(self.dataset), self.batch_size
@@ -173,6 +184,13 @@ class JsonDatasetWriter:
                     unit="ba",
                     desc="Creating json from Arrow format",
                 ):
+                    if combine_records:
+                        if not first_batch:
+                            written += file_obj.write(b",")
+                        first_batch = False
                     written += file_obj.write(json_str)
+
+        if combine_records:
+            written += file_obj.write(b"]")
 
         return written
