@@ -106,13 +106,17 @@ def identity_func(x):
 
 
 def _rename_columns_fn(example: dict, column_mapping: dict[str, str]):
-    if any(col not in example for col in column_mapping):
+    missing_columns = set(column_mapping) - set(example)
+    if missing_columns:
         raise ValueError(
-            f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_mapping) - set(example)} are not in the dataset."
+            f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {sorted(missing_columns)} are not in the dataset."
         )
-    if any(col in example for col in column_mapping.values()):
+    # A new name only clashes with a column that is not itself being renamed away, so
+    # swapping two names is allowed, as it is for `Dataset.rename_columns`.
+    conflicting_columns = (set(column_mapping.values()) & set(example)) - set(column_mapping)
+    if conflicting_columns:
         raise ValueError(
-            f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(example) - set(column_mapping.values())} are already in the dataset."
+            f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {sorted(conflicting_columns)} are already in the dataset."
         )
     return {
         new_column_name: example[original_column_name]
