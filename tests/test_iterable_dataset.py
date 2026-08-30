@@ -2868,6 +2868,7 @@ def test_format_polars(dataset: IterableDataset):
     assert next(iter(ds)) == {**next(iter(dataset)), "new_col": 0, "new_col_batched": 1}
 
 
+@require_torch
 @pytest.mark.parametrize("num_shards1, num_shards2, num_workers", [(2, 1, 1), (2, 2, 2), (1, 3, 1), (4, 3, 3)])
 def test_interleave_dataset_with_sharding(num_shards1, num_shards2, num_workers):
     from torch.utils.data import DataLoader
