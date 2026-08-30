@@ -104,9 +104,12 @@ class JsonDatasetWriter:
         if compression not in [None, "infer", "gzip", "bz2", "xz"]:
             raise NotImplementedError(f"`datasets` currently does not support {compression} compression")
 
-        if not lines and self.batch_size < self.dataset.num_rows:
+        # Array-producing orientations ("records", "values") support batching when lines=False;
+        # dict-producing orientations ("split", "index", "columns", "table") do not.
+        if not lines and orient not in ("records", "values") and self.batch_size < self.dataset.num_rows:
             raise NotImplementedError(
-                "Output JSON will not be formatted correctly when lines = False and batch_size < number of rows in the dataset. Use pandas.DataFrame.to_json() instead."
+                f"Output JSON will not be formatted correctly when lines=False, orient={orient!r}, "
+                "and batch_size < number of rows in the dataset. Use pandas.DataFrame.to_json() instead."
             )
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
@@ -147,32 +150,61 @@ class JsonDatasetWriter:
         lines,
         **to_json_kwargs,
     ) -> int:
-        """Writes the pyarrow table as JSON lines to a binary file handle.
+        """Writes the pyarrow table as JSON to a binary file handle.
 
-        Caller is responsible for opening and closing the handle.
+        When ``lines=False`` and the dataset spans multiple batches, each batch's
+        JSON array (``[{...}, ...]``) is merged into a single outer array so the
+        output remains valid JSON.  Caller is responsible for opening and closing
+        the handle.
         """
-        written = 0
+        import contextlib
 
-        if self.num_proc is None or self.num_proc == 1:
-            for offset in hf_tqdm(
-                range(0, len(self.dataset), self.batch_size),
-                unit="ba",
-                desc="Creating json from Arrow format",
-            ):
-                json_str = self._batch_json((offset, orient, lines, to_json_kwargs))
-                written += file_obj.write(json_str)
-        else:
-            num_rows, batch_size = len(self.dataset), self.batch_size
-            with multiprocessing.Pool(self.num_proc) as pool:
-                for json_str in hf_tqdm(
+        written = 0
+        num_rows, batch_size = len(self.dataset), self.batch_size
+        offsets = range(0, num_rows, batch_size)
+        total_batches = (num_rows // batch_size) + (1 if num_rows % batch_size else 0)
+
+        pool_ctx = (
+            contextlib.nullcontext()
+            if self.num_proc is None or self.num_proc == 1
+            else multiprocessing.Pool(self.num_proc)
+        )
+
+        with pool_ctx as pool:
+            if pool is None:
+                batch_iter = (
+                    self._batch_json((offset, orient, lines, to_json_kwargs))
+                    for offset in hf_tqdm(offsets, unit="ba", desc="Creating json from Arrow format")
+                )
+            else:
+                batch_iter = hf_tqdm(
                     pool.imap(
                         self._batch_json,
-                        [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
+                        [(offset, orient, lines, to_json_kwargs) for offset in offsets],
                     ),
-                    total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
+                    total=total_batches,
                     unit="ba",
                     desc="Creating json from Arrow format",
-                ):
-                    written += file_obj.write(json_str)
+                )
+
+            if not lines and orient in ("records", "values"):
+                # These orientations produce a JSON array per batch (e.g. `[{...}, ...]`).
+                # Strip the outer brackets from each batch and merge them into a single
+                # valid JSON array across all batches.
+                written += file_obj.write(b"[")
+                first = True
+                for json_bytes in batch_iter:
+                    inner = json_bytes.rstrip(b"\n")
+                    if inner.startswith(b"[") and inner.endswith(b"]"):
+                        inner = inner[1:-1]
+                    if inner:
+                        if not first:
+                            written += file_obj.write(b",")
+                        written += file_obj.write(inner)
+                        first = False
+                written += file_obj.write(b"]")
+            else:
+                for json_bytes in batch_iter:
+                    written += file_obj.write(json_bytes)
 
         return written
