@@ -5156,6 +5156,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
+        if seed is not None and generator is not None:
+            raise ValueError("Both `seed` and `generator` were provided. Please specify just one of them.")
+
+        if generator is not None and not isinstance(generator, np.random.Generator):
+            raise ValueError("The provided generator must be an instance of numpy.random.Generator")
+
         if generator is None and shuffle is True:
             if seed is None:
                 _, seed, pos, *_ = np.random.get_state()
