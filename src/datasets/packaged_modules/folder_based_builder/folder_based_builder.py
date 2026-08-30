@@ -107,7 +107,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     archive, downloaded_dir = str(archive), str(downloaded_dir)
                     for downloaded_dir_file in dl_manager.iter_files(downloaded_dir):
                         _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
-                        if downloaded_dir_file_ext in self.EXTENSIONS:
+                        if downloaded_dir_file_ext.lower() in self.EXTENSIONS:
                             if not self.config.drop_labels:
                                 labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
                                 path_depths.add(count_path_segments(downloaded_dir_file))
@@ -446,13 +446,16 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     if isinstance(self.config.filters, list)
                     else self.config.filters
                 )
-            for shard_idx, (original_file, _, downloaded_files) in enumerate(files):
+            for shard_idx, (original_file, downloaded_dir, downloaded_files) in enumerate(files):
                 if isinstance(downloaded_files, str):
                     downloaded_files = [downloaded_files]
                 for sample_idx, downloaded_file in enumerate(downloaded_files):
                     sample = {self.BASE_COLUMN_NAME: downloaded_file}
                     if add_labels:
-                        sample["label"] = os.path.basename(os.path.dirname(original_file or downloaded_file))
+                        # for archives, `original_file` is the archive itself, so the label has to be
+                        # inferred from the path of the extracted file (like in `analyze()` above)
+                        labeled_file = downloaded_file if downloaded_dir else (original_file or downloaded_file)
+                        sample["label"] = os.path.basename(os.path.dirname(labeled_file))
                     if self.config.filters is not None:
                         pa_table = pa.Table.from_pylist([sample]).filter(filter_expr)
                         if len(pa_table) == 0:
