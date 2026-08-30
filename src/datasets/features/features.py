@@ -861,7 +861,14 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
 
     def __from_arrow__(self, array: Union[pa.Array, pa.ChunkedArray]):
         if isinstance(array, pa.ChunkedArray):
-            array = array.type.wrap_array(pa.concat_arrays([chunk.storage for chunk in array.chunks]))
+            # `pa.concat_arrays` requires at least one array, but pyarrow hands us a chunked array
+            # with no chunk at all when the column is empty
+            storage = (
+                pa.concat_arrays([chunk.storage for chunk in array.chunks])
+                if array.num_chunks > 0
+                else pa.array([], type=array.type.storage_type)
+            )
+            array = array.type.wrap_array(storage)
         zero_copy_only = _is_zero_copy_only(array.storage.type, unnest=True)
         numpy_arr = array.to_numpy(zero_copy_only=zero_copy_only)
         return PandasArrayExtensionArray(numpy_arr)
