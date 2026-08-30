@@ -5063,6 +5063,16 @@ def test_dataset_from_dict_with_large_list():
     assert pa.types.is_large_list(ds.data.schema.field("col_1").type)
 
 
+def test_dataset_save_to_disk_and_load_from_disk_round_trip_with_no_rows(tmp_path):
+    ds = Dataset.from_dict({"col_1": []}, features=Features({"col_1": Value("int64")}))
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path)
+    assert (dataset_path / "data-00000-of-00001.arrow").exists()
+    loaded_ds = load_from_disk(dataset_path)
+    assert len(loaded_ds) == 0
+    assert loaded_ds.features == ds.features
+
+
 def test_dataset_save_to_disk_with_large_list(tmp_path):
     data = {"col_1": [[1, 2], [3, 4]]}
     features = Features({"col_1": LargeList(Value("int64"))})
