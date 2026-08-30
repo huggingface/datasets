@@ -2723,13 +2723,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"{self._data.column_names}."
             )
 
-        duplicate_columns = sorted({col for col in column_names if column_names.count(col) > 1})
-        if duplicate_columns:
-            raise ValueError(
-                f"Column name {duplicate_columns} is repeated. "
-                "Each column to select must be given once."
-            )
-
         dataset = copy.deepcopy(self)
         dataset._data = dataset._data.select(column_names)
         dataset._info.features = Features({col: self._info.features[col] for col in dataset._data.column_names})
