@@ -2787,6 +2787,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
                 dropped
         """
+        if batch_size <= 0:
+            raise ValueError(f"batch_size must be a positive integer, but got {batch_size}.")
         if self._indices is None:
             # Fast iteration
             # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
