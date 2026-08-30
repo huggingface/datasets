@@ -37,7 +37,7 @@ Access frames directly from a video using the `VideoReader` using `next()`:
 ```
 
 To get multiple frames at once, you can call `.get_frames_in_range(start: int, stop: int, step: int)`. This will return a frame batch.
-This is the efficient way to obtain a long list of frames refer to the [torchcodec docs](https://docs.pytorch.org/torchcodec/stable/generated/torchcodec.decoders.VideoDecoder.html) to see more functions for effiently accessing the data:
+This is the efficient way to obtain a long list of frames refer to the [torchcodec docs](https://docs.pytorch.org/torchcodec/stable/generated/torchcodec.decoders.VideoDecoder.html) to see more functions for efficiently accessing the data:
 
 ```python
 >>> import torch
