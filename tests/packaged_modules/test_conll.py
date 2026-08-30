@@ -84,6 +84,22 @@ def test_config_raises_when_invalid_data_files(data_files) -> None:
         _ = ConllConfig(name="name", data_files=data_files)
 
 
+def test_config_raises_when_column_names_repeated() -> None:
+    # Otherwise pa.Table.from_arrays fails with a KeyError about the schema.
+    with pytest.raises(ValueError, match="`column_names` has repeated entries"):
+        _ = ConllConfig(name="name", column_names=["tokens", "tokens"])
+
+
+def test_config_raises_when_delimiter_empty() -> None:
+    # Otherwise str.split("") raises "empty separator", which never names delimiter.
+    with pytest.raises(ValueError, match="`delimiter` must not be empty"):
+        _ = ConllConfig(name="name", delimiter="")
+
+
+def test_config_accepts_none_delimiter() -> None:
+    assert ConllConfig(name="name", delimiter=None).delimiter is None
+
+
 def test_config_default_column_names():
     c = ConllConfig(name="test")
     assert c.column_names == ["tokens"]
