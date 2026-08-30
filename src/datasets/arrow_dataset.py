@@ -5853,6 +5853,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         from .iterable_dataset import ArrowExamplesIterable, IterableDataset
 
+        if num_shards <= 0:
+            raise ValueError(f"num_shards must be a positive integer, but got {num_shards}.")
+
         if self._format_type is not None:
             if self._format_kwargs or (
                 self._format_columns is not None and set(self._format_columns) != set(self.column_names)
