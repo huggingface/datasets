@@ -5017,10 +5017,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             load_from_cache_file (`Optional[bool]`, defaults to `True` if caching is enabled):
                 If a cache file storing the splits indices
                 can be identified, use it instead of recomputing.
-            train_cache_file_name (`str`, *optional*):
+            train_indices_cache_file_name (`str`, *optional*):
                 Provide the name of a path for the cache file. It is used to store the
                 train split indices instead of the automatically generated cache file name.
-            test_cache_file_name (`str`, *optional*):
+            test_indices_cache_file_name (`str`, *optional*):
                 Provide the name of a path for the cache file. It is used to store the
                 test split indices instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`):
