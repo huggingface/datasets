@@ -105,6 +105,30 @@ def identity_func(x):
     return x
 
 
+def _check_input_columns(
+    input_columns: Optional[Union[str, list[str]]], features: Optional[Features]
+) -> None:
+    """Reject an `input_columns` entry that is not a column of the dataset.
+
+    Without this the name is only looked up while iterating, and surfaces as a bare
+    `KeyError` from deep inside the pipeline rather than from the call that is wrong.
+    `Dataset.map` and `Dataset.filter` both reject it up front; this is the same check.
+
+    Nothing is checked when the features are unknown, which is the case for a streaming
+    dataset whose columns have not been resolved yet.
+    """
+    if input_columns is None or features is None:
+        return
+    if isinstance(input_columns, str):
+        input_columns = [input_columns]
+    missing_columns = set(input_columns) - set(features.keys())
+    if missing_columns:
+        raise ValueError(
+            f"Input column {sorted(missing_columns)} not in the dataset. "
+            f"Current columns in the dataset: {list(features.keys())}"
+        )
+
+
 def _rename_columns_fn(example: dict, column_mapping: dict[str, str]):
     if any(col not in example for col in column_mapping):
         raise ValueError(
@@ -3544,6 +3568,8 @@ class IterableDataset(DatasetInfoMixin):
          {'label': 1, 'text': 'Review: effective but too-tepid biopic'}]
         ```
         """
+        _check_input_columns(input_columns, self._info.features if self._info else None)
+
         return self._map(
             function=function,
             with_indices=with_indices,
@@ -3697,6 +3723,8 @@ class IterableDataset(DatasetInfoMixin):
         """
         if isinstance(input_columns, str):
             input_columns = [input_columns]
+
+        _check_input_columns(input_columns, self._info.features if self._info else None)
 
         # We need the examples to be decoded for certain feature types like Image or Audio,
         # format and type before filtering

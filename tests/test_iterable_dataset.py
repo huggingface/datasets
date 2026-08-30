@@ -2465,6 +2465,23 @@ def test_iterable_dataset_remove_columns(dataset_with_several_columns: IterableD
     assert all(c not in new_dataset.column_names for c in ["id", "filepath"])
 
 
+@pytest.mark.parametrize(
+    ("method", "function"), [("map", lambda v: {"squared": v}), ("filter", lambda v: True)]
+)
+def test_iterable_dataset_input_columns_missing(
+    dataset_with_several_columns: IterableDataset, method, function
+):
+    """An unknown input_columns must be rejected by the call, not by a later KeyError."""
+    resolved = dataset_with_several_columns._resolve_features()
+    match = r"Input column \['unknown'\] not in the dataset"
+    with pytest.raises(ValueError, match=match):
+        getattr(resolved, method)(function, input_columns=["unknown"])
+    with pytest.raises(ValueError, match=match):
+        getattr(resolved, method)(function, input_columns="unknown")
+    # A real column is still accepted and the result still iterates.
+    assert len(list(getattr(resolved, method)(function, input_columns=["id"]))) > 0
+
+
 def test_iterable_dataset_select_columns(dataset_with_several_columns: IterableDataset):
     new_dataset = dataset_with_several_columns.select_columns("id")
     assert list(new_dataset) == [
