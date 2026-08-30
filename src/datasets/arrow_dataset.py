@@ -5860,7 +5860,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 raise NotImplementedError(
                     "Converting a formatted dataset with kwargs or selected columns to a formatted iterable dataset is not implemented yet. Please run `my_dataset = my_dataset.with_format(None)` before calling to_iterable_dataset"
                 )
-        if num_shards > len(self):
+        if num_shards > max(len(self), 1):  # a dataset with no rows still has one (empty) shard
             raise ValueError(
                 f"Unable to shard a dataset of size {len(self)} into {num_shards} shards (the number of shards exceeds the number of samples)."
             )
