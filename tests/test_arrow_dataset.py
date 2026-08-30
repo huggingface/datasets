@@ -1411,6 +1411,52 @@ class BaseDatasetTest(TestCase):
                     with dset.map(lambda example: {"translation": example}) as dset:
                         self.assertEqual(dset[0], {"en": "aa", "fr": "cc", "translation": {"en": "aa", "fr": "cc"}})
 
+    def test_map_mixed_none_and_dict_returns(self, in_memory):
+        # Regression test for https://github.com/huggingface/datasets/issues/7990:
+        # the writer must be initialized lazily on the first non-`None` return,
+        # not at `i == 0`, otherwise functions that return `None` for early
+        # examples and a dict later crash with `'NoneType' object has no attribute 'write'`.
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict({"x": [1, 2, 3]}) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    # None for early examples, dict for later: was crashing pre-fix.
+                    def fn_late(example, idx):
+                        return None if idx < 2 else {"x": example["x"] * 10}
+
+                    with dset.map(fn_late, with_indices=True) as out:
+                        self.assertEqual(out["x"], [30])
+
+                    # Inverse pattern: dict early, None late — was silently dropping
+                    # the writer's accumulated rows because `update_data` flipped back to False.
+                    def fn_early(example, idx):
+                        return {"x": example["x"] * 10} if idx < 2 else None
+
+                    with dset.map(fn_early, with_indices=True) as out:
+                        self.assertEqual(out["x"], [10, 20])
+
+                    # Alternating None / dict.
+                    def fn_alt(example, idx):
+                        return {"x": example["x"] * 10} if idx % 2 == 0 else None
+
+                    with dset.map(fn_alt, with_indices=True) as out:
+                        self.assertEqual(out["x"], [10, 30])
+
+                    # Batched variants of the same patterns.
+                    with Dataset.from_dict({"x": list(range(5))}) as dset5:
+                        with self._to(in_memory, tmp_dir, dset5) as dset5:
+
+                            def fnb_late(batch, indices):
+                                return None if min(indices) < 2 else {"x": [v * 10 for v in batch["x"]]}
+
+                            with dset5.map(fnb_late, with_indices=True, batched=True, batch_size=2) as out:
+                                self.assertEqual(out["x"], [20, 30, 40])
+
+                            def fnb_early(batch, indices):
+                                return {"x": [v * 10 for v in batch["x"]]} if min(indices) < 2 else None
+
+                            with dset5.map(fnb_early, with_indices=True, batched=True, batch_size=2) as out:
+                                self.assertEqual(out["x"], [0, 10])
+
     def test_map_fn_kwargs(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict({"id": range(10)}) as dset:
