@@ -4645,6 +4645,10 @@ def test_dataset_to_iterable_dataset(dataset: Dataset):
     assert iterable_dataset.num_shards == 3
     with pytest.raises(ValueError):
         dataset.to_iterable_dataset(num_shards=len(dataset) + 1)
+
+
+@require_torch
+def test_dataset_to_iterable_dataset_with_torch_format(dataset: Dataset):
     assert dataset.with_format("torch").to_iterable_dataset()._formatting.format_type == "torch"
     with pytest.raises(NotImplementedError):
         dataset.with_format("torch", columns=[dataset.column_names[0]]).to_iterable_dataset()
