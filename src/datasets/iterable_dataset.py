@@ -864,6 +864,7 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             while iterators:
                 iterator = iterators.pop()
                 del iterator
+            executor.shutdown(wait=True)
             if any(ex_iterable.sleep_on_threads_shutdown for ex_iterable in self.ex_iterables):
                 time.sleep(config.SLEEP_TIME_ON_THREADS_SHUTDOWN)
 
