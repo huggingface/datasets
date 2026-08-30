@@ -2465,14 +2465,20 @@ def test_iterable_dataset_remove_columns(dataset_with_several_columns: IterableD
     assert all(c not in new_dataset.column_names for c in ["id", "filepath"])
 
 
-def test_iterable_dataset_remove_columns_missing_column(dataset_with_several_columns: IterableDataset):
+def test_iterable_dataset_remove_missing_column(dataset_with_several_columns: IterableDataset):
     resolved = dataset_with_several_columns._resolve_features()
-    with pytest.raises(ValueError, match="Column name \\['unknown'\\] not in the dataset"):
+    match = "Column to remove \\['unknown'\\] not in the dataset"
+    # Both public entry points, since remove_columns delegates to map.
+    with pytest.raises(ValueError, match=match):
         resolved.remove_columns("unknown")
-    with pytest.raises(ValueError, match="Column name \\['unknown'\\] not in the dataset"):
+    with pytest.raises(ValueError, match=match):
         resolved.remove_columns(["id", "unknown"])
-    # A known column is still removed, and nothing is dropped when the check passes.
+    with pytest.raises(ValueError, match=match):
+        resolved.map(lambda x: x, remove_columns=["unknown"])
+    # A known column is still removed, and renaming, which maps with remove_columns
+    # under the hood, is unaffected.
     assert "id" not in resolved.remove_columns("id").column_names
+    assert "new_id" in resolved.rename_column("id", "new_id").column_names
 
 
 def test_iterable_dataset_select_columns(dataset_with_several_columns: IterableDataset):
