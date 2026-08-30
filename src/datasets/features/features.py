@@ -1733,9 +1733,9 @@ def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureT
     elif isinstance(feature, dict):
         out = func({k: _visit(f, func) for k, f in feature.items()})
     elif isinstance(feature, LargeList):
-        out = func(LargeList(_visit(feature.feature, func)))
+        out = func(LargeList(_visit(feature.feature, func), id=feature.id))
     elif isinstance(feature, List):
-        out = func(List(_visit(feature.feature, func), length=feature.length))
+        out = func(List(_visit(feature.feature, func), length=feature.length, id=feature.id))
     else:
         out = func(feature)
     return feature if out is None else out
@@ -1768,9 +1768,12 @@ def _visit_with_path(
     elif isinstance(feature, dict):
         out = func({k: _visit_with_path(f, func, visit_path + [k]) for k, f in feature.items()}, visit_path)
     elif isinstance(feature, List):
-        out = func(List(_visit_with_path(feature.feature, func, visit_path + [0]), length=feature.length), visit_path)
+        out = func(
+            List(_visit_with_path(feature.feature, func, visit_path + [0]), length=feature.length, id=feature.id),
+            visit_path,
+        )
     elif isinstance(feature, LargeList):
-        out = func(LargeList(_visit_with_path(feature.feature, func, visit_path + [0])), visit_path)
+        out = func(LargeList(_visit_with_path(feature.feature, func, visit_path + [0]), id=feature.id), visit_path)
     else:
         out = func(feature, visit_path)
     return feature if out is None else out
