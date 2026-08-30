@@ -729,6 +729,22 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(new_dset._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
 
+    def test_select_remove_columns_repeated_name(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                # Repeating a name used to build a table with two identically named
+                # columns whose Features had only one entry.
+                with self.assertRaises(ValueError) as ctx:
+                    dset.select_columns(column_names=["col_1", "col_1"])
+                self.assertIn("is repeated", str(ctx.exception))
+                # And here it deleted the same feature twice, raising a bare KeyError.
+                with self.assertRaises(ValueError) as ctx:
+                    dset.remove_columns(column_names=["col_1", "col_1"])
+                self.assertIn("is repeated", str(ctx.exception))
+                # Distinct names are unaffected.
+                with dset.select_columns(column_names=["col_1", "col_2"]) as new_dset:
+                    self.assertListEqual(list(new_dset.column_names), ["col_1", "col_2"])
+
     def test_concatenate(self, in_memory):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
         info1 = DatasetInfo(description="Dataset1")

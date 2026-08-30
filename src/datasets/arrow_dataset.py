@@ -2533,6 +2533,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"Current columns in the dataset: {dataset._data.column_names}"
             )
 
+        duplicate_columns = sorted({col for col in column_names if column_names.count(col) > 1})
+        if duplicate_columns:
+            raise ValueError(
+                f"Column name {duplicate_columns} is repeated. "
+                "Each column to remove must be given once."
+            )
+
         for column_name in column_names:
             del dataset._info.features[column_name]
 
@@ -2714,6 +2721,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"Column name {list(missing_columns)} not in the "
                 "dataset. Current columns in the dataset: "
                 f"{self._data.column_names}."
+            )
+
+        duplicate_columns = sorted({col for col in column_names if column_names.count(col) > 1})
+        if duplicate_columns:
+            raise ValueError(
+                f"Column name {duplicate_columns} is repeated. "
+                "Each column to select must be given once."
             )
 
         dataset = copy.deepcopy(self)
