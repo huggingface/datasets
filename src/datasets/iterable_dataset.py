@@ -4144,6 +4144,20 @@ class IterableDataset(DatasetInfoMixin):
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
         ```
         """
+        if isinstance(column_names, str):
+            column_names = [column_names]
+
+        # `select_columns` already rejects unknown columns, and `Dataset.remove_columns`
+        # does too. Without this check a typo in a column name is silently ignored here.
+        if self._info is not None and self._info.features is not None:
+            missing_columns = set(column_names) - set(self._info.features.keys())
+            if missing_columns:
+                raise ValueError(
+                    f"Column name {list(missing_columns)} not in the "
+                    "dataset. Columns in the dataset: "
+                    f"{list(self._info.features.keys())}."
+                )
+
         original_features = self._info.features.copy() if self._info.features else None
         ds_iterable = self.map(remove_columns=column_names)
         if original_features is not None:
