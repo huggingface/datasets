@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
+import pyarrow.parquet as pq
 import pytest
 from huggingface_hub import HfFileSystemResolvedPath
 from packaging import version
@@ -1794,6 +1795,23 @@ def test_iterable_dataset_to_pandas_casts_when_schema_mismatch():
     assert list(df.columns) == ["col"]
     assert df["col"].iloc[0] == 0
     assert len(batches) == 2
+
+
+def test_iterable_dataset_export_when_empty(tmp_path):
+    # a dataset that doesn't yield any example must export like an empty Dataset,
+    # instead of failing with "pyarrow.lib.ArrowInvalid: Must pass at least one table"
+    features = Features({"col": Value("int64")})
+    dataset = Dataset.from_dict({"col": [0, 1]}, features=features).to_iterable_dataset()
+    empty_dataset = dataset.filter(lambda example: False)
+
+    assert empty_dataset.to_list() == []
+    assert list(empty_dataset.to_pandas().columns) == ["col"]
+    assert len(empty_dataset.to_pandas()) == 0
+    assert empty_dataset.to_csv(tmp_path / "data.csv") == 0
+    assert empty_dataset.to_json(tmp_path / "data.json") == 0
+    assert empty_dataset.to_parquet(tmp_path / "data.parquet") == 0
+    assert pq.read_table(tmp_path / "data.parquet").num_rows == 0
+    assert pq.read_table(tmp_path / "data.parquet").schema.names == ["col"]
 
 
 @require_numpy1_on_windows
