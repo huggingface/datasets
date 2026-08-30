@@ -11,6 +11,7 @@ from datasets.download.streaming_download_manager import StreamingDownloadManage
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder, ImageFolderConfig
 
 from ..utils import require_pil
+from pathlib import Path 
 
 
 @pytest.fixture
@@ -442,3 +443,25 @@ def test_data_files_with_with_metadata_in_different_formats(cache_dir, tmp_path,
     with pytest.raises(ValueError) as exc_info:
         imagefolder.download_and_prepare()
     assert "metadata files with different extensions" in str(exc_info.value)
+
+@require_pil
+def test_data_files_with_image_named_after_split(cache_dir, tmp_path, image_file):
+    # Test that an image named "train.png" is not mistaken for a split name
+    data_dir = tmp_path / "data_dir_with_image_named_train"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    Path(cache_dir).mkdir(parents=True, exist_ok=True)
+
+    # Copy 3 images into a flat folder - one named "train.png"
+    shutil.copyfile(image_file, data_dir / "train.png")
+    shutil.copyfile(image_file, data_dir / "pika.png")
+    shutil.copyfile(image_file, data_dir / "pika_pika.png")
+
+    data_files = DataFilesDict.from_patterns(
+        get_data_patterns(str(data_dir)), data_dir.as_posix()
+    )
+    imagefolder = ImageFolder(data_files=data_files, cache_dir=cache_dir)
+    imagefolder.download_and_prepare()
+    dataset = imagefolder.as_dataset()
+
+    # All 3 images should be in the dataset, not just train.png
+    assert len(dataset["train"]) == 3
