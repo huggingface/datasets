@@ -153,6 +153,20 @@ def tar_file_with_dot_dot(tmp_path, text_file):
 
 
 @pytest.fixture
+def tar_file_with_sibling_dir(tmp_path, text_file):
+    # a member that escapes the output directory into a sibling directory whose name
+    # starts with the name of the output directory
+    import tarfile
+
+    directory = tmp_path / "data_sibling_dir"
+    directory.mkdir()
+    path = directory / "tar_file_with_sibling_dir.tar"
+    with tarfile.TarFile(path, "w") as f:
+        f.add(text_file, arcname=os.path.join("..", "extracted_evil", text_file.name))
+    return path
+
+
+@pytest.fixture
 def tar_file_with_sym_link(tmp_path):
     import tarfile
 
@@ -183,6 +197,31 @@ def test_tar_extract_insecure_files(
     for record in caplog.records:
         assert record.levelname == "ERROR"
         assert error_log in record.msg
+
+
+def test_tar_extract_outside_of_output_path(tar_file_with_sibling_dir, tmp_path, caplog):
+    # "extracted_evil" starts with "extracted", so it used to pass the `startswith(base)` check
+    output_path = tmp_path / "extracted"
+    TarExtractor.extract(tar_file_with_sibling_dir, output_path)
+    assert not (tmp_path / "extracted_evil").exists()
+    assert caplog.text
+    for record in caplog.records:
+        assert record.levelname == "ERROR"
+        assert "illegal path" in record.msg
+
+
+def test_tar_extract_keeps_members_inside_output_path(tmp_path, text_file):
+    import tarfile
+
+    path = tmp_path / "tar_file_with_dot_entry.tar"
+    with tarfile.TarFile(path, "w") as f:
+        f.add(str(tmp_path), arcname=".", recursive=False)  # the "./" directory entry
+        f.add(text_file, arcname=text_file.name)
+        f.add(text_file, arcname=os.path.join("subdir", text_file.name))
+    output_path = tmp_path / "extracted"
+    TarExtractor.extract(path, output_path)
+    assert (output_path / text_file.name).is_file()
+    assert (output_path / "subdir" / text_file.name).is_file()
 
 
 def test_is_zipfile_false_positive(tmpdir):

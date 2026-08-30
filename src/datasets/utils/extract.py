@@ -105,7 +105,10 @@ class TarExtractor(BaseExtractor):
 
         def badpath(path: str, base: str) -> bool:
             # joinpath will ignore base if path is absolute
-            return not resolved(os.path.join(base, path)).startswith(base)
+            resolved_path = resolved(os.path.join(base, path))
+            # compare against base + os.sep, otherwise a sibling directory whose name
+            # starts with base (e.g. "../<base name>_evil") would pass the check
+            return resolved_path != base and not resolved_path.startswith(base + os.sep)
 
         def badlink(info: tarfile.TarInfo, base: str) -> bool:
             # Links are interpreted relative to the directory containing the link
@@ -205,7 +208,10 @@ class ZipExtractor(MagicNumberBaseExtractor):
 
         def badpath(path: str, base: str) -> bool:
             # joinpath will ignore base if path is absolute
-            return not resolved(os.path.join(base, path)).startswith(base)
+            resolved_path = resolved(os.path.join(base, path))
+            # compare against base + os.sep, otherwise a sibling directory whose name
+            # starts with base (e.g. "../<base name>_evil") would pass the check
+            return resolved_path != base and not resolved_path.startswith(base + os.sep)
 
         base = resolved(output_path)
 
@@ -258,7 +264,10 @@ class RarExtractor(MagicNumberBaseExtractor):
 
         def badpath(path: str, base: str) -> bool:
             # joinpath will ignore base if path is absolute
-            return not resolved(os.path.join(base, path)).startswith(base)
+            resolved_path = resolved(os.path.join(base, path))
+            # compare against base + os.sep, otherwise a sibling directory whose name
+            # starts with base (e.g. "../<base name>_evil") would pass the check
+            return resolved_path != base and not resolved_path.startswith(base + os.sep)
 
         def badlink(info: "rarfile.RarInfo", base: str) -> bool:
             # Links are interpreted relative to the directory containing the link
@@ -334,7 +343,10 @@ class SevenZipExtractor(MagicNumberBaseExtractor):
 
         def badpath(path: str, base: str) -> bool:
             # joinpath will ignore base if path is absolute
-            return not resolved(os.path.join(base, path)).startswith(base)
+            resolved_path = resolved(os.path.join(base, path))
+            # compare against base + os.sep, otherwise a sibling directory whose name
+            # starts with base (e.g. "../<base name>_evil") would pass the check
+            return resolved_path != base and not resolved_path.startswith(base + os.sep)
 
         def badlink(info: "py7zr.FileInfo", base: str) -> bool:
             # Links are interpreted relative to the directory containing the link
