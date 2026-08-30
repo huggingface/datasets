@@ -356,3 +356,27 @@ def test_split_order_in_metadata_configs_from_exported_parquet_files_and_dataset
     )
     split_names = [data_file["split"] for data_file in metadata_configs["default"]["data_files"]]
     assert split_names == ["train", "validation", "test"]
+
+
+def test_from_exported_parquet_files_keeps_all_shards_when_configs_non_consecutive():
+    # Regression for #8269: itertools.groupby only groups *consecutive* keys, so
+    # a config that appears non-consecutively in the exported list must not lose
+    # its earlier shard URLs.
+    base = "https://huggingface.co/datasets/ds/resolve/refs%2Fconvert%2Fparquet"
+    exported_parquet_files = [
+        {"dataset": "ds", "config": "default", "split": "train",
+         "url": f"{base}/default/train/0000.parquet", "filename": "0000.parquet", "size": 1},
+        {"dataset": "ds", "config": "other", "split": "train",
+         "url": f"{base}/other/train/0000.parquet", "filename": "0000.parquet", "size": 1},
+        {"dataset": "ds", "config": "default", "split": "train",
+         "url": f"{base}/default/train/0001.parquet", "filename": "0001.parquet", "size": 1},
+    ]
+    metadata_configs = MetadataConfigs._from_exported_parquet_files_and_dataset_infos(
+        "123", exported_parquet_files, {}
+    )
+    assert "other" in metadata_configs
+    default_paths = metadata_configs["default"]["data_files"][0]["path"]
+    # both shards are kept (not just the last one), with the commit hash substituted
+    assert len(default_paths) == 2
+    assert default_paths == [f"{base.replace('refs%2Fconvert%2Fparquet', '123')}/default/train/0000.parquet",
+                             f"{base.replace('refs%2Fconvert%2Fparquet', '123')}/default/train/0001.parquet"]
