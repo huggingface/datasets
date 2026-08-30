@@ -4550,6 +4550,13 @@ def test_build_local_temp_path(uri_or_path):
     ), f"Local temp path: {local_temp_path}"
 
 
+@pytest.mark.parametrize("mask_length", [1, 5])
+def test_dataset_filter_batched_with_wrong_mask_length(mask_length):
+    dataset = Dataset.from_dict({"col_1": list(range(3))})
+    with pytest.raises(ValueError):
+        dataset.filter(lambda batch: [True] * mask_length, batched=True)
+
+
 class StratifiedTest(TestCase):
     def test_errors_train_test_split_stratify(self):
         ys = [
