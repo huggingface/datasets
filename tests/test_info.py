@@ -92,6 +92,23 @@ def test_dataset_info_to_yaml_dict_empty():
     assert dataset_info_yaml_dict == {}
 
 
+def test_dataset_info_from_yaml_dict_with_splits_that_are_not_dicts(caplog):
+    yaml_data = {"config_name": "default", "splits": ["train", "test"]}
+    with caplog.at_level("WARNING", logger="datasets.info"):
+        dataset_info = DatasetInfo._from_yaml_dict(yaml_data)
+    assert dataset_info.splits is None
+    assert dataset_info.config_name == "default"
+    assert "Ignoring part of dataset_info" in caplog.text
+
+
+def test_dataset_info_from_yaml_dict_with_splits_missing_num_bytes(caplog):
+    yaml_data = {"config_name": "default", "splits": [{"name": "train", "num_examples": 42}]}
+    with caplog.at_level("WARNING", logger="datasets.info"):
+        dataset_info = DatasetInfo._from_yaml_dict(yaml_data)
+    assert dataset_info.splits is None
+    assert dataset_info.config_name == "default"
+
+
 @pytest.mark.parametrize(
     "dataset_infos_dict",
     [
