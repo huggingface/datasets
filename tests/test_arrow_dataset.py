@@ -4918,6 +4918,19 @@ def test_dataset_batch():
     assert batches[2]["text"] == ["Text 8", "Text 9"]
 
 
+def test_dataset_batch_without_batch_size_or_by_column():
+    dataset = Dataset.from_dict({"col_1": [0, 1, 2]})
+    with pytest.raises(ValueError, match=r"^Dataset\.batch\(\)"):
+        dataset.batch()
+
+
+@pytest.mark.parametrize("by_column", ["col_2", ["col_1", "col_2"]])
+def test_dataset_batch_by_missing_column(by_column):
+    dataset = Dataset.from_dict({"col_1": [0, 1, 2]})
+    with pytest.raises(ValueError):
+        dataset.batch(by_column=by_column)
+
+
 def test_dataset_batch_by_column():
     # Create a Dataset with a column to group by
     data = {

@@ -4111,11 +4111,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         if batch_size is None and by_column is None:
-            raise ValueError("IterableDataset.batch() misses `batch_size` or `by_column` argument.")
+            raise ValueError("Dataset.batch() misses `batch_size` or `by_column` argument.")
         if by_column is not None:
             if num_proc:
                 raise NotImplementedError("Multiprocessed batching by column is not implemented yet")
             columns = [by_column] if isinstance(by_column, str) else by_column
+            missing_columns = [column for column in columns if column not in self._data.column_names]
+            if missing_columns:
+                raise ValueError(
+                    f"Column to batch by {missing_columns} not in the dataset. "
+                    f"Current columns in the dataset: {self._data.column_names}"
+                )
             _batch_fn = partial(
                 _batch_accumulate_arrow_table_by_columns, columns=columns, tables_accumulator=[], length=len(self)
             )
