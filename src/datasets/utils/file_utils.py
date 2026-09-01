@@ -1154,7 +1154,6 @@ class xPath(type(Path())):
             if rest_hops:
                 urlpath = rest_hops[0]
                 urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
-                storage_options = {urlpath.split("://")[0]: storage_options}
                 posix_path = "::".join([main_hop, urlpath, *rest_hops[1:]])
             else:
                 storage_options = None
