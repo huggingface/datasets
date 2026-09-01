@@ -3,6 +3,7 @@ import copy
 import itertools
 import json
 import math
+import os
 import posixpath
 import random
 import re
@@ -1356,6 +1357,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ```
         """
         fs: fsspec.AbstractFileSystem
+        dataset_dict_path = os.fspath(dataset_dict_path)
         fs, _ = url_to_fs(dataset_dict_path, **(storage_options or {}))
 
         if num_shards is None:
@@ -1415,6 +1417,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ```
         """
         fs: fsspec.AbstractFileSystem
+        dataset_dict_path = os.fspath(dataset_dict_path)
         fs, dataset_dict_path = url_to_fs(dataset_dict_path, **(storage_options or {}))
 
         dataset_dict_json_path = posixpath.join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME)
