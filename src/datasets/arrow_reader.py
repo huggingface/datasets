@@ -439,8 +439,16 @@ def _rel_to_abs_instr(rel_instr, name2len):
     from_ = rel_instr.from_
     to = rel_instr.to
     if rel_instr.unit == "%":
-        from_ = 0 if from_ is None else pct_to_abs(from_, num_examples)
-        to = num_examples if to is None else pct_to_abs(to, num_examples)
+        # Handle negative percentages: -x% means (100-x)% from start
+        # This preserves the sign before rounding
+        if from_ is not None and from_ < 0:
+            from_ = pct_to_abs(100 + from_, num_examples)
+        else:
+            from_ = 0 if from_ is None else pct_to_abs(from_, num_examples)
+        if to is not None and to < 0:
+            to = pct_to_abs(100 + to, num_examples)
+        else:
+            to = num_examples if to is None else pct_to_abs(to, num_examples)
     else:
         from_ = 0 if from_ is None else from_
         to = num_examples if to is None else to
