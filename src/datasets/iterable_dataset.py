@@ -4472,6 +4472,8 @@ class IterableDataset(DatasetInfoMixin):
         """
         if batch_size is None and by_column is None:
             raise ValueError("IterableDataset.batch() misses `batch_size` or `by_column` argument.")
+        if batch_size is not None and batch_size <= 0:
+            raise ValueError(f"batch_size must be a positive integer, but got {batch_size}.")
         if self.features:
             features = Features({col: List(feature) for col, feature in self.features.items()})
         else:
