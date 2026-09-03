@@ -297,5 +297,7 @@ def _embed_bytes_path_struct(
         [os.path.basename(path) if path is not None else None for path in storage.field("path").to_pylist()],
         type=pa.string(),
     )
-    storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
+    # Row nullness comes from the input row, not from whether bytes were embedded: a
+    # path-only row with embedding disabled is still a valid row.
+    storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
     return array_cast(storage, pa_type)

@@ -194,3 +194,14 @@ def test_resolve_token_returns_none_for_non_hub_url():
     assert _resolve_token("https://example.com/data/seqs.fasta", tokens) is None
     assert _resolve_token("s3://bucket/seqs.fasta", tokens) is None
     assert _resolve_token("hf://datasets/user/repo@main/seqs.fasta", tokens) == "hf_secret"
+
+
+@pytest.mark.parametrize("feature_cls", [BioSequence, BioStructure])
+def test_embed_storage_keeps_path_only_rows_when_embedding_is_off(feature_cls):
+    """With local_files=False a local path-only row is left as is, not nulled (as Image does)."""
+    import pyarrow as pa
+
+    feature = feature_cls()
+    storage = pa.array([{"bytes": None, "path": "/data/seqs.fasta"}, None], type=feature.pa_type)
+    embedded = feature.embed_storage(storage, local_files=False, remote_files=False)
+    assert embedded.to_pylist() == [{"bytes": None, "path": "seqs.fasta"}, None]
