@@ -401,3 +401,21 @@ def test_fastq_extensions():
     """Test that correct extensions are defined."""
     assert ".fq" in Fastq.EXTENSIONS
     assert ".fastq" in Fastq.EXTENSIONS
+
+
+@pytest.mark.parametrize(
+    "text, reason",
+    [
+        ("@r1\nACGT\n+\n!!\n", "quality shorter than sequence"),
+        ("@r1\nACGT\n+\n!!!!!!\n@r2\nA\n+\n!\n", "quality longer than sequence"),
+        ("@r1\nACGT\nACGT\n", "no '+' separator before end of file"),
+    ],
+)
+def test_fastq_parser_rejects_corrupt_record(text, reason):
+    """A FASTQ record whose quality length differs from its sequence length is corrupt
+    (typically a truncated download). It must raise rather than be yielded with
+    mismatched columns."""
+    import io
+
+    with pytest.raises(ValueError, match="r1"):
+        list(Fastq()._parse_fastq(io.StringIO(text)))
