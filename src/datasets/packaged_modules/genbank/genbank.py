@@ -241,7 +241,7 @@ class GenBank(datasets.ArrowBasedBuilder):
         Examples:
             "100..200" -> {"start": 100, "end": 200, "strand": 1}
             "complement(100..200)" -> {"start": 100, "end": 200, "strand": -1}
-            "join(1..100,200..300)" -> {"start": 1, "end": 300, "strand": 1, "parts": [[1,100],[200,300]]}
+            "join(1..100,200..300)" -> {"start": 1, "end": 300, "strand": 1, "operator": "join", "parts": [[1,100],[200,300]]}
         """
         location = {"strand": 1}
 
@@ -250,9 +250,14 @@ class GenBank(datasets.ArrowBasedBuilder):
             location["strand"] = -1
             location_str = location_str[11:-1]  # Remove "complement(" and ")"
 
-        # Check for join
-        if location_str.startswith("join("):
-            location_str = location_str[5:-1]  # Remove "join(" and ")"
+        # join(...) and order(...) share a shape; order() carries no contiguity claim,
+        # so the operator is kept rather than collapsed into join.
+        for operator in ("join", "order"):
+            if location_str.startswith(operator + "("):
+                location["operator"] = operator
+                location_str = location_str[len(operator) + 1 : -1]
+                break
+        if "operator" in location:
             parts = []
             for part in location_str.split(","):
                 part = part.strip()

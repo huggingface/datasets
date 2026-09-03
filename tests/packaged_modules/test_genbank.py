@@ -744,6 +744,21 @@ def test_genbank_repeated_qualifiers_are_all_kept(tmp_path):
     assert qualifiers["gene"] == ["g1"]
 
 
+def test_genbank_order_location_parses(tmp_path):
+    """order(...) is a valid location operator and must not crash the loader."""
+    _, features = _parse_one(
+        tmp_path,
+        _LOCUS_DNA
+        + "FEATURES             Location/Qualifiers\n"
+        + "     gene            order(1..5,8..10)\n"
+        + _ORIGIN,
+    )
+    location = features[0]["location"]
+    assert location["operator"] == "order"
+    assert location["parts"] == [[1, 5], [8, 10]]
+    assert (location["start"], location["end"]) == (1, 10)
+
+
 def test_genbank_wrapped_join_location(tmp_path):
     """A join(...) location wrapped onto a second line must parse completely."""
     _, features = _parse_one(
