@@ -115,3 +115,22 @@ def test_protein_atom_types_dtypes_are_arrow_types():
     # The canonical type table maps every column to a pyarrow DataType (no stringly-typed dtypes).
     for col, dtype in PROTEIN_ATOM_TYPES.items():
         assert isinstance(dtype, pa.DataType), f"{col} dtype is not a pa.DataType"
+
+
+def test_parse_mmcif_row_wrapped_across_lines():
+    """CIF is whitespace-delimited, not line-delimited; a row may continue on the next line.
+
+    Regression: a row shorter than the column count was skipped, so a wrapped row
+    silently disappeared from the output.
+    """
+    text = (
+        "data_X\nloop_\n_atom_site.group_PDB\n_atom_site.id\n_atom_site.type_symbol\n"
+        "_atom_site.label_atom_id\n_atom_site.label_comp_id\n_atom_site.label_asym_id\n"
+        "_atom_site.label_seq_id\n_atom_site.Cartn_x\n_atom_site.Cartn_y\n_atom_site.Cartn_z\n"
+        "_atom_site.occupancy\n_atom_site.B_iso_or_equiv\n"
+        "ATOM 1 N N ALA A 1\n 0.0 1.0 2.0 1.00 10.0\n"
+        "ATOM 2 C CA ALA A 1 1.5 1.0 2.0 1.00 10.0\n"
+    )
+    atoms = parse_mmcif_atoms(text)
+    assert atoms["id"] == [1, 2]
+    assert atoms["Cartn_x"] == [0.0, 1.5]
