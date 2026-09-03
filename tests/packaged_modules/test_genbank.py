@@ -815,3 +815,91 @@ def test_genbank_protein_locus_lowercase_aa(tmp_path):
     )
     assert result["length"][0] == 50
     assert result["molecule_type"][0] == "protein"
+
+
+_HDR = _LOCUS_DNA + "FEATURES             Location/Qualifiers\n"
+
+
+def test_genbank_join_of_complements_parses_recursively(tmp_path):
+    """complement() may appear inside join()/order(); each part is parsed on its own."""
+    _, features = _parse_one(
+        tmp_path, _HDR + "     CDS             join(complement(6..10),complement(1..5))\n" + _ORIGIN
+    )
+    location = features[0]["location"]
+    assert location["operator"] == "join"
+    assert location["parts"] == [[6, 10], [1, 5]]
+    assert location["strand"] == -1
+
+
+def test_genbank_mixed_strand_join_has_no_single_strand(tmp_path):
+    """A trans-spliced join mixes strands; Biopython reports strand None for that case."""
+    _, features = _parse_one(tmp_path, _HDR + "     CDS             join(1..5,complement(8..10))\n" + _ORIGIN)
+    assert features[0]["location"]["strand"] is None
+    assert features[0]["location"]["parts"] == [[1, 5], [8, 10]]
+
+
+def test_genbank_remote_reference_in_join(tmp_path):
+    """A part may name another record (ACCESSION.VERSION:range); the range still parses."""
+    _, features = _parse_one(tmp_path, _HDR + "     CDS             join(AB000001.1:1..10,20..30)\n" + _ORIGIN)
+    assert features[0]["location"]["parts"] == [[1, 10], [20, 30]]
+
+
+def test_genbank_wrapped_free_text_qualifier_keeps_word_boundary(tmp_path):
+    """Wrapped free-text values join with a space (Biopython: q_value.replace("\\n", " "))."""
+    text = (
+        _HDR
+        + '     gene            1..10\n                     /note="alpha beta\n                     gamma"\n'
+        + _ORIGIN
+    )
+    _, features = _parse_one(tmp_path, text)
+    assert features[0]["qualifiers"]["note"] == ["alpha beta gamma"]
+
+
+def test_genbank_wrapped_translation_joins_without_space(tmp_path):
+    """/translation is the one qualifier whose wrapped lines concatenate directly."""
+    text = (
+        _HDR
+        + '     CDS             1..10\n                     /translation="MRLL\n                     ELKA"\n'
+        + _ORIGIN
+    )
+    _, features = _parse_one(tmp_path, text)
+    assert features[0]["qualifiers"]["translation"] == ["MRLLELKA"]
+
+
+def test_genbank_slash_inside_open_quoted_value_is_not_a_new_qualifier(tmp_path):
+    """A continuation line starting with '/' belongs to the still-open quoted value."""
+    text = (
+        _HDR + '     gene            1..10\n                     /note="see\n                     /docs"\n' + _ORIGIN
+    )
+    _, features = _parse_one(tmp_path, text)
+    assert features[0]["qualifiers"] == {"note": ["see /docs"]}
+
+
+def test_genbank_base_count_line_is_not_a_feature(tmp_path):
+    """Legacy BASE COUNT sits between FEATURES and ORIGIN and is a keyword, not a feature."""
+    text = _HDR + "     source          1..4\nBASE COUNT       1 a 1 c 1 g 1 t\n" + _ORIGIN
+    _, features = _parse_one(tmp_path, text)
+    assert [f["type"] for f in features] == ["source"]
+
+
+def test_genbank_contig_line_is_not_sequence(tmp_path):
+    """A CONTIG keyword line must not be folded into the sequence text."""
+    result, _ = _parse_one(tmp_path, _LOCUS_DNA + "ORIGIN\nCONTIG      join(AB000001.1:1..10,AB000002.1:1..10)\n//\n")
+    assert result["sequence"] == [""]
+
+
+def test_genbank_locus_strandedness_prefixed_molecule_type(tmp_path):
+    """LOCUS may carry ss-/ds-/ms- prefixed molecule types such as ds-DNA."""
+    result, _ = _parse_one(tmp_path, "LOCUS       T             10 bp ds-DNA     linear   PLN 01-JAN-2024\n" + _ORIGIN)
+    assert result["molecule_type"] == ["ds-DNA"]
+
+
+def test_genbank_columns_project_custom_features(tmp_path):
+    """columns= applies to a user-supplied features schema too."""
+    filename = tmp_path / "proj.gb"
+    filename.write_text(_LOCUS_DNA + _ORIGIN, encoding="utf-8")
+    builder = GenBank(columns=["sequence"], features=GenBank.DEFAULT_FEATURES)
+    table = next(iter(builder._generate_tables([[str(filename)]])))[1]
+    assert table.column_names == ["sequence"]
+    with pytest.raises(ValueError, match="not in features"):
+        GenBank(columns=["sequence"], features=Features({"locus_name": Value("string")}))._info()

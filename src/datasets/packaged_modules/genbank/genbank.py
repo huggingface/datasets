@@ -47,6 +47,10 @@ class _FeatureAccumulator:
     boundaries so the parser loop doesn't have to repeat that bookkeeping.
     """
 
+    # Biopython's rule (Bio.GenBank.Scanner): wrapped qualifier lines join with a space,
+    # except /translation whose wrapped lines concatenate directly.
+    SPACELESS_QUALIFIERS = frozenset({"translation"})
+
     def __init__(self, location_parser: Callable[[str], dict]) -> None:
         self.features: list[dict] = []
         self._location_parser = location_parser
@@ -55,6 +59,7 @@ class _FeatureAccumulator:
         self._qualifier_seen = False
         self._qualifier_key: Optional[str] = None
         self._qualifier_value: list[str] = []
+        self._quote_open = False
 
     @property
     def has_open_qualifier(self) -> bool:
@@ -83,9 +88,11 @@ class _FeatureAccumulator:
         """
         if self._feature is not None and self._qualifier_key is not None:
             values = self._feature["qualifiers"].setdefault(self._qualifier_key, [])
-            values.append("".join(self._qualifier_value))
+            spacer = "" if self._qualifier_key in self.SPACELESS_QUALIFIERS else " "
+            values.append(spacer.join(self._qualifier_value))
         self._qualifier_key = None
         self._qualifier_value = []
+        self._quote_open = False
 
     def finalize_feature(self) -> None:
         """Flush the pending qualifier and append the current feature, if any."""
@@ -112,15 +119,32 @@ class _FeatureAccumulator:
         self._location_text.append(text)
 
     def begin_qualifier(self, key: str, value: str) -> None:
-        """Commit the previous qualifier and start buffering a new one."""
+        """Commit the previous qualifier and start buffering a new one.
+
+        ``value`` is the raw text after ``=``. A value that opens with ``"`` and does
+        not close it on the same line stays open, and every following line belongs
+        to it even when that line starts with ``/``.
+        """
         self._commit_qualifier()
         self._qualifier_seen = True
         self._qualifier_key = key
+        if value.startswith('"'):
+            value = value[1:]
+            self._quote_open = not value.endswith('"')
+            value = value[:-1] if not self._quote_open else value
         self._qualifier_value = [value]
 
     def add_continuation(self, text: str) -> None:
         """Append a continuation line to the qualifier currently being read."""
+        if self._quote_open and text.endswith('"'):
+            text = text[:-1]
+            self._quote_open = False
         self._qualifier_value.append(text)
+
+    @property
+    def has_open_quote(self) -> bool:
+        """Whether the current qualifier's quoted value has not been closed yet."""
+        return self._quote_open
 
 
 @dataclass
@@ -198,6 +222,11 @@ class GenBank(datasets.ArrowBasedBuilder):
     def _info(self):
         if self.config.features is not None:
             features = self.config.features
+            if self.config.columns is not None:
+                missing = [col for col in self.config.columns if col not in features]
+                if missing:
+                    raise ValueError(f"columns {missing} are not in features {list(features)}")
+                features = datasets.Features({col: features[col] for col in self.config.columns})
         else:
             features = datasets.Features({col: self.DEFAULT_FEATURES[col] for col in self._get_columns()})
         return datasets.DatasetInfo(features=features)
@@ -243,46 +272,58 @@ class GenBank(datasets.ArrowBasedBuilder):
             "complement(100..200)" -> {"start": 100, "end": 200, "strand": -1}
             "join(1..100,200..300)" -> {"start": 1, "end": 300, "strand": 1, "operator": "join", "parts": [[1,100],[200,300]]}
         """
-        location = {"strand": 1}
+        return self._parse_location_node(location_str.strip())
 
-        # Check for complement
-        if location_str.startswith("complement("):
-            location["strand"] = -1
-            location_str = location_str[11:-1]  # Remove "complement(" and ")"
+    _LOCATION_OPERATOR_RE = re.compile(r"^(complement|join|order)\((.*)\)$", re.S)
+    _LOCATION_RANGE_RE = re.compile(r"^[<>]?(\d+)(?:(?:\.\.|\^)[<>]?(\d+))?$")
 
-        # join(...) and order(...) share a shape; order() carries no contiguity claim,
-        # so the operator is kept rather than collapsed into join.
-        for operator in ("join", "order"):
-            if location_str.startswith(operator + "("):
-                location["operator"] = operator
-                location_str = location_str[len(operator) + 1 : -1]
-                break
-        if "operator" in location:
-            parts = []
-            for part in location_str.split(","):
-                part = part.strip()
-                if ".." in part:
-                    start, end = part.split("..")
-                    # Handle < and > symbols for partial sequences
-                    start = int(start.lstrip("<>"))
-                    end = int(end.lstrip("<>"))
-                    parts.append([start, end])
-            if parts:
-                location["parts"] = parts
-                location["start"] = parts[0][0]
-                location["end"] = parts[-1][1]
+    @classmethod
+    def _parse_location_node(cls, text: str) -> dict:
+        """Parse one location expression; operators nest, so this recurses.
+
+        ``complement(x)`` flips the strand of whatever ``x`` yields. ``join``/``order``
+        parse each comma-separated part on its own (commas inside nested parentheses
+        do not split). A join whose parts sit on different strands has no single
+        strand and reports ``None``, as Biopython's CompoundLocation does.
+        """
+        operator_match = cls._LOCATION_OPERATOR_RE.match(text)
+        if operator_match:
+            operator, inner = operator_match.groups()
+            if operator == "complement":
+                location = cls._parse_location_node(inner)
+                location["strand"] = -location["strand"] if location["strand"] is not None else None
+                return location
+            parts = [cls._parse_location_node(part) for part in cls._split_top_level(inner)]
+            strands = {part["strand"] for part in parts}
+            location = {"strand": strands.pop() if len(strands) == 1 else None, "operator": operator}
+            spans = [[part["start"], part["end"]] for part in parts if "start" in part]
+            if spans:
+                location["parts"] = spans
+                location["start"] = spans[0][0]
+                location["end"] = spans[-1][1]
             return location
 
-        # Simple location
-        if ".." in location_str:
-            start, end = location_str.split("..")
-            location["start"] = int(start.lstrip("<>"))
-            location["end"] = int(end.lstrip("<>"))
-        elif location_str.isdigit():
-            location["start"] = int(location_str)
-            location["end"] = int(location_str)
-
+        location = {"strand": 1}
+        # A remote reference (ACCESSION.VERSION:range) keeps only the range here.
+        range_match = cls._LOCATION_RANGE_RE.match(text.rsplit(":", 1)[-1].strip())
+        if range_match:
+            location["start"] = int(range_match.group(1))
+            location["end"] = int(range_match.group(2) or range_match.group(1))
         return location
+
+    @staticmethod
+    def _split_top_level(text: str) -> list[str]:
+        """Split on commas that are not nested inside parentheses."""
+        parts, depth, current = [], 0, []
+        for char in text:
+            if char == "," and depth == 0:
+                parts.append("".join(current).strip())
+                current = []
+                continue
+            depth += (char == "(") - (char == ")")
+            current.append(char)
+        parts.append("".join(current).strip())
+        return [part for part in parts if part]
 
     def _parse_genbank(self, fp):
         """State machine parser for GenBank format.
@@ -397,24 +438,29 @@ class GenBank(datasets.ArrowBasedBuilder):
         Returns ``ParserState.ORIGIN`` when the ORIGIN section starts, otherwise
         ``None`` to stay in the FEATURES state.
         """
-        if line.startswith("ORIGIN"):
+        # A line that starts at column 0 is a keyword (ORIGIN, BASE COUNT, CONTIG, ...),
+        # never a feature: it ends the open feature and only ORIGIN changes state.
+        if line[:1].strip():
             features.finalize_feature()
-            return ParserState.ORIGIN
+            return ParserState.ORIGIN if line.startswith("ORIGIN") else None
 
         # A feature starts with its type at column 5, e.g. "     gene   1..100".
-        if len(line) > 5 and line[5] != " " and not line.startswith("FEATURES"):
+        if len(line) > 5 and line[5] != " ":
             parts = line[5:].split(None, 1)
             if len(parts) >= 2:
                 features.begin_feature(parts[0], parts[1].strip())
             else:
                 features.finalize_feature()
 
+        # Inside an unclosed quoted value every line is a continuation, '/' included.
+        elif len(line) > 21 and features.has_open_quote:
+            features.add_continuation(line[21:].strip())
         # A qualifier starts with "/key=value" at column 21.
         elif len(line) > 21 and line[21] == "/":
             qualifier_line = line[21:].strip()
             if "=" in qualifier_line:
                 key, value = qualifier_line.split("=", 1)
-                features.begin_qualifier(key[1:], value.strip('"'))  # key[1:] drops the leading '/'
+                features.begin_qualifier(key[1:], value)  # key[1:] drops the leading '/'
             else:
                 features.begin_qualifier(qualifier_line[1:], "true")  # boolean qualifier, e.g. /pseudo
 
@@ -424,7 +470,7 @@ class GenBank(datasets.ArrowBasedBuilder):
 
         # Anything else at column 21+ is a continuation of the current qualifier's value.
         elif len(line) > 21 and line[21] != "/" and features.has_open_qualifier:
-            features.add_continuation(line[21:].strip().strip('"'))
+            features.add_continuation(line[21:].strip())
 
         return None
 
@@ -432,6 +478,8 @@ class GenBank(datasets.ArrowBasedBuilder):
         """Accumulate sequence characters from one ORIGIN line into ``record``."""
         if line.startswith("//"):
             return  # Handled by the terminator at the top of the parse loop.
+        if line[:1].strip():
+            return  # A keyword line (CONTIG, BASE COUNT) carries no sequence characters.
         # ORIGIN lines look like "   123 atcgatcg atcgatcg ..."; keep only the bases.
         seq_chars = re.sub(r"[\s\d]", "", line)
         if seq_chars:
@@ -452,6 +500,8 @@ class GenBank(datasets.ArrowBasedBuilder):
             "length": 0,
             "molecule_type": "",
         }
+
+    _MOLECULE_TYPE_RE = re.compile(r"^(?:[sdm]s-)?(?:[a-z]*[DR]NA|NA)$")
 
     def _parse_locus_line(self, line: str, record: dict) -> None:
         """Parse the LOCUS line which contains key metadata.
@@ -481,9 +531,10 @@ class GenBank(datasets.ArrowBasedBuilder):
                 break
 
         # Nucleotide records name their molecule type explicitly.
-        molecule_types = {"DNA", "RNA", "mRNA", "rRNA", "tRNA", "protein"}
+        # Molecule types are DNA/RNA (with a lowercase class prefix such as m, r, t, sn)
+        # or the generic NA, optionally prefixed by strandedness ss-/ds-/ms-.
         for part in parts:
-            if part in molecule_types:
+            if self._MOLECULE_TYPE_RE.match(part):
                 record["molecule_type"] = part
                 break
         else:
