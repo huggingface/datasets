@@ -3919,8 +3919,8 @@ class IterableDataset(DatasetInfoMixin):
         Example:
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train")
-        >>> ds = ds.take(2).repeat(2)
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="train", streaming=True)
+        >>> ds = ds.take(3).repeat(2)
         >>> list(ds)
         [{'label': 1,
          'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
