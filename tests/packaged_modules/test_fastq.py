@@ -419,3 +419,28 @@ def test_fastq_parser_rejects_corrupt_record(text, reason):
 
     with pytest.raises(ValueError, match="r1"):
         list(Fastq()._parse_fastq(io.StringIO(text)))
+
+
+def test_fastq_parser_rejects_mismatched_separator_id():
+    """When the '+' line repeats an identifier it must match the header's identifier."""
+    import io
+
+    with pytest.raises(ValueError, match="r2"):
+        list(Fastq()._parse_fastq(io.StringIO("@r1\nAC\n+r2\n!!\n")))
+    assert list(Fastq()._parse_fastq(io.StringIO("@r1 d\nAC\n+r1 d\n!!\n"))) == [("r1", "d", "AC", "!!")]
+
+
+def test_fastq_empty_columns_is_rejected():
+    with pytest.raises(ValueError, match="at least one column"):
+        Fastq(columns=[])._get_columns()
+
+
+def test_fastq_columns_project_custom_features(tmp_path):
+    """columns= applies to a user-supplied features schema too."""
+    filename = tmp_path / "proj.fq"
+    filename.write_text("@r\nAC\n+\n!!\n", encoding="utf-8")
+    features = Features({col: Value("string") for col in ["id", "description", "sequence", "quality"]})
+    table = next(iter(Fastq(columns=["sequence"], features=features)._generate_tables([[str(filename)]])))[1]
+    assert table.column_names == ["sequence"]
+    with pytest.raises(ValueError, match="not in features"):
+        Fastq(columns=["sequence"], features=Features({"id": Value("string")}))._info()
