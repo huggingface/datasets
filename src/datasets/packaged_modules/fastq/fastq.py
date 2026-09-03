@@ -128,15 +128,21 @@ class Fastq(datasets.ArrowBasedBuilder):
 
             # Read sequence (may be multi-line)
             seqs = []
+            separator_seen = False
             while True:
                 line = fp.readline()
                 if not line:
                     break
                 line = line.rstrip()
                 if line.startswith("+"):
+                    separator_seen = True
                     break
                 seqs.append(line)
             sequence = "".join(seqs)
+            if not separator_seen:
+                raise ValueError(
+                    f"FASTQ record '{seq_id}' has no '+' separator line; the file is truncated or not FASTQ."
+                )
 
             # Read quality scores (same number of characters as sequence)
             quals = []
@@ -150,6 +156,10 @@ class Fastq(datasets.ArrowBasedBuilder):
                 quals.append(line)
                 qual_len += len(line)
             quality = "".join(quals)
+            # The format requires one quality character per base; a mismatch means the
+            # file is truncated or corrupt, and yielding it would misalign the columns.
+            if len(quality) != seq_len:
+                raise ValueError(f"FASTQ record '{seq_id}' has {len(quality)} quality characters for {seq_len} bases.")
 
             yield seq_id, description, sequence, quality
 
