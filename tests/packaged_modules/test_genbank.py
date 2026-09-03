@@ -603,6 +603,8 @@ def test_genbank_all_columns():
         "features",
         "length",
         "molecule_type",
+        "secondary_accessions",
+        "contig",
     ]
     assert GenBank.ALL_COLUMNS == expected_columns
 
@@ -703,7 +705,7 @@ def test_genbank_feature_boolean_qualifier(tmp_path):
 
     gene_feature = next((f for f in features if f["type"] == "gene"), None)
     assert gene_feature is not None
-    assert gene_feature["qualifiers"].get("pseudo") == ["true"]
+    assert gene_feature["qualifiers"].get("pseudo") == [""]  # valueless, as Biopython stores it
 
 
 # ---------------------------------------------------------------------------
@@ -903,3 +905,44 @@ def test_genbank_columns_project_custom_features(tmp_path):
     assert table.column_names == ["sequence"]
     with pytest.raises(ValueError, match="not in features"):
         GenBank(columns=["sequence"], features=Features({"locus_name": Value("string")}))._info()
+
+
+def test_genbank_partial_location_markers_are_kept(tmp_path):
+    """'<' and '>' mark boundaries beyond the coordinate (Biopython Before/AfterPosition)."""
+    _, features = _parse_one(
+        tmp_path,
+        _HDR
+        + "     gene            <1..>10\n     CDS             3..8\n     mRNA            join(<1..5,8..>10)\n"
+        + _ORIGIN,
+    )
+    fuzzy, exact, compound = (f["location"] for f in features)
+    assert (fuzzy["start_partial"], fuzzy["end_partial"]) == (True, True)
+    assert (exact["start_partial"], exact["end_partial"]) == (False, False)
+    assert (compound["start_partial"], compound["end_partial"]) == (True, True)
+    assert (fuzzy["start"], fuzzy["end"]) == (1, 10)
+
+
+def test_genbank_secondary_accessions_including_continuation_lines(tmp_path):
+    result, _ = _parse_one(tmp_path, _LOCUS_DNA + "ACCESSION   M55673 M25818\n            M27095\n" + _ORIGIN)
+    assert result["accession"] == ["M55673"]
+    assert result["secondary_accessions"] == [["M25818", "M27095"]]
+
+
+def test_genbank_contig_expression_is_stored(tmp_path):
+    """CONTIG follows the feature table and may wrap; it is kept whole and is not sequence."""
+    text = _HDR + "     source          1..20\nCONTIG      join(AB000001.1:1..10,\n            AB000002.1:1..10)\n//\n"
+    result, features = _parse_one(tmp_path, text)
+    assert result["contig"] == ["join(AB000001.1:1..10,AB000002.1:1..10)"]
+    assert result["sequence"] == [""]
+    assert [f["type"] for f in features] == ["source"]
+    result, _ = _parse_one(tmp_path, _LOCUS_DNA + "CONTIG      join(X.1:1..5)\n" + _ORIGIN)
+    assert result["contig"] == ["join(X.1:1..5)"]
+
+
+def test_genbank_features_subset_selects_columns(tmp_path):
+    """A features schema naming a subset of columns yields exactly those columns."""
+    filename = tmp_path / "sub.gb"
+    filename.write_text(_LOCUS_DNA + _ORIGIN, encoding="utf-8")
+    features = Features({"locus_name": Value("string"), "sequence": Value("large_string")})
+    table = next(iter(GenBank(features=features)._generate_tables([[str(filename)]])))[1]
+    assert table.column_names == ["locus_name", "sequence"]

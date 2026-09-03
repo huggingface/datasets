@@ -213,6 +213,8 @@ class GenBank(datasets.ArrowBasedBuilder):
             "features": datasets.Json(),
             "length": datasets.Value("int64"),
             "molecule_type": datasets.Value("string"),
+            "secondary_accessions": datasets.List(datasets.Value("string")),
+            "contig": datasets.Value("string"),
         }
     )
 
@@ -268,14 +270,15 @@ class GenBank(datasets.ArrowBasedBuilder):
         """Parse a GenBank feature location string into a structured dict.
 
         Examples:
-            "100..200" -> {"start": 100, "end": 200, "strand": 1}
-            "complement(100..200)" -> {"start": 100, "end": 200, "strand": -1}
+            "100..200" -> {"start": 100, "end": 200, "strand": 1, "start_partial": False, "end_partial": False}
+            "<100..>200" -> same, with "start_partial": True, "end_partial": True
+            "complement(100..200)" -> {"start": 100, "end": 200, "strand": -1, ...}
             "join(1..100,200..300)" -> {"start": 1, "end": 300, "strand": 1, "operator": "join", "parts": [[1,100],[200,300]]}
         """
         return self._parse_location_node(location_str.strip())
 
     _LOCATION_OPERATOR_RE = re.compile(r"^(complement|join|order)\((.*)\)$", re.S)
-    _LOCATION_RANGE_RE = re.compile(r"^[<>]?(\d+)(?:(?:\.\.|\^)[<>]?(\d+))?$")
+    _LOCATION_RANGE_RE = re.compile(r"^(<?)(\d+)(?:(?:\.\.|\^)(>?)(\d+))?$")
 
     @classmethod
     def _parse_location_node(cls, text: str) -> dict:
@@ -296,19 +299,26 @@ class GenBank(datasets.ArrowBasedBuilder):
             parts = [cls._parse_location_node(part) for part in cls._split_top_level(inner)]
             strands = {part["strand"] for part in parts}
             location = {"strand": strands.pop() if len(strands) == 1 else None, "operator": operator}
-            spans = [[part["start"], part["end"]] for part in parts if "start" in part]
-            if spans:
-                location["parts"] = spans
-                location["start"] = spans[0][0]
-                location["end"] = spans[-1][1]
+            located = [part for part in parts if "start" in part]
+            if located:
+                location["parts"] = [[part["start"], part["end"]] for part in located]
+                location["start"] = located[0]["start"]
+                location["end"] = located[-1]["end"]
+                location["start_partial"] = located[0]["start_partial"]
+                location["end_partial"] = located[-1]["end_partial"]
             return location
 
         location = {"strand": 1}
         # A remote reference (ACCESSION.VERSION:range) keeps only the range here.
         range_match = cls._LOCATION_RANGE_RE.match(text.rsplit(":", 1)[-1].strip())
         if range_match:
-            location["start"] = int(range_match.group(1))
-            location["end"] = int(range_match.group(2) or range_match.group(1))
+            before, start, after, end = range_match.groups()
+            location["start"] = int(start)
+            location["end"] = int(end or start)
+            # "<" and ">" mark a boundary that lies beyond the given coordinate
+            # (Biopython's BeforePosition / AfterPosition).
+            location["start_partial"] = before == "<"
+            location["end_partial"] = after == ">"
         return location
 
     @staticmethod
@@ -355,6 +365,7 @@ class GenBank(datasets.ArrowBasedBuilder):
             if line.startswith("//"):
                 features.finalize_feature()
                 record["features"] = features.features
+                record["contig"] = "".join(record["contig"].split())
                 yield record
                 state = ParserState.HEADER
                 record = self._new_record()
@@ -365,7 +376,7 @@ class GenBank(datasets.ArrowBasedBuilder):
             if state == ParserState.HEADER:
                 state = self._handle_header_line(line, record, header) or state
             elif state == ParserState.FEATURES:
-                state = self._handle_features_line(line, features) or state
+                state = self._handle_features_line(line, features, record, header) or state
             elif state == ParserState.ORIGIN:
                 self._handle_origin_line(line, record)
 
@@ -402,8 +413,13 @@ class GenBank(datasets.ArrowBasedBuilder):
             record["definition"] = value
             header.active_field = "definition"
         elif line.startswith("ACCESSION"):
-            record["accession"] = value.split()[0] if value else ""
-            header.active_field = None
+            accessions = value.split()
+            record["accession"] = accessions[0] if accessions else ""
+            record["secondary_accessions"] = accessions[1:]
+            header.active_field = "secondary_accessions"
+        elif line.startswith("CONTIG"):
+            record["contig"] = value
+            header.active_field = "contig"
         elif line.startswith("VERSION"):
             record["version"] = value
             header.active_field = None
@@ -430,19 +446,31 @@ class GenBank(datasets.ArrowBasedBuilder):
         No delimiter is inserted: a wrapped value already carries its own punctuation,
         so a taxonomy listing that ends a line with ``;`` keeps exactly that one ``;``.
         """
-        record[field] = f"{record[field]} {text}".strip() if record[field] else text
+        if isinstance(record[field], list):
+            record[field].extend(text.split())
+        elif field == "contig":
+            record[field] += text  # a location expression; whitespace is not part of it
+        else:
+            record[field] = f"{record[field]} {text}".strip() if record[field] else text
 
-    def _handle_features_line(self, line: str, features: "_FeatureAccumulator") -> Optional[str]:
+    def _handle_features_line(
+        self, line: str, features: "_FeatureAccumulator", record: dict, header: "_HeaderState"
+    ) -> Optional[str]:
         """Parse one FEATURES line into ``features``.
 
-        Returns ``ParserState.ORIGIN`` when the ORIGIN section starts, otherwise
+        Returns the next parser state when a keyword ends the section (ORIGIN, or a
+        header keyword such as CONTIG that follows the feature table), otherwise
         ``None`` to stay in the FEATURES state.
         """
         # A line that starts at column 0 is a keyword (ORIGIN, BASE COUNT, CONTIG, ...),
         # never a feature: it ends the open feature and only ORIGIN changes state.
         if line[:1].strip():
             features.finalize_feature()
-            return ParserState.ORIGIN if line.startswith("ORIGIN") else None
+            if line.startswith("ORIGIN"):
+                return ParserState.ORIGIN
+            if line.startswith("CONTIG"):
+                return self._handle_header_line(line, record, header) or ParserState.HEADER
+            return None
 
         # A feature starts with its type at column 5, e.g. "     gene   1..100".
         if len(line) > 5 and line[5] != " ":
@@ -462,7 +490,7 @@ class GenBank(datasets.ArrowBasedBuilder):
                 key, value = qualifier_line.split("=", 1)
                 features.begin_qualifier(key[1:], value)  # key[1:] drops the leading '/'
             else:
-                features.begin_qualifier(qualifier_line[1:], "true")  # boolean qualifier, e.g. /pseudo
+                features.begin_qualifier(qualifier_line[1:], "")  # valueless qualifier, e.g. /pseudo
 
         # An unbalanced location wraps onto the next line before any qualifier appears.
         elif len(line) > 21 and line[21] != "/" and features.has_open_location:
@@ -499,6 +527,8 @@ class GenBank(datasets.ArrowBasedBuilder):
             "features": [],
             "length": 0,
             "molecule_type": "",
+            "secondary_accessions": [],
+            "contig": "",
         }
 
     _MOLECULE_TYPE_RE = re.compile(r"^(?:[sdm]s-)?(?:[a-z]*[DR]NA|NA)$")
@@ -542,7 +572,17 @@ class GenBank(datasets.ArrowBasedBuilder):
                 record["molecule_type"] = "protein"
 
     def _get_columns(self) -> list[str]:
-        """Get the list of columns to include in output."""
+        """Get the list of columns to include in output.
+
+        ``columns`` wins when given; otherwise a user-supplied ``features`` schema
+        selects its own columns, so a schema naming a subset stays valid when the
+        default schema grows.
+        """
+        if self.config.columns is None and self.config.features is not None:
+            unknown = [col for col in self.config.features if col not in self.ALL_COLUMNS]
+            if unknown:
+                raise ValueError(f"Invalid feature column(s) {unknown}. Valid columns are: {self.ALL_COLUMNS}")
+            return list(self.config.features)
         if self.config.columns is not None:
             # Validate columns
             for col in self.config.columns:
@@ -567,6 +607,8 @@ class GenBank(datasets.ArrowBasedBuilder):
             elif col == "sequence":
                 # Use large_string for potentially very long sequence data.
                 fields.append(pa.field(col, pa.large_string()))
+            elif col == "secondary_accessions":
+                fields.append(pa.field(col, pa.list_(pa.string())))
             elif col == "length":
                 fields.append(pa.field(col, pa.int64()))
             else:
@@ -626,7 +668,7 @@ class GenBank(datasets.ArrowBasedBuilder):
 
                     # Add record to batch
                     for col in columns:
-                        batch[col].append(record.get(col, "" if col != "length" else 0))
+                        batch[col].append(record.get(col, self._new_record()[col]))
                     batch_bytes += record_bytes
 
                     # Yield batch when it reaches batch_size (record count limit)
