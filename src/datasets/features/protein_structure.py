@@ -137,19 +137,11 @@ class ProteinStructure:
                 "Decoding is disabled for this feature. Please use ProteinStructure(decode=True) instead."
             )
 
+        from .protein_parsing import PARSERS, detect_format
+
         text = self._read_text(value, token_per_repo_id)
-        parser = self._parser_for_path(value["path"])
+        parser = PARSERS[detect_format(value["path"], text)]
         return parser(text, columns=self.columns, include_hetatm=self.include_hetatm)
-
-    @staticmethod
-    def _parser_for_path(path: Optional[str]):
-        """Select the format parser from the file extension (defaults to PDB)."""
-        from .protein_parsing import parse_mmcif_atoms, parse_pdb_atoms
-
-        suffix = os.path.splitext(path)[1].lower() if path else ""
-        if suffix in (".cif", ".mmcif"):
-            return parse_mmcif_atoms
-        return parse_pdb_atoms
 
     @staticmethod
     def _read_text(value: dict, token_per_repo_id=None) -> str:
@@ -170,13 +162,11 @@ class ProteinStructure:
             pattern = (
                 config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
             )
-            try:
-                repo_id = string_to_dict(source_url, pattern)["repo_id"]
-                token = token_per_repo_id.get(repo_id)
-            except ValueError:
-                token = None
+            # string_to_dict returns None (it does not raise) for a URL outside the Hub.
+            source_url_fields = string_to_dict(source_url, pattern)
+            token = token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
             download_config = DownloadConfig(token=token)
-            with xopen(path, "r", download_config=download_config) as f:
+            with xopen(path, "r", encoding="utf-8", download_config=download_config) as f:
                 return f.read()
         if isinstance(bytes_, (bytes, bytearray)):
             return bytes_.decode("utf-8")
