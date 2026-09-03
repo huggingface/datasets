@@ -59,7 +59,13 @@ class Fastq(datasets.ArrowBasedBuilder):
     EXTENSIONS: list[str] = [".fq", ".fastq"]
 
     def _info(self):
-        return datasets.DatasetInfo(features=self.config.features)
+        features = self.config.features
+        if features is not None and self.config.columns is not None:
+            missing = [col for col in self.config.columns if col not in features]
+            if missing:
+                raise ValueError(f"columns {missing} are not in features {list(features)}")
+            features = datasets.Features({col: features[col] for col in self.config.columns})
+        return datasets.DatasetInfo(features=features)
 
     def _split_generators(self, dl_manager):
         """Generate splits from data files.
@@ -84,9 +90,10 @@ class Fastq(datasets.ArrowBasedBuilder):
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         """Cast Arrow table to configured features schema."""
-        if self.config.features is not None:
-            schema = self.config.features.arrow_schema
-            if all(not require_storage_cast(feature) for feature in self.config.features.values()):
+        features = self._info().features
+        if features is not None:
+            schema = features.arrow_schema
+            if all(not require_storage_cast(feature) for feature in features.values()):
                 pa_table = pa_table.cast(schema)
             else:
                 pa_table = table_cast(pa_table, schema)
@@ -136,6 +143,9 @@ class Fastq(datasets.ArrowBasedBuilder):
                 line = line.rstrip()
                 if line.startswith("+"):
                     separator_seen = True
+                    # The separator may repeat the header; if it does, it must agree with it.
+                    if len(line) > 1 and line[1:] != header:
+                        raise ValueError(f"FASTQ record '{seq_id}' has a '+' line naming '{line[1:]}'.")
                     break
                 seqs.append(line)
             sequence = "".join(seqs)
@@ -167,6 +177,8 @@ class Fastq(datasets.ArrowBasedBuilder):
         """Get the list of columns to include in output."""
         default_columns = ["id", "description", "sequence", "quality"]
         if self.config.columns is not None:
+            if not self.config.columns:
+                raise ValueError("columns must list at least one column when given.")
             # Validate columns
             for col in self.config.columns:
                 if col not in default_columns:
