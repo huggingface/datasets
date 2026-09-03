@@ -313,14 +313,18 @@ atom-level arrays. The default columns are:
 | `id` | int | Atom serial number |
 | `type_symbol` | string | Element symbol |
 | `label_atom_id` | string | Atom name (e.g., CA, N, C) |
+| `label_alt_id` | string | Alternate location indicator, or null |
 | `label_comp_id` | string | Residue name (e.g., ALA, GLY) |
-| `label_asym_id` | string | Chain identifier |
-| `label_seq_id` | int | Residue sequence number |
+| `auth_asym_id` | string | Author chain identifier (falls back to `label_asym_id`) |
+| `auth_seq_id` | int | Author residue number (falls back to `label_seq_id`) |
+| `pdbx_PDB_ins_code` | string | Residue insertion code, or null |
 | `Cartn_x` | float | X coordinate (Å) |
 | `Cartn_y` | float | Y coordinate (Å) |
 | `Cartn_z` | float | Z coordinate (Å) |
 | `occupancy` | float | Occupancy factor |
 | `B_iso_or_equiv` | float | Temperature factor (B-factor) |
+| `pdbx_formal_charge` | int | Formal charge, or null |
+| `pdbx_PDB_model_num` | int | Model number (1 when the file has a single model) |
 
 You can select specific columns:
 
