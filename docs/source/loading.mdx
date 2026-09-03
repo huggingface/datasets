@@ -261,8 +261,12 @@ Each row is one structure (one row = one structure), following the same folder l
 as [`ImageFolder`]: subfolder names become labels and a `metadata.csv`/`metadata.jsonl`
 file adds per-structure metadata. The `structure` column is parsed into a struct of
 atom-level arrays keyed by [PDBx/mmCIF dictionary](https://mmcif.wwpdb.org/) names
-(`type_symbol`, `label_atom_id`, `label_comp_id`, `label_asym_id`, `label_seq_id`,
-`Cartn_x`, `Cartn_y`, `Cartn_z`, `occupancy`, `B_iso_or_equiv`).
+(`id`, `type_symbol`, `label_atom_id`, `label_alt_id`, `label_comp_id`, `auth_asym_id`,
+`auth_seq_id`, `pdbx_PDB_ins_code`, `Cartn_x`, `Cartn_y`, `Cartn_z`, `occupancy`,
+`B_iso_or_equiv`, `pdbx_formal_charge`, `pdbx_PDB_model_num`). Chain and residue
+identifiers are the author-assigned ones, which is the numbering PDB files carry and
+the one that matches between PDB and mmCIF. Multi-model files (NMR ensembles) yield
+one row per atom per model, told apart by `pdbx_PDB_model_num`.
 
 To load PDB files from a directory:
 
