@@ -447,3 +447,35 @@ def test_fasta_default_max_batch_bytes():
     # Config should use this default
     config = FastaConfig(name="test")
     assert config.max_batch_bytes == DEFAULT_MAX_BATCH_BYTES
+
+
+def test_fasta_parser_drops_whitespace_inside_sequence_lines():
+    """Whitespace inside a sequence line is not sequence (Biopython: ''.join(lines).replace(' ', ''))."""
+    import io
+
+    assert list(Fasta()._parse_fasta(io.StringIO(">a\nA C-G*\nT T\n"))) == [("a", "", "AC-G*TT")]
+
+
+def test_fasta_parser_skips_semicolon_comment_lines():
+    """Pearson FASTA defines lines starting with ';' as comments, not sequence."""
+    import io
+
+    assert list(Fasta()._parse_fasta(io.StringIO(";file comment\n>a\n; record comment\nACGT\n"))) == [
+        ("a", "", "ACGT")
+    ]
+
+
+def test_fasta_empty_columns_is_rejected():
+    with pytest.raises(ValueError, match="at least one column"):
+        Fasta(columns=[])._get_columns()
+
+
+def test_fasta_columns_project_custom_features(tmp_path):
+    """columns= applies to a user-supplied features schema too."""
+    filename = tmp_path / "proj.fa"
+    filename.write_text(">a\nAC\n", encoding="utf-8")
+    features = Features({col: Value("string") for col in ["id", "description", "sequence"]})
+    table = next(iter(Fasta(columns=["sequence"], features=features)._generate_tables([[str(filename)]])))[1]
+    assert table.column_names == ["sequence"]
+    with pytest.raises(ValueError, match="not in features"):
+        Fasta(columns=["sequence"], features=Features({"id": Value("string")}))._info()

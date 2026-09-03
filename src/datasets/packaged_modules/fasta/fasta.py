@@ -59,7 +59,13 @@ class Fasta(datasets.ArrowBasedBuilder):
     EXTENSIONS: list[str] = [".fa", ".fasta", ".fna", ".ffn", ".faa", ".frn", ".afa"]
 
     def _info(self):
-        return datasets.DatasetInfo(features=self.config.features)
+        features = self.config.features
+        if features is not None and self.config.columns is not None:
+            missing = [col for col in self.config.columns if col not in features]
+            if missing:
+                raise ValueError(f"columns {missing} are not in features {list(features)}")
+            features = datasets.Features({col: features[col] for col in self.config.columns})
+        return datasets.DatasetInfo(features=features)
 
     def _split_generators(self, dl_manager):
         """Generate splits from data files.
@@ -84,9 +90,10 @@ class Fasta(datasets.ArrowBasedBuilder):
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         """Cast Arrow table to configured features schema."""
-        if self.config.features is not None:
-            schema = self.config.features.arrow_schema
-            if all(not require_storage_cast(feature) for feature in self.config.features.values()):
+        features = self._info().features
+        if features is not None:
+            schema = features.arrow_schema
+            if all(not require_storage_cast(feature) for feature in features.values()):
                 pa_table = pa_table.cast(schema)
             else:
                 pa_table = table_cast(pa_table, schema)
@@ -133,7 +140,10 @@ class Fasta(datasets.ArrowBasedBuilder):
                 if line.startswith(">"):
                     last = line.rstrip()
                     break
-                seqs.append(line.rstrip())
+                if line.startswith(";"):
+                    continue  # Pearson FASTA comment line, not sequence.
+                # Whitespace inside a sequence line is not sequence (Biopython drops it too).
+                seqs.append("".join(line.split()))
 
             yield seq_id, description, "".join(seqs)
 
@@ -144,6 +154,8 @@ class Fasta(datasets.ArrowBasedBuilder):
         """Get the list of columns to include in output."""
         default_columns = ["id", "description", "sequence"]
         if self.config.columns is not None:
+            if not self.config.columns:
+                raise ValueError("columns must list at least one column when given.")
             # Validate columns
             for col in self.config.columns:
                 if col not in default_columns:
