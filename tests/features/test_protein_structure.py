@@ -148,3 +148,29 @@ def test_protein_structure_flatten():
     assert isinstance(flattened, dict)
     assert "bytes" in flattened
     assert "path" in flattened
+
+
+def test_protein_structure_mmcif_bytes_without_path_are_parsed_as_mmcif(shared_datadir):
+    """Bytes stored with no path carry no extension; the content must pick the parser.
+
+    Regression: the fixed-width PDB parser ran on mmCIF text and returned None for
+    every coordinate while still reporting the right number of atoms.
+    """
+    cif_bytes = (shared_datadir / "test_protein.cif").read_bytes()
+    feature = ProteinStructure()
+    from_bytes = feature.decode_example({"path": None, "bytes": cif_bytes})
+    from_path = feature.decode_example({"path": "x.cif", "bytes": cif_bytes})
+    assert from_bytes == from_path
+    assert all(x is not None for x in from_bytes["Cartn_x"])
+
+
+def test_protein_structure_remote_non_hub_url_does_not_raise_type_error(shared_datadir, monkeypatch):
+    """string_to_dict returns None for a non-Hub URL; that used to surface as TypeError."""
+    import io
+
+    from datasets.features import protein_structure
+
+    pdb_text = (shared_datadir / "test_protein.pdb").read_text()
+    monkeypatch.setattr(protein_structure, "xopen", lambda path, mode, **kwargs: io.StringIO(pdb_text))
+    atoms = ProteinStructure().decode_example({"path": "https://example.com/x.pdb", "bytes": None})
+    assert len(atoms["id"]) > 0

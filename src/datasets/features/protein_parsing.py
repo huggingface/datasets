@@ -222,3 +222,28 @@ def parse_mmcif_atoms(text: str, columns: list[str] | None = None, include_hetat
             atoms[col].append(_convert(raw, PROTEIN_ATOM_TYPES[col]))
 
     return atoms
+
+
+# Parser for each structure format; the format is chosen by ``detect_format``.
+PARSERS = {"pdb": parse_pdb_atoms, "mmcif": parse_mmcif_atoms}
+_MMCIF_SUFFIXES = (".cif", ".mmcif")
+
+
+def detect_format(path: str | None, text: str) -> str:
+    """Return ``"mmcif"`` or ``"pdb"`` for a structure file.
+
+    The extension decides when it is known. When there is none (bytes stored with no
+    path, or an unrecognised suffix) the content decides: a CIF file starts with a
+    ``data_`` block header or carries an ``_atom_site.`` loop, and a PDB file never
+    contains either. Falling back to PDB without looking would slice mmCIF rows by
+    fixed columns and silently return None for every coordinate.
+    """
+    suffix = path.rsplit(".", 1)[-1].lower() if path and "." in path.rsplit("/", 1)[-1] else ""
+    if suffix and "." + suffix in _MMCIF_SUFFIXES:
+        return "mmcif"
+    if suffix in ("pdb", "ent"):
+        return "pdb"
+    head = text[:4096]
+    if head.lstrip().startswith("data_") or "_atom_site." in text:
+        return "mmcif"
+    return "pdb"
