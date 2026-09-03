@@ -174,3 +174,13 @@ def test_protein_structure_remote_non_hub_url_does_not_raise_type_error(shared_d
     monkeypatch.setattr(protein_structure, "xopen", lambda path, mode, **kwargs: io.StringIO(pdb_text))
     atoms = ProteinStructure().decode_example({"path": "https://example.com/x.pdb", "bytes": None})
     assert len(atoms["id"]) > 0
+
+
+def test_protein_structure_embed_storage_keeps_path_only_rows_when_embedding_is_off():
+    """With local_files=False a local path-only row is left as is, not nulled (as Image does)."""
+    import pyarrow as pa
+
+    feature = ProteinStructure()
+    storage = pa.array([{"bytes": None, "path": "/data/1crn.pdb"}, None], type=feature.pa_type)
+    embedded = feature.embed_storage(storage, local_files=False, remote_files=False)
+    assert embedded.to_pylist() == [{"bytes": None, "path": "1crn.pdb"}, None]

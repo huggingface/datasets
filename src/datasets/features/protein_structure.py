@@ -185,7 +185,7 @@ class ProteinStructure:
             }
         )
 
-    def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray, pa.ListArray]) -> pa.StructArray:
+    def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray]) -> pa.StructArray:
         """Cast an Arrow array to the ProteinStructure arrow storage type.
         The Arrow types that can be converted to the ProteinStructure pyarrow storage type are:
 
@@ -194,10 +194,9 @@ class ProteinStructure:
         - `pa.struct({"bytes": pa.binary()})`
         - `pa.struct({"path": pa.string()})`
         - `pa.struct({"bytes": pa.binary(), "path": pa.string()})`  - order doesn't matter
-        - `pa.list(*)` - it must contain the structure array data
 
         Args:
-            storage (`Union[pa.StringArray, pa.StructArray, pa.ListArray]`):
+            storage (`Union[pa.StringArray, pa.StructArray]`):
                 PyArrow array to cast.
 
         Returns:
@@ -275,5 +274,7 @@ class ProteinStructure:
             [os.path.basename(path) if path is not None else None for path in storage.field("path").to_pylist()],
             type=pa.string(),
         )
-        storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
+        # Row nullness comes from the input row, not from whether bytes were embedded: a
+        # path-only row with embedding disabled is still a valid row.
+        storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
         return array_cast(storage, self.pa_type)
