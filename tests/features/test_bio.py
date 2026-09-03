@@ -159,3 +159,38 @@ def test_bio_sequence_format_is_configurable(tmp_path):
     record = ds[0]["seq"]
     assert record.id == "r1"
     assert record.letter_annotations["phred_quality"] == [40, 40, 40, 40]
+
+
+@pytest.mark.parametrize("bad_format", ["PDB", "cif", "mmCIF", "xyz"])
+def test_bio_structure_rejects_unknown_format_at_construction(bad_format):
+    """A format outside the supported table must fail before any bytes are written.
+
+    Regression: encode_bio_structure() used to write mmCIF for every non-"pdb" value
+    while decode_example() rejected the same value, so a mis-cased format stored bytes
+    that could never be read back.
+    """
+    with pytest.raises(ValueError, match="Unsupported structure format"):
+        BioStructure(format=bad_format)
+
+
+def test_bio_structure_encodes_structure_in_declared_format(pdb_path):
+    """The bytes written for a Structure follow the feature's format, for both formats."""
+    from Bio.PDB import PDBParser
+
+    structure = PDBParser(QUIET=True).get_structure("x", str(pdb_path))
+    pdb_bytes = BioStructure(format="pdb").encode_example(structure)["bytes"]
+    cif_bytes = BioStructure(format="mmcif").encode_example(structure)["bytes"]
+    assert pdb_bytes.startswith(b"ATOM")
+    assert cif_bytes.startswith(b"data_")
+    assert BioStructure(format="mmcif").decode_example({"path": None, "bytes": cif_bytes}).id == "structure"
+
+
+def test_resolve_token_returns_none_for_non_hub_url():
+    """string_to_dict() returns None for a URL that is not a Hub dataset URL; that must
+    not surface as a TypeError when the remote path is plain https or s3."""
+    from datasets.features.bio_sequence import _resolve_token
+
+    tokens = {"user/repo": "hf_secret"}
+    assert _resolve_token("https://example.com/data/seqs.fasta", tokens) is None
+    assert _resolve_token("s3://bucket/seqs.fasta", tokens) is None
+    assert _resolve_token("hf://datasets/user/repo@main/seqs.fasta", tokens) == "hf_secret"

@@ -28,6 +28,18 @@ def encode_bio_seqrecord(record: "SeqRecord", format: str = "fasta") -> dict:
     return {"path": None, "bytes": buffer.getvalue().encode("utf-8")}
 
 
+def _resolve_token(path: str, token_per_repo_id: dict) -> Optional[str]:
+    """Return the token for the Hub repo that ``path`` points into, or ``None``.
+
+    ``string_to_dict`` returns ``None`` (it does not raise) when the URL is not a Hub
+    dataset URL, so a plain https or s3 path resolves to "no token" instead of failing.
+    """
+    source_url = path.split("::")[-1]
+    pattern = config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
+    source_url_fields = string_to_dict(source_url, pattern)
+    return token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
+
+
 @dataclass
 class BioSequence:
     """
@@ -156,17 +168,8 @@ class BioSequence:
             if is_local_path(path):
                 with open(path, encoding="utf-8") as f:
                     return self._first_record(f, path)
-            source_url = path.split("::")[-1]
-            pattern = (
-                config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
-            )
-            try:
-                repo_id = string_to_dict(source_url, pattern)["repo_id"]
-                token = token_per_repo_id.get(repo_id)
-            except ValueError:
-                token = None
-            download_config = DownloadConfig(token=token)
-            with xopen(path, "r", download_config=download_config) as f:
+            download_config = DownloadConfig(token=_resolve_token(path, token_per_repo_id))
+            with xopen(path, "r", encoding="utf-8", download_config=download_config) as f:
                 return self._first_record(f, path)
         else:
             with StringIO(bytes_.decode("utf-8")) as f:
@@ -274,13 +277,7 @@ def _embed_bytes_path_struct(
 
     @no_op_if_value_is_null
     def path_to_bytes(path):
-        source_url = path.split("::")[-1]
-        pattern = (
-            config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
-        )
-        source_url_fields = string_to_dict(source_url, pattern)
-        token = token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
-        download_config = DownloadConfig(token=token)
+        download_config = DownloadConfig(token=_resolve_token(path, token_per_repo_id))
         with xopen(path, "rb", download_config=download_config) as f:
             return f.read()
 

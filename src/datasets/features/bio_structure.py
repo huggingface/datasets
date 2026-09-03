@@ -9,8 +9,7 @@ import pyarrow as pa
 from .. import config
 from ..download.download_config import DownloadConfig
 from ..utils.file_utils import is_local_path, xopen
-from ..utils.py_utils import string_to_dict
-from .bio_sequence import _cast_to_bytes_path_struct, _embed_bytes_path_struct
+from .bio_sequence import _cast_to_bytes_path_struct, _embed_bytes_path_struct, _resolve_token
 
 
 if TYPE_CHECKING:
@@ -19,15 +18,26 @@ if TYPE_CHECKING:
     from .features import FeatureType
 
 
-# Parser class name in Bio.PDB for each supported structure format.
-_PARSERS: dict[str, str] = {"pdb": "PDBParser", "mmcif": "MMCIFParser"}
+# (parser, writer) class names in Bio.PDB for each supported structure format. Encode and
+# decode both go through this table so a format that cannot be read is never written.
+_FORMATS: dict[str, tuple[str, str]] = {"pdb": ("PDBParser", "PDBIO"), "mmcif": ("MMCIFParser", "MMCIFIO")}
+
+
+def _resolve_format(format: str) -> tuple[str, str]:
+    try:
+        return _FORMATS[format]
+    except KeyError:
+        raise ValueError(
+            f"Unsupported structure format '{format}'. Supported formats are: {sorted(_FORMATS)}."
+        ) from None
 
 
 def encode_bio_structure(structure: "Structure", format: str = "pdb") -> dict:
     """Serialize a ``Structure`` back to the bytes of a structure file."""
-    from Bio.PDB import MMCIFIO, PDBIO
+    import Bio.PDB
 
-    io = PDBIO() if format == "pdb" else MMCIFIO()
+    _, writer_name = _resolve_format(format)
+    io = getattr(Bio.PDB, writer_name)()
     io.set_structure(structure)
     buffer = StringIO()
     io.save(buffer)
@@ -85,6 +95,9 @@ class BioStructure:
     dtype: ClassVar[str] = "Bio.PDB.Structure.Structure"
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
     _type: str = field(default="BioStructure", init=False, repr=False)
+
+    def __post_init__(self):
+        _resolve_format(self.format)
 
     def __call__(self):
         return self.pa_type
@@ -159,17 +172,8 @@ class BioStructure:
             if is_local_path(path):
                 with open(path, encoding="utf-8") as f:
                     return self._parse(f, structure_id)
-            source_url = path.split("::")[-1]
-            pattern = (
-                config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
-            )
-            try:
-                repo_id = string_to_dict(source_url, pattern)["repo_id"]
-                token = token_per_repo_id.get(repo_id)
-            except ValueError:
-                token = None
-            download_config = DownloadConfig(token=token)
-            with xopen(path, "r", download_config=download_config) as f:
+            download_config = DownloadConfig(token=_resolve_token(path, token_per_repo_id))
+            with xopen(path, "r", encoding="utf-8", download_config=download_config) as f:
                 return self._parse(f, structure_id)
         else:
             with StringIO(bytes_.decode("utf-8")) as f:
@@ -179,12 +183,7 @@ class BioStructure:
         """Parse ``handle`` with the parser for this feature's format."""
         import Bio.PDB
 
-        try:
-            parser_name = _PARSERS[self.format]
-        except KeyError:
-            raise ValueError(
-                f"Unsupported structure format '{self.format}'. Supported formats are: {sorted(_PARSERS)}."
-            ) from None
+        parser_name, _ = _resolve_format(self.format)
         # QUIET silences the discontinuity warnings that most real PDB entries trigger.
         parser = getattr(Bio.PDB, parser_name)(QUIET=True)
         return parser.get_structure(structure_id, handle)
