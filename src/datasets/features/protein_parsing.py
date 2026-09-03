@@ -202,7 +202,11 @@ def parse_mmcif_atoms(text: str, columns: list[str] | None = None, include_hetat
     col_index = {name: i for i, name in enumerate(loop_columns)}
     group_pos = col_index.get(_MMCIF_RECORD_GROUP)
 
-    # Consume data rows until the loop ends (blank line, comment, or new block/loop).
+    # Consume data rows until the loop ends (comment, or new item/loop/block). CIF is
+    # whitespace-delimited rather than line-delimited, so tokens accumulate across
+    # lines and a row is emitted each time one full set of columns is available.
+    width = len(loop_columns)
+    pending: list[str] = []
     while idx < n:
         stripped = lines[idx].strip()
         if stripped == "" or stripped.startswith("#"):
@@ -210,16 +214,15 @@ def parse_mmcif_atoms(text: str, columns: list[str] | None = None, include_hetat
             continue
         if stripped.startswith("_") or stripped.startswith("loop_") or stripped.startswith("data_"):
             break
-        tokens = _tokenize_cif_line(lines[idx])
+        pending.extend(_tokenize_cif_line(lines[idx]))
         idx += 1
-        if len(tokens) < len(loop_columns):
-            continue
-        if not include_hetatm and group_pos is not None and tokens[group_pos] != _ATOM_RECORD:
-            continue
-        for col in requested:
-            pos = col_index.get(col)
-            raw = tokens[pos] if pos is not None and pos < len(tokens) else ""
-            atoms[col].append(_convert(raw, PROTEIN_ATOM_TYPES[col]))
+        while len(pending) >= width:
+            tokens, pending = pending[:width], pending[width:]
+            if not include_hetatm and group_pos is not None and tokens[group_pos] != _ATOM_RECORD:
+                continue
+            for col in requested:
+                pos = col_index.get(col)
+                atoms[col].append(_convert(tokens[pos] if pos is not None else "", PROTEIN_ATOM_TYPES[col]))
 
     return atoms
 
