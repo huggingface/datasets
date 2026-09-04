@@ -293,6 +293,65 @@ class FormatterTest(TestCase):
         np.testing.assert_equal(batch, {"a": np.array(_COL_A), "b": np.array(_COL_B), "c": np.array(_COL_C)})
         assert batch["c"].shape == np.array(_COL_C).shape
 
+    def test_numpy_formatter_empty_column_keeps_dtype(self):
+        # A zero-length python list carries no type, so np.asarray([]) used to hand
+        # back float64 whatever the column was declared as, and the formatter's float
+        # default then narrowed it to float32. Any filter matching nothing hits this.
+        for arrow_type, values, expected in [
+            (pa.int64(), [1, 2, 3], np.int64),
+            (pa.int32(), [1, 2, 3], np.int32),
+            (pa.float64(), [1.0, 2.0, 3.0], np.float64),
+            (pa.bool_(), [True, False, True], np.bool_),
+            (pa.date32(), [datetime.date(2020, 1, 1)], np.dtype("datetime64[D]")),
+            (pa.date64(), [datetime.date(2020, 1, 1)], np.dtype("datetime64[ms]")),
+            (pa.timestamp("s"), [datetime.datetime(2020, 1, 1)], np.dtype("datetime64[s]")),
+            (pa.duration("s"), [datetime.timedelta(seconds=5)], np.dtype("timedelta64[s]")),
+            (pa.time32("s"), [datetime.time(1, 2, 3)], np.dtype(object)),
+        ]:
+            with self.subTest(arrow_type=str(arrow_type)):
+                schema = pa.schema({"a": arrow_type})
+                empty = InMemoryTable.from_arrays([pa.array([], type=arrow_type)], schema=schema)
+                col = NumpyArrowExtractor().extract_column(empty.table)
+                self.assertEqual(len(col), 0)
+                self.assertEqual(col.dtype, np.dtype(expected))
+
+                # and the non-empty column of the same type agrees
+                filled = InMemoryTable.from_arrays([pa.array(values, type=arrow_type)], schema=schema)
+                self.assertEqual(NumpyArrowExtractor().extract_column(filled.table).dtype, np.dtype(expected))
+
+    def test_numpy_formatter_empty_string_column_is_not_float(self):
+        # A string column coming back as a float dtype is the same bug, more obvious.
+        schema = pa.schema({"a": pa.string()})
+        empty = InMemoryTable.from_arrays([pa.array([], type=pa.string())], schema=schema)
+        col = NumpyArrowExtractor().extract_column(empty.table)
+        self.assertEqual(len(col), 0)
+        self.assertFalse(np.issubdtype(col.dtype, np.floating))
+        self.assertEqual(col.dtype, np.dtype(object))
+
+    def test_numpy_formatter_empty_date32_column_keeps_day_resolution(self):
+        # date32 is day resolution, and that is what arrow renders a non-empty column at.
+        # Reading the dtype off pandas instead would report datetime64[ms] here, since
+        # pandas has no day-resolution datetime64, and an empty batch would then silently
+        # change the unit of the result it was concatenated into.
+        schema = pa.schema({"a": pa.date32()})
+        empty = InMemoryTable.from_arrays([pa.array([], type=pa.date32())], schema=schema)
+        filled = InMemoryTable.from_arrays([pa.array([datetime.date(2020, 1, 1)], type=pa.date32())], schema=schema)
+        extractor = NumpyArrowExtractor()
+        empty_col = extractor.extract_column(empty.table)
+        filled_col = extractor.extract_column(filled.table)
+        self.assertEqual(empty_col.dtype, np.dtype("datetime64[D]"))
+        self.assertEqual(empty_col.dtype, filled_col.dtype)
+        self.assertEqual(np.concatenate([empty_col, filled_col]).dtype, np.dtype("datetime64[D]"))
+
+    def test_numpy_formatter_empty_column_does_not_promote_on_concatenate(self):
+        # The practical consequence: one empty batch promoted the whole result to float.
+        schema = pa.schema({"a": pa.int64()})
+        empty = InMemoryTable.from_arrays([pa.array([], type=pa.int64())], schema=schema)
+        filled = InMemoryTable.from_arrays([pa.array([1, 2, 3], type=pa.int64())], schema=schema)
+        extractor = NumpyArrowExtractor()
+        joined = np.concatenate([extractor.extract_column(empty.table), extractor.extract_column(filled.table)])
+        self.assertEqual(joined.dtype, np.dtype(np.int64))
+
     def test_numpy_formatter_np_array_kwargs(self):
         pa_table = self._create_dummy_table().drop(["b"])
         formatter = NumpyFormatter(dtype=np.float16)
