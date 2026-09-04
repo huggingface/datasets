@@ -4514,6 +4514,21 @@ def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_param
         assert dataset._data.table == reloaded_dataset._data.table
 
 
+@pytest.mark.parametrize("batch_size", [0, -1])
+def test_dataset_export_with_non_positive_batch_size(batch_size, tmp_path):
+    dataset = Dataset.from_dict({"col_1": [0, 1, 2]})
+    with pytest.raises(ValueError):
+        list(dataset.to_dict(batch_size=batch_size, batched=True))
+    with pytest.raises(ValueError):
+        list(dataset.to_pandas(batch_size=batch_size, batched=True))
+    with pytest.raises(ValueError):
+        dataset.to_csv(tmp_path / "dataset.csv", batch_size=batch_size)
+    with pytest.raises(ValueError):
+        dataset.to_json(tmp_path / "dataset.json", batch_size=batch_size)
+    with pytest.raises(ValueError):
+        dataset.to_parquet(tmp_path / "dataset.parquet", batch_size=batch_size)
+
+
 def test_dummy_dataset_serialize_fs(dataset, mockfs):
     dataset_path = "mock://my_dataset"
     dataset.save_to_disk(dataset_path, storage_options=mockfs.storage_options)
