@@ -151,19 +151,31 @@ class PythonArrowExtractor(BaseArrowExtractor[dict, list, dict]):
 
 
 def _numpy_dtype_from_arrow_type(pa_type: pa.DataType) -> Optional[np.dtype]:
-    """The numpy dtype an arrow type maps to, or None if it has no direct equivalent.
+    """The numpy dtype an arrow type maps to, or None if arrow declines to convert it.
 
     Used only for empty columns. A zero-length Python list carries no type, so
     ``np.asarray([])`` yields float64 regardless of what the column was declared
     as, and the numpy formatter's float default then narrows that to float32.
-    Taking the dtype from the arrow type keeps an empty column matching a
-    non-empty one, which is what the pandas and arrow extractors already do.
+    Taking the dtype from a zero-length arrow array of the column's own type
+    keeps an empty column matching a non-empty one, which is what the pandas and
+    arrow extractors already do.
+
+    Arrow has to be the one asked, rather than ``pa_type.to_pandas_dtype()``:
+    pandas has no day-resolution datetime64, so it reports date32 as
+    ``datetime64[ms]`` while every other path here renders it as
+    ``datetime64[D]``.
+
+    Nested types are not excluded from this path: arrow converts list, map and
+    struct columns to object, so they land here rather than falling through. It
+    does not close the gap for them - an empty ``list<int64>`` column is object
+    where a filled one is int64, because the filled side takes its dtype from the
+    stacking path above rather than from here.
     """
     try:
-        return np.dtype(pa_type.to_pandas_dtype())
+        return pa.array([], type=pa_type).to_numpy(zero_copy_only=False).dtype
     except (NotImplementedError, TypeError, ValueError):
-        # Nested and extension types have no single numpy dtype; leave those to
-        # the existing path rather than guessing at one.
+        # ArrowNotImplementedError subclasses NotImplementedError and ArrowInvalid
+        # subclasses ValueError, so arrow's own errors land here.
         return None
 
 
