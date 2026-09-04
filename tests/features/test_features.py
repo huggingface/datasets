@@ -344,6 +344,31 @@ def test_classlabel_int2str():
         classlabel.int2str(None)
 
 
+def test_classlabel_int2str_validates_elements():
+    names = ["negative", "positive"]
+    classlabel = ClassLabel(names=names)
+
+    # valid inputs keep working, including numpy integers
+    assert classlabel.int2str([0, 1]) == names
+    assert classlabel.int2str(np.array([0, 1])) == names
+    assert classlabel.int2str([np.int64(0), np.int64(1)]) == names
+
+    # a non-integral element used to be silently truncated by int(v): 1.7 -> "positive"
+    with pytest.raises(ValueError):
+        classlabel.int2str([1.7])
+    # a string element used to raise a cryptic TypeError from the range comparison
+    with pytest.raises(ValueError):
+        classlabel.int2str(["1"])
+    with pytest.raises(ValueError):
+        classlabel.int2str(["abc"])
+    with pytest.raises(ValueError):
+        classlabel.int2str([None])
+    # an out-of-range non-integral value used to fail formatting with
+    # "Unknown format code 'd' for object of type 'float'"
+    with pytest.raises(ValueError):
+        classlabel.int2str([99.5])
+
+
 def test_classlabel_cast_storage():
     names = ["negative", "positive"]
     classlabel = ClassLabel(names=names)

@@ -1140,8 +1140,17 @@ class ClassLabel:
             return_list = False
 
         for v in values:
-            if not 0 <= v < self.num_classes:
-                raise ValueError(f"Invalid integer class label {v:d}")
+            # Validate each element, not just the container: a non-integral value used to be
+            # silently truncated by `int(v)` below (e.g. 1.7 -> "pos"), and a string element
+            # raised a cryptic TypeError from the comparison instead of a useful message.
+            try:
+                int_v = int(v)
+            except (TypeError, ValueError) as e:
+                raise ValueError(f"Invalid integer class label {v!r}: expected an integer") from e
+            if int_v != v:
+                raise ValueError(f"Invalid integer class label {v!r}: expected an integer")
+            if not 0 <= int_v < self.num_classes:
+                raise ValueError(f"Invalid integer class label {int_v:d}")
 
         output = [self._int2str[int(v)] for v in values]
         return output if return_list else output[0]
