@@ -13,6 +13,7 @@ import pytest
 from datasets.utils.py_utils import (
     NestedDataStructure,
     asdict,
+    convert_file_size_to_int,
     iflatmap_unordered,
     map_nested,
     string_to_dict,
@@ -288,3 +289,40 @@ def test_string_to_dict():
     file_name_parts = string_to_dict(file_name, cache_file_name_pattern)
     assert file_name_parts is not None
     assert file_name_parts == {"rank": f"{rank:05d}", "num_proc": f"{num_proc:05d}"}
+
+
+@pytest.mark.parametrize(
+    "size, expected",
+    [
+        # A lowercase trailing "b" is bits, so the byte count is an eighth of the same
+        # unit spelled with an uppercase "B". Both the decimal and the binary units say so.
+        ("1KB", 10**3),
+        ("1Kb", 10**3 // 8),
+        ("1MB", 10**6),
+        ("1Mb", 10**6 // 8),
+        ("1GB", 10**9),
+        ("1Gb", 10**9 // 8),
+        ("1TB", 10**12),
+        ("1Tb", 10**12 // 8),
+        ("1PB", 10**15),
+        ("1Pb", 10**15 // 8),
+        ("1KiB", 2**10),
+        ("1Kib", 2**10 // 8),
+        ("1MiB", 2**20),
+        ("1Mib", 2**20 // 8),
+        ("1GiB", 2**30),
+        ("1Gib", 2**30 // 8),
+        ("1TiB", 2**40),
+        ("1Tib", 2**40 // 8),
+        ("1PiB", 2**50),
+        ("1Pib", 2**50 // 8),
+        (1024, 1024),
+    ],
+)
+def test_convert_file_size_to_int(size, expected):
+    assert convert_file_size_to_int(size) == expected
+
+
+def test_convert_file_size_to_int_invalid_unit():
+    with pytest.raises(ValueError):
+        convert_file_size_to_int("1XB")
