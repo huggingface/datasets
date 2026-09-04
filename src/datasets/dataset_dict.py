@@ -842,7 +842,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         num_proc: Optional[int] = None,
         desc: Optional[str] = None,
         try_original_type: Optional[bool] = True,
-        on_mixed_types: Optional[Literal["use_json"]] = None,
+        on_mixed_types: Optional[Literal["use_json"]] = "use_json",
     ) -> "DatasetDict":
         """
         Apply a function to all the examples in the table (individually or in batches) and update the table.
@@ -927,7 +927,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             try_original_type (`Optional[bool]`, defaults to `True`):
                 Try to keep the types of the original columns (e.g. int32 -> int32).
                 Set to False if you want to always infer new types.
-            on_mixed_types (`Literal["use_json"]`, *optional*, defaults to `None`):
+            on_mixed_types (`Literal["use_json"]`, *optional*, defaults to `"use_json"`):
                 If "use_json", use the Json() type for mixed-types fields,
                 i.e. unstructured fields that contain data without a predefined schema.
                 In this case, a field with mixed type is set to Json().
