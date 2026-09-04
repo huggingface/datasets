@@ -1095,8 +1095,10 @@ class ClassLabel:
         output = [self._strval2int(value) for value in values]
         return output if return_list else output[0]
 
-    def _strval2int(self, value: str) -> int:
+    def _strval2int(self, value: Union[str, int]) -> int:
         failed_parse = False
+        if not isinstance(value, str):
+            raise ValueError(f"Invalid string class label {value}")
         value = str(value)
         # first attempt - raw string value
         int_value = self._str2int.get(value)
@@ -1140,7 +1142,7 @@ class ClassLabel:
             return_list = False
 
         for v in values:
-            if not 0 <= v < self.num_classes:
+            if not isinstance(v, int) or not 0 <= v < self.num_classes:
                 raise ValueError(f"Invalid integer class label {v:d}")
 
         output = [self._int2str[int(v)] for v in values]
