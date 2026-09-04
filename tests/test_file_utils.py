@@ -766,6 +766,15 @@ class TestxPath:
         output_paths = sorted([str(path) for path in xPath(input_path).glob(pattern)])
         assert output_paths == expected_paths
 
+    def test_xpath_glob_storage_options(self):
+        download_config = DownloadConfig(storage_options={"https": {"block_size": "omit"}})
+        with patch("datasets.utils.file_utils.url_to_fs") as mock_url_to_fs:
+            mock_url_to_fs.return_value = (DummyTestFS(), "")
+            list(xPath("zip://::https://domain.org/data.zip").glob("*", download_config=download_config))
+        assert mock_url_to_fs.call_args.kwargs == {
+            "https": {"client_kwargs": {"trust_env": True}, "block_size": "omit"}
+        }
+
     @pytest.mark.parametrize(
         "input_path, pattern, expected_paths",
         [
