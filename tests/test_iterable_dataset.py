@@ -2531,6 +2531,24 @@ def test_iterable_dataset_cast():
     assert list(casted_dataset) == [new_features.encode_example(ex) for _, ex in ex_iterable]
 
 
+@pytest.mark.parametrize(
+    "new_features",
+    [
+        Features({"id": Value("int64")}),  # missing a column
+        Features({"id": Value("int64"), "label": Value("int64"), "extra": Value("int64")}),  # extra column
+        Features({"id": Value("int64"), "renamed": Value("int64")}),  # renamed column
+    ],
+)
+def test_iterable_dataset_cast_with_different_columns(new_features):
+    # casting to features with different columns used to be accepted: an extra column
+    # was added to the features and yielded as None in every example
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
+    features = Features({"id": Value("int64"), "label": Value("int64")})
+    dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
+    with pytest.raises(ValueError, match="must be identical as the columns in the dataset"):
+        dataset.cast(new_features)
+
+
 def test_iterable_dataset_resolve_features():
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
     dataset = IterableDataset(ex_iterable)

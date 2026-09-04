@@ -4328,6 +4328,11 @@ class IterableDataset(DatasetInfoMixin):
         """
         features = _fix_for_backward_compatible_features(features)
         info = self._info.copy()
+        if info.features is not None and sorted(features) != sorted(info.features):
+            raise ValueError(
+                f"The columns in features ({list(features)}) must be identical "
+                f"as the columns in the dataset: {list(info.features)}"
+            )
         info.features = features
         return IterableDataset(
             ex_iterable=self._ex_iterable,
