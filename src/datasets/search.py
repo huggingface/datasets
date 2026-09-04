@@ -25,9 +25,16 @@ if TYPE_CHECKING:
 
     except ImportError:
         pass
+    try:
+        from qdrant_client import QdrantClient  # noqa: F401
+        from qdrant_client.models import Distance, PayloadSchemaType  # noqa: F401
+
+    except ImportError:
+        pass
 
 _has_elasticsearch = importlib.util.find_spec("elasticsearch") is not None
 _has_faiss = importlib.util.find_spec("faiss") is not None
+_has_qdrant = importlib.util.find_spec("qdrant_client") is not None
 
 
 logger = logging.get_logger(__name__)
@@ -414,6 +421,143 @@ class FaissIndex(BaseIndex):
         return faiss_index
 
 
+class QdrantIndex(BaseIndex):
+    """Dense vector index backed by an existing Qdrant client."""
+
+    @staticmethod
+    def _as_qdrant_payload(value):
+        if isinstance(value, np.generic):
+            return QdrantIndex._as_qdrant_payload(value.item())
+        if isinstance(value, np.ndarray):
+            return QdrantIndex._as_qdrant_payload(value.tolist())
+        if isinstance(value, dict):
+            return {key: QdrantIndex._as_qdrant_payload(item) for key, item in value.items()}
+        if isinstance(value, (list, tuple)):
+            return [QdrantIndex._as_qdrant_payload(item) for item in value]
+        return value
+
+    def __init__(
+        self,
+        qdrant_client: "QdrantClient",
+        collection_name: str,
+        distance: Union[str, "Distance"] = "Cosine",
+    ):
+        if not _has_qdrant:
+            raise ImportError("Install Qdrant support with `pip install datasets[qdrant]`.")
+        self.qdrant_client = qdrant_client
+        self.collection_name = collection_name
+        self.distance = distance
+
+    def add_vectors(
+        self,
+        dataset: "Dataset",
+        column: str,
+        payload_columns: Optional[list[str]] = None,
+        payload_indexes: Optional[dict[str, Union[str, "PayloadSchemaType"]]] = None,
+        batch_size: int = 64,
+        **upload_kwargs,
+    ):
+        """Create a collection and upload dataset rows as Qdrant points."""
+        from qdrant_client import models
+
+        if not isinstance(dataset.features[column], List):
+            raise ValueError(
+                f"Wrong feature type for column '{column}'. Expected 1d array, got {dataset.features[column]}"
+            )
+        if not len(dataset):
+            raise ValueError("Cannot create a Qdrant index from an empty dataset.")
+        if batch_size <= 0:
+            raise ValueError("batch_size must be greater than 0.")
+        payload_indexes = payload_indexes or {}
+        payload_columns = set(payload_columns or []).union(payload_indexes)
+        missing_columns = payload_columns - set(dataset.column_names)
+        if missing_columns:
+            raise ValueError(f"Payload columns not found in the dataset: {sorted(missing_columns)}")
+        payload_indexes = {
+            field_name: models.PayloadSchemaType(field_schema) if isinstance(field_schema, str) else field_schema
+            for field_name, field_schema in payload_indexes.items()
+        }
+        self.qdrant_client.create_collection(
+            collection_name=self.collection_name,
+            vectors_config=models.VectorParams(
+                size=len(dataset[0][column]),
+                distance=(
+                    models.Distance(self.distance.capitalize()) if isinstance(self.distance, str) else self.distance
+                ),
+            ),
+        )
+        for field_name, field_schema in payload_indexes.items():
+            self.qdrant_client.create_payload_index(
+                collection_name=self.collection_name,
+                field_name=field_name,
+                field_schema=field_schema,
+                wait=True,
+            )
+
+        def point_generator():
+            for offset in range(0, len(dataset), batch_size):
+                batch = dataset[offset : offset + batch_size]
+                for i, vector in enumerate(batch[column]):
+                    yield models.PointStruct(
+                        id=offset + i,
+                        vector=vector,
+                        payload={name: self._as_qdrant_payload(batch[name][i]) for name in payload_columns} or None,
+                    )
+
+        logger.info(f"Adding {len(dataset)} vectors to the Qdrant collection {self.collection_name}")
+        upload_kwargs.setdefault("wait", True)
+        self.qdrant_client.upload_points(
+            collection_name=self.collection_name,
+            points=hf_tqdm(point_generator(), unit="points", total=len(dataset)),
+            batch_size=batch_size,
+            **upload_kwargs,
+        )
+
+    def search(self, query: np.array, k=10, **kwargs) -> SearchResults:
+        """Find the nearest dataset rows to a query vector."""
+        query = np.asarray(query, dtype=np.float32)
+        if query.ndim != 1 and (query.ndim != 2 or query.shape[0] != 1):
+            raise ValueError("Shape of query is incorrect, it has to be either a 1D array or 2D (1, N)")
+
+        kwargs.setdefault("with_payload", False)
+        kwargs.setdefault("with_vectors", False)
+        response = self.qdrant_client.query_points(
+            collection_name=self.collection_name,
+            query=query.reshape(-1).tolist(),
+            limit=k,
+            **kwargs,
+        )
+        return SearchResults([point.score for point in response.points], [int(point.id) for point in response.points])
+
+    def search_batch(self, queries: np.array, k=10, **kwargs) -> BatchedSearchResults:
+        from qdrant_client import models
+
+        queries = np.asarray(queries, dtype=np.float32)
+        if queries.ndim != 2:
+            raise ValueError("Shape of query must be 2D")
+
+        batch_kwargs = {name: kwargs.pop(name) for name in ("consistency", "timeout") if name in kwargs}
+        for query_name, request_name in {
+            "query_filter": "filter",
+            "search_params": "params",
+            "shard_key_selector": "shard_key",
+            "with_vectors": "with_vector",
+        }.items():
+            if query_name in kwargs:
+                kwargs[request_name] = kwargs.pop(query_name)
+        kwargs.setdefault("with_payload", False)
+        kwargs.setdefault("with_vector", False)
+        responses = self.qdrant_client.query_batch_points(
+            collection_name=self.collection_name,
+            requests=[models.QueryRequest(query=query.tolist(), limit=k, **kwargs) for query in queries],
+            **batch_kwargs,
+        )
+        return BatchedSearchResults(
+            total_scores=[[point.score for point in response.points] for response in responses],
+            total_indices=[[int(point.id) for point in response.points] for response in responses],
+        )
+
+
 class IndexableMixin:
     """Add indexing features to `datasets.Dataset`"""
 
@@ -432,7 +576,8 @@ class IndexableMixin:
     def _check_index_is_initialized(self, index_name: str):
         if not self.is_index_initialized(index_name):
             raise MissingIndex(
-                f"Index with index_name '{index_name}' not initialized yet. Please make sure that you call `add_faiss_index` or `add_elasticsearch_index` first."
+                f"Index with index_name '{index_name}' not initialized yet. Please make sure that you call "
+                "`add_faiss_index`, `add_elasticsearch_index`, or `add_qdrant_index` first."
             )
 
     def list_indexes(self) -> list[str]:
@@ -680,6 +825,76 @@ class IndexableMixin:
         self._indexes[index_name] = ElasticSearchIndex(
             host=host, port=port, es_client=es_client, es_index_name=es_index_name, es_index_config=es_index_config
         )
+
+    def add_qdrant_index(
+        self,
+        column: str,
+        qdrant_client: "QdrantClient",
+        collection_name: str,
+        index_name: Optional[str] = None,
+        distance: Union[str, "Distance"] = "Cosine",
+        payload_columns: Optional[list[str]] = None,
+        payload_indexes: Optional[dict[str, Union[str, "PayloadSchemaType"]]] = None,
+        batch_size: int = 64,
+        **upload_kwargs,
+    ):
+        """Add a dense vector index backed by Qdrant.
+
+        Args:
+            column (`str`): Vector column to index.
+            qdrant_client (`qdrant_client.QdrantClient`): Client configured with a Qdrant URL.
+            collection_name (`str`): Qdrant collection to create.
+            index_name (`str`, *optional*): Dataset index name. Defaults to `column`.
+            distance (`str` or `qdrant_client.models.Distance`): Vector distance.
+            payload_columns (`List[str]`, *optional*): Columns stored as filterable Qdrant payload.
+            payload_indexes (`Dict[str, str or qdrant_client.models.PayloadSchemaType]`, *optional*):
+                Mapping of payload field names to Qdrant index schemas..
+            batch_size (`int`): Points per upload batch.
+            **upload_kwargs: Additional arguments for `QdrantClient.upload_points`.
+        """
+        qdrant_index = QdrantIndex(
+            qdrant_client=qdrant_client,
+            collection_name=collection_name,
+            distance=distance,
+        )
+        qdrant_index.add_vectors(
+            self,
+            column=column,
+            payload_columns=payload_columns,
+            payload_indexes=payload_indexes,
+            batch_size=batch_size,
+            **upload_kwargs,
+        )
+        self._indexes[index_name if index_name is not None else column] = qdrant_index
+        return self
+
+    def load_qdrant_index(
+        self,
+        index_name: str,
+        qdrant_client: "QdrantClient",
+        collection_name: str,
+    ):
+        """Attach a Qdrant collection previously created by `add_qdrant_index`.
+
+        The collection must contain one point per dataset row, with point IDs equal to
+        the zero-based dataset row numbers.
+
+        Args:
+            index_name (`str`): Dataset index name.
+            qdrant_client (`qdrant_client.QdrantClient`): Client connected to the collection.
+            collection_name (`str`): Existing Qdrant collection name.
+        """
+        index = QdrantIndex(
+            qdrant_client=qdrant_client,
+            collection_name=collection_name,
+        )
+        points_count = index.qdrant_client.count(collection_name=collection_name, exact=True).count
+        if points_count != len(self):
+            raise ValueError(
+                f"Index size should match Dataset size, but Qdrant collection '{collection_name}' has "
+                f"{points_count} points while the dataset has {len(self)} examples."
+            )
+        self._indexes[index_name] = index
 
     def drop_index(self, index_name: str):
         """Drop the index with the specified column.

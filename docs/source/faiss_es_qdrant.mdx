@@ -1,6 +1,6 @@
 # Search index
 
-[FAISS](https://github.com/facebookresearch/faiss) and [Elasticsearch](https://www.elastic.co/elasticsearch/) enables searching for examples in a dataset. This can be useful when you want to retrieve specific examples from a dataset that are relevant to your NLP task. For example, if you are working on an Open Domain Question Answering task, you may want to only return examples that are relevant to answering your question.
+[FAISS](https://github.com/facebookresearch/faiss), [Elasticsearch](https://www.elastic.co/elasticsearch/), and [Qdrant](https://qdrant.tech/) enable searching for examples in a dataset. This can be useful when you want to retrieve specific examples from a dataset that are relevant to your NLP task. For example, if you are working on an Open Domain Question Answering task, you may want to only return examples that are relevant to answering your question.
 
 This guide will show you how to build an index for your dataset that will allow you to search it.
 
@@ -130,4 +130,46 @@ For more advanced Elasticsearch usage, you can specify your own configuration wi
 ... }  # default config
 >>> es_index_name = "hf_squad_context"  # name of the index in Elasticsearch
 >>> squad.add_elasticsearch_index("context", es_client=es_client, es_config=es_config, es_index_name=es_index_name)
+```
+
+## Qdrant
+
+[Qdrant](https://qdrant.tech/) provides persistent vector search with optional payload filtering. Install the optional dependency first:
+
+```bash
+pip install "datasets[qdrant]"
+```
+
+Connect to a Qdrant server using its URL. The following example stores the `language` column as payload so that it can be used as a search filter:
+
+```py
+>>> from qdrant_client import QdrantClient, models
+>>> client = QdrantClient(url="http://localhost:6333")
+>>> ds_with_embeddings = ds_with_embeddings.add_column(
+...     "language", ["en"] * len(ds_with_embeddings)
+... )
+>>> ds_with_embeddings.add_qdrant_index(
+...     column="embeddings",
+...     payload_indexes={"language": "keyword"},
+...     collection_name="documents",
+...     qdrant_client=client,
+... )
+>>> query_filter = models.Filter(
+...     must=[models.FieldCondition(key="language", match=models.MatchValue(value="en"))]
+... )
+>>> scores, examples = ds_with_embeddings.get_nearest_examples(
+...     "embeddings", question_embedding, k=10, query_filter=query_filter
+... )
+```
+
+Fields in `payload_indexes` are uploaded as payload and indexed before the vectors are added. Use `payload_columns` for additional fields that should be stored without an index. Only index fields used in filters, because payload indexes consume additional memory.
+
+Dataset row numbers are used as Qdrant point IDs, so results map back to examples without copying the full dataset into Qdrant. [`Dataset.load_qdrant_index`] only attaches collections created by [`Dataset.add_qdrant_index`], because it relies on this row-ID mapping. To attach one later:
+
+```py
+>>> ds.load_qdrant_index(
+...     "embeddings",
+...     qdrant_client=QdrantClient(url="http://localhost:6333"),
+...     collection_name="documents",
+... )
 ```
