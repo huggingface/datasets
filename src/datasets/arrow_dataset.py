@@ -4583,6 +4583,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             return self._select_contiguous(0, 0, new_fingerprint=new_fingerprint)
 
+        # Normalize negative indices to positive (pyarrow uint64 can't hold negative values)
+        indices = [idx if idx >= 0 else size + idx for idx in indices]
+
         indices_array = pa.array(indices, type=pa.uint64())
         # Check if we need to convert indices
         if self._indices is not None:
