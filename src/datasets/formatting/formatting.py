@@ -150,6 +150,23 @@ class PythonArrowExtractor(BaseArrowExtractor[dict, list, dict]):
         return pa_table.to_pydict()
 
 
+def _numpy_dtype_from_arrow_type(pa_type: pa.DataType) -> Optional[np.dtype]:
+    """The numpy dtype an arrow type maps to, or None if it has no direct equivalent.
+
+    Used only for empty columns. A zero-length Python list carries no type, so
+    ``np.asarray([])`` yields float64 regardless of what the column was declared
+    as, and the numpy formatter's float default then narrows that to float32.
+    Taking the dtype from the arrow type keeps an empty column matching a
+    non-empty one, which is what the pandas and arrow extractors already do.
+    """
+    try:
+        return np.dtype(pa_type.to_pandas_dtype())
+    except (NotImplementedError, TypeError, ValueError):
+        # Nested and extension types have no single numpy dtype; leave those to
+        # the existing path rather than guessing at one.
+        return None
+
+
 class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
     def __init__(self, **np_array_kwargs):
         self.np_array_kwargs = np_array_kwargs
@@ -212,6 +229,10 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
                             return np.asarray(array, dtype=object)
                         return np.array(array, copy=False, dtype=object)
                     break
+        if len(array) == 0:
+            dtype = _numpy_dtype_from_arrow_type(pa_array.type)
+            if dtype is not None:
+                return np.empty(0, dtype=dtype)
         if np.lib.NumpyVersion(np.__version__) >= "2.0.0b1":
             return np.asarray(array)
         else:
