@@ -838,17 +838,16 @@ class ArrayExtensionArray(pa.ExtensionArray):
         return numpy_arr
 
     def to_pylist(self, maps_as_pydicts: Optional[Literal["lossy", "strict"]] = None):
+        if self.storage.null_count:
+            # to_numpy writes np.nan in the null rows and the python path cannot undo that: a
+            # fixed shape has its whole column cast to float64, losing integers above 2**53, and
+            # a dynamic first dimension leaves a bare float where a list belongs. The nested-list
+            # storage already carries the exact values and None for the null rows, so use it.
+            return self.storage.to_pylist()
         zero_copy_only = _is_zero_copy_only(self.storage.type, unnest=True)
         numpy_arr = self.to_numpy(zero_copy_only=zero_copy_only)
         if self.type.shape[0] is None and numpy_arr.dtype == object:
             return [arr.tolist() for arr in numpy_arr.tolist()]
-        elif self.type.shape[0] is not None and self.storage.null_count:
-            # For a fixed-shape array, to_numpy casts the whole column to float64 to
-            # hold np.nan in the null rows. On the python read path that silently
-            # corrupts every non-null value: integers become floats and values above
-            # 2**53 lose precision. The nested-list storage already carries the exact
-            # values and None for the null rows, so build the list from it directly.
-            return self.storage.to_pylist()
         else:
             return numpy_arr.tolist()
 
@@ -949,6 +948,13 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         return self._data.nbytes
 
     def isna(self) -> np.ndarray:
+        if self._data.dtype == object:
+            # Dynamic shape: a missing row is a scalar sentinel, present rows are
+            # arrays. isna is a per-value mask, so a NaN inside a present row must
+            # not mark the row missing.
+            return np.array([not isinstance(arr, np.ndarray) and bool(pd.isna(arr)) for arr in self._data])
+        # Fixed shape: every row is an array and the null row is materialised as
+        # NaNs, so the validity bitmap is already gone by this point.
         return np.array([pd.isna(arr).any() for arr in self._data])
 
     def __setitem__(self, key: Union[int, slice, np.ndarray], value: Any) -> None:
