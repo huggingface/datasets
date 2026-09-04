@@ -21,6 +21,20 @@ def test_split_dataset_by_node_map_style():
     assert len({tuple(x.values()) for ds in datasets_per_rank for x in ds}) == full_size
 
 
+def test_split_dataset_by_node_map_style_with_examples_strategy():
+    full_ds = Dataset.from_dict({"i": range(17)})
+
+    with pytest.raises(ValueError, match="Map-style datasets only support strategy='auto'"):
+        split_dataset_by_node(full_ds, rank=0, world_size=3, strategy="examples")
+
+
+def test_split_dataset_by_node_invalid_strategy():
+    full_ds = IterableDataset.from_generator(lambda: ({"i": i} for i in range(17)))
+
+    with pytest.raises(ValueError, match="Invalid strategy"):
+        split_dataset_by_node(full_ds, rank=0, world_size=3, strategy="invalid")
+
+
 def test_split_dataset_by_node_iterable():
     def gen():
         return ({"i": i} for i in range(17))
@@ -53,6 +67,72 @@ def test_split_dataset_by_node_iterable_sharded(shards_per_node):
     assert [ds.num_shards for ds in datasets_per_rank] == [shards_per_node] * world_size
     assert sum(len(list(ds)) for ds in datasets_per_rank) == full_size
     assert len({tuple(x.values()) for ds in datasets_per_rank for x in ds}) == full_size
+
+
+def test_split_dataset_by_node_iterable_with_examples_strategy():
+    def gen(shards):
+        for shard in shards:
+            yield from ({"i": 2 * shard + i} for i in range(2))
+
+    world_size = 3
+    full_ds = IterableDataset.from_generator(gen, gen_kwargs={"shards": list(range(6))})
+    datasets_per_rank = [
+        split_dataset_by_node(full_ds, rank=rank, world_size=world_size, strategy="examples")
+        for rank in range(world_size)
+    ]
+
+    assert [ds.num_shards for ds in datasets_per_rank] == [full_ds.num_shards] * world_size
+    assert [[example["i"] for example in ds] for ds in datasets_per_rank] == [
+        list(range(rank, 12, world_size)) for rank in range(world_size)
+    ]
+    assert {example["i"] for ds in datasets_per_rank for example in ds} == set(range(12))
+
+
+def test_split_dataset_by_node_iterable_with_shards_strategy():
+    def gen(shards):
+        yield from ({"shard": shard} for shard in shards)
+
+    world_size = 3
+    full_ds = IterableDataset.from_generator(gen, gen_kwargs={"shards": list(range(6))})
+    datasets_per_rank = [
+        split_dataset_by_node(full_ds, rank=rank, world_size=world_size, strategy="shards")
+        for rank in range(world_size)
+    ]
+    shards_per_rank = [{example["shard"] for example in ds} for ds in datasets_per_rank]
+
+    assert [ds.num_shards for ds in datasets_per_rank] == [2] * world_size
+    assert all(shards_per_rank[rank].isdisjoint(shards_per_rank[other]) for rank in range(3) for other in range(rank))
+    assert set.union(*shards_per_rank) == set(range(6))
+
+    non_divisible_ds = IterableDataset.from_generator(gen, gen_kwargs={"shards": list(range(2))})
+    with pytest.raises(ValueError, match="num_shards=2.*world_size=3"):
+        split_dataset_by_node(non_divisible_ds, rank=0, world_size=world_size, strategy="shards")
+
+
+def test_split_dataset_by_node_iterable_nested_strategy():
+    full_ds = IterableDataset.from_generator(lambda: ({"i": i} for i in range(16)))
+    ds = split_dataset_by_node(full_ds, rank=1, world_size=2, strategy="examples")
+    nested_ds = split_dataset_by_node(ds, rank=0, world_size=2)
+
+    assert [example["i"] for example in nested_ds] == list(range(2, 16, 4))
+    same_ds = split_dataset_by_node(ds, rank=0, world_size=2, strategy="examples")
+    assert [example["i"] for example in same_ds] == list(range(2, 16, 4))
+    with pytest.raises(ValueError, match="Cannot change the strategy"):
+        split_dataset_by_node(ds, rank=0, world_size=2, strategy="shards")
+
+
+def test_split_dataset_by_node_iterable_shards_strategy_checked_at_iteration():
+    """The shard count can change after the split; a forced "shards" split must fail clearly, not with IndexError."""
+
+    def gen(shards):
+        yield from ({"shard": shard} for shard in shards)
+
+    full_ds = IterableDataset.from_generator(gen, gen_kwargs={"shards": list(range(6))})
+    ds = split_dataset_by_node(full_ds, rank=1, world_size=3, strategy="shards")
+    # shuffle() builds a dataset over a single shuffled source, which prepares the
+    # iterable eagerly; the check fails there rather than mid-iteration.
+    with pytest.raises(ValueError, match="num_shards=1.*world_size=3"):
+        ds.shuffle(seed=0, buffer_size=4)
 
 
 def test_split_dataset_by_node_iterable_distributed():

@@ -250,9 +250,9 @@ Each node is assigned a chunk of data, e.g. rank 0 is given the first chunk of t
 
 For iterable datasets:
 
-If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.num_shards % world_size == 0`),
-then the shards are evenly assigned across the nodes, which is the most optimized.
-Otherwise, each node keeps 1 example out of `world_size`, skipping the other examples.
+The splitting `strategy` can be `"auto"`, `"shards"`, or `"examples"`. The default `"auto"` assigns shards when
+the number of shards is divisible by `world_size` and otherwise assigns every `world_size`-th example. `"shards"`
+always assigns shards and requires divisibility, while `"examples"` always assigns examples.
 
 This can also be combined with a `torch.utils.data.DataLoader` if you want each node to use multiple workers to load the data.
 

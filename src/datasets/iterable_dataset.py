@@ -2486,6 +2486,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
 class DistributedConfig:
     rank: int
     world_size: int
+    strategy: Literal["auto", "shards", "examples"] = "auto"
 
 
 def _maybe_add_torch_iterable_dataset_parent_class(cls):
@@ -2726,7 +2727,11 @@ class IterableDataset(DatasetInfoMixin):
 
     @property
     def num_shards(self) -> int:
-        if self._distributed and self._ex_iterable.num_shards % self._distributed.world_size == 0:
+        if (
+            self._distributed
+            and self._distributed.strategy != "examples"
+            and self._ex_iterable.num_shards % self._distributed.world_size == 0
+        ):
             return self._ex_iterable.num_shards // self._distributed.world_size
         return self._ex_iterable.num_shards
 
@@ -2815,7 +2820,16 @@ class IterableDataset(DatasetInfoMixin):
         if self._distributed:
             rank = self._distributed.rank
             world_size = self._distributed.world_size
-            if ex_iterable.num_shards % world_size == 0:
+            strategy = self._distributed.strategy
+            if strategy == "shards" and ex_iterable.num_shards % world_size != 0:
+                # The shard count can change after the split (shuffle, shard, map with
+                # reshuffling), so the divisibility that "shards" requires is checked
+                # here, at iteration time, as well as when the split was requested.
+                raise ValueError(
+                    f"Cannot iterate with strategy='shards': the dataset now has num_shards={ex_iterable.num_shards}, "
+                    f"which is not divisible by world_size={world_size}."
+                )
+            if strategy == "shards" or (strategy == "auto" and ex_iterable.num_shards % world_size == 0):
                 if self._is_main_process():
                     num_shards_per_node = ex_iterable.num_shards // world_size
                     plural = "s" if num_shards_per_node > 1 else ""
@@ -2828,11 +2842,12 @@ class IterableDataset(DatasetInfoMixin):
                     logger.info(
                         f"Assigning 1 out of {world_size} examples of the dataset to each node. The others are skipped during the iteration."
                     )
-                    logger.info(
-                        f"It is more optimized to distribute the dataset shards (or data sources) across nodes. "
-                        f"You can do that by using a dataset with number of shards that is a factor of world_size={world_size}. "
-                        f"The current dataset has {ex_iterable.num_shards} which is not a factor of {world_size}"
-                    )
+                    if strategy == "auto":
+                        logger.info(
+                            f"It is more optimized to distribute the dataset shards (or data sources) across nodes. "
+                            f"You can do that by using a dataset with number of shards that is a factor of world_size={world_size}. "
+                            f"The current dataset has {ex_iterable.num_shards} which is not a factor of {world_size}"
+                        )
                 ex_iterable = StepExamplesIterable(ex_iterable, step=world_size, offset=rank)
 
         if ex_iterable.iter_arrow:
@@ -5413,13 +5428,18 @@ def _interleave_iterable_datasets(
     )
 
 
-def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_size: int) -> IterableDataset:
+def _split_by_node_iterable_dataset(
+    dataset: IterableDataset,
+    rank: int,
+    world_size: int,
+    strategy: Literal["auto", "shards", "examples"] = "auto",
+) -> IterableDataset:
     """
     Split an iterable dataset for the node at rank `rank` in a pool of nodes of size `world_size`.
 
-    If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.num_shards % world_size == 0`),
-    then the shards are evenly assigned across the nodes, which is the most optimized.
-    Otherwise, each node keeps 1 example out of `world_size`, skipping the other examples.
+    The splitting `strategy` can be `"auto"`, `"shards"`, or `"examples"`. The default `"auto"` assigns shards
+    when the number of shards is divisible by `world_size` and otherwise assigns every `world_size`-th example.
+    `"shards"` always assigns shards and requires divisibility, while `"examples"` always assigns examples.
 
     Args:
         dataset ([`IterableDataset`]):
@@ -5428,14 +5448,28 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
             Rank of the current node.
         world_size (`int`):
             Total number of nodes.
+        strategy (`str`, defaults to `"auto"`):
+            How to split the iterable dataset. Must be one of `"auto"`, `"shards"`, or `"examples"`.
 
     Returns:
         [`IterableDataset`]: The iterable dataset to be used on the node at rank `rank`.
     """
     if dataset._distributed:
+        if strategy not in ("auto", dataset._distributed.strategy):
+            raise ValueError(
+                "Cannot change the strategy when splitting an already distributed iterable dataset. "
+                f"The existing strategy is {dataset._distributed.strategy!r} and the new strategy is {strategy!r}."
+            )
+        strategy = dataset._distributed.strategy
         rank = world_size * dataset._distributed.rank + rank
         world_size = world_size * dataset._distributed.world_size
-    distributed = DistributedConfig(rank=rank, world_size=world_size)
+    if strategy == "shards" and dataset._ex_iterable.num_shards % world_size != 0:
+        raise ValueError(
+            f"Cannot split an iterable dataset with num_shards={dataset._ex_iterable.num_shards} "
+            f"across world_size={world_size} nodes "
+            "with strategy='shards' because the number of shards must be divisible by world_size."
+        )
+    distributed = DistributedConfig(rank=rank, world_size=world_size, strategy=strategy)
     return IterableDataset(
         ex_iterable=dataset._ex_iterable,
         info=dataset._info.copy(),
