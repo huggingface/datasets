@@ -5136,6 +5136,20 @@ def test_add_column():
     assert ds[1] == {"a": 2, "b": 4}
 
 
+@pytest.mark.parametrize("n", [0, 1, 2, 3, 4, 10])
+def test_dataset_skip_at_and_beyond_length(n):
+    # skipping exactly len(ds) used to raise IndexError, while skipping *more* than
+    # len(ds) returned an empty dataset
+    ds = Dataset.from_dict({"a": [1, 2, 3]})
+
+    skipped = ds.skip(n)
+
+    assert len(skipped) == max(len(ds) - n, 0)
+    assert skipped["a"] == [1, 2, 3][n:]
+    # and it agrees with the IterableDataset counterpart
+    assert len(list(ds.to_iterable_dataset().skip(n))) == len(skipped)
+
+
 def test_process_large_few_examples(tmp_path):
     # GH 7911
     from datasets import Dataset
