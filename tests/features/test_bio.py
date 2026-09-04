@@ -173,6 +173,7 @@ def test_bio_structure_rejects_unknown_format_at_construction(bad_format):
         BioStructure(format=bad_format)
 
 
+@require_biopython
 def test_bio_structure_encodes_structure_in_declared_format(pdb_path):
     """The bytes written for a Structure follow the feature's format, for both formats."""
     from Bio.PDB import PDBParser
