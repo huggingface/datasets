@@ -199,6 +199,25 @@ def shift_ex_examples_rngs(ex_iterable: "_BaseExamplesIterable", value: int) -> 
     return set_seed_recursively(ex_iterable)
 
 
+_PRIMITIVE_TYPES = (int, float, bool, str, bytes, type(None))
+
+
+def _fast_copy(state):
+    """Fast acyclic copy of state_dict data structures, bypassing slow pickle/deepcopy introspection."""
+    # Use type() instead of isinstance() for 2x faster type checks
+    state_type = type(state)
+    if state_type in _PRIMITIVE_TYPES:
+        return state
+    elif state_type is list:
+        return [v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v) for v in state]
+    elif state_type is dict:
+        return {k: (v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v)) for k, v in state.items()}
+    elif state_type is tuple:
+        return tuple(v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v) for v in state)
+    else:
+        return deepcopy(state)
+
+
 class _BaseExamplesIterable:
     """Base class for the examples iterable used by an IterableDataset"""
 
@@ -273,8 +292,8 @@ class _BaseExamplesIterable:
         return _inner_load_state_dict(self._state_dict, state_dict)
 
     def state_dict(self) -> dict:
-        if self._state_dict:
-            return deepcopy(self._state_dict)
+        if self._state_dict is not None:
+            return _fast_copy(self._state_dict)
         raise RuntimeError("State dict is not initialized, please call ex_iterable._init_state_dict() first.")
 
     @property
@@ -2631,7 +2650,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> dataloader.load_state_dict(state_dict)  # uses ds.load_state_dict() under the hood
         ```
         """
-        return deepcopy(self._state_dict)
+        return _fast_copy(self._state_dict)
 
     def load_state_dict(self, state_dict: dict) -> None:
         """Load the state_dict of the dataset.
