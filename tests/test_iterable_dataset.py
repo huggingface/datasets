@@ -2232,6 +2232,15 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, seed, epoch):
     assert next(iter(dataset)) == list(islice(expected_ex_iterable, expected_first_example_index + 1))[-1][1]
 
 
+@pytest.mark.parametrize("buffer_size", [0, -1])
+def test_iterable_dataset_shuffle_non_positive_buffer_size(buffer_size):
+    # a negative buffer size used to disable the "buffer is full" check entirely,
+    # which silently loads the whole dataset in memory
+    dataset = Dataset.from_dict({"a": range(10)}).to_iterable_dataset()
+    with pytest.raises(ValueError, match="buffer_size must be a positive integer"):
+        dataset.shuffle(seed=42, buffer_size=buffer_size)
+
+
 @pytest.mark.parametrize(
     "features",
     [
