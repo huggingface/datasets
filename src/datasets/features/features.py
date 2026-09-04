@@ -854,7 +854,7 @@ class ArrayExtensionArray(pa.ExtensionArray):
 
 
 class PandasArrayExtensionDtype(PandasExtensionDtype):
-    _metadata = "value_type"
+    _metadata = ("value_type",)
 
     def __init__(self, value_type: Union["PandasArrayExtensionDtype", np.dtype]):
         self._value_type = value_type
