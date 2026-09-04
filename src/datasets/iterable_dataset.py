@@ -93,8 +93,26 @@ if TYPE_CHECKING:
     import polars as pl
     import sqlalchemy
     import torch
+    from torch.utils.data import IterableDataset as _TorchIterableDatasetBase
 
     from .builder import Key as BuilderKey
+else:
+
+    class _TorchIterableDatasetBase:
+        """Runtime stand-in for :class:`torch.utils.data.IterableDataset`.
+
+        Only the type checker sees the real torch class (imported under
+        ``TYPE_CHECKING``); at runtime PEP 560 ``__mro_entries__`` drops the base so
+        ``IterableDataset.__bases__`` stays identical to main and
+        :func:`_maybe_add_torch_iterable_dataset_parent_class` keeps working.
+        """
+
+        def __class_getitem__(cls, item):
+            return cls()
+
+        def __mro_entries__(self, bases):
+            return ()
+
 
 logger = get_logger(__name__)
 
@@ -2542,7 +2560,7 @@ class IterableColumn:
         return IterableColumn(self, column_name)
 
 
-class IterableDataset(DatasetInfoMixin):
+class IterableDataset(DatasetInfoMixin, _TorchIterableDatasetBase[Any]):
     """A Dataset backed by an iterable."""
 
     def __init__(
