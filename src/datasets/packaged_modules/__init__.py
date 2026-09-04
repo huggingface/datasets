@@ -19,6 +19,7 @@ from .meshfolder import meshfolder
 from .niftifolder import niftifolder
 from .pandas import pandas
 from .parquet import parquet
+from .pdb import pdb
 from .pdffolder import pdffolder
 from .sql import sql
 from .text import text
@@ -65,6 +66,7 @@ _PACKAGED_DATASETS_MODULES = {
     "tsfile": (tsfile.__name__, _hash_python_lines(inspect.getsource(tsfile).splitlines())),
     "iceberg": (iceberg.__name__, _hash_python_lines(inspect.getsource(iceberg).splitlines())),
     "vortex": (vortex.__name__, _hash_python_lines(inspect.getsource(vortex).splitlines())),
+    "pdb": (pdb.__name__, _hash_python_lines(inspect.getsource(pdb).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -103,6 +105,8 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".tsfile": ("tsfile", {}),
     ".vortex": ("vortex", {}),
 }
+_EXTENSION_TO_MODULE.update({ext: ("pdb", {}) for ext in pdb.PdbFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext.upper(): ("pdb", {}) for ext in pdb.PdbFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
@@ -135,6 +139,7 @@ _MODULE_TO_METADATA_FILE_NAMES["meshfolder"] = meshfolder.MeshFolder.METADATA_FI
 _MODULE_TO_METADATA_FILE_NAMES["pdffolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["niftifolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["lance"] = lance.Lance.METADATA_FILE_NAMES
+_MODULE_TO_METADATA_FILE_NAMES["pdb"] = imagefolder.ImageFolder.METADATA_FILENAMES
 
 _MODULE_TO_METADATA_EXTENSIONS: Dict[str, List[str]] = {}
 for _module in _MODULE_TO_EXTENSIONS:

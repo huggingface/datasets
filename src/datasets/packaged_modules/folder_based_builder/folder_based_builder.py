@@ -59,6 +59,15 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
     METADATA_FILENAMES: list[str] = ["metadata.csv", "metadata.jsonl", "metadata.parquet"]
 
+    def _base_feature(self) -> FeatureType:
+        """Instantiate the base feature for one column.
+
+        Subclasses override this to forward config-derived options to the feature
+        (e.g. a structure parser's filtering or column selection). The default
+        constructs the feature with no arguments.
+        """
+        return self.BASE_FEATURE()
+
     def _info(self):
         if not self.config.data_dir and not self.config.data_files:
             raise ValueError(
@@ -219,21 +228,21 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                             feature[key] == datasets.Value("string") or feature[key] == datasets.Value("large_string")
                         ):
                             key = key[: -len("_file_name")] or self.BASE_COLUMN_NAME
-                            out[key] = self.BASE_FEATURE()
+                            out[key] = self._base_feature()
                             feature_not_found = False
                         elif (key == "file_names" or key.endswith("_file_names")) and (
                             feature[key]
                             in [datasets.List(datasets.Value("string")), datasets.List(datasets.Value("large_string"))]
                         ):
                             key = key[: -len("_file_names")] or (self.BASE_COLUMN_NAME + "s")
-                            out[key] = datasets.List(self.BASE_FEATURE())
+                            out[key] = datasets.List(self._base_feature())
                             feature_not_found = False
                         elif (key == "file_names" or key.endswith("_file_names")) and (
                             feature[key] == [datasets.Value("string")]
                             or feature[key] == [datasets.Value("large_string")]
                         ):
                             key = key[: -len("_file_names")] or (self.BASE_COLUMN_NAME + "s")
-                            out[key] = [self.BASE_FEATURE()]
+                            out[key] = [self._base_feature()]
                             feature_not_found = False
                         else:
                             out[key] = feature[key]
@@ -257,12 +266,12 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             elif add_labels:
                 self.info.features = datasets.Features(
                     {
-                        self.BASE_COLUMN_NAME: self.BASE_FEATURE(),
+                        self.BASE_COLUMN_NAME: self._base_feature(),
                         "label": datasets.ClassLabel(names=sorted(labels)),
                     }
                 )
             else:
-                self.info.features = datasets.Features({self.BASE_COLUMN_NAME: self.BASE_FEATURE()})
+                self.info.features = datasets.Features({self.BASE_COLUMN_NAME: self._base_feature()})
 
         return splits
 
