@@ -9,6 +9,7 @@ import re
 import sys
 import tempfile
 import time
+import warnings
 from functools import partial
 from pathlib import Path
 from unittest import TestCase
@@ -3657,6 +3658,20 @@ def test_sort_with_none(null_placement):
         assert dataset["col_1"] == [None, None, "item_1", "item_2", "item_3", "item_4"]
     else:
         assert dataset["col_1"] == ["item_1", "item_2", "item_3", "item_4", None, None]
+
+
+@pytest.mark.parametrize("null_placement", ["first", "last"])
+def test_sort_does_not_warn(null_placement):
+    # pyarrow 25 deprecated the top-level `null_placement` of `sort_indices` in favour of a
+    # per-key one, so every `sort()` call emitted a FutureWarning.
+    dataset = Dataset.from_dict({"col_1": ["item_2", None, "item_1"]})
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", FutureWarning)
+        sorted_dataset = dataset.sort("col_1", null_placement=null_placement)
+    if null_placement == "first":
+        assert sorted_dataset["col_1"] == [None, "item_1", "item_2"]
+    else:
+        assert sorted_dataset["col_1"] == ["item_1", "item_2", None]
 
 
 def test_update_metadata_with_features(dataset_dict):
