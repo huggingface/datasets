@@ -221,15 +221,17 @@ class Audio:
         return audio
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
-        """If in the decodable state, raise an error, otherwise flatten the feature into a dictionary."""
+        """If in the decodable state, return the feature itself, otherwise flatten the feature into a dictionary."""
         from .features import Value
 
-        if self.decode:
-            raise ValueError("Cannot flatten a decoded Audio feature.")
-        return {
-            "bytes": Value("binary"),
-            "path": Value("string"),
-        }
+        return (
+            self
+            if self.decode
+            else {
+                "bytes": Value("binary"),
+                "path": Value("string"),
+            }
+        )
 
     def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray]) -> pa.StructArray:
         """Cast an Arrow array to the Audio arrow storage type.
