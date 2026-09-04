@@ -261,9 +261,20 @@ class Image:
             else:
                 path_array = pa.array([None] * len(storage), type=pa.string())
             storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
-        elif pa.types.is_list(storage.type):
+        elif (
+            pa.types.is_list(storage.type)
+            or pa.types.is_large_list(storage.type)
+            or pa.types.is_fixed_size_list(storage.type)
+        ):
+            pa_type = storage.type
+            while pa.types.is_list(pa_type) or pa.types.is_large_list(pa_type) or pa.types.is_fixed_size_list(pa_type):
+                pa_type = pa_type.value_type
+            np_dtype = np.dtype(pa_type.to_pandas_dtype())
             bytes_array = pa.array(
-                [encode_np_array(np.array(arr))["bytes"] if arr is not None else None for arr in storage.to_pylist()],
+                [
+                    encode_np_array(np.array(arr, dtype=np_dtype))["bytes"] if arr is not None else None
+                    for arr in storage.to_pylist()
+                ],
                 type=pa.binary(),
             )
             path_array = pa.array([None] * len(storage), type=pa.string())
