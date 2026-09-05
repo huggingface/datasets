@@ -4025,7 +4025,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 yield rank, False, num_examples_progress_update
                 if update_data:
                     if writer is not None:
-                        writer.finalize()
+                        try:
+                            writer.finalize()
+                        except Exception as e:  # the writer may be broken already, don't hide the original error
+                            logger.warning(f"Failed to finalize the writer while handling an error: {e!r}")
                     if tmp_file is not None:
                         tmp_file.close()
                         if os.path.exists(tmp_file.name):
