@@ -7,7 +7,12 @@ from .iterable_dataset import IterableDataset, _split_by_node_iterable_dataset
 DatasetType = TypeVar("DatasetType", Dataset, IterableDataset)
 
 
-def split_dataset_by_node(dataset: DatasetType, rank: int, world_size: int) -> DatasetType:
+def split_dataset_by_node(
+    dataset: DatasetType,
+    rank: int,
+    world_size: int,
+    force_sample_level: bool = False,
+) -> DatasetType:
     """
     Split a dataset for the node at rank `rank` in a pool of nodes of size `world_size`.
 
@@ -15,12 +20,19 @@ def split_dataset_by_node(dataset: DatasetType, rank: int, world_size: int) -> D
 
     Each node is assigned a chunk of data, e.g. rank 0 is given the first chunk of the dataset.
     To maximize data loading throughput, chunks are made of contiguous data on disk if possible.
+    The `force_sample_level` argument is ignored for map-style datasets.
 
     For iterable datasets:
 
-    If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.num_shards % world_size == 0`),
-    then the shards are evenly assigned across the nodes, which is the most optimized.
-    Otherwise, each node keeps 1 example out of `world_size`, skipping the other examples.
+    By default, if the dataset has a number of shards that is a factor of `world_size` (i.e. if
+    `dataset.num_shards % world_size == 0`), then the shards are evenly assigned across the nodes,
+    which is the most optimized. Otherwise, each node keeps 1 example out of `world_size`, skipping
+    the other examples.
+
+    Pass `force_sample_level=True` to force sample-level splitting regardless of shard count
+    (each node keeps 1 example out of `world_size`). This is useful when the number of physical
+    shards is small or imbalanced relative to `world_size`, so that expensive transformations applied
+    after `split_dataset_by_node` are not duplicated across nodes.
 
     > [!WARNING]
     > If you shuffle your iterable dataset in a distributed setup, make sure to set a fixed `seed` in [`IterableDataset.shuffle`]
@@ -33,6 +45,9 @@ def split_dataset_by_node(dataset: DatasetType, rank: int, world_size: int) -> D
             Rank of the current node.
         world_size (`int`):
             Total number of nodes.
+        force_sample_level (`bool`, defaults to `False`):
+            For iterable datasets, force sample-level splitting even when shards divide evenly across
+            nodes. Ignored for map-style datasets.
 
     Returns:
         [`Dataset`] or [`IterableDataset`]: The dataset to be used on the node at rank `rank`.
@@ -40,4 +55,6 @@ def split_dataset_by_node(dataset: DatasetType, rank: int, world_size: int) -> D
     if isinstance(dataset, Dataset):
         return _split_by_node_map_style_dataset(dataset, rank=rank, world_size=world_size)
     else:
-        return _split_by_node_iterable_dataset(dataset, rank=rank, world_size=world_size)
+        return _split_by_node_iterable_dataset(
+            dataset, rank=rank, world_size=world_size, force_sample_level=force_sample_level
+        )
