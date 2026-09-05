@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import pickle
 import sys
 import time
@@ -377,6 +378,17 @@ def test_buffer_shuffled_examples_iterable(seed):
     assert next(iter(ex_iterable)) == expected[0]
     assert list(ex_iterable) == expected
     assert sorted(ex_iterable) == sorted(all_examples)
+    assert_load_state_dict_resumes_iteration(ex_iterable)
+
+
+@pytest.mark.parametrize("seed", [42, 1337])
+def test_buffer_shuffled_examples_iterable_resume_arrow_iteration(seed):
+    generator = np.random.default_rng(seed)
+    base_ex_iterable = ArrowExamplesIterable(generate_tables_fn, {"n": 40})
+    ex_iterable = BufferShuffledExamplesIterable(
+        RebatchedArrowExamplesIterable(base_ex_iterable, batch_size=1), buffer_size=7, generator=generator
+    )
+    assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
 
 
 def test_cycling_multi_sources_examples_iterable():
@@ -1541,8 +1553,7 @@ def test_horizontally_concatenated_examples_iterable():
 )
 def test_no_iter_arrow(ex_iterable: _BaseExamplesIterable):
     assert ex_iterable.iter_arrow is None
-    if not isinstance(ex_iterable, BufferShuffledExamplesIterable):
-        assert_load_state_dict_resumes_iteration(ex_iterable)
+    assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
 @pytest.mark.parametrize(
@@ -3011,6 +3022,68 @@ def test_iterable_dataset_filter_resume_state_dict(consume, batched):
     resumed.load_state_dict(state_dict)
     rest = [example["a"] for example in resumed]
     assert seen + rest == list(range(n))
+
+
+@pytest.mark.parametrize("num_shards", [1, 4])
+@pytest.mark.parametrize("consume", [3, 20, 45])
+def test_iterable_dataset_shuffle_resume_state_dict(num_shards, consume):
+    # Resuming a shuffled dataset must continue exactly where it left off: the shuffle
+    # buffer content and the position of the rng are part of the state, so no example
+    # is lost and no already-yielded example is emitted a second time
+    n = 50
+
+    def build():
+        return (
+            Dataset.from_dict({"a": list(range(n))})
+            .to_iterable_dataset(num_shards=num_shards)
+            .shuffle(seed=17, buffer_size=16)
+        )
+
+    expected = [example["a"] for example in build()]
+    assert sorted(expected) == list(range(n))
+    ds = build()
+    it = iter(ds)
+    seen = [next(it)["a"] for _ in range(consume)]
+    state_dict = ds.state_dict()
+    resumed = build()
+    resumed.load_state_dict(state_dict)
+    rest = [example["a"] for example in resumed]
+    assert seen + rest == expected
+
+
+def test_iterable_dataset_shuffle_load_state_dict_without_buffer_content(caplog):
+    # state dicts from versions that didn't save the shuffle buffer content can still
+    # be loaded: the buffer is refilled and roughly buffer_size examples are lost
+    n = 50
+
+    def build():
+        return (
+            Dataset.from_dict({"a": list(range(n))}).to_iterable_dataset(num_shards=4).shuffle(seed=17, buffer_size=16)
+        )
+
+    ds = build()
+    it = iter(ds)
+    for _ in range(20):
+        next(it)
+    state_dict = ds.state_dict()
+
+    def strip_buffer_content(state):
+        if isinstance(state, dict):
+            return {
+                key: strip_buffer_content(value)
+                for key, value in state.items()
+                if not str(key).startswith("shuffle_buffer")
+            }
+        elif isinstance(state, list):
+            return [strip_buffer_content(value) for value in state]
+        return state
+
+    resumed = build()
+    with caplog.at_level(logging.WARNING):
+        resumed.load_state_dict(strip_buffer_content(state_dict))
+        rest = [example["a"] for example in resumed]
+    assert "without the buffer content" in caplog.text
+    assert len(rest) == len(set(rest))
 
 
 @pytest.mark.parametrize("num_shards", [1, 2, 3, 7])
