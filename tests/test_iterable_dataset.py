@@ -1779,6 +1779,19 @@ def test_iterable_dataset_from_generator_with_shards():
     assert dataset.num_shards == len(shard_names)
 
 
+def test_iterable_dataset_batched_export_default_batch_size():
+    # batched=True without an explicit batch_size must use config.DEFAULT_MAX_BATCH_SIZE,
+    # like Dataset does, instead of yielding the whole dataset as one batch
+    num_rows = 2 * config.DEFAULT_MAX_BATCH_SIZE + 1
+    expected = [config.DEFAULT_MAX_BATCH_SIZE, config.DEFAULT_MAX_BATCH_SIZE, 1]
+    dataset = Dataset.from_dict({"col": range(num_rows)})
+    assert [len(df) for df in dataset.to_pandas(batched=True)] == expected
+
+    iterable_dataset = dataset.to_iterable_dataset()
+    assert [len(df) for df in iterable_dataset.to_pandas(batched=True)] == expected
+    assert [len(batch["col"]) for batch in iterable_dataset.to_dict(batched=True)] == expected
+
+
 def test_iterable_dataset_to_pandas_preserves_declared_features():
     features = Features({"col": Value("int32")})
     dataset = Dataset.from_dict({"col": [0, None]}, features=features).to_iterable_dataset()
