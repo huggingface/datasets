@@ -633,6 +633,12 @@ def _check_column_names(column_names: list[str]):
         raise ValueError(f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated.")
 
 
+def _check_batch_size(batch_size: Optional[int]):
+    """Check the `batch_size` of methods that process a dataset by batches."""
+    if batch_size is not None and batch_size <= 0:
+        raise ValueError(f"batch_size must be a positive integer, but got {batch_size}.")
+
+
 def _check_valid_indices_value(index, size):
     if (index < 0 and index + size < 0) or (index >= size):
         raise IndexError(f"Index {index} out of range for dataset of size {size}.")
@@ -4112,6 +4118,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         if batch_size is None and by_column is None:
             raise ValueError("IterableDataset.batch() misses `batch_size` or `by_column` argument.")
+        _check_batch_size(batch_size)
         if by_column is not None:
             if num_proc:
                 raise NotImplementedError("Multiprocessed batching by column is not implemented yet")

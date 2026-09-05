@@ -35,7 +35,7 @@ from huggingface_hub.utils import RepositoryNotFoundError
 from packaging import version
 
 from . import __version__, config
-from .arrow_dataset import Dataset, DatasetInfoMixin, _push_to_bucket, _push_to_repo
+from .arrow_dataset import Dataset, DatasetInfoMixin, _check_batch_size, _push_to_bucket, _push_to_repo
 from .features import Features
 from .features.features import (
     FeatureType,
@@ -4491,6 +4491,7 @@ class IterableDataset(DatasetInfoMixin):
         """
         if batch_size is None and by_column is None:
             raise ValueError("IterableDataset.batch() misses `batch_size` or `by_column` argument.")
+        _check_batch_size(batch_size)
         if self.features:
             features = Features({col: List(feature) for col, feature in self.features.items()})
         else:

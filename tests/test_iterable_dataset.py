@@ -3077,6 +3077,24 @@ def test_iterable_dataset_batch(num_shards: int):
         assert batch["text"] == [f"Text {3 * i}", f"Text {3 * i + 1}", f"Text {3 * i + 2}"]
 
 
+@pytest.mark.parametrize("batch_size", [0, -1])
+def test_iterable_dataset_batch_with_non_positive_batch_size(batch_size):
+    generator_calls = 0
+
+    def generate_examples():
+        nonlocal generator_calls
+        generator_calls += 1
+        yield {"a": 0}
+
+    ds = IterableDataset.from_generator(generate_examples)
+
+    with pytest.raises(ValueError) as error:
+        ds.batch(batch_size)
+
+    assert str(error.value) == f"batch_size must be a positive integer, but got {batch_size}."
+    assert generator_calls == 0
+
+
 def test_iterable_dataset_batch_by_column_survives_resharding():
     # Re-creating the iterable (shard / shuffle / split_by_node, e.g. inside torch DataLoader
     # workers) must keep accumulating whole groups instead of crashing with a missing
