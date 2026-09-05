@@ -2473,6 +2473,26 @@ def test_iterable_dataset_rename_columns(dataset_with_several_columns: IterableD
     assert all(c in new_dataset.column_names for c in ["new_id", "filename"])
 
 
+def test_iterable_dataset_rename_columns_swap(dataset_with_several_columns: IterableDataset):
+    """Swapping two names is legal: each new name is freed by the same mapping."""
+    resolved = dataset_with_several_columns._resolve_features()
+    swap = {"id": "filepath", "filepath": "id"}
+    swapped = resolved.rename_columns(swap)
+    assert list(swapped) == [
+        {swap.get(k, k): v for k, v in example.items()} for example in resolved
+    ]
+    assert set(swapped.column_names) == set(resolved.column_names)
+
+
+def test_iterable_dataset_rename_columns_conflict_names_the_right_column(
+    dataset_with_several_columns: IterableDataset,
+):
+    """The conflicting column is the new name that is taken, not the untouched ones."""
+    resolved = dataset_with_several_columns._resolve_features()
+    with pytest.raises(ValueError, match=r"columns \['filepath'\] are already in the dataset"):
+        list(resolved.rename_columns({"id": "filepath"}))
+
+
 def test_iterable_dataset_remove_columns(dataset_with_several_columns: IterableDataset):
     new_dataset = dataset_with_several_columns.remove_columns("id")
     assert list(new_dataset) == [
