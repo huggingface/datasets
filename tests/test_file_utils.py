@@ -4,7 +4,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-import zstandard as zstd
 from fsspec.registry import _registry as _fsspec_registry
 from fsspec.spec import AbstractBufferedFile, AbstractFileSystem
 from huggingface_hub.errors import OfflineModeIsEnabled
@@ -60,6 +59,7 @@ Bulbasaur, grass"""
 
 @pytest.fixture(scope="session")
 def zstd_path(tmp_path_factory):
+    zstd = pytest.importorskip("zstandard")
     path = tmp_path_factory.mktemp("data") / (FILE_PATH + ".zstd")
     data = bytes(FILE_CONTENT, "utf-8")
     with zstd.open(path, "wb") as f:
@@ -75,9 +75,11 @@ def tmpfs_file(tmpfs):
 
 
 @pytest.mark.parametrize("compression_format", ["gzip", "xz", "zstd"])
-def test_cached_path_extract(compression_format, gz_file, xz_file, zstd_path, tmp_path, text_file):
-    input_paths = {"gzip": gz_file, "xz": xz_file, "zstd": zstd_path}
-    input_path = input_paths[compression_format]
+def test_cached_path_extract(compression_format, tmp_path, text_file, request):
+    # Resolved through `request` so that the gzip and xz cases do not pull in the
+    # zstd fixture, and so do not need zstandard installed.
+    fixture_names = {"gzip": "gz_file", "xz": "xz_file", "zstd": "zstd_path"}
+    input_path = request.getfixturevalue(fixture_names[compression_format])
     cache_dir = tmp_path / "cache"
     download_config = DownloadConfig(cache_dir=cache_dir, extract_compressed_file=True)
     extracted_path = cached_path(input_path, download_config=download_config)
