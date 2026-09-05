@@ -48,12 +48,16 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
             return value
         elif isinstance(value, (np.character, np.ndarray)) and np.issubdtype(value.dtype, np.character):
             return value
-        elif isinstance(value, np.number):
+        elif isinstance(value, np.generic):
             return value
 
         default_dtype = {}
 
-        if isinstance(value, np.ndarray) and np.issubdtype(value.dtype, np.integer):
+        if (
+            isinstance(value, np.ndarray)
+            and np.issubdtype(value.dtype, np.integer)
+            and not np.issubdtype(value.dtype, np.timedelta64)
+        ):
             default_dtype = {"dtype": np.int64}
         elif isinstance(value, np.ndarray) and np.issubdtype(value.dtype, np.floating):
             default_dtype = {"dtype": np.float32}
@@ -86,7 +90,7 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
 
             if isinstance(data_struct, torch.Tensor):
                 return self._tensorize(data_struct.detach().cpu().numpy()[()])
-        if hasattr(data_struct, "__array__") and not isinstance(data_struct, (np.ndarray, np.character, np.number)):
+        if hasattr(data_struct, "__array__") and not isinstance(data_struct, (np.ndarray, np.generic)):
             data_struct = data_struct.__array__()
         # support for nested types like struct of list of struct
         if isinstance(data_struct, np.ndarray):
