@@ -1848,6 +1848,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_shards = min(len(self.data), num_shards)
 
         fs: fsspec.AbstractFileSystem
+        dataset_path = os.fspath(dataset_path)
         fs, _ = url_to_fs(dataset_path, **(storage_options or {}))
 
         if not is_remote_filesystem(fs):
@@ -2019,6 +2020,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         fs: fsspec.AbstractFileSystem
+        dataset_path = os.fspath(dataset_path)
         fs, dataset_path = url_to_fs(dataset_path, **(storage_options or {}))
 
         dest_dataset_path = dataset_path
