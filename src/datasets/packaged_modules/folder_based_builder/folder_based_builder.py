@@ -15,7 +15,7 @@ import datasets
 from datasets import config
 from datasets.builder import Key
 from datasets.features.features import FeatureType, _visit, _visit_with_path, _VisitPath, require_storage_cast
-from datasets.utils.file_utils import readline
+from datasets.utils.file_utils import is_local_path, readline
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -401,6 +401,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         )
                     elif len(feature_path) == 0:
                         if item is not None:
+                            original_item = item
                             # Guard against path traversal (CWE-22): a crafted `file_name` such as
                             # "../../etc/passwd" or an absolute path must not be able to escape the
                             # metadata file's directory and read arbitrary files on the host.
@@ -432,6 +433,13 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                     f"not allowed."
                                 )
                             item = os.path.join(downloaded_metadata_dir, file_relpath)
+                            # Keep remote datasets lazy instead of issuing one existence request per metadata row.
+                            # Missing remote files still raise when the feature is decoded.
+                            if is_local_path(item) and not os.path.isfile(item):
+                                metadata_file = original_metadata_file or downloaded_metadata_file
+                                raise FileNotFoundError(
+                                    f"File '{original_item}' referenced in metadata file '{metadata_file}' does not exist"
+                                )
                     return item
 
                 for pa_metadata_table in self._read_metadata(downloaded_metadata_file, metadata_ext=metadata_ext):
