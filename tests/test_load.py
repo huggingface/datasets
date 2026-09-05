@@ -777,6 +777,30 @@ class LoadTest(TestCase):
             str(context.exception),
         )
 
+    @pytest.mark.integration
+    def test_load_dataset_cached_revision(self):
+        repo_id = SAMPLE_DATASET_IDENTIFIER2
+        commit_hash = SAMPLE_DATASET_COMMIT_HASH2
+        load_dataset_builder(repo_id, revision=commit_hash, cache_dir=self.cache_dir).download_and_prepare()
+        with offline(OfflineSimulationMode.HF_HUB_OFFLINE_SET_TO_1):
+            # full SHA is in cache, should be served correctly
+            ds = datasets.load_dataset(repo_id, revision=commit_hash, cache_dir=self.cache_dir, split="train")
+            self.assertIsNotNone(ds)
+            # short SHA prefix is in cache, should be served correctly
+            ds2 = datasets.load_dataset(repo_id, revision=commit_hash[:8], cache_dir=self.cache_dir, split="train")
+            self.assertIsNotNone(ds2)
+            # SHA not in cache, should raise
+            with self.assertRaises(DatasetNotFoundError) as context:
+                datasets.load_dataset(repo_id, revision="deadbeef" * 5, cache_dir=self.cache_dir)
+            self.assertIn("not available in the local cache", str(context.exception))
+            # branch/tag name cannot be resolved offline, should raise with a helpful message
+            with self.assertRaises(DatasetNotFoundError) as context:
+                datasets.load_dataset(repo_id, revision="some-branch", cache_dir=self.cache_dir)
+            self.assertIn("branch and tag names cannot be matched", str(context.exception))
+            # no revision specified, should fall back to latest cached version
+            ds3 = datasets.load_dataset(repo_id, cache_dir=self.cache_dir, split="train")
+            self.assertIsNotNone(ds3)
+
     def test_load_dataset_namespace(self):
         with self.assertRaises(DatasetNotFoundError) as context:
             datasets.load_dataset("hf-internal-testing/_dummy")
