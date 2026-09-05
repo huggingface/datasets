@@ -4282,6 +4282,10 @@ class IterableDataset(DatasetInfoMixin):
         """
         feature = _fix_for_backward_compatible_features(feature)
         info = self._info.copy()
+        if info.features is not None and column not in info.features:
+            raise ValueError(
+                f"Column name {column} not in the dataset. Columns in the dataset: {list(info.features)}."
+            )
         info.features[column] = feature
         return IterableDataset(
             ex_iterable=self._ex_iterable,

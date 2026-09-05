@@ -2522,6 +2522,15 @@ def test_iterable_dataset_cast_column():
     assert list(casted_dataset) == [casted_features.encode_example(ex) for _, ex in ex_iterable]
 
 
+def test_iterable_dataset_cast_column_missing_column():
+    # casting a column that doesn't exist used to add it to the features and to the examples
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
+    features = Features({"id": Value("int64"), "label": Value("int64")})
+    dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
+    with pytest.raises(ValueError, match="Column name missing_column not in the dataset"):
+        dataset.cast_column("missing_column", Value("bool"))
+
+
 def test_iterable_dataset_cast():
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
     features = Features({"id": Value("int64"), "label": Value("int64")})
