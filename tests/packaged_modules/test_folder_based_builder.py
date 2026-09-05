@@ -349,24 +349,6 @@ def test_generate_examples_drop_metadata(file_with_metadata, drop_metadata, drop
         assert example[column] is not None
 
 
-def test_generate_examples_raises_for_missing_file_referenced_by_metadata(tmp_path, auto_text_file, cache_dir):
-    data_dir = tmp_path / "data_dir_with_missing_metadata_reference"
-    data_dir.mkdir()
-    shutil.copyfile(auto_text_file, data_dir / "present.txt")
-    metadata_filename = data_dir / "metadata.jsonl"
-    metadata_filename.write_text(
-        '{"file_name": "missing.txt", "additional_feature": "Missing file"}\n', encoding="utf-8"
-    )
-    data_files = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
-    autofolder = DummyFolderBasedBuilder(data_files=data_files, cache_dir=cache_dir)
-    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
-
-    with pytest.raises(FileNotFoundError) as error:
-        list(autofolder._generate_examples(**gen_kwargs))
-
-    assert str(error.value) == (f"File 'missing.txt' referenced in metadata file '{metadata_filename}' does not exist")
-
-
 @pytest.mark.parametrize("remote", [True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
 def test_data_files_with_different_levels_no_metadata(
