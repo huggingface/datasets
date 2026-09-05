@@ -1130,7 +1130,8 @@ class ClassLabel:
         'neg'
         ```
         """
-        if not isinstance(values, int) and not isinstance(values, Iterable):
+        # str is Iterable but not a valid label, so reject it explicitly (as str2int does).
+        if isinstance(values, str) or (not isinstance(values, int) and not isinstance(values, Iterable)):
             raise ValueError(
                 f"Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
             )
@@ -1140,8 +1141,12 @@ class ClassLabel:
             return_list = False
 
         for v in values:
-            if not 0 <= v < self.num_classes:
-                raise ValueError(f"Invalid integer class label {v:d}")
+            try:
+                in_range = 0 <= v < self.num_classes
+            except TypeError:  # not comparable to an int, so not a label
+                in_range = False
+            if not in_range:
+                raise ValueError(f"Invalid integer class label {v!r}")
 
         output = [self._int2str[int(v)] for v in values]
         return output if return_list else output[0]
