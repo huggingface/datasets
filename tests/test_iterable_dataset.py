@@ -2334,6 +2334,12 @@ def test_iterable_dataset_take(dataset: IterableDataset, n):
     assert list(take_dataset) == list(dataset)[:n]
 
 
+@pytest.mark.parametrize(("method", "word"), [("skip", "skip"), ("take", "take")])
+def test_iterable_dataset_skip_take_negative(dataset: IterableDataset, method, word):
+    with pytest.raises(ValueError, match=f"Number of elements to {word} must be non-negative"):
+        getattr(dataset, method)(-1)
+
+
 @pytest.mark.parametrize("n", [0, 2])
 def test_iterable_dataset_repeat(dataset: IterableDataset, n):
     repeat_dataset = dataset.repeat(n)
