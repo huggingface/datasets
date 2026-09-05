@@ -5086,6 +5086,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if test_size is None and train_size is None:
             test_size = 0.25
 
+        # A numpy scalar is not reliably an instance of the matching Python builtin:
+        # `np.float64` happens to subclass `float`, but `np.float32` does not and no
+        # numpy integer subclasses `int`, so they would fail the checks below.
+        if isinstance(test_size, np.integer):
+            test_size = int(test_size)
+        if isinstance(train_size, np.integer):
+            train_size = int(train_size)
+        if isinstance(test_size, np.floating):
+            test_size = float(test_size)
+        if isinstance(train_size, np.floating):
+            train_size = float(train_size)
+
         # Safety checks similar to scikit-learn's ones.
         # (adapted from https://github.com/scikit-learn/scikit-learn/blob/fd237278e895b42abe8d8d09105cbb82dc2cbba7/sklearn/model_selection/_split.py#L1750)
         n_samples = len(self)
