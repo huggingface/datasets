@@ -4465,6 +4465,8 @@ class IterableDataset(DatasetInfoMixin):
         batch_size: Optional[int] = None,
         by_column: Optional[Union[str, list[str]]] = None,
         drop_last_batch: bool = False,
+        *,
+        max_batch_size: Optional[int] = None,
     ) -> "IterableDataset":
         """
         Group samples from the dataset into batches.
@@ -4474,12 +4476,19 @@ class IterableDataset(DatasetInfoMixin):
                 The number of samples in each batch.
             by_column (`Union[str, list[str]`, optional):
                 The column used to batch examples together.
-                Successive examples with the same value for that column are in grouped the same batch.
+                Successive examples with the same value for that column are grouped in the same batch.
                 This can also be a list of columns if you want to batch by multiple columns.
                 If batching by column, the batch_size is only used to control the size of the batches
-                to group together or slice during acculumation.
+                to group together or slice during accumulation.
 
                 <Added version="4.9.0"/>
+            max_batch_size (`int`, optional):
+                Maximum number of examples in each batch when batching by column. Groups larger than
+                `max_batch_size` are split into consecutive batches while preserving their order. If
+                `batch_size` is not specified, `max_batch_size` is also used as the internal processing
+                batch size. This argument can only be used with `by_column`.
+
+                <Added version="5.0.2"/>
             drop_last_batch (`bool`, defaults to `False`):
                 Whether to drop the last incomplete batch.
 
@@ -4489,6 +4498,11 @@ class IterableDataset(DatasetInfoMixin):
         >>> batched_ds = ds.batch(batch_size=32)
         ```
         """
+        if max_batch_size is not None:
+            if by_column is None:
+                raise ValueError("`max_batch_size` can only be specified when batching by column.")
+            if isinstance(max_batch_size, bool) or not isinstance(max_batch_size, int) or max_batch_size <= 0:
+                raise ValueError(f"`max_batch_size` must be a positive integer, but got {max_batch_size!r}.")
         if batch_size is None and by_column is None:
             raise ValueError("IterableDataset.batch() misses `batch_size` or `by_column` argument.")
         if self.features:
@@ -4497,10 +4511,15 @@ class IterableDataset(DatasetInfoMixin):
             features = None
         if by_column is not None:
             columns = [by_column] if isinstance(by_column, str) else by_column
+            batch_size = batch_size if batch_size is not None else max_batch_size
             ds = (
                 self.with_format("arrow")
                 ._map(
-                    partial(_batch_accumulate_arrow_table_by_columns, columns=columns),
+                    partial(
+                        _batch_accumulate_arrow_table_by_columns,
+                        columns=columns,
+                        max_batch_size=max_batch_size,
+                    ),
                     with_indices=True,
                     batched=True,
                     batch_size=batch_size,

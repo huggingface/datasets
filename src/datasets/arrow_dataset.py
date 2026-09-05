@@ -4068,6 +4068,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         drop_last_batch: bool = False,
         num_proc: Optional[int] = None,
         new_fingerprint: Optional[str] = None,
+        *,
+        max_batch_size: Optional[int] = None,
     ) -> "Dataset":
         """
         Group samples from the dataset into batches.
@@ -4082,12 +4084,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The number of samples in each batch.
             by_column (`Union[str, list[str]`, optional):
                 The column used to batch examples together.
-                Successive examples with the same value for that column are in grouped the same batch.
+                Successive examples with the same value for that column are grouped in the same batch.
                 This can also be a list of columns if you want to batch by multiple columns.
                 If batching by column, the batch_size is only used to control the size of the batches
-                to group together or slice during acculumation.
+                to group together or slice during accumulation.
 
                 <Added version="4.9.0"/>
+            max_batch_size (`int`, optional):
+                Maximum number of examples in each batch when batching by column. Groups larger than
+                `max_batch_size` are split into consecutive batches while preserving their order. If
+                `batch_size` is not specified, `max_batch_size` is also used as the internal processing
+                batch size. This argument can only be used with `by_column`.
+
+                <Added version="5.0.2"/>
             drop_last_batch (`bool`, defaults to `False`):
                 Whether to drop the last incomplete batch.
             num_proc (`int`, *optional*, defaults to `None`):
@@ -4110,16 +4119,29 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         'label': [1, 1, 1, 1]}
         ```
         """
+
+        if max_batch_size is not None:
+            if by_column is None:
+                raise ValueError("`max_batch_size` can only be specified when batching by column.")
+            if isinstance(max_batch_size, bool) or not isinstance(max_batch_size, int) or max_batch_size <= 0:
+                raise ValueError(f"`max_batch_size` must be a positive integer, but got {max_batch_size!r}.")
+
         if batch_size is None and by_column is None:
             raise ValueError("IterableDataset.batch() misses `batch_size` or `by_column` argument.")
+
         if by_column is not None:
             if num_proc:
                 raise NotImplementedError("Multiprocessed batching by column is not implemented yet")
             columns = [by_column] if isinstance(by_column, str) else by_column
             _batch_fn = partial(
-                _batch_accumulate_arrow_table_by_columns, columns=columns, tables_accumulator=[], length=len(self)
+                _batch_accumulate_arrow_table_by_columns,
+                columns=columns,
+                tables_accumulator=[],
+                length=len(self),
+                max_batch_size=max_batch_size,
             )
             with_indices = True
+            batch_size = batch_size if batch_size is not None else max_batch_size
         else:
             _batch_fn = _batch_arrow_table
             with_indices = False

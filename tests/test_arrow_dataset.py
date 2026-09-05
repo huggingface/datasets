@@ -5028,6 +5028,71 @@ def test_dataset_batch_by_column():
     assert batches_with_buffer[1]["value"] == list(range(17, 20))
 
 
+def test_dataset_batch_by_column_with_nulls():
+    ds = Dataset.from_dict(
+        {
+            "id": list(range(6)),
+            "group": [None, None, "A", "A", None, "B"],
+        }
+    )
+    assert [batch["id"] for batch in ds.batch(by_column="group", batch_size=2)] == [[0, 1], [2, 3], [4], [5]]
+
+    all_null_ds = Dataset.from_dict({"id": list(range(3)), "group": [None, None, None]})
+    assert [batch["id"] for batch in all_null_ds.batch(by_column="group", batch_size=1)] == [[0, 1, 2]]
+
+    multi_column_ds = Dataset.from_dict(
+        {
+            "id": list(range(5)),
+            "group": [None] * 5,
+            "subgroup": [None, None, "A", "A", None],
+        }
+    )
+    assert [batch["id"] for batch in multi_column_ds.batch(by_column=["group", "subgroup"], batch_size=2)] == [
+        [0, 1],
+        [2, 3],
+        [4],
+    ]
+
+
+def test_dataset_batch_by_column_with_max_batch_size():
+    ds = Dataset.from_dict(
+        {
+            "id": list(range(10)),
+            "group": ["A"] * 7 + ["B"] * 3,
+        }
+    )
+
+    assert [batch["id"] for batch in ds.batch(by_column="group")] == [list(range(7)), list(range(7, 10))]
+    assert [batch["id"] for batch in ds.batch(by_column="group", max_batch_size=3)] == [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6],
+        [7, 8, 9],
+    ]
+    assert [
+        batch["id"] for batch in ds.batch(by_column="group", batch_size=2, max_batch_size=3, drop_last_batch=True)
+    ] == [[0, 1, 2], [3, 4, 5], [6], [7, 8, 9]]
+
+
+@pytest.mark.parametrize("max_batch_size", [0, -1, True, 1.5, "2"])
+def test_dataset_batch_by_column_with_invalid_max_batch_size(max_batch_size):
+    ds = Dataset.from_dict({"id": [0, 1], "group": ["A", "A"]})
+
+    # with pytest.raises(ValueError) as exc_info:
+    #     ds.batch(by_column="group", max_batch_size=max_batch_size)
+    # assert "must be positive integer" in str(exc_info.value)
+
+    with pytest.raises(ValueError, match="must be a positive integer"):
+        ds.batch(by_column="group", max_batch_size=max_batch_size)
+
+
+def test_dataset_batch_with_max_batch_size_requires_by_column():
+    ds = Dataset.from_dict({"id": [0, 1]})
+
+    with pytest.raises(ValueError, match="can only be specified when batching by column"):
+        ds.batch(batch_size=1, max_batch_size=1)
+
+
 @pytest.mark.parametrize("format_type", ["pyarrow", "pandas"])
 def test_dataset_batch_with_table_format(format_type):
     ds = Dataset.from_dict({"a": [1, 2, 3, 4]})
