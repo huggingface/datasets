@@ -346,6 +346,8 @@ def resolve_pattern(
     Returns:
         List[str]: List of paths or URLs to the local or remote files that match the patterns.
     """
+    if is_local_path(pattern):
+        pattern = os.path.expanduser(pattern)
     if is_relative_path(pattern):
         pattern = xjoin(base_path, pattern)
     elif is_local_path(pattern):
