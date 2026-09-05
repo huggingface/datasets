@@ -3586,6 +3586,19 @@ class IterableDataset(DatasetInfoMixin):
          {'label': 1, 'text': 'Review: effective but too-tepid biopic'}]
         ```
         """
+        # Columns that are not there are dropped silently further down, so a typo would
+        # otherwise leave the column in place with no error. `Dataset.map` rejects it, and
+        # so does `select_columns` on this class. `remove_columns` delegates here, so this
+        # covers it too.
+        if remove_columns is not None and self._info is not None and self._info.features is not None:
+            columns_to_remove = [remove_columns] if isinstance(remove_columns, str) else remove_columns
+            missing_columns = set(columns_to_remove) - set(self._info.features.keys())
+            if missing_columns:
+                raise ValueError(
+                    f"Column to remove {sorted(missing_columns)} not in the dataset. "
+                    f"Current columns in the dataset: {list(self._info.features.keys())}"
+                )
+
         return self._map(
             function=function,
             with_indices=with_indices,
