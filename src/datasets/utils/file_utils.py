@@ -886,7 +886,7 @@ def _prepare_path_and_storage_options(
         hop, storage_options = _prepare_single_hop_path_and_storage_options(hop, download_config=download_config)
         prepared_urlpath.append(hop)
         prepared_storage_options.update(storage_options)
-    return "::".join(prepared_urlpath), storage_options
+    return "::".join(prepared_urlpath), prepared_storage_options
 
 
 def _prepare_single_hop_path_and_storage_options(
