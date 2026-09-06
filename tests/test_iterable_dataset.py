@@ -2417,11 +2417,10 @@ def test_iterable_dataset_skip_or_take_after_split_by_node(method, after_split_b
     if after_split_by_node:
         distributed_dataset = split_dataset_by_node(distributed_dataset, rank=rank, world_size=world_size)
         distributed_dataset = distributed_dataset.skip(count) if method == "skip" else distributed_dataset.take(count)
-        assert (
-            list(true_distributed_dataset)[count:]
-            if method == "skip"
-            else list(true_distributed_dataset)[:count] == list(distributed_dataset)
+        expected = (
+            list(true_distributed_dataset)[count:] if method == "skip" else list(true_distributed_dataset)[:count]
         )
+        assert expected == list(distributed_dataset)
     else:
         distributed_dataset = distributed_dataset.skip(count) if method == "skip" else distributed_dataset.take(count)
         distributed_dataset = split_dataset_by_node(distributed_dataset, rank=rank, world_size=world_size)
