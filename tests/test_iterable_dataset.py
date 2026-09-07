@@ -353,30 +353,31 @@ def test_buffer_shuffled_examples_iterable(seed):
     ex_iterable = BufferShuffledExamplesIterable(base_ex_iterable, buffer_size=buffer_size, generator=generator)
 
     rng = deepcopy(generator)
-    expected_indices_used_for_shuffling = list(
-        islice(BufferShuffledExamplesIterable._iter_random_indices(rng, buffer_size=buffer_size), n - buffer_size)
-    )
-    # indices to pick in the shuffle buffer should all be in the right range
-    assert all(0 <= index_to_pick < buffer_size for index_to_pick in expected_indices_used_for_shuffling)
-    # it should be random indices
-    assert expected_indices_used_for_shuffling != list(range(buffer_size))
-
-    # The final order of examples is the result of a shuffle buffer.
+    # The final order of examples is the result of a block-shuffling buffer.
     all_examples = list(generate_examples_fn(n=n))
-    # We create a buffer and we pick random examples from it.
-    buffer, rest = all_examples[:buffer_size], all_examples[buffer_size:]
+    mem_buffer = []
+    current_len = 0
     expected = []
-    for i, index_to_pick in enumerate(expected_indices_used_for_shuffling):
-        expected.append(buffer[index_to_pick])
-        # The picked examples are directly replaced by the next examples from the iterable.
-        buffer[index_to_pick] = rest.pop(0)
-    # Once we have reached the end of the iterable, we shuffle the buffer and return the remaining examples.
-    rng.shuffle(buffer)
-    expected += buffer
+    for x in all_examples:
+        mem_buffer.append(x)
+        current_len += 1
+        if current_len >= buffer_size:
+            indices = rng.permutation(current_len)
+            keep_rows = buffer_size // 2
+            rows_to_yield = current_len - keep_rows
+            for i in indices[:rows_to_yield]:
+                expected.append(mem_buffer[i])
+            mem_buffer = [mem_buffer[i] for i in indices[rows_to_yield:]]
+            current_len = keep_rows
+    if current_len > 0:
+        indices = rng.permutation(current_len)
+        for i in indices:
+            expected.append(mem_buffer[i])
 
     assert next(iter(ex_iterable)) == expected[0]
     assert list(ex_iterable) == expected
     assert sorted(ex_iterable) == sorted(all_examples)
+    assert list(ex_iterable) != all_examples
 
 
 class MockArrowIterable:
@@ -2243,9 +2244,7 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, seed, epoch):
         dataset.set_epoch(epoch)
         effective_seed = np.random.default_rng(seed).integers(0, 1 << 63) - epoch
     # Shuffling adds a shuffle buffer
-    expected_first_example_index = next(
-        iter(BufferShuffledExamplesIterable._iter_random_indices(np.random.default_rng(effective_seed), buffer_size))
-    )
+    expected_first_example_index = np.random.default_rng(effective_seed).permutation(buffer_size)[0]
     assert isinstance(dataset._ex_iterable, BufferShuffledExamplesIterable)
     # It also shuffles the underlying examples iterable
     expected_ex_iterable = ExamplesIterable(

@@ -1948,19 +1948,30 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     def __iter__(self):
         buffer_size = self.buffer_size
         rng = deepcopy(self.generator)
-        indices_iterator = self._iter_random_indices(rng, buffer_size)
         # this is the shuffle buffer that we keep in memory
         mem_buffer = []
+        current_len = 0
         for x in self.ex_iterable:
-            if len(mem_buffer) == buffer_size:  # if the buffer is full, pick and example from it
-                i = next(indices_iterator)
+            mem_buffer.append(x)
+            current_len += 1
+
+            # Amortize shuffle cost by waiting until buffer is full.
+            # Once the buffer reaches `buffer_size`, we shuffle it, yield half, and keep half.
+            # This maintains a rolling randomized buffer while strictly bounding memory usage.
+            if current_len >= buffer_size:
+                indices = rng.permutation(current_len)
+                keep_rows = buffer_size // 2
+                rows_to_yield = current_len - keep_rows
+                for i in indices[:rows_to_yield]:
+                    yield mem_buffer[i]
+
+                mem_buffer = [mem_buffer[i] for i in indices[rows_to_yield:]]
+                current_len = keep_rows
+
+        if current_len > 0:
+            indices = rng.permutation(current_len)
+            for i in indices:
                 yield mem_buffer[i]
-                mem_buffer[i] = x  # replace the picked example by a new one
-            else:  # otherwise, keep filling the buffer
-                mem_buffer.append(x)
-        # when we run out of examples, we shuffle the remaining examples in the buffer and yield them
-        rng.shuffle(mem_buffer)
-        yield from mem_buffer
 
     def _iter_arrow(self):
         from copy import deepcopy
