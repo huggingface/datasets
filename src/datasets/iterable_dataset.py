@@ -1582,6 +1582,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 if self._state_dict:
                     previous_state = self.ex_iterable.state_dict()
                     self._state_dict["previous_state"] = previous_state
+                    # Replayed outputs are counted again below, including those skipped on resume.
+                    self._state_dict["num_examples_since_previous_state"] = 0
                     previous_state_task = None
                     previous_state_example_idx = self._state_dict["previous_state_example_idx"]
                 indices: Union[list[int], list[list[int]]] = []
