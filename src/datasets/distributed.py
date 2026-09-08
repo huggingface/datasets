@@ -20,9 +20,12 @@ def split_dataset_by_node(
 
     For iterable datasets:
 
-    The splitting `strategy` can be `"auto"`, `"shards"`, or `"examples"`. The default `"auto"` assigns shards
-    when the number of shards is divisible by `world_size` and otherwise assigns every `world_size`-th example.
-    `"shards"` always assigns shards and requires divisibility, while `"examples"` always assigns examples.
+    The splitting `strategy` can be `"auto"`, `"shards"`, or `"examples"`:
+
+    * `"shards"`: shards are evenly assigned across the nodes
+    * `"examples"`: each node keeps 1 example out of `world_size`, skipping the other examples
+    * `"auto"` (default): uses `"shards"` if the dataset has a number of shards that is a factor of `world_size`
+    (i.e. if `dataset.num_shards % world_size == 0`), which is the most optimized. Otherwise uses `"examples"`.
 
     > [!WARNING]
     > If you shuffle your iterable dataset in a distributed setup, make sure to set a fixed `seed` in [`IterableDataset.shuffle`]

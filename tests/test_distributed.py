@@ -104,9 +104,21 @@ def test_split_dataset_by_node_iterable_with_shards_strategy():
     assert all(shards_per_rank[rank].isdisjoint(shards_per_rank[other]) for rank in range(3) for other in range(rank))
     assert set.union(*shards_per_rank) == set(range(6))
 
-    non_divisible_ds = IterableDataset.from_generator(gen, gen_kwargs={"shards": list(range(2))})
+    # "shards" does not require num_shards to be a factor of world_size: shards are then assigned unevenly
+    uneven_ds = IterableDataset.from_generator(gen, gen_kwargs={"shards": list(range(5))})
+    datasets_per_rank = [
+        split_dataset_by_node(uneven_ds, rank=rank, world_size=world_size, strategy="shards")
+        for rank in range(world_size)
+    ]
+    shards_per_rank = [[example["shard"] for example in ds] for ds in datasets_per_rank]
+
+    assert [ds.num_shards for ds in datasets_per_rank] == [2, 2, 1]
+    assert shards_per_rank == [[0, 3], [1, 4], [2]]
+
+    # but every node must be assigned at least one shard
+    too_few_shards_ds = IterableDataset.from_generator(gen, gen_kwargs={"shards": list(range(2))})
     with pytest.raises(ValueError, match="num_shards=2.*world_size=3"):
-        split_dataset_by_node(non_divisible_ds, rank=0, world_size=world_size, strategy="shards")
+        split_dataset_by_node(too_few_shards_ds, rank=0, world_size=world_size, strategy="shards")
 
 
 def test_split_dataset_by_node_iterable_nested_strategy():
@@ -129,7 +141,7 @@ def test_split_dataset_by_node_iterable_shards_strategy_checked_at_iteration():
 
     full_ds = IterableDataset.from_generator(gen, gen_kwargs={"shards": list(range(6))})
     ds = split_dataset_by_node(full_ds, rank=1, world_size=3, strategy="shards")
-    # shuffle() builds a dataset over a single shuffled source, which prepares the
+    # shuffle() interleaves the shards into a single source, which prepares the
     # iterable eagerly; the check fails there rather than mid-iteration.
     with pytest.raises(ValueError, match="num_shards=1.*world_size=3"):
         ds.shuffle(seed=0, buffer_size=4)
