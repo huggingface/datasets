@@ -2317,6 +2317,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Flatten the table.
         Each column with a struct type is flattened into one column per struct field.
         Other columns are left unchanged.
+        Subfields inherit their parent column's formatting selection.
 
         Args:
             new_fingerprint (`str`, *optional*):
@@ -2354,6 +2355,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 break
         dataset.info.features = self._info.features.flatten(max_depth=max_depth)
         dataset.info.features = Features({col: dataset.info.features[col] for col in dataset.data.column_names})
+        if self._format_columns is not None:
+            formatted_features = Features({col: self._info.features[col] for col in self._format_columns})
+            dataset._format_columns = list(formatted_features.flatten(max_depth=max_depth))
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         logger.info(f"Flattened dataset from depth {depth} to depth {1 if depth + 1 < max_depth else 'unknown'}.")
         dataset._fingerprint = new_fingerprint
