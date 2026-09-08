@@ -4302,6 +4302,14 @@ def test_dataset_from_generator_features(features, data_generator, tmp_path):
     _check_generator_dataset(dataset, expected_features, NamedSplit("train"))
 
 
+@pytest.mark.parametrize("not_callable", ["a string", [{"a": 1}], 5, {"a": 1}])
+def test_dataset_from_generator_rejects_a_non_callable(not_callable):
+    """Passing the data instead of a function used to fail during generation, as a bare
+    "object is not callable" that never mentioned `generator`."""
+    with pytest.raises(TypeError, match="generator must be callable"):
+        Dataset.from_generator(not_callable)
+
+
 @pytest.mark.parametrize(
     "split",
     [None, NamedSplit("train"), "train", NamedSplit("foo"), "foo"],
