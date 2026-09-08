@@ -2395,6 +2395,22 @@ class BaseDatasetTest(TestCase):
                         self.assertNotEqual(d3["filename"], d2["filename"])
                         self.assertNotEqual(d3._fingerprint, d2._fingerprint)
 
+    def test_shuffle_generator_advances_on_cache_hit(self, in_memory):
+        def successive_shuffles(dset, generator):
+            orders = []
+            for _ in range(3):
+                with dset.shuffle(generator=generator) as dset_shuffled:
+                    orders.append(list(dset_shuffled["filename"]))
+            return orders, generator.bit_generator.state
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                cold_orders, cold_state = successive_shuffles(dset, np.random.default_rng(42))
+                warm_orders, warm_state = successive_shuffles(dset, np.random.default_rng(42))
+                self.assertEqual(cold_orders, warm_orders)
+                self.assertEqual(cold_state, warm_state)
+                self.assertNotEqual(np.random.default_rng(42).bit_generator.state, warm_state)
+
     def test_sort(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Sort on a single key
