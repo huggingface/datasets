@@ -97,10 +97,11 @@ class TranslationVariableLanguages:
         return pa.struct({"language": pa.list_(pa.string()), "translation": pa.list_(pa.string())})
 
     def encode_example(self, translation_dict):
-        lang_set = set(self.languages)
+        # `languages` is optional, so only build the valid set when there is one to build.
+        lang_set = set(self.languages) if self.languages else set()
         if set(translation_dict) == {"language", "translation"}:
             return translation_dict
-        elif self.languages and set(translation_dict) - lang_set:
+        elif lang_set and set(translation_dict) - lang_set:
             raise ValueError(
                 f"Some languages in example ({', '.join(sorted(set(translation_dict) - lang_set))}) are not in valid set ({', '.join(lang_set)})."
             )
