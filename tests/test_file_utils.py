@@ -57,6 +57,8 @@ Charmander, fire
 Squirtle, water
 Bulbasaur, grass"""
 
+SAMPLE_COMMIT_HASH = "0123456789abcdef0123456789abcdef01234567"
+
 
 @pytest.fixture(scope="session")
 def zstd_path(tmp_path_factory):
@@ -131,6 +133,52 @@ def test_cached_path_missing_local(tmp_path):
     missing_file = "./__missing_file__.txt"
     with pytest.raises(FileNotFoundError):
         cached_path(missing_file)
+
+
+@pytest.fixture
+def temporary_hub_cache(tmp_path, monkeypatch):
+    hub_cache_dir = tmp_path / "hub_cache"
+    monkeypatch.setattr("huggingface_hub.constants.HF_HUB_CACHE", str(hub_cache_dir))
+    # Resolving a hf:// path checks on the Hub that the repo and revision exist
+    monkeypatch.setattr(
+        "huggingface_hub.HfFileSystem._repo_and_revision_exist",
+        lambda self, repo_type, repo_id, revision: (True, None),
+    )
+    return hub_cache_dir
+
+
+def test_cached_path_hub_cached_no_exist(temporary_hub_cache):
+    # Reuse cached non-existence (".no_exist" entries written by huggingface_hub) for hf:// paths
+    # pinned to a commit hash instead of requesting the Hub again
+    no_exist_file_path = temporary_hub_cache / "datasets--org--name" / ".no_exist" / SAMPLE_COMMIT_HASH / "missing.txt"
+    no_exist_file_path.parent.mkdir(parents=True)
+    no_exist_file_path.touch()
+    with patch("huggingface_hub.HfApi.hf_hub_download") as mock_hf_hub_download:
+        with pytest.raises(FileNotFoundError):
+            cached_path(f"hf://datasets/org/name@{SAMPLE_COMMIT_HASH}/missing.txt")
+        mock_hf_hub_download.assert_not_called()
+
+
+def test_cached_path_hub_cached_no_exist_non_commit_hash_revision(temporary_hub_cache, text_file):
+    # Only revisions that are commit hashes are immutable, so for other revisions
+    # the ".no_exist" entries are ignored and the Hub is requested
+    no_exist_file_path = temporary_hub_cache / "datasets--org--name" / ".no_exist" / "main" / "missing.txt"
+    no_exist_file_path.parent.mkdir(parents=True)
+    no_exist_file_path.touch()
+    with patch("huggingface_hub.HfApi.hf_hub_download", return_value=str(text_file)) as mock_hf_hub_download:
+        cached_path("hf://datasets/org/name@main/missing.txt")
+        mock_hf_hub_download.assert_called_once()
+
+
+def test_cached_path_hub_cached_no_exist_force_download(temporary_hub_cache, text_file):
+    # force_download should ignore the ".no_exist" entries
+    no_exist_file_path = temporary_hub_cache / "datasets--org--name" / ".no_exist" / SAMPLE_COMMIT_HASH / "missing.txt"
+    no_exist_file_path.parent.mkdir(parents=True)
+    no_exist_file_path.touch()
+    download_config = DownloadConfig(force_download=True)
+    with patch("huggingface_hub.HfApi.hf_hub_download", return_value=str(text_file)) as mock_hf_hub_download:
+        cached_path(f"hf://datasets/org/name@{SAMPLE_COMMIT_HASH}/missing.txt", download_config=download_config)
+        mock_hf_hub_download.assert_called_once()
 
 
 def test_get_from_cache_fsspec(tmpfs_file):
