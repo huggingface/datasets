@@ -4680,6 +4680,41 @@ def test_dataset_with_torch_dataloader(dataset, batch_size):
         assert getitem_call_count == len(dataset) // batch_size + int(len(dataset) % batch_size > 0)
 
 
+@pytest.mark.parametrize("num_proc", [None, 2])
+@pytest.mark.parametrize("null_first_shard", [False, True])
+@pytest.mark.parametrize("in_memory", [False, True])
+@pytest.mark.parametrize("feature", [Value("int64"), ClassLabel(names=["zero", "one", "two", "three"])])
+def test_map_preserves_metadata(tmp_path, num_proc, null_first_shard, in_memory, feature):
+    dataset = Dataset.from_dict(
+        {"text": ["0", "1", "2", "3"]},
+        info=DatasetInfo(config_name="clean", description="test description"),
+        split="validation",
+    )
+
+    def add_number(example):
+        number = int(example["text"])
+        return {"number": None if null_first_shard and number < 2 else number}
+
+    cache_file_name = None if in_memory else str(tmp_path / "mapped.arrow")
+    features = Features({"text": Value("string"), "number": feature})
+    for _ in range(1 if in_memory else 2):
+        mapped = dataset.map(
+            add_number,
+            num_proc=num_proc,
+            cache_file_name=cache_file_name,
+            features=features if isinstance(feature, ClassLabel) else None,
+        )
+        assert mapped.config_name == "clean"
+        assert mapped.split == "validation"
+        assert mapped.info.description == "test description"
+        assert mapped.features == features
+        assert mapped["number"][:] == ([None, None, 2, 3] if null_first_shard else [0, 1, 2, 3])
+        assert_arrow_metadata_are_synced_with_dataset_features(mapped)
+    assert dataset.features == Features({"text": Value("string")})
+    assert dataset.config_name == "clean"
+    assert dataset.split == "validation"
+
+
 @pytest.mark.parametrize("return_lazy_dict", [True, False, "mix"])
 def test_map_cases(return_lazy_dict):
     def f(x):
