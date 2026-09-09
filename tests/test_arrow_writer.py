@@ -203,6 +203,36 @@ def test_write_row(fields, writer_batch_size):
     _check_output(output.getvalue(), expected_num_chunks=num_examples if writer_batch_size == 1 else 1)
 
 
+def test_write_batch_null_column_stays_null():
+    output = pa.BufferOutputStream()
+    with ArrowWriter(stream=output) as writer:
+        writer.write_batch({"col_1": ["foo", "bar"], "col_2": [None, None]})
+        writer.write_batch({"col_1": ["foobar"], "col_2": [None]})
+        num_examples, _ = writer.finalize()
+    assert num_examples == 3
+    assert writer._schema.field("col_2").type == pa.null()
+
+
+def test_write_batch_null_column_then_values():
+    output = pa.BufferOutputStream()
+    with ArrowWriter(stream=output) as writer:
+        writer.write_batch({"col_1": ["foo", "bar"], "col_2": [None, None]})
+        with pytest.raises(TypeError) as excinfo:
+            writer.write_batch({"col_1": ["foobar"], "col_2": [1]})
+    assert "the first 2 values written for it were all None" in str(excinfo.value)
+    assert "set the type of 'col_2' with features=" in str(excinfo.value).lower()
+
+
+def test_write_table_null_column_then_values():
+    output = pa.BufferOutputStream()
+    with ArrowWriter(stream=output) as writer:
+        writer.write_table(pa.Table.from_pydict({"col_1": ["foo", "bar"], "col_2": [None, None]}))
+        with pytest.raises(TypeError) as excinfo:
+            writer.write_table(pa.Table.from_pydict({"col_1": ["foobar"], "col_2": [1]}))
+    assert "the first 2 values written for it were all None" in str(excinfo.value)
+    assert "set the type of 'col_2' with features=" in str(excinfo.value).lower()
+
+
 def test_write_file():
     with tempfile.TemporaryDirectory() as tmp_dir:
         fields = {"col_1": pa.string(), "col_2": pa.int64()}
