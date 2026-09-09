@@ -3866,7 +3866,7 @@ class IterableDataset(DatasetInfoMixin):
                 If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
             buffer_size (`int`, defaults to `1000`):
                 Size of the buffer.
-            max_buffer_input_shards (`int`, defaults to `101000`):
+            max_buffer_input_shards (`int`, defaults to `10`):
                 Maximum number of shards to use to feed the buffer at a time.
 
         Example:
