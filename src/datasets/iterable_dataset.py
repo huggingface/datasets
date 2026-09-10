@@ -2152,7 +2152,12 @@ class SkipExamplesIterable(_BaseExamplesIterable):
                 split_when_sharding=self.split_when_sharding,
             )
         else:
-            return self
+            return SkipExamplesIterable(
+                self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
+                n=self.n,
+                block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
+                split_when_sharding=self.split_when_sharding,
+            )
 
     def reshard_data_sources(self) -> "SkipExamplesIterable":
         return SkipExamplesIterable(
