@@ -1,5 +1,6 @@
 """Tests for PdbFolder - folder-based PDB structure loader."""
 
+import os
 import shutil
 import textwrap
 from pathlib import Path
@@ -15,6 +16,11 @@ from datasets.packaged_modules.pdb.pdb import PdbFolder, PdbFolderConfig
 require_biopython = pytest.mark.skipif(
     not __import__("datasets").config.BIOPYTHON_AVAILABLE, reason="biopython is not installed"
 )
+
+
+def _normalize_path(path):
+    # Compare local paths independently of platform-specific separators and case.
+    return os.path.normcase(os.path.normpath(path))
 
 
 def _metadata_string_feature(feature, metadata_file):
@@ -206,7 +212,8 @@ def test_generate_examples_drop_metadata(file_with_metadata, drop_metadata, drop
     result = [example for _, example in generator]
     assert len(result) == 1
     example = result[0]
-    expected_example = {"structure": file}
+    example["structure"] = _normalize_path(example["structure"])
+    expected_example = {"structure": _normalize_path(file)}
     if gen_kwargs["add_metadata"]:
         expected_example.update({"resolution": 2.5, "method": "X-ray"})
     assert example == expected_example
@@ -231,7 +238,10 @@ def test_data_files_with_metadata_and_splits(
         expected_num_of_examples = len(files) - 1
         generated_examples = list(pdbfolder._generate_examples(**generated_split.gen_kwargs))
         assert len(generated_examples) == expected_num_of_examples
-        assert len({example["structure"] for _, example in generated_examples}) == expected_num_of_examples
+        assert (
+            len({_normalize_path(example["structure"]) for _, example in generated_examples})
+            == expected_num_of_examples
+        )
         assert len({example["resolution"] for _, example in generated_examples}) == expected_num_of_examples
         assert all(example["resolution"] is not None for _, example in generated_examples)
 
@@ -244,8 +254,8 @@ def test_data_files_with_metadata_and_splits(
         assert dataset[split].features == expected_features
         rows = list(dataset[split].cast_column("structure", BioStructure(format="pdb", decode=False)))
         assert len(rows) == len(files) - 1
-        assert {row["structure"]["path"] for row in rows} == {
-            file for file in files if Path(file).suffix in {".pdb", ".ent"}
+        assert {_normalize_path(row["structure"]["path"]) for row in rows} == {
+            _normalize_path(file) for file in files if Path(file).suffix in {".pdb", ".ent"}
         }
         assert all(row["structure"]["bytes"] is None for row in rows)
         assert [row["resolution"] for row in rows] == ([3.0] if split == "test" else [2.5, 1.8])
@@ -332,8 +342,12 @@ def test_structure_without_biopython(data_files_with_labels_no_metadata, cache_d
         next(iter(dataset))
 
     dataset = dataset.cast_column("structure", BioStructure(format="pdb", decode=False))
-    assert list(dataset) == [
-        {"structure": {"bytes": None, "path": path}} for path in data_files_with_labels_no_metadata["train"]
+    rows = list(dataset)
+    for row in rows:
+        row["structure"]["path"] = _normalize_path(row["structure"]["path"])
+    assert rows == [
+        {"structure": {"bytes": None, "path": _normalize_path(path)}}
+        for path in data_files_with_labels_no_metadata["train"]
     ]
 
 
