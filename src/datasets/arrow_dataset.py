@@ -4939,6 +4939,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 seed = seed[pos] if pos < 624 else seed[0]
                 _ = np.random.random()  # do 1 step of rng
             generator = np.random.default_rng(seed)
+            permutation = None
+        else:
+            # draw before the cache lookup so the caller's generator advances on cache hits too
+            permutation = generator.permutation(len(self))
 
         # Check if we've already cached this computation (indexed by a hash)
         if self.cache_files:
@@ -4951,7 +4955,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
                 )
 
-        permutation = generator.permutation(len(self))
+        if permutation is None:
+            permutation = generator.permutation(len(self))
 
         return self.select(
             indices=permutation,
