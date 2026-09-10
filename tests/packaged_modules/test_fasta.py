@@ -5,13 +5,19 @@ import os
 import pyarrow as pa
 import pytest
 
-from datasets import Features, Value
+from datasets import BioSequence, DatasetInfo, Features, Value, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.download.streaming_download_manager import _get_extraction_protocol
 from datasets.packaged_modules.fasta.fasta import Fasta, FastaConfig
+from datasets.utils.file_utils import xopen
 
 from ..utils import require_zstandard
+
+
+require_biopython = pytest.mark.skipif(
+    not __import__("datasets").config.BIOPYTHON_AVAILABLE, reason="biopython is not installed"
+)
 
 
 def _compression_uri(path):
@@ -45,7 +51,7 @@ ATGCATGCATGCATGCATGCATGCATGC
 @pytest.fixture
 def fasta_file(tmp_path):
     filename = tmp_path / "sequences.fasta"
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline="") as f:
         f.write(FASTA_CONTENT)
     return str(filename)
 
@@ -53,7 +59,7 @@ def fasta_file(tmp_path):
 @pytest.fixture
 def fasta_file_fa(tmp_path):
     filename = tmp_path / "sequences.fa"
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline="") as f:
         f.write(FASTA_CONTENT)
     return str(filename)
 
@@ -63,7 +69,7 @@ def fasta_gz_file(tmp_path):
     import gzip
 
     filename = tmp_path / "sequences.fasta.gz"
-    with gzip.open(filename, "wt", encoding="utf-8") as f:
+    with gzip.open(filename, "wt", encoding="utf-8", newline="") as f:
         f.write(FASTA_CONTENT)
     return _compression_uri(filename)
 
@@ -73,7 +79,7 @@ def fasta_bz2_file(tmp_path):
     import bz2
 
     filename = tmp_path / "sequences.fasta.bz2"
-    with bz2.open(filename, "wt", encoding="utf-8") as f:
+    with bz2.open(filename, "wt", encoding="utf-8", newline="") as f:
         f.write(FASTA_CONTENT)
     return _compression_uri(filename)
 
@@ -83,7 +89,7 @@ def fasta_xz_file(tmp_path):
     import lzma
 
     filename = tmp_path / "sequences.fasta.xz"
-    with lzma.open(filename, "wt", encoding="utf-8") as f:
+    with lzma.open(filename, "wt", encoding="utf-8", newline="") as f:
         f.write(FASTA_CONTENT)
     return _compression_uri(filename)
 
@@ -103,7 +109,7 @@ def fasta_long_sequence_file(tmp_path):
     """Create a file with a very long sequence to test large_string handling."""
     filename = tmp_path / "long_sequence.fasta"
     long_seq = "ATGCATGCATGCATGC" * 1000  # 16KB sequence
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline="") as f:
         f.write(f">long_seq Very long sequence\n{long_seq}\n")
     return str(filename)
 
@@ -118,7 +124,7 @@ ATGCATGC
 >seq2
 GCTAGCTA
 """
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline="") as f:
         f.write(content)
     return str(filename)
 
@@ -144,7 +150,7 @@ def test_fasta_basic_loading(fasta_file):
     key, pa_table = tables[0]
 
     # Check columns
-    assert pa_table.column_names == ["id", "description", "sequence"]
+    assert pa_table.column_names == ["id", "description", "sequence", "record"]
 
     # Check data
     data = pa_table.to_pydict()
@@ -182,7 +188,7 @@ def test_fasta_afa_extension(tmp_path):
     assert ".afa" in Fasta.EXTENSIONS
 
     filename = tmp_path / "alignment.afa"
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline="") as f:
         f.write(FASTA_CONTENT)
 
     fasta = Fasta()
@@ -370,7 +376,7 @@ def test_fasta_max_batch_bytes(tmp_path):
     # Create sequences of known sizes
     # Each sequence is ~100 bytes (id + description + sequence)
     filename = tmp_path / "batch_test.fasta"
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline="") as f:
         for i in range(5):
             seq = "A" * 80  # 80 byte sequence
             f.write(f">seq{i} description{i}\n{seq}\n")
@@ -393,7 +399,7 @@ def test_fasta_max_batch_bytes_disabled(tmp_path):
     """Test that max_batch_bytes=None disables byte-based batching."""
     filename = tmp_path / "large_seqs.fasta"
     # Create 3 sequences with 1KB each
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline="") as f:
         for i in range(3):
             seq = "ATGC" * 256  # 1KB sequence
             f.write(f">seq{i}\n{seq}\n")
@@ -419,7 +425,7 @@ def test_fasta_large_genome_batching(tmp_path):
     # Create a "genome" of 50KB - this would cause issues without byte-based batching
     genome_seq = "ATGCGTACGT" * 5000  # 50KB sequence
 
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline="") as f:
         f.write(f">genome1 Large viral genome\n{genome_seq}\n")
         f.write(f">genome2 Another large genome\n{genome_seq}\n")
 
@@ -470,12 +476,158 @@ def test_fasta_empty_columns_is_rejected():
         Fasta(columns=[])._get_columns()
 
 
+@pytest.mark.parametrize("features", [None, Features({"id": Value("string")})])
+def test_fasta_duplicate_columns_is_rejected(features):
+    with pytest.raises(ValueError, match="Duplicate column 'id'"):
+        Fasta(columns=["id", "id"], features=features)
+
+
 def test_fasta_columns_project_custom_features(tmp_path):
     """columns= applies to a user-supplied features schema too."""
     filename = tmp_path / "proj.fa"
-    filename.write_text(">a\nAC\n", encoding="utf-8")
+    filename.write_bytes(b">a\nAC\n")
     features = Features({col: Value("string") for col in ["id", "description", "sequence"]})
-    table = next(iter(Fasta(columns=["sequence"], features=features)._generate_tables([[str(filename)]])))[1]
+    fasta = Fasta(columns=["sequence"], features=features)
+    assert fasta.info.features == Features({"sequence": Value("string")})
+    table = next(iter(fasta._generate_tables([[str(filename)]])))[1]
     assert table.column_names == ["sequence"]
+    assert Features.from_arrow_schema(table.schema) == fasta.info.features
     with pytest.raises(ValueError, match="not in features"):
         Fasta(columns=["sequence"], features=Features({"id": Value("string")}))._info()
+
+
+@pytest.mark.parametrize("columns", [None, ["record"]])
+def test_fasta_preserves_supplied_info_features(fasta_file, columns):
+    features = Features(
+        {
+            "id": Value("string"),
+            "description": Value("string"),
+            "sequence": Value("large_string"),
+            "record": BioSequence(format="fasta", decode=False),
+        }
+    )
+    fasta = Fasta(info=DatasetInfo(features=features, description="custom info"), columns=columns)
+    expected = features if columns is None else Features({"record": features["record"]})
+    assert fasta.info.features == expected
+    assert fasta.info.description == "custom info"
+    _, table = next(fasta._generate_tables([[fasta_file]]))
+    assert Features.from_arrow_schema(table.schema) == expected
+
+
+def test_fasta_record_features(fasta_file):
+    fasta = Fasta()
+    expected = Features(
+        {
+            "id": Value("string"),
+            "description": Value("string"),
+            "sequence": Value("large_string"),
+            "record": BioSequence(format="fasta"),
+        }
+    )
+    assert fasta.info.features == expected
+    _, table = next(fasta._generate_tables([[fasta_file]]))
+    assert table.schema.field("record").type == BioSequence().pa_type
+    assert Features.from_arrow_schema(table.schema) == expected
+
+
+@require_biopython
+@pytest.mark.parametrize("streaming", [False, True])
+def test_fasta_record_decoding(fasta_file, streaming):
+    from Bio.SeqRecord import SeqRecord
+
+    dataset = load_dataset("fasta", data_files=fasta_file, split="train", streaming=streaming)
+    assert dataset.features["record"] == BioSequence(format="fasta")
+    rows = list(dataset)
+    assert len(rows) == 3
+    for row in rows:
+        assert isinstance(row["record"], SeqRecord)
+        assert row["record"].id == row["id"]
+        assert str(row["record"].seq) == row["sequence"]
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "fasta_file",
+        "fasta_gz_file",
+        "fasta_bz2_file",
+        "fasta_xz_file",
+        pytest.param("fasta_zst_file", marks=require_zstandard),
+    ],
+)
+def test_fasta_record_bytes(fixture_name, request):
+    filename = request.getfixturevalue(fixture_name)
+    tables = list(Fasta(batch_size=1)._generate_tables([[filename]]))
+    records = [table.to_pydict()["record"][0] for _, table in tables]
+    with xopen(filename, "rb") as f:
+        expected = [b">" + record for record in f.read().split(b">")[1:]]
+    assert records == [{"bytes": record, "path": None} for record in expected]
+
+
+@pytest.mark.parametrize("newline", [b"\n", b"\r\n", b"\r"])
+@pytest.mark.parametrize("compressed", [False, True])
+def test_fasta_record_preserves_raw_lines(tmp_path, newline, compressed):
+    import gzip
+
+    # Preserve header whitespace, UTF-8, comments, blank lines and sequence wrapping.
+    first = b">a caf\xc3\xa9 \t\n; comment\nA C\n\nGT  \n".replace(b"\n", newline)
+    second = b">b\nTT\nAA".replace(b"\n", newline)
+    content = b"; file comment" + newline + first + second
+    filename = tmp_path / ("raw.fa.gz" if compressed else "raw.fa")
+    filename.write_bytes(gzip.compress(content) if compressed else content)
+    path = _compression_uri(filename) if compressed else str(filename)
+    _, table = next(Fasta(columns=["record"])._generate_tables([[path]]))
+    assert table.to_pydict() == {"record": [{"bytes": first, "path": None}, {"bytes": second, "path": None}]}
+
+
+def test_fasta_record_cast_decode_false(fasta_file, monkeypatch):
+    monkeypatch.setattr("datasets.config.BIOPYTHON_AVAILABLE", False)
+    dataset = load_dataset("fasta", data_files=fasta_file, split="train")
+    dataset = dataset.cast_column("record", BioSequence(decode=False))
+    with open(fasta_file, "rb") as f:
+        expected = [b">" + record for record in f.read().split(b">")[1:]]
+    assert dataset["record"] == [{"bytes": record, "path": None} for record in expected]
+
+
+def test_fasta_columns_drop_record_without_biopython(fasta_file, monkeypatch):
+    monkeypatch.setattr("datasets.config.BIOPYTHON_AVAILABLE", False)
+    dataset = load_dataset("fasta", data_files=fasta_file, split="train", columns=["id", "sequence"])
+    assert dataset.features == Features({"id": Value("string"), "sequence": Value("large_string")})
+    assert len(list(dataset)) == 3
+    assert dataset.column_names == ["id", "sequence"]
+
+
+def test_fasta_record_column_validation():
+    with pytest.raises(ValueError, match="Invalid column.*Valid columns are:.*record"):
+        Fasta(columns=["invalid_column"])._get_columns()
+    with pytest.raises(ValueError, match="columns.*record.*not in features"):
+        Fasta(columns=["record"], features=Features({"id": Value("string")}))
+
+
+def test_fasta_record_bytes_count_toward_batch_limit(tmp_path):
+    filename = tmp_path / "batch.fa"
+    # Parsed fields fit in one batch; their raw records push the total over the limit.
+    filename.write_bytes(b">a\nACGT\n>b\nTGCA\n")
+    tables = list(Fasta(max_batch_bytes=20)._generate_tables([[str(filename)]]))
+    assert [table.num_rows for _, table in tables] == [1, 1]
+    tables = list(Fasta(columns=["id", "sequence"], max_batch_bytes=20)._generate_tables([[str(filename)]]))
+    assert [table.num_rows for _, table in tables] == [2]
+
+
+def test_fasta_explicit_features_without_record(fasta_file):
+    """A user-supplied schema selects its own columns, so pinning the three parsed columns still works."""
+    features = Features(
+        {
+            "id": Value("string"),
+            "description": Value("string"),
+            "sequence": Value("large_string"),
+        }
+    )
+    fasta = Fasta(features=features)
+    assert fasta._get_columns() == ["id", "description", "sequence"]
+    assert fasta.info.features == features
+    generator = fasta._generate_tables([[fasta_file]])
+    table = pa.concat_tables([table for _, table in generator])
+    assert table.column_names == ["id", "description", "sequence"]
+    with pytest.raises(ValueError, match="Invalid feature column"):
+        Fasta(features=Features({"id": Value("string"), "quality": Value("string")}))

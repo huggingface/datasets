@@ -307,6 +307,9 @@ This returns a dataset with the following columns:
 - `id`: Sequence identifier (first word after `>`)
 - `description`: Full description line (everything after the id)
 - `sequence`: The biological sequence (DNA/RNA/protein)
+- `record`: A [`BioSequence`] with `format="fasta"` storing each record's original bytes, decoded to a Biopython `SeqRecord` when accessed.
+
+Reading the parsed columns requires no Biopython; exclude `record` with `columns`, or use `dataset.cast_column("record", BioSequence(decode=False))` (imported from `datasets`) to access its `{"bytes": ..., "path": None}` storage without decoding.
 
 You can also load only specific columns:
 
