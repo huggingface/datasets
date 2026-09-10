@@ -28,7 +28,6 @@ from pathlib import Path
 from typing import Any, Literal, Optional, Union, overload
 
 import fsspec
-import httpx
 import requests
 import yaml
 from fsspec.core import url_to_fs
@@ -41,6 +40,7 @@ from huggingface_hub.utils import (
     RepositoryNotFoundError,
     RevisionNotFoundError,
     get_session,
+    httpx,
 )
 from packaging import version
 

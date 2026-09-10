@@ -1,10 +1,10 @@
 from tempfile import NamedTemporaryFile
 
-import httpx
 import pytest
 import requests
 from huggingface_hub import get_session
 from huggingface_hub.errors import OfflineModeIsEnabled
+from huggingface_hub.utils import httpx
 
 from datasets.utils.file_utils import fsspec_get, fsspec_head
 

@@ -13,10 +13,10 @@ from importlib.util import find_spec
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-import httpx
 import pyarrow as pa
 import pytest
 import requests
+from huggingface_hub.utils import httpx
 from packaging import version
 
 from datasets import config

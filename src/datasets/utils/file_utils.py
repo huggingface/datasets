@@ -27,13 +27,12 @@ from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
 import fsspec
-import httpx
 import huggingface_hub
 import huggingface_hub.errors
 import requests
 from fsspec.core import strip_protocol, url_to_fs
 from fsspec.utils import can_be_local
-from huggingface_hub.utils import get_session, insecure_hashlib
+from huggingface_hub.utils import get_session, httpx, insecure_hashlib
 from packaging import version
 
 from .. import __version__, config
