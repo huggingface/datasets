@@ -20,7 +20,6 @@ __all__ = [
     "Video",
     "Pdf",
     "Nifti",
-    "ProteinStructure",
 ]
 from .audio import Audio
 from .bio_sequence import BioSequence
@@ -30,6 +29,5 @@ from .image import Image
 from .mesh import Mesh
 from .nifti import Nifti
 from .pdf import Pdf
-from .protein_structure import ProteinStructure
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video

@@ -2,13 +2,19 @@
 
 import shutil
 import textwrap
+from pathlib import Path
 
 import pytest
 
-from datasets import ClassLabel, DownloadManager, ProteinStructure
+from datasets import BioStructure, ClassLabel, DownloadManager, Value, config, load_from_disk
 from datasets.data_files import DataFilesDict, get_data_patterns
 from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.packaged_modules.pdb.pdb import PdbFolder, PdbFolderConfig
+
+
+require_biopython = pytest.mark.skipif(
+    not __import__("datasets").config.BIOPYTHON_AVAILABLE, reason="biopython is not installed"
+)
 
 
 @pytest.fixture
@@ -36,15 +42,15 @@ def data_files_with_labels_no_metadata(tmp_path, pdb_file):
     return data_files_with_labels_no_metadata
 
 
-@pytest.fixture
-def file_with_metadata(tmp_path, pdb_file):
+@pytest.fixture(params=["jsonl", "csv"])
+def file_with_metadata(tmp_path, pdb_file, request):
     filename = tmp_path / "structure.pdb"
     shutil.copy(pdb_file, filename)
-    metadata_filename = tmp_path / "metadata.jsonl"
-    metadata = textwrap.dedent(
-        """\
-        {"file_name": "structure.pdb", "resolution": 2.5, "method": "X-ray"}
-        """
+    metadata_filename = tmp_path / f"metadata.{request.param}"
+    metadata = (
+        '{"file_name": "structure.pdb", "resolution": 2.5, "method": "X-ray"}\n'
+        if request.param == "jsonl"
+        else "file_name,resolution,method\nstructure.pdb,2.5,X-ray\n"
     )
     with open(metadata_filename, "w", encoding="utf-8") as f:
         f.write(metadata)
@@ -125,7 +131,10 @@ def test_config_valid_name():
 def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cache_dir):
     pdbfolder = PdbFolder(data_files=data_files_with_labels_no_metadata, cache_dir=cache_dir, drop_labels=False)
     gen_kwargs = pdbfolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
-    assert pdbfolder.info.features["label"] == ClassLabel(names=["enzyme", "receptor"])
+    assert pdbfolder.info.features == {
+        "structure": BioStructure(format="pdb"),
+        "label": ClassLabel(names=["enzyme", "receptor"]),
+    }
     generator = pdbfolder._generate_examples(**gen_kwargs)
     assert all(example["label"] in {"enzyme", "receptor"} for _, example in generator)
 
@@ -143,6 +152,10 @@ def test_generate_examples_drop_labels(data_files_with_labels_no_metadata, drop_
     # removing labels explicitly requires drop_labels=True
     assert gen_kwargs["add_labels"] is not bool(drop_labels)
     assert gen_kwargs["add_metadata"] is False
+    expected_features = {"structure": BioStructure(format="pdb")}
+    if not drop_labels:
+        expected_features["label"] = ClassLabel(names=["enzyme", "receptor"])
+    assert pdbfolder.info.features == expected_features
     generator = pdbfolder._generate_examples(**gen_kwargs)
     if not drop_labels:
         assert all(
@@ -172,17 +185,17 @@ def test_generate_examples_drop_metadata(file_with_metadata, drop_metadata, drop
     # since the dataset has metadata, adding the labels explicitly requires drop_labels=False
     assert gen_kwargs["add_labels"] is False
     generator = pdbfolder._generate_examples(**gen_kwargs)
-    expected_columns = {"structure"}
+    expected_features = {"structure": BioStructure(format="pdb")}
     if gen_kwargs["add_metadata"]:
-        expected_columns.update({"resolution", "method"})
-    if gen_kwargs["add_labels"]:
-        expected_columns.add("label")
+        expected_features.update({"resolution": Value("float64"), "method": Value("string")})
+    assert pdbfolder.info.features == expected_features
     result = [example for _, example in generator]
     assert len(result) == 1
     example = result[0]
-    assert example.keys() == expected_columns
-    for column in expected_columns:
-        assert example[column] is not None
+    expected_example = {"structure": file}
+    if gen_kwargs["add_metadata"]:
+        expected_example.update({"resolution": 2.5, "method": "X-ray"})
+    assert example == expected_example
 
 
 @pytest.mark.parametrize("streaming", [False, True])
@@ -197,6 +210,8 @@ def test_data_files_with_metadata_and_splits(
     )
     download_manager = StreamingDownloadManager() if streaming else DownloadManager()
     generated_splits = pdbfolder._split_generators(download_manager)
+    expected_features = {"structure": BioStructure(format="pdb"), "resolution": Value("float64")}
+    assert pdbfolder.info.features == expected_features
     for (split, files), generated_split in zip(data_files.items(), generated_splits):
         assert split == generated_split.name
         expected_num_of_examples = len(files) - 1
@@ -206,22 +221,106 @@ def test_data_files_with_metadata_and_splits(
         assert len({example["resolution"] for _, example in generated_examples}) == expected_num_of_examples
         assert all(example["resolution"] is not None for _, example in generated_examples)
 
+    if streaming:
+        dataset = pdbfolder.as_streaming_dataset()
+    else:
+        pdbfolder.download_and_prepare()
+        dataset = pdbfolder.as_dataset()
+    for split, files in data_files.items():
+        assert dataset[split].features == expected_features
+        rows = list(dataset[split].cast_column("structure", BioStructure(format="pdb", decode=False)))
+        assert len(rows) == len(files) - 1
+        assert {row["structure"]["path"] for row in rows} == {
+            file for file in files if Path(file).suffix in {".pdb", ".ent"}
+        }
+        assert all(row["structure"]["bytes"] is None for row in rows)
+        assert [row["resolution"] for row in rows] == ([3.0] if split == "test" else [2.5, 1.8])
 
-def test_structure_content_decoded(data_files_with_labels_no_metadata, cache_dir):
+
+@require_biopython
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("drop_labels", [False, True])
+def test_structure_content_decoded(data_files_with_labels_no_metadata, cache_dir, streaming, drop_labels, monkeypatch):
+    from Bio.PDB.Structure import Structure
+
+    # A different default exposes a loader that forgets to pass format="pdb".
+    original_init = BioStructure.__init__
+
+    def init_with_mmcif_default(self, format="mmcif", **kwargs):
+        original_init(self, format=format, **kwargs)
+
+    monkeypatch.setattr(BioStructure, "__init__", init_with_mmcif_default)
+    # Serialization omits default values, so it must use the same temporary default.
+    monkeypatch.setattr(BioStructure.__dataclass_fields__["format"], "default", "mmcif")
+    with pytest.raises(ValueError, match="data_"):
+        BioStructure(format="mmcif").decode_example(
+            {"path": data_files_with_labels_no_metadata["train"][0], "bytes": None}
+        )
+
+    pdbfolder = PdbFolder(
+        data_files=data_files_with_labels_no_metadata,
+        cache_dir=cache_dir,
+        drop_labels=drop_labels,
+    )
+    if streaming:
+        dataset = pdbfolder.as_streaming_dataset(split="train")
+    else:
+        pdbfolder.download_and_prepare()
+        dataset = pdbfolder.as_dataset(split="train")
+    expected_features = {"structure": BioStructure(format="pdb")}
+    if not drop_labels:
+        expected_features["label"] = ClassLabel(names=["enzyme", "receptor"])
+    assert dataset.features == expected_features
+
+    structures = [example["structure"] for example in dataset]
+    assert [structure.id for structure in structures] == ["structure1", "structure2"]
+    for structure in structures:
+        assert isinstance(structure, Structure)
+        assert len(list(structure.get_atoms())) == 9
+
+
+def test_structure_embedded_bytes_match_file(file_with_metadata, cache_dir, tmp_path):
+    file, metadata_file = file_with_metadata
+    pdbfolder = PdbFolder(data_files=[file, metadata_file], cache_dir=cache_dir)
+    pdbfolder.download_and_prepare()
+    dataset = pdbfolder.as_dataset(split="train")
+    saved_path = tmp_path / "embedded"
+    dataset.save_to_disk(saved_path)
+    dataset = load_from_disk(saved_path)
+    assert dataset.features == {
+        "structure": BioStructure(format="pdb"),
+        "resolution": Value("float64"),
+        "method": Value("string"),
+    }
+    dataset = dataset.cast_column("structure", BioStructure(format="pdb", decode=False))
+    [row] = list(dataset)
+    assert row["structure"]["bytes"] == Path(file).read_bytes()
+    assert row["structure"]["path"] == Path(file).name
+    assert row["resolution"] == 2.5
+    assert row["method"] == "X-ray"
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+def test_structure_without_biopython(data_files_with_labels_no_metadata, cache_dir, monkeypatch, streaming):
+    monkeypatch.setattr(config, "BIOPYTHON_AVAILABLE", False)
     pdbfolder = PdbFolder(
         data_files=data_files_with_labels_no_metadata,
         cache_dir=cache_dir,
         drop_labels=True,
     )
-    pdbfolder.download_and_prepare()
-    dataset = list(pdbfolder.as_dataset()["train"])
+    if streaming:
+        dataset = pdbfolder.as_streaming_dataset(split="train")
+    else:
+        pdbfolder.download_and_prepare()
+        dataset = pdbfolder.as_dataset(split="train")
+    assert dataset.features == {"structure": BioStructure(format="pdb")}
+    with pytest.raises(ImportError, match="biopython"):
+        next(iter(dataset))
 
-    for example in dataset:
-        content = example["structure"]
-        # decode now returns a parsed struct-of-arrays (one row = one structure)
-        assert isinstance(content, dict)
-        assert len(content["label_atom_id"]) > 0
-        assert content["label_comp_id"][0]
+    dataset = dataset.cast_column("structure", BioStructure(format="pdb", decode=False))
+    assert list(dataset) == [
+        {"structure": {"bytes": None, "path": path}} for path in data_files_with_labels_no_metadata["train"]
+    ]
 
 
 @pytest.fixture
@@ -238,34 +337,14 @@ def file_with_hetatm(tmp_path):
     return DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
 
 
-def test_include_hetatm_config_propagates(file_with_hetatm, cache_dir):
-    # include_hetatm=False on the loader config must reach the ProteinStructure feature.
-    builder = PdbFolder(data_files=file_with_hetatm, cache_dir=cache_dir, drop_labels=True, include_hetatm=False)
-    builder.download_and_prepare()
-    [row] = list(builder.as_dataset()["train"])
-    structure = row["structure"]
-    assert len(structure["label_atom_id"]) == 2  # HETATM (HOH) excluded
-    assert "HOH" not in structure["label_comp_id"]
-
-
-def test_include_hetatm_default_keeps_hetatm(file_with_hetatm, cache_dir):
+@require_biopython
+def test_structure_keeps_hetatm(file_with_hetatm, cache_dir):
     builder = PdbFolder(data_files=file_with_hetatm, cache_dir=cache_dir, drop_labels=True)
     builder.download_and_prepare()
     [row] = list(builder.as_dataset()["train"])
     structure = row["structure"]
-    assert len(structure["label_atom_id"]) == 3  # HETATM kept by default
-
-
-def test_columns_config_propagates(file_with_hetatm, cache_dir):
-    builder = PdbFolder(
-        data_files=file_with_hetatm,
-        cache_dir=cache_dir,
-        drop_labels=True,
-        columns=["label_atom_id", "Cartn_x"],
-    )
-    builder.download_and_prepare()
-    [row] = list(builder.as_dataset()["train"])
-    assert set(row["structure"]) == {"label_atom_id", "Cartn_x"}
+    assert len(list(structure.get_atoms())) == 3
+    assert [residue.resname for residue in structure.get_residues()] == ["ALA", "HOH"]
 
 
 def test_extensions_supported():
@@ -276,8 +355,8 @@ def test_extensions_supported():
     assert ".mmcif" not in PdbFolder.EXTENSIONS
 
 
-def test_base_feature_is_protein_structure():
-    assert PdbFolder.BASE_FEATURE == ProteinStructure
+def test_base_feature_is_bio_structure():
+    assert PdbFolder.BASE_FEATURE == BioStructure
 
 
 def test_base_column_name():

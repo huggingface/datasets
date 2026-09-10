@@ -2,7 +2,8 @@
 
 Follows ImageFolder pattern: folder names become labels, supports metadata files.
 Each row in the resulting dataset contains one complete PDB structure file,
-following the "one row = one structure" pattern.
+stored in a BioStructure(format="pdb") column. Decoding requires biopython and
+returns a Bio.PDB.Structure.Structure object.
 
 Usage:
     >>> from datasets import load_dataset
@@ -41,16 +42,10 @@ class PdbFolderConfig(folder_based_builder.FolderBasedBuilderConfig):
             Whether to drop folder-name labels.
         drop_metadata (`bool`, *optional*):
             Whether to drop metadata columns.
-        include_hetatm (`bool`, defaults to `True`):
-            Whether to include HETATM records (ligands, water, …) when decoding each structure.
-        columns (`list[str]`, *optional*):
-            Subset of PDBx/mmCIF atom columns to return per structure. Defaults to all columns.
     """
 
     drop_labels: bool = None
     drop_metadata: bool = None
-    include_hetatm: bool = True
-    columns: list[str] = None
 
     def __post_init__(self):
         super().__post_init__()
@@ -64,10 +59,10 @@ class PdbFolder(folder_based_builder.FolderBasedBuilder):
     following the "one row = one structure" pattern recommended for ML workflows.
     """
 
-    BASE_FEATURE = datasets.ProteinStructure
+    BASE_FEATURE = datasets.BioStructure
     BASE_COLUMN_NAME = "structure"
     BUILDER_CONFIG_CLASS = PdbFolderConfig
     EXTENSIONS: list[str] = [".pdb", ".ent"]
 
     def _base_feature(self):
-        return self.BASE_FEATURE(include_hetatm=self.config.include_hetatm, columns=self.config.columns)
+        return self.BASE_FEATURE(format="pdb")
