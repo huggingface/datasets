@@ -139,6 +139,8 @@ IS_MP3_SUPPORTED = True
 TORCHCODEC_AVAILABLE = importlib.util.find_spec("torchcodec") is not None
 TORCHVISION_AVAILABLE = importlib.util.find_spec("torchvision") is not None
 PDFPLUMBER_AVAILABLE = importlib.util.find_spec("pdfplumber") is not None
+# biopython is imported as ``Bio`` (the PyPI package name is ``biopython``).
+BIOPYTHON_AVAILABLE = importlib.util.find_spec("Bio") is not None
 NIBABEL_AVAILABLE = importlib.util.find_spec("nibabel") is not None
 TRIMESH_AVAILABLE = importlib.util.find_spec("trimesh") is not None
 TEICH_AVAILABLE = importlib.util.find_spec("teich") is not None
