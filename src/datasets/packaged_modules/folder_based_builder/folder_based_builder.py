@@ -60,12 +60,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
     METADATA_FILENAMES: list[str] = ["metadata.csv", "metadata.jsonl", "metadata.parquet"]
 
     def _base_feature(self) -> FeatureType:
-        """Instantiate the base feature for one column.
-
-        Subclasses override this to forward config-derived options to the feature
-        (e.g. a structure parser's filtering or column selection). The default
-        constructs the feature with no arguments.
-        """
+        """Instantiate the base feature, allowing subclasses to specify options such as format."""
         return self.BASE_FEATURE()
 
     def _info(self):
