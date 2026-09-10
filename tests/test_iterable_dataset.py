@@ -1509,6 +1509,95 @@ def test_repeat_examples_iterable_without_arrow_stays_without_arrow():
     assert ex_iterable.iter_arrow is None
 
 
+@pytest.mark.parametrize("source_kind", ["examples", "arrow", "empty_arrow_table"])
+@pytest.mark.parametrize("with_state", [False, True])
+def test_repeat_empty_examples_iterable(source_kind, with_state):
+    starts = 0
+
+    def generate_empty():
+        nonlocal starts
+        starts += 1
+        if starts > 2:
+            pytest.fail("An empty input was restarted indefinitely")
+        if source_kind == "empty_arrow_table":
+            yield "empty", pa.table({"id": pa.array([], type=pa.int64())})
+
+    base_cls = ExamplesIterable if source_kind == "examples" else ArrowExamplesIterable
+    ex_iterable = RepeatExamplesIterable(base_cls(generate_empty, {}), num_times=None)
+    if with_state:
+        ex_iterable._init_state_dict()
+    if source_kind == "examples":
+        assert list(ex_iterable) == []
+    else:
+        assert [row for _, table in ex_iterable.iter_arrow() for row in table.to_pylist()] == []
+
+
+@pytest.mark.parametrize("source_kind", ["examples", "arrow"])
+@pytest.mark.parametrize("consume", [1, 3, 4, 6])
+def test_repeat_forever_resumes_at_repetition_boundary(source_kind, consume):
+    def generate():
+        for i in range(3):
+            yield {"id": i}
+
+    if source_kind == "examples":
+        base = IterableDataset.from_generator(generate)
+    else:
+        base = Dataset.from_dict({"id": list(range(3))}).to_iterable_dataset().with_format("arrow")
+
+    def take_ids(iterator, n):
+        return [row["id"][0].as_py() if isinstance(row, pa.Table) else row["id"] for row in islice(iterator, n)]
+
+    ds = base.repeat(None)
+    iterator = iter(ds)
+    assert take_ids(iterator, consume) == [i % 3 for i in range(consume)]
+    state = ds.state_dict()
+    resumed = base.repeat(None)
+    resumed.load_state_dict(state)
+    assert take_ids(resumed, 8) == [i % 3 for i in range(consume, consume + 8)]
+
+
+@pytest.mark.parametrize("num_times", [None, 2, 3])
+def test_repeat_dynamic_empty_first_iteration(num_times):
+    starts = 0
+
+    def generate():
+        nonlocal starts
+        starts += 1
+        if starts > 1:
+            yield 0, {"id": starts}
+
+    ex_iterable = RepeatExamplesIterable(ExamplesIterable(generate, {}), num_times=num_times)
+    if num_times is None:
+        assert [row for _, row in islice(ex_iterable, 3)] == [{"id": i} for i in range(2, 5)]
+    else:
+        assert [row for _, row in ex_iterable] == [{"id": i} for i in range(2, num_times + 1)]
+
+
+@pytest.mark.parametrize("format_type", [None, "arrow"])
+@pytest.mark.parametrize("rank", [0, 1])
+def test_iterable_dataset_repeat_filtered_empty_rank(format_type, rank):
+    calls = 0
+
+    def keep_second_shard(batch):
+        nonlocal calls
+        calls += 1
+        if calls > 4:
+            pytest.fail("An empty rank was restarted indefinitely")
+        if isinstance(batch, pa.Table):
+            return batch.filter(pc.greater_equal(batch["id"], 3))
+        return [i >= 3 for i in batch["id"]]
+
+    base = Dataset.from_dict({"id": list(range(6))}).to_iterable_dataset(num_shards=2)
+    ds = split_dataset_by_node(base, rank=rank, world_size=2).with_format(format_type)
+    transform = ds.map if format_type == "arrow" else ds.filter
+    ds = transform(keep_second_shard, batched=True, batch_size=3).repeat(None).take(4)
+    if format_type == "arrow":
+        rows = [row for table in ds for row in table.to_pylist()]
+    else:
+        rows = list(ds)
+    assert rows == ([] if rank == 0 else [{"id": i} for i in [3, 4, 5, 3]])
+
+
 def test_vertically_concatenated_examples_iterable():
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label": 10})
     ex_iterable2 = ExamplesIterable(generate_examples_fn, {"label": 5})

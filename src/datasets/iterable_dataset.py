@@ -2208,10 +2208,19 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         repeat_index = self._state_dict["repeat_index"] if self._state_dict else 0
+        first_iteration = True
         while True:
             if self.num_times is not None and repeat_index >= max(self.num_times, 0):
                 break
-            yield from self.ex_iterable
+            has_examples = False
+            for key_example in self.ex_iterable:
+                has_examples = True
+                yield key_example
+            # The first iteration may resume at the end of a non-empty input.
+            # Check a full repetition after resetting it before deciding to stop.
+            if self.num_times is None and not has_examples and not first_iteration:
+                break
+            first_iteration = False
             repeat_index += 1
             if self._state_dict:
                 self._state_dict["repeat_index"] = repeat_index
@@ -2219,10 +2228,17 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
 
     def _iter_arrow(self):
         repeat_index = self._state_dict["repeat_index"] if self._state_dict else 0
+        first_iteration = True
         while True:
             if self.num_times is not None and repeat_index >= max(self.num_times, 0):
                 break
-            yield from self.ex_iterable.iter_arrow()
+            has_examples = False
+            for key, pa_table in self.ex_iterable.iter_arrow():
+                has_examples = has_examples or len(pa_table) > 0
+                yield key, pa_table
+            if self.num_times is None and not has_examples and not first_iteration:
+                break
+            first_iteration = False
             repeat_index += 1
             if self._state_dict:
                 self._state_dict["repeat_index"] = repeat_index
@@ -3983,6 +3999,8 @@ class IterableDataset(DatasetInfoMixin):
     def repeat(self, num_times: Optional[int]) -> "IterableDataset":
         """
         Create a new [`IterableDataset`] that repeats the underlying dataset `num_times` times.
+
+        An empty input terminates even when `num_times` is `None`.
 
         N.B. The effect of calling shuffle after repeat depends significantly on buffer size.
         With buffer_size 1, duplicate data is never seen in the same iteration, even after shuffling:
