@@ -17,6 +17,7 @@ from packaging import version
 
 from datasets import Dataset, config, load_dataset
 from datasets.combine import concatenate_datasets, interleave_datasets
+from datasets.dataset_dict import IterableDatasetDict
 from datasets.distributed import split_dataset_by_node
 from datasets.features import (
     ClassLabel,
@@ -2038,6 +2039,17 @@ def test_iterable_dataset_shuffle_buffer_uses_multiple_input_shards():
     shuffled_ds = ds.shuffle(buffer_size=10, seed=1234, max_buffer_input_shards=4)
     shard_indices_of_first_ten_examples = {i // 10 for i in shuffled_ds.take(10)["i"]}
     assert 2 < len(shard_indices_of_first_ten_examples) <= 5
+
+
+def test_iterable_dataset_dict_shuffle_forwards_max_buffer_input_shards():
+    ds = IterableDataset.from_dict({"i": range(100)}, num_shards=10)
+    dsets = IterableDatasetDict({"train": ds})
+
+    # Same assertion as test_iterable_dataset_shuffle_buffer_uses_multiple_input_shards: without the
+    # argument reaching the split, the buffer interleaves far more than two shards.
+    shuffled_dsets = dsets.shuffle(buffer_size=10, seed=1234, max_buffer_input_shards=1)
+    shard_indices_of_first_ten_examples = {i // 10 for i in shuffled_dsets["train"].take(10)["i"]}
+    assert len(shard_indices_of_first_ten_examples) <= 2
 
 
 def gen_with_value(shard, value):

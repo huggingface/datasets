@@ -2088,6 +2088,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         seed=None,
         generator: Optional[np.random.Generator] = None,
         buffer_size: int = 1000,
+        max_buffer_input_shards: int = 10,
     ) -> "IterableDatasetDict":
         """
         Randomly shuffles the elements of this dataset.
@@ -2115,6 +2116,8 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
             buffer_size (`int`, defaults to `1000`):
                 Size of the buffer.
+            max_buffer_input_shards (`int`, defaults to `10`):
+                Maximum number of shards to use to feed the buffer at a time.
 
         Example:
 
@@ -2139,7 +2142,12 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         """
         return IterableDatasetDict(
             {
-                k: dataset.shuffle(seed=seed, generator=generator, buffer_size=buffer_size)
+                k: dataset.shuffle(
+                    seed=seed,
+                    generator=generator,
+                    buffer_size=buffer_size,
+                    max_buffer_input_shards=max_buffer_input_shards,
+                )
                 for k, dataset in self.items()
             }
         )
