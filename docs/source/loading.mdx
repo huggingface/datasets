@@ -296,6 +296,8 @@ To load remote WebDatasets via HTTP, pass the URLs instead:
 
 [GenBank](https://www.ncbi.nlm.nih.gov/genbank/) is a text-based format from NCBI for nucleotide and protein sequences together with their annotations. Files use the `.gb`, `.gbk`, or `.genbank` extension (optionally compressed), and each record's `FEATURES` section is decoded into structured objects.
 
+Alongside the lightweight parsed columns, each row includes a `record` column of type `BioSequence(format="genbank")`, which decodes to a `Bio.SeqRecord.SeqRecord` when `biopython` is installed. Cast this column to `BioSequence(format="genbank", decode=False)` to access the original record bytes as `{"bytes": ..., "path": None}`, or omit it with `columns=[...]` to use only the parsed columns without `biopython`.
+
 To load GenBank files:
 
 ```py

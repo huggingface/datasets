@@ -6,15 +6,21 @@ import json
 import lzma
 import os
 import textwrap
+from pathlib import Path
 
 import pyarrow as pa
 import pytest
 
-from datasets import Features, Value
+from datasets import BioSequence, Dataset, DatasetInfo, Features, Value
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.download.streaming_download_manager import _get_extraction_protocol
 from datasets.packaged_modules.genbank.genbank import GenBank, GenBankConfig
+
+
+require_biopython = pytest.mark.skipif(
+    not __import__("datasets").config.BIOPYTHON_AVAILABLE, reason="biopython is not installed"
+)
 
 
 def _compression_uri(path):
@@ -60,7 +66,7 @@ def genbank_file(tmp_path):
         //
         """
     )
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline="") as f:
         f.write(data)
     return str(filename)
 
@@ -104,7 +110,7 @@ def genbank_file_multi_record(tmp_path):
         //
         """
     )
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline="") as f:
         f.write(data)
     return str(filename)
 
@@ -132,7 +138,7 @@ def genbank_file_gzipped(tmp_path):
         //
         """
     )
-    with gzip.open(filename, "wt", encoding="utf-8") as f:
+    with gzip.open(filename, "wt", encoding="utf-8", newline="") as f:
         f.write(data)
     return _compression_uri(filename)
 
@@ -159,7 +165,7 @@ def genbank_file_bz2(tmp_path):
         //
         """
     )
-    with bz2.open(filename, "wt", encoding="utf-8") as f:
+    with bz2.open(filename, "wt", encoding="utf-8", newline="") as f:
         f.write(data)
     return _compression_uri(filename)
 
@@ -186,7 +192,7 @@ def genbank_file_xz(tmp_path):
         //
         """
     )
-    with lzma.open(filename, "wt", encoding="utf-8") as f:
+    with lzma.open(filename, "wt", encoding="utf-8", newline="") as f:
         f.write(data)
     return _compression_uri(filename)
 
@@ -224,7 +230,7 @@ def genbank_file_complex_features(tmp_path):
         //
         """
     )
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline="") as f:
         f.write(data)
     return str(filename)
 
@@ -262,7 +268,7 @@ ORIGIN
 """
         records.append(record)
 
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline="") as f:
         f.write("\n".join(records))
     return str(filename)
 
@@ -310,6 +316,126 @@ def test_genbank_multi_record(genbank_file_multi_record):
     assert result["accession"] == ["SEQ001", "SEQ002"]
     assert result["molecule_type"] == ["DNA", "RNA"]
     assert result["organism"] == ["Escherichia coli", "Test virus"]
+
+
+def test_genbank_record_feature(genbank_file_multi_record):
+    builder = GenBank()
+    table = pa.concat_tables([table for _, table in builder._generate_tables([[genbank_file_multi_record]])])
+
+    assert builder.DEFAULT_FEATURES["record"] == BioSequence(format="genbank")
+    assert builder.info.features["record"] == BioSequence(format="genbank")
+    assert table.schema.field("record").type == BioSequence().pa_type
+    assert Dataset(table).features["record"] == BioSequence(format="genbank")
+
+
+@require_biopython
+def test_genbank_record_decodes_to_seqrecord(genbank_file_multi_record):
+    from Bio.SeqRecord import SeqRecord
+
+    builder = GenBank(batch_size=1)
+    table = pa.concat_tables([table for _, table in builder._generate_tables([[genbank_file_multi_record]])])
+    dataset = Dataset(table, info=builder.info)
+
+    assert len(dataset) == 2
+    for row in dataset:
+        record = row["record"]
+        assert isinstance(record, SeqRecord)
+        assert record.id == row["version"]
+        assert record.id.rsplit(".", 1)[0] == row["accession"]
+        assert record.name == row["locus_name"]
+        assert str(record.seq) == row["sequence"]
+
+
+def test_genbank_columns_drop_record_without_biopython(genbank_file_multi_record, monkeypatch):
+    monkeypatch.setattr("datasets.config.BIOPYTHON_AVAILABLE", False)
+    builder = GenBank(columns=["accession", "sequence"])
+    table = pa.concat_tables([table for _, table in builder._generate_tables([[genbank_file_multi_record]])])
+    dataset = Dataset(table, info=builder.info)
+
+    assert dataset.column_names == ["accession", "sequence"]
+    assert "record" not in dataset.features
+    assert [row["accession"] for row in dataset] == ["SEQ001", "SEQ002"]
+
+
+@pytest.mark.parametrize("columns", [None, ["record"], ["sequence", "record"]])
+def test_genbank_record_decode_false(genbank_file_multi_record, monkeypatch, columns):
+    monkeypatch.setattr("datasets.config.BIOPYTHON_AVAILABLE", False)
+    features = Features({**GenBank.DEFAULT_FEATURES, "record": BioSequence(format="genbank", decode=False)})
+    builder = GenBank(features=features, columns=columns)
+    table = pa.concat_tables([table for _, table in builder._generate_tables([[genbank_file_multi_record]])])
+    dataset = Dataset(table, info=builder.info)
+
+    assert dataset.features["record"] == BioSequence(format="genbank", decode=False)
+    if columns is not None:
+        assert dataset.column_names == columns
+    records = [row["record"] for row in dataset]
+    raw = Path(genbank_file_multi_record).read_bytes()
+    expected = [record + b"//\n" for record in raw.split(b"//\n")[:-1]]
+    assert records == [{"bytes": record, "path": None} for record in expected]
+    assert b"".join(record["bytes"] for record in records) == raw
+
+
+@pytest.mark.parametrize(
+    "suffix,opener", [(".gb", open), (".gb.gz", gzip.open), (".gb.bz2", bz2.open), (".gb.xz", lzma.open)]
+)
+@pytest.mark.parametrize("newline", [b"\n", b"\r\n"])
+def test_genbank_record_preserves_bytes(genbank_file_multi_record, tmp_path, suffix, opener, newline):
+    records = [
+        (record + b"//\n").replace(b"\n", newline)
+        for record in Path(genbank_file_multi_record).read_bytes().split(b"//\n")[:-1]
+    ]
+    filename = tmp_path / ("raw" + suffix)
+    with opener(filename, "wb") as fp:
+        fp.write(b"File preamble\n\n" + b"\n".join(records) + b"\nFile trailer\n")
+    file = str(filename) if suffix == ".gb" else _compression_uri(filename)
+    builder = GenBank(columns=["record"], batch_size=1)
+    table = pa.concat_tables([table for _, table in builder._generate_tables([[file]])])
+    dataset = Dataset(table, info=builder.info).cast_column("record", BioSequence(format="genbank", decode=False))
+
+    assert [row["record"] for row in dataset] == [{"bytes": record, "path": None} for record in records]
+
+
+@pytest.fixture
+def genbank_file_missing_final_newline(genbank_file_multi_record, tmp_path):
+    raw = Path(genbank_file_multi_record).read_bytes().removesuffix(b"\n")
+    filename = tmp_path / "no_final_newline.gb"
+    filename.write_bytes(raw)
+    return filename
+
+
+def test_genbank_record_preserves_missing_final_newline(genbank_file_missing_final_newline, monkeypatch):
+    monkeypatch.setattr("datasets.config.BIOPYTHON_AVAILABLE", False)
+    raw = genbank_file_missing_final_newline.read_bytes()
+    builder = GenBank(columns=["record"])
+    table = pa.concat_tables(
+        [table for _, table in builder._generate_tables([[str(genbank_file_missing_final_newline)]])]
+    )
+
+    assert raw.endswith(b"//")
+    assert table["record"].to_pylist()[-1] == {"bytes": raw.rsplit(b"//\n", 1)[-1], "path": None}
+    assert b"".join(record["bytes"] for record in table["record"].to_pylist()) == raw
+
+
+@require_biopython
+def test_genbank_record_decodes_missing_final_newline(genbank_file_missing_final_newline):
+    from Bio.SeqRecord import SeqRecord
+
+    builder = GenBank(columns=["record"])
+    table = pa.concat_tables(
+        [table for _, table in builder._generate_tables([[str(genbank_file_missing_final_newline)]])]
+    )
+    record = Dataset(table, info=builder.info)[-1]["record"]
+    assert isinstance(record, SeqRecord)
+    assert record.id == "SEQ002.1"
+    assert str(record.seq) == "AUGC" * 12 + "AU"
+
+
+def test_genbank_record_capture_accepts_single_pass_iterator(genbank_file_multi_record):
+    raw = Path(genbank_file_multi_record).read_bytes()
+    records = list(GenBank()._parse_genbank(iter(raw.decode("utf-8").splitlines(keepends=True))))
+
+    assert len(records) == 2
+    assert b"".join(record["record"]["bytes"] for record in records) == raw
 
 
 def test_genbank_gzipped(genbank_file_gzipped):
@@ -406,6 +532,12 @@ def test_genbank_invalid_column():
         GenBank(columns=["sequence", "invalid_column"])
 
 
+@pytest.mark.parametrize("features", [None, Features({"sequence": Value("string")})])
+def test_genbank_duplicate_columns_is_rejected(features):
+    with pytest.raises(ValueError, match=r"^Duplicate column 'sequence' in columns\.$"):
+        GenBank(columns=["sequence", "sequence"], features=features)
+
+
 def test_genbank_batch_size(genbank_file_multi_record):
     """Test batch size configuration."""
     genbank = GenBank(batch_size=1)
@@ -497,7 +629,7 @@ def test_genbank_feature_casting(genbank_file):
 def test_genbank_empty_file(tmp_path):
     """Test handling of empty GenBank file."""
     filename = tmp_path / "empty.gb"
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline="") as f:
         f.write("")
 
     genbank = GenBank()
@@ -566,9 +698,9 @@ def test_genbank_multiple_files(tmp_path):
         """
     )
 
-    with open(file1, "w", encoding="utf-8") as f:
+    with open(file1, "w", encoding="utf-8", newline="") as f:
         f.write(data1)
-    with open(file2, "w", encoding="utf-8") as f:
+    with open(file2, "w", encoding="utf-8", newline="") as f:
         f.write(data2)
 
     genbank = GenBank()
@@ -605,6 +737,7 @@ def test_genbank_all_columns():
         "molecule_type",
         "secondary_accessions",
         "contig",
+        "record",
     ]
     assert GenBank.ALL_COLUMNS == expected_columns
 
@@ -631,7 +764,7 @@ def test_genbank_locus_parsing_variations(tmp_path):
         //
         """
     )
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline="") as f:
         f.write(data)
 
     genbank = GenBank()
@@ -693,7 +826,7 @@ def test_genbank_feature_boolean_qualifier(tmp_path):
         //
         """
     )
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline="") as f:
         f.write(data)
 
     genbank = GenBank()
@@ -721,7 +854,7 @@ _ORIGIN = "ORIGIN\n        1 atcgatcgat\n//\n"
 def _parse_one(tmp_path, text, name="reg.gb"):
     """Load a single inline GenBank record and return (record, decoded features)."""
     filename = tmp_path / name
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline="") as f:
         f.write(text)
     tables = [table for _, table in GenBank()._generate_tables([[str(filename)]])]
     result = pa.concat_tables(tables).to_pydict()
@@ -899,12 +1032,31 @@ def test_genbank_locus_strandedness_prefixed_molecule_type(tmp_path):
 def test_genbank_columns_project_custom_features(tmp_path):
     """columns= applies to a user-supplied features schema too."""
     filename = tmp_path / "proj.gb"
-    filename.write_text(_LOCUS_DNA + _ORIGIN, encoding="utf-8")
+    filename.write_bytes((_LOCUS_DNA + _ORIGIN).encode("utf-8"))
     builder = GenBank(columns=["sequence"], features=GenBank.DEFAULT_FEATURES)
+    assert builder.info.features == Features({"sequence": Value("large_string")})
     table = next(iter(builder._generate_tables([[str(filename)]])))[1]
     assert table.column_names == ["sequence"]
+    assert Features.from_arrow_schema(table.schema) == builder.info.features
     with pytest.raises(ValueError, match="not in features"):
         GenBank(columns=["sequence"], features=Features({"locus_name": Value("string")}))._info()
+
+
+@pytest.mark.parametrize("columns", [None, ["record"]])
+@pytest.mark.parametrize("subset", [False, True])
+def test_genbank_preserves_supplied_info_features(genbank_file_multi_record, monkeypatch, columns, subset):
+    monkeypatch.setattr("datasets.config.BIOPYTHON_AVAILABLE", False)
+    features = Features({**GenBank.DEFAULT_FEATURES, "record": BioSequence(format="genbank", decode=False)})
+    if subset:
+        features = Features({"record": features["record"]})
+    builder = GenBank(info=DatasetInfo(features=features, description="custom info"), columns=columns)
+    expected = features if columns is None else Features({"record": features["record"]})
+    assert builder.info.features == expected
+    assert builder.info.description == "custom info"
+    _, table = next(builder._generate_tables([[genbank_file_multi_record]]))
+    assert Features.from_arrow_schema(table.schema) == expected
+    dataset = Dataset(table, info=builder.info)
+    assert b"".join(row["record"]["bytes"] for row in dataset) == Path(genbank_file_multi_record).read_bytes()
 
 
 def test_genbank_partial_location_markers_are_kept(tmp_path):
@@ -942,7 +1094,7 @@ def test_genbank_contig_expression_is_stored(tmp_path):
 def test_genbank_features_subset_selects_columns(tmp_path):
     """A features schema naming a subset of columns yields exactly those columns."""
     filename = tmp_path / "sub.gb"
-    filename.write_text(_LOCUS_DNA + _ORIGIN, encoding="utf-8")
+    filename.write_bytes((_LOCUS_DNA + _ORIGIN).encode("utf-8"))
     features = Features({"locus_name": Value("string"), "sequence": Value("large_string")})
     table = next(iter(GenBank(features=features)._generate_tables([[str(filename)]])))[1]
     assert table.column_names == ["locus_name", "sequence"]

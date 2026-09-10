@@ -12,6 +12,7 @@ import json
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
+from io import TextIOWrapper
 from typing import Optional
 
 import pyarrow as pa
@@ -178,7 +179,7 @@ class GenBankConfig(datasets.BuilderConfig):
             to disable byte-based batching.
         columns: Subset of columns to include. Options: ["locus_name", "accession",
             "version", "definition", "organism", "taxonomy", "keywords", "sequence",
-            "features", "length", "molecule_type"].
+            "features", "length", "molecule_type", "secondary_accessions", "contig", "record"].
     """
 
     features: Optional[datasets.Features] = None
@@ -215,22 +216,29 @@ class GenBank(datasets.ArrowBasedBuilder):
             "molecule_type": datasets.Value("string"),
             "secondary_accessions": datasets.List(datasets.Value("string")),
             "contig": datasets.Value("string"),
+            "record": datasets.BioSequence(format="genbank"),
         }
     )
 
     # All available columns (the canonical feature order).
     ALL_COLUMNS: list[str] = list(DEFAULT_FEATURES)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # DatasetBuilder applies features= after _info(); project the effective
+        # schema again, preserving features supplied through info= as well.
+        self.info.features = self._info().features
+
     def _info(self):
-        if self.config.features is not None:
-            features = self.config.features
-            if self.config.columns is not None:
-                missing = [col for col in self.config.columns if col not in features]
-                if missing:
-                    raise ValueError(f"columns {missing} are not in features {list(features)}")
-                features = datasets.Features({col: features[col] for col in self.config.columns})
-        else:
-            features = datasets.Features({col: self.DEFAULT_FEATURES[col] for col in self._get_columns()})
+        features = self.info.features if hasattr(self, "info") else self.config.features
+        columns = self._get_columns()
+        if features is None:
+            features = datasets.Features({col: self.DEFAULT_FEATURES[col] for col in columns})
+        if self.config.columns is not None:
+            missing = [col for col in self.config.columns if col not in features]
+            if missing:
+                raise ValueError(f"columns {missing} are not in features {list(features)}")
+            features = datasets.Features({col: features[col] for col in self.config.columns})
         return datasets.DatasetInfo(features=features)
 
     def _split_generators(self, dl_manager):
@@ -257,11 +265,11 @@ class GenBank(datasets.ArrowBasedBuilder):
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         """Cast the raw Arrow table to the resolved features schema.
 
-        The resolved features are ``config.features`` if the user provided them,
-        otherwise the canonical ``DEFAULT_FEATURES`` projected to the selected columns.
+        DatasetInfo holds the effective schema from ``features=``, ``info=``, or
+        the canonical ``DEFAULT_FEATURES``, projected to the selected columns.
         This is what turns the JSON-encoded ``features`` column into the ``Json()`` type.
         """
-        features = self._info().features
+        features = self.info.features
         if all(not require_storage_cast(feature) for feature in features.values()):
             return pa_table.cast(features.arrow_schema)
         return table_cast(pa_table, features.arrow_schema)
@@ -359,18 +367,28 @@ class GenBank(datasets.ArrowBasedBuilder):
         record = self._new_record()
         header = _HeaderState()
         features = _FeatureAccumulator(self._parse_feature_location)
+        capture_record = "record" in self._get_columns()
+        raw_lines = []
 
         for line in fp:
+            # Keep the original text, including ignored fields and whitespace, from
+            # LOCUS through // without buffering it when the column is dropped.
+            if capture_record and (raw_lines or line.startswith("LOCUS")):
+                raw_lines.append(line)
+
             # Record terminator: finalize the pending feature and emit the record.
             if line.startswith("//"):
                 features.finalize_feature()
                 record["features"] = features.features
                 record["contig"] = "".join(record["contig"].split())
+                if raw_lines:
+                    record["record"] = {"bytes": "".join(raw_lines).encode("utf-8"), "path": None}
                 yield record
                 state = ParserState.HEADER
                 record = self._new_record()
                 header = _HeaderState()
                 features = _FeatureAccumulator(self._parse_feature_location)
+                raw_lines = []
                 continue
 
             if state == ParserState.HEADER:
@@ -529,6 +547,7 @@ class GenBank(datasets.ArrowBasedBuilder):
             "molecule_type": "",
             "secondary_accessions": [],
             "contig": "",
+            "record": None,
         }
 
     _MOLECULE_TYPE_RE = re.compile(r"^(?:[sdm]s-)?(?:[a-z]*[DR]NA|NA)$")
@@ -578,16 +597,21 @@ class GenBank(datasets.ArrowBasedBuilder):
         selects its own columns, so a schema naming a subset stays valid when the
         default schema grows.
         """
-        if self.config.columns is None and self.config.features is not None:
-            unknown = [col for col in self.config.features if col not in self.ALL_COLUMNS]
+        features = self.info.features if hasattr(self, "info") else self.config.features
+        if self.config.columns is None and features is not None:
+            unknown = [col for col in features if col not in self.ALL_COLUMNS]
             if unknown:
                 raise ValueError(f"Invalid feature column(s) {unknown}. Valid columns are: {self.ALL_COLUMNS}")
-            return list(self.config.features)
+            return list(features)
         if self.config.columns is not None:
             # Validate columns
+            seen = set()
             for col in self.config.columns:
                 if col not in self.ALL_COLUMNS:
                     raise ValueError(f"Invalid column '{col}'. Valid columns are: {self.ALL_COLUMNS}")
+                if col in seen:
+                    raise ValueError(f"Duplicate column '{col}' in columns.")
+                seen.add(col)
             return self.config.columns
         return self.ALL_COLUMNS
 
@@ -611,6 +635,8 @@ class GenBank(datasets.ArrowBasedBuilder):
                 fields.append(pa.field(col, pa.list_(pa.string())))
             elif col == "length":
                 fields.append(pa.field(col, pa.int64()))
+            elif col == "record":
+                fields.append(pa.field(col, datasets.BioSequence().pa_type))
             else:
                 fields.append(pa.field(col, pa.string()))
         return pa.schema(fields)
@@ -637,7 +663,9 @@ class GenBank(datasets.ArrowBasedBuilder):
             batch = {col: [] for col in columns}
             batch_bytes = 0
 
-            with open(file, encoding="utf-8") as fp:
+            # Wrap the binary stream ourselves so compressed inputs also preserve
+            # the original line endings in the BioSequence bytes.
+            with open(file, "rb") as binary_fp, TextIOWrapper(binary_fp, encoding="utf-8", newline="") as fp:
                 for record in self._parse_genbank(fp):
                     # Update length from actual sequence if not set
                     if record["length"] == 0 and record["sequence"]:
@@ -650,8 +678,10 @@ class GenBank(datasets.ArrowBasedBuilder):
 
                     # Calculate record size (approximate UTF-8 byte size)
                     record_bytes = (
-                        sum(len(str(record.get(col, ""))) for col in columns if col != "length") + 8
+                        sum(len(str(record.get(col, ""))) for col in columns if col not in ("length", "record")) + 8
                     )  # 8 bytes for int64 length
+                    if "record" in columns and record["record"] is not None:
+                        record_bytes += len(record["record"]["bytes"])
 
                     # Check if adding this record would exceed byte limit
                     # Flush current batch first if needed (but only if batch is non-empty)
