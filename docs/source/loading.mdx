@@ -303,7 +303,7 @@ Load a FASTQ file:
 >>> dataset = load_dataset("fastq", data_files="reads.fq")
 ```
 
-The loader returns four columns:
+The loader returns five columns:
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -311,6 +311,9 @@ The loader returns four columns:
 | `description` | string | Full description line (everything after id) |
 | `sequence` | large_string | The nucleotide sequence |
 | `quality` | large_string | ASCII-encoded quality scores |
+| `record` | [`BioSequence`] | With `format="fastq"`, stores each record's original bytes, decoded to a Biopython `SeqRecord` when accessed. |
+
+Reading the parsed columns requires no Biopython; exclude `record` with `columns`, or use `dataset.cast_column("record", BioSequence(decode=False))` (imported from `datasets`) to access its `{"bytes": ..., "path": None}` storage without decoding.
 
 Load only specific columns:
 
