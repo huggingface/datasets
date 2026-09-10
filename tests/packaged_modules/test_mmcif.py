@@ -17,6 +17,15 @@ require_biopython = pytest.mark.skipif(
 )
 
 
+def _metadata_string_feature(feature, metadata_file):
+    # CSV string width depends on the pandas version used for inference.
+    if Path(metadata_file).suffix == ".csv":
+        assert feature in (Value("string"), Value("large_string"))
+    else:
+        assert feature == Value("string")
+    return feature
+
+
 @pytest.fixture
 def cache_dir(tmp_path):
     return str(tmp_path / "mmcif_cache_dir")
@@ -187,7 +196,12 @@ def test_generate_examples_drop_metadata(file_with_metadata, drop_metadata, drop
     generator = mmciffolder._generate_examples(**gen_kwargs)
     expected_features = {"structure": BioStructure(format="mmcif")}
     if gen_kwargs["add_metadata"]:
-        expected_features.update({"resolution": Value("float64"), "method": Value("string")})
+        expected_features.update(
+            {
+                "resolution": Value("float64"),
+                "method": _metadata_string_feature(mmciffolder.info.features["method"], metadata_file),
+            }
+        )
     assert mmciffolder.info.features == expected_features
     result = [example for _, example in generator]
     assert len(result) == 1
@@ -281,7 +295,7 @@ def test_structure_embedded_bytes_match_file(file_with_metadata, cache_dir, tmp_
     assert dataset.features == {
         "structure": BioStructure(format="mmcif"),
         "resolution": Value("float64"),
-        "method": Value("string"),
+        "method": _metadata_string_feature(dataset.features["method"], metadata_file),
     }
     dataset = dataset.cast_column("structure", BioStructure(format="mmcif", decode=False))
     [row] = list(dataset)
