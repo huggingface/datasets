@@ -621,7 +621,7 @@ class ArrowWriter:
         _schema = (
             self._schema
             if self._schema is not None
-            else (pa.schema(self._features.type) if self._features is not None else None)
+            else (pa.schema(list(self._features.type)) if self._features is not None else None)
         )
         if self._disable_nullable and _schema is not None:
             _schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in _schema)
@@ -811,6 +811,9 @@ class ArrowWriter:
         pa_table = table_cast(pa_table, self._schema)
         if self.embed_local_files:
             pa_table = embed_table_storage(pa_table, local_files=True, remote_files=False)
+            # Embedding can normalize tensors read using a native extension
+            # registry. Align their storage with the writer's exact schema.
+            pa_table = table_cast(pa_table, self._schema)
         self._num_bytes += pa_table.nbytes
         self._num_examples += pa_table.num_rows
         if isinstance(self, ParquetWriter):

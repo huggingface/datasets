@@ -54,6 +54,7 @@ from .tensor import (
     contains_tensor,
     contains_tensor_type,
     is_tensor_type,
+    normalize_tensor_arrow_type,
     normalize_tensor_type,
     tensor_from_parquet_schema,
 )
@@ -1983,7 +1984,9 @@ class Features(dict):
             :obj:`pyarrow.Schema`
         """
         hf_metadata = {"info": {"features": self.to_dict()}}
-        return pa.schema(self.type).with_metadata({"huggingface": json.dumps(hf_metadata)})
+        # Passing the StructType itself uses the C schema interface, which can
+        # replace Python tensor types with the canonical registry's native types.
+        return pa.schema(list(self.type)).with_metadata({"huggingface": json.dumps(hf_metadata)})
 
     @classmethod
     def from_arrow_schema(cls, pa_schema: pa.Schema) -> "Features":
@@ -2003,6 +2006,10 @@ class Features(dict):
             [`Features`]
         """
         pa_schema = tensor_from_parquet_schema(pa_schema)
+        pa_schema = pa.schema(
+            [field.with_type(normalize_tensor_arrow_type(field.type)) for field in pa_schema],
+            metadata=pa_schema.metadata,
+        )
         # try to load features from the arrow schema metadata
         metadata_features = Features()
         if pa_schema.metadata is not None and b"huggingface" in pa_schema.metadata:

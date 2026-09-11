@@ -15,6 +15,7 @@
 """NumPy tensors backed by Arrow tensor extensions."""
 
 import base64
+import ctypes
 import json
 from dataclasses import dataclass, field
 from typing import Optional
@@ -98,12 +99,7 @@ class VariableShapeTensorType(pa.ExtensionType):
     def __eq__(self, other):
         if not is_tensor_type(other) or other.extension_name != self.extension_name:
             return NotImplemented
-        other = normalize_tensor_type(other)
-        # Arrow delegates schema and array type equality to this method.
-        # Storage alone only describes value_type and rank.
-        return self.storage_type == other.storage_type and json.loads(self.__arrow_ext_serialize__()) == json.loads(
-            other.__arrow_ext_serialize__()
-        )
+        return tensor_types_equal(self, other)
 
     def __ne__(self, other):
         equal = self.__eq__(other)
@@ -113,13 +109,12 @@ class VariableShapeTensorType(pa.ExtensionType):
         return self.__arrow_ext_deserialize__, (self.storage_type, self.__arrow_ext_serialize__())
 
 
-# Arrow 25 registers the C++ canonical type even without exposing a Python
-# constructor. Register the Python representation of the same canonical layout.
+# Some Arrow builds register the canonical C++ type without a Python wrapper.
+# Respect that registration (or another library's implementation).
 try:
     pa.register_extension_type(VariableShapeTensorType(pa.float32(), ndim=1))
 except pa.ArrowKeyError:
-    pa.unregister_extension_type("arrow.variable_shape_tensor")
-    pa.register_extension_type(VariableShapeTensorType(pa.float32(), ndim=1))
+    pass
 
 
 def is_tensor_type(arrow_type):
@@ -129,19 +124,90 @@ def is_tensor_type(arrow_type):
     )
 
 
+class _ArrowSchema(ctypes.Structure):
+    # Arrow C Data Interface ABI. The capsule owns the exported schema and
+    # releases it after metadata has been copied into Python bytes.
+    _fields_ = [
+        ("format", ctypes.c_void_p),
+        ("name", ctypes.c_void_p),
+        ("metadata", ctypes.c_void_p),
+        ("flags", ctypes.c_int64),
+        ("n_children", ctypes.c_int64),
+        ("children", ctypes.c_void_p),
+        ("dictionary", ctypes.c_void_p),
+        ("release", ctypes.c_void_p),
+        ("private_data", ctypes.c_void_p),
+    ]
+
+
+def _serialized_tensor_metadata(arrow_type):
+    if isinstance(arrow_type, pa.ExtensionType):
+        return arrow_type.__arrow_ext_serialize__()
+    # BaseExtensionType has no metadata accessor in Arrow 24/25. Reading IPC
+    # through its registry would return the same opaque native type again.
+    capsule = arrow_type.__arrow_c_schema__()
+    get_pointer = ctypes.pythonapi.PyCapsule_GetPointer
+    get_pointer.restype = ctypes.c_void_p
+    get_pointer.argtypes = [ctypes.py_object, ctypes.c_char_p]
+    schema = ctypes.cast(get_pointer(capsule, b"arrow_schema"), ctypes.POINTER(_ArrowSchema)).contents
+    address = schema.metadata
+    if address:
+        # C schema metadata is a count followed by length-prefixed key/value
+        # byte strings, with native-endian int32 counts and lengths.
+        count = ctypes.c_int32.from_address(address).value
+        address += 4
+        for _ in range(count):
+            pair = []
+            for _ in range(2):
+                length = ctypes.c_int32.from_address(address).value
+                address += 4
+                pair.append(ctypes.string_at(address, length))
+                address += length
+            if pair[0] == b"ARROW:extension:metadata":
+                return pair[1]
+    raise ValueError(f"Missing Tensor extension metadata: {arrow_type}")
+
+
 def normalize_tensor_type(arrow_type):
-    """Recover parameters even for a C++ type read before Datasets was imported."""
+    """Recover canonical parameters independently of the extension registry."""
     if isinstance(arrow_type, (pa.FixedShapeTensorType, VariableShapeTensorType)):
         return arrow_type
-    if is_tensor_type(arrow_type):
-        # BaseExtensionType has no Python metadata accessor in Arrow 25.
-        # IPC preserves the canonical serialized metadata; read it through the
-        # registered deserializer to recover all parameters, including layout.
-        schema = pa.schema([("tensor", arrow_type)])
-        restored = pa.ipc.read_schema(pa.BufferReader(schema.serialize())).field("tensor").type
-        if isinstance(restored, (pa.FixedShapeTensorType, VariableShapeTensorType)):
-            return restored
-    raise ValueError(f"Unsupported Tensor extension type: {arrow_type}")
+    if not is_tensor_type(arrow_type):
+        raise ValueError(f"Unsupported Tensor extension type: {arrow_type}")
+    serialized = _serialized_tensor_metadata(arrow_type)
+    if arrow_type.extension_name == "arrow.variable_shape_tensor":
+        return VariableShapeTensorType.__arrow_ext_deserialize__(arrow_type.storage_type, serialized)
+    metadata = json.loads(serialized)
+    if not pa.types.is_fixed_size_list(arrow_type.storage_type):
+        raise ValueError(f"Unsupported Tensor storage type: {arrow_type.storage_type}")
+    normalized = pa.fixed_shape_tensor(
+        arrow_type.storage_type.value_type,
+        metadata["shape"],
+        permutation=metadata.get("permutation"),
+        dim_names=metadata.get("dim_names"),
+    )
+    if normalized.storage_type != arrow_type.storage_type:
+        raise ValueError(f"Tensor shape does not match storage type: {arrow_type.storage_type}")
+    return normalized
+
+
+def tensor_types_equal(left, right):
+    """Compare canonical parameters, without relying on implementation classes."""
+    if not is_tensor_type(left) or not is_tensor_type(right) or left.extension_name != right.extension_name:
+        return False
+    if left.storage_type != right.storage_type:
+        return False
+    left, right = normalize_tensor_type(left), normalize_tensor_type(right)
+    if left.extension_name == "arrow.fixed_shape_tensor":
+        left_shape, right_shape = tuple(left.shape), tuple(right.shape)
+    else:
+        left_shape = left.uniform_shape if left.uniform_shape is not None else (None,) * left.ndim
+        right_shape = right.uniform_shape if right.uniform_shape is not None else (None,) * right.ndim
+    return (
+        left_shape == right_shape
+        and tuple(left.permutation or range(len(left_shape))) == tuple(right.permutation or range(len(right_shape)))
+        and tuple(left.dim_names or ()) == tuple(right.dim_names or ())
+    )
 
 
 def contains_tensor_type(arrow_type):
@@ -153,6 +219,20 @@ def contains_tensor_type(arrow_type):
     if pa.types.is_list(arrow_type) or pa.types.is_large_list(arrow_type) or pa.types.is_fixed_size_list(arrow_type):
         return contains_tensor_type(arrow_type.value_type)
     return False
+
+
+def normalize_tensor_arrow_type(arrow_type):
+    """Normalize tensor leaves, including those inside lists and structs."""
+    if is_tensor_type(arrow_type):
+        return normalize_tensor_type(arrow_type)
+    if not contains_tensor_type(arrow_type):
+        return arrow_type
+    if pa.types.is_struct(arrow_type):
+        return pa.struct([field.with_type(normalize_tensor_arrow_type(field.type)) for field in arrow_type])
+    field = arrow_type.value_field.with_type(normalize_tensor_arrow_type(arrow_type.value_type))
+    if pa.types.is_fixed_size_list(arrow_type):
+        return pa.list_(field, arrow_type.list_size)
+    return pa.large_list(field) if pa.types.is_large_list(arrow_type) else pa.list_(field)
 
 
 @dataclass
@@ -297,11 +377,13 @@ class Tensor:
 
         arrow_type = self()
         if isinstance(storage, pa.ExtensionArray):
-            if normalize_tensor_type(storage.type) == arrow_type:
+            if tensor_types_equal(storage.type, arrow_type):
+                if type(storage.type) is type(arrow_type):
+                    return storage
                 # Native and Python implementations can have identical canonical
                 # parameters while Arrow refuses a direct extension-to-extension
                 # cast. Rewrap the storage without copying its buffers.
-                return arrow_type.wrap_array(storage.storage)
+                return pa.ExtensionArray.from_storage(arrow_type, storage.storage)
             source = generate_from_arrow_type(storage.type)
             values = [source.decode_example(value) for value in storage.to_pylist()]
         else:
@@ -324,8 +406,8 @@ class Tensor:
     def embed_storage(
         self, storage: pa.ExtensionArray, token_per_repo_id=None, local_files: bool = True, remote_files: bool = True
     ) -> pa.ExtensionArray:
-        """Return the tensor extension unchanged; all tensor data is already embedded."""
-        return storage
+        """Keep embedded data in the feature's canonical tensor representation."""
+        return self.cast_storage(storage)
 
 
 class TensorPandasDtype(ExtensionDtype):
@@ -387,7 +469,7 @@ def _requires_tensor_parquet_storage(array, parent_nulls=False):
     has_nulls = parent_nulls or array.null_count > 0
     if is_tensor_type(array.type):
         return has_nulls or (
-            isinstance(array.type, pa.FixedShapeTensorType) and array.type.storage_type.list_size == 0
+            array.type.extension_name == "arrow.fixed_shape_tensor" and array.type.storage_type.list_size == 0
         )
     if pa.types.is_struct(array.type):
         return any(_requires_tensor_parquet_storage(array.field(field.name), has_nulls) for field in array.type)
@@ -442,10 +524,13 @@ def tensor_to_parquet_table(table, schema=None):
 
     if schema is None:
         schema = tensor_to_parquet_schema(table.schema, table)
-    if schema == table.schema:
+    has_tensors = any(contains_tensor_type(field.type) for field in (*schema, *table.schema))
+    if not has_tensors and schema == table.schema:
         return table
     arrays = [
-        column if field.type == column.type else array_cast(column, field.type)
+        array_cast(column, field.type)
+        if contains_tensor_type(field.type) or contains_tensor_type(column.type) or field.type != column.type
+        else column
         for field, column in zip(schema, table.columns)
     ]
     return pa.Table.from_arrays(arrays, schema=schema)
