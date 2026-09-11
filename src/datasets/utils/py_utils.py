@@ -109,15 +109,20 @@ def convert_file_size_to_int(size: Union[int, str]) -> int:
     if isinstance(size, int):
         return size
     if size.upper().endswith("PIB"):
-        return int(size[:-3]) * (2**50)
+        int_size = int(size[:-3]) * (2**50)
+        return int_size // 8 if size.endswith("b") else int_size
     if size.upper().endswith("TIB"):
-        return int(size[:-3]) * (2**40)
+        int_size = int(size[:-3]) * (2**40)
+        return int_size // 8 if size.endswith("b") else int_size
     if size.upper().endswith("GIB"):
-        return int(size[:-3]) * (2**30)
+        int_size = int(size[:-3]) * (2**30)
+        return int_size // 8 if size.endswith("b") else int_size
     if size.upper().endswith("MIB"):
-        return int(size[:-3]) * (2**20)
+        int_size = int(size[:-3]) * (2**20)
+        return int_size // 8 if size.endswith("b") else int_size
     if size.upper().endswith("KIB"):
-        return int(size[:-3]) * (2**10)
+        int_size = int(size[:-3]) * (2**10)
+        return int_size // 8 if size.endswith("b") else int_size
     if size.upper().endswith("PB"):
         int_size = int(size[:-2]) * (10**15)
         return int_size // 8 if size.endswith("b") else int_size
