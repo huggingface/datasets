@@ -10,6 +10,9 @@ from .cache import cache
 from .conll import conll
 from .csv import csv
 from .eval import eval
+from .fasta import fasta
+from .fastq import fastq
+from .genbank import genbank
 from .hdf5 import hdf5
 from .iceberg import iceberg
 from .imagefolder import imagefolder
@@ -67,6 +70,9 @@ _PACKAGED_DATASETS_MODULES = {
     "iceberg": (iceberg.__name__, _hash_python_lines(inspect.getsource(iceberg).splitlines())),
     "vortex": (vortex.__name__, _hash_python_lines(inspect.getsource(vortex).splitlines())),
     "pdb": (pdb.__name__, _hash_python_lines(inspect.getsource(pdb).splitlines())),
+    "genbank": (genbank.__name__, _hash_python_lines(inspect.getsource(genbank).splitlines())),
+    "fasta": (fasta.__name__, _hash_python_lines(inspect.getsource(fasta).splitlines())),
+    "fastq": (fastq.__name__, _hash_python_lines(inspect.getsource(fastq).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -104,6 +110,20 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".lance": ("lance", {}),
     ".tsfile": ("tsfile", {}),
     ".vortex": ("vortex", {}),
+    # FASTA biological sequence formats
+    ".fa": ("fasta", {}),
+    ".fasta": ("fasta", {}),
+    ".fna": ("fasta", {}),  # FASTA nucleic acid
+    ".ffn": ("fasta", {}),  # FASTA nucleotide of gene regions
+    ".faa": ("fasta", {}),  # FASTA amino acid
+    ".frn": ("fasta", {}),  # FASTA non-coding RNA
+    ".afa": ("fasta", {}),  # aligned FASTA (multiple sequence alignment)
+    # other bio formats
+    ".gb": ("genbank", {}),
+    ".gbk": ("genbank", {}),
+    ".genbank": ("genbank", {}),
+    ".fq": ("fastq", {}),
+    ".fastq": ("fastq", {}),
     ".pdb": ("pdb", {}),
     ".ent": ("pdb", {}),
 }

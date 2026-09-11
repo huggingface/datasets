@@ -156,6 +156,8 @@ BENCHMARKS_REQUIRE = [
 ]
 
 TESTS_REQUIRE = [
+    # optional decoders exercised by the feature tests
+    "biopython>=1.80",
     # fix pip install issues for windows
     "numba>=0.56.4; python_version < '3.14'",  # to get recent versions of llvmlite for windows ci, not available on 3.14
     # test dependencies
