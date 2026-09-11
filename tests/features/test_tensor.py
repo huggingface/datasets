@@ -454,6 +454,8 @@ def test_tensor_validates_encoded_storage(value):
     "metadata", [b"{}", b'{"uniform_shape":[null,3]}', b'{"permutation":[1,0],"dim_names":["x","y"]}']
 )
 def test_tensor_registration_preserves_canonical_schema_reading(metadata):
+    from datasets.features.tensor import normalize_tensor_type
+
     storage = pa.struct([("data", pa.list_(pa.float32())), ("shape", pa.list_(pa.int32(), 2))])
     schema = pa.schema(
         [
@@ -469,7 +471,9 @@ def test_tensor_registration_preserves_canonical_schema_reading(metadata):
     )
     restored = pa.ipc.read_schema(pa.BufferReader(schema.serialize()))
     assert restored.field("x").type.storage_type == storage
-    assert json.loads(restored.field("x").type.__arrow_ext_serialize__()) == json.loads(metadata)
+    assert json.loads(normalize_tensor_type(restored.field("x").type).__arrow_ext_serialize__()) == json.loads(
+        metadata
+    )
 
 
 @pytest.mark.parametrize(
@@ -576,16 +580,15 @@ def test_tensor_plain_arrow_interop(shape, file_format, with_null, tmp_path):
     else:
         dataset.to_parquet(str(path), batch_size=1)
     extension_name = "arrow.fixed_shape_tensor" if shape == (2, 3) else "arrow.variable_shape_tensor"
-    # -S excludes site customizations and installed Datasets; PYTHONPATH exposes
-    # only the directory containing PyArrow. The child never imports Datasets.
+    # -S excludes site customizations; PYTHONPATH exposes PyArrow's directory,
+    # which may also contain Datasets. The child must never import Datasets.
     reader = """
 import base64
-import importlib.util
 import json
 import sys
 import pyarrow as pa
 import pyarrow.parquet as pq
-assert importlib.util.find_spec("datasets") is None
+assert "datasets" not in sys.modules
 path, file_format, extension_name, expected_json = sys.argv[1:]
 table = pa.ipc.open_file(path).read_all() if file_format == "ipc" else pq.read_table(path)
 tensor_type = table.column("x").type
@@ -1094,3 +1097,208 @@ def test_tensor_map_detaches_torch_gradients(batched, shape, nested):
     actual = mapped[0]["x"]["t"] if nested else mapped[0]["x"]
     np.testing.assert_array_equal(actual, [1.0, 2.0])
     assert mapped.features == dataset.features
+
+
+@pytest.mark.parametrize("fixed", [False, True])
+@pytest.mark.parametrize("strict_equality", [False, True])
+def test_tensor_external_canonical_registration(fixed, strict_equality, tmp_path):
+    # A different implementation must retain its registration and interoperate
+    # without Arrow attempting an extension-to-extension cast.
+    script = """
+import json
+import sys
+
+import numpy as np
+import pyarrow as pa
+
+assert "datasets" not in sys.modules
+fixed = sys.argv[1] == "True"
+name = "arrow.fixed_shape_tensor" if fixed else "arrow.variable_shape_tensor"
+
+class ExternalTensorType(pa.ExtensionType):
+    def __init__(self, storage_type, serialized):
+        self.serialized = serialized
+        super().__init__(storage_type, name)
+
+    def __arrow_ext_serialize__(self):
+        return self.serialized
+
+    @classmethod
+    def __arrow_ext_deserialize__(cls, storage_type, serialized):
+        return cls(storage_type, serialized)
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, ExternalTensorType)
+            and self.storage_type == other.storage_type
+            and json.loads(self.serialized) == json.loads(other.serialized)
+        )
+
+if sys.argv[2] == "False":
+    del ExternalTensorType.__eq__
+
+storage_type = pa.list_(pa.int32(), 6) if fixed else pa.struct([
+    ("data", pa.list_(pa.int32())), ("shape", pa.list_(pa.int32(), 2))
+])
+metadata = {"shape": [2, 3]} if fixed else {"uniform_shape": [None, 3]}
+external = ExternalTensorType(storage_type, json.dumps(metadata).encode())
+try:
+    pa.unregister_extension_type(name)
+except pa.ArrowKeyError:
+    pass
+pa.register_extension_type(external)
+
+from datasets import Dataset, Features, List, Tensor
+from datasets.features.tensor import normalize_tensor_type, tensor_to_parquet_table
+from datasets.table import array_cast, cast_array_to_feature, embed_array_storage, table_cast
+
+schema = pa.schema([("x", external)])
+restored = pa.ipc.read_schema(pa.BufferReader(schema.serialize()))
+assert isinstance(restored.field("x").type, ExternalTensorType), "Datasets replaced the existing registration"
+feature = Tensor((2, 3) if fixed else (None, 3), "int32")
+assert Features.from_arrow_schema(restored) == Features({"x": feature})
+assert normalize_tensor_type(external) == feature()
+values = [[0, 1, 2, 3, 4, 5], None] if fixed else [
+    {"data": [0, 1, 2, 3, 4, 5], "shape": [2, 3]}, None
+]
+array = pa.ExtensionArray.from_storage(external, pa.array(values, type=storage_type))
+for result in [cast_array_to_feature(array, feature), embed_array_storage(array, feature)]:
+    assert result.type == feature()
+    assert result.storage.to_pylist() == values
+    assert result.storage.buffers() == array.storage.buffers()
+local = cast_array_to_feature(array, feature)
+assert array_cast(local, external).storage.to_pylist() == values
+assert table_cast(pa.table({"x": local}), schema).column("x").to_pylist() == values
+assert tensor_to_parquet_table(pa.table({"x": local}), schema).column("x").to_pylist() == values
+
+dataset = Dataset(pa.Table.from_arrays([array], schema=restored))
+for shape in [(2, 3), (None, 3), (None, None)]:
+    casted = dataset.cast_column("x", Tensor(shape, "float64"))
+    assert casted[0]["x"].tolist() == [[0, 1, 2], [3, 4, 5]]
+    assert casted[0]["x"].dtype == np.float64
+    assert casted[1]["x"] is None
+try:
+    dataset.cast_column("x", Tensor((None, 4), "int32"))
+except ValueError:
+    pass
+else:
+    raise AssertionError("Incompatible uniform_shape was accepted")
+
+for fmt in [None, "numpy", "pandas"]:
+    formatted = dataset.with_format(fmt)
+    row = formatted[0]["x"]
+    if fmt == "pandas":
+        row = row.iloc[0]
+    assert row.tolist() == [[0, 1, 2], [3, 4, 5]]
+    assert len(formatted[:]["x"]) == 2
+
+value = np.arange(6, dtype=np.int32).reshape(2, 3)
+features = Features({"x": List(feature)})
+nested = Dataset.from_dict({"x": [[value, value], None]}, features=features)
+nested = nested.cast(Features({"x": List(feature, length=2)}))
+assert nested[1]["x"] is None
+assert nested[0]["x"][0].tolist() == value.tolist()
+mapped = nested.map(lambda row: row, features=nested.features)
+assert mapped[0]["x"][0].tolist() == value.tolist()
+assert mapped[1]["x"] is None
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", script, str(fixed), str(strict_equality)],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("shape", [(2, 3), (None, 3)])
+@pytest.mark.parametrize("sliced", [False, True])
+def test_tensor_nullable_list_with_hidden_children(shape, sliced):
+    from datasets.table import array_cast, cast_array_to_feature
+
+    feature = Tensor(shape, "int32")
+    value = np.arange(6, dtype=np.int32).reshape(2, 3)
+    tensors = Dataset.from_dict({"x": [value] * 6}, features=Features({"x": feature})).data.column("x").chunk(0)
+    array = pa.ListArray.from_arrays([0, 2, 4, 6], tensors, mask=pa.array([False, True, False]))
+    if sliced:
+        array = array.slice(1)
+    target = List(feature, length=2)
+    for result in [array_cast(array, pa.list_(feature(), 2)), cast_array_to_feature(array, target)]:
+        result.validate(full=True)
+        assert result.is_null().to_pylist() == ([True, False] if sliced else [False, True, False])
+        assert result.to_pylist() == array.to_pylist()
+
+
+@pytest.mark.parametrize("variable_list", [False, True])
+def test_tensor_cast_zero_length_list(variable_list):
+    from datasets.table import array_cast, cast_array_to_feature, table_cast
+
+    feature = Tensor((None, 3), "int32")
+    child = pa.ExtensionArray.from_storage(feature(), pa.array([], type=feature().storage_type))
+    target = pa.list_(feature(), 0)
+    array = (
+        pa.ListArray.from_arrays([0, 0, 0, 0], child, mask=pa.array([False, True, False]))
+        if variable_list
+        else pa.Array.from_buffers(target, 3, [pa.array([True, False, True]).buffers()[1]], children=[child])
+    )
+    for casted in [array_cast(array, target), cast_array_to_feature(array, List(feature, length=0))]:
+        casted.validate(full=True)
+        assert casted.to_pylist() == [[], None, []]
+    table = table_cast(pa.table({"x": array}), pa.schema([("x", target)]))
+    assert table.column("x").to_pylist() == [[], None, []]
+
+
+@pytest.mark.parametrize("shape", [(2, 3), (None, 3)])
+@pytest.mark.parametrize("native_target", [False, True])
+def test_tensor_parquet_table_canonical_schema(shape, native_target):
+    from datasets.features.tensor import tensor_to_parquet_table
+
+    feature = Tensor(shape, "int32")
+    schema = Features({"x": feature}).arrow_schema
+    native = pa.ipc.read_schema(pa.BufferReader(schema.serialize()))
+    source_schema, target_schema = (schema, native) if native_target else (native, schema)
+    source_type = source_schema.field("x").type
+    values = [[0, 1, 2, 3, 4, 5]] if shape == (2, 3) else [{"data": [0, 1, 2, 3, 4, 5], "shape": [2, 3]}]
+    array = pa.ExtensionArray.from_storage(source_type, pa.array(values, type=source_type.storage_type))
+    table = tensor_to_parquet_table(pa.Table.from_arrays([array], schema=source_schema), target_schema)
+    assert table.column("x").to_pylist() == values
+    assert Features.from_arrow_schema(table.schema) == Features({"x": feature})
+
+
+@pytest.mark.parametrize("list_kind", ["list", "large_list", "fixed_size_list"])
+def test_tensor_array_cast_preserves_list_value_field(list_kind):
+    from datasets.table import array_cast
+
+    feature = Tensor((None, 3), "int32")
+    child = pa.ExtensionArray.from_storage(
+        feature(), pa.array([{"data": [1, 2, 3], "shape": [1, 3]}], type=feature().storage_type)
+    )
+    field = pa.field("custom", feature(), nullable=False, metadata={"unit": "test"})
+    if list_kind == "fixed_size_list":
+        target = pa.list_(field, 1)
+        array = pa.Array.from_buffers(target, 1, [None], children=[child])
+    else:
+        target = pa.large_list(field) if list_kind == "large_list" else pa.list_(field)
+        array_class = pa.LargeListArray if list_kind == "large_list" else pa.ListArray
+        array = array_class.from_arrays([0, 1], child, type=target)
+    casted = array_cast(array, target)
+    assert casted.type.value_field.equals(field, check_metadata=True)
+    assert casted.to_pylist() == [[{"data": [1, 2, 3], "shape": [1, 3]}]]
+
+
+@pytest.mark.parametrize("large", [False, True])
+def test_tensor_list_cast_slice_after_null(large):
+    from datasets.table import array_cast, cast_array_to_feature
+
+    feature = Tensor((None, 1), "int32")
+    values = [{"data": [i], "shape": [1, 1]} for i in range(4)]
+    children = pa.ExtensionArray.from_storage(feature(), pa.array(values, type=feature().storage_type))
+    array_class = pa.LargeListArray if large else pa.ListArray
+    array = array_class.from_arrays([0, 0, 2, 4], children, mask=pa.array([True, False, False])).slice(1)
+    for casted in [
+        array_cast(array, pa.list_(feature(), 2)),
+        cast_array_to_feature(array, List(feature, length=2)),
+    ]:
+        casted.validate(full=True)
+        assert casted.to_pylist() == [values[:2], values[2:]]
