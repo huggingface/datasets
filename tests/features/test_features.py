@@ -469,6 +469,27 @@ def test_encode_column_dict_with_none():
     assert encoded_column == [{"a": 0, "b": 1}, None]
 
 
+def test_translation_variable_languages_encode_example_without_languages():
+    """`languages` is optional, so encoding must not require it."""
+    feature = TranslationVariableLanguages()
+    assert feature.languages is None
+
+    encoded = feature.encode_example({"en": "the cat", "fr": "le chat"})
+    assert encoded == {"language": ("en", "fr"), "translation": ("the cat", "le chat")}
+
+    dset = Dataset.from_dict(
+        {"col": [{"en": "the cat", "fr": "le chat"}]},
+        features=Features({"col": TranslationVariableLanguages()}),
+    )
+    assert dset[0]["col"] == {"language": ["en", "fr"], "translation": ["the cat", "le chat"]}
+
+
+def test_translation_variable_languages_still_validates_declared_languages():
+    feature = TranslationVariableLanguages(languages=["en", "fr"])
+    with pytest.raises(ValueError, match="are not in valid set"):
+        feature.encode_example({"en": "the cat", "de": "die katze"})
+
+
 @pytest.mark.parametrize(
     "feature",
     [
