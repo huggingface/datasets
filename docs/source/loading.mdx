@@ -321,6 +321,35 @@ To load remote WebDatasets via HTTP, pass the URLs instead:
 >>> dataset = load_dataset("webdataset", data_files={"train": urls}, split="train", streaming=True)
 ```
 
+### mmCIF
+
+[mmCIF](https://mmcif.wwpdb.org/) (macromolecular Crystallographic Information File) is the modern standard format for representing 3D macromolecular structures, used by the Protein Data Bank (PDB) since 2014.
+
+Each row is one structure file, following the same folder layout
+as [`ImageFolder`]: subfolder names become labels and a `metadata.csv`/`metadata.jsonl`
+file adds per-structure metadata. The `structure` column uses [`BioStructure`] with
+`format="mmcif"` and decodes to a `Bio.PDB.Structure.Structure` object containing the
+file's models, chains, residues, and atoms. Decoding requires `biopython`; without it,
+accessing a decoded structure raises `ImportError`.
+
+To load mmCIF files from a directory:
+
+```py
+>>> from datasets import BioStructure, load_dataset
+>>> dataset = load_dataset("mmcif", data_dir="path/to/structures")
+>>> dataset["train"].features["structure"]
+BioStructure(format='mmcif', decode=True)
+```
+
+To access the underlying `{"bytes": ..., "path": ...}` dictionary without decoding
+or requiring biopython, cast the column with `decode=False`:
+
+```py
+>>> dataset = dataset.cast_column("structure", BioStructure(format="mmcif", decode=False))
+```
+
+Extensions `.cif` and `.mmcif` are supported.
+
 ### GenBank
 
 [GenBank](https://www.ncbi.nlm.nih.gov/genbank/) is a text-based format from NCBI for nucleotide and protein sequences together with their annotations. Files use the `.gb`, `.gbk`, or `.genbank` extension (optionally compressed), and each record's `FEATURES` section is decoded into structured objects.
