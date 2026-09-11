@@ -253,6 +253,35 @@ Filter by time range — bounds are pushed down to TsFile's internal time index 
 > [!TIP]
 > For more details, check out the [how to load TsFile data](tsfile_load) guide.
 
+### PDB
+
+[PDB](https://www.wwpdb.org/documentation/file-format) (Protein Data Bank) is the legacy fixed-width format for representing 3D macromolecular structures. While mmCIF is the modern standard, PDB remains widely used and many historical datasets are in this format.
+
+Each row is one structure file, following the same folder layout
+as [`ImageFolder`]: subfolder names become labels and a `metadata.csv`/`metadata.jsonl`
+file adds per-structure metadata. The `structure` column uses [`BioStructure`] with
+`format="pdb"` and decodes to a `Bio.PDB.Structure.Structure` object containing the
+file's models, chains, residues, and atoms. Decoding requires `biopython`; without it,
+accessing a decoded structure raises `ImportError`.
+
+To load PDB files from a directory:
+
+```py
+>>> from datasets import BioStructure, load_dataset
+>>> dataset = load_dataset("pdb", data_dir="path/to/structures")
+>>> dataset["train"].features["structure"]
+BioStructure(format='pdb', decode=True)
+```
+
+To access the underlying `{"bytes": ..., "path": ...}` dictionary without decoding
+or requiring biopython, cast the column with `decode=False`:
+
+```py
+>>> dataset = dataset.cast_column("structure", BioStructure(format="pdb", decode=False))
+```
+
+Extensions `.pdb` and `.ent` are supported.
+
 ### SQL
 
 Read database contents with [`~datasets.Dataset.from_sql`] by specifying the URI to connect to your database. You can read both table names and queries:
