@@ -807,3 +807,47 @@ def test_json_load_dataset_without_droid_marker_stays_ordinary_json(tmp_path):
 
     assert dataset.column_names == ["type", "id", "version", "timestamp", "message"]
     assert dataset[0]["type"] == "session_start"
+
+
+def test_json_return_file_name(tmp_path):
+    """Test that return_file_name adds a file_name column to the dataset."""
+    jsonl_file = tmp_path / "file1.jsonl"
+    data = textwrap.dedent(
+        """\
+        {"col_1": 1, "col_2": "a"}
+        {"col_1": 2, "col_2": "b"}
+        """
+    )
+    with open(jsonl_file, "w") as f:
+        f.write(data)
+
+    jsonl_file2 = tmp_path / "file2.jsonl"
+    data2 = textwrap.dedent(
+        """\
+        {"col_1": 3, "col_2": "c"}
+        {"col_1": 4, "col_2": "d"}
+        """
+    )
+    with open(jsonl_file2, "w") as f:
+        f.write(data2)
+
+    # Test with return_file_name=True
+    dataset = load_dataset(
+        "json",
+        data_files=[str(jsonl_file), str(jsonl_file2)],
+        split="train",
+        return_file_name=True,
+    )
+
+    assert "file_name" in dataset.column_names
+    assert dataset["file_name"] == ["file1.jsonl", "file1.jsonl", "file2.jsonl", "file2.jsonl"]
+    assert dataset["col_1"] == [1, 2, 3, 4]
+    assert dataset["col_2"] == ["a", "b", "c", "d"]
+
+    # Test with return_file_name=False (default)
+    dataset_no_filename = load_dataset(
+        "json",
+        data_files=[str(jsonl_file), str(jsonl_file2)],
+        split="train",
+    )
+    assert "file_name" not in dataset_no_filename.column_names
