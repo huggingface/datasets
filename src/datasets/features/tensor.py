@@ -22,6 +22,7 @@ from typing import Optional
 
 import numpy as np
 import pyarrow as pa
+import pyarrow.compute as pc
 from pandas.api.extensions import ExtensionDtype
 
 
@@ -519,6 +520,32 @@ def tensor_from_parquet_schema(schema):
     )
 
 
+def _compact_parquet_storage(array, parent_nulls=None, nullable=True):
+    """Remove values hidden by null lists or struct parents before Parquet writes."""
+    if isinstance(array, pa.ChunkedArray):
+        return pa.chunked_array([_compact_parquet_storage(chunk) for chunk in array.chunks], type=array.type)
+    nulls = array.is_null()
+    if parent_nulls is not None:
+        nulls = pc.or_(nulls, parent_nulls)
+    # Required fields must retain their validity beneath null struct parents.
+    mask = nulls if nullable else array.is_null()
+    if pa.types.is_struct(array.type):
+        return pa.StructArray.from_arrays(
+            [_compact_parquet_storage(array.field(i), nulls, field.nullable) for i, field in enumerate(array.type)],
+            fields=list(array.type),
+            mask=mask,
+        )
+    if pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
+        # Normalize the offset buffer's slice before supplying a separate mask.
+        masked = type(array).from_arrays(np.asarray(array.offsets), array.values, type=array.type, mask=nulls)
+        # Unlike a fixed-size-list cast, these offsets give null rows zero length.
+        offsets = pa.concat_arrays(
+            [pa.array([0], type=array.offsets.type), pc.cumulative_sum(pc.fill_null(masked.value_lengths(), 0))]
+        )
+        return type(array).from_arrays(offsets, _compact_parquet_storage(masked.flatten()), type=array.type, mask=mask)
+    return array
+
+
 def tensor_to_parquet_table(table, schema=None):
     from ..table import array_cast
 
@@ -532,6 +559,14 @@ def tensor_to_parquet_table(table, schema=None):
         if contains_tensor_type(field.type) or contains_tensor_type(column.type) or field.type != column.type
         else column
         for field, column in zip(schema, table.columns)
+    ]
+    # Parquet writers may reject non-zero spans hidden by null rows even though
+    # the Arrow arrays produced by fixed-size-list casts are valid.
+    arrays = [
+        _compact_parquet_storage(array)
+        if contains_tensor_type(column.type) and not contains_tensor_type(field.type)
+        else array
+        for field, column, array in zip(schema, table.columns, arrays)
     ]
     return pa.Table.from_arrays(arrays, schema=schema)
 
