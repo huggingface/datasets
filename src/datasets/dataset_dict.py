@@ -1534,7 +1534,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
-        columns: Optional[list[str]] = None,
+        columns: Optional[Sequence[str]] = None,
         **kwargs,
     ) -> "DatasetDict":
         """Create [`DatasetDict`] from Parquet file(s).
