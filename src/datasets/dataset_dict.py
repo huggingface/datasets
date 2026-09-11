@@ -29,6 +29,7 @@ from packaging import version
 from . import __version__, config
 from .arrow_dataset import (
     Dataset,
+    _append_to_repo,
     _get_updated_dataset_card,
 )
 from .features import Features
@@ -1646,6 +1647,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         num_shards: Optional[dict[str, int]] = None,
         embed_external_files: bool = True,
         num_proc: Optional[int] = None,
+        append: bool = False,
     ) -> Optional[CommitInfo]:
         """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
         The [`DatasetDict`] is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -1716,6 +1718,15 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
 
                 <Added version="4.0.0"/>
 
+            append (`bool`, defaults to `False`):
+                Append rows to existing splits, preserving their features and rows. Only the last Parquet
+                shard in the card's mapping order, across all listed directories, is downloaded and
+                extended. If it would exceed `max_shard_size`, it is kept and
+                the new rows are written to new shards. With `num_shards`, specify the total number
+                of shards in the split after appending; it cannot be smaller than the existing count.
+                New or renumbered shards use `data_dir`. Other splits and configurations are preserved.
+                Supported for dataset repositories only.
+
         Return:
             huggingface_hub.CommitInfo
 
@@ -1763,6 +1774,8 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
+        if append and repo_id.startswith("buckets/"):
+            raise ValueError("append=True is only supported for dataset repositories, not buckets.")
         if repo_id.startswith("buckets/"):
             if BucketNotFoundError is None:
                 raise ImportError("Pushing datasets to buckets requires huggingface_hub>=1.6.0")
@@ -1816,6 +1829,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 num_shards=num_shards,
                 embed_external_files=embed_external_files,
                 num_proc=num_proc,
+                append=append,
             )
 
 
@@ -2541,7 +2555,25 @@ def _push_to_repo(
     num_shards: Optional[dict[str, Optional[int]]] = None,
     embed_external_files: bool = True,
     num_proc: Optional[int] = None,
+    append: bool = False,
 ) -> CommitInfo:
+    if append:
+        return _append_to_repo(
+            dset_dict,
+            repo_id=repo_id,
+            config_name=config_name,
+            set_default=set_default,
+            data_dir=data_dir,
+            commit_message=commit_message,
+            commit_description=commit_description,
+            token=token,
+            revision=revision,
+            create_pr=create_pr,
+            max_shard_size=max_shard_size,
+            num_shards=num_shards,
+            embed_external_files=embed_external_files,
+            num_proc=num_proc,
+        )
     api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
     resolved_output_path = HfFileSystemResolvedRepositoryPath(
         repo_id=repo_id, repo_type="dataset", revision=revision or "main", path_in_repo=""

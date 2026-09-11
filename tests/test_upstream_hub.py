@@ -56,6 +56,28 @@ class TestPushToHub:
     _api = HfApi(endpoint=CI_HUB_ENDPOINT)
     _token = CI_HUB_USER_TOKEN
 
+    def test_push_to_hub_append(self, temporary_repo):
+        with temporary_repo() as repo_id:
+            DatasetDict(
+                train=Dataset.from_dict({"x": [1, 2]}),
+                test=Dataset.from_dict({"x": [0]}),
+            ).push_to_hub(repo_id, token=self._token)
+            Dataset.from_dict({"x": [3]}).push_to_hub(repo_id, append=True, token=self._token)
+            DatasetDict(train=Dataset.from_dict({"x": [4]})).push_to_hub(
+                repo_id, append=True, num_shards={"train": 2}, token=self._token
+            )
+            result = load_dataset(repo_id, token=self._token, download_mode="force_redownload")
+            assert result["train"]["x"] == [1, 2, 3, 4]
+            assert result["test"]["x"] == [0]
+            assert result["train"].info.splits["train"].num_examples == 4
+            assert sorted(self._api.list_repo_files(repo_id, repo_type="dataset", token=self._token)) == [
+                ".gitattributes",
+                "README.md",
+                "data/test-00000-of-00001.parquet",
+                "data/train-00000-of-00002.parquet",
+                "data/train-00001-of-00002.parquet",
+            ]
+
     def test_push_dataset_dict_to_hub_no_token(self, temporary_repo, set_ci_hub_access_token):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 

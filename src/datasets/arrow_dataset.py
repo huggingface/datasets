@@ -18,6 +18,7 @@
 import asyncio
 import contextlib
 import copy
+import fnmatch
 import glob
 import inspect
 import itertools
@@ -64,6 +65,7 @@ from fsspec.implementations.dirfs import DirFileSystem
 from huggingface_hub import (
     CommitInfo,
     CommitOperationAdd,
+    CommitOperationCopy,
     CommitOperationDelete,
     DatasetCard,
     DatasetCardData,
@@ -78,7 +80,11 @@ from tqdm.contrib.concurrent import thread_map
 from . import __version__, config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .data_files import sanitize_patterns
+from .data_files import (
+    _is_inside_unrequested_special_dir,
+    _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir,
+    sanitize_patterns,
+)
 from .download.streaming_download_manager import xgetsize
 from .features import Audio, ClassLabel, Features, Image, List, Value, Video
 from .features.features import (
@@ -6062,14 +6068,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     kwargs_iterable=kwargs_iterable,
                 )
             )
+            completed_jobs = {}
             for job_id, done, content in update_stream:
                 if not done:
                     pbar.update(content)
                 else:
-                    job_additions, job_new_parquet_paths, job_uploaded_size = content
-                    additions += job_additions
-                    new_parquet_paths += job_new_parquet_paths
-                    uploaded_size += job_uploaded_size
+                    completed_jobs[job_id] = content
+            for job_id in sorted(completed_jobs):
+                job_additions, job_new_parquet_paths, job_uploaded_size = completed_jobs[job_id]
+                additions += job_additions
+                new_parquet_paths += job_new_parquet_paths
+                uploaded_size += job_uploaded_size
 
         split_info = SplitInfo(name=split, num_bytes=dataset_nbytes, num_examples=len(self))
         return additions, new_parquet_paths, self.features, split_info, uploaded_size
@@ -6091,6 +6100,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         num_shards: Optional[int] = None,
         embed_external_files: bool = True,
         num_proc: Optional[int] = None,
+        append: bool = False,
     ) -> CommitInfo:
         """Pushes the dataset to the hub as a Parquet dataset.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -6160,6 +6170,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                 <Added version="4.0.0"/>
 
+            append (`bool`, defaults to `False`):
+                Append rows to existing splits, preserving their features and rows. Only the last Parquet
+                shard in the card's mapping order, across all listed directories, is downloaded and
+                extended. If it would exceed `max_shard_size`, it is kept and
+                the new rows are written to new shards. With `num_shards`, specify the total number
+                of shards in the split after appending; it cannot be smaller than the existing count.
+                New or renumbered shards use `data_dir`. Other splits and configurations are preserved.
+                Supported for dataset repositories only.
+
         Return:
             huggingface_hub.CommitInfo
 
@@ -6211,6 +6230,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
+        if append and repo_id.startswith("buckets/"):
+            raise ValueError("append=True is only supported for dataset repositories, not buckets.")
         if repo_id.startswith("buckets/"):
             if BucketNotFoundError is None:
                 raise ImportError("Pushing datasets to buckets requires huggingface_hub>=1.6.0")
@@ -6266,6 +6287,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 num_shards=num_shards,
                 embed_external_files=embed_external_files,
                 num_proc=num_proc,
+                append=append,
             )
 
     @transmit_format
@@ -6662,6 +6684,319 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return self.map(process_label_ids, features=features, batched=True, desc="Aligning the labels")
 
 
+def _get_available_parquet_split_name(split: str, data_dir: str, occupied_paths: set[str]) -> str:
+    """Reserve a filename prefix without changing the card's logical split name."""
+    prefix = "" if data_dir == "." else data_dir + "/"
+    name, generation = split, 0
+    while any(path.startswith(f"{prefix}{name}-") for path in occupied_paths):
+        generation += 1
+        name = f"{split}-append-{generation}"
+    return name
+
+
+def _prepare_parquet_append(
+    dset: "Dataset",
+    files: list,
+    fs: DirFileSystem,
+    temporary_dir: str,
+    data_dir: str,
+    split: str,
+    parent_commit: str,
+    max_shard_size: Optional[Union[int, str]],
+    num_shards: Optional[int],
+    embed_external_files: bool,
+    occupied_paths: set[str],
+    shared_paths: set[str],
+) -> tuple[list, int, int, dict[str, str]]:
+    """Prepare additions, byte counts, and path replacements within this split."""
+    from .io.parquet import _append_parquet_file, _get_parquet_features, _get_parquet_temporal_writer_options
+
+    old_count = len(files)
+    path_prefix = "" if data_dir == "." else data_dir + "/"
+    if num_shards is not None and num_shards < old_count:
+        raise ValueError(f"num_shards must be at least {old_count} when appending to split {split!r}.")
+    last = files[-1]
+    original = os.path.join(temporary_dir, "original.parquet")
+    fs.get_file(last.path, original)
+    import pyarrow.parquet as pq
+
+    old_features = Features.from_arrow_schema(pq.read_schema(original))
+    writer_options = _get_parquet_temporal_writer_options(pq.read_metadata(original))
+    if _get_parquet_features(dset.features, **writer_options) != _get_parquet_features(old_features, **writer_options):
+        raise ValueError(f"Features of appended rows must match the existing split: {dset.features} != {old_features}")
+    if not len(dset):
+        return [], 0, 0, {}
+
+    if embed_external_files and any(
+        require_decoding(feature, ignore_decode_attribute=True) for feature in dset.features.values()
+    ):
+        from .arrow_writer import get_writer_batch_size_from_features
+
+        batch_size = get_writer_batch_size_from_features(dset.features) or config.DEFAULT_MAX_BATCH_SIZE
+        dset = dset.with_format("arrow").map(
+            embed_table_storage,
+            batched=True,
+            batch_size=batch_size,
+            writer_batch_size=batch_size,
+            cache_file_name=os.path.join(temporary_dir, "embedded.arrow"),
+        )
+
+    max_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+    if max_size <= 0:
+        raise ValueError("max_shard_size must be greater than zero.")
+    appended = os.path.join(temporary_dir, "appended.parquet")
+    if num_shards is None or num_shards == old_count:
+        _append_parquet_file(dset, original, appended)
+        if num_shards == old_count or os.path.getsize(appended) <= max_size:
+            new_path = last.path
+            if last.path in shared_paths:
+                shard_name = _get_available_parquet_split_name(split, data_dir, occupied_paths)
+                new_path = f"{path_prefix}{shard_name}-{old_count - 1:05d}-of-{old_count:05d}.parquet"
+            return (
+                [CommitOperationAdd(path_in_repo=new_path, path_or_fileobj=appended)],
+                os.path.getsize(appended),
+                last.size,
+                {last.path: new_path} if new_path != last.path else {},
+            )
+
+    # Overflow leaves the old tail intact. Only new rows need to be partitioned.
+    new_files = []
+
+    def write_shard(shard):
+        path = os.path.join(temporary_dir, f"new-{len(new_files)}.parquet")
+        shard.to_parquet(path)
+        if num_shards is None and os.path.getsize(path) > max_size and len(shard) > 1:
+            # Estimates alone cannot bound compressed Parquet files (especially their footers).
+            middle = len(shard) // 2
+            write_shard(shard.select(range(middle)))
+            write_shard(shard.select(range(middle, len(shard))))
+        else:
+            new_files.append(path)
+
+    new_count = (
+        num_shards - old_count if num_shards is not None else max(1, int(dset._estimate_nbytes() / max_size) + 1)
+    )
+    new_count = min(new_count, len(dset)) if num_shards is None else new_count
+    for index in range(new_count):
+        write_shard(dset.shard(num_shards=new_count, index=index, contiguous=True))
+    total = old_count + len(new_files)
+    # Card mappings can partition a filename layout between splits/configurations.
+    # Allocate a fresh layout if the usual names would overwrite an unrelated file.
+    occupied_paths = occupied_paths - ({file.path for file in files} - shared_paths)
+    shard_name = _get_available_parquet_split_name(split, data_dir, occupied_paths)
+    new_paths = [f"{path_prefix}{shard_name}-{index:05d}-of-{total:05d}.parquet" for index in range(total)]
+    operations = []
+    for index, file in enumerate(files):
+        new_path = new_paths[index]
+        if file.path != new_path:
+            operations.append(
+                CommitOperationCopy(src_path_in_repo=file.path, path_in_repo=new_path, src_revision=parent_commit)
+            )
+    operations.extend(
+        CommitOperationDelete(path_in_repo=file.path)
+        for file in files
+        if file.path not in new_paths and file.path not in shared_paths
+    )
+    for index, path in enumerate(new_files, start=old_count):
+        operations.append(CommitOperationAdd(path_in_repo=new_paths[index], path_or_fileobj=path))
+    renames = {op.src_path_in_repo: op.path_in_repo for op in operations if isinstance(op, CommitOperationCopy)}
+    return operations, sum(os.path.getsize(path) for path in new_files), 0, renames
+
+
+def _append_to_repo(
+    dset_dict: dict[str, "Dataset"],
+    repo_id: str,
+    config_name: str,
+    set_default: Optional[bool],
+    data_dir: str,
+    commit_message: Optional[str],
+    commit_description: Optional[str],
+    token: Optional[str],
+    revision: Optional[str],
+    create_pr: Optional[bool],
+    max_shard_size: Optional[Union[int, str]],
+    num_shards: Optional[dict[str, Optional[int]]],
+    embed_external_files: bool,
+    num_proc: Optional[int],
+) -> CommitInfo:
+    """Append against a single snapshot so a concurrent push cannot silently discard rows."""
+    data_dir = posixpath.normpath(data_dir).lstrip("/") or "."
+    path_prefix = "" if data_dir == "." else data_dir + "/"
+    api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
+    parent_commit = api.repo_info(repo_id, repo_type="dataset", revision=revision).sha
+    snapshot = HfFileSystemResolvedRepositoryPath(
+        repo_id=repo_id, repo_type="dataset", revision=parent_commit, path_in_repo=""
+    )
+    fs = DirFileSystem(fs=HfFileSystem(endpoint=config.HF_ENDPOINT, token=token), path=snapshot.unresolve())
+    output = HfFileSystemResolvedRepositoryPath(
+        repo_id=repo_id, repo_type="dataset", revision=revision or "main", path_in_repo=""
+    )
+    try:
+        tree = list(
+            api.list_repo_tree(
+                repo_id,
+                repo_type="dataset",
+                revision=parent_commit,
+                recursive=True,
+            )
+        )
+    except EntryNotFoundError:
+        tree = []
+    try:
+        metadata_configs = MetadataConfigs.from_dataset_card_data(
+            DatasetCard(fs.read_text(config.REPOCARD_FILENAME, encoding="utf-8")).data
+        )
+    except FileNotFoundError:
+        metadata_configs = MetadataConfigs()
+    configured_data_files = metadata_configs.get(config_name, {}).get("data_files")
+    data_files = sanitize_patterns(configured_data_files) if configured_data_files is not None else None
+    file_owners = {}
+    for owner_config, metadata_config in metadata_configs.items():
+        for owner_split, patterns in sanitize_patterns(metadata_config.get("data_files", {})).items():
+            for path in _resolve_parquet_paths_for_append(fs, owner_split, patterns):
+                file_owners.setdefault(path, set()).add((owner_config, owner_split))
+    tree_by_path = {file.path: file for file in tree}
+    splits_info = [
+        SplitInfo(name=split, num_bytes=dset._estimate_nbytes() if len(dset) else 0, num_examples=len(dset))
+        for split, dset in dset_dict.items()
+    ]
+    features = next(iter(dset_dict.values())).features
+    # Validate card features before uploading anything, including when a different data_dir is used.
+    validated_card, _ = _get_updated_dataset_card(
+        fs,
+        config_name,
+        splits_info,
+        features,
+        data_dir,
+        set_default,
+        [0] * len(splits_info),
+        [0] * len(splits_info),
+        False,
+        append=True,
+    )
+    card_features = DatasetInfosDict.from_dataset_card_data(validated_card.data)[config_name].features
+    operations, additions, uploaded_sizes, deleted_sizes = [], [], [], []
+    split_parquet_paths, renamed_parquet_paths = {}, {}
+    with tempfile.TemporaryDirectory() as temporary_dir:
+        for index, (split, dset) in enumerate(dset_dict.items()):
+            if dset.features != card_features:
+                # Parquet-normalized types may agree while the card has a coarser
+                # logical unit. Use the reader's safe cast before preparing uploads.
+                dset = dset.cast(card_features, cache_file_name=os.path.join(temporary_dir, f"{split}.arrow"))
+                splits_info[index].num_bytes = dset._estimate_nbytes() if len(dset) else 0
+            pattern = re.compile(rf"{re.escape(path_prefix)}{re.escape(split)}-(\d{{5,}})-of-(\d{{5,}})\.parquet")
+            if data_files is not None:
+                paths = _resolve_parquet_paths_for_append(fs, split, data_files.get(split, []))
+                files = [tree_by_path[path] for path in paths]
+            else:
+                files = sorted(
+                    (file for file in tree if pattern.fullmatch(file.path)),
+                    key=lambda file: int(pattern.fullmatch(file.path)[1]),
+                )
+            if files:
+                if data_files is None:
+                    indices = [int(pattern.fullmatch(file.path)[1]) for file in files]
+                    totals = {int(pattern.fullmatch(file.path)[2]) for file in files}
+                    if indices != list(range(len(files))) or totals != {len(files)}:
+                        raise ValueError(
+                            f"Cannot append to split {split!r}: inconsistent Parquet shard numbering in {data_dir!r}."
+                        )
+                split_dir = os.path.join(temporary_dir, split)
+                os.makedirs(split_dir)
+                split_operations, uploaded_size, deleted_size, renames = _prepare_parquet_append(
+                    dset,
+                    files,
+                    fs,
+                    split_dir,
+                    data_dir,
+                    split,
+                    parent_commit,
+                    max_shard_size,
+                    (num_shards or {}).get(split),
+                    embed_external_files,
+                    set(tree_by_path) | {op.path_in_repo for op in operations},
+                    {path for path, owners in file_owners.items() if owners - {(config_name, split)}},
+                )
+                additions.extend(op for op in split_operations if isinstance(op, CommitOperationAdd))
+            else:
+                # Serialize a new split normally, reserving names before preupload
+                # so an unrelated file with a conventional name cannot be replaced.
+                shard_name = _get_available_parquet_split_name(
+                    split, data_dir, set(tree_by_path) | {op.path_in_repo for op in operations}
+                )
+                split_operations, _, _, _, uploaded_size = dset._push_parquet_shards_to_hub(
+                    resolved_output_path=output,
+                    data_dir=data_dir,
+                    split=shard_name,
+                    token=token,
+                    create_pr=create_pr,
+                    max_shard_size=max_shard_size,
+                    num_shards=(num_shards or {}).get(split),
+                    embed_external_files=embed_external_files,
+                    num_proc=num_proc,
+                )
+                deleted_size = 0
+                renames = {}
+            renamed_parquet_paths[split] = renames
+            split_parquet_paths[split] = list(
+                dict.fromkeys(
+                    [renames.get(file.path, file.path) for file in files]
+                    + [op.path_in_repo for op in split_operations if isinstance(op, CommitOperationAdd)]
+                )
+            )
+            operations.extend(split_operations)
+            uploaded_sizes.append(uploaded_size)
+            deleted_sizes.append(deleted_size)
+
+        final_parquet_paths = sorted(
+            (
+                {file.path for file in tree if file.path.endswith(".parquet")}
+                - {op.path_in_repo for op in operations if isinstance(op, CommitOperationDelete)}
+            )
+            | {op.path_in_repo for op in operations if isinstance(op, (CommitOperationAdd, CommitOperationCopy))}
+        )
+        card, legacy_infos = _get_updated_dataset_card(
+            fs,
+            config_name,
+            splits_info,
+            features,
+            data_dir,
+            set_default,
+            uploaded_sizes,
+            deleted_sizes,
+            False,
+            append=True,
+            new_parquet_paths=final_parquet_paths,
+            split_parquet_paths=split_parquet_paths,
+            renamed_parquet_paths=renamed_parquet_paths,
+        )
+        # New-split additions have already been preuploaded by the normal writer.
+        if additions:
+            api.preupload_lfs_files(
+                repo_id, additions=additions, repo_type="dataset", revision=revision, create_pr=create_pr
+            )
+        operations.append(
+            CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(card).encode())
+        )
+        if legacy_infos:
+            operations.append(
+                CommitOperationAdd(
+                    path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+                    path_or_fileobj=json.dumps(legacy_infos).encode("utf-8"),
+                )
+            )
+        return api.create_commit(
+            repo_id,
+            operations=operations,
+            commit_message=commit_message or "Append dataset",
+            commit_description=commit_description,
+            repo_type="dataset",
+            revision=revision,
+            create_pr=create_pr,
+            parent_commit=parent_commit,
+        )
+
+
 def _push_to_repo(
     dset: Union["Dataset", "IterableDataset"],
     repo_id: str,
@@ -6678,7 +7013,25 @@ def _push_to_repo(
     num_shards: Optional[int] = None,
     embed_external_files: bool = True,
     num_proc: Optional[int] = None,
+    append: bool = False,
 ) -> CommitInfo:
+    if append:
+        return _append_to_repo(
+            {split: dset},
+            repo_id=repo_id,
+            config_name=config_name,
+            set_default=set_default,
+            data_dir=data_dir,
+            commit_message=commit_message,
+            commit_description=commit_description,
+            token=token,
+            revision=revision,
+            create_pr=create_pr,
+            max_shard_size=max_shard_size,
+            num_shards={split: num_shards},
+            embed_external_files=embed_external_files,
+            num_proc=num_proc,
+        )
     api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
     resolved_output_path = HfFileSystemResolvedRepositoryPath(
         repo_id=repo_id, repo_type="dataset", revision=revision or "main", path_in_repo=""
@@ -6899,6 +7252,150 @@ def _push_to_bucket(
     )
 
 
+def _get_parquet_patterns_for_append(
+    fs: DirFileSystem, config_name: str, data_dir: str, metadata_configs: MetadataConfigs
+) -> dict[str, list[str]]:
+    """Keep existing patterns, inferring the standard shard layout when metadata is absent."""
+    metadata_config = metadata_configs.get(config_name, {})
+    if "data_files" in metadata_config:
+        return sanitize_patterns(metadata_config["data_files"])
+    data_files = {}
+    # Only cards without a mapping need layout inference. An explicit mapping
+    # defines the configuration boundary, even if other splits share a directory.
+    directories = list(dict.fromkeys([config_name if config_name != "default" else "data", data_dir]))
+    for directory in directories:
+        prefix = "" if directory == "." else directory + "/"
+        pattern = re.compile(rf"{re.escape(prefix)}(.+)-\d{{5,}}-of-\d{{5,}}\.parquet")
+        try:
+            paths = fs.glob(f"{prefix}*.parquet")
+        except EntryNotFoundError:
+            paths = []
+        for path in paths:
+            if match := pattern.fullmatch(path):
+                inferred = data_files.setdefault(match[1], [])
+                split_pattern = f"{prefix}{match[1]}-*"
+                if split_pattern not in inferred:
+                    inferred.append(split_pattern)
+    return data_files
+
+
+def _resolve_parquet_paths_for_append(fs: DirFileSystem, split: str, patterns: list[str]) -> list[str]:
+    """Resolve every mapped Parquet file in card order, regardless of its filename."""
+    return list(
+        dict.fromkeys(
+            posixpath.normpath(path)
+            for pattern in patterns
+            for path in sorted(fs.glob(posixpath.normpath(pattern)))
+            if path.endswith(".parquet")
+            if not _is_inside_unrequested_special_dir(path, pattern)
+            if not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(path, pattern)
+        )
+    )
+
+
+def _get_parquet_info_for_append(
+    fs: DirFileSystem,
+    config_name: str,
+    data_dir: str,
+    metadata_configs: MetadataConfigs,
+    existing_info: Optional[DatasetInfo] = None,
+) -> DatasetInfo:
+    """Recover missing statistics within the configuration, decoding only unknown Arrow sizes."""
+    import pyarrow.parquet as pq
+
+    data_files = _get_parquet_patterns_for_append(fs, config_name, data_dir, metadata_configs)
+    info = DatasetInfo(config_name=config_name, splits=SplitDict(), download_size=0, dataset_size=0)
+    for split, patterns in data_files.items():
+        paths = _resolve_parquet_paths_for_append(fs, split, patterns)
+        if not paths:
+            continue
+        existing_split = (existing_info.splits or {}).get(split) if existing_info is not None else None
+        known_bytes = existing_split.num_bytes if existing_split is not None else None
+        split_info = SplitInfo(name=split, num_examples=0, num_bytes=known_bytes or 0)
+        for path in paths:
+            with fs.open(path, "rb") as file:
+                parquet = pq.ParquetFile(file)
+                metadata = parquet.metadata
+                if known_bytes is None:
+                    # Parquet's uncompressed sizes include encoding overhead. Decode
+                    # in bounded batches and discard redundant all-valid bitmaps so
+                    # these counts use Arrow buffers, just like newly appended rows.
+                    for batch in parquet.iter_batches():
+                        split_info.num_bytes += sum(pa.concat_arrays([column]).nbytes for column in batch.columns)
+            features = Features.from_arrow_schema(metadata.schema.to_arrow_schema())
+            if info.features is not None and info.features != features:
+                raise ValueError("Features of existing Parquet shards must match before appending.")
+            info.features = features
+            split_info.num_examples += metadata.num_rows
+            info.download_size += fs.size(path)
+        info.splits.add(split_info)
+        info.dataset_size += split_info.num_bytes
+    return info
+
+
+def _matches_repo_glob(path: str, pattern: str) -> bool:
+    """Match repo paths with directory-aware * and recursive **, as in data_files globs."""
+    if _is_inside_unrequested_special_dir(path, pattern) or (
+        _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(path, pattern)
+    ):
+        return False
+    path_parts, pattern_parts = path.split("/"), pattern.split("/")
+
+    def matches(parts, patterns):
+        if not patterns:
+            return not parts
+        if patterns[0] == "**":
+            return matches(parts, patterns[1:]) or bool(parts) and matches(parts[1:], patterns)
+        return bool(parts) and fnmatch.fnmatchcase(parts[0], patterns[0]) and matches(parts[1:], patterns[1:])
+
+    return matches(path_parts, pattern_parts)
+
+
+def _update_parquet_patterns_for_append(
+    fs: DirFileSystem,
+    split: str,
+    patterns: list[str],
+    paths: list[str],
+    renames: dict[str, str],
+    all_paths: list[str],
+    prefix: str,
+) -> list[str]:
+    """Replace renamed paths in place and cover only this split's added files."""
+    updated = []
+    insertion_index = None
+    for pattern in patterns:
+        matched = _resolve_parquet_paths_for_append(fs, split, [pattern])
+        if any(path in renames for path in matched) or any(
+            _matches_repo_glob(path, posixpath.normpath(pattern)) and path not in paths and path not in matched
+            for path in all_paths
+        ):
+            # Materialize globs that also include another split, so readers resolve
+            # the same files that were selected for this append.
+            updated.extend(renames.get(path, path) for path in matched)
+        else:
+            updated.append(pattern)
+        if any(path in renames or path in paths for path in matched):
+            insertion_index = len(updated)
+    uncovered = [
+        path for path in paths if not any(_matches_repo_glob(path, posixpath.normpath(pattern)) for pattern in updated)
+    ]
+    insertion_index = len(updated) if insertion_index is None else insertion_index
+    updated[insertion_index:insertion_index] = uncovered
+
+    # Use the conventional glob only when it resolves to exactly the same ordered
+    # files. In particular, never widen an explicit mapping into another split.
+    glob_paths = sorted(path for path in all_paths if _matches_repo_glob(path, prefix + "*"))
+    indices = [index for index, pattern in enumerate(updated) if pattern in glob_paths]
+    if (
+        indices
+        and updated != patterns
+        and indices == list(range(indices[0], indices[-1] + 1))
+        and [updated[index] for index in indices] == glob_paths
+    ):
+        updated[indices[0] : indices[-1] + 1] = [prefix + "*"]
+    return list(dict.fromkeys(updated))
+
+
 def _get_updated_dataset_card(
     fs: DirFileSystem,
     config_name: str,
@@ -6909,8 +7406,15 @@ def _get_updated_dataset_card(
     uploaded_sizes: list[int],
     deleted_sizes: list[int],
     remove_other_splits: bool,
+    append: bool = False,
+    new_parquet_paths: Optional[list[str]] = None,
+    split_parquet_paths: Optional[dict[str, list[str]]] = None,
+    renamed_parquet_paths: Optional[dict[str, dict[str, str]]] = None,
 ) -> tuple[DatasetCard, Optional[dict]]:
     """Update a dataset card in push_to_hub"""
+    if append:
+        from .io.parquet import _get_parquet_features
+
     # get the deprecated dataset_infos.json to update them
     try:
         legacy_dataset_info: dict = json.loads(fs.read_text(config.DATASETDICT_INFOS_FILENAME, encoding="utf-8")).get(
@@ -6928,23 +7432,61 @@ def _get_updated_dataset_card(
         dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
         if dataset_infos and config_name in dataset_infos:
             repo_info = dataset_infos[config_name]
-        else:
+        elif not append:
             repo_info = None
     except FileNotFoundError:
         dataset_card = None
         dataset_card_data = DatasetCardData()
         metadata_configs = MetadataConfigs()
+    if append and "data_files" not in metadata_configs.get(config_name, {}):
+        inferred_patterns = _get_parquet_patterns_for_append(fs, config_name, data_dir, metadata_configs)
+        if inferred_patterns:
+            metadata_configs.setdefault(config_name, {})["data_files"] = [
+                {"split": split, "path": patterns} for split, patterns in inferred_patterns.items()
+            ]
+    if append and (
+        repo_info is None
+        or repo_info.features is None
+        or repo_info.splits is None
+        or repo_info.download_size is None
+        or repo_info.dataset_size is None
+    ):
+        recovered_info = _get_parquet_info_for_append(fs, config_name, data_dir, metadata_configs, repo_info)
+        if recovered_info.splits:
+            if repo_info is None:
+                repo_info = recovered_info
+            else:
+                if repo_info.features is None:
+                    repo_info.features = recovered_info.features
+                if repo_info.splits is None:
+                    repo_info.splits = recovered_info.splits
+                if repo_info.download_size is None:
+                    repo_info.download_size = recovered_info.download_size
+                if repo_info.dataset_size is None:
+                    repo_info.dataset_size = sum(split.num_bytes for split in repo_info.splits.values())
+
+    if append and repo_info is not None and repo_info.splits is None:
+        repo_info.splits = SplitDict()
+
     # update the total info to dump from existing info
     if repo_info is not None and not remove_other_splits:
         logger.info("Updating downloaded metadata with the new split" + ("s." if len(splits_info) > 1 else "."))
         for split_info, deleted_size, uploaded_size in zip(splits_info, deleted_sizes, uploaded_sizes):
             split = split_info.name
-            if repo_info.splits and any(s != split for s in repo_info.splits):
-                if features != repo_info.features:
+            if append or (repo_info.splits and any(s != split for s in repo_info.splits)):
+                if features != repo_info.features and (
+                    not append
+                    or repo_info.features is None
+                    or _get_parquet_features(features) != _get_parquet_features(repo_info.features)
+                ):
                     raise ValueError(
                         f"Features of the new split don't match the features of the existing splits on the hub: {features} != {repo_info.features}"
                     )
 
+            if append and split in repo_info.splits:
+                split_info = copy.deepcopy(split_info)
+                split_info.num_examples += repo_info.splits[split].num_examples
+                split_info.num_bytes += repo_info.splits[split].num_bytes
             if split in repo_info.splits:
                 repo_info.download_size -= deleted_size
                 repo_info.dataset_size -= repo_info.splits.get(split, SplitInfo()).num_bytes or 0
@@ -6990,15 +7532,30 @@ def _get_updated_dataset_card(
         # add the new splits
         for split_info in splits_info:
             split = split_info.name
-            data_files_to_dump[split] = [f"{data_dir}/{split}-*"]
+            if append:
+                prefix = ("" if data_dir == "." else data_dir + "/") + split + "-"
+                patterns = data_files_to_dump.setdefault(split, [])
+                if split_parquet_paths is not None:
+                    data_files_to_dump[split] = _update_parquet_patterns_for_append(
+                        fs,
+                        split,
+                        patterns,
+                        split_parquet_paths[split],
+                        (renamed_parquet_paths or {}).get(split, {}),
+                        new_parquet_paths or [],
+                        prefix,
+                    )
+            else:
+                data_files_to_dump[split] = [f"{data_dir}/{split}-*"]
         metadata_config_to_dump = {
+            **(metadata_config if append else {}),
             "data_files": [
                 {
                     "split": _split,
                     "path": _pattern[0] if len(_pattern) == 1 else _pattern,
                 }
                 for _split, _pattern in data_files_to_dump.items()
-            ]
+            ],
         }
     else:
         metadata_config_to_dump = {
@@ -7007,6 +7564,38 @@ def _get_updated_dataset_card(
             ]
         }
     configs_to_dump = {config_name: metadata_config_to_dump}
+    if append and new_parquet_paths is not None:
+        # Keep unmodified owners on their original ordered files. Retaining a
+        # shared source alone is insufficient if their glob also matches its copies.
+        for owner_config, original_config in metadata_configs.items():
+            if "data_files" not in original_config:
+                continue
+            updated_config = copy.deepcopy(configs_to_dump.get(owner_config, original_config))
+            updated_files = sanitize_patterns(updated_config["data_files"])
+            changed = False
+            for owner_split, patterns in sanitize_patterns(original_config["data_files"]).items():
+                if owner_config == config_name and owner_split in (split_parquet_paths or {}):
+                    continue
+                updated_patterns = []
+                for pattern in patterns:
+                    original_paths = _resolve_parquet_paths_for_append(fs, owner_split, [pattern])
+                    final_paths = [
+                        path for path in new_parquet_paths if _matches_repo_glob(path, posixpath.normpath(pattern))
+                    ]
+                    if original_paths != final_paths:
+                        # Every original match is retained, in the same order.
+                        updated_patterns.extend(original_paths)
+                    else:
+                        updated_patterns.append(pattern)
+                if updated_patterns != patterns:
+                    updated_files[owner_split] = updated_patterns
+                    changed = True
+            if changed:
+                updated_config["data_files"] = [
+                    {"split": split, "path": patterns[0] if len(patterns) == 1 else patterns}
+                    for split, patterns in updated_files.items()
+                ]
+                configs_to_dump[owner_config] = updated_config
     if set_default and config_name != "default":
         if metadata_configs:
             current_default_config_name = metadata_configs.get_default_config_name()
