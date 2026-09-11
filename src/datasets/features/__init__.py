@@ -6,6 +6,7 @@ __all__ = [
     "Array3D",
     "Array4D",
     "Array5D",
+    "Tensor",
     "ClassLabel",
     "Features",
     "Json",
@@ -29,5 +30,6 @@ from .image import Image
 from .mesh import Mesh
 from .nifti import Nifti
 from .pdf import Pdf
+from .tensor import Tensor
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video

@@ -24,8 +24,9 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 
-from ..features import Features
+from ..features import Features, LargeList, List
 from ..features.features import _ArrayXDExtensionType, _is_zero_copy_only, decode_nested_example, pandas_types_mapper
+from ..features.tensor import Tensor, contains_tensor, contains_tensor_type, tensor_to_backend
 from ..table import Table
 from ..utils.py_utils import no_op_if_value_is_null
 
@@ -164,6 +165,13 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
         return {col: self._arrow_array_to_numpy(pa_table[col]) for col in pa_table.column_names}
 
     def _arrow_array_to_numpy(self, pa_array: pa.Array) -> np.ndarray:
+        if contains_tensor_type(pa_array.type):
+            # Keep one storage value per row for the feature decoder, including
+            # nulls and scalars. It restores shape and dtype before tensorization.
+            values = pa_array.to_pylist()
+            array = np.empty(len(values), dtype=object)
+            array[:] = values
+            return array
         if isinstance(pa_array, pa.ChunkedArray):
             if isinstance(pa_array.type, _ArrayXDExtensionType):
                 # don't call to_pylist() to preserve dtype of the fixed-size array
@@ -255,27 +263,26 @@ class PandasFeaturesDecoder:
         self.features = features
 
     def decode_row(self, row: pd.DataFrame) -> pd.DataFrame:
-        decode = (
-            {
-                column_name: no_op_if_value_is_null(partial(decode_nested_example, feature))
-                for column_name, feature in self.features.items()
-                if self.features._column_requires_decoding[column_name]
-            }
-            if self.features
-            else {}
-        )
-        if decode:
-            row[list(decode.keys())] = row.transform(decode)
+        for column_name in row:
+            row[column_name] = self.decode_column(row[column_name], column_name)
         return row
 
     def decode_column(self, column: pd.Series, column_name: str) -> pd.Series:
         decode = (
             no_op_if_value_is_null(partial(decode_nested_example, self.features[column_name]))
-            if self.features and column_name in self.features and self.features._column_requires_decoding[column_name]
+            if self.features
+            and column_name in self.features
+            and self.features._column_requires_decoding[column_name]
+            and not isinstance(self.features[column_name], Tensor)
             else None
         )
         if decode:
-            column = column.transform(decode)
+            # TensorPandasDtype restores tensors using the Arrow schema. Sibling
+            # features (e.g. Image) still need the original feature metadata.
+            if contains_tensor(self.features[column_name]):
+                column = column.map(decode)
+            else:
+                column = column.transform(decode)
         return column
 
     def decode_batch(self, batch: pd.DataFrame) -> pd.DataFrame:
@@ -443,6 +450,33 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
 class TensorFormatter(Formatter[RowFormat, ColumnFormat, BatchFormat]):
     def recursive_tensorize(self, data_struct: dict):
         raise NotImplementedError
+
+    def _tensorize_with_features(self, value, feature):
+        if not contains_tensor(feature):
+            return self.recursive_tensorize(value)
+        if value is None:
+            return None
+        if isinstance(feature, Tensor):
+            return tensor_to_backend(value, self._tensor_backend, **self._tensor_kwargs)
+        if isinstance(feature, dict):
+            return {name: self._tensorize_with_features(item, feature.get(name)) for name, item in value.items()}
+        if isinstance(feature, (List, LargeList)):
+            return self._consolidate([self._tensorize_with_features(item, feature.feature) for item in value])
+        if isinstance(feature, (list, tuple)):
+            return self._consolidate([self._tensorize_with_features(item, feature[0]) for item in value])
+        return self.recursive_tensorize(value)
+
+    def tensorize_row(self, row):
+        return self._tensorize_with_features(row, self.features)
+
+    def tensorize_column(self, column, column_name):
+        feature = self.features.get(column_name) if self.features else None
+        if contains_tensor(feature):
+            return [self._tensorize_with_features(value, feature) for value in column]
+        return self.recursive_tensorize(column)
+
+    def tensorize_batch(self, batch):
+        return {name: self.tensorize_column(column, name) for name, column in batch.items()}
 
 
 class TableFormatter(Formatter[RowFormat, ColumnFormat, BatchFormat]):
