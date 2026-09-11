@@ -2325,8 +2325,8 @@ class Features(dict):
 
             >>> from datasets import Features, List, Value
             >>> # let's say we have two features with a different order of nested fields (for a and b for example)
-            >>> f1 = Features({"root": {"a": Value("string"), "b": Value("string")}})
-            >>> f2 = Features({"root": {"b": Value("string"), "a": Value("string")}})
+            >>> f1 = Features({"root": List({"a": Value("string"), "b": Value("string")})})
+            >>> f2 = Features({"root": List({"b": Value("string"), "a": Value("string")})})
             >>> assert f1.type != f2.type
             >>> # re-ordering keeps the base structure (here List is defined at the root level), but makes the fields order match
             >>> f1.reorder_fields_as(f2)
@@ -2378,8 +2378,8 @@ class Features(dict):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rajpurkar/squad", split="train")
         >>> ds.features.flatten()
-        {'answers.answer_start': List(Value('int32'), id=None),
-         'answers.text': List(Value('string'), id=None),
+        {'answers.answer_start': List(Value('int32')),
+         'answers.text': List(Value('string')),
          'context': Value('string'),
          'id': Value('string'),
          'question': Value('string'),

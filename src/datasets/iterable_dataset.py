@@ -4264,7 +4264,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> from datasets import load_dataset, Audio
         >>> ds = load_dataset("PolyAI/minds14", name="en-US", split="train", streaming=True)
         >>> ds.features
-        {'audio': Audio(sampling_rate=8000, mono=True, decode=True, id=None),
+        {'audio': Audio(sampling_rate=8000, decode=True, num_channels=None, stream_index=None),
          'english_transcription': Value('string'),
          'intent_class': ClassLabel(num_classes=14, names=['abroad', 'address', 'app_error', 'atm_limit', 'balance', 'business_loan',  'card_issues', 'cash_deposit', 'direct_debit', 'freeze', 'high_value_payment', 'joint_account', 'latest_transactions', 'pay_bill']),
          'lang_id': ClassLabel(num_classes=14, names=['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR',  'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN']),
@@ -4272,7 +4272,7 @@ class IterableDataset(DatasetInfoMixin):
          'transcription': Value('string')}
         >>> ds = ds.cast_column("audio", Audio(sampling_rate=16000))
         >>> ds.features
-        {'audio': Audio(sampling_rate=16000, mono=True, decode=True, id=None),
+        {'audio': Audio(sampling_rate=16000, decode=True, num_channels=None, stream_index=None),
          'english_transcription': Value('string'),
          'intent_class': ClassLabel(num_classes=14, names=['abroad', 'address', 'app_error', 'atm_limit', 'balance', 'business_loan',  'card_issues', 'cash_deposit', 'direct_debit', 'freeze', 'high_value_payment', 'joint_account', 'latest_transactions', 'pay_bill']),
          'lang_id': ClassLabel(num_classes=14, names=['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR',  'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN']),
@@ -4377,7 +4377,7 @@ class IterableDataset(DatasetInfoMixin):
         'text': 'A distant celestial object with an icy crust, displaying a light blue shade, covered with round pits and rugged terrains.'}
         >>> ds = ds.decode(False)
         >>> ds.features
-        {'image': Image(mode=None, decode=False, id=None),
+        {'image': Image(mode=None, decode=False),
         'text': Value('string')}
         >>> next(iter(ds))
         {
