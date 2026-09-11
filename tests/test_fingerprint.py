@@ -18,6 +18,7 @@ import datasets
 from datasets import config
 from datasets.fingerprint import Hasher, fingerprint_transform
 from datasets.table import InMemoryTable
+from datasets.utils._dill import Pickler
 
 from .utils import (
     require_not_windows,
@@ -231,6 +232,18 @@ class HashingTest(TestCase):
         hash3 = Hasher.hash("there")
         self.assertEqual(hash1, hash2)
         self.assertNotEqual(hash1, hash3)
+
+    def test_hash_dict_legacy_no_dict_keys_sorting(self):
+        # _check_legacy_cache2 patches this flag to reproduce 2.15.0's unsorted dict hashes
+        insertion_order = {"train": ["train.csv"], "test": ["test.csv"]}
+        sorted_order = {"test": ["test.csv"], "train": ["train.csv"]}
+        self.assertEqual(Hasher.hash(insertion_order), Hasher.hash(sorted_order))
+        with patch.object(Pickler, "_legacy_no_dict_keys_sorting", True):
+            legacy_insertion = Hasher.hash(insertion_order)
+            legacy_sorted = Hasher.hash(sorted_order)
+        self.assertNotEqual(legacy_insertion, legacy_sorted)
+        self.assertNotEqual(legacy_insertion, Hasher.hash(insertion_order))
+        self.assertEqual(legacy_sorted, Hasher.hash(sorted_order))
 
     def test_hash_class_instance(self):
         hash1 = Hasher.hash(Foo("hello"))
