@@ -3,7 +3,9 @@ import os
 from typing import BinaryIO, Optional, Union
 
 import fsspec
+import pyarrow as pa
 import pyarrow.parquet as pq
+from packaging import version
 
 from .. import Dataset, Features, NamedSplit, config
 from ..arrow_writer import get_writer_batch_size_from_data_size, get_writer_batch_size_from_features
@@ -14,6 +16,125 @@ from ..packaged_modules.parquet.parquet import Parquet
 from ..utils import tqdm as hf_tqdm
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
+
+
+def _get_parquet_features(features: Features, **writer_options) -> Features:
+    """Round-trip feature metadata through the schema conversion used by the Parquet reader."""
+    buffer = pa.BufferOutputStream()
+    pq.write_metadata(features.arrow_schema, buffer, **writer_options)
+    return Features.from_arrow_schema(pq.read_schema(pa.BufferReader(buffer.getvalue())))
+
+
+def _get_parquet_temporal_writer_options(metadata: pq.FileMetaData) -> dict:
+    """Recover temporal annotations from every physical leaf, including nested columns."""
+    logical_types = [json.loads(metadata.schema.column(i).logical_type.to_json()) for i in range(metadata.num_columns)]
+    options = {}
+    if any(logical.get("Type") == "Time" and logical["isAdjustedToUTC"] for logical in logical_types):
+        options["write_time_adjusted_to_utc"] = True
+    timestamp_units = {logical["timeUnit"] for logical in logical_types if logical.get("Type") == "Timestamp"}
+    if len(timestamp_units) == 1:
+        unit = {"milliseconds": "ms", "microseconds": "us"}.get(next(iter(timestamp_units)))
+        if unit is not None:
+            # The footer stores the effective precision, not the original truncation
+            # policy. Quantize new values to that precision, as the original writer did.
+            options.update(coerce_timestamps=unit, allow_truncated_timestamps=True)
+    return options
+
+
+def _append_parquet_file(dataset: Dataset, original: str, destination: str) -> None:
+    """Preserve the encoded row groups and page indexes, then append rows and a combined footer."""
+    metadata = pq.read_metadata(original)
+    schema = metadata.schema.to_arrow_schema()
+    row_group_size = max(
+        (metadata.row_group(i).num_rows for i in range(metadata.num_row_groups)),
+        default=0,
+    ) or get_writer_batch_size_from_data_size(len(dataset), dataset._estimate_nbytes())
+    writer_options = (
+        {"use_content_defined_chunking": True} if config.PYARROW_VERSION >= version.parse("21.0.0") else {}
+    )
+    writer_options.update(_get_parquet_temporal_writer_options(metadata))
+    # Preserve the physical list schema of shards produced before Arrow's compliant-list default.
+    writer_options["use_compliant_nested_type"] = not any(
+        ".list." in metadata.schema.column(i).path
+        and metadata.schema.column(i).path.split(".list.", 1)[1].split(".")[0] != "element"
+        for i in range(metadata.num_columns)
+    )
+    writer_options["use_deprecated_int96_timestamps"] = any(
+        metadata.schema.column(i).physical_type == "INT96" for i in range(metadata.num_columns)
+    )
+    writer_options["store_decimal_as_integer"] = any(
+        metadata.schema.column(i).converted_type == "DECIMAL"
+        and metadata.schema.column(i).physical_type in {"INT32", "INT64"}
+        for i in range(metadata.num_columns)
+    )
+    writer_options["version"] = metadata.format_version
+    if metadata.num_row_groups:
+        # Properties are per physical leaf, including nested columns. Reuse the
+        # tail's codecs and encodings rather than the Dataset writer's defaults.
+        row_group = metadata.row_group(metadata.num_row_groups - 1)
+        columns = [row_group.column(i) for i in range(metadata.num_columns)]
+        dictionary_columns = [
+            column.path_in_schema
+            for column in columns
+            if {"PLAIN_DICTIONARY", "RLE_DICTIONARY"}.intersection(column.encodings)
+        ]
+        writer_options.update(
+            compression={
+                column.path_in_schema: "none" if column.compression == "UNCOMPRESSED" else column.compression.lower()
+                for column in columns
+            },
+            use_dictionary=dictionary_columns,
+            column_encoding={
+                column.path_in_schema: encoding
+                for column in columns
+                if column.path_in_schema not in dictionary_columns
+                for encoding in column.encodings
+                if encoding
+                in {"PLAIN", "BYTE_STREAM_SPLIT", "DELTA_BINARY_PACKED", "DELTA_LENGTH_BYTE_ARRAY", "DELTA_BYTE_ARRAY"}
+            },
+            write_statistics=[column.path_in_schema for column in columns if column.is_stats_set],
+            write_page_index=any(column.has_column_index or column.has_offset_index for column in columns),
+        )
+    new_metadata = []
+    with open(original, "rb") as source, pa.OSFile(destination, "wb") as sink:
+        source.seek(-8, os.SEEK_END)
+        footer_size = int.from_bytes(source.read(4), "little")
+        prefix_size = source.tell() - 4 - footer_size
+        source.seek(4)  # The writer emits the initial PAR1 magic itself.
+        with pq.ParquetWriter(
+            sink,
+            schema=schema,
+            metadata_collector=new_metadata,
+            **writer_options,
+        ) as writer:
+            # Write through the same Arrow sink so the new column/page offsets include the old bytes.
+            # Re-encoding old row groups would move their page indexes and could change their encoding.
+            remaining = prefix_size - 4
+            while remaining:
+                block = source.read(min(remaining, 1024 * 1024))
+                if not block:
+                    raise ValueError("Unexpected end of the existing Parquet shard")
+                sink.write(block)
+                remaining -= len(block)
+            for batch in dataset.with_format("arrow").iter(batch_size=row_group_size):
+                writer.write_table(
+                    batch.select(schema.names).cast(
+                        schema, safe=not writer_options.get("allow_truncated_timestamps", False)
+                    ),
+                    row_group_size=row_group_size,
+                )
+
+    metadata.append_row_groups(new_metadata[0])
+    footer = pa.BufferOutputStream()
+    metadata.write_metadata_file(footer)
+    # Replace the new-only footer with the combined footer. All column and page-index offsets
+    # already refer to their final positions; neither the old nor new data needs to be moved.
+    with open(destination, "r+b") as output:
+        output.seek(-8, os.SEEK_END)
+        footer_size = int.from_bytes(output.read(4), "little")
+        output.seek(-footer_size - 8, os.SEEK_END)
+        output.write(footer.getvalue().slice(4))  # Skip the metadata-only file's PAR1 header.
+        output.truncate()
 
 
 class ParquetDatasetReader(AbstractDatasetReader):
