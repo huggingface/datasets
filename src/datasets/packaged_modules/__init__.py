@@ -11,6 +11,7 @@ from .conll import conll
 from .csv import csv
 from .eval import eval
 from .fasta import fasta
+from .fastq import fastq
 from .hdf5 import hdf5
 from .iceberg import iceberg
 from .imagefolder import imagefolder
@@ -67,6 +68,7 @@ _PACKAGED_DATASETS_MODULES = {
     "tsfile": (tsfile.__name__, _hash_python_lines(inspect.getsource(tsfile).splitlines())),
     "iceberg": (iceberg.__name__, _hash_python_lines(inspect.getsource(iceberg).splitlines())),
     "vortex": (vortex.__name__, _hash_python_lines(inspect.getsource(vortex).splitlines())),
+    "fastq": (fastq.__name__, _hash_python_lines(inspect.getsource(fastq).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -112,6 +114,8 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".lance": ("lance", {}),
     ".tsfile": ("tsfile", {}),
     ".vortex": ("vortex", {}),
+    ".fq": ("fastq", {}),
+    ".fastq": ("fastq", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
