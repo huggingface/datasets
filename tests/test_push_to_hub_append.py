@@ -1,5 +1,6 @@
 import fnmatch
 import json
+import posixpath
 import socket
 from contextlib import nullcontext
 from datetime import datetime, time
@@ -253,7 +254,9 @@ def test_review_append_nonstandard_glob(hub, tmp_path, paths):
     Dataset.from_dict({"x": [0, 1]}).push_to_hub(hub.repo_id, num_shards=len(paths))
     for old_path, path in zip(hub.files(), paths):
         hub.fs.mv(hub.root + "/" + old_path, hub.root + "/" + path)
-    patterns = [str(Path(path).parent / "*.parquet") for path in paths]
+    # Hub paths are POSIX; never build them with os-native Path (backslashes on Windows).
+    patterns = [posixpath.dirname(path) + "/*.parquet" for path in paths]
+    assert all("\\" not in pattern for pattern in patterns)
     card = hub.card()
     configs = MetadataConfigs.from_dataset_card_data(card.data)
     configs["default"]["data_files"] = [{"split": "train", "path": patterns}]
