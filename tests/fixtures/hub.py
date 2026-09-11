@@ -5,19 +5,11 @@ from contextlib import contextmanager
 from typing import Optional
 
 import pytest
+from huggingface_hub.errors import BucketNotFoundError
 from huggingface_hub.hf_api import HfApi
 from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 from huggingface_hub.utils._headers import _http_user_agent
-from packaging import version
 
-from datasets import config
-
-
-if config.HF_HUB_VERSION >= version.parse("1.6.0"):
-    from huggingface_hub.errors import BucketNotFoundError
-
-else:
-    BucketNotFoundError = None
 
 CI_HUB_USER = "__DUMMY_DATASETS_USER__"
 CI_HUB_USER_FULL_NAME = "Dummy User"
@@ -33,13 +25,6 @@ def ci_hub_config(monkeypatch):
     monkeypatch.setattr("datasets.config.HF_ENDPOINT", CI_HUB_ENDPOINT)
     monkeypatch.setattr("datasets.config.HUB_DATASETS_URL", CI_HUB_DATASETS_URL)
     monkeypatch.setattr("huggingface_hub.constants.HUGGINGFACE_CO_URL_TEMPLATE", CI_HFH_HUGGINGFACE_CO_URL_TEMPLATE)
-    try:
-        # for backward compatibility with huggingface_hub 0.x
-        monkeypatch.setattr(
-            "huggingface_hub.file_download.HUGGINGFACE_CO_URL_TEMPLATE", CI_HFH_HUGGINGFACE_CO_URL_TEMPLATE
-        )
-    except AttributeError:
-        pass
     old_environ = dict(os.environ)
     os.environ["HF_ENDPOINT"] = CI_HUB_ENDPOINT
     yield
