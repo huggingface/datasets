@@ -1380,6 +1380,38 @@ def test_map_async():
     assert next(iter(out))["y"] == 1
 
 
+@pytest.mark.parametrize("batched", [False, True])
+@pytest.mark.parametrize("use_arrow", [False, True])
+@pytest.mark.parametrize("max_concurrency", [2, 1000])
+@pytest.mark.parametrize("wrapper", [lambda function: function, _wrap_async])
+def test_map_resume_multiple_times(batched, use_arrow, max_concurrency, wrapper, monkeypatch):
+    monkeypatch.setattr(config, "MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL", max_concurrency)
+
+    def build():
+        if use_arrow:
+            dataset = Dataset.from_dict({"id": list(range(30))}).to_iterable_dataset(num_shards=3)
+        else:
+            dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": 30}))
+        return dataset.map(
+            wrapper(lambda example, indices: {"index": indices}),
+            with_indices=True,
+            batched=batched,
+            batch_size=7,
+        )
+
+    expected = list(build())
+    dataset = build()
+    actual = []
+    for consume in [2, 3, 7]:
+        iterator = iter(dataset)
+        actual.extend(islice(iterator, consume))
+        state = pickle.loads(pickle.dumps(dataset.state_dict()))
+        dataset = build()
+        dataset.load_state_dict(state)
+    actual.extend(dataset)
+    assert actual == expected
+
+
 def test_filter_async():
     dset = Dataset.from_dict({"x": range(100)}).to_iterable_dataset()
 

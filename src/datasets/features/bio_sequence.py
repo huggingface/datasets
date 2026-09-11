@@ -172,7 +172,7 @@ class BioSequence:
             with xopen(path, "r", encoding="utf-8", download_config=download_config) as f:
                 return self._first_record(f, path)
         else:
-            with StringIO(bytes_.decode("utf-8")) as f:
+            with StringIO(bytes_.decode("utf-8"), newline=None) as f:
                 return self._first_record(f, path)
 
     def _first_record(self, handle, path: Optional[str]) -> "SeqRecord":
