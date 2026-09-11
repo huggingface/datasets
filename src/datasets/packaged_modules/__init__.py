@@ -12,6 +12,7 @@ from .csv import csv
 from .eval import eval
 from .fasta import fasta
 from .fastq import fastq
+from .genbank import genbank
 from .hdf5 import hdf5
 from .iceberg import iceberg
 from .imagefolder import imagefolder
@@ -47,7 +48,6 @@ def _hash_python_lines(lines: list[str]) -> str:
 # get importable module names and hash for caching
 _PACKAGED_DATASETS_MODULES = {
     "csv": (csv.__name__, _hash_python_lines(inspect.getsource(csv).splitlines())),
-    "fasta": (fasta.__name__, _hash_python_lines(inspect.getsource(fasta).splitlines())),
     "json": (json.__name__, _hash_python_lines(inspect.getsource(json).splitlines())),
     "pandas": (pandas.__name__, _hash_python_lines(inspect.getsource(pandas).splitlines())),
     "parquet": (parquet.__name__, _hash_python_lines(inspect.getsource(parquet).splitlines())),
@@ -68,6 +68,8 @@ _PACKAGED_DATASETS_MODULES = {
     "tsfile": (tsfile.__name__, _hash_python_lines(inspect.getsource(tsfile).splitlines())),
     "iceberg": (iceberg.__name__, _hash_python_lines(inspect.getsource(iceberg).splitlines())),
     "vortex": (vortex.__name__, _hash_python_lines(inspect.getsource(vortex).splitlines())),
+    "genbank": (genbank.__name__, _hash_python_lines(inspect.getsource(genbank).splitlines())),
+    "fasta": (fasta.__name__, _hash_python_lines(inspect.getsource(fasta).splitlines())),
     "fastq": (fastq.__name__, _hash_python_lines(inspect.getsource(fastq).splitlines())),
 }
 
@@ -87,14 +89,6 @@ _PACKAGED_DATASETS_MODULES_2_15_HASHES = {
 _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".csv": ("csv", {}),
     ".tsv": ("csv", {"sep": "\t"}),
-    # FASTA biological sequence formats
-    ".fa": ("fasta", {}),
-    ".fasta": ("fasta", {}),
-    ".fna": ("fasta", {}),  # FASTA nucleic acid
-    ".ffn": ("fasta", {}),  # FASTA nucleotide of gene regions
-    ".faa": ("fasta", {}),  # FASTA amino acid
-    ".frn": ("fasta", {}),  # FASTA non-coding RNA
-    ".afa": ("fasta", {}),  # aligned FASTA (multiple sequence alignment)
     ".json": ("json", {}),
     ".jsonl": ("json", {}),
     # ndjson is no longer maintained (see: https://github.com/ndjson/ndjson-spec/issues/35#issuecomment-1285673417)
@@ -114,6 +108,18 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".lance": ("lance", {}),
     ".tsfile": ("tsfile", {}),
     ".vortex": ("vortex", {}),
+    # FASTA biological sequence formats
+    ".fa": ("fasta", {}),
+    ".fasta": ("fasta", {}),
+    ".fna": ("fasta", {}),  # FASTA nucleic acid
+    ".ffn": ("fasta", {}),  # FASTA nucleotide of gene regions
+    ".faa": ("fasta", {}),  # FASTA amino acid
+    ".frn": ("fasta", {}),  # FASTA non-coding RNA
+    ".afa": ("fasta", {}),  # aligned FASTA (multiple sequence alignment)
+    # other bio formats
+    ".gb": ("genbank", {}),
+    ".gbk": ("genbank", {}),
+    ".genbank": ("genbank", {}),
     ".fq": ("fastq", {}),
     ".fastq": ("fastq", {}),
 }
