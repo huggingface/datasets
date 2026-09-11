@@ -1266,6 +1266,70 @@ def test_tensor_parquet_table_canonical_schema(shape, native_target):
     assert Features.from_arrow_schema(table.schema) == Features({"x": feature})
 
 
+@pytest.mark.parametrize("shape", [(2, 3), (None, 3), (None, None)])
+@pytest.mark.parametrize("native_source", [False, True])
+@pytest.mark.parametrize("sliced", [False, True])
+@pytest.mark.parametrize("nesting", ["top", "list", "json_sibling", "required_fields"])
+def test_tensor_parquet_null_storage(shape, native_source, sliced, nesting, tmp_path):
+    import pyarrow.parquet as pq
+
+    from datasets.features.tensor import tensor_to_parquet_table
+
+    schema = Features({"x": Tensor(shape, "int64")}).arrow_schema
+    if native_source:
+        schema = pa.ipc.read_schema(pa.BufferReader(schema.serialize()))
+    arrow_type = schema.field("x").type
+    values = [list(range(6)), [2**53 + 1] * 6, None, list(range(6)), None]
+    if shape != (2, 3):
+        values = [{"data": value, "shape": [2, 3]} if value is not None else None for value in values]
+    array = pa.ExtensionArray.from_storage(arrow_type, pa.array(values, type=arrow_type.storage_type))
+    if sliced:
+        array = array.slice(1)
+        values = values[1:]
+    if nesting == "list":
+        array = pa.ListArray.from_arrays([0, len(array), len(array)], array, mask=pa.array([False, True]))
+        values = [values, None]
+    elif nesting == "json_sibling":
+        json_array = pa.array(['{"a":1}'] * len(array), type=pa.json_())
+        array = pa.StructArray.from_arrays([array, json_array], names=["t", "j"])
+        values = [{"t": value, "j": '{"a":1}'} for value in values]
+    elif nesting == "required_fields":
+        # Required children may have valid values beneath a null struct parent.
+        mask = array.is_null()
+        filled = pa.ExtensionArray.from_storage(
+            arrow_type,
+            pa.array([value if value is not None else values[0] for value in values], type=arrow_type.storage_type),
+        )
+        array = pa.StructArray.from_arrays(
+            [filled, pa.array([1] * len(array))],
+            fields=[pa.field("t", array.type, nullable=False), pa.field("n", pa.int64(), nullable=False)],
+            mask=mask,
+        )
+        values = [{"t": value, "n": 1} if value is not None else None for value in values]
+    schema = pa.schema([schema.field("x").with_type(array.type)])
+    table = tensor_to_parquet_table(pa.Table.from_arrays([array], schema=schema))
+    path = tmp_path / "null_tensor.parquet"
+    pq.write_table(table, path)
+    reader = """
+import json
+import sys
+import pyarrow.parquet as pq
+assert "datasets" not in sys.modules
+table = pq.read_table(sys.argv[1])
+assert table.column("x").to_pylist() == json.loads(sys.argv[2])
+assert "datasets" not in sys.modules
+"""
+    result = subprocess.run(
+        [sys.executable, "-S", "-c", reader, str(path), json.dumps(values)],
+        env={**os.environ, "PYTHONPATH": str(Path(pa.__file__).parent.parent)},
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
 @pytest.mark.parametrize("list_kind", ["list", "large_list", "fixed_size_list"])
 def test_tensor_array_cast_preserves_list_value_field(list_kind):
     from datasets.table import array_cast
