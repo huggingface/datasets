@@ -1,8 +1,10 @@
 import multiprocessing
 import os
-from typing import BinaryIO, Optional, Union
+from typing import Any, BinaryIO, Optional, Union
 
 import fsspec
+import numpy as np
+import pyarrow as pa
 
 from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
@@ -10,6 +12,18 @@ from ..packaged_modules.csv.csv import Csv
 from ..utils import tqdm as hf_tqdm
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
+
+
+def _arrays_to_lists(obj: Any) -> Any:
+    """Replace the numpy arrays inside `obj` by lists, recursively."""
+    if isinstance(obj, np.ndarray):
+        return _arrays_to_lists(obj.tolist())
+    elif isinstance(obj, list):
+        return [_arrays_to_lists(value) for value in obj]
+    elif isinstance(obj, dict):
+        return {key: _arrays_to_lists(value) for key, value in obj.items()}
+    else:
+        return obj
 
 
 class CsvDatasetReader(AbstractDatasetReader):
@@ -105,9 +119,12 @@ class CsvDatasetWriter:
             key=slice(offset, offset + self.batch_size),
             indices=self.dataset._indices,
         )
-        csv_str = batch.to_pandas(integer_object_nulls=True).to_csv(
-            path_or_buf=None, header=header if (offset == 0) else False, index=index, **to_csv_kwargs
-        )
+        df = batch.to_pandas(integer_object_nulls=True)
+        for field in batch.schema:
+            # pandas renders an array-valued cell with numpy's repr, which elides values past numpy's threshold
+            if pa.types.is_nested(field.type) or isinstance(field.type, pa.ExtensionType):
+                df[field.name] = [_arrays_to_lists(value) for value in df[field.name]]
+        csv_str = df.to_csv(path_or_buf=None, header=header if (offset == 0) else False, index=index, **to_csv_kwargs)
         return csv_str.encode(self.encoding)
 
     def _write(self, file_obj: BinaryIO, header, index, **to_csv_kwargs) -> int:
