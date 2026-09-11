@@ -253,6 +253,35 @@ Filter by time range — bounds are pushed down to TsFile's internal time index 
 > [!TIP]
 > For more details, check out the [how to load TsFile data](tsfile_load) guide.
 
+### PDB
+
+[PDB](https://www.wwpdb.org/documentation/file-format) (Protein Data Bank) is the legacy fixed-width format for representing 3D macromolecular structures. While mmCIF is the modern standard, PDB remains widely used and many historical datasets are in this format.
+
+Each row is one structure file, following the same folder layout
+as [`ImageFolder`]: subfolder names become labels and a `metadata.csv`/`metadata.jsonl`
+file adds per-structure metadata. The `structure` column uses [`BioStructure`] with
+`format="pdb"` and decodes to a `Bio.PDB.Structure.Structure` object containing the
+file's models, chains, residues, and atoms. Decoding requires `biopython`; without it,
+accessing a decoded structure raises `ImportError`.
+
+To load PDB files from a directory:
+
+```py
+>>> from datasets import BioStructure, load_dataset
+>>> dataset = load_dataset("pdb", data_dir="path/to/structures")
+>>> dataset["train"].features["structure"]
+BioStructure(format='pdb', decode=True)
+```
+
+To access the underlying `{"bytes": ..., "path": ...}` dictionary without decoding
+or requiring biopython, cast the column with `decode=False`:
+
+```py
+>>> dataset = dataset.cast_column("structure", BioStructure(format="pdb", decode=False))
+```
+
+Extensions `.pdb` and `.ent` are supported.
+
 ### SQL
 
 Read database contents with [`~datasets.Dataset.from_sql`] by specifying the URI to connect to your database. You can read both table names and queries:
@@ -320,6 +349,85 @@ or requiring biopython, cast the column with `decode=False`:
 ```
 
 Extensions `.cif` and `.mmcif` are supported.
+
+### GenBank
+
+[GenBank](https://www.ncbi.nlm.nih.gov/genbank/) is a text-based format from NCBI for nucleotide and protein sequences together with their annotations. Files use the `.gb`, `.gbk`, or `.genbank` extension (optionally compressed), and each record's `FEATURES` section is decoded into structured objects.
+
+Alongside the lightweight parsed columns, each row includes a `record` column of type `BioSequence(format="genbank")`, which decodes to a `Bio.SeqRecord.SeqRecord` when `biopython` is installed. Cast this column to `BioSequence(format="genbank", decode=False)` to access the original record bytes as `{"bytes": ..., "path": None}`, or omit it with `columns=[...]` to use only the parsed columns without `biopython`.
+
+To load GenBank files:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("genbank", data_files="*.gb", split="train")
+```
+
+You can try it on a small example dataset of real NCBI records (one of them is gzipped to show that compressed files load transparently):
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("ermiaazarkhalili/datasets-genbank-test", data_files="*.gb*", split="train")
+>>> dataset[0]["locus_name"], dataset[0]["organism"], dataset[0]["length"]
+```
+
+### FASTQ
+
+[FASTQ](https://en.wikipedia.org/wiki/FASTQ_format) is a text-based format for storing nucleotide sequences together with their quality scores, widely used for high-throughput sequencing data.
+
+Load a FASTQ file:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("fastq", data_files="reads.fq")
+```
+
+The loader returns five columns:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | string | Sequence identifier (first word after `@`) |
+| `description` | string | Full description line (everything after id) |
+| `sequence` | large_string | The nucleotide sequence |
+| `quality` | large_string | ASCII-encoded quality scores |
+| `record` | [`BioSequence`] | With `format="fastq"`, stores each record's original bytes, decoded to a Biopython `SeqRecord` when accessed. |
+
+Reading the parsed columns requires no Biopython; exclude `record` with `columns`, or use `dataset.cast_column("record", BioSequence(decode=False))` (imported from `datasets`) to access its `{"bytes": ..., "path": None}` storage without decoding.
+
+Load only specific columns:
+
+```py
+>>> dataset = load_dataset("fastq", data_files="reads.fq", columns=["sequence", "quality"])
+```
+
+Compressed files (.fq.gz, .fastq.gz, .fq.bz2, .fq.xz) are automatically detected and decompressed.
+
+### FASTA
+
+[FASTA](https://en.wikipedia.org/wiki/FASTA_format) is a text-based format for representing nucleotide sequences (DNA/RNA) or peptide sequences (proteins), widely used in bioinformatics.
+
+To load a FASTA file:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("fasta", data_files="sequences.fasta")
+```
+
+This returns a dataset with the following columns:
+- `id`: Sequence identifier (first word after `>`)
+- `description`: Full description line (everything after the id)
+- `sequence`: The biological sequence (DNA/RNA/protein)
+- `record`: A [`BioSequence`] with `format="fasta"` storing each record's original bytes, decoded to a Biopython `SeqRecord` when accessed.
+
+Reading the parsed columns requires no Biopython; exclude `record` with `columns`, or use `dataset.cast_column("record", BioSequence(decode=False))` (imported from `datasets`) to access its `{"bytes": ..., "path": None}` storage without decoding.
+
+You can also load only specific columns:
+
+```py
+>>> dataset = load_dataset("fasta", data_files="sequences.fa", columns=["id", "sequence"])
+```
+
+FASTA files with various extensions are supported: `.fa`, `.fasta`, `.fna` (nucleic acid), `.ffn` (nucleotide of gene regions), `.faa` (amino acid), and `.frn` (non-coding RNA). Compressed files (gzip, bzip2, xz) are automatically detected and decompressed.
 
 ## Remote files
 
