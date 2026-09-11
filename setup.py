@@ -116,9 +116,6 @@ REQUIRED_PKGS = [
     "dill>=0.3.0,<0.4.2",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
     "pandas",
-    # for downloading datasets over HTTPS
-    "requests>=2.32.2",
-    "httpx<1.0.0",
     # progress bars in downloads and data operations
     "tqdm>=4.66.3",
     # for fast hashing
@@ -129,7 +126,9 @@ REQUIRED_PKGS = [
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
     "fsspec[http]>=2023.1.0,<=2026.7.0",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface-hub>=0.25.0,<2.0",
+    # (also provides the HTTP client: `from huggingface_hub.utils import httpx`)
+    # minimum 1.31.0 for the `huggingface_hub.utils.httpx` re-export
+    "huggingface-hub>=1.31.0,<2.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards

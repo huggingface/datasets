@@ -12,8 +12,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 import pytest
-from huggingface_hub import HfFileSystemResolvedPath
-from packaging import version
+from huggingface_hub.hf_file_system import HfFileSystemResolvedRepositoryPath
 
 from datasets import Dataset, config, load_dataset
 from datasets.combine import concatenate_datasets, interleave_datasets
@@ -68,15 +67,6 @@ from .utils import (
     require_torchdata_stateful_dataloader,
 )
 
-
-if config.HF_HUB_VERSION >= version.parse("1.6.0"):
-    from huggingface_hub.errors import BucketNotFoundError
-    from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
-
-else:
-    BucketNotFoundError = None
-    HfFileSystemResolvedBucketPath = None
-    HfFileSystemResolvedRepositoryPath = HfFileSystemResolvedPath
 
 SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/dataset_with_data_files"
 

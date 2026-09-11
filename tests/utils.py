@@ -15,7 +15,6 @@ from unittest.mock import Mock, patch
 
 import pyarrow as pa
 import pytest
-import requests
 from huggingface_hub.utils import httpx
 from packaging import version
 
@@ -67,22 +66,6 @@ require_numpy1_on_windows = pytest.mark.skipif(
     version.parse(importlib.metadata.version("numpy")) >= version.parse("2.0.0") and sys.platform == "win32",
     reason="test requires numpy < 2.0 on windows",
 )
-
-IS_HF_HUB_1_x = config.HF_HUB_VERSION >= version.parse("0.99")  # clunky but works with pre-releases
-
-
-def require_buckets_support_in_huggingface_hub(test_case):
-    """
-    Decorator marking a test that requires buckets support in huggingface_hub.
-
-    These tests are skipped when huggingface_hub's version doesn't support buckets.
-
-    """
-    try:
-        from huggingface_hub.utils import BucketNotFoundError  # noqa
-    except ImportError:
-        test_case = unittest.skip("test requires buckets support in huggingface_hub")(test_case)
-    return test_case
 
 
 def require_regex(test_case):
@@ -463,8 +446,7 @@ def offline(mode: OfflineSimulationMode):
     HF_HUB_OFFLINE_SET_TO_1: the HF_HUB_OFFLINE_SET_TO_1 environment variable is set to 1.
         This makes the http/ftp calls of the library instantly fail and raise an OfflineModeEnabled error.
 
-    The raised exceptions are either from the `requests` library (if `huggingface_hub<1.0.0`)
-    or from the `httpx` library (if `huggingface_hub>=1.0.0`).
+    The raised exceptions come from the `httpx` library used by `huggingface_hub`.
     """
     # Enable offline mode
     if mode is OfflineSimulationMode.HF_HUB_OFFLINE_SET_TO_1:
@@ -476,13 +458,13 @@ def offline(mode: OfflineSimulationMode):
 
     def error_response(*args, **kwargs):
         if mode is OfflineSimulationMode.CONNECTION_FAILS:
-            exc = httpx.ConnectError if IS_HF_HUB_1_x else requests.ConnectionError
+            exc = httpx.ConnectError
         elif mode is OfflineSimulationMode.CONNECTION_TIMES_OUT:
             if kwargs.get("timeout") is None:
                 raise RequestWouldHangIndefinitelyError(
                     "Tried an HTTP call in offline mode with no timeout set. Please set a timeout."
                 )
-            exc = httpx.ReadTimeout if IS_HF_HUB_1_x else requests.ConnectTimeout
+            exc = httpx.ReadTimeout
         else:
             raise ValueError("Please use a value from the OfflineSimulationMode enum.")
         raise exc(f"Offline mode {mode}")
@@ -492,21 +474,16 @@ def offline(mode: OfflineSimulationMode):
     for method in ["head", "get", "post", "put", "delete", "request", "stream"]:
         setattr(client_mock, method, Mock(side_effect=error_response))
 
-    # Patching is slightly different depending on hfh internals
-    if IS_HF_HUB_1_x:
-        # Patching `_GLOBAL_CLIENT` alone is not enough: `_http_backoff` re-fetches the client on
-        # every attempt, and `close_session()` (called on `httpx.ConnectError`) resets the global to
-        # `None`. The first attempt would hit the mock, then the retry would rebuild a real client
-        # through the factory and reach the network. Patch the factory too so any client rebuilt
-        # mid-retry is the mock as well.
-        with (
-            patch("huggingface_hub.utils._http._GLOBAL_CLIENT", client_mock),
-            patch("huggingface_hub.utils._http._GLOBAL_CLIENT_FACTORY", lambda: client_mock),
-        ):
-            yield
-    else:
-        with patch("huggingface_hub.utils._http._get_session_from_cache", return_value=client_mock):
-            yield
+    # Patching `_GLOBAL_CLIENT` alone is not enough: `_http_backoff` re-fetches the client on
+    # every attempt, and `close_session()` (called on `httpx.ConnectError`) resets the global to
+    # `None`. The first attempt would hit the mock, then the retry would rebuild a real client
+    # through the factory and reach the network. Patch the factory too so any client rebuilt
+    # mid-retry is the mock as well.
+    with (
+        patch("huggingface_hub.utils._http._GLOBAL_CLIENT", client_mock),
+        patch("huggingface_hub.utils._http._GLOBAL_CLIENT_FACTORY", lambda: client_mock),
+    ):
+        yield
 
 
 @contextmanager
@@ -550,7 +527,7 @@ def xfail_if_500_502_http_error(func):
     def _wrapper(func, *args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except (requests.HTTPError, httpx.HTTPError) as err:
+        except httpx.HTTPError as err:
             if str(err).startswith("500") or str(err).startswith("502"):
                 pytest.xfail(str(err))
             raise err

@@ -28,10 +28,10 @@ from pathlib import Path
 from typing import Any, Literal, Optional, Union, overload
 
 import fsspec
-import requests
 import yaml
 from fsspec.core import url_to_fs
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFileSystem
+from huggingface_hub.errors import BucketNotFoundError
 from huggingface_hub.utils import (
     EntryNotFoundError,
     GatedRepoError,
@@ -42,7 +42,6 @@ from huggingface_hub.utils import (
     get_session,
     httpx,
 )
-from packaging import version
 
 from . import __version__, config
 from .arrow_dataset import Dataset
@@ -90,13 +89,6 @@ from .utils.logging import get_logger
 from .utils.metadata import MetadataConfigs
 from .utils.typing import PathLike
 from .utils.version import Version
-
-
-if config.HF_HUB_VERSION >= version.parse("1.6.0"):
-    from huggingface_hub.errors import BucketNotFoundError
-
-else:
-    BucketNotFoundError = None
 
 
 logger = get_logger(__name__)
@@ -597,7 +589,6 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
                 filename=config.REPOCARD_FILENAME,
                 repo_type="dataset",
                 revision=self.commit_hash,
-                proxies=self.download_config.proxies,
             )
             dataset_card_data = DatasetCard.load(dataset_readme_path).data
         except EntryNotFoundError:
@@ -1073,8 +1064,6 @@ def dataset_module_factory(
         ).get_module()
     # Try remotely
     elif path.startswith("buckets/"):
-        if BucketNotFoundError is None:
-            raise ImportError("Loading datasets from buckets requires huggingface_hub>=1.6.0")
         # We check that the bucket exists, and the directory exists, and authentication in one call
         api = HfApi(
             endpoint=config.HF_ENDPOINT,
@@ -1088,13 +1077,7 @@ def dataset_module_factory(
         prefix = "/".join(s for s in _path_segments if s)
         try:
             next(iter(api.list_bucket_tree(bucket_id, prefix)))
-        except (
-            OfflineModeIsEnabled,
-            requests.exceptions.Timeout,
-            requests.exceptions.ConnectionError,
-            httpx.ConnectError,
-            httpx.TimeoutException,
-        ) as e:
+        except (OfflineModeIsEnabled, httpx.ConnectError, httpx.TimeoutException) as e:
             raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
         except StopIteration as e:
             raise DatasetNotFoundError(f"Bucket directory at {path} doesn't exist") from e
@@ -1125,20 +1108,10 @@ def dataset_module_factory(
                     filename=config.REPOCARD_FILENAME,
                     repo_type="dataset",
                     revision=revision,
-                    proxies=download_config.proxies,
                 )
                 commit_hash = os.path.basename(os.path.dirname(dataset_readme_path))
             except LocalEntryNotFoundError as e:
-                if isinstance(
-                    e.__cause__,
-                    (
-                        OfflineModeIsEnabled,
-                        requests.exceptions.Timeout,
-                        requests.exceptions.ConnectionError,
-                        httpx.ConnectError,
-                        httpx.TimeoutException,
-                    ),
-                ):
+                if isinstance(e.__cause__, (OfflineModeIsEnabled, httpx.ConnectError, httpx.TimeoutException)):
                     raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
                 else:
                     raise
@@ -1148,13 +1121,7 @@ def dataset_module_factory(
                     revision=revision,
                     timeout=100.0,
                 ).sha
-            except (
-                OfflineModeIsEnabled,
-                requests.exceptions.Timeout,
-                requests.exceptions.ConnectionError,
-                httpx.ConnectError,
-                httpx.TimeoutException,
-            ) as e:
+            except (OfflineModeIsEnabled, httpx.ConnectError, httpx.TimeoutException) as e:
                 raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
             except GatedRepoError as e:
                 message = f"Dataset '{path}' is a gated dataset on the Hub."
@@ -1171,7 +1138,6 @@ def dataset_module_factory(
                     filename=filename,
                     repo_type="dataset",
                     revision=commit_hash,
-                    proxies=download_config.proxies,
                 )
                 raise RuntimeError(f"Dataset scripts are no longer supported, but found {filename}")
             except EntryNotFoundError:

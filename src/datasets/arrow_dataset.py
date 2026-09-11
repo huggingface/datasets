@@ -71,8 +71,9 @@ from huggingface_hub import (
     HfFileSystem,
     HfFileSystemResolvedPath,
 )
-from huggingface_hub.utils import EntryNotFoundError, HfHubHTTPError, RepositoryNotFoundError
-from packaging import version
+from huggingface_hub.errors import BucketNotFoundError
+from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
+from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 from tqdm.contrib.concurrent import thread_map
 
 from . import __version__, config
@@ -140,16 +141,6 @@ from .utils.py_utils import (
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
 from .utils.typing import ListLike, PathLike
-
-
-if config.HF_HUB_VERSION >= version.parse("1.6.0"):
-    from huggingface_hub.errors import BucketNotFoundError
-    from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
-
-else:
-    BucketNotFoundError = None
-    HfFileSystemResolvedBucketPath = None
-    HfFileSystemResolvedRepositoryPath = HfFileSystemResolvedPath
 
 
 if TYPE_CHECKING:
@@ -6212,8 +6203,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
         if repo_id.startswith("buckets/"):
-            if BucketNotFoundError is None:
-                raise ImportError("Pushing datasets to buckets requires huggingface_hub>=1.6.0")
             _, _namespace, _bucket_name, *_path_segments = repo_id.split("/")
             try:
                 bucket_id = api.bucket_info(_namespace + "/" + _bucket_name).id
@@ -6759,10 +6748,7 @@ def _push_to_repo(
         dirfs = DirFileSystem(fs=hffs, path=hf_path)
 
         # Check the files to delete
-        try:
-            files_to_delete = dirfs.glob(f"{data_dir}/{split}-*", detail=True)
-        except EntryNotFoundError:  # needed for huggingface_hub<=1.7.1
-            files_to_delete = {}
+        files_to_delete = dirfs.glob(f"{data_dir}/{split}-*", detail=True)
 
         # Don't delete the new files
         deletions = [
@@ -6849,10 +6835,7 @@ def _push_to_bucket(
     dirfs = DirFileSystem(fs=hffs, path=hf_path)
 
     # Check the files to delete before uploading
-    try:
-        files_to_delete = dirfs.glob(f"{data_dir}/{split}-*", detail=True)
-    except EntryNotFoundError:  # needed for huggingface_hub<=1.7.1
-        files_to_delete = {}
+    files_to_delete = dirfs.glob(f"{data_dir}/{split}-*", detail=True)
 
     # Upload the Parquet files
     _, new_parquet_paths, features, split_info, uploaded_size = dset._push_parquet_shards_to_hub(
