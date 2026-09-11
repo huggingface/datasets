@@ -1,15 +1,30 @@
+import io
 import json
 import textwrap
+from datetime import datetime
+from unittest.mock import Mock, patch
 
+import pandas as pd
 import pyarrow as pa
+import pyarrow.json as paj
 import pytest
 
-from datasets import Features, Value, load_dataset
+from datasets import Features, List, Value, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig
 
 from ..utils import require_teich
+
+
+def _pyarrow_has_invalid_list_offsets():
+    data = b'{"a":[1]}\n{"a":[null,2]}\n'
+    table = paj.read_json(io.BytesIO(data), read_options=paj.ReadOptions(block_size=len(data.splitlines()[1])))
+    try:
+        table.validate(full=True)
+    except pa.ArrowInvalid:
+        return True
+    return False
 
 
 @pytest.fixture
@@ -561,6 +576,242 @@ def test_json_generate_tables(file_fixture, config_kwargs, expected, request):
     pa_table = pa.concat_tables([table for _, table in generator])
     out = Features.from_arrow_schema(pa_table.schema).decode_batch(pa_table.to_pydict())
     assert out == expected
+
+
+@pytest.mark.parametrize("allow_full_read", [False, True])
+@pytest.mark.parametrize("value", [[None, 1], [None, {"label": "en", "prob": 0.5}]])
+def test_json_invalid_list_offsets(tmp_path, allow_full_read, value):
+    rows = [{"a": value}]
+    path = write_jsonl(tmp_path / "file.jsonl", rows)
+    builder = Json()
+    tables = []
+    for _, table in builder._generate_tables([path], [[path]], [path], allow_full_read=allow_full_read):
+        table.validate(full=True)
+        tables.append(table)
+    assert pa.concat_tables(tables).combine_chunks().to_pylist() == rows
+
+
+@pytest.mark.parametrize("chunksize", [64 << 10, (16 << 10) - 1])
+def test_json_invalid_list_offsets_multiple_blocks(tmp_path, chunksize):
+    rows = [
+        {"id": 0, "meta": {"line_identifications": [{"label": "en", "prob": 1.0}]}},
+        {"id": 1, "meta": {"line_identifications": [None, {"label": "en", "prob": 0.5}]}},
+    ]
+    path = tmp_path / "file.jsonl"
+    # Place each record in its own Arrow block. The second block infers the
+    # list's value type after its leading null, even though the first is typed.
+    path.write_text("".join(json.dumps(row).ljust((16 << 10) - 1) + "\n" for row in rows))
+    path = str(path)
+    builder = Json(chunksize=chunksize)
+    tables = []
+    for _, table in builder._generate_tables([path], [[path]], [path]):
+        table.validate(full=True)
+        tables.append(table)
+    assert pa.concat_tables(tables).combine_chunks().to_pylist() == rows
+
+
+@pytest.mark.skipif(not _pyarrow_has_invalid_list_offsets(), reason="PyArrow produces valid list offsets")
+@pytest.mark.parametrize("retry", ["single_block", "explicit_schema", "pandas"])
+@pytest.mark.parametrize("allow_full_read", [False, True])
+def test_json_invalid_list_offsets_batch_retry(tmp_path, retry, allow_full_read):
+    rows = [{"a": [i]} for i in range(6)]
+    rows[3]["a"].insert(0, None)
+    if retry != "single_block":
+        # A leading null in the first record also breaks single-block inference.
+        rows[2]["a"].insert(0, None)
+    # Two Arrow blocks per batch: only the second batch has leading nulls.
+    block_size = 16 << 10
+    lines = [(json.dumps(row).ljust(block_size - 1) + "\n").encode() for row in rows]
+    batches = [b"".join(lines[i : i + 2]) for i in range(0, len(lines), 2)]
+    path = tmp_path / "file.jsonl"
+    path.write_bytes(b"".join(batches))
+    path = str(path)
+    builder = Json(chunksize=len(batches[0]) - 1)
+    if retry == "explicit_schema":
+        # Features may have been inferred by _split_generators, not configured.
+        builder.info.features = Features({"a": List(Value("int64"))})
+    with open(path, "rb") as f:
+        original_read = f.read
+
+        def bounded_read(size=-1):
+            assert size >= 0, "Unbounded file read after a valid first batch"
+            return original_read(size)
+
+        with (
+            patch("datasets.packaged_modules.json.json.open", return_value=f) as open_file,
+            patch.object(f, "read", side_effect=bounded_read) as read,
+            patch.object(paj, "read_json", wraps=paj.read_json) as read_json,
+            patch("datasets.packaged_modules.json.json.pd.DataFrame", wraps=pd.DataFrame) as dataframe,
+        ):
+            generator = builder._generate_tables([path], [[path]], [path], allow_full_read=allow_full_read)
+            tables = []
+            for _, table in generator:
+                table.validate(full=True)
+                tables.append(table)
+    assert pa.concat_tables(tables).combine_chunks().to_pylist() == rows
+    assert open_file.call_count == 1
+    assert all(call.args == (builder.config.chunksize,) for call in read.call_args_list)
+    assert [call.args[0].getvalue() for call in read_json.call_args_list] == [
+        batches[0],
+        batches[1],
+        batches[1],
+        batches[2],
+    ]
+    retry_options = read_json.call_args_list[2].kwargs
+    assert retry_options["read_options"].block_size == len(batches[1])
+    if retry == "explicit_schema":
+        assert retry_options["parse_options"].explicit_schema == builder.info.features.arrow_schema
+    if retry == "pandas":
+        dataframe.assert_called_once()
+    else:
+        dataframe.assert_not_called()
+
+
+def test_json_invalid_table_warning(tmp_path):
+    rows = [{"a": [1]}]
+    path = write_jsonl(tmp_path / "file.jsonl", rows)
+    valid_table = pa.Table.from_pylist(rows)
+    invalid_table = Mock(wraps=valid_table)
+    error = pa.ArrowInvalid("synthetic validity bitmap error")
+    invalid_table.validate.side_effect = error
+    builder = Json()
+    with (
+        patch.object(paj, "read_json", side_effect=[invalid_table, valid_table]),
+        patch("datasets.packaged_modules.json.json.logger.warning") as warning,
+    ):
+        tables = list(builder._generate_tables([path], [[path]], [path]))
+    assert pa.concat_tables([table for _, table in tables]).to_pylist() == rows
+    message = warning.call_args.args[0]
+    assert "failed Arrow validation" in message
+    assert str(error) in message
+    assert "known cause of invalid list offsets" in message
+    assert "#5531" in message
+
+
+def test_json_valid_file_no_reread(jsonl_file):
+    builder = Json()
+    with patch.object(paj, "read_json", wraps=paj.read_json) as read_json:
+        tables = list(builder._generate_tables([jsonl_file], [[jsonl_file]], [jsonl_file]))
+    assert read_json.call_count == 1
+    assert pa.concat_tables([table for _, table in tables]).to_pydict() == EXPECTED_THREE
+
+
+@pytest.mark.parametrize("chunksize", [5, 64 << 10])
+@pytest.mark.parametrize("dtype", ["int64", "float16"])
+def test_json_invalid_list_offsets_with_features(tmp_path, chunksize, dtype):
+    rows = [{"a": []}, {"a": [None, 1]}]
+    path = write_jsonl(tmp_path / "file.jsonl", rows)
+    builder = Json(chunksize=chunksize, features=Features({"a": List(Value(dtype))}))
+    tables = []
+    for _, table in builder._generate_tables([path], [[path]], [path]):
+        table.validate(full=True)
+        tables.append(table)
+    assert pa.concat_tables(tables).combine_chunks().to_pylist() == rows
+
+
+@pytest.mark.parametrize("encoding", ["utf-8-sig", "utf-16"])
+def test_json_invalid_list_offsets_encoding(tmp_path, encoding):
+    path = tmp_path / "file.jsonl"
+    path.write_text('{"a":[null,1],"text":"caf\u00e9"}\n', encoding=encoding)
+    path = str(path)
+    tables = list(Json(encoding=encoding)._generate_tables([path], [[path]], [path]))
+    table = pa.concat_tables([table for _, table in tables])
+    table.validate(full=True)
+    assert table.to_pylist() == [{"a": [None, 1], "text": "caf\u00e9"}]
+
+
+@pytest.mark.parametrize("value", [1e-320, -1e-320, 5e-324, 0.12345678901234568])
+def test_json_invalid_list_offsets_preserve_floats(tmp_path, value):
+    rows = [{"a": [None, 1], "x": value}]
+    path = write_jsonl(tmp_path / "file.jsonl", rows)
+    tables = list(Json()._generate_tables([path], [[path]], [path], allow_full_read=False))
+    table = pa.concat_tables([table for _, table in tables])
+    table.validate(full=True)
+    assert table.to_pylist() == rows
+
+
+@pytest.mark.parametrize("encoding_errors, expected", [("replace", "caf\ufffd"), ("ignore", "caf")])
+def test_json_invalid_list_offsets_encoding_errors(tmp_path, encoding_errors, expected):
+    path = tmp_path / "file.jsonl"
+    path.write_bytes(b'{"a":[null,1],"text":"caf\xff"}\n')
+    path = str(path)
+    builder = Json(encoding_errors=encoding_errors)
+    tables = list(builder._generate_tables([path], [[path]], [path], allow_full_read=False))
+    table = pa.concat_tables([table for _, table in tables])
+    table.validate(full=True)
+    assert table.to_pylist() == [{"a": [None, 1], "text": expected}]
+
+
+@pytest.mark.parametrize("chunksize", [1, 64 << 10])
+@pytest.mark.parametrize("offset, hour", [("", 12), ("Z", 12), ("+00:00", 12), ("+01:00", 11)])
+def test_json_invalid_list_offsets_timestamp_schema(tmp_path, chunksize, offset, hour):
+    rows = [
+        {"a": [None, 1], "ts": f"2026-01-01T12:34:56{offset}"},
+        {"a": [2], "ts": "2026-01-02T12:34:56"},
+    ]
+    path = write_jsonl(tmp_path / "file.jsonl", rows)
+    dataset = load_dataset(
+        "json", data_files=path, split="train", chunksize=chunksize, cache_dir=str(tmp_path / "cache")
+    )
+    assert dataset.to_list() == [
+        {"a": [None, 1], "ts": datetime(2026, 1, 1, hour, 34, 56)},
+        {"a": [2], "ts": datetime(2026, 1, 2, 12, 34, 56)},
+    ]
+    assert dataset.features["ts"] == Value("timestamp[s]")
+
+
+@pytest.mark.parametrize("encoding_errors, expected", [("replace", "caf\ufffd"), ("ignore", "caf")])
+def test_json_invalid_list_offsets_nested_timestamp_encoding_errors(tmp_path, encoding_errors, expected):
+    path = tmp_path / "file.jsonl"
+    path.write_bytes(b'{"a":[null,{"ts":"2026-01-01T12:34:56+01:00","caf\xff":1}],"text":"caf\xff"}\n')
+    path = str(path)
+    builder = Json(encoding_errors=encoding_errors)
+    tables = list(builder._generate_tables([path], [[path]], [path], allow_full_read=False))
+    table = pa.concat_tables([table for _, table in tables])
+    table.validate(full=True)
+    assert table.to_pylist() == [
+        {"a": [None, {"ts": datetime(2026, 1, 1, 11, 34, 56), expected: 1}], "text": expected}
+    ]
+
+
+@pytest.mark.parametrize("chunksize", [1, 2, 3, 64 << 10])
+def test_json_invalid_list_offsets_utf8_bom(tmp_path, chunksize):
+    path = tmp_path / "file.jsonl"
+    path.write_text('{"a":[null,1]}\n', encoding="utf-8-sig")
+    dataset = load_dataset(
+        "json", data_files=str(path), split="train", chunksize=chunksize, cache_dir=str(tmp_path / "cache")
+    )
+    assert dataset.to_list() == [{"a": [None, 1]}]
+
+
+@pytest.mark.parametrize("encoding", ["utf-8", "utf-8-sig", "utf-16"])
+def test_json_full_file_fallback_bom(tmp_path, encoding):
+    path = tmp_path / "file.json"
+    # Leading whitespace bypasses JSON array normalization, reaching the
+    # pre-existing whole-file pandas fallback even with a complete BOM.
+    path.write_text(' [{"a":[null,1]}]\n', encoding="utf-8-sig" if encoding == "utf-8" else encoding)
+    path = str(path)
+    builder = Json(encoding=encoding, on_mixed_types=None)
+    tables = list(builder._generate_tables([path], [[path]], [path]))
+    table = pa.concat_tables([table for _, table in tables])
+    table.validate(full=True)
+    assert table.to_pylist() == [{"a": [None, 1]}]
+
+
+@pytest.mark.parametrize("chunksize", [5, 64 << 10])
+@pytest.mark.parametrize("use_features", [False, True])
+def test_json_invalid_list_offsets_preserve_values(tmp_path, chunksize, use_features):
+    rows = [
+        {"a": [], "id": None, "timestamp": 1690000000000},
+        {"a": [None, 1], "id": 9007199254740993, "timestamp": 1690000000001},
+    ]
+    path = write_jsonl(tmp_path / "file.jsonl", rows)
+    features = Features({"a": List(Value("int64")), "id": Value("int64"), "timestamp": Value("int64")})
+    builder = Json(chunksize=chunksize, features=features if use_features else None)
+    tables = list(builder._generate_tables([path], [[path]], [path]))
+    table = pa.concat_tables([table for _, table in tables], promote_options="default")
+    table.validate(full=True)
+    assert table.to_pylist() == rows
 
 
 @pytest.mark.parametrize(
