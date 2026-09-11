@@ -41,6 +41,7 @@ from .features.features import (
     require_storage_embed,
     to_pyarrow_listarray,
 )
+from .features.tensor import contains_tensor, encode_tensor_storage, tensor_to_parquet_schema, tensor_to_parquet_table
 from .filesystems import is_remote_filesystem
 from .info import DatasetInfo
 from .table import array_cast, cast_array_to_feature, embed_table_storage, table_cast
@@ -320,13 +321,28 @@ class TypedSequence:
                 return pa.ExtensionArray.from_storage(pa_type, storage)
 
             # efficient np array to pyarrow array
-            if isinstance(data, np.ndarray):
+            if isinstance(data, np.ndarray) and not contains_tensor(type):
                 out = numpy_to_pyarrow_listarray(data)
-            elif isinstance(data, list) and data and isinstance(first_non_null_non_empty_value(data)[1], np.ndarray):
+            elif (
+                isinstance(data, list)
+                and data
+                and isinstance(first_non_null_non_empty_value(data)[1], np.ndarray)
+                and not contains_tensor(type)
+            ):
                 out = list_of_np_array_to_pyarrow_listarray(data)
             else:
                 trying_cast_to_python_objects = True
                 examples = data
+                if contains_tensor(type):
+                    # Normalize Tensor leaves before Arrow infers list ranks.
+                    # Siblings and new fields retain their values for the usual
+                    # JSON encoding, type inference and safe feature casting.
+                    try:
+                        examples = [encode_tensor_storage(type, value) for value in examples]
+                    except (TypeError, AttributeError, ValueError) as e:
+                        if self.trying_type:
+                            raise pa.ArrowInvalid(str(e)) from e
+                        raise
                 # find fields to json-encode
                 if self.on_mixed_types == "use_json" and type is None:
                     json_field_paths = find_mixed_struct_types_field_paths(examples, allow_root=True)
@@ -797,6 +813,8 @@ class ArrowWriter:
             pa_table = embed_table_storage(pa_table, local_files=True, remote_files=False)
         self._num_bytes += pa_table.nbytes
         self._num_examples += pa_table.num_rows
+        if isinstance(self, ParquetWriter):
+            pa_table = tensor_to_parquet_table(pa_table, self.pa_writer.schema)
         self.pa_writer.write_table(pa_table, writer_batch_size)
 
     def finalize(self, close_stream=True):
@@ -833,7 +851,7 @@ class ParquetWriter(ArrowWriter):
         self._schema, self._features = self._build_schema(inferred_schema)
         self.pa_writer = pq.ParquetWriter(
             self.stream,
-            self._schema,
+            tensor_to_parquet_schema(self._schema),
             use_content_defined_chunking=self.use_content_defined_chunking,
             write_page_index=self.write_page_index,
             compression={

@@ -21,6 +21,7 @@ import pyarrow as pa
 from .. import config
 from ..features import Features
 from ..features.features import decode_nested_example
+from ..features.tensor import contains_tensor
 from ..utils.py_utils import no_op_if_value_is_null
 from .formatting import BaseArrowExtractor, TableFormatter
 
@@ -108,17 +109,42 @@ class PolarsFormatter(TableFormatter["pl.DataFrame", "pl.Series", "pl.DataFrame"
         self.polars_features_decoder = PolarsFeaturesDecoder(features)
         import polars as pl  # noqa: F401 - import pl at initialization
 
+    def _format_tensor_table(self, pa_table: pa.Table) -> "pl.DataFrame":
+        import polars as pl
+
+        columns = []
+        for name in pa_table.column_names:
+            feature = self.features.get(name)
+            if contains_tensor(feature):
+                columns.append(
+                    pl.Series(
+                        name,
+                        [decode_nested_example(feature, value) for value in pa_table[name].to_pylist()],
+                        dtype=pl.Object,
+                    )
+                )
+            else:
+                column = self.polars_arrow_extractor().extract_column(pa_table.select([name]))
+                columns.append(self.polars_features_decoder.decode_column(column, name))
+        return pl.DataFrame(columns)
+
     def format_row(self, pa_table: pa.Table) -> "pl.DataFrame":
+        if self.features and any(contains_tensor(self.features.get(name)) for name in pa_table.column_names):
+            return self._format_tensor_table(pa_table.slice(length=1))
         row = self.polars_arrow_extractor().extract_row(pa_table)
         row = self.polars_features_decoder.decode_row(row)
         return row
 
     def format_column(self, pa_table: pa.Table) -> "pl.Series":
+        if self.features and contains_tensor(self.features.get(pa_table.column_names[0])):
+            return self._format_tensor_table(pa_table)[pa_table.column_names[0]]
         column = self.polars_arrow_extractor().extract_column(pa_table)
         column = self.polars_features_decoder.decode_column(column, pa_table.column_names[0])
         return column
 
     def format_batch(self, pa_table: pa.Table) -> "pl.DataFrame":
+        if self.features and any(contains_tensor(self.features.get(name)) for name in pa_table.column_names):
+            return self._format_tensor_table(pa_table)
         row = self.polars_arrow_extractor().extract_batch(pa_table)
         row = self.polars_features_decoder.decode_batch(row)
         return row

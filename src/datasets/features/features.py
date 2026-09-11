@@ -48,6 +48,15 @@ from .image import Image, encode_pil_image
 from .mesh import Mesh
 from .nifti import Nifti, encode_nibabel_image
 from .pdf import Pdf, encode_pdfplumber_pdf
+from .tensor import (
+    Tensor,
+    TensorPandasDtype,
+    contains_tensor,
+    contains_tensor_type,
+    is_tensor_type,
+    normalize_tensor_type,
+    tensor_from_parquet_schema,
+)
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video
 
@@ -1002,6 +1011,8 @@ class PandasArrayExtensionArray(PandasExtensionArray):
 
 
 def pandas_types_mapper(dtype):
+    if contains_tensor_type(dtype):
+        return TensorPandasDtype()
     if isinstance(dtype, _ArrayXDExtensionType):
         return PandasArrayExtensionDtype(dtype.value_type)
 
@@ -1391,6 +1402,7 @@ FeatureType = Union[
     Array3D,
     Array4D,
     Array5D,
+    Tensor,
     Audio,
     Image,
     Mesh,
@@ -1479,6 +1491,8 @@ def encode_nested_example(schema, obj, level=0):
         else:
             if len(obj) > 0:
                 sub_schema = schema.feature
+                if contains_tensor(sub_schema):
+                    return [encode_nested_example(sub_schema, o, level=level + 1) for o in obj]
                 for first_elmt in obj:
                     if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
                         break
@@ -1520,7 +1534,7 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Uni
                 for first_elmt in obj:
                     if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
                         break
-                if decode_nested_example(sub_schema, first_elmt) != first_elmt:
+                if contains_tensor(sub_schema) or decode_nested_example(sub_schema, first_elmt) != first_elmt:
                     return [decode_nested_example(sub_schema, o) for o in obj]
             return list(obj)
     elif isinstance(schema, (LargeList, List)):
@@ -1534,7 +1548,7 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[dict[str, Uni
                 for first_elmt in obj:
                     if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
                         break
-                if decode_nested_example(sub_schema, first_elmt) != first_elmt:
+                if contains_tensor(sub_schema) or decode_nested_example(sub_schema, first_elmt) != first_elmt:
                     return [decode_nested_example(sub_schema, o) for o in obj]
             return list(obj)
     # Object with special decoding:
@@ -1555,6 +1569,7 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     Array3D.__name__: Array3D,
     Array4D.__name__: Array4D,
     Array5D.__name__: Array5D,
+    Tensor.__name__: Tensor,
     Audio.__name__: Audio,
     Image.__name__: Image,
     Mesh.__name__: Mesh,
@@ -1642,6 +1657,16 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
     elif isinstance(pa_type, _ArrayXDExtensionType):
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
+    elif is_tensor_type(pa_type):
+        pa_type = normalize_tensor_type(pa_type)
+        if pa_type.dim_names:
+            raise ValueError("Tensor does not support dimension names")
+        shape = pa_type.shape if isinstance(pa_type, pa.FixedShapeTensorType) else pa_type.uniform_shape
+        if shape is None:
+            shape = (None,) * pa_type.ndim
+        if pa_type.permutation and list(pa_type.permutation) != list(range(len(shape))):
+            raise ValueError("Tensor does not support permuted dimensions")
+        return Tensor(tuple(shape), _arrow_to_datasets_dtype(pa_type.value_type))
     elif isinstance(pa_type, pa.JsonType):
         return Json()
     elif isinstance(pa_type, pa.DataType):
@@ -1977,6 +2002,7 @@ class Features(dict):
         Returns:
             [`Features`]
         """
+        pa_schema = tensor_from_parquet_schema(pa_schema)
         # try to load features from the arrow schema metadata
         metadata_features = Features()
         if pa_schema.metadata is not None and b"huggingface" in pa_schema.metadata:

@@ -1885,14 +1885,16 @@ def _combine_list_array_offsets_with_mask(array: pa.ListArray) -> pa.Array:
 
 def _storage_type(type: pa.DataType) -> pa.DataType:
     """Convert a (possibly nested) `pa.ExtensionType` to its storage type."""
-    if isinstance(type, pa.ExtensionType):
+    if isinstance(type, pa.BaseExtensionType):
         return _storage_type(type.storage_type)
     elif isinstance(type, pa.StructType):
-        return pa.struct([pa.field(field.name, _storage_type(field.type)) for field in type])
+        return pa.struct([field.with_type(_storage_type(field.type)) for field in type])
     elif isinstance(type, pa.ListType):
-        return pa.list_(_storage_type(type.value_type))
+        return pa.list_(type.value_field.with_type(_storage_type(type.value_type)))
+    elif isinstance(type, pa.LargeListType):
+        return pa.large_list(type.value_field.with_type(_storage_type(type.value_type)))
     elif isinstance(type, pa.FixedSizeListType):
-        return pa.list_(_storage_type(type.value_type), type.list_size)
+        return pa.list_(type.value_field.with_type(_storage_type(type.value_type)), type.list_size)
     return type
 
 
@@ -1940,7 +1942,7 @@ def array_cast(
     _c = partial(array_cast, allow_primitive_to_str=allow_primitive_to_str, allow_decimal_to_str=allow_decimal_to_str)
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
-    if isinstance(pa_type, pa.ExtensionType):
+    if isinstance(pa_type, pa.BaseExtensionType):
         return pa_type.wrap_array(_c(array, pa_type.storage_type))
     elif array.type == pa_type:
         return array
@@ -2048,12 +2050,16 @@ def cast_array_to_feature(
         array (`pyarrow.Array`): the casted array
     """
     from .features.features import LargeList, List, get_nested_type
+    from .features.tensor import Tensor, is_tensor_type
 
     _c = partial(
         cast_array_to_feature,
         allow_primitive_to_str=allow_primitive_to_str,
         allow_decimal_to_str=allow_decimal_to_str,
     )
+
+    if isinstance(feature, Tensor) and is_tensor_type(array.type):
+        return feature.cast_storage(array)
 
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
@@ -2062,12 +2068,12 @@ def cast_array_to_feature(
 
     if pa.types.is_struct(array.type):
         # feature must be a dict
-        if isinstance(feature, dict) and (array_fields := {field.name for field in array.type}) <= set(feature):
+        if isinstance(feature, dict) and {field.name for field in array.type} <= set(feature):
             null_array = pa.array([None] * len(array))
-            arrays = [
-                _c(array.field(name) if name in array_fields else null_array, subfeature)
-                for name, subfeature in feature.items()
-            ]
+            # Flatten combines the parent and child validity bitmaps. Hidden
+            # placeholder children beneath null structs must not be validated.
+            children = dict(zip(array.type.names, array.flatten()))
+            arrays = [_c(children.get(name, null_array), subfeature) for name, subfeature in feature.items()]
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
     elif pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
         # feature must be either List(subfeature) or LargeList(subfeature)
@@ -2198,14 +2204,17 @@ def embed_array_storage(
     if not local_files and not remote_files:
         return array
 
-    from .features import LargeList, List
+    from .features.features import LargeList, List, require_storage_embed
+
+    # A sibling may require embedding while this feature's data is already
+    # self-contained. Preserve its extension type and buffers in that case.
+    if not require_storage_embed(feature):
+        return array
 
     _e = partial(
         embed_array_storage, token_per_repo_id=token_per_repo_id, local_files=local_files, remote_files=remote_files
     )
 
-    if isinstance(array, pa.ExtensionArray):
-        array = array.storage
     if hasattr(feature, "embed_storage"):
         return feature.embed_storage(
             array, token_per_repo_id=token_per_repo_id, local_files=local_files, remote_files=remote_files

@@ -60,6 +60,35 @@ The array type also allows the first dimension of the array to be dynamic. This 
 >>> features = Features({'a': Array3D(shape=(None, 5, 2), dtype='int32')})
 ```
 
+Use [`Tensor`] for arrays whose sizes can vary along any dimension. For example,
+`Tensor(shape=(None, None, 3), dtype="uint8")` accepts images with different heights
+and widths while requiring three channels. Every row has the same number of
+dimensions. Use `Tensor(ndim=3)` (equivalent to `Tensor(shape=(None, None, None))`)
+when all three sizes may vary. Omitting both `shape` and `ndim` raises a
+`ValueError`.
+
+Values are decoded as NumPy arrays. Fully specified shapes use Arrow's canonical
+fixed shape tensor extension. Dynamic shapes use the canonical variable shape
+tensor extension, storing flattened data and a fixed-size shape list of length
+`ndim` per row. [`Array2D`] through [`Array5D`] remain available.
+
+Tensor formatting preserves the feature dtype, including booleans, unsigned
+64-bit integers and floating-point precision, unless an explicit format dtype is
+provided. NumPy, pandas and Polars return NumPy arrays; PyTorch and TensorFlow
+use their native tensor dtypes. PyTorch versions without native `uint64` support
+raise `ValueError`. JAX requires `jax_enable_x64=True` for 64-bit integers and
+floats; otherwise formatting raises `ValueError` instead of truncating values.
+These rules also apply to tensors nested in lists or dictionaries, and null
+rows remain `None`. Boolean encoding accepts only boolean values and numeric
+values exactly equal to 0 or 1.
+
+Arrow 25's Parquet reader cannot restore null fixed-size lists or fixed tensors
+with zero elements. For affected columns, Datasets writes plain list/struct
+storage and saves the canonical Arrow schema as base64-encoded IPC schema bytes
+in the file metadata key `huggingface:tensor_schema`. Datasets restores the tensor
+features when loading these files. Streaming Parquet writers use this fallback
+for all tensor columns because later batches may contain nulls.
+
 ## Audio feature
 
 Audio datasets have a column with type [`Audio`], which contains three important fields:
