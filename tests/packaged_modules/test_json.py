@@ -12,6 +12,7 @@ import pytest
 from datasets import Features, List, Value, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
+from datasets.packaged_modules.json import json as json_module
 from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig
 
 from ..utils import require_teich
@@ -638,10 +639,10 @@ def test_json_invalid_list_offsets_batch_retry(tmp_path, retry, allow_full_read)
             return original_read(size)
 
         with (
-            patch("datasets.packaged_modules.json.json.open", return_value=f) as open_file,
+            patch.object(json_module, "open", return_value=f) as open_file,
             patch.object(f, "read", side_effect=bounded_read) as read,
             patch.object(paj, "read_json", wraps=paj.read_json) as read_json,
-            patch("datasets.packaged_modules.json.json.pd.DataFrame", wraps=pd.DataFrame) as dataframe,
+            patch.object(json_module.pd, "DataFrame", wraps=pd.DataFrame) as dataframe,
         ):
             generator = builder._generate_tables([path], [[path]], [path], allow_full_read=allow_full_read)
             tables = []
@@ -677,7 +678,7 @@ def test_json_invalid_table_warning(tmp_path):
     builder = Json()
     with (
         patch.object(paj, "read_json", side_effect=[invalid_table, valid_table]),
-        patch("datasets.packaged_modules.json.json.logger.warning") as warning,
+        patch.object(json_module.logger, "warning") as warning,
     ):
         tables = list(builder._generate_tables([path], [[path]], [path]))
     assert pa.concat_tables([table for _, table in tables]).to_pylist() == rows
