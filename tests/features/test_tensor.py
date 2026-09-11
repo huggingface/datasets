@@ -3,6 +3,7 @@ import os
 import pickle
 import subprocess
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 
 import numpy as np
@@ -13,6 +14,18 @@ import pytest
 from datasets import Dataset, Features, List, Tensor, Value, config, load_from_disk
 
 from ..utils import require_jax, require_polars, require_tf, require_torch
+
+
+@contextmanager
+def _jax_enable_x64(enabled):
+    import jax
+
+    previous = jax.config.jax_enable_x64
+    try:
+        jax.config.update("jax_enable_x64", enabled)
+        yield
+    finally:
+        jax.config.update("jax_enable_x64", previous)
 
 
 @pytest.mark.parametrize("shape", [(2, 3), (None, 3), (2, None), (None, None), ()])
@@ -902,9 +915,7 @@ def test_tensor_format_preserves_dtype_and_nulls(format_name, dtype, values, sha
         ]
 
     if format_name == "jax" and dtype in ("uint64", "float64"):
-        import jax
-
-        with jax.experimental.enable_x64(True):
+        with _jax_enable_x64(True):
             rows, nulls = get_rows()
     else:
         rows, nulls = get_rows()
@@ -978,9 +989,7 @@ def test_tensor_nested_map_infers_scalar_replacement(shape, nesting, batched):
 @require_jax
 @pytest.mark.parametrize("enabled", [False, True])
 def test_tensor_jax_uint64_requires_x64(enabled):
-    import jax
-
-    with jax.experimental.enable_x64(enabled):
+    with _jax_enable_x64(enabled):
         dataset = Dataset.from_dict(
             {"x": [[0, 2**63 + 1]]}, features=Features({"x": Tensor((2,), "uint64")})
         ).with_format("jax")
