@@ -1347,6 +1347,9 @@ class List(Sequence):
     id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     pa_type: ClassVar[Any] = None
+    # Mirror the other feature types (Image, Audio, ...) which expose a descriptive
+    # `dtype` so downstream code can branch on `feature.dtype == "list"` — issue #8002.
+    dtype: ClassVar[str] = "list"
     _type: str = field(default="List", init=False, repr=False)
 
     def __repr__(self):
@@ -1371,6 +1374,8 @@ class LargeList:
     id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     pa_type: ClassVar[Any] = None
+    # See issue #8002: expose a descriptive `dtype` like the other feature types.
+    dtype: ClassVar[str] = "list"
     _type: str = field(default="LargeList", init=False, repr=False)
 
     def __repr__(self):
