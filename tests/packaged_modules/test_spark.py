@@ -12,6 +12,7 @@ from datasets.packaged_modules.spark.spark import (
     SparkConfig,
     SparkExamplesIterable,
     _generate_iterable_examples,
+    _get_partition_ids,
 )
 
 from ..utils import (
@@ -66,6 +67,25 @@ def test_generate_iterable_examples():
         expected_row_id, expected_row_dict = expected_row_ids_and_row_dicts[i]
         assert row_id == expected_row_id
         assert row_dict == expected_row_dict
+
+
+@require_not_windows
+@require_dill_gt_0_3_2
+def test_get_partition_ids():
+    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
+    df = spark.range(10).repartition(2)
+    assert _get_partition_ids(df) == [0, 1]
+    assert _get_partition_ids(df.limit(0)) == [0]
+
+
+@require_not_windows
+@require_dill_gt_0_3_2
+def test_validate_cache_dir_without_spark_context(tmp_path):
+    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
+    spark_builder = Spark(spark.range(1), cache_dir=str(tmp_path))
+    with patch.object(type(spark.conf), "get", return_value="spark://remote"):
+        spark_builder._validate_cache_dir()
+    assert list(tmp_path.rglob("fs_test*"))
 
 
 @require_not_windows
