@@ -172,6 +172,7 @@ def test_make_file_instructions_basic():
         {"filename": os.path.join(prefix_path, f"{name}-train.arrow"), "skip": 0, "take": 33}
     ]
 
+
     split_infos = [SplitInfo(name="train", num_examples=100, shard_lengths=[10] * 10)]
     file_instructions = make_file_instructions(name, split_infos, instruction, filetype_suffix, prefix_path)
     assert isinstance(file_instructions, FileInstructions)
@@ -182,6 +183,15 @@ def test_make_file_instructions_basic():
         {"filename": os.path.join(prefix_path, f"{name}-train-00002-of-00010.arrow"), "skip": 0, "take": -1},
         {"filename": os.path.join(prefix_path, f"{name}-train-00003-of-00010.arrow"), "skip": 0, "take": 3},
     ]
+
+
+@pytest.mark.parametrize(
+    "spec, size, expected",
+    [("train[-1%:]", 30, (30, 30)), ("train[:-1%]", 30, (0, 30)), ("train[-10%:]", 150, (135, 150))],
+)
+def test_negative_percent_boundaries_preserve_end_relative_rounding(spec, size, expected):
+    absolute = ReadInstruction.from_spec(spec).to_absolute({"train": size})[0]
+    assert (absolute.from_, absolute.to) == expected
 
 
 @pytest.mark.parametrize(
