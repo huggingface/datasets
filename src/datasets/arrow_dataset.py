@@ -4815,7 +4815,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return self.select(
             indices=indices,
             keep_in_memory=keep_in_memory,
-            indices_cache_file_name=indices_cache_file_name,
+            indices_cache_file_name=indices_cache_file_name if not keep_in_memory else None,
             writer_batch_size=writer_batch_size,
             new_fingerprint=new_fingerprint,
         )
@@ -5226,14 +5226,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         train_split = self.select(
             indices=train_indices,
             keep_in_memory=keep_in_memory,
-            indices_cache_file_name=train_indices_cache_file_name,
+            indices_cache_file_name=train_indices_cache_file_name if not keep_in_memory else None,
             writer_batch_size=writer_batch_size,
             new_fingerprint=train_new_fingerprint,
         )
         test_split = self.select(
             indices=test_indices,
             keep_in_memory=keep_in_memory,
-            indices_cache_file_name=test_indices_cache_file_name,
+            indices_cache_file_name=test_indices_cache_file_name if not keep_in_memory else None,
             writer_batch_size=writer_batch_size,
             new_fingerprint=test_new_fingerprint,
         )
