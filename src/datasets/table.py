@@ -1858,7 +1858,10 @@ def _wrap_for_chunked_arrays(func):
 
     def wrapper(array, *args, **kwargs):
         if isinstance(array, pa.ChunkedArray):
-            return pa.chunked_array([func(chunk, *args, **kwargs) for chunk in array.chunks])
+            # `pa.chunked_array([])` can't infer the resulting type, so an array with no chunk at all
+            # (e.g. an empty slice of a table) is replaced by a single empty chunk of the right type
+            chunks = array.chunks or [array.combine_chunks()]
+            return pa.chunked_array([func(chunk, *args, **kwargs) for chunk in chunks])
         else:
             return func(array, *args, **kwargs)
 
