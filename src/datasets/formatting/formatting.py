@@ -212,6 +212,17 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
                             return np.asarray(array, dtype=object)
                         return np.array(array, copy=False, dtype=object)
                     break
+        else:
+            # numpy infers float64 from an empty list, which would silently change the dtype of an
+            # empty column, e.g. one that `Dataset.filter` emptied out. Let pyarrow derive the dtype
+            # from the arrow type instead, whenever it maps to a concrete numpy dtype.
+            empty_array = (
+                pa_array.to_numpy()
+                if isinstance(pa_array, pa.ChunkedArray)
+                else pa_array.to_numpy(zero_copy_only=False)
+            )
+            if empty_array.dtype != object:
+                return empty_array
         if np.lib.NumpyVersion(np.__version__) >= "2.0.0b1":
             return np.asarray(array)
         else:
