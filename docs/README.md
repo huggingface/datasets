@@ -248,7 +248,7 @@ The syntax for Example docstrings can look as follows:
         'Review: rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .']
 
     # process a batch of examples
-    >>> ds = ds.map(lambda example: tokenizer(example["text"]), batched=True)
+    >>> ds = ds.map(lambda batch: {"text": [t.upper() for t in batch["text"]]}, batched=True)
     # set number of processors
     >>> ds = ds.map(add_prefix, num_proc=4)
     ```
