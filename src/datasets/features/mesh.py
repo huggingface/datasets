@@ -124,7 +124,7 @@ class Mesh:
                 file_type = _infer_mesh_file_type(path)
                 if file_type is None:
                     raise ValueError("A mesh path should have a .glb, .ply, or .stl extension.")
-                return trimesh.load(path, file_type=file_type)
+                return _load_mesh(trimesh, path, file_type=file_type)
             source_url = path.split("::")[-1]
             pattern = (
                 config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
@@ -141,7 +141,7 @@ class Mesh:
                 "Decoding mesh bytes requires a 'path' value with a .glb, .ply, or .stl extension "
                 "to infer the mesh file type."
             )
-        return trimesh.load(BytesIO(bytes_), file_type=file_type)
+        return _load_mesh(trimesh, BytesIO(bytes_), file_type=file_type)
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """If in the decodable state, return the feature itself, otherwise flatten the feature into a dictionary."""
@@ -283,6 +283,22 @@ def _infer_mesh_file_type(path: Optional[str]) -> Optional[str]:
     path_without_query = path_without_archive.split("?", 1)[0]
     extension = os.path.splitext(path_without_query)[1].lower().lstrip(".")
     return extension if extension in supported_file_types else None
+
+
+def _load_mesh(trimesh: Any, source: Any, file_type: str) -> Union["trimesh.Trimesh", "trimesh.Scene"]:
+    """Load a mesh with `trimesh`, turning a stack overflow into a regular error.
+
+    A GLB file can embed an arbitrarily nested JSON chunk, and parsing it exhausts the
+    interpreter stack rather than failing on the file. `RecursionError` also leaves very
+    little stack to run the handler in, so keep the body of the `except` minimal.
+    """
+    try:
+        return trimesh.load(source, file_type=file_type)
+    except RecursionError:
+        raise ValueError(
+            f"Could not decode the {file_type} mesh because it is too deeply nested. "
+            "This usually means the file is corrupted or crafted to exhaust the interpreter stack."
+        ) from None
 
 
 def encode_trimesh_mesh(mesh: Union["trimesh.Trimesh", "trimesh.Scene"]) -> dict[str, Optional[bytes | str]]:
