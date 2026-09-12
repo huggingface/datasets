@@ -485,3 +485,20 @@ def test_dataset_map(with_none):
             assert example["image"].shape == (3, 3, 3)
             if with_none and i == 0:
                 assert np.all(np.isnan(example["image"]))
+
+
+@pytest.mark.parametrize("dtype", ["int32", "bool", "float64"])
+def test_to_pandas_with_empty_array_xd(dtype):
+    # an empty column reaches `PandasArrayExtensionDtype.__from_arrow__` as a chunked array
+    # with no chunk at all, which `pa.concat_arrays` rejects
+    features = datasets.Features({"foo": datasets.Array2D(dtype=dtype, shape=(2, 2))})
+    dataset = datasets.Dataset.from_dict({"foo": []}, features=features)
+
+    df = dataset.to_pandas()
+    assert len(df) == 0
+    assert isinstance(df.foo.dtype, PandasArrayExtensionDtype)
+    assert df.foo.dtype.value_type == np.dtype(dtype)
+
+    formatted_df = dataset.with_format("pandas")[:]
+    assert len(formatted_df) == 0
+    assert isinstance(formatted_df.foo.dtype, PandasArrayExtensionDtype)
