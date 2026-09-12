@@ -557,6 +557,36 @@ def test_temp_cache_dir_tmpdir_not_directory(tmp_path, monkeypatch):
     assert "is not a directory" in msg
 
 
+def _add_one(example):
+    return {"col_1": example["col_1"] + 1}
+
+
+def _keep_all(example):
+    return True
+
+
+@pytest.mark.parametrize(
+    "transform",
+    [
+        lambda ds, **kwargs: ds.map(_add_one, **kwargs),
+        lambda ds, **kwargs: ds.filter(_keep_all, **kwargs),
+        lambda ds, **kwargs: ds.select([2, 0, 1], **kwargs),
+        lambda ds, **kwargs: ds.sort("col_1", **kwargs),
+        lambda ds, **kwargs: ds.shuffle(seed=42, **kwargs),
+        lambda ds, **kwargs: ds.flatten_indices(**kwargs),
+        lambda ds, **kwargs: ds.train_test_split(test_size=1, seed=42, **kwargs)["train"],
+    ],
+)
+def test_fingerprint_ignores_writer_batch_size(transform):
+    dataset = datasets.Dataset.from_dict({"col_1": [0, 1, 2]})
+    assert transform(dataset)._fingerprint == transform(dataset, writer_batch_size=2)._fingerprint
+
+
+def test_fingerprint_of_flatten_indices_ignores_num_proc():
+    dataset = datasets.Dataset.from_dict({"col_1": [0, 1, 2]}).select([2, 0, 1])
+    assert dataset.flatten_indices()._fingerprint == dataset.flatten_indices(num_proc=1)._fingerprint
+
+
 def test_fingerprint_when_transform_version_changes():
     data = {"a": [0, 1, 2]}
 
