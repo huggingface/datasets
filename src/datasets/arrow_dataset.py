@@ -3608,12 +3608,66 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         pbar.update(content)
 
                 if num_proc is not None and num_proc >= 1:
+
+                    def has_view_type(dtype):
+                        if isinstance(dtype, pa.BaseExtensionType):
+                            dtype = dtype.storage_type
+                        return (
+                            pa.types.is_string_view(dtype)
+                            or pa.types.is_binary_view(dtype)
+                            or any(has_view_type(dtype.field(i).type) for i in range(dtype.num_fields))
+                        )
+
+                    def prepare_jobs():
+                        for job_kwargs in unprocessed_kwargs_per_job:
+                            shard = job_kwargs["shard"]
+                            # Keep any memory-mapped blocks serialized by path, including in concatenations.
+                            if num_shards > 1 and not list_table_cache_files(shard._data):
+                                # Arrow slices share their original buffers, which pickle sends in full.
+                                # Copy only the shard's rows, preserving chunking to avoid offset overflows.
+                                try:
+                                    table = shard._data.table
+                                    view_columns = [has_view_type(column.type) for column in table.columns]
+                                    if shard._indices is not None:
+                                        indices = shard._indices.column(0)
+                                        # Arrow take has no kernel for views; gather slices before copying them.
+                                        table = (
+                                            shard._data.fast_gather(indices.to_numpy())
+                                            if any(view_columns)
+                                            else table.take(indices)
+                                        )
+                                    compact_table = InMemoryTable.from_arrays(
+                                        [
+                                            pa.chunked_array(
+                                                [
+                                                    # View descriptors still reference the parent value buffers.
+                                                    pa.array(chunk.to_pylist(), type=chunk.type)
+                                                    if has_views
+                                                    else pa.concat_arrays([chunk])
+                                                    for chunk in column.chunks
+                                                ],
+                                                type=column.type,
+                                            )
+                                            for column, has_views in zip(table.columns, view_columns)
+                                        ],
+                                        schema=table.schema,
+                                    )
+                                except Exception as error:
+                                    # Compaction is optional: unsupported Arrow types must still map.
+                                    logger.debug("Could not compact map shard: %s", error)
+                                else:
+                                    shard = copy.copy(shard)
+                                    shard._data = compact_table
+                                    shard._indices = None
+                                    job_kwargs = {**job_kwargs, "shard": shard}
+                            yield job_kwargs
+
                     with mp.Pool(num_proc) as pool:
                         os.environ = prev_env
                         logger.info(f"Spawning {num_proc} processes")
 
                         for rank, done, content in iflatmap_unordered(
-                            pool, Dataset._map_single, kwargs_iterable=unprocessed_kwargs_per_job
+                            pool, Dataset._map_single, kwargs_iterable=prepare_jobs()
                         ):
                             check_if_shard_done(rank, done, content)
 
