@@ -419,6 +419,31 @@ def test_array_xd_with_none_python_format_keeps_integers():
     assert arr.dtype == np.float64 and np.isnan(arr[1]).all()
 
 
+def test_array_xd_dynamic_shape_with_none_python_format():
+    # A dynamic first dimension must surface a null row as None too. The python path went
+    # through to_numpy, where a null row is a bare np.nan: reading it alone returned that
+    # nan, and reading it next to a non-null row raised on nan.tolist().
+    features = datasets.Features({"foo": datasets.Array2D(dtype="int32", shape=(None, 2))})
+    dataset = datasets.Dataset.from_dict({"foo": [[[1, 2], [3, 4]], None, [[5, 6]]]}, features=features)
+    assert dataset.to_dict()["foo"] == [[[1, 2], [3, 4]], None, [[5, 6]]]
+    assert dataset[1]["foo"] is None
+    assert dataset[:]["foo"] == [[[1, 2], [3, 4]], None, [[5, 6]]]
+    assert dataset.select([1]).to_dict()["foo"] == [None]
+
+    # The numpy format is unchanged: the null row stays np.nan.
+    arr = NumpyArrowExtractor().extract_column(dataset._data)
+    assert arr.dtype == object and np.isnan(arr[1])
+
+
+def test_array_xd_dynamic_shape_with_none_pandas_isna():
+    # pandas asks the extension array for a boolean mask; the scalar np.nan standing in for
+    # a null row made the per-row pd.isna(...).any() call raise, which also broke to_csv.
+    features = datasets.Features({"foo": datasets.Array2D(dtype="int32", shape=(None, 2))})
+    dataset = datasets.Dataset.from_dict({"foo": [[[1, 2], [3, 4]], None, [[5, 6]]]}, features=features)
+    mask = dataset.to_pandas().isna()["foo"]
+    assert mask.dtype == np.bool_ and mask.tolist() == [False, True, False]
+
+
 @pytest.mark.parametrize("seq_type", ["no_sequence", "sequence", "sequence_of_sequence"])
 @pytest.mark.parametrize(
     "dtype",
@@ -485,3 +510,21 @@ def test_dataset_map(with_none):
             assert example["image"].shape == (3, 3, 3)
             if with_none and i == 0:
                 assert np.all(np.isnan(example["image"]))
+
+
+def test_array_xd_dynamic_shape_isna_keeps_rows_with_inner_nan():
+    """isna is a per-value mask, so a NaN inside a present row is not a missing row."""
+    ds = datasets.Dataset.from_dict(
+        {"a": [[[1.0, np.nan]], None, [[5.0, 6.0]]]},
+        features=datasets.Features({"a": Array2D((None, 2), "float32")}),
+    )
+    column = ds.data.column("a")
+    arrow_nulls = [not column[i].is_valid for i in range(len(column))]
+
+    df = ds.with_format("pandas")[:]
+    assert list(map(bool, df["a"].array.isna())) == arrow_nulls == [False, True, False]
+
+    # the present row that holds a NaN must survive to_csv rather than blanking
+    csv_rows = df.to_csv(index=False).strip().split("\n")[1:]
+    assert csv_rows[0].strip() != ""
+    assert csv_rows[1].strip() in ("", '""')
