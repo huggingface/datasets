@@ -7,7 +7,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Audio, Features, Image, IterableDataset
+from datasets import Array2D, Audio, Dataset, Features, Image, IterableDataset
 from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter, query_table
 from datasets.formatting.formatting import (
     LazyBatch,
@@ -72,6 +72,20 @@ class ArrowExtractorTest(TestCase):
         self.assertEqual(col, _COL_A)
         batch = extractor.extract_batch(pa_table)
         self.assertEqual(batch, {"a": _COL_A, "b": _COL_B, "c": _COL_C, "d": _COL_D})
+
+    def test_python_extractor_array_xd_row_matches_batch(self):
+        dataset = Dataset.from_dict(
+            {"a": [None, [[1, 2, 3]]]},
+            features=Features({"a": Array2D(shape=(None, 3), dtype="int64")}),
+        )
+        pa_table = dataset._data.fast_slice(0, 1)
+        extractor = PythonArrowExtractor()
+
+        row = extractor.extract_row(pa_table)
+        batch = extractor.extract_batch(pa_table)
+
+        self.assertTrue(np.isnan(row["a"]))
+        self.assertTrue(np.isnan(batch["a"][0]))
 
     def test_numpy_extractor(self):
         pa_table = self._create_dummy_table().drop(["c", "d"])
