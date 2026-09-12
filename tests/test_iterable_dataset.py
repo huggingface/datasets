@@ -3444,6 +3444,26 @@ def test_decode():
     assert DecodableFeature.decode_example_num_calls == 4
 
 
+def test_decode_num_threads_yields_all_examples():
+    data = [{"i": str(i)} for i in range(50)]
+    features = Features({"i": DecodableFeature()})
+    ds = IterableDataset.from_generator(lambda: (x for x in data), features=features)
+    ds = ds.decode(num_threads=4)
+    assert [example["i"] for example in ds] == ["decoded"] * 50
+
+
+def test_decode_num_threads_propagates_errors():
+    class FailingDecodableFeature(DecodableFeature):
+        def decode_example(self, example, token_per_repo_id=None):
+            raise ValueError("failed to decode")
+
+    features = Features({"i": FailingDecodableFeature()})
+    ds = IterableDataset.from_generator(lambda: iter([{"i": "0"}]), features=features)
+    ds = ds.decode(num_threads=2)
+    with pytest.raises(ValueError, match="failed to decode"):
+        list(ds)
+
+
 ############################
 #
 #   IterableColumn tests

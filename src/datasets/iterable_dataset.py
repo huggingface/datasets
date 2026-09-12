@@ -5539,12 +5539,30 @@ def _split_by_node_iterable_dataset(
 
 
 async def _apply_async(pool, func, x):
-    future = pool.apply_async(func, (x,))
-    while True:
-        if future.ready():
-            return future.get()
-        else:
-            await asyncio.sleep(0)
+    # Bridge the pool result to asyncio with callbacks rather than polling `future.ready()`
+    # in an `await asyncio.sleep(0)` loop: one such hot loop per in-flight example keeps the
+    # event loop thread holding the GIL, starving the pool threads it is waiting on (#8595).
+    loop = asyncio.get_running_loop()
+    future = loop.create_future()
+
+    def _set_result(result):
+        if not future.done():
+            future.set_result(result)
+
+    def _set_exception(exc):
+        if not future.done():
+            future.set_exception(exc)
+
+    def _on_result(result):
+        if not loop.is_closed():
+            loop.call_soon_threadsafe(_set_result, result)
+
+    def _on_error(exc):
+        if not loop.is_closed():
+            loop.call_soon_threadsafe(_set_exception, exc)
+
+    pool.apply_async(func, (x,), callback=_on_result, error_callback=_on_error)
+    return await future
 
 
 def _batch_fn(unbatched):
