@@ -7,7 +7,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Audio, Features, Image, IterableDataset
+from datasets import Audio, Features, Image, IterableDataset, Value
 from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter, query_table
 from datasets.formatting.formatting import (
     LazyBatch,
@@ -362,6 +362,20 @@ class FormatterTest(TestCase):
         self.assertIsInstance(batch, pd.DataFrame)
         pd.testing.assert_series_equal(batch["a"], pd.Series(_COL_A, name="a"))
         pd.testing.assert_series_equal(batch["b"], pd.Series(_COL_B, name="b"))
+
+    @require_pil
+    def test_pandas_formatter_image_with_columns_subset(self):
+        import PIL.Image
+
+        pa_table = pa.table({"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}] * 2, "label": [0, 1]})
+        formatter = PandasFormatter(features=Features({"image": Image(), "label": Value("int64")}))
+        # the table only holds a subset of the features when a `columns` format is set
+        row = formatter.format_row(pa_table.select(["label"]))
+        self.assertEqual(row["label"][0], 0)
+        batch = formatter.format_batch(pa_table.select(["label"]))
+        self.assertEqual(list(batch["label"]), [0, 1])
+        # the decodable column is still decoded when it is kept
+        self.assertIsInstance(formatter.format_row(pa_table)["image"][0], PIL.Image.Image)
 
     @require_polars
     def test_polars_formatter(self):
