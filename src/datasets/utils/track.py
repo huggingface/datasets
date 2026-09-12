@@ -1,4 +1,20 @@
 from collections.abc import Iterable, Iterator
+from urllib.parse import urlsplit, urlunsplit
+
+
+def _sanitize_origin(origin: str) -> str:
+    """Strip userinfo and query from origin URLs before embedding them in reprs/errors.
+
+    Keeps scheme/host/path (e.g. hf://…) for debugging while avoiding leaking basic-auth
+    credentials or presigned-URL query parameters into logs and tracebacks.
+    """
+    parts = urlsplit(origin)
+    if not parts.scheme:
+        return origin
+    netloc = parts.netloc.rsplit("@", 1)[-1] if "@" in parts.netloc else parts.netloc
+    if netloc == parts.netloc and not parts.query:
+        return origin
+    return urlunsplit((parts.scheme, netloc, parts.path, "", parts.fragment))
 
 
 class tracked_str(str):
@@ -12,10 +28,10 @@ class tracked_str(str):
         return self.origins.get(super().__repr__(), str(self))
 
     def __repr__(self) -> str:
-        if super().__repr__() not in self.origins or self.origins[super().__repr__()] == self:
+        origin = self.origins.get(super().__repr__())
+        if origin is None or origin == self:
             return super().__repr__()
-        else:
-            return f"{str(self)} (origin={self.origins[super().__repr__()]})"
+        return f"{super().__repr__()} (origin={_sanitize_origin(origin)})"
 
 
 class tracked_list(list):
