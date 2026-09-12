@@ -7288,6 +7288,16 @@ def _split_by_node_map_style_dataset(dataset: Dataset, rank: int, world_size: in
 # This is outside Dataset.filter as it needs to be picklable for multiprocessing
 
 
+def _check_mask_length(mask, indices: list[int]):
+    """Check that a `filter` function returned one value per example of the batch."""
+    if hasattr(mask, "__len__") and len(mask) != len(indices):
+        raise ValueError(
+            f"Provided `function` which is applied to all elements of table returns {len(mask)} values "
+            f"for a batch of {len(indices)} examples. When using `batched=True`, make sure provided `function` "
+            f"returns one value per example of the batch."
+        )
+
+
 def get_indices_from_mask_function(
     function: Callable,
     batched: bool,
@@ -7309,6 +7319,7 @@ def get_indices_from_mask_function(
         mask = function(*inputs, *additional_args, **fn_kwargs)
         if isinstance(mask, (pa.Array, pa.ChunkedArray)):
             mask = mask.to_pylist()
+        _check_mask_length(mask, indices)
     else:
         # we get batched data (to return less data than input) but `function` only accepts one example
         # therefore we need to call `function` on each example of the batch to get the mask
@@ -7368,6 +7379,7 @@ async def async_get_indices_from_mask_function(
         mask = await function(*inputs, *additional_args, **fn_kwargs)
         if isinstance(mask, (pa.Array, pa.ChunkedArray)):
             mask = mask.to_pylist()
+        _check_mask_length(mask, indices)
     else:
         # we get batched data (to return less data than input) but `function` only accepts one example
         # therefore we need to call `function` on each example of the batch to get the mask
