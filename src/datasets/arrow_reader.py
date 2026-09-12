@@ -444,9 +444,12 @@ def _rel_to_abs_instr(rel_instr, name2len):
     else:
         from_ = 0 if from_ is None else from_
         to = num_examples if to is None else to
-    if from_ < 0:
+    # Use the sign of the boundary as written in the spec to decide whether it is relative
+    # to the end: a negative percent boundary can round to 0 (e.g. -1% of 30 examples),
+    # in which case the sign of the rounded value is lost.
+    if rel_instr.from_ is not None and rel_instr.from_ < 0:
         from_ = max(num_examples + from_, 0)
-    if to < 0:
+    if rel_instr.to is not None and rel_instr.to < 0:
         to = max(num_examples + to, 0)
     from_ = min(from_, num_examples)
     to = min(to, num_examples)
