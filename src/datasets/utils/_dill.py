@@ -157,8 +157,8 @@ def _create_enum(metaclass, name, bases, attributes, members, boundary):
     namespace = metaclass.__prepare__(name, bases)
     for key, value in attributes:
         namespace[key] = value
-    for key, canonical_name, value in members:
-        namespace[key] = value if key == canonical_name else namespace[canonical_name]
+    for key, value_name, value in members:
+        namespace[key] = value if key == value_name else namespace[value_name]
     return metaclass(name, bases, namespace, **boundary)
 
 
@@ -436,10 +436,14 @@ def _save_enum(pickler, obj):
                 attributes["__new_member__"] = new
             else:
                 body.append(("__new__", new))
-        members = [
-            (name, member._name_, member._value_ if name == member._name_ else None)
-            for name, member in obj.__members__.items()
-        ]
+        # Preserve shared values even when they do not create member aliases:
+        # Python 3.9/3.10 gives a shared NaN two members but one value-map key.
+        # Pickle does not memoize floats, so reference the first body entry.
+        value_names = {}
+        members = []
+        for name, member in obj.__members__.items():
+            value_name = value_names.setdefault(id(member._value_), name)
+            members.append((name, value_name, member._value_ if name == value_name else None))
         slots = _enum_slots(obj)
         member_attributes = {
             name: (

@@ -233,6 +233,7 @@ def test_dill_enum_validation_detects_lost_unhashable_value_alias():
         _check_enum(original, restored)
 
 
+@pytest.mark.skipif(sys.version_info < (3, 11), reason="EnumMeta construction is quadratic before Python 3.11")
 @pytest.mark.parametrize("serialize", [dumps, ForkingPickler.dumps])
 def test_dill_large_enum_dump_scales_linearly(serialize):
     elapsed = []
@@ -270,14 +271,20 @@ def test_dill_enum_raising_public_accessor(serialize, accessor):
         getattr(restored.A, accessor)
 
 
-def test_dill_enum_alias_with_nan_value():
+@pytest.mark.parametrize("serialize", [dumps, ForkingPickler.dumps])
+@pytest.mark.parametrize("shared_value", [False, True])
+def test_dill_enum_alias_with_nan_value(serialize, shared_value):
     class Choice(enum.Enum):
         first = float("nan")
-        alias = first
+        alias = first if shared_value else float("nan")
 
-    restored = dill.loads(dumps(Choice))
-    assert restored.alias is restored.first
-    assert restored(restored.first.value) is restored.first
+    restored = dill.loads(serialize(Choice))
+    # Before Python 3.11, even a shared NaN creates two distinct members.
+    assert (restored.alias is restored.first) == (Choice.alias is Choice.first)
+    assert (restored.alias.value is restored.first.value) == shared_value
+    assert restored._member_names_ == Choice._member_names_
+    for name in Choice.__members__:
+        assert restored(restored[name].value) is restored[Choice(Choice[name].value).name]
 
 
 @pytest.mark.parametrize("serialize", [dumps, ForkingPickler.dumps])
@@ -398,13 +405,18 @@ def test_map_enum_requires_worker_dispatch(monkeypatch):
         return {"value": Choice.A.value}
 
     dataset = datasets.Dataset.from_dict({"text": ["one", "two"]})
-    assert dataset.map(transform, num_proc=2)["value"] == [1, 1]
+    assert dataset.map(transform, num_proc=2, load_from_cache_file=False)["value"] == [1, 1]
     # Hashing still succeeds with datasets' private pickler. The real pool
     # task, however, is serialized by multiprocess.connection.ForkingPickler.
-    monkeypatch.setattr(ForkingPickler, "dispatch", ForkingPickler.dispatch.fallback)
+    # Full-suite collection also imports src.datasets via test_nifti, so the
+    # shared table can have multiple Enum wrappers. Remove every wrapper.
+    fallback = ForkingPickler.dispatch
+    while hasattr(fallback, "fallback"):
+        fallback = fallback.fallback
+    monkeypatch.setattr(ForkingPickler, "dispatch", fallback)
     assert Hasher.hash(transform)
     with pytest.warns(dill.PicklingWarning), pytest.raises(pickle.PicklingError, match="Can't pickle.*Choice"):
-        dataset.map(transform, num_proc=2)
+        dataset.map(transform, num_proc=2, load_from_cache_file=False)
 
 
 def test_dill_main_guard_enum_spawn(tmp_path):
@@ -613,9 +625,9 @@ def _make_adversarial_enum(case):
 
         fingerprint = Hasher.hash(Choice)
         if case.endswith("invert"):
-            assert ~Choice.A is Choice.B
+            _ = ~Choice.A
         elif case.endswith("negative"):
-            assert Choice(-2) is Choice.B
+            _ = Choice(-2)
         else:
             assert Choice(3) == Choice.A | Choice.B
         assert Hasher.hash(Choice) == fingerprint
@@ -647,26 +659,31 @@ def test_dill_enum_constructor_calls_method(serialize):
 
 @pytest.mark.parametrize("serialize", [dumps, ForkingPickler.dumps])
 @pytest.mark.parametrize("enum_type", [enum.Flag, enum.IntFlag])
-@pytest.mark.parametrize("lookup", ["invert", "negative", "composite"])
+@pytest.mark.parametrize(
+    "lookup",
+    [lambda choice: ~choice.A, lambda choice: choice(-2), lambda choice: choice.A | choice.B],
+    ids=["invert", "negative", "composite"],
+)
 def test_dill_enum_lookup_cache(serialize, enum_type, lookup):
     class Choice(enum_type):
         A = 1
         B = 2
 
     before = bytes(serialize(Choice))
+    fresh = dill.loads(before)
     fingerprint = Hasher.hash(Choice)
-    if lookup == "invert":
-        assert ~Choice.A is Choice.B
-    elif lookup == "negative":
-        assert Choice(-2) is Choice.B
-    else:
-        assert Choice(3) == Choice.A | Choice.B
+    expected = lookup(Choice)
     after = bytes(serialize(Choice))
     assert after == before
     assert Hasher.hash(Choice) == fingerprint
     restored = dill.loads(after)
     assert list(restored._value2member_map_) == [1, 2]
     assert "_inverted_" not in restored.A.__dict__
+    for rebuilt in (fresh, restored):
+        member = lookup(rebuilt)
+        assert (member.name, member.value) == (expected.name, expected.value)
+        assert (member is rebuilt.B) == (expected is Choice.B)
+        assert member is rebuilt(member.value)
 
 
 @pytest.mark.skipif(sys.version_info < (3, 13), reason="Value aliases require Python 3.13+")
