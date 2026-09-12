@@ -31,7 +31,7 @@ def write(my_features, dummy_data, tmp_dir):
 
 
 @get_duration
-def read_unformated(feats, tmp_dir):
+def read_unformatted(feats, tmp_dir):
     dataset = datasets.Dataset.from_file(
         filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats)
     )
@@ -50,7 +50,7 @@ def read_formatted_as_numpy(feats, tmp_dir):
 
 
 @get_duration
-def read_batch_unformated(feats, tmp_dir):
+def read_batch_unformatted(feats, tmp_dir):
     batch_size = 10
     dataset = datasets.Dataset.from_file(
         filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats)
@@ -92,9 +92,9 @@ def read_col_formatted_as_numpy(feats, tmp_dir):
 def benchmark_array_xd():
     times = {}
     read_functions = (
-        read_unformated,
+        read_unformatted,
         read_formatted_as_numpy,
-        read_batch_unformated,
+        read_batch_unformatted,
         read_batch_formatted_as_numpy,
         read_col_unformated,
         read_col_formatted_as_numpy,
