@@ -9,12 +9,12 @@ import subprocess
 import sys
 import threading
 import warnings
+from contextlib import nullcontext
 from datetime import date
 from functools import partial
 from pathlib import Path
 from tempfile import gettempdir
 from textwrap import dedent
-from time import process_time
 from types import FunctionType
 from unittest import TestCase
 from unittest.mock import patch
@@ -138,8 +138,9 @@ def test_dill_enum_concurrent_dumps_preserve_warning_filters(serialize, monkeypa
 
     threads = [threading.Thread(target=worker, args=(choice,)) for choice in (Choice1, Choice2)]
     # The test owns this context; worker dumps must leave its filters alone.
+    pickling_warning = getattr(dill, "PicklingWarning", UserWarning)
     with warnings.catch_warnings():
-        warnings.simplefilter("ignore", dill.PicklingWarning)
+        warnings.simplefilter("ignore", pickling_warning)
         filters = warnings.filters
         before = list(filters)
         try:
@@ -155,7 +156,7 @@ def test_dill_enum_concurrent_dumps_preserve_warning_filters(serialize, monkeypa
             assert not errors
             assert warnings.filters is filters
             assert before == during == warnings.filters
-            warnings.warn("After both Enum dumps finished", dill.PicklingWarning)
+            warnings.warn("After both Enum dumps finished", pickling_warning)
         finally:
             for _, release in events.values():
                 release.set()
@@ -233,20 +234,19 @@ def test_dill_enum_validation_detects_lost_unhashable_value_alias():
         _check_enum(original, restored)
 
 
-@pytest.mark.skipif(sys.version_info < (3, 11), reason="EnumMeta construction is quadratic before Python 3.11")
 @pytest.mark.parametrize("serialize", [dumps, ForkingPickler.dumps])
-def test_dill_large_enum_dump_scales_linearly(serialize):
-    elapsed = []
-    for size in (1000, 4000):
-        choice = enum.Enum("Choice", {f"V{i}": i for i in range(size)})
-        samples = []
-        for _ in range(3):
-            start = process_time()
-            serialize(choice)
-            samples.append(process_time() - start)
-        elapsed.append(min(samples))
-    # Four times the members should stay well below quadratic (16x) growth.
-    assert elapsed[1] < 7 * elapsed[0], elapsed
+@pytest.mark.parametrize("size", [1000, 4000])
+def test_dill_large_enum_dump_scales_linearly(serialize, size):
+    from datasets.utils._dill import _enum_slots
+
+    choice = enum.Enum("Choice", {f"V{i}": i for i in range(size)})
+    # Discovery scans a class dictionary that grows with the member count.
+    # Repeating it for every member makes serialization quadratic.
+    with patch("datasets.utils._dill._enum_slots", wraps=_enum_slots) as discover_slots:
+        assert serialize(choice)
+    # One scan for the validation dump, two for its original/rebuilt comparison,
+    # and one for the final dump, independent of the number of members.
+    assert discover_slots.call_count == 4
 
 
 @pytest.mark.parametrize("serialize", [dumps, ForkingPickler.dumps])
@@ -352,6 +352,9 @@ def test_map_enum_numpy_value():
 @pytest.mark.parametrize("importable", [False, True])
 @pytest.mark.parametrize("as_key", [False, True])
 def test_dill_enum_undefined_value_equality(serialize, equality, importable, as_key):
+    if not importable and config.DILL_VERSION.release < (0, 3, 5):
+        pytest.skip("Local non-Enum classes require dill>=0.3.5")
+
     class Value:
         def __init__(self):
             self.code = 7
@@ -378,6 +381,7 @@ def test_dill_enum_undefined_value_equality(serialize, equality, importable, as_
         assert member.value.code == 7
 
 
+@pytest.mark.skipif(config.DILL_VERSION.release < (0, 3, 5), reason="Local non-Enum classes require dill>=0.3.5")
 @pytest.mark.parametrize("serialize", [dumps, ForkingPickler.dumps])
 def test_dill_enum_defined_local_value_equality(serialize):
     class Value:
@@ -415,7 +419,9 @@ def test_map_enum_requires_worker_dispatch(monkeypatch):
         fallback = fallback.fallback
     monkeypatch.setattr(ForkingPickler, "dispatch", fallback)
     assert Hasher.hash(transform)
-    with pytest.warns(dill.PicklingWarning), pytest.raises(pickle.PicklingError, match="Can't pickle.*Choice"):
+    # Older dill raises directly, without emitting a PicklingWarning first.
+    warning = pytest.warns(dill.PicklingWarning) if hasattr(dill, "PicklingWarning") else nullcontext()
+    with warning, pytest.raises(pickle.PicklingError, match="Can't pickle.*Choice"):
         dataset.map(transform, num_proc=2, load_from_cache_file=False)
 
 
@@ -430,6 +436,8 @@ def test_dill_main_guard_enum_spawn(tmp_path):
             from datasets.utils._dill import dumps
 
             def child(payload, queue):
+                import dill
+
                 assert "Label" not in globals()
                 restored, member = dill.loads(payload)
                 assert member is restored.A
@@ -831,6 +839,7 @@ def test_dill_enum_nan_member_closure(serialize):
     assert math.isnan(restored_member.value)
 
 
+@pytest.mark.skipif(config.DILL_VERSION.release < (0, 3, 5), reason="Local non-Enum classes require dill>=0.3.5")
 @pytest.mark.parametrize("serialize", [dumps, ForkingPickler.dumps])
 def test_dill_enum_metaclass_subclass(serialize):
     choice = _make_adversarial_enum("metaclass")
@@ -866,6 +875,7 @@ def test_dill_enum_float_payload_fails_at_dump(serialize):
         serialize(choice)
 
 
+@pytest.mark.skipif(config.DILL_VERSION.release < (0, 3, 5), reason="Local non-Enum classes require dill>=0.3.5")
 @pytest.mark.parametrize("serialize", [dumps, ForkingPickler.dumps])
 def test_dill_enum_member_ignores_metaclass_attribute_override(serialize):
     choice = _make_adversarial_enum("redirected_metaclass")
@@ -898,7 +908,7 @@ def test_adversarial_enum_in_separate_processes(tmp_path):
     script.write_text(
         "import enum\nimport json\nimport pickle\nimport sys\nfrom datetime import date\n"
         "import dill\nfrom multiprocess.reduction import ForkingPickler\n"
-        "from datasets import Dataset\nfrom datasets.fingerprint import Hasher\n"
+        "from datasets import Dataset, config\nfrom datasets.fingerprint import Hasher\n"
         "from datasets.utils._dill import dumps\n"
         + inspect.getsource(_make_adversarial_enum)
         + dedent(
@@ -914,11 +924,13 @@ def test_adversarial_enum_in_separate_processes(tmp_path):
 
                 def transform(row):
                     assert member is choice["A"]
-                    if callable(getattr(member, "label", None)):
-                        assert member.label() == "Choice.A" or member.label() is member
+                    label = getattr(member, "label", None)
+                    if callable(label):
+                        label = label()
+                        assert label == "Choice.A" or label is member
                     return {"label": str((member._name_, member.name, str(member.value),
                                           str(member), int(member) if isinstance(member, int) else None,
-                                          getattr(member, "label", None)))}
+                                          label))}
 
                 return transform
 
@@ -930,6 +942,9 @@ def test_adversarial_enum_in_separate_processes(tmp_path):
                          "intflag_invert", "intflag_negative", "intflag_composite", "constructor_method"]
                 if sys.version_info >= (3, 13):
                     cases.append("value_alias")
+                if config.DILL_VERSION.release < (0, 3, 5):
+                    # Local non-Enum metaclasses are unsupported by upstream dill.
+                    cases = [case for case in cases if case not in ("metaclass", "redirected_metaclass")]
                 for case in cases:
                     choice = MainChoice if case == "main_metaclass" else _make_adversarial_enum(case)
                     transform = make_transform(choice)
