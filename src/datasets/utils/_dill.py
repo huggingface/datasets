@@ -15,6 +15,8 @@
 
 import os
 import sys
+import sysconfig
+from functools import lru_cache
 from io import BytesIO
 from types import CodeType, FunctionType
 
@@ -25,9 +27,63 @@ from packaging import version
 from .. import config
 
 
+@lru_cache(maxsize=1)
+def _installed_module_roots() -> tuple[str, ...]:
+    roots = set()
+    for key in ("stdlib", "platstdlib", "purelib", "platlib"):
+        path = sysconfig.get_paths().get(key)
+        if path:
+            roots.add(os.path.realpath(path))
+    return tuple(sorted(roots))
+
+
+@lru_cache(maxsize=None)
+def _is_installed_module(module_name: str) -> bool:
+    """Whether `module_name` lives in the standard library or in site-packages.
+
+    Such a module only changes when its package is reinstalled, so referring to its
+    functions by name is enough to notice a change. Anything else is source the user
+    edits in place.
+    """
+    module_file = getattr(sys.modules.get(module_name), "__file__", None)
+    if module_file is None:
+        # Built-in, frozen, or namespace package: not user-editable source.
+        return True
+    return os.path.realpath(module_file).startswith(_installed_module_roots())
+
+
 class Pickler(dill.Pickler):
     dispatch = dill._dill.MetaCatchingDict(dill.Pickler.dispatch.copy())
     _legacy_no_dict_keys_sorting = False
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._by_value_functions: dict[int, tuple[FunctionType, FunctionType]] = {}
+
+    def _by_value(self, obj):
+        """Return a stand-in for `obj` that `dill` dumps by value, or `obj` unchanged.
+
+        `dill` dumps a function it can import as a module-qualified name, so the dump
+        carries the name and not the body. Functions from the user's own modules are
+        dumped by value instead, which is what already happens to the same function
+        defined in `__main__`.
+        """
+        module_name = getattr(obj, "__module__", None)
+        if module_name is None or module_name == "__main__" or _is_installed_module(module_name):
+            return obj
+        cached = self._by_value_functions.get(id(obj))
+        if cached is not None and cached[0] is obj:
+            return cached[1]
+        copied = FunctionType(obj.__code__, obj.__globals__, obj.__name__, obj.__defaults__, obj.__closure__)
+        copied.__module__ = None
+        copied.__qualname__ = obj.__qualname__
+        copied.__kwdefaults__ = obj.__kwdefaults__
+        copied.__dict__.update(obj.__dict__)
+        # Hold on to the original so its `id` cannot be reused mid-dump, and reuse one
+        # stand-in per function so a function reachable from its own globals is
+        # memoized rather than followed forever.
+        self._by_value_functions[id(obj)] = (obj, copied)
+        return copied
 
     def save(self, obj, save_persistent_id=True):
         obj_type = type(obj)
@@ -68,6 +124,7 @@ class Pickler(dill.Pickler):
         # Unwrap `torch.compile`-ed functions
         if obj_type is FunctionType:
             obj = getattr(obj, "_torchdynamo_orig_callable", obj)
+            obj = self._by_value(obj)
         dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
 
     def _batch_setitems(self, items, *args, **kwargs):
