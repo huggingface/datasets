@@ -35,8 +35,7 @@ import time
 import warnings
 import weakref
 from collections import Counter, defaultdict
-from collections.abc import Iterable, Iterator, Mapping
-from collections.abc import Sequence as Sequence_
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from copy import deepcopy
 from functools import partial, wraps
 from math import ceil, floor
@@ -635,7 +634,7 @@ class NonExistentDatasetError(Exception):
     pass
 
 
-class Column(Sequence_):
+class Column(Sequence):
     """
     An iterable for a specific column of a [`Dataset`].
 
@@ -1281,7 +1280,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_csv(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1421,7 +1420,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_json(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1480,7 +1479,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_parquet(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1577,7 +1576,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_text(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -4696,8 +4695,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"])
     def sort(
         self,
-        column_names: Union[str, Sequence_[str]],
-        reverse: Union[bool, Sequence_[bool]] = False,
+        column_names: Union[str, Sequence[str]],
+        reverse: Union[bool, Sequence[bool]] = False,
         null_placement: str = "at_end",
         keep_in_memory: bool = False,
         load_from_cache_file: Optional[bool] = None,
