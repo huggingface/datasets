@@ -70,6 +70,29 @@ def test_mesh_decode_example(shared_datadir):
 
 
 @require_trimesh
+def test_mesh_decode_example_raises_on_deeply_nested_glb():
+    # Regression test for #8246: a GLB whose glTF JSON chunk is deeply nested can
+    # exceed Python's recursion limit while trimesh parses it. decode_example should
+    # raise a clean ValueError instead of crashing with a RecursionError.
+    import struct
+
+    depth = 100_000
+    json_chunk = (b"[" * depth) + (b"]" * depth)
+    json_chunk += b" " * (-len(json_chunk) % 4)  # pad to a 4-byte boundary
+    glb_bytes = (
+        # GLB header: magic "glTF", version 2, total length.
+        struct.pack("<III", 0x46546C67, 2, 12 + 8 + len(json_chunk))
+        # JSON chunk header: chunk length, chunk type "JSON".
+        + struct.pack("<II", len(json_chunk), 0x4E4F534A)
+        + json_chunk
+    )
+
+    mesh = Mesh()
+    with pytest.raises(ValueError):
+        mesh.decode_example({"path": "deeply_nested.glb", "bytes": glb_bytes})
+
+
+@require_trimesh
 def test_dataset_with_mesh_feature(shared_datadir):
     import trimesh
 
