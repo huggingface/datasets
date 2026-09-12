@@ -41,7 +41,7 @@ class SplitsNotFoundError(ValueError):
 
 def get_dataset_infos(
     path: str,
-    data_files: Optional[Union[dict, list, str]] = None,
+    data_files: Optional[Union[dict, Sequence, str]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
