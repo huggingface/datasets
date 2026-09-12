@@ -5512,6 +5512,8 @@ def _split_by_node_iterable_dataset(
     Returns:
         [`IterableDataset`]: The iterable dataset to be used on the node at rank `rank`.
     """
+    if not 0 <= rank < world_size:
+        raise ValueError("rank should be in [0, world_size-1]")
     if dataset._distributed:
         if strategy not in ("auto", dataset._distributed.strategy):
             raise ValueError(
