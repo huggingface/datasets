@@ -207,6 +207,28 @@ def test_resolve_pattern_locally_with_absolute_path(tmp_path, complex_data_dir):
     assert len(resolved_data_files) == 1
 
 
+def test_resolve_pattern_locally_with_tilde(tmp_path):
+    home_dir = tmp_path / "home"
+    data_dir = home_dir / "data"
+    data_dir.mkdir(parents=True)
+    data_file = data_dir / "train.txt"
+    data_file.write_text("foo\n" * 10)
+
+    with patch.dict(
+        os.environ,
+        {
+            "HOME": home_dir.as_posix(),
+            "USERPROFILE": home_dir.as_posix(),
+            "HOMEDRIVE": home_dir.drive,
+            "HOMEPATH": home_dir.as_posix()[len(home_dir.drive) :],
+        },
+        clear=False,
+    ):
+        resolved_data_files = resolve_pattern(os.path.join("~", "data", "train.txt"), str(tmp_path / "blabla"))
+
+    assert resolved_data_files == [data_file.as_posix()]
+
+
 def test_resolve_pattern_locally_with_double_dots(tmp_path, complex_data_dir):
     path_with_double_dots = os.path.join(complex_data_dir, "data", "subdir", "..", "train.txt")
     resolved_data_files = resolve_pattern(path_with_double_dots, str(tmp_path / "blabla"))
