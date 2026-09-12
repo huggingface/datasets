@@ -1319,6 +1319,19 @@ class BaseDatasetTest(TestCase):
                     )
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test_with_indices)
 
+    def test_map_batched_drop_last_batch_smaller_than_batch_size(self, in_memory):
+        # Regression test: when `drop_last_batch=True` and the dataset has fewer rows than
+        # `batch_size`, every batch is incomplete, so the function is never called and the
+        # result should be an empty dataset (matching `IterableDataset.batch`/`Dataset.iter`),
+        # not the original, unprocessed dataset passed through unchanged.
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertEqual(len(dset), 30)
+                with dset.map(
+                    lambda batch: batch, batched=True, batch_size=1000, drop_last_batch=True
+                ) as dset_test_batched:
+                    self.assertEqual(len(dset_test_batched), 0)
+
     def test_map_batched(self, in_memory):
         def map_batched(example):
             return {"filename_new": [x + "_extension" for x in example["filename"]]}
