@@ -568,6 +568,22 @@ def test_data_files_with_metadata_legitimate_subdir_reference(cache_dir, tmp_pat
     assert all(os.path.isfile(example["base"]) for example in examples)
 
 
+@pytest.mark.parametrize(
+    ("given", "expected"),
+    [
+        ("metadata.csv", ["metadata.csv"]),
+        (["metadata.csv"], ["metadata.csv"]),
+        (["a.csv", "b.csv"], ["a.csv", "b.csv"]),
+        (None, None),
+    ],
+)
+def test_config_normalises_metadata_filenames(given, expected):
+    """A bare string is wrapped, because it is used with `in` and would otherwise
+    match on substrings -- "data.csv" is a substring of "metadata.csv"."""
+    config = FolderBasedBuilderConfig(name="name", metadata_filenames=given)
+    assert config.metadata_filenames == expected
+
+
 def test_data_files_with_custom_file_name_column_in_metadata_file(cache_dir, tmp_path, auto_text_file):
     data_dir = tmp_path / "data_dir_with_custom_file_name_metadata"
     data_dir.mkdir(parents=True, exist_ok=True)
