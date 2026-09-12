@@ -1,16 +1,19 @@
 import os
 import shutil
+import sys
 import tarfile
+import types
 import warnings
 from io import BytesIO
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Column, Dataset, Features, Image, List, Value, concatenate_datasets, load_dataset
+from datasets import Column, Dataset, Features, Image, List, Value, concatenate_datasets, config, load_dataset
 from datasets.features.image import encode_np_array, image_to_bytes
 
 from ..utils import require_pil
@@ -92,6 +95,43 @@ def test_image_decode_example(shared_datadir):
 
     with pytest.raises(RuntimeError):
         Image(decode=False).decode_example(image_path)
+
+
+@require_pil
+def test_image_decode_example_imports_pil_plugins(shared_datadir, monkeypatch):
+    # third-party Pillow plugins register their formats on import, so `decode_example` imports the installed ones
+    import PIL.Image
+
+    monkeypatch.delitem(sys.modules, "pillow_jxl", raising=False)
+    plugin = types.ModuleType("pillow_jxl")
+    monkeypatch.setitem(sys.modules, "pillow_jxl", plugin)
+    monkeypatch.setattr(config, "PILLOW_JXL_AVAILABLE", True)
+
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    with (
+        patch.dict(sys.modules, {"pillow_jxl": plugin}),
+        patch("builtins.__import__", wraps=__import__) as mock_import,
+    ):
+        decoded_example = Image().decode_example({"path": image_path, "bytes": None})
+    assert isinstance(decoded_example, PIL.Image.Image)
+    assert "pillow_jxl" in [call.args[0] for call in mock_import.call_args_list]
+
+
+@require_pil
+def test_image_decode_example_jxl(tmp_path):
+    pytest.importorskip("pillow_jxl")
+    import PIL.Image
+
+    jxl_path = tmp_path / "image.jxl"
+    PIL.Image.new("RGB", (8, 8), (200, 30, 30)).save(jxl_path)
+    blob_path = tmp_path / "blob"  # like the files in the Hub cache, which have no extension
+    blob_path.write_bytes(jxl_path.read_bytes())
+
+    for path in [jxl_path, blob_path]:
+        decoded_example = Image().decode_example({"path": str(path), "bytes": None})
+        assert isinstance(decoded_example, PIL.Image.Image)
+        assert decoded_example.format == "JXL"
+        assert decoded_example.size == (8, 8)
 
 
 @require_pil
