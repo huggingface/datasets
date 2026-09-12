@@ -293,6 +293,25 @@ class FormatterTest(TestCase):
         np.testing.assert_equal(batch, {"a": np.array(_COL_A), "b": np.array(_COL_B), "c": np.array(_COL_C)})
         assert batch["c"].shape == np.array(_COL_C).shape
 
+    def test_numpy_formatter_preserves_temporal_and_boolean_scalars(self):
+        formatter = NumpyFormatter()
+
+        row = formatter.recursive_tensorize(
+            {
+                "boolean": np.bool_(True),
+                "timestamp": np.datetime64("2024-01-01"),
+                "duration": np.timedelta64(5, "s"),
+            }
+        )
+        assert isinstance(row["boolean"], np.bool_)
+        assert isinstance(row["timestamp"], np.datetime64)
+        assert isinstance(row["duration"], np.timedelta64)
+
+        batch = formatter.recursive_tensorize(
+            {"duration": np.array([5, 10], dtype="timedelta64[s]")}
+        )
+        assert np.issubdtype(batch["duration"].dtype, np.timedelta64)
+
     def test_numpy_formatter_np_array_kwargs(self):
         pa_table = self._create_dummy_table().drop(["b"])
         formatter = NumpyFormatter(dtype=np.float16)
