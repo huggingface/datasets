@@ -59,9 +59,15 @@ def verify_checksums(expected_checksums: Optional[dict], recorded_checksums: dic
     logger.info("All the checksums matched successfully" + for_verification_name)
 
 
-def verify_splits(expected_splits: Optional[dict], recorded_splits: dict):
+def verify_splits(expected_splits: Optional[dict], recorded_splits: dict, user_provided_data_files: bool = False):
     if expected_splits is None:
         logger.info("Unable to verify splits sizes.")
+        return
+    if user_provided_data_files:
+        # When the user explicitly provides data_files, the resulting splits and sizes
+        # are expected to differ from the recorded ones (e.g. loading a subset of a
+        # larger dataset), so there is nothing meaningful to verify.
+        logger.info("Skipping splits verification because data_files were provided by the user.")
         return
     if len(set(expected_splits) - set(recorded_splits)) > 0:
         raise ExpectedMoreSplitsError(str(set(expected_splits) - set(recorded_splits)))
