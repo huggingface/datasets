@@ -8,6 +8,7 @@ import pytest
 
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_reader import ArrowReader, BaseReader, FileInstructions, ReadInstruction, make_file_instructions
+from datasets.features import Features, Value
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit, Split, SplitDict, SplitInfo
 
@@ -110,6 +111,29 @@ class BaseReaderTest(TestCase):
             self.assertEqual(dset.num_rows, 110)
             self.assertEqual(dset.num_columns, 1)
             del dset
+
+
+@pytest.mark.parametrize(
+    "num_examples, instruction", [(0, "train"), (0, "train[:0]"), (100, "train[:0]"), (100, "train[200:300]")]
+)
+def test_read_empty_range(num_examples, instruction, tmp_path):
+    train_info = SplitInfo(name="train", num_examples=num_examples)
+    split_dict = SplitDict()
+    split_dict.add(train_info)
+    info = DatasetInfo(features=Features({"filename": Value("string")}), splits=split_dict)
+    reader = ReaderTest(str(tmp_path), info)
+    dset = Dataset(**reader.read("my_name", instruction, [train_info]))
+    assert dset.num_rows == 0
+    assert dset.column_names == ["filename"]
+
+
+def test_read_empty_range_without_features(tmp_path):
+    train_info = SplitInfo(name="train", num_examples=0)
+    split_dict = SplitDict()
+    split_dict.add(train_info)
+    reader = ReaderTest(str(tmp_path), DatasetInfo(splits=split_dict))
+    with pytest.raises(ValueError, match="corresponds to no data"):
+        reader.read("my_name", "train", [train_info])
 
 
 @pytest.mark.parametrize("in_memory", [False, True])
