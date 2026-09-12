@@ -48,6 +48,7 @@ from typing import (
     BinaryIO,
     Callable,
     Optional,
+    Sequence,
     Union,
     overload,
 )
@@ -1281,7 +1282,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_csv(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1421,7 +1422,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_json(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1480,12 +1481,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_parquet(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
-        columns: Optional[list[str]] = None,
+        columns: Optional[Sequence[str]] = None,
         num_proc: Optional[int] = None,
         filters: Optional[Union[pds.Expression, list[tuple], list[list[tuple]]]] = None,
         fragment_scan_options: Optional[pds.ParquetFragmentScanOptions] = None,
@@ -1577,7 +1578,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_text(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -3207,11 +3208,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         function: Optional[Callable] = None,
         with_indices: bool = False,
         with_rank: bool = False,
-        input_columns: Optional[Union[str, list[str]]] = None,
+        input_columns: Optional[Union[str, Sequence[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[Union[str, list[str]]] = None,
+        remove_columns: Optional[Union[str, Sequence[str]]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: Optional[bool] = None,
         cache_file_name: Optional[str] = None,
@@ -3662,11 +3663,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         function: Optional[Callable] = None,
         with_indices: bool = False,
         with_rank: bool = False,
-        input_columns: Optional[list[str]] = None,
+        input_columns: Optional[Sequence[str]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[list[str]] = None,
+        remove_columns: Optional[Sequence[str]] = None,
         keep_in_memory: bool = False,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
@@ -4136,7 +4137,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         function: Optional[Callable] = None,
         with_indices: bool = False,
         with_rank: bool = False,
-        input_columns: Optional[Union[str, list[str]]] = None,
+        input_columns: Optional[Union[str, Sequence[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         keep_in_memory: bool = False,
