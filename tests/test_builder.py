@@ -168,6 +168,21 @@ class DummyArrowBasedBuilderWithShards(ArrowBasedBuilder):
                 yield Key(shard_idx, i), pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
 
 
+class DummyArrowBasedBuilderWithEmptyShards(ArrowBasedBuilder):
+    def _info(self):
+        return DatasetInfo(features=Features({"id": Value("int8"), "filepath": Value("string")}))
+
+    def _split_generators(self, dl_manager):
+        return [SplitGenerator(name=Split.TRAIN, gen_kwargs={"filepaths": [f"data{i}.txt" for i in range(4)]})]
+
+    def _generate_tables(self, filepaths):
+        # shards 0 and 2 are empty
+        for shard_idx, filepath in enumerate(filepaths):
+            if shard_idx % 2 == 0:
+                continue
+            yield Key(shard_idx, 0), pa.table({"id": range(10), "filepath": [filepath] * 10})
+
+
 class DummyGeneratorBasedBuilderWithShards(GeneratorBasedBuilder):
     def _info(self):
         return DatasetInfo(features=Features({"id": Value("int8"), "filepath": Value("string")}))
@@ -923,6 +938,18 @@ def test_arrow_based_builder_download_and_prepare_with_num_proc(tmp_path):
     assert ds.to_dict() == {
         "id": [i for _ in range(4) for i in range(100)],
         "filepath": [f"data{i}.txt" for i in range(4) for _ in range(100)],
+    }
+
+
+@pytest.mark.parametrize("num_proc", [None, 2])
+def test_arrow_based_builder_download_and_prepare_with_empty_shards(num_proc, tmp_path):
+    builder = DummyArrowBasedBuilderWithEmptyShards(cache_dir=tmp_path)
+    builder.download_and_prepare(num_proc=num_proc)
+    assert builder.info.splits["train"].num_examples == 20
+    ds = builder.as_dataset("train")
+    assert ds.to_dict() == {
+        "id": [i for _ in range(2) for i in range(10)],
+        "filepath": [f"data{i}.txt" for i in [1, 3] for _ in range(10)],
     }
 
 
