@@ -395,6 +395,16 @@ class BaseDatasetTest(TestCase):
                 self.assertDictEqual(dset.to_dict(), expected)
                 self.assertEqual(len(dset.cache_files), 2)
 
+    def test_save_and_load_from_disk_with_pathlib(self, in_memory, tmp_path):
+        dataset_path = Path(tmp_path) / "pathlib_dataset"
+        with self._create_dummy_dataset(in_memory, str(tmp_path)).select(range(5)) as dset:
+            dset.save_to_disk(dataset_path)
+        with Dataset.load_from_disk(dataset_path) as reloaded:
+            self.assertEqual(len(reloaded), 5)
+            self.assertDictEqual(reloaded.features, Features({"filename": Value("string")}))
+        with load_from_disk(dataset_path) as reloaded:
+            self.assertEqual(len(reloaded), 5)
+
     def test_dummy_dataset_load_from_disk(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
