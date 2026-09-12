@@ -276,9 +276,14 @@ class FeaturesTest(TestCase):
                 hasattr(features, "_column_requires_decoding")
                 and features.keys() == features._column_requires_decoding.keys()
             )
+            assert (
+                hasattr(features, "_nanosecond_temporal_columns")
+                and features._nanosecond_temporal_columns <= features.keys()
+            )
 
         features = Features({"foo": {"bar": List({"my_value": Value("int32")})}})
         assert_features_dicts_are_synced(features)
+        assert not features._nanosecond_temporal_columns
         features["barfoo"] = Image()
         assert_features_dicts_are_synced(features)
         del features["barfoo"]
@@ -291,8 +296,12 @@ class FeaturesTest(TestCase):
         assert_features_dicts_are_synced(features)
         features.setdefault("xyz", Value("bool"))
         assert_features_dicts_are_synced(features)
+        features["timestamp"] = Value("timestamp[ns]")
+        assert features._nanosecond_temporal_columns == {"timestamp"}
+        assert_features_dicts_are_synced(features)
         features.clear()
         assert_features_dicts_are_synced(features)
+        assert not features._nanosecond_temporal_columns
 
 
 def test_classlabel_init(tmp_path_factory):
