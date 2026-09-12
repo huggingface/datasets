@@ -63,6 +63,14 @@ class Video:
             Exact guarantees that requesting frame i will always return frame i, but doing so requires an initial scan of the file.
             Approximate is faster as it avoids scanning the file, but less accurate as it uses the file's metadata to calculate where i probably is.
             read more [here](https://docs.pytorch.org/torchcodec/stable/generated_examples/approximate_mode.html#sphx-glr-generated-examples-approximate-mode-py)
+        audio_stream_index (`int`, *optional*):
+            Stream index of the audio stream to use when the decoded video's
+            `audio` attribute is accessed. If `None`, the best audio stream is used.
+        audio_sample_rate (`int`, *optional*):
+            Target sample rate for the `audio` decoder. If `None`, the native sample rate is used.
+        audio_num_channels (`int`, *optional*):
+            Target number of channels for the `audio` decoder. If `None`, the source's
+            channel count is used.
 
     Examples:
 
@@ -93,6 +101,9 @@ class Video:
     num_ffmpeg_threads: int = 1
     device: Optional[Union[str, "torch.device"]] = "cpu"
     seek_mode: Literal["exact", "approximate"] = "exact"
+    audio_stream_index: Optional[int] = None
+    audio_sample_rate: Optional[int] = None
+    audio_num_channels: Optional[int] = None
     id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     dtype: ClassVar[str] = "torchcodec.decoders.VideoDecoder"
@@ -176,7 +187,7 @@ class Video:
             raise RuntimeError("Decoding is disabled for this feature. Please use Video(decode=True) instead.")
 
         if config.TORCHCODEC_AVAILABLE:
-            from torchcodec.decoders import VideoDecoder
+            from ._torchcodec import VideoDecoder
 
         else:
             raise ImportError("To support decoding videos, please install 'torchcodec'.")
@@ -200,6 +211,9 @@ class Video:
                     num_ffmpeg_threads=self.num_ffmpeg_threads,
                     device=self.device,
                     seek_mode=self.seek_mode,
+                    audio_stream_index=self.audio_stream_index,
+                    audio_sample_rate=self.audio_sample_rate,
+                    audio_num_channels=self.audio_num_channels,
                 )
             else:
                 video = hf_video_reader(
@@ -209,6 +223,9 @@ class Video:
                     num_ffmpeg_threads=self.num_ffmpeg_threads,
                     device=self.device,
                     seek_mode=self.seek_mode,
+                    audio_stream_index=self.audio_stream_index,
+                    audio_sample_rate=self.audio_sample_rate,
+                    audio_num_channels=self.audio_num_channels,
                 )
         else:
             video = VideoDecoder(
@@ -218,6 +235,9 @@ class Video:
                 num_ffmpeg_threads=self.num_ffmpeg_threads,
                 device=self.device,
                 seek_mode=self.seek_mode,
+                audio_stream_index=self.audio_stream_index,
+                audio_sample_rate=self.audio_sample_rate,
+                audio_num_channels=self.audio_num_channels,
             )
         video._hf_encoded = {"path": path, "bytes": bytes_}
         video.metadata.path = path
@@ -389,8 +409,11 @@ def hf_video_reader(
     num_ffmpeg_threads: int = 1,
     device: Optional[Union[str, "torch.device"]] = "cpu",
     seek_mode: Literal["exact", "approximate"] = "exact",
+    audio_stream_index: Optional[int] = None,
+    audio_sample_rate: Optional[int] = None,
+    audio_num_channels: Optional[int] = None,
 ) -> "VideoDecoder":
-    from torchcodec.decoders import VideoDecoder
+    from ._torchcodec import VideoDecoder
 
     # Load the file from HF
     if token_per_repo_id is None:
@@ -411,5 +434,8 @@ def hf_video_reader(
         num_ffmpeg_threads=num_ffmpeg_threads,
         device=device,
         seek_mode=seek_mode,
+        audio_stream_index=audio_stream_index,
+        audio_sample_rate=audio_sample_rate,
+        audio_num_channels=audio_num_channels,
     )
     return vd
