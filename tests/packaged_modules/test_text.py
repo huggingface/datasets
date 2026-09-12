@@ -74,6 +74,12 @@ def test_text_cast_image(text_file_with_image):
     assert generated_content == [{"path": image_file, "bytes": None}]
 
 
+def test_text_sample_by_invalid():
+    """An unrecognised sample_by names the argument instead of failing schema inference."""
+    with pytest.raises(ValueError, match="sample_by must be one of"):
+        Text(sample_by="nope", encoding="utf-8", chunksize=100)
+
+
 @pytest.mark.parametrize("sample_by", ["line", "paragraph", "document"])
 def test_text_sample_by(sample_by, text_file):
     with open(text_file, encoding="utf-8") as f:
