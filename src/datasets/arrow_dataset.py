@@ -3642,7 +3642,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             result = all_transformed_shards[0]
         else:
             logger.info(f"Concatenating {num_shards} shards")
-            result = _concatenate_map_style_datasets(all_transformed_shards)
+            info = self.info.copy()
+            info.features = None
+            result = _concatenate_map_style_datasets(all_transformed_shards, info=info, split=self.split)
 
         # update fingerprint if the dataset changed
         result._fingerprint = (
