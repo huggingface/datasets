@@ -108,3 +108,28 @@ Disabling the cache and copying the dataset in-memory will speed up dataset oper
 1. Set `datasets.config.IN_MEMORY_MAX_SIZE` to a nonzero value (in bytes) that fits in your RAM memory.
 
 2. Set the environment variable `HF_DATASETS_IN_MEMORY_MAX_SIZE` to a nonzero value. Note that the first method takes higher precedence.
+
+### Specific use cases
+
+Below are some tips to optimize dataset usage for different constraints:
+
+#### How to make datasets the fastest
+
+- **Use in-memory datasets:** If your dataset fits in RAM, set `datasets.config.IN_MEMORY_MAX_SIZE` (or the environment variable `HF_DATASETS_IN_MEMORY_MAX_SIZE`) to allow holding the full dataset in memory. This avoids disk reads and is the fastest access method.
+- **Disable caching when not needed:** If you repeatedly apply the same transforms, you can disable caching to save overhead, as shown above.
+- **Use multiprocessing and batch operations:** Many dataset methods (like `map`) support `num_proc` for parallel processing and `batched=True` to process multiple rows at once, which can significantly speed up operations.
+- **Work with Arrow/Parquet formats:** These formats are optimized for fast reads and are natively supported by 🤗 Datasets.
+
+#### How to make datasets take the least RAM
+
+- **Use IterableDataset:** For very large datasets, convert your dataset to an `IterableDataset` using `to_iterable_dataset()`. This processes data in a streaming fashion, minimizing memory usage.
+- **Use streaming datasets:** When loading with `load_dataset`, pass `streaming=True` to avoid keeping the full dataset in memory.
+- **Disable in-memory mode:** Ensure `datasets.config.IN_MEMORY_MAX_SIZE` is set to 0 (default), so datasets are read from disk rather than loaded fully in RAM.
+- **Work with disk-backed formats:** Datasets in Arrow or Parquet format are designed for efficient disk access.
+
+#### How to make datasets take the least hard drive memory
+
+- **Clean up cache files:** Use `dataset.cleanup_cache_files()` to remove intermediate Arrow cache files that are no longer needed.
+- **Use streaming mode:** Streaming mode avoids downloading the full dataset and stores only the currently accessed samples.
+- **Remove unused columns:** Drop columns you don't need with `dataset.remove_columns([...])` to reduce the dataset size.
+- **Choose efficient formats:** Parquet and Arrow are compact, but if you don't need local disk copies, rely on streaming and avoid using `load_from_disk`.
