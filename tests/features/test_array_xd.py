@@ -367,6 +367,23 @@ def test_table_to_pandas(dtype, dummy_value):
     np.testing.assert_equal(arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype)))
 
 
+def test_pandas_array_xd_take_fill():
+    # Filling with -1 indices still works, and an unused NaN fill value no longer
+    # fails on integer dtypes. Refs: #8465
+    from datasets.features.features import PandasArrayExtensionArray
+
+    data = np.array([[[1, 1], [1, 1]], [[2, 2], [2, 2]]], dtype="int32")
+    arr = PandasArrayExtensionArray(data)
+    np.testing.assert_equal(
+        arr.take(np.array([0]), allow_fill=True, fill_value=np.nan)._data,
+        data[:1],
+    )
+    np.testing.assert_equal(
+        arr.take(np.array([0, -1]), allow_fill=True, fill_value=9)._data,
+        np.array([[[1, 1], [1, 1]], [[9, 9], [9, 9]]], dtype="int32"),
+    )
+
+
 @pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
 def test_array_xd_numpy_arrow_extractor(dtype, dummy_value):
     features = datasets.Features({"foo": datasets.Array2D(dtype=dtype, shape=(2, 2))})
