@@ -57,7 +57,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS: FolderBasedBuilderConfig
     EXTENSIONS: list[str]
 
-    METADATA_FILENAMES: list[str] = ["metadata.csv", "metadata.jsonl", "metadata.parquet"]
+    METADATA_FILENAMES: list[str] = ["metadata.csv", "metadata.jsonl", "metadata.parquet", "dataset_info.json", "state.json"]
 
     def _base_feature(self) -> FeatureType:
         """Instantiate the base feature, allowing subclasses to specify options such as format."""
