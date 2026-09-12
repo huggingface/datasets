@@ -56,6 +56,7 @@ class JsonConfig(datasets.BuilderConfig):
     newlines_in_values: Optional[bool] = None
     on_mixed_types: Optional[Literal["use_json"]] = "use_json"
     parse_agent_traces: bool = True
+    return_file_name: bool = False
 
     def __post_init__(self):
         super().__post_init__()
@@ -338,11 +339,17 @@ class Json(datasets.ArrowBasedBuilder):
                                     ) from None
                                 yield Key(shard_idx, 0), self._cast_table(pa_table)
                                 break
+                            if self.config.return_file_name:
+                                pa_table = self._add_file_name_column(pa_table, file)
                             yield (
                                 Key(shard_idx, batch_idx),
                                 self._cast_table(pa_table, json_field_paths=json_field_paths),
                             )
                             batch_idx += 1
+
+    def _add_file_name_column(self, pa_table, file):
+        """Add a column with the file name of each row."""
+        return pa_table.append_column("file_name", pa.array([str(file)] * pa_table.num_rows))
 
 
 AGENT_TRACES_TYPES_VALUES = {
