@@ -31,8 +31,9 @@ from huggingface_hub import (
     HfFileSystem,
     HfFileSystemResolvedPath,
 )
+from huggingface_hub.errors import BucketNotFoundError
+from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
 from huggingface_hub.utils import RepositoryNotFoundError
-from packaging import version
 
 from . import __version__, config
 from .arrow_dataset import Dataset, DatasetInfoMixin, _check_batch_size, _push_to_bucket, _push_to_repo
@@ -77,15 +78,6 @@ from .utils.py_utils import (
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 from .utils.typing import PathLike
 
-
-if config.HF_HUB_VERSION >= version.parse("1.6.0"):
-    from huggingface_hub.errors import BucketNotFoundError
-    from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
-
-else:
-    BucketNotFoundError = None
-    HfFileSystemResolvedBucketPath = None
-    HfFileSystemResolvedRepositoryPath = HfFileSystemResolvedPath
 
 if TYPE_CHECKING:
     import sqlite3
@@ -199,6 +191,25 @@ def shift_ex_examples_rngs(ex_iterable: "_BaseExamplesIterable", value: int) -> 
     return set_seed_recursively(ex_iterable)
 
 
+_PRIMITIVE_TYPES = (int, float, bool, str, bytes, type(None))
+
+
+def _fast_copy(state):
+    """Fast acyclic copy of state_dict data structures, bypassing slow pickle/deepcopy introspection."""
+    # Use type() instead of isinstance() for 2x faster type checks
+    state_type = type(state)
+    if state_type in _PRIMITIVE_TYPES:
+        return state
+    elif state_type is list:
+        return [v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v) for v in state]
+    elif state_type is dict:
+        return {k: (v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v)) for k, v in state.items()}
+    elif state_type is tuple:
+        return tuple(v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v) for v in state)
+    else:
+        return deepcopy(state)
+
+
 class _BaseExamplesIterable:
     """Base class for the examples iterable used by an IterableDataset"""
 
@@ -273,8 +284,8 @@ class _BaseExamplesIterable:
         return _inner_load_state_dict(self._state_dict, state_dict)
 
     def state_dict(self) -> dict:
-        if self._state_dict:
-            return deepcopy(self._state_dict)
+        if self._state_dict is not None:
+            return _fast_copy(self._state_dict)
         raise RuntimeError("State dict is not initialized, please call ex_iterable._init_state_dict() first.")
 
     @property
@@ -1563,6 +1574,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 if self._state_dict:
                     previous_state = self.ex_iterable.state_dict()
                     self._state_dict["previous_state"] = previous_state
+                    # Replayed outputs are counted again below, including those skipped on resume.
+                    self._state_dict["num_examples_since_previous_state"] = 0
                     previous_state_task = None
                     previous_state_example_idx = self._state_dict["previous_state_example_idx"]
                 indices: Union[list[int], list[list[int]]] = []
@@ -1948,36 +1961,67 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     def __iter__(self):
         buffer_size = self.buffer_size
         rng = deepcopy(self.generator)
-        indices_iterator = self._iter_random_indices(rng, buffer_size)
         # this is the shuffle buffer that we keep in memory
         mem_buffer = []
+        current_len = 0
         for x in self.ex_iterable:
-            if len(mem_buffer) == buffer_size:  # if the buffer is full, pick and example from it
-                i = next(indices_iterator)
+            mem_buffer.append(x)
+            current_len += 1
+
+            # Amortize shuffle cost by waiting until buffer is full.
+            # Once the buffer reaches `buffer_size`, we shuffle it, yield half, and keep half.
+            # This maintains a rolling randomized buffer while strictly bounding memory usage.
+            if current_len >= buffer_size:
+                indices = rng.permutation(current_len)
+                keep_rows = buffer_size // 2
+                rows_to_yield = current_len - keep_rows
+                for i in indices[:rows_to_yield]:
+                    yield mem_buffer[i]
+
+                mem_buffer = [mem_buffer[i] for i in indices[rows_to_yield:]]
+                current_len = keep_rows
+
+        if current_len > 0:
+            indices = rng.permutation(current_len)
+            for i in indices:
                 yield mem_buffer[i]
-                mem_buffer[i] = x  # replace the picked example by a new one
-            else:  # otherwise, keep filling the buffer
-                mem_buffer.append(x)
-        # when we run out of examples, we shuffle the remaining examples in the buffer and yield them
-        rng.shuffle(mem_buffer)
-        yield from mem_buffer
 
     def _iter_arrow(self):
-        buffer_size = self.buffer_size
+        from copy import deepcopy
+
+        import pyarrow as pa
+        import pyarrow.compute as pc
+
         rng = deepcopy(self.generator)
-        indices_iterator = self._iter_random_indices(rng, buffer_size)
-        # this is the shuffle buffer that we keep in memory
-        mem_buffer = []
+        tables = []
+        current_len = 0
+        last_key = None
+
         for key, pa_table in self.ex_iterable.iter_arrow():
-            if len(mem_buffer) == buffer_size:  # if the buffer is full, pick and example from it
-                i = next(indices_iterator)
-                yield mem_buffer[i]
-                mem_buffer[i] = (key, pa_table)  # replace the picked example by a new one
-            else:  # otherwise, keep filling the buffer
-                mem_buffer.append((key, pa_table))
-        # when we run out of examples, we shuffle the remaining examples in the buffer and yield them
-        rng.shuffle(mem_buffer)
-        yield from mem_buffer
+            last_key = key
+            tables.append(pa_table)
+            current_len += len(pa_table)
+
+            # Amortize shuffle cost by waiting until buffer is full.
+            # Once the buffer reaches `buffer_size`, we shuffle it, yield half, and keep half.
+            # This maintains a rolling randomized buffer while strictly bounding memory usage.
+            if current_len >= self.buffer_size:
+                buffer_table = pa.concat_tables(tables)
+                indices = rng.permutation(current_len)
+                shuffled_table = pc.take(buffer_table, indices)
+
+                # Keep half of the buffer to mix with incoming data on the next iteration
+                keep_rows = self.buffer_size // 2
+                rows_to_yield = current_len - keep_rows
+                yield key, shuffled_table.slice(0, rows_to_yield)
+
+                tables = [shuffled_table.slice(rows_to_yield)]
+                current_len = keep_rows
+
+        if current_len > 0:
+            buffer_table = pa.concat_tables(tables)
+            indices = rng.permutation(current_len)
+            yield last_key, pc.take(buffer_table, indices)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "BufferShuffledExamplesIterable":
         """Shuffle the wrapped examples iterable as well as the shuffling buffer."""
@@ -2102,7 +2146,12 @@ class SkipExamplesIterable(_BaseExamplesIterable):
                 split_when_sharding=self.split_when_sharding,
             )
         else:
-            return self
+            return SkipExamplesIterable(
+                self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
+                n=self.n,
+                block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
+                split_when_sharding=self.split_when_sharding,
+            )
 
     def reshard_data_sources(self) -> "SkipExamplesIterable":
         return SkipExamplesIterable(
@@ -2131,6 +2180,18 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
         self.ex_iterable = ex_iterable
         self.num_times = num_times
 
+    @property
+    def iter_arrow(self):
+        return self._iter_arrow if self.ex_iterable.iter_arrow else None
+
+    @property
+    def is_typed(self):
+        return self.ex_iterable.is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterable.features
+
     def _init_state_dict(self) -> dict:
         self._state_dict = {
             "repeat_index": 0,
@@ -2141,10 +2202,37 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         repeat_index = self._state_dict["repeat_index"] if self._state_dict else 0
+        first_iteration = True
         while True:
             if self.num_times is not None and repeat_index >= max(self.num_times, 0):
                 break
-            yield from self.ex_iterable
+            has_examples = False
+            for key_example in self.ex_iterable:
+                has_examples = True
+                yield key_example
+            # The first iteration may resume at the end of a non-empty input.
+            # Check a full repetition after resetting it before deciding to stop.
+            if self.num_times is None and not has_examples and not first_iteration:
+                break
+            first_iteration = False
+            repeat_index += 1
+            if self._state_dict:
+                self._state_dict["repeat_index"] = repeat_index
+                self._state_dict["examples_iterable"] = self.ex_iterable._init_state_dict()
+
+    def _iter_arrow(self):
+        repeat_index = self._state_dict["repeat_index"] if self._state_dict else 0
+        first_iteration = True
+        while True:
+            if self.num_times is not None and repeat_index >= max(self.num_times, 0):
+                break
+            has_examples = False
+            for key, pa_table in self.ex_iterable.iter_arrow():
+                has_examples = has_examples or len(pa_table) > 0
+                yield key, pa_table
+            if self.num_times is None and not has_examples and not first_iteration:
+                break
+            first_iteration = False
             repeat_index += 1
             if self._state_dict:
                 self._state_dict["repeat_index"] = repeat_index
@@ -2444,6 +2532,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
 class DistributedConfig:
     rank: int
     world_size: int
+    strategy: Literal["auto", "shards", "examples"] = "auto"
 
 
 def _maybe_add_torch_iterable_dataset_parent_class(cls):
@@ -2608,7 +2697,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> dataloader.load_state_dict(state_dict)  # uses ds.load_state_dict() under the hood
         ```
         """
-        return deepcopy(self._state_dict)
+        return _fast_copy(self._state_dict)
 
     def load_state_dict(self, state_dict: dict) -> None:
         """Load the state_dict of the dataset.
@@ -2684,8 +2773,15 @@ class IterableDataset(DatasetInfoMixin):
 
     @property
     def num_shards(self) -> int:
-        if self._distributed and self._ex_iterable.num_shards % self._distributed.world_size == 0:
-            return self._ex_iterable.num_shards // self._distributed.world_size
+        if self._distributed:
+            strategy = self._distributed.strategy
+            world_size = self._distributed.world_size
+            if strategy == "shards" or (strategy == "auto" and self._ex_iterable.num_shards % world_size == 0):
+                return len(
+                    self._ex_iterable.split_shard_indices_by_worker(
+                        num_shards=world_size, index=self._distributed.rank, contiguous=False
+                    )
+                )
         return self._ex_iterable.num_shards
 
     @property
@@ -2773,24 +2869,39 @@ class IterableDataset(DatasetInfoMixin):
         if self._distributed:
             rank = self._distributed.rank
             world_size = self._distributed.world_size
-            if ex_iterable.num_shards % world_size == 0:
+            strategy = self._distributed.strategy
+            if strategy == "shards" and ex_iterable.num_shards < world_size:
+                # The shard count can change after the split (shuffle, shard, map with
+                # reshuffling), so this is checked at iteration time as well as when the
+                # split was requested.
+                raise ValueError(
+                    f"Cannot iterate with strategy='shards': the dataset now has num_shards={ex_iterable.num_shards}, "
+                    f"which is lower than world_size={world_size}, so some nodes would not be assigned any shard."
+                )
+            if strategy == "shards" or (strategy == "auto" and ex_iterable.num_shards % world_size == 0):
                 if self._is_main_process():
                     num_shards_per_node = ex_iterable.num_shards // world_size
                     plural = "s" if num_shards_per_node > 1 else ""
                     logger.info(
                         f"Assigning {num_shards_per_node} shard{plural} (or data source{plural}) of the dataset to each node."
                     )
+                    if ex_iterable.num_shards % world_size != 0:
+                        logger.info(
+                            f"The number of shards ({ex_iterable.num_shards}) is not a factor of world_size={world_size}, "
+                            "so some nodes are assigned one more shard than the others."
+                        )
                 ex_iterable = ex_iterable.shard_data_sources(num_shards=world_size, index=rank, contiguous=False)
             else:
                 if self._is_main_process():
                     logger.info(
                         f"Assigning 1 out of {world_size} examples of the dataset to each node. The others are skipped during the iteration."
                     )
-                    logger.info(
-                        f"It is more optimized to distribute the dataset shards (or data sources) across nodes. "
-                        f"You can do that by using a dataset with number of shards that is a factor of world_size={world_size}. "
-                        f"The current dataset has {ex_iterable.num_shards} which is not a factor of {world_size}"
-                    )
+                    if strategy == "auto":
+                        logger.info(
+                            f"It is more optimized to distribute the dataset shards (or data sources) across nodes. "
+                            f"You can do that by using a dataset with number of shards that is a factor of world_size={world_size}. "
+                            f"The current dataset has {ex_iterable.num_shards} which is not a factor of {world_size}"
+                        )
                 ex_iterable = StepExamplesIterable(ex_iterable, step=world_size, offset=rank)
 
         if ex_iterable.iter_arrow:
@@ -3770,7 +3881,7 @@ class IterableDataset(DatasetInfoMixin):
                 If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
             buffer_size (`int`, defaults to `1000`):
                 Size of the buffer.
-            max_buffer_input_shards (`int`, defaults to `101000`):
+            max_buffer_input_shards (`int`, defaults to `10`):
                 Maximum number of shards to use to feed the buffer at a time.
 
         Example:
@@ -3813,7 +3924,8 @@ class IterableDataset(DatasetInfoMixin):
         except DataSourcesShufflingDisallowed:
             max_buffer_input_shards = 1
         if ex_iterable.iter_arrow:
-            ex_iterable = RebatchedArrowExamplesIterable(ex_iterable, batch_size=1)
+            batch_size = max(1, buffer_size // max(1, max_buffer_input_shards))
+            ex_iterable = RebatchedArrowExamplesIterable(ex_iterable, batch_size=batch_size)
         if max_buffer_input_shards > 1:
             num_shards_to_interleave = min(ex_iterable.num_shards, max_buffer_input_shards)
             ex_iterable = CyclingMultiSourcesExamplesIterable(
@@ -3881,6 +3993,8 @@ class IterableDataset(DatasetInfoMixin):
     def repeat(self, num_times: Optional[int]) -> "IterableDataset":
         """
         Create a new [`IterableDataset`] that repeats the underlying dataset `num_times` times.
+
+        An empty input terminates even when `num_times` is `None`.
 
         N.B. The effect of calling shuffle after repeat depends significantly on buffer size.
         With buffer_size 1, duplicate data is never seen in the same iteration, even after shuffling:
@@ -4019,6 +4133,7 @@ class IterableDataset(DatasetInfoMixin):
         The resharding mechanism depends on the dataset file format:
 
         * Parquet: shard per row group instead of per file
+        * Vortex: shard per range of consecutive chunks (about 64MB of file data each) instead of per file
         * Other: not implemented yet (contributions are welcome !)
 
         Be sure to reshard/shard before using any randomizing operator (such as `shuffle`).
@@ -5137,8 +5252,6 @@ class IterableDataset(DatasetInfoMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
         if repo_id.startswith("buckets/"):
-            if BucketNotFoundError is None:
-                raise ImportError("Pushing datasets to buckets requires huggingface_hub>=1.6.0")
             _, _namespace, _bucket_name, *_path_segments = repo_id.split("/")
             try:
                 bucket_id = api.bucket_info(_namespace + "/" + _bucket_name).id
@@ -5371,13 +5484,21 @@ def _interleave_iterable_datasets(
     )
 
 
-def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_size: int) -> IterableDataset:
+def _split_by_node_iterable_dataset(
+    dataset: IterableDataset,
+    rank: int,
+    world_size: int,
+    strategy: Literal["auto", "shards", "examples"] = "auto",
+) -> IterableDataset:
     """
     Split an iterable dataset for the node at rank `rank` in a pool of nodes of size `world_size`.
 
-    If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.num_shards % world_size == 0`),
-    then the shards are evenly assigned across the nodes, which is the most optimized.
-    Otherwise, each node keeps 1 example out of `world_size`, skipping the other examples.
+    The splitting `strategy` can be `"auto"`, `"shards"`, or `"examples"`:
+
+    * `"shards"`: shards are evenly assigned across the nodes
+    * `"examples"`: each node keeps 1 example out of `world_size`, skipping the other examples
+    * `"auto"` (default): uses `"shards"` if the dataset has a number of shards that is a factor of `world_size`
+    (i.e. if `dataset.num_shards % world_size == 0`), which is the most optimized. Otherwise uses `"examples"`.
 
     Args:
         dataset ([`IterableDataset`]):
@@ -5386,14 +5507,28 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
             Rank of the current node.
         world_size (`int`):
             Total number of nodes.
+        strategy (`str`, defaults to `"auto"`):
+            How to split the iterable dataset. Must be one of `"auto"`, `"shards"`, or `"examples"`.
 
     Returns:
         [`IterableDataset`]: The iterable dataset to be used on the node at rank `rank`.
     """
     if dataset._distributed:
+        if strategy not in ("auto", dataset._distributed.strategy):
+            raise ValueError(
+                "Cannot change the strategy when splitting an already distributed iterable dataset. "
+                f"The existing strategy is {dataset._distributed.strategy!r} and the new strategy is {strategy!r}."
+            )
+        strategy = dataset._distributed.strategy
         rank = world_size * dataset._distributed.rank + rank
         world_size = world_size * dataset._distributed.world_size
-    distributed = DistributedConfig(rank=rank, world_size=world_size)
+    if strategy == "shards" and dataset._ex_iterable.num_shards < world_size:
+        raise ValueError(
+            f"Cannot split an iterable dataset with num_shards={dataset._ex_iterable.num_shards} "
+            f"across world_size={world_size} nodes with strategy='shards' "
+            "because some nodes would not be assigned any shard."
+        )
+    distributed = DistributedConfig(rank=rank, world_size=world_size, strategy=strategy)
     return IterableDataset(
         ex_iterable=dataset._ex_iterable,
         info=dataset._info.copy(),

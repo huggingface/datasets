@@ -712,6 +712,23 @@ class ArrowWriter:
         self.write_examples_on_file()  # in case there are buffered examples to write first
         self._write_batch(batch_examples, writer_batch_size=writer_batch_size, try_original_type=try_original_type)
 
+    def _check_null_column(self, col: str, values):
+        """Raise an informative error if a column written as null gets values that are not None.
+
+        The schema is fixed when the first batch is written, so a column that only has None values
+        in the first batch keeps the null type for the rest of the file and can't hold values later.
+        """
+        if isinstance(values, (pa.Array, pa.ChunkedArray)):
+            has_values = values.null_count < len(values)
+        else:
+            has_values = any(value is not None for value in values)
+        if has_values:
+            raise TypeError(
+                f"Couldn't write column '{col}': its type in this file is null, because the first "
+                f"{self._num_examples} values written for it were all None. Set the type of '{col}' "
+                f"with features=, or make sure the first batch written contains a value that is not None."
+            )
+
     def _write_batch(
         self,
         batch_examples: dict[str, list],
@@ -736,6 +753,8 @@ class ArrowWriter:
         for col in cols:
             col_values = batch_examples[col]
             col_type = features[col] if features else None
+            if isinstance(col_type, Value) and col_type.dtype == "null":
+                self._check_null_column(col, col_values)
             if isinstance(col_values, (pa.Array, pa.ChunkedArray)):
                 array = cast_array_to_feature(col_values, col_type) if col_type is not None else col_values
                 arrays.append(array)
@@ -770,6 +789,9 @@ class ArrowWriter:
         if self.pa_writer is None:
             self._build_writer(inferred_schema=pa_table.schema)
         pa_table = pa_table.combine_chunks()
+        for field in self._schema:
+            if pa.types.is_null(field.type) and field.name in pa_table.column_names:
+                self._check_null_column(field.name, pa_table[field.name])
         pa_table = table_cast(pa_table, self._schema)
         if self.embed_local_files:
             pa_table = embed_table_storage(pa_table, local_files=True, remote_files=False)

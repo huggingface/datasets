@@ -105,7 +105,11 @@ class TarExtractor(BaseExtractor):
 
         def badpath(path: str, base: str) -> bool:
             # joinpath will ignore base if path is absolute
-            return not resolved(os.path.join(base, path)).startswith(base)
+            # Also, a plain startswith(base) would still match sibling directories
+            # whose name starts with the base name (e.g. "../base_evil/x" when
+            # extracting into ".../base"), so require the base plus a separator
+            target = resolved(os.path.join(base, path))
+            return target != base and not target.startswith(base + os.sep)
 
         def badlink(info: tarfile.TarInfo, base: str) -> bool:
             # Links are interpreted relative to the directory containing the link
@@ -205,7 +209,11 @@ class ZipExtractor(MagicNumberBaseExtractor):
 
         def badpath(path: str, base: str) -> bool:
             # joinpath will ignore base if path is absolute
-            return not resolved(os.path.join(base, path)).startswith(base)
+            # Also, a plain startswith(base) would still match sibling directories
+            # whose name starts with the base name (e.g. "../base_evil/x" when
+            # extracting into ".../base"), so require the base plus a separator
+            target = resolved(os.path.join(base, path))
+            return target != base and not target.startswith(base + os.sep)
 
         base = resolved(output_path)
 
@@ -258,7 +266,11 @@ class RarExtractor(MagicNumberBaseExtractor):
 
         def badpath(path: str, base: str) -> bool:
             # joinpath will ignore base if path is absolute
-            return not resolved(os.path.join(base, path)).startswith(base)
+            # Also, a plain startswith(base) would still match sibling directories
+            # whose name starts with the base name (e.g. "../base_evil/x" when
+            # extracting into ".../base"), so require the base plus a separator
+            target = resolved(os.path.join(base, path))
+            return target != base and not target.startswith(base + os.sep)
 
         def badlink(info: "rarfile.RarInfo", base: str) -> bool:
             # Links are interpreted relative to the directory containing the link
@@ -334,7 +346,11 @@ class SevenZipExtractor(MagicNumberBaseExtractor):
 
         def badpath(path: str, base: str) -> bool:
             # joinpath will ignore base if path is absolute
-            return not resolved(os.path.join(base, path)).startswith(base)
+            # Also, a plain startswith(base) would still match sibling directories
+            # whose name starts with the base name (e.g. "../base_evil/x" when
+            # extracting into ".../base"), so require the base plus a separator
+            target = resolved(os.path.join(base, path))
+            return target != base and not target.startswith(base + os.sep)
 
         def badlink(info: "py7zr.FileInfo", base: str) -> bool:
             # Links are interpreted relative to the directory containing the link

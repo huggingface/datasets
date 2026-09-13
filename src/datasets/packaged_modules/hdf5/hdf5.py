@@ -211,15 +211,13 @@ def _convert_vlen_to_array(arr: np.ndarray) -> pa.Array:
 
 def _recursive_infer_features(h5_obj) -> Features:
     features_dict = {}
-    for path, dset in h5_obj.items():
-        if _is_group(dset):
-            features = _recursive_infer_features(dset)
+    for path, obj in _iter_with_links(h5_obj):
+        if _is_group(obj):
+            features = _recursive_infer_features(obj)
             if features:
                 features_dict[path] = features
-        elif _is_dataset(dset):
-            features = _infer_feature(dset)
-            if features:
-                features_dict[path] = features
+        elif _is_dataset(obj):
+            features_dict[path] = _infer_feature(obj)
 
     return Features(features_dict)
 
@@ -262,15 +260,15 @@ def _load_array(dset, path: str, start: int, end: int) -> pa.Array:
 
 def _recursive_load_arrays(h5_obj, features: Features, start: int, end: int):
     batch_dict = {}
-    for path, dset in h5_obj.items():
+    for path, obj in _iter_with_links(h5_obj):
         if path not in features:
             continue
-        if _is_group(dset):
-            arr = _recursive_load_arrays(dset, features[path], start, end)
-        elif _is_dataset(dset):
-            arr = _load_array(dset, path, start, end)
+        if _is_group(obj):
+            arr = _recursive_load_arrays(obj, features[path], start, end)
+        elif _is_dataset(obj):
+            arr = _load_array(obj, path, start, end)
         else:
-            raise ValueError(f"Unexpected type {type(dset)}")
+            continue
 
         if arr is not None:
             batch_dict[path] = arr
@@ -330,7 +328,7 @@ def _np_to_pa_to_hf_value(numpy_dtype: np.dtype) -> Value:
 
 
 def _first_dataset(h5_obj, features: Features, prefix=""):
-    for path, dset in h5_obj.items():
+    for path, dset in _iter_with_links(h5_obj):
         if path not in features:
             continue
         if _is_group(dset):
@@ -347,7 +345,7 @@ def _check_dataset_lengths(h5_obj, features: Features) -> int:
         return None
 
     num_rows = h5_obj[first_path].shape[0]
-    for path, dset in h5_obj.items():
+    for path, dset in _iter_with_links(h5_obj):
         if path not in features:
             continue
         if _is_dataset(dset):
@@ -412,3 +410,31 @@ def _safe_open_h5py(file, mode):
 
     f.visititems(_check_obj)
     return f
+
+
+def _iter_with_links(h5_obj):
+    """Iterate over items in an HDF5 group, returning (name, obj) without following ExternalLinks.
+
+    Raises ValueError if an ExternalLink is encountered, to prevent reading arbitrary files
+    from the filesystem.
+
+    This is a safer alternative to h5_obj.items() which automatically resolves ExternalLinks.
+    For h5py Group/File objects, uses getlink() to detect ExternalLinks before resolution.
+    For _CompoundGroup (virtual groups from compound dtypes), falls back to items() since
+    these cannot contain external links.
+    """
+    import h5py
+
+    if isinstance(h5_obj, _CompoundGroup):
+        # _CompoundGroup is a virtual group from compound dtypes; no external links possible
+        yield from h5_obj.items()
+        return
+
+    for name in h5_obj:
+        link = h5_obj.get(name, getlink=True)
+        if isinstance(link, h5py.ExternalLink):
+            raise ValueError(
+                f"HDF5 file '{h5_obj.name}' contains an ExternalLink '{name}' pointing to "
+                f"'{link.filename}:{link.path}' which is not supported."
+            )
+        yield name, h5_obj.get(name)

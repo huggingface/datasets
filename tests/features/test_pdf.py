@@ -1,3 +1,4 @@
+from io import BytesIO
 from pathlib import Path
 
 import pytest
@@ -31,6 +32,18 @@ def test_pdf_feature_encode_example(shared_datadir, build_example):
     assert encoded_example.keys() == {"bytes", "path"}
     assert encoded_example["bytes"] is not None or encoded_example["path"] is not None
     decoded_example = pdf.decode_example(encoded_example)
+    assert isinstance(decoded_example, pdfplumber.pdf.PDF)
+
+
+@require_pdfplumber
+def test_pdf_feature_decode_example_remote_non_hub_url(shared_datadir, monkeypatch):
+    import pdfplumber
+
+    pdf_path = shared_datadir / "test_pdf.pdf"
+    monkeypatch.setattr("datasets.features.pdf.xopen", lambda *args, **kwargs: BytesIO(pdf_path.read_bytes()))
+
+    decoded_example = Pdf().decode_example({"path": "https://example.com/a.pdf", "bytes": None})
+
     assert isinstance(decoded_example, pdfplumber.pdf.PDF)
 
 

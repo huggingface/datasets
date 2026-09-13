@@ -110,15 +110,12 @@ REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 21.0.0 to support `use_content_defined_chunking` in ParquetWriter
-    "pyarrow>=21.0.0",
+    # Minimum 24.0.0 for view-type `nbytes` support used by Vortex
+    "pyarrow>=24.0.0",
     # For smart caching dataset processing
     "dill>=0.3.0,<0.4.2",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
     "pandas",
-    # for downloading datasets over HTTPS
-    "requests>=2.32.2",
-    "httpx<1.0.0",
     # progress bars in downloads and data operations
     "tqdm>=4.66.3",
     # for fast hashing
@@ -127,9 +124,11 @@ REQUIRED_PKGS = [
     "multiprocess<0.70.20",  # to align with dill<0.3.9 (see above)
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0,<=2026.6.0",
+    "fsspec[http]>=2023.1.0,<=2026.7.0",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface-hub>=0.25.0,<2.0",
+    # (also provides the HTTP client: `from huggingface_hub.utils import httpx`)
+    # minimum 1.31.0 for the `huggingface_hub.utils.httpx` re-export
+    "huggingface-hub>=1.31.0,<2.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -156,6 +155,8 @@ BENCHMARKS_REQUIRE = [
 ]
 
 TESTS_REQUIRE = [
+    # optional decoders exercised by the feature tests
+    "biopython>=1.80",
     # fix pip install issues for windows
     "numba>=0.56.4; python_version < '3.14'",  # to get recent versions of llvmlite for windows ci, not available on 3.14
     # test dependencies
@@ -173,6 +174,7 @@ TESTS_REQUIRE = [
     "h5py",
     "pylance",
     "pyiceberg[sql-sqlite,pyarrow]",
+    "vortex-data; python_version >= '3.11' and sys_platform != 'win32'",
     "jax>=0.3.14; sys_platform != 'win32'",
     "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4; python_version < '3.14'",  # python 3.14 gives ImportError: cannot import name '_compression' from partially initialized module 'lz4.frame
@@ -181,7 +183,9 @@ TESTS_REQUIRE = [
     "py7zr",
     "rarfile>=4.0",
     "sqlalchemy",
-    "protobuf<4.0.0",  # 4.0.0 breaks compatibility with tensorflow<2.12
+    # Pinned for the tensorflow<2.12 builds; tensorflow has no python 3.14 wheels, where
+    # `substrait` (a vortex-data dependency) needs the protobuf 5 runtime.
+    "protobuf<4.0.0; python_version < '3.14'",
     "tensorflow>=2.6.0; python_version<'3.10' and sys_platform != 'win32'",  # numpy-2 is not supported for Python < 3.10
     "tensorflow>=2.16.0; python_version>='3.10' and sys_platform != 'win32' and python_version < '3.14'",  # Pins numpy < 2
     "tiktoken",
@@ -216,6 +220,8 @@ DOCS_REQUIRE = [
 
 PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
+BIO_REQUIRE = ["biopython>=1.80"]
+
 NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 
 ICEBERG_REQUIRE = ["pyiceberg>=0.7.0"]
@@ -238,6 +244,7 @@ EXTRAS_REQUIRE = {
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": DOCS_REQUIRE,
     "pdfs": PDFS_REQUIRE,
+    "bio": BIO_REQUIRE,
     "nibabel": NIBABEL_REQUIRE,
     "iceberg": ICEBERG_REQUIRE,
 }
