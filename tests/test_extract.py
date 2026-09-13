@@ -8,6 +8,7 @@ from threading import Event
 from unittest.mock import patch
 
 import pytest
+from filelock import Timeout
 
 from datasets.utils._filelock import FileLock
 from datasets.utils.extract import (
@@ -113,24 +114,98 @@ def test_extractor_output_path(tmp_path, monkeypatch, two_member_zip, path_type)
         assert {p.name: p.read_text() for p in output_path.iterdir()} == {"a.txt": "first", "b.txt": "second"}
 
 
-def test_extractor_output_with_symlink_parent(tmp_path, gz_file, text_file):
+@pytest.mark.parametrize(
+    "compression_format, parent_type", [("gzip", "symlink"), ("gzip", "directory"), ("zip", "directory")]
+)
+@pytest.mark.parametrize("path_type", ["pathlib", "relative", "trailing_separator"])
+def test_extractor_output_with_dot_dot_parent(
+    tmp_path, monkeypatch, two_member_zip, gz_file, text_file_content, compression_format, parent_type, path_type
+):
+    input_path = two_member_zip if compression_format == "zip" else gz_file
+    target = tmp_path / "real" / "child"
+    target.mkdir(parents=True)
+    alias = tmp_path / "alias"
+    if parent_type == "symlink":
+        alias.symlink_to(target, target_is_directory=True)
+    else:
+        alias.mkdir()
+    output_path = alias / ".." / "output"
+    # POSIX follows the symlink before ".."; ordinary Windows paths collapse
+    # "alias/.." lexically. A real directory has the lexical result on both.
+    if parent_type == "symlink" and os.name != "nt":
+        expected_path = target.parent / "output"
+        unrelated_path = tmp_path / "output"
+    else:
+        expected_path = tmp_path / "output"
+        unrelated_path = target.parent / "output"
+    unrelated_path.write_text("unrelated user data")
+
+    # The base extractor writes directly to the caller's path, as upstream did.
+    Extractor.extractors[compression_format].extract(input_path, output_path)
+    assert output_path.samefile(expected_path)
+    assert unrelated_path.read_text() == "unrelated user data"
+    if compression_format == "zip":
+        shutil.rmtree(output_path)
+    else:
+        output_path.unlink()
+
+    if path_type == "relative":
+        monkeypatch.chdir(tmp_path)
+        argument = os.path.join("alias", "..", "output")
+    elif path_type == "trailing_separator":
+        argument = str(output_path) + os.sep * 2
+    else:
+        argument = output_path
+    # Exercise initial staging and publication, then retirement and replacement.
+    for _ in range(2):
+        Extractor.extract(input_path, argument, compression_format)
+        assert output_path.samefile(expected_path)
+        if compression_format == "zip":
+            assert {p.name: p.read_text() for p in expected_path.iterdir()} == {"a.txt": "first", "b.txt": "second"}
+        else:
+            assert expected_path.read_bytes() == text_file_content.encode("utf-8")
+        assert unrelated_path.read_text() == "unrelated user data"
+        assert not list(expected_path.parent.glob(".tmp-extract-*"))
+
+
+def test_extractor_output_aliases_share_lock(tmp_path, monkeypatch, gz_file, text_file_content):
     target = tmp_path / "real" / "child"
     target.mkdir(parents=True)
     alias = tmp_path / "alias"
     alias.symlink_to(target, target_is_directory=True)
     output_path = alias / ".." / "output"
-    unrelated_path = tmp_path / "output"
-    unrelated_path.write_text("unrelated user data")
+    expected_path = (tmp_path if os.name == "nt" else target.parent) / "output"
+    original_extract = GzipExtractor.extract
+    calls = []
 
+    def extract(input_path, staging_path):
+        calls.append(staging_path)
+        assert len(calls) == 1, "another caller entered the active extraction's temporary namespace"
+        Path(staging_path).write_bytes(b"partial data")
+        # A second spelling of the same destination must contend on the real lock
+        # before cleanup can remove the first caller's active staging file.
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            second = pool.submit(Extractor.extract, input_path, expected_path, "gzip", force_extract=False)
+            with pytest.raises(Timeout):
+                second.result(timeout=60)
+        assert Path(staging_path).read_bytes() == b"partial data"
+        original_extract(input_path, staging_path)
+
+    def file_lock(path):
+        lock = FileLock(path)
+        lock.timeout = 0
+        return lock
+
+    monkeypatch.setattr("datasets.utils.extract.FileLock", file_lock)
+    monkeypatch.setattr(GzipExtractor, "extract", staticmethod(extract))
     Extractor.extract(gz_file, output_path, "gzip")
-
-    assert unrelated_path.read_text() == "unrelated user data"
-    assert output_path.read_bytes() == text_file.read_bytes()
+    assert output_path.samefile(expected_path)
+    assert expected_path.read_bytes() == text_file_content.encode("utf-8")
 
 
 @pytest.mark.skipif(os.name == "nt", reason="requires POSIX directory permissions")
 @pytest.mark.parametrize("compression_format", ["zip", "gzip"])
-def test_extractor_unlistable_output_parent(tmp_path, two_member_zip, gz_file, text_file, compression_format):
+def test_extractor_unlistable_output_parent(tmp_path, two_member_zip, gz_file, text_file_content, compression_format):
     input_path = two_member_zip if compression_format == "zip" else gz_file
     output_dir = tmp_path / "unlistable"
     output_dir.mkdir()
@@ -144,13 +219,13 @@ def test_extractor_unlistable_output_parent(tmp_path, two_member_zip, gz_file, t
         if compression_format == "zip":
             assert {p.name: p.read_text() for p in output_path.iterdir()} == {"a.txt": "first", "b.txt": "second"}
         else:
-            assert output_path.read_bytes() == text_file.read_bytes()
+            assert output_path.read_bytes() == text_file_content.encode("utf-8")
     finally:
         output_dir.chmod(original_mode)
 
 
 @pytest.mark.parametrize("compression_format", ["zip", "gzip"])
-def test_extractor_long_output_basename(tmp_path, two_member_zip, gz_file, text_file, compression_format):
+def test_extractor_long_output_basename(tmp_path, two_member_zip, gz_file, text_file_content, compression_format):
     input_path = two_member_zip if compression_format == "zip" else gz_file
     output_path = tmp_path / ("x" * 250)
     for _ in range(2):
@@ -158,7 +233,7 @@ def test_extractor_long_output_basename(tmp_path, two_member_zip, gz_file, text_
         if compression_format == "zip":
             assert {p.name: p.read_text() for p in output_path.iterdir()} == {"a.txt": "first", "b.txt": "second"}
         else:
-            assert output_path.read_bytes() == text_file.read_bytes()
+            assert output_path.read_bytes() == text_file_content.encode("utf-8")
 
 
 def test_extract_manager_concurrent_cache_reuse(tmp_path, monkeypatch, two_member_zip):
@@ -294,7 +369,7 @@ def _extract_and_crash(input_path, output_path, compression_format, staging_path
 
 
 @pytest.mark.parametrize("compression_format", ["zip", "gzip"])
-def test_extract_manager_discards_incomplete(tmp_path, compression_format, two_member_zip, gz_file, text_file):
+def test_extract_manager_discards_incomplete(tmp_path, compression_format, two_member_zip, gz_file, text_file_content):
     input_path = str(two_member_zip if compression_format == "zip" else gz_file)
     manager = ExtractManager(cache_dir=str(tmp_path / "cache"))
     output_path = Path(manager._get_output_path(input_path))
@@ -328,14 +403,14 @@ def test_extract_manager_discards_incomplete(tmp_path, compression_format, two_m
     if compression_format == "zip":
         assert {p.name: p.read_text() for p in output_path.iterdir()} == {"a.txt": "first", "b.txt": "second"}
     else:
-        assert output_path.read_bytes() == text_file.read_bytes()
+        assert output_path.read_bytes() == text_file_content.encode("utf-8")
     assert not incomplete_path.exists()
 
 
 @pytest.mark.parametrize("compression_format", ["zip", "gzip"])
 @pytest.mark.parametrize("force_extract", [False, True])
 def test_extract_manager_interrupted_extraction(
-    tmp_path, monkeypatch, two_member_zip, gz_file, text_file, compression_format, force_extract
+    tmp_path, monkeypatch, two_member_zip, gz_file, text_file_content, compression_format, force_extract
 ):
     input_path = str(two_member_zip if compression_format == "zip" else gz_file)
     manager = ExtractManager(cache_dir=str(tmp_path / "cache"))
@@ -360,7 +435,7 @@ def test_extract_manager_interrupted_extraction(
         if compression_format == "zip":
             assert {p.name: p.read_text() for p in output_path.iterdir()} == {"a.txt": "first", "b.txt": "second"}
         else:
-            assert output_path.read_bytes() == text_file.read_bytes()
+            assert output_path.read_bytes() == text_file_content.encode("utf-8")
     else:
         assert not output_path.exists(), "failed extraction left a partial final cache"
 
@@ -368,7 +443,7 @@ def test_extract_manager_interrupted_extraction(
     if compression_format == "zip":
         assert {p.name: p.read_text() for p in output_path.iterdir()} == {"a.txt": "first", "b.txt": "second"}
     else:
-        assert output_path.read_bytes() == text_file.read_bytes()
+        assert output_path.read_bytes() == text_file_content.encode("utf-8")
 
 
 @pytest.mark.parametrize("compression_format", ["zip", "gzip"])

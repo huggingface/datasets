@@ -483,17 +483,18 @@ class Extractor:
                 # A forced rebuild may rename the final output during this check.
                 return False
 
-        output_path = Path(os.fspath(output_path))
-        # Resolve parent symlinks before collapsing "..", without following a final
-        # symlink that publication should replace rather than extract through.
-        output_path = os.path.normpath(os.path.join(os.path.realpath(output_path.parent), output_path.name))
+        # Strip trailing separators without resolving symlinks or collapsing "..":
+        # the OS must resolve the output and its temporary siblings the same way.
+        drive, tail = os.path.splitdrive(os.fspath(output_path))
+        output_path = drive + (tail.rstrip(os.sep + (os.altsep or "")) or tail)
         # Atomic publication makes a final cache hit safe without opening a writable lock.
         if not force_extract and is_cached():
             return
         output_dir = os.path.dirname(output_path) or "."
         os.makedirs(output_dir, exist_ok=True)
-        # Prevent parallel extractions
-        lock_path = str(Path(output_path).with_suffix(".lock"))
+        # Canonicalize only the lock filename so aliases share a lock before
+        # FileLock applies abspath. Output and temporary paths stay uncollapsed.
+        lock_path = os.path.realpath(str(Path(output_path).with_suffix(".lock")))
         with FileLock(lock_path):
             # Only the final path is a cache hit: partial extractions are never published.
             if not force_extract and is_cached():
@@ -512,6 +513,9 @@ class Extractor:
 
             def temporary_path():
                 path = tempfile.mkdtemp(prefix=tmp_prefix, dir=output_dir)
+                # mkdtemp may return an abspath that collapses "..". Keep the
+                # allocated basename in the caller's uncollapsed parent instead.
+                path = os.path.join(output_dir, os.path.basename(path))
                 # Remove only our empty reservation so either a file or directory can
                 # take its place, with the extractor's usual permissions. The lock
                 # protects this output's temporary namespace until publication.
