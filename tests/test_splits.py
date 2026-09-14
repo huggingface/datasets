@@ -28,6 +28,25 @@ def test_split_dict_to_yaml_list(split_dict: SplitDict):
 
 
 @pytest.mark.parametrize(
+    "split_dict",
+    [
+        SplitDict(),
+        SplitDict({"train": SplitInfo(name="train", num_bytes=1337, num_examples=42, dataset_name="my_dataset")}),
+        SplitDict({"train": SplitInfo(name="train", num_bytes=1337, num_examples=42)}),
+        SplitDict({"train": SplitInfo()}),
+    ],
+)
+def test_split_dict_copy(split_dict: SplitDict):
+    split_dict_copy = split_dict.copy()
+    # `to_split_dict` canonicalizes each split info's name to the dict key
+    assert split_dict_copy.to_split_dict() == split_dict.to_split_dict()
+    assert split_dict_copy is not split_dict
+    if split_dict:
+        assert split_dict_copy["train"] is not split_dict["train"]
+        assert split_dict_copy.dataset_name == split_dict["train"].dataset_name
+
+
+@pytest.mark.parametrize(
     "split_info", [SplitInfo(), SplitInfo(dataset_name=None), SplitInfo(dataset_name="my_dataset")]
 )
 def test_split_dict_asdict_has_dataset_name(split_info):

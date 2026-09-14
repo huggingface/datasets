@@ -570,8 +570,9 @@ class SplitDict(dict[str, SplitInfo]):
         if isinstance(split_infos, dict):
             split_infos = list(split_infos.values())
 
-        if dataset_name is None:
-            dataset_name = split_infos[0].get("dataset_name") if split_infos else None
+        if dataset_name is None and split_infos:
+            split_info = split_infos[0]
+            dataset_name = split_info.get("dataset_name") if isinstance(split_info, dict) else split_info.dataset_name
 
         split_dict = cls(dataset_name=dataset_name)
 
