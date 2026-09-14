@@ -637,9 +637,14 @@ class DataFilesList(list[str]):
             fn_pattern = "|".join(re.escape(fn) for fn in file_names)
             patterns.append(re.compile(rf".*[\/]?({fn_pattern})$"))
         if patterns:
+            keep = [i for i, data_file in enumerate(self) if any(pattern.match(data_file) for pattern in patterns)]
+            origin_metadata = self.origin_metadata
+            if len(origin_metadata) == len(self):
+                # keep `origin_metadata` aligned with the data files it describes
+                origin_metadata = [origin_metadata[i] for i in keep]
             return DataFilesList(
-                [data_file for data_file in self if any(pattern.match(data_file) for pattern in patterns)],
-                origin_metadata=self.origin_metadata,
+                [self[i] for i in keep],
+                origin_metadata=origin_metadata,
             )
         else:
             return DataFilesList(list(self), origin_metadata=self.origin_metadata)
