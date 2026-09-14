@@ -2395,6 +2395,22 @@ class BaseDatasetTest(TestCase):
                         self.assertNotEqual(d3["filename"], d2["filename"])
                         self.assertNotEqual(d3._fingerprint, d2._fingerprint)
 
+    def test_shuffle_generator_advances_on_cache_hit(self, in_memory):
+        def successive_shuffles(dset, generator):
+            orders = []
+            for _ in range(3):
+                with dset.shuffle(generator=generator) as dset_shuffled:
+                    orders.append(list(dset_shuffled["filename"]))
+            return orders, generator.bit_generator.state
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                cold_orders, cold_state = successive_shuffles(dset, np.random.default_rng(42))
+                warm_orders, warm_state = successive_shuffles(dset, np.random.default_rng(42))
+                self.assertEqual(cold_orders, warm_orders)
+                self.assertEqual(cold_state, warm_state)
+                self.assertNotEqual(np.random.default_rng(42).bit_generator.state, warm_state)
+
     def test_sort(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Sort on a single key
@@ -4300,6 +4316,14 @@ def test_dataset_from_generator_features(features, data_generator, tmp_path):
     )
     dataset = Dataset.from_generator(data_generator, features=features, cache_dir=cache_dir)
     _check_generator_dataset(dataset, expected_features, NamedSplit("train"))
+
+
+@pytest.mark.parametrize("not_callable", ["a string", [{"a": 1}], 5, {"a": 1}])
+def test_dataset_from_generator_rejects_a_non_callable(not_callable):
+    """Passing the data instead of a function used to fail during generation, as a bare
+    "object is not callable" that never mentioned `generator`."""
+    with pytest.raises(TypeError, match="generator must be callable"):
+        Dataset.from_generator(not_callable)
 
 
 @pytest.mark.parametrize(

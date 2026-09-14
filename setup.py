@@ -116,9 +116,6 @@ REQUIRED_PKGS = [
     "dill>=0.3.0,<0.4.2",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
     "pandas",
-    # for downloading datasets over HTTPS
-    "requests>=2.32.2",
-    "httpx<1.0.0",
     # progress bars in downloads and data operations
     "tqdm>=4.66.3",
     # for fast hashing
@@ -127,9 +124,11 @@ REQUIRED_PKGS = [
     "multiprocess<0.70.20",  # to align with dill<0.3.9 (see above)
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0,<=2026.6.0",
+    "fsspec[http]>=2023.1.0,<=2026.7.0",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface-hub>=0.25.0,<2.0",
+    # (also provides the HTTP client: `from huggingface_hub.utils import httpx`)
+    # minimum 1.31.0 for the `huggingface_hub.utils.httpx` re-export
+    "huggingface-hub>=1.31.0,<2.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -156,6 +155,8 @@ BENCHMARKS_REQUIRE = [
 ]
 
 TESTS_REQUIRE = [
+    # optional decoders exercised by the feature tests
+    "biopython>=1.80",
     # fix pip install issues for windows
     "numba>=0.56.4; python_version < '3.14'",  # to get recent versions of llvmlite for windows ci, not available on 3.14
     # test dependencies
@@ -219,6 +220,8 @@ DOCS_REQUIRE = [
 
 PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
+BIO_REQUIRE = ["biopython>=1.80"]
+
 NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 
 ICEBERG_REQUIRE = ["pyiceberg>=0.7.0"]
@@ -241,6 +244,7 @@ EXTRAS_REQUIRE = {
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": DOCS_REQUIRE,
     "pdfs": PDFS_REQUIRE,
+    "bio": BIO_REQUIRE,
     "nibabel": NIBABEL_REQUIRE,
     "iceberg": ICEBERG_REQUIRE,
 }
