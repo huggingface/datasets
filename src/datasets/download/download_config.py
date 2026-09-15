@@ -21,6 +21,8 @@ class DownloadConfig:
             If `True`, resume the download if an incompletely received file is
             found.
         proxies (`dict`, *optional*):
+            Deprecated and ignored. Set the `HTTP_PROXY` / `HTTPS_PROXY` environment variables or configure the
+            HTTP client with [`huggingface_hub.set_client_factory`] instead.
         user_agent (`str`, *optional*):
             Optional string or dict that will be appended to the user-agent on remote
             requests.

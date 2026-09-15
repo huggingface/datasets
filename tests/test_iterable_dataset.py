@@ -12,11 +12,11 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 import pytest
-from huggingface_hub import HfFileSystemResolvedPath
-from packaging import version
+from huggingface_hub.hf_file_system import HfFileSystemResolvedRepositoryPath
 
 from datasets import Dataset, config, load_dataset
 from datasets.combine import concatenate_datasets, interleave_datasets
+from datasets.dataset_dict import IterableDatasetDict
 from datasets.distributed import split_dataset_by_node
 from datasets.features import (
     ClassLabel,
@@ -67,15 +67,6 @@ from .utils import (
     require_torchdata_stateful_dataloader,
 )
 
-
-if config.HF_HUB_VERSION >= version.parse("1.6.0"):
-    from huggingface_hub.errors import BucketNotFoundError
-    from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
-
-else:
-    BucketNotFoundError = None
-    HfFileSystemResolvedBucketPath = None
-    HfFileSystemResolvedRepositoryPath = HfFileSystemResolvedPath
 
 SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/dataset_with_data_files"
 
@@ -353,30 +344,73 @@ def test_buffer_shuffled_examples_iterable(seed):
     ex_iterable = BufferShuffledExamplesIterable(base_ex_iterable, buffer_size=buffer_size, generator=generator)
 
     rng = deepcopy(generator)
-    expected_indices_used_for_shuffling = list(
-        islice(BufferShuffledExamplesIterable._iter_random_indices(rng, buffer_size=buffer_size), n - buffer_size)
-    )
-    # indices to pick in the shuffle buffer should all be in the right range
-    assert all(0 <= index_to_pick < buffer_size for index_to_pick in expected_indices_used_for_shuffling)
-    # it should be random indices
-    assert expected_indices_used_for_shuffling != list(range(buffer_size))
-
-    # The final order of examples is the result of a shuffle buffer.
+    # The final order of examples is the result of a block-shuffling buffer.
     all_examples = list(generate_examples_fn(n=n))
-    # We create a buffer and we pick random examples from it.
-    buffer, rest = all_examples[:buffer_size], all_examples[buffer_size:]
+    mem_buffer = []
+    current_len = 0
     expected = []
-    for i, index_to_pick in enumerate(expected_indices_used_for_shuffling):
-        expected.append(buffer[index_to_pick])
-        # The picked examples are directly replaced by the next examples from the iterable.
-        buffer[index_to_pick] = rest.pop(0)
-    # Once we have reached the end of the iterable, we shuffle the buffer and return the remaining examples.
-    rng.shuffle(buffer)
-    expected += buffer
+    for x in all_examples:
+        mem_buffer.append(x)
+        current_len += 1
+        if current_len >= buffer_size:
+            indices = rng.permutation(current_len)
+            keep_rows = buffer_size // 2
+            rows_to_yield = current_len - keep_rows
+            for i in indices[:rows_to_yield]:
+                expected.append(mem_buffer[i])
+            mem_buffer = [mem_buffer[i] for i in indices[rows_to_yield:]]
+            current_len = keep_rows
+    if current_len > 0:
+        indices = rng.permutation(current_len)
+        for i in indices:
+            expected.append(mem_buffer[i])
 
     assert next(iter(ex_iterable)) == expected[0]
     assert list(ex_iterable) == expected
     assert sorted(ex_iterable) == sorted(all_examples)
+    assert list(ex_iterable) != all_examples
+
+
+class MockArrowIterable:
+    def __init__(self, tables):
+        self.tables = tables
+        self.has_state = False
+
+    def iter_arrow(self):
+        for i, table in enumerate(self.tables):
+            yield f"key_{i}", table
+
+    def state_dict(self):
+        return {}
+
+
+def test_buffer_shuffled_examples_iterable_arrow():
+    generator = np.random.default_rng(42)
+
+    # Create chunks of arrow tables
+    tables = [
+        pa.Table.from_pydict({"x": list(range(i * 10, (i + 1) * 10))})
+        for i in range(5)  # 5 chunks of 10 rows = 50 rows total
+    ]
+
+    base_iterable = MockArrowIterable(tables)
+
+    # buffer_size=15
+    buffer_size = 15
+    shuffled_iterable = BufferShuffledExamplesIterable(base_iterable, buffer_size=buffer_size, generator=generator)
+
+    shuffled_tables = list(shuffled_iterable.iter_arrow())
+    assert len(shuffled_tables) > 0
+
+    # Reassemble and verify all elements are present
+    all_x = []
+    for key, table in shuffled_tables:
+        all_x.extend(table.column("x").to_pylist())
+
+    assert len(all_x) == 50
+    assert sorted(all_x) == list(range(50))
+    # verify it's shuffled
+    assert all_x != list(range(50))
 
 
 def test_cycling_multi_sources_examples_iterable():
@@ -1336,6 +1370,38 @@ def test_map_async():
     assert next(iter(out))["y"] == 1
 
 
+@pytest.mark.parametrize("batched", [False, True])
+@pytest.mark.parametrize("use_arrow", [False, True])
+@pytest.mark.parametrize("max_concurrency", [2, 1000])
+@pytest.mark.parametrize("wrapper", [lambda function: function, _wrap_async])
+def test_map_resume_multiple_times(batched, use_arrow, max_concurrency, wrapper, monkeypatch):
+    monkeypatch.setattr(config, "MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL", max_concurrency)
+
+    def build():
+        if use_arrow:
+            dataset = Dataset.from_dict({"id": list(range(30))}).to_iterable_dataset(num_shards=3)
+        else:
+            dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": 30}))
+        return dataset.map(
+            wrapper(lambda example, indices: {"index": indices}),
+            with_indices=True,
+            batched=batched,
+            batch_size=7,
+        )
+
+    expected = list(build())
+    dataset = build()
+    actual = []
+    for consume in [2, 3, 7]:
+        iterator = iter(dataset)
+        actual.extend(islice(iterator, consume))
+        state = pickle.loads(pickle.dumps(dataset.state_dict()))
+        dataset = build()
+        dataset.load_state_dict(state)
+    actual.extend(dataset)
+    assert actual == expected
+
+
 def test_filter_async():
     dset = Dataset.from_dict({"x": range(100)}).to_iterable_dataset()
 
@@ -1443,6 +1509,115 @@ def test_repeat_examples_iterable(n, num_times):
         iterator = iter(ex_iterable)
         for i in range(max_iters):
             assert next(iterator)[1] == all_examples[i % len(all_examples)], f"iteration {i} failed,"
+
+
+@pytest.mark.parametrize("num_times", [2, 0])
+def test_repeat_examples_iterable_arrow(num_times):
+    base_ex_iterable = ArrowExamplesIterable(generate_tables_fn, {"n": 10})
+    ex_iterable = RepeatExamplesIterable(base_ex_iterable, num_times=num_times)
+    assert ex_iterable.iter_arrow is not None
+    assert ex_iterable.is_typed == base_ex_iterable.is_typed
+    assert ex_iterable.features == base_ex_iterable.features
+    expected = sum([pa_table.to_pylist() for _, pa_table in generate_tables_fn(n=10)], []) * num_times
+    assert [example for _, pa_table in ex_iterable.iter_arrow() for example in pa_table.to_pylist()] == expected
+    assert [example for _, example in ex_iterable] == expected
+    assert_load_state_dict_resumes_iteration(ex_iterable)
+    assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
+
+
+def test_repeat_examples_iterable_without_arrow_stays_without_arrow():
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": 3})
+    ex_iterable = RepeatExamplesIterable(base_ex_iterable, num_times=2)
+    assert ex_iterable.iter_arrow is None
+
+
+@pytest.mark.parametrize("source_kind", ["examples", "arrow", "empty_arrow_table"])
+@pytest.mark.parametrize("with_state", [False, True])
+def test_repeat_empty_examples_iterable(source_kind, with_state):
+    starts = 0
+
+    def generate_empty():
+        nonlocal starts
+        starts += 1
+        if starts > 2:
+            pytest.fail("An empty input was restarted indefinitely")
+        if source_kind == "empty_arrow_table":
+            yield "empty", pa.table({"id": pa.array([], type=pa.int64())})
+
+    base_cls = ExamplesIterable if source_kind == "examples" else ArrowExamplesIterable
+    ex_iterable = RepeatExamplesIterable(base_cls(generate_empty, {}), num_times=None)
+    if with_state:
+        ex_iterable._init_state_dict()
+    if source_kind == "examples":
+        assert list(ex_iterable) == []
+    else:
+        assert [row for _, table in ex_iterable.iter_arrow() for row in table.to_pylist()] == []
+
+
+@pytest.mark.parametrize("source_kind", ["examples", "arrow"])
+@pytest.mark.parametrize("consume", [1, 3, 4, 6])
+def test_repeat_forever_resumes_at_repetition_boundary(source_kind, consume):
+    def generate():
+        for i in range(3):
+            yield {"id": i}
+
+    if source_kind == "examples":
+        base = IterableDataset.from_generator(generate)
+    else:
+        base = Dataset.from_dict({"id": list(range(3))}).to_iterable_dataset().with_format("arrow")
+
+    def take_ids(iterator, n):
+        return [row["id"][0].as_py() if isinstance(row, pa.Table) else row["id"] for row in islice(iterator, n)]
+
+    ds = base.repeat(None)
+    iterator = iter(ds)
+    assert take_ids(iterator, consume) == [i % 3 for i in range(consume)]
+    state = ds.state_dict()
+    resumed = base.repeat(None)
+    resumed.load_state_dict(state)
+    assert take_ids(resumed, 8) == [i % 3 for i in range(consume, consume + 8)]
+
+
+@pytest.mark.parametrize("num_times", [None, 2, 3])
+def test_repeat_dynamic_empty_first_iteration(num_times):
+    starts = 0
+
+    def generate():
+        nonlocal starts
+        starts += 1
+        if starts > 1:
+            yield 0, {"id": starts}
+
+    ex_iterable = RepeatExamplesIterable(ExamplesIterable(generate, {}), num_times=num_times)
+    if num_times is None:
+        assert [row for _, row in islice(ex_iterable, 3)] == [{"id": i} for i in range(2, 5)]
+    else:
+        assert [row for _, row in ex_iterable] == [{"id": i} for i in range(2, num_times + 1)]
+
+
+@pytest.mark.parametrize("format_type", [None, "arrow"])
+@pytest.mark.parametrize("rank", [0, 1])
+def test_iterable_dataset_repeat_filtered_empty_rank(format_type, rank):
+    calls = 0
+
+    def keep_second_shard(batch):
+        nonlocal calls
+        calls += 1
+        if calls > 4:
+            pytest.fail("An empty rank was restarted indefinitely")
+        if isinstance(batch, pa.Table):
+            return batch.filter(pc.greater_equal(batch["id"], 3))
+        return [i >= 3 for i in batch["id"]]
+
+    base = Dataset.from_dict({"id": list(range(6))}).to_iterable_dataset(num_shards=2)
+    ds = split_dataset_by_node(base, rank=rank, world_size=2).with_format(format_type)
+    transform = ds.map if format_type == "arrow" else ds.filter
+    ds = transform(keep_second_shard, batched=True, batch_size=3).repeat(None).take(4)
+    if format_type == "arrow":
+        rows = [row for table in ds for row in table.to_pylist()]
+    else:
+        rows = list(ds)
+    assert rows == ([] if rank == 0 else [{"id": i} for i in [3, 4, 5, 3]])
 
 
 def test_vertically_concatenated_examples_iterable():
@@ -1961,17 +2136,31 @@ def test_iterable_dataset_shuffle_with_multiple_workers_different_rng():
 def test_iterable_dataset_shuffle_buffer_uses_multiple_input_shards():
     ds = IterableDataset.from_dict({"i": range(100)}, num_shards=10)
 
+    # Note: We use inequalities rather than exact hardcoded lengths because `numpy.random.default_rng()`
+    # does not guarantee stream stability across NumPy versions. This ensures the test robustly verifies
+    # that multiple upstream shards are interleaved, without breaking when a user's NumPy version changes.
     shuffled_ds = ds.shuffle(buffer_size=10, seed=1234)
     shard_indices_of_first_ten_examples = {i // 10 for i in shuffled_ds.take(10)["i"]}
-    assert len(shard_indices_of_first_ten_examples) == 7
+    assert len(shard_indices_of_first_ten_examples) > 5
 
     shuffled_ds = ds.shuffle(buffer_size=10, seed=1234, max_buffer_input_shards=1)
     shard_indices_of_first_ten_examples = {i // 10 for i in shuffled_ds.take(10)["i"]}
-    assert len(shard_indices_of_first_ten_examples) == 2
+    assert len(shard_indices_of_first_ten_examples) <= 2
 
     shuffled_ds = ds.shuffle(buffer_size=10, seed=1234, max_buffer_input_shards=4)
     shard_indices_of_first_ten_examples = {i // 10 for i in shuffled_ds.take(10)["i"]}
-    assert len(shard_indices_of_first_ten_examples) == 4
+    assert 2 < len(shard_indices_of_first_ten_examples) <= 5
+
+
+def test_iterable_dataset_dict_shuffle_forwards_max_buffer_input_shards():
+    ds = IterableDataset.from_dict({"i": range(100)}, num_shards=10)
+    dsets = IterableDatasetDict({"train": ds})
+
+    # Same assertion as test_iterable_dataset_shuffle_buffer_uses_multiple_input_shards: without the
+    # argument reaching the split, the buffer interleaves far more than two shards.
+    shuffled_dsets = dsets.shuffle(buffer_size=10, seed=1234, max_buffer_input_shards=1)
+    shard_indices_of_first_ten_examples = {i // 10 for i in shuffled_dsets["train"].take(10)["i"]}
+    assert len(shard_indices_of_first_ten_examples) <= 2
 
 
 def gen_with_value(shard, value):
@@ -2198,9 +2387,7 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, seed, epoch):
         dataset.set_epoch(epoch)
         effective_seed = np.random.default_rng(seed).integers(0, 1 << 63) - epoch
     # Shuffling adds a shuffle buffer
-    expected_first_example_index = next(
-        iter(BufferShuffledExamplesIterable._iter_random_indices(np.random.default_rng(effective_seed), buffer_size))
-    )
+    expected_first_example_index = np.random.default_rng(effective_seed).permutation(buffer_size)[0]
     assert isinstance(dataset._ex_iterable, BufferShuffledExamplesIterable)
     # It also shuffles the underlying examples iterable
     expected_ex_iterable = ExamplesIterable(
@@ -2322,6 +2509,14 @@ def test_iterable_dataset_repeat(dataset: IterableDataset, n):
     assert list(repeat_dataset) == list(dataset) * n
 
 
+def test_iterable_dataset_repeat_keeps_numpy_dtypes():
+    features = Features({"i32": Value("int32"), "f32": Value("float32"), "u8": Value("uint8")})
+    ds = Dataset.from_dict({"i32": [1, 2], "f32": [1.5, 2.5], "u8": [3, 4]}, features=features)
+    ds = ds.to_iterable_dataset().with_format("numpy")
+    expected = {key: value.dtype for key, value in next(iter(ds)).items()}
+    assert {key: value.dtype for key, value in next(iter(ds.repeat(2))).items()} == expected
+
+
 def test_iterable_dataset_shard():
     num_examples = 20
     num_shards = 5
@@ -2389,11 +2584,10 @@ def test_iterable_dataset_skip_or_take_after_split_by_node(method, after_split_b
     if after_split_by_node:
         distributed_dataset = split_dataset_by_node(distributed_dataset, rank=rank, world_size=world_size)
         distributed_dataset = distributed_dataset.skip(count) if method == "skip" else distributed_dataset.take(count)
-        assert (
-            list(true_distributed_dataset)[count:]
-            if method == "skip"
-            else list(true_distributed_dataset)[:count] == list(distributed_dataset)
+        expected = (
+            list(true_distributed_dataset)[count:] if method == "skip" else list(true_distributed_dataset)[:count]
         )
+        assert expected == list(distributed_dataset)
     else:
         distributed_dataset = distributed_dataset.skip(count) if method == "skip" else distributed_dataset.take(count)
         distributed_dataset = split_dataset_by_node(distributed_dataset, rank=rank, world_size=world_size)

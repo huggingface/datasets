@@ -15,7 +15,7 @@ requirements:
     - python
     - pip
     - numpy >=1.17
-    - pyarrow >=16.0.0
+    - pyarrow >=24.0.0
     - python-xxhash
     - dill
     - pandas
@@ -31,7 +31,7 @@ requirements:
     - python
     - pip
     - numpy >=1.17
-    - pyarrow >=16.0.0
+    - pyarrow >=24.0.0
     - python-xxhash
     - dill
     - pandas
