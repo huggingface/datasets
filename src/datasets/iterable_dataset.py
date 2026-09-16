@@ -4616,8 +4616,10 @@ class IterableDataset(DatasetInfoMixin):
         ```
         """
         if batched:
-            for table in self.with_format("arrow").iter(batch_size=batch_size):
-                yield Dataset(table, fingerprint="unset").to_dict()
+            return (
+                Dataset(table, fingerprint="unset").to_dict()
+                for table in self.with_format("arrow").iter(batch_size=batch_size)
+            )
         else:
             table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
             return Dataset(table, fingerprint="unset").to_dict()
@@ -4708,8 +4710,10 @@ class IterableDataset(DatasetInfoMixin):
         ```
         """
         if batched:
-            for table in self.with_format("arrow").iter(batch_size=batch_size):
-                yield Dataset(table, fingerprint="unset").to_polars(schema_overrides=schema_overrides, rechunk=rechunk)
+            return (
+                Dataset(table, fingerprint="unset").to_polars(schema_overrides=schema_overrides, rechunk=rechunk)
+                for table in self.with_format("arrow").iter(batch_size=batch_size)
+            )
         else:
             table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
             return Dataset(table, fingerprint="unset").to_polars(schema_overrides=schema_overrides, rechunk=rechunk)
