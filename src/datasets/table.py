@@ -2376,9 +2376,30 @@ def table_cast(table: pa.Table, schema: pa.Schema):
     """
     if table.schema != schema:
         return cast_table_to_schema(table, schema)
-    elif table.schema.metadata != schema.metadata:
-        return table.replace_schema_metadata(schema.metadata)
     else:
+        # ClassLabel validation is only possible when Hugging Face feature metadata is present.
+        # Keep schemas without it on the metadata-only fast path.
+        if not schema.metadata or b"huggingface" not in schema.metadata:
+            if table.schema.metadata != schema.metadata:
+                return table.replace_schema_metadata(schema.metadata)
+            return table
+
+        from .features.features import ClassLabel, Features, LargeList, List
+
+        def contains_class_label(feature):
+            if isinstance(feature, ClassLabel):
+                return True
+            if isinstance(feature, dict):
+                return any(contains_class_label(subfeature) for subfeature in feature.values())
+            if isinstance(feature, (LargeList, List)):
+                return contains_class_label(feature.feature)
+            return False
+
+        features = Features.from_arrow_schema(schema)
+        if any(contains_class_label(feature) for feature in features.values()):
+            return cast_table_to_schema(table, schema)
+        if table.schema.metadata != schema.metadata:
+            return table.replace_schema_metadata(schema.metadata)
         return table
 
 
