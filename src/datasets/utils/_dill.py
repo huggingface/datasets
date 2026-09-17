@@ -71,6 +71,8 @@ class Pickler(dill.Pickler):
         dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
 
     def _batch_setitems(self, items, *args, **kwargs):
+        if self._legacy_no_dict_keys_sorting:
+            return super()._batch_setitems(items, *args, **kwargs)
         # Ignore the order of keys in a dict
         try:
             # Faster, but fails for unorderable elements
