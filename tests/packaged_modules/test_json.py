@@ -4,7 +4,7 @@ import textwrap
 import pyarrow as pa
 import pytest
 
-from datasets import Features, Value, load_dataset
+from datasets import ClassLabel, Features, Value, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig
@@ -595,6 +595,13 @@ def test_json_generate_tables_with_missing_features(file_fixture, config_kwargs,
     )
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.to_pydict() == {"col_1": [-1, 1, 10], "col_2": [None, 2, 20], "missing_col": [None, None, None]}
+
+
+def test_json_cast_table_validates_classlabel():
+    json = Json(features=Features({"label": ClassLabel(names=["neg", "pos", "oth"])}))
+
+    with pytest.raises(ValueError, match="Class label 5 greater than configured num_classes 3"):
+        json._cast_table(pa.table({"label": [5, 1]}))
 
 
 @pytest.mark.parametrize(
