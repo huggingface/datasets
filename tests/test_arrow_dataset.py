@@ -4833,6 +4833,63 @@ def test_map_async():
     assert out[0]["y"] == 1
 
 
+@pytest.mark.parametrize("batched", [False, True])
+def test_map_async_closes_loop(batched):
+    loops = []
+
+    async def f(example):
+        loops.append(asyncio.get_running_loop())
+        if batched:
+            return {"y": [x + 1 for x in example["x"]]}
+        return {"y": example["x"] + 1}
+
+    try:
+        out = Dataset.from_dict({"x": [0, 1]}).map(f, batched=batched, batch_size=1)
+        assert out["y"] == [1, 2]
+        assert loops[0].is_closed()
+    finally:
+        if loops and not loops[0].is_closed():
+            loops[0].close()
+
+
+@pytest.mark.parametrize("error_cls", [RuntimeError, asyncio.CancelledError])
+def test_map_async_error_settles_tasks_and_closes_loop(error_cls):
+    loops = []
+    started = asyncio.Event()
+    cleaned = []
+    error = error_cls("map failed")
+
+    async def f(example):
+        if example["x"] == 0:
+            loops.append(asyncio.get_running_loop())
+            await started.wait()
+            raise error
+        started.set()
+        try:
+            await asyncio.Future()
+        finally:
+            await asyncio.sleep(0)
+            await asyncio.sleep(0)
+            cleaned.append(example["x"])
+
+    try:
+        with pytest.raises(error_cls) as caught:
+            Dataset.from_dict({"x": [0, 1]}).map(f)
+        if not isinstance(error, asyncio.CancelledError):
+            assert caught.value is error
+        assert cleaned == [1]
+        assert loops[0].is_closed()
+    finally:
+        if loops and not loops[0].is_closed():
+            loop = loops[0]
+            tasks = asyncio.all_tasks(loop)
+            for task in tasks:
+                task.cancel()
+            if tasks:
+                loop.run_until_complete(asyncio.gather(*tasks, return_exceptions=True))
+            loop.close()
+
+
 def test_filter_async():
     dset = Dataset.from_dict({"x": range(100)})
 
