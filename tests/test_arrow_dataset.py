@@ -5109,6 +5109,24 @@ def test_dataset_save_to_disk_and_load_from_disk_round_trip_with_large_list(tmp_
     assert loaded_ds.to_dict() == ds.to_dict()
 
 
+def test_dataset_save_to_disk_and_load_from_disk_pathlib_path(tmp_path):
+    data = {"col_1": [1, 2, 3], "col_2": ["a", "b", "c"]}
+    ds = Dataset.from_dict(data)
+    dataset_path = Path(tmp_path) / "dataset_dir_pathlib"
+    ds.save_to_disk(dataset_path)
+    assert (dataset_path / "data-00000-of-00001.arrow").exists()
+
+    # Test top-level load_from_disk
+    loaded_ds = load_from_disk(dataset_path)
+    assert len(loaded_ds) == len(ds)
+    assert loaded_ds.to_dict() == ds.to_dict()
+
+    # Test Dataset.load_from_disk
+    loaded_ds_class = Dataset.load_from_disk(dataset_path)
+    assert len(loaded_ds_class) == len(ds)
+    assert loaded_ds_class.to_dict() == ds.to_dict()
+
+
 @require_polars
 def test_from_polars_with_large_list():
     import polars as pl
