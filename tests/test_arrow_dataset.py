@@ -66,6 +66,20 @@ from .utils import (
 )
 
 
+def test_from_dict_array2d_numpy_roundtrip(tmp_path):
+    data = np.arange(128 * 64 * 64, dtype="float32").reshape(128, 64, 64)
+    features = Features({"a": Array2D(shape=(64, 64), dtype="float32")})
+    dataset = Dataset.from_dict({"a": data}, features=features)
+    dataset.save_to_disk(tmp_path / "array2d")
+    restored = load_from_disk(tmp_path / "array2d")
+    assert restored.features == features
+    assert restored.data.table.equals(dataset.data.table, check_metadata=True)
+    actual = restored.with_format("numpy")[:]["a"]
+    assert actual.shape == data.shape
+    assert actual.dtype == data.dtype
+    assert actual.tobytes() == data.tobytes()
+
+
 class PickableMagicMock(MagicMock):
     def __reduce__(self):
         return MagicMock, ()
