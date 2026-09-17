@@ -1,3 +1,4 @@
+import struct
 from pathlib import Path
 
 import pyarrow as pa
@@ -140,6 +141,34 @@ def test_mesh_feature_encode_trimesh_object():
     assert encoded_example["bytes"] is not None
     decoded_example = Mesh().decode_example(encoded_example)
     assert isinstance(decoded_example, trimesh.Scene)
+
+
+def _deeply_nested_glb_bytes(depth: int = 5000) -> bytes:
+    """A structurally valid GLB whose JSON chunk is nested `depth` levels deep."""
+    json_chunk = b'{"a":' * depth + b"1" + b"}" * depth
+    return (
+        b"glTF"
+        + struct.pack("<I", 2)  # version
+        + struct.pack("<I", 12 + 8 + len(json_chunk))  # total length
+        + struct.pack("<I", len(json_chunk))  # chunk length
+        + struct.pack("<I", 0x4E4F534A)  # chunk type: JSON
+        + json_chunk
+    )
+
+
+@require_trimesh
+def test_mesh_decode_deeply_nested_glb_from_bytes():
+    encoded_example = {"bytes": _deeply_nested_glb_bytes(), "path": "deeply_nested.glb"}
+    with pytest.raises(ValueError, match="too deeply nested"):
+        Mesh().decode_example(encoded_example)
+
+
+@require_trimesh
+def test_mesh_decode_deeply_nested_glb_from_path(tmp_path):
+    mesh_path = tmp_path / "deeply_nested.glb"
+    mesh_path.write_bytes(_deeply_nested_glb_bytes())
+    with pytest.raises(ValueError, match="too deeply nested"):
+        Mesh().decode_example({"bytes": None, "path": str(mesh_path)})
 
 
 def test_require_decoding():
