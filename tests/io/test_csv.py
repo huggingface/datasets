@@ -1,10 +1,11 @@
+import ast
 import csv
 import os
 
 import fsspec
 import pytest
 
-from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
+from datasets import Array2D, Dataset, DatasetDict, Features, NamedSplit, Value
 from datasets.io.csv import CsvDatasetReader, CsvDatasetWriter
 
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
@@ -189,3 +190,38 @@ def test_dataset_to_csv_preserves_nullable_int(dtype, big, tmp_path):
     with open(output_csv, newline="") as f:
         rows = list(csv.DictReader(f))
     assert [row["a"] for row in rows] == [str(big), "", "5"]
+
+
+def _written_cells(dataset, tmp_path, column):
+    output_csv = os.path.join(tmp_path, "out.csv")
+    CsvDatasetWriter(dataset, output_csv, num_proc=1).write()
+    with open(output_csv, newline="") as f:
+        return [row[column] for row in csv.DictReader(f)]
+
+
+# 1500 is above numpy's summarization threshold, 3 is below it
+@pytest.mark.parametrize("length", [3, 1500])
+def test_dataset_to_csv_keeps_every_value_of_a_list_column(length, tmp_path):
+    dataset = Dataset.from_dict({"a": [list(range(length))]})
+    cells = _written_cells(dataset, tmp_path, "a")
+    assert ast.literal_eval(cells[0]) == list(range(length))
+
+
+def test_dataset_to_csv_keeps_every_value_of_a_struct_column(tmp_path):
+    dataset = Dataset.from_dict({"a": [{"xs": list(range(1500)), "n": 1}]})
+    cells = _written_cells(dataset, tmp_path, "a")
+    assert ast.literal_eval(cells[0]) == {"xs": list(range(1500)), "n": 1}
+
+
+def test_dataset_to_csv_keeps_every_value_of_a_nested_list_column(tmp_path):
+    dataset = Dataset.from_dict({"a": [[[1, 2], [3, 4]]]})
+    cells = _written_cells(dataset, tmp_path, "a")
+    assert ast.literal_eval(cells[0]) == [[1, 2], [3, 4]]
+
+
+def test_dataset_to_csv_keeps_every_value_of_an_array_2d_column(tmp_path):
+    values = [[list(range(40)) for _ in range(40)]]
+    features = Features({"a": Array2D(shape=(40, 40), dtype="int64")})
+    dataset = Dataset.from_dict({"a": values}, features=features)
+    cells = _written_cells(dataset, tmp_path, "a")
+    assert ast.literal_eval(cells[0]) == values[0]
