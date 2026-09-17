@@ -15,7 +15,7 @@
 """Utilities to handle file locking in `datasets`."""
 
 import os
-from weakref import WeakValueDictionary
+from functools import wraps
 
 from filelock import BaseFileLock as _BaseFileLock
 from filelock import FileLock as FileLock_
@@ -27,6 +27,18 @@ from .. import config
 
 
 class _FileLockMeta(type(FileLock_)):
+    def __getattr__(cls, name):
+        # Expose upstream class attributes without maintaining a copy here.
+        return getattr(FileLock_, name)
+
+    @wraps(type(FileLock_).__call__)  # Upstream inspects this signature for subclass defaults.
+    def __call__(cls, *args, **kwargs):
+        if cls is FileLock:
+            # Let upstream read the selected backend's attributes and own its singleton state.
+            lock_class = _SoftFileLock if config.HF_DATASETS_USE_SOFT_FILELOCK else _HardFileLock
+            return lock_class(*args, **kwargs)
+        return super().__call__(*args, **kwargs)
+
     def __new__(mcls, name, bases, namespace, **kwargs):
         # Bare subclasses retain FileLock's historical hard-lock backend.
         if bases and not any(issubclass(base, _BaseFileLock) for base in bases):
@@ -42,15 +54,6 @@ class FileLock(metaclass=_FileLockMeta):
     """
 
     MAX_FILENAME_LENGTH = 255
-
-    # This public dispatcher does not inherit BaseFileLock's cache initialization.
-    _instances = WeakValueDictionary()
-
-    def __new__(cls, *args, **kwargs):
-        if cls is FileLock:
-            cls = _SoftFileLock if config.HF_DATASETS_USE_SOFT_FILELOCK else _HardFileLock
-        # Allocate directly so __init__ runs once with the original arguments.
-        return super().__new__(cls)
 
     def __init__(self, lock_file, *args, **kwargs):
         # The "mode" argument is required to use the current umask in filelock >= 3.10.

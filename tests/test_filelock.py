@@ -2,11 +2,13 @@ import os
 import stat
 import subprocess
 import sys
+from multiprocessing import get_context
 from types import SimpleNamespace
 from unittest.mock import Mock
 
 import filelock
 import pytest
+from packaging import version
 
 from datasets import config
 from datasets.utils._filelock import FileLock
@@ -16,6 +18,21 @@ from datasets.utils._filelock import FileLock
 def use_soft_filelock(request, monkeypatch):
     monkeypatch.setattr(config, "HF_DATASETS_USE_SOFT_FILELOCK", request.param)
     return request.param
+
+
+@pytest.fixture
+def main_filelock():
+    class MainFileLock(filelock.FileLock):
+        # Preserve main's constructor signature and mode handling as a reference:
+        # different filelock versions forward or filter *args and **kwargs.
+        def __init__(self, lock_file, *args, **kwargs):
+            if "mode" not in kwargs and version.parse(filelock.__version__) >= version.parse("3.10.0"):
+                umask = os.umask(0o666)
+                os.umask(umask)
+                kwargs["mode"] = 0o666 & ~umask
+            super().__init__(lock_file, *args, **kwargs)
+
+    return MainFileLock
 
 
 def test_isinstance(tmp_path, use_soft_filelock):
@@ -36,6 +53,42 @@ def test_classmethod(tmp_path, use_soft_filelock):
     assert FileLock.hash_filename_if_too_long(path) == path
 
 
+def test_upstream_class_attribute_during_construction(tmp_path, use_soft_filelock, monkeypatch):
+    # Simulate a future filelock metaclass reading a newly added class attribute.
+    attribute = "_future_constructor_setting"
+    setting = object()
+    monkeypatch.setattr(filelock.FileLock, attribute, setting, raising=False)
+    assert getattr(FileLock, attribute) is getattr(filelock.FileLock, attribute)
+    upstream_call = type(filelock.FileLock).__call__
+
+    def call(cls, *args, **kwargs):
+        if issubclass(cls, FileLock):
+            assert getattr(cls, attribute) is getattr(filelock.FileLock, attribute)
+        return upstream_call(cls, *args, **kwargs)
+
+    monkeypatch.setattr(type(filelock.FileLock), "__call__", call)
+    with FileLock(tmp_path / "test.lock") as lock:
+        assert lock.is_locked
+
+
+def test_upstream_backend_attribute_during_construction(tmp_path, use_soft_filelock, monkeypatch):
+    # Upstream may use backend-specific class attributes to validate options.
+    attribute = "_future_backend_setting"
+    monkeypatch.setattr(filelock.FileLock, attribute, object(), raising=False)
+    monkeypatch.setattr(filelock.SoftFileLock, attribute, object(), raising=False)
+    upstream_class = filelock.SoftFileLock if use_soft_filelock else filelock.FileLock
+    upstream_call = type(filelock.FileLock).__call__
+
+    def call(cls, *args, **kwargs):
+        if issubclass(cls, FileLock):
+            assert getattr(cls, attribute) is getattr(upstream_class, attribute)
+        return upstream_call(cls, *args, **kwargs)
+
+    monkeypatch.setattr(type(filelock.FileLock), "__call__", call)
+    with FileLock(tmp_path / "test.lock") as lock:
+        assert lock.is_locked
+
+
 def test_issubclass(tmp_path, use_soft_filelock):
     assert issubclass(FileLock, object)
     assert issubclass(type(FileLock(tmp_path / "test.lock")), FileLock)
@@ -46,11 +99,10 @@ def test_subclass(tmp_path, use_soft_filelock):
         pass
 
     assert issubclass(MyLock, FileLock)
-    lock = MyLock(tmp_path / "custom.lock", 0.1, 0o600)
+    lock = MyLock(tmp_path / "custom.lock")
     assert type(lock) is MyLock
     assert isinstance(lock, FileLock)
     assert isinstance(lock, filelock.FileLock)
-    # Upstream filters positional constructor arguments too, matching main.
     assert lock.timeout == -1
     with lock:
         assert lock.is_locked
@@ -74,15 +126,67 @@ def test_concrete_subclass(tmp_path, use_soft_filelock, monkeypatch):
         assert custom_lock.is_locked
 
 
-def test_current_upstream_filtered_arguments_match_main(tmp_path, use_soft_filelock):
-    # Pin today's upstream signature filtering for parity, not as desired behavior.
-    # Fixing dropped constructor arguments belongs in a separate change.
-    assert FileLock(tmp_path / "timeout.lock", timeout=5).timeout == -1
+def test_constructor_arguments_match_main(tmp_path, use_soft_filelock, main_filelock):
+    assert (
+        FileLock(tmp_path / "timeout.lock", timeout=5).timeout
+        == main_filelock(tmp_path / "reference-timeout.lock", timeout=5).timeout
+    )
     path = tmp_path / "singleton.lock"
+    reference_path = tmp_path / "reference-singleton.lock"
+    if not hasattr(filelock.BaseFileLock, "is_singleton"):
+        # Oldest supported filelock predates singleton support.
+        for lock_class in (main_filelock, FileLock):
+            with pytest.raises(TypeError, match="is_singleton"):
+                lock_class(path, is_singleton=True)
+        return
+    reference = main_filelock(reference_path, is_singleton=True)
     lock = FileLock(path, is_singleton=True)
-    assert not lock.is_singleton
-    with pytest.raises(ValueError, match="^Singleton lock instances cannot be initialized with differing arguments"):
-        FileLock(path, is_singleton=True)
+    assert lock.is_singleton == reference.is_singleton
+    if reference.is_singleton:
+        assert main_filelock(reference_path, is_singleton=True) is reference
+        assert FileLock(path, is_singleton=True) is lock
+    else:
+        for lock_class, lock_path in ((main_filelock, reference_path), (FileLock, path)):
+            with pytest.raises(
+                ValueError, match="^Singleton lock instances cannot be initialized with differing arguments"
+            ):
+                lock_class(lock_path, is_singleton=True)
+
+
+@pytest.mark.skipif(not hasattr(filelock.BaseFileLock, "is_singleton"), reason="filelock predates singleton support")
+def test_singleton_cache_is_separate_from_upstream(tmp_path, use_soft_filelock):
+    path = tmp_path / "test.lock"
+    upstream_lock = filelock.FileLock(path, is_singleton=True)
+    lock = FileLock(path, is_singleton=True)
+    assert lock is not upstream_lock
+    assert isinstance(lock, FileLock)
+    assert isinstance(lock, filelock.SoftFileLock if use_soft_filelock else filelock.FileLock)
+    assert filelock.FileLock(path, is_singleton=True) is upstream_lock
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32" or not hasattr(filelock.BaseFileLock, "_reset_class_after_fork"),
+    reason="requires fork and upstream singleton reset support",
+)
+def test_singleton_cache_resets_after_fork(tmp_path, use_soft_filelock):
+    path = tmp_path / "test.lock"
+    lock = FileLock(path, is_singleton=True)
+
+    def acquire_in_child():
+        child_lock = FileLock(path, is_singleton=True)
+        assert child_lock is not lock
+        with child_lock.acquire(timeout=1):
+            assert child_lock.is_locked
+
+    process = get_context("fork").Process(target=acquire_in_child)
+    process.start()
+    try:
+        process.join(timeout=30)
+        assert process.exitcode == 0
+    finally:
+        if process.is_alive():
+            process.kill()
+            process.join()
 
 
 def test_long_path(tmpdir, use_soft_filelock, monkeypatch):
@@ -115,30 +219,33 @@ def test_filesystem_filename_limit(tmp_path, use_soft_filelock, monkeypatch):
 @pytest.mark.skipif(sys.platform == "win32", reason="POSIX file permissions")
 @pytest.mark.parametrize("umask", [0o022, 0o027, 0o077])
 @pytest.mark.parametrize("mode", [None, 0o600])
-def test_mode(tmp_path, use_soft_filelock, umask, mode):
+def test_mode(tmp_path, use_soft_filelock, main_filelock, umask, mode):
     previous_umask = os.umask(umask)
     try:
         kwargs = {} if mode is None else {"mode": mode}
         lock = FileLock(tmp_path / "test.lock", **kwargs)
         assert os.umask(umask) == umask
+        with main_filelock(tmp_path / "reference.lock", **kwargs) as reference:
+            expected_mode = stat.S_IMODE(os.stat(reference.lock_file).st_mode)
+        if mode is None:
+            assert expected_mode == 0o666 & ~umask
         with lock:
-            # Explicit mode is currently filtered upstream; preserve main's umask behavior.
-            expected_mode = 0o666 & ~umask
             assert stat.S_IMODE(os.stat(lock.lock_file).st_mode) == expected_mode
     finally:
         os.umask(previous_umask)
 
 
-def test_positional_mode(tmp_path, use_soft_filelock):
+def test_positional_mode(tmp_path, use_soft_filelock, main_filelock):
     lock = FileLock(tmp_path / "test.lock", 0.1, 0o600)
-    # Upstream filters positional constructor arguments too, matching main.
-    assert lock.timeout == -1
+    reference = main_filelock(tmp_path / "reference.lock", timeout=0.1, mode=0o600)
+    assert lock.timeout == reference.timeout
     if sys.platform != "win32":
         previous_umask = os.umask(0)
         try:
-            with lock:
-                # Mode was derived from the umask at construction, as on main.
-                assert stat.S_IMODE(os.stat(lock.lock_file).st_mode) == 0o666 & ~previous_umask
+            with lock, reference:
+                assert stat.S_IMODE(os.stat(lock.lock_file).st_mode) == stat.S_IMODE(
+                    os.stat(reference.lock_file).st_mode
+                )
         finally:
             os.umask(previous_umask)
 
