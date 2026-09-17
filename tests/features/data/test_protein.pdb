@@ -1,0 +1,12 @@
+HEADER    TEST PROTEIN                            01-JAN-00   TEST
+TITLE     MINIMAL TEST PDB FILE FOR DATASETS LIBRARY
+ATOM      1  N   ALA A   1       0.000   0.000   0.000  1.00 20.00           N
+ATOM      2  CA  ALA A   1       1.458   0.000   0.000  1.00 20.00           C
+ATOM      3  C   ALA A   1       2.009   1.420   0.000  1.00 20.00           C
+ATOM      4  O   ALA A   1       1.251   2.390   0.000  1.00 20.00           O
+ATOM      5  CB  ALA A   1       1.986  -0.760  -1.217  1.00 20.00           C
+ATOM      6  N   GLY A   2       3.317   1.540   0.000  1.00 20.00           N
+ATOM      7  CA  GLY A   2       3.920   2.860   0.000  1.00 20.00           C
+ATOM      8  C   GLY A   2       5.440   2.780   0.000  1.00 20.00           C
+ATOM      9  O   GLY A   2       6.080   1.730   0.000  1.00 20.00           O
+END

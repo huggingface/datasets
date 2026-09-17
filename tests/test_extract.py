@@ -165,16 +165,42 @@ def tar_file_with_sym_link(tmp_path):
     return path
 
 
+@pytest.fixture
+def tar_file_with_sibling_prefix(tmp_path, text_file):
+    # A member like "../extracted_evil/x" escapes into a *sibling* of the output
+    # directory whose name starts with the output directory's name, which a plain
+    # startswith(base) check used to allow.
+    import tarfile
+
+    directory = tmp_path / "data_sibling_prefix"
+    directory.mkdir()
+    path = directory / "tar_file_with_sibling_prefix.tar"
+    with tarfile.TarFile(path, "w") as f:
+        f.add(text_file, arcname="../extracted_evil/" + text_file.name)
+    return path
+
+
 @pytest.mark.parametrize(
     "insecure_tar_file, error_log",
-    [("tar_file_with_dot_dot", "illegal path"), ("tar_file_with_sym_link", "Symlink")],
+    [
+        ("tar_file_with_dot_dot", "illegal path"),
+        ("tar_file_with_sym_link", "Symlink"),
+        ("tar_file_with_sibling_prefix", "illegal path"),
+    ],
 )
 def test_tar_extract_insecure_files(
-    insecure_tar_file, error_log, tar_file_with_dot_dot, tar_file_with_sym_link, tmp_path, caplog
+    insecure_tar_file,
+    error_log,
+    tar_file_with_dot_dot,
+    tar_file_with_sym_link,
+    tar_file_with_sibling_prefix,
+    tmp_path,
+    caplog,
 ):
     insecure_tar_files = {
         "tar_file_with_dot_dot": tar_file_with_dot_dot,
         "tar_file_with_sym_link": tar_file_with_sym_link,
+        "tar_file_with_sibling_prefix": tar_file_with_sibling_prefix,
     }
     input_path = insecure_tar_files[insecure_tar_file]
     output_path = tmp_path / "extracted"

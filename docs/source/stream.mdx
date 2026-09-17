@@ -581,7 +581,7 @@ This can be used with the `StatefulDataLoader` from `torchdata`:
 
 Once your iterable dataset is ready, you can save it as a Hugging Face Dataset in Parquet format and reuse it later with [`load_dataset`].
 
-Save your dataset by providing the name of the dataset repository on Hugging Face you wish to save it to to [`~Dataset.push_to_hub`]. This iterates over the dataset and progressively uploads the data to Hugging Face:
+Save your dataset by providing the name of the dataset repository on Hugging Face you wish to save it to as an argument to [`~Dataset.push_to_hub`]. This iterates over the dataset and progressively uploads the data to Hugging Face:
 
 ```python
 dataset.push_to_hub("username/my_dataset")

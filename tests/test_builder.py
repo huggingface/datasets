@@ -70,6 +70,21 @@ class DummyGeneratorBasedBuilder(GeneratorBasedBuilder):
             yield (0, i), {"text": "foo"}
 
 
+class DummyGeneratorBasedBuilderWithTwoSplits(GeneratorBasedBuilder):
+    def _info(self):
+        return DatasetInfo(features=Features({"text": Value("string")}))
+
+    def _split_generators(self, dl_manager):
+        return [
+            SplitGenerator(name=Split.TRAIN, gen_kwargs={"text": "train"}),
+            SplitGenerator(name=Split.TEST, gen_kwargs={"text": "test"}),
+        ]
+
+    def _generate_examples(self, text):
+        for i in range(10):
+            yield i, {"text": text}
+
+
 class DummyArrowBasedBuilder(ArrowBasedBuilder):
     def _info(self):
         return DatasetInfo(features=Features({"text": Value("string")}))
@@ -588,6 +603,29 @@ def test_builder_as_streaming_dataset(tmp_path):
     dset = dummy_builder.as_streaming_dataset(split="train")
     assert isinstance(dset, IterableDataset)
     assert len(list(dset)) == 100
+
+
+@pytest.mark.parametrize("split", ["train+test", Split.TRAIN + Split.TEST])
+def test_builder_as_streaming_dataset_with_split_composition(split, tmp_path):
+    dummy_builder = DummyGeneratorBasedBuilderWithTwoSplits(cache_dir=str(tmp_path))
+    check_streaming(dummy_builder)
+    dset = dummy_builder.as_streaming_dataset(split=split)
+    assert isinstance(dset, IterableDataset)
+    if isinstance(split, str):
+        assert dset.split == split
+    else:
+        assert dset.split is split
+    assert [example["text"] for example in dset] == ["train"] * 10 + ["test"] * 10
+
+
+@pytest.mark.parametrize("split", ["all", Split.ALL])
+def test_builder_as_streaming_dataset_with_all_split(split, tmp_path):
+    dummy_builder = DummyGeneratorBasedBuilderWithTwoSplits(cache_dir=str(tmp_path))
+    check_streaming(dummy_builder)
+    dset = dummy_builder.as_streaming_dataset(split=split)
+    assert isinstance(dset, IterableDataset)
+    assert dset.split == split
+    assert [example["text"] for example in dset] == ["train"] * 10 + ["test"] * 10
 
 
 def _run_test_builder_streaming_works_in_subprocesses(builder):

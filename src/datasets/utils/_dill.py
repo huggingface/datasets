@@ -19,6 +19,7 @@ from io import BytesIO
 from types import CodeType, FunctionType
 
 import dill
+import pyarrow as pa
 from packaging import version
 
 from .. import config
@@ -144,6 +145,37 @@ def _save_set(pickler, obj):
 
     pickler.save_reduce(set, args, obj=obj)
     log(pickler, "# Se")
+
+
+@pklregister(pa.Table)
+def _save_arrowTable(pickler, obj):
+    # pyarrow's default pickle serializes each chunk's buffers separately, so the
+    # pickled size (and therefore the fingerprint cost) scales with the number of
+    # chunks rather than the amount of data. Serialize a chunk-count-independent
+    # form instead: combine each column's chunks one at a time (bounded memory,
+    # never a full-table copy) so identical data produces identical bytes
+    # regardless of chunking. See
+    # https://github.com/huggingface/datasets/issues/8327.
+    def create_arrowTable(schema, columns):
+        return pa.Table.from_arrays(columns, schema=schema)
+
+    log(pickler, f"Ta: {obj}")
+    args = (obj.schema, [column.combine_chunks() for column in obj.columns])
+    pickler.save_reduce(create_arrowTable, args, obj=obj)
+    log(pickler, "# Ta")
+
+
+@pklregister(pa.ChunkedArray)
+def _save_arrowChunkedArray(pickler, obj):
+    # Same rationale as _save_arrowTable: hash a chunk-count-independent form by
+    # combining the chunks into a single array.
+    def create_arrowChunkedArray(array):
+        return pa.chunked_array([array])
+
+    log(pickler, f"Ca: {obj}")
+    args = (obj.combine_chunks(),)
+    pickler.save_reduce(create_arrowChunkedArray, args, obj=obj)
+    log(pickler, "# Ca")
 
 
 def _save_regexPattern(pickler, obj):

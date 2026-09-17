@@ -76,6 +76,7 @@ class FeaturesTest(TestCase):
             pa.int32(),
             pa.float64(),
             pa.array([datetime.time(1, 1, 1)]).type,  # arrow type: DataType(time64[us])
+            pa.binary(16),
         ]
         for dt in supported_pyarrow_datatypes:
             self.assertEqual(dt, string_to_arrow(_arrow_to_datasets_dtype(dt)))
@@ -1016,6 +1017,13 @@ def test_require_storage_cast_with_list_types(feature):
 @pytest.mark.parametrize("feature", [LargeList(Audio()), List(Audio())])
 def test_require_storage_embed_with_list_types(feature):
     assert require_storage_embed(feature)
+
+
+@pytest.mark.parametrize("feature", [LargeList(ClassLabel(names=["a", "b"])), List(ClassLabel(names=["a", "b"]))])
+def test_require_storage_embed_with_non_embeddable_list_types(feature):
+    # ClassLabel implements cast_storage but not embed_storage, so a nested
+    # ClassLabel does not require storage embedding
+    assert require_storage_embed(feature) is False
 
 
 @pytest.mark.parametrize(

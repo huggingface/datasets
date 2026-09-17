@@ -154,10 +154,10 @@ The most common preprocessing you'll do with image datasets is _data augmentatio
 **1**. Start by loading the [Beans](https://huggingface.co/datasets/AI-Lab-Makerere/beans) dataset, the `Image` feature, and the feature extractor corresponding to a pretrained [ViT](https://huggingface.co/google/vit-base-patch16-224-in21k) model:
 
 ```py
->>> from transformers import AutoFeatureExtractor
+>>> from transformers import AutoImageProcessor
 >>> from datasets import load_dataset, Image
 
->>> feature_extractor = AutoFeatureExtractor.from_pretrained("google/vit-base-patch16-224-in21k")
+>>> image_processor = AutoImageProcessor.from_pretrained("google/vit-base-patch16-224-in21k")
 >>> dataset = load_dataset("AI-Lab-Makerere/beans", split="train")
 ```
 

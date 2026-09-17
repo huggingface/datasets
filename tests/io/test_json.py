@@ -305,3 +305,20 @@ class TestJsonDatasetWriter:
 
         with fsspec.open(dataset_path, "rb", **mockfs.storage_options) as f:
             assert f.read()
+
+    @pytest.mark.parametrize(
+        "dtype, big",
+        [("int64", 9007199254740993), ("uint64", 9007199254740993), ("int32", 2147483647)],
+    )
+    def test_dataset_to_json_preserves_nullable_int(self, dtype, big):
+        # A nullable integer column must be written as JSON integers. batch.to_pandas()
+        # defaults to integer_object_nulls=False, which casts an integer column that
+        # contains a null to float64, dropping the integer type and any precision beyond
+        # 2**53 (9007199254740993 becomes 9007199254740992.0).
+        dataset = Dataset.from_dict({"a": [big, None, 5]}, features=Features({"a": Value(dtype)}))
+        with io.BytesIO() as buffer:
+            JsonDatasetWriter(dataset, buffer, lines=True).write()
+            buffer.seek(0)
+            rows = load_json_lines(buffer)
+        assert [row["a"] for row in rows] == [big, None, 5]
+        assert all(isinstance(row["a"], int) for row in rows if row["a"] is not None)

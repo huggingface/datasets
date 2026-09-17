@@ -14,7 +14,7 @@ A dataset is a directory that contains:
 The [`load_dataset`] function fetches the requested dataset locally or from the Hugging Face Hub.
 The Hub is a central repository where all the Hugging Face datasets and models are stored.
 
-If the dataset only contains data files, then [`load_dataset`] automatically infers how to load the data files from their extensions (json, csv, parquet, txt, etc.).
+If the dataset only contains data files, then [`load_dataset`] automatically infers how to load the data files from their extensions (json, csv, parquet, tsfile, txt, etc.).
 Under the hood, 🤗 Datasets will use an appropriate [`DatasetBuilder`] based on the data files format. There exist one builder per data file format in 🤗 Datasets:
 
 * [`datasets.packaged_modules.text.Text`] for text
@@ -23,6 +23,7 @@ Under the hood, 🤗 Datasets will use an appropriate [`DatasetBuilder`] based o
 * [`datasets.packaged_modules.parquet.Parquet`] for Parquet
 * [`datasets.packaged_modules.arrow.Arrow`] for Arrow (streaming file format)
 * [`datasets.packaged_modules.sql.Sql`] for SQL databases
+* [`datasets.packaged_modules.tsfile.TsFile`] for TsFile (time-series data)
 * [`datasets.packaged_modules.imagefolder.ImageFolder`] for image folders
 * [`datasets.packaged_modules.audiofolder.AudioFolder`] for audio folders
 

@@ -28,11 +28,10 @@ from pathlib import Path
 from typing import Any, Literal, Optional, Union, overload
 
 import fsspec
-import httpx
-import requests
 import yaml
 from fsspec.core import url_to_fs
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFileSystem
+from huggingface_hub.errors import BucketNotFoundError
 from huggingface_hub.utils import (
     EntryNotFoundError,
     GatedRepoError,
@@ -41,8 +40,8 @@ from huggingface_hub.utils import (
     RepositoryNotFoundError,
     RevisionNotFoundError,
     get_session,
+    httpx,
 )
-from packaging import version
 
 from . import __version__, config
 from .arrow_dataset import Dataset
@@ -68,13 +67,13 @@ from .iterable_dataset import IterableDataset
 from .naming import camelcase_to_snakecase, snakecase_to_camelcase
 from .packaged_modules import (
     _ALL_ALLOWED_EXTENSIONS,
+    _ALL_METADATA_FILENAMES,
     _EXTENSION_TO_MODULE,
     _MODULE_TO_EXTENSIONS,
     _MODULE_TO_METADATA_EXTENSIONS,
     _MODULE_TO_METADATA_FILE_NAMES,
     _PACKAGED_DATASETS_MODULES,
 )
-from .packaged_modules.folder_based_builder.folder_based_builder import FolderBasedBuilder
 from .splits import Split
 from .utils import _dataset_viewer
 from .utils.file_utils import (
@@ -90,13 +89,6 @@ from .utils.logging import get_logger
 from .utils.metadata import MetadataConfigs
 from .utils.typing import PathLike
 from .utils.version import Version
-
-
-if config.HF_HUB_VERSION >= version.parse("1.6.0"):
-    from huggingface_hub.errors import BucketNotFoundError
-
-else:
-    BucketNotFoundError = None
 
 
 logger = get_logger(__name__)
@@ -225,7 +217,7 @@ def infer_module_for_data_files_list(
             - dict of builder kwargs
     """
     extensions_counter = Counter(
-        ("." + suffix.lower(), xbasename(filepath) in FolderBasedBuilder.METADATA_FILENAMES)
+        ("." + suffix.lower(), xbasename(filepath) in _ALL_METADATA_FILENAMES)
         for filepath in data_files_list
         for suffix in xbasename(filepath).split(".")[1:]
     )
@@ -234,7 +226,18 @@ def infer_module_for_data_files_list(
         def sort_key(ext_count: tuple[tuple[str, bool], int]) -> tuple[int, bool]:
             """Sort by count and set ".parquet" as the favorite in case of a draw, and ignore metadata files"""
             (ext, is_metadata), count = ext_count
-            return (not is_metadata, count, ext == ".parquet", ext == ".jsonl", ext == ".json", ext == ".csv", ext)
+            return (
+                not is_metadata,
+                count,
+                ext == ".parquet",
+                ext == ".lance",
+                ext == ".vortex",
+                ext == ".arrow",
+                ext == ".jsonl",
+                ext == ".json",
+                ext == ".csv",
+                ext,
+            )
 
         for (ext, _), _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
             if ext in _EXTENSION_TO_MODULE:
@@ -586,7 +589,6 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
                 filename=config.REPOCARD_FILENAME,
                 repo_type="dataset",
                 revision=self.commit_hash,
-                proxies=self.download_config.proxies,
             )
             dataset_card_data = DatasetCard.load(dataset_readme_path).data
         except EntryNotFoundError:
@@ -857,16 +859,16 @@ class HubBucketDatasetModuleFactory(_DatasetModuleFactory):
             endpoint=config.HF_ENDPOINT,
             token=self.download_config.token,
         )
-        readme_path = xjoin(self.path, config.REPOCARD_FILENAME)
-        standalone_yaml_path = xjoin(self.path, config.REPOYAML_FILENAME)
+        readme_path = posixpath.join(self.path, config.REPOCARD_FILENAME)
+        standalone_yaml_path = posixpath.join(self.path, config.REPOYAML_FILENAME)
         try:
-            dataset_card_data = DatasetCard(hffs.read_text(readme_path, newline="", encoding="utf-8"))
+            dataset_card_data = DatasetCard(hffs.read_text(readme_path, newline="", encoding="utf-8")).data
         except FileNotFoundError:
             dataset_card_data = DatasetCardData()
         try:
             standalone_yaml_data = yaml.safe_load(hffs.read_text(standalone_yaml_path, newline="", encoding="utf-8"))
         except FileNotFoundError:
-            dataset_card_data = DatasetCardData()
+            standalone_yaml_data = None
         if hffs.exists(standalone_yaml_path):
             with hffs.open(standalone_yaml_path, "r", encoding="utf-8") as f:
                 standalone_yaml_data = yaml.safe_load(f.read())
@@ -1012,8 +1014,6 @@ def dataset_module_factory(
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
-    download_config.extract_compressed_file = True
-    download_config.force_extract = True
     download_config.force_download = download_mode == DownloadMode.FORCE_REDOWNLOAD
 
     filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
@@ -1064,8 +1064,6 @@ def dataset_module_factory(
         ).get_module()
     # Try remotely
     elif path.startswith("buckets/"):
-        if BucketNotFoundError is None:
-            raise ImportError("Loading datasets from buckets requires huggingface_hub>=1.6.0")
         # We check that the bucket exists, and the directory exists, and authentication in one call
         api = HfApi(
             endpoint=config.HF_ENDPOINT,
@@ -1079,13 +1077,7 @@ def dataset_module_factory(
         prefix = "/".join(s for s in _path_segments if s)
         try:
             next(iter(api.list_bucket_tree(bucket_id, prefix)))
-        except (
-            OfflineModeIsEnabled,
-            requests.exceptions.Timeout,
-            requests.exceptions.ConnectionError,
-            httpx.ConnectError,
-            httpx.TimeoutException,
-        ) as e:
+        except (OfflineModeIsEnabled, httpx.ConnectError, httpx.TimeoutException) as e:
             raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
         except StopIteration as e:
             raise DatasetNotFoundError(f"Bucket directory at {path} doesn't exist") from e
@@ -1116,20 +1108,10 @@ def dataset_module_factory(
                     filename=config.REPOCARD_FILENAME,
                     repo_type="dataset",
                     revision=revision,
-                    proxies=download_config.proxies,
                 )
                 commit_hash = os.path.basename(os.path.dirname(dataset_readme_path))
             except LocalEntryNotFoundError as e:
-                if isinstance(
-                    e.__cause__,
-                    (
-                        OfflineModeIsEnabled,
-                        requests.exceptions.Timeout,
-                        requests.exceptions.ConnectionError,
-                        httpx.ConnectError,
-                        httpx.TimeoutException,
-                    ),
-                ):
+                if isinstance(e.__cause__, (OfflineModeIsEnabled, httpx.ConnectError, httpx.TimeoutException)):
                     raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
                 else:
                     raise
@@ -1139,13 +1121,7 @@ def dataset_module_factory(
                     revision=revision,
                     timeout=100.0,
                 ).sha
-            except (
-                OfflineModeIsEnabled,
-                requests.exceptions.Timeout,
-                requests.exceptions.ConnectionError,
-                httpx.ConnectError,
-                httpx.TimeoutException,
-            ) as e:
+            except (OfflineModeIsEnabled, httpx.ConnectError, httpx.TimeoutException) as e:
                 raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
             except GatedRepoError as e:
                 message = f"Dataset '{path}' is a gated dataset on the Hub."
@@ -1162,7 +1138,6 @@ def dataset_module_factory(
                     filename=filename,
                     repo_type="dataset",
                     revision=commit_hash,
-                    proxies=download_config.proxies,
                 )
                 raise RuntimeError(f"Dataset scripts are no longer supported, but found {filename}")
             except EntryNotFoundError:
@@ -1232,7 +1207,7 @@ def load_dataset_builder(
     You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
 
     A dataset is a directory that contains some data files in generic formats (JSON, CSV, Parquet, etc.) and possibly
-    in a generic structure (Webdataset, ImageFolder, AudioFolder, VideoFolder, etc.)
+    in a generic structure (Webdataset, ImageFolder, AudioFolder, VideoFolder, MeshFolder, etc.)
 
     Args:
 
@@ -1252,7 +1227,7 @@ def load_dataset_builder(
               e.g. `'./path/to/directory/with/my/csv/data'`.
 
             - if `path` is the name of a dataset builder and `data_files` or `data_dir` is specified
-              (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder")
+              (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder", "meshfolder")
               -> load the dataset builder from the files in `data_files` or `data_dir`
               e.g. `'parquet'`.
 
@@ -1329,7 +1304,11 @@ def load_dataset_builder(
         "config_name", name or dataset_module.builder_configs_parameters.default_config_name
     )
     dataset_name = builder_kwargs.pop("dataset_name", None)
-    info = dataset_module.dataset_infos.get(config_name) if dataset_module.dataset_infos else None
+    info = (
+        dataset_module.dataset_infos.get(config_name)
+        if dataset_module.dataset_infos and not data_dir and not data_files
+        else None
+    )
 
     if (
         path in _PACKAGED_DATASETS_MODULES
@@ -1489,13 +1468,13 @@ def load_dataset(
     You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
 
     A dataset is a directory that contains some data files in generic formats (JSON, CSV, Parquet, etc.) and possibly
-    in a generic structure (Webdataset, ImageFolder, AudioFolder, VideoFolder, etc.)
+    in a generic structure (Webdataset, ImageFolder, AudioFolder, VideoFolder, MeshFolder, etc.)
 
     This function does the following under the hood:
 
         1. Load a dataset builder:
 
-            * Find the most common data format in the dataset and pick its associated builder (JSON, CSV, Parquet, Webdataset, ImageFolder, AudioFolder, etc.)
+            * Find the most common data format in the dataset and pick its associated builder (JSON, CSV, Parquet, Webdataset, ImageFolder, AudioFolder, MeshFolder, etc.)
             * Find which file goes into which split (e.g. train/test) based on file and directory names or on the YAML configuration
             * It is also possible to specify `data_files` manually, and which dataset builder to use (e.g. "parquet").
 
@@ -1533,7 +1512,7 @@ def load_dataset(
               e.g. `'./path/to/directory/with/my/csv/data'`.
 
             - if `path` is the name of a dataset builder and `data_files` or `data_dir` is specified
-              (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder")
+              (available builders are "json", "csv", "parquet", "arrow", "text", "xml", "webdataset", "imagefolder", "audiofolder", "videofolder", "meshfolder")
               -> load the dataset from the files in `data_files` or `data_dir`
               e.g. `'parquet'`.
 

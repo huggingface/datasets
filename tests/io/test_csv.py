@@ -173,3 +173,19 @@ def test_dataset_to_csv_fsspec(dataset, mockfs):
 
     with fsspec.open(dataset_path, "rb", **mockfs.storage_options) as f:
         assert f.read()
+
+
+@pytest.mark.parametrize(
+    "dtype, big",
+    [("int64", 9007199254740993), ("uint64", 9007199254740993), ("int32", 2147483647)],
+)
+def test_dataset_to_csv_preserves_nullable_int(dtype, big, tmp_path):
+    # A nullable integer column must be written as integers, not float64-coerced values.
+    # batch.to_pandas() defaults to integer_object_nulls=False, casting an integer column
+    # that contains a null to float64 and losing precision beyond 2**53.
+    dataset = Dataset.from_dict({"a": [big, None, 5]}, features=Features({"a": Value(dtype)}))
+    output_csv = os.path.join(tmp_path, "out.csv")
+    CsvDatasetWriter(dataset, output_csv, num_proc=1).write()
+    with open(output_csv, newline="") as f:
+        rows = list(csv.DictReader(f))
+    assert [row["a"] for row in rows] == [str(big), "", "5"]

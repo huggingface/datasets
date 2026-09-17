@@ -100,3 +100,18 @@ def test_dataset_to_sql_invalidproc(sqlite_path, tmp_path, set_sqlalchemy_silenc
     dataset = SqlDatasetReader("dataset", "sqlite:///" + sqlite_path, cache_dir=cache_dir).read()
     with pytest.raises(ValueError):
         SqlDatasetWriter(dataset, "dataset", "sqlite:///" + output_sqlite_path, num_proc=0).write()
+
+
+@require_sqlalchemy
+@pytest.mark.parametrize("dtype, big", [("int64", 9007199254740993), ("uint64", 9007199254740993)])
+def test_dataset_to_sql_preserves_nullable_int(dtype, big, tmp_path, set_sqlalchemy_silence_uber_warning):
+    # A nullable integer column must land in an INTEGER SQL column with its exact value.
+    # batch.to_pandas() defaults to integer_object_nulls=False, casting an integer column
+    # that contains a null to float64, so the value is stored as REAL and precision beyond
+    # 2**53 is lost.
+    dataset = Dataset.from_dict({"a": [big, None, 5]}, features=Features({"a": Value(dtype)}))
+    output_sqlite_path = os.path.join(tmp_path, "tmp.sql")
+    SqlDatasetWriter(dataset, "dataset", "sqlite:///" + output_sqlite_path, num_proc=1).write()
+    with contextlib.closing(sqlite3.connect(output_sqlite_path)) as con:
+        rows = con.execute("SELECT a, typeof(a) FROM dataset").fetchall()
+    assert rows == [(big, "integer"), (None, "null"), (5, "integer")]

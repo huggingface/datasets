@@ -42,7 +42,10 @@ from ..utils import experimental, logging
 from ..utils.json import ujson_dumps, ujson_loads
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
+from .bio_sequence import BioSequence, encode_bio_seqrecord
+from .bio_structure import BioStructure, encode_bio_structure
 from .image import Image, encode_pil_image
+from .mesh import Mesh
 from .nifti import Nifti, encode_nibabel_image
 from .pdf import Pdf, encode_pdfplumber_pdf
 from .translation import Translation, TranslationVariableLanguages
@@ -116,6 +119,8 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
         return "large_string"
     elif pyarrow.types.is_string_view(arrow_type):
         return "string_view"
+    elif pyarrow.types.is_fixed_size_binary(arrow_type):
+        return f"fixed_size_binary[{arrow_type.byte_width}]"
     elif pyarrow.types.is_dictionary(arrow_type):
         return _arrow_to_datasets_dtype(arrow_type.value_type)
     else:
@@ -266,6 +271,11 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
                 )
             )
 
+    fixed_size_binary_matches = re.search(r"^fixed_size_binary\[(\d+)\]$", datasets_dtype)
+    if fixed_size_binary_matches:
+        byte_width = fixed_size_binary_matches.group(1)
+        return pa.binary(int(byte_width))
+
     raise ValueError(
         f"Neither {datasets_dtype} nor {datasets_dtype + '_'} seems to be a pyarrow data type. "
         f"Please make sure to use a correct data type, see: "
@@ -312,6 +322,10 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
 
     if config.NIBABEL_AVAILABLE and "nibabel" in sys.modules:
         import nibabel as nib
+
+    if config.BIOPYTHON_AVAILABLE and "Bio" in sys.modules:
+        from Bio.PDB.Structure import Structure
+        from Bio.SeqRecord import SeqRecord
 
     if config.TORCHCODEC_AVAILABLE and "torchcodec" in sys.modules:
         from torchcodec.decoders import AudioDecoder, VideoDecoder
@@ -388,6 +402,10 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         return encode_pdfplumber_pdf(obj), True
     elif config.NIBABEL_AVAILABLE and "nibabel" in sys.modules and isinstance(obj, nib.analyze.AnalyzeImage):
         return encode_nibabel_image(obj, force_bytes=True), True
+    elif config.BIOPYTHON_AVAILABLE and "Bio" in sys.modules and isinstance(obj, SeqRecord):
+        return encode_bio_seqrecord(obj), True
+    elif config.BIOPYTHON_AVAILABLE and "Bio" in sys.modules and isinstance(obj, Structure):
+        return encode_bio_structure(obj), True
     elif isinstance(obj, pd.Series):
         return (
             _cast_to_python_objects(
@@ -834,6 +852,13 @@ class ArrayExtensionArray(pa.ExtensionArray):
         numpy_arr = self.to_numpy(zero_copy_only=zero_copy_only)
         if self.type.shape[0] is None and numpy_arr.dtype == object:
             return [arr.tolist() for arr in numpy_arr.tolist()]
+        elif self.type.shape[0] is not None and self.storage.null_count:
+            # For a fixed-shape array, to_numpy casts the whole column to float64 to
+            # hold np.nan in the null rows. On the python read path that silently
+            # corrupts every non-null value: integers become floats and values above
+            # 2**53 lose precision. The nested-list storage already carries the exact
+            # values and None for the null rows, so build the list from it directly.
+            return self.storage.to_pylist()
         else:
             return numpy_arr.tolist()
 
@@ -1225,6 +1250,8 @@ class Json:
         return self.pa_type
 
     def encode_example(self, example_data):
+        if example_data is None:
+            return None
         if not isinstance(example_data, str):
             example_data = ujson_dumps(example_data)
         else:
@@ -1237,6 +1264,8 @@ class Json:
     def decode_example(self, example_data, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None):
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Json(decode=True) instead.")
+        if example_data is None:
+            return None
         return ujson_loads(example_data)
 
     def cast_storage(self, storage: Union[pa.Array]) -> pa.JsonArray:
@@ -1255,11 +1284,14 @@ class Json:
             items = storage[:5].to_pylist()
             try:
                 for item in items:
-                    ujson_loads(item)
+                    if item is not None:
+                        ujson_loads(item)
             except Exception:
-                storage = pa.array([ujson_dumps(x) for x in storage.to_pylist()], pa.json_())
+                storage = pa.array(
+                    [ujson_dumps(x) if x is not None else None for x in storage.to_pylist()], pa.json_()
+                )
         else:
-            storage = pa.array([ujson_dumps(x) for x in storage.to_pylist()], pa.json_())
+            storage = pa.array([ujson_dumps(x) if x is not None else None for x in storage.to_pylist()], pa.json_())
         return array_cast(storage, self.pa_type)
 
 
@@ -1361,9 +1393,12 @@ FeatureType = Union[
     Array5D,
     Audio,
     Image,
+    Mesh,
     Video,
     Pdf,
     Nifti,
+    BioSequence,
+    BioStructure,
 ]
 
 
@@ -1522,9 +1557,12 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     Array5D.__name__: Array5D,
     Audio.__name__: Audio,
     Image.__name__: Image,
+    Mesh.__name__: Mesh,
     Video.__name__: Video,
     Pdf.__name__: Pdf,
     Nifti.__name__: Nifti,
+    BioSequence.__name__: BioSequence,
+    BioStructure.__name__: BioStructure,
     Json.__name__: Json,
 }
 
@@ -1803,11 +1841,13 @@ def require_storage_embed(feature: FeatureType) -> bool:
         :obj:`bool`
     """
     if isinstance(feature, dict):
-        return any(require_storage_cast(f) for f in feature.values())
+        return any(require_storage_embed(f) for f in feature.values())
+    elif isinstance(feature, (list, tuple)):
+        return require_storage_embed(feature[0])
     elif isinstance(feature, LargeList):
-        return require_storage_cast(feature.feature)
+        return require_storage_embed(feature.feature)
     elif isinstance(feature, List):
-        return require_storage_cast(feature.feature)
+        return require_storage_embed(feature.feature)
     else:
         return hasattr(feature, "embed_storage")
 

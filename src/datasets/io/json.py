@@ -131,7 +131,7 @@ class JsonDatasetWriter:
             key=slice(offset, offset + self.batch_size),
             indices=self.dataset._indices,
         )
-        batch = batch.to_pandas()
+        batch = batch.to_pandas(integer_object_nulls=True)
         for json_field_path in get_json_field_paths_from_feature(self.dataset.features):
             col, *json_field_subpath = json_field_path
             batch[col] = batch[col].apply(partial(json_decode_field, json_field_path=json_field_subpath))

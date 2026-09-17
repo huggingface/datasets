@@ -67,6 +67,7 @@ class Arrow(datasets.ArrowBasedBuilder):
                         reader = pa.ipc.open_file(f)
                         batches = (reader.get_batch(i) for i in range(reader.num_record_batches))
                     for batch_idx, record_batch in enumerate(batches):
+                        record_batch.validate(full=True)
                         pa_table = pa.Table.from_batches([record_batch])
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")

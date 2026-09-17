@@ -921,7 +921,7 @@ def test_load_dataset_from_hub(kwargs, expected_train_num_rows, expected_test_nu
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("stream_from_cache, ", [False, True])
+@pytest.mark.parametrize("stream_from_cache", [False, True])
 def test_load_dataset_cached_from_hub(stream_from_cache, caplog):
     dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER3)
     assert isinstance(dataset, DatasetDict)

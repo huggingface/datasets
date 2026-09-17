@@ -1,4 +1,5 @@
 import importlib
+import io
 import shutil
 import warnings
 from typing import List
@@ -18,11 +19,15 @@ COMPRESSION_FILESYSTEMS: list[compression.BaseCompressedFileFileSystem] = [
     compression.ZstdFileSystem,
 ]
 
+EXTENSION_TO_COMPRESSION_FS_FILE_CLS: dict[str, type[io.BytesIO]] = {}
 # Register custom filesystems
 for fs_class in COMPRESSION_FILESYSTEMS:
     if fs_class.protocol in fsspec.registry and fsspec.registry[fs_class.protocol] is not fs_class:
         warnings.warn(f"A filesystem protocol was already set for {fs_class.protocol} and will be overwritten.")
     fsspec.register_implementation(fs_class.protocol, fs_class, clobber=True)
+    for extension in fs_class.extensions:
+        if fs_class.compression in fsspec.compression.compr:
+            EXTENSION_TO_COMPRESSION_FS_FILE_CLS[extension] = fsspec.compression.compr[fs_class.compression]
 
 
 def is_remote_filesystem(fs: fsspec.AbstractFileSystem) -> bool:

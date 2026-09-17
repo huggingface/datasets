@@ -32,6 +32,9 @@ def json_encode_field(example: Any, json_field_path: list[str]) -> Any:
             return [json_encode_field(x, json_field_path) for x in example]
         else:
             return {**example, field: json_encode_field(example.get(field), json_field_path)}
+    elif example is None:
+        # keep missing values as real nulls instead of the JSON string "null"
+        return None
     else:
         try:
             ujson_loads(example)
@@ -50,6 +53,8 @@ def json_decode_field(example: Any, json_field_path: str) -> Any:
             return [json_decode_field(x, json_field_path) for x in example]
         else:
             return {**example, field: json_decode_field(example.get(field), json_field_path)}
+    elif example is None:
+        return None
     else:
         try:
             return ujson_loads(example)

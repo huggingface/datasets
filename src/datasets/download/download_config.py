@@ -21,6 +21,8 @@ class DownloadConfig:
             If `True`, resume the download if an incompletely received file is
             found.
         proxies (`dict`, *optional*):
+            Deprecated and ignored. Set the `HTTP_PROXY` / `HTTPS_PROXY` environment variables or configure the
+            HTTP client with [`huggingface_hub.set_client_factory`] instead.
         user_agent (`str`, *optional*):
             Optional string or dict that will be appended to the user-agent on remote
             requests.
@@ -76,6 +78,10 @@ class DownloadConfig:
         if name == "token" and getattr(self, "storage_options", None) is not None:
             if "hf" not in self.storage_options:
                 self.storage_options["hf"] = {"endpoint": config.HF_ENDPOINT, "token": value}
-            elif getattr(self.storage_options["hf"], "token", None) is None:
+            else:
                 self.storage_options["hf"]["token"] = value
         super().__setattr__(name, value)
+
+    def __post_init__(self):
+        # update storage_options
+        self.token = self.token

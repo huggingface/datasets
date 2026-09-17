@@ -1510,6 +1510,23 @@ class BaseDatasetTest(TestCase):
             finally:
                 datasets.enable_caching()
 
+    def test_map_load_from_cache_file_false_progress_bar_starts_at_zero(self, in_memory):
+        # regression test for https://github.com/huggingface/datasets/issues/8167
+        # when load_from_cache_file=False and cache files exist on disk, pbar_initial must be 0
+        if not in_memory:
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                    cache_file = os.path.join(tmp_dir, "mapped.arrow")
+                    with dset.map(lambda x: {"foo": "bar"}, cache_file_name=cache_file):
+                        pass
+                    with patch("datasets.arrow_dataset.hf_tqdm") as mock_tqdm:
+                        with dset.map(
+                            lambda x: {"foo": "bar"}, cache_file_name=cache_file, load_from_cache_file=False
+                        ):
+                            pass
+                        mock_tqdm.assert_called_once()
+                        self.assertEqual(mock_tqdm.call_args.kwargs.get("initial", 0), 0)
+
     def test_suffix_template_format(self, in_memory):
         with (
             tempfile.TemporaryDirectory() as tmp_dir,
@@ -2378,6 +2395,22 @@ class BaseDatasetTest(TestCase):
                         self.assertNotEqual(d3["filename"], d2["filename"])
                         self.assertNotEqual(d3._fingerprint, d2._fingerprint)
 
+    def test_shuffle_generator_advances_on_cache_hit(self, in_memory):
+        def successive_shuffles(dset, generator):
+            orders = []
+            for _ in range(3):
+                with dset.shuffle(generator=generator) as dset_shuffled:
+                    orders.append(list(dset_shuffled["filename"]))
+            return orders, generator.bit_generator.state
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                cold_orders, cold_state = successive_shuffles(dset, np.random.default_rng(42))
+                warm_orders, warm_state = successive_shuffles(dset, np.random.default_rng(42))
+                self.assertEqual(cold_orders, warm_orders)
+                self.assertEqual(cold_state, warm_state)
+                self.assertNotEqual(np.random.default_rng(42).bit_generator.state, warm_state)
+
     def test_sort(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Sort on a single key
@@ -2539,6 +2572,16 @@ class BaseDatasetTest(TestCase):
 
                 for col_name in dset.column_names:
                     self.assertLessEqual(len(dset_to_dict[col_name]), len(dset))
+
+                # Batched
+                batch_size = dset.num_rows - 1
+                to_dict_generator = dset.to_dict(batched=True, batch_size=batch_size)
+
+                for batch in to_dict_generator:
+                    self.assertIsInstance(batch, dict)
+                    self.assertListEqual(sorted(batch.keys()), sorted(dset.column_names))
+                    for col_name in dset.column_names:
+                        self.assertLessEqual(len(batch[col_name]), batch_size)
 
                 # With index mapping
                 with dset.select([1, 0, 3]) as dset:
@@ -3505,6 +3548,56 @@ class MiscellaneousDatasetTest(TestCase):
         assert isinstance(result_dict["col"][0], dict), f"expected dict, got {type(result_dict[0]['col'])}"
         assert result_dict == {"col": [{"a": {"b": {"c": 1}}, "d": [2, {"e": 3}]}]}
 
+    def test_to_pandas_decode_json(self):
+        # Regression test: to_pandas() must decode Json() columns to Python objects, matching
+        # to_dict()/to_list() and with_format("pandas"), instead of returning raw JSON strings.
+        data = {"col": [{"a": 1}, None, {"b": 2}]}
+        test_dataset = Dataset.from_dict(data, features=Features({"col": Json()}))
+
+        df = test_dataset.to_pandas()
+        assert isinstance(df["col"][0], dict), f"expected dict, got {type(df['col'][0])}"
+        assert df["col"].tolist() == [{"a": 1}, None, {"b": 2}]
+
+        # the batched generator path decodes too
+        batched = pd.concat(list(test_dataset.to_pandas(batched=True, batch_size=2)), ignore_index=True)
+        assert batched["col"].tolist() == [{"a": 1}, None, {"b": 2}]
+
+    def test_to_pandas_decode_nested_json(self):
+        # Regression test: nested Json() and List(Json()) columns must also decode in to_pandas().
+        nested = {"col": [{"a": {"b": {"c": 1}}, "d": [2, {"e": 3}]}]}
+        test_dataset = Dataset.from_dict(nested, features=Features({"col": Json()}))
+        assert test_dataset.to_pandas()["col"][0] == {"a": {"b": {"c": 1}}, "d": [2, {"e": 3}]}
+
+        list_of_json = {"col": [[{"a": 1}], [{"b": 2}]]}
+        test_dataset = Dataset.from_dict(list_of_json, features=Features({"col": List(Json())}))
+        df = test_dataset.to_pandas()
+        assert list(df["col"][0]) == [{"a": 1}]
+        assert list(df["col"][1]) == [{"b": 2}]
+
+    def test_json_feature_keeps_none_as_null(self):
+        # Regression test for the JSON type: a missing value (None) must be stored as a real
+        # Arrow null, not as the JSON string "null". Otherwise null_count is wrong and a missing
+        # value becomes indistinguishable from the literal JSON value null.
+        data = {"col": [{"a": 1}, None, {"b": 2}]}
+        test_dataset = Dataset.from_dict(data, features=Features({"col": Json()}))
+
+        storage = test_dataset.data["col"].combine_chunks()
+        assert storage.null_count == 1
+        assert storage.is_null().to_pylist() == [False, True, False]
+        # the None must not be re-encoded as the string "null"
+        assert storage.to_pylist() == ['{"a":1}', None, '{"b":2}']
+
+        # decoded access preserves the None
+        assert test_dataset[:] == {"col": [{"a": 1}, None, {"b": 2}]}
+        assert test_dataset.to_list() == [{"col": {"a": 1}}, {"col": None}, {"col": {"b": 2}}]
+
+    def test_json_feature_all_none(self):
+        # An all-None JSON column should be all real Arrow nulls.
+        test_dataset = Dataset.from_dict({"col": [None, None]}, features=Features({"col": Json()}))
+        storage = test_dataset.data["col"].combine_chunks()
+        assert storage.null_count == 2
+        assert test_dataset[:] == {"col": [None, None]}
+
     def test_concatenate_mixed_memory_and_disk(self):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
         info1 = DatasetInfo(description="Dataset1")
@@ -4223,6 +4316,14 @@ def test_dataset_from_generator_features(features, data_generator, tmp_path):
     )
     dataset = Dataset.from_generator(data_generator, features=features, cache_dir=cache_dir)
     _check_generator_dataset(dataset, expected_features, NamedSplit("train"))
+
+
+@pytest.mark.parametrize("not_callable", ["a string", [{"a": 1}], 5, {"a": 1}])
+def test_dataset_from_generator_rejects_a_non_callable(not_callable):
+    """Passing the data instead of a function used to fail during generation, as a bare
+    "object is not callable" that never mentioned `generator`."""
+    with pytest.raises(TypeError, match="generator must be callable"):
+        Dataset.from_generator(not_callable)
 
 
 @pytest.mark.parametrize(

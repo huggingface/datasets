@@ -295,7 +295,7 @@ def test_video_webdataset(video_wds_file):
     assert len(examples) == 3
     assert isinstance(examples[0]["json"], dict)
     assert isinstance(examples[0]["json"]["caption"], str)
-    assert isinstance(examples[0]["mov"], bytes)
+    assert isinstance(examples[0]["mov"], dict)
 
 
 def test_webdataset_errors_on_bad_file(bad_wds_file):

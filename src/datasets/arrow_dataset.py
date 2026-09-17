@@ -71,8 +71,9 @@ from huggingface_hub import (
     HfFileSystem,
     HfFileSystemResolvedPath,
 )
-from huggingface_hub.utils import EntryNotFoundError, HfHubHTTPError, RepositoryNotFoundError
-from packaging import version
+from huggingface_hub.errors import BucketNotFoundError
+from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
+from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 from tqdm.contrib.concurrent import thread_map
 
 from . import __version__, config
@@ -140,16 +141,6 @@ from .utils.py_utils import (
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
 from .utils.typing import ListLike, PathLike
-
-
-if config.HF_HUB_VERSION >= version.parse("1.6.0"):
-    from huggingface_hub.errors import BucketNotFoundError
-    from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
-
-else:
-    BucketNotFoundError = None
-    HfFileSystemResolvedBucketPath = None
-    HfFileSystemResolvedRepositoryPath = HfFileSystemResolvedPath
 
 
 if TYPE_CHECKING:
@@ -3501,8 +3492,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             num_shards = min(existing_cache_file_map, key=select_existing_cache_files)
 
-        existing_cache_files = existing_cache_file_map[num_shards]
-
         def format_cache_file_name(
             cache_file_name: Optional[str],
             rank: Union[int, Literal["*"]],  # noqa: F722
@@ -3592,7 +3581,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
 
             pbar_total = len(self)
-            pbar_initial = len(existing_cache_files) * pbar_total // num_shards
+            num_shards_done = num_shards - len(unprocessed_kwargs_per_job)
+            pbar_initial = num_shards_done * pbar_total // num_shards
             if batched and drop_last_batch:
                 batch_size = batch_size or 1
                 pbar_initial = pbar_initial // num_shards // batch_size * num_shards * batch_size
@@ -4940,6 +4930,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 seed = seed[pos] if pos < 624 else seed[0]
                 _ = np.random.random()  # do 1 step of rng
             generator = np.random.default_rng(seed)
+            permutation = None
+        else:
+            # draw before the cache lookup so the caller's generator advances on cache hits too
+            permutation = generator.permutation(len(self))
 
         # Check if we've already cached this computation (indexed by a hash)
         if self.cache_files:
@@ -4952,7 +4946,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
                 )
 
-        permutation = generator.permutation(len(self))
+        if permutation is None:
+            permutation = generator.permutation(len(self))
 
         return self.select(
             indices=permutation,
@@ -5400,17 +5395,26 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds.to_dict()
         ```
         """
-        result = query_table(
-            table=self._data,
-            key=slice(0, len(self)),
-            indices=self._indices,
-        ).to_pydict()
         from .utils.json import get_json_field_paths_from_feature, json_decode_field
 
-        for json_field_path in get_json_field_paths_from_feature(self.features):
-            col, *json_field_subpath = json_field_path
-            result[col] = [json_decode_field(row, json_field_subpath) for row in result[col]]
-        return result
+        json_field_paths = get_json_field_paths_from_feature(self.features)
+
+        def query_to_dict(key: slice) -> dict:
+            result = query_table(
+                table=self._data,
+                key=key,
+                indices=self._indices,
+            ).to_pydict()
+            for json_field_path in json_field_paths:
+                col, *json_field_subpath = json_field_path
+                result[col] = [json_decode_field(row, json_field_subpath) for row in result[col]]
+            return result
+
+        if not batched:
+            return query_to_dict(slice(0, len(self)))
+        else:
+            batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+            return (query_to_dict(slice(offset, offset + batch_size)) for offset in range(0, len(self), batch_size))
 
     def to_list(self) -> list:
         """Returns the dataset as a Python list.
@@ -5499,6 +5503,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             **to_json_kwargs,
         ).write()
 
+    def _decode_json_columns_pandas(self, df: "pd.DataFrame") -> "pd.DataFrame":
+        """Decode `Json` feature columns of a pandas `DataFrame` from their raw Arrow string
+        storage back to Python objects, in place. Keeps `to_pandas` consistent with
+        `to_dict`/`to_list`/`to_json` and `with_format("pandas")`, which already decode."""
+        from functools import partial
+
+        from .utils.json import get_json_field_paths_from_feature, json_decode_field
+
+        for json_field_path in get_json_field_paths_from_feature(self.features):
+            col, *json_field_subpath = json_field_path
+            df[col] = df[col].apply(partial(json_decode_field, json_field_path=json_field_subpath))
+        return df
+
     def to_pandas(
         self, batch_size: Optional[int] = None, batched: bool = False
     ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
@@ -5522,19 +5539,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         if not batched:
-            return query_table(
+            df = query_table(
                 table=self._data,
                 key=slice(0, len(self)),
                 indices=self._indices,
             ).to_pandas(types_mapper=pandas_types_mapper)
+            return self._decode_json_columns_pandas(df)
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
-                query_table(
-                    table=self._data,
-                    key=slice(offset, offset + batch_size),
-                    indices=self._indices,
-                ).to_pandas(types_mapper=pandas_types_mapper)
+                self._decode_json_columns_pandas(
+                    query_table(
+                        table=self._data,
+                        key=slice(offset, offset + batch_size),
+                        indices=self._indices,
+                    ).to_pandas(types_mapper=pandas_types_mapper)
+                )
                 for offset in range(0, len(self), batch_size)
             )
 
@@ -6183,8 +6203,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
         if repo_id.startswith("buckets/"):
-            if BucketNotFoundError is None:
-                raise ImportError("Pushing datasets to buckets requires huggingface_hub>=1.6.0")
             _, _namespace, _bucket_name, *_path_segments = repo_id.split("/")
             try:
                 bucket_id = api.bucket_info(_namespace + "/" + _bucket_name).id
@@ -6730,10 +6748,7 @@ def _push_to_repo(
         dirfs = DirFileSystem(fs=hffs, path=hf_path)
 
         # Check the files to delete
-        try:
-            files_to_delete = dirfs.glob(f"{data_dir}/{split}-*", detail=True)
-        except EntryNotFoundError:  # needed for huggingface_hub<=1.7.1
-            files_to_delete = {}
+        files_to_delete = dirfs.glob(f"{data_dir}/{split}-*", detail=True)
 
         # Don't delete the new files
         deletions = [
@@ -6820,10 +6835,7 @@ def _push_to_bucket(
     dirfs = DirFileSystem(fs=hffs, path=hf_path)
 
     # Check the files to delete before uploading
-    try:
-        files_to_delete = dirfs.glob(f"{data_dir}/{split}-*", detail=True)
-    except EntryNotFoundError:  # needed for huggingface_hub<=1.7.1
-        files_to_delete = {}
+    files_to_delete = dirfs.glob(f"{data_dir}/{split}-*", detail=True)
 
     # Upload the Parquet files
     _, new_parquet_paths, features, split_info, uploaded_size = dset._push_parquet_shards_to_hub(
@@ -6953,7 +6965,8 @@ def _get_updated_dataset_card(
     # update the metadata configs
     if config_name in metadata_configs:
         metadata_config = metadata_configs[config_name]
-        if "data_files" in metadata_config:
+        # keep the existing splits, unless they are meant to be removed
+        if "data_files" in metadata_config and not remove_other_splits:
             data_files_to_dump = sanitize_patterns(metadata_config["data_files"])
         else:
             data_files_to_dump = {}
@@ -6993,7 +7006,7 @@ def _get_updated_dataset_card(
     if legacy_dataset_info:
         legacy_dataset_infos: dict = json.loads(fs.read_text(config.DATASETDICT_INFOS_FILENAME, encoding="utf-8"))
         legacy_dataset_infos[config_name] = asdict(info_to_dump)
-        new_legacy_dataset_infos = json.dumps(dataset_infos, indent=4)
+        new_legacy_dataset_infos = legacy_dataset_infos
     else:
         new_legacy_dataset_infos = None
     # push to README
