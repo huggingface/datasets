@@ -33,6 +33,8 @@ class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
     def __init__(self, features=None, token_per_repo_id=None, **tf_tensor_kwargs):
         super().__init__(features=features, token_per_repo_id=token_per_repo_id)
         self.tf_tensor_kwargs = tf_tensor_kwargs
+        self._tensor_backend = "tensorflow"
+        self._tensor_kwargs = tf_tensor_kwargs
         import tensorflow as tf  # noqa: F401 - import tf at initialization
 
     def _consolidate(self, column):
@@ -111,19 +113,19 @@ class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
     def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.numpy_arrow_extractor().extract_row(pa_table)
         row = self.python_features_decoder.decode_row(row)
-        return self.recursive_tensorize(row)
+        return self.tensorize_row(row)
 
     def format_column(self, pa_table: pa.Table) -> "tf.Tensor":
         column = self.numpy_arrow_extractor().extract_column(pa_table)
         column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
-        column = self.recursive_tensorize(column)
+        column = self.tensorize_column(column, pa_table.column_names[0])
         column = self._consolidate(column)
         return column
 
     def format_batch(self, pa_table: pa.Table) -> Mapping:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
         batch = self.python_features_decoder.decode_batch(batch)
-        batch = self.recursive_tensorize(batch)
+        batch = self.tensorize_batch(batch)
         for column_name in batch:
             batch[column_name] = self._consolidate(batch[column_name])
         return batch
