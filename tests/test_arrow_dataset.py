@@ -71,10 +71,10 @@ from .utils import (
 @pytest.mark.parametrize(
     "feature, value, error_type, expected_message",
     [
-        (Value("int32"), "5_not_a_number", pa.ArrowInvalid, ["string", "int32", "5_not_a_number"]),
-        (List(List(Value("int64"))), [1, 2, 3], TypeError, ["int64", "List(Value('int64'))"]),
-        (Value("int32"), 99999999999999999999, OverflowError, ["int32", "Python int", "writer_batch_size"]),
-        (Value("int32"), [1, 2, 3], TypeError, ["list<item: int64>", "int32"]),
+        (Value("int32"), "5_not_a_number", pa.ArrowInvalid, [str(pa.string()), str(pa.int32())]),
+        (List(List(Value("int64"))), [1, 2, 3], TypeError, [str(pa.int64()), str(List(Value("int64")))]),
+        (Value("int32"), 99999999999999999999, OverflowError, [str(Value("int32")), "writer_batch_size"]),
+        (Value("int32"), [1, 2, 3], TypeError, [str(pa.list_(pa.int64())), str(pa.int32())]),
     ],
     ids=["string", "flat-list", "overflow", "list-to-scalar"],
 )
@@ -91,6 +91,15 @@ def test_map_features_type_mismatch_column(feature, value, error_type, expected_
     assert column in message
     for substring in expected_message:
         assert substring in message
+    if error_type is OverflowError:
+        # CPython's overflow wording varies by platform and build.
+        assert re.search(r"\n\(.+\)\Z", message, flags=re.DOTALL)
+    elif error_type is pa.ArrowInvalid:
+        # Preserve Arrow's error without depending on its wording or quoting.
+        assert excinfo.value.__cause__ is not None
+        original_message = str(excinfo.value.__cause__)
+        assert original_message
+        assert message.endswith(f": {original_message}")
 
 
 class PickableMagicMock(MagicMock):

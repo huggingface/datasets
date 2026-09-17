@@ -1,6 +1,7 @@
 import copy
 import json
 import os
+import re
 import tempfile
 from unittest import TestCase
 from unittest.mock import patch
@@ -79,20 +80,24 @@ class TypedSequenceTest(TestCase):
 
 @pytest.mark.parametrize("type_kwarg", ["type", "try_type"])
 def test_typed_sequence_python_int_overflow(type_kwarg):
-    sequence = OptimizedTypedSequence([99999999999999999999], col="overflowing_column", **{type_kwarg: Value("int32")})
+    feature = Value("int32")
+    sequence = OptimizedTypedSequence([99999999999999999999], col="overflowing_column", **{type_kwarg: feature})
     with pytest.raises(OverflowError) as excinfo:
         pa.array(sequence)
     assert type(excinfo.value) is OverflowError
     message = str(excinfo.value)
     assert "overflowing_column" in message
-    assert "int32" in message
-    assert "Python int too large" in message
+    assert str(feature) in message
     assert "writer_batch_size" in message
+    # CPython's overflow wording varies by platform and build.
+    assert re.search(r"\n\(.+\)\Z", message, flags=re.DOTALL)
 
 
 def test_typed_sequence_python_int_overflow_without_type():
-    with pytest.raises(OverflowError, match="writer_batch_size"):
+    with pytest.raises(OverflowError, match="writer_batch_size") as excinfo:
         pa.array(TypedSequence([99999999999999999999]))
+    assert type(excinfo.value) is OverflowError
+    assert re.search(r"\n\(.+\)\Z", str(excinfo.value), flags=re.DOTALL)
 
 
 def _check_output(output, expected_num_chunks: int):
