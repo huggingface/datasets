@@ -9,7 +9,7 @@ import sys
 import tempfile
 import time
 from collections import Counter
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Sequence
 from copy import copy, deepcopy
 from dataclasses import dataclass
 from functools import partial
@@ -3290,7 +3290,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_csv(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3333,7 +3333,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_json(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3380,7 +3380,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_parquet(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3465,7 +3465,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_text(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
