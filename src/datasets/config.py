@@ -217,6 +217,9 @@ _offline = os.environ.get("HF_DATASETS_OFFLINE")
 HF_HUB_OFFLINE = constants.HF_HUB_OFFLINE if _offline is None else _offline.upper() in ENV_VARS_TRUE_VALUES
 HF_DATASETS_OFFLINE = HF_HUB_OFFLINE  # kept for backward-compatibility
 
+# Use file-existence locks on filesystems without OS-level locking support.
+HF_DATASETS_USE_SOFT_FILELOCK = os.environ.get("HF_DATASETS_USE_SOFT_FILELOCK", "0").upper() in ENV_VARS_TRUE_VALUES
+
 # Here, `True` will disable progress bars globally without possibility of enabling it
 # programmatically. `False` will enable them without possibility of disabling them.
 # If environment variable is not set (None), then the user is free to enable/disable
