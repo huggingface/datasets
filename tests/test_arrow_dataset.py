@@ -3839,6 +3839,36 @@ def test_interleave_datasets_oversampling_strategy():
     assert dataset._fingerprint == interleave_datasets([d1, d2, d3], stopping_strategy="all_exhausted")._fingerprint
 
 
+@pytest.mark.parametrize("empty_index", [None, 0, 1, 2])
+@pytest.mark.parametrize("seed", [0, 42, 1234])
+def test_interleave_datasets_probabilities_without_replacement_empty_source(empty_index, seed):
+    dsets = [Dataset.from_dict({"a": [0, 1]}), Dataset.from_dict({"a": [10]})]
+    if empty_index is not None:
+        dsets.insert(empty_index, dsets[0].select([]))
+
+    dataset = interleave_datasets(
+        dsets,
+        probabilities=[1 / len(dsets)] * len(dsets),
+        seed=seed,
+        stopping_strategy="all_exhausted_without_replacement",
+    )
+
+    assert sorted(dataset["a"]) == [0, 1, 10]
+
+
+@pytest.mark.parametrize("seed", [0, 42])
+def test_interleave_datasets_probabilities_without_replacement_all_empty(seed):
+    empty = Dataset.from_dict({"a": [0]}).select([])
+    dataset = interleave_datasets(
+        [empty, empty],
+        probabilities=[0.5, 0.5],
+        seed=seed,
+        stopping_strategy="all_exhausted_without_replacement",
+    )
+
+    assert list(dataset) == []
+
+
 def test_interleave_datasets_probabilities_oversampling_strategy():
     seed = 42
     probabilities = [0.3, 0.5, 0.2]
