@@ -77,6 +77,24 @@ class TypedSequenceTest(TestCase):
             self.assertFalse(kwargs["optimize_list_casting"])
 
 
+@pytest.mark.parametrize("type_kwarg", ["type", "try_type"])
+def test_typed_sequence_python_int_overflow(type_kwarg):
+    sequence = OptimizedTypedSequence([99999999999999999999], col="overflowing_column", **{type_kwarg: Value("int32")})
+    with pytest.raises(OverflowError) as excinfo:
+        pa.array(sequence)
+    assert type(excinfo.value) is OverflowError
+    message = str(excinfo.value)
+    assert "overflowing_column" in message
+    assert "int32" in message
+    assert "Python int too large" in message
+    assert "writer_batch_size" in message
+
+
+def test_typed_sequence_python_int_overflow_without_type():
+    with pytest.raises(OverflowError, match="writer_batch_size"):
+        pa.array(TypedSequence([99999999999999999999]))
+
+
 def _check_output(output, expected_num_chunks: int):
     stream = pa.BufferReader(output) if isinstance(output, pa.Buffer) else pa.memory_map(output)
     f = pa.ipc.open_stream(stream)

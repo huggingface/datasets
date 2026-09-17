@@ -66,6 +66,33 @@ from .utils import (
 )
 
 
+@pytest.mark.parametrize("batched", [False, True])
+@pytest.mark.parametrize("column", ["mismatched_column", "overflowing_column"])
+@pytest.mark.parametrize(
+    "feature, value, error_type, expected_message",
+    [
+        (Value("int32"), "5_not_a_number", pa.ArrowInvalid, ["string", "int32", "5_not_a_number"]),
+        (List(List(Value("int64"))), [1, 2, 3], TypeError, ["int64", "List(Value('int64'))"]),
+        (Value("int32"), 99999999999999999999, OverflowError, ["int32", "Python int", "writer_batch_size"]),
+        (Value("int32"), [1, 2, 3], TypeError, ["list<item: int64>", "int32"]),
+    ],
+    ids=["string", "flat-list", "overflow", "list-to-scalar"],
+)
+def test_map_features_type_mismatch_column(feature, value, error_type, expected_message, batched, column):
+    with Dataset.from_dict({column: list(range(1, 6))}) as dataset:
+        with pytest.raises(error_type) as excinfo:
+            dataset.map(
+                lambda row: {column: [value] * len(row[column]) if batched else value},
+                features=Features({column: feature}),
+                batched=batched,
+            )
+    assert type(excinfo.value) is error_type
+    message = str(excinfo.value)
+    assert column in message
+    for substring in expected_message:
+        assert substring in message
+
+
 class PickableMagicMock(MagicMock):
     def __reduce__(self):
         return MagicMock, ()
