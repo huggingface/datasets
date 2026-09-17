@@ -212,6 +212,16 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
                             return np.asarray(array, dtype=object)
                         return np.array(array, copy=False, dtype=object)
                     break
+        if len(array) == 0:
+            # The conversions above go through Python lists, which drops the arrow type.
+            # `np.asarray([])` then defaults to float64 and the tensor formatters coerce
+            # that to float32, so an empty column would lose the dtype that the very same
+            # column keeps as soon as it holds a single row.
+            try:
+                empty_dtype = np.dtype(pa_array.type.to_pandas_dtype())
+            except (NotImplementedError, TypeError):
+                empty_dtype = object
+            return np.asarray(array, dtype=empty_dtype)
         if np.lib.NumpyVersion(np.__version__) >= "2.0.0b1":
             return np.asarray(array)
         else:
