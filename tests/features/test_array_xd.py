@@ -8,6 +8,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 from absl.testing import parameterized
+from pandas.api.types import is_string_dtype
 
 import datasets
 from datasets.arrow_writer import ArrowWriter
@@ -365,6 +366,35 @@ def test_table_to_pandas(dtype, dummy_value):
     assert isinstance(df.foo.dtype, PandasArrayExtensionDtype)
     arr = df.foo.to_numpy()
     np.testing.assert_equal(arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype)))
+
+
+@pytest.mark.parametrize("dtype", ["int32", "bool", "float64"])
+def test_pandas_array_extension_dtype_construct_from_string(dtype):
+    constructed = PandasArrayExtensionDtype.construct_from_string(f"array[{dtype}]")
+    assert isinstance(constructed, PandasArrayExtensionDtype)
+    assert constructed.value_type == np.dtype(dtype)
+
+
+@pytest.mark.parametrize("string", ["string", "int64", "array[]", "array[not_a_dtype]", "not_an_array[int32]"])
+def test_pandas_array_extension_dtype_construct_from_string_rejects(string):
+    # Pandas relies on `TypeError` to mean "not my dtype" when comparing a dtype to a string.
+    with pytest.raises(TypeError):
+        PandasArrayExtensionDtype.construct_from_string(string)
+
+
+@pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
+def test_table_to_pandas_dtype_compares_to_string(dtype, dummy_value):
+    # Pandas compares dtypes against plain strings throughout its internals (`is_string_dtype`
+    # and friends). Without `construct_from_string` the base implementation asserts on
+    # `cls.name`, which is a property here, so every such comparison raised
+    # `AssertionError: (PandasArrayExtensionDtype, <class 'property'>)`.
+    features = datasets.Features({"foo": datasets.Array2D(dtype=dtype, shape=(2, 2))})
+    dataset = datasets.Dataset.from_dict({"foo": [[[dummy_value] * 2] * 2]}, features=features)
+    df = dataset._data.to_pandas()
+
+    assert (df.foo.dtype == "string") is False
+    assert is_string_dtype(df.foo.dtype) is False
+    assert df.astype(object).shape == (1, 1)
 
 
 @pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
