@@ -1,10 +1,11 @@
 import json
 import textwrap
+from unittest.mock import Mock, patch
 
 import pyarrow as pa
 import pytest
 
-from datasets import Features, Value, load_dataset
+from datasets import Dataset, Features, Value, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig
@@ -614,6 +615,27 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
     )
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.column_names == ["ID", "Language", "Topic"]
+
+
+def test_json_generate_tables_recovers_from_invalid_arrow_offsets(jsonl_file):
+    malformed_table = Mock()
+    malformed_table.validate.side_effect = [pa.ArrowInvalid("invalid nested offsets")]
+    json_builder = Json(chunksize=1 << 20)
+    base_files = [jsonl_file]
+
+    with patch("datasets.packaged_modules.json.json.paj.read_json", return_value=malformed_table):
+        generator = json_builder._generate_tables(
+            base_files=base_files,
+            files_iterables=[[jsonl_file]],
+            original_files=base_files,
+        )
+        _, table = next(generator)
+
+    table.validate(full=True)
+    dataset = Dataset(table)
+    mapped_dataset = dataset.map(lambda example: example)
+    assert mapped_dataset.num_rows == 3
+    assert mapped_dataset.to_dict() == {"col_1": [-1, 1, 10], "col_2": [None, 2, 20]}
 
 
 @pytest.mark.parametrize(
