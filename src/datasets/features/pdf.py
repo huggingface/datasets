@@ -54,7 +54,7 @@ class Pdf:
     >>> from datasets import Dataset, Pdf
     >>> ds = Dataset.from_dict({"pdf": ["path/to/pdf/file.pdf"]}).cast_column("pdf", Pdf())
     >>> ds.features["pdf"]
-    Pdf(decode=True, id=None)
+    Pdf(decode=True)
     >>> ds[0]["pdf"]
     <pdfplumber.pdf.PDF object at 0x7f8a1c2d8f40>
     >>> ds = ds.cast_column("pdf", Pdf(decode=False))
