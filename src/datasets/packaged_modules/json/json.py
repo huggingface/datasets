@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
 import pandas as pd
 import pyarrow as pa
@@ -36,6 +36,48 @@ def pandas_read_json(path_or_buf, **kwargs):
     if datasets.config.PANDAS_VERSION.major >= 2:
         kwargs["dtype_backend"] = "pyarrow"
     return pd.read_json(path_or_buf, **kwargs)
+
+
+def _arrow_table_from_field(
+    dataset: Any, features: Optional["datasets.Features"] = None, field: Optional[str] = None
+) -> pa.Table:
+    # Build directly from the parsed Python object instead of routing through
+    # pandas.read_json. Pandas with the pyarrow dtype_backend coerces columns
+    # like [0.0, 1.0, 2.0] to int64, dropping the float semantics (#6937,
+    # pandas-dev/pandas#58866). PyArrow's own inference preserves float64,
+    # and CPython dict key iteration order already gives us the
+    # column-insertion-order invariant from #6914.
+    if isinstance(dataset, list):
+        if not dataset:
+            if features is not None:
+                return pa.Table.from_pydict({name: [] for name in features})
+            return pa.Table.from_pydict({})
+        if not isinstance(dataset[0], dict):
+            # List of scalars; mirror the prior `df.columns == [0]` rename.
+            if features is None:
+                return pa.Table.from_pydict({"text": dataset})
+            # A scalar list is a single column, so an over-specified `features`
+            # cannot be satisfied. Pandas used to catch this when the rename
+            # assigned to `df.columns`; keep it an error rather than returning
+            # the extra columns as all-null.
+            if len(features) != 1:
+                raise ValueError(
+                    f"Field {field!r} is a list of scalars, which maps to a single column, "
+                    f"but `features` declares {len(features)}: {list(features)}"
+                )
+            return pa.Table.from_pydict({next(iter(features)): dataset})
+        keys: dict[str, None] = {}
+        for row in dataset:
+            for key in row.keys():
+                keys.setdefault(key, None)
+        column_order = list(keys)
+        mapping = {col: [row.get(col) for row in dataset] for col in column_order}
+        return pa.Table.from_pydict(mapping)
+    if isinstance(dataset, dict):
+        return pa.Table.from_pydict(dataset)
+    raise ValueError(
+        f"Cannot build a table from the JSON field at type {type(dataset).__name__}"
+    )
 
 
 class FullReadDisallowed(Exception):
@@ -162,10 +204,9 @@ class Json(datasets.ArrowBasedBuilder):
                         dataset = ujson_loads(f.read())
                     # We keep only the field we are interested in
                     dataset = dataset[self.config.field]
-                    df = pandas_read_json(io.StringIO(ujson_dumps(dataset)))
-                    if df.columns.tolist() == [0]:
-                        df.columns = list(self.config.features) if self.config.features else ["text"]
-                    pa_table = pa.Table.from_pandas(df, preserve_index=False)
+                    pa_table = _arrow_table_from_field(
+                        dataset, self.config.features, self.config.field
+                    )
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
 
                 # If the files are agent traces (one row = one file except for hermes which can have multiple sessions per file)
