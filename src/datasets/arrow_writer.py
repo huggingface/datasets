@@ -547,6 +547,7 @@ class ArrowWriter:
         self.current_examples: list[tuple[dict[str, Any], str]] = []
         self.current_rows: list[pa.Table] = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
+        self._finalized = False
         self.hkey_record = []
 
     def __len__(self):
@@ -800,6 +801,15 @@ class ArrowWriter:
         self.pa_writer.write_table(pa_table, writer_batch_size)
 
     def finalize(self, close_stream=True):
+        if self._finalized and not self.current_examples and not self.current_rows:
+            # Already finalized with nothing staged since: rebuilding the writer below
+            # would only raise against a stream this call cannot use. Anything written
+            # after a finalize() still falls through, so that it fails as before rather
+            # than being dropped from the returned count. A caller that deferred the
+            # close can still ask for it here.
+            if close_stream and not self.stream.closed:
+                self.stream.close()
+            return self._num_examples, self._num_bytes
         self.write_rows_on_file()
         # In case current_examples < writer_batch_size, but user uses finalize()
         self.write_examples_on_file()
@@ -809,6 +819,11 @@ class ArrowWriter:
         if self.pa_writer is not None:
             self.pa_writer.close()
             self.pa_writer = None
+            # Recorded before the close below, because a close that raises must not
+            # leave the writer looking un-built: `pa_writer is None` otherwise means
+            # both "not built yet" and "finished", so a second finalize() would
+            # rebuild against a stream the first call has already closed.
+            self._finalized = True
             if close_stream:
                 self.stream.close()
         else:
