@@ -712,3 +712,23 @@ def test_encode_np_array(array, dtype_cast, expected_image_format):
     decoded_image = Image().decode_example(encoded_image)
     assert decoded_image.format == expected_image_format
     np.testing.assert_array_equal(np.array(decoded_image), array)
+
+
+@require_pil
+@pytest.mark.parametrize(
+    "pa_type",
+    [
+        pa.list_(pa.list_(pa.list_(pa.uint8()))),
+        pa.list_(pa.list_(pa.large_list(pa.uint8()))),
+        pa.list_(pa.list_(pa.list_(pa.uint8(), 3))),
+    ],
+    ids=["list", "large_list", "fixed_size_list"],
+)
+def test_image_cast_storage_from_nested_list_preserves_dtype(pa_type):
+    array = np.arange(12, dtype=np.uint8).reshape(2, 2, 3)
+    storage = pa.array([array.tolist()], type=pa_type)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        casted_storage = Image().cast_storage(storage)
+    decoded_image = Image().decode_example(casted_storage.to_pylist()[0])
+    np.testing.assert_array_equal(np.array(decoded_image), array)
