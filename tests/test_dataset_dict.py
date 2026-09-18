@@ -354,6 +354,17 @@ class DatasetDictTest(TestCase):
                     for label in labels:
                         self.assertIsInstance(label, float)
 
+    def test_map_on_mixed_types(self):
+        # DatasetDict.map must handle mixed types the same way Dataset.map does
+        mixed_data = {
+            "mixed_type": [-1, 1, "foo"],
+            "mixed_dict_keys": [{"a": 0}, {"b": 0}, {"c": 0}],
+        }
+        dsets = self._create_dummy_dataset_dict()
+        with dsets.map(lambda ex: mixed_data, remove_columns=dsets["train"].column_names) as mapped_dsets:
+            for dset in mapped_dsets.values():
+                self.assertDictEqual(dset[0], mixed_data)
+
     def test_iterable_map(self):
         dsets = self._create_dummy_iterable_dataset_dict()
         fn_kwargs = {"n": 3}
