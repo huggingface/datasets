@@ -32,11 +32,16 @@ class FolderBasedBuilderConfig(datasets.BuilderConfig):
     features: Optional[datasets.Features] = None
     drop_labels: bool = None
     drop_metadata: bool = None
-    metadata_filenames: list[str] = None
+    metadata_filenames: Union[str, list[str]] = None
     filters: Optional[Union[ds.Expression, list[tuple], list[list[tuple]]]] = None
 
     def __post_init__(self):
         super().__post_init__()
+        if isinstance(self.metadata_filenames, str):
+            # It is only ever used as `os.path.basename(file) in metadata_filenames`, so a
+            # bare string silently becomes a substring test: with "metadata.csv" a file
+            # called "data.csv" matches, and gets read as the metadata file.
+            self.metadata_filenames = [self.metadata_filenames]
 
 
 class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
