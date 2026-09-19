@@ -620,9 +620,19 @@ class BaseDatasetTest(TestCase):
 
             # Test raises if feature is an array / sequence
             with self._create_dummy_dataset(in_memory, tmp_dir, array_features=True) as dset:
-                for column in dset.column_names:
+                for column in ["col_1", "col_2"]:
                     with self.assertRaises(ValueError):
                         dset.class_encode_column(column)
+
+    def test_class_encode_sequence_column(self, in_memory):
+        features = Features({"labels": List(Value("string"))})
+        dset = Dataset.from_dict({"labels": [["a", "b"], ["b"], ["c", "a"], []]}, features=features)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            if not in_memory:
+                dset = self._to(in_memory, tmp_dir, dset)
+            with dset.class_encode_column("labels") as casted_dset:
+                self.assertEqual(casted_dset.features["labels"], List(ClassLabel(names=["a", "b", "c"])))
+                self.assertListEqual(casted_dset["labels"][:], [[0, 1], [1], [2, 0], []])
 
     def test_remove_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
