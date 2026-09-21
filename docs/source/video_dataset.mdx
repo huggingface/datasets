@@ -171,6 +171,30 @@ Load your WebDataset and it will create on column per file suffix (here "mp4" an
 {"bbox": [[302.0, 109.0, 73.0, 52.0]], "categories": [0]}
 ```
 
+If a sample contains several media files of the same type, use a period-separated name before the extension. For example, in a sign-language dataset you may have a base video and a separate pose video:
+
+```
+e39871fd9fd74f55.base.mp4
+e39871fd9fd74f55.pose.mp4
+e39871fd9fd74f55.json
+f18b91585c4d3f3e.base.mp4
+f18b91585c4d3f3e.pose.mp4
+f18b91585c4d3f3e.json
+...
+```
+
+The files are still grouped by the shared prefix, and each file becomes its own column. In this example, the dataset has the columns `base.mp4`, `pose.mp4` and `json`:
+
+```python
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("webdataset", data_dir="/path/to/folder", split="train")
+>>> sorted(dataset[0].keys())
+['__key__', '__url__', 'base.mp4', 'json', 'pose.mp4']
+>>> dataset[0]["json"]
+{"label": "signing_hello"}
+```
+
 ## Lance
 
 [Lance](https://lance.org) is an open multimodal lakehouse table format. Lance tables can natively store not only text and scalar values,
