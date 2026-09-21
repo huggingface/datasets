@@ -4942,6 +4942,52 @@ def test_dataset_batch():
     assert batches[2]["text"] == ["Text 8", "Text 9"]
 
 
+def test_map_drop_last_batch_all_batches_dropped():
+    # Regression test for https://github.com/huggingface/datasets/issues/8386
+    # When every batch is dropped, map must return an empty dataset, not the input unchanged.
+    ds = Dataset.from_dict({"a": [1, 2, 3], "b": [4, 5, 6]})
+
+    mapped = ds.map(lambda batch: batch, batched=True, batch_size=5, drop_last_batch=True)
+    assert len(mapped) == 0
+    assert mapped.features == ds.features
+
+    # Dataset.batch() is built on map: the empty result keeps the batched (List) schema
+    batched = ds.batch(batch_size=5, drop_last_batch=True)
+    assert len(batched) == 0
+    assert batched.features == Features({"a": List(Value("int64")), "b": List(Value("int64"))})
+
+    # Explicit `features` and `remove_columns` are honored on the empty result
+    mapped = ds.map(
+        lambda batch: batch, batched=True, batch_size=5, drop_last_batch=True, features=Features({"c": Value("string")})
+    )
+    assert len(mapped) == 0
+    assert list(mapped.features) == ["c"]
+
+    mapped = ds.map(lambda batch: batch, batched=True, batch_size=5, drop_last_batch=True, remove_columns=["b"])
+    assert len(mapped) == 0
+    assert list(mapped.features) == ["a"]
+
+    # Combined `features` and `remove_columns`: an explicit `features` describes
+    # the output schema, so `remove_columns` must not strip columns from it.
+    # The receiver must actually hold the column being removed, otherwise map
+    # rejects it before any batching happens and this case never reaches the fix.
+    ds_with_text = Dataset.from_dict({"a": [1, 2, 3], "text": ["p", "q", "r"]})
+    mapped = ds_with_text.map(
+        lambda batch: {"text": [str(n) for n in batch["a"]]},
+        batched=True,
+        batch_size=5,
+        drop_last_batch=True,
+        features=Features({"a": Value("int64"), "text": Value("string")}),
+        remove_columns=["text"],
+    )
+    assert len(mapped) == 0
+    assert list(mapped.features) == ["a", "text"]
+
+    # Sanity: a dataset that is not fully dropped is unaffected
+    mapped = ds.map(lambda batch: batch, batched=True, batch_size=2, drop_last_batch=True)
+    assert len(mapped) == 2
+
+
 def test_dataset_batch_by_column():
     # Create a Dataset with a column to group by
     data = {
