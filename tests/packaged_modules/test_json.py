@@ -92,6 +92,27 @@ def json_file_with_list_of_dicts(tmp_path):
 
 
 @pytest.fixture
+def json_file_with_floats_field(tmp_path):
+    filename = tmp_path / "file_with_floats_field.json"
+    data = textwrap.dedent(
+        """\
+        {
+            "field1": 1,
+            "field2": "aabb",
+            "field3": [
+                {"col_1": 0.7},
+                {"col_1": 0.3},
+                {"col_1": 2.675}
+            ]
+        }
+        """
+    )
+    with open(filename, "w") as f:
+        f.write(data)
+    return str(filename)
+
+
+@pytest.fixture
 def json_file_with_list_of_strings(tmp_path):
     filename = tmp_path / "file_with_list_of_strings.json"
     data = textwrap.dedent(
@@ -561,6 +582,19 @@ def test_json_generate_tables(file_fixture, config_kwargs, expected, request):
     pa_table = pa.concat_tables([table for _, table in generator])
     out = Features.from_arrow_schema(pa_table.schema).decode_batch(pa_table.to_pydict())
     assert out == expected
+
+
+def test_json_generate_tables_with_field_reads_floats_exactly(json_file_with_floats_field):
+    # The `field` path reads the file with pandas, whose default float parser turns 0.7 into 0.7000000000000001
+    json = Json(field="field3")
+    base_files = [json_file_with_floats_field]
+    files_iterables = [[file] for file in base_files]
+    original_files = list(base_files)
+    generator = json._generate_tables(
+        base_files=base_files, files_iterables=files_iterables, original_files=original_files
+    )
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa_table.to_pydict() == {"col_1": [0.7, 0.3, 2.675]}
 
 
 @pytest.mark.parametrize(
