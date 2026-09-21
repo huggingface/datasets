@@ -459,6 +459,32 @@ def test_encode_batch_with_example_with_empty_first_elem():
     assert encoded_batch == {"x": [[[0], [1]], [[], [1]]]}
 
 
+@pytest.mark.parametrize("empty_translation", [{}, {"en": []}, {"en": [], "fr": []}])
+def test_translation_variable_languages_with_empty_translations(empty_translation):
+    feature = TranslationVariableLanguages(languages=["en", "fr"])
+    empty_encoded = {"language": [], "translation": []}
+    assert feature.encode_example(empty_translation) == empty_encoded
+
+    dataset = Dataset.from_dict(
+        {"translation": [None, empty_translation, {"fr": ["bonjour", "salut"], "en": "hello"}, empty_encoded]},
+        features=Features({"translation": feature}),
+    )
+    assert dataset.to_dict() == {
+        "translation": [
+            None,
+            empty_encoded,
+            {"language": ["en", "fr", "fr"], "translation": ["hello", "bonjour", "salut"]},
+            empty_encoded,
+        ]
+    }
+
+
+def test_translation_variable_languages_rejects_unknown_language_with_empty_translations():
+    feature = TranslationVariableLanguages(languages=["en", "fr"])
+    with pytest.raises(ValueError, match="Some languages in example \\(de\\) are not in valid set"):
+        feature.encode_example({"de": []})
+
+
 def test_encode_column_dict_with_none():
     features = Features(
         {
