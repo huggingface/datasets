@@ -2259,17 +2259,36 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if column not in self._data.column_names:
             raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
         src_feat = self._info.features[column]
-        if not isinstance(src_feat, Value):
+        if not isinstance(src_feat, (Value, List)) or (
+            isinstance(src_feat, List) and not isinstance(src_feat.feature, Value)
+        ):
             raise ValueError(
-                f"Class encoding is only supported for {Value.__name__} column, and column {column} is {type(src_feat).__name__}."
+                f"Class encoding is only supported for {Value.__name__} or {List.__name__}({Value.__name__}) columns, "
+                f"and column {column} is {type(src_feat).__name__}."
             )
 
-        if src_feat.dtype != "string" or (include_nulls and None in self.unique(column)):
+        def get_unique_values(dataset):
+            if isinstance(src_feat, Value):
+                return dataset.unique(column)
+            return dataset._data.column(column).combine_chunks().flatten().unique().to_pylist()
+
+        unique_values = get_unique_values(self)
+
+        value_feat = src_feat if isinstance(src_feat, Value) else src_feat.feature
+        if value_feat.dtype != "string" or (include_nulls and None in unique_values):
 
             def stringify_column(batch):
-                batch[column] = [
-                    str(sample) if include_nulls or sample is not None else None for sample in batch[column]
-                ]
+                if isinstance(src_feat, List):
+                    batch[column] = [
+                        [str(item) if include_nulls or item is not None else None for item in sample]
+                        if sample is not None
+                        else None
+                        for sample in batch[column]
+                    ]
+                else:
+                    batch[column] = [
+                        str(sample) if include_nulls or sample is not None else None for sample in batch[column]
+                    ]
                 return batch
 
             dset = self.map(
@@ -2281,18 +2300,29 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dset = self
 
         # Create the new feature
-        class_names = sorted(str(sample) for sample in dset.unique(column) if include_nulls or sample is not None)
+        class_names = sorted(str(sample) for sample in get_unique_values(dset) if include_nulls or sample is not None)
         dst_feat = ClassLabel(names=class_names)
 
         def cast_to_class_labels(batch):
-            batch[column] = [
-                dst_feat.str2int(str(sample)) if include_nulls or sample is not None else None
-                for sample in batch[column]
-            ]
+            if isinstance(src_feat, List):
+                batch[column] = [
+                    [
+                        dst_feat.str2int(str(item)) if include_nulls or item is not None else None
+                        for item in sample
+                    ]
+                    if sample is not None
+                    else None
+                    for sample in batch[column]
+                ]
+            else:
+                batch[column] = [
+                    dst_feat.str2int(str(sample)) if include_nulls or sample is not None else None
+                    for sample in batch[column]
+                ]
             return batch
 
         new_features = dset.features.copy()
-        new_features[column] = dst_feat
+        new_features[column] = List(dst_feat) if isinstance(src_feat, List) else dst_feat
 
         dset = dset.map(
             cast_to_class_labels,
