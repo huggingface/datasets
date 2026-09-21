@@ -37,19 +37,19 @@ You can directly create a [new dataset repository](https://huggingface.co/login?
 1. Make sure you are in the virtual environment where you installed Datasets, and run the following command:
 
 ```
-huggingface-cli login
+hf auth login
 ```
 
 2. Login using your Hugging Face Hub credentials, and create a new dataset repository:
 
 ```
-huggingface-cli repo create my-cool-dataset --type dataset
+hf repos create my-cool-dataset --type dataset
 ```
 
-Add the `-organization` flag to create a repository under a specific organization:
+Prefix the repository name with an organization to create it under that organization:
 
 ```
-huggingface-cli repo create my-cool-dataset --type dataset --organization your-org-name
+hf repos create your-org-name/my-cool-dataset --type dataset
 ```
 
 ## Prepare your files
@@ -61,28 +61,28 @@ Check your directory to ensure the only files you're uploading are:
 - The dataset card `README.md`
 
 
-## huggingface-cli upload
+## hf upload
 
-Use the `huggingface-cli upload` command to upload files to the Hub directly. Internally, it uses the same [`upload_file`] and [`upload_folder`] helpers described in the [Upload guide](https://huggingface.co/docs/huggingface_hub/guides/upload). In the examples below, we will walk through the most common use cases. For a full list of available options, you can run:
+Use the `hf upload` command to upload files to the Hub directly. Internally, it uses the same [`upload_file`] and [`upload_folder`] helpers described in the [Upload guide](https://huggingface.co/docs/huggingface_hub/guides/upload). In the examples below, we will walk through the most common use cases. For a full list of available options, you can run:
 
 ```bash
->>> huggingface-cli upload --help
+>>> hf upload --help
 ```
 
-For more general information about `huggingface-cli` you can check the [CLI guide](https://huggingface.co/docs/huggingface_hub/guides/cli).
+For more general information about `hf` you can check the [CLI guide](https://huggingface.co/docs/huggingface_hub/guides/cli).
 
 ### Upload an entire folder
 
 The default usage for this command is:
 
 ```bash
-# Usage:  huggingface-cli upload [dataset_repo_id] [local_path] [path_in_repo] --repo-type dataset
+# Usage:  hf upload [dataset_repo_id] [local_path] [path_in_repo] --repo-type dataset
 ```
 
 To upload the current directory at the root of the repo, use:
 
 ```bash
->>> huggingface-cli upload my-cool-dataset . . --repo-type dataset
+>>> hf upload my-cool-dataset . . --repo-type dataset
 https://huggingface.co/datasets/Wauplin/my-cool-dataset/tree/main/
 ```
 
@@ -92,14 +92,14 @@ https://huggingface.co/datasets/Wauplin/my-cool-dataset/tree/main/
 You can also upload a specific folder:
 
 ```bash
->>> huggingface-cli upload my-cool-dataset ./data . --repo-type dataset
+>>> hf upload my-cool-dataset ./data . --repo-type dataset
 https://huggingface.co/datasetsWauplin/my-cool-dataset/tree/main/
 ```
 
 Finally, you can upload a folder to a specific destination on the repo:
 
 ```bash
->>> huggingface-cli upload my-cool-dataset ./path/to/curated/data /data/train --repo-type dataset
+>>> hf upload my-cool-dataset ./path/to/curated/data /data/train --repo-type dataset
 https://huggingface.co/datasetsWauplin/my-cool-dataset/tree/main/data/train
 ```
 
@@ -108,14 +108,14 @@ https://huggingface.co/datasetsWauplin/my-cool-dataset/tree/main/data/train
 You can also upload a single file by setting `local_path` to point to a file on your machine. If that's the case, `path_in_repo` is optional and will default to the name of your local file:
 
 ```bash
->>> huggingface-cli upload Wauplin/my-cool-dataset ./files/train.csv --repo-type dataset
+>>> hf upload Wauplin/my-cool-dataset ./files/train.csv --repo-type dataset
 https://huggingface.co/datasetsWauplin/my-cool-dataset/blob/main/train.csv
 ```
 
 If you want to upload a single file to a specific directory, set `path_in_repo` accordingly:
 
 ```bash
->>> huggingface-cli upload Wauplin/my-cool-dataset ./files/train.csv /data/train.csv --repo-type dataset
+>>> hf upload Wauplin/my-cool-dataset ./files/train.csv /data/train.csv --repo-type dataset
 https://huggingface.co/datasetsWauplin/my-cool-dataset/blob/main/data/train.csv
 ```
 
@@ -125,7 +125,7 @@ To upload multiple files from a folder at once without uploading the entire fold
 
 ```bash
 # Sync local Space with Hub (upload new CSV files, delete removed files)
->>> huggingface-cli upload Wauplin/my-cool-dataset --repo-type dataset --include="/data/*.csv" --delete="*" --commit-message="Sync local dataset with Hub"
+>>> hf upload Wauplin/my-cool-dataset --repo-type dataset --include="/data/*.csv" --delete="*" --commit-message="Sync local dataset with Hub"
 ...
 ```
 
@@ -134,7 +134,7 @@ To upload multiple files from a folder at once without uploading the entire fold
 To upload content to a repo owned by an organization instead of a personal repo, you must explicitly specify it in the `repo_id`:
 
 ```bash
->>> huggingface-cli upload MyCoolOrganization/my-cool-dataset . . --repo-type dataset
+>>> hf upload MyCoolOrganization/my-cool-dataset . . --repo-type dataset
 https://huggingface.co/datasetsMyCoolOrganization/my-cool-dataset/tree/main/
 ```
 
@@ -144,7 +144,7 @@ By default, files are uploaded to the `main` branch. If you want to upload files
 
 ```bash
 # Upload files to a PR
-huggingface-cli upload bigcode/the-stack . . --repo-type dataset --revision refs/pr/104
+hf upload bigcode/the-stack . . --repo-type dataset --revision refs/pr/104
 ...
 ```
 
@@ -156,7 +156,7 @@ If you don't have the permission to push to a repo, you must open a PR and let t
 
 ```bash
 # Create a PR and upload the files to it
->>> huggingface-cli upload bigcode/the-stack --repo-type dataset --revision refs/pr/104 --create-pr . .
+>>> hf upload bigcode/the-stack --repo-type dataset --revision refs/pr/104 --create-pr . .
 https://huggingface.co/datasets/bigcode/the-stack/blob/refs%2Fpr%2F104/
 ```
 
@@ -166,7 +166,7 @@ In some cases, you might want to push regular updates to a repo. For example, th
 
 ```bash
 # Upload new logs every 10 minutes
-huggingface-cli upload my-cool-dynamic-dataset data/ --every=10
+hf upload my-cool-dynamic-dataset data/ --every=10
 ```
 
 ### Specify a commit message
@@ -174,27 +174,27 @@ huggingface-cli upload my-cool-dynamic-dataset data/ --every=10
 Use the `--commit-message` and `--commit-description` to set a custom message and description for your commit instead of the default one
 
 ```bash
->>> huggingface-cli upload Wauplin/my-cool-dataset ./data . --repo-type dataset --commit-message="Version 2" --commit-description="Train size: 4321. Check Dataset Viewer for more details."
+>>> hf upload Wauplin/my-cool-dataset ./data . --repo-type dataset --commit-message="Version 2" --commit-description="Train size: 4321. Check Dataset Viewer for more details."
 ...
 https://huggingface.co/datasetsWauplin/my-cool-dataset/tree/main
 ```
 
 ### Specify a token
 
-To upload files, you must use a token. By default, the token saved locally (using `huggingface-cli login`) will be used. If you want to authenticate explicitly, use the `--token` option:
+To upload files, you must use a token. By default, the token saved locally (using `hf auth login`) will be used. If you want to authenticate explicitly, use the `--token` option:
 
 ```bash
->>> huggingface-cli upload Wauplin/my-cool-dataset ./data . --repo-type dataset --token=hf_****
+>>> hf upload Wauplin/my-cool-dataset ./data . --repo-type dataset --token=hf_****
 ...
 https://huggingface.co/datasetsWauplin/my-cool-data/tree/main
 ```
 
 ### Quiet mode
 
-By default, the `huggingface-cli upload` command will be verbose. It will print details such as warning messages, information about the uploaded files, and progress bars. If you want to silence all of this, use the `--quiet` option. Only the last line (i.e. the URL to the uploaded files) is printed. This can prove useful if you want to pass the output to another command in a script.
+By default, the `hf upload` command will be verbose. It will print details such as warning messages, information about the uploaded files, and progress bars. If you want to silence all of this, use the `--quiet` option. Only the last line (i.e. the URL to the uploaded files) is printed. This can prove useful if you want to pass the output to another command in a script.
 
 ```bash
->>> huggingface-cli upload Wauplin/my-cool-dataset ./data . --repo-type dataset --quiet
+>>> hf upload Wauplin/my-cool-dataset ./data . --repo-type dataset --quiet
 https://huggingface.co/datasets/Wauplin/my-cool-dataset/tree/main
 ```
 
