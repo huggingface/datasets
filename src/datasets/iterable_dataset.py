@@ -5018,6 +5018,11 @@ class IterableDataset(DatasetInfoMixin):
             uploaded_size (`int`): number of uploaded bytes to the repository or bucket
         """
 
+        # Features may be unknown (e.g. a dataset from a generator, or streamed CSV/JSON files
+        # without declared features): resolve them from the first examples, as done e.g. in
+        # `concatenate_datasets` and `interleave_datasets`.
+        self = self._resolve_features()
+
         # Find decodable columns, because if there are any, we need to:
         # embed the bytes from the files in the shards
         decodable_columns = (
