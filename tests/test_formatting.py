@@ -1,4 +1,5 @@
 import datetime
+import decimal
 from pathlib import Path
 from unittest import TestCase
 
@@ -1074,3 +1075,30 @@ def test_iterable_dataset_of_arrays_format_to_jax(any_arrays_dataset: IterableDa
 
     formatted = any_arrays_dataset.with_format("jax")
     assert all(isinstance(example["array"], jnp.ndarray) for example in formatted)
+
+
+@require_jax
+@pytest.mark.parametrize(
+    "pa_type, value, expected",
+    [
+        (pa.timestamp("s"), datetime.datetime(2023, 1, 1), datetime.datetime(2023, 1, 1)),
+        (pa.date32(), datetime.date(2023, 1, 1), datetime.date(2023, 1, 1)),
+        (pa.duration("s"), datetime.timedelta(seconds=5), datetime.timedelta(seconds=5)),
+        # numpy represents a nanosecond duration as an int, since it does not fit in a timedelta
+        (pa.duration("ns"), datetime.timedelta(seconds=5), 5_000_000_000),
+        (pa.time64("us"), datetime.time(1, 2, 3), datetime.time(1, 2, 3)),
+        (pa.decimal128(5, 2), decimal.Decimal("1.50"), decimal.Decimal("1.50")),
+    ],
+)
+def test_jax_formatter_keeps_values_jax_cannot_hold(pa_type, value, expected):
+    from datasets.formatting import JaxFormatter
+
+    # jax has no dtype for temporal and decimal values, so they must be returned as they are,
+    # the way string columns already are. Durations used to silently become unit-less integers,
+    # and 5_000_000_000 nanoseconds overflowed the default int32 down to 705_032_704.
+    pa_table = pa.table({"col": pa.array([value] * 2, type=pa_type)})
+    formatter = JaxFormatter()
+
+    assert formatter.format_row(pa_table)["col"] == expected
+    assert list(formatter.format_column(pa_table)) == [expected] * 2
+    assert list(formatter.format_batch(pa_table)["col"]) == [expected] * 2
