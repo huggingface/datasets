@@ -1,6 +1,7 @@
 import os
 import sys
 import warnings
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from io import BytesIO
 from pathlib import Path
@@ -125,6 +126,8 @@ class Image:
         elif isinstance(value, PIL.Image.Image):
             # convert the PIL image to bytes (default format is PNG/TIFF)
             return encode_pil_image(value)
+        elif not isinstance(value, Mapping):
+            raise TypeError(f"Unsupported encode_example type: {type(value)}")
         elif value.get("path") is not None and os.path.isfile(value["path"]):
             # we set "bytes": None to not duplicate the data if they're already available locally
             return {"bytes": None, "path": value.get("path")}
@@ -378,6 +381,9 @@ def encode_np_array(array: np.ndarray) -> dict:
         import PIL.Image
     else:
         raise ImportError("To support encoding images, please install 'Pillow'.")
+
+    if array.ndim == 0:
+        raise ValueError(f"An image array should have at least one dimension, but got shape {array.shape}.")
 
     dtype = array.dtype
     dtype_byteorder = dtype.byteorder if dtype.byteorder != "=" else _NATIVE_BYTEORDER
