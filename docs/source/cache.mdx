@@ -103,8 +103,49 @@ When you disable caching, 🤗 Datasets will no longer reload cached files when 
 
 ## Improve performance
 
-Disabling the cache and copying the dataset in-memory will speed up dataset operations. There are two options for copying the dataset in-memory:
+The right settings depend on what you are optimizing for: iteration speed, RAM usage, or disk usage. The sections below list the most common levers.
 
-1. Set `datasets.config.IN_MEMORY_MAX_SIZE` to a nonzero value (in bytes) that fits in your RAM memory.
+### Maximize iteration speed
+
+For repeated training loops over a dataset that fits on your machine, load it into memory so every access is a zero-copy read from Arrow buffers:
+
+1. Set `datasets.config.IN_MEMORY_MAX_SIZE` to a nonzero value (in bytes) that fits in your RAM.
 
 2. Set the environment variable `HF_DATASETS_IN_MEMORY_MAX_SIZE` to a nonzero value. Note that the first method takes higher precedence.
+
+When you call [`Dataset.load_from_disk`] or [`load_dataset`], pass `keep_in_memory=True` to copy the dataset into RAM:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("imdb", split="train", keep_in_memory=True)
+```
+
+Other tips for faster preprocessing and training:
+
+- Use [`Dataset.map`] with `num_proc` > 1 to parallelize CPU-bound transforms across workers.
+- Prefer batched transforms (`batched=True`) to amortize Python overhead.
+- Reuse cached preprocessing by keeping `load_from_cache_file=True` (the default) instead of re-running `.map()` on every run.
+- For PyTorch training, set `DataLoader(..., num_workers>0, pin_memory=True)` and see the [PyTorch guide](./use_with_pytorch).
+
+### Minimize RAM usage
+
+If the dataset is larger than your available memory:
+
+- Load with `streaming=True` to iterate over examples without materializing the full dataset. See the [Stream](./stream) guide.
+- Avoid `keep_in_memory=True` and leave `IN_MEMORY_MAX_SIZE` at its default (`0`).
+- Select only the columns you need before mapping or training (`dataset.select_columns([...])` or Parquet `columns=...`).
+- Use `.with_format("torch")` or `.with_format("numpy")` only when needed; unset with `.with_format(None)` to release formatted views.
+- Call [`Dataset.cleanup_cache_files`] after heavy `.map()` runs to drop intermediate Arrow files that are no longer needed.
+
+### Minimize disk usage
+
+Arrow cache files and Hub downloads can grow quickly on shared machines:
+
+- Point caches to a large disk with `HF_DATASETS_CACHE` or `HF_HOME` (see [Cache directory](#cache-directory)).
+- Use `streaming=True` so remote datasets are not fully downloaded before training.
+- Load a subset with `data_files`, `split`, or Parquet `filters` instead of the full repository.
+- Remove stale preprocessing outputs with [`Dataset.cleanup_cache_files`].
+- Delete unused Hub snapshots from `~/.cache/huggingface/hub` following the [Hub cache guide](https://huggingface.co/docs/huggingface_hub/guides/manage-cache).
+
+> [!TIP]
+> Disabling the cache with [`disable_caching`] speeds up *development* when you are iterating on preprocessing code, but it forces every `.map()` call to recompute results and increases disk churn. Re-enable caching for production training runs.
