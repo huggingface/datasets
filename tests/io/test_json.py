@@ -2,6 +2,7 @@ import io
 import json
 
 import fsspec
+import pyarrow as pa
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, Json, List, NamedSplit, Value
@@ -322,3 +323,58 @@ class TestJsonDatasetWriter:
             rows = load_json_lines(buffer)
         assert [row["a"] for row in rows] == [big, None, 5]
         assert all(isinstance(row["a"], int) for row in rows if row["a"] is not None)
+
+    @pytest.mark.parametrize("num_proc", [None, 2])
+    @pytest.mark.parametrize(
+        "orient, lines, batch_size",
+        [("records", True, 2), ("records", False, 10), ("split", False, 10), ("values", False, 10)],
+    )
+    def test_dataset_to_json_selected_rows(self, num_proc, orient, lines, batch_size):
+        features = Features(
+            {"id": Value("int64"), "amount": Value("uint64"), "answers": List(Value("string")), "payload": Json()}
+        )
+        records = [
+            {
+                "id": i,
+                "amount": None if i == 1 else 2**54 + i,
+                "answers": [f"answer {i}", "中文"],
+                "payload": {"nested": [i, None]},
+            }
+            for i in range(5)
+        ]
+        original = Dataset.from_list(records, features=features)
+        chunked = pa.Table.from_batches(original.data.table.to_batches(max_chunksize=2))
+        selected_indices = [4, 1, 4, 0, 3]
+        selected = Dataset(chunked, info=original.info).select(selected_indices)
+        reference = Dataset.from_list([records[i] for i in selected_indices], features=features)
+        options = {
+            "num_proc": num_proc,
+            "orient": orient,
+            "lines": lines,
+            "batch_size": batch_size,
+            "force_ascii": False,
+        }
+        with io.BytesIO() as actual, io.BytesIO() as expected:
+            written = selected.to_json(actual, **options)
+            reference.to_json(expected, **options)
+            assert actual.getvalue() == expected.getvalue()
+            assert written == len(actual.getvalue())
+
+    @pytest.mark.parametrize("error", [pa.ArrowInvalid, pa.ArrowNotImplementedError])
+    def test_dataset_to_json_when_chunks_cannot_be_combined(self, monkeypatch, error):
+        # A failed optional Arrow concatenation must not prevent exporting a valid batch.
+        dataset = Dataset.from_dict({"value": [2**54 + 1, None, 3]}).select([2, 0, 1])
+        table = pa.table({"value": pa.array([3, 2**54 + 1, None], type=pa.int64())})
+
+        class UncombinableTable:
+            def combine_chunks(self):
+                raise error("cannot combine this nested array")
+
+            def to_pandas(self, **kwargs):
+                return table.to_pandas(**kwargs)
+
+        monkeypatch.setattr("datasets.io.json.query_table", lambda **kwargs: UncombinableTable())
+        with io.BytesIO() as buffer:
+            dataset.to_json(buffer)
+            buffer.seek(0)
+            assert load_json_lines(buffer) == [{"value": 3}, {"value": 2**54 + 1}, {"value": None}]
