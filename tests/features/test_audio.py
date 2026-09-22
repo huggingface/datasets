@@ -59,6 +59,19 @@ def test_audio_feature_type_to_arrow():
     assert features.arrow_schema == pa.schema({"sequence_of_audios": pa.list_(Audio().pa_type)})
 
 
+def test_audio_feature_flatten():
+    # a decodable Audio is left alone, like the Image, Video and Pdf features already do,
+    # so that a dataset holding an audio column can still be flattened
+    assert Audio().flatten() == Audio()
+    assert Audio(decode=False).flatten() == {"bytes": Value("binary"), "path": Value("string")}
+
+    features = Features({"audio": Audio(), "text": Value("string")})
+    assert features.flatten() == features
+
+    dset = Dataset.from_dict({"audio": [None], "text": ["a"]}, features=features)
+    assert dset.flatten().column_names == ["audio", "text"]
+
+
 @require_torchcodec
 @pytest.mark.parametrize(
     "build_example",
