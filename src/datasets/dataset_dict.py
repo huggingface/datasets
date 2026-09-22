@@ -50,6 +50,21 @@ class bind(partial):
         return self.func(*fn_args, *self.args, **fn_kwargs)
 
 
+def _check_per_split_arg(arg, arg_name: str, splits):
+    """Check that a per-split argument has one entry per dataset of the dataset dictionary."""
+    if not isinstance(arg, dict):
+        raise ValueError(
+            f"`{arg_name}` must be a dict with one entry per dataset of the dataset dictionary, "
+            f"but got {type(arg).__name__}."
+        )
+    missing_splits = [split for split in splits if split not in arg]
+    if missing_splits:
+        raise ValueError(
+            f"`{arg_name}` is missing an entry for {missing_splits}. "
+            f"Please provide one entry per dataset of the dataset dictionary."
+        )
+
+
 class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
     """A dictionary (dict of str: datasets.Dataset) with dataset transforms methods (map, filter, etc.)"""
 
@@ -950,6 +965,8 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         self._check_values_type()
         if cache_file_names is None:
             cache_file_names = dict.fromkeys(self)
+        else:
+            _check_per_split_arg(cache_file_names, "cache_file_names", self)
 
         dataset_dict = {}
         for split, dataset in self.items():
@@ -1075,6 +1092,8 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         self._check_values_type()
         if cache_file_names is None:
             cache_file_names = dict.fromkeys(self)
+        else:
+            _check_per_split_arg(cache_file_names, "cache_file_names", self)
         return DatasetDict(
             {
                 k: dataset.filter(
@@ -1133,6 +1152,8 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         self._check_values_type()
         if cache_file_names is None:
             cache_file_names = dict.fromkeys(self)
+        else:
+            _check_per_split_arg(cache_file_names, "cache_file_names", self)
         return DatasetDict(
             {
                 k: dataset.flatten_indices(
@@ -1200,6 +1221,8 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         self._check_values_type()
         if indices_cache_file_names is None:
             indices_cache_file_names = dict.fromkeys(self)
+        else:
+            _check_per_split_arg(indices_cache_file_names, "indices_cache_file_names", self)
         return DatasetDict(
             {
                 k: dataset.sort(
@@ -1280,10 +1303,16 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
             seeds = dict.fromkeys(self)
         elif not isinstance(seeds, dict):
             seeds = dict.fromkeys(self, seeds)
+        else:
+            _check_per_split_arg(seeds, "seeds", self)
         if generators is None:
             generators = dict.fromkeys(self)
+        else:
+            _check_per_split_arg(generators, "generators", self)
         if indices_cache_file_names is None:
             indices_cache_file_names = dict.fromkeys(self)
+        else:
+            _check_per_split_arg(indices_cache_file_names, "indices_cache_file_names", self)
         return DatasetDict(
             {
                 k: dataset.shuffle(
