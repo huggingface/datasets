@@ -3806,6 +3806,16 @@ class IterableDataset(DatasetInfoMixin):
          'movie_review': 'exploitative and largely devoid of the depth or sophistication that would make watching such a graphic treatment of the crimes bearable .'}]
         ```
         """
+        if function is None:
+            return IterableDataset(
+                ex_iterable=self._ex_iterable,
+                info=self._info,
+                split=self._split,
+                formatting=self._formatting,
+                distributed=deepcopy(self._distributed),
+                token_per_repo_id=self._token_per_repo_id,
+            )
+
         if isinstance(input_columns, str):
             input_columns = [input_columns]
 

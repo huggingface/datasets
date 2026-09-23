@@ -2345,6 +2345,37 @@ def test_iterable_dataset_filter(dataset: IterableDataset) -> None:
     assert next(iter(filtered_dataset)) == {"id": 1}
 
 
+@pytest.mark.parametrize("format_type", [None, "numpy", "arrow", "pandas"])
+@pytest.mark.parametrize(
+    "filter_kwargs",
+    [
+        {},
+        {"function": None},
+        {"batched": True, "batch_size": 2},
+        {"with_indices": True, "input_columns": ["id", "label"], "fn_kwargs": {"unused": True}},
+    ],
+)
+def test_iterable_dataset_filter_without_function(format_type, filter_kwargs):
+    dataset = Dataset.from_dict({"id": [0, 1, 2], "label": ["a", None, "b"]}).to_iterable_dataset()
+    dataset = dataset.with_format(format_type)
+    filtered_dataset = dataset.filter(**filter_kwargs)
+
+    assert [_normalize_batched_output(example) for example in filtered_dataset] == [
+        _normalize_batched_output(example) for example in dataset
+    ]
+    assert filtered_dataset.features == dataset.features
+    assert filtered_dataset is not dataset
+    filtered_dataset.set_epoch(1)
+    assert dataset.epoch == 0
+
+
+@pytest.mark.parametrize("n", [0, 3])
+@pytest.mark.parametrize("batched", [False, True])
+def test_iterable_dataset_filter_without_function_untyped(n, batched):
+    dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": n}))
+    assert list(dataset.filter(batched=batched, batch_size=2)) == list(dataset)
+
+
 def test_iterable_dataset_filter_chaining_does_not_raise() -> None:
     """Chaining two .filter() calls must not raise TypeError.
 
