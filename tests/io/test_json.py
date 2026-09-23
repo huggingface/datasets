@@ -1,11 +1,13 @@
 import io
 import json
+import os
 
 import fsspec
 import pyarrow as pa
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, Json, List, NamedSplit, Value
+from datasets.formatting import query_table
 from datasets.io.json import JsonDatasetReader, JsonDatasetWriter
 
 from ..fixtures.files import DATA_MIXED_TYPES
@@ -360,7 +362,9 @@ class TestJsonDatasetWriter:
             assert actual.getvalue() == expected.getvalue()
             assert written == len(actual.getvalue())
 
-    @pytest.mark.parametrize("error", [pa.ArrowInvalid, pa.ArrowNotImplementedError])
+    @pytest.mark.parametrize(
+        "error", [pa.ArrowInvalid, pa.ArrowNotImplementedError, pa.ArrowCapacityError, pa.ArrowMemoryError]
+    )
     def test_dataset_to_json_when_chunks_cannot_be_combined(self, monkeypatch, error):
         # A failed optional Arrow concatenation must not prevent exporting a valid batch.
         dataset = Dataset.from_dict({"value": [2**54 + 1, None, 3]}).select([2, 0, 1])
@@ -378,3 +382,30 @@ class TestJsonDatasetWriter:
             dataset.to_json(buffer)
             buffer.seek(0)
             assert load_json_lines(buffer) == [{"value": 3}, {"value": 2**54 + 1}, {"value": None}]
+
+    @pytest.mark.skipif(
+        os.environ.get("RUN_LARGE_ARROW_TESTS") != "1",
+        reason="Set RUN_LARGE_ARROW_TESTS=1: exports 2.4 GiB of JSON and needs many GiB of free memory and disk",
+    )
+    def test_dataset_to_json_nested_string_offset_overflow(self, tmp_path):
+        """Combining 24 struct<string> chunks of 100 MiB exceeds the signed 32-bit offset limit."""
+        payload = "x" * (100 * 1024**2)
+        chunk = pa.StructArray.from_arrays([pa.array([payload], type=pa.string())], names=["text"])
+        # Share the source buffer; concatenation and JSON export still process the full payload.
+        table = pa.table({"nested": pa.chunked_array([chunk] * 24)})
+        dataset = Dataset(table).select(list(reversed(range(24))))
+        assert dataset._indices is not None
+        batch = query_table(table=dataset.data, key=slice(0, len(dataset)), indices=dataset._indices)
+        with pytest.raises(pa.ArrowInvalid, match="offset overflow while concatenating arrays"):
+            batch.combine_chunks()
+
+        path = tmp_path / "nested.jsonl"
+        written = dataset.to_json(path, batch_size=len(dataset))
+        assert written == path.stat().st_size
+        assert written > 2**31
+        with path.open() as buffer:
+            count = 0
+            for line in buffer:
+                assert json.loads(line) == {"nested": {"text": payload}}
+                count += 1
+        assert count == len(dataset)
