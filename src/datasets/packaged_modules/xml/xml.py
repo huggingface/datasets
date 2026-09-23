@@ -40,8 +40,13 @@ class Xml(datasets.ArrowBasedBuilder):
         for split_name, files in data_files.items():
             if isinstance(files, str):
                 files = [files]
-            files = [dl_manager.iter_files(file) for file in files]
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
+            files_iterables = [dl_manager.iter_files(file) for file in files]
+            splits.append(
+                datasets.SplitGenerator(
+                    name=split_name,
+                    gen_kwargs={"base_files": files, "files_iterables": files_iterables},
+                )
+            )
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
@@ -57,14 +62,15 @@ class Xml(datasets.ArrowBasedBuilder):
         else:
             return pa_table.cast(pa.schema({"xml": pa.string()}))
 
-    def _generate_shards(self, files):
-        yield from files
+    def _generate_shards(self, base_files, files_iterables):
+        yield from base_files
 
-    def _generate_tables(self, files):
+    def _generate_tables(self, base_files, files_iterables):
         pa_table_names = list(self.config.features) if self.config.features is not None else ["xml"]
-        for file_idx, file in enumerate(files):
-            # open in text mode, by default translates universal newlines ("\n", "\r\n" and "\r") into "\n"
-            with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
-                xml = f.read()
-                pa_table = pa.Table.from_arrays([pa.array([xml])], names=pa_table_names)
-                yield (file_idx, 0), self._cast_table(pa_table)
+        for shard_idx, files_iterable in enumerate(files_iterables):
+            for file_idx, file in enumerate(files_iterable):
+                # open in text mode, by default translates universal newlines ("\n", "\r\n" and "\r") into "\n"
+                with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
+                    xml = f.read()
+                    pa_table = pa.Table.from_arrays([pa.array([xml])], names=pa_table_names)
+                    yield (shard_idx, file_idx), self._cast_table(pa_table)
