@@ -393,7 +393,7 @@ class TestJsonDatasetWriter:
         chunk = pa.StructArray.from_arrays([pa.array([payload], type=pa.string())], names=["text"])
         # Share the source buffer; concatenation and JSON export still process the full payload.
         table = pa.table({"nested": pa.chunked_array([chunk] * 24)})
-        dataset = Dataset(table).select(list(reversed(range(24))))
+        dataset = Dataset(table, fingerprint="offset-overflow-probe").select(list(reversed(range(24))))
         assert dataset._indices is not None
         batch = query_table(table=dataset.data, key=slice(0, len(dataset)), indices=dataset._indices)
         with pytest.raises(pa.ArrowInvalid, match="offset overflow while concatenating arrays"):
