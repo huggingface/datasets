@@ -1,5 +1,6 @@
 import json
 import unittest.mock
+from io import BytesIO
 
 import fsspec
 import pyarrow.parquet as pq
@@ -205,6 +206,54 @@ def test_parquet_write(dataset, tmp_path):
     pf = pq.ParquetFile(tmp_path / "foo.parquet")
     output_table = pf.read()
     assert dataset.data.table == output_table
+
+
+@pytest.mark.parametrize("use_buffer", [False, True])
+@pytest.mark.parametrize(
+    "writer_kwargs, compressions, encodings",
+    [
+        ({}, ["SNAPPY", "SNAPPY"], ["RLE_DICTIONARY", "RLE_DICTIONARY"]),
+        ({"compression": "gzip"}, ["GZIP", "GZIP"], ["RLE_DICTIONARY", "RLE_DICTIONARY"]),
+        ({"compression": None}, ["UNCOMPRESSED", "UNCOMPRESSED"], ["RLE_DICTIONARY", "RLE_DICTIONARY"]),
+        (
+            {"compression": {"value": "gzip", "text": "snappy"}},
+            ["GZIP", "SNAPPY"],
+            ["RLE_DICTIONARY", "RLE_DICTIONARY"],
+        ),
+        ({"use_dictionary": False}, ["SNAPPY", "SNAPPY"], ["PLAIN", "PLAIN"]),
+        ({"use_dictionary": ["text"]}, ["SNAPPY", "SNAPPY"], ["PLAIN", "RLE_DICTIONARY"]),
+        (
+            {"use_dictionary": False, "column_encoding": "PLAIN"},
+            ["SNAPPY", "SNAPPY"],
+            ["PLAIN", "PLAIN"],
+        ),
+        (
+            {
+                "use_dictionary": False,
+                "column_encoding": {"value": "DELTA_BINARY_PACKED", "text": "DELTA_BYTE_ARRAY"},
+            },
+            ["SNAPPY", "SNAPPY"],
+            ["DELTA_BINARY_PACKED", "DELTA_BYTE_ARRAY"],
+        ),
+    ],
+)
+def test_dataset_to_parquet_writer_options(writer_kwargs, compressions, encodings, use_buffer, tmp_path):
+    dataset = Dataset.from_dict({"value": [1, 2, 3], "text": ["a", "b", "a"]})
+    destination = BytesIO() if use_buffer else tmp_path / "data.parquet"
+
+    assert dataset.to_parquet(destination, **writer_kwargs) > 0
+
+    if use_buffer:
+        destination.seek(0)
+    with pq.ParquetFile(destination) as parquet_file:
+        assert parquet_file.read() == dataset.data.table
+        row_group = parquet_file.metadata.row_group(0)
+        for i, (compression, encoding) in enumerate(zip(compressions, encodings)):
+            column = row_group.column(i)
+            assert column.compression == compression
+            assert encoding in column.encodings
+            if encoding != "RLE_DICTIONARY":
+                assert "RLE_DICTIONARY" not in column.encodings
 
 
 def test_parquet_write_uses_content_defined_chunking(dataset, tmp_path):

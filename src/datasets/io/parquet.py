@@ -125,16 +125,21 @@ class ParquetDatasetWriter:
             schema=schema,
             use_content_defined_chunking=self.use_content_defined_chunking,
             write_page_index=self.write_page_index,
-            compression={
-                col: "none" if require_storage_embed(feature) else "snappy"
-                for col, feature in self.dataset.features.items()
-            },
-            use_dictionary=[
-                col for col, feature in self.dataset.features.items() if not require_storage_embed(feature)
-            ],
-            column_encoding={
-                col: "PLAIN" for col, feature in self.dataset.features.items() if require_storage_embed(feature)
-            },
+            compression=parquet_writer_kwargs.pop(
+                "compression",
+                {
+                    col: "none" if require_storage_embed(feature) else "snappy"
+                    for col, feature in self.dataset.features.items()
+                },
+            ),
+            use_dictionary=parquet_writer_kwargs.pop(
+                "use_dictionary",
+                [col for col, feature in self.dataset.features.items() if not require_storage_embed(feature)],
+            ),
+            column_encoding=parquet_writer_kwargs.pop(
+                "column_encoding",
+                {col: "PLAIN" for col, feature in self.dataset.features.items() if require_storage_embed(feature)},
+            ),
             **parquet_writer_kwargs,
         )
 
