@@ -30,10 +30,10 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
 
     def _consolidate(self, column):
         if isinstance(column, list):
-            # numpy scalars are np.number, not np.ndarray: they reach here when a batch is
+            # numpy scalars are np.generic, not np.ndarray: they reach here when a batch is
             # regrouped from formatted rows (IterableDataset.batch, or iter after a map)
             if column and all(
-                isinstance(x, (np.ndarray, np.number)) and x.shape == column[0].shape and x.dtype == column[0].dtype
+                isinstance(x, (np.ndarray, np.generic)) and x.shape == column[0].shape and x.dtype == column[0].dtype
                 for x in column
             ):
                 return np.stack(column)
