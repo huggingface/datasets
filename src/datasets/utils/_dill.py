@@ -13,13 +13,19 @@
 # limitations under the License.
 """Extends `dill` to support pickling more types and produce more consistent dumps."""
 
+import copyreg
+import math
 import os
 import sys
+from enum import Enum, EnumMeta
 from io import BytesIO
-from types import CodeType, FunctionType
+from pickle import PicklingError
+from types import CodeType, FunctionType, MemberDescriptorType, MethodType
 
 import dill
+import numpy as np
 import pyarrow as pa
+from multiprocess.reduction import ForkingPickler
 from packaging import version
 
 from .. import config
@@ -145,6 +151,409 @@ def _save_set(pickler, obj):
 
     pickler.save_reduce(set, args, obj=obj)
     log(pickler, "# Se")
+
+
+def _create_enum(metaclass, name, bases, attributes, members, boundary):
+    namespace = metaclass.__prepare__(name, bases)
+    for key, value in attributes:
+        namespace[key] = value
+    for key, value_name, value in members:
+        namespace[key] = value if key == value_name else namespace[value_name]
+    return metaclass(name, bases, namespace, **boundary)
+
+
+def _set_enum_state(enum_class, state):
+    attributes, member_attributes, value_aliases, unhashable_values = state
+    for name, value in attributes.items():
+        setattr(enum_class, name, value)
+    for name, (attributes, slots) in member_attributes.items():
+        member = _get_enum_member(enum_class, name)
+        member.__dict__.update(attributes)
+        for base_index, key, value in slots:
+            enum_class.__mro__[base_index].__dict__[key].__set__(member, value)
+    for value, name in value_aliases:
+        _get_enum_member(enum_class, name)._add_value_alias_(value)
+    if unhashable_values is not None:
+        enum_class._unhashable_values_, enum_class._unhashable_values_map_ = unhashable_values
+
+
+def _enum_slots(enum_class):
+    # Discover descriptors once for all members: an Enum's class dictionary
+    # itself grows with its member count, even when there are no slots.
+    return [
+        (base_index, name, descriptor)
+        for base_index, base in enumerate(enum_class.__mro__)
+        for name, descriptor in base.__dict__.items()
+        if isinstance(descriptor, MemberDescriptorType)
+    ]
+
+
+def _enum_slot_values(member, descriptors):
+    slots = []
+    for base_index, name, descriptor in descriptors:
+        try:
+            value = descriptor.__get__(member, type(member))
+        except AttributeError:
+            continue
+        # A subclass can shadow a slot without replacing its storage.
+        slots.append((base_index, name, value))
+    return slots
+
+
+def _enum_equal(left, right):
+    # None means replay cannot be checked: identity need not survive loading,
+    # and undefined/raising equality must not make a picklable value fail.
+    if left is right:
+        return True
+    if isinstance(left, Enum) and isinstance(right, Enum):
+        return type(left).__qualname__ == type(right).__qualname__ and left._name_ == right._name_
+    if isinstance(left, MethodType) and isinstance(right, MethodType) and isinstance(left.__self__, Enum):
+        # Explicit instance reducers can be bound to another Enum member.
+        # Its reconstructed owner has a new identity, just like the class.
+        return _enum_equal(left.__func__, right.__func__) is not False and _enum_equal(left.__self__, right.__self__)
+    if type(left) is not type(right):
+        # Local value classes are reconstructed too; still try their equality.
+        if (type(left).__module__, type(left).__qualname__) != (type(right).__module__, type(right).__qualname__):
+            return False
+    try:
+        if isinstance(left, float) and math.isnan(left):
+            return math.isnan(right)
+        if isinstance(left, (tuple, list)):
+            return len(left) == len(right) and all(_enum_equal(a, b) is not False for a, b in zip(left, right))
+        if isinstance(left, dict):
+            if len(left) != len(right):
+                return False
+            for key, value in left.items():
+                try:
+                    other = right[key]
+                except Exception:
+                    # A reconstructed key may support neither identity lookup
+                    # nor equality. Skip that check unless every key differs.
+                    return None if any(_enum_equal(key, candidate) is not False for candidate in right) else False
+                if _enum_equal(value, other) is False:
+                    return False
+            return True
+        if isinstance(left, np.ndarray):
+            try:
+                return bool(np.array_equal(left, right, equal_nan=True))
+            except TypeError:
+                return bool(np.array_equal(left, right))
+        equal = left.__eq__(right)
+        if equal is NotImplemented:
+            equal = right.__eq__(left)
+        return bool(equal) if equal is not NotImplemented else None
+    except Exception:
+        return None
+
+
+def _enum_conversion(convert, member):
+    try:
+        return convert(member)
+    except Exception as error:
+        return type(error), str(error)
+
+
+def _enum_payload_equal(original, restored):
+    member_type = type(original)._member_type_
+    if member_type is object:
+        return True
+    if member_type is float:
+        return _enum_equal(float.__float__(original), float.__float__(restored))
+    try:
+        equal = member_type.__eq__(original, restored)
+        return bool(equal) if equal is not NotImplemented else None
+    except Exception:
+        return None
+
+
+def _check_enum(original, restored):
+    if (
+        original.__name__ != restored.__name__
+        or original.__qualname__ != restored.__qualname__
+        or original.__module__ != restored.__module__
+        or original.__dict__.keys() != restored.__dict__.keys()
+        or list(original.__members__) != list(restored.__members__)
+        or original._member_names_ != restored._member_names_
+    ):
+        raise ValueError("class attributes or member names changed")
+    original_slots, restored_slots = _enum_slots(original), _enum_slots(restored)
+    for name, member in original.__members__.items():
+        other = restored[name]
+        if (
+            member._name_ != other._name_
+            or other is not restored[member._name_]
+            or _enum_equal(member._value_, other._value_) is False
+            or _enum_payload_equal(member, other) is False
+            or _enum_equal(_enum_conversion(int, member), _enum_conversion(int, other)) is False
+            or _enum_equal(_enum_conversion(str, member), _enum_conversion(str, other)) is False
+            or member.__dict__.keys() - {"_inverted_"} != other.__dict__.keys() - {"_inverted_"}
+            or _enum_equal(_enum_slot_values(member, original_slots), _enum_slot_values(other, restored_slots))
+            is False
+            or any(
+                _enum_equal(value, other.__dict__[key]) is False
+                for key, value in member.__dict__.items()
+                if key not in {"__objclass__", "_inverted_"}
+            )
+        ):
+            raise ValueError(f"member {name} changed during reconstruction")
+
+    # Explicit value aliases are recorded in _hashable_values_ (Python 3.13+).
+    # Lookup caches, including Flag's negative keys, are only in the value map.
+    def aliases(enum_class):
+        return [
+            (value, member._name_)
+            for value, member in enum_class._value2member_map_.items()
+            if member._name_ in enum_class.__members__
+            and (
+                value is member._value_
+                or any(value is alias for alias in getattr(enum_class, "_hashable_values_", ()))
+            )
+        ]
+
+    if (
+        _enum_equal(aliases(original), aliases(restored)) is False
+        or _enum_equal(
+            getattr(original, "_unhashable_values_map_", {}), getattr(restored, "_unhashable_values_map_", {})
+        )
+        is False
+    ):
+        raise ValueError("value aliases changed during reconstruction")
+
+
+def _validate_enum(pickler, obj):
+    # Use the actual serializer, including its protocol and recursion settings.
+    # Track all enums in the trial graph so nested classes are checked as well.
+    buffer = BytesIO()
+    trial = type(pickler)(buffer, protocol=pickler.proto, recurse=pickler._recurse, byref=pickler._byref)
+    trial._enum_validation = []
+    if hasattr(pickler, "dispatch_table"):
+        trial.dispatch_table = pickler.dispatch_table.copy()
+    # Only the default member reducer promises canonical identity. Explicit
+    # instance contracts must not be invoked merely to validate the class.
+    members = (
+        [
+            member
+            for member in obj.__members__.values()
+            if "__reduce_ex__" not in member.__dict__
+            and getattr(member.__reduce_ex__, "__func__", None) is Enum.__reduce_ex__
+        ]
+        if trial.dispatch.get(obj) is _save_enum_member
+        and obj.__reduce__ is object.__reduce__
+        and obj not in getattr(trial, "dispatch_table", copyreg.dispatch_table)
+        else []
+    )
+    trial.dump((obj, members, trial._enum_validation))
+    rebuilt_class, rebuilt_members, restored = dill.loads(buffer.getvalue())
+    for original, member in zip(members, rebuilt_members):
+        if member is not _get_enum_member(rebuilt_class, original._name_):
+            raise ValueError(f"captured member {original._name_} changed during reconstruction")
+    for original, rebuilt in zip(trial._enum_validation, restored):
+        _check_enum(original, rebuilt)
+
+
+def _enum_method_references_class(value, enum_class):
+    if isinstance(value, (staticmethod, classmethod)):
+        value = value.__func__
+    functions = (value.fget, value.fset, value.fdel) if isinstance(value, property) else (value,)
+    return any(
+        isinstance(function, FunctionType)
+        and (
+            any(reference is enum_class for reference in dill.detect.freevars(function).values())
+            or any(
+                function.__globals__.get(name) is enum_class for name in dill.detect.nestedglobals(function.__code__)
+            )
+        )
+        for function in functions
+    )
+
+
+def _save_enum(pickler, obj):
+    """Rebuild nonimportable Enums through their metaclass.
+
+    Nonrecursive constructors rerun on load and during dump/hash validation;
+    class-referencing hooks are restored after construction instead.
+    """
+    if dill._dill._locate_function(obj, pickler):
+        return dill._dill.save_type(pickler, obj)
+
+    label = f"{obj.__module__}.{obj.__qualname__}"
+    active = pickler.__dict__.setdefault("_enum_in_progress", set())
+    if id(obj) in active:
+        raise PicklingError(f"Cannot faithfully pickle Enum {label}: recursive construction namespace")
+    active.add(id(obj))
+    try:
+        if hasattr(pickler, "_enum_validation"):
+            pickler._enum_validation.append(obj)
+        else:
+            _validate_enum(pickler, obj)
+
+        log(pickler, f"En: {obj}")
+        # EnumMeta transforms the class body. Rebuild the recoverable body, not
+        # its generated member maps/descriptors. The saved constructor is the
+        # original __new__; EnumMeta has replaced __new__ with value lookup.
+        generated = set(obj.__members__) | {
+            "__dict__",
+            "__weakref__",
+            "__new__",
+            "__new_member__",
+            "_member_names_",
+            "_member_map_",
+            "_value2member_map_",
+            "_member_type_",
+            "_new_member_",
+            "_use_args_",
+            "_value_repr_",
+            "_unhashable_values_",
+            "_hashable_values_",
+            "_unhashable_values_map_",
+            "_boundary_",
+            "_flag_mask_",
+            "_singles_mask_",
+            "_all_bits_",
+            "_inverted_",
+        }
+        attributes = {
+            name: value
+            for name, value in obj.__dict__.items()
+            if name not in generated and not isinstance(value, MemberDescriptorType)
+        }
+        # Attributes attached after class creation must not become new members.
+        # Methods that reference this class follow memoization in state, even
+        # construction hooks: their saved member state replaces unsafe replay.
+        # Keep other methods in the body: member constructors may call them.
+        body = [
+            (name, value)
+            for name, value in attributes.items()
+            if (name.startswith("_") or hasattr(value, "__get__")) and not _enum_method_references_class(value, obj)
+        ]
+        body.append(("__qualname__", obj.__qualname__))
+        if "__new_member__" in obj.__dict__:
+            new = obj.__dict__["__new_member__"]
+            if _enum_method_references_class(new, obj):
+                # Constructor closures can refer to the completed class without
+                # using it during construction. Restore the hook and saved
+                # member state after memoization instead of replaying it.
+                attributes["__new_member__"] = new
+            else:
+                body.append(("__new__", new))
+        # Preserve shared values even when they do not create member aliases:
+        # Python 3.9/3.10 gives a shared NaN two members but one value-map key.
+        # Pickle does not memoize floats, so reference the first body entry.
+        value_names = {}
+        members = []
+        for name, member in obj.__members__.items():
+            value_name = value_names.setdefault(id(member._value_), name)
+            members.append((name, value_name, member._value_ if name == value_name else None))
+        slots = _enum_slots(obj)
+        member_attributes = {
+            name: (
+                {
+                    key: value
+                    for key, value in member.__dict__.items()
+                    if key not in {"_value_", "_name_", "__objclass__", "_sort_order_", "_inverted_"}
+                },
+                _enum_slot_values(member, slots),
+            )
+            for name, member in obj.__members__.items()
+            if name == member._name_
+        }
+        value_aliases = [
+            (value, member._name_)
+            for value, member in obj._value2member_map_.items()
+            if member._name_ in obj.__members__
+            and value is not member._value_
+            and any(value is alias for alias in getattr(obj, "_hashable_values_", ()))
+        ]
+        # Python 3.13+ keeps unhashable aliases outside _value2member_map_.
+        # Preserve both indexes directly, including ordinary unhashable values.
+        unhashable_values = (
+            (obj._unhashable_values_, obj._unhashable_values_map_) if hasattr(obj, "_unhashable_values_map_") else None
+        )
+        boundary = {"boundary": obj._boundary_} if hasattr(obj, "_boundary_") else {}
+        # Ordered lists keep the construction order even in the fingerprint
+        # pickler, which sorts dictionaries. Runtime state follows memoization.
+        pickler.save_reduce(
+            _create_enum,
+            (type(obj), obj.__name__, obj.__bases__, body, members, boundary),
+            state=(attributes, member_attributes, value_aliases, unhashable_values),
+            state_setter=_set_enum_state,
+            obj=obj,
+        )
+        log(pickler, "# En")
+    except Exception as error:
+        raise PicklingError(f"Cannot faithfully pickle Enum {label}: {type(error).__name__}: {error}") from error
+    finally:
+        active.remove(id(obj))
+
+
+def _get_enum_member(enum_class, name):
+    return type.__getattribute__(enum_class, "_member_map_")[name]
+
+
+def _save_enum_member(pickler, obj):
+    enum_class = type(obj)
+    # Private worker registrations precede instance contracts, just as in
+    # pickle. Resolve __reduce_ex__ on the member, which can override its class.
+    reduce = getattr(pickler, "dispatch_table", copyreg.dispatch_table).get(enum_class)
+    if reduce is not None:
+        reduction = reduce(obj)
+    else:
+        reduce_ex = obj.__reduce_ex__
+        if "__reduce_ex__" in obj.__dict__ or getattr(reduce_ex, "__func__", None) is not Enum.__reduce_ex__:
+            reduction = reduce_ex(pickler.proto)
+        elif enum_class.__reduce__ is not object.__reduce__:
+            reduction = obj.__reduce__()
+        else:
+            # Value lookup cannot recover a separately serialized NaN. Use
+            # canonical names; unnamed Flag combinations still use values.
+            if obj._name_ in enum_class.__members__ and _get_enum_member(enum_class, obj._name_) is obj:
+                pickler.save_reduce(_get_enum_member, (enum_class, obj._name_), obj=obj)
+            else:
+                pickler.save_reduce(enum_class, (obj._value_,), obj=obj)
+            return
+
+    if isinstance(reduction, str):
+        pickler.save_global(obj, reduction)
+    else:
+        pickler.save_reduce(*reduction, obj=obj)
+
+
+class _EnumDispatch(dill._dill.MetaCatchingDict):
+    def __init__(self, fallback):
+        super().__init__()
+        self.fallback = fallback
+
+    def __contains__(self, key):
+        return super().__contains__(key) or key in self.fallback or issubclass(key, (EnumMeta, Enum))
+
+    def __missing__(self, key):
+        # Explicit registrations and member contracts take precedence over
+        # Enum dispatch, including dill registrations made after this import.
+        if issubclass(key, (EnumMeta, Enum)):
+            if key in dill.Pickler.dispatch:
+                return dill.Pickler.dispatch[key]
+            if key in self.fallback:
+                return self.fallback[key]
+            if key in copyreg.dispatch_table:
+                raise KeyError(key)
+        if issubclass(key, EnumMeta):
+            return _save_enum
+        if issubclass(key, Enum):
+            if key.__reduce_ex__ is not Enum.__reduce_ex__:
+                raise KeyError(key)
+            return _save_enum_member
+        return self.fallback[key]
+
+
+# Both serializers need subclass dispatch. Dataset.map uses multiprocess.Pool,
+# whose queue/connection modules bind the shared ForkingPickler: the pool has no
+# per-instance pickler, and even context.reducer changes a module global. Thus
+# the current pool transport needs this process-wide assignment, which also
+# affects other multiprocess users. test_map_enum_requires_worker_dispatch
+# demonstrates that private fingerprint dispatch alone leaves map unpicklable.
+# Keep dill's table as fallback so later third-party registrations still work.
+Pickler.dispatch = _EnumDispatch(Pickler.dispatch)
+ForkingPickler.dispatch = _EnumDispatch(ForkingPickler.dispatch)
 
 
 @pklregister(pa.Table)
