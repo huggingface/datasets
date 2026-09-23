@@ -2311,6 +2311,22 @@ class BaseDatasetTest(TestCase):
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(dset_select_five.features, Features({"filename": Value("string")}))
 
+    def test_select_negative_indices(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                # in-range negative indices are resolved like in python, consistently with __getitem__
+                with dset.select([0, -1]) as dset_select:
+                    self.assertListEqual(list(dset_select["filename"]), [dset["filename"][0], dset["filename"][-1]])
+                with dset.select(range(-2, 0)) as dset_select:
+                    self.assertListEqual(list(dset_select["filename"]), list(dset["filename"][-2:]))
+                # also when the dataset already has an indices mapping
+                with dset.select([2, 1, 0]) as dset_with_mapping:
+                    with dset_with_mapping.select([-1]) as dset_select:
+                        self.assertListEqual(list(dset_select["filename"]), [dset["filename"][0]])
+                # out-of-range negative indices still raise IndexError
+                with self.assertRaises(IndexError):
+                    dset.select([-len(dset) - 1])
+
     def test_select_then_map(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
