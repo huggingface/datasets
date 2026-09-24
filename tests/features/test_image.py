@@ -712,3 +712,241 @@ def test_encode_np_array(array, dtype_cast, expected_image_format):
     decoded_image = Image().decode_example(encoded_image)
     assert decoded_image.format == expected_image_format
     np.testing.assert_array_equal(np.array(decoded_image), array)
+
+
+# ----- on_error tests -----
+
+
+def test_image_on_error_invalid_value():
+    with pytest.raises(ValueError, match="Invalid on_error"):
+        Image(on_error="not_a_mode")
+
+
+@require_pil
+def test_image_on_error_normal_decode(shared_datadir):
+    # on_error only affects the failure path; for valid input the result is the same
+    # regardless of mode, so it is enough to exercise this path once.
+    import PIL.Image
+
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    image = Image()
+    decoded = image.decode_example({"path": image_path, "bytes": None})
+    assert isinstance(decoded, PIL.Image.Image)
+
+
+@require_pil
+def test_image_on_error_raise_corrupted():
+    image = Image(on_error="raise")
+    with pytest.raises(Exception):
+        image.decode_example({"path": None, "bytes": b"not an image"})
+
+
+@require_pil
+def test_image_on_error_return_none_corrupted():
+    image = Image(on_error="return_none")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")  # any warning would fail
+        result = image.decode_example({"path": None, "bytes": b"not an image"})
+    assert result is None
+
+
+@require_pil
+def test_image_on_error_warn_and_return_none_corrupted():
+    image = Image(on_error="warn_and_return_none")
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        result = image.decode_example({"path": None, "bytes": b"not an image"})
+    assert result is None
+    assert any("Failed to decode image" in str(w.message) for w in caught)
+
+
+# Reproduces https://github.com/huggingface/datasets/issues/8165 :
+# corrupted EXIF rational tags (e.g. zero denominator) cause PIL.ImageOps.exif_transpose
+# to raise ZeroDivisionError inside the streaming generator, killing the iterator
+# and silently dropping the rest of the dataset.
+@require_pil
+def test_image_on_error_corrupted_exif_zero_denominator(shared_datadir, monkeypatch):
+    import PIL.Image
+    import PIL.ImageOps
+
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    real_open = PIL.Image.open
+
+    def open_with_orientation(*args, **kwargs):
+        img = real_open(*args, **kwargs)
+        img.getexif()[PIL.Image.ExifTags.Base.Orientation] = 6
+        return img
+
+    def boom(*args, **kwargs):
+        raise ZeroDivisionError("integer division or modulo by zero")
+
+    monkeypatch.setattr(PIL.Image, "open", open_with_orientation)
+    monkeypatch.setattr(PIL.ImageOps, "exif_transpose", boom)
+
+    image_raise = Image(on_error="raise")
+    with pytest.raises(ZeroDivisionError):
+        image_raise.decode_example({"path": image_path, "bytes": None})
+
+    image_silent = Image(on_error="return_none")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        assert image_silent.decode_example({"path": image_path, "bytes": None}) is None
+
+    image_warn = Image(on_error="warn_and_return_none")
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        assert image_warn.decode_example({"path": image_path, "bytes": None}) is None
+    assert any("Failed to decode image" in str(w.message) for w in caught)
+
+
+# End-to-end version of issue #8165: a streaming IterableDataset that contains a
+# corrupted-EXIF sample must continue past it when on_error is set, instead of
+# closing the generator frame and dropping the remaining samples.
+@require_pil
+def test_iterable_dataset_decode_on_error_skips_corrupted_exif(shared_datadir, monkeypatch):
+    import PIL.Image
+    import PIL.ImageOps
+
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    real_exif_transpose = PIL.ImageOps.exif_transpose
+
+    def selectively_corrupted(image, *args, **kwargs):
+        if getattr(image, "_corrupt_exif", False):
+            raise ZeroDivisionError("integer division or modulo by zero")
+        return real_exif_transpose(image, *args, **kwargs)
+
+    monkeypatch.setattr(PIL.ImageOps, "exif_transpose", selectively_corrupted)
+
+    real_open = PIL.Image.open
+    call_count = {"n": 0}
+
+    def open_marking_second_corrupt(*args, **kwargs):
+        img = real_open(*args, **kwargs)
+        img.getexif()[PIL.Image.ExifTags.Base.Orientation] = 6
+        call_count["n"] += 1
+        if call_count["n"] == 2:
+            img._corrupt_exif = True
+        return img
+
+    monkeypatch.setattr(PIL.Image, "open", open_marking_second_corrupt)
+
+    data = {"image": [image_path, image_path, image_path]}
+    features = Features({"image": Image()})
+    dset = Dataset.from_dict(data, features=features).to_iterable_dataset()
+
+    # Default on_error="raise": iterator dies on the bad sample.
+    with pytest.raises(ZeroDivisionError):
+        list(iter(dset))
+
+    # Reset counter so the second sample is the corrupted one again.
+    call_count["n"] = 0
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        items = list(iter(dset.decode(on_error="warn_and_return_none")))
+    assert len(items) == 3, "iterator must not stop on the corrupted sample"
+    assert items[0]["image"] is not None
+    assert items[1]["image"] is None
+    assert items[2]["image"] is not None
+    assert any("Failed to decode image" in str(w.message) for w in caught)
+
+
+# ----- on_error: real-world bytes corruption tests -----
+
+
+def _make_truncated_jpeg(src_path, dst_path):
+    """Copy `src_path` keeping only the first half of its bytes (truncating
+    the JPEG mid-stream). This mimics partial downloads / disk corruption."""
+    with open(src_path, "rb") as f:
+        data = f.read()
+    with open(dst_path, "wb") as f:
+        f.write(data[: len(data) // 2])
+
+
+@require_pil
+def test_image_on_error_truncated_jpeg(shared_datadir, tmp_path):
+    import PIL.Image
+
+    src = str(shared_datadir / "test_image_rgb.jpg")
+    truncated = str(tmp_path / "truncated.jpg")
+    _make_truncated_jpeg(src, truncated)
+    encoded = {"path": truncated, "bytes": None}
+
+    with pytest.raises(Exception):
+        Image(on_error="raise").decode_example(encoded)
+
+    # Note: we only assert that *our* "Failed to decode image" warning is NOT
+    # emitted — PIL itself may emit unrelated ResourceWarning on broken files.
+    with warnings.catch_warnings(record=True) as caught_silent:
+        warnings.simplefilter("always")
+        assert Image(on_error="return_none").decode_example(encoded) is None
+    assert not any("Failed to decode image" in str(w.message) for w in caught_silent)
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        result = Image(on_error="warn_and_return_none").decode_example(encoded)
+    assert result is None
+    assert any("Failed to decode image" in str(w.message) for w in caught)
+
+    # Sanity check: decoding the original file still works under any mode,
+    # so the failure above isn't a regression in the happy path.
+    good = {"path": src, "bytes": None}
+    assert isinstance(Image(on_error="raise").decode_example(good), PIL.Image.Image)
+    assert isinstance(Image(on_error="warn_and_return_none").decode_example(good), PIL.Image.Image)
+
+
+@require_pil
+def test_dataset_decode_skips_corrupted_images_in_batch(shared_datadir, tmp_path):
+    """End-to-end Dataset (non-iterable): a mixed batch of good/bad/good images
+    must yield [PIL.Image, None, PIL.Image] when on_error='warn_and_return_none'."""
+    import PIL.Image
+
+    src = str(shared_datadir / "test_image_rgb.jpg")
+    truncated = str(tmp_path / "truncated.jpg")
+    _make_truncated_jpeg(src, truncated)
+
+    data = {"image": [src, truncated, src]}
+    features = Features({"image": Image(on_error="warn_and_return_none")})
+    dset = Dataset.from_dict(data, features=features)
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        items = [dset[i] for i in range(len(dset))]
+    assert len(items) == 3
+    assert isinstance(items[0]["image"], PIL.Image.Image)
+    assert items[1]["image"] is None
+    assert isinstance(items[2]["image"], PIL.Image.Image)
+    assert any("Failed to decode image" in str(w.message) for w in caught)
+
+    # Default on_error='raise' must still surface the error so users notice
+    # corruption in non-streaming workflows.
+    strict_features = Features({"image": Image()})
+    strict_dset = Dataset.from_dict(data, features=strict_features)
+    with pytest.raises(Exception):
+        _ = strict_dset[1]
+
+
+@require_pil
+def test_iterable_dataset_decode_on_error_skips_truncated_jpeg(shared_datadir, tmp_path):
+    """End-to-end IterableDataset: same mixed batch streamed via to_iterable_dataset
+    must continue past the corrupted sample after .decode(on_error=...)."""
+    import PIL.Image
+
+    src = str(shared_datadir / "test_image_rgb.jpg")
+    truncated = str(tmp_path / "truncated.jpg")
+    _make_truncated_jpeg(src, truncated)
+
+    data = {"image": [src, truncated, src]}
+    features = Features({"image": Image()})
+    base = Dataset.from_dict(data, features=features).to_iterable_dataset()
+
+    with pytest.raises(Exception):
+        list(iter(base))
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        items = list(iter(base.decode(on_error="warn_and_return_none")))
+    assert len(items) == 3, "iterator must not stop on the corrupted sample"
+    assert isinstance(items[0]["image"], PIL.Image.Image)
+    assert items[1]["image"] is None
+    assert isinstance(items[2]["image"], PIL.Image.Image)
+    assert any("Failed to decode image" in str(w.message) for w in caught)

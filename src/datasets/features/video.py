@@ -1,4 +1,5 @@
 import os
+import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Literal, Optional, TypedDict, Union
@@ -63,6 +64,12 @@ class Video:
             Exact guarantees that requesting frame i will always return frame i, but doing so requires an initial scan of the file.
             Approximate is faster as it avoids scanning the file, but less accurate as it uses the file's metadata to calculate where i probably is.
             read more [here](https://docs.pytorch.org/torchcodec/stable/generated_examples/approximate_mode.html#sphx-glr-generated-examples-approximate-mode-py)
+        on_error (`str`, defaults to `"raise"`):
+            Behavior when video decoding fails. One of:
+
+            - `"raise"`: re-raise the exception (default, current behavior).
+            - `"return_none"`: silently return `None` for the failing example.
+            - `"warn_and_return_none"`: emit a warning and return `None`.
 
     Examples:
 
@@ -93,11 +100,19 @@ class Video:
     num_ffmpeg_threads: int = 1
     device: Optional[Union[str, "torch.device"]] = "cpu"
     seek_mode: Literal["exact", "approximate"] = "exact"
+    on_error: str = "raise"
     id: Optional[str] = field(default=None, repr=False)
     # Automatically constructed
     dtype: ClassVar[str] = "torchcodec.decoders.VideoDecoder"
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
     _type: str = field(default="Video", init=False, repr=False)
+
+    def __post_init__(self):
+        if self.on_error not in ("raise", "return_none", "warn_and_return_none"):
+            raise ValueError(
+                f"Invalid on_error={self.on_error!r}. Must be one of: "
+                "'raise', 'return_none', 'warn_and_return_none'."
+            )
 
     def __call__(self):
         return self.pa_type
@@ -184,44 +199,52 @@ class Video:
         if token_per_repo_id is None:
             token_per_repo_id = {}
 
-        if isinstance(value, str):
-            path, bytes_ = value, None
-        else:
-            path, bytes_ = value["path"], value["bytes"]
+        try:
+            if isinstance(value, str):
+                path, bytes_ = value, None
+            else:
+                path, bytes_ = value["path"], value["bytes"]
 
-        if bytes_ is None:
-            if path is None:
-                raise ValueError(f"A video should have one of 'path' or 'bytes' but both are None in {value}.")
-            elif is_local_path(path):
+            if bytes_ is None:
+                if path is None:
+                    raise ValueError(f"A video should have one of 'path' or 'bytes' but both are None in {value}.")
+                elif is_local_path(path):
+                    video = VideoDecoder(
+                        path,
+                        stream_index=self.stream_index,
+                        dimension_order=self.dimension_order,
+                        num_ffmpeg_threads=self.num_ffmpeg_threads,
+                        device=self.device,
+                        seek_mode=self.seek_mode,
+                    )
+                else:
+                    video = hf_video_reader(
+                        path,
+                        token_per_repo_id=token_per_repo_id,
+                        dimension_order=self.dimension_order,
+                        num_ffmpeg_threads=self.num_ffmpeg_threads,
+                        device=self.device,
+                        seek_mode=self.seek_mode,
+                    )
+            else:
                 video = VideoDecoder(
-                    path,
+                    bytes_,
                     stream_index=self.stream_index,
                     dimension_order=self.dimension_order,
                     num_ffmpeg_threads=self.num_ffmpeg_threads,
                     device=self.device,
                     seek_mode=self.seek_mode,
                 )
-            else:
-                video = hf_video_reader(
-                    path,
-                    token_per_repo_id=token_per_repo_id,
-                    dimension_order=self.dimension_order,
-                    num_ffmpeg_threads=self.num_ffmpeg_threads,
-                    device=self.device,
-                    seek_mode=self.seek_mode,
-                )
-        else:
-            video = VideoDecoder(
-                bytes_,
-                stream_index=self.stream_index,
-                dimension_order=self.dimension_order,
-                num_ffmpeg_threads=self.num_ffmpeg_threads,
-                device=self.device,
-                seek_mode=self.seek_mode,
-            )
-        video._hf_encoded = {"path": path, "bytes": bytes_}
-        video.metadata.path = path
-        return video
+            video._hf_encoded = {"path": path, "bytes": bytes_}
+            video.metadata.path = path
+            return video
+        except Exception as e:
+            if self.on_error == "raise":
+                raise
+            if self.on_error == "warn_and_return_none":
+                path_repr = value if isinstance(value, str) else (value.get("path") if isinstance(value, dict) else value)
+                warnings.warn(f"Failed to decode video (path={path_repr!r}): {e!r}")
+            return None
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """If in the decodable state, return the feature itself, otherwise flatten the feature into a dictionary."""
