@@ -447,6 +447,10 @@ HERMES_SESSION = {
     ],
 }
 
+# Same session, but `started_at` expressed in milliseconds (e.g. JS `Date.now()`-style)
+# instead of seconds -- the same real-world instant as HERMES_SESSION.
+HERMES_SESSION_MS = {**HERMES_SESSION, "started_at": 1_780_665_768_307}
+
 
 DROID_SESSION = [
     {
@@ -720,6 +724,14 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
             "hermes_two_sessions.jsonl",
             [HERMES_SESSION] * 2,
             ("hermes", "20260605_092247_d018ec", "Run pwd and date.", "2026-06-05T13:22:48.307Z", 1, 1),
+        ),
+        pytest.param(
+            "hermes_ms.jsonl",
+            [HERMES_SESSION_MS],
+            # Same instant as the seconds-form "hermes" case above -- `started_at` is
+            # just expressed in milliseconds here.
+            ("hermes", "20260605_092247_d018ec", "Run pwd and date.", "2026-06-05T13:22:48.307Z", 1, 1),
+            id="hermes-ms",
         ),
         pytest.param(
             "droid.jsonl",
