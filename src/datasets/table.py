@@ -2206,6 +2206,15 @@ def embed_array_storage(
 
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
+
+    # Force contiguous copy for sliced list arrays to avoid SIGKILL crash.
+    # When ds.shard() or ds.select() creates a sliced view, array.values returns
+    # values with internal offset references that can cause PyArrow's C++ layer
+    # to crash when processing nested types like Sequence(Nifti()).
+    if pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
+        if hasattr(array, "offset") and array.offset > 0:
+            array = pa.concat_arrays([array])
+
     if hasattr(feature, "embed_storage"):
         return feature.embed_storage(
             array, token_per_repo_id=token_per_repo_id, local_files=local_files, remote_files=remote_files
