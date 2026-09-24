@@ -17,6 +17,8 @@
     title: Preprocess
   - local: create_dataset
     title: Create a dataset
+  - local: repository_structure
+    title: Structure your repository
   - local: upload_dataset
     title: Share a dataset to the Hub
   title: "Tutorials"
@@ -116,8 +118,6 @@
       title: Share
     - local: dataset_card
       title: Create a dataset card
-    - local: repository_structure
-      title: Structure your repository
     title: "Dataset repository"
   title: "How-to guides"
 - sections:
