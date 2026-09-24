@@ -21,6 +21,7 @@ import pyarrow as pa
 import pytest
 from absl.testing import parameterized
 from fsspec.core import strip_protocol
+from fsspec.spec import AbstractFileSystem
 from packaging import version
 
 import datasets.arrow_dataset
@@ -4547,6 +4548,45 @@ def test_dummy_dataset_serialize_fs(dataset, mockfs):
     assert len(reloaded) == len(dataset)
     assert reloaded.features == dataset.features
     assert reloaded.to_dict() == dataset.to_dict()
+
+
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_load_from_disk_remote_parent_after_child(mockfs: AbstractFileSystem, keep_in_memory: bool) -> None:
+    parent_path = f"mock://bucket/parent-{keep_in_memory}"
+    child_path = f"{parent_path}/child"
+    Dataset.from_dict({"value": [10, 20]}).save_to_disk(
+        dataset_path=parent_path, storage_options=mockfs.storage_options
+    )
+    Dataset.from_dict({"value": [30]}).save_to_disk(dataset_path=child_path, storage_options=mockfs.storage_options)
+
+    child: Dataset = load_from_disk(
+        dataset_path=child_path, keep_in_memory=keep_in_memory, storage_options=mockfs.storage_options
+    )
+    parent: Dataset = load_from_disk(
+        dataset_path=parent_path, keep_in_memory=keep_in_memory, storage_options=mockfs.storage_options
+    )
+
+    assert parent.to_dict() == {"value": [10, 20]}
+    assert child.to_dict() == {"value": [30]}
+
+
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_load_from_disk_remote_refresh(mockfs: AbstractFileSystem, keep_in_memory: bool) -> None:
+    dataset_path = f"mock://bucket/refresh-{keep_in_memory}"
+    Dataset.from_dict({"value": [10]}).save_to_disk(dataset_path=dataset_path, storage_options=mockfs.storage_options)
+    original: Dataset = load_from_disk(
+        dataset_path=dataset_path, keep_in_memory=keep_in_memory, storage_options=mockfs.storage_options
+    )
+
+    Dataset.from_dict({"value": [20, 30]}).save_to_disk(
+        dataset_path=dataset_path, storage_options=mockfs.storage_options
+    )
+    reloaded: Dataset = load_from_disk(
+        dataset_path=dataset_path, keep_in_memory=keep_in_memory, storage_options=mockfs.storage_options
+    )
+
+    assert reloaded.to_dict() == {"value": [20, 30]}
+    assert original.to_dict() == {"value": [10]}
 
 
 @pytest.mark.parametrize(
