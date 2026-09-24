@@ -20,7 +20,16 @@ Creating a dataset card is easy and can be done in just a few steps:
 
 3. Click on the **Import dataset card template** link to automatically create a template with all the relevant fields to complete. Fill out the template sections to the best of your ability. Take a look at the [Dataset Card Creation Guide](https://github.com/huggingface/datasets/blob/main/templates/README_guide.md) for more detailed information about what to include in each section of the card. For fields you are unable to complete, you can write **[More Information Needed]**.
 
-4. Once you're done, commit the changes to the `README.md` file and you'll see the completed dataset card on your repository.
+4. Providing a **Minimal Usage Example** helps users quickly understand how to load and inspect a dataset. Refer to the below example. If a dataset offers multiple configurations, consider mentioning the most commonly used one explicitly.
+
+```python
+from datasets import load_dataset
+
+dataset = load_dataset("ag_news")
+print(dataset)
+print(dataset["train"][0])
+```
+5. Once you're done, commit the changes to the `README.md` file and you'll see the completed dataset card on your repository.
 
 YAML also allows you to customize the way your dataset is loaded by [defining splits and/or configurations](./repository_structure#define-your-splits-and-subsets-in-yaml) without the need to write any code.
 
