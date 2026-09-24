@@ -111,6 +111,7 @@ FILES_TO_IGNORE = [
     "dataset_infos.json",
     "dummy_data.zip",
     "dataset_dict.json",
+    "state.json",
 ]
 
 
