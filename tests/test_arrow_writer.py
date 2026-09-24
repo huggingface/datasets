@@ -1,4 +1,5 @@
 import copy
+import io
 import json
 import os
 import tempfile
@@ -11,7 +12,13 @@ import pyarrow.parquet as pq
 import pytest
 
 from datasets import config
-from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence
+from datasets.arrow_writer import (
+    ArrowWriter,
+    OptimizedTypedSequence,
+    ParquetWriter,
+    SchemaInferenceError,
+    TypedSequence,
+)
 from datasets.features import Array2D, ClassLabel, Features, Image, Value
 from datasets.features.features import Array2DExtensionType, cast_to_python_objects
 
@@ -439,3 +446,65 @@ def test_always_nullable():
     with ArrowWriter(stream=output) as writer:
         writer._build_writer(inferred_schema=non_nullable_schema)
         assert writer._schema == pa.schema([pa.field("col_1", pa.string())])
+
+
+class _StreamThatFailsToClose(io.BytesIO):
+    """A stream that marks itself closed and then fails, as fsspec does.
+
+    `AbstractBufferedFile.close` sets `self.closed` in its own `finally`, so the flag
+    is set even when the flush beneath it raises. That order is what the test needs:
+    pyarrow refuses to build a writer over a stream reporting `closed`, so a second
+    finalize() that rebuilt one would fail there rather than reusing the first error.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self._closed = False
+
+    @property
+    def closed(self):
+        return self._closed
+
+    def close(self):
+        self._closed = True
+        raise OSError(28, "No space left on device")
+
+
+def test_finalize_does_not_mask_a_failing_stream_close():
+    # Callers finalize in a `finally` and can reach the same writer twice, e.g.
+    # GeneratorBasedBuilder._prepare_split_single when a shard rotation fails. The
+    # second call must not replace the original error with one of its own.
+    # Reproduction contributed by @ebarkhordar on huggingface/datasets#8558.
+    stream = _StreamThatFailsToClose()
+    writer = ArrowWriter(stream=stream, schema=pa.schema([pa.field("col_1", pa.int64())]))
+    writer.write({"col_1": 1})
+
+    with pytest.raises(OSError) as first:
+        writer.finalize()
+    assert first.value.errno == 28
+
+    num_examples, num_bytes = writer.finalize()
+    assert num_examples == 1
+    assert num_bytes > 0
+
+
+def test_finalize_still_fails_on_rows_written_after_a_finalize():
+    # The early return must not swallow staged rows: writing after a finalize() is a
+    # caller error and has to keep failing, rather than quietly leaving the row out of
+    # the returned count.
+    writer = ArrowWriter(stream=io.BytesIO(), schema=pa.schema([pa.field("col_1", pa.int64())]))
+    writer.write({"col_1": 1})
+    assert writer.finalize() == (1, 8)
+
+    writer.write({"col_1": 2})
+    with pytest.raises(ValueError):
+        writer.finalize()
+
+
+def test_finalize_without_schema_raises_on_every_call():
+    # The unschemaed writer never finishes, so it must not be recorded as finalized:
+    # the error has to survive a second call rather than turning into a silent (0, 0).
+    writer = ArrowWriter(stream=io.BytesIO())
+    for _ in range(2):
+        with pytest.raises(SchemaInferenceError):
+            writer.finalize()
