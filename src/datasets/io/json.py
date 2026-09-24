@@ -104,10 +104,9 @@ class JsonDatasetWriter:
         if compression not in [None, "infer", "gzip", "bz2", "xz"]:
             raise NotImplementedError(f"`datasets` currently does not support {compression} compression")
 
-        if not lines and self.batch_size < self.dataset.num_rows:
-            raise NotImplementedError(
-                "Output JSON will not be formatted correctly when lines = False and batch_size < number of rows in the dataset. Use pandas.DataFrame.to_json() instead."
-            )
+        if not lines:
+            # lines=False requires a single JSON array - force batch_size to cover all rows
+            self.batch_size = self.dataset.num_rows
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
             with fsspec.open(
