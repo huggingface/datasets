@@ -128,7 +128,7 @@ REQUIRED_PKGS = [
     # To get datasets from the Datasets Hub on huggingface.co
     # (also provides the HTTP client: `from huggingface_hub.utils import httpx`)
     # minimum 1.31.0 for the `huggingface_hub.utils.httpx` re-export
-    "huggingface-hub>=1.31.0,<2.0",
+    "huggingface-hub==1.33.0.rc1",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
