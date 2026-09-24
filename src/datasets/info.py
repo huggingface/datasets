@@ -320,6 +320,7 @@ class DatasetInfo:
                 yaml_data["splits"] = SplitDict._from_yaml_list(yaml_data["splits"])
             except ValueError as e:
                 logger.warning(f"Ignoring part of dataset_info from the dataset card: {e}")
+                del yaml_data["splits"]
         field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in yaml_data.items() if k in field_names})
 
