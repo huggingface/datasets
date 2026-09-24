@@ -68,14 +68,29 @@ def _batch_arrow_table(table: pa.Table) -> pa.Table:
     return pa.Table.from_arrays(batched_columns, names=table.column_names)
 
 
+# handles nulls seperaty since arrow comparisons return null for them
+def _not_equal_with_nulls(
+    left: Union[pa.Array, pa.ChunkedArray, pa.Scalar], right: Union[pa.Array, pa.ChunkedArray, pa.Scalar]
+) -> Union[pa.Array, pa.ChunkedArray, pa.Scalar]:
+    null_mismatch = pc.xor(pc.is_null(left), pc.is_null(right))
+    if pa.types.is_null(left.type):
+        return null_mismatch
+    return pc.or_(pc.fill_null(pc.not_equal(left, right), False), null_mismatch)
+
+
 def _batch_accumulate_arrow_table_by_columns(
-    table: pa.Table, indices: list[int], columns: tuple[str], tables_accumulator: list[pa.Table], length: Optional[int]
+    table: pa.Table,
+    indices: list[int],
+    columns: tuple[str],
+    tables_accumulator: list[pa.Table],
+    length: Optional[int],
+    max_batch_size: Optional[int] = None,
 ) -> pa.Table:
     accumulate_last_batch = length is None or indices[-1] + 1 < length
     # keep accumulating if key is the same, otherwise include the accumulated tables
-    if tables_accumulator and accumulate_last_batch:
+    if max_batch_size is None and tables_accumulator and accumulate_last_batch:
         for column in columns:
-            if any(pc.not_equal(table[column], tables_accumulator[0][column][0]).to_pylist()):
+            if any(_not_equal_with_nulls(table[column], tables_accumulator[0][column][0]).to_pylist()):
                 break
         else:
             tables_accumulator.append(table)
@@ -93,25 +108,34 @@ def _batch_accumulate_arrow_table_by_columns(
         return table
     # cut the table per key, i.e. when the columns change value
     if len(table) > 1:
-        cut_array = pc.not_equal(table[columns[0]][1:], table[columns[0]][:-1])
+        cut_array = _not_equal_with_nulls(table[columns[0]][1:], table[columns[0]][:-1])
         for column in columns[1:]:
-            cut_array = pc.or_(cut_array, pc.not_equal(table[column][1:], table[column][:-1]))
+            cut_array = pc.or_(cut_array, _not_equal_with_nulls(table[column][1:], table[column][:-1]))
     else:
-        cut_array = pa.array([], type=pa.uint64())
-    offsets = pc.indices_nonzero(cut_array)
+        cut_array = pa.array([], type=pa.bool_())
+    cut_offsets = pc.add(1, pc.indices_nonzero(cut_array)).to_pylist()
+    run_offsets = [0, *cut_offsets, len(table)]
+    offsets = [0]
+    last_offset = len(table)
+    for start, end in zip(run_offsets, run_offsets[1:]):
+        if max_batch_size is not None:
+            chunk_end = start + max_batch_size
+            while chunk_end <= end:
+                offsets.append(chunk_end)
+                chunk_end += max_batch_size
+        if end == len(table) and accumulate_last_batch:
+            last_offset = offsets[-1]
+        elif offsets[-1] != end:
+            offsets.append(end)
     # make the batched table
-    offsets = pc.add(1, offsets)
-    offsets = pa.concat_arrays([pa.array([0], type=pa.int32()), offsets.cast(pa.int32())])
-    if not accumulate_last_batch:
-        offsets = pa.concat_arrays([offsets, pa.array([len(table)], type=pa.int32())])
+    offsets_array = pa.array(offsets, type=pa.int32())
     batched_columns = []
     for column_name in table.column_names:
         column = table[column_name].combine_chunks()
-        batched_columns.append(pa.ListArray.from_arrays(offsets, column))
+        batched_columns.append(pa.ListArray.from_arrays(offsets_array, column))
     batched_table = pa.Table.from_arrays(batched_columns, names=table.column_names)
     # add the last batch to the accumulator since it might not be full yet
-    if accumulate_last_batch:
-        last_offset = offsets[-1].as_py()
+    if last_offset < len(table):
         tables_accumulator.append(table.slice(last_offset, len(table) - last_offset))
     return batched_table
 
