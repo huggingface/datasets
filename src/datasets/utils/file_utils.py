@@ -13,6 +13,7 @@ import os
 import posixpath
 import re
 import shutil
+import sys
 import tarfile
 import time
 import xml.dom.minidom
@@ -43,16 +44,6 @@ from .extract import ExtractManager
 from .track import TrackedIterableFromGenerator
 
 
-try:
-    from aiohttp.client_exceptions import ClientError as _AiohttpClientError
-except ImportError:
-    # aiohttp is not available; synthesize an exception type
-    # that will never be raised by any actual code for use in the `except`
-    # clause only.
-    class _AiohttpClientError(Exception):
-        pass
-
-
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
 INCOMPLETE_SUFFIX = ".incomplete"
@@ -60,12 +51,20 @@ INCOMPLETE_SUFFIX = ".incomplete"
 T = TypeVar("T", str, Path)
 
 CONNECTION_ERRORS_TO_RETRY = (
-    _AiohttpClientError,
     asyncio.TimeoutError,
     httpx.RequestError,
 )
 SERVER_UNAVAILABLE_CODE = 504
 RATE_LIMIT_CODE = 429
+
+
+def _get_connection_errors_to_retry() -> tuple[type[Exception], ...]:
+    # aiohttp is slow to import, and it can't have raised an error if it was never imported
+    if "aiohttp" in sys.modules:
+        from aiohttp import ClientError
+
+        return CONNECTION_ERRORS_TO_RETRY + (ClientError,)
+    return CONNECTION_ERRORS_TO_RETRY
 
 
 def is_remote_url(url_or_filename: str) -> bool:
@@ -838,7 +837,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
             try:
                 out = read(*args, **kwargs)
                 break
-            except CONNECTION_ERRORS_TO_RETRY as err:
+            except _get_connection_errors_to_retry() as err:
                 disconnect_err = err
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
@@ -978,7 +977,7 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
             if hasattr(fs, "of") and hasattr(fs.of, "__exit__"):
                 file_obj._fs = fs  # keep a reference or the fs might close the file on gc
             break
-        except CONNECTION_ERRORS_TO_RETRY as err:
+        except _get_connection_errors_to_retry() as err:
             disconnect_err = err
             logger.warning(
                 f"Failed to connect to remote data host. Retrying in {config.STREAMING_OPEN_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
