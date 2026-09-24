@@ -807,3 +807,27 @@ def test_json_load_dataset_without_droid_marker_stays_ordinary_json(tmp_path):
 
     assert dataset.column_names == ["type", "id", "version", "timestamp", "message"]
     assert dataset[0]["type"] == "session_start"
+
+
+def test_load_jsonl_with_mixed_shapes_across_chunks(tmp_path):
+    # Shape A then shape B. chunksize must stay below the first group (~380 bytes)
+    # so a chunk can be schema-pure; chunksize=1000 reads this file in one chunk.
+    rows = [{"a": i, "b": "x"} for i in range(20)] + [{"c": i, "d": "y"} for i in range(20)]
+    path = tmp_path / "mixed.jsonl"
+    with path.open("w") as f:
+        for row in rows:
+            f.write(json.dumps(row) + "\n")
+
+    data_files = str(path)
+    single = load_dataset("json", data_files=data_files, split="train", cache_dir=str(tmp_path / "single"))
+    chunked = load_dataset(
+        "json",
+        data_files=data_files,
+        split="train",
+        chunksize=64,
+        cache_dir=str(tmp_path / "chunked"),
+    )
+
+    assert single.column_names == ["a", "b", "c", "d"]
+    assert chunked.column_names == single.column_names
+    assert chunked.to_dict() == single.to_dict()
