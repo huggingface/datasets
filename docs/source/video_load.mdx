@@ -37,7 +37,7 @@ Access frames directly from a video using the `VideoReader` using `next()`:
 ```
 
 To get multiple frames at once, you can call `.get_frames_in_range(start: int, stop: int, step: int)`. This will return a frame batch.
-This is the efficient way to obtain a long list of frames refer to the [torchcodec docs](https://docs.pytorch.org/torchcodec/stable/generated/torchcodec.decoders.VideoDecoder.html) to see more functions for effiently accessing the data:
+This is the efficient way to obtain a long list of frames refer to the [torchcodec docs](https://docs.pytorch.org/torchcodec/stable/generated/torchcodec.decoders.VideoDecoder.html) to see more functions for efficiently accessing the data:
 
 ```python
 >>> import torch
@@ -46,7 +46,7 @@ This is the efficient way to obtain a long list of frames refer to the [torchcod
 torch.Size([5, 3, 240, 320])
 ```
 
-There is also `.get_frames_played_in_range(start_seconds: float, stop_seconds: float)` to access all frames played whithin a certain time range.
+There is also `.get_frames_played_in_range(start_seconds: float, stop_seconds: float)` to access all frames played within a certain time range.
 
 ```python
 >>> frames = video.get_frames_played_in_range(.5, 1.2)
