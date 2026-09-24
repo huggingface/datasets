@@ -15,9 +15,8 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
         streaming: bool = False,
         gen_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
-        split: NamedSplit = Split.TRAIN,
+        split: NamedSplit,
         fingerprint: Optional[str] = None,
-        **kwargs,
     ):
         super().__init__(
             features=features,
@@ -25,7 +24,6 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             keep_in_memory=keep_in_memory,
             streaming=streaming,
             num_proc=num_proc,
-            **kwargs,
         )
         self.builder = Generator(
             cache_dir=cache_dir,
@@ -33,7 +31,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             generator=generator,
             gen_kwargs=gen_kwargs,
             split=split,
-            config_id="default-fingerprint=" + fingerprint if fingerprint else None,
+            config_id=f"default-fingerprint={fingerprint}" if fingerprint else None,
             **kwargs,
         )
         self.fingerprint = fingerprint
@@ -49,14 +47,19 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             verification_mode = None
             base_path = None
 
-            self.builder.download_and_prepare(
-                download_config=download_config,
-                download_mode=download_mode,
-                verification_mode=verification_mode,
-                base_path=base_path,
-                num_proc=self.num_proc,
-            )
-            dataset = self.builder.as_dataset(split=self.builder.config.split, in_memory=self.keep_in_memory)
-            if self.fingerprint:
-                dataset._fingerprint = self.fingerprint
+            try:
+                self.builder.download_and_prepare(
+                    download_config=download_config,
+                    download_mode=download_mode,
+                    verification_mode=verification_mode,
+                    base_path=base_path,
+                    num_proc=self.num_proc,
+                )
+                dataset = self.builder.as_dataset(split=self.builder.config.split, in_memory=self.keep_in_memory)
+                if self.fingerprint:
+                    dataset._fingerprint = self.fingerprint
+            except Exception as e:
+                print(f"An error occurred while reading the dataset: {e}")
+                raise
+
         return dataset
