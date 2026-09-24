@@ -7,7 +7,7 @@ import weakref
 from functools import wraps
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Optional, Union
-
+import types
 import numpy as np
 import xxhash
 
@@ -208,9 +208,39 @@ class Hasher:
         for x in value:
             m.update(x)
         return m.hexdigest()
-
+    @staticmethod
+    def _hash_callable(func):
+        code = func.__code__
+        freevars = {}
+        if func.__closure__:
+            for name, cell in zip(code.co_freevars, func.__closure__):
+                try:
+                    val = cell.cell_contents
+                # if the free variable is an object (like self),
+                # only keep its __dict__ filtered to simple types
+                    if hasattr(val, "__dict__"):
+                        freevars[name] = {
+                        k: v for k, v in val.__dict__.items()
+                        if isinstance(v, (int, float, str, bool, type(None)))
+                        }
+                    else:
+                        freevars[name] = val
+                except ValueError:
+                    freevars[name] = "<empty cell>"
+        return (code.co_code, code.co_consts, code.co_varnames, freevars)
+    
     @classmethod
     def hash(cls, value: Any) -> str:
+        if (
+        isinstance(value, types.FunctionType)
+        and value.__closure__
+        and any(
+            hasattr(cell.cell_contents, "__dict__")
+            for cell in value.__closure__
+            if hasattr(cell, "cell_contents")
+        )
+        ):
+            value = cls._hash_callable(value)
         return cls.hash_bytes(dumps(value))
 
     def update(self, value: Any) -> None:
