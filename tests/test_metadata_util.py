@@ -276,6 +276,34 @@ def test_metadata_configs_incorrect_yaml():
             _ = MetadataConfigs.from_dataset_card_data(dataset_card_data)
 
 
+def test_non_consecutive_config_rows_are_merged_in_metadata_configs_from_exported_parquet_files():
+    exported_parquet_files = [
+        {
+            "config": "default",
+            "split": "train",
+            "url": "https://huggingface.co/datasets/org/name/resolve/refs%2Fconvert%2Fparquet/default/train/0000.parquet",
+        },
+        {
+            "config": "other",
+            "split": "train",
+            "url": "https://huggingface.co/datasets/org/name/resolve/refs%2Fconvert%2Fparquet/other/train/0000.parquet",
+        },
+        {
+            "config": "default",
+            "split": "train",
+            "url": "https://huggingface.co/datasets/org/name/resolve/refs%2Fconvert%2Fparquet/default/train/0001.parquet",
+        },
+    ]
+    metadata_configs = MetadataConfigs._from_exported_parquet_files_and_dataset_infos(
+        "abc123", exported_parquet_files, {}
+    )
+    default_paths = metadata_configs["default"]["data_files"][0]["path"]
+    assert default_paths == [
+        "https://huggingface.co/datasets/org/name/resolve/abc123/default/train/0000.parquet",
+        "https://huggingface.co/datasets/org/name/resolve/abc123/default/train/0001.parquet",
+    ]
+
+
 def test_split_order_in_metadata_configs_from_exported_parquet_files_and_dataset_infos():
     exported_parquet_files = [
         {
