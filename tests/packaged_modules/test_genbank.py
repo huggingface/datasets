@@ -1098,3 +1098,18 @@ def test_genbank_features_subset_selects_columns(tmp_path):
     features = Features({"locus_name": Value("string"), "sequence": Value("large_string")})
     table = next(iter(GenBank(features=features)._generate_tables([[str(filename)]])))[1]
     assert table.column_names == ["locus_name", "sequence"]
+
+
+def test_genbank_minus_strand_multi_exon_join_span_is_min_max(tmp_path):
+    """A minus-strand multi-exon feature is written by NCBI/Biopython as
+    ``complement(join(<high>..<higher>,<low>..<lower>))`` (exons in transcription order,
+    i.e. descending genomic order). The aggregate span must still be min-start/max-end,
+    as Biopython's CompoundLocation reports, not first-part-start/last-part-end."""
+    _, features = _parse_one(tmp_path, _HDR + "     CDS             complement(join(121..180,11..60))\n" + _ORIGIN)
+    location = features[0]["location"]
+    assert location["strand"] == -1
+    assert location["operator"] == "join"
+    assert location["parts"] == [[121, 180], [11, 60]]
+    assert location["start"] == 11
+    assert location["end"] == 180
+    assert location["start"] <= location["end"]
