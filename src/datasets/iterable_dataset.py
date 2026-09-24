@@ -5169,7 +5169,7 @@ class IterableDataset(DatasetInfoMixin):
                 organization's default is private. This value is ignored if the repo already exists.
             token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
-                to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
+                to the token saved locally when logging in with `hf auth login`. Will raise an error
                 if no token is passed and the user is not logged-in.
             revision (`str`, *optional*):
                 Branch to push the uploaded files to. Defaults to the `"main"` branch.
