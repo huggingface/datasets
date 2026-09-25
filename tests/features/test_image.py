@@ -113,6 +113,35 @@ def test_image_decode_example_with_exif_orientation_tag(shared_datadir):
 
 
 @require_pil
+@pytest.mark.parametrize("image_format", ["JPEG", "PNG", "TIFF"])
+@pytest.mark.parametrize("orientation", [1, 2, 6, 8])
+def test_image_feature_encode_pil_with_exif_orientation(image_format, orientation):
+    import PIL.Image
+
+    buffer = BytesIO()
+    exif = PIL.Image.Exif()
+    exif[PIL.Image.ExifTags.Base.Orientation] = orientation
+    colors = np.array([[[255, 0, 0], [0, 255, 0]], [[0, 0, 255], [255, 255, 255]]], dtype=np.uint8)
+    pixels = colors.repeat(16, axis=0).repeat(32, axis=1)
+    PIL.Image.fromarray(pixels).save(buffer, format=image_format, exif=exif)
+    image_bytes = buffer.getvalue()
+    feature = Image()
+    expected = {1: pixels, 2: pixels[:, ::-1], 6: np.rot90(pixels, -1), 8: np.rot90(pixels)}[orientation]
+
+    image = PIL.Image.open(BytesIO(image_bytes))
+    dataset = Dataset.from_dict({"image": [image]}, features=Features({"image": feature}))
+    decoded = dataset[0]["image"]
+
+    assert decoded.size == (expected.shape[1], expected.shape[0])
+    assert decoded.mode == "RGB"
+    assert decoded.format == image_format
+    if image_format == "JPEG":  # Compare inside the color blocks, allowing for lossy compression.
+        np.testing.assert_allclose(np.array(decoded)[8::16, 8::16].astype(np.int16), expected[8::16, 8::16], atol=10)
+    else:
+        np.testing.assert_array_equal(np.array(decoded), expected)
+
+
+@require_pil
 def test_image_change_mode(shared_datadir):
     import PIL.Image
 
