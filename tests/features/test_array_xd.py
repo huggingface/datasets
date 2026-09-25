@@ -454,6 +454,20 @@ def test_array_xd_with_np(seq_type, dtype, shape, feature_class):
     assert ds[0]["col"] == expected
 
 
+@pytest.mark.parametrize(
+    "feature,data",
+    [
+        (datasets.Array2D(shape=(2, 2), dtype="int64"), [[[1, 2, 3], [4]]]),
+        (datasets.Array2D(shape=(2, 2), dtype="int64"), [np.array([[1, 2, 3, 4]])]),
+        (datasets.Array2D(shape=(None, 2), dtype="int64"), [[[1, 2, 3], [4]]]),
+        (datasets.Array3D(shape=(2, 1, 2), dtype="int64"), [[[[1, 2, 3]], [[4]]]]),
+    ],
+)
+def test_array_xd_rejects_incorrect_shape(feature, data):
+    with pytest.raises(TypeError, match="Array shape mismatch"):
+        datasets.Dataset.from_dict({"col": data}, features=datasets.Features({"col": feature}))
+
+
 @pytest.mark.parametrize("with_none", [False, True])
 def test_dataset_map(with_none):
     ds = datasets.Dataset.from_dict({"path": ["path1", "path2"]})
