@@ -3744,7 +3744,10 @@ class IterableDataset(DatasetInfoMixin):
             is_batch_accumulate_arrow_table_function=is_batch_accumulate_arrow_table_function,
         )
         info = self.info.copy()
-        info.features = features
+        if features is not None:
+            info.features = features
+        elif remove_columns is not None and info.features is not None:
+            info.features = Features({k: v for k, v in info.features.items() if k not in remove_columns})
         return IterableDataset(
             ex_iterable=ex_iterable,
             info=info,
@@ -4166,17 +4169,30 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-    def add_column(self, name: str, column: Union[list, np.array]) -> "IterableDataset":
+    def add_column(self, name: str, column: Union[list, np.array], feature: Optional[FeatureType] = None) -> "IterableDataset":
         """Add column to Dataset.
 
         Args:
             name (str): Column name.
             column (list or np.array): Column data to be added.
+            feature (`FeatureType` or `None`, defaults to `None`):
+                Column datatype.
 
         Returns:
             `IterableDataset`
         """
-        return self.map(partial(add_column_fn, name=name, column=column), with_indices=True)
+        if feature is None:
+            column_table = pa.Table.from_pydict({name: column})
+            new_features = Features.from_arrow_schema(column_table.schema)
+        else:
+            new_features = Features({name: feature})
+        info = self.info.copy()
+        if info.features is not None:
+            info.features = info.features.copy()
+            info.features.update(new_features)
+        else:
+            info.features = new_features
+        return self.map(partial(add_column_fn, name=name, column=column), with_indices=True, features=info.features)
 
     def rename_column(self, original_column_name: str, new_column_name: str) -> "IterableDataset":
         """
