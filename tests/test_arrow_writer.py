@@ -12,7 +12,7 @@ import pytest
 
 from datasets import config
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence
-from datasets.features import Array2D, ClassLabel, Features, Image, Value
+from datasets.features import Array2D, ClassLabel, Features, Image, List, Value
 from datasets.features.features import Array2DExtensionType, cast_to_python_objects
 
 from .utils import require_pil
@@ -332,6 +332,38 @@ def test_parquet_writer_write():
     stream = pa.BufferReader(output.getvalue())
     pa_table: pa.Table = pq.read_table(stream)
     assert pa_table.to_pydict() == {"col_1": ["foo", "bar"], "col_2": [1, 2]}
+
+
+def test_parquet_writer_compresses_nested_columns():
+    features = Features(
+        {
+            "text": Value("string"),
+            "nested": List({"a": Value("int64"), "b": List(Value("string"))}),
+            "array": Array2D(shape=(2, 2), dtype="int32"),
+            "image": Image(),
+        }
+    )
+    output = pa.BufferOutputStream()
+    with ParquetWriter(stream=output, features=features) as writer:
+        writer.write(
+            {
+                "text": "foo",
+                "nested": [{"a": 1, "b": ["bar"]}],
+                "array": [[1, 2], [3, 4]],
+                "image": {"bytes": b"image_bytes", "path": None},
+            }
+        )
+        writer.finalize()
+    metadata = pq.ParquetFile(pa.BufferReader(output.getvalue())).metadata
+    columns = [metadata.row_group(0).column(i) for i in range(metadata.num_columns)]
+    assert {column.path_in_schema: column.compression for column in columns} == {
+        "text": "SNAPPY",
+        "nested.list.element.a": "SNAPPY",
+        "nested.list.element.b.list.element": "SNAPPY",
+        "array.list.element.list.element": "SNAPPY",
+        "image.bytes": "UNCOMPRESSED",
+        "image.path": "UNCOMPRESSED",
+    }
 
 
 def test_parquet_writer_uses_content_defined_chunking():
