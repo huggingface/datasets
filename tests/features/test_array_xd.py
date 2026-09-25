@@ -368,6 +368,30 @@ def test_table_to_pandas(dtype, dummy_value):
 
 
 @pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
+def test_table_to_pandas_dtype_is_comparable_and_hashable(dtype, dummy_value):
+    # Pandas iterates over `PandasArrayExtensionDtype._metadata` to compare and hash dtypes,
+    # so both raised `AttributeError: ... has no attribute 'v'` back when it was the string
+    # "value_type" rather than a tuple of attribute names.
+    features = datasets.Features({"foo": datasets.Array2D(dtype=dtype, shape=(2, 2))})
+    dataset = datasets.Dataset.from_dict({"foo": [[[dummy_value] * 2] * 2]}, features=features)
+    df = dataset._data.to_pandas()
+    assert isinstance(df.foo.dtype, PandasArrayExtensionDtype)
+    assert df.foo.dtype == df.foo.dtype
+    assert hash(df.foo.dtype) == hash(df.foo.dtype)
+
+
+def test_table_to_pandas_boolean_mask():
+    # Selecting rows compares the block dtype against itself, which used to raise.
+    features = datasets.Features({"foo": datasets.Array2D(dtype="float64", shape=(2, 2))})
+    dataset = datasets.Dataset.from_dict({"foo": [[[0.0] * 2] * 2, [[1.0] * 2] * 2]}, features=features)
+    df = dataset._data.to_pandas()
+
+    masked = df[pd.Series([False, True])]
+    assert len(masked) == 1
+    np.testing.assert_equal(masked.foo.to_numpy(), np.array([[[1.0] * 2] * 2], dtype=np.dtype("float64")))
+
+
+@pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
 def test_array_xd_numpy_arrow_extractor(dtype, dummy_value):
     features = datasets.Features({"foo": datasets.Array2D(dtype=dtype, shape=(2, 2))})
     dataset = datasets.Dataset.from_dict({"foo": [[[dummy_value] * 2] * 2]}, features=features)
