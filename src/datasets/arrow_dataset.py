@@ -6938,6 +6938,9 @@ def _get_updated_dataset_card(
             repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
             repo_info.splits.pop(split, None)
             repo_info.splits[split] = split_info
+        # the pushed features win: reaching here with other splits on the repo means
+        # they already matched, so this only takes effect when the push replaces them all
+        repo_info.features = features
         info_to_dump = repo_info
     else:
         info_to_dump = DatasetInfo(

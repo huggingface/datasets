@@ -194,3 +194,71 @@ def test_get_updated_dataset_card_keeps_existing_splits_when_appending():
 
     data_files = MetadataConfigs.from_dataset_card_data(dataset_card.data)["default"]["data_files"]
     assert [entry["split"] for entry in data_files] == ["train", "test"]
+
+
+README_WITH_FEATURES = (
+    "---\nconfigs:\n- config_name: default\n  data_files:\n  - split: train\n    path: data/train-*\n"
+    "dataset_info:\n  features:\n  - name: x\n    dtype: int64\n  - name: dropped\n    dtype: string\n"
+    "  splits:\n  - name: train\n    num_bytes: 40\n    num_examples: 5\n"
+    "  download_size: 40\n  dataset_size: 40\n---\n"
+)
+
+
+@pytest.mark.unit
+def test_get_updated_dataset_card_updates_features_when_replacing_sole_split():
+    mem = MemoryFileSystem(skip_instance_cache=True)
+    fs = DirFileSystem("/refeature", fs=mem)
+
+    with fs.open(config.REPOCARD_FILENAME, "w") as f:
+        f.write(README_WITH_FEATURES)
+
+    # re-pushing the only split with different columns: the shards no longer carry
+    # "dropped", so a card that still declares it makes the dataset fail to cast
+    new_features = Features({"x": Value("int64"), "added": Value("int64")})
+    dataset_card, _ = _get_updated_dataset_card(
+        fs=fs,
+        config_name="default",
+        splits_info=[SplitInfo(name="train", num_bytes=80, num_examples=7)],
+        features=new_features,
+        data_dir="data",
+        set_default=None,
+        uploaded_sizes=[80],
+        deleted_sizes=[40],
+        remove_other_splits=False,
+    )
+
+    dataset_info = DatasetInfosDict.from_dataset_card_data(dataset_card.data)["default"]
+    assert dataset_info.features == new_features
+    assert dataset_info.splits["train"].num_examples == 7
+
+
+@pytest.mark.unit
+def test_get_updated_dataset_card_rejects_features_mismatch_against_other_splits():
+    mem = MemoryFileSystem(skip_instance_cache=True)
+    fs = DirFileSystem("/mismatch", fs=mem)
+
+    with fs.open(config.REPOCARD_FILENAME, "w") as f:
+        f.write(
+            README_WITH_FEATURES.replace(
+                "  - split: train\n    path: data/train-*\n",
+                "  - split: train\n    path: data/train-*\n  - split: test\n    path: data/test-*\n",
+            ).replace(
+                "  - name: train\n    num_bytes: 40\n    num_examples: 5\n",
+                "  - name: train\n    num_bytes: 40\n    num_examples: 5\n"
+                "  - name: test\n    num_bytes: 20\n    num_examples: 2\n",
+            )
+        )
+
+    # "test" keeps the old columns, so accepting the push would leave the splits disagreeing
+    with pytest.raises(ValueError, match="don't match the features of the existing splits"):
+        _get_updated_dataset_card(
+            fs=fs,
+            config_name="default",
+            splits_info=[SplitInfo(name="train", num_bytes=80, num_examples=7)],
+            features=Features({"x": Value("int64"), "added": Value("int64")}),
+            data_dir="data",
+            set_default=None,
+            uploaded_sizes=[80],
+            deleted_sizes=[40],
+            remove_other_splits=False,
+        )
