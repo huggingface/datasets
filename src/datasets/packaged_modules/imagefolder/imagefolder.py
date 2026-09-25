@@ -99,5 +99,7 @@ IMAGE_EXTENSIONS = [
     ".emf",
     ".xbm",
     ".xpm",
+    # Formats handled by third-party Pillow plugins (see `datasets.features.image`):
+    ".jxl",  # pillow-jxl-plugin
 ]
 ImageFolder.EXTENSIONS = IMAGE_EXTENSIONS
