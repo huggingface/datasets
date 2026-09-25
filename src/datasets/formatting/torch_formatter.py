@@ -33,6 +33,8 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
     def __init__(self, features=None, token_per_repo_id=None, **torch_tensor_kwargs):
         super().__init__(features=features, token_per_repo_id=token_per_repo_id)
         self.torch_tensor_kwargs = torch_tensor_kwargs
+        self._tensor_backend = "torch"
+        self._tensor_kwargs = torch_tensor_kwargs
         import torch  # noqa import torch at initialization
 
     def _consolidate(self, column):
@@ -57,10 +59,11 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
         default_dtype = {}
 
         if isinstance(value, (np.number, np.ndarray)) and np.issubdtype(value.dtype, np.integer):
-            default_dtype = {"dtype": torch.int64}
+            # Preserve the unsigned range instead of wrapping values above 2**63.
+            default_dtype = {"dtype": torch.uint64 if value.dtype == np.uint64 else torch.int64}
 
             # Convert dtype to np.int64 if it's either np.uint16 or np.uint32 to ensure compatibility.
-            # np.uint64 is excluded from this conversion as there is no compatible PyTorch dtype that can handle it without loss.
+            # np.uint64 uses torch.uint64 to preserve its full range.
             if value.dtype in [np.uint16, np.uint32]:
                 value = value.astype(np.int64)
 
@@ -112,19 +115,19 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
     def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.numpy_arrow_extractor().extract_row(pa_table)
         row = self.python_features_decoder.decode_row(row)
-        return self.recursive_tensorize(row)
+        return self.tensorize_row(row)
 
     def format_column(self, pa_table: pa.Table) -> "torch.Tensor":
         column = self.numpy_arrow_extractor().extract_column(pa_table)
         column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
-        column = self.recursive_tensorize(column)
+        column = self.tensorize_column(column, pa_table.column_names[0])
         column = self._consolidate(column)
         return column
 
     def format_batch(self, pa_table: pa.Table) -> Mapping:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
         batch = self.python_features_decoder.decode_batch(batch)
-        batch = self.recursive_tensorize(batch)
+        batch = self.tensorize_batch(batch)
         for column_name in batch:
             batch[column_name] = self._consolidate(batch[column_name])
         return batch

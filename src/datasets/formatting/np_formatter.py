@@ -27,6 +27,8 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
     def __init__(self, features=None, token_per_repo_id=None, **np_array_kwargs):
         super().__init__(features=features, token_per_repo_id=token_per_repo_id)
         self.np_array_kwargs = np_array_kwargs
+        self._tensor_backend = "numpy"
+        self._tensor_kwargs = np_array_kwargs
 
     def _consolidate(self, column):
         if isinstance(column, list):
@@ -54,7 +56,8 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
         default_dtype = {}
 
         if isinstance(value, np.ndarray) and np.issubdtype(value.dtype, np.integer):
-            default_dtype = {"dtype": np.int64}
+            # uint64 cannot be represented losslessly by the signed default.
+            default_dtype = {"dtype": np.uint64 if value.dtype == np.uint64 else np.int64}
         elif isinstance(value, np.ndarray) and np.issubdtype(value.dtype, np.floating):
             default_dtype = {"dtype": np.float32}
 
@@ -102,19 +105,19 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
     def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.numpy_arrow_extractor().extract_row(pa_table)
         row = self.python_features_decoder.decode_row(row)
-        return self.recursive_tensorize(row)
+        return self.tensorize_row(row)
 
     def format_column(self, pa_table: pa.Table) -> np.ndarray:
         column = self.numpy_arrow_extractor().extract_column(pa_table)
         column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
-        column = self.recursive_tensorize(column)
+        column = self.tensorize_column(column, pa_table.column_names[0])
         column = self._consolidate(column)
         return column
 
     def format_batch(self, pa_table: pa.Table) -> Mapping:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
         batch = self.python_features_decoder.decode_batch(batch)
-        batch = self.recursive_tensorize(batch)
+        batch = self.tensorize_batch(batch)
         for column_name in batch:
             batch[column_name] = self._consolidate(batch[column_name])
         return batch
