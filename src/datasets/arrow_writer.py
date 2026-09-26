@@ -337,7 +337,15 @@ class TypedSequence:
                     for json_field_path in json_field_paths:
                         examples = [json_encode_field(examples, json_field_path) for examples in examples]
                 # to arrow array
-                out = pa.array(cast_to_python_objects(examples, only_1d_for_numpy=True))
+                examples = cast_to_python_objects(examples, only_1d_for_numpy=True)
+                try:
+                    out = pa.array(examples)
+                except OverflowError:
+                    # pyarrow infers int64 for Python ints, so values beyond the int64 range, like 64-bit hashes
+                    # in a uint64 column, overflow before they can be cast. Pass the requested type instead.
+                    if pa_type is None or json_field_paths:
+                        raise
+                    out = pa.array(examples, type=pa_type)
                 # cast to json type if needed
                 if json_field_paths:
                     pa_table = pa.Table.from_arrays([out], names=["obj"])
