@@ -3796,6 +3796,34 @@ def test_concatenate_datasets_duplicate_columns(dataset):
     assert "duplicated" in str(excinfo.value)
 
 
+def test_concatenate_datasets_axis_1_with_a_dataset_with_no_rows():
+    # A source with no rows still contributes its columns, so its row count must be checked
+    # like any other source. It used to be dropped before the check, which silently removed
+    # "col_2" from the result instead of raising.
+    dataset1 = Dataset.from_dict({"col_1": [0, 1, 2]})
+    dataset2 = Dataset.from_dict({"col_2": []}, features=Features({"col_2": Value("int64")}))
+    with pytest.raises(ValueError) as excinfo:
+        concatenate_datasets([dataset1, dataset2], axis=1)
+    assert "Number of rows must match" in str(excinfo.value)
+
+
+def test_concatenate_datasets_axis_1_when_every_dataset_has_no_rows():
+    dataset1 = Dataset.from_dict({"col_1": []}, features=Features({"col_1": Value("int64")}))
+    dataset2 = Dataset.from_dict({"col_2": []}, features=Features({"col_2": Value("string")}))
+    dataset = concatenate_datasets([dataset1, dataset2], axis=1)
+    assert dataset.num_rows == 0
+    assert dataset.column_names == ["col_1", "col_2"]
+    assert dataset.features == Features({"col_1": Value("int64"), "col_2": Value("string")})
+
+
+def test_concatenate_datasets_axis_0_still_ignores_datasets_with_no_rows():
+    dataset1 = Dataset.from_dict({"col_1": [0, 1, 2]})
+    dataset2 = Dataset.from_dict({"col_2": []}, features=Features({"col_2": Value("int64")}))
+    dataset = concatenate_datasets([dataset1, dataset2], axis=0)
+    assert dataset.column_names == ["col_1"]
+    assert dataset[:] == {"col_1": [0, 1, 2]}
+
+
 def test_interleave_datasets():
     d1 = Dataset.from_dict({"a": [0, 1, 2]})
     d2 = Dataset.from_dict({"a": [10, 11, 12, 13]})
