@@ -12,7 +12,12 @@ from absl.testing import parameterized
 import datasets
 from datasets.arrow_writer import ArrowWriter
 from datasets.features import Array2D, Array3D, Array4D, Array5D, Value
-from datasets.features.features import Array3DExtensionType, PandasArrayExtensionDtype, _ArrayXD
+from datasets.features.features import (
+    Array3DExtensionType,
+    PandasArrayExtensionArray,
+    PandasArrayExtensionDtype,
+    _ArrayXD,
+)
 from datasets.formatting.formatting import NumpyArrowExtractor, SimpleArrowExtractor
 
 
@@ -365,6 +370,23 @@ def test_table_to_pandas(dtype, dummy_value):
     assert isinstance(df.foo.dtype, PandasArrayExtensionDtype)
     arr = df.foo.to_numpy()
     np.testing.assert_equal(arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype)))
+
+
+@pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
+def test_pandas_array_extension_array_take_allow_fill(dtype, dummy_value):
+    data = np.array([[[dummy_value] * 2] * 2] * 2, dtype=np.dtype(dtype))
+    arr = PandasArrayExtensionArray(data)
+    # pandas passes `allow_fill=True` together with a NaN `fill_value` even when no index is -1,
+    # e.g. when selecting the rows of a DataFrame with a boolean mask
+    taken = arr.take([1], allow_fill=True, fill_value=np.nan)
+    assert isinstance(taken, PandasArrayExtensionArray)
+    np.testing.assert_equal(np.asarray(taken), data[[1]])
+    # -1 indices are still filled
+    taken = arr.take([0, -1], allow_fill=True, fill_value=dummy_value)
+    np.testing.assert_equal(np.asarray(taken), data)
+    # and indices below -1 are still rejected
+    with pytest.raises(ValueError):
+        arr.take([-2], allow_fill=True, fill_value=np.nan)
 
 
 @pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
