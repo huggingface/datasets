@@ -7226,7 +7226,11 @@ def _interleave_map_style_datasets(
 
     else:
         # boolean array indicating if at index i if the dataset_i has been fully exhausted
-        is_exhausted = np.full(len(lengths), False)
+        is_exhausted = (
+            np.asarray(lengths) == 0
+            if stopping_strategy == "all_exhausted_without_replacement"
+            else np.full(len(lengths), False)
+        )
 
         # if undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted
         # if oversampling ("all_exhausted"), we stop as soons as every dataset is exhausted, i.e as soon as every samples of every dataset has been visited at least once
