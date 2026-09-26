@@ -4115,6 +4115,13 @@ class IterableDataset(DatasetInfoMixin):
         })
         ```
         """
+        if num_shards > self.num_shards:
+            raise ValueError(
+                f"num_shards ({num_shards}) must be less than or equal to the number of shards in the dataset "
+                f"({self.num_shards}); the requested shard would otherwise be empty."
+            )
+        if not 0 <= index < num_shards:
+            raise ValueError(f"index ({index}) must be in the range [0, num_shards) = [0, {num_shards})")
         ex_iterable = self._ex_iterable.shard_data_sources(num_shards=num_shards, index=index, contiguous=contiguous)
         return IterableDataset(
             ex_iterable=ex_iterable,
