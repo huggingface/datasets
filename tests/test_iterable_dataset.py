@@ -2216,6 +2216,123 @@ def test_iterable_dataset_shuffle_buffer_uses_multiple_input_shards():
     assert 2 < len(shard_indices_of_first_ten_examples) <= 5
 
 
+def generate_numbered_shards(shards):
+    for shard in shards:
+        for offset in range(10):
+            yield {"id": 10 * shard + offset}
+
+
+def make_numbered_shards_dataset(source_type, num_shards):
+    if source_type == "arrow":
+        return IterableDataset.from_dict({"id": range(10 * num_shards)}, num_shards=num_shards)
+    return IterableDataset.from_generator(generate_numbered_shards, gen_kwargs={"shards": list(range(num_shards))})
+
+
+@pytest.mark.parametrize("source_type", ["arrow", "python"])
+@pytest.mark.parametrize("max_buffer_input_shards", [None, 1, 4, 10])
+def test_iterable_dataset_shuffle_preserves_source_shards(source_type, max_buffer_input_shards):
+    # GH 8669: interleaving input shards must not reduce the shards available to workers.
+    dataset = make_numbered_shards_dataset(source_type, num_shards=19)
+    kwargs = {} if max_buffer_input_shards is None else {"max_buffer_input_shards": max_buffer_input_shards}
+    shuffled = dataset.shuffle(seed=42, buffer_size=7, **kwargs)
+
+    assert shuffled.num_shards == 19
+    workers = [shuffled.shard(num_shards=4, index=i, contiguous=False) for i in range(4)]
+    assert [worker.num_shards for worker in workers] == [5, 5, 5, 4]
+    worker_ids = [[row["id"] for row in worker] for worker in workers]
+    assert [len(ids) for ids in worker_ids] == [50, 50, 50, 40]
+    assert [len({i // 10 for i in ids}) for ids in worker_ids] == [5, 5, 5, 4]
+    assert sorted(chain.from_iterable(worker_ids)) == list(range(190))
+
+
+@pytest.mark.parametrize("source_type", ["arrow", "python"])
+def test_iterable_dataset_shuffle_node_and_worker_shards(source_type):
+    shuffled = make_numbered_shards_dataset(source_type, num_shards=24).shuffle(seed=42, buffer_size=7)
+    all_ids = []
+    for rank in range(2):
+        node = split_dataset_by_node(shuffled, rank=rank, world_size=2)
+        assert node.num_shards == 12
+        for worker_id in range(4):
+            worker = node.shard(num_shards=4, index=worker_id, contiguous=False)
+            assert worker.num_shards == 3
+            ids = [row["id"] for row in worker]
+            assert len(ids) == 30
+            assert len({i // 10 for i in ids}) == 3
+            all_ids.extend(ids)
+    assert sorted(all_ids) == list(range(240))
+
+
+@pytest.mark.parametrize("source_type", ["arrow", "python"])
+def test_iterable_dataset_shuffle_source_shards_epoch_and_resume(source_type):
+    dataset = make_numbered_shards_dataset(source_type, num_shards=19)
+    shuffled = dataset.shuffle(seed=42, buffer_size=1)
+    first_epoch = list(shuffled)
+    assert list(shuffled) == first_epoch
+    shuffled.set_epoch(1)
+    second_epoch = list(shuffled)
+    assert second_epoch != first_epoch
+    assert sorted(row["id"] for row in second_epoch) == list(range(190))
+    assert list(shuffled) == second_epoch
+
+    # A one-example buffer has no retained examples to discard on checkpoint restore.
+    iterator = iter(shuffled)
+    consumed = list(islice(iterator, 17))
+    state = shuffled.state_dict()
+    expected_remaining = list(iterator)
+    restored = dataset.shuffle(seed=42, buffer_size=1)
+    restored.set_epoch(1)
+    restored.load_state_dict(state)
+    assert list(restored) == expected_remaining
+    assert consumed + expected_remaining == second_epoch
+
+
+def add_worker_id(example):
+    from torch.utils.data import get_worker_info
+
+    worker = get_worker_info()
+    return {"worker_id": worker.id if worker is not None else -1}
+
+
+@require_torch
+@pytest.mark.parametrize("source_type", ["arrow", "python"])
+@pytest.mark.parametrize("num_shards", [2, 19])
+@pytest.mark.parametrize("num_workers", [0, 4])
+def test_iterable_dataset_shuffle_preserves_dataloader_workers(source_type, num_shards, num_workers):
+    from torch.utils.data import DataLoader
+
+    dataset = make_numbered_shards_dataset(source_type, num_shards=num_shards)
+    shuffled = dataset.shuffle(seed=42, buffer_size=7).map(add_worker_id)
+    dataloader = DataLoader(shuffled, batch_size=None, num_workers=num_workers)
+    result = list(dataloader)
+
+    assert sorted(row["id"] for row in result) == list(range(10 * num_shards))
+    if num_workers:
+        assert {row["worker_id"] for row in result} == set(range(min(num_shards, num_workers)))
+        expected_counts = [10, 10, 0, 0] if num_shards == 2 else [50, 50, 50, 40]
+        assert [sum(row["worker_id"] == worker_id for row in result) for worker_id in range(4)] == expected_counts
+    else:
+        assert {row["worker_id"] for row in result} == {-1}
+
+
+@require_torch
+@pytest.mark.parametrize("source_type", ["arrow", "python"])
+def test_iterable_dataset_shuffle_distributed_dataloader_workers(source_type):
+    from torch.utils.data import DataLoader
+
+    dataset = make_numbered_shards_dataset(source_type, num_shards=24)
+    shuffled = dataset.shuffle(seed=42, buffer_size=7).map(add_worker_id)
+    all_ids = []
+    for rank in range(2):
+        node = split_dataset_by_node(shuffled, rank=rank, world_size=2)
+        assert node.num_shards == 12
+        result = list(DataLoader(node, batch_size=None, num_workers=4))
+        assert len(result) == 120
+        assert {row["worker_id"] for row in result} == set(range(4))
+        assert [sum(row["worker_id"] == worker_id for row in result) for worker_id in range(4)] == [30] * 4
+        all_ids.extend(row["id"] for row in result)
+    assert sorted(all_ids) == list(range(240))
+
+
 def test_iterable_dataset_dict_shuffle_forwards_max_buffer_input_shards():
     ds = IterableDataset.from_dict({"i": range(100)}, num_shards=10)
     dsets = IterableDatasetDict({"train": ds})

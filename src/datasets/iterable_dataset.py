@@ -1911,6 +1911,69 @@ class FilteredExamplesIterable(MappedExamplesIterable):
         return self.ex_iterable.num_shards
 
 
+class InterleavedShardsExamplesIterable(_BaseExamplesIterable):
+    """Interleave input shards after assigning the source shards to nodes and workers."""
+
+    def __init__(self, ex_iterable: _BaseExamplesIterable, max_input_shards: int):
+        super().__init__()
+        self.ex_iterable = ex_iterable
+        self.max_input_shards = max_input_shards
+        self._interleaved = None
+
+    def _interleave_shards(self) -> _BaseExamplesIterable:
+        num_shards = min(self.ex_iterable.num_shards, self.max_input_shards)
+        if num_shards == 0:
+            return self.ex_iterable
+        return CyclingMultiSourcesExamplesIterable(
+            [self.ex_iterable.shard_data_sources(num_shards, index) for index in range(num_shards)],
+            stopping_strategy="all_exhausted_without_replacement",
+        )
+
+    def _init_state_dict(self) -> dict:
+        # Build from the final local source, including any epoch/worker RNG shifts.
+        # Keep this delegate for iteration so loading its state resumes the same readers.
+        self._interleaved = self._interleave_shards()
+        self._state_dict = self._interleaved._init_state_dict()
+        return self._state_dict
+
+    def __iter__(self):
+        ex_iterable = self._interleaved if self._state_dict is not None else self._interleave_shards()
+        yield from ex_iterable
+
+    def _iter_arrow(self):
+        ex_iterable = self._interleaved if self._state_dict is not None else self._interleave_shards()
+        yield from ex_iterable.iter_arrow()
+
+    @property
+    def iter_arrow(self):
+        return self._iter_arrow if self.ex_iterable.iter_arrow else None
+
+    @property
+    def is_typed(self):
+        return self.ex_iterable.is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterable.features
+
+    @property
+    def num_shards(self) -> int:
+        return self.ex_iterable.num_shards
+
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "InterleavedShardsExamplesIterable":
+        return InterleavedShardsExamplesIterable(
+            self.ex_iterable.shuffle_data_sources(generator), self.max_input_shards
+        )
+
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "InterleavedShardsExamplesIterable":
+        return InterleavedShardsExamplesIterable(
+            self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous), self.max_input_shards
+        )
+
+    def reshard_data_sources(self) -> "InterleavedShardsExamplesIterable":
+        return InterleavedShardsExamplesIterable(self.ex_iterable.reshard_data_sources(), self.max_input_shards)
+
+
 class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     def __init__(self, ex_iterable: _BaseExamplesIterable, buffer_size: int, generator: np.random.Generator):
         super().__init__()
@@ -3867,6 +3930,8 @@ class IterableDataset(DatasetInfoMixin):
 
         If the dataset is made of several shards, it fills the buffer using up to `max_buffer_input_shards` shards
         at a time and also does shuffle the order of the shards. This greatly improves the quality of the shuffling.
+        The input shards are interleaved within each node and worker, preserving the number of shards available
+        for parallel data loading.
 
         However if the order has been fixed by using [`~datasets.IterableDataset.skip`]
         or [`~datasets.IterableDataset.take`] then the order of the shards is kept unchanged and only one shard at
@@ -3927,14 +3992,7 @@ class IterableDataset(DatasetInfoMixin):
             batch_size = max(1, buffer_size // max(1, max_buffer_input_shards))
             ex_iterable = RebatchedArrowExamplesIterable(ex_iterable, batch_size=batch_size)
         if max_buffer_input_shards > 1:
-            num_shards_to_interleave = min(ex_iterable.num_shards, max_buffer_input_shards)
-            ex_iterable = CyclingMultiSourcesExamplesIterable(
-                [
-                    ex_iterable.shard_data_sources(num_shards=num_shards_to_interleave, index=index)
-                    for index in range(num_shards_to_interleave)
-                ],
-                stopping_strategy="all_exhausted_without_replacement",
-            )
+            ex_iterable = InterleavedShardsExamplesIterable(ex_iterable, max_buffer_input_shards)
         ex_iterable = BufferShuffledExamplesIterable(ex_iterable, buffer_size=buffer_size, generator=generator)
         return IterableDataset(
             ex_iterable,
