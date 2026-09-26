@@ -283,7 +283,9 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
     )
 
 
-def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_casting: bool) -> tuple[Any, bool]:
+def _cast_to_python_objects(
+    obj: Any, only_1d_for_numpy: bool, optimize_list_casting: bool, preserve_pandas_temporal: bool = False
+) -> tuple[Any, bool]:
     """
     Cast pytorch/tensorflow/pandas objects to python numpy array/lists.
     It works recursively.
@@ -299,6 +301,8 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             Indeed Arrow only support converting 1-dimensional array values.
         optimize_list_casting (bool): whether to optimize list casting by checking the first non-null element to see if it needs to be casted
             and if it doesn't, not checking the rest of the list elements.
+        preserve_pandas_temporal (bool): whether to preserve pandas Timestamp and Timedelta objects instead of converting
+            them to Python objects, which are limited to microsecond precision.
 
     Returns:
         casted_obj: the casted object
@@ -339,7 +343,10 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             return (
                 [
                     _cast_to_python_objects(
-                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                        x,
+                        only_1d_for_numpy=only_1d_for_numpy,
+                        optimize_list_casting=optimize_list_casting,
+                        preserve_pandas_temporal=preserve_pandas_temporal,
                     )[0]
                     for x in obj
                 ],
@@ -351,6 +358,7 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 obj.detach().to(torch.float).cpu().numpy(),
                 only_1d_for_numpy=only_1d_for_numpy,
                 optimize_list_casting=optimize_list_casting,
+                preserve_pandas_temporal=preserve_pandas_temporal,
             )[0], True
         if obj.ndim == 0:
             return obj.detach().cpu().numpy()[()], True
@@ -360,7 +368,10 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             return (
                 [
                     _cast_to_python_objects(
-                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                        x,
+                        only_1d_for_numpy=only_1d_for_numpy,
+                        optimize_list_casting=optimize_list_casting,
+                        preserve_pandas_temporal=preserve_pandas_temporal,
                     )[0]
                     for x in obj.detach().cpu().numpy()
                 ],
@@ -375,7 +386,10 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             return (
                 [
                     _cast_to_python_objects(
-                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                        x,
+                        only_1d_for_numpy=only_1d_for_numpy,
+                        optimize_list_casting=optimize_list_casting,
+                        preserve_pandas_temporal=preserve_pandas_temporal,
                     )[0]
                     for x in obj.numpy()
                 ],
@@ -390,7 +404,10 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             return (
                 [
                     _cast_to_python_objects(
-                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                        x,
+                        only_1d_for_numpy=only_1d_for_numpy,
+                        optimize_list_casting=optimize_list_casting,
+                        preserve_pandas_temporal=preserve_pandas_temporal,
                     )[0]
                     for x in np.asarray(obj)
                 ],
@@ -409,7 +426,10 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
     elif isinstance(obj, pd.Series):
         return (
             _cast_to_python_objects(
-                obj.tolist(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                obj.tolist(),
+                only_1d_for_numpy=only_1d_for_numpy,
+                optimize_list_casting=optimize_list_casting,
+                preserve_pandas_temporal=preserve_pandas_temporal,
             )[0],
             True,
         )
@@ -417,22 +437,28 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         return (
             {
                 key: _cast_to_python_objects(
-                    value, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                    value,
+                    only_1d_for_numpy=only_1d_for_numpy,
+                    optimize_list_casting=optimize_list_casting,
+                    preserve_pandas_temporal=preserve_pandas_temporal,
                 )[0]
                 for key, value in obj.to_dict("series").items()
             },
             True,
         )
     elif isinstance(obj, pd.Timestamp):
-        return obj.to_pydatetime(), True
+        return (obj, False) if preserve_pandas_temporal else (obj.to_pydatetime(), True)
     elif isinstance(obj, pd.Timedelta):
-        return obj.to_pytimedelta(), True
+        return (obj, False) if preserve_pandas_temporal else (obj.to_pytimedelta(), True)
     elif isinstance(obj, Mapping):
         has_changed = not isinstance(obj, dict)
         output = {}
         for k, v in obj.items():
             casted_v, has_changed_v = _cast_to_python_objects(
-                v, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                v,
+                only_1d_for_numpy=only_1d_for_numpy,
+                optimize_list_casting=optimize_list_casting,
+                preserve_pandas_temporal=preserve_pandas_temporal,
             )
             has_changed |= has_changed_v
             output[k] = casted_v
@@ -443,7 +469,10 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         else:
             return (
                 _cast_to_python_objects(
-                    obj.__array__(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                    obj.__array__(),
+                    only_1d_for_numpy=only_1d_for_numpy,
+                    optimize_list_casting=optimize_list_casting,
+                    preserve_pandas_temporal=preserve_pandas_temporal,
                 )[0],
                 True,
             )
@@ -453,13 +482,19 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 if _check_non_null_non_empty_recursive(first_elmt):
                     break
             casted_first_elmt, has_changed_first_elmt = _cast_to_python_objects(
-                first_elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                first_elmt,
+                only_1d_for_numpy=only_1d_for_numpy,
+                optimize_list_casting=optimize_list_casting,
+                preserve_pandas_temporal=preserve_pandas_temporal,
             )
             if has_changed_first_elmt or not optimize_list_casting:
                 return (
                     [
                         _cast_to_python_objects(
-                            elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                            elmt,
+                            only_1d_for_numpy=only_1d_for_numpy,
+                            optimize_list_casting=optimize_list_casting,
+                            preserve_pandas_temporal=preserve_pandas_temporal,
                         )[0]
                         for elmt in obj
                     ],
@@ -482,7 +517,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         return obj, False
 
 
-def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_casting=True) -> Any:
+def cast_to_python_objects(
+    obj: Any, only_1d_for_numpy=False, optimize_list_casting=True, preserve_pandas_temporal=False
+) -> Any:
     """
     Cast numpy/pytorch/tensorflow/pandas objects to python lists.
     It works recursively.
@@ -498,12 +535,17 @@ def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_cast
             Indeed Arrow only support converting 1-dimensional array values.
         optimize_list_casting (bool, default ``True``): whether to optimize list casting by checking the first non-null element to see if it needs to be casted
             and if it doesn't, not checking the rest of the list elements.
+        preserve_pandas_temporal (bool, default ``False``): whether to preserve pandas Timestamp and Timedelta objects
+            instead of converting them to Python objects, which are limited to microsecond precision.
 
     Returns:
         casted_obj: the casted object
     """
     return _cast_to_python_objects(
-        obj, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+        obj,
+        only_1d_for_numpy=only_1d_for_numpy,
+        optimize_list_casting=optimize_list_casting,
+        preserve_pandas_temporal=preserve_pandas_temporal,
     )[0]
 
 
@@ -1457,6 +1499,20 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
     return schema()
 
 
+def _contains_nanosecond_temporal_feature(feature: FeatureType) -> bool:
+    if isinstance(feature, dict):
+        return any(_contains_nanosecond_temporal_feature(subfeature) for subfeature in feature.values())
+    if isinstance(feature, (list, tuple)):
+        return _contains_nanosecond_temporal_feature(feature[0])
+    if isinstance(feature, (LargeList, List)):
+        return _contains_nanosecond_temporal_feature(feature.feature)
+    return (
+        isinstance(feature, Value)
+        and (pa.types.is_timestamp(feature.pa_type) or pa.types.is_duration(feature.pa_type))
+        and feature.pa_type.unit == "ns"
+    )
+
+
 def encode_nested_example(schema, obj, level=0):
     """Encode a nested example.
     This is used since some features (in particular ClassLabel) have some logic during encoding.
@@ -1854,7 +1910,7 @@ def require_storage_embed(feature: FeatureType) -> bool:
 
 def keep_features_dicts_synced(func):
     """
-    Wrapper to keep the secondary dictionary, which tracks whether keys are decodable, of the :class:`datasets.Features` object
+    Wrapper to keep the secondary data structures of the :class:`datasets.Features` object
     in sync with the main dictionary.
     """
 
@@ -1868,6 +1924,10 @@ def keep_features_dicts_synced(func):
         out = func(self, *args, **kwargs)
         assert hasattr(self, "_column_requires_decoding")
         self._column_requires_decoding = {col: require_decoding(feature) for col, feature in self.items()}
+        assert hasattr(self, "_nanosecond_temporal_columns")
+        self._nanosecond_temporal_columns = {
+            col for col, feature in self.items() if _contains_nanosecond_temporal_feature(feature)
+        }
         return out
 
     wrapper._decorator_name_ = "_keep_dicts_synced"
@@ -1917,6 +1977,9 @@ class Features(dict):
         # keep track of columns which require decoding
         self._column_requires_decoding: dict[str, bool] = {
             col: require_decoding(feature) for col, feature in self.items()
+        }
+        self._nanosecond_temporal_columns: set[str] = {
+            col for col, feature in self.items() if _contains_nanosecond_temporal_feature(feature)
         }
 
         # backward compatibility with datasets<4 : [feature] -> List(feature)
@@ -2188,7 +2251,7 @@ class Features(dict):
         Returns:
             `dict[str, Any]`
         """
-        example = cast_to_python_objects(example)
+        example = cast_to_python_objects(example, preserve_pandas_temporal=bool(self._nanosecond_temporal_columns))
         return encode_nested_example(self, example)
 
     def encode_column(self, column, column_name: str):
@@ -2204,7 +2267,9 @@ class Features(dict):
         Returns:
             `list[Any]`
         """
-        column = cast_to_python_objects(column)
+        column = cast_to_python_objects(
+            column, preserve_pandas_temporal=column_name in self._nanosecond_temporal_columns
+        )
         return [encode_nested_example(self[column_name], obj, level=1) for obj in column]
 
     def encode_batch(self, batch):
@@ -2222,7 +2287,7 @@ class Features(dict):
         if set(batch) != set(self):
             raise ValueError(f"Column mismatch between batch {set(batch)} and features {set(self)}")
         for key, column in batch.items():
-            column = cast_to_python_objects(column)
+            column = cast_to_python_objects(column, preserve_pandas_temporal=key in self._nanosecond_temporal_columns)
             encoded_batch[key] = [encode_nested_example(self[key], obj, level=1) for obj in column]
         return encoded_batch
 
