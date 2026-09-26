@@ -1140,12 +1140,12 @@ class ClassLabel:
         'neg'
         ```
         """
-        if not isinstance(values, int) and not isinstance(values, Iterable):
+        if not isinstance(values, (int, np.integer)) and not isinstance(values, Iterable):
             raise ValueError(
                 f"Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
             )
         return_list = True
-        if isinstance(values, int):
+        if isinstance(values, (int, np.integer)):
             values = [values]
             return_list = False
 
