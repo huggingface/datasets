@@ -48,12 +48,16 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
             return value
         elif isinstance(value, (np.character, np.ndarray)) and np.issubdtype(value.dtype, np.character):
             return value
-        elif isinstance(value, np.number):
+        elif isinstance(value, np.generic):
             return value
 
         default_dtype = {}
 
-        if isinstance(value, np.ndarray) and np.issubdtype(value.dtype, np.integer):
+        if (
+            isinstance(value, np.ndarray)
+            and np.issubdtype(value.dtype, np.integer)
+            and not np.issubdtype(value.dtype, np.timedelta64)
+        ):
             default_dtype = {"dtype": np.int64}
         elif isinstance(value, np.ndarray) and np.issubdtype(value.dtype, np.floating):
             default_dtype = {"dtype": np.float32}
