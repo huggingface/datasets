@@ -364,6 +364,13 @@ def test_classlabel_cast_storage():
     result = classlabel.cast_storage(arr)
     assert result.type == pa.int64()
     assert result.to_pylist() == [0, 1]
+    # from the other Arrow string types: pandas 3 produces large_string for plain string
+    # columns, and neither LargeStringArray nor StringViewArray subclasses StringArray
+    for string_type in (pa.large_string(), pa.string_view()):
+        arr = pa.array(["negative", "positive", None], type=string_type)
+        result = classlabel.cast_storage(arr)
+        assert result.type == pa.int64()
+        assert result.to_pylist() == [0, 1, None]
     arr = pa.array(["__label_that_doesnt_exist__"])
     with pytest.raises(ValueError):
         classlabel.cast_storage(arr)
