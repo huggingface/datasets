@@ -2374,10 +2374,8 @@ def table_cast(table: pa.Table, schema: pa.Schema):
     Returns:
         table (`pyarrow.Table`): the casted table
     """
-    if table.schema != schema:
+    if table.schema != schema or table.schema.metadata != schema.metadata:
         return cast_table_to_schema(table, schema)
-    elif table.schema.metadata != schema.metadata:
-        return table.replace_schema_metadata(schema.metadata)
     else:
         return table
 
