@@ -659,7 +659,11 @@ class ArrowWriter:
         """Write stored rows from the write-pool of rows. It concatenates the single-row tables and it writes the resulting table."""
         if not self.current_rows:
             return
-        table = pa.concat_tables(self.current_rows)
+        rows = self.current_rows
+        if any(not row.schema.equals(rows[0].schema, check_metadata=False) for row in rows[1:]):
+            schema = self._schema if self.pa_writer is not None else self._build_schema(rows[0].schema)[0]
+            rows = [table_cast(row, schema) for row in rows]
+        table = pa.concat_tables(rows)
         self._write_table(table)
         self.current_rows = []
 
