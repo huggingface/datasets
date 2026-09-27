@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from datasets import List, Value
+from datasets import DatasetInfo, Features, List, Value
 from datasets.arrow_dataset import Dataset
 
 
@@ -42,6 +42,34 @@ class DatasetListTest(TestCase):
         self.assertEqual(dset.info.features["col_1"], List(Value("int64")))
 
     def test_create_empty(self):
-        dset = Dataset.from_list([])
+        for kwargs in ({}, {"features": Features({})}, {"info": DatasetInfo()}):
+            with self.subTest(kwargs=kwargs):
+                dset = Dataset.from_list([], **kwargs)
+                self.assertEqual(len(dset), 0)
+                self.assertListEqual(dset.column_names, [])
+
+    def test_create_empty_with_features(self):
+        features = Features({"col_1": Value("int32"), "col_2": List(Value("string"))})
+        dset = Dataset.from_list([], features=features)
         self.assertEqual(len(dset), 0)
-        self.assertListEqual(dset.column_names, [])
+        self.assertListEqual(dset.column_names, ["col_1", "col_2"])
+        self.assertEqual(dset.features, features)
+        self.assertDictEqual(dset.to_dict(), {"col_1": [], "col_2": []})
+
+    def test_create_empty_with_info_features(self):
+        features = Features({"col_1": Value("int32"), "col_2": List(Value("string"))})
+        info = DatasetInfo(features=features, description="An empty split")
+        for explicit_features in (None, features):
+            with self.subTest(features=explicit_features):
+                dset = Dataset.from_list([], features=explicit_features, info=info, split="test")
+                self.assertEqual(len(dset), 0)
+                self.assertListEqual(dset.column_names, ["col_1", "col_2"])
+                self.assertEqual(dset.info, info)
+                self.assertEqual(dset.split, "test")
+
+    def test_create_empty_with_mismatched_features(self):
+        info = DatasetInfo(features=Features({"col_1": Value("int32")}))
+        for features in (Features({}), Features({"col_1": Value("string")})):
+            with self.subTest(features=features):
+                with self.assertRaisesRegex(ValueError, "Features specified in `features` and `info.features`"):
+                    Dataset.from_list([], features=features, info=info)

@@ -1158,7 +1158,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Convert a list of dicts to a `pyarrow.Table` to create a [`Dataset`]`.
 
         Note that the keys of the first entry will be used to determine the dataset columns,
-        regardless of what is passed to features.
+        regardless of what is passed to features. For an empty list, the columns are taken from
+        `features` or `info.features`, if provided.
 
         Important: a dataset created with from_list() lives in memory
         and therefore doesn't have an associated cache directory.
@@ -1276,7 +1277,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         # for simplicity and consistency wrt OptimizedTypedSequence we do not use InMemoryTable.from_pylist here
-        mapping = {k: [r.get(k) for r in mapping] for k in mapping[0]} if mapping else {}
+        if mapping:
+            mapping = {k: [r.get(k) for r in mapping] for k in mapping[0]}
+        else:
+            columns = features if features is not None else info.features if info is not None else None
+            mapping = {k: [] for k in columns} if columns is not None else {}
         return cls.from_dict(mapping, features, info, split, on_mixed_types=on_mixed_types)
 
     @staticmethod
