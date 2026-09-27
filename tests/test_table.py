@@ -157,6 +157,22 @@ def test_table_equals(in_memory_pa_table):
     assert table.equals(in_memory_pa_table)
 
 
+@pytest.mark.parametrize("check_metadata", [False, True])
+@pytest.mark.parametrize("matching_metadata", [False, True])
+def test_table_equals_check_metadata(in_memory_pa_table, check_metadata, matching_metadata):
+    table = Table(in_memory_pa_table.replace_schema_metadata({"name": "left"}))
+    other = in_memory_pa_table.replace_schema_metadata({"name": "left" if matching_metadata else "right"})
+    assert table.equals(other, check_metadata=check_metadata) == (not check_metadata or matching_metadata)
+
+
+@pytest.mark.parametrize("wrapped", [False, True])
+def test_table_equals_keyword_other(in_memory_pa_table, wrapped):
+    table = Table(in_memory_pa_table)
+    other = Table(in_memory_pa_table) if wrapped else in_memory_pa_table
+    assert table.equals(other=other)
+    assert table.equals(other=other, check_metadata=True)
+
+
 def test_table_to_batches(in_memory_pa_table):
     table = Table(in_memory_pa_table)
     assert table.to_batches() == in_memory_pa_table.to_batches()
