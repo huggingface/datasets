@@ -262,7 +262,7 @@ class Table(IndexedTableMixin):
             `bool`
         """
         args = tuple(arg.table if isinstance(arg, Table) else arg for arg in args)
-        kwargs = {k: v.table if isinstance(v, Table) else v for k, v in kwargs}
+        kwargs = {k: v.table if isinstance(v, Table) else v for k, v in kwargs.items()}
         return self.table.equals(*args, **kwargs)
 
     def to_batches(self, *args, **kwargs):
