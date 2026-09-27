@@ -12,7 +12,12 @@ from absl.testing import parameterized
 import datasets
 from datasets.arrow_writer import ArrowWriter
 from datasets.features import Array2D, Array3D, Array4D, Array5D, Value
-from datasets.features.features import Array3DExtensionType, PandasArrayExtensionDtype, _ArrayXD
+from datasets.features.features import (
+    Array2DExtensionType,
+    Array3DExtensionType,
+    PandasArrayExtensionDtype,
+    _ArrayXD,
+)
 from datasets.formatting.formatting import NumpyArrowExtractor, SimpleArrowExtractor
 
 
@@ -485,3 +490,41 @@ def test_dataset_map(with_none):
             assert example["image"].shape == (3, 3, 3)
             if with_none and i == 0:
                 assert np.all(np.isnan(example["image"]))
+
+
+@pytest.mark.parametrize(
+    "shape, values",
+    [
+        ((2, 3), [np.arange(6).reshape(2, 3), np.arange(6, 12).reshape(2, 3)]),
+        ((None, 3), [np.arange(3).reshape(1, 3), np.arange(3, 9).reshape(2, 3)]),
+    ],
+)
+def test_array_xd_from_pandas(shape, values):
+    features = datasets.Features({"image": Array2D(shape=shape, dtype="int32"), "label": Value("int64")})
+    ds = datasets.Dataset.from_dict({"image": values, "label": [0, 1]}, features=features)
+    df = ds.to_pandas()
+    assert isinstance(df["image"].dtype, PandasArrayExtensionDtype)
+
+    # pyarrow's __arrow_array__ protocol
+    arr = pa.array(df["image"].array)
+    assert arr.type == Array2DExtensionType(shape, "int32")
+    assert arr.to_pylist() == ds["image"]
+
+    # Dataset.from_pandas, with and without features
+    assert datasets.Dataset.from_pandas(df).features == features
+    assert datasets.Dataset.from_pandas(df)[:] == ds[:]
+    assert datasets.Dataset.from_pandas(df, features=features)[:] == ds[:]
+
+    # map with the pandas format returns DataFrames that still have the ArrayXD column
+    mapped_ds = ds.with_format("pandas").map(lambda df: df.assign(label=df["label"] + 1), batched=True)
+    assert mapped_ds.features == features
+    assert mapped_ds.with_format(None)[:] == {"image": ds["image"], "label": [1, 2]}
+
+
+def test_array_xd_from_pandas_with_none():
+    features = datasets.Features({"image": Array2D(shape=(None, 2), dtype="float32")})
+    ds = datasets.Dataset.from_dict({"image": [np.ones((1, 2)), None, np.ones((2, 2))]}, features=features)
+    reloaded_ds = datasets.Dataset.from_pandas(ds.to_pandas(), features=features)
+    assert reloaded_ds.features == features
+    storage = pa.concat_arrays(reloaded_ds.data.column("image").chunks).storage
+    assert storage.to_pylist() == [[[1.0, 1.0]], None, [[1.0, 1.0], [1.0, 1.0]]]
