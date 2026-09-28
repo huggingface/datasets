@@ -2272,6 +2272,20 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                # Negative indices match Dataset.__getitem__; they used to OverflowError
+                # when written into the uint64 indices mapping table.
+                with dset.select([-1], keep_in_memory=True) as dset_last:
+                    self.assertEqual(len(dset_last), 1)
+                    self.assertEqual(dset_last[0], dset[-1])
+                with dset.select([-2, -1], keep_in_memory=True) as dset_tail:
+                    self.assertEqual(len(dset_tail), 2)
+                    self.assertEqual(dset_tail[0], dset[-2])
+                    self.assertEqual(dset_tail[1], dset[-1])
+                with self.assertRaises(IndexError):
+                    dset.select([-(len(dset) + 1)], keep_in_memory=True)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 indices = iter(range(len(dset)))  # iterator of contiguous indices
                 with dset.select(indices) as dset_select_all:
                     # no indices mapping, since the indices are contiguous
