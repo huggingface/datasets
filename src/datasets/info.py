@@ -336,7 +336,7 @@ class DatasetInfo:
 
 class DatasetInfosDict(dict[str, DatasetInfo]):
     def write_to_directory(self, dataset_infos_dir, overwrite=False, pretty_print=False) -> None:
-        total_dataset_infos = {}
+        total_dataset_infos = DatasetInfosDict()
         dataset_infos_path = os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)
         dataset_readme_path = os.path.join(dataset_infos_dir, config.REPOCARD_FILENAME)
         if not overwrite:
@@ -356,11 +356,14 @@ class DatasetInfosDict(dict[str, DatasetInfo]):
         else:
             dataset_card = None
             dataset_card_data = DatasetCardData()
+        if overwrite:
+            dataset_card_data.pop("dataset_info", None)
         if total_dataset_infos:
             total_dataset_infos.to_dataset_card_data(dataset_card_data)
             dataset_card = (
                 DatasetCard("---\n" + str(dataset_card_data) + "\n---\n") if dataset_card is None else dataset_card
             )
+        if dataset_card is not None and (total_dataset_infos or overwrite):
             dataset_card.save(Path(dataset_readme_path))
 
     @classmethod
