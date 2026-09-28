@@ -638,6 +638,19 @@ def test_json_generate_tables_recovers_from_invalid_arrow_offsets(jsonl_file):
     assert mapped_dataset.to_dict() == {"col_1": [-1, 1, 10], "col_2": [None, 2, 20]}
 
 
+def test_json_leading_null_in_list_recovery_real_data(tmp_path):
+    jsonl_file = tmp_path / "leading_null.jsonl"
+    jsonl_file.write_bytes(b'{"a": [null, 1]}\n{"a": [2]}\n')
+
+    dataset = Dataset.from_json(str(jsonl_file), chunksize=1 << 20, cache_dir=str(tmp_path / "cache"))
+
+    assert dataset.data.validate(full=True) is None
+    assert len(dataset) == 2
+    assert dataset[0]["a"] == [None, 1]
+    mapped_dataset = dataset.map(lambda example: example)
+    assert mapped_dataset.to_dict() == {"a": [[None, 1], [2]]}
+
+
 @pytest.mark.parametrize(
     "filename, rows, expected",
     [
