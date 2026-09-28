@@ -1140,14 +1140,16 @@ class ClassLabel:
         'neg'
         ```
         """
-        if not isinstance(values, int) and not isinstance(values, Iterable):
+        # Dataset numpy format returns np.int64 scalars: not a Python int, and not Iterable.
+        if isinstance(values, (int, np.integer)):
+            values = [int(values)]
+            return_list = False
+        elif not isinstance(values, Iterable):
             raise ValueError(
                 f"Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
             )
-        return_list = True
-        if isinstance(values, int):
-            values = [values]
-            return_list = False
+        else:
+            return_list = True
 
         for v in values:
             if not 0 <= v < self.num_classes:
