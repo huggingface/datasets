@@ -3921,15 +3921,16 @@ def test_interleave_datasets_probabilities_zero_probability_source():
     )["a"] == [0, 1, 2]
 
 
+@pytest.mark.parametrize("stopping_strategy", ["all_exhausted", "all_exhausted_without_replacement"])
 @pytest.mark.parametrize("other", [[], [10, 11, 12, 13, 14]])
-def test_interleave_datasets_probabilities_zero_probability_all_exhausted_raises(other):
-    # "all_exhausted" requires every source to be exhausted, but a source with
-    # probability 0 is never drawn and so never can be -- the pre-vectorization
-    # loop spun forever here. It must raise instead of hanging.
+def test_interleave_datasets_probabilities_zero_probability_all_exhausted_raises(other, stopping_strategy):
+    # "all_exhausted" and "all_exhausted_without_replacement" require every source
+    # to be exhausted, but a source with probability 0 is never drawn and so never
+    # can be -- the sampling loop spun forever here. It must raise instead of hanging.
     d_full = Dataset.from_dict({"a": [0, 1, 2]})
     d_other = Dataset.from_dict({"a": other})
-    with pytest.raises(ValueError):
-        interleave_datasets([d_full, d_other], probabilities=[1.0, 0.0], seed=7, stopping_strategy="all_exhausted")
+    with pytest.raises(ValueError, match="never sampled"):
+        interleave_datasets([d_full, d_other], probabilities=[1.0, 0.0], seed=7, stopping_strategy=stopping_strategy)
 
 
 @pytest.mark.parametrize("batch_size", [4, 5])
