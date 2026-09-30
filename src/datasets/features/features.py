@@ -1281,15 +1281,7 @@ class Json:
         if isinstance(storage, pa.JsonArray):
             return storage
         elif isinstance(storage, (pa.StringArray)):
-            items = storage[:5].to_pylist()
-            try:
-                for item in items:
-                    if item is not None:
-                        ujson_loads(item)
-            except Exception:
-                storage = pa.array(
-                    [ujson_dumps(x) if x is not None else None for x in storage.to_pylist()], pa.json_()
-                )
+            storage = pa.array([self.encode_example(x) for x in storage.to_pylist()], pa.json_())
         else:
             storage = pa.array([ujson_dumps(x) if x is not None else None for x in storage.to_pylist()], pa.json_())
         return array_cast(storage, self.pa_type)
