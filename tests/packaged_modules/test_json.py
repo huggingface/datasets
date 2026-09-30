@@ -527,6 +527,29 @@ def test_config_raises_when_invalid_data_files(data_files) -> None:
         _ = JsonConfig(name="name", data_files=data_files)
 
 
+@pytest.mark.parametrize("field", [None, "records"])
+@pytest.mark.parametrize("explicit_features", [False, True])
+@pytest.mark.parametrize("rows_per_file", [1, 2])
+def test_json_load_dataset_single_row_files_with_different_column_order(
+    tmp_path, field, explicit_features, rows_per_file
+):
+    first_row = {"a": 1, "b": 2}
+    second_row = {"b": 4, "a": 3}
+    files = []
+    for index, row in enumerate([first_row, second_row]):
+        path = tmp_path / f"{index}.json"
+        records = [row] * rows_per_file
+        path.write_text(json.dumps({field: records} if field else records))
+        files.append(str(path))
+
+    kwargs = {"field": field} if field else {}
+    if explicit_features:
+        kwargs["features"] = Features({"a": Value("int64"), "b": Value("int64")})
+    dataset = load_dataset("json", data_files=files, split="train", cache_dir=str(tmp_path / "cache"), **kwargs)
+
+    assert dataset.to_list() == [first_row] * rows_per_file + [{"a": 3, "b": 4}] * rows_per_file
+
+
 @pytest.mark.parametrize(
     "file_fixture, config_kwargs, expected",
     [
