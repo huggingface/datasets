@@ -712,3 +712,36 @@ def test_encode_np_array(array, dtype_cast, expected_image_format):
     decoded_image = Image().decode_example(encoded_image)
     assert decoded_image.format == expected_image_format
     np.testing.assert_array_equal(np.array(decoded_image), array)
+
+
+@require_pil
+@pytest.mark.parametrize(
+    "value_type, warns",
+    [(pa.uint8(), False), (pa.int64(), True), (pa.int32(), True)],
+)
+def test_image_cast_storage_list_keeps_arrow_dtype(value_type, warns):
+    array = np.random.default_rng(0).integers(0, 256, (2, 4, 4, 3), dtype=np.uint8)
+    storage = pa.array(array.tolist(), type=pa.list_(pa.list_(pa.list_(value_type))))
+    if warns:
+        with pytest.warns(UserWarning, match="Downcasting array dtype"):
+            casted = Image().cast_storage(storage)
+    else:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            casted = Image().cast_storage(storage)
+    decoded = np.stack([np.array(Image().decode_example(row)) for row in casted.to_pylist()])
+    np.testing.assert_array_equal(decoded, array)
+
+
+@require_pil
+@pytest.mark.parametrize("dtype", ["int8", "float16"])
+def test_image_cast_storage_list_narrow_dtype_falls_back(dtype):
+    # encode_np_array narrows within a kind, and int8 and float16 have no valid
+    # target, so the Arrow dtype must not be forced on them. GH#8511
+    from datasets import Sequence
+
+    ds = Dataset.from_dict(
+        {"col": [[[1, 2], [3, 4]]]},
+        features=Features({"col": Sequence(Sequence(Value(dtype)))}),
+    )
+    assert ds.cast_column("col", Image())[0]["col"] is not None
