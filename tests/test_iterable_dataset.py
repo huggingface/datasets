@@ -1808,6 +1808,70 @@ def test_iterable_dataset_push_to_hub_single_shard_disables_multiprocessing():
     assert uploaded_size == 0
 
 
+def test_iterable_dataset_push_to_hub_unknown_features():
+    # Regression test: pushing an IterableDataset with unknown features (e.g. from a generator,
+    # or streamed CSV/JSON files without declared features) used to fail with
+    # "AttributeError: 'NoneType' object has no attribute 'items'" when embed_external_files=True (default).
+    dataset = IterableDataset.from_generator(lambda: iter([{"id": 0}]))
+    assert dataset.features is None
+
+    captured_features = {}
+
+    def mock_push_single(**kwargs):
+        captured_features["value"] = kwargs["self"].features
+        return iter([(0, True, ([], [], kwargs["self"].features, 0, 1))])
+
+    with patch.object(IterableDataset, "_push_parquet_shards_to_hub_single", side_effect=mock_push_single):
+        additions, new_parquet_paths, features, split_info, uploaded_size = dataset._push_parquet_shards_to_hub(
+            resolved_output_path=HfFileSystemResolvedRepositoryPath(
+                repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
+            ),
+            data_dir="data",
+            split="train",
+            token=None,
+            create_pr=False,
+            max_shard_size=None,
+            num_shards=1,
+            embed_external_files=True,
+            num_proc=None,
+        )
+
+    assert captured_features["value"] == Features({"id": Value("int64")})
+    assert features == Features({"id": Value("int64")})
+    assert split_info.num_examples == 1
+
+
+def test_iterable_dataset_push_to_hub_unknown_features_streaming_csv(tmp_path):
+    # Same regression test for the reported scenario: load_dataset(..., streaming=True) on CSV files
+    csv_path = tmp_path / "data.csv"
+    csv_path.write_text("name,age\nalice,30\nbob,25\n")
+    dataset = load_dataset("csv", data_files=str(csv_path), split="train", streaming=True)
+    assert dataset.features is None
+
+    captured_features = {}
+
+    def mock_push_single(**kwargs):
+        captured_features["value"] = kwargs["self"].features
+        return iter([(0, True, ([], [], kwargs["self"].features, 0, 2))])
+
+    with patch.object(IterableDataset, "_push_parquet_shards_to_hub_single", side_effect=mock_push_single):
+        dataset._push_parquet_shards_to_hub(
+            resolved_output_path=HfFileSystemResolvedRepositoryPath(
+                repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
+            ),
+            data_dir="data",
+            split="train",
+            token=None,
+            create_pr=False,
+            max_shard_size=None,
+            num_shards=1,
+            embed_external_files=True,
+            num_proc=None,
+        )
+
+    assert captured_features["value"] == Features({"name": Value("string"), "age": Value("int64")})
+
+
 def test_iterable_dataset_push_to_hub_default_num_shards_uses_dataset_num_shards():
     def gen(shard_names):
         for shard_name in shard_names:

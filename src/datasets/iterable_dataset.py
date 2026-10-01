@@ -5018,6 +5018,11 @@ class IterableDataset(DatasetInfoMixin):
             uploaded_size (`int`): number of uploaded bytes to the repository or bucket
         """
 
+        # Features may be unknown (e.g. a dataset from a generator, or streamed CSV/JSON files
+        # without declared features): resolve them from the first examples, as done e.g. in
+        # `concatenate_datasets` and `interleave_datasets`.
+        self = self._resolve_features()
+
         # Find decodable columns, because if there are any, we need to:
         # embed the bytes from the files in the shards
         decodable_columns = (
@@ -5164,7 +5169,7 @@ class IterableDataset(DatasetInfoMixin):
                 organization's default is private. This value is ignored if the repo already exists.
             token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
-                to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
+                to the token saved locally when logging in with `hf auth login`. Will raise an error
                 if no token is passed and the user is not logged-in.
             revision (`str`, *optional*):
                 Branch to push the uploaded files to. Defaults to the `"main"` branch.

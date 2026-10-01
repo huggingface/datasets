@@ -556,7 +556,7 @@ def _get_extraction_protocol(urlpath: str, download_config: Optional[DownloadCon
     except FileNotFoundError:
         if urlpath.startswith(config.HF_ENDPOINT):
             raise FileNotFoundError(
-                urlpath + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
+                urlpath + "\nIf the repo is private or gated, make sure to log in with `hf auth login`."
             ) from None
         else:
             raise
@@ -995,7 +995,7 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
         except FileNotFoundError:
             if file.startswith(config.HF_ENDPOINT):
                 raise FileNotFoundError(
-                    file + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
+                    file + "\nIf the repo is private or gated, make sure to log in with `hf auth login`."
                 ) from None
             else:
                 raise
