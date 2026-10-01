@@ -11,7 +11,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Dataset, Features, List, Tensor, Value, config, load_from_disk
+from datasets import Array2D, Array3D, Dataset, Features, List, Tensor, Value, config, load_from_disk
 
 from ..utils import require_jax, require_polars, require_tf, require_torch
 
@@ -1375,3 +1375,173 @@ def test_tensor_list_cast_slice_after_null(large):
     ]:
         casted.validate(full=True)
         assert casted.to_pylist() == [values[:2], values[2:]]
+
+
+def _values_buffer_address(array):
+    """Address of the innermost values buffer of an array, following list, struct and extension nesting."""
+    while True:
+        if isinstance(array, pa.ExtensionArray):
+            array = array.storage
+        elif pa.types.is_struct(array.type):
+            array = array.field("data")
+        elif (
+            pa.types.is_list(array.type)
+            or pa.types.is_large_list(array.type)
+            or pa.types.is_fixed_size_list(array.type)
+        ):
+            array = array.values
+        else:
+            return array.buffers()[1].address
+
+
+def _tensor_rows(array, shape):
+    """Read a tensor extension array back as one ndarray, through its storage.
+
+    `FixedShapeTensorArray.to_numpy_ndarray` ignores the offset of the values child (pyarrow 25), which
+    a sliced column cast without copying legitimately has, so it is not used here.
+    """
+    return np.asarray(array.storage.to_pylist()).reshape(len(array), *shape)
+
+
+def _array_xd_dataset(feature, rows):
+    return Dataset.from_dict({"x": rows}, features=Features({"x": feature}))
+
+
+@pytest.mark.parametrize(
+    "array_feature, tensor_shape",
+    [
+        (Array2D((2, 3), "float32"), (2, 3)),
+        (Array3D((2, 3, 4), "float32"), (2, 3, 4)),
+        (Array2D((None, 3), "float32"), (None, 3)),
+        (Array3D((None, 3, 4), "float32"), (None, 3, 4)),
+    ],
+)
+def test_tensor_cast_from_array_xd_shares_the_values_buffer(array_feature, tensor_shape):
+    rng = np.random.default_rng(0)
+    shape = array_feature.shape
+    rows = [rng.random([2 if dim is None else dim for dim in shape]).astype("float32") for _ in range(4)]
+    if shape[0] is None:
+        rows = [rng.random([k + 1, *shape[1:]]).astype("float32") for k in range(4)]
+    dataset = _array_xd_dataset(array_feature, rows)
+    source = dataset.data.column("x").chunk(0)
+    feature = Tensor(tensor_shape, "float32")
+    cast = feature.cast_storage(source.storage)
+    assert cast.type == feature()
+    assert _values_buffer_address(cast) == _values_buffer_address(source)
+    for original, decoded in zip(rows, Dataset(pa.table({"x": cast}), info=None).cast(Features({"x": feature}))["x"]):
+        np.testing.assert_array_equal(original, decoded)
+
+
+@pytest.mark.parametrize("offset, length", [(0, 4), (2, 3), (5, 1)])
+def test_tensor_cast_from_a_sliced_array_xd_column(offset, length):
+    rows = [np.full((2, 3), float(i), dtype="float32") for i in range(8)]
+    dataset = _array_xd_dataset(Array2D((2, 3), "float32"), rows)
+    source = dataset.data.column("x").chunk(0).slice(offset, length)
+    cast = Tensor((2, 3), "float32").cast_storage(source.storage)
+    assert len(cast) == length
+    assert _values_buffer_address(cast) == _values_buffer_address(dataset.data.column("x").chunk(0))
+    np.testing.assert_array_equal(_tensor_rows(cast, (2, 3)), np.stack(rows[offset : offset + length]))
+
+
+def test_tensor_cast_from_array_xd_through_cast_column_does_not_copy_the_data():
+    rows = [np.full((2, 3), float(i), dtype="float32") for i in range(6)]
+    dataset = _array_xd_dataset(Array2D((2, 3), "float32"), rows)
+    cast = dataset.cast_column("x", Tensor((2, 3), "float32"))
+    assert _values_buffer_address(cast.data.column("x").chunk(0)) == _values_buffer_address(
+        dataset.data.column("x").chunk(0)
+    )
+    np.testing.assert_array_equal(np.stack(cast["x"]), np.stack(rows))
+
+
+def test_tensor_cast_accepts_an_array_xd_extension_array_directly():
+    rows = [np.full((2, 3), float(i), dtype="float32") for i in range(3)]
+    source = _array_xd_dataset(Array2D((2, 3), "float32"), rows).data.column("x").chunk(0)
+    assert isinstance(source, pa.ExtensionArray)
+    cast = Tensor((2, 3), "float32").cast_storage(source)
+    np.testing.assert_array_equal(_tensor_rows(cast, (2, 3)), np.stack(rows))
+
+
+def test_tensor_cast_from_array_xd_with_null_rows_keeps_the_nulls():
+    rows = [np.ones((2, 3), "float32"), None, np.zeros((2, 3), "float32")]
+    source = _array_xd_dataset(Array2D((2, 3), "float32"), rows).data.column("x").chunk(0)
+    cast = Tensor((2, 3), "float32").cast_storage(source.storage)
+    assert cast.null_count == 1
+    assert cast.is_null().to_pylist() == [False, True, False]
+    np.testing.assert_array_equal(cast[0].as_py(), np.ones(6, "float32"))
+
+
+def test_tensor_cast_from_array_xd_converts_a_different_dtype():
+    rows = [np.arange(6, dtype="float32").reshape(2, 3) for _ in range(3)]
+    source = _array_xd_dataset(Array2D((2, 3), "float32"), rows).data.column("x").chunk(0)
+    cast = Tensor((2, 3), "float64").cast_storage(source.storage)
+    assert cast.type == Tensor((2, 3), "float64")()
+    np.testing.assert_array_equal(_tensor_rows(cast, (2, 3)), np.stack(rows).astype("float64"))
+
+
+def test_tensor_cast_from_array_xd_rejects_a_different_shape():
+    source = _array_xd_dataset(Array2D((2, 3), "float32"), [np.zeros((2, 3), "float32")]).data.column("x").chunk(0)
+    with pytest.raises(ValueError):
+        Tensor((3, 2), "float32").cast_storage(source.storage)
+
+
+def test_tensor_cast_from_array_xd_with_a_dynamic_inner_dimension_stays_correct():
+    rows = [np.arange(2 * k, dtype="float32").reshape(2, k) for k in (1, 2, 3)]
+    source = pa.array([row.tolist() for row in rows], type=pa.list_(pa.list_(pa.float32())))
+    cast = Tensor((2, None), "float32").cast_storage(source)
+    decoded = Dataset(pa.table({"x": cast})).cast(Features({"x": Tensor((2, None), "float32")}))["x"]
+    for original, result in zip(rows, decoded):
+        np.testing.assert_array_equal(original, result)
+
+
+def test_tensor_cast_from_a_sliced_array_xd_column_reads_back_through_datasets():
+    rows = [np.full((2, 3), float(i), dtype="float32") for i in range(8)]
+    source = _array_xd_dataset(Array2D((2, 3), "float32"), rows).data.column("x").chunk(0).slice(2, 3)
+    feature = Tensor((2, 3), "float32")
+    dataset = Dataset(pa.table({"x": feature.cast_storage(source.storage)}), info=None).cast(Features({"x": feature}))
+    expected = np.stack(rows[2:5])
+    np.testing.assert_array_equal(np.stack(dataset[:]["x"]), expected)
+    np.testing.assert_array_equal(np.stack(dataset.with_format("numpy")[:]["x"]), expected)
+    np.testing.assert_array_equal(np.stack(dataset.to_pandas()["x"]), expected)
+    np.testing.assert_array_equal(np.stack([row["x"] for row in dataset.to_iterable_dataset()]), expected)
+    np.testing.assert_array_equal(np.stack(dataset.select([2, 0])[:]["x"]), expected[[2, 0]])
+
+
+@pytest.mark.parametrize("shape", [(0,), (2, 0), (0, 3)])
+def test_tensor_cast_from_nested_lists_with_a_zero_size_dimension(shape):
+    rows = np.zeros((3, *shape), dtype="float32")
+    nested = pa.array(
+        rows.tolist(), type=pa.list_(pa.float32()) if len(shape) == 1 else pa.list_(pa.list_(pa.float32()))
+    )
+    cast = Tensor(shape, "float32").cast_storage(nested)
+    assert len(cast) == 3 and cast.null_count == 0
+    dataset = Dataset(pa.table({"x": cast})).cast(Features({"x": Tensor(shape, "float32")}))
+    assert [row.shape for row in dataset["x"]] == [shape] * 3
+
+
+@pytest.mark.parametrize("with_null_row", [False, True])
+def test_tensor_cast_with_a_zero_length_dynamic_row_does_not_depend_on_nulls(with_null_row):
+    rows = [[[1.0, 2.0, 3.0]], [], [[4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]] + ([None] if with_null_row else [])
+    storage = pa.array(rows, type=pa.list_(pa.list_(pa.float32())))
+    feature = Tensor((None, 3), "float32")
+    cast = feature.cast_storage(storage)
+    assert cast.null_count == (1 if with_null_row else 0)
+    dataset = Dataset(pa.table({"x": cast})).cast(Features({"x": feature}))
+    assert [None if row is None else row.shape for row in dataset["x"]][:3] == [(1, 3), (0, 3), (2, 3)]
+    np.testing.assert_array_equal(dataset["x"][2], np.array([[4, 5, 6], [7, 8, 9]], dtype="float32"))
+
+
+@pytest.mark.parametrize("shape", [(2, 3), (None, 3)])
+def test_tensor_cast_accepts_a_chunked_array(shape):
+    rows = [np.arange(6, dtype="float32").reshape(2, 3) + i for i in range(4)]
+    nested_type = pa.list_(pa.list_(pa.float32()))
+    chunked = pa.chunked_array(
+        [
+            pa.array([row.tolist() for row in rows[:2]], type=nested_type),
+            pa.array([row.tolist() for row in rows[2:]], type=nested_type),
+        ]
+    )
+    feature = Tensor(shape, "float32")
+    cast = feature.cast_storage(chunked)
+    dataset = Dataset(pa.table({"x": cast})).cast(Features({"x": feature}))
+    for expected, row in zip(rows, dataset["x"]):
+        np.testing.assert_array_equal(row, expected)

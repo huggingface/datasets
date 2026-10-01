@@ -236,6 +236,61 @@ def normalize_tensor_arrow_type(arrow_type):
     return pa.large_list(field) if pa.types.is_large_list(arrow_type) else pa.list_(field)
 
 
+def _share_nested_list_storage(storage, shape, dtype, arrow_type):
+    """Rebuild `list<...<T>>` storage as tensor storage over the same values buffer.
+
+    This is the layout of an `Array2D`..`Array5D` column: `len(shape)` nested lists around one contiguous
+    row-major values array. Fixed tensors only need `fixed_size_list` offsets and variable ones need
+    per-row `data` offsets and a `shape` array, both proportional to the number of rows, so the values
+    are never copied.
+
+    Returns `None` when the storage cannot be reused as is (nulls anywhere, a different dtype, a dynamic
+    dimension other than the first, or lists that do not follow `shape`), and the caller then takes the
+    validating path that copies.
+    """
+    ndim = len(shape)
+    if (
+        isinstance(storage, pa.ChunkedArray)
+        or ndim == 0
+        or any(dim is None for dim in shape[1:])
+        or 0 in shape
+        or len(storage) == 0
+    ):
+        return None
+    value_type = pa.from_numpy_dtype(np.dtype(dtype))
+    current = storage
+    row_lengths = None
+    for level, dim in enumerate(shape):
+        if not (pa.types.is_list(current.type) or pa.types.is_large_list(current.type)) or current.null_count:
+            return None
+        lengths = pc.list_value_length(current)
+        if level == 0:
+            row_lengths = lengths
+        if dim is not None and not pc.all(pc.equal(lengths, dim)).as_py():
+            return None
+        current = current.flatten()
+    if current.type != value_type or current.null_count:
+        return None
+    inner_size = int(np.prod([dim for dim in shape if dim is not None], dtype=np.int64))
+    if shape[0] is not None:
+        if len(current) != len(storage) * inner_size:
+            return None
+        return pa.ExtensionArray.from_storage(arrow_type, pa.FixedSizeListArray.from_arrays(current, inner_size))
+    first_dims = row_lengths.cast(pa.int64()).to_numpy(zero_copy_only=False)
+    offsets = np.zeros(len(first_dims) + 1, dtype=np.int64)
+    np.cumsum(first_dims * inner_size, out=offsets[1:])
+    if offsets[-1] != len(current) or offsets[-1] > np.iinfo(np.int32).max:
+        return None
+    shapes = np.empty((len(first_dims), ndim), dtype=np.int32)
+    shapes[:, 0] = first_dims
+    shapes[:, 1:] = shape[1:]
+    data_field, shape_field = arrow_type.storage_type.field(0), arrow_type.storage_type.field(1)
+    data = pa.ListArray.from_arrays(pa.array(offsets.astype(np.int32)), current, type=data_field.type)
+    shape_array = pa.FixedSizeListArray.from_arrays(pa.array(shapes.reshape(-1)), type=shape_field.type)
+    storage_array = pa.StructArray.from_arrays([data, shape_array], fields=[data_field, shape_field])
+    return pa.ExtensionArray.from_storage(arrow_type, storage_array)
+
+
 @dataclass
 class Tensor:
     """An array with a fixed number of dimensions and optionally variable sizes.
@@ -373,10 +428,23 @@ class Tensor:
         except (KeyError, TypeError, ValueError, OverflowError) as e:
             raise ValueError(f"Cannot decode Tensor with dtype {self.dtype} and shape {self.shape}: {e}") from e
 
+    def _empty_row_shape(self):
+        """Shape of a row stored as an empty list, or `None` when the feature does not determine it.
+
+        It is determined when at most one dimension is unknown (it is then the one that is 0) and the
+        resulting shape holds no elements, e.g. `(None, 3)` gives `(0, 3)` and `(0, 3)` stays `(0, 3)`.
+        """
+        if sum(dim is None for dim in self.shape) > 1:
+            return None
+        shape = tuple(0 if dim is None else dim for dim in self.shape)
+        return shape if 0 in shape else None
+
     def cast_storage(self, storage):
-        from .features import generate_from_arrow_type
+        from .features import _ArrayXDExtensionType, generate_from_arrow_type
 
         arrow_type = self()
+        if isinstance(storage, pa.ExtensionArray) and isinstance(storage.type, _ArrayXDExtensionType):
+            storage = storage.storage
         if isinstance(storage, pa.ExtensionArray):
             if tensor_types_equal(storage.type, arrow_type):
                 if type(storage.type) is type(arrow_type):
@@ -388,7 +456,17 @@ class Tensor:
             source = generate_from_arrow_type(storage.type)
             values = [source.decode_example(value) for value in storage.to_pylist()]
         else:
+            shared = _share_nested_list_storage(storage, self.shape, self.dtype, arrow_type)
+            if shared is not None:
+                return shared
             values = storage.to_pylist()
+            empty_shape = self._empty_row_shape()
+            if empty_shape is not None:
+                # `[]` carries no trailing dimensions, so a zero-length row cannot be told apart from rank 1
+                values = [
+                    np.zeros(empty_shape, dtype=self.dtype) if isinstance(value, list) and not value else value
+                    for value in values
+                ]
             if (
                 isinstance(arrow_type, pa.FixedShapeTensorType)
                 and (pa.types.is_list(storage.type) or pa.types.is_fixed_size_list(storage.type))
