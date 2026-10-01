@@ -634,6 +634,19 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(casted_dset.features["labels"], List(ClassLabel(names=["a", "b", "c"])))
                 self.assertListEqual(casted_dset["labels"][:], [[0, 1], [1], [2, 0], []])
 
+    def test_class_encode_fixed_size_sequence_preserves_length(self, in_memory):
+        features = Features({"labels": List(Value("string"), length=2)})
+        dset = Dataset.from_dict({"labels": [["a", "b"], ["b", "c"], ["c", "a"]]}, features=features)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            if not in_memory:
+                dset = self._to(in_memory, tmp_dir, dset)
+            with dset.class_encode_column("labels") as casted_dset:
+                self.assertEqual(
+                    casted_dset.features["labels"],
+                    List(ClassLabel(names=["a", "b", "c"]), length=2),
+                )
+                self.assertListEqual(casted_dset["labels"][:], [[0, 1], [1, 2], [2, 0]])
+
     def test_remove_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
