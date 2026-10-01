@@ -45,7 +45,7 @@
 | 🔄 **Smart caching** | Never wait for your data to process twice — cached results are automatically reused |
 | 📊 **Multi-framework interoperability** | Native conversion to/from NumPy, Pandas, Polars, Arrow, PyTorch, TensorFlow, JAX, and Spark |
 | 🏎️ **Multi-processing** | Fast parallel data processing with `map(num_proc=N)` |
-| 🔎 **Search & index** | Built-in FAISS and Elasticsearch index support for similarity search |
+| 🔎 **Search & index** | Built-in FAISS, Elasticsearch, and Qdrant index support for similarity search |
 | 📦 **JSON type** | Flexible JSON/structured data support with `Json()` feature type |
 
 # Installation
