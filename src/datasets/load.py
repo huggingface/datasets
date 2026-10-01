@@ -310,6 +310,18 @@ def infer_module_for_data_files(
     return module_name, default_builder_kwargs
 
 
+def _get_default_data_patterns(base_path: str, download_config: Optional[DownloadConfig] = None) -> dict:
+    """Data file patterns of a dataset directory that doesn't say which files to read.
+
+    A directory written by `Dataset.save_to_disk` lists its shards in `state.json`, so those are read
+    rather than everything the directory holds. Any other directory is matched by its file and folder names.
+    """
+    saved_dataset_files = _get_saved_dataset_data_files(base_path)
+    if saved_dataset_files is not None:
+        return sanitize_patterns(saved_dataset_files)
+    return get_data_patterns(base_path, download_config=download_config)
+
+
 def create_builder_configs_from_metadata_configs(
     module_path: str,
     metadata_configs: MetadataConfigs,
@@ -332,7 +344,7 @@ def create_builder_configs_from_metadata_configs(
             config_patterns = (
                 sanitize_patterns(config_data_files)
                 if config_data_files is not None
-                else get_data_patterns(config_base_path, download_config=download_config)
+                else _get_default_data_patterns(config_base_path, download_config=download_config)
             )
             config_data_files_dict = DataFilesPatternsDict.from_patterns(
                 config_patterns,
@@ -399,6 +411,30 @@ class _DatasetModuleFactory:
         raise NotImplementedError
 
 
+def _get_saved_dataset_data_files(path: str) -> Optional[list[str]]:
+    """Return the Arrow files of a directory written by `Dataset.save_to_disk`, or `None` if it isn't one.
+
+    `save_to_disk` writes `data-*.arrow` shards next to a `dataset_info.json` and a `state.json`, and
+    `state.json` lists the shards under `_data_files`. Requiring all three keeps a data file that merely
+    happens to be called `state.json` from being mistaken for one.
+    """
+    state_path = os.path.join(path, config.DATASET_STATE_JSON_FILENAME)
+    if not (os.path.isfile(state_path) and os.path.isfile(os.path.join(path, config.DATASET_INFO_FILENAME))):
+        return None
+    try:
+        with open(state_path, encoding="utf-8") as state_file:
+            state = json.load(state_file)
+    except (OSError, ValueError):
+        return None
+    data_files = state.get("_data_files") if isinstance(state, dict) else None
+    if not isinstance(data_files, list) or not data_files:
+        return None
+    filenames = [data_file.get("filename") for data_file in data_files if isinstance(data_file, dict)]
+    if len(filenames) != len(data_files) or not all(isinstance(filename, str) for filename in filenames):
+        return None
+    return filenames
+
+
 class LocalDatasetModuleFactory(_DatasetModuleFactory):
     """Get the module of a dataset loaded from the user's data files. The dataset builder module to use is inferred
     from the data files extensions."""
@@ -435,10 +471,19 @@ class LocalDatasetModuleFactory(_DatasetModuleFactory):
         # we need a set of data files to find which dataset builder to use
         # because we need to infer module name by files extensions
         base_path = Path(self.path, self.data_dir or "").expanduser().resolve().as_posix()
+        saved_dataset_files = _get_saved_dataset_data_files(base_path)
         if self.data_files is not None:
             patterns = sanitize_patterns(self.data_files)
         elif metadata_configs and not self.data_dir and "data_files" in next(iter(metadata_configs.values())):
             patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
+        elif saved_dataset_files is not None:
+            # A directory written by `Dataset.save_to_disk`: read the Arrow files its state.json lists
+            logger.warning(
+                f"{base_path} was written by `Dataset.save_to_disk`, which is not the structure `load_dataset` "
+                "usually reads. It is supported for compatibility: `load_dataset` goes through the cache, "
+                "whereas `load_from_disk` reads the Arrow files in place."
+            )
+            patterns = sanitize_patterns(saved_dataset_files)
         else:
             patterns = get_data_patterns(base_path)
         data_files = DataFilesDict.from_patterns(
@@ -1646,12 +1691,6 @@ def load_dataset(
             )
     if data_files is not None and not data_files:
         raise ValueError(f"Empty 'data_files': '{data_files}'. It should be either non-empty or None (default).")
-    if Path(path, config.DATASET_STATE_JSON_FILENAME).exists():
-        raise ValueError(
-            "You are trying to load a dataset that was saved using `save_to_disk`. "
-            "Please use `load_from_disk` instead."
-        )
-
     if streaming and num_proc is not None:
         raise NotImplementedError(
             "Loading a streaming dataset in parallel with `num_proc` is not implemented. "
