@@ -115,7 +115,7 @@ if __name__ == "__main__":
 
 ## Split the work across many Jobs
 
-When one Job is too slow, run several at the same time. Give each Job a `RANK` and the total number of Jobs, `WORLD_SIZE`. Each Job uses [`~datasets.distributed.split_dataset_by_node`] to select its part of the dataset and writes its Parquet files to the same dataset repository:
+When one Job is too slow (e.g. if you have a lot of data to process), run several at the same time. Give each Job a `RANK` and the total number of Jobs, `WORLD_SIZE`. Each Job uses [`~datasets.distributed.split_dataset_by_node`] to select its part of the dataset and writes its Parquet files to the same dataset repository:
 
 ```py
 # /// script
