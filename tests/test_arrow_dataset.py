@@ -668,6 +668,16 @@ class BaseDatasetTest(TestCase):
                 )
                 self.assertListEqual(casted_dset["labels"][:], [[0, 1], [1, 2], [2, 0]])
 
+    def test_class_encode_large_list_column(self, in_memory):
+        features = Features({"labels": LargeList(Value("string"))})
+        dset = Dataset.from_dict({"labels": [["a", "b"], ["b"], ["c", "a"], []]}, features=features)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            if not in_memory:
+                dset = self._to(in_memory, tmp_dir, dset)
+            with dset.class_encode_column("labels") as casted_dset:
+                self.assertEqual(casted_dset.features["labels"], LargeList(ClassLabel(names=["a", "b", "c"])))
+                self.assertListEqual(casted_dset["labels"][:], [[0, 1], [1], [2, 0], []])
+
     def test_remove_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
