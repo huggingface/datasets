@@ -1023,16 +1023,7 @@ class DatasetBuilder:
         })
         ```
         """
-        if self._file_format is not None and self._file_format != "arrow":
-            raise FileFormatError('Loading a dataset not written in the "arrow" format is not supported.')
-        if is_remote_filesystem(self._fs):
-            raise NotImplementedError(f"Loading a dataset cached in a {type(self._fs).__name__} is not supported.")
-        if not os.path.exists(self._output_dir):
-            raise FileNotFoundError(
-                f"Dataset {self.dataset_name}: could not find data in {self._output_dir}. Please make sure to call "
-                "builder.download_and_prepare(), or use "
-                "datasets.load_dataset() before trying to access the Dataset object."
-            )
+        self._check_cached_arrow_files_are_readable()
 
         logger.debug(f"Constructing Dataset for split {split or ', '.join(self.info.splits)}, from {self._output_dir}")
 
@@ -1054,38 +1045,98 @@ class DatasetBuilder:
             datasets = DatasetDict(datasets)
         return datasets
 
-    
-    def as_iterable_dataset(self, split=None):
-        """
-        Load an IterableDataset from cached Arrow files.
+    def as_iterable_dataset(
+        self,
+        split: Optional[Union[str, Split, ReadInstruction]] = None,
+    ) -> Union[IterableDataset, IterableDatasetDict]:
+        """Return an [`IterableDataset`] that reads the Arrow files already prepared in the cache.
+
+        It takes the same `split` arguments as [`DatasetBuilder.as_dataset`], including split
+        compositions and slices such as `"train+test"` or `"train[:10%]"`. The Arrow files are
+        memory-mapped and read one shard at a time, so nothing is loaded into memory up front, and
+        each cached Arrow file is one shard, which lets `num_workers` and distributed training
+        split the data by file.
+
+        The dataset must already be prepared: call [`DatasetBuilder.download_and_prepare`] first,
+        as for `as_dataset`.
 
         Args:
-            split (str, optional): Dataset split to stream (e.g., "train", "validation", "train[:1000]")
+            split (`datasets.Split`, *optional*):
+                Which subset of the data to return. By default, all the splits are returned.
 
         Returns:
-            IterableDataset: A streamable dataset loaded from local cache
+            [`IterableDataset`], or [`IterableDatasetDict`] when `split` is not given.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset_builder
+        >>> builder = load_dataset_builder('cornell-movie-review-data/rotten_tomatoes')
+        >>> builder.download_and_prepare()
+        >>> ds = builder.as_iterable_dataset(split='train')
+        >>> ds
+        IterableDataset({
+            features: ['text', 'label'],
+            num_shards: 1
+        })
+        ```
         """
-        from datasets.iterable_dataset import IterableDataset, ArrowExamplesIterable
-        from datasets.arrow_reader import ArrowReader
+        self._check_cached_arrow_files_are_readable()
 
-        # Ensure the dataset is prepared (cached arrow files exist)
-        self.download_and_prepare()
+        logger.debug(
+            f"Constructing IterableDataset for split {split or ', '.join(self.info.splits)}, from {self._output_dir}"
+        )
 
-        # Use ArrowReader to read the cached Arrow files
-        reader = ArrowReader(self._output_dir)
+        # By default, return all splits
+        if split is None:
+            split = {s: s for s in self.info.splits}
 
-        # Get instructions for which files/parts to read
-        instructions = reader.get_file_instructions(split)
+        iterable_datasets = map_nested(
+            self._build_single_iterable_dataset,
+            split,
+            map_tuple=True,
+            disable_tqdm=True,
+        )
+        if isinstance(iterable_datasets, dict):
+            iterable_datasets = IterableDatasetDict(iterable_datasets)
+        return iterable_datasets
 
-        # Generator function that yields Arrow tables
-        def gen_tables():
-            for instruction in instructions:
-                yield reader.read_tables([instruction])
+    def _check_cached_arrow_files_are_readable(self) -> None:
+        """Raise if the prepared dataset cannot be read back from local Arrow files."""
+        if self._file_format is not None and self._file_format != "arrow":
+            raise FileFormatError('Loading a dataset not written in the "arrow" format is not supported.')
+        if is_remote_filesystem(self._fs):
+            raise NotImplementedError(f"Loading a dataset cached in a {type(self._fs).__name__} is not supported.")
+        if not os.path.exists(self._output_dir):
+            raise FileNotFoundError(
+                f"Dataset {self.dataset_name}: could not find data in {self._output_dir}. Please make sure to call "
+                "builder.download_and_prepare(), or use "
+                "datasets.load_dataset() before trying to access the Dataset object."
+            )
 
-        # Wrap in ArrowExamplesIterable to create an iterable dataset
-        examples_iterable = ArrowExamplesIterable(gen_tables)
+    def _resolve_split(self, split: Union[str, ReadInstruction, Split]) -> Union[ReadInstruction, Split]:
+        """Turn a user-facing split argument into the instruction the Arrow reader understands."""
+        if isinstance(split, ReadInstruction):
+            return split
+        split = str(split)
+        if split == "all":
+            split = "+".join(self.info.splits.keys())
+        return Split(split)
 
-        return IterableDataset(examples_iterable, info=self.info, split=split)
+    def _build_single_iterable_dataset(self, split: Union[str, ReadInstruction, Split]) -> IterableDataset:
+        """as_iterable_dataset for a single split."""
+        split = self._resolve_split(split)
+        dataset_name = self.name if self._check_legacy_cache() else self.dataset_name
+        cache_dir = self._fs._strip_protocol(self._output_dir)
+        files = ArrowReader(cache_dir, self.info).get_file_instructions(
+            name=dataset_name, instruction=split, split_infos=self.info.splits.values()
+        )
+        if not files:
+            raise ValueError(f'Instruction "{split}" corresponds to no data!')
+        # Every cached file is a shard: `files` is a list in the gen_kwargs, which is what lets the
+        # iterable be sharded across workers and resumed from its state_dict.
+        ex_iterable = ArrowExamplesIterable(_generate_tables_from_cached_files, {"files": files})
+        return IterableDataset(ex_iterable, info=self.info, split=Split(str(split)))
 
     def _build_single_dataset(
         self,
@@ -1093,15 +1144,9 @@ class DatasetBuilder:
         in_memory: bool = False,
     ):
         """as_dataset for a single split."""
-        if not isinstance(split, ReadInstruction):
-            split = str(split)
-            if split == "all":
-                split = "+".join(self.info.splits.keys())
-            split = Split(split)
-
         # Build base dataset
         ds = self._as_dataset(
-            split=split,
+            split=self._resolve_split(split),
             in_memory=in_memory,
         )
         return ds
@@ -1312,6 +1357,18 @@ class Key:
 
     def __str__(self):
         return str((self.original_shard_id, self.item_or_batch_id))
+
+
+def _generate_tables_from_cached_files(files: list[dict]) -> Iterator[tuple[Key, pa.Table]]:
+    """Yield one memory-mapped table per cached Arrow file, restricted to its `skip`/`take` rows.
+
+    Module-level so that the `IterableDataset` holding it stays picklable.
+    """
+    reader = ArrowReader("", None)  # only used to slice the table, so it needs neither a path nor an info
+    for file_idx, file in enumerate(files):
+        table = reader._get_table_from_filename(file)
+        if len(table) > 0:
+            yield Key(file_idx, 0), table.table
 
 
 class GeneratorBasedBuilder(DatasetBuilder):
