@@ -98,7 +98,7 @@ hf jobs uv run --flavor l4x1 --timeout 2h --secrets HF_TOKEN -- \
 On a multi-GPU flavor such as `a10g-largex2`, the same script splits the dataset across the GPUs.
 
 > [!WARNING]
-> Load the model inside the mapped function, as above, not in the main process. If the main process has already loaded the model, the processes that [`~Dataset.map`] starts can hang without an error. `torch.cuda.device_count()` is safe to call. If you must load the model before [`~Dataset.map`], call `multiprocess.set_start_method("spawn")` first, as shown in [Multiprocessing](./process#multiprocessing).
+> Load the model inside the mapped function, as above, not in the main process. If the main process has already loaded the model, the processes that [`~Dataset.map`] starts can hang without an error trying to pickle the model to subprocesses. `torch.cuda.device_count()` is safe to call. If you must load the model before [`~Dataset.map`], call `multiprocess.set_start_method("spawn")` first, as shown in [Multiprocessing](./process#multiprocessing).
 
 ## Process a dataset larger than the disk
 
@@ -115,7 +115,7 @@ if __name__ == "__main__":
 
 ## Split the work across many Jobs
 
-When one Job is too slow (e.g. if you have a lot of data to process), run several at the same time. Give each Job a `RANK` and the total number of Jobs, `WORLD_SIZE`. Each Job uses [`~datasets.distributed.split_dataset_by_node`] to select its part of the dataset and writes its Parquet files to the same dataset repository:
+When one Job is too slow (e.g. if you have a lot of data to process), run several at the same time. Give each Job a `RANK` and the total number of Jobs, `NUM_JOBS`. Each Job uses [`IterableDataset.shard`] to select its part of the source files and writes its Parquet files to the same dataset repository:
 
 ```py
 # /// script
@@ -124,18 +124,17 @@ When one Job is too slow (e.g. if you have a lot of data to process), run severa
 import os
 
 from datasets import load_dataset
-from datasets.distributed import split_dataset_by_node
 from huggingface_hub import create_repo
 
 if __name__ == "__main__":
     rank = int(os.environ["RANK"])
-    world_size = int(os.environ["WORLD_SIZE"])
+    num_jobs = int(os.environ["NUM_JOBS"])
     output = os.environ["OUTPUT"]  # for example "username/c4-stats"
 
     create_repo(output, repo_type="dataset", private=True, exist_ok=True)
 
     dataset = load_dataset("allenai/c4", "en", split="validation", streaming=True)
-    dataset = dataset.shard(num_shards=world_size, index=rank)
+    dataset = dataset.shard(num_shards=num_jobs, index=rank)
     dataset = dataset.map(lambda example: {"n_words": len(example["text"].split())})
 
     # One Parquet file per source file, so that only one file is in memory at a time.
@@ -147,7 +146,7 @@ if __name__ == "__main__":
 ```bash
 for rank in 0 1; do
   hf jobs uv run --detach --timeout 1h --secrets HF_TOKEN \
-    -e RANK=$rank -e WORLD_SIZE=2 -e OUTPUT=username/c4-stats -- \
+    -e RANK=$rank -e NUM_JOBS=2 -e OUTPUT=username/c4-stats -- \
     process_part.py
 done
 ```
@@ -155,7 +154,6 @@ done
 When all Jobs are complete, `load_dataset("username/c4-stats", split="validation")` reads every file in `data/` as one dataset, with no merge step.
 
 > [!WARNING]
-> - Make `dataset.num_shards` divisible by `WORLD_SIZE`. Otherwise each Job streams all the files and skips the examples of the other Jobs.
 > - [`IterableDataset.to_parquet`] currently keeps all the data it writes in memory, so write one file per source file, not one per Job.
 > - Do not use [`Dataset.shard`] on a dataset loaded without `streaming=True`: each Job would download the full dataset first.
 
