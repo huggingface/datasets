@@ -1,4 +1,5 @@
 import importlib
+import json
 import os
 import pickle
 import shutil
@@ -684,6 +685,27 @@ class ModuleFactoryTest(TestCase):
                 )
                 module_factory_result = factory.get_module()
                 assert importlib.import_module(module_factory_result.module_path) is not None
+
+
+def test_CachedDatasetModuleFactory_offline_populates_config_names(tmp_path):
+    # Build a fake cache directory with multiple cached configs for the same dataset
+    # (mirrors the layout produced by `Cache` in `datasets.packaged_modules.cache.cache`):
+    #   <cache_dir>/<namespace>___<dataset>/<config_name>/<version>/<hash>/dataset_info.json
+    repo_id = "fake-namespace/fake-dataset"
+    cached_relative_path = "fake-namespace___fake-dataset"
+    cached_configs = ["abstract_algebra", "all", "anatomy"]
+    for config_name in cached_configs:
+        cached_directory_path = tmp_path / cached_relative_path / config_name / "0.0.0" / "abcdef"
+        cached_directory_path.mkdir(parents=True)
+        (cached_directory_path / "dataset_info.json").write_text(
+            json.dumps({"config_name": config_name}), encoding="utf-8"
+        )
+    factory = CachedDatasetModuleFactory(repo_id, cache_dir=str(tmp_path))
+    with patch("datasets.config.HF_HUB_OFFLINE", True):
+        module = factory.get_module()
+    builder_configs = module.builder_configs_parameters.builder_configs
+    assert builder_configs is not None
+    assert sorted(bc.name for bc in builder_configs) == sorted(cached_configs)
 
 
 @pytest.mark.parametrize(
