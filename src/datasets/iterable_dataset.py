@@ -31,8 +31,9 @@ from huggingface_hub import (
     HfFileSystem,
     HfFileSystemResolvedPath,
 )
+from huggingface_hub.errors import BucketNotFoundError
+from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
 from huggingface_hub.utils import RepositoryNotFoundError
-from packaging import version
 
 from . import __version__, config
 from .arrow_dataset import Dataset, DatasetInfoMixin, _push_to_bucket, _push_to_repo
@@ -77,15 +78,6 @@ from .utils.py_utils import (
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 from .utils.typing import PathLike
 
-
-if config.HF_HUB_VERSION >= version.parse("1.6.0"):
-    from huggingface_hub.errors import BucketNotFoundError
-    from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
-
-else:
-    BucketNotFoundError = None
-    HfFileSystemResolvedBucketPath = None
-    HfFileSystemResolvedRepositoryPath = HfFileSystemResolvedPath
 
 if TYPE_CHECKING:
     import sqlite3
@@ -5026,6 +5018,11 @@ class IterableDataset(DatasetInfoMixin):
             uploaded_size (`int`): number of uploaded bytes to the repository or bucket
         """
 
+        # Features may be unknown (e.g. a dataset from a generator, or streamed CSV/JSON files
+        # without declared features): resolve them from the first examples, as done e.g. in
+        # `concatenate_datasets` and `interleave_datasets`.
+        self = self._resolve_features()
+
         # Find decodable columns, because if there are any, we need to:
         # embed the bytes from the files in the shards
         decodable_columns = (
@@ -5172,7 +5169,7 @@ class IterableDataset(DatasetInfoMixin):
                 organization's default is private. This value is ignored if the repo already exists.
             token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
-                to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
+                to the token saved locally when logging in with `hf auth login`. Will raise an error
                 if no token is passed and the user is not logged-in.
             revision (`str`, *optional*):
                 Branch to push the uploaded files to. Defaults to the `"main"` branch.
@@ -5259,8 +5256,6 @@ class IterableDataset(DatasetInfoMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
         if repo_id.startswith("buckets/"):
-            if BucketNotFoundError is None:
-                raise ImportError("Pushing datasets to buckets requires huggingface_hub>=1.6.0")
             _, _namespace, _bucket_name, *_path_segments = repo_id.split("/")
             try:
                 bucket_id = api.bucket_info(_namespace + "/" + _bucket_name).id
