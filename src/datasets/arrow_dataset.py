@@ -2322,7 +2322,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return batch
 
         new_features = dset.features.copy()
-        new_features[column] = List(dst_feat) if isinstance(src_feat, List) else dst_feat
+        new_features[column] = (
+            List(dst_feat, length=src_feat.length, id=src_feat.id) if isinstance(src_feat, List) else dst_feat
+        )
 
         dset = dset.map(
             cast_to_class_labels,
