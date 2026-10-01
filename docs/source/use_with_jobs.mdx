@@ -135,7 +135,7 @@ if __name__ == "__main__":
     create_repo(output, repo_type="dataset", private=True, exist_ok=True)
 
     dataset = load_dataset("allenai/c4", "en", split="validation", streaming=True)
-    dataset = split_dataset_by_node(dataset, rank=rank, world_size=world_size)
+    dataset = dataset.shard(num_shards=world_size, index=rank)
     dataset = dataset.map(lambda example: {"n_words": len(example["text"].split())})
 
     # One Parquet file per source file, so that only one file is in memory at a time.
