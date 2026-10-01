@@ -22,6 +22,7 @@ from datasets.config import METADATA_CONFIGS_FIELD
 from datasets.data_files import DataFilesDict, DataFilesPatternsDict
 from datasets.dataset_dict import DatasetDict
 from datasets.download.download_config import DownloadConfig
+from datasets.download.download_manager import DownloadMode
 from datasets.exceptions import DatasetNotFoundError
 from datasets.features import Features, Value
 from datasets.iterable_dataset import IterableDataset
@@ -728,6 +729,21 @@ class LoadTest(TestCase):
                 dataset_module = datasets.load.dataset_module_factory(repo_id, cache_dir=self.cache_dir)
                 self.assertEqual(dataset_module.module_path, "datasets.packaged_modules.cache.cache")
                 self.assertIn("Using the latest cached version of the dataset", self._caplog.text)
+
+    @pytest.mark.integration
+    def test_offline_dataset_module_factory_force_redownload(self):
+        repo_id = SAMPLE_DATASET_IDENTIFIER2
+        builder = load_dataset_builder(repo_id, cache_dir=self.cache_dir)
+        builder.download_and_prepare()
+        for offline_simulation_mode in list(OfflineSimulationMode):
+            with offline(offline_simulation_mode):
+                with self.assertRaises(ConnectionError):
+                    datasets.load.dataset_module_factory(
+                        repo_id, cache_dir=self.cache_dir, download_mode=DownloadMode.FORCE_REDOWNLOAD
+                    )
+                # the default download mode still serves the cached module
+                dataset_module = datasets.load.dataset_module_factory(repo_id, cache_dir=self.cache_dir)
+                self.assertEqual(dataset_module.module_path, "datasets.packaged_modules.cache.cache")
 
     @pytest.mark.integration
     def test_offline_dataset_module_factory_with_capital_letters_in_name(self):
