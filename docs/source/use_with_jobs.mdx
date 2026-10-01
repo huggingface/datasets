@@ -1,0 +1,192 @@
+# Use with Hugging Face Jobs
+
+[Hugging Face Jobs](https://huggingface.co/docs/hub/jobs) is a good fit for data processing. Datasets often outgrow the machine you work on: a [`~Dataset.map`] that takes an hour on a laptop takes minutes with more CPUs, a model that labels every example needs a GPU, and a dataset larger than your disk needs [streaming](#process-a-dataset-larger-than-the-disk).
+
+Jobs runs your code on Hugging Face hardware, from CPU-only machines to multi-GPU ones. The Job reads the dataset from the Hub and writes the result back to the Hub, so nothing is downloaded to your machine. This guide shows the patterns that work well with 🤗 Datasets.
+
+If you have not run a Job before, start with the [Jobs quickstart](https://huggingface.co/docs/hub/jobs-quickstart).
+
+## What changes in a Job
+
+🤗 Datasets works the same in a Job as on your machine: [`load_dataset`], [`~Dataset.map`], [`~Dataset.filter`] and [`~Dataset.push_to_hub`] are the same calls. What changes is the environment around them: how data gets into the Job, where it is while the Job runs (a local disk that is deleted when the Job ends), how results get out, and how many CPUs, GPUs and how much memory the Job has. [Process large datasets](https://huggingface.co/docs/hub/jobs-large-datasets) in the Hub documentation covers each of these for Jobs in general. This guide shows the patterns that are specific to 🤗 Datasets.
+
+## Run a script on a larger machine
+
+There are several ways to run a Job, such as a Docker image or the Python API (see the [Jobs documentation](https://huggingface.co/docs/hub/jobs)). This guide uses `hf jobs uv run`, which runs a single Python script. The script lists its dependencies in a [PEP 723 header](https://huggingface.co/docs/hub/jobs-configuration#uv-jobs) at the top of the file, and the Job installs them before the script starts, so you don't have to build an image.
+
+This script adds the number of words and unique words to each IMDb review, and pushes the result to the Hub. It is a normal 🤗 Datasets script: the only Job-specific line is `CPU_CORES`, which sets `num_proc` to the CPUs the Job can use.
+
+```py
+# /// script
+# dependencies = ["datasets"]
+# ///
+import os
+import re
+import sys
+
+from datasets import load_dataset
+
+WORD = re.compile(r"\w+")
+
+
+def add_stats(example):
+    words = WORD.findall(example["text"].lower())
+    return {"n_words": len(words), "n_unique_words": len(set(words))}
+
+
+if __name__ == "__main__":
+    output = sys.argv[1]  # for example "username/imdb-stats"
+    dataset = load_dataset("stanfordnlp/imdb")
+    dataset = dataset.map(add_stats, num_proc=int(os.environ.get("CPU_CORES", os.cpu_count())))
+    dataset.push_to_hub(output, private=True)
+```
+
+Run it on a `cpu-upgrade` Job, with your [token as a secret](https://huggingface.co/docs/hub/jobs-configuration#authentication) so that the script can push the result:
+
+```bash
+hf jobs uv run --flavor cpu-upgrade --timeout 1h --secrets HF_TOKEN -- \
+    process.py username/imdb-stats
+```
+
+> [!TIP]
+> Inside a Job, `os.cpu_count()` returns the CPUs of the host machine (64 on `cpu-upgrade`), not of the Job (8), and too many processes make [`~Dataset.map`] slower. Jobs set `CPU_CORES` to the right number, so use it for `num_proc`. `hf jobs hardware` lists the CPUs, memory, disk and GPUs of each flavor.
+
+## Use GPUs in `map`
+
+On a GPU flavor, run a model in [`~Dataset.map`] with one process per GPU. `with_rank=True` gives each process its rank, and each process loads its own copy of the model on that GPU. This script labels news articles by topic with [GLiNER2.5-Decide](https://huggingface.co/fastino/GLiNER2.5-Decide):
+
+```py
+# /// script
+# dependencies = ["datasets", "gliner2[local]==2.0.0", "protobuf", "sentencepiece"]
+# ///
+import sys
+
+import torch
+from datasets import load_dataset
+from gliner2 import AutoExtractor
+
+LABELS = ["world", "sports", "business", "science and technology"]
+model = None  # each process loads its own copy of the model
+
+
+def classify(batch, rank):
+    global model
+    if model is None:
+        device = f"cuda:{(rank or 0) % torch.cuda.device_count()}"  # rank is None with one process
+        torch.cuda.set_device(device)
+        model = AutoExtractor.from_pretrained("fastino/GLiNER2.5-Decide")
+        model = model.to(device=device, dtype=torch.float16).eval()
+    results = model.batch_classify_text(batch["text"], {"topic": LABELS}, batch_size=32, include_confidence=True)
+    return {
+        "topic": [r["topic"]["label"] for r in results],
+        "topic_confidence": [r["topic"]["confidence"] for r in results],
+    }
+
+
+if __name__ == "__main__":
+    output = sys.argv[1]
+    dataset = load_dataset("fancyzhx/ag_news", split="train")
+    dataset = dataset.map(classify, batched=True, batch_size=256, with_rank=True, num_proc=torch.cuda.device_count())
+    dataset.push_to_hub(output, private=True)
+```
+
+```bash
+hf jobs uv run --flavor l4x1 --timeout 2h --secrets HF_TOKEN -- \
+    classify.py username/ag-news-topics
+```
+
+On a multi-GPU flavor such as `a10g-largex2`, the same script splits the dataset across the GPUs.
+
+> [!WARNING]
+> Load the model inside the mapped function, as above, not in the main process. If the main process has already loaded the model, the processes that [`~Dataset.map`] starts can hang without an error. `torch.cuda.device_count()` is safe to call. If you must load the model before [`~Dataset.map`], call `multiprocess.set_start_method("spawn")` first, as shown in [Multiprocessing](./process#multiprocessing).
+
+## Process a dataset larger than the disk
+
+To process a dataset larger than the disk, [stream](./stream) it and push the result with [`IterableDataset.push_to_hub`], which uploads it in parts:
+
+```py
+if __name__ == "__main__":
+    dataset = load_dataset("HuggingFaceFW/fineweb-edu", "sample-10BT", split="train", streaming=True)
+    dataset = dataset.filter(lambda example: example["int_score"] >= 4)
+    dataset.push_to_hub("username/fineweb-edu-high-quality", private=True, num_proc=4)
+```
+
+`num_proc` processes the source files in parallel, and each process keeps one output file in memory before it uploads it. If the Job runs out of memory, decrease `num_proc` or select a flavor with more RAM. For other ways to read large datasets in a Job (DuckDB, Polars, mounted volumes), see [Process large datasets](https://huggingface.co/docs/hub/jobs-large-datasets).
+
+## Split the work across many Jobs
+
+When one Job is too slow, run several at the same time. Give each Job a `RANK` and the total number of Jobs, `WORLD_SIZE`. Each Job uses [`~datasets.distributed.split_dataset_by_node`] to select its part of the dataset and writes its Parquet files to the same dataset repository:
+
+```py
+# /// script
+# dependencies = ["datasets"]
+# ///
+import os
+
+from datasets import load_dataset
+from datasets.distributed import split_dataset_by_node
+from huggingface_hub import create_repo
+
+if __name__ == "__main__":
+    rank = int(os.environ["RANK"])
+    world_size = int(os.environ["WORLD_SIZE"])
+    output = os.environ["OUTPUT"]  # for example "username/c4-stats"
+
+    create_repo(output, repo_type="dataset", private=True, exist_ok=True)
+
+    dataset = load_dataset("allenai/c4", "en", split="validation", streaming=True)
+    dataset = split_dataset_by_node(dataset, rank=rank, world_size=world_size)
+    dataset = dataset.map(lambda example: {"n_words": len(example["text"].split())})
+
+    # One Parquet file per source file, so that only one file is in memory at a time.
+    for index in range(dataset.num_shards):
+        part = dataset.shard(num_shards=dataset.num_shards, index=index)
+        part.to_parquet(f"hf://datasets/{output}/data/validation-{rank:05d}-{index:05d}.parquet")
+```
+
+```bash
+for rank in 0 1; do
+  hf jobs uv run --detach --timeout 1h --secrets HF_TOKEN \
+    -e RANK=$rank -e WORLD_SIZE=2 -e OUTPUT=username/c4-stats -- \
+    process_part.py
+done
+```
+
+When all Jobs are complete, `load_dataset("username/c4-stats", split="validation")` reads every file in `data/` as one dataset, with no merge step.
+
+> [!WARNING]
+> - Make `dataset.num_shards` divisible by `WORLD_SIZE`. Otherwise each Job streams all the files and skips the examples of the other Jobs.
+> - [`IterableDataset.to_parquet`] currently keeps all the data it writes in memory, so write one file per source file, not one per Job.
+> - Do not use [`Dataset.shard`] on a dataset loaded without `streaming=True`: each Job would download the full dataset first.
+
+## Keep results and caches in a Storage Bucket
+
+A [Storage Bucket](./filesystems#hugging-face-storage-buckets) is mutable storage on the Hub, useful for intermediate results that do not need a versioned dataset repository.
+
+Write a processed dataset directly to a bucket, without mounting it:
+
+```py
+dataset.to_parquet("hf://buckets/username/my-bucket/imdb/train.parquet")
+
+# or keep the Arrow format, and load it again in another Job
+dataset.save_to_disk("hf://buckets/username/my-bucket/imdb-processed")
+dataset = load_from_disk("hf://buckets/username/my-bucket/imdb-processed")
+```
+
+To reuse the `datasets` cache across Jobs, for example to skip a slow [`~Dataset.map`] that you already ran, [mount the bucket](https://huggingface.co/docs/hub/jobs-configuration#volumes) and put the cache on it:
+
+```bash
+hf jobs uv run --flavor cpu-upgrade --timeout 1h --secrets HF_TOKEN \
+    -v hf://buckets/username/my-bucket:/cache -e HF_DATASETS_CACHE=/cache/datasets -- \
+    process.py username/imdb-stats
+```
+
+The next Job that mounts the same bucket and runs the same [`~Dataset.map`] loads the result from the cache. You can also pass `cache_dir="/cache/datasets"` to [`load_dataset`] instead of setting the environment variable.
+
+A mounted bucket does not give the Job more disk: data written to it passes through the Job's local disk. For datasets larger than the disk, use [streaming](#process-a-dataset-larger-than-the-disk) or [split the work across many Jobs](#split-the-work-across-many-jobs).
+
+## Next steps
+
+- [Process large datasets](https://huggingface.co/docs/hub/jobs-large-datasets): streaming, `hf://` queries, mounts and saving results in Jobs.
+- [Jobs configuration](https://huggingface.co/docs/hub/jobs-configuration): timeouts, secrets, volumes and the `[tool.hf-jobs]` script header.
+- [Manage Jobs](https://huggingface.co/docs/hub/jobs-manage): follow logs, wait for several Jobs, and inspect failures.
