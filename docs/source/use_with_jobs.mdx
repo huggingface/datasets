@@ -167,10 +167,6 @@ Write a processed dataset directly to a bucket, without mounting it:
 
 ```py
 dataset.to_parquet("hf://buckets/username/my-bucket/imdb/train.parquet")
-
-# or keep the Arrow format, and load it again in another Job
-dataset.save_to_disk("hf://buckets/username/my-bucket/imdb-processed")
-dataset = load_from_disk("hf://buckets/username/my-bucket/imdb-processed")
 ```
 
 To reuse the `datasets` cache across Jobs, for example to skip a slow [`~Dataset.map`] that you already ran, [mount the bucket](https://huggingface.co/docs/hub/jobs-configuration#volumes) and put the cache on it:
