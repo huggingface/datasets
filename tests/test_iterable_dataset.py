@@ -1,17 +1,26 @@
 import asyncio
+import os
 import pickle
 import sys
 import time
 from copy import deepcopy
 from dataclasses import dataclass
+from functools import partial
+from io import BytesIO
 from itertools import chain, cycle, islice
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import multiprocess as mp
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
+import pyarrow.parquet as pq
 import pytest
+from fsspec.implementations.dirfs import DirFileSystem
+from fsspec.implementations.local import LocalFileSystem
+from huggingface_hub import HfApi
 from huggingface_hub.hf_file_system import HfFileSystemResolvedRepositoryPath
 
 from datasets import Dataset, config, load_dataset
@@ -1769,6 +1778,263 @@ def test_iterable_dataset_push_to_hub_max_shard_size_and_num_shards_are_mutually
     dataset = IterableDataset.from_generator(lambda: iter([{"id": 0}]))
     with pytest.raises(ValueError, match="either max_shard_size or num_shards"):
         dataset.push_to_hub("user/dataset", max_shard_size="1MB", num_shards=2)
+
+
+def _save_uploaded_parquet_files(output_dir, *, additions, **kwargs):
+    for addition in additions:
+        (output_dir / Path(addition.path_in_repo).name).write_bytes(Path(addition.path_or_fileobj).read_bytes())
+
+
+def _init_offline_parquet_uploads(output_dir):
+    HfApi.preupload_lfs_files = staticmethod(partial(_save_uploaded_parquet_files, output_dir))
+
+
+@pytest.fixture
+def offline_parquet_uploads(tmp_path):
+    # Keep real spawned workers and Parquet writing, replacing only the remote upload.
+    pool = mp.get_context("spawn").Pool
+    with (
+        patch.object(HfApi, "preupload_lfs_files", new=partial(_save_uploaded_parquet_files, tmp_path)),
+        patch("datasets.iterable_dataset.mp.get_context") as mock_context,
+    ):
+        mock_context.return_value.Pool.side_effect = partial(
+            pool, initializer=_init_offline_parquet_uploads, initargs=(tmp_path,)
+        )
+        yield tmp_path
+
+
+@pytest.mark.parametrize(
+    "source_shards, num_shards, num_proc, expected_lengths",
+    [
+        (1, 3, None, [4, 3, 3]),
+        (3, 7, None, [2, 2, 2, 1, 1, 1, 1]),
+        (1, 3, 2, [4, 3, 3]),
+        (3, 7, 2, [2, 2, 2, 1, 1, 1, 1]),
+        (1, 3, 4, [4, 3, 3]),
+        (1, 12, None, [1] * 10 + [0, 0]),
+        (4, 4, None, [3, 3, 2, 2]),
+        (4, 2, None, [6, 4]),
+        (4, 4, 2, [3, 3, 2, 2]),
+        (4, 2, 2, [6, 4]),
+    ],
+)
+def test_iterable_dataset_push_to_hub_parquet_shards(
+    offline_parquet_uploads, source_shards, num_shards, num_proc, expected_lengths
+):
+    dataset = Dataset.from_dict({"id": list(range(10))}).to_iterable_dataset(num_shards=source_shards)
+    additions, paths, features, split_info, uploaded_size = dataset._push_parquet_shards_to_hub(
+        resolved_output_path=HfFileSystemResolvedRepositoryPath(
+            repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
+        ),
+        data_dir="data",
+        split="train",
+        token=None,
+        create_pr=False,
+        max_shard_size=None,
+        num_shards=num_shards,
+        embed_external_files=False,
+        num_proc=num_proc,
+    )
+    files = sorted(offline_parquet_uploads.glob("*.parquet"))
+    assert [file.name for file in files] == [f"train-{i:05d}-of-{num_shards:05d}.parquet" for i in range(num_shards)]
+    assert sorted(paths) == [f"data/{file.name}" for file in files]
+    assert sorted(addition.path_in_repo for addition in additions) == sorted(paths)
+    tables = [pq.read_table(file) for file in files]
+    assert [len(table) for table in tables] == expected_lengths
+    assert pa.concat_tables(tables).to_pydict() == {"id": list(range(10))}
+    assert features == dataset.features
+    assert all(Features.from_arrow_schema(table.schema) == features for table in tables)
+    assert split_info.num_examples == 10
+    assert uploaded_size == sum(file.stat().st_size for file in files)
+    if num_shards <= source_shards:
+        for i, file in enumerate(files):
+            expected = BytesIO()
+            dataset.shard(num_shards=num_shards, index=i, contiguous=True).to_parquet(expected)
+            assert file.read_bytes() == expected.getvalue()
+
+
+@pytest.mark.parametrize("num_proc", [None, 2])
+def test_iterable_dataset_push_to_hub_max_shard_size_reshards(offline_parquet_uploads, num_proc):
+    # Ten int64 values occupy 80 bytes; the existing estimate requests 80 // 30 + 1 = 3 files.
+    dataset = IterableDataset.from_generator(lambda: ({"id": i} for i in range(10)))
+    _, paths, features, split_info, _ = dataset._push_parquet_shards_to_hub(
+        resolved_output_path=HfFileSystemResolvedRepositoryPath(
+            repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
+        ),
+        data_dir="data",
+        split="train",
+        token=None,
+        create_pr=False,
+        max_shard_size=30,
+        num_shards=None,
+        embed_external_files=False,
+        num_proc=num_proc,
+    )
+    files = sorted(offline_parquet_uploads.glob("*.parquet"))
+    assert len(files) == len(paths) == 3
+    tables = [pq.read_table(file) for file in files]
+    assert [len(table) for table in tables] == [4, 3, 3]
+    assert pa.concat_tables(tables).to_pydict() == {"id": list(range(10))}
+    assert features == Features({"id": Value("int64")})
+    assert split_info.num_examples == 10
+
+
+@pytest.mark.parametrize("num_examples, expected_lengths", [(0, [0, 0, 0]), (2, [1, 1, 0]), (3501, [1167] * 3)])
+def test_iterable_dataset_push_to_hub_resharding_batches(offline_parquet_uploads, num_examples, expected_lengths):
+    dataset = IterableDataset.from_generator(
+        lambda: ({"id": i} for i in range(num_examples)), features=Features({"id": Value("int64")})
+    )
+    dataset._push_parquet_shards_to_hub(
+        resolved_output_path=HfFileSystemResolvedRepositoryPath(
+            repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
+        ),
+        data_dir="data",
+        split="train",
+        token=None,
+        create_pr=False,
+        max_shard_size=None,
+        num_shards=3,
+        embed_external_files=False,
+        num_proc=None,
+    )
+    files = sorted(offline_parquet_uploads.glob("*.parquet"))
+    tables = [pq.read_table(file) for file in files]
+    assert [len(table) for table in tables] == expected_lengths
+    assert pa.concat_tables(tables).to_pydict() == {"id": list(range(num_examples))}
+    for file in files:
+        metadata = pq.read_metadata(file)
+        assert all(
+            metadata.row_group(i).num_rows <= config.DEFAULT_MAX_BATCH_SIZE for i in range(metadata.num_row_groups)
+        )
+
+
+@pytest.mark.parametrize("embed_external_files", [False, True])
+def test_iterable_dataset_push_to_hub_resharding_images(offline_parquet_uploads, image_file, embed_external_files):
+    dataset = IterableDataset.from_generator(
+        lambda: ({"image": image_file} for _ in range(5)), features=Features({"image": Image(decode=False)})
+    )
+    dataset._push_parquet_shards_to_hub(
+        resolved_output_path=HfFileSystemResolvedRepositoryPath(
+            repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
+        ),
+        data_dir="data",
+        split="train",
+        token=None,
+        create_pr=False,
+        max_shard_size=None,
+        num_shards=3,
+        embed_external_files=embed_external_files,
+        num_proc=None,
+    )
+    tables = [pq.read_table(file) for file in sorted(offline_parquet_uploads.glob("*.parquet"))]
+    assert [len(table) for table in tables] == [2, 2, 1]
+    assert all(Features.from_arrow_schema(table.schema) == dataset.features for table in tables)
+    expected_image = (
+        {"bytes": Path(image_file).read_bytes(), "path": Path(image_file).name}
+        if embed_external_files
+        else {"bytes": None, "path": image_file}
+    )
+    assert pa.concat_tables(tables).to_pydict() == {"image": [expected_image] * 5}
+
+
+def test_iterable_dataset_push_to_hub_resharding_parallel(offline_parquet_uploads):
+    dataset = (
+        Dataset.from_dict({"id": list(range(101))})
+        .to_iterable_dataset()
+        .shuffle(seed=42, buffer_size=17)
+        .filter(lambda example: example["id"] % 3)
+        .map(lambda example: {"id": 2 * example["id"]})
+    )
+    # Exercise the public method, including its num_proc limit, with local repository storage.
+    repo_fs = DirFileSystem(path=str(offline_parquet_uploads / "repo"), fs=LocalFileSystem())
+    with (
+        patch.object(HfApi, "repo_info", return_value=MagicMock(id="user/dataset", sha="commit")),
+        patch("datasets.arrow_dataset.DirFileSystem", return_value=repo_fs),
+        patch.object(HfApi, "create_commit") as create_commit,
+    ):
+        dataset.push_to_hub("user/dataset", num_shards=5, num_proc=2)
+    files = sorted(offline_parquet_uploads.glob("*.parquet"))
+    assert [file.name for file in files] == [f"train-{i:05d}-of-00005.parquet" for i in range(5)]
+    tables = [pq.read_table(file) for file in files]
+    assert pa.concat_tables(tables).to_pylist() == list(dataset)
+    assert [len(table) for table in tables] == [14, 14, 13, 13, 13]
+    operations = create_commit.call_args.kwargs["operations"]
+    assert sorted(operation.path_in_repo for operation in operations) == ["README.md"] + [
+        f"data/{file.name}" for file in files
+    ]
+
+
+def _push_offline(dataset, **kwargs):
+    return dataset._push_parquet_shards_to_hub(
+        resolved_output_path=HfFileSystemResolvedRepositoryPath(
+            repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
+        ),
+        data_dir="data",
+        split="train",
+        token=None,
+        create_pr=False,
+        max_shard_size=kwargs.pop("max_shard_size", None),
+        num_shards=kwargs.pop("num_shards", None),
+        embed_external_files=False,
+        num_proc=kwargs.pop("num_proc", None),
+    )
+
+
+@pytest.mark.parametrize("lengths", [(4, 6), (6, 4), (3000, 3500), (3500, 3000)])
+def test_iterable_dataset_push_to_hub_resharding_rejects_non_repeatable_source(offline_parquet_uploads, lengths):
+    # Resharding counts the examples first, then splits them into contiguous chunks: a source that
+    # yields a different number of examples on the second pass must fail instead of dropping rows.
+    calls = iter(lengths)
+
+    def gen():
+        yield from ({"id": i} for i in range(next(calls)))
+
+    dataset = IterableDataset.from_generator(gen, features=Features({"id": Value("int64")}))
+    with pytest.raises(ValueError, match="different number of examples"):
+        _push_offline(dataset, num_shards=3)
+
+
+def test_iterable_dataset_push_to_hub_resharding_keeps_iteration_state(offline_parquet_uploads):
+    dataset = IterableDataset.from_generator(
+        lambda: ({"id": i} for i in range(10)), features=Features({"id": Value("int64")})
+    ).skip(1)
+    iterator = iter(dataset)
+    assert next(iterator)["id"] == 1
+    _push_offline(dataset, num_shards=3)
+    assert next(iterator)["id"] == 2
+    state_dict = dataset.state_dict()
+    dataset.load_state_dict(state_dict)
+    assert next(iter(dataset))["id"] == 3
+
+
+def _gen_reversed_outside_parent(n):
+    # Yields a different order in any process other than the test's own, like a source whose
+    # order depends on per-process state (hash randomization, scheduling).
+    rows = list(range(n))
+    if os.getpid() != int(os.environ["DATASETS_TEST_PARENT_PID"]):
+        rows.reverse()
+    yield from ({"id": i} for i in rows)
+
+
+def test_iterable_dataset_push_to_hub_resharding_ignores_num_proc(offline_parquet_uploads, monkeypatch):
+    # Resharding slices the stream by position, so it must read it once in one process:
+    # parallel workers re-reading a source with a process-dependent order would duplicate and drop rows.
+    monkeypatch.setenv("DATASETS_TEST_PARENT_PID", str(os.getpid()))
+    dataset = IterableDataset.from_generator(
+        _gen_reversed_outside_parent, gen_kwargs={"n": 20}, features=Features({"id": Value("int64")})
+    )
+    _push_offline(dataset, num_shards=4, num_proc=2)
+    files = sorted(offline_parquet_uploads.glob("*.parquet"))
+    assert [len(pq.read_table(f)) for f in files] == [5, 5, 5, 5]
+    assert pa.concat_tables([pq.read_table(f) for f in files]).to_pydict() == {"id": list(range(20))}
+
+
+def test_iterable_dataset_push_to_hub_max_shard_size_sizing_uses_workers(offline_parquet_uploads):
+    dataset = Dataset.from_dict({"id": list(range(10))}).to_iterable_dataset(num_shards=1)
+    _push_offline(dataset, max_shard_size=30, num_proc=2)
+    files = sorted(offline_parquet_uploads.glob("*.parquet"))
+    assert len(files) == 3
+    assert pa.concat_tables([pq.read_table(f) for f in files]).to_pydict() == {"id": list(range(10))}
 
 
 def test_iterable_dataset_push_to_hub_single_shard_disables_multiprocessing():

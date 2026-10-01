@@ -4,6 +4,7 @@ import contextlib
 import inspect
 import itertools
 import multiprocessing.pool
+import pickle
 import re
 import sys
 import tempfile
@@ -89,6 +90,23 @@ if TYPE_CHECKING:
     from .builder import Key as BuilderKey
 
 logger = get_logger(__name__)
+
+
+def _copy_for_iteration(dataset: "IterableDataset") -> "IterableDataset":
+    """Return a deep copy to iterate without touching `dataset`'s iteration state, or `dataset` itself if it
+    cannot be copied (e.g. it holds an open file handle), which is how it was always iterated before."""
+    try:
+        return deepcopy(dataset)
+    except (TypeError, AttributeError, pickle.PicklingError):
+        return dataset
+
+
+_RESHARD_NOT_REPEATABLE_MESSAGE = (
+    "The dataset yielded a different number of examples than when it was counted. Writing more shards than "
+    "dataset.num_shards splits the examples in contiguous chunks, which requires the dataset to yield the same "
+    "examples every time it is iterated. Use num_shards <= dataset.num_shards for a dataset that cannot be "
+    "iterated twice."
+)
 
 Key = Union[int, str, tuple[int, int], "BuilderKey"]
 
@@ -4913,6 +4931,7 @@ class IterableDataset(DatasetInfoMixin):
         # max_shard_size: Optional[Union[int, str]] = None,  # TODO(QL): add arg
         num_shards: int,
         embed_external_files: bool,
+        num_examples_to_reshard: Optional[int] = None,
     ) -> Iterable[tuple[list[CommitOperationAdd], list[str], int, int]]:
         """Pushes the dataset shards as Parquet files to the hub.
 
@@ -4929,9 +4948,36 @@ class IterableDataset(DatasetInfoMixin):
         start = div * job_id + min(job_id, mod)
         end = start + div + (1 if job_id < mod else 0)
 
-        index_shards = (
-            (start + i, self.shard(num_shards=end - start, index=i, contiguous=True)) for i in range(end - start)
-        )
+        if num_examples_to_reshard is None:
+            index_shards = (
+                (start + i, self.shard(num_shards=end - start, index=i, contiguous=True)) for i in range(end - start)
+            )
+        else:
+            from .arrow_writer import get_arrow_writer_batch_size_from_features
+
+            batch_size = get_arrow_writer_batch_size_from_features(self.features) or config.DEFAULT_MAX_BATCH_SIZE
+            # Iterate a copy: formatting reinitializes the iteration state shared with the caller's dataset.
+            tables = iter(_copy_for_iteration(self).with_format("arrow").iter(batch_size=batch_size))
+            table = pa.Table.from_batches([], schema=self.features.arrow_schema)
+
+            def iter_shard_tables(num_rows):
+                nonlocal table
+                while num_rows:
+                    if not len(table):
+                        try:
+                            table = next(tables)
+                        except StopIteration:
+                            raise ValueError(_RESHARD_NOT_REPEATABLE_MESSAGE) from None
+                    length = min(num_rows, len(table))
+                    yield table.slice(0, length)
+                    table = table.slice(length)
+                    num_rows -= length
+
+            # Stream consecutive output shards; memory stays bounded by batches even when a shard spans many.
+            rows_per_shard, extra = divmod(num_examples_to_reshard, num_shards)
+            index_shards = (
+                (index, iter_shard_tables(rows_per_shard + (index < extra))) for index in range(start, end)
+            )
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
 
@@ -4941,7 +4987,7 @@ class IterableDataset(DatasetInfoMixin):
         new_parquet_paths: list[str] = []
         features = self.features
         for index, shard in index_shards:
-            if embed_external_files:
+            if embed_external_files and num_examples_to_reshard is None:
                 from .arrow_writer import get_arrow_writer_batch_size_from_features
 
                 shard = shard.with_format("arrow")
@@ -4953,7 +4999,14 @@ class IterableDataset(DatasetInfoMixin):
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
             tmp_file = tempfile.NamedTemporaryFile(suffix=".parquet", delete=False)
             try:
-                shard.to_parquet(tmp_file)
+                if num_examples_to_reshard is None:
+                    shard.to_parquet(tmp_file)
+                else:
+                    with pq.ParquetWriter(tmp_file, schema=features.arrow_schema) as writer:
+                        for pa_table in shard:
+                            if embed_external_files:
+                                pa_table = embed_table_storage(pa_table, token_per_repo_id=self._token_per_repo_id)
+                            writer.write_table(pa_table)
                 tmp_file.close()
                 parquet_metadata = pq.read_metadata(tmp_file.name)
                 if features is None:
@@ -4991,6 +5044,9 @@ class IterableDataset(DatasetInfoMixin):
             tmp_file.close()
             Path(tmp_file.name).unlink()
             yield job_id, False, 1
+
+        if num_examples_to_reshard is not None and (len(table) or next(tables, None) is not None):
+            raise ValueError(_RESHARD_NOT_REPEATABLE_MESSAGE)
 
         yield job_id, True, (additions, new_parquet_paths, features, dataset_nbytes, num_examples)
 
@@ -5032,16 +5088,32 @@ class IterableDataset(DatasetInfoMixin):
         )
         embed_external_files = embed_external_files and bool(decodable_columns)
 
+        num_examples_to_reshard = None
         if num_shards is None:
             if max_shard_size is None:
                 num_shards = self.num_shards
             else:
                 max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
                 estimated_nbytes = 0
-                for pa_table in self.with_format("arrow").iter(batch_size=config.DEFAULT_MAX_BATCH_SIZE):
+                num_examples_to_reshard = 0
+                for pa_table in (
+                    _copy_for_iteration(self).with_format("arrow").iter(batch_size=config.DEFAULT_MAX_BATCH_SIZE)
+                ):
                     estimated_nbytes += pa_table.nbytes
+                    num_examples_to_reshard += len(pa_table)
                 num_shards = int(estimated_nbytes / max_shard_size) + 1
                 num_shards = max(num_shards, num_proc or 1)
+
+        if num_shards <= self.num_shards:
+            num_examples_to_reshard = None
+        elif num_examples_to_reshard is None:
+            # Count without materializing the stream to choose contiguous, balanced row ranges.
+            num_examples_to_reshard = sum(
+                len(pa_table)
+                for pa_table in _copy_for_iteration(self)
+                .with_format("arrow")
+                .iter(batch_size=config.DEFAULT_MAX_BATCH_SIZE)
+            )
 
         additions: list[CommitOperationAdd] = []
         new_parquet_paths: list[str] = []
@@ -5050,6 +5122,13 @@ class IterableDataset(DatasetInfoMixin):
         num_examples = 0
         features = self.features
 
+        if num_examples_to_reshard is not None and num_proc is not None and num_proc > 1:
+            logger.warning(
+                f"Setting num_proc from {num_proc} back to 1 for the {split} split: writing more shards than "
+                f"dataset.num_shards={self.num_shards} reads the examples in a single ordered pass, so that each "
+                "example lands in exactly one shard even if the iteration order differs between processes."
+            )
+            num_proc = None
         num_jobs = num_proc or 1
         if num_shards <= 1:
             logger.warning(
@@ -5065,7 +5144,9 @@ class IterableDataset(DatasetInfoMixin):
             num_jobs = num_shards
         kwargs_iterable = [
             {
-                "self": self.shard(num_shards=num_jobs, index=job_id, contiguous=True),
+                "self": self
+                if num_examples_to_reshard is not None
+                else self.shard(num_shards=num_jobs, index=job_id, contiguous=True),
                 "job_id": job_id,
                 "num_jobs": num_jobs,
                 "resolved_output_path": resolved_output_path,
@@ -5075,6 +5156,7 @@ class IterableDataset(DatasetInfoMixin):
                 "create_pr": create_pr,
                 "num_shards": num_shards,
                 "embed_external_files": embed_external_files,
+                "num_examples_to_reshard": num_examples_to_reshard,
             }
             for job_id in range(num_jobs)
         ]
@@ -5180,7 +5262,10 @@ class IterableDataset(DatasetInfoMixin):
                 by a unit (like `"5MB"`). If not provided, shard count defaults to this dataset's `.num_shards`.
             num_shards (`int`, *optional*):
                 Number of shards to write. If `max_shard_size` is provided and `num_shards` is not, then the number of shards is estimated
-                from `max_shard_size`.
+                from `max_shard_size`. Can exceed this dataset's `.num_shards`: in that case, examples are counted in an
+                additional pass and split into contiguous, balanced chunks in iteration order, written in a single ordered
+                pass (`num_proc` is not used in that case). The dataset must yield the same examples each time it is
+                iterated. Empty shards are written if there are fewer examples than requested shards.
             embed_external_files (`bool`, defaults to `True`):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
@@ -5225,7 +5310,11 @@ class IterableDataset(DatasetInfoMixin):
         >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
         ```
         """
-        if num_proc is not None and num_proc > self.num_shards:
+        if (
+            num_proc is not None
+            and num_proc > self.num_shards
+            and (num_shards is None or num_shards <= self.num_shards)
+        ):
             logger.warning(
                 f"Too many num_proc: {num_proc} (max is dataset.num_shards={self.num_shards}). "
                 f"Stopping {num_proc - self.num_shards} processes."

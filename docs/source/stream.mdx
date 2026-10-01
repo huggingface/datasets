@@ -587,6 +587,8 @@ Save your dataset by providing the name of the dataset repository on Hugging Fac
 dataset.push_to_hub("username/my_dataset")
 ```
 
+By default, [`IterableDataset.push_to_hub`] writes `dataset.num_shards` files. Set `num_shards` to choose a different count, including more than `dataset.num_shards`. Larger counts split the examples into contiguous, balanced chunks in iteration order using a counting pass and bounded batches; if there are fewer examples than requested shards, some files are empty. Alternatively, `max_shard_size` estimates the shard count from the dataset size.
+
 If the dataset consists of multiple shards (`dataset.num_shards > 1`), you can use multiple processes to upload it in parallel. This is especially useful if you applied `map()` or `filter()` steps since they will run faster in parallel:
 
 ```python
