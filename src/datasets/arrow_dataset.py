@@ -81,7 +81,7 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .data_files import sanitize_patterns
 from .download.streaming_download_manager import xgetsize
-from .features import Audio, ClassLabel, Features, Image, List, Value, Video
+from .features import Audio, ClassLabel, Features, Image, LargeList, List, Value, Video
 from .features.features import (
     FeatureType,
     _align_features,
@@ -2259,12 +2259,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if column not in self._data.column_names:
             raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
         src_feat = self._info.features[column]
-        if not isinstance(src_feat, (Value, List)) or (
-            isinstance(src_feat, List) and not isinstance(src_feat.feature, Value)
-        ):
+        is_list_feature = isinstance(src_feat, (List, LargeList))
+        if not isinstance(src_feat, Value) and not (is_list_feature and isinstance(src_feat.feature, Value)):
             raise ValueError(
-                f"Class encoding is only supported for {Value.__name__} or {List.__name__}({Value.__name__}) columns, "
-                f"and column {column} is {type(src_feat).__name__}."
+                f"Class encoding is only supported for {Value.__name__}, {List.__name__}({Value.__name__}), "
+                f"or {LargeList.__name__}({Value.__name__}) columns, and column {column} is {type(src_feat).__name__}."
             )
 
         def get_unique_values(dataset):
@@ -2274,11 +2273,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         unique_values = get_unique_values(self)
 
-        value_feat = src_feat if isinstance(src_feat, Value) else src_feat.feature
+        value_feat = src_feat.feature if is_list_feature else src_feat
         if value_feat.dtype != "string" or (include_nulls and None in unique_values):
 
             def stringify_column(batch):
-                if isinstance(src_feat, List):
+                if is_list_feature:
                     batch[column] = [
                         [str(item) if include_nulls or item is not None else None for item in sample]
                         if sample is not None
@@ -2304,7 +2303,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dst_feat = ClassLabel(names=class_names)
 
         def cast_to_class_labels(batch):
-            if isinstance(src_feat, List):
+            if is_list_feature:
                 batch[column] = [
                     [
                         dst_feat.str2int(str(item)) if include_nulls or item is not None else None
@@ -2322,9 +2321,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return batch
 
         new_features = dset.features.copy()
-        new_features[column] = (
-            List(dst_feat, length=src_feat.length, id=src_feat.id) if isinstance(src_feat, List) else dst_feat
-        )
+        if isinstance(src_feat, List):
+            new_features[column] = List(dst_feat, length=src_feat.length, id=src_feat.id)
+        elif isinstance(src_feat, LargeList):
+            new_features[column] = LargeList(dst_feat, id=src_feat.id)
+        else:
+            new_features[column] = dst_feat
 
         dset = dset.map(
             cast_to_class_labels,
