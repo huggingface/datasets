@@ -369,7 +369,7 @@ class NamedSplit(SplitBase):
         self._name = name
         split_names_from_instruction = [split_instruction.split("[")[0] for split_instruction in name.split("+")]
         for split_name in split_names_from_instruction:
-            if not re.match(_split_re, split_name):
+            if not re.fullmatch(_split_re, split_name):
                 raise ValueError(f"Split name should match '{_split_re}' but got '{split_name}'.")
 
     def __str__(self):

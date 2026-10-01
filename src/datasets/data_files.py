@@ -275,7 +275,7 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], list[str]]) -> di
                 assert p_parts is not None
                 splits.add(p_parts["split"])
 
-            if any(not re.match(_split_re, split) for split in splits):
+            if any(not re.fullmatch(_split_re, split) for split in splits):
                 raise ValueError(f"Split name should match '{_split_re}'' but got '{splits}'.")
             sorted_splits = [str(split) for split in DEFAULT_SPLITS if split in splits] + sorted(
                 splits - {str(split) for split in DEFAULT_SPLITS}
