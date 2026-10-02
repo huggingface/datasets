@@ -2,6 +2,7 @@ import os
 import random
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -12,7 +13,12 @@ from absl.testing import parameterized
 import datasets
 from datasets.arrow_writer import ArrowWriter
 from datasets.features import Array2D, Array3D, Array4D, Array5D, Value
-from datasets.features.features import Array3DExtensionType, PandasArrayExtensionDtype, _ArrayXD
+from datasets.features.features import (
+    Array3DExtensionType,
+    PandasArrayExtensionDtype,
+    _ArrayXD,
+    numpy_to_pyarrow_listarray,
+)
 from datasets.formatting.formatting import NumpyArrowExtractor, SimpleArrowExtractor
 
 
@@ -29,6 +35,102 @@ DEFAULT_FEATURES = datasets.Features(
         "dynamic": Array2D(SHAPE_TEST_3, dtype="float32"),
     }
 )
+
+
+@pytest.mark.parametrize("array_feature, ndim", [(Array2D, 2), (Array3D, 3), (Array4D, 4), (Array5D, 5)])
+@pytest.mark.parametrize("num_rows", [1, 7, 32])
+def test_array_xd_from_dict_numpy_single_conversion(array_feature, ndim, num_rows):
+    shape = (2,) * ndim
+    data = np.arange(num_rows * 2**ndim, dtype="float32").reshape(num_rows, *shape)
+    features = datasets.Features({"a": array_feature(shape=shape, dtype="float32")})
+    with patch("datasets.features.features.numpy_to_pyarrow_listarray", wraps=numpy_to_pyarrow_listarray) as convert:
+        dataset = datasets.Dataset.from_dict({"a": data}, features=features)
+    assert convert.call_count == 1
+    assert convert.call_args.args[0] is data
+    assert dataset.features == features
+    np.testing.assert_array_equal(dataset.with_format("numpy")[:]["a"], data)
+
+
+@pytest.mark.parametrize("array_feature, ndim", [(Array2D, 2), (Array3D, 3), (Array4D, 4), (Array5D, 5)])
+@pytest.mark.parametrize("layout", ["c", "strided", "reversed", "readonly", "fortran"])
+@pytest.mark.parametrize("dtype", ["bool", "int64", "float32", "float64"])
+def test_array_xd_from_dict_numpy_storage(array_feature, ndim, layout, dtype):
+    shape = (2,) * ndim
+    data = np.arange(3 * 2**ndim).reshape(3, *shape).astype(dtype)
+    if layout == "strided":
+        data = np.repeat(data, 2, axis=-1)[..., ::2]
+    elif layout == "reversed":
+        data = data[..., ::-1]
+    elif layout == "readonly":
+        data.setflags(write=False)
+    elif layout == "fortran":
+        data = np.asfortranarray(data)
+    features = datasets.Features({"a": array_feature(shape=shape, dtype=dtype)})
+    # A list of rows exercises the original per-row conversion and concatenation.
+    expected = datasets.Dataset.from_dict({"a": list(data)}, features=features)
+    actual = datasets.Dataset.from_dict({"a": data}, features=features)
+    assert actual.features == expected.features == features
+    assert actual.data.schema.equals(expected.data.schema, check_metadata=True)
+    actual_storage = actual.data.column("a").chunk(0).storage
+    expected_storage = expected.data.column("a").chunk(0).storage
+    assert actual_storage.type == expected_storage.type
+    assert [None if buf is None else buf.to_pybytes() for buf in actual_storage.buffers()] == [
+        None if buf is None else buf.to_pybytes() for buf in expected_storage.buffers()
+    ]
+    assert actual.to_dict() == expected.to_dict()
+    if data.flags.writeable:
+        data[...] = 0
+        assert actual.to_dict() == expected.to_dict()
+
+
+@pytest.mark.parametrize("array_feature, ndim", [(Array2D, 2), (Array3D, 3), (Array4D, 4), (Array5D, 5)])
+@pytest.mark.parametrize("kind", ["object", "ragged", "none", "empty", "empty_list", "zero_dim"])
+def test_array_xd_from_dict_numpy_fallback(array_feature, ndim, kind):
+    shape = (2,) * ndim
+    data = np.arange(3 * 2**ndim, dtype="int32").reshape(3, *shape)
+    if kind == "object":
+        data = data.astype(object)
+    elif kind == "ragged":
+        data = [data[0], data[1, :1], data[2]]
+        shape = (None, *shape[1:])
+    elif kind == "none":
+        data = [data[0], None, data[2]]
+    elif kind == "empty":
+        data = data[:0]
+    elif kind == "empty_list":
+        data = []
+    elif kind == "zero_dim":
+        data = data[:, :0]
+        shape = (0, *shape[1:])
+    features = datasets.Features({"a": array_feature(shape=shape, dtype="int32")})
+    expected = datasets.Dataset.from_dict({"a": list(data)}, features=features)
+    actual = datasets.Dataset.from_dict({"a": data}, features=features)
+    assert actual.features == expected.features == features
+    assert actual.data.table.equals(expected.data.table, check_metadata=True)
+
+
+@pytest.mark.parametrize("layout", ["c", "strided", "reversed", "readonly", "fortran", "list"])
+def test_numpy_to_pyarrow_listarray_owns_values(layout):
+    data = np.arange(24, dtype="float32").reshape(2, 3, 4)
+    if layout == "strided":
+        data = data[..., ::2]
+    elif layout == "reversed":
+        data = data[..., ::-1]
+    elif layout == "readonly":
+        data.setflags(write=False)
+    elif layout == "fortran":
+        data = np.asfortranarray(data)
+    elif layout == "list":
+        data = data.tolist()
+    expected = np.array(data).tolist()
+    actual = numpy_to_pyarrow_listarray(data)
+    assert actual.to_pylist() == expected
+    if isinstance(data, list):
+        data[0][0][0] = -1
+    else:
+        data.setflags(write=True)
+        data[...] = -1
+    assert actual.to_pylist() == expected
 
 
 def generate_examples(features: dict, num_examples=100, seq_shapes=None):
