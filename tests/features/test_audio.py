@@ -817,3 +817,53 @@ def test_audio_decode_example_opus_convert_to_mono(shared_datadir):
     samples = decoded_example.get_all_samples()
     assert samples.sample_rate == 44100
     assert samples.data.shape == (1, 202311)
+
+
+# ----- on_error tests -----
+
+
+def test_audio_on_error_invalid_value():
+    with pytest.raises(ValueError, match="Invalid on_error"):
+        Audio(on_error="not_a_mode")
+
+
+@require_torchcodec
+def test_audio_on_error_normal_decode(shared_datadir):
+    # on_error only affects the failure path; for valid input the result is the same
+    # regardless of mode, so it is enough to exercise this path once.
+    from torchcodec.decoders import AudioDecoder
+
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    audio = Audio()
+    decoded = audio.decode_example(audio.encode_example(audio_path))
+    assert isinstance(decoded, AudioDecoder)
+
+
+@require_torchcodec
+def test_audio_on_error_raise_corrupted():
+    audio = Audio(on_error="raise")
+    with pytest.raises(Exception):
+        audio.decode_example({"path": None, "bytes": b"not an audio file"})
+
+
+@require_torchcodec
+def test_audio_on_error_return_none_corrupted():
+    import warnings as _warnings
+
+    audio = Audio(on_error="return_none")
+    with _warnings.catch_warnings():
+        _warnings.simplefilter("error")
+        result = audio.decode_example({"path": None, "bytes": b"not an audio file"})
+    assert result is None
+
+
+@require_torchcodec
+def test_audio_on_error_warn_and_return_none_corrupted():
+    import warnings as _warnings
+
+    audio = Audio(on_error="warn_and_return_none")
+    with _warnings.catch_warnings(record=True) as caught:
+        _warnings.simplefilter("always")
+        result = audio.decode_example({"path": None, "bytes": b"not an audio file"})
+    assert result is None
+    assert any("Failed to decode audio" in str(w.message) for w in caught)
