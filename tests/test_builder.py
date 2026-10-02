@@ -1,5 +1,6 @@
 import importlib
 import os
+import pickle
 import tempfile
 import types
 from contextlib import nullcontext as does_not_raise
@@ -774,12 +775,9 @@ def test_builder_as_iterable_dataset_rejects_splits_that_select_nothing(split, t
 def test_builder_as_iterable_dataset_is_picklable(tmp_path):
     builder = _prepare_cached_builder(tmp_path)
     iterable_dataset = builder.as_iterable_dataset(split="train")
-    with Pool(1) as pool:
-        assert pool.apply(_count_examples, (iterable_dataset,)) == 100
-
-
-def _count_examples(iterable_dataset):
-    return sum(1 for _ in iterable_dataset)
+    # stdlib pickle, as DataLoader workers started with spawn use; dill would also accept local functions
+    reloaded = pickle.loads(pickle.dumps(iterable_dataset))
+    assert list(reloaded) == list(iterable_dataset)
 
 
 class DummyBuilderWithVersion(GeneratorBasedBuilder):

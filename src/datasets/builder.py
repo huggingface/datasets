@@ -1061,7 +1061,7 @@ class DatasetBuilder:
         as for `as_dataset`.
 
         Args:
-            split (`datasets.Split`, *optional*):
+            split (`str`, `datasets.Split`, `datasets.ReadInstruction` or a `list` of them, *optional*):
                 Which subset of the data to return. By default, all the splits are returned.
 
         Returns:
