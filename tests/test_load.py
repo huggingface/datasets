@@ -1159,6 +1159,14 @@ def test_load_dataset_from_a_saved_dataset_directory_with_readme_configs_without
     assert len([record for record in caplog.records if "save_to_disk" in record.getMessage()]) == 1
 
 
+def test_load_dataset_from_an_empty_saved_dataset_directory_points_to_load_from_disk(tmp_path):
+    # save_to_disk writes no Arrow file for a dataset without rows, so there is nothing to read but state.json
+    path = tmp_path / "saved_dataset"
+    Dataset.from_dict({"x": []}, features=Features({"x": Value("int64")})).save_to_disk(str(path))
+    with pytest.raises(ValueError, match="load_from_disk"):
+        load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
+
+
 def test_load_dataset_from_a_saved_dataset_dict_directory(tmp_path):
     dataset, _ = _save_dataset_to_disk(tmp_path)
     path = tmp_path / "saved_dict"

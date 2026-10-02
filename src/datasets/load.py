@@ -417,6 +417,9 @@ def _get_saved_dataset_data_files(path: str) -> Optional[list[str]]:
     `save_to_disk` writes `data-*.arrow` shards next to a `dataset_info.json` and a `state.json`, and
     `state.json` lists the shards under `_data_files`. Requiring all three keeps a data file that merely
     happens to be called `state.json` from being mistaken for one.
+
+    Raises a `ValueError` for a dataset saved without rows: it has no shard, so there is nothing for
+    `load_dataset` to read, and globbing the directory instead would load `state.json` as data.
     """
     state_path = os.path.join(path, config.DATASET_STATE_JSON_FILENAME)
     if not (os.path.isfile(state_path) and os.path.isfile(os.path.join(path, config.DATASET_INFO_FILENAME))):
@@ -427,8 +430,13 @@ def _get_saved_dataset_data_files(path: str) -> Optional[list[str]]:
     except (OSError, ValueError):
         return None
     data_files = state.get("_data_files") if isinstance(state, dict) else None
-    if not isinstance(data_files, list) or not data_files:
+    if not isinstance(data_files, list):
         return None
+    if not data_files:
+        raise ValueError(
+            f"{path} was written by `Dataset.save_to_disk` from a dataset without rows, so it has no Arrow "
+            "file for `load_dataset` to read. Use `load_from_disk` instead."
+        )
     filenames = [data_file.get("filename") for data_file in data_files if isinstance(data_file, dict)]
     if len(filenames) != len(data_files) or not all(isinstance(filename, str) for filename in filenames):
         return None
@@ -480,8 +488,8 @@ class LocalDatasetModuleFactory(_DatasetModuleFactory):
             # A directory written by `Dataset.save_to_disk`: read the Arrow files its state.json lists
             logger.warning(
                 f"{base_path} was written by `Dataset.save_to_disk`, which is not the structure `load_dataset` "
-                "usually reads. It is supported for compatibility: `load_dataset` goes through the cache, "
-                "whereas `load_from_disk` reads the Arrow files in place."
+                "usually reads. It is supported for compatibility, but `load_from_disk` is the function made "
+                "for this structure."
             )
             patterns = sanitize_patterns(saved_dataset_files)
         else:
