@@ -14,12 +14,17 @@
 # limitations under the License
 """Utilities to handle file locking in `datasets`."""
 
+import inspect
 import os
 
 from filelock import FileLock as FileLock_
 from filelock import UnixFileLock
 from filelock import __version__ as _filelock_version
 from packaging import version
+
+
+# filelock.FileLockMeta compares this sentinel to the instance mode.
+_UNSET_FILE_MODE = -1
 
 
 class FileLock(FileLock_):
@@ -30,14 +35,46 @@ class FileLock(FileLock_):
 
     MAX_FILENAME_LENGTH = 255
 
-    def __init__(self, lock_file, *args, **kwargs):
-        # The "mode" argument is required if we want to use the current umask in filelock >= 3.10
-        # In previous previous it was already using the current umask.
-        if "mode" not in kwargs and version.parse(_filelock_version) >= version.parse("3.10.0"):
+    def __init__(
+        self,
+        lock_file,
+        timeout=-1,
+        mode=_UNSET_FILE_MODE,
+        thread_local=True,
+        blocking=True,
+        is_singleton=False,
+        poll_interval=0.05,
+        lifetime=None,
+        *args,
+        **kwargs,
+    ):
+        # Name constructor arguments so filelock.FileLockMeta forwards them.
+        # Leave mode unset on singleton locks; the metaclass compares against
+        # that sentinel and a concrete umask mode would make reuse fail.
+        if (
+            mode == _UNSET_FILE_MODE
+            and not is_singleton
+            and version.parse(_filelock_version) >= version.parse("3.10.0")
+        ):
             umask = os.umask(0o666)
             os.umask(umask)
-            kwargs["mode"] = 0o666 & ~umask
+            mode = 0o666 & ~umask
         lock_file = self.hash_filename_if_too_long(lock_file)
+        named = {
+            "timeout": timeout,
+            "mode": mode,
+            "thread_local": thread_local,
+            "blocking": blocking,
+            "is_singleton": is_singleton,
+            "poll_interval": poll_interval,
+            "lifetime": lifetime,
+        }
+        parent_params = inspect.signature(FileLock_.__init__).parameters
+        accepts_var_kw = any(p.kind is inspect.Parameter.VAR_KEYWORD for p in parent_params.values())
+        if accepts_var_kw:
+            kwargs.update(named)
+        else:
+            kwargs.update({key: value for key, value in named.items() if key in parent_params})
         super().__init__(lock_file, *args, **kwargs)
 
     @classmethod
