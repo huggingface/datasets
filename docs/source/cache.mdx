@@ -56,6 +56,25 @@ When you load a dataset, you also have the option to change where the data is ca
 >>> dataset = load_dataset('username/dataset', cache_dir="/path/to/another/directory/datasets")
 ```
 
+### File locking on network filesystems
+
+Some network filesystems, such as NFS mounts, don't support the operating system locks used by default. If dataset loading fails because locking is unsupported, enable soft file locks before importing 🤗 Datasets:
+
+```bash
+export HF_DATASETS_USE_SOFT_FILELOCK=1
+```
+
+The values `1`, `ON`, `YES`, and `TRUE` (case-insensitive) enable this option. It is disabled by default, preserving the usual `filelock.FileLock` behaviour. To change the option after import, set the configuration attribute before loading a dataset:
+
+```py
+>>> import datasets
+>>> datasets.config.HF_DATASETS_USE_SOFT_FILELOCK = True
+```
+
+Each new cache lock reads this setting and uses `filelock.SoftFileLock` when enabled. Both lock types preserve long-filename handling and the current umask for lock-file permissions.
+
+Soft locks still serialize writers through an atomic `O_CREAT | O_EXCL` file creation, which NFS supports. Locking is not disabled: a no-op lock would let two processes write the same cache entry and corrupt it. All processes sharing a cache must use the same lock type; stop active writers before switching. A soft lock can leave a stale lock file after a crash, particularly when the writer ran on another host. Remove a stale lock file only after confirming that no process is still using it.
+
 ## Download mode
 
 After you download a dataset, control how it is loaded by [`load_dataset`] with the `download_mode` parameter. By default, 🤗 Datasets will reuse a dataset if it exists. But if you need the original dataset without any processing functions applied, re-download the files as shown below:
