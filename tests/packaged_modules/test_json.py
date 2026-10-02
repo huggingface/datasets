@@ -809,25 +809,39 @@ def test_json_load_dataset_without_droid_marker_stays_ordinary_json(tmp_path):
     assert dataset[0]["type"] == "session_start"
 
 
-def test_load_jsonl_with_mixed_shapes_across_chunks(tmp_path):
-    # Shape A then shape B. chunksize must stay below the first group (~380 bytes)
-    # so a chunk can be schema-pure; chunksize=1000 reads this file in one chunk.
+def test_load_jsonl_mixed_shapes_single_chunk(tmp_path):
+    # Whole file fits in one chunk -> union schema with nulls for missing keys.
     rows = [{"a": i, "b": "x"} for i in range(20)] + [{"c": i, "d": "y"} for i in range(20)]
     path = tmp_path / "mixed.jsonl"
     with path.open("w") as f:
         for row in rows:
             f.write(json.dumps(row) + "\n")
 
-    data_files = str(path)
-    single = load_dataset("json", data_files=data_files, split="train", cache_dir=str(tmp_path / "single"))
-    chunked = load_dataset(
-        "json",
-        data_files=data_files,
-        split="train",
-        chunksize=64,
-        cache_dir=str(tmp_path / "chunked"),
-    )
+    ds = load_dataset("json", data_files=str(path), split="train", cache_dir=str(tmp_path / "single"))
+    assert ds.column_names == ["a", "b", "c", "d"]
+    assert len(ds) == 40
 
-    assert single.column_names == ["a", "b", "c", "d"]
-    assert chunked.column_names == single.column_names
-    assert chunked.to_dict() == single.to_dict()
+
+def test_load_jsonl_mixed_shapes_across_chunks_mentions_chunksize(tmp_path):
+    # Shape A then shape B; small chunksize splits them and should fail with a hint.
+    rows = [{"a": i, "b": "x"} for i in range(20)] + [{"c": i, "d": "y"} for i in range(20)]
+    path = tmp_path / "mixed.jsonl"
+    with path.open("w") as f:
+        for row in rows:
+            f.write(json.dumps(row) + "\n")
+
+    with pytest.raises(Exception) as ei:
+        load_dataset(
+            "json",
+            data_files=str(path),
+            split="train",
+            chunksize=64,
+            cache_dir=str(tmp_path / "chunked"),
+        )
+    # Hint is on the CastError cause; DatasetGenerationError wraps it.
+    msgs = []
+    cur = ei.value
+    while cur is not None:
+        msgs.append(str(cur))
+        cur = cur.__cause__ or cur.__context__
+    assert any("chunksize" in m.lower() for m in msgs), msgs

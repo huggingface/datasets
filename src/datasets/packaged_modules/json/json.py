@@ -14,7 +14,7 @@ import datasets
 import datasets.config
 from datasets import List, Value
 from datasets.builder import Key
-from datasets.table import table_cast
+from datasets.table import CastError, table_cast
 from datasets.utils.file_utils import readline
 from datasets.utils.json import (
     find_mixed_struct_types_field_paths,
@@ -38,22 +38,6 @@ def pandas_read_json(path_or_buf, **kwargs):
     return pd.read_json(path_or_buf, **kwargs)
 
 
-def _align_json_chunk_tables(tables: list[pa.Table]) -> list[pa.Table]:
-    """Cast JSONL chunk tables onto the union of their schemas.
-
-    Each chunk is parsed alone, so a file that changes record shape between
-    chunks yields tables with different columns. Missing keys become null,
-    which is what one chunk covering the whole file already does.
-    """
-    if len(tables) < 2:
-        return tables
-    schemas = [table.schema for table in tables]
-    if all(schema == schemas[0] for schema in schemas[1:]):
-        return tables
-    unified = pa.unify_schemas(schemas, promote_options="permissive")
-    return [table if table.schema == unified else table_cast(table, unified) for table in tables]
-
-
 class FullReadDisallowed(Exception):
     pass
 
@@ -68,6 +52,10 @@ class JsonConfig(datasets.BuilderConfig):
     field: Optional[str] = None
     use_threads: bool = True  # deprecated
     block_size: Optional[int] = None  # deprecated
+    # JSONL is read in chunksize-byte batches (default 10MB). If record shapes
+    # change across a chunk boundary (e.g. sorted mixed-schema JSONL), loading can
+    # fail with a column/schema mismatch; pass a larger chunksize so each shape
+    # group fits in one chunk (or set chunksize to the file size).
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
     on_mixed_types: Optional[Literal["use_json"]] = "use_json"
@@ -145,16 +133,22 @@ class Json(datasets.ArrowBasedBuilder):
                     pa_table = pa_table.set_column(i, column_name, string_array)
             # more expensive cast to support nested structures with keys in a different order
             # allows str <-> int/float or str to Audio for example
-            pa_table = table_cast(pa_table, self.info.features.arrow_schema)
+            try:
+                pa_table = table_cast(pa_table, self.info.features.arrow_schema)
+            except CastError as e:
+                raise CastError(
+                    f"{e}\n\nThis can happen when a JSONL file changes record shape across a "
+                    f"`chunksize` boundary (default 10MB). Try loading with a larger "
+                    f"`chunksize` so each shape group fits in one chunk "
+                    f"(e.g. chunksize=max(file_size, current_chunksize)).",
+                    table_column_names=e.table_column_names,
+                    requested_column_names=e.requested_column_names,
+                ) from e
         elif json_field_paths:
             features = datasets.Features.from_arrow_schema(pa_table.schema)
             features = set_json_types_in_feature(features, json_field_paths)
             pa_table = table_cast(pa_table, features.arrow_schema)
         return pa_table
-
-    def _iter_aligned_json_chunks(self, shard_idx, tables, json_field_paths):
-        for batch_idx, table in enumerate(_align_json_chunk_tables(tables)):
-            yield Key(shard_idx, batch_idx), self._cast_table(table, json_field_paths=json_field_paths)
 
     def _generate_shards(self, base_files, files_iterables, original_files):
         yield from base_files
@@ -250,10 +244,6 @@ class Json(datasets.ArrowBasedBuilder):
                         encoding_errors = (
                             self.config.encoding_errors if self.config.encoding_errors is not None else "strict"
                         )
-                        # Features are taken from the first yielded table. Keep every chunk
-                        # until this file is finished so that schema is the union of all shapes.
-                        align_chunks = self.info.features is None
-                        chunk_tables = []
                         while True:
                             batch = f.read(self.config.chunksize)
                             if not batch:
@@ -360,23 +350,13 @@ class Json(datasets.ArrowBasedBuilder):
                                     raise ValueError(
                                         f"Failed to convert pandas DataFrame to Arrow Table from file {file}."
                                     ) from None
-                                if chunk_tables:
-                                    yield from self._iter_aligned_json_chunks(
-                                        shard_idx, chunk_tables, json_field_paths
-                                    )
-                                    chunk_tables = []
                                 yield Key(shard_idx, 0), self._cast_table(pa_table)
                                 break
-                            if align_chunks:
-                                chunk_tables.append(pa_table)
-                            else:
-                                yield (
-                                    Key(shard_idx, batch_idx),
-                                    self._cast_table(pa_table, json_field_paths=json_field_paths),
-                                )
+                            yield (
+                                Key(shard_idx, batch_idx),
+                                self._cast_table(pa_table, json_field_paths=json_field_paths),
+                            )
                             batch_idx += 1
-                        if chunk_tables:
-                            yield from self._iter_aligned_json_chunks(shard_idx, chunk_tables, json_field_paths)
 
 
 AGENT_TRACES_TYPES_VALUES = {
