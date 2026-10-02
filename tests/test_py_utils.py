@@ -272,6 +272,22 @@ def test_iflatmap_unordered():
         assert len(out) == 4
 
 
+@pytest.mark.parametrize("pool_class", [Pool, multiprocess.Pool], ids=["multiprocessing", "multiprocess"])
+@pytest.mark.parametrize(
+    "texts, expected",
+    [
+        ([], []),
+        (["", ""], []),
+        (["", "hello there", ""], ["hello", "there"]),
+    ],
+    ids=["no-jobs", "all-empty", "mixed"],
+)
+def test_iflatmap_unordered_empty_iterables(pool_class, texts, expected):
+    with pool_class(2) as pool:
+        out = list(iflatmap_unordered(pool, _split_text, kwargs_iterable=[{"text": text} for text in texts]))
+        assert sorted(out) == expected
+
+
 def test_string_to_dict():
     file_name = "dataset/cache-3b163736cf4505085d8b5f9b4c266c26.arrow"
     file_name_prefix, file_name_ext = os.path.splitext(file_name)
