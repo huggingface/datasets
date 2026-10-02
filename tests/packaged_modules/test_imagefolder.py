@@ -1,10 +1,11 @@
 import shutil
+import tempfile
 import textwrap
 
 import numpy as np
 import pytest
 
-from datasets import ClassLabel, Features, Image
+from datasets import ClassLabel, Features, Image, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesDict, DataFilesList, get_data_patterns
 from datasets.download.streaming_download_manager import StreamingDownloadManager
@@ -332,6 +333,49 @@ def test_data_files_with_metadata_and_single_split(streaming, cache_dir, data_fi
         assert len({example["image"].filename for example in dataset}) == expected_num_of_images
         assert len({example["caption"] for example in dataset}) == expected_num_of_images
         assert all(example["caption"] is not None for example in dataset)
+
+
+@require_pil
+def test_load_dataset_with_metadata_and_split_named_image_file(tmp_path, image_file):
+    from PIL import Image as PILImage
+
+    data_dir = tmp_path / "imagefolder_data_dir_with_split_named_image"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    for image_name in ["train.png", "pika.png", "pika_pika.png"]:
+        PILImage.open(image_file).save(data_dir / image_name)
+    image_metadata_filename = data_dir / "metadata.csv"
+    image_metadata = textwrap.dedent(
+        """\
+        file_name,text
+        train.png,A train
+        pika.png,Pika
+        pika_pika.png,Pika Pika!
+        """
+    )
+    with open(image_metadata_filename, "w", encoding="utf-8") as f:
+        f.write(image_metadata)
+
+    with tempfile.TemporaryDirectory() as cache_dir:
+        dataset = load_dataset("imagefolder", data_dir=data_dir.as_posix(), cache_dir=cache_dir)["train"]
+
+        assert dataset.num_rows == 3
+        assert sorted(dataset["text"]) == ["A train", "Pika", "Pika Pika!"]
+
+    with tempfile.TemporaryDirectory() as cache_dir:
+        dataset = load_dataset(data_dir.as_posix(), cache_dir=cache_dir)["train"]
+
+        assert dataset.num_rows == 3
+        assert sorted(dataset["text"]) == ["A train", "Pika", "Pika Pika!"]
+
+    with tempfile.TemporaryDirectory() as cache_dir:
+        dataset = load_dataset(
+            "imagefolder",
+            data_files=(data_dir / "train.png").as_posix(),
+            cache_dir=cache_dir,
+        )["train"]
+
+        assert dataset.num_rows == 1
+        assert "text" not in dataset.column_names
 
 
 @require_pil
