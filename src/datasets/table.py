@@ -1883,17 +1883,30 @@ def _combine_list_array_offsets_with_mask(array: pa.ListArray) -> pa.Array:
     return offsets
 
 
-def _storage_type(type: pa.DataType) -> pa.DataType:
-    """Convert a (possibly nested) `pa.ExtensionType` to its storage type."""
-    if isinstance(type, pa.ExtensionType):
-        return _storage_type(type.storage_type)
-    elif isinstance(type, pa.StructType):
-        return pa.struct([pa.field(field.name, _storage_type(field.type)) for field in type])
-    elif isinstance(type, pa.ListType):
-        return pa.list_(_storage_type(type.value_type))
-    elif isinstance(type, pa.FixedSizeListType):
-        return pa.list_(_storage_type(type.value_type), type.list_size)
-    return type
+def _fixed_size_list_from_list(array: pa.Array, list_size: int) -> pa.Array:
+    """Fill null rows with null children without retaining their hidden offsets."""
+    indices = np.asarray(array.offsets)[:-1, None] + np.arange(list_size, dtype=np.int64)
+    indices = pa.array(indices.reshape(-1), mask=np.repeat(array.is_null().to_numpy(zero_copy_only=False), list_size))
+    values = pc.take(array.values, indices)
+    # An explicit validity bitmap also supports list_size=0 and sliced inputs.
+    return pa.Array.from_buffers(
+        pa.list_(array.type.value_field, list_size),
+        len(array),
+        [array.is_valid().buffers()[1]],
+        children=[values],
+    )
+
+
+def _fixed_size_list_with_values(
+    array: pa.Array, values: pa.Array, list_size: int, pa_type: Optional[pa.DataType] = None
+) -> pa.Array:
+    # FixedSizeListArray.from_arrays cannot construct zero-length lists.
+    return pa.Array.from_buffers(
+        pa_type if pa_type is not None else pa.list_(values.type, list_size),
+        len(array),
+        [array.is_valid().buffers()[1]],
+        children=[values],
+    )
 
 
 def _short_str(value: Any) -> str:
@@ -1937,12 +1950,14 @@ def array_cast(
     Returns:
         `List[pyarrow.Array]`: the casted array
     """
+    from .features.tensor import contains_tensor_type
+
     _c = partial(array_cast, allow_primitive_to_str=allow_primitive_to_str, allow_decimal_to_str=allow_decimal_to_str)
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
-    if isinstance(pa_type, pa.ExtensionType):
+    if isinstance(pa_type, pa.BaseExtensionType):
         return pa_type.wrap_array(_c(array, pa_type.storage_type))
-    elif array.type == pa_type:
+    elif not contains_tensor_type(array.type) and not contains_tensor_type(pa_type) and array.type == pa_type:
         return array
     elif pa.types.is_struct(array.type):
         if pa.types.is_struct(pa_type) and ({field.name for field in pa_type} == {field.name for field in array.type}):
@@ -1954,49 +1969,42 @@ def array_cast(
         if pa.types.is_fixed_size_list(pa_type):
             if _are_list_values_of_length(array, pa_type.list_size):
                 if array.null_count > 0:
-                    # Ensure each null value in the array translates to [null] * pa_type.list_size in the array's values array
-                    array_type = array.type
-                    storage_type = _storage_type(array_type)
-                    if array_type != storage_type:
-                        # Temporarily convert to the storage type to support extension types in the slice operation
-                        array = _c(array, storage_type)
-                        array = pc.list_slice(array, 0, pa_type.list_size, return_fixed_size_list=True)
-                        array = _c(array, array_type)
-                    else:
-                        array = pc.list_slice(array, 0, pa_type.list_size, return_fixed_size_list=True)
+                    array = _fixed_size_list_from_list(array, pa_type.list_size)
                     array_values = array.values
-                    return pa.FixedSizeListArray.from_arrays(
-                        _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
+                    return _fixed_size_list_with_values(
+                        array, _c(array_values, pa_type.value_type), pa_type.list_size, pa_type=pa_type
                     )
                 else:
-                    array_values = array.values[
-                        array.offset * pa_type.list_size : (array.offset + len(array)) * pa_type.list_size
-                    ]
-                    return pa.FixedSizeListArray.from_arrays(_c(array_values, pa_type.value_type), pa_type.list_size)
+                    array_values = array.values[array.offsets[0].as_py() : array.offsets[-1].as_py()]
+                    return _fixed_size_list_with_values(
+                        array, _c(array_values, pa_type.value_type), pa_type.list_size, pa_type=pa_type
+                    )
         elif pa.types.is_list(pa_type):
             # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
             array_offsets = _combine_list_array_offsets_with_mask(array)
-            return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type))
+            return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type), type=pa_type)
         elif pa.types.is_large_list(pa_type):
             # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
             array_offsets = _combine_list_array_offsets_with_mask(array)
-            return pa.LargeListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type))
+            return pa.LargeListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type), type=pa_type)
     elif pa.types.is_fixed_size_list(array.type):
         if pa.types.is_fixed_size_list(pa_type):
             if pa_type.list_size == array.type.list_size:
                 array_values = array.values[
                     array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
                 ]
-                return pa.FixedSizeListArray.from_arrays(
-                    _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
+                return _fixed_size_list_with_values(
+                    array, _c(array_values, pa_type.value_type), pa_type.list_size, pa_type=pa_type
                 )
         elif pa.types.is_list(pa_type):
             array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
-            return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type), mask=array.is_null())
+            return pa.ListArray.from_arrays(
+                array_offsets, _c(array.values, pa_type.value_type), type=pa_type, mask=array.is_null()
+            )
         elif pa.types.is_large_list(pa_type):
             array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
             return pa.LargeListArray.from_arrays(
-                array_offsets, _c(array.values, pa_type.value_type), mask=array.is_null()
+                array_offsets, _c(array.values, pa_type.value_type), type=pa_type, mask=array.is_null()
             )
     else:
         if pa.types.is_string(pa_type):
@@ -2048,12 +2056,16 @@ def cast_array_to_feature(
         array (`pyarrow.Array`): the casted array
     """
     from .features.features import LargeList, List, get_nested_type
+    from .features.tensor import Tensor, contains_tensor_type, is_tensor_type
 
     _c = partial(
         cast_array_to_feature,
         allow_primitive_to_str=allow_primitive_to_str,
         allow_decimal_to_str=allow_decimal_to_str,
     )
+
+    if isinstance(feature, Tensor) and is_tensor_type(array.type):
+        return feature.cast_storage(array)
 
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
@@ -2062,18 +2074,22 @@ def cast_array_to_feature(
 
     if pa.types.is_struct(array.type):
         # feature must be a dict
-        if isinstance(feature, dict) and (array_fields := {field.name for field in array.type}) <= set(feature):
+        if isinstance(feature, dict) and {field.name for field in array.type} <= set(feature):
             null_array = pa.array([None] * len(array))
-            arrays = [
-                _c(array.field(name) if name in array_fields else null_array, subfeature)
-                for name, subfeature in feature.items()
-            ]
+            # Flatten combines the parent and child validity bitmaps. Hidden
+            # placeholder children beneath null structs must not be validated.
+            children = dict(zip(array.type.names, array.flatten()))
+            arrays = [_c(children.get(name, null_array), subfeature) for name, subfeature in feature.items()]
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
     elif pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
         # feature must be either List(subfeature) or LargeList(subfeature)
         if isinstance(feature, LargeList):
             casted_array_values = _c(array.values, feature.feature)
-            if pa.types.is_large_list(array.type) and casted_array_values.type == array.values.type:
+            if (
+                pa.types.is_large_list(array.type)
+                and not contains_tensor_type(array.type)
+                and casted_array_values.type == array.values.type
+            ):
                 # Both array and feature have equal large_list type and values (within the list) type
                 return array
             else:
@@ -2084,39 +2100,20 @@ def cast_array_to_feature(
             if feature.length > -1:
                 if _are_list_values_of_length(array, feature.length):
                     if array.null_count > 0:
-                        # Ensure each null value in the array translates to [null] * pa_type.list_size in the array's values array
-                        array_type = array.type
-                        storage_type = _storage_type(array_type)
-                        if array_type != storage_type:
-                            # Temporarily convert to the storage type to support extension types in the slice operation
-                            array = array_cast(
-                                array,
-                                storage_type,
-                                allow_primitive_to_str=allow_primitive_to_str,
-                                allow_decimal_to_str=allow_decimal_to_str,
-                            )
-                            array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
-                            array = array_cast(
-                                array,
-                                array_type,
-                                allow_primitive_to_str=allow_primitive_to_str,
-                                allow_decimal_to_str=allow_decimal_to_str,
-                            )
-                        else:
-                            array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
+                        array = _fixed_size_list_from_list(array, feature.length)
                         array_values = array.values
                         casted_array_values = _c(array_values, feature.feature)
-                        return pa.FixedSizeListArray.from_arrays(
-                            casted_array_values, feature.length, mask=array.is_null()
-                        )
+                        return _fixed_size_list_with_values(array, casted_array_values, feature.length)
                     else:
-                        array_values = array.values[
-                            array.offset * feature.length : (array.offset + len(array)) * feature.length
-                        ]
-                        return pa.FixedSizeListArray.from_arrays(_c(array_values, feature.feature), feature.length)
+                        array_values = array.values[array.offsets[0].as_py() : array.offsets[-1].as_py()]
+                        return _fixed_size_list_with_values(array, _c(array_values, feature.feature), feature.length)
             else:
                 casted_array_values = _c(array.values, feature.feature)
-                if pa.types.is_list(array.type) and casted_array_values.type == array.values.type:
+                if (
+                    pa.types.is_list(array.type)
+                    and not contains_tensor_type(array.type)
+                    and casted_array_values.type == array.values.type
+                ):
                     # Both array and feature have equal list type and values (within the list) type
                     return array
                 else:
@@ -2137,7 +2134,7 @@ def cast_array_to_feature(
                         array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
                     ]
                     casted_array_values = _c(array_values, feature.feature)
-                    return pa.FixedSizeListArray.from_arrays(casted_array_values, feature.length, mask=array.is_null())
+                    return _fixed_size_list_with_values(array, casted_array_values, feature.length)
             else:
                 array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
                 return pa.ListArray.from_arrays(array_offsets, _c(array.values, feature.feature), mask=array.is_null())
@@ -2198,14 +2195,17 @@ def embed_array_storage(
     if not local_files and not remote_files:
         return array
 
-    from .features import LargeList, List
+    from .features.features import LargeList, List, require_storage_embed
+
+    # A sibling may require embedding while this feature's data is already
+    # self-contained. Preserve its extension type and buffers in that case.
+    if not require_storage_embed(feature):
+        return array
 
     _e = partial(
         embed_array_storage, token_per_repo_id=token_per_repo_id, local_files=local_files, remote_files=remote_files
     )
 
-    if isinstance(array, pa.ExtensionArray):
-        array = array.storage
     if hasattr(feature, "embed_storage"):
         return feature.embed_storage(
             array, token_per_repo_id=token_per_repo_id, local_files=local_files, remote_files=remote_files
@@ -2299,6 +2299,7 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
         `pa.Table`: the casted table
     """
     from .features import Features
+    from .features.tensor import contains_tensor_type
 
     features = Features.from_arrow_schema(schema)
     table_column_names = set(table.column_names)
@@ -2314,6 +2315,10 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
             feature,
         )
         for name, feature in features.items()
+    ]
+    arrays = [
+        array_cast(array, field.type) if contains_tensor_type(field.type) else array
+        for array, field in zip(arrays, schema)
     ]
     return pa.Table.from_arrays(arrays, schema=schema)
 
@@ -2374,7 +2379,9 @@ def table_cast(table: pa.Table, schema: pa.Schema):
     Returns:
         table (`pyarrow.Table`): the casted table
     """
-    if table.schema != schema:
+    from .features.tensor import contains_tensor_type
+
+    if any(contains_tensor_type(field.type) for field in (*table.schema, *schema)) or table.schema != schema:
         return cast_table_to_schema(table, schema)
     elif table.schema.metadata != schema.metadata:
         return table.replace_schema_metadata(schema.metadata)
