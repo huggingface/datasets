@@ -2320,6 +2320,52 @@ def test_iterable_dataset_set_epoch_resuming(dataset: IterableDataset):
     assert len(list(dataset)) == 0
 
 
+@pytest.mark.parametrize("method", ["skip", "take"])
+@pytest.mark.parametrize("source_kind", ["python", "arrow"])
+@pytest.mark.parametrize("shuffle_before", [False, True])
+def test_iterable_dataset_set_epoch_preserves_frozen_shards(method, source_kind, shuffle_before):
+    kwargs = {"n": 8, "filepaths": [f"{i}.txt" for i in range(4)]}
+    if source_kind == "python":
+        ex_iterable = ExamplesIterable(generate_examples_fn, kwargs)
+    else:
+        ex_iterable = ArrowExamplesIterable(generate_tables_fn, kwargs)
+    dataset = IterableDataset(ex_iterable)
+    if shuffle_before:
+        dataset = dataset.shuffle(seed=42, buffer_size=1, max_buffer_input_shards=1)
+    dataset = getattr(dataset, method)(10)
+    expected = list(dataset)
+
+    for epoch in [1, 2, 1, 0]:
+        dataset.set_epoch(epoch)
+        assert list(dataset) == expected
+
+
+@pytest.mark.parametrize("method", ["skip", "take"])
+@pytest.mark.parametrize("source_kind", ["python", "arrow"])
+def test_iterable_dataset_set_epoch_shuffles_frozen_subset_reproducibly(method, source_kind):
+    kwargs = {"n": 8, "filepaths": [f"{i}.txt" for i in range(4)]}
+    if source_kind == "python":
+        ex_iterable = ExamplesIterable(generate_examples_fn, kwargs)
+    else:
+        ex_iterable = ArrowExamplesIterable(generate_tables_fn, kwargs)
+    dataset = getattr(IterableDataset(ex_iterable), method)(10)
+    expected = list(dataset)
+    dataset = dataset.shuffle(seed=42, buffer_size=100).map(lambda example: example)
+    epoch0 = list(dataset)
+    dataset.set_epoch(1)
+    epoch1 = list(dataset)
+    key = lambda example: (example["filepath"], example["id"])  # noqa: E731
+    assert sorted(epoch1, key=key) == sorted(expected, key=key)
+    assert epoch1 != epoch0
+    assert list(dataset) == epoch1
+    dataset.set_epoch(2)
+    assert list(dataset) != epoch1
+    dataset.set_epoch(1)
+    assert list(dataset) == epoch1
+    dataset.set_epoch(0)
+    assert list(dataset) == epoch0
+
+
 def test_iterable_dataset_map(
     dataset: IterableDataset,
 ):
