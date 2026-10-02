@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import fsspec
 import pytest
 
 from datasets import Column, Dataset, Features, Value, Video, load_dataset
@@ -32,6 +33,25 @@ def test_video_feature_encode_example(shared_datadir, build_example):
     assert encoded_example["bytes"] is not None or encoded_example["path"] is not None
     decoded_example = video.decode_example(encoded_example)
     assert isinstance(decoded_example, VideoDecoder)
+
+
+@require_torchcodec
+def test_video_remote_path_respects_stream_index(shared_datadir):
+    video_path = shared_datadir / "test_video_two_streams.mp4"
+    remote_path = "memory://test_video_remote_stream/two_streams.mp4"
+    filesystem = fsspec.filesystem("memory")
+    filesystem.pipe(remote_path, video_path.read_bytes())
+    try:
+        frames = []
+        for path in (str(video_path), remote_path):
+            dataset = Dataset.from_dict({"video": [path]}, features=Features({"video": Video(stream_index=1)}))
+            frames.append(dataset[0]["video"].get_frame_at(0).data)
+        assert frames[0].shape == (3, 16, 16)
+        assert frames[0][2].float().mean() > 200
+        assert frames[0][0].float().mean() < 10
+        assert (frames[0] == frames[1]).all()
+    finally:
+        filesystem.rm(remote_path)
 
 
 @require_torchcodec
