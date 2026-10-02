@@ -778,7 +778,9 @@ class ArrowWriter:
         """Write a Table to file.
 
         Args:
-            example: the Table to add.
+            pa_table: the Table to add.
+            writer_batch_size: Number of rows per write operation.
+                Defaults to the writer's `writer_batch_size`.
         """
         self.write_rows_on_file()  # in case there are buffered rows to write first
         self._write_table(pa_table, writer_batch_size=writer_batch_size)
