@@ -541,11 +541,15 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
         chunks_buffer_size = 0
         num_chunks_to_skip = self._state_dict["num_chunks_since_previous_state"] if self._state_dict else 0
         chunk_length_to_crop = self._state_dict["cropped_chunk_length"] if self._state_dict else 0
+        num_chunks_since_checkpoint = 0
         if self._state_dict:
             previous_state = self.ex_iterable.state_dict()
             self._state_dict["previous_state"] = previous_state
         for key, pa_table in iterator:
             for num_chunks_since_previous_state, chunk in enumerate(pa_table.to_reader(max_chunksize=self.batch_size)):
+                # Recount from previous_state, including skipped and empty chunks. Adding buffer
+                # entries to the saved count would count a restored partial chunk twice.
+                num_chunks_since_checkpoint += 1
                 if num_chunks_to_skip > 1:
                     num_chunks_to_skip -= 1
                     continue
@@ -570,7 +574,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                     new_key = "_".join(str(_key) for _key in keys_buffer)
                     if self._state_dict:
                         self._state_dict["batch_idx"] += 1
-                        self._state_dict["num_chunks_since_previous_state"] += len(chunks_buffer)
+                        self._state_dict["num_chunks_since_previous_state"] = num_chunks_since_checkpoint
                         self._state_dict["cropped_chunk_length"] = 0
                     yield new_key, pa.Table.from_batches(chunks_buffer)
                     keys_buffer = []
@@ -579,6 +583,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                     if self._state_dict:
                         self._state_dict["previous_state"] = previous_state
                         self._state_dict["num_chunks_since_previous_state"] = num_chunks_since_previous_state + 1
+                        num_chunks_since_checkpoint = num_chunks_since_previous_state + 1
                 else:
                     cropped_chunk_length = self.batch_size - chunks_buffer_size
                     keys_buffer.append(f"{key}[:{cropped_chunk_length}]")
@@ -586,7 +591,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                     new_key = "_".join(str(_key) for _key in keys_buffer)
                     if self._state_dict:
                         self._state_dict["batch_idx"] += 1
-                        self._state_dict["num_chunks_since_previous_state"] += len(chunks_buffer)
+                        self._state_dict["num_chunks_since_previous_state"] = num_chunks_since_checkpoint
                         self._state_dict["cropped_chunk_length"] = cropped_chunk_length
                     yield new_key, pa.Table.from_batches(chunks_buffer)
                     keys_buffer = [f"{key}[{cropped_chunk_length}:]"]
@@ -595,6 +600,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                     if self._state_dict:
                         self._state_dict["previous_state"] = previous_state
                         self._state_dict["num_chunks_since_previous_state"] = num_chunks_since_previous_state
+                        num_chunks_since_checkpoint = num_chunks_since_previous_state + 1
             if self._state_dict:
                 previous_state = self.ex_iterable.state_dict()
         if not self.drop_last_batch and chunks_buffer:
@@ -605,6 +611,12 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                 self._state_dict["num_chunks_since_previous_state"] = 0
                 self._state_dict["cropped_chunk_length"] = 0
             yield new_key, pa.Table.from_batches(chunks_buffer)
+
+        if self.drop_last_batch and self._state_dict:
+            # Exhaustion consumes the discarded tail as well as the yielded batches.
+            self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+            self._state_dict["num_chunks_since_previous_state"] = 0
+            self._state_dict["cropped_chunk_length"] = 0
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "RebatchedArrowExamplesIterable":
         return RebatchedArrowExamplesIterable(
