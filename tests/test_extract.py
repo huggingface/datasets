@@ -159,7 +159,10 @@ def tar_file_with_sym_link(tmp_path):
     directory = tmp_path / "data_sym_link"
     directory.mkdir()
     path = directory / "tar_file_with_sym_link.tar"
-    os.symlink("..", directory / "subdir", target_is_directory=True)
+    try:
+        os.symlink("..", directory / "subdir", target_is_directory=True)
+    except OSError as exc:
+        pytest.skip(f"symlink creation unavailable: {exc}")
     with tarfile.TarFile(path, "w") as f:
         f.add(str(directory / "subdir"), arcname="subdir")  # str required by os.readlink on Windows and Python < 3.8
     return path
@@ -191,18 +194,14 @@ def tar_file_with_sibling_prefix(tmp_path, text_file):
 def test_tar_extract_insecure_files(
     insecure_tar_file,
     error_log,
-    tar_file_with_dot_dot,
-    tar_file_with_sym_link,
-    tar_file_with_sibling_prefix,
+    request,
     tmp_path,
     caplog,
 ):
-    insecure_tar_files = {
-        "tar_file_with_dot_dot": tar_file_with_dot_dot,
-        "tar_file_with_sym_link": tar_file_with_sym_link,
-        "tar_file_with_sibling_prefix": tar_file_with_sibling_prefix,
-    }
-    input_path = insecure_tar_files[insecure_tar_file]
+    # Resolve only the fixture for this parametrization, so the symlink case
+    # (which needs a privilege unavailable to an unprivileged Windows user) can
+    # skip itself without affecting the other cases.
+    input_path = request.getfixturevalue(insecure_tar_file)
     output_path = tmp_path / "extracted"
     TarExtractor.extract(input_path, output_path)
     assert caplog.text
