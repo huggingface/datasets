@@ -225,6 +225,8 @@ IMAGE_EXTENSIONS = [
     "emf",
     "xbm",
     "xpm",
+    # Formats handled by third-party Pillow plugins (see `datasets.features.image`):
+    "jxl",  # pillow-jxl-plugin
 ]
 WebDataset.IMAGE_EXTENSIONS = IMAGE_EXTENSIONS
 
