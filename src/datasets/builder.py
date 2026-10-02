@@ -1047,8 +1047,8 @@ class DatasetBuilder:
 
     def as_iterable_dataset(
         self,
-        split: Optional[Union[str, Split, ReadInstruction]] = None,
-    ) -> Union[IterableDataset, IterableDatasetDict]:
+        split: Optional[Union[str, Split, ReadInstruction, list[str], list[Split]]] = None,
+    ) -> Union[IterableDataset, IterableDatasetDict, list[IterableDataset]]:
         """Return an [`IterableDataset`] that reads the Arrow files already prepared in the cache.
 
         It takes the same `split` arguments as [`DatasetBuilder.as_dataset`], including split
@@ -1065,7 +1065,8 @@ class DatasetBuilder:
                 Which subset of the data to return. By default, all the splits are returned.
 
         Returns:
-            [`IterableDataset`], or [`IterableDatasetDict`] when `split` is not given.
+            [`IterableDataset`], an [`IterableDatasetDict`] when `split` is not given, or a list of
+            [`IterableDataset`] when `split` is a list.
 
         Example:
 

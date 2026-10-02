@@ -743,8 +743,9 @@ def test_builder_as_iterable_dataset_supports_the_iterable_dataset_api(tmp_path)
 def test_builder_as_iterable_dataset_reads_the_cache_without_copying_it(tmp_path):
     builder = _prepare_cached_builder(tmp_path)
     with assert_arrow_memory_doesnt_increase():
-        iterable_dataset = builder.as_iterable_dataset(split="train")
-        next(iter(iterable_dataset))
+        # keep the iterator, and with it the table being read, alive while memory is measured
+        iterator = iter(builder.as_iterable_dataset(split="train"))
+        next(iterator)
 
 
 def test_builder_as_iterable_dataset_requires_a_prepared_dataset(tmp_path):
