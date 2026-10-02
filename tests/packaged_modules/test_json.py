@@ -7,6 +7,7 @@ import pytest
 from datasets import Features, Value, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
+from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig
 
 from ..utils import require_teich
@@ -614,6 +615,23 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
     )
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.column_names == ["ID", "Language", "Topic"]
+
+
+def test_json_split_generators_with_empty_file(tmp_path):
+    # inferring the features reads the first table of the first split, which doesn't
+    # exist when the file is empty: it used to raise a bare StopIteration
+    json_file = tmp_path / "empty.jsonl"
+    json_file.write_text("", encoding="utf-8")
+    json = Json(data_files=str(json_file))
+    splits = json._split_generators(StreamingDownloadManager())
+    assert json.info.features is None
+    assert list(json._generate_tables(**splits[0].gen_kwargs)) == []
+
+
+def test_json_load_dataset_streaming_empty_file(tmp_path):
+    json_file = tmp_path / "empty.jsonl"
+    json_file.write_text("", encoding="utf-8")
+    assert list(load_dataset("json", data_files=str(json_file), split="train", streaming=True)) == []
 
 
 @pytest.mark.parametrize(

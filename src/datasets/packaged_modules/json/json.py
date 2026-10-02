@@ -98,10 +98,16 @@ class Json(datasets.ArrowBasedBuilder):
             )
         if self.info.features is None:
             try:
-                pa_table = next(iter(self._generate_tables(**splits[0].gen_kwargs, allow_full_read=False)))[1]
-                self.info.features = datasets.Features.from_arrow_schema(pa_table.schema)
-                if self.config.parse_agent_traces and has_agent_traces_markers(self.info.features):
-                    self.info.features = AGENT_TRACES_FEATURES
+                # the generator is empty when the data files contain no data at all,
+                # in which case the features stay unknown instead of raising StopIteration
+                first_key_and_table = next(
+                    iter(self._generate_tables(**splits[0].gen_kwargs, allow_full_read=False)), None
+                )
+                if first_key_and_table is not None:
+                    pa_table = first_key_and_table[1]
+                    self.info.features = datasets.Features.from_arrow_schema(pa_table.schema)
+                    if self.config.parse_agent_traces and has_agent_traces_markers(self.info.features):
+                        self.info.features = AGENT_TRACES_FEATURES
             except FullReadDisallowed:
                 pass
         return splits
