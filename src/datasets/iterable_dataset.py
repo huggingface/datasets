@@ -137,6 +137,14 @@ def _examples_to_batch(examples: list[dict[str, Any]]) -> dict[str, list]:
     return dict(zip(cols, arrays))
 
 
+def _split_evenly(total: int, num_parts: int, part: int) -> tuple[int, int]:
+    """Return the `[start, end)` range of `part` when splitting `range(total)` into `num_parts` contiguous parts whose
+    sizes differ by at most one, the first parts being the larger ones."""
+    div, mod = divmod(total, num_parts)
+    start = div * part + min(part, mod)
+    return start, start + div + (part < mod)
+
+
 def _batch_to_examples(batch: dict[str, list]) -> Iterator[dict[str, Any]]:
     """Convert a batch (dict of examples) to examples list"""
     n_examples = 0 if len(batch) == 0 else len(batch[next(iter(batch))])
@@ -4901,6 +4909,81 @@ class IterableDataset(DatasetInfoMixin):
             path_or_buf, storage_options=storage_options, **parquet_writer_kwargs
         )
 
+    def _write_parquet_shards(
+        self,
+        start: int,
+        end: int,
+        embed_external_files: bool,
+        num_shards: int,
+        num_source_shards: int,
+        first_source_shard: int,
+    ) -> Iterator[tuple[int, str]]:
+        """Write output shards `start` to `end` (excluded) as temporary Parquet files and yield `(index, path)`.
+
+        With at most one output shard per input shard, each output shard is a contiguous group of input shards.
+        With more output shards than input shards, each input shard is spread over its own group of consecutive
+        output shards by sending its examples to them in a round-robin fashion. This needs a single pass over the
+        data and keeps every input shard independent, so the work can still be split across processes.
+        `num_shards`, `num_source_shards` and `first_source_shard` place this dataset's input shards in the whole
+        dataset, so that the output shards an input shard is spread over do not depend on how the work is split.
+        The caller is responsible for deleting the yielded files.
+        """
+        from .arrow_writer import get_arrow_writer_batch_size_from_features
+
+        num_output_shards = end - start
+        num_input_shards = self.num_shards
+        if num_shards <= num_source_shards:
+            for i in range(num_output_shards):
+                shard = self.shard(num_shards=num_output_shards, index=i, contiguous=True)
+                if embed_external_files:
+                    shard = shard.with_format("arrow")
+                    shard = shard.map(
+                        partial(embed_table_storage, token_per_repo_id=self._token_per_repo_id),
+                        batched=True,
+                        batch_size=get_arrow_writer_batch_size_from_features(shard.features),
+                    )
+                with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as tmp_file:
+                    try:
+                        shard.to_parquet(tmp_file)
+                    except (Exception, KeyboardInterrupt):
+                        tmp_file.close()
+                        Path(tmp_file.name).unlink()
+                        raise
+                yield start + i, tmp_file.name
+            return
+
+        schema = self.features.arrow_schema
+        batch_size = get_arrow_writer_batch_size_from_features(self.features) or config.DEFAULT_MAX_BATCH_SIZE
+        for input_index in range(num_input_shards):
+            first_output, end_output = _split_evenly(num_shards, num_source_shards, first_source_shard + input_index)
+            num_outputs = end_output - first_output
+            input_shard = self.shard(num_shards=num_input_shards, index=input_index, contiguous=True)
+            tmp_file_names = []
+            try:
+                writers = []
+                for _ in range(num_outputs):
+                    with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as tmp_file:
+                        tmp_file_names.append(tmp_file.name)
+                    writers.append(pq.ParquetWriter(tmp_file_names[-1], schema=schema))
+                num_rows_seen = 0
+                for pa_table in input_shard.with_format("arrow").iter(batch_size=batch_size):
+                    if embed_external_files:
+                        pa_table = embed_table_storage(pa_table, token_per_repo_id=self._token_per_repo_id)
+                    for output_index, writer in enumerate(writers):
+                        # rows num_rows_seen + i such that (num_rows_seen + i) % num_outputs == output_index
+                        indices = range((output_index - num_rows_seen) % num_outputs, len(pa_table), num_outputs)
+                        if len(indices):
+                            writer.write_table(pa_table.take(pa.array(indices, type=pa.int64())))
+                    num_rows_seen += len(pa_table)
+                for writer in writers:
+                    writer.close()
+            except (Exception, KeyboardInterrupt):
+                for tmp_file_name in tmp_file_names:
+                    Path(tmp_file_name).unlink(missing_ok=True)
+                raise
+            for output_offset, tmp_file_name in enumerate(tmp_file_names):
+                yield first_output + output_offset, tmp_file_name
+
     def _push_parquet_shards_to_hub_single(
         self,
         job_id: int,
@@ -4913,6 +4996,7 @@ class IterableDataset(DatasetInfoMixin):
         # max_shard_size: Optional[Union[int, str]] = None,  # TODO(QL): add arg
         num_shards: int,
         embed_external_files: bool,
+        num_source_shards: int,
     ) -> Iterable[tuple[list[CommitOperationAdd], list[str], int, int]]:
         """Pushes the dataset shards as Parquet files to the hub.
 
@@ -4924,14 +5008,14 @@ class IterableDataset(DatasetInfoMixin):
             num_examples (`int`): number of examples of th euploaded shards
         """
 
-        div = num_shards // num_jobs
-        mod = num_shards % num_jobs
-        start = div * job_id + min(job_id, mod)
-        end = start + div + (1 if job_id < mod else 0)
-
-        index_shards = (
-            (start + i, self.shard(num_shards=end - start, index=i, contiguous=True)) for i in range(end - start)
-        )
+        if num_shards <= num_source_shards:
+            start, end = _split_evenly(num_shards, num_jobs, job_id)
+            first_source_shard = None
+        else:
+            # Each job gets the same input shards as `self.shard(num_shards=num_jobs, index=job_id, contiguous=True)`.
+            first_source_shard, end_source_shard = _split_evenly(num_source_shards, num_jobs, job_id)
+            start = _split_evenly(num_shards, num_source_shards, first_source_shard)[0]
+            end = _split_evenly(num_shards, num_source_shards, end_source_shard - 1)[1]
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
 
@@ -4940,22 +5024,12 @@ class IterableDataset(DatasetInfoMixin):
         additions: list[CommitOperationAdd] = []
         new_parquet_paths: list[str] = []
         features = self.features
-        for index, shard in index_shards:
-            if embed_external_files:
-                from .arrow_writer import get_arrow_writer_batch_size_from_features
-
-                shard = shard.with_format("arrow")
-                shard = shard.map(
-                    partial(embed_table_storage, token_per_repo_id=self._token_per_repo_id),
-                    batched=True,
-                    batch_size=get_arrow_writer_batch_size_from_features(shard.features),
-                )
+        for index, tmp_file_name in self._write_parquet_shards(
+            start, end, embed_external_files, num_shards, num_source_shards, first_source_shard
+        ):
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
-            tmp_file = tempfile.NamedTemporaryFile(suffix=".parquet", delete=False)
             try:
-                shard.to_parquet(tmp_file)
-                tmp_file.close()
-                parquet_metadata = pq.read_metadata(tmp_file.name)
+                parquet_metadata = pq.read_metadata(tmp_file_name)
                 if features is None:
                     features = Features.from_arrow_schema(parquet_metadata.schema.to_arrow_schema())
                 num_examples += parquet_metadata.num_rows
@@ -4967,7 +5041,7 @@ class IterableDataset(DatasetInfoMixin):
                     isinstance(resolved_output_path, HfFileSystemResolvedRepositoryPath)
                     and not resolved_output_path.path_in_repo
                 ):
-                    shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=tmp_file.name)
+                    shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=tmp_file_name)
                     api.preupload_lfs_files(
                         repo_id=resolved_output_path.repo_id,
                         additions=[shard_addition],
@@ -4980,16 +5054,12 @@ class IterableDataset(DatasetInfoMixin):
                     if resolved_output_path.path:
                         shard_path_in_repo = resolved_output_path.path + "/" + shard_path_in_repo
                     api.batch_bucket_files(
-                        bucket_id=resolved_output_path.bucket_id, add=[(tmp_file.name, shard_path_in_repo)]
+                        bucket_id=resolved_output_path.bucket_id, add=[(tmp_file_name, shard_path_in_repo)]
                     )
                 else:
                     raise NotImplementedError(f"Bad HF path: {resolved_output_path}")
-            except (Exception, KeyboardInterrupt):
-                tmp_file.close()
-                Path(tmp_file.name).unlink()
-                raise
-            tmp_file.close()
-            Path(tmp_file.name).unlink()
+            finally:
+                Path(tmp_file_name).unlink()
             yield job_id, False, 1
 
         yield job_id, True, (additions, new_parquet_paths, features, dataset_nbytes, num_examples)
@@ -5063,6 +5133,14 @@ class IterableDataset(DatasetInfoMixin):
             )
             num_proc = num_shards
             num_jobs = num_shards
+        if num_jobs > self.num_shards:
+            logger.warning(
+                f"Setting num_proc from {num_jobs} to {self.num_shards} for the {split} split as each process "
+                f"handles whole input shards and the dataset only contains {self.num_shards} shards."
+            )
+            num_proc = self.num_shards if self.num_shards > 1 else None
+            num_jobs = self.num_shards
+
         kwargs_iterable = [
             {
                 "self": self.shard(num_shards=num_jobs, index=job_id, contiguous=True),
@@ -5074,6 +5152,7 @@ class IterableDataset(DatasetInfoMixin):
                 "token": token,
                 "create_pr": create_pr,
                 "num_shards": num_shards,
+                "num_source_shards": self.num_shards,
                 "embed_external_files": embed_external_files,
             }
             for job_id in range(num_jobs)
@@ -5180,7 +5259,8 @@ class IterableDataset(DatasetInfoMixin):
                 by a unit (like `"5MB"`). If not provided, shard count defaults to this dataset's `.num_shards`.
             num_shards (`int`, *optional*):
                 Number of shards to write. If `max_shard_size` is provided and `num_shards` is not, then the number of shards is estimated
-                from `max_shard_size`.
+                from `max_shard_size`. Can be larger than this dataset's `.num_shards`: each input shard is then spread over
+                several output shards by writing its examples to them in a round-robin fashion.
             embed_external_files (`bool`, defaults to `True`):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
