@@ -3449,6 +3449,21 @@ def test_iterable_dataset_batch_by_column(num_shards: int):
         )
 
 
+def test_iterable_dataset_batch_keeps_numpy_dtypes():
+    features = Features({"i": Value("int64"), "f": Value("float32"), "s": Value("string")})
+    ds = Dataset.from_dict(
+        {"i": [1, 2, 3, 4], "f": [1.5, 2.5, 3.5, 4.5], "s": ["ab", "cd", "ef", "gh"]}, features=features
+    )
+    ds = ds.to_iterable_dataset(num_shards=2).with_format("numpy")
+    expected = {key: value.dtype for key, value in next(iter(ds.iter(batch_size=2))).items()}
+
+    assert {key: value.dtype for key, value in next(iter(ds.batch(batch_size=2))).items()} == expected
+
+    mapped = ds.map(lambda example: {"i": example["i"], "f": example["f"], "s": example["s"]})
+    assert {key: value.dtype for key, value in next(iter(mapped.iter(batch_size=2))).items()} == expected
+    assert {key: value.dtype for key, value in next(iter(mapped.batch(batch_size=2))).items()} == expected
+
+
 @pytest.mark.parametrize("format_type", ["pyarrow", "pandas"])
 def test_iterable_dataset_batch_with_table_format(format_type):
     ds = IterableDataset.from_dict({"a": [1, 2, 3, 4]})
