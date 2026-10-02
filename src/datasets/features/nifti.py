@@ -86,7 +86,7 @@ class Nifti:
     >>> from datasets import Dataset, Nifti
     >>> ds = Dataset.from_dict({"nifti": ["path/to/file.nii.gz"]}).cast_column("nifti", Nifti())
     >>> ds.features["nifti"]
-    Nifti(decode=True, id=None)
+    Nifti(decode=True)
     >>> ds[0]["nifti"]
     <nibabel.nifti1.Nifti1Image object at 0x7f8a1c2d8f40>
     >>> ds = ds.cast_column("nifti", Nifti(decode=False))
