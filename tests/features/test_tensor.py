@@ -1377,8 +1377,8 @@ def test_tensor_list_cast_slice_after_null(large):
         assert casted.to_pylist() == [values[:2], values[2:]]
 
 
-def _values_buffer_address(array):
-    """Address of the innermost values buffer of an array, following list, struct and extension nesting."""
+def _innermost_values(array):
+    """Innermost values of an array as its rows see them, following list, struct and extension nesting."""
     while True:
         if isinstance(array, pa.ExtensionArray):
             array = array.storage
@@ -1389,17 +1389,20 @@ def _values_buffer_address(array):
             or pa.types.is_large_list(array.type)
             or pa.types.is_fixed_size_list(array.type)
         ):
-            array = array.values
+            # `flatten` follows the offsets of a sliced parent, unlike `.values`
+            array = array.flatten()
         else:
-            return array.buffers()[1].address
+            return array
+
+
+def _values_buffer_address(array):
+    """Address of the first value of the innermost values array, wherever its buffer starts."""
+    values = _innermost_values(array)
+    return values.buffers()[1].address + values.offset * values.type.bit_width // 8
 
 
 def _tensor_rows(array, shape):
-    """Read a tensor extension array back as one ndarray, through its storage.
-
-    `FixedShapeTensorArray.to_numpy_ndarray` ignores the offset of the values child (pyarrow 25), which
-    a sliced column cast without copying legitimately has, so it is not used here.
-    """
+    """Read a tensor extension array back as one ndarray, through its storage."""
     return np.asarray(array.storage.to_pylist()).reshape(len(array), *shape)
 
 
@@ -1439,8 +1442,10 @@ def test_tensor_cast_from_a_sliced_array_xd_column(offset, length):
     source = dataset.data.column("x").chunk(0).slice(offset, length)
     cast = Tensor((2, 3), "float32").cast_storage(source.storage)
     assert len(cast) == length
-    assert _values_buffer_address(cast) == _values_buffer_address(dataset.data.column("x").chunk(0))
+    assert _values_buffer_address(cast) == _values_buffer_address(source)
+    assert _innermost_values(cast).offset == 0
     np.testing.assert_array_equal(_tensor_rows(cast, (2, 3)), np.stack(rows[offset : offset + length]))
+    np.testing.assert_array_equal(cast.to_numpy_ndarray(), np.stack(rows[offset : offset + length]))
 
 
 def test_tensor_cast_from_array_xd_through_cast_column_does_not_copy_the_data():
@@ -1545,3 +1550,42 @@ def test_tensor_cast_accepts_a_chunked_array(shape):
     dataset = Dataset(pa.table({"x": cast})).cast(Features({"x": feature}))
     for expected, row in zip(rows, dataset["x"]):
         np.testing.assert_array_equal(row, expected)
+
+
+@pytest.mark.parametrize("shape", [(2, 3), (None, 3)])
+def test_tensor_cast_column_of_a_selected_range_reads_back_through_pyarrow(shape):
+    rows = [np.full((2, 3), float(i), dtype="float32") for i in range(8)]
+    dataset = _array_xd_dataset(Array2D(shape, "float32"), rows)
+    cast = dataset.select(range(2, 7)).cast_column("x", Tensor(shape, "float32"))
+    column = cast.with_format("arrow")[:]["x"].chunk(0)
+    assert _innermost_values(column).offset == 0
+    assert _values_buffer_address(column) == _values_buffer_address(dataset.data.column("x").chunk(0)) + 2 * 6 * 4
+    if shape[0] is not None:
+        np.testing.assert_array_equal(column.to_numpy_ndarray(), np.stack(rows[2:7]))
+    for expected, row in zip(rows[2:7], cast.with_format("numpy")["x"]):
+        np.testing.assert_array_equal(row, expected)
+
+
+@pytest.mark.parametrize("shape", [(2, None), (0, None), (2, 0), (3, 0, None), (None, None)])
+def test_tensor_rejects_an_empty_row_whose_shape_it_cannot_determine(shape):
+    nested_type = pa.float32()
+    for _ in shape:
+        nested_type = pa.list_(nested_type)
+    with pytest.raises(ValueError):
+        Tensor(shape, "float32").cast_storage(pa.array([[]], type=nested_type))
+    with pytest.raises(ValueError):
+        Dataset.from_dict({"x": [[]]}, features=Features({"x": Tensor(shape, "float32")}))
+
+
+@pytest.mark.parametrize(
+    "shape, empty_shape", [((None, 3), (0, 3)), ((0, 3), (0, 3)), ((None,), (0,)), ((None, 0), (0, 0))]
+)
+def test_tensor_reads_an_empty_row_the_same_way_from_python_and_from_arrow(shape, empty_shape):
+    feature = Tensor(shape, "float32")
+    nested_type = pa.float32()
+    for _ in shape:
+        nested_type = pa.list_(nested_type)
+    from_python = Dataset.from_dict({"x": [[]]}, features=Features({"x": feature}))
+    from_arrow = Dataset(pa.table({"x": pa.array([[]], type=nested_type)})).cast_column("x", feature)
+    assert from_python["x"][0].shape == empty_shape
+    assert from_arrow["x"][0].shape == empty_shape

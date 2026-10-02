@@ -236,6 +236,22 @@ def normalize_tensor_arrow_type(arrow_type):
     return pa.large_list(field) if pa.types.is_large_list(arrow_type) else pa.list_(field)
 
 
+def _values_without_offset(values):
+    """The same values as an array with offset 0, still over the same memory, or `None` if that needs a copy.
+
+    A sliced column leaves an offset on its values child. Arrow's own tensor conversions, such as
+    `FixedShapeTensorArray.to_numpy_ndarray`, ignore that offset (pyarrow 25), so the values are re-based
+    on a slice of their buffer instead. Bit-packed booleans cannot be sliced at a bit offset.
+    """
+    if values.offset == 0:
+        return values
+    if values.type.bit_width % 8:
+        return None
+    width = values.type.bit_width // 8
+    data = values.buffers()[1].slice(values.offset * width, len(values) * width)
+    return pa.Array.from_buffers(values.type, len(values), [None, data])
+
+
 def _share_nested_list_storage(storage, shape, dtype, arrow_type):
     """Rebuild `list<...<T>>` storage as tensor storage over the same values buffer.
 
@@ -245,8 +261,8 @@ def _share_nested_list_storage(storage, shape, dtype, arrow_type):
     are never copied.
 
     Returns `None` when the storage cannot be reused as is (nulls anywhere, a different dtype, a dynamic
-    dimension other than the first, or lists that do not follow `shape`), and the caller then takes the
-    validating path that copies.
+    dimension other than the first, lists that do not follow `shape`, or sliced booleans), and the caller
+    then takes the validating path that copies.
     """
     ndim = len(shape)
     if (
@@ -270,6 +286,9 @@ def _share_nested_list_storage(storage, shape, dtype, arrow_type):
             return None
         current = current.flatten()
     if current.type != value_type or current.null_count:
+        return None
+    current = _values_without_offset(current)
+    if current is None:
         return None
     inner_size = int(np.prod([dim for dim in shape if dim is not None], dtype=np.int64))
     if shape[0] is not None:
@@ -369,6 +388,10 @@ class Tensor:
         if value is None:
             return None
         value = cast_to_python_objects(value, optimize_list_casting=False)
+        empty_shape = self._empty_row_shape()
+        if empty_shape is not None and isinstance(value, list) and not value:
+            # `[]` carries no trailing dimensions, so a zero-length row cannot be told apart from rank 1
+            value = np.zeros(empty_shape, dtype=self.dtype)
         try:
             raw_data = value["data"] if isinstance(value, dict) else value
             python_integers = np.dtype(self.dtype).kind in "iu" and not isinstance(raw_data, np.ndarray)
@@ -429,15 +452,15 @@ class Tensor:
             raise ValueError(f"Cannot decode Tensor with dtype {self.dtype} and shape {self.shape}: {e}") from e
 
     def _empty_row_shape(self):
-        """Shape of a row stored as an empty list, or `None` when the feature does not determine it.
+        """Shape of a row given as an empty list, or `None` when the feature does not determine it.
 
-        It is determined when at most one dimension is unknown (it is then the one that is 0) and the
-        resulting shape holds no elements, e.g. `(None, 3)` gives `(0, 3)` and `(0, 3)` stays `(0, 3)`.
+        An empty list has a first dimension of 0 and says nothing about the others, so it is a valid
+        row only when the first dimension can be 0 and every other one is known: `(None, 3)` gives
+        `(0, 3)`, while `(2, None)`, `(None, None)` and `(2, 0)` give `None`.
         """
-        if sum(dim is None for dim in self.shape) > 1:
+        if not self.shape or self.shape[0] not in (None, 0) or any(dim is None for dim in self.shape[1:]):
             return None
-        shape = tuple(0 if dim is None else dim for dim in self.shape)
-        return shape if 0 in shape else None
+        return (0, *self.shape[1:])
 
     def cast_storage(self, storage):
         from .features import _ArrayXDExtensionType, generate_from_arrow_type
@@ -460,13 +483,6 @@ class Tensor:
             if shared is not None:
                 return shared
             values = storage.to_pylist()
-            empty_shape = self._empty_row_shape()
-            if empty_shape is not None:
-                # `[]` carries no trailing dimensions, so a zero-length row cannot be told apart from rank 1
-                values = [
-                    np.zeros(empty_shape, dtype=self.dtype) if isinstance(value, list) and not value else value
-                    for value in values
-                ]
             if (
                 isinstance(arrow_type, pa.FixedShapeTensorType)
                 and (pa.types.is_list(storage.type) or pa.types.is_fixed_size_list(storage.type))
