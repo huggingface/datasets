@@ -105,6 +105,35 @@ To set your dataset as private, set the `private` parameter to `True`. This para
 
 To add a new configuration (or subset) to a dataset or to add a new split (train/validation/test), please refer to the [`Dataset.push_to_hub`] documentation.
 
+To append rows to an existing dataset repository, use `append=True` with [`Dataset.push_to_hub`] or
+[`DatasetDict.push_to_hub`]. The new rows must have the same features as the existing configuration.
+
+```py
+>>> new_rows.push_to_hub("stevhliu/processed_demo", split="train", append=True)
+>>> new_splits.push_to_hub("stevhliu/processed_demo", append=True, max_shard_size="500MB")
+```
+
+When the card has dataset statistics, appending downloads only the last Parquet shard selected by the
+configuration's `data_files` mapping for the requested split, following the mapping's order across all
+listed directories. It preserves that file's existing encoded row groups and adds the new rows. If the
+resulting file would exceed `max_shard_size`, the existing shard is kept and the new rows are written to
+additional shards. A single row can exceed this limit. Unchanged shards are renamed with server-side copies only when the shard
+count changes. PyArrow 21 and later enable content-defined chunking for the appended row groups so Xet
+can reuse existing chunks.
+
+With `num_shards`, specify the split's total shard count after appending, across all mapped directories.
+It cannot be smaller than the current count; keeping the same count extends the last shard without a
+size limit. Other splits and configurations are preserved. New or renumbered shards use `data_dir`, and
+the dataset card's row and size counts are updated. A new split is uploaded normally. If another push
+changes the repository during an append, the commit fails instead of overwriting those changes; retry
+against the updated repository.
+`append=False` (the default) keeps the usual replacement behavior. Appending is supported for dataset
+repositories, not buckets.
+
+If statistics are missing, they are recovered from the configuration's mapped files. Recovering byte
+counts requires reading those files in batches to measure Arrow memory sizes; Parquet encoding sizes
+are not used as dataset memory sizes.
+
 ### Privacy
 
 A private dataset is only accessible by you. Similarly, if you share a dataset within your organization, then members of the organization can also access the dataset.
