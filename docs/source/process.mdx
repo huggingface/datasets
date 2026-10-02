@@ -837,7 +837,7 @@ Use the [`~Dataset.save_to_disk`] and [`load_from_disk`] function to reload the 
 >>> reloaded_dataset = load_dataset("path/of/my/dataset/directory", split="train", streaming=True)
 ```
 
-A saved [`Dataset`] comes back as a `train` split, and only the Arrow files listed by `save_to_disk` are read, so cache files written next to them by [`~Dataset.map`] are not. For a directory saved from a [`DatasetDict`], use [`load_from_disk`]: [`load_dataset`] infers the splits from the subdirectory names as it does for any data directory, so it renames or merges the ones it recognizes (`dev` becomes `validation`, `eval` and `testing` both become `test`) and drops the others, or merges them all into `train` when it recognizes none.
+A saved [`Dataset`] comes back as a `train` split with its rows and features, and only the Arrow files listed by `save_to_disk` are read, so cache files written next to them by [`~Dataset.map`] are not. The format and the description or citation saved with it are not restored, which [`load_from_disk`] does. For a directory saved from a [`DatasetDict`], use [`load_from_disk`]: [`load_dataset`] infers the splits from the subdirectory names as it does for any data directory, so it renames or merges the ones it recognizes (`dev` becomes `validation`, `eval` and `testing` both become `test`) and drops the others, or merges them all into `train` when it recognizes none.
 
 ## Export
 

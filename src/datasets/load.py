@@ -406,8 +406,10 @@ def create_builder_configs_from_metadata_configs(
             config_patterns = (
                 sanitize_patterns(config_data_files)
                 if config_data_files is not None
-                # the directory itself was resolved first, and warned about, by the module factory
-                else _get_default_data_patterns(config_base_path, download_config=download_config, warn=False)
+                # without its own data_dir, the module factory already resolved this directory and warned about it
+                else _get_default_data_patterns(
+                    config_base_path, download_config=download_config, warn=bool(config_data_dir)
+                )
             )
             config_data_files_dict = DataFilesPatternsDict.from_patterns(
                 config_patterns,

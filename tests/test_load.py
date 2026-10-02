@@ -1204,13 +1204,6 @@ def test_load_dataset_from_a_saved_directory_with_a_missing_shard_raises(tmp_pat
         load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
 
 
-def test_load_dataset_from_a_saved_directory_with_an_unreadable_state_json_raises(tmp_path):
-    _, path = _save_dataset_to_disk(tmp_path, num_shards=3)
-    (path / "state.json").write_text('{"_fingerprint": "abc", "_data_files": "data-00000-of-00003.arrow"}')
-    with pytest.raises(ValueError, match="does not list its Arrow files"):
-        load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
-
-
 def test_load_dataset_from_a_saved_dataset_dict_directory(tmp_path):
     dataset, _ = _save_dataset_to_disk(tmp_path)
     path = tmp_path / "saved_dict"
@@ -1223,8 +1216,12 @@ def test_load_dataset_from_a_saved_dataset_dict_directory(tmp_path):
     "state",
     [
         '{"_data_files": [{"filename": "data-00000',
-        '{"_fingerprint": "a", "_data_files": [{"filename": "../x.arrow"}]}',
+        '{"_fingerprint": "a"}',
+        '{"_fingerprint": "a", "_data_files": "data-00000-of-00003.arrow"}',
         '{"_fingerprint": "a", "_data_files": ["data-00000-of-00003.arrow"]}',
+        '{"_fingerprint": "a", "_data_files": [{"filename": "../x.arrow"}]}',
+        '{"_fingerprint": "a", "_data_files": [{"filename": ".."}]}',
+        '{"_fingerprint": "a", "_data_files": [{"filename": ""}]}',
     ],
 )
 def test_load_dataset_from_a_saved_directory_with_a_damaged_state_json_raises(tmp_path, state):
@@ -1234,15 +1231,25 @@ def test_load_dataset_from_a_saved_directory_with_a_damaged_state_json_raises(tm
         load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
 
 
+@pytest.mark.parametrize("content", ['{"name": "Alabama"}', '[{"name": "Alabama"}]'])
 @pytest.mark.parametrize("with_dataset_info", [False, True])
-def test_load_dataset_reads_a_json_state_json_without_save_to_disk_keys_as_data(tmp_path, with_dataset_info):
+def test_load_dataset_reads_a_json_state_json_without_save_to_disk_keys_as_data(tmp_path, with_dataset_info, content):
     path = tmp_path / "states"
     path.mkdir()
-    (path / "state.json").write_text('{"name": "Alabama"}')
+    (path / "state.json").write_text(content)
     if with_dataset_info:
         (path / "dataset_info.json").write_text("{}")
     loaded = load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
     assert loaded["train"]["name"] == ["Alabama"]
+
+
+def test_load_dataset_with_a_readme_config_whose_data_dir_is_a_saved_dataset(tmp_path, caplog):
+    dataset, _ = _save_dataset_to_disk(tmp_path, name="repo/saved")
+    (tmp_path / "repo" / "README.md").write_text("---\nconfigs:\n- config_name: default\n  data_dir: saved\n---\n")
+    with caplog.at_level(WARNING, logger=get_logger().name):
+        loaded = load_dataset(str(tmp_path / "repo"), cache_dir=str(tmp_path / "cache"))
+    assert list(loaded["train"]) == list(dataset)
+    assert len([record for record in caplog.records if "save_to_disk" in record.getMessage()]) == 1
 
 
 def test_load_dataset_still_loads_a_data_file_named_state_json(tmp_path):
