@@ -20,10 +20,10 @@ from datasets.arrow_writer import ArrowWriter
 from datasets.builder import DatasetBuilder
 from datasets.config import METADATA_CONFIGS_FIELD
 from datasets.data_files import DataFilesDict, DataFilesPatternsDict
-from datasets.dataset_dict import DatasetDict
+from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.download.download_config import DownloadConfig
 from datasets.exceptions import DatasetNotFoundError
-from datasets.features import Features, Value
+from datasets.features import ClassLabel, Features, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
     CachedDatasetModuleFactory,
@@ -34,9 +34,10 @@ from datasets.load import (
     infer_module_for_data_files_list_in_archives,
     load_dataset_builder,
 )
+from datasets.packaged_modules.arrow.arrow import Arrow
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder, ImageFolderConfig
-from datasets.utils.logging import INFO, get_logger
+from datasets.utils.logging import INFO, WARNING, get_logger
 
 from .utils import (
     OfflineSimulationMode,
@@ -1079,6 +1080,184 @@ def test_load_dataset_arrow(streaming, data_dir_with_arrow):
         assert ds.shape[0] == expected_size
         ds_item = next(iter(ds))
         assert ds_item == {"col_1": "foo"}
+
+
+def _save_dataset_to_disk(tmp_path, num_shards=1, name="saved"):
+    features = Features({"id": Value("int64"), "label": ClassLabel(names=["neg", "pos"]), "tokens": [Value("string")]})
+    dataset = Dataset.from_dict(
+        {"id": list(range(30)), "label": [i % 2 for i in range(30)], "tokens": [[str(i), "x"] for i in range(30)]},
+        features=features,
+    )
+    path = tmp_path / name
+    dataset.save_to_disk(str(path), num_shards=num_shards)
+    return dataset, path
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("num_shards", [1, 3])
+def test_load_dataset_from_a_saved_dataset_directory(num_shards, streaming, tmp_path):
+    dataset, path = _save_dataset_to_disk(tmp_path, num_shards=num_shards)
+    saved_files = sorted(os.listdir(path))
+    loaded = load_dataset(str(path), streaming=streaming, cache_dir=str(tmp_path / "cache"))
+    assert isinstance(loaded, IterableDatasetDict if streaming else DatasetDict)
+    assert list(loaded) == ["train"]
+    assert loaded["train"].features == dataset.features
+    assert list(loaded["train"]) == list(dataset)
+    # the cache holds the data, the directory written by `save_to_disk` is left untouched
+    assert sorted(os.listdir(path)) == saved_files
+
+
+def test_load_dataset_from_a_saved_dataset_directory_warns_about_the_structure(tmp_path, caplog):
+    _, path = _save_dataset_to_disk(tmp_path)
+    with caplog.at_level(WARNING, logger=get_logger().name):
+        load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
+    warnings = [record.getMessage() for record in caplog.records if record.levelno == WARNING]
+    assert len(warnings) == 1
+    assert "save_to_disk" in warnings[0] and "load_from_disk" in warnings[0] and "compatibility" in warnings[0]
+
+
+def test_load_dataset_from_a_regular_arrow_directory_does_not_warn(tmp_path, caplog, data_dir_with_arrow):
+    with caplog.at_level(WARNING, logger=get_logger().name):
+        load_dataset("arrow", data_dir=data_dir_with_arrow, cache_dir=str(tmp_path / "cache"))
+    assert not [
+        record for record in caplog.records if record.levelno == WARNING and "save_to_disk" in record.getMessage()
+    ]
+
+
+def test_load_dataset_from_a_saved_dataset_directory_reads_only_the_files_in_state_json(tmp_path):
+    dataset, path = _save_dataset_to_disk(tmp_path, num_shards=3)
+    _, other_path = _save_dataset_to_disk(tmp_path, num_shards=1, name="other")
+    shutil.copy(other_path / "data-00000-of-00001.arrow", path / "stray.arrow")
+    loaded = load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
+    assert loaded["train"].num_rows == dataset.num_rows
+    assert list(loaded["train"]) == list(dataset)
+
+
+def test_load_dataset_from_a_saved_dataset_directory_keeps_the_user_data_files(tmp_path):
+    _, path = _save_dataset_to_disk(tmp_path, num_shards=3)
+    first_shard = str(path / "data-00000-of-00003.arrow")
+    loaded = load_dataset(str(path), data_files={"test": first_shard}, cache_dir=str(tmp_path / "cache"))
+    assert list(loaded) == ["test"]
+    assert loaded["test"].num_rows == 10
+
+
+def test_load_dataset_builder_from_a_saved_dataset_directory(tmp_path):
+    _, path = _save_dataset_to_disk(tmp_path, num_shards=3)
+    builder = datasets.load_dataset_builder(str(path), cache_dir=str(tmp_path / "cache"))
+    assert isinstance(builder, Arrow)
+    assert [os.path.basename(f) for f in builder.config.data_files["train"]] == [
+        f"data-{i:05d}-of-00003.arrow" for i in range(3)
+    ]
+
+
+def test_load_dataset_from_a_saved_dataset_directory_with_readme_configs_without_data_files(tmp_path, caplog):
+    dataset, path = _save_dataset_to_disk(tmp_path, num_shards=2)
+    (path / "README.md").write_text("---\nconfigs:\n- config_name: default\n---\n")
+    with caplog.at_level(WARNING, logger=get_logger().name):
+        loaded = load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
+    assert list(loaded["train"]) == list(dataset)
+    assert len([record for record in caplog.records if "save_to_disk" in record.getMessage()]) == 1
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_arrow_with_the_data_dir_of_a_saved_dataset(tmp_path, streaming):
+    dataset, path = _save_dataset_to_disk(tmp_path, num_shards=3)
+    loaded = load_dataset("arrow", data_dir=str(path), cache_dir=str(tmp_path / "cache"), streaming=streaming)
+    assert list(loaded["train"]) == list(dataset)
+
+
+def test_load_dataset_from_a_saved_directory_skips_a_map_cache_file_but_reads_it_when_named(tmp_path):
+    dataset, path = _save_dataset_to_disk(tmp_path, num_shards=3)
+    mapped = datasets.load_from_disk(str(path)).map(lambda example: {"id": example["id"] + 1000})
+    cache_file = mapped.cache_files[0]["filename"]
+    assert Path(cache_file).parent == path
+    loaded = load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
+    assert list(loaded["train"]) == list(dataset)
+    named = load_dataset("arrow", data_files=cache_file, cache_dir=str(tmp_path / "cache"))
+    assert named["train"]["id"] == [i + 1000 for i in range(30)]
+    both = load_dataset(
+        str(path), data_files=[str(path / "data-00000-of-00003.arrow"), cache_file], cache_dir=str(tmp_path / "cache")
+    )
+    assert both["train"].num_rows == 10 + 30
+
+
+@pytest.mark.parametrize("entry_point", ["path", "data_dir", "arrow_data_dir", "builder"])
+def test_an_empty_saved_dataset_points_to_load_from_disk_from_every_entry_point(tmp_path, entry_point):
+    path = tmp_path / "parent" / "saved_dataset"
+    Dataset.from_dict({"x": []}, features=Features({"x": Value("int64")})).save_to_disk(str(path))
+    cache_dir = str(tmp_path / "cache")
+    with pytest.raises(ValueError, match="load_from_disk"):
+        if entry_point == "path":
+            load_dataset(str(path), cache_dir=cache_dir)
+        elif entry_point == "data_dir":
+            load_dataset(str(path.parent), data_dir="saved_dataset", cache_dir=cache_dir)
+        elif entry_point == "arrow_data_dir":
+            load_dataset("arrow", data_dir=str(path), cache_dir=cache_dir)
+        else:
+            datasets.load_dataset_builder(str(path), cache_dir=cache_dir).download_and_prepare()
+
+
+def test_load_dataset_from_a_saved_directory_with_a_missing_shard_raises(tmp_path):
+    _, path = _save_dataset_to_disk(tmp_path, num_shards=3)
+    (path / "data-00001-of-00003.arrow").unlink()
+    with pytest.raises(FileNotFoundError, match="listed in its state.json are missing.*data-00001-of-00003.arrow"):
+        load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
+
+
+def test_load_dataset_from_a_saved_dataset_dict_directory(tmp_path):
+    dataset, _ = _save_dataset_to_disk(tmp_path)
+    path = tmp_path / "saved_dict"
+    DatasetDict({"train": dataset, "test": dataset.select(range(5))}).save_to_disk(str(path))
+    loaded = load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
+    assert {split: ds.num_rows for split, ds in loaded.items()} == {"train": 30, "test": 5}
+
+
+@pytest.mark.parametrize(
+    "state",
+    [
+        '{"_data_files": [{"filename": "data-00000',
+        '{"_fingerprint": "a"}',
+        '{"_fingerprint": "a", "_data_files": "data-00000-of-00003.arrow"}',
+        '{"_fingerprint": "a", "_data_files": ["data-00000-of-00003.arrow"]}',
+        '{"_fingerprint": "a", "_data_files": [{"filename": "../x.arrow"}]}',
+        '{"_fingerprint": "a", "_data_files": [{"filename": ".."}]}',
+        '{"_fingerprint": "a", "_data_files": [{"filename": ""}]}',
+    ],
+)
+def test_load_dataset_from_a_saved_directory_with_a_damaged_state_json_raises(tmp_path, state):
+    _, path = _save_dataset_to_disk(tmp_path, num_shards=3)
+    (path / "state.json").write_text(state)
+    with pytest.raises(ValueError, match="does not list its Arrow files"):
+        load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
+
+
+@pytest.mark.parametrize("content", ['{"name": "Alabama"}', '[{"name": "Alabama"}]'])
+@pytest.mark.parametrize("with_dataset_info", [False, True])
+def test_load_dataset_reads_a_json_state_json_without_save_to_disk_keys_as_data(tmp_path, with_dataset_info, content):
+    path = tmp_path / "states"
+    path.mkdir()
+    (path / "state.json").write_text(content)
+    if with_dataset_info:
+        (path / "dataset_info.json").write_text("{}")
+    loaded = load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
+    assert loaded["train"]["name"] == ["Alabama"]
+
+
+def test_load_dataset_with_a_readme_config_whose_data_dir_is_a_saved_dataset(tmp_path, caplog):
+    dataset, _ = _save_dataset_to_disk(tmp_path, name="repo/saved")
+    (tmp_path / "repo" / "README.md").write_text("---\nconfigs:\n- config_name: default\n  data_dir: saved\n---\n")
+    with caplog.at_level(WARNING, logger=get_logger().name):
+        loaded = load_dataset(str(tmp_path / "repo"), cache_dir=str(tmp_path / "cache"))
+    assert list(loaded["train"]) == list(dataset)
+    assert len([record for record in caplog.records if "save_to_disk" in record.getMessage()]) == 1
+
+
+def test_load_dataset_still_loads_a_data_file_named_state_json(tmp_path):
+    path = tmp_path / "states"
+    path.mkdir()
+    (path / "state.json").write_text('{"name": "Alabama"}\n{"name": "Alaska"}\n{"name": "Arizona"}\n')
+    loaded = load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
+    assert [row["name"] for row in loaded["train"]] == ["Alabama", "Alaska", "Arizona"]
 
 
 def test_load_dataset_text_with_unicode_new_lines(text_path_with_unicode_new_lines):
