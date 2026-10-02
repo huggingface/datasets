@@ -1589,3 +1589,39 @@ def test_tensor_reads_an_empty_row_the_same_way_from_python_and_from_arrow(shape
     from_arrow = Dataset(pa.table({"x": pa.array([[]], type=nested_type)})).cast_column("x", feature)
     assert from_python["x"][0].shape == empty_shape
     assert from_arrow["x"][0].shape == empty_shape
+
+
+@pytest.mark.parametrize("shape", [(0, 3), (0,)])
+def test_tensor_cast_from_an_all_empty_null_list_column(shape):
+    column = Dataset.from_dict({"x": [[], []]}).data.column("x")
+    assert pa.types.is_null(column.type.value_type)
+    cast = Dataset(pa.table({"x": column})).cast_column("x", Tensor(shape, "float32"))
+    assert [row.shape for row in cast["x"]] == [shape, shape]
+
+
+def test_tensor_reads_an_empty_tuple_like_an_empty_list():
+    feature = Tensor((None, 3), "float32")
+    assert feature.encode_example(())["shape"] == feature.encode_example([])["shape"] == [0, 3]
+
+
+@pytest.mark.parametrize("shape", [(2, 3), (None, 3)])
+def test_tensor_cast_column_of_a_selected_range_of_booleans(shape):
+    rows = [np.array([[i % 2, 1, 0], [0, i % 3 == 0, 1]], dtype=bool) for i in range(8)]
+    dataset = _array_xd_dataset(Array2D(shape, "bool"), rows)
+    cast = dataset.select(range(2, 7)).cast_column("x", Tensor(shape, "bool"))
+    for expected, row in zip(rows[2:7], cast.with_format("numpy")["x"]):
+        np.testing.assert_array_equal(row, expected)
+
+
+@pytest.mark.parametrize("shape", [(2, 3), (None, 3)])
+@pytest.mark.parametrize("sliced", [False, True])
+def test_tensor_cast_rejects_a_null_inside_a_row_on_the_fast_path_too(shape, sliced, monkeypatch):
+    rows = [[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], [[1.0, None, 3.0], [4.0, 5.0, 6.0]]]
+    dataset = _array_xd_dataset(Array2D(shape, "float32"), [rows[0]] + rows)
+    dataset = dataset.select(range(1, 3)) if sliced else dataset
+    with pytest.raises(ValueError, match="expected numeric or boolean values") as fast:
+        dataset.cast_column("x", Tensor(shape, "float32"))
+    monkeypatch.setattr("datasets.features.tensor._share_nested_list_storage", lambda *args, **kwargs: None)
+    with pytest.raises(ValueError) as slow:
+        dataset.cast_column("x", Tensor(shape, "float32"))
+    assert str(fast.value) == str(slow.value)

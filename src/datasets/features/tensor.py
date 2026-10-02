@@ -256,7 +256,7 @@ def _share_nested_list_storage(storage, shape, dtype, arrow_type):
     """Rebuild `list<...<T>>` storage as tensor storage over the same values buffer.
 
     This is the layout of an `Array2D`..`Array5D` column: `len(shape)` nested lists around one contiguous
-    row-major values array. Fixed tensors only need `fixed_size_list` offsets and variable ones need
+    row-major values array. Fixed tensors only wrap the values in a `fixed_size_list` and variable ones need
     per-row `data` offsets and a `shape` array, both proportional to the number of rows, so the values
     are never copied.
 
@@ -389,7 +389,7 @@ class Tensor:
             return None
         value = cast_to_python_objects(value, optimize_list_casting=False)
         empty_shape = self._empty_row_shape()
-        if empty_shape is not None and isinstance(value, list) and not value:
+        if empty_shape is not None and isinstance(value, (list, tuple)) and len(value) == 0:
             # `[]` carries no trailing dimensions, so a zero-length row cannot be told apart from rank 1
             value = np.zeros(empty_shape, dtype=self.dtype)
         try:
@@ -487,6 +487,8 @@ class Tensor:
                 isinstance(arrow_type, pa.FixedShapeTensorType)
                 and (pa.types.is_list(storage.type) or pa.types.is_fixed_size_list(storage.type))
                 and not pa.types.is_nested(storage.type.value_type)
+                # an all-empty column infers list<null>, whose values carry no dtype to reshape with
+                and not pa.types.is_null(storage.type.value_type)
             ):
                 # Reshape storage without converting dtype before validation.
                 values = [
@@ -585,7 +587,7 @@ def tensor_to_parquet_schema(schema, table=None):
     if all(field.type == original.type for field, original in zip(fields, schema)):
         return schema
     # Keep the canonical schema separately: applying it as ARROW:schema would
-    # trigger Arrow 25's fixed-size-list reader bug. Plain Arrow can read both
+    # trigger the fixed-size-list reader bug of Arrow 24 and 25. Plain Arrow can read both
     # the storage table and this serialized schema without importing Datasets.
     metadata = {
         **(schema.metadata or {}),

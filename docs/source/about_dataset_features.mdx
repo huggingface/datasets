@@ -82,7 +82,7 @@ These rules also apply to tensors nested in lists or dictionaries, and null
 rows remain `None`. Boolean encoding accepts only boolean values and numeric
 values exactly equal to 0 or 1.
 
-Arrow 25's Parquet reader cannot restore null fixed-size lists or fixed tensors
+The Parquet reader of Arrow 24 and 25 cannot restore null fixed-size lists or fixed tensors
 with zero elements. For affected columns, Datasets writes plain list/struct
 storage and saves the canonical Arrow schema as base64-encoded IPC schema bytes
 in the file metadata key `huggingface:tensor_schema`. Datasets restores the tensor
