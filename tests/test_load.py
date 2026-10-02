@@ -1159,11 +1159,55 @@ def test_load_dataset_from_a_saved_dataset_directory_with_readme_configs_without
     assert len([record for record in caplog.records if "save_to_disk" in record.getMessage()]) == 1
 
 
-def test_load_dataset_from_an_empty_saved_dataset_directory_points_to_load_from_disk(tmp_path):
-    # save_to_disk writes no Arrow file for a dataset without rows, so there is nothing to read but state.json
-    path = tmp_path / "saved_dataset"
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_arrow_with_the_data_dir_of_a_saved_dataset(tmp_path, streaming):
+    dataset, path = _save_dataset_to_disk(tmp_path, num_shards=3)
+    loaded = load_dataset("arrow", data_dir=str(path), cache_dir=str(tmp_path / "cache"), streaming=streaming)
+    assert list(loaded["train"]) == list(dataset)
+
+
+def test_load_dataset_from_a_saved_directory_skips_a_map_cache_file_but_reads_it_when_named(tmp_path):
+    dataset, path = _save_dataset_to_disk(tmp_path, num_shards=3)
+    mapped = datasets.load_from_disk(str(path)).map(lambda example: {"id": example["id"] + 1000})
+    cache_file = mapped.cache_files[0]["filename"]
+    assert Path(cache_file).parent == path
+    loaded = load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
+    assert list(loaded["train"]) == list(dataset)
+    named = load_dataset("arrow", data_files=cache_file, cache_dir=str(tmp_path / "cache"))
+    assert named["train"]["id"] == [i + 1000 for i in range(30)]
+    both = load_dataset(
+        str(path), data_files=[str(path / "data-00000-of-00003.arrow"), cache_file], cache_dir=str(tmp_path / "cache")
+    )
+    assert both["train"].num_rows == 10 + 30
+
+
+@pytest.mark.parametrize("entry_point", ["path", "data_dir", "arrow_data_dir", "builder"])
+def test_an_empty_saved_dataset_points_to_load_from_disk_from_every_entry_point(tmp_path, entry_point):
+    path = tmp_path / "parent" / "saved_dataset"
     Dataset.from_dict({"x": []}, features=Features({"x": Value("int64")})).save_to_disk(str(path))
+    cache_dir = str(tmp_path / "cache")
     with pytest.raises(ValueError, match="load_from_disk"):
+        if entry_point == "path":
+            load_dataset(str(path), cache_dir=cache_dir)
+        elif entry_point == "data_dir":
+            load_dataset(str(path.parent), data_dir="saved_dataset", cache_dir=cache_dir)
+        elif entry_point == "arrow_data_dir":
+            load_dataset("arrow", data_dir=str(path), cache_dir=cache_dir)
+        else:
+            datasets.load_dataset_builder(str(path), cache_dir=cache_dir).download_and_prepare()
+
+
+def test_load_dataset_from_a_saved_directory_with_a_missing_shard_raises(tmp_path):
+    _, path = _save_dataset_to_disk(tmp_path, num_shards=3)
+    (path / "data-00001-of-00003.arrow").unlink()
+    with pytest.raises(FileNotFoundError, match="listed in its state.json are missing.*data-00001-of-00003.arrow"):
+        load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
+
+
+def test_load_dataset_from_a_saved_directory_with_an_unreadable_state_json_raises(tmp_path):
+    _, path = _save_dataset_to_disk(tmp_path, num_shards=3)
+    (path / "state.json").write_text('{"_fingerprint": "abc", "_data_files": "data-00000-of-00003.arrow"}')
+    with pytest.raises(ValueError, match="does not list its Arrow files"):
         load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
 
 
@@ -1173,6 +1217,32 @@ def test_load_dataset_from_a_saved_dataset_dict_directory(tmp_path):
     DatasetDict({"train": dataset, "test": dataset.select(range(5))}).save_to_disk(str(path))
     loaded = load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
     assert {split: ds.num_rows for split, ds in loaded.items()} == {"train": 30, "test": 5}
+
+
+@pytest.mark.parametrize(
+    "state",
+    [
+        '{"_data_files": [{"filename": "data-00000',
+        '{"_fingerprint": "a", "_data_files": [{"filename": "../x.arrow"}]}',
+        '{"_fingerprint": "a", "_data_files": ["data-00000-of-00003.arrow"]}',
+    ],
+)
+def test_load_dataset_from_a_saved_directory_with_a_damaged_state_json_raises(tmp_path, state):
+    _, path = _save_dataset_to_disk(tmp_path, num_shards=3)
+    (path / "state.json").write_text(state)
+    with pytest.raises(ValueError, match="does not list its Arrow files"):
+        load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
+
+
+@pytest.mark.parametrize("with_dataset_info", [False, True])
+def test_load_dataset_reads_a_json_state_json_without_save_to_disk_keys_as_data(tmp_path, with_dataset_info):
+    path = tmp_path / "states"
+    path.mkdir()
+    (path / "state.json").write_text('{"name": "Alabama"}')
+    if with_dataset_info:
+        (path / "dataset_info.json").write_text("{}")
+    loaded = load_dataset(str(path), cache_dir=str(tmp_path / "cache"))
+    assert loaded["train"]["name"] == ["Alabama"]
 
 
 def test_load_dataset_still_loads_a_data_file_named_state_json(tmp_path):
