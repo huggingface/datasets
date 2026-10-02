@@ -217,6 +217,8 @@ class TypedSequence:
         try_type: Optional[FeatureType] = None,
         optimized_int_type: Optional[FeatureType] = None,
         on_mixed_types: Optional[Literal["use_json"]] = None,
+        *,
+        col: Optional[str] = None,
     ):
         # assert type is None or try_type is None,
         if type is not None and try_type is not None:
@@ -227,6 +229,7 @@ class TypedSequence:
         self.try_type = try_type  # is ignored if it doesn't match the data
         self.optimized_int_type = optimized_int_type
         self.on_mixed_types = on_mixed_types
+        self.col = col
         # when trying a type (is ignored if data is not compatible)
         self.trying_type = self.try_type is not None
         self.trying_int_optimization = optimized_int_type is not None and type is None and try_type is None
@@ -313,6 +316,7 @@ class TypedSequence:
         )
         trying_cast_to_python_objects = False
         json_field_paths = []
+        column = f" in column {self.col!r}" if self.col is not None else ""
         try:
             # custom pyarrow types
             if isinstance(pa_type, _ArrayXDExtensionType):
@@ -351,20 +355,25 @@ class TypedSequence:
                     out = out.cast(optimized_int_pa_type)
                 elif pa.types.is_list(out.type):
                     if pa.types.is_int64(out.type.value_type):
-                        out = array_cast(out, pa.list_(optimized_int_pa_type))
+                        out = array_cast(out, pa.list_(optimized_int_pa_type), col=self.col)
                     elif pa.types.is_list(out.type.value_type) and pa.types.is_int64(out.type.value_type.value_type):
-                        out = array_cast(out, pa.list_(pa.list_(optimized_int_pa_type)))
+                        out = array_cast(out, pa.list_(pa.list_(optimized_int_pa_type)), col=self.col)
             # otherwise we can finally use the user's type
             elif type is not None:
                 # We use cast_array_to_feature to support casting to custom types like Audio and Image
                 # Also, when trying type "string", we don't want to convert integers or floats to "string".
                 # We only do it if trying_type is False - since this is what the user asks for.
                 out = cast_array_to_feature(
-                    out, type, allow_primitive_to_str=not self.trying_type, allow_decimal_to_str=not self.trying_type
+                    out,
+                    type,
+                    allow_primitive_to_str=not self.trying_type,
+                    allow_decimal_to_str=not self.trying_type,
+                    col=self.col,
                 )
             return out
         except (
             TypeError,
+            OverflowError,
             pa.lib.ArrowTypeError,
             pa.lib.ArrowInvalid,
             pa.lib.ArrowNotImplementedError,
@@ -372,6 +381,22 @@ class TypedSequence:
             # Ignore ArrowNotImplementedError caused by trying type, otherwise re-raise
             if not self.trying_type and isinstance(e, pa.lib.ArrowNotImplementedError):
                 raise
+
+            # Column names must not affect the message-based overflow and retry checks.
+            error_message = str(e)
+            if self.col is not None and error_message.startswith(f"Column {self.col!r}: "):
+                error_message = (
+                    str(e.__cause__)
+                    if e.__cause__ is not None
+                    else error_message.removeprefix(f"Column {self.col!r}: ")
+                )
+
+            # A Python overflow was always fatal, even when trying a type. Do not retry it.
+            if isinstance(e, OverflowError) or (not self.trying_type and "overflow" in error_message):
+                raise OverflowError(
+                    f"There was an overflow with type {type_(data)} when converting to {type or 'an inferred Arrow type'}{column}. "
+                    f"Try to reduce writer_batch_size to have batches smaller than 2GB.\n({e})"
+                ) from None
 
             if self.trying_type:
                 try:  # second chance
@@ -382,10 +407,11 @@ class TypedSequence:
                     else:
                         trying_cast_to_python_objects = True
                         return pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
-                except pa.lib.ArrowInvalid as e:
-                    if "overflow" in str(e):
+                except (pa.lib.ArrowInvalid, OverflowError) as e:
+                    if isinstance(e, OverflowError) or "overflow" in str(e):
                         raise OverflowError(
-                            f"There was an overflow with type {type_(data)}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({e})"
+                            f"There was an overflow with type {type_(data)} when converting to {type or 'an inferred Arrow type'}{column}. "
+                            f"Try to reduce writer_batch_size to have batches smaller than 2GB.\n({e})"
                         ) from None
                     elif self.trying_int_optimization and "not in range" in str(e):
                         optimized_int_pa_type_str = np.dtype(optimized_int_pa_type.to_pandas_dtype()).name
@@ -399,21 +425,19 @@ class TypedSequence:
                         )
                         if type is not None:
                             out = cast_array_to_feature(
-                                out, type, allow_primitive_to_str=True, allow_decimal_to_str=True
+                                out, type, allow_primitive_to_str=True, allow_decimal_to_str=True, col=self.col
                             )
                         return out
                     else:
                         raise
-            elif "overflow" in str(e):
-                raise OverflowError(
-                    f"There was an overflow with type {type_(data)}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({e})"
-                ) from None
-            elif self.trying_int_optimization and "not in range" in str(e):
+            elif self.trying_int_optimization and "not in range" in error_message:
                 optimized_int_pa_type_str = np.dtype(optimized_int_pa_type.to_pandas_dtype()).name
                 logger.info(f"Failed to cast a sequence to {optimized_int_pa_type_str}. Falling back to int64.")
                 return out
             elif trying_cast_to_python_objects and (
-                "Could not convert" in str(e) or "cannot mix struct and non-struct" in str(e) or "Expected " in str(e)
+                "Could not convert" in error_message
+                or "cannot mix struct and non-struct" in error_message
+                or "Expected " in error_message
             ):
                 try:  # third chance
                     out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False))
@@ -453,7 +477,9 @@ class TypedSequence:
                     else:
                         raise
                 if type is not None:
-                    out = cast_array_to_feature(out, type, allow_primitive_to_str=True, allow_decimal_to_str=True)
+                    out = cast_array_to_feature(
+                        out, type, allow_primitive_to_str=True, allow_decimal_to_str=True, col=self.col
+                    )
                 return out
             else:
                 raise
@@ -480,7 +506,12 @@ class OptimizedTypedSequence(TypedSequence):
         if type is None and try_type is None:
             optimized_int_type = optimized_int_type_by_col.get(col, None)
         super().__init__(
-            data, type=type, try_type=try_type, optimized_int_type=optimized_int_type, on_mixed_types=on_mixed_types
+            data,
+            type=type,
+            try_type=try_type,
+            optimized_int_type=optimized_int_type,
+            on_mixed_types=on_mixed_types,
+            col=col,
         )
 
 
@@ -756,7 +787,7 @@ class ArrowWriter:
             if isinstance(col_type, Value) and col_type.dtype == "null":
                 self._check_null_column(col, col_values)
             if isinstance(col_values, (pa.Array, pa.ChunkedArray)):
-                array = cast_array_to_feature(col_values, col_type) if col_type is not None else col_values
+                array = cast_array_to_feature(col_values, col_type, col=col) if col_type is not None else col_values
                 arrays.append(array)
                 inferred_features[col] = generate_from_arrow_type(col_values.type)
             else:
