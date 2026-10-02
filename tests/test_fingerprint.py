@@ -18,6 +18,7 @@ import datasets
 from datasets import config
 from datasets.fingerprint import Hasher, fingerprint_transform
 from datasets.table import InMemoryTable
+from datasets.utils import _dill
 
 from .utils import (
     require_not_windows,
@@ -306,6 +307,21 @@ class HashingTest(TestCase):
         hash3 = Hasher.hash(set_)
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
+
+    def test_batch_setitems_adds_python314_obj_argument(self):
+        calls = []
+
+        def batch_setitems(self, items, obj):
+            calls.append((list(items), obj))
+
+        with patch.object(_dill.sys, "version_info", (3, 14)), patch.object(
+            _dill.dill.Pickler, "_batch_setitems", batch_setitems
+        ):
+            _dill.Pickler._batch_setitems(
+                object.__new__(_dill.Pickler), [("b", 2), ("a", 1)]
+            )
+
+        self.assertEqual(calls, [([("a", 1), ("b", 2)], {"a": 1, "b": 2})])
 
     @require_tiktoken
     def test_hash_tiktoken_encoding(self):
