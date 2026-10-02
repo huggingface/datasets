@@ -1,4 +1,5 @@
 import asyncio
+import json
 import pickle
 import sys
 import time
@@ -334,6 +335,133 @@ def test_rebatched_arrow_examples_iterable(tables, batch_size, drop_last_batch):
         assert full_table.slice(0, num_rows).to_pydict() == reloaded.to_pydict()
     assert_load_state_dict_resumes_iteration(ex_iterable)
     assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
+
+
+@pytest.mark.parametrize(
+    "table_chunks",
+    [
+        [[1], [3], [4], [2]],  # A partial chunk is replayed at consecutive checkpoints.
+        [[1], [3], [2], [3], [4], [2], [7]],  # A replayed partial chunk completes an exact boundary.
+        [[3], [6], [3], [9], [4]],  # Exact chunk and table boundaries, then a short final batch.
+        [[1, 2, 4, 1, 5, 3, 7, 2]],  # Multiple chunks within one source table.
+        [[], [0], [1], [], [0, 3, 0, 4, 0], [], [2], [0]],  # Empty tables and array chunks.
+        [[], [0], []],
+    ],
+)
+@pytest.mark.parametrize("checkpoint_interval", [1, 2, 3])
+@pytest.mark.parametrize("drop_last_batch", [False, True])
+def test_rebatched_arrow_examples_iterable_repeated_restore(table_chunks, checkpoint_interval, drop_last_batch):
+    batch_size = 3
+    num_rows = sum(sum(chunk_sizes) for chunk_sizes in table_chunks)
+    expected_rows = num_rows // batch_size * batch_size if drop_last_batch else num_rows
+    expected = [list(range(i, min(i + batch_size, expected_rows))) for i in range(0, expected_rows, batch_size)]
+
+    def gen():
+        offset = 0
+        for key, chunk_sizes in enumerate(table_chunks):
+            chunks = []
+            for size in chunk_sizes:
+                chunks.append(pa.array(range(offset, offset + size), type=pa.int64()))
+                offset += size
+            yield key, pa.table({"id": pa.chunked_array(chunks, type=pa.int64())})
+
+    def make_iterable(state=None):
+        ex_iterable = RebatchedArrowExamplesIterable(
+            ArrowExamplesIterable(gen, {}), batch_size=batch_size, drop_last_batch=drop_last_batch
+        )
+        ex_iterable._init_state_dict()
+        if state is not None:
+            ex_iterable.load_state_dict(state)
+        return ex_iterable
+
+    # Check the reference batching separately from checkpoint replay.
+    assert [table["id"].to_pylist() for _, table in make_iterable().iter_arrow()] == expected
+    ex_iterable = make_iterable()
+    iterator = ex_iterable.iter_arrow()
+    for batch_idx, expected_batch in enumerate(expected, 1):
+        _, table = next(iterator)
+        assert table["id"].to_pylist() == expected_batch
+        if batch_idx % checkpoint_interval == 0 or batch_idx == len(expected):
+            state = json.loads(json.dumps(ex_iterable.state_dict()))
+            ex_iterable = make_iterable(state)
+            iterator = ex_iterable.iter_arrow()
+    with pytest.raises(StopIteration):
+        next(iterator)
+    # An exhausted checkpoint must also remain exhausted after a fresh restore.
+    state = json.loads(json.dumps(ex_iterable.state_dict()))
+    assert list(make_iterable(state).iter_arrow()) == []
+
+
+@pytest.mark.parametrize(
+    "table_chunks",
+    [
+        [[1], [2]],  # A batch crosses tables and leaves a cropped tail.
+        [[], [1], [2], []],  # Empty tables surround the same boundary.
+        [[1, 2]],  # The same boundary within a chunked source table.
+        [[1]],  # All rows are discarded.
+        [[2]],  # Exact final batch.
+        [[], []],  # No rows.
+    ],
+)
+def test_rebatched_arrow_examples_iterable_drop_last_exhausted_checkpoint(table_chunks):
+    def gen():
+        offset = 0
+        for key, chunk_sizes in enumerate(table_chunks):
+            chunks = []
+            for size in chunk_sizes:
+                chunks.append(pa.array(range(offset, offset + size), type=pa.int64()))
+                offset += size
+            yield key, pa.table({"id": pa.chunked_array(chunks, type=pa.int64())})
+
+    def make_iterable(state=None):
+        ex_iterable = RebatchedArrowExamplesIterable(
+            ArrowExamplesIterable(gen, {}), batch_size=2, drop_last_batch=True
+        )
+        ex_iterable._init_state_dict()
+        if state is not None:
+            ex_iterable.load_state_dict(state)
+        return ex_iterable
+
+    num_rows = sum(sum(chunk_sizes) for chunk_sizes in table_chunks)
+    expected = [list(range(i, i + 2)) for i in range(0, num_rows - 1, 2)]
+    ex_iterable = make_iterable()
+    # Exhaust uninterrupted iteration, including the discarded tail, before saving.
+    assert [table["id"].to_pylist() for _, table in ex_iterable.iter_arrow()] == expected
+    for _ in range(2):
+        state = json.loads(json.dumps(ex_iterable.state_dict()))
+        assert state["batch_idx"] == len(expected)
+        ex_iterable = make_iterable(state)
+        assert list(ex_iterable.iter_arrow()) == []
+
+
+@pytest.mark.parametrize("drop_last_batch", [False, True])
+def test_rebatched_arrow_examples_iterable_restore_existing_partial_checkpoint(drop_last_batch):
+    def gen():
+        for key, ids in enumerate([[0], [1, 2, 3], [4, 5, 6, 7], [8, 9]]):
+            yield key, pa.table({"id": ids})
+
+    # A valid checkpoint written by the previous implementation after yielding [0, 1, 2].
+    state = {
+        "examples_iterable": {"shard_idx": 0, "shard_example_idx": 4, "type": "ArrowExamplesIterable"},
+        "previous_state": {"shard_idx": 0, "shard_example_idx": 0, "type": "ArrowExamplesIterable"},
+        "batch_idx": 1,
+        "num_chunks_since_previous_state": 2,
+        "cropped_chunk_length": 2,
+        "type": "RebatchedArrowExamplesIterable",
+    }
+    expected = [[3, 4, 5], [6, 7, 8]] + ([] if drop_last_batch else [[9]])
+    for expected_batch in expected:
+        ex_iterable = RebatchedArrowExamplesIterable(
+            ArrowExamplesIterable(gen, {}), batch_size=3, drop_last_batch=drop_last_batch
+        )
+        ex_iterable._init_state_dict()
+        ex_iterable.load_state_dict(json.loads(json.dumps(state)))
+        _, table = next(ex_iterable.iter_arrow())
+        assert table["id"].to_pylist() == expected_batch
+        state = ex_iterable.state_dict()
+        if expected_batch == [3, 4, 5]:
+            assert state["num_chunks_since_previous_state"] == 3
+            assert state["cropped_chunk_length"] == 2
 
 
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
