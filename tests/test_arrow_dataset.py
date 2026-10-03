@@ -625,13 +625,16 @@ class BaseDatasetTest(TestCase):
                         dset.class_encode_column(column)
 
     def test_class_encode_sequence_column(self, in_memory):
-        features = Features({"labels": List(Value("string"))})
+        features = Features({"labels": List(Value("string"), id="label-sequence")})
         dset = Dataset.from_dict({"labels": [["a", "b"], ["b"], ["c", "a"], []]}, features=features)
         with tempfile.TemporaryDirectory() as tmp_dir:
             if not in_memory:
                 dset = self._to(in_memory, tmp_dir, dset)
             with dset.class_encode_column("labels") as casted_dset:
-                self.assertEqual(casted_dset.features["labels"], List(ClassLabel(names=["a", "b", "c"])))
+                self.assertEqual(
+                    casted_dset.features["labels"],
+                    List(ClassLabel(names=["a", "b", "c"]), id="label-sequence"),
+                )
                 self.assertListEqual(casted_dset["labels"][:], [[0, 1], [1], [2, 0], []])
 
     def test_class_encode_numeric_sequence_column(self, in_memory):
@@ -679,13 +682,16 @@ class BaseDatasetTest(TestCase):
                 self.assertListEqual(casted_dset["labels"][:], [[0, 1], [1, 2], [2, 0]])
 
     def test_class_encode_large_list_column(self, in_memory):
-        features = Features({"labels": LargeList(Value("string"))})
+        features = Features({"labels": LargeList(Value("string"), id="large-label-sequence")})
         dset = Dataset.from_dict({"labels": [["a", "b"], ["b"], ["c", "a"], []]}, features=features)
         with tempfile.TemporaryDirectory() as tmp_dir:
             if not in_memory:
                 dset = self._to(in_memory, tmp_dir, dset)
             with dset.class_encode_column("labels") as casted_dset:
-                self.assertEqual(casted_dset.features["labels"], LargeList(ClassLabel(names=["a", "b", "c"])))
+                self.assertEqual(
+                    casted_dset.features["labels"],
+                    LargeList(ClassLabel(names=["a", "b", "c"]), id="large-label-sequence"),
+                )
                 self.assertListEqual(casted_dset["labels"][:], [[0, 1], [1], [2, 0], []])
 
     def test_remove_columns(self, in_memory):
