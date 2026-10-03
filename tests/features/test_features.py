@@ -344,6 +344,33 @@ def test_classlabel_int2str():
         classlabel.int2str(None)
 
 
+@pytest.mark.parametrize("plain_string_index", [0, 5])
+def test_json_cast_storage_with_mixed_strings(plain_string_index):
+    values = ['{"a":1}', "[2]", "true", "123", '"quoted"', None]
+    expected = [{"a": 1}, [2], True, 123, "quoted", None]
+    values.insert(plain_string_index, "hello")
+    expected.insert(plain_string_index, "hello")
+
+    feature = Json()
+    storage = feature.cast_storage(pa.array(values, type=pa.string()))
+    assert storage.type == pa.json_()
+    assert [feature.decode_example(value) for value in storage.to_pylist()] == expected
+
+
+@pytest.mark.parametrize("plain_string_index", [0, 5])
+@pytest.mark.parametrize("batch_size", [1, 3, 1000])
+def test_dataset_cast_json_with_mixed_strings(plain_string_index, batch_size):
+    values = ['{"a":1}', "[2]", "true", "123", '"quoted"', None]
+    expected = [{"a": 1}, [2], True, 123, "quoted", None]
+    values.insert(plain_string_index, "hello")
+    expected.insert(plain_string_index, "hello")
+    features = Features({"value": Json()})
+
+    dataset = Dataset.from_dict({"value": values}).cast(features, batch_size=batch_size)
+    assert dataset["value"][:] == expected
+    assert dataset["value"][:] == Dataset.from_dict({"value": values}, features=features)["value"][:]
+
+
 def test_classlabel_cast_storage():
     names = ["negative", "positive"]
     classlabel = ClassLabel(names=names)
