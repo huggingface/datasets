@@ -2409,6 +2409,32 @@ def test_iterable_dataset_filter(dataset: IterableDataset) -> None:
     assert next(iter(filtered_dataset)) == {"id": 1}
 
 
+@pytest.mark.parametrize("batch_size", [1, 3, 1000])
+@pytest.mark.parametrize(
+    "format_type, function",
+    [
+        ("arrow", lambda t: pc.greater(t["a"], 5)),
+        ("arrow", lambda t: [a > 5 for a in t["a"].to_pylist()]),
+        ("pandas", lambda df: df["a"] > 5),
+        pytest.param(
+            "polars",
+            lambda df: df["a"] > 5,
+            marks=pytest.mark.skipif(not config.POLARS_AVAILABLE, reason="test requires polars"),
+        ),
+    ],
+)
+@pytest.mark.parametrize("arrow_backed", [False, True])
+def test_iterable_dataset_filter_table_formats(format_type, function, batch_size, arrow_backed):
+    features = Features({"a": Value("int64")})
+    if arrow_backed:
+        ds = Dataset.from_dict({"a": list(range(10))}, features=features).to_iterable_dataset(num_shards=2)
+    else:
+        ds = IterableDataset.from_generator(lambda: ({"a": i} for i in range(10)), features=features)
+    filtered_ds = ds.with_format(format_type).filter(function, batched=True, batch_size=batch_size)
+    assert filtered_ds.features == features
+    assert list(filtered_ds.with_format(None)) == [{"a": a} for a in range(6, 10)]
+
+
 def test_iterable_dataset_filter_chaining_does_not_raise() -> None:
     """Chaining two .filter() calls must not raise TypeError.
 
