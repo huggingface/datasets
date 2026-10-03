@@ -2231,6 +2231,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def class_encode_column(self, column: str, include_nulls: bool = False) -> "Dataset":
         """Casts the given column as [`~datasets.features.ClassLabel`] and updates the table.
 
+        List-valued columns backed by [`~datasets.features.List`] or [`~datasets.features.LargeList`]
+        are encoded element-wise while preserving their outer list feature.
+
         Args:
             column (`str`):
                 The name of the column to cast (list all the column names with [`~datasets.Dataset.column_names`])
@@ -2253,6 +2256,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         {'answer': ClassLabel(num_classes=2, names=['False', 'True']),
          'passage': Value('string'),
          'question': Value('string')}
+
+        List-valued labels are encoded element-wise:
+
+        ```py
+        >>> from datasets import Dataset
+        >>> ds = Dataset.from_dict({"labels": [["cat", "dog"], ["dog"], []]})
+        >>> ds = ds.class_encode_column("labels")
+        >>> ds.features["labels"]
+        List(ClassLabel(names=['cat', 'dog']))
+        >>> ds["labels"]
+        Column([[0, 1], [1], []])
         ```
         """
         # Sanity checks
