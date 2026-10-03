@@ -400,6 +400,20 @@ def test_DataFilesList_from_patterns_raises_FileNotFoundError(complex_data_dir):
         DataFilesList.from_patterns(["file_that_doesnt_exist.txt"], complex_data_dir)
 
 
+def test_DataFilesList_filter_keeps_origin_metadata_aligned(tmp_path):
+    (tmp_path / "data.txt").write_text("foo\n")
+    (tmp_path / "data.csv").write_text("a,b\n")
+    data_files_list = DataFilesList.from_patterns(["*"], tmp_path.as_posix())
+    assert len(data_files_list.origin_metadata) == len(data_files_list)
+
+    filtered = data_files_list.filter(extensions=[".txt"])
+    assert list(filtered) == [(tmp_path / "data.txt").as_posix()]
+    # `origin_metadata` must stay aligned with the data files it describes
+    assert len(filtered.origin_metadata) == len(filtered)
+    metadata_by_file = dict(zip(data_files_list, data_files_list.origin_metadata))
+    assert filtered.origin_metadata == [metadata_by_file[file] for file in filtered]
+
+
 class TestDataFilesDict:
     def test_key_order_after_copy(self):
         data_files = DataFilesDict({"train": "train.csv", "test": "test.csv"})
