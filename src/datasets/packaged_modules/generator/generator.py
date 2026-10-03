@@ -17,6 +17,11 @@ class GeneratorConfig(datasets.BuilderConfig):
         super().__post_init__()
         if self.generator is None:
             raise ValueError("generator must be specified")
+        if not callable(self.generator):
+            # Otherwise it is only called during generation, and the failure arrives as a
+            # bare "'X' object is not callable" wrapped in a DatasetGenerationError, which
+            # never mentions `generator`. Passing the data itself is an easy mistake.
+            raise TypeError(f"generator must be callable, but got {type(self.generator).__name__}")
 
         if self.gen_kwargs is None:
             self.gen_kwargs = {}

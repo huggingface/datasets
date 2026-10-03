@@ -1853,10 +1853,9 @@ class ArrowBasedBuilder(DatasetBuilder):
                             gen_kwargs=gen_kwargs,
                             token=self.token,
                         )
-                    if len(original_shard_lengths) == original_shard_id:
-                        original_shard_lengths.append(len(table))
-                    else:
-                        original_shard_lengths[original_shard_id] += len(table)
+                    if len(original_shard_lengths) <= original_shard_id:
+                        original_shard_lengths.extend([0] * (1 + original_shard_id - len(original_shard_lengths)))
+                    original_shard_lengths[original_shard_id] += len(table)
                     num_examples_progress_update += len(table)
                     if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()

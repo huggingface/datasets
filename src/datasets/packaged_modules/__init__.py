@@ -10,20 +10,27 @@ from .cache import cache
 from .conll import conll
 from .csv import csv
 from .eval import eval
+from .fasta import fasta
+from .fastq import fastq
+from .genbank import genbank
+from .harbor import harbor
 from .hdf5 import hdf5
 from .iceberg import iceberg
 from .imagefolder import imagefolder
 from .json import json
 from .lance import lance
 from .meshfolder import meshfolder
+from .mmcif import mmcif
 from .niftifolder import niftifolder
 from .pandas import pandas
 from .parquet import parquet
+from .pdb import pdb
 from .pdffolder import pdffolder
 from .sql import sql
 from .text import text
 from .tsfile import tsfile
 from .videofolder import videofolder
+from .vortex import vortex
 from .webdataset import webdataset
 from .xml import xml
 
@@ -63,6 +70,13 @@ _PACKAGED_DATASETS_MODULES = {
     "lance": (lance.__name__, _hash_python_lines(inspect.getsource(lance).splitlines())),
     "tsfile": (tsfile.__name__, _hash_python_lines(inspect.getsource(tsfile).splitlines())),
     "iceberg": (iceberg.__name__, _hash_python_lines(inspect.getsource(iceberg).splitlines())),
+    "vortex": (vortex.__name__, _hash_python_lines(inspect.getsource(vortex).splitlines())),
+    "mmcif": (mmcif.__name__, _hash_python_lines(inspect.getsource(mmcif).splitlines())),
+    "pdb": (pdb.__name__, _hash_python_lines(inspect.getsource(pdb).splitlines())),
+    "genbank": (genbank.__name__, _hash_python_lines(inspect.getsource(genbank).splitlines())),
+    "fasta": (fasta.__name__, _hash_python_lines(inspect.getsource(fasta).splitlines())),
+    "fastq": (fastq.__name__, _hash_python_lines(inspect.getsource(fastq).splitlines())),
+    "harbor": (harbor.__name__, _hash_python_lines(inspect.getsource(harbor).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -97,9 +111,32 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".hdf5": ("hdf5", {}),
     ".h5": ("hdf5", {}),
     ".eval": ("eval", {}),
+    ".toml": ("harbor", {}),
+    ".md": ("harbor", {}),
     ".lance": ("lance", {}),
     ".tsfile": ("tsfile", {}),
+    ".vortex": ("vortex", {}),
+    # FASTA biological sequence formats
+    ".fa": ("fasta", {}),
+    ".fasta": ("fasta", {}),
+    ".fna": ("fasta", {}),  # FASTA nucleic acid
+    ".ffn": ("fasta", {}),  # FASTA nucleotide of gene regions
+    ".faa": ("fasta", {}),  # FASTA amino acid
+    ".frn": ("fasta", {}),  # FASTA non-coding RNA
+    ".afa": ("fasta", {}),  # aligned FASTA (multiple sequence alignment)
+    # other bio formats
+    ".gb": ("genbank", {}),
+    ".gbk": ("genbank", {}),
+    ".genbank": ("genbank", {}),
+    ".fq": ("fastq", {}),
+    ".fastq": ("fastq", {}),
+    ".pdb": ("pdb", {}),
+    ".ent": ("pdb", {}),
+    ".cif": ("mmcif", {}),
+    ".mmcif": ("mmcif", {}),
 }
+_EXTENSION_TO_MODULE.update({ext: ("pdb", {}) for ext in pdb.PdbFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext.upper(): ("pdb", {}) for ext in pdb.PdbFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
@@ -132,6 +169,9 @@ _MODULE_TO_METADATA_FILE_NAMES["meshfolder"] = meshfolder.MeshFolder.METADATA_FI
 _MODULE_TO_METADATA_FILE_NAMES["pdffolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["niftifolder"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["lance"] = lance.Lance.METADATA_FILE_NAMES
+_MODULE_TO_METADATA_FILE_NAMES["mmcif"] = imagefolder.ImageFolder.METADATA_FILENAMES
+_MODULE_TO_METADATA_FILE_NAMES["pdb"] = imagefolder.ImageFolder.METADATA_FILENAMES
+_MODULE_TO_METADATA_FILE_NAMES["harbor"] = harbor.Harbor.METADATA_FILENAMES
 
 _MODULE_TO_METADATA_EXTENSIONS: Dict[str, List[str]] = {}
 for _module in _MODULE_TO_EXTENSIONS:
