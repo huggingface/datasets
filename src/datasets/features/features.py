@@ -1280,7 +1280,11 @@ class Json:
         """
         if isinstance(storage, pa.JsonArray):
             return storage
-        elif isinstance(storage, (pa.StringArray)):
+        elif (
+            pa.types.is_string(storage.type)
+            or pa.types.is_large_string(storage.type)
+            or pa.types.is_string_view(storage.type)
+        ):
             items = storage[:5].to_pylist()
             try:
                 for item in items:

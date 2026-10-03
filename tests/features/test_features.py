@@ -383,6 +383,29 @@ def test_classlabel_cast_storage():
     assert result.to_pylist() == []
 
 
+@pytest.mark.parametrize("string_type", [pa.string(), pa.large_string(), pa.string_view()])
+def test_json_cast_storage_from_strings(string_type):
+    json_feature = Json()
+    # strings that are valid JSON are stored as they are
+    arr = pa.array(['{"a": 1}', "[1, 2]", None], type=string_type)
+    result = json_feature.cast_storage(arr)
+    assert result.type == pa.json_()
+    assert result.storage.to_pylist() == ['{"a": 1}', "[1, 2]", None]
+    assert [json_feature.decode_example(x) for x in result.storage.to_pylist()] == [{"a": 1}, [1, 2], None]
+    # other strings are encoded as JSON strings
+    arr = pa.array(["foo", None], type=string_type)
+    result = json_feature.cast_storage(arr)
+    assert result.storage.to_pylist() == ['"foo"', None]
+
+
+def test_dataset_cast_large_string_column_to_json():
+    features = Features({"col": Value("large_string")})
+    dset = Dataset.from_dict({"col": ['{"a": 1}', "[1, 2]"]}, features=features)
+    dset = dset.cast_column("col", Json())
+    assert dset.features["col"] == Json()
+    assert dset["col"][:] == [{"a": 1}, [1, 2]]
+
+
 @pytest.mark.parametrize("class_label_arg", ["names", "names_file"])
 def test_class_label_to_and_from_dict(class_label_arg, tmp_path_factory):
     names = ["negative", "positive"]
