@@ -2880,6 +2880,21 @@ def test_concatenate_datasets_axis_1_arrow_format():
     assert table.to_pydict() == {"a": [1, 2], "b": [3, 4], "c": [5, 6]}
 
 
+@pytest.mark.parametrize("n1, n2", [(5, 3), (3, 5), (2500, 1200)])
+def test_concatenate_datasets_axis_1_arrow_with_different_lengths(n1, n2):
+    ds1 = Dataset.from_dict({"a": list(range(n1))}).to_iterable_dataset()
+    ds2 = Dataset.from_dict({"b": list(range(n2))}).to_iterable_dataset()
+    concatenated_dataset = concatenate_datasets([ds1, ds2], axis=1)
+    n = max(n1, n2)
+    expected = {
+        "a": list(range(n1)) + [None] * (n - n1),
+        "b": list(range(n2)) + [None] * (n - n2),
+    }
+    table = pa.concat_tables(concatenated_dataset.with_format("arrow"))
+    assert table.to_pydict() == expected
+    assert list(concatenated_dataset) == [{"a": a, "b": b} for a, b in zip(expected["a"], expected["b"])]
+
+
 @require_torch
 @require_tf
 @require_jax

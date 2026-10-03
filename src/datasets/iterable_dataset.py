@@ -1182,6 +1182,12 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
                     _check_column_names(
                         [column_name for pa_table in pa_tables for column_name in pa_table.column_names]
                     )
+                # the last batch of a shorter source can have fewer rows: fill the missing rows with None
+                num_rows = max(len(pa_table) for pa_table in pa_tables)
+                for j, table in enumerate(pa_tables):
+                    if len(table) < num_rows:
+                        nulls = [pa.nulls(num_rows - len(table), field.type) for field in table.schema]
+                        pa_tables[j] = pa.concat_tables([table, pa.table(nulls, schema=table.schema)])
                 for j, table in enumerate(pa_tables):
                     if j == 0:
                         new_pa_table = table
