@@ -3907,11 +3907,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return buf_writer, writer, tmp_file
 
         tasks: list[asyncio.Task] = []
+        new_loop = False
         if inspect.iscoroutinefunction(function):
             try:
                 loop = asyncio.get_running_loop()
             except RuntimeError:
                 loop = asyncio.new_event_loop()
+                new_loop = True
         else:
             loop = None
 
@@ -4021,15 +4023,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         tmp_file.close()
                         if os.path.exists(tmp_file.name):
                             os.remove(tmp_file.name)
-                if loop:
-                    logger.debug(f"Canceling {len(tasks)} async tasks.")
-                    for task in tasks:
-                        task.cancel(msg="KeyboardInterrupt")
-                    try:
-                        loop.run_until_complete(asyncio.gather(*tasks))
-                    except (asyncio.CancelledError, ValueError):
-                        logger.debug("Tasks canceled.")
                 raise
+            finally:
+                if loop is not None:
+                    try:
+                        if tasks:
+                            logger.debug(f"Canceling {len(tasks)} async tasks.")
+                            for task in tasks:
+                                task.cancel()
+                            loop.run_until_complete(asyncio.gather(*tasks, return_exceptions=True))
+                    finally:
+                        if new_loop:
+                            loop.close()
 
         yield rank, False, num_examples_progress_update
         if update_data and tmp_file is not None:
