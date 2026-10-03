@@ -618,11 +618,86 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(casted_dset, dset)
                     assert_arrow_metadata_are_synced_with_dataset_features(casted_dset)
 
-            # Test raises if feature is an array / sequence
+            # Test raises if feature is an unsupported array type
             with self._create_dummy_dataset(in_memory, tmp_dir, array_features=True) as dset:
-                for column in dset.column_names:
+                for column in ["col_1", "col_2"]:
                     with self.assertRaises(ValueError):
                         dset.class_encode_column(column)
+
+    def test_class_encode_sequence_column(self, in_memory):
+        features = Features({"labels": List(Value("string"))})
+        dset = Dataset.from_dict({"labels": [["a", "b"], ["b"], ["c", "a"], []]}, features=features)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            if not in_memory:
+                dset = self._to(in_memory, tmp_dir, dset)
+            with dset.class_encode_column("labels") as casted_dset:
+                self.assertEqual(
+                    casted_dset.features["labels"],
+                    List(ClassLabel(names=["a", "b", "c"])),
+                )
+                self.assertListEqual(casted_dset["labels"][:], [[0, 1], [1], [2, 0], []])
+
+    def test_class_encode_numeric_sequence_column(self, in_memory):
+        features = Features({"labels": List(Value("int64"))})
+        dset = Dataset.from_dict({"labels": [[3, 2], [2], [1, 3], []]}, features=features)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            if not in_memory:
+                dset = self._to(in_memory, tmp_dir, dset)
+            with dset.class_encode_column("labels") as casted_dset:
+                self.assertEqual(casted_dset.features["labels"], List(ClassLabel(names=["1", "2", "3"])))
+                self.assertListEqual(casted_dset["labels"][:], [[2, 1], [1], [0, 2], []])
+
+    def _check_class_encode_sequence_column_with_none(self, in_memory, include_nulls):
+        features = Features({"labels": List(Value("string"))})
+        dset = Dataset.from_dict(
+            {"labels": [["a", None], None, ["b"], []]},
+            features=features,
+        )
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            if not in_memory:
+                dset = self._to(in_memory, tmp_dir, dset)
+            with dset.class_encode_column("labels", include_nulls=include_nulls) as casted_dset:
+                label_feature = casted_dset.features["labels"].feature
+                expected_names = {"a", "b", "None"} if include_nulls else {"a", "b"}
+                self.assertSetEqual(set(label_feature.names), expected_names)
+                self.assertIsNone(casted_dset["labels"][1])
+                self.assertListEqual(casted_dset["labels"][3], [])
+                if include_nulls:
+                    self.assertEqual(casted_dset["labels"][0][1], label_feature.str2int("None"))
+                else:
+                    self.assertIsNone(casted_dset["labels"][0][1])
+
+    def test_class_encode_sequence_column_excludes_nulls(self, in_memory):
+        self._check_class_encode_sequence_column_with_none(in_memory, include_nulls=False)
+
+    def test_class_encode_sequence_column_includes_nulls(self, in_memory):
+        self._check_class_encode_sequence_column_with_none(in_memory, include_nulls=True)
+
+    def test_class_encode_fixed_size_sequence_preserves_length(self, in_memory):
+        features = Features({"labels": List(Value("string"), length=2)})
+        dset = Dataset.from_dict({"labels": [["a", "b"], ["b", "c"], ["c", "a"]]}, features=features)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            if not in_memory:
+                dset = self._to(in_memory, tmp_dir, dset)
+            with dset.class_encode_column("labels") as casted_dset:
+                self.assertEqual(
+                    casted_dset.features["labels"],
+                    List(ClassLabel(names=["a", "b", "c"]), length=2),
+                )
+                self.assertListEqual(casted_dset["labels"][:], [[0, 1], [1, 2], [2, 0]])
+
+    def test_class_encode_large_list_column(self, in_memory):
+        features = Features({"labels": LargeList(Value("string"))})
+        dset = Dataset.from_dict({"labels": [["a", "b"], ["b"], ["c", "a"], []]}, features=features)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            if not in_memory:
+                dset = self._to(in_memory, tmp_dir, dset)
+            with dset.class_encode_column("labels") as casted_dset:
+                self.assertEqual(
+                    casted_dset.features["labels"],
+                    LargeList(ClassLabel(names=["a", "b", "c"])),
+                )
+                self.assertListEqual(casted_dset["labels"][:], [[0, 1], [1], [2, 0], []])
 
     def test_remove_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
