@@ -1414,6 +1414,44 @@ def test_embed_table_storage(image_file):
 
 
 @pytest.mark.parametrize(
+    "pa_type, feature",
+    [
+        (pa.int64(), Value("float64")),
+        (pa.list_(pa.int64()), List(Value("int64"))),
+        (pa.struct([("a", pa.int64())]), {"a": Value("int64")}),
+        (pa.list_(pa.list_(pa.float32())), Array2D(shape=(2, 2), dtype="float32")),
+    ],
+)
+def test_cast_chunked_array_with_no_chunk(pa_type, feature):
+    # slicing an empty table gives a chunked array with no chunk at all,
+    # which `pa.chunked_array([])` cannot rebuild without an explicit type
+    array = pa.chunked_array([], type=pa_type)
+    assert array.num_chunks == 0
+
+    casted_array = cast_array_to_feature(array, feature)
+    assert len(casted_array) == 0
+    assert casted_array.type == get_nested_type(feature)
+
+    casted_array = array_cast(array, pa_type)
+    assert len(casted_array) == 0
+    assert casted_array.type == pa_type
+
+    embedded_array = embed_array_storage(array, feature)
+    assert len(embedded_array) == 0
+
+
+def test_table_cast_with_table_with_no_chunk():
+    features = Features({"foo": Value("int64")})
+    new_features = Features({"foo": Value("float64")})
+    table = pa.Table.from_batches([], schema=features.arrow_schema)
+    assert table.column("foo").num_chunks == 0
+
+    casted_table = table_cast(table, new_features.arrow_schema)
+    assert casted_table.num_rows == 0
+    assert Features.from_arrow_schema(casted_table.schema) == new_features
+
+
+@pytest.mark.parametrize(
     "table",
     [
         InMemoryTable(pa.table({"foo": range(10)})),
