@@ -2336,9 +2336,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         new_features = dset.features.copy()
         if isinstance(src_feat, List):
-            new_features[column] = List(dst_feat, length=src_feat.length, id=src_feat.id)
+            new_features[column] = List(dst_feat, length=src_feat.length)
         elif isinstance(src_feat, LargeList):
-            new_features[column] = LargeList(dst_feat, id=src_feat.id)
+            new_features[column] = LargeList(dst_feat)
         else:
             new_features[column] = dst_feat
 
