@@ -2319,10 +2319,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         def cast_to_class_labels(batch):
             if is_list_feature:
                 batch[column] = [
-                    [
-                        dst_feat.str2int(str(item)) if include_nulls or item is not None else None
-                        for item in sample
-                    ]
+                    [dst_feat.str2int(str(item)) if include_nulls or item is not None else None for item in sample]
                     if sample is not None
                     else None
                     for sample in batch[column]
