@@ -3559,3 +3559,20 @@ class TestIterableColumn:
         texts = ds["text"]
         assert isinstance(texts, IterableColumn)
         assert list(texts) == [["Good", "Bad"], ["Good again", "Bad again"]]
+
+
+def test_shard_with_too_many_shards_raises_clear_error() -> None:
+    dataset = IterableDataset.from_generator(lambda: ({"x": i} for i in range(10)))
+    # num_shards exceeds dataset.num_shards: used to crash with an opaque
+    # IndexError deep inside _merge_gen_kwargs (or silently return the whole
+    # dataset for index 0).
+    with pytest.raises(ValueError, match=r"num_shards \(3\).*less than or equal.*\(1\)"):
+        dataset.shard(num_shards=3, index=1)
+    with pytest.raises(ValueError, match=r"num_shards \(3\).*less than or equal.*\(1\)"):
+        dataset.shard(num_shards=3, index=0)
+
+
+def test_shard_with_out_of_range_index_raises_clear_error() -> None:
+    dataset = IterableDataset.from_generator(lambda: ({"x": i} for i in range(10)))
+    with pytest.raises(ValueError, match=r"index \(5\) must be in the range"):
+        dataset.shard(num_shards=1, index=5)
