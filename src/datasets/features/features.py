@@ -2137,7 +2137,10 @@ class Features(dict):
             if isinstance(obj, dict):
                 if not obj:
                     return {}
-                _type = next(iter(obj))
+                _type = next(
+                    (key for key in obj if key in {"dtype", "large_list", "list", "sequence", "struct"}),
+                    next(iter(obj)),
+                )
                 if _type == "large_list":
                     _feature = from_yaml_inner(unsimplify(obj).pop(_type))
                     return {"feature": _feature, **obj, "_type": "LargeList"}

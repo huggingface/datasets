@@ -6,8 +6,9 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pytest
+import yaml
 
-from datasets import Array2D
+from datasets import Array2D, load_dataset
 from datasets.arrow_dataset import Column, Dataset
 from datasets.features import Audio, ClassLabel, Features, Image, Json, LargeList, List, Sequence, Value
 from datasets.features.features import (
@@ -699,6 +700,39 @@ def test_features_to_yaml_list(features: Features):
     assert isinstance(features_yaml_list, list)
     reloaded = Features._from_yaml_list(features_yaml_list)
     assert features == reloaded
+
+
+@pytest.mark.parametrize(
+    "features",
+    [
+        Features({"value": Value("int32", id="value")}),
+        Features({"vector": List(Value("int32"), length=2)}),
+        Features({"records": List({"z": List(Value("int32"), length=3), "a": Value("string")}, length=2)}),
+        Features({"vectors": LargeList(List(Value("int32"), length=2))}),
+    ],
+)
+@pytest.mark.parametrize("sort_keys", [False, True])
+def test_features_from_yaml_list_ignores_key_order(features, sort_keys):
+    yaml_data = yaml.safe_load(yaml.safe_dump(features._to_yaml_list(), sort_keys=sort_keys))
+    reloaded = Features._from_yaml_list(yaml_data)
+    assert reloaded == features
+    assert reloaded.arrow_schema == features.arrow_schema
+
+
+@pytest.mark.parametrize("list_type", ["list", "sequence"])
+def test_features_from_yaml_list_with_length_before_type(list_type):
+    yaml_data = [{"name": "vector", "length": 2, list_type: "int32"}]
+    assert Features._from_yaml_list(yaml_data) == Features({"vector": List(Value("int32"), length=2)})
+
+
+def test_load_dataset_with_sorted_feature_keys(tmp_path):
+    metadata = {"dataset_info": {"features": [{"name": "vector", "list": "int32", "length": 2}]}}
+    (tmp_path / "README.md").write_text("---\n" + yaml.safe_dump(metadata, sort_keys=True) + "---\n", encoding="utf-8")
+    (tmp_path / "data.jsonl").write_text('{"vector": [1, 2]}\n', encoding="utf-8")
+
+    dataset = load_dataset(str(tmp_path), split="train")
+    assert dataset.features == Features({"vector": List(Value("int32"), length=2)})
+    assert dataset.to_dict() == {"vector": [[1, 2]]}
 
 
 @pytest.mark.parametrize(
