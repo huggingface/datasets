@@ -288,13 +288,19 @@ def _embed_bytes_path_struct(
 
     bytes_array = pa.array(
         [
-            (path_to_bytes(path) if should_embed(path) else bytes_)
-            for bytes_, path in zip(storage.field("bytes").to_pylist(), storage.field("path").to_pylist())
+            (
+                path_to_bytes(value["path"])
+                if value["bytes"] is None and should_embed(value["path"])
+                else value["bytes"]
+            )
+            if value is not None
+            else None
+            for value in storage.to_pylist()
         ],
         type=pa.binary(),
     )
     path_array = pa.array(
-        [os.path.basename(path) if path is not None else None for path in storage.field("path").to_pylist()],
+        [os.path.basename(path) if should_embed(path) else path for path in storage.field("path").to_pylist()],
         type=pa.string(),
     )
     # Row nullness comes from the input row, not from whether bytes were embedded: a
