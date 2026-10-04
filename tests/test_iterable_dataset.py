@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
+import pyarrow.parquet as pq
 import pytest
 from huggingface_hub.hf_file_system import HfFileSystemResolvedRepositoryPath
 
@@ -1527,6 +1528,33 @@ def test_map_resume_multiple_times(batched, use_arrow, max_concurrency, wrapper,
         dataset = build()
         dataset.load_state_dict(state)
     actual.extend(dataset)
+    assert actual == expected
+
+
+@pytest.mark.parametrize("batch_size", [2, 3, 4])
+@pytest.mark.parametrize("checkpoint_interval", [1, 2, 3])
+def test_map_resume_multiple_times_from_parquet(tmp_path, batch_size, checkpoint_interval):
+    path = tmp_path / "multiple_row_groups.parquet"
+    schema = pa.schema([("id", pa.int64())])
+    offset = 0
+    with pq.ParquetWriter(path, schema) as writer:
+        for group_size in [2, 3, 4, 1]:
+            writer.write_table(pa.table({"id": range(offset, offset + group_size)}, schema=schema))
+            offset += group_size
+
+    def build():
+        dataset = load_dataset("parquet", data_files=str(path), split="train", streaming=True)
+        return dataset.map(lambda batch: batch, batched=True, batch_size=batch_size)
+
+    expected = [{"id": i} for i in range(offset)]
+    dataset = build()
+    actual = []
+    for _ in range(0, len(expected), checkpoint_interval):
+        actual.extend(islice(iter(dataset), checkpoint_interval))
+        state = json.loads(json.dumps(dataset.state_dict()))
+        dataset = build()
+        dataset.load_state_dict(state)
+    actual.extend(islice(dataset, len(expected) + 1))
     assert actual == expected
 
 
