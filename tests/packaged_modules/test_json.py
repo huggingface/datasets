@@ -807,3 +807,31 @@ def test_json_load_dataset_without_droid_marker_stays_ordinary_json(tmp_path):
 
     assert dataset.column_names == ["type", "id", "version", "timestamp", "message"]
     assert dataset[0]["type"] == "session_start"
+
+def test_json_load_dataset_with_return_file_name(tmp_path):
+    filename = tmp_path / "file.jsonl"
+    with open(filename, "w") as f:
+        f.write('{"col_1": 1}\n{"col_1": 2}\n')
+    dataset = load_dataset(
+        "json",
+        data_files=str(filename),
+        split="train",
+        cache_dir=str(tmp_path / "cache"),
+        return_file_name=True,
+    )
+    assert dataset.column_names == ["col_1", "file_name"]
+    assert dataset[0] == {"col_1": 1, "file_name": str(filename)}
+    assert dataset[1]["file_name"] == str(filename)
+
+
+def test_json_load_dataset_without_return_file_name(tmp_path):
+    filename = tmp_path / "file.jsonl"
+    with open(filename, "w") as f:
+        f.write('{"col_1": 1}\n{"col_1": 2}\n')
+    dataset = load_dataset(
+        "json",
+        data_files=str(filename),
+        split="train",
+        cache_dir=str(tmp_path / "cache"),
+    )
+    assert dataset.column_names == ["col_1"]
