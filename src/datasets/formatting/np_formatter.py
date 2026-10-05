@@ -31,7 +31,10 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
     def _consolidate(self, column):
         if isinstance(column, list):
             if column and all(
-                isinstance(x, np.ndarray) and x.shape == column[0].shape and x.dtype == column[0].dtype for x in column
+                isinstance(x, (np.ndarray, np.number, np.bool_))
+                and x.shape == column[0].shape
+                and x.dtype == column[0].dtype
+                for x in column
             ):
                 return np.stack(column)
             else:

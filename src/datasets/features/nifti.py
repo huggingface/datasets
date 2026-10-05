@@ -197,8 +197,8 @@ class Nifti:
                     )
                     download_config = DownloadConfig(token=token)
                     with xopen(path, "rb", download_config=download_config) as f:
-                        nifti = nib.load(f)
-        else:
+                        bytes_ = f.read()
+        if bytes_ is not None:
             import gzip
 
             if (

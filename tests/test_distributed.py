@@ -141,10 +141,23 @@ def test_split_dataset_by_node_iterable_shards_strategy_checked_at_iteration():
 
     full_ds = IterableDataset.from_generator(gen, gen_kwargs={"shards": list(range(6))})
     ds = split_dataset_by_node(full_ds, rank=1, world_size=3, strategy="shards")
-    # shuffle() interleaves the shards into a single source, which prepares the
-    # iterable eagerly; the check fails there rather than mid-iteration.
+    # Explicit sharding reduces the sources to one and prepares the iterable
+    # eagerly; the check fails there rather than mid-iteration.
     with pytest.raises(ValueError, match="num_shards=1.*world_size=3"):
-        ds.shuffle(seed=0, buffer_size=4)
+        ds.shard(num_shards=6, index=0)
+
+
+def test_split_dataset_by_node_shuffle_preserves_shards():
+    full_ds = IterableDataset.from_dict({"i": list(range(12))}, num_shards=6)
+    datasets_per_rank = [
+        split_dataset_by_node(full_ds, rank=rank, world_size=3, strategy="shards").shuffle(seed=0, buffer_size=4)
+        for rank in range(3)
+    ]
+
+    assert [ds.num_shards for ds in datasets_per_rank] == [2, 2, 2]
+    rows_per_rank = [[row["i"] for row in ds] for ds in datasets_per_rank]
+    assert [len(rows) for rows in rows_per_rank] == [4, 4, 4]
+    assert sorted(i for rows in rows_per_rank for i in rows) == list(range(12))
 
 
 def test_split_dataset_by_node_iterable_distributed():

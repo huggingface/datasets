@@ -922,6 +922,48 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         else:
             return self._data.astype(dtype)
 
+    def __arrow_array__(self, type=None):
+        """
+        Convert to a PyArrow ExtensionArray (pyarrow's ``__arrow_array__`` protocol).
+
+        Called by ``pa.array`` and ``pa.Table.from_pandas``, for instance in ``Dataset.from_pandas``
+        or when a pandas-formatted ``map`` returns a DataFrame that still has an ArrayXD column.
+        """
+        if isinstance(type, _ArrayXDExtensionType):
+            pa_type = type
+        else:
+            pa_type = self._to_arrow_extension_type()
+        if self._data.dtype == object:
+            # dynamic first dimension: one array per row, np.nan for null rows
+            data = [arr if isinstance(arr, np.ndarray) else None for arr in self._data]
+        else:
+            data = self._data
+        storage = to_pyarrow_listarray(data, pa_type)
+        if type is not None and not isinstance(type, _ArrayXDExtensionType):
+            return storage.cast(type)
+        return pa.ExtensionArray.from_storage(pa_type, storage)
+
+    def _to_arrow_extension_type(self) -> "_ArrayXDExtensionType":
+        if self._data.dtype == object:
+            first_arr = next((arr for arr in self._data if isinstance(arr, np.ndarray)), None)
+            if first_arr is None:
+                raise ValueError(
+                    "Cannot infer the Arrow type of a PandasArrayExtensionArray that only has null values, "
+                    "please pass the type explicitly."
+                )
+            shape, value_type = (None, *first_arr.shape[1:]), first_arr.dtype
+        else:
+            shape, value_type = self._data.shape[1:], self._data.dtype
+        extension_types = {
+            2: Array2DExtensionType,
+            3: Array3DExtensionType,
+            4: Array4DExtensionType,
+            5: Array5DExtensionType,
+        }
+        if len(shape) not in extension_types:
+            raise ValueError(f"Unsupported number of dimensions for an ArrayXD column: {len(shape)} (shape={shape})")
+        return extension_types[len(shape)](shape, str(value_type))
+
     def copy(self, deep: bool = False) -> "PandasArrayExtensionArray":
         return PandasArrayExtensionArray(self._data, copy=True)
 
@@ -1280,7 +1322,11 @@ class Json:
         """
         if isinstance(storage, pa.JsonArray):
             return storage
-        elif isinstance(storage, (pa.StringArray)):
+        elif (
+            pa.types.is_string(storage.type)
+            or pa.types.is_large_string(storage.type)
+            or pa.types.is_string_view(storage.type)
+        ):
             items = storage[:5].to_pylist()
             try:
                 for item in items:

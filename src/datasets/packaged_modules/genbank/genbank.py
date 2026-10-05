@@ -310,10 +310,17 @@ class GenBank(datasets.ArrowBasedBuilder):
             located = [part for part in parts if "start" in part]
             if located:
                 location["parts"] = [[part["start"], part["end"]] for part in located]
-                location["start"] = located[0]["start"]
-                location["end"] = located[-1]["end"]
-                location["start_partial"] = located[0]["start_partial"]
-                location["end_partial"] = located[-1]["end_partial"]
+                # Parts are listed in the file's (transcription) order, which is descending
+                # genomic order for minus-strand features (NCBI/Biopython write a two-exon
+                # minus-strand CDS as ``complement(join(<high>..<higher>,<low>..<lower>))``).
+                # The aggregate span is therefore min-start/max-end over all parts, matching
+                # Biopython's CompoundLocation.start/.end, not the first/last part positionally.
+                start_part = min(located, key=lambda part: part["start"])
+                end_part = max(located, key=lambda part: part["end"])
+                location["start"] = start_part["start"]
+                location["end"] = end_part["end"]
+                location["start_partial"] = start_part["start_partial"]
+                location["end_partial"] = end_part["end_partial"]
             return location
 
         location = {"strand": 1}

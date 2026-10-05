@@ -166,6 +166,33 @@ def get_writer_batch_size_from_data_size(num_rows: int, num_bytes: int) -> int:
     return max(1, num_rows * convert_file_size_to_int(config.MAX_ROW_GROUP_SIZE) // num_bytes) if num_bytes > 0 else 1
 
 
+def get_parquet_column_options(features: Features, schema: pa.Schema) -> dict:
+    """
+    Get the per-column `compression`, `use_dictionary` and `column_encoding` options for `pq.ParquetWriter`.
+    Parquet matches them against the leaf column paths (e.g. "col.list.element.field"), not the top-level column names.
+    """
+
+    def leaf_paths(path: str, pa_type: pa.DataType) -> list[str]:
+        if isinstance(pa_type, pa.ExtensionType):
+            pa_type = pa_type.storage_type
+        if pa.types.is_struct(pa_type):
+            return [leaf for field in pa_type for leaf in leaf_paths(f"{path}.{field.name}", field.type)]
+        if pa.types.is_list(pa_type) or pa.types.is_large_list(pa_type) or pa.types.is_fixed_size_list(pa_type):
+            return leaf_paths(f"{path}.list.element", pa_type.value_type)
+        return [path]
+
+    compression, use_dictionary, column_encoding = {}, [], {}
+    for field in schema:
+        embed = require_storage_embed(features[field.name])
+        for leaf in leaf_paths(field.name, field.type):
+            compression[leaf] = "none" if embed else "snappy"
+            if embed:
+                column_encoding[leaf] = "PLAIN"
+            else:
+                use_dictionary.append(leaf)
+    return {"compression": compression, "use_dictionary": use_dictionary, "column_encoding": column_encoding}
+
+
 class SchemaInferenceError(ValueError):
     pass
 
@@ -836,13 +863,7 @@ class ParquetWriter(ArrowWriter):
             self._schema,
             use_content_defined_chunking=self.use_content_defined_chunking,
             write_page_index=self.write_page_index,
-            compression={
-                col: "none" if require_storage_embed(feature) else "snappy" for col, feature in self._features.items()
-            },
-            use_dictionary=[col for col, feature in self._features.items() if not require_storage_embed(feature)],
-            column_encoding={
-                col: "PLAIN" for col, feature in self._features.items() if require_storage_embed(feature)
-            },
+            **get_parquet_column_options(self._features, self._schema),
         )
         if self.use_content_defined_chunking is not False:
             self.pa_writer.add_key_value_metadata(
