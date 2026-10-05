@@ -193,7 +193,7 @@ class BaseReader:
                 skip/take indicates which example read in the file: `ds.slice(skip, take)`
             in_memory (bool, default False): Whether to copy the data in-memory.
         """
-        if len(files) == 0 or not all(isinstance(f, dict) for f in files):
+        if not all(isinstance(f, dict) for f in files):
             raise ValueError("please provide valid file informations")
         files = copy.deepcopy(files)
         for f in files:
@@ -246,7 +246,9 @@ class BaseReader:
         """
 
         files = self.get_file_instructions(name, instructions, split_infos)
-        if not files:
+        # no file to read means the requested range is empty (e.g. a split with no examples,
+        # or a slice past the end): return an empty table built from info.features
+        if not files and (self._info is None or self._info.features is None):
             msg = f'Instruction "{instructions}" corresponds to no data!'
             raise ValueError(msg)
         return self.read_files(files=files, original_instructions=instructions, in_memory=in_memory)
