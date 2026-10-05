@@ -72,6 +72,7 @@ def test_audio_feature_type_to_arrow():
         lambda audio_path: {"path": None, "bytes": open(audio_path, "rb").read()},
         lambda audio_path: {"bytes": open(audio_path, "rb").read()},
         lambda audio_path: {"array": np.array([0.1, 0.2, 0.3]), "sampling_rate": 16_000},
+        lambda audio_path: {"path": audio_path, "array": None},
     ],
 )
 def test_audio_feature_encode_example(shared_datadir, build_example):
@@ -513,6 +514,7 @@ def test_resampling_after_loading_dataset_with_audio_feature_mp3(shared_datadir)
         lambda audio_path: {"audio": [{"path": audio_path, "bytes": open(audio_path, "rb").read()}]},
         lambda audio_path: {"audio": [{"path": None, "bytes": open(audio_path, "rb").read()}]},
         lambda audio_path: {"audio": [{"bytes": open(audio_path, "rb").read()}]},
+        lambda audio_path: {"audio": [{"path": audio_path, "array": None}]},
     ],
 )
 def test_dataset_cast_to_audio_features(shared_datadir, build_data):
