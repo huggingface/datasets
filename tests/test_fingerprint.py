@@ -314,12 +314,11 @@ class HashingTest(TestCase):
         def batch_setitems(self, items, obj):
             calls.append((list(items), obj))
 
-        with patch.object(_dill.sys, "version_info", (3, 14)), patch.object(
-            _dill.dill.Pickler, "_batch_setitems", batch_setitems
+        with (
+            patch.object(_dill.sys, "version_info", (3, 14)),
+            patch.object(_dill.dill.Pickler, "_batch_setitems", batch_setitems),
         ):
-            _dill.Pickler._batch_setitems(
-                object.__new__(_dill.Pickler), [("b", 2), ("a", 1)]
-            )
+            _dill.Pickler._batch_setitems(object.__new__(_dill.Pickler), [("b", 2), ("a", 1)])
 
         self.assertEqual(calls, [([("a", 1), ("b", 2)], {"a": 1, "b": 2})])
 
