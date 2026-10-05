@@ -200,7 +200,7 @@ class Harbor(datasets.GeneratorBasedBuilder):
                     instructions = strip_canary(instructions)
             files = (
                 [
-                    os.path.relpath(file, task_dir)
+                    os.path.relpath(file, task_dir).replace("\\", "/")
                     for file in glob.glob(os.path.join(task_dir, "**/*"), recursive=True)
                     if os.path.isfile(file)
                 ]
@@ -219,6 +219,6 @@ class Harbor(datasets.GeneratorBasedBuilder):
                     "config": task_config,
                     "metadata": task_config.get("metadata") or {},
                     "files": files,
-                    "location": os.path.relpath(task_dir, self.base_path),
+                    "location": os.path.relpath(task_dir, self.base_path).replace("\\", "/"),
                 },
             )
