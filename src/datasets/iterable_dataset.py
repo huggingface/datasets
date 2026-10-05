@@ -180,6 +180,8 @@ def shift_ex_examples_rngs(ex_iterable: "_BaseExamplesIterable", value: int) -> 
     """We need to go through the ex_iterables recursively, create a new seed and return a new iterable, then set it to the containing ex_iterable."""
 
     def set_seed_recursively(ex_iterable):
+        # Keep the original pipeline's children and RNGs for subsequent iterations.
+        ex_iterable = copy(ex_iterable)
         if hasattr(ex_iterable, "shift_rngs"):
             ex_iterable = ex_iterable.shift_rngs(value)
         if hasattr(ex_iterable, "ex_iterable"):
@@ -2869,7 +2871,10 @@ class IterableDataset(DatasetInfoMixin):
         ex_iterable = self._ex_iterable
 
         if self.epoch:
-            ex_iterable = ex_iterable.shuffle_data_sources(np.random.default_rng(self.epoch))
+            try:
+                ex_iterable = ex_iterable.shuffle_data_sources(np.random.default_rng(self.epoch))
+            except DataSourcesShufflingDisallowed:
+                pass  # skip() and take() keep the shard order fixed across epochs.
             ex_iterable = shift_ex_examples_rngs(ex_iterable, self.epoch)
 
         if self._distributed:
