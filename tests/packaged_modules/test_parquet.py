@@ -17,6 +17,17 @@ def test_config_raises_when_invalid_data_files(data_files) -> None:
         _ = ParquetConfig(name="name", data_files=data_files)
 
 
+def test_config_raises_when_invalid_on_bad_files() -> None:
+    # An unrecognised value used to fall into the permissive branch and behave as "skip".
+    with pytest.raises(ValueError, match="`on_bad_files` must be one of"):
+        _ = ParquetConfig(name="name", on_bad_files="eror")
+
+
+@pytest.mark.parametrize("on_bad_files", ["error", "warn", "skip"])
+def test_config_accepts_valid_on_bad_files(on_bad_files) -> None:
+    assert ParquetConfig(name="name", on_bad_files=on_bad_files).on_bad_files == on_bad_files
+
+
 def test_parquet_reshard(multi_row_groups_parquet_path):
     ds = load_dataset("parquet", data_files=multi_row_groups_parquet_path, split="train", streaming=True)
     assert ds.num_shards == 1
