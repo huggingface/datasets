@@ -1,4 +1,5 @@
 import datetime
+import decimal
 from pathlib import Path
 from unittest import TestCase
 
@@ -677,6 +678,39 @@ class FormatterTest(TestCase):
         batch = formatter.format_batch(pa_table)
         assert batch["a"].devices().pop() == device
         assert batch["c"].devices().pop() == device
+
+
+@require_numpy1_on_windows
+@require_torch
+@pytest.mark.parametrize(
+    "pa_type, value",
+    [
+        (pa.timestamp("s"), datetime.datetime(2023, 1, 1)),
+        (pa.date32(), datetime.date(2023, 1, 1)),
+        (pa.duration("s"), datetime.timedelta(seconds=5)),
+        (pa.time64("us"), datetime.time(1, 2, 3)),
+        (pa.decimal128(5, 2), decimal.Decimal("1.50")),
+    ],
+)
+def test_torch_formatter_keeps_values_torch_cannot_hold(pa_type, value):
+    from datasets.formatting import TorchFormatter
+
+    # torch has no dtype for temporal and decimal values, so they must be returned
+    # as they are, the way string columns already are, instead of raising
+    pa_table = pa.table({"col": pa.array([value] * 2, type=pa_type)})
+    formatter = TorchFormatter()
+
+    assert formatter.format_row(pa_table)["col"] == value
+    assert list(formatter.format_column(pa_table)) == [value] * 2
+    assert list(formatter.format_batch(pa_table)["col"]) == [value] * 2
+
+    # the same holds when the value is nested in a list or in a struct
+    pa_table = pa.table({"col": pa.array([[value] * 2] * 2, type=pa.list_(pa_type))})
+    assert list(formatter.format_row(pa_table)["col"]) == [value] * 2
+    assert [list(row) for row in formatter.format_batch(pa_table)["col"]] == [[value] * 2] * 2
+
+    pa_table = pa.table({"col": pa.array([{"f": value}] * 2, type=pa.struct([("f", pa_type)]))})
+    assert formatter.format_row(pa_table)["col"] == {"f": value}
 
 
 class QueryTest(TestCase):
