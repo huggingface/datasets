@@ -20,6 +20,7 @@ from datasets.utils.py_utils import (
     temporary_assignment,
     zip_dict,
 )
+from datasets.utils.tqdm import tqdm as hf_tqdm
 
 from .utils import require_numpy1_on_windows, require_tf, require_torch
 
@@ -60,6 +61,18 @@ class A:
 )
 def test_map_nested(data_struct, expected_result, num_proc, batched, function):
     assert map_nested(function, data_struct, num_proc=num_proc, batched=batched) == expected_result
+
+
+@pytest.mark.parametrize("batched, function", [(False, add_one), (True, add_one_to_batch)])
+def test_map_nested_does_not_build_disabled_progress_bars(batched, function):
+    # map_nested is called for every example by the formatters, so disabled progress bars must not be constructed
+    data_struct = {"a": 1, "b": [2, 3], "c": {"1": 4, "2": {"3": 5}}}
+    expected_result = {"a": 2, "b": [3, 4], "c": {"1": 5, "2": {"3": 6}}}
+    with patch("datasets.utils.py_utils.hf_tqdm", wraps=hf_tqdm) as mock_hf_tqdm:
+        assert map_nested(function, data_struct, batched=batched) == expected_result
+        assert not mock_hf_tqdm.called
+        assert map_nested(function, data_struct, batched=batched, disable_tqdm=False) == expected_result
+        assert mock_hf_tqdm.called
 
 
 class PyUtilsTest(TestCase):
