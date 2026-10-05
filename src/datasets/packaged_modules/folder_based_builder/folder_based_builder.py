@@ -355,10 +355,10 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
         else:
             with open(metadata_file, "rb") as f:
                 parquet_fragment = ds.ParquetFileFormat().make_fragment(f)
-                if parquet_fragment.row_groups:
-                    batch_size = parquet_fragment.row_groups[0].num_rows
-                else:
-                    batch_size = config.DEFAULT_MAX_BATCH_SIZE
+                batch_size = next(
+                    (row_group.num_rows for row_group in parquet_fragment.row_groups if row_group.num_rows),
+                    config.DEFAULT_MAX_BATCH_SIZE,
+                )
                 for record_batch in parquet_fragment.to_batches(
                     batch_size=batch_size,
                     filter=filter_expr,

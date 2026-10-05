@@ -202,8 +202,10 @@ class Parquet(datasets.ArrowBasedBuilder):
                     try:
                         if row_groups is not None:
                             parquet_fragment = parquet_fragment.subset(row_group_ids=row_groups)
-                        if parquet_fragment.row_groups:
-                            batch_size = self.config.batch_size or parquet_fragment.row_groups[0].num_rows
+                        # pyarrow rejects batch_size=0, so size batches on the first non-empty row group
+                        num_rows = [row_group.num_rows for row_group in parquet_fragment.row_groups]
+                        if any(num_rows):
+                            batch_size = self.config.batch_size or next(n for n in num_rows if n)
                             for batch_idx, record_batch in enumerate(
                                 parquet_fragment.to_batches(
                                     batch_size=batch_size,
