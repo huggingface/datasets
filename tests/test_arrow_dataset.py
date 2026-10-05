@@ -729,6 +729,23 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(new_dset._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
 
+    def test_select_columns_duplicates(self, in_memory):
+        # Selecting the same column twice used to build a dataset whose Arrow table had
+        # the column twice while its features had it once. That object then raised
+        # KeyError('Field "col_1" exists 2 times in schema') on ordinary access.
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                with self.assertRaises(ValueError):
+                    dset.select_columns(column_names=["col_1", "col_1"])
+
+                with self.assertRaises(ValueError):
+                    dset.select_columns(column_names=["col_1", "col_2", "col_1"])
+
+                # Selecting distinct columns, including reordered, is unaffected.
+                with dset.select_columns(column_names=["col_2", "col_1"]) as new_dset:
+                    self.assertListEqual(list(new_dset.column_names), ["col_2", "col_1"])
+                    self.assertEqual(new_dset.num_columns, len(new_dset.features))
+
     def test_concatenate(self, in_memory):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
         info1 = DatasetInfo(description="Dataset1")
