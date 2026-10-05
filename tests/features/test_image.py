@@ -78,6 +78,31 @@ def test_image_feature_encode_example(shared_datadir, build_example):
 
 
 @require_pil
+@pytest.mark.parametrize("value", [123, 1.5, True, {1, 2}, object()])
+def test_image_feature_encode_example_unsupported_type(value):
+    # these used to fall through to `value.get("path")` and raise
+    # "AttributeError: 'int' object has no attribute 'get'"
+    with pytest.raises(TypeError, match="Unsupported encode_example type"):
+        Image().encode_example(value)
+
+
+@require_pil
+def test_image_feature_encode_example_zero_dimensional_array():
+    # a 0-d array holds no image, and used to raise "IndexError: tuple index out of range"
+    with pytest.raises(ValueError, match="at least one dimension"):
+        Image().encode_example(np.array(5))
+    with pytest.raises(ValueError, match="at least one dimension"):
+        encode_np_array(np.array(5))
+
+
+@require_pil
+def test_image_feature_encode_example_missing_keys():
+    # a mapping without usable keys keeps its own, already explicit, error
+    with pytest.raises(ValueError, match="should have one of 'path' or 'bytes'"):
+        Image().encode_example({"foo": 1})
+
+
+@require_pil
 def test_image_decode_example(shared_datadir):
     import PIL.Image
 
