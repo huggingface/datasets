@@ -2311,6 +2311,20 @@ class BaseDatasetTest(TestCase):
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(dset_select_five.features, Features({"filename": Value("string")}))
 
+    def test_take(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                # taking fewer elements than the dataset holds returns them
+                taken = dset.take(3)
+                self.assertEqual(len(taken), 3)
+                self.assertListEqual(list(taken["filename"]), list(dset[:3]["filename"]))
+
+                # taking more elements than the dataset holds returns everything
+                # that is available, matching IterableDataset.take()
+                taken = dset.take(len(dset) + 10)
+                self.assertEqual(len(taken), len(dset))
+                self.assertListEqual(list(taken["filename"]), list(dset["filename"]))
+
     def test_select_then_map(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
