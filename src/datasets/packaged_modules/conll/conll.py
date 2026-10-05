@@ -65,6 +65,18 @@ class ConllConfig(datasets.BuilderConfig):
     skip_docstart: bool = True
     comment_prefix: Optional[str] = None
 
+    def __post_init__(self):
+        super().__post_init__()
+        # Checked here rather than during generation so the error names the argument
+        # instead of arriving wrapped in a DatasetGenerationError.
+        duplicate_columns = sorted({c for c in self.column_names if self.column_names.count(c) > 1})
+        if duplicate_columns:
+            # Otherwise pa.Table.from_arrays fails with KeyError: Field "x" exists 2 times.
+            raise ValueError(f"`column_names` has repeated entries: {duplicate_columns}")
+        if self.delimiter == "":
+            # str.split("") raises "empty separator", which does not mention delimiter.
+            raise ValueError("`delimiter` must not be empty; pass None to split on any whitespace")
+
 
 class Conll(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = ConllConfig
