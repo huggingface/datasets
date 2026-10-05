@@ -1446,6 +1446,26 @@ def test_take_examples_iterable():
     assert_load_state_dict_resumes_iteration(take_ex_iterable)
 
 
+@pytest.mark.parametrize("num_sources, num_shards", [(1, 2), (2, 3), (3, 3)])
+@pytest.mark.parametrize("contiguous", [False, True])
+@pytest.mark.parametrize("ex_iterable_cls", [SkipExamplesIterable, TakeExamplesIterable])
+def test_skip_and_take_examples_iterable_with_more_shards_than_sources(
+    ex_iterable_cls, contiguous, num_sources, num_shards
+):
+    n_per_source, count = 10, 4
+    filepaths = [f"{i}.txt" for i in range(num_sources)]
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": filepaths, "n": n_per_source})
+    ex_iterable = ex_iterable_cls(base_ex_iterable, n=count)
+    # like a DataLoader worker, a shard index without any data source is not iterated
+    num_examples = sum(
+        len(list(ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous)))
+        for index in range(num_shards)
+        if ex_iterable.split_shard_indices_by_worker(num_shards, index, contiguous=contiguous)
+    )
+    total = n_per_source * num_sources
+    assert num_examples == (count if ex_iterable_cls is TakeExamplesIterable else total - count)
+
+
 def test_step_examples_iterable():
     total, step, offset = 10, 2, 1
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": total})
@@ -2143,6 +2163,17 @@ def test_iterable_dataset_torch_dataloader_parallel():
     expected = [example for _, example in ex_iterable]
     assert len(result) == len(expected)
     assert {str(x) for x in result} == {str(x) for x in expected}
+
+
+@require_torch
+@pytest.mark.parametrize("method, n, expected", [("take", 5, 5), ("skip", 5, DEFAULT_N_EXAMPLES - 5)])
+def test_skip_and_take_torch_dataloader_with_more_workers_than_shards(method, n, expected):
+    from torch.utils.data import DataLoader
+
+    dataset = getattr(IterableDataset(ExamplesIterable(generate_examples_fn, {})), method)(n)
+    assert dataset.num_shards == 1
+    dataloader = DataLoader(dataset, batch_size=None, num_workers=2)
+    assert len(list(dataloader)) == expected
 
 
 @require_torch

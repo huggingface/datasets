@@ -2139,9 +2139,12 @@ class SkipExamplesIterable(_BaseExamplesIterable):
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "SkipExamplesIterable":
         """Keep only the requested shard."""
         if self.split_when_sharding:
+            # With more shards than data sources (e.g. more DataLoader workers than files), only the first
+            # `num_sources` shards get data, so `n` is split among them for the total to stay `n`.
+            num_sources = min(num_shards, self.num_shards)
             return SkipExamplesIterable(
                 self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
-                n=self.split_number(self.n, num_shards)[index],
+                n=self.split_number(self.n, num_sources)[index] if index < num_sources else 0,
                 block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
                 split_when_sharding=self.split_when_sharding,
             )
@@ -2352,9 +2355,12 @@ class TakeExamplesIterable(_BaseExamplesIterable):
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "TakeExamplesIterable":
         """Keep only the requested shard."""
         if self.split_when_sharding:
+            # With more shards than data sources (e.g. more DataLoader workers than files), only the first
+            # `num_sources` shards get data, so `n` is split among them for the total to stay `n`.
+            num_sources = min(num_shards, self.num_shards)
             return TakeExamplesIterable(
                 self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
-                n=self.split_number(self.n, num_shards)[index],
+                n=self.split_number(self.n, num_sources)[index] if index < num_sources else 0,
                 block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
                 split_when_sharding=self.split_when_sharding,
             )
