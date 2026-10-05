@@ -168,6 +168,89 @@ In this guide, you have used `albumentations` for augmenting the dataset. It's a
     <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/torchvision_seg.png">
 </div>
 
+## Relabel directional classes on horizontal flips
+
+The resize and brightness examples above keep each semantic class ID stable because none of the labels encode a left/right direction. That assumption breaks for human parsing masks: if you flip the image and mask together but keep class IDs unchanged, a pixel that used to be labeled `left-arm` still carries that ID on the right side of the body.
+
+The [human parsing dataset](https://huggingface.co/datasets/mattmdjaga/human_parsing_dataset) is a concrete case. Its mask schema includes three mirrored pairs:
+
+| left ID | right ID | body part |
+| --- | --- | --- |
+| 9 | 10 | shoe |
+| 12 | 13 | leg |
+| 14 | 15 | arm |
+
+When you apply a horizontal flip, you need to update both geometry and semantics in the same step.
+
+### Pure NumPy flip with label swapping
+
+This pattern only depends on `numpy` and works well inside [`~Dataset.set_transform`]:
+
+```py
+>>> import random
+>>> import numpy as np
+
+>>> DIRECTIONAL_PAIRS = [(9, 10), (12, 13), (14, 15)]
+
+>>> def swap_directional_labels(mask: np.ndarray) -> np.ndarray:
+...     swapped = mask.copy()
+...     for left_id, right_id in DIRECTIONAL_PAIRS:
+...         swapped[mask == left_id] = right_id
+...         swapped[mask == right_id] = left_id
+...     return swapped
+
+>>> def maybe_flip(image: np.ndarray, mask: np.ndarray, probability: float = 0.5):
+...     if random.random() >= probability:
+...         return image, mask
+...     flipped_image = np.fliplr(image)
+...     flipped_mask = swap_directional_labels(np.fliplr(mask))
+...     return flipped_image, flipped_mask
+
+>>> parsing_dataset = load_dataset("mattmdjaga/human_parsing_dataset", split="train")
+
+>>> def directional_flip_transform(examples):
+...     images, masks = [], []
+...     for image, mask in zip(examples["image"], examples["mask"]):
+...         image, mask = np.array(image), np.array(mask)
+...         image, mask = maybe_flip(image, mask, probability=0.5)
+...         images.append(image)
+...         masks.append(mask)
+...     examples["pixel_values"] = images
+...     examples["label"] = masks
+...     return examples
+
+>>> parsing_dataset.set_transform(directional_flip_transform)
+```
+
+The important detail is that `np.fliplr` and the ID swap happen together, driven by the same random draw. If you flip first and forget to swap labels, training still runs but the supervision becomes inconsistent.
+
+### Optional: AlbumentationsX label mappings
+
+[AlbumentationsX](https://github.com/albumentations-team/AlbumentationsX) can attach label remaps directly to a transform so the mapping only runs when that transform is sampled. The project is AGPL-3.0-only and expects a PyTorch runtime to be installed separately, so treat it as an optional path rather than a hard dependency of 🤗 Datasets.
+
+```py
+>>> import albumentations as A
+
+>>> transform = A.Compose(
+...     [A.HorizontalFlip(p=0.5)],
+...     semantic_mask_label_mappings={
+...         "HorizontalFlip": {9: 10, 10: 9, 12: 13, 13: 12, 14: 15, 15: 14},
+...     },
+... )
+
+>>> def albumentations_directional_flip(examples):
+...     images, masks = [], []
+...     for image, mask in zip(examples["image"], examples["mask"]):
+...         transformed = transform(image=np.array(image), mask=np.array(mask))
+...         images.append(transformed["image"])
+...         masks.append(transformed["mask"])
+...     examples["pixel_values"] = images
+...     examples["label"] = masks
+...     return examples
+```
+
+Pick whichever route matches your license and dependency constraints. The NumPy version is usually enough for prototyping; AlbumentationsX is handy when you already rely on its transform registry and want the label remap colocated with the flip definition.
+
 > [!TIP]
 > Now that you know how to process a dataset for semantic segmentation, learn
 > [how to train a semantic segmentation model](https://huggingface.co/docs/transformers/tasks/semantic_segmentation)
