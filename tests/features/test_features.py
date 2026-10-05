@@ -383,6 +383,12 @@ def test_classlabel_cast_storage():
     assert result.to_pylist() == []
 
 
+def test_dataset_with_json_field_in_struct_and_null_rows():
+    features = Features({"s": {"x": Json(), "y": Value("int64")}})
+    dset = Dataset.from_dict({"s": [{"x": {"a": 1}, "y": 1}, None, {"x": [2], "y": 3}]}, features=features)
+    assert dset["s"][:] == [{"x": {"a": 1}, "y": 1}, None, {"x": [2], "y": 3}]
+
+
 @pytest.mark.parametrize("class_label_arg", ["names", "names_file"])
 def test_class_label_to_and_from_dict(class_label_arg, tmp_path_factory):
     names = ["negative", "positive"]
