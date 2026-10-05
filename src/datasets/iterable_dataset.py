@@ -4583,7 +4583,10 @@ class IterableDataset(DatasetInfoMixin):
                 .with_format(self._formatting.format_type if self._formatting else None)
             )
             return ds
-        if self._formatting and self._formatting.is_table:
+        if self._formatting and (self._ex_iterable.iter_arrow is not None or self._formatting.is_table):
+            # Batch in arrow when the underlying iterable is arrow-backed (or the output format is a table).
+            # This avoids converting arrow tables to Python examples only to transpose them back, and matches
+            # both `IterableDataset.iter(batch_size=...)` and map-style `Dataset.batch()`.
             return (
                 self.with_format("arrow")
                 .map(
@@ -5017,6 +5020,11 @@ class IterableDataset(DatasetInfoMixin):
                 the uploaded dataset after uncompression
             uploaded_size (`int`): number of uploaded bytes to the repository or bucket
         """
+
+        # Features may be unknown (e.g. a dataset from a generator, or streamed CSV/JSON files
+        # without declared features): resolve them from the first examples, as done e.g. in
+        # `concatenate_datasets` and `interleave_datasets`.
+        self = self._resolve_features()
 
         # Find decodable columns, because if there are any, we need to:
         # embed the bytes from the files in the shards

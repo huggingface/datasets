@@ -1808,6 +1808,70 @@ def test_iterable_dataset_push_to_hub_single_shard_disables_multiprocessing():
     assert uploaded_size == 0
 
 
+def test_iterable_dataset_push_to_hub_unknown_features():
+    # Regression test: pushing an IterableDataset with unknown features (e.g. from a generator,
+    # or streamed CSV/JSON files without declared features) used to fail with
+    # "AttributeError: 'NoneType' object has no attribute 'items'" when embed_external_files=True (default).
+    dataset = IterableDataset.from_generator(lambda: iter([{"id": 0}]))
+    assert dataset.features is None
+
+    captured_features = {}
+
+    def mock_push_single(**kwargs):
+        captured_features["value"] = kwargs["self"].features
+        return iter([(0, True, ([], [], kwargs["self"].features, 0, 1))])
+
+    with patch.object(IterableDataset, "_push_parquet_shards_to_hub_single", side_effect=mock_push_single):
+        additions, new_parquet_paths, features, split_info, uploaded_size = dataset._push_parquet_shards_to_hub(
+            resolved_output_path=HfFileSystemResolvedRepositoryPath(
+                repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
+            ),
+            data_dir="data",
+            split="train",
+            token=None,
+            create_pr=False,
+            max_shard_size=None,
+            num_shards=1,
+            embed_external_files=True,
+            num_proc=None,
+        )
+
+    assert captured_features["value"] == Features({"id": Value("int64")})
+    assert features == Features({"id": Value("int64")})
+    assert split_info.num_examples == 1
+
+
+def test_iterable_dataset_push_to_hub_unknown_features_streaming_csv(tmp_path):
+    # Same regression test for the reported scenario: load_dataset(..., streaming=True) on CSV files
+    csv_path = tmp_path / "data.csv"
+    csv_path.write_text("name,age\nalice,30\nbob,25\n")
+    dataset = load_dataset("csv", data_files=str(csv_path), split="train", streaming=True)
+    assert dataset.features is None
+
+    captured_features = {}
+
+    def mock_push_single(**kwargs):
+        captured_features["value"] = kwargs["self"].features
+        return iter([(0, True, ([], [], kwargs["self"].features, 0, 2))])
+
+    with patch.object(IterableDataset, "_push_parquet_shards_to_hub_single", side_effect=mock_push_single):
+        dataset._push_parquet_shards_to_hub(
+            resolved_output_path=HfFileSystemResolvedRepositoryPath(
+                repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
+            ),
+            data_dir="data",
+            split="train",
+            token=None,
+            create_pr=False,
+            max_shard_size=None,
+            num_shards=1,
+            embed_external_files=True,
+            num_proc=None,
+        )
+
+    assert captured_features["value"] == Features({"name": Value("string"), "age": Value("int64")})
+
+
 def test_iterable_dataset_push_to_hub_default_num_shards_uses_dataset_num_shards():
     def gen(shard_names):
         for shard_name in shard_names:
@@ -3410,6 +3474,136 @@ def test_iterable_dataset_batch_with_polars_format():
     assert [_normalize_batched_output(batch) for batch in left] == [
         _normalize_batched_output(batch) for batch in right
     ]
+
+
+def _indexed_iterable(n=12, num_shards=3):
+    return Dataset.from_dict(
+        {
+            "i": list(range(n)),
+            "f": [j / 2 for j in range(n)],
+            "s": [f"r{j}" for j in range(n)],
+        }
+    ).to_iterable_dataset(num_shards=num_shards)
+
+
+@pytest.mark.parametrize("batch_size", [2, 5])
+def test_iterable_dataset_batch_numpy_format_keeps_dtypes(batch_size):
+    """`.batch(n)` must agree with `.iter(batch_size=n)`, which groups the same rows the same way.
+
+    Batching through a Python transpose hands `NumpyFormatter._consolidate` a list of numpy
+    scalars. Those are `np.number` rather than `np.ndarray`, so the `np.stack` branch never
+    fires and every column came back as `dtype=object`.
+    """
+    ds = _indexed_iterable().with_format("numpy")
+
+    batched = list(ds.batch(batch_size=batch_size))
+    oracle = list(ds.iter(batch_size=batch_size))
+
+    assert len(batched) == len(oracle)
+    for got, want in zip(batched, oracle):
+        assert sorted(got) == sorted(want)
+        for column in ("i", "f"):
+            assert got[column].dtype == want[column].dtype, column
+            assert got[column].dtype != object, column
+            assert got[column].shape == want[column].shape, column
+            assert np.array_equal(got[column], want[column]), column
+
+
+def test_iterable_dataset_batch_numpy_format_ragged_last_batch():
+    ds = _indexed_iterable(n=10).with_format("numpy")
+
+    batched = list(ds.batch(batch_size=4))
+
+    assert [len(batch["i"]) for batch in batched] == [4, 4, 2]
+    assert all(batch["i"].dtype != object for batch in batched)
+    assert np.array_equal(np.concatenate([batch["i"] for batch in batched]), np.arange(10))
+
+
+def test_iterable_dataset_batch_numpy_format_drop_last_batch():
+    ds = _indexed_iterable(n=10).with_format("numpy")
+
+    batched = list(ds.batch(batch_size=4, drop_last_batch=True))
+
+    assert [len(batch["i"]) for batch in batched] == [4, 4]
+    assert all(batch["i"].dtype != object for batch in batched)
+
+
+@require_torch
+@pytest.mark.parametrize("batch_size", [2, 5])
+def test_iterable_dataset_batch_torch_format_matches_iter(batch_size):
+    import torch
+
+    ds = _indexed_iterable().with_format("torch")
+
+    batched = list(ds.batch(batch_size=batch_size))
+    oracle = list(ds.iter(batch_size=batch_size))
+
+    assert len(batched) == len(oracle)
+    for got, want in zip(batched, oracle):
+        for column in ("i", "f"):
+            assert got[column].dtype == want[column].dtype, column
+            assert torch.equal(got[column], want[column]), column
+
+
+def test_iterable_dataset_batch_without_format_is_unchanged():
+    """An unformatted dataset has no formatter to mistype, so it keeps the Python transpose."""
+    ds = _indexed_iterable(n=6, num_shards=2)
+
+    batched = list(ds.batch(batch_size=2))
+
+    assert len(batched) == 3
+    assert all(isinstance(batch["i"], list) for batch in batched)
+    assert [batch["i"] for batch in batched] == [[0, 1], [2, 3], [4, 5]]
+
+
+def test_iterable_dataset_batch_numpy_format_survives_state_dict_roundtrip():
+    ds = _indexed_iterable(n=12).with_format("numpy").batch(batch_size=4)
+
+    it = iter(ds)
+    next(it)
+    state = ds.state_dict()
+
+    resumed = _indexed_iterable(n=12).with_format("numpy").batch(batch_size=4)
+    resumed.load_state_dict(state)
+    rest = list(resumed)
+
+    assert [len(batch["i"]) for batch in rest] == [4, 4]
+    assert all(batch["i"].dtype != object for batch in rest)
+    assert np.array_equal(np.concatenate([batch["i"] for batch in rest]), np.arange(4, 12))
+
+
+def test_iterable_dataset_batch_numpy_format_after_python_map_keeps_dtypes():
+    ds = _indexed_iterable(n=6).with_format("numpy").map(lambda x: {"i": x["i"] + 1, "b": x["i"] > 2})
+
+    batched = list(ds.batch(batch_size=3))
+    oracle = list(ds.iter(batch_size=3))
+
+    assert len(batched) == len(oracle) == 2
+    for got, want in zip(batched, oracle):
+        for column in ("i", "b"):
+            assert got[column].dtype == want[column].dtype, column
+            assert got[column].dtype != object, column
+            assert np.array_equal(got[column], want[column]), column
+
+
+@pytest.mark.parametrize("fmt", ["numpy", "torch"])
+def test_iterable_dataset_batch_formatted_python_iterable_nullable_and_empty_lists(fmt):
+    if fmt == "torch" and not config.TORCH_AVAILABLE:
+        pytest.skip("requires torch")
+    data = [
+        {"x": None, "lst": [], "y": 1},
+        {"x": 10, "lst": [1, 2], "y": 2},
+    ]
+    ds = IterableDataset.from_generator(lambda: (r for r in data)).with_format(fmt)
+
+    batched = list(ds.batch(batch_size=2))
+    oracle = list(ds.iter(batch_size=2))
+
+    assert len(batched) == len(oracle) == 1
+    assert batched[0]["x"][0] is None
+    assert int(batched[0]["x"][1]) == 10
+    assert list(batched[0]["lst"][0]) == []
+    assert [int(v) for v in batched[0]["lst"][1]] == [1, 2]
 
 
 @dataclass
