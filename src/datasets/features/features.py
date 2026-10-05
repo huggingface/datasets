@@ -1652,7 +1652,8 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
 
 def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.ListArray:
     """Build a PyArrow ListArray from a multidimensional NumPy array"""
-    arr = np.array(arr)
+    arr = np.asarray(arr)
+    # flatten() keeps a C-contiguous copy independent of the input's layout and ownership.
     values = pa.array(arr.flatten(), type=type)
     for i in range(arr.ndim - 1):
         n_offsets = reduce(mul, arr.shape[: arr.ndim - i - 1], 1)
@@ -2196,15 +2197,26 @@ class Features(dict):
         Encode column into a format for Arrow.
 
         Args:
-            column (`list[Any]`):
+            column (`list[Any]` or `np.ndarray`):
                 Data in a Dataset column.
             column_name (`str`):
                 Dataset column name.
 
         Returns:
-            `list[Any]`
+            `list[Any]` or `np.ndarray`
         """
         column = cast_to_python_objects(column)
+        if (
+            type(column) is np.ndarray
+            and column.dtype.kind in "biuf"
+            and column.size > 0
+            and type(self[column_name]) in (Array2D, Array3D, Array4D, Array5D)
+            and column.ndim == len(self[column_name].shape) + 1
+            and all(dim is None or dim == size for dim, size in zip(self[column_name].shape, column.shape[1:]))
+        ):
+            # ArrayXD encoding is an identity operation. Keep dense columns whole so Arrow
+            # can convert them once instead of copying each row and concatenating them.
+            return column
         return [encode_nested_example(self[column_name], obj, level=1) for obj in column]
 
     def encode_batch(self, batch):
