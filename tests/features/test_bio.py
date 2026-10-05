@@ -351,3 +351,48 @@ def test_dataset_with_embedded_bio_feature_save_to_disk(feature, data, name, tmp
     else:
         assert len(list(decoded.get_atoms())) == 2
     assert reloaded[1]["bio"] is None
+
+
+@pytest.mark.parametrize("feature_cls", [BioSequence, BioStructure])
+@pytest.mark.parametrize("local_files, remote_files", [(False, False), (True, False), (False, True), (True, True)])
+def test_embed_storage_with_mixed_local_and_remote_rows(feature_cls, local_files, remote_files, tmp_path, tmpfs):
+    import pyarrow as pa
+
+    local_path = tmp_path / "local.dat"
+    local_path.write_bytes(b"local contents")
+    with tmpfs.open("remote.dat", "wb") as f:
+        f.write(b"remote contents")
+
+    feature = feature_cls()
+    storage = pa.array(
+        [
+            {"bytes": None, "path": str(local_path)},
+            {"bytes": None, "path": "tmp://remote.dat"},
+            {"bytes": b"", "path": "tmp://missing.dat"},
+            {"bytes": b"inline", "path": None},
+            None,
+        ],
+        type=feature.pa_type,
+    )
+    embedded = feature.embed_storage(storage, local_files=local_files, remote_files=remote_files)
+    assert embedded.to_pylist() == [
+        {"bytes": b"local contents" if local_files else None, "path": "local.dat" if local_files else str(local_path)},
+        {
+            "bytes": b"remote contents" if remote_files else None,
+            "path": "remote.dat" if remote_files else "tmp://remote.dat",
+        },
+        {"bytes": b"", "path": "missing.dat" if remote_files else "tmp://missing.dat"},
+        {"bytes": b"inline", "path": None},
+        None,
+    ]
+    assert feature.embed_storage(embedded, local_files=local_files, remote_files=remote_files).equals(embedded)
+
+
+@pytest.mark.parametrize("feature_cls", [BioSequence, BioStructure])
+@pytest.mark.parametrize("rows", [[], [None], [{"bytes": None, "path": None}]])
+def test_embed_storage_without_bytes_or_paths(feature_cls, rows):
+    import pyarrow as pa
+
+    feature = feature_cls()
+    storage = pa.array(rows, type=feature.pa_type)
+    assert feature.embed_storage(storage).equals(storage)
