@@ -1812,12 +1812,19 @@ def _add_mask(
     mask: Union[bool, list, pa.Array, pa.ChunkedArray, pa.BooleanScalar],
     mask_column_name: str,
 ):
-    if isinstance(input, pa.Table):
-        if not isinstance(mask, (list, pa.Array, pa.ChunkedArray)):
-            mask = pa.array([mask], type=pa.bool_())
-        return input.append_column(mask_column_name, mask)
-    else:
+    # pandas and polars formatted batches are converted to arrow, like the outputs of `map`
+    if isinstance(input, pd.DataFrame) or (
+        config.POLARS_AVAILABLE and "polars" in sys.modules and isinstance(input, sys.modules["polars"].DataFrame)
+    ):
+        input = _table_output_to_arrow(input)
+    if not isinstance(input, pa.Table):
         return {mask_column_name: mask}
+    # the mask can be a single bool or any array-like of bools (list, numpy, pandas or polars series)
+    if isinstance(mask, (bool, np.bool_, pa.BooleanScalar)):
+        mask = pa.array([mask], type=pa.bool_())
+    elif not isinstance(mask, (pa.Array, pa.ChunkedArray)):
+        mask = pa.array(mask, type=pa.bool_())
+    return input.append_column(mask_column_name, mask)
 
 
 def add_mask(mask_function: Callable, input: Union[dict, pa.Table], *args, mask_column_name: str, **kwargs):
@@ -3831,7 +3838,18 @@ class IterableDataset(DatasetInfoMixin):
         # We need the examples to be decoded for certain feature types like Image or Audio,
         # format and type before filtering
         ex_iterable = self._ex_iterable
-        if self._info.features or self._formatting:
+        if self._formatting and self._formatting.is_table:
+            # same as in `map`: the arrow-formatted FilteredExamplesIterable expects arrow batches of the right size
+            ex_iterable = FormattedExamplesIterable(
+                ex_iterable,
+                formatting=deepcopy(self._formatting),
+                features=self._ex_iterable.features if self._ex_iterable.is_typed else self._info.features,
+                token_per_repo_id=self._token_per_repo_id,
+            )
+            ex_iterable = RebatchedArrowExamplesIterable(
+                ex_iterable, batch_size=batch_size if batched else 1, force_convert_to_arrow=True
+            )
+        elif self._info.features or self._formatting:
             if ex_iterable.iter_arrow:
                 # Rebatch before formatting so the formatter reads at most one batch ahead
                 # instead of a whole arrow table. Without this, a non-batched filter consumes
