@@ -41,6 +41,17 @@ class TextConfig(datasets.BuilderConfig):
     keep_linebreaks: bool = False
     sample_by: Literal["line", "paragraph", "document"] = "line"
 
+    def __post_init__(self):
+        super().__post_init__()
+        # _generate_tables branches on this and has no fallback, so an unrecognised value
+        # silently produces no rows and then fails schema inference, which reports a
+        # missing `features` rather than the argument that is actually wrong.
+        valid_sample_by = ("line", "paragraph", "document")
+        if self.sample_by not in valid_sample_by:
+            raise ValueError(
+                f"sample_by must be one of {valid_sample_by}, but got {self.sample_by!r}"
+            )
+
 
 class Text(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = TextConfig
