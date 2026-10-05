@@ -9,7 +9,7 @@ import sys
 import tempfile
 import time
 from collections import Counter
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Sequence
 from copy import copy, deepcopy
 from dataclasses import dataclass
 from functools import partial
@@ -112,7 +112,7 @@ def _rename_columns_fn(example: dict, column_mapping: dict[str, str]):
     }
 
 
-def add_column_fn(example: dict, idx: int, name: str, column: list[dict]):
+def add_column_fn(example: dict, idx: int, name: str, column: Sequence[dict]):
     if name in example:
         raise ValueError(f"Error when adding {name}: column {name} is already in the dataset.")
     return {name: column[idx]}
@@ -128,7 +128,7 @@ def _infer_features_from_batch(batch: dict[str, list], try_features: Optional[Fe
     return Features.from_arrow_schema(pa_table.schema)
 
 
-def _examples_to_batch(examples: list[dict[str, Any]]) -> dict[str, list]:
+def _examples_to_batch(examples: Sequence[dict[str, Any]]) -> dict[str, list]:
     # we order the columns by order of appearance
     # to do so, we use a dict as an ordered set
     cols = {col: None for example in examples for col in example}
@@ -655,7 +655,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
 
 
 class SelectColumnsIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterable: _BaseExamplesIterable, column_names: list[str]):
+    def __init__(self, ex_iterable: _BaseExamplesIterable, column_names: Sequence[str]):
         super().__init__()
         self.ex_iterable = ex_iterable
         self.column_names = column_names
@@ -776,7 +776,7 @@ class StepExamplesIterable(_BaseExamplesIterable):
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
-        ex_iterables: list[_BaseExamplesIterable],
+        ex_iterables: Sequence[_BaseExamplesIterable],
         stopping_strategy: Literal[
             "first_exhausted", "all_exhausted", "all_exhausted_without_replacement"
         ] = "first_exhausted",
@@ -1031,7 +1031,7 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     This is done with `_apply_feature_types_on_example`.
     """
 
-    def __init__(self, ex_iterables: list[_BaseExamplesIterable]):
+    def __init__(self, ex_iterables: Sequence[_BaseExamplesIterable]):
         super().__init__()
         self.ex_iterables = ex_iterables
 
@@ -1107,7 +1107,7 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
         )
 
 
-def _check_column_names(column_names: list[str]):
+def _check_column_names(column_names: Sequence[str]):
     """Check the column names to make sure they don't contain duplicates."""
     counter = Counter(column_names)
     if not all(count == 1 for count in counter.values()):
@@ -1133,7 +1133,7 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
     This is done with `_apply_feature_types_on_example`.
     """
 
-    def __init__(self, ex_iterables: list[_BaseExamplesIterable]):
+    def __init__(self, ex_iterables: Sequence[_BaseExamplesIterable]):
         super().__init__()
         self.ex_iterables = ex_iterables
 
@@ -1239,9 +1239,9 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
 class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIterable):
     def __init__(
         self,
-        ex_iterables: list[_BaseExamplesIterable],
+        ex_iterables: Sequence[_BaseExamplesIterable],
         generator: np.random.Generator,
-        probabilities: Optional[list[float]] = None,
+        probabilities: Optional[Sequence[float]] = None,
         stopping_strategy: Literal[
             "first_exhausted", "all_exhausted", "all_exhausted_without_replacement"
         ] = "first_exhausted",
@@ -1380,11 +1380,11 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         ex_iterable: _BaseExamplesIterable,
         function: Callable,
         with_indices: bool = False,
-        input_columns: Optional[list[str]] = None,
+        input_columns: Optional[Sequence[str]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[list[str]] = None,
+        remove_columns: Optional[Sequence[str]] = None,
         fn_kwargs: Optional[dict] = None,
         formatting: Optional["FormattingConfig"] = None,
         features: Optional[Features] = None,
@@ -1859,7 +1859,7 @@ class FilteredExamplesIterable(MappedExamplesIterable):
         ex_iterable: _BaseExamplesIterable,
         function: Callable,
         with_indices: bool = False,
-        input_columns: Optional[list[str]] = None,
+        input_columns: Optional[Sequence[str]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
@@ -3353,7 +3353,7 @@ class IterableDataset(DatasetInfoMixin):
     @classmethod
     def from_list(
         cls,
-        mapping: list[dict],
+        mapping: Sequence[dict],
         features: Optional[Features] = None,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
@@ -3391,7 +3391,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_csv(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3434,7 +3434,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_json(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3481,12 +3481,12 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_parquet(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
-        columns: Optional[list[str]] = None,
-        filters: Optional[Union[pds.Expression, list[tuple], list[list[tuple]]]] = None,
+        columns: Optional[Sequence[str]] = None,
+        filters: Optional[Union[pds.Expression, Sequence[tuple], Sequence[Sequence[tuple]]]] = None,
         fragment_scan_options: Optional[pds.ParquetFragmentScanOptions] = None,
         on_bad_files: Literal["error", "warn", "skip"] = "error",
         **kwargs,
@@ -3566,7 +3566,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_text(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3677,11 +3677,11 @@ class IterableDataset(DatasetInfoMixin):
         self,
         function: Optional[Callable] = None,
         with_indices: bool = False,
-        input_columns: Optional[Union[str, list[str]]] = None,
+        input_columns: Optional[Union[str, Sequence[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[Union[str, list[str]]] = None,
+        remove_columns: Optional[Union[str, Sequence[str]]] = None,
         features: Optional[Features] = None,
         fn_kwargs: Optional[dict] = None,
     ) -> "IterableDataset":
@@ -3772,11 +3772,11 @@ class IterableDataset(DatasetInfoMixin):
         self,
         function: Optional[Callable] = None,
         with_indices: bool = False,
-        input_columns: Optional[Union[str, list[str]]] = None,
+        input_columns: Optional[Union[str, Sequence[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[Union[str, list[str]]] = None,
+        remove_columns: Optional[Union[str, Sequence[str]]] = None,
         features: Optional[Features] = None,
         fn_kwargs: Optional[dict] = None,
         is_batch_accumulate_arrow_table_function: bool = False,
@@ -3859,7 +3859,7 @@ class IterableDataset(DatasetInfoMixin):
         self,
         function: Optional[Callable] = None,
         with_indices=False,
-        input_columns: Optional[Union[str, list[str]]] = None,
+        input_columns: Optional[Union[str, Sequence[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
@@ -4340,7 +4340,7 @@ class IterableDataset(DatasetInfoMixin):
             )
         return ds_iterable
 
-    def remove_columns(self, column_names: Union[str, list[str]]) -> "IterableDataset":
+    def remove_columns(self, column_names: Union[str, Sequence[str]]) -> "IterableDataset":
         """
         Remove one or several column(s) in the dataset and the features associated to them.
         The removal is done on-the-fly on the examples when iterating over the dataset.
@@ -4375,7 +4375,7 @@ class IterableDataset(DatasetInfoMixin):
 
         return ds_iterable
 
-    def select_columns(self, column_names: Union[str, list[str]]) -> "IterableDataset":
+    def select_columns(self, column_names: Union[str, Sequence[str]]) -> "IterableDataset":
         """Select one or several column(s) in the dataset and the features
         associated to them. The selection is done on-the-fly on the examples
         when iterating over the dataset.
@@ -4642,7 +4642,7 @@ class IterableDataset(DatasetInfoMixin):
     def batch(
         self,
         batch_size: Optional[int] = None,
-        by_column: Optional[Union[str, list[str]]] = None,
+        by_column: Optional[Union[str, Sequence[str]]] = None,
         drop_last_batch: bool = False,
     ) -> "IterableDataset":
         """
@@ -5498,7 +5498,7 @@ class IterableDataset(DatasetInfoMixin):
 
 
 def _concatenate_iterable_datasets(
-    dsets: list[IterableDataset],
+    dsets: Sequence[IterableDataset],
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
     axis: int = 0,
@@ -5590,8 +5590,8 @@ def _concatenate_iterable_datasets(
 
 
 def _interleave_iterable_datasets(
-    datasets: list[IterableDataset],
-    probabilities: Optional[list[float]] = None,
+    datasets: Sequence[IterableDataset],
+    probabilities: Optional[Sequence[float]] = None,
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
