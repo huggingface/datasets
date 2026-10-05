@@ -4583,7 +4583,10 @@ class IterableDataset(DatasetInfoMixin):
                 .with_format(self._formatting.format_type if self._formatting else None)
             )
             return ds
-        if self._formatting and self._formatting.is_table:
+        if self._formatting and (self._ex_iterable.iter_arrow is not None or self._formatting.is_table):
+            # Batch in arrow when the underlying iterable is arrow-backed (or the output format is a table).
+            # This avoids converting arrow tables to Python examples only to transpose them back, and matches
+            # both `IterableDataset.iter(batch_size=...)` and map-style `Dataset.batch()`.
             return (
                 self.with_format("arrow")
                 .map(
