@@ -344,6 +344,14 @@ def test_classlabel_int2str():
         classlabel.int2str(None)
 
 
+def test_classlabel_int2str_accepts_numpy_integers():
+    names = ["negative", "positive"]
+    classlabel = ClassLabel(names=names)
+    assert classlabel.int2str(np.int64(0)) == names[0]
+    assert classlabel.int2str(np.int32(1)) == names[1]
+    assert classlabel.int2str(np.array([0, 1], dtype=np.int64)[1]) == names[1]
+
+
 def test_classlabel_cast_storage():
     names = ["negative", "positive"]
     classlabel = ClassLabel(names=names)
