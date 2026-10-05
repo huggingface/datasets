@@ -918,6 +918,14 @@ class QueryTest(TestCase):
             subtable,
             pa.Table.from_pydict({"a": [_COL_A[_INDICES[0]]], "b": [_COL_B[_INDICES[0]]], "c": [_COL_C[_INDICES[0]]]}),
         )
+        # negative indices wrap around the indices mapping length
+        subtable = query_table(table, [-1], indices=indices)
+        self.assertTableEqual(
+            subtable,
+            pa.Table.from_pydict(
+                {"a": [_COL_A[_INDICES[-1]]], "b": [_COL_B[_INDICES[-1]]], "c": [_COL_C[_INDICES[-1]]]}
+            ),
+        )
         with self.assertRaises(IndexError):
             assert len(indices) < n
             query_table(table, [len(indices)], indices=indices)
