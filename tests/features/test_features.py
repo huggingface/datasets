@@ -344,6 +344,28 @@ def test_classlabel_int2str():
         classlabel.int2str(None)
 
 
+def test_classlabel_int2str_accepts_numpy_integer():
+    names = ["negative", "positive"]
+    classlabel = ClassLabel(names=names)
+    for i, name in enumerate(names):
+        assert classlabel.int2str(np.int64(i)) == name
+        assert classlabel.int2str(np.int32(i)) == name
+
+    ds = Dataset.from_dict(
+        {"label": [0, 1]},
+        features=Features({"label": ClassLabel(names=names)}),
+    )
+    ds.set_format("numpy")
+    assert isinstance(ds[0]["label"], np.integer)
+    assert ds.features["label"].int2str(ds[0]["label"]) == "negative"
+    assert ds.features["label"].int2str(ds[1]["label"]) == "positive"
+
+    with pytest.raises(ValueError):
+        classlabel.int2str(np.int64(len(names)))
+    with pytest.raises(ValueError):
+        classlabel.int2str(np.int64(-1))
+
+
 def test_classlabel_cast_storage():
     names = ["negative", "positive"]
     classlabel = ClassLabel(names=names)
