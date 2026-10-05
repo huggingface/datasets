@@ -59,7 +59,9 @@ class Eval(datasets.GeneratorBasedBuilder):
         sample_files = [log_file for log_file in log_files if os.path.basename(os.path.dirname(log_file)) == "samples"]
         sample_files.sort(key=self._sort_samples_key)
         for sample_file in sample_files:
-            with open(sample_file) as f:
+            # Sample logs are JSON (UTF-8); pin the encoding so this read does not depend on the
+            # locale's preferred encoding (e.g. cp936 on Windows), which crashes on non-ASCII content.
+            with open(sample_file, encoding="utf-8") as f:
                 sample = json.load(f)
                 for field in sample:
                     if isinstance(sample[field], dict):
