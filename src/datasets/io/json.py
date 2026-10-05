@@ -4,6 +4,7 @@ from functools import partial
 from typing import BinaryIO, Optional, Union
 
 import fsspec
+import pyarrow as pa
 
 from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
@@ -131,6 +132,17 @@ class JsonDatasetWriter:
             key=slice(offset, offset + self.batch_size),
             indices=self.dataset._indices,
         )
+        if self.dataset._indices is not None:
+            # Gathering creates one-row chunks, which are expensive to convert to pandas.
+            # Combine only the selected batch, not the potentially much larger source table.
+            try:
+                batch = batch.combine_chunks()
+            except (pa.ArrowInvalid, pa.ArrowNotImplementedError, pa.ArrowCapacityError, pa.ArrowMemoryError):
+                # Nested string/binary payloads can overflow 32-bit offsets (ArrowInvalid).
+                # Older Arrow builds also lacked extension concatenation support, and
+                # concatenation can hit capacity/memory limits. Leave the batch chunked
+                # so to_pandas can still convert it without this optional concatenation.
+                pass
         batch = batch.to_pandas(integer_object_nulls=True)
         for json_field_path in get_json_field_paths_from_feature(self.dataset.features):
             col, *json_field_subpath = json_field_path
