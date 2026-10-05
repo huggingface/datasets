@@ -253,6 +253,28 @@ def data_files_with_zip_archives(tmp_path, auto_text_file):
     return data_files_with_zip_archives
 
 
+@pytest.fixture
+def data_files_with_labels_in_zip_archive_no_metadata(tmp_path, auto_text_file, request):
+    extension = request.param if hasattr(request, "param") else ".txt"
+    data_dir = tmp_path / f"data_files_with_labels_in_zip_archive{extension}"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    archive_dir = data_dir / "archive"
+    subdir_class_0 = archive_dir / "class0"
+    subdir_class_0.mkdir(parents=True, exist_ok=True)
+    subdir_class_1 = archive_dir / "class1"
+    subdir_class_1.mkdir(parents=True, exist_ok=True)
+
+    shutil.copyfile(auto_text_file, subdir_class_0 / f"file0{extension}")
+    shutil.copyfile(auto_text_file, subdir_class_1 / f"file1{extension}")
+
+    shutil.make_archive(str(archive_dir), "zip", str(archive_dir))
+    shutil.rmtree(str(archive_dir))
+
+    data_files = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
+    assert len(data_files["train"]) == 1
+    return data_files
+
+
 def test_config_raises_when_invalid_name() -> None:
     with pytest.raises(InvalidConfigName, match="Bad characters"):
         _ = FolderBasedBuilderConfig(name="name-with-*-invalid-character")
@@ -272,6 +294,23 @@ def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cac
     assert autofolder.info.features["label"] == ClassLabel(names=["class0", "class1"])
     generator = autofolder._generate_examples(**gen_kwargs)
     assert all(example["label"] in {"class0", "class1"} for _, example in generator)
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("data_files_with_labels_in_zip_archive_no_metadata", [".txt", ".TXT"], indirect=True)
+def test_inferring_labels_from_data_dirs_in_archives(
+    data_files_with_labels_in_zip_archive_no_metadata, streaming, cache_dir
+):
+    # the labels of the files inside an archive must come from the path of the extracted files,
+    # not from the path of the archive itself
+    autofolder = DummyFolderBasedBuilder(
+        data_files=data_files_with_labels_in_zip_archive_no_metadata, cache_dir=cache_dir, drop_labels=False
+    )
+    download_manager = StreamingDownloadManager() if streaming else DownloadManager()
+    gen_kwargs = autofolder._split_generators(download_manager)[0].gen_kwargs
+    assert autofolder.info.features["label"] == ClassLabel(names=["class0", "class1"])
+    generated_examples = list(autofolder._generate_examples(**gen_kwargs))
+    assert sorted(example["label"] for _, example in generated_examples) == ["class0", "class1"]
 
 
 def test_default_folder_builder_not_usable(data_files_with_labels_no_metadata, cache_dir):
