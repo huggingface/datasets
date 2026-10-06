@@ -2946,6 +2946,113 @@ def test_iterable_dataset_filter_table_formats(format_type, function, batch_size
     assert list(filtered_ds.with_format(None)) == [{"a": a} for a in range(6, 10)]
 
 
+@pytest.mark.parametrize("format_type", ["arrow", "pandas", "polars"])
+@pytest.mark.parametrize("batched", [False, True])
+@pytest.mark.parametrize("with_indices", [False, True])
+@pytest.mark.parametrize("input_columns", ["label", ["label", "text"]])
+def test_iterable_dataset_filter_table_input_columns(format_type, batched, with_indices, input_columns):
+    dataset = Dataset.from_dict(
+        {"text": ["a", "b", "c"], "label": [0, 1, 2], "tokens": [[1], [2], [3]]},
+        features=Features({"text": Value("string"), "label": Value("int32"), "tokens": List(Value("int64"))}),
+    )
+    seen_indices = []
+
+    def function(label, *args, minimum):
+        if format_type == "arrow":
+            assert isinstance(label, pa.ChunkedArray)
+            values = label.to_pylist()
+        elif format_type == "pandas":
+            assert isinstance(label, pd.Series)
+            values = label.tolist()
+        else:
+            import polars as pl
+
+            assert isinstance(label, pl.Series)
+            values = label.to_list()
+        if isinstance(input_columns, list):
+            assert len(args[0]) == len(values)
+            args = args[1:]
+        if with_indices:
+            seen_indices.extend(args[0] if batched else [args[0]])
+        return [value >= minimum for value in values]
+
+    filtered = (
+        dataset.to_iterable_dataset()
+        .with_format(format_type)
+        .filter(
+            function,
+            input_columns=input_columns,
+            batched=batched,
+            batch_size=2,
+            with_indices=with_indices,
+            fn_kwargs={"minimum": 1},
+        )
+    )
+    rows = list(filtered.with_format(None))
+    assert rows == list(dataset)[1:]
+    assert list(rows[0]) == dataset.column_names
+    assert filtered.features == dataset.features
+    assert filtered.features.arrow_schema == dataset.features.arrow_schema
+    assert seen_indices == ([0, 1, 2] if with_indices else [])
+
+
+@pytest.mark.parametrize("batched", [False, True])
+@pytest.mark.parametrize("with_indices", [False, True])
+def test_iterable_dataset_filter_async_input_columns(batched, with_indices):
+    dataset = Dataset.from_dict({"text": ["a", "b", "c"], "label": [0, 1, 2]})
+    seen_indices = []
+
+    async def function(label, *indices):
+        await asyncio.sleep(0)
+        if indices:
+            seen_indices.extend(indices[0] if batched else [indices[0]])
+        return [value > 0 for value in label] if batched else label > 0
+
+    filtered = dataset.to_iterable_dataset().filter(
+        function, input_columns="label", batched=batched, batch_size=2, with_indices=with_indices
+    )
+    assert list(filtered) == [{"text": "b", "label": 1}, {"text": "c", "label": 2}]
+    assert seen_indices == ([0, 1, 2] if with_indices else [])
+
+
+@pytest.mark.parametrize("format_type", ["arrow", "pandas", "polars"])
+@pytest.mark.parametrize("operation", ["shuffle", "shard", "reshard"])
+def test_iterable_dataset_filter_table_input_columns_transforms(format_type, operation):
+    dataset = Dataset.from_dict({"label": list(range(6)), "text": list("abcdef")}).to_iterable_dataset(num_shards=2)
+    filtered = dataset.with_format(format_type).filter(
+        lambda label: [value > 1 for value in list(label.to_pylist() if format_type == "arrow" else label)],
+        input_columns="label",
+        batched=True,
+        batch_size=2,
+    )
+    if operation == "shuffle":
+        filtered = filtered.shuffle(seed=42, buffer_size=1)
+        expected = [2, 3, 4, 5]
+    elif operation == "shard":
+        filtered = filtered.shard(num_shards=2, index=0)
+        expected = [2]
+    else:
+        filtered = filtered.reshard()
+        expected = [2, 3, 4, 5]
+    assert sorted(row["label"] for row in filtered.with_format(None)) == expected
+
+
+@pytest.mark.parametrize("format_type", ["arrow", "pandas", "polars"])
+@pytest.mark.parametrize("empty_input", [False, True])
+def test_iterable_dataset_filter_table_input_columns_empty(format_type, empty_input):
+    features = Features({"label": Value("int32"), "text": Value("string")})
+    rows = [] if empty_input else [{"label": 0, "text": "a"}, {"label": 1, "text": "b"}]
+    dataset = IterableDataset.from_generator(lambda: iter(rows), features=features)
+    function = MagicMock(side_effect=lambda label: [False] * len(label))
+    filtered = dataset.with_format(format_type).filter(function, input_columns="label", batched=True, batch_size=2)
+    assert list(filtered.with_format(None)) == []
+    assert filtered.features == features
+    if empty_input:
+        function.assert_not_called()
+    else:
+        function.assert_called_once()
+
+
 def test_iterable_dataset_filter_chaining_does_not_raise() -> None:
     """Chaining two .filter() calls must not raise TypeError.
 

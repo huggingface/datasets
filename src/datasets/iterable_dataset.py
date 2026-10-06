@@ -1839,15 +1839,29 @@ def _add_mask(
     return input.append_column(mask_column_name, mask)
 
 
-def add_mask(mask_function: Callable, input: Union[dict, pa.Table], *args, mask_column_name: str, **kwargs):
-    mask = mask_function(input, *args, **kwargs)
+def add_mask(
+    mask_function: Callable,
+    filter_input_columns: Optional[list[str]],
+    input: Union[dict, pa.Table],
+    *args,
+    mask_column_name: str,
+    **kwargs,
+):
+    inputs = [input] if filter_input_columns is None else [input[col] for col in filter_input_columns]
+    mask = mask_function(*inputs, *args, **kwargs)
     return _add_mask(input, mask, mask_column_name)
 
 
 async def async_add_mask(
-    mask_function: Callable, input: Union[dict, pa.Table], *args, mask_column_name: str, **kwargs
+    mask_function: Callable,
+    filter_input_columns: Optional[list[str]],
+    input: Union[dict, pa.Table],
+    *args,
+    mask_column_name: str,
+    **kwargs,
 ):
-    mask = await mask_function(input, *args, **kwargs)
+    inputs = [input] if filter_input_columns is None else [input[col] for col in filter_input_columns]
+    mask = await mask_function(*inputs, *args, **kwargs)
     return _add_mask(input, mask, mask_column_name)
 
 
@@ -1866,6 +1880,8 @@ class FilteredExamplesIterable(MappedExamplesIterable):
         formatting: Optional["FormattingConfig"] = None,
     ):
         self.mask_function = function
+        self.filter_input_columns = input_columns
+        table_format = formatting is not None and formatting.is_table
         if ex_iterable.is_typed:
             features = Features({**ex_iterable.features, self.mask_column_name: Value("bool")})
         else:
@@ -1875,10 +1891,11 @@ class FilteredExamplesIterable(MappedExamplesIterable):
             function=partial(
                 async_add_mask if inspect.iscoroutinefunction(function) else add_mask,
                 function,
+                input_columns if table_format else None,
                 mask_column_name=self.mask_column_name,
             ),
             with_indices=with_indices,
-            input_columns=input_columns,
+            input_columns=None if table_format else input_columns,
             batched=batched,
             batch_size=batch_size,
             fn_kwargs=fn_kwargs,
@@ -1903,7 +1920,7 @@ class FilteredExamplesIterable(MappedExamplesIterable):
             self.ex_iterable.shuffle_data_sources(seed),
             function=self.mask_function,
             with_indices=self.with_indices,
-            input_columns=self.input_columns,
+            input_columns=self.filter_input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
             fn_kwargs=self.fn_kwargs,
@@ -1916,7 +1933,7 @@ class FilteredExamplesIterable(MappedExamplesIterable):
             self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
             function=self.mask_function,
             with_indices=self.with_indices,
-            input_columns=self.input_columns,
+            input_columns=self.filter_input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
             fn_kwargs=self.fn_kwargs,
@@ -1928,7 +1945,7 @@ class FilteredExamplesIterable(MappedExamplesIterable):
             self.ex_iterable.reshard_data_sources(),
             function=self.mask_function,
             with_indices=self.with_indices,
-            input_columns=self.input_columns,
+            input_columns=self.filter_input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
             fn_kwargs=self.fn_kwargs,
