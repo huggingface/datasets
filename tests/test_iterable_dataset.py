@@ -4278,3 +4278,19 @@ def test_iterable_dataset_push_to_hub_more_shards_with_unpicklable_source(offlin
 def _gen_lines_from_handle(fh):
     for line in fh:
         yield {"id": int(line)}
+
+
+def test_iterable_dataset_resolve_features_from_multidim_numpy():
+    # Regression for https://github.com/huggingface/datasets/issues/7100: resolving
+    # the features of an IterableDataset whose map yields multi-dimensional numpy
+    # arrays must not raise "Can only convert 1-dimensional array values". The batch
+    # is routed through cast_to_python_objects(..., only_1d_for_numpy=True) like the
+    # other Arrow-table builders in iterable_dataset.py.
+    ds = (
+        Dataset.from_dict({"a": [[[1, 2, 3], [1, 2, 3]]]})
+        .to_iterable_dataset()
+        .map(lambda x: {"a": [np.array(x["a"])]})
+    )
+    ds = ds._resolve_features()
+    assert ds.features is not None
+    assert "a" in ds.features
