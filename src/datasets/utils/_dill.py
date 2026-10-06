@@ -79,6 +79,8 @@ class Pickler(dill.Pickler):
             from datasets.fingerprint import Hasher
 
             items = sorted(items, key=lambda x: Hasher.hash(x[0]))
+        if sys.version_info >= (3, 14) and not args and "obj" not in kwargs:
+            args = (dict(items),)
         return super()._batch_setitems(items, *args, **kwargs)
 
     def memoize(self, obj):
