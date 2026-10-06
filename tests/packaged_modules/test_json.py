@@ -563,6 +563,24 @@ def test_json_generate_tables(file_fixture, config_kwargs, expected, request):
     assert out == expected
 
 
+def test_json_generate_tables_utf16_encoded_in_multiple_chunks(jsonl_file_utf16_encoded):
+    # A JSON Lines file is read in chunks of `chunksize` bytes, and each chunk is completed
+    # with a `readline()` on the binary file object, which stops at the first 0x0a byte.
+    # In a multi-byte encoding like utf-16 a newline is not a single 0x0a byte, so the
+    # chunk boundary must not split a character: the content must be identical to reading
+    # the whole file in a single chunk (as in test_json_generate_tables above).
+    json = Json(encoding="utf-16", chunksize=16)
+    base_files = [jsonl_file_utf16_encoded]
+    files_iterables = [[file] for file in base_files]
+    original_files = list(base_files)
+    generator = json._generate_tables(
+        base_files=base_files, files_iterables=files_iterables, original_files=original_files
+    )
+    pa_table = pa.concat_tables([table for _, table in generator])
+    out = Features.from_arrow_schema(pa_table.schema).decode_batch(pa_table.to_pydict())
+    assert out == EXPECTED_THREE
+
+
 @pytest.mark.parametrize(
     "file_fixture, config_kwargs",
     [

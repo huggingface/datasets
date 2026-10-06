@@ -222,18 +222,28 @@ class Json(datasets.ArrowBasedBuilder):
 
                 # If the file has one json object per line
                 else:
-                    with open(file, "rb") as f:
+                    # PyArrow only accepts utf-8 encoded bytes: files in other encodings are decoded as text
+                    # and re-encoded to utf-8, so that a chunk never ends in the middle of a character
+                    # (e.g. in utf-16 a binary readline() would stop at the first byte of "\n")
+                    text_mode = self.config.encoding != "utf-8"
+                    with open(file, "rb") as binary_file:
+                        f = (
+                            io.TextIOWrapper(
+                                binary_file, encoding=self.config.encoding, errors=self.config.encoding_errors
+                            )
+                            if text_mode
+                            else binary_file
+                        )
                         batch_idx = 0
                         # Use block_size equal to the chunk size divided by 32 to leverage multithreading
                         # Set a default minimum value of 16kB if the chunk size is really small
                         block_size = max(self.config.chunksize // 32, 16 << 10)
-                        encoding_errors = (
-                            self.config.encoding_errors if self.config.encoding_errors is not None else "strict"
-                        )
                         while True:
                             batch = f.read(self.config.chunksize)
                             if not batch:
                                 break
+                            if text_mode:
+                                batch = batch.encode("utf-8")
                             # A leading UTF-8 BOM makes the ujson pre-scan below raise
                             # ValueError, silently skipping mixed-struct detection, while
                             # PyArrow tolerates the BOM -- so the inferred schema differed
@@ -246,7 +256,8 @@ class Json(datasets.ArrowBasedBuilder):
                                     raise FullReadDisallowed()
                                 else:
                                     # convert to JSON Lines
-                                    full_data = batch + f.read()
+                                    rest = f.read()
+                                    full_data = batch + (rest.encode("utf-8") if text_mode else rest)
                                     if b"{" in batch[:100].split(b'"', 1)[0]:  # list of objects
                                         batch = "\n".join(ujson_dumps(x) for x in ujson_loads(full_data)).encode()
                                     else:  # list of strings
@@ -254,13 +265,13 @@ class Json(datasets.ArrowBasedBuilder):
                                             ujson_dumps({"text": x}) for x in ujson_loads(full_data)
                                         ).encode()
                             # Finish current line
-                            try:
-                                batch += f.readline()
-                            except (AttributeError, io.UnsupportedOperation):
-                                batch += readline(f)
-                            # PyArrow only accepts utf-8 encoded bytes
-                            if self.config.encoding != "utf-8":
-                                batch = batch.decode(self.config.encoding, errors=encoding_errors).encode("utf-8")
+                            if text_mode:
+                                batch += f.readline().encode("utf-8")
+                            else:
+                                try:
+                                    batch += f.readline()
+                                except (AttributeError, io.UnsupportedOperation):
+                                    batch += readline(f)
                             # On first batch we check for lists of objects with arbitrary fields
                             if (
                                 shard_idx == 0
