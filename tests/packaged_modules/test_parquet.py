@@ -1,6 +1,7 @@
+import pyarrow as pa
 import pytest
 
-from datasets import load_dataset
+from datasets import ClassLabel, Features, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.parquet.parquet import ParquetConfig
@@ -39,3 +40,12 @@ def test_parquet_columns(parquet_path):
     )
     assert len(ds.features) == 1
     assert len(next(iter(ds))) == 1
+
+
+def test_parquet_cast_table_validates_classlabel():
+    from datasets.packaged_modules.parquet.parquet import Parquet
+
+    parquet = Parquet(features=Features({"label": ClassLabel(names=["neg", "pos", "oth"])}))
+
+    with pytest.raises(ValueError, match="Class label 5 greater than configured num_classes 3"):
+        parquet._cast_table(pa.table({"label": [5, 1]}))

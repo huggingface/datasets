@@ -365,6 +365,43 @@ def test_in_memory_table_cast_with_hf_features():
     assert Features.from_arrow_schema(table.cast(schema).schema) == features
 
 
+def test_table_cast_validates_classlabel_when_only_metadata_differs():
+    features = Features({"label": ClassLabel(names=["neg", "pos", "oth"])})
+
+    with pytest.raises(ValueError, match="Class label 5 greater than configured num_classes 3"):
+        table_cast(pa.table({"label": [5, 1]}), features.arrow_schema)
+    with pytest.raises(ValueError, match="Class label 5 greater than configured num_classes 3"):
+        table_cast(pa.Table.from_arrays([pa.array([5, 1])], schema=features.arrow_schema), features.arrow_schema)
+
+
+def test_table_cast_validates_nested_classlabel_when_only_metadata_differs():
+    features = Features({"labels": List(ClassLabel(names=["neg", "pos"]))})
+    source = pa.Table.from_arrays(
+        [pa.array([[5, 1]], type=features.arrow_schema.field("labels").type)],
+        schema=features.arrow_schema.remove_metadata(),
+    )
+
+    with pytest.raises(ValueError, match="Class label 5 greater than configured num_classes 2"):
+        table_cast(source, features.arrow_schema)
+
+
+def test_table_cast_keeps_metadata_only_fast_path_for_non_classlabel_feature(monkeypatch):
+    features = Features({"json": Json()})
+    cast_table_to_schema_mock = MagicMock()
+    monkeypatch.setattr("datasets.table.cast_table_to_schema", cast_table_to_schema_mock)
+
+    table = table_cast(
+        pa.Table.from_arrays(
+            [pa.array(['{"a": 1}'], type=features.arrow_schema.field("json").type)],
+            schema=features.arrow_schema.remove_metadata(),
+        ),
+        features.arrow_schema,
+    )
+
+    cast_table_to_schema_mock.assert_not_called()
+    assert table.schema.metadata == features.arrow_schema.metadata
+
+
 def test_in_memory_table_replace_schema_metadata(in_memory_pa_table):
     metadata = {"huggingface": "{}"}
     table = InMemoryTable(in_memory_pa_table).replace_schema_metadata(metadata)
