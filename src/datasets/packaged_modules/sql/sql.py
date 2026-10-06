@@ -57,8 +57,13 @@ class SqlConfig(datasets.BuilderConfig):
                 import sqlalchemy
 
                 if isinstance(sql, sqlalchemy.sql.Selectable):
-                    engine = sqlalchemy.create_engine(config_kwargs["con"].split("://")[0] + "://")
-                    sql_str = str(sql.compile(dialect=engine.dialect))
+                    con = config_kwargs["con"]
+                    dialect = (
+                        sqlalchemy.create_engine(con.split("://")[0] + "://").dialect
+                        if isinstance(con, str)
+                        else con.dialect
+                    )
+                    sql_str = str(sql.compile(dialect=dialect))
                     config_kwargs["sql"] = sql_str
                 else:
                     raise TypeError(
