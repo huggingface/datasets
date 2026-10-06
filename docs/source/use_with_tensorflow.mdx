@@ -36,6 +36,20 @@ array([[1, 2],
        [3, 4]])>}
 ```
 
+### Numeric dtypes
+
+The following applies to numeric `Value`, `List`, and `Array` features without missing values.
+
+By default, numeric scalars, lists, and arrays are formatted as `tf.int64` for integers and `tf.float32` for floating-point values, regardless of their stored dtype. This coercion is silent: converting `float64` to `float32` can lose precision or overflow to `inf`.
+
+Pass `dtype=None` to keep the stored numeric dtype, such as `float64` or `int32`:
+
+```py
+>>> ds = ds.with_format("tf", dtype=None)
+```
+
+Formatting does not change the stored data or feature types.
+
 ### N-dimensional arrays
 
 If your dataset consists of N-dimensional arrays, you will see that by default they are considered as the same tensor if the shape is fixed:
