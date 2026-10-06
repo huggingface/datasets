@@ -166,6 +166,33 @@ def get_writer_batch_size_from_data_size(num_rows: int, num_bytes: int) -> int:
     return max(1, num_rows * convert_file_size_to_int(config.MAX_ROW_GROUP_SIZE) // num_bytes) if num_bytes > 0 else 1
 
 
+def get_parquet_column_options(features: Features, schema: pa.Schema) -> dict:
+    """
+    Get the per-column `compression`, `use_dictionary` and `column_encoding` options for `pq.ParquetWriter`.
+    Parquet matches them against the leaf column paths (e.g. "col.list.element.field"), not the top-level column names.
+    """
+
+    def leaf_paths(path: str, pa_type: pa.DataType) -> list[str]:
+        if isinstance(pa_type, pa.ExtensionType):
+            pa_type = pa_type.storage_type
+        if pa.types.is_struct(pa_type):
+            return [leaf for field in pa_type for leaf in leaf_paths(f"{path}.{field.name}", field.type)]
+        if pa.types.is_list(pa_type) or pa.types.is_large_list(pa_type) or pa.types.is_fixed_size_list(pa_type):
+            return leaf_paths(f"{path}.list.element", pa_type.value_type)
+        return [path]
+
+    compression, use_dictionary, column_encoding = {}, [], {}
+    for field in schema:
+        embed = require_storage_embed(features[field.name])
+        for leaf in leaf_paths(field.name, field.type):
+            compression[leaf] = "none" if embed else "snappy"
+            if embed:
+                column_encoding[leaf] = "PLAIN"
+            else:
+                use_dictionary.append(leaf)
+    return {"compression": compression, "use_dictionary": use_dictionary, "column_encoding": column_encoding}
+
+
 class SchemaInferenceError(ValueError):
     pass
 
@@ -712,6 +739,23 @@ class ArrowWriter:
         self.write_examples_on_file()  # in case there are buffered examples to write first
         self._write_batch(batch_examples, writer_batch_size=writer_batch_size, try_original_type=try_original_type)
 
+    def _check_null_column(self, col: str, values):
+        """Raise an informative error if a column written as null gets values that are not None.
+
+        The schema is fixed when the first batch is written, so a column that only has None values
+        in the first batch keeps the null type for the rest of the file and can't hold values later.
+        """
+        if isinstance(values, (pa.Array, pa.ChunkedArray)):
+            has_values = values.null_count < len(values)
+        else:
+            has_values = any(value is not None for value in values)
+        if has_values:
+            raise TypeError(
+                f"Couldn't write column '{col}': its type in this file is null, because the first "
+                f"{self._num_examples} values written for it were all None. Set the type of '{col}' "
+                f"with features=, or make sure the first batch written contains a value that is not None."
+            )
+
     def _write_batch(
         self,
         batch_examples: dict[str, list],
@@ -736,6 +780,8 @@ class ArrowWriter:
         for col in cols:
             col_values = batch_examples[col]
             col_type = features[col] if features else None
+            if isinstance(col_type, Value) and col_type.dtype == "null":
+                self._check_null_column(col, col_values)
             if isinstance(col_values, (pa.Array, pa.ChunkedArray)):
                 array = cast_array_to_feature(col_values, col_type) if col_type is not None else col_values
                 arrays.append(array)
@@ -770,6 +816,9 @@ class ArrowWriter:
         if self.pa_writer is None:
             self._build_writer(inferred_schema=pa_table.schema)
         pa_table = pa_table.combine_chunks()
+        for field in self._schema:
+            if pa.types.is_null(field.type) and field.name in pa_table.column_names:
+                self._check_null_column(field.name, pa_table[field.name])
         pa_table = table_cast(pa_table, self._schema)
         if self.embed_local_files:
             pa_table = embed_table_storage(pa_table, local_files=True, remote_files=False)
@@ -814,13 +863,7 @@ class ParquetWriter(ArrowWriter):
             self._schema,
             use_content_defined_chunking=self.use_content_defined_chunking,
             write_page_index=self.write_page_index,
-            compression={
-                col: "none" if require_storage_embed(feature) else "snappy" for col, feature in self._features.items()
-            },
-            use_dictionary=[col for col, feature in self._features.items() if not require_storage_embed(feature)],
-            column_encoding={
-                col: "PLAIN" for col, feature in self._features.items() if require_storage_embed(feature)
-            },
+            **get_parquet_column_options(self._features, self._schema),
         )
         if self.use_content_defined_chunking is not False:
             self.pa_writer.add_key_value_metadata(

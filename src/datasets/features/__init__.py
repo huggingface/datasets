@@ -1,5 +1,7 @@
 __all__ = [
     "Audio",
+    "BioSequence",
+    "BioStructure",
     "Array2D",
     "Array3D",
     "Array4D",
@@ -20,6 +22,8 @@ __all__ = [
     "Nifti",
 ]
 from .audio import Audio
+from .bio_sequence import BioSequence
+from .bio_structure import BioStructure
 from .features import Array2D, Array3D, Array4D, Array5D, ClassLabel, Features, Json, LargeList, List, Sequence, Value
 from .image import Image
 from .mesh import Mesh
