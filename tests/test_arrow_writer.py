@@ -63,6 +63,28 @@ class TypedSequenceTest(TestCase):
         arr = pa.array(TypedSequence(["foo", "bar"], try_type=Array2D((1, 3), "int64")))
         self.assertEqual(arr.type, pa.string())
 
+    def test_uint64_beyond_int64_range(self):
+        big = np.iinfo(np.uint64).max
+        arr = pa.array(TypedSequence([big, 1, None], type=Value("uint64")))
+        self.assertEqual(arr.type, pa.uint64())
+        self.assertEqual(arr.to_pylist(), [big, 1, None])
+        arr = pa.array(TypedSequence([big, 1, None], try_type=Value("uint64")))
+        self.assertEqual(arr.type, pa.uint64())
+        self.assertEqual(arr.to_pylist(), [big, 1, None])
+
+    def test_nested_uint64_beyond_int64_range(self):
+        big = np.iinfo(np.uint64).max
+        arr = pa.array(TypedSequence([[big, 1], []], type=List(Value("uint64"))))
+        self.assertEqual(arr.to_pylist(), [[big, 1], []])
+        arr = pa.array(TypedSequence([{"a": big}, {"a": None}], type={"a": Value("uint64")}))
+        self.assertEqual(arr.to_pylist(), [{"a": big}, {"a": None}])
+
+    def test_int_out_of_range_for_type(self):
+        with self.assertRaises(OverflowError):
+            _ = pa.array(TypedSequence([2**63], type=Value("int64")))
+        with self.assertRaises(OverflowError):
+            _ = pa.array(TypedSequence([2**64], type=Value("uint64")))
+
     @require_pil
     def test_exhaustive_cast(self):
         import PIL.Image
