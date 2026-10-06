@@ -1,8 +1,10 @@
 import multiprocessing
 import os
+from contextlib import ExitStack
 from typing import BinaryIO, Optional, Union
 
 import fsspec
+from pandas.io.common import get_compression_method, get_handle, infer_compression
 
 from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
@@ -90,11 +92,29 @@ class CsvDatasetWriter:
         header = self.to_csv_kwargs.pop("header", True)
         index = self.to_csv_kwargs.pop("index", False)
 
-        if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
-            with fsspec.open(self.path_or_buf, "wb", **(self.storage_options or {})) as buffer:
-                written = self._write(file_obj=buffer, header=header, index=index, **self.to_csv_kwargs)
-        else:
-            written = self._write(file_obj=self.path_or_buf, header=header, index=index, **self.to_csv_kwargs)
+        is_path = isinstance(self.path_or_buf, (str, bytes, os.PathLike))
+        compression = self.to_csv_kwargs.pop("compression", "infer")
+        if is_path and "compression" in self.storage_options:
+            if compression not in [None, "infer"]:
+                raise ValueError("Specify compression either as a keyword argument or in storage_options, not both.")
+            # fsspec already owns this compression stream; do not infer a second layer.
+            compression = None
+        compression, compression_options = get_compression_method(compression)
+        compression = infer_compression(self.path_or_buf, compression)
+        compression_options = {"method": compression, **compression_options}
+        if compression == "tar" and is_path:
+            # Keep filename-based tar compression and archive naming with an fsspec handle.
+            compression_options.setdefault("name", os.fsdecode(self.path_or_buf))
+
+        with ExitStack() as stack:
+            buffer = (
+                stack.enter_context(fsspec.open(self.path_or_buf, "wb", **(self.storage_options or {})))
+                if is_path
+                else self.path_or_buf
+            )
+            # All batches share one compression stream, including when they are generated in parallel.
+            handles = stack.enter_context(get_handle(buffer, "wb", compression=compression_options, is_text=False))
+            written = self._write(file_obj=handles.handle, header=header, index=index, **self.to_csv_kwargs)
         return written
 
     def _batch_csv(self, args):
@@ -124,7 +144,8 @@ class CsvDatasetWriter:
                 desc="Creating CSV from Arrow format",
             ):
                 csv_str = self._batch_csv((offset, header, index, to_csv_kwargs))
-                written += file_obj.write(csv_str)
+                num_bytes = file_obj.write(csv_str)
+                written += len(csv_str) if num_bytes is None else num_bytes
 
         else:
             num_rows, batch_size = len(self.dataset), self.batch_size
@@ -138,6 +159,7 @@ class CsvDatasetWriter:
                     unit="ba",
                     desc="Creating CSV from Arrow format",
                 ):
-                    written += file_obj.write(csv_str)
+                    num_bytes = file_obj.write(csv_str)
+                    written += len(csv_str) if num_bytes is None else num_bytes
 
         return written
