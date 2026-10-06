@@ -55,11 +55,15 @@ SAMPLE_DATASET_IDENTIFIER3 = "hf-internal-testing/multi_dir_dataset"  # has mult
 SAMPLE_DATASET_IDENTIFIER4 = "hf-internal-testing/imagefolder_with_metadata"  # imagefolder with a metadata file inside the train/test directories
 SAMPLE_DATASET_IDENTIFIER5 = "hf-internal-testing/imagefolder_with_metadata_no_splits"  # imagefolder with a metadata file and no default split names in data files
 
+SAMPLE_LEGACY_DATASET_NAME = "imdb"  # a legacy name with no namespace, redirected by the Hub
+SAMPLE_LEGACY_DATASET_IDENTIFIER = "stanfordnlp/imdb"  # what the Hub redirects it to
+
 SAMPLE_DATASET_COMMIT_HASH = "0e1cee81e718feadf49560b287c4eb669c2efb1a"
 SAMPLE_DATASET_COMMIT_HASH2 = "c19550d35263090b1ec2bfefdbd737431fafec40"
 SAMPLE_DATASET_COMMIT_HASH3 = "aaa2d4bdd1d877d1c6178562cfc584bdfa90f6dc"
 SAMPLE_DATASET_COMMIT_HASH4 = "507fa72044169a5a1802b7ac2d6bd38d5f310739"
 SAMPLE_DATASET_COMMIT_HASH5 = "4971fa562942cab8263f56a448c3f831b18f1c27"
+SAMPLE_LEGACY_DATASET_COMMIT_HASH = "e6281661ce1c48d982bc483cf8a173c1bbeb5d31"
 
 SAMPLE_DATASET_NO_CONFIGS_IN_METADATA = "hf-internal-testing/audiofolder_no_configs_in_metadata"
 SAMPLE_DATASET_SINGLE_CONFIG_IN_METADATA = "hf-internal-testing/audiofolder_single_config_in_metadata"
@@ -518,6 +522,21 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         assert module_factory_result.builder_kwargs["base_path"].startswith("hf://")
+
+    @pytest.mark.integration
+    def test_HubDatasetModuleFactory_with_legacy_name(self):
+        factory = HubDatasetModuleFactory(
+            SAMPLE_LEGACY_DATASET_NAME,
+            commit_hash=SAMPLE_LEGACY_DATASET_COMMIT_HASH,
+            download_config=self.download_config,
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["repo_id"] == SAMPLE_LEGACY_DATASET_IDENTIFIER
+        assert module_factory_result.builder_kwargs["base_path"] == (
+            f"hf://datasets/{SAMPLE_LEGACY_DATASET_IDENTIFIER}@{SAMPLE_LEGACY_DATASET_COMMIT_HASH}"
+        )
+        assert module_factory_result.builder_kwargs["dataset_name"] == SAMPLE_LEGACY_DATASET_NAME
 
     @pytest.mark.integration
     def test_HubDatasetModuleFactory_with_data_dir(self):
