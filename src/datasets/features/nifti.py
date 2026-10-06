@@ -345,7 +345,8 @@ def encode_nibabel_image(img: "nib.Nifti1Image", force_bytes: bool = False) -> d
     """
     if hasattr(img, "file_map") and img.file_map is not None and not force_bytes:
         filename = img.file_map["image"].filename
-        return {"path": filename, "bytes": None}
+        if filename is not None:
+            return {"path": filename, "bytes": None}
 
     bytes_data = img.to_bytes()
     return {"path": None, "bytes": bytes_data}
