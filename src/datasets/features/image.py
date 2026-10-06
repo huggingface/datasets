@@ -357,11 +357,16 @@ def list_image_compression_formats() -> list[str]:
 
 def image_to_bytes(image: "PIL.Image.Image") -> bytes:
     """Convert a PIL Image object to bytes using native compression if possible, otherwise use PNG/TIFF compression."""
+    import PIL.ImageOps
+
     buffer = BytesIO()
     if image.format in list_image_compression_formats():
         format = image.format
     else:
         format = "PNG" if image.mode in ["1", "L", "LA", "RGB", "RGBA"] else "TIFF"
+    # TIFF applies its orientation while loading, including in older Pillow versions.
+    if image.format != "TIFF" and image.getexif().get(PIL.Image.ExifTags.Base.Orientation) is not None:
+        image = PIL.ImageOps.exif_transpose(image)
     image.save(buffer, format=format)
     return buffer.getvalue()
 
