@@ -9,6 +9,7 @@ import pytest
 from fsspec.registry import _registry as _fsspec_registry
 from fsspec.spec import AbstractFileSystem
 
+from datasets import load_dataset
 from datasets.data_files import (
     DataFilesDict,
     DataFilesList,
@@ -509,6 +510,42 @@ def test_DataFilesPatternsList(text_file):
     data_files_patterns = DataFilesPatternsList([str(text_file)], allowed_extensions=[[".zip"]])
     with pytest.raises(FileNotFoundError):
         data_files_patterns.resolve(base_path="")
+
+
+@pytest.mark.parametrize(
+    "left_patterns,right_patterns",
+    [
+        (["data/train.txt"], ["data/test.txt"]),
+        ([], ["data/test.txt"]),
+        (["data/train.txt"], []),
+        ([], []),
+    ],
+)
+def test_DataFilesPatternsList_add(complex_data_dir, left_patterns, right_patterns):
+    left = DataFilesPatternsList.from_patterns(left_patterns)
+    right = DataFilesPatternsList.from_patterns(right_patterns, allowed_extensions=[".txt"])
+    combined = left + right
+
+    assert isinstance(combined, DataFilesPatternsList)
+    assert combined == left_patterns + right_patterns
+    assert combined.allowed_extensions == [None] * len(left_patterns) + [[".txt"]] * len(right_patterns)
+    assert left == left_patterns
+    assert right == right_patterns
+
+    expected = DataFilesList.from_patterns(left_patterns + right_patterns, base_path=complex_data_dir)
+    resolved = DataFilesPatternsDict({"train": combined}).resolve(base_path=complex_data_dir)["train"]
+    assert resolved == expected
+    assert resolved.origin_metadata == expected.origin_metadata
+    assert combined.resolve(base_path=complex_data_dir) == expected
+
+
+def test_DataFilesPatternsList_add_load_dataset(complex_data_dir, tmp_path):
+    left = DataFilesPatternsList.from_patterns([f"{complex_data_dir}/data/train.*"], allowed_extensions=[".txt"])
+    right = DataFilesPatternsList.from_patterns([f"{complex_data_dir}/data/test.*"], allowed_extensions=[".txt"])
+
+    dataset = load_dataset("text", data_files={"train": left + right}, cache_dir=tmp_path / "cache")
+
+    assert dataset["train"]["text"] == ["foo"] * 10 + ["bar"] * 10
 
 
 def test_DataFilesPatternsDict(text_file):
