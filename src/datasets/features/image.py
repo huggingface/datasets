@@ -43,6 +43,17 @@ _VALID_IMAGE_ARRAY_DTPYES = [
 ]
 
 
+def _import_pil_plugins() -> None:
+    """Import the third-party Pillow plugins that are installed.
+
+    Pillow only registers its built-in formats on its own. Plugins register their format (and its file signature,
+    so that extensionless files are recognized too) when they are imported, so import them here to make
+    `PIL.Image.open` accept these formats.
+    """
+    if config.PILLOW_JXL_AVAILABLE:
+        import pillow_jxl  # noqa: F401  # JPEG XL
+
+
 @dataclass
 class Image:
     """Image [`Feature`] to read image data from an image file.
@@ -160,6 +171,8 @@ class Image:
         if config.PIL_AVAILABLE:
             import PIL.Image
             import PIL.ImageOps
+
+            _import_pil_plugins()
         else:
             raise ImportError("To support decoding images, please install 'Pillow'.")
 
