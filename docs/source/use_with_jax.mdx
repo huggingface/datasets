@@ -164,17 +164,21 @@ The [`Image`] and [`Audio`] feature types are also supported.
 > To use the [`Audio`] feature type, you'll need to install the `audio` extra as
 > `pip install datasets[audio]`.
 
+Audio is decoded with a TorchCodec `AudioDecoder`, which is returned as is and not converted to a JAX array. `["array"]` gives the samples as a NumPy array:
+
 ```py
 >>> from datasets import Dataset, Features, Audio
 >>> audio = ["path/to/audio.wav"] * 10
 >>> features = Features({"audio": Audio()})
 >>> ds = Dataset.from_dict({"audio": audio}, features=features)
 >>> ds = ds.with_format("jax")
+>>> ds[0]["audio"]
+<datasets.features._torchcodec.AudioDecoder object at 0x7f12eb336790>
 >>> ds[0]["audio"]["array"]
-DeviceArray([-0.059021  , -0.03894043, -0.00735474, ...,  0.0133667 ,
-              0.01809692,  0.00268555], dtype=float32)
+array([-0.059021  , -0.03894043, -0.00735474, ...,  0.0133667 ,
+        0.01809692,  0.00268555], dtype=float32)
 >>> ds[0]["audio"]["sampling_rate"]
-DeviceArray(44100, dtype=int32, weak_type=True)
+44100
 ```
 
 ## Data loading
