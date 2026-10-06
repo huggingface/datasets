@@ -1,10 +1,11 @@
 import json
 import textwrap
+from unittest.mock import Mock, patch
 
 import pyarrow as pa
 import pytest
 
-from datasets import Features, Value, load_dataset
+from datasets import Dataset, Features, Value, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig
@@ -614,6 +615,40 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
     )
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.column_names == ["ID", "Language", "Topic"]
+
+
+def test_json_generate_tables_recovers_from_invalid_arrow_offsets(jsonl_file):
+    malformed_table = Mock()
+    malformed_table.validate.side_effect = [pa.ArrowInvalid("invalid nested offsets")]
+    json_builder = Json(chunksize=1 << 20)
+    base_files = [jsonl_file]
+
+    with patch("datasets.packaged_modules.json.json.paj.read_json", return_value=malformed_table):
+        generator = json_builder._generate_tables(
+            base_files=base_files,
+            files_iterables=[[jsonl_file]],
+            original_files=base_files,
+        )
+        _, table = next(generator)
+
+    table.validate(full=True)
+    dataset = Dataset(table)
+    mapped_dataset = dataset.map(lambda example: example)
+    assert mapped_dataset.num_rows == 3
+    assert mapped_dataset.to_dict() == {"col_1": [-1, 1, 10], "col_2": [None, 2, 20]}
+
+
+def test_json_leading_null_in_list_recovery_real_data(tmp_path):
+    jsonl_file = tmp_path / "leading_null.jsonl"
+    jsonl_file.write_bytes(b'{"a": [null, 1]}\n{"a": [2]}\n')
+
+    dataset = Dataset.from_json(str(jsonl_file), chunksize=1 << 20, cache_dir=str(tmp_path / "cache"))
+
+    assert dataset.data.validate(full=True) is None
+    assert len(dataset) == 2
+    assert dataset[0]["a"] == [None, 1]
+    mapped_dataset = dataset.map(lambda example: example)
+    assert mapped_dataset.to_dict() == {"a": [[None, 1], [2]]}
 
 
 @pytest.mark.parametrize(
