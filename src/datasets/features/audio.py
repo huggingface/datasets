@@ -103,12 +103,6 @@ class Audio:
         Returns:
             `dict`
         """
-        try:
-            import torch
-            from torchcodec.encoders import AudioEncoder  # needed to write audio files
-        except ImportError as err:
-            raise ImportError("To support encoding audio data, please install 'torchcodec'.") from err
-
         if value is None:
             raise ValueError("value must be provided")
 
@@ -128,6 +122,7 @@ class Audio:
             return encode_torchcodec_audio(value)
         elif "array" in value:
             # convert the audio array to wav bytes
+            torch, AudioEncoder = _import_torch_and_audio_encoder()
             buffer = BytesIO()
             AudioEncoder(
                 torch.from_numpy(value["array"].astype(np.float32)), sample_rate=value["sampling_rate"]
@@ -146,6 +141,7 @@ class Audio:
                 else:
                     bytes_value = np.memmap(value["path"], dtype="h", mode="r").astype(np.float32) / 32767
 
+                torch, AudioEncoder = _import_torch_and_audio_encoder()
                 buffer = BytesIO()
                 AudioEncoder(torch.from_numpy(bytes_value), sample_rate=value["sampling_rate"]).to_file_like(
                     buffer, format="wav", num_channels=self.num_channels
@@ -363,3 +359,12 @@ def encode_torchcodec_audio(audio: "AudioDecoder") -> dict:
             buffer, format="wav", num_channels=num_channels
         )
         return {"bytes": buffer.getvalue(), "path": None}
+
+
+def _import_torch_and_audio_encoder():
+    try:
+        import torch
+        from torchcodec.encoders import AudioEncoder  # needed to write audio files
+    except ImportError as err:
+        raise ImportError("To support encoding audio data, please install 'torchcodec'.") from err
+    return torch, AudioEncoder
