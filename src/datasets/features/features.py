@@ -880,6 +880,22 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
     def construct_array_type(cls):
         return PandasArrayExtensionArray
 
+    @classmethod
+    def construct_from_string(cls, string: str) -> "PandasArrayExtensionDtype":
+        # `name` is an instance property (`array[<dtype>]`), so the base
+        # implementation's `assert isinstance(cls.name, str)` fails. Pandas
+        # treats TypeError as "not this dtype" in ExtensionDtype.__eq__.
+        if not isinstance(string, str):
+            raise TypeError(f"'construct_from_string' expects a string, got {type(string)}")
+        match = re.fullmatch(r"array\[(.+)\]", string)
+        if match is None:
+            raise TypeError(f"Cannot construct a '{cls.__name__}' from '{string}'")
+        try:
+            value_type = np.dtype(match.group(1))
+        except TypeError:
+            raise TypeError(f"Cannot construct a '{cls.__name__}' from '{string}'") from None
+        return cls(value_type)
+
     @property
     def type(self) -> type:
         return np.ndarray
