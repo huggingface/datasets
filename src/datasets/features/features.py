@@ -2484,7 +2484,7 @@ def _align_features(features_list: list[Features]) -> list[Features]:
     name2feature = {}
     for features in features_list:
         for k, v in features.items():
-            if k in name2feature and isinstance(v, dict):
+            if k in name2feature and isinstance(name2feature[k], dict) and isinstance(v, dict):
                 # Recursively align features.
                 name2feature[k] = _align_features([name2feature[k], v])[0]
             elif k not in name2feature or _is_null_feature(name2feature[k]):
