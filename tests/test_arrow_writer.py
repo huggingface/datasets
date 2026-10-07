@@ -14,6 +14,7 @@ from datasets import config
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence
 from datasets.features import Array2D, ClassLabel, Features, Image, List, Value
 from datasets.features.features import Array2DExtensionType, cast_to_python_objects
+from datasets.table import CastError
 
 from .utils import require_pil
 
@@ -201,6 +202,84 @@ def test_write_row(fields, writer_batch_size):
         fields = {"col_1": pa.string(), "col_2": pa.int64()}
     assert writer._schema == pa.schema(fields, metadata=writer._schema.metadata)
     _check_output(output.getvalue(), expected_num_chunks=num_examples if writer_batch_size == 1 else 1)
+
+
+@pytest.mark.parametrize("writer_batch_size", [1, 10])
+@pytest.mark.parametrize(
+    "rows, expected",
+    [
+        (
+            [pa.table({"a": [1], "b": [2]}), pa.table({"b": [4], "a": [3]})],
+            [{"a": 1, "b": 2}, {"a": 3, "b": 4}],
+        ),
+        (
+            [pa.table({"a": [1], "b": [2]}), pa.table({"a": [3]})],
+            [{"a": 1, "b": 2}, {"a": 3, "b": None}],
+        ),
+    ],
+)
+def test_write_row_with_different_schemas(rows, expected, writer_batch_size):
+    output = pa.BufferOutputStream()
+    with ArrowWriter(stream=output, writer_batch_size=writer_batch_size) as writer:
+        for row in rows:
+            writer.write_row(row)
+        writer.finalize()
+    table = pa.ipc.open_stream(output.getvalue()).read_all()
+    assert table.to_pylist() == expected
+    assert len(table.to_batches()) == (2 if writer_batch_size == 1 else 1)
+
+
+def test_write_row_with_features_preserves_semantic_metadata():
+    output = pa.BufferOutputStream()
+    features = Features({"label": ClassLabel(names=["negative", "positive"]), "value": Value("int32")})
+    with ArrowWriter(stream=output, features=features, update_features=True) as writer:
+        writer.write_row(pa.table({"label": [1], "value": [2]}))
+        writer.write_row(pa.table({"value": [4], "label": [0]}))
+        writer.finalize()
+    table = pa.ipc.open_stream(output.getvalue()).read_all()
+    assert table.to_pylist() == [{"label": 1, "value": 2}, {"label": 0, "value": 4}]
+    assert Features.from_arrow_schema(table.schema)["label"] == features["label"]
+
+
+def test_write_row_with_schema_casts_and_fills_missing_columns():
+    output = pa.BufferOutputStream()
+    schema = pa.schema({"a": pa.int32(), "b": pa.int64()})
+    with ArrowWriter(stream=output, schema=schema) as writer:
+        writer.write_row(pa.table({"a": [1], "b": [2]}))
+        writer.write_row(pa.table({"a": ["3"]}))
+        writer.finalize()
+    table = pa.ipc.open_stream(output.getvalue()).read_all()
+    assert table.to_pylist() == [{"a": 1, "b": 2}, {"a": 3, "b": None}]
+    assert table.schema.field("a").type == pa.int32()
+
+
+def test_write_row_with_existing_writer_schema():
+    output = pa.BufferOutputStream()
+    features = Features({"a": Value("int32"), "b": Value("int64")})
+    with ArrowWriter(stream=output, features=features) as writer:
+        writer.write_table(pa.table({"a": [1], "b": [2]}))
+        writer.write_row(pa.table({"b": [4], "a": [3]}))
+        writer.write_row(pa.table({"a": [5]}))
+        writer.finalize()
+    table = pa.ipc.open_stream(output.getvalue()).read_all()
+    assert table.to_pylist() == [{"a": 1, "b": 2}, {"a": 3, "b": 4}, {"a": 5, "b": None}]
+    assert table.schema.field("a").type == pa.int32()
+
+
+@pytest.mark.parametrize(
+    "rows, expected_error",
+    [
+        ([pa.table({"a": [1]}), pa.table({"a": [2], "b": [3]})], CastError),
+        ([pa.table({"a": [1]}), pa.table({"a": ["not-an-integer"]})], pa.ArrowInvalid),
+        ([pa.table({"a": [None]}), pa.table({"a": [1]})], TypeError),
+    ],
+)
+def test_write_row_with_different_schemas_rejects_invalid_casts(rows, expected_error):
+    with ArrowWriter(stream=pa.BufferOutputStream()) as writer:
+        for row in rows:
+            writer.write_row(row)
+        with pytest.raises(expected_error):
+            writer.finalize()
 
 
 def test_write_batch_null_column_stays_null():
