@@ -73,3 +73,39 @@ def test_dataset_with_pdf_feature(shared_datadir):
     item = dset[0]
     assert item.keys() == {"pdf"}
     assert isinstance(item["pdf"], pdfplumber.pdf.PDF)
+
+
+@require_pdfplumber
+@pytest.mark.parametrize("position", [0, 19])
+def test_pdf_feature_encode_in_memory_pdf(shared_datadir, position):
+    import pdfplumber
+
+    data = (shared_datadir / "test_pdf.pdf").read_bytes()
+    with pdfplumber.open(BytesIO(data)) as pdf:
+        pdf.stream.seek(position)
+        encoded = Pdf().encode_example(pdf)
+        assert encoded == {"path": None, "bytes": data}
+        assert pdf.stream.tell() == position
+        assert not pdf.stream.closed
+        assert Pdf().encode_example(pdf) == encoded
+        decoded = Pdf().decode_example(encoded)
+        assert decoded.pages[0].extract_text() == pdf.pages[0].extract_text()
+
+
+@require_pdfplumber
+@pytest.mark.parametrize("operation", ["from_dict", "map"])
+def test_dataset_with_in_memory_pdf(shared_datadir, operation):
+    import pdfplumber
+
+    data = (shared_datadir / "test_pdf.pdf").read_bytes()
+    features = Features({"pdf": Pdf()})
+    with pdfplumber.open(BytesIO(data)) as pdf:
+        if operation == "from_dict":
+            dataset = Dataset.from_dict({"pdf": [pdf]}, features=features)
+        else:
+            dataset = Dataset.from_dict({"pdf": [data]}, features=features).map(
+                lambda example: {"pdf": example["pdf"]}
+            )
+        encoded = dataset.cast_column("pdf", Pdf(decode=False))[0]["pdf"]
+        assert encoded == {"path": None, "bytes": data}
+        assert dataset[0]["pdf"].pages[0].extract_text() == pdf.pages[0].extract_text()
