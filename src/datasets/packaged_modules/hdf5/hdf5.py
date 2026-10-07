@@ -348,7 +348,11 @@ def _check_dataset_lengths(h5_obj, features: Features) -> int:
     for path, dset in _iter_with_links(h5_obj):
         if path not in features:
             continue
-        if _is_dataset(dset):
+        if _is_group(dset):
+            group_num_rows = _check_dataset_lengths(dset, features[path])
+            if group_num_rows is not None and group_num_rows != num_rows:
+                raise ValueError(f"Group '{path}' has length {group_num_rows} but expected {num_rows}")
+        elif _is_dataset(dset):
             if dset.shape[0] != num_rows:
                 raise ValueError(f"Dataset '{path}' has length {dset.shape[0]} but expected {num_rows}")
     return num_rows
