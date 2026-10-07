@@ -42,7 +42,6 @@ class FullReadDisallowed(Exception):
     pass
 
 
-@dataclass
 class JsonConfig(datasets.BuilderConfig):
     """BuilderConfig for JSON."""
 
@@ -56,9 +55,35 @@ class JsonConfig(datasets.BuilderConfig):
     newlines_in_values: Optional[bool] = None
     on_mixed_types: Optional[Literal["use_json"]] = "use_json"
     parse_agent_traces: bool = True
+    return_file_name: bool = False
 
-    def __post_init__(self):
-        super().__post_init__()
+    def __init__(
+        self,
+        features: Optional[datasets.Features] = None,
+        encoding: str = "utf-8",
+        encoding_errors: Optional[str] = None,
+        field: Optional[str] = None,
+        use_threads: bool = True,
+        block_size: Optional[int] = None,
+        chunksize: int = 10 << 20,
+        newlines_in_values: Optional[bool] = None,
+        on_mixed_types: Optional[Literal["use_json"]] = "use_json",
+        parse_agent_traces: bool = True,
+        return_file_name: bool = False,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.features = features
+        self.encoding = encoding
+        self.encoding_errors = encoding_errors
+        self.field = field
+        self.use_threads = use_threads
+        self.block_size = block_size
+        self.chunksize = chunksize
+        self.newlines_in_values = newlines_in_values
+        self.on_mixed_types = on_mixed_types
+        self.parse_agent_traces = parse_agent_traces
+        self.return_file_name = return_file_name
 
 
 class Json(datasets.ArrowBasedBuilder):
@@ -75,6 +100,14 @@ class Json(datasets.ArrowBasedBuilder):
         if self.config.newlines_in_values is not None:
             raise ValueError("The JSON loader parameter `newlines_in_values` is no longer supported")
         return datasets.DatasetInfo(features=self.config.features)
+
+    def _add_file_name_column(self, pa_table: pa.Table, file_path: str) -> pa.Table:
+        """Add a column with the file name to the table if return_file_name is enabled."""
+        if not self.config.return_file_name:
+            return pa_table
+        file_name = os.path.basename(file_path)
+        file_name_array = pa.array([file_name] * len(pa_table), type=pa.string())
+        return pa_table.append_column("file_name", file_name_array)
 
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
@@ -166,7 +199,9 @@ class Json(datasets.ArrowBasedBuilder):
                     if df.columns.tolist() == [0]:
                         df.columns = list(self.config.features) if self.config.features else ["text"]
                     pa_table = pa.Table.from_pandas(df, preserve_index=False)
-                    yield Key(shard_idx, 0), self._cast_table(pa_table)
+                    yield Key(shard_idx, 0), self._cast_table(
+                        self._add_file_name_column(pa_table, file),
+                    )
 
                 # If the files are agent traces (one row = one file except for hermes which can have multiple sessions per file)
                 elif is_agent_traces:
@@ -218,7 +253,9 @@ class Json(datasets.ArrowBasedBuilder):
                             example = json_encode_field(example, json_field_path)
                         examples.append(example)
                     pa_table = pa.Table.from_pylist(examples)
-                    yield Key(shard_idx, 0), self._cast_table(pa_table)
+                    yield Key(shard_idx, 0), self._cast_table(
+                        self._add_file_name_column(pa_table, file),
+                    )
 
                 # If the file has one json object per line
                 else:
@@ -340,7 +377,10 @@ class Json(datasets.ArrowBasedBuilder):
                                 break
                             yield (
                                 Key(shard_idx, batch_idx),
-                                self._cast_table(pa_table, json_field_paths=json_field_paths),
+                                self._cast_table(
+                                    self._add_file_name_column(pa_table, file),
+                                    json_field_paths=json_field_paths,
+                                ),
                             )
                             batch_idx += 1
 
