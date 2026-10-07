@@ -69,7 +69,7 @@ int32 i4
 int64 i8
 uint8 u1
 uint16 u2
-unit32 u4
+uint32 u4
 uint64 u8
 """.strip()
 long_to_short = [x.split() for x in long_to_short.split("\n")]
