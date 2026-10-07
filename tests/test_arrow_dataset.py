@@ -3675,6 +3675,28 @@ def test_sort_with_none(null_placement):
         assert dataset["col_1"] == ["item_1", "item_2", "item_3", "item_4", None, None]
 
 
+@pytest.mark.parametrize("reordered", [False, True])
+@pytest.mark.parametrize("contiguous", [True, False])
+@pytest.mark.parametrize("num_rows, num_shards", [(1, 4), (3, 5), (5, 5), (7, 3)])
+def test_shard_partitions_the_rows_even_with_more_shards_than_rows(num_rows, num_shards, contiguous, reordered):
+    dset = Dataset.from_dict({"x": list(range(num_rows))})
+    if reordered:
+        dset = dset.select(reversed(range(num_rows)))
+    shards = [dset.shard(num_shards=num_shards, index=i, contiguous=contiguous) for i in range(num_shards)]
+    assert sorted(x for shard in shards for x in shard["x"]) == list(range(num_rows))
+    sizes = [len(shard) for shard in shards]
+    assert max(sizes) - min(sizes) <= 1
+    assert all(shard.features == dset.features for shard in shards)
+
+
+@pytest.mark.parametrize("start", [0, 2, 3, 10])
+def test_select_empty_range_is_an_empty_dataset(start):
+    dset = Dataset.from_dict({"x": [0, 1, 2]})
+    selected = dset.select(range(start, start))
+    assert len(selected) == 0
+    assert selected.features == dset.features
+
+
 def test_update_metadata_with_features(dataset_dict):
     table1 = pa.Table.from_pydict(dataset_dict)
     features1 = Features.from_arrow_schema(table1.schema)
