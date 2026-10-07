@@ -131,6 +131,33 @@ def test_encode_nibabel_image(shared_datadir):
 
 
 @require_nibabel
+@pytest.mark.parametrize("from_bytes", [False, True])
+def test_encode_in_memory_nibabel_image(from_bytes):
+    import nibabel
+    import numpy as np
+
+    data = np.arange(24, dtype=np.int16).reshape(2, 3, 4)
+    affine = np.diag([2.0, 3.0, 4.0, 1.0])
+    image = nibabel.Nifti1Image(data, affine)
+    if from_bytes:
+        image = nibabel.Nifti1Image.from_bytes(image.to_bytes())
+    assert image.file_map["image"].filename is None
+
+    feature = Nifti()
+    encoded = feature.encode_example(image)
+    assert encoded["path"] is None
+    assert encoded["bytes"] is not None
+    decoded = feature.decode_example(encoded)
+    np.testing.assert_array_equal(decoded.get_fdata(), data)
+    np.testing.assert_array_equal(decoded.affine, affine)
+    assert decoded.header == image.header
+
+    dataset = Dataset.from_dict({"nifti": [encoded]}, features=Features({"nifti": feature}))
+    np.testing.assert_array_equal(dataset[0]["nifti"].get_fdata(), data)
+    np.testing.assert_array_equal(dataset[0]["nifti"].affine, affine)
+
+
+@require_nibabel
 def test_embed_storage(shared_datadir):
     from io import BytesIO
 
