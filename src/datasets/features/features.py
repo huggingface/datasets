@@ -2449,15 +2449,24 @@ class Features(dict):
         for depth in range(1, max_depth):
             no_change = True
             flattened = self.copy()
+
+            def add_subfields(column_name, subfields):
+                new_fields = {f"{column_name}.{k}": v for k, v in subfields.items()}
+                duplicates = new_fields.keys() & flattened.keys()
+                if duplicates:
+                    raise ValueError(
+                        f"Cannot flatten features: column names would be duplicated: {sorted(duplicates)}"
+                    )
+                flattened.update(new_fields)
+                del flattened[column_name]
+
             for column_name, subfeature in self.items():
                 if isinstance(subfeature, dict):
                     no_change = False
-                    flattened.update({f"{column_name}.{k}": v for k, v in subfeature.items()})
-                    del flattened[column_name]
+                    add_subfields(column_name, subfeature)
                 elif hasattr(subfeature, "flatten") and subfeature.flatten() != subfeature:
                     no_change = False
-                    flattened.update({f"{column_name}.{k}": v for k, v in subfeature.flatten().items()})
-                    del flattened[column_name]
+                    add_subfields(column_name, subfeature.flatten())
             self = flattened
             if no_change:
                 break
