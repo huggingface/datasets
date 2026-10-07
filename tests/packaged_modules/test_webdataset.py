@@ -1,4 +1,7 @@
+import bz2
+import gzip
 import json
+import lzma
 import tarfile
 from pathlib import Path
 
@@ -167,6 +170,34 @@ def test_image_webdataset(image_wds_file):
     assert isinstance(decoded["json"], dict)
     assert isinstance(decoded["json"]["caption"], str)
     assert isinstance(decoded["jpg"], PIL.Image.Image)
+
+
+@require_pil
+@pytest.mark.parametrize("extension, compress", [("gz", gzip.compress), ("bz2", bz2.compress), ("xz", lzma.compress)])
+@pytest.mark.parametrize("image_field", ["jpg", "Camera.Left.JPG"])
+def test_compressed_image_webdataset(tmp_path, image_file, extension, compress, image_field):
+    import PIL.Image
+
+    image_bytes = Path(image_file).read_bytes()
+    compressed_file = tmp_path / f"image.{extension}"
+    compressed_file.write_bytes(compress(image_bytes))
+    field_name = f"{image_field}.{extension.upper()}"
+    tar_path = tmp_path / "images.tar"
+    with tarfile.open(tar_path, "w") as archive:
+        for i in range(2):
+            archive.add(compressed_file, arcname=f"{i:05d}.{field_name}")
+
+    webdataset = WebDataset(data_files={"train": [str(tar_path)]})
+    split_generator = webdataset._split_generators(DownloadManager())[0]
+    assert webdataset.info.features[field_name] == Image()
+    examples = [example for _, example in webdataset._generate_examples(**split_generator.gen_kwargs)]
+    assert len(examples) == 2
+    for i, example in enumerate(examples):
+        assert example[field_name] == {"path": f"{i:05d}.{field_name}", "bytes": image_bytes}
+        decoded = webdataset.info.features.decode_example(webdataset.info.features.encode_example(example))
+        with PIL.Image.open(image_file) as original:
+            assert decoded[field_name].size == original.size
+            assert decoded[field_name].tobytes() == original.tobytes()
 
 
 def test_upper_lower_case(upper_lower_case_file):
