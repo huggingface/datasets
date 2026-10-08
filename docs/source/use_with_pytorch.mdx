@@ -147,6 +147,8 @@ tensor([[ 6.1035e-05,  1.5259e-05,  1.6785e-04,  ..., -1.5259e-05,
 44100
 ```
 
+`samples.data` has shape `(num_channels, num_samples)`, so mono audio still has a leading channel dimension. Unlike `["array"]`, it keeps each channel instead of averaging them into a single waveform.
+
 ## Data loading
 
 Like `torch.utils.data.Dataset` objects, a [`Dataset`] can be passed directly to a PyTorch `DataLoader`:
