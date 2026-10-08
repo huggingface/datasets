@@ -155,18 +155,21 @@ The [`Image`] and [`Audio`] feature types are also supported.
 > To use the [`Audio`] feature type, you'll need to install the `audio` extra as
 > `pip install datasets[audio]`.
 
+Audio is decoded with a TorchCodec `AudioDecoder`, which is returned as is and not converted to a TensorFlow tensor. `["array"]` gives the samples as a NumPy array:
+
 ```py
 >>> from datasets import Dataset, Features, Audio, Image
 >>> audio = ["path/to/audio.wav"] * 10
 >>> features = Features({"audio": Audio()})
 >>> ds = Dataset.from_dict({"audio": audio}, features=features) 
 >>> ds = ds.with_format("tf")  
+>>> ds[0]["audio"]
+<datasets.features._torchcodec.AudioDecoder object at 0x7f12eb336790>
 >>> ds[0]["audio"]["array"]
-<tf.Tensor: shape=(202311,), dtype=float32, numpy=
 array([ 6.1035156e-05,  1.5258789e-05,  1.6784668e-04, ...,
-       -1.5258789e-05, -1.5258789e-05,  1.5258789e-05], dtype=float32)>
+       -1.5258789e-05, -1.5258789e-05,  1.5258789e-05], dtype=float32)
 >>> ds[0]["audio"]["sampling_rate"]
-<tf.Tensor: shape=(), dtype=int32, numpy=44100>
+44100
 ```
 
 ## Data loading
