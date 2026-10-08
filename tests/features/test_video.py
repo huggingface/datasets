@@ -153,3 +153,122 @@ def test_load_dataset_with_video_feature(streaming, jsonl_video_dataset_path, sh
     assert isinstance(item["video"], VideoDecoder)
     assert item["video"].get_frame_at(0).data.shape == (3, 50, 66)
     assert item["video"].metadata.path == video_path
+
+
+@pytest.fixture
+def video_with_audio_path(tmp_path):
+    """Synthesize a tiny video with an audio stream so we can exercise the
+    populated-audio path of the wrapped VideoDecoder."""
+    import torch
+    from torchcodec.encoders import Encoder
+
+    sample_rate = 8000
+    num_channels = 1
+    num_frames = 5
+    frame_rate = 10
+    height, width = 32, 32
+
+    encoder = Encoder()
+    video_stream = encoder.add_video(height=height, width=width, frame_rate=frame_rate)
+    audio_stream = encoder.add_audio(sample_rate=sample_rate, num_channels=num_channels)
+    path = tmp_path / "video_with_audio.mp4"
+    with encoder.open_file(str(path)):
+        video_stream.add_frames(torch.zeros((num_frames, 3, height, width), dtype=torch.uint8))
+        audio_stream.add_samples(torch.zeros((num_channels, sample_rate), dtype=torch.float32))
+    return str(path)
+
+
+@require_torchcodec
+class TestVideoDecoderAudio:
+    """Tests for the `audio` property added to the wrapped VideoDecoder."""
+
+    def test_audio_is_none_for_video_only_source(self, shared_datadir):
+        from datasets.features._torchcodec import VideoDecoder
+
+        video_path = str(shared_datadir / "test_video_66x50.mov")
+        decoder = VideoDecoder(video_path)
+        assert decoder.audio is None
+
+    def test_audio_property_returns_wrapped_audio_decoder(self, video_with_audio_path):
+        import numpy as np
+
+        from datasets.features._torchcodec import AudioDecoder, VideoDecoder
+
+        decoder = VideoDecoder(video_with_audio_path)
+        audio = decoder.audio
+        assert isinstance(audio, AudioDecoder)
+        # The wrapped AudioDecoder exposes array/sampling_rate via __getitem__.
+        assert isinstance(audio["array"], np.ndarray)
+        assert audio["sampling_rate"] == 8000
+
+    def test_audio_for_bytes_source(self, video_with_audio_path):
+        from datasets.features._torchcodec import AudioDecoder, VideoDecoder
+
+        with open(video_with_audio_path, "rb") as f:
+            data = f.read()
+        decoder = VideoDecoder(data)
+        assert isinstance(decoder.audio, AudioDecoder)
+
+    def test_audio_for_file_like_source(self, video_with_audio_path):
+        from datasets.features._torchcodec import AudioDecoder, VideoDecoder
+
+        with open(video_with_audio_path, "rb") as f:
+            decoder = VideoDecoder(f)
+        # Video frames must still be decodable even though the audio decoder
+        # also consumed the same source.
+        assert decoder.get_frame_at(0).data.shape[0] == 3
+        assert isinstance(decoder.audio, AudioDecoder)
+
+    def test_audio_sample_rate_kwarg(self, video_with_audio_path):
+        from datasets.features._torchcodec import VideoDecoder
+
+        decoder = VideoDecoder(video_with_audio_path, audio_sample_rate=16000)
+        assert decoder.audio is not None
+        assert decoder.audio["sampling_rate"] == 16000
+
+    def test_audio_is_none_for_tensor_source(self, shared_datadir):
+        import torch
+
+        from datasets.features._torchcodec import VideoDecoder
+
+        video_path = str(shared_datadir / "test_video_66x50.mov")
+        data = torch.frombuffer(Path(video_path).read_bytes(), dtype=torch.uint8)
+        decoder = VideoDecoder(data)
+        assert decoder.audio is None
+
+    def test_audio_is_cached(self, shared_datadir):
+        from datasets.features._torchcodec import VideoDecoder
+
+        video_path = str(shared_datadir / "test_video_66x50.mov")
+        decoder = VideoDecoder(video_path)
+        # Two accesses must return the same (cached) object — None included.
+        assert decoder.audio is decoder.audio
+
+    def test_file_like_source_is_normalized_to_bytes(self, shared_datadir):
+        from datasets.features._torchcodec import VideoDecoder
+
+        video_path = str(shared_datadir / "test_video_66x50.mov")
+        with open(video_path, "rb") as f:
+            decoder = VideoDecoder(f)
+        # File-likes share a cursor with the audio decoder, so they must be
+        # read into bytes up-front. Decoding a frame after construction proves
+        # the video stream is still readable.
+        assert decoder.get_frame_at(0).data.shape == (3, 50, 66)
+        assert decoder.audio is None
+
+    def test_video_feature_forwards_audio_kwargs(self, shared_datadir):
+        from datasets.features._torchcodec import VideoDecoder
+
+        video_path = str(shared_datadir / "test_video_66x50.mov")
+        feature = Video(audio_stream_index=0, audio_sample_rate=16000, audio_num_channels=1)
+        decoded = feature.decode_example({"path": video_path, "bytes": None})
+        assert isinstance(decoded, VideoDecoder)
+        assert decoded._audio_stream_index == 0
+        assert decoded._audio_sample_rate == 16000
+        assert decoded._audio_num_channels == 1
+
+    def test_video_feature_default_audio_kwargs(self):
+        feature = Video()
+        assert feature.audio_stream_index is None
+        assert feature.audio_sample_rate is None
+        assert feature.audio_num_channels is None
