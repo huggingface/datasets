@@ -949,6 +949,20 @@ def test_load_dataset_streaming_gz_json(jsonl_gz_path):
     assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
 
 
+def test_load_dataset_streaming_skips_origin_metadata(monkeypatch, jsonl_path):
+    import datasets.data_files
+
+    monkeypatch.setattr(
+        datasets.data_files,
+        "_get_origin_metadata",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("_get_origin_metadata called")),
+    )
+
+    ds = load_dataset("json", split="train", data_files=jsonl_path, streaming=True)
+    assert isinstance(ds, IterableDataset)
+    assert next(iter(ds)) == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+
+
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "path",

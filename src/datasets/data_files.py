@@ -583,10 +583,16 @@ class DataFilesList(list[str]):
         base_path: Optional[str] = None,
         allowed_extensions: Optional[list[str]] = None,
         download_config: Optional[DownloadConfig] = None,
+        *,
+        skip_origin_metadata: bool = False,
     ) -> "DataFilesList":
         base_path = f"hf://datasets/{dataset_info.id}@{dataset_info.sha}/{base_path or ''}".rstrip("/")
         return cls.from_patterns(
-            patterns, base_path=base_path, allowed_extensions=allowed_extensions, download_config=download_config
+            patterns,
+            base_path=base_path,
+            allowed_extensions=allowed_extensions,
+            download_config=download_config,
+            skip_origin_metadata=skip_origin_metadata,
         )
 
     @classmethod
@@ -596,10 +602,16 @@ class DataFilesList(list[str]):
         base_path: Optional[str] = None,
         allowed_extensions: Optional[list[str]] = None,
         download_config: Optional[DownloadConfig] = None,
+        *,
+        skip_origin_metadata: bool = False,
     ) -> "DataFilesList":
         base_path = base_path if base_path is not None else Path().resolve().as_posix()
         return cls.from_patterns(
-            patterns, base_path=base_path, allowed_extensions=allowed_extensions, download_config=download_config
+            patterns,
+            base_path=base_path,
+            allowed_extensions=allowed_extensions,
+            download_config=download_config,
+            skip_origin_metadata=skip_origin_metadata,
         )
 
     @classmethod
@@ -609,6 +621,8 @@ class DataFilesList(list[str]):
         base_path: Optional[str] = None,
         allowed_extensions: Optional[list[str]] = None,
         download_config: Optional[DownloadConfig] = None,
+        *,
+        skip_origin_metadata: bool = False,
     ) -> "DataFilesList":
         base_path = base_path if base_path is not None else Path().resolve().as_posix()
         data_files = []
@@ -625,7 +639,11 @@ class DataFilesList(list[str]):
             except FileNotFoundError:
                 if not has_magic(pattern):
                     raise
-        origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
+        origin_metadata = (
+            [()] * len(data_files)
+            if skip_origin_metadata
+            else _get_origin_metadata(data_files, download_config=download_config)
+        )
         return cls(data_files, origin_metadata)
 
     def filter(
@@ -670,6 +688,8 @@ class DataFilesDict(dict[str, DataFilesList]):
         base_path: Optional[str] = None,
         allowed_extensions: Optional[list[str]] = None,
         download_config: Optional[DownloadConfig] = None,
+        *,
+        skip_origin_metadata: bool = False,
     ) -> "DataFilesDict":
         out = cls()
         for key, patterns_for_key in patterns.items():
@@ -681,6 +701,7 @@ class DataFilesDict(dict[str, DataFilesList]):
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
                     download_config=download_config,
+                    skip_origin_metadata=skip_origin_metadata,
                 )
             )
         return out
@@ -693,6 +714,8 @@ class DataFilesDict(dict[str, DataFilesList]):
         base_path: Optional[str] = None,
         allowed_extensions: Optional[list[str]] = None,
         download_config: Optional[DownloadConfig] = None,
+        *,
+        skip_origin_metadata: bool = False,
     ) -> "DataFilesDict":
         out = cls()
         for key, patterns_for_key in patterns.items():
@@ -705,6 +728,7 @@ class DataFilesDict(dict[str, DataFilesList]):
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
                     download_config=download_config,
+                    skip_origin_metadata=skip_origin_metadata,
                 )
             )
         return out
@@ -716,6 +740,8 @@ class DataFilesDict(dict[str, DataFilesList]):
         base_path: Optional[str] = None,
         allowed_extensions: Optional[list[str]] = None,
         download_config: Optional[DownloadConfig] = None,
+        *,
+        skip_origin_metadata: bool = False,
     ) -> "DataFilesDict":
         out = cls()
         for key, patterns_for_key in patterns.items():
@@ -727,6 +753,7 @@ class DataFilesDict(dict[str, DataFilesList]):
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
                     download_config=download_config,
+                    skip_origin_metadata=skip_origin_metadata,
                 )
             )
         return out
