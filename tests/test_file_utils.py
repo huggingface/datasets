@@ -1,5 +1,7 @@
 import os
 import re
+import subprocess
+import sys
 from pathlib import Path
 from unittest.mock import patch
 
@@ -11,7 +13,9 @@ from huggingface_hub.errors import OfflineModeIsEnabled
 
 from datasets.download.download_config import DownloadConfig
 from datasets.utils.file_utils import (
+    _add_retries_to_file_obj_read_method,
     _get_extraction_protocol,
+    _prepare_path_and_storage_options,
     _prepare_single_hop_path_and_storage_options,
     cached_path,
     fsspec_get,
@@ -222,6 +226,19 @@ def test_prepare_single_hop_path_and_storage_options(
     assert storage_options == expected_storage_options
     # Check that DownloadConfig.storage_options are not modified:
     assert str(download_config.storage_options) == original_download_config_storage_options
+
+
+def test_prepare_path_and_storage_options_multiple_hops():
+    urlpath = "zip://data.jsonl::https://domain.org/archive.zip"
+    download_config = DownloadConfig(storage_options={"zip": {"mode": "r"}, "https": {"block_size": "omit"}})
+
+    prepared_urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config)
+
+    assert prepared_urlpath == urlpath
+    assert storage_options == {
+        "zip": {"mode": "r"},
+        "https": {"block_size": "omit", "client_kwargs": {"trust_env": True}},
+    }
 
 
 class DummyTestFS(AbstractFileSystem):
@@ -474,6 +491,30 @@ def test_xopen_remote():
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
     with xPath(TEST_URL).open("r", encoding="utf-8") as f:
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
+
+
+def test_import_datasets_does_not_import_aiohttp():
+    code = "import sys, datasets; assert 'aiohttp' not in sys.modules"
+    subprocess.run([sys.executable, "-c", code], check=True)
+
+
+@patch("datasets.config.STREAMING_READ_RETRY_INTERVAL", 0)
+def test_read_with_retries_retries_aiohttp_client_error():
+    aiohttp = pytest.importorskip("aiohttp")
+
+    class FileObj:
+        num_reads = 0
+
+        def read(self):
+            self.num_reads += 1
+            if self.num_reads == 1:
+                raise aiohttp.ClientPayloadError("disconnected")
+            return b"data"
+
+    file_obj = FileObj()
+    _add_retries_to_file_obj_read_method(file_obj)
+    assert file_obj.read() == b"data"
+    assert file_obj.num_reads == 2
 
 
 @pytest.mark.parametrize(

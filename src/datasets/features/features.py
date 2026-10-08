@@ -42,6 +42,8 @@ from ..utils import experimental, logging
 from ..utils.json import ujson_dumps, ujson_loads
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
+from .bio_sequence import BioSequence, encode_bio_seqrecord
+from .bio_structure import BioStructure, encode_bio_structure
 from .image import Image, encode_pil_image
 from .mesh import Mesh
 from .nifti import Nifti, encode_nibabel_image
@@ -321,6 +323,10 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
     if config.NIBABEL_AVAILABLE and "nibabel" in sys.modules:
         import nibabel as nib
 
+    if config.BIOPYTHON_AVAILABLE and "Bio" in sys.modules:
+        from Bio.PDB.Structure import Structure
+        from Bio.SeqRecord import SeqRecord
+
     if config.TORCHCODEC_AVAILABLE and "torchcodec" in sys.modules:
         from torchcodec.decoders import AudioDecoder, VideoDecoder
 
@@ -396,6 +402,10 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         return encode_pdfplumber_pdf(obj), True
     elif config.NIBABEL_AVAILABLE and "nibabel" in sys.modules and isinstance(obj, nib.analyze.AnalyzeImage):
         return encode_nibabel_image(obj, force_bytes=True), True
+    elif config.BIOPYTHON_AVAILABLE and "Bio" in sys.modules and isinstance(obj, SeqRecord):
+        return encode_bio_seqrecord(obj), True
+    elif config.BIOPYTHON_AVAILABLE and "Bio" in sys.modules and isinstance(obj, Structure):
+        return encode_bio_structure(obj), True
     elif isinstance(obj, pd.Series):
         return (
             _cast_to_python_objects(
@@ -911,6 +921,48 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         else:
             return self._data.astype(dtype)
 
+    def __arrow_array__(self, type=None):
+        """
+        Convert to a PyArrow ExtensionArray (pyarrow's ``__arrow_array__`` protocol).
+
+        Called by ``pa.array`` and ``pa.Table.from_pandas``, for instance in ``Dataset.from_pandas``
+        or when a pandas-formatted ``map`` returns a DataFrame that still has an ArrayXD column.
+        """
+        if isinstance(type, _ArrayXDExtensionType):
+            pa_type = type
+        else:
+            pa_type = self._to_arrow_extension_type()
+        if self._data.dtype == object:
+            # dynamic first dimension: one array per row, np.nan for null rows
+            data = [arr if isinstance(arr, np.ndarray) else None for arr in self._data]
+        else:
+            data = self._data
+        storage = to_pyarrow_listarray(data, pa_type)
+        if type is not None and not isinstance(type, _ArrayXDExtensionType):
+            return storage.cast(type)
+        return pa.ExtensionArray.from_storage(pa_type, storage)
+
+    def _to_arrow_extension_type(self) -> "_ArrayXDExtensionType":
+        if self._data.dtype == object:
+            first_arr = next((arr for arr in self._data if isinstance(arr, np.ndarray)), None)
+            if first_arr is None:
+                raise ValueError(
+                    "Cannot infer the Arrow type of a PandasArrayExtensionArray that only has null values, "
+                    "please pass the type explicitly."
+                )
+            shape, value_type = (None, *first_arr.shape[1:]), first_arr.dtype
+        else:
+            shape, value_type = self._data.shape[1:], self._data.dtype
+        extension_types = {
+            2: Array2DExtensionType,
+            3: Array3DExtensionType,
+            4: Array4DExtensionType,
+            5: Array5DExtensionType,
+        }
+        if len(shape) not in extension_types:
+            raise ValueError(f"Unsupported number of dimensions for an ArrayXD column: {len(shape)} (shape={shape})")
+        return extension_types[len(shape)](shape, str(value_type))
+
     def copy(self, deep: bool = False) -> "PandasArrayExtensionArray":
         return PandasArrayExtensionArray(self._data, copy=True)
 
@@ -1276,7 +1328,11 @@ class Json:
         """
         if isinstance(storage, pa.JsonArray):
             return storage
-        elif isinstance(storage, (pa.StringArray)):
+        elif (
+            pa.types.is_string(storage.type)
+            or pa.types.is_large_string(storage.type)
+            or pa.types.is_string_view(storage.type)
+        ):
             items = storage[:5].to_pylist()
             try:
                 for item in items:
@@ -1393,6 +1449,8 @@ FeatureType = Union[
     Video,
     Pdf,
     Nifti,
+    BioSequence,
+    BioStructure,
 ]
 
 
@@ -1555,6 +1613,8 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     Video.__name__: Video,
     Pdf.__name__: Pdf,
     Nifti.__name__: Nifti,
+    BioSequence.__name__: BioSequence,
+    BioStructure.__name__: BioStructure,
     Json.__name__: Json,
 }
 

@@ -205,7 +205,7 @@ For more details on using the library, check the [quick start guide](https://hug
   - [Processing audio data](https://huggingface.co/docs/datasets/audio_process)
   - [Processing image data](https://huggingface.co/docs/datasets/image_process)
   - [Processing text data](https://huggingface.co/docs/datasets/nlp_process)
-  - [Processing PDF data](https://huggingface.co/docs/datasets/pdf_process)
+  - [Processing PDF data](https://huggingface.co/docs/datasets/document_dataset)
   - [Processing video data](https://huggingface.co/docs/datasets/video_process)
 - [Streaming a dataset](https://huggingface.co/docs/datasets/stream)
 

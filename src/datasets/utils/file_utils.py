@@ -13,6 +13,7 @@ import os
 import posixpath
 import re
 import shutil
+import sys
 import tarfile
 import time
 import xml.dom.minidom
@@ -27,13 +28,11 @@ from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
 import fsspec
-import httpx
 import huggingface_hub
 import huggingface_hub.errors
-import requests
 from fsspec.core import strip_protocol, url_to_fs
 from fsspec.utils import can_be_local
-from huggingface_hub.utils import get_session, insecure_hashlib
+from huggingface_hub.utils import get_session, httpx, insecure_hashlib
 from packaging import version
 
 from .. import __version__, config
@@ -45,16 +44,6 @@ from .extract import ExtractManager
 from .track import TrackedIterableFromGenerator
 
 
-try:
-    from aiohttp.client_exceptions import ClientError as _AiohttpClientError
-except ImportError:
-    # aiohttp is not available; synthesize an exception type
-    # that will never be raised by any actual code for use in the `except`
-    # clause only.
-    class _AiohttpClientError(Exception):
-        pass
-
-
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
 INCOMPLETE_SUFFIX = ".incomplete"
@@ -62,14 +51,20 @@ INCOMPLETE_SUFFIX = ".incomplete"
 T = TypeVar("T", str, Path)
 
 CONNECTION_ERRORS_TO_RETRY = (
-    _AiohttpClientError,
     asyncio.TimeoutError,
-    requests.exceptions.ConnectionError,
-    requests.exceptions.Timeout,
     httpx.RequestError,
 )
 SERVER_UNAVAILABLE_CODE = 504
 RATE_LIMIT_CODE = 429
+
+
+def _get_connection_errors_to_retry() -> tuple[type[Exception], ...]:
+    # aiohttp is slow to import, and it can't have raised an error if it was never imported
+    if "aiohttp" in sys.modules:
+        from aiohttp import ClientError
+
+        return CONNECTION_ERRORS_TO_RETRY + (ClientError,)
+    return CONNECTION_ERRORS_TO_RETRY
 
 
 def is_remote_url(url_or_filename: str) -> bool:
@@ -151,7 +146,7 @@ def cached_path(
         ConnectionError: in case of unreachable url
             and no cache on disk
         ValueError: if it couldn't parse the url or filename correctly
-        httpx.NetworkError or requests.exceptions.ConnectionError: in case of internet connection issue
+        httpx.NetworkError: in case of internet connection issue
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
@@ -191,7 +186,6 @@ def cached_path(
                     revision=resolved_path.revision,
                     filename=resolved_path.path_in_repo,
                     force_download=download_config.force_download,
-                    proxies=download_config.proxies,
                 )
             except (
                 huggingface_hub.utils.RepositoryNotFoundError,
@@ -561,7 +555,7 @@ def _get_extraction_protocol(urlpath: str, download_config: Optional[DownloadCon
     except FileNotFoundError:
         if urlpath.startswith(config.HF_ENDPOINT):
             raise FileNotFoundError(
-                urlpath + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
+                urlpath + "\nIf the repo is private or gated, make sure to log in with `hf auth login`."
             ) from None
         else:
             raise
@@ -843,7 +837,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
             try:
                 out = read(*args, **kwargs)
                 break
-            except CONNECTION_ERRORS_TO_RETRY as err:
+            except _get_connection_errors_to_retry() as err:
                 disconnect_err = err
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
@@ -886,7 +880,7 @@ def _prepare_path_and_storage_options(
         hop, storage_options = _prepare_single_hop_path_and_storage_options(hop, download_config=download_config)
         prepared_urlpath.append(hop)
         prepared_storage_options.update(storage_options)
-    return "::".join(prepared_urlpath), storage_options
+    return "::".join(prepared_urlpath), prepared_storage_options
 
 
 def _prepare_single_hop_path_and_storage_options(
@@ -983,7 +977,7 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
             if hasattr(fs, "of") and hasattr(fs.of, "__exit__"):
                 file_obj._fs = fs  # keep a reference or the fs might close the file on gc
             break
-        except CONNECTION_ERRORS_TO_RETRY as err:
+        except _get_connection_errors_to_retry() as err:
             disconnect_err = err
             logger.warning(
                 f"Failed to connect to remote data host. Retrying in {config.STREAMING_OPEN_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
@@ -1000,7 +994,7 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
         except FileNotFoundError:
             if file.startswith(config.HF_ENDPOINT):
                 raise FileNotFoundError(
-                    file + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
+                    file + "\nIf the repo is private or gated, make sure to log in with `hf auth login`."
                 ) from None
             else:
                 raise
