@@ -56,6 +56,7 @@ class JsonConfig(datasets.BuilderConfig):
     newlines_in_values: Optional[bool] = None
     on_mixed_types: Optional[Literal["use_json"]] = "use_json"
     parse_agent_traces: bool = True
+    return_file_name: bool = False
 
     def __post_init__(self):
         super().__post_init__()
@@ -74,7 +75,11 @@ class Json(datasets.ArrowBasedBuilder):
             )
         if self.config.newlines_in_values is not None:
             raise ValueError("The JSON loader parameter `newlines_in_values` is no longer supported")
-        return datasets.DatasetInfo(features=self.config.features)
+        features = self.config.features
+        if self.config.return_file_name and features is not None:
+            if "file_name" not in features:
+                features = datasets.Features({**features, "file_name": datasets.Value("string")})
+        return datasets.DatasetInfo(features=features)
 
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
@@ -166,6 +171,11 @@ class Json(datasets.ArrowBasedBuilder):
                     if df.columns.tolist() == [0]:
                         df.columns = list(self.config.features) if self.config.features else ["text"]
                     pa_table = pa.Table.from_pandas(df, preserve_index=False)
+                    if self.config.return_file_name:
+                        file_name = os.path.basename(file)
+                        pa_table = pa_table.append_column(
+                            "file_name", pa.array([file_name] * len(pa_table))
+                        )
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
 
                 # If the files are agent traces (one row = one file except for hermes which can have multiple sessions per file)
@@ -218,6 +228,11 @@ class Json(datasets.ArrowBasedBuilder):
                             example = json_encode_field(example, json_field_path)
                         examples.append(example)
                     pa_table = pa.Table.from_pylist(examples)
+                    if self.config.return_file_name:
+                        file_name = os.path.basename(file)
+                        pa_table = pa_table.append_column(
+                            "file_name", pa.array([file_name] * len(pa_table))
+                        )
                     yield Key(shard_idx, 0), self._cast_table(pa_table)
 
                 # If the file has one json object per line
@@ -338,6 +353,11 @@ class Json(datasets.ArrowBasedBuilder):
                                     ) from None
                                 yield Key(shard_idx, 0), self._cast_table(pa_table)
                                 break
+                            if self.config.return_file_name:
+                                file_name = os.path.basename(file)
+                                pa_table = pa_table.append_column(
+                                    "file_name", pa.array([file_name] * len(pa_table))
+                                )
                             yield (
                                 Key(shard_idx, batch_idx),
                                 self._cast_table(pa_table, json_field_paths=json_field_paths),
