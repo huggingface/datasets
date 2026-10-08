@@ -2,6 +2,7 @@ import json
 import os
 import pickle
 import subprocess
+import sys
 from functools import partial
 from pathlib import Path
 from tempfile import gettempdir
@@ -413,8 +414,8 @@ def test_move_script_doesnt_change_hash(tmp_path: Path):
         f.write(code)
     with script_path2.open("w") as f:
         f.write(code)
-    fingerprint1 = subprocess.check_output(["python", str(script_path1)])
-    fingerprint2 = subprocess.check_output(["python", str(script_path2)])
+    fingerprint1 = subprocess.check_output([sys.executable, str(script_path1)])
+    fingerprint2 = subprocess.check_output([sys.executable, str(script_path2)])
     assert fingerprint1 == fingerprint2
 
 
