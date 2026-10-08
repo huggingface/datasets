@@ -5167,6 +5167,20 @@ def test_dataset_save_to_disk_with_large_list(tmp_path):
     assert (dataset_path / "data-00000-of-00001.arrow").exists()
 
 
+@pytest.mark.parametrize(
+    "make_empty",
+    [lambda ds: ds.select([]), lambda ds: ds.take(0), lambda ds: ds.filter(lambda _: False)],
+    ids=["select", "take", "filter"],
+)
+def test_dataset_save_to_disk_and_load_from_disk_round_trip_empty(make_empty, tmp_path):
+    ds = make_empty(Dataset.from_dict({"col_1": [1, 2, 3], "col_2": ["a", "b", "c"]}))
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path)
+    loaded_ds = load_from_disk(dataset_path)
+    assert len(loaded_ds) == 0
+    assert loaded_ds.features == ds.features
+
+
 def test_dataset_save_to_disk_and_load_from_disk_round_trip_with_large_list(tmp_path):
     data = {"col_1": [[1, 2], [3, 4]]}
     features = Features({"col_1": LargeList(Value("int64"))})
