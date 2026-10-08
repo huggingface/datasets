@@ -1568,7 +1568,10 @@ class GeneratorBasedBuilder(DatasetBuilder):
             # Ignore the writer's error for no examples written to the file if this error was caused by the error in _generate_examples before the first example was yielded
             if isinstance(e, SchemaInferenceError) and e.__context__ is not None:
                 e = e.__context__
-            raise DatasetGenerationError("An error occurred while generating the dataset") from e
+            message = "An error occurred while generating the dataset"
+            if isinstance(e, FileNotFoundError):
+                message += f": {e}"
+            raise DatasetGenerationError(message) from e
 
         yield (
             job_id,
