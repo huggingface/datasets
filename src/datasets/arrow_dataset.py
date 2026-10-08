@@ -1281,7 +1281,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_csv(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1421,7 +1421,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_json(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1480,7 +1480,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_parquet(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -1507,7 +1507,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Directory to cache data.
             keep_in_memory (`bool`, defaults to `False`):
                 Whether to copy the data in-memory.
-            columns (`List[str]`, *optional*):
+            columns (`Sequence[str]`, *optional*):
                 If not `None`, only these columns will be read from the file.
                 A column name may be a prefix of a nested field, e.g. 'a' will select
                 'a.b', 'a.c', and 'a.d.e'.
@@ -1516,7 +1516,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
 
                 <Added version="2.8.0"/>
-            filters (`Union[pyarrow.dataset.Expression, list[tuple], list[list[tuple]]]`, *optional*):
+            filters (`Union[pyarrow.dataset.Expression, Sequence[tuple], Sequence[Sequence[tuple]]]`, *optional*):
                 Return only the rows matching the filter.
                 If possible the predicate will be pushed down to exploit the partition information
                 or internal metadata found in the data source, e.g. Parquet statistics.
@@ -1577,7 +1577,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_text(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
@@ -2825,7 +2825,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             type (`str`, *optional*):
                 Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'jax', 'arrow', 'pandas', 'polars']`.
                 `None` means `__getitem__`` returns python objects (default).
-            columns (`List[str]`, *optional*):
+            columns (`Sequence[str]`, *optional*):
                 Columns to format in the output.
                 `None` means `__getitem__` returns all columns (default).
             output_all_columns (`bool`, defaults to `False`):
@@ -2859,7 +2859,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             type (`str`, *optional*):
                 Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'jax', 'arrow', 'pandas', 'polars']`.
                 `None` means `__getitem__` returns python objects (default).
-            columns (`List[str]`, *optional*):
+            columns (`Sequence[str]`, *optional*):
                 Columns to format in the output.
                 `None` means `__getitem__` returns all columns (default).
             output_all_columns (`bool`, defaults to `False`):
@@ -2965,7 +2965,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 User-defined formatting transform, replaces the format defined by [`~datasets.Dataset.set_format`].
                 A formatting function is a callable that takes a batch (as a `dict`) as input and returns a batch.
                 This function is applied right before returning the objects in `__getitem__`.
-            columns (`List[str]`, *optional*):
+            columns (`Sequence[str]`, *optional*):
                 Columns to format in the output.
                 If specified, then the input batch of the transform only contains those columns.
             output_all_columns (`bool`, defaults to `False`):
@@ -3012,7 +3012,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             type (`str`, *optional*):
                 Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'jax', 'arrow', 'pandas', 'polars']`.
                 `None` means `__getitem__` returns python objects (default).
-            columns (`List[str]`, *optional*):
+            columns (`Sequence[str]`, *optional*):
                 Columns to format in the output.
                 `None` means `__getitem__` returns all columns (default).
             output_all_columns (`bool`, defaults to `False`):
