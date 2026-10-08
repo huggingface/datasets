@@ -807,3 +807,184 @@ def test_json_load_dataset_without_droid_marker_stays_ordinary_json(tmp_path):
 
     assert dataset.column_names == ["type", "id", "version", "timestamp", "message"]
     assert dataset[0]["type"] == "session_start"
+
+
+# Regression tests for #6937 (float-to-int coercion in the field= JSON loader).
+
+
+@pytest.fixture
+def json_file_with_integer_valued_floats_field(tmp_path):
+    path = tmp_path / "file_with_int_valued_floats_field.json"
+    data = textwrap.dedent(
+        """\
+        {
+            "data": [
+                {"col": 0.0},
+                {"col": 1.0},
+                {"col": 2.0}
+            ]
+        }
+        """
+    )
+    with open(path, "w") as f:
+        f.write(data)
+    return str(path)
+
+
+@pytest.fixture
+def json_file_with_integer_valued_floats_list(tmp_path):
+    path = tmp_path / "file_with_int_valued_floats_list.json"
+    data = textwrap.dedent(
+        """\
+        {
+            "data": [
+                {"col_int": 0, "col_float": 0.0, "col_mixed": 0.5},
+                {"col_int": 1, "col_float": 1.0, "col_mixed": 1.0},
+                {"col_int": 2, "col_float": 2.0, "col_mixed": 2.0}
+            ]
+        }
+        """
+    )
+    with open(path, "w") as f:
+        f.write(data)
+    return str(path)
+
+
+@pytest.fixture
+def json_file_with_integer_valued_floats_dict_of_lists_field(tmp_path):
+    path = tmp_path / "file_with_int_valued_floats_dict_of_lists.json"
+    data = textwrap.dedent(
+        """\
+        {
+            "data": {
+                "col_float": [0.0, 1.0, 2.0],
+                "col_int": [0, 1, 2]
+            }
+        }
+        """
+    )
+    with open(path, "w") as f:
+        f.write(data)
+    return str(path)
+
+
+def test_json_field_path_preserves_float_columns(
+    json_file_with_integer_valued_floats_field,
+):
+    # #6937 repro: col was getting silently coerced to int64.
+    json = Json(field="data")
+    base_files = [json_file_with_integer_valued_floats_field]
+    files_iterables = [list(base_files)]
+    original_files = list(base_files)
+    generator = json._generate_tables(
+        base_files=base_files, files_iterables=files_iterables, original_files=original_files
+    )
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa_table.schema.field("col").type == pa.float64()
+    assert pa_table.column("col").to_pylist() == [0.0, 1.0, 2.0]
+
+
+def test_json_field_path_preserves_float_columns_alongside_ints(
+    json_file_with_integer_valued_floats_list,
+):
+    json = Json(field="data")
+    base_files = [json_file_with_integer_valued_floats_list]
+    files_iterables = [list(base_files)]
+    original_files = list(base_files)
+    generator = json._generate_tables(
+        base_files=base_files, files_iterables=files_iterables, original_files=original_files
+    )
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa_table.schema.field("col_int").type == pa.int64()
+    assert pa_table.schema.field("col_float").type == pa.float64()
+    assert pa_table.schema.field("col_mixed").type == pa.float64()
+
+
+def test_json_field_path_preserves_float_columns_with_dict_of_lists(
+    json_file_with_integer_valued_floats_dict_of_lists_field,
+):
+    json = Json(field="data")
+    base_files = [json_file_with_integer_valued_floats_dict_of_lists_field]
+    files_iterables = [list(base_files)]
+    original_files = list(base_files)
+    generator = json._generate_tables(
+        base_files=base_files, files_iterables=files_iterables, original_files=original_files
+    )
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa_table.schema.field("col_float").type == pa.float64()
+    assert pa_table.schema.field("col_int").type == pa.int64()
+
+
+def test_json_field_path_preserves_float_columns_with_nulls(tmp_path):
+    # A float column whose only non-null values are integer-valued was also
+    # coerced to int64 by the pandas path.
+    path = tmp_path / "float_with_nulls_field.json"
+    with open(path, "w") as f:
+        f.write(
+            textwrap.dedent(
+                """\
+                {
+                    "data": [
+                        {"col": 1.0},
+                        {"col": null}
+                    ]
+                }
+                """
+            )
+        )
+    json = Json(field="data")
+    base_files = [str(path)]
+    files_iterables = [list(base_files)]
+    original_files = list(base_files)
+    generator = json._generate_tables(
+        base_files=base_files, files_iterables=files_iterables, original_files=original_files
+    )
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa_table.schema.field("col").type == pa.float64()
+    assert pa_table.to_pydict()["col"] == [1.0, None]
+
+
+def test_json_field_path_scalar_list_rejects_over_specified_features(tmp_path):
+    # A scalar list is one column, so `features` declaring more cannot be
+    # satisfied. This used to raise from the pandas `df.columns = ...` rename;
+    # it must not silently return the extra columns as all-null.
+    path = tmp_path / "scalar_list_field.json"
+    with open(path, "w") as f:
+        f.write('{"data": [1, 2, 3]}\n')
+    features = Features({"num": Value("int64"), "extra": Value("string")})
+    json = Json(field="data", features=features)
+    base_files = [str(path)]
+    files_iterables = [list(base_files)]
+    original_files = list(base_files)
+    generator = json._generate_tables(
+        base_files=base_files, files_iterables=files_iterables, original_files=original_files
+    )
+    with pytest.raises(ValueError, match="list of scalars"):
+        pa.concat_tables([table for _, table in generator])
+
+
+def test_json_field_path_preserves_column_order_with_list_of_dicts(tmp_path):
+    # #6913 invariant: keys appear in insertion order, not sorted order.
+    path = tmp_path / "preserve_order_field.json"
+    with open(path, "w") as f:
+        f.write(
+            textwrap.dedent(
+                """\
+                {
+                    "data": [
+                        {"z": 1, "a": 2, "m": 3},
+                        {"z": 4, "a": 5, "m": 6}
+                    ]
+                }
+                """
+            )
+        )
+    json = Json(field="data")
+    base_files = [str(path)]
+    files_iterables = [list(base_files)]
+    original_files = list(base_files)
+    generator = json._generate_tables(
+        base_files=base_files, files_iterables=files_iterables, original_files=original_files
+    )
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa_table.schema.names == ["z", "a", "m"]
