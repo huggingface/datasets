@@ -1346,7 +1346,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ```
         """
         fs: fsspec.AbstractFileSystem
-        fs, _ = url_to_fs(dataset_dict_path, **(storage_options or {}))
+        fs, _ = url_to_fs(str(dataset_dict_path), **(storage_options or {}))
 
         if num_shards is None:
             num_shards = dict.fromkeys(self)
@@ -1405,7 +1405,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ```
         """
         fs: fsspec.AbstractFileSystem
-        fs, dataset_dict_path = url_to_fs(dataset_dict_path, **(storage_options or {}))
+        fs, dataset_dict_path = url_to_fs(str(dataset_dict_path), **(storage_options or {}))
 
         dataset_dict_json_path = posixpath.join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME)
         dataset_state_json_path = posixpath.join(dataset_dict_path, config.DATASET_STATE_JSON_FILENAME)
