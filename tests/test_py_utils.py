@@ -272,6 +272,21 @@ def test_iflatmap_unordered():
         assert len(out) == 4
 
 
+@pytest.mark.parametrize(
+    "string, pattern, expected",
+    [
+        ("train/alice", "(train|test)/{name}", {"name": "alice"}),
+        ("test/alice/42", "(train|test)/{name}/{version}", {"name": "alice", "version": "42"}),
+        ("train/alice", "(?P<split>train|test)/{name}", {"name": "alice"}),
+        ("train/alice", "((train|test))/{name}", {"name": "alice"}),
+        ("train/alice", "(?:train|test)/{name}", {"name": "alice"}),
+        ("other/alice", "(train|test)/{name}", None),
+    ],
+)
+def test_string_to_dict_with_extra_regex_groups(string, pattern, expected):
+    assert string_to_dict(string, pattern) == expected
+
+
 def test_string_to_dict():
     file_name = "dataset/cache-3b163736cf4505085d8b5f9b4c266c26.arrow"
     file_name_prefix, file_name_ext = os.path.splitext(file_name)
