@@ -1835,8 +1835,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
             num_shards = int(dataset_nbytes / max_shard_size) + 1
             num_shards = max(num_shards, num_proc or 1)
-            # if we have only a few large samples, we should only create as many shards as samples
-            num_shards = min(len(self.data), num_shards)
+            # if we have only a few large samples, we should only create as many shards as samples,
+            # but always write at least one shard so that an empty dataset can be loaded back
+            num_shards = max(1, min(len(self.data), num_shards))
 
         fs: fsspec.AbstractFileSystem
         fs, _ = url_to_fs(dataset_path, **(storage_options or {}))
