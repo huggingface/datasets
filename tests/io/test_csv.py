@@ -157,6 +157,23 @@ def test_dataset_to_csv_multiproc(csv_path, tmp_path):
         assert row1 == row2
 
 
+@pytest.mark.parametrize("batch_size", [5, 20])
+@pytest.mark.parametrize("num_proc", [None, 2])
+@pytest.mark.parametrize("index", [False, True])
+@pytest.mark.parametrize("selection", [None, [11, 3, 8, 0, 10, 1, 9]])
+def test_dataset_to_csv_index_independent_of_batch_size(batch_size, num_proc, index, selection, tmp_path):
+    dataset = Dataset.from_dict({"value": list(range(12))})
+    if selection is not None:
+        dataset = dataset.select(selection)
+    expected = dataset.to_pandas().to_csv(index=index, index_label="row").encode("utf-8")
+    output_csv = tmp_path / "out.csv"
+
+    written = dataset.to_csv(output_csv, batch_size=batch_size, num_proc=num_proc, index=index, index_label="row")
+
+    assert output_csv.read_bytes() == expected
+    assert written == len(expected)
+
+
 def test_dataset_to_csv_invalidproc(csv_path, tmp_path):
     cache_dir = tmp_path / "cache"
     output_csv = os.path.join(cache_dir, "tmp.csv")
