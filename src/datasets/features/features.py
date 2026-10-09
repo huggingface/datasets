@@ -1974,8 +1974,14 @@ class Features(dict):
         for column_name, feature in self.items():
             self[column_name] = _visit(feature, _check_old_list)
 
-    __setitem__ = keep_features_dicts_synced(dict.__setitem__)
-    __delitem__ = keep_features_dicts_synced(dict.__delitem__)
+    def __setitem__(self, column_name: str, feature: FeatureType):
+        super().__setitem__(column_name, feature)
+        self._column_requires_decoding[column_name] = require_decoding(feature)
+
+    def __delitem__(self, column_name: str):
+        super().__delitem__(column_name)
+        del self._column_requires_decoding[column_name]
+
     update = keep_features_dicts_synced(dict.update)
     setdefault = keep_features_dicts_synced(dict.setdefault)
     pop = keep_features_dicts_synced(dict.pop)

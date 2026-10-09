@@ -294,6 +294,22 @@ class FeaturesTest(TestCase):
         features.clear()
         assert_features_dicts_are_synced(features)
 
+    def test_features_setitem_updates_requires_decoding(self):
+        features = Features({"a": Value("int32"), "b": Image()})
+        assert features._column_requires_decoding == {"a": False, "b": True}
+        features["a"] = Image()
+        features["b"] = Image(decode=False)
+        features["c"] = {"nested": List(Audio())}
+        assert features._column_requires_decoding == {"a": True, "b": False, "c": True}
+        del features["a"]
+        assert features._column_requires_decoding == {"b": False, "c": True}
+
+    def test_features_init_is_linear_in_number_of_columns(self):
+        num_columns = 200
+        with patch("datasets.features.features.require_decoding", wraps=require_decoding) as mock_require_decoding:
+            Features({f"col_{i}": Value("int32") for i in range(num_columns)})
+        assert mock_require_decoding.call_count <= 2 * num_columns
+
 
 def test_classlabel_init(tmp_path_factory):
     names = ["negative", "positive"]
