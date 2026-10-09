@@ -207,6 +207,30 @@ def test_parquet_write(dataset, tmp_path):
     assert dataset.data.table == output_table
 
 
+def test_parquet_writer_closes_writer_on_failure(dataset, tmp_path):
+    """
+    The pyarrow ParquetWriter must be closed even when a batch write fails,
+    otherwise the export leaks the writer and its file handles.
+    Regression test for #8743.
+    """
+    close_calls = []
+
+    class FailingParquetWriter(pq.ParquetWriter):
+        def write_table(self, table):
+            raise RuntimeError("injected batch failure")
+
+        def close(self):
+            close_calls.append(True)
+            super().close()
+
+    writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet")
+    with unittest.mock.patch("datasets.io.parquet.pq.ParquetWriter", FailingParquetWriter):
+        with pytest.raises(RuntimeError, match="injected batch failure"):
+            writer.write()
+
+    assert close_calls == [True]
+
+
 def test_parquet_write_uses_content_defined_chunking(dataset, tmp_path):
     assert config.DEFAULT_CDC_OPTIONS == {
         "min_chunk_size": 256 * 1024,  # 256 KiB

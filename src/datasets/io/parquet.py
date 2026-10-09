@@ -132,22 +132,28 @@ class ParquetDatasetWriter:
             **parquet_writer_kwargs,
         )
 
-        for offset in hf_tqdm(
-            range(0, len(self.dataset), batch_size),
-            unit="ba",
-            desc="Creating parquet from Arrow format",
-        ):
-            batch = query_table(
-                table=self.dataset._data,
-                key=slice(offset, offset + batch_size),
-                indices=self.dataset._indices,
-            )
-            writer.write_table(batch)
-            written += batch.nbytes
+        try:
+            for offset in hf_tqdm(
+                range(0, len(self.dataset), batch_size),
+                unit="ba",
+                desc="Creating parquet from Arrow format",
+            ):
+                batch = query_table(
+                    table=self.dataset._data,
+                    key=slice(offset, offset + batch_size),
+                    indices=self.dataset._indices,
+                )
+                writer.write_table(batch)
+                written += batch.nbytes
 
-        # TODO(kszucs): we may want to persist multiple parameters
-        if self.use_content_defined_chunking is not False:
-            writer.add_key_value_metadata({"content_defined_chunking": json.dumps(self.use_content_defined_chunking)})
-
-        writer.close()
+            # TODO(kszucs): we may want to persist multiple parameters
+            if self.use_content_defined_chunking is not False:
+                writer.add_key_value_metadata(
+                    {"content_defined_chunking": json.dumps(self.use_content_defined_chunking)}
+                )
+        finally:
+            # Always close the writer, even when a batch write or metadata
+            # persistence fails, so the export does not leak the pyarrow
+            # ParquetWriter (and its underlying file handles).
+            writer.close()
         return written
