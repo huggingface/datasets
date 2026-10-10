@@ -293,6 +293,36 @@ class FormatterTest(TestCase):
         np.testing.assert_equal(batch, {"a": np.array(_COL_A), "b": np.array(_COL_B), "c": np.array(_COL_C)})
         assert batch["c"].shape == np.array(_COL_C).shape
 
+    def test_numpy_formatter_scalar_bool_and_temporal(self):
+        # bool and temporal values must be formatted as numpy scalars like every
+        # other dtype, not wrapped in 0-dimensional (unhashable) arrays
+        pa_table = pa.table(
+            {
+                "bool": pa.array([True, False]),
+                "timestamp": pa.array([datetime.datetime(2023, 1, 1)] * 2, type=pa.timestamp("us")),
+                "duration": pa.array([datetime.timedelta(seconds=1)] * 2, type=pa.duration("us")),
+            }
+        )
+        formatter = NumpyFormatter()
+        row = formatter.format_row(pa_table)
+        self.assertIsInstance(row["bool"], np.bool_)
+        self.assertIsInstance(row["timestamp"], np.datetime64)
+        self.assertIsInstance(row["duration"], np.timedelta64)
+        self.assertEqual(row["bool"], np.bool_(True))
+        self.assertEqual(row["timestamp"], np.datetime64("2023-01-01T00:00:00", "us"))
+        self.assertEqual(row["duration"], np.timedelta64(1_000_000, "us"))
+
+    def test_numpy_formatter_duration_column_keeps_dtype(self):
+        # in numpy, timedelta64 is a subdtype of np.integer: the int64 default dtype
+        # must not strip the timedelta64 dtype from duration columns
+        pa_table = pa.table({"duration": pa.array([datetime.timedelta(seconds=1)] * 2, type=pa.duration("us"))})
+        formatter = NumpyFormatter()
+        col = formatter.format_column(pa_table)
+        self.assertEqual(col.dtype, np.dtype("timedelta64[us]"))
+        batch = formatter.format_batch(pa_table)
+        self.assertEqual(batch["duration"].dtype, np.dtype("timedelta64[us]"))
+        np.testing.assert_array_equal(batch["duration"], np.array([1_000_000] * 2, dtype="timedelta64[us]"))
+
     def test_numpy_formatter_np_array_kwargs(self):
         pa_table = self._create_dummy_table().drop(["b"])
         formatter = NumpyFormatter(dtype=np.float16)
