@@ -1,9 +1,10 @@
 from pathlib import Path
 
+import numpy as np
 import pyarrow as pa
 import pytest
 
-from datasets import Column, Dataset, Features, Mesh, Sequence, concatenate_datasets
+from datasets import Column, Dataset, Features, Mesh, Sequence, concatenate_datasets, load_from_disk
 from datasets.features.features import require_decoding
 
 from ..utils import require_trimesh
@@ -102,6 +103,37 @@ def test_dataset_with_mesh_feature_decode_false(shared_datadir):
     assert item.keys() == {"mesh"}
     assert isinstance(item["mesh"], dict)
     assert item["mesh"]["path"] == mesh_path
+
+
+@require_trimesh
+@pytest.mark.parametrize("file_type", ["glb", "ply", "stl"])
+@pytest.mark.parametrize("batched", [False, True])
+def test_dataset_map_mesh(tmp_path, file_type, batched):
+    import trimesh
+
+    mesh_path = tmp_path / f"box.{file_type}"
+    trimesh.creation.box().export(mesh_path)
+    features = Features({"mesh": Mesh()})
+    dataset = Dataset.from_dict({"mesh": [None, str(mesh_path)]}, features=features)
+
+    def translate(example):
+        meshes = example["mesh"] if batched else [example["mesh"]]
+        for mesh in meshes:
+            if mesh is not None:
+                mesh.apply_translation([2, 3, 4])
+        return example
+
+    mapped = dataset.map(translate, batched=batched, batch_size=2)
+    assert mapped.features == features
+    assert mapped[0]["mesh"] is None
+    np.testing.assert_allclose(mapped[1]["mesh"].bounds, [[1.5, 2.5, 3.5], [2.5, 3.5, 4.5]])
+    np.testing.assert_allclose(dataset[1]["mesh"].bounds, [[-0.5] * 3, [0.5] * 3])
+
+    mapped.save_to_disk(tmp_path / "mapped")
+    restored = load_from_disk(tmp_path / "mapped")
+    assert restored.features == features
+    assert restored[0]["mesh"] is None
+    np.testing.assert_allclose(restored[1]["mesh"].bounds, mapped[1]["mesh"].bounds)
 
 
 @require_trimesh
