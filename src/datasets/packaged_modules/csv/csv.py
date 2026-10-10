@@ -204,3 +204,5 @@ class Csv(datasets.ArrowBasedBuilder):
                 except ValueError as e:
                     logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                     raise
+                finally:
+                    csv_file_reader.close()
