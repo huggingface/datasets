@@ -80,6 +80,19 @@ class Unpicklable:
         raise pickle.PicklingError()
 
 
+@pytest.mark.parametrize("labels", [[0, 1, None], [0, -1, 1, None], [-1], [None, -1, None]])
+def test_align_labels_with_mapping_preserves_unknown_labels(labels):
+    features = Features({"label": ClassLabel(names=["negative", "positive"])})
+    dataset = Dataset.from_dict({"label": labels}, features=features)
+
+    aligned = dataset.align_labels_with_mapping({"POSITIVE": 0, "NEGATIVE": 1}, "label")
+
+    assert aligned["label"][:] == [1 - label if label not in (None, -1) else label for label in labels]
+    assert aligned.features["label"].names == ["POSITIVE", "NEGATIVE"]
+    assert dataset["label"][:] == labels
+    assert dataset.features == features
+
+
 def _normalize_batched_output(batch):
     def to_python(value):
         if isinstance(value, np.ndarray):
