@@ -158,6 +158,51 @@ def _interpolation_search(arr: list[int], x: int) -> int:
     raise IndexError(f"Invalid query '{x}' for size {arr[-1] if len(arr) else 'none'}.")
 
 
+def _gather_ranges_nbytes(array: pa.Array, starts: np.ndarray, stops: np.ndarray) -> Optional[np.ndarray]:
+    """Bound selected row sizes from offsets without copying variable-length payloads."""
+    if isinstance(array, pa.ExtensionArray):
+        return _gather_ranges_nbytes(array.storage, starts, stops)
+    starts, stops = np.asarray(starts, dtype=np.int64), np.asarray(stops, dtype=np.int64)
+    count = stops - starts
+    if pa.types.is_null(array.type) or not len(array):
+        return np.zeros_like(count)
+    # One byte per value conservatively covers the validity bitmap.
+    sizes = count.copy()
+    if pa.types.is_primitive(array.type) or pa.types.is_decimal(array.type):
+        return sizes + (count * array.type.bit_width + 7) // 8
+    if pa.types.is_fixed_size_binary(array.type):
+        return sizes + count * array.type.byte_width
+    if pa.types.is_struct(array.type):
+        for field_index in range(array.type.num_fields):
+            child_sizes = _gather_ranges_nbytes(array.field(field_index), starts, stops)
+            if child_sizes is None:
+                return None
+            sizes += child_sizes
+        return sizes
+    if pa.types.is_fixed_size_list(array.type):
+        child_sizes = _gather_ranges_nbytes(
+            array.values, (starts + array.offset) * array.type.list_size, (stops + array.offset) * array.type.list_size
+        )
+        return None if child_sizes is None else sizes + child_sizes
+    if pa.types.is_string(array.type) or pa.types.is_binary(array.type) or pa.types.is_list(array.type):
+        offset_dtype = np.int32
+    elif (
+        pa.types.is_large_string(array.type)
+        or pa.types.is_large_binary(array.type)
+        or pa.types.is_large_list(array.type)
+    ):
+        offset_dtype = np.int64
+    else:
+        return None
+    offsets = np.frombuffer(array.buffers()[1], dtype=offset_dtype)
+    child_starts, child_stops = offsets[starts + array.offset], offsets[stops + array.offset]
+    sizes += (count + 1) * np.dtype(offset_dtype).itemsize
+    if pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
+        child_sizes = _gather_ranges_nbytes(array.values, child_starts, child_stops)
+        return None if child_sizes is None else sizes + child_sizes
+    return sizes + child_stops - child_starts
+
+
 class IndexedTableMixin:
     def __init__(self, table: pa.Table):
         self._schema: pa.Schema = table.schema
@@ -168,13 +213,57 @@ class IndexedTableMixin:
 
     def fast_gather(self, indices: Union[list[int], np.ndarray]) -> pa.Table:
         """
-        Create a pa.Table by gathering the records at the records at the specified indices. Should be faster
-        than pa.concat_tables(table.fast_slice(int(i) % table.num_rows, 1) for i in indices) since NumPy can compute
-        the binary searches in parallel, highly optimized C
+        Gather rows in the requested order without materializing the source table.
+
+        Dense reads use Arrow's take kernel on individual record batches. Sparse reads keep zero-copy row slices.
         """
         if not len(indices):
             raise ValueError("Indices must be non-empty")
+        indices = np.asarray(indices)
+        if indices.dtype.kind == "u":
+            indices = indices.astype(np.int64)
         batch_indices = np.searchsorted(self._offsets, indices, side="right") - 1
+
+        if len(indices) >= 64 and len(self._schema):
+            first_batch, last_batch = batch_indices.min(), batch_indices.max()
+            # Amortize take's per-batch overhead, and only combine selected rows, not entire source batches.
+            if len(indices) >= 16 * (last_batch - first_batch + 1):
+                try:
+                    order = np.argsort(batch_indices, kind="stable")
+                    sorted_batches = batch_indices[order]
+                    sorted_indices = indices[order]
+                    boundaries = np.concatenate(
+                        ([0], np.flatnonzero(sorted_batches[1:] != sorted_batches[:-1]) + 1, [len(indices)])
+                    )
+                    selections = []
+                    for start, end in zip(boundaries[:-1], boundaries[1:]):
+                        batch = self._batches[sorted_batches[start]]
+                        local_indices = sorted_indices[start:end] - self._offsets[sorted_batches[start]]
+                        row_sizes = np.zeros(len(local_indices), dtype=np.int64)
+                        for column in batch.columns:
+                            sizes = _gather_ranges_nbytes(column, local_indices, local_indices + 1)
+                            if sizes is None:
+                                break
+                            row_sizes += sizes
+                        else:
+                            if np.all(row_sizes <= 4096):
+                                selections.append((batch, local_indices))
+                                continue
+                        break
+                    else:
+                        if first_batch == last_batch:
+                            return pa.Table.from_batches(
+                                [selections[0][0].take(selections[0][1])], schema=self._schema
+                            )
+                        batches = [batch.take(local_indices) for batch, local_indices in selections]
+                        gathered = pa.Table.from_batches(batches, schema=self._schema)
+                        inverse_order = np.empty_like(order)
+                        inverse_order[order] = np.arange(len(indices))
+                        return gathered.take(inverse_order)
+                except (pa.ArrowInvalid, pa.ArrowNotImplementedError, pa.ArrowCapacityError, pa.ArrowMemoryError):
+                    # Keep row slices if take is unavailable or exceeds Arrow's buffer limits.
+                    pass
+
         return pa.Table.from_batches(
             [
                 self._batches[batch_idx].slice(i - self._offsets[batch_idx], 1)

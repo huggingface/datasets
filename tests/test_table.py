@@ -17,6 +17,7 @@ from datasets.table import (
     MemoryMappedTable,
     Table,
     TableBlock,
+    _gather_ranges_nbytes,
     _in_memory_arrow_table_from_buffer,
     _in_memory_arrow_table_from_file,
     _interpolation_search,
@@ -1101,6 +1102,210 @@ def test_indexed_table_mixin():
     assert all(table._offsets.tolist() == np.cumsum([0] + [n_rows_per_chunk] * n_chunks))
     assert table.fast_slice(5) == pa_table.slice(5)
     assert table.fast_slice(2, 13) == pa_table.slice(2, 13)
+
+
+@pytest.mark.parametrize("chunks", [1, 3, 40])
+@pytest.mark.parametrize("selection", ["random", "reversed", "duplicates", "contiguous"])
+@pytest.mark.parametrize("indices_type", [list, np.int64, np.uint64])
+def test_fast_gather_preserves_rows_and_schema(chunks, selection, indices_type):
+    raw = pa.table(
+        {
+            "id": pa.array([None if i % 7 == 0 else i for i in range(120)], type=pa.int64()),
+            "text": [str(i) for i in range(120)],
+            "nested": [{"tokens": [i, i + 1], "label": None if i % 5 == 0 else str(i)} for i in range(120)],
+        },
+        metadata={"source": "fast-gather-test"},
+    )
+    chunked = pa.Table.from_batches(raw.to_batches(max_chunksize=120 // chunks))
+    table = InMemoryTable(chunked)
+    rng = np.random.default_rng(0)
+    indices = {
+        "random": rng.integers(0, 120, 120),
+        "reversed": np.arange(119, -1, -1),
+        "duplicates": np.tile([119, 0, 60, 60], 30),
+        "contiguous": np.arange(120),
+    }[selection]
+    indices = indices.tolist() if indices_type is list else indices.astype(indices_type)
+    result = table.fast_gather(indices)
+    assert result.equals(raw.take(indices))
+    assert result.schema.equals(raw.schema, check_metadata=True)
+
+
+@pytest.mark.parametrize("chunks", [1, 3])
+def test_fast_gather_compacts_selected_batches(chunks):
+    raw = pa.table({"id": np.arange(120)})
+    table = InMemoryTable(pa.Table.from_batches(raw.to_batches(max_chunksize=120 // chunks)))
+    indices = np.random.default_rng(0).permutation(120)
+    result = table.fast_gather(indices)
+    assert result.equals(raw.take(indices))
+    assert len(result.to_batches()) == 1
+
+
+def test_fast_gather_sparse_reads_are_zero_copy():
+    raw = pa.table({"id": np.arange(120), "text": ["large value" * 100] * 120})
+    table = InMemoryTable(pa.Table.from_batches(raw.to_batches(max_chunksize=3)))
+    indices = np.arange(0, 120, 3)
+    with assert_arrow_memory_doesnt_increase():
+        result = table.fast_gather(indices)
+    assert result.equals(raw.take(indices))
+
+
+@pytest.mark.parametrize("chunks", [1, 3])
+def test_fast_gather_large_values_are_zero_copy(chunks):
+    raw = pa.table({"id": np.arange(120), "text": ["large value" * 1000] * 120})
+    table = InMemoryTable(pa.Table.from_batches(raw.to_batches(max_chunksize=120 // chunks)))
+    indices = np.random.default_rng(0).permutation(120)
+    with assert_arrow_memory_doesnt_increase():
+        result = table.fast_gather(indices)
+    assert result.equals(raw.take(indices))
+
+
+@pytest.mark.parametrize("container", ["binary", "struct", "list", "large_list", "fixed_size_list"])
+def test_fast_gather_repeated_large_outlier_is_zero_copy(container):
+    payload = b"x" * 1_048_576
+    if container == "struct":
+        values = [{"bytes": payload, "path": None}] + [{"bytes": b"", "path": None}] * 9999
+        value_type = pa.struct([("bytes", pa.binary()), ("path", pa.string())])
+    elif container in ("list", "large_list", "fixed_size_list"):
+        values = [[payload]] + [[b""]] * 9999
+        value_type = {
+            "list": pa.list_(pa.binary()),
+            "large_list": pa.large_list(pa.binary()),
+            "fixed_size_list": pa.list_(pa.binary(), 1),
+        }[container]
+    else:
+        values = [payload] + [b""] * 9999
+        value_type = pa.binary()
+    raw = pa.table({"payload": pa.array(values, type=value_type)})
+    table = InMemoryTable(raw)
+    with assert_arrow_memory_doesnt_increase():
+        result = table.fast_gather(np.zeros(64, dtype=np.int64))
+    assert result.num_rows == 64
+    assert result.column(0)[0].as_py() == values[0]
+
+
+def test_fast_gather_sliced_nested_arrays():
+    raw = pa.table({"nested": [{"values": [[i, i + 1]], "text": str(i)} for i in range(200)]}).slice(17, 120)
+    table = InMemoryTable(raw)
+    indices = np.random.default_rng(0).permutation(120)
+    result = table.fast_gather(indices)
+    assert result.equals(raw.take(indices))
+    assert len(result.to_batches()) == 1
+
+
+def test_gather_ranges_nbytes_uses_int64_arithmetic():
+    array = MagicMock(spec=pa.Array)
+    array.type = pa.int64()
+    array.__len__.return_value = 100_000_000
+    sizes = _gather_ranges_nbytes(array, np.array([0], dtype=np.int32), np.array([100_000_000], dtype=np.int32))
+    np.testing.assert_array_equal(sizes, [900_000_000])
+
+
+def test_fast_gather_with_empty_batches():
+    batch = pa.record_batch({"id": np.arange(40)})
+    raw = pa.Table.from_batches([batch.slice(0, 0), batch, batch.slice(0, 0)])
+    table = InMemoryTable(raw)
+    indices = np.tile([39, 0], 20)
+    assert table.fast_gather(indices).equals(raw.take(indices))
+
+
+def test_fast_gather_with_extension_array():
+    features = Features({"matrix": Array2D(shape=(2, 2), dtype="int32")})
+    raw = pa.Table.from_pydict(
+        features.encode_batch({"matrix": [[[i, i + 1], [i + 2, i + 3]] for i in range(120)]}),
+        schema=features.arrow_schema,
+    )
+    table = InMemoryTable(pa.Table.from_batches(raw.to_batches(max_chunksize=40)))
+    indices = np.random.default_rng(0).permutation(120)
+    result = table.fast_gather(indices)
+    assert result.equals(raw.take(indices))
+    assert result.schema.equals(raw.schema, check_metadata=True)
+    assert len(result.to_batches()) == 1
+
+
+@pytest.mark.parametrize(
+    "value_type", [pa.string_view(), pa.binary_view(), pa.list_view(pa.int64()), pa.large_list_view(pa.int64())]
+)
+def test_fast_gather_with_view_arrays(value_type):
+    if pa.types.is_string_view(value_type):
+        values = [str(i) for i in range(120)]
+    elif pa.types.is_binary_view(value_type):
+        values = [str(i).encode() for i in range(120)]
+    else:
+        values = [[i, i + 1] for i in range(120)]
+    raw = pa.table({"value": pa.array(values, type=value_type)})
+    table = InMemoryTable(pa.Table.from_batches(raw.to_batches(max_chunksize=40)))
+    indices = np.random.default_rng(0).permutation(120)
+    assert table.fast_gather(indices).column(0).to_pylist() == [values[i] for i in indices]
+
+
+def test_fast_gather_with_nested_dictionaries():
+    batches = [
+        pa.record_batch(
+            [
+                pa.DictionaryArray.from_arrays(
+                    pa.array([0, 1] * 20, type=pa.int8()), pa.array([[str(i)], [str(i + 1)]])
+                )
+            ],
+            names=["category"],
+        )
+        for i in range(3)
+    ]
+    raw = pa.Table.from_batches(batches)
+    indices = np.random.default_rng(0).permutation(120)
+    result = InMemoryTable(raw).fast_gather(indices)
+    expected = [raw.column(0)[int(i)].as_py() for i in indices]
+    assert result.column(0).to_pylist() == expected
+    assert result.schema.equals(raw.schema, check_metadata=True)
+
+
+@pytest.mark.parametrize(
+    "error", [pa.ArrowInvalid, pa.ArrowNotImplementedError, pa.ArrowCapacityError, pa.ArrowMemoryError]
+)
+def test_fast_gather_falls_back_when_take_fails(error):
+    raw = pa.table({"id": np.arange(40)})
+    table = InMemoryTable(raw)
+    batch = table._batches[0]
+    failing_batch = MagicMock()
+    failing_batch.nbytes = batch.nbytes
+    failing_batch.num_rows = batch.num_rows
+    failing_batch.columns = batch.columns
+    failing_batch.take.side_effect = error("take failed")
+    failing_batch.slice.side_effect = batch.slice
+    table._batches[0] = failing_batch
+    indices = np.tile([39, 0], 40)
+    assert table.fast_gather(indices).equals(raw.take(indices))
+    assert failing_batch.take.called
+
+
+def test_fast_gather_without_columns():
+    raw = pa.table({"id": np.arange(40)}).select([])
+    result = InMemoryTable(raw).fast_gather(np.tile([39, 0], 20))
+    assert result.num_rows == 40
+    assert result.num_columns == 0
+
+
+def test_fast_gather_does_not_materialize_source_batches():
+    raw = pa.table({"id": np.arange(1_000_000)})
+    table = InMemoryTable(pa.Table.from_batches(raw.to_batches(max_chunksize=500_000)))
+    indices = np.tile([0, 999_999], 32)
+    original_pool = pa.default_memory_pool()
+    pool = pa.proxy_memory_pool(original_pool)
+    result = None
+    try:
+        pa.set_memory_pool(pool)
+        result = table.fast_gather(indices)
+        assert result.column(0).to_pylist() == indices.tolist()
+        assert pool.max_memory() < 16_384
+    finally:
+        del result
+        pa.set_memory_pool(original_pool)
+
+
+@pytest.mark.parametrize("indices", [[], np.array([], dtype=np.int64)])
+def test_fast_gather_empty_indices(indices):
+    with pytest.raises(ValueError, match="Indices must be non-empty"):
+        InMemoryTable(pa.table({"id": [0]})).fast_gather(indices)
 
 
 def test_cast_integer_array_to_features():
