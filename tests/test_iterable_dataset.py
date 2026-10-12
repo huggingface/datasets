@@ -2854,6 +2854,73 @@ def test_iterable_dataset_map_batched(
     assert next(iter(dataset)) == {"id": 0, "id+1": 1}
 
 
+@pytest.mark.parametrize("format_type", [None, "numpy", "arrow", "pandas", "polars"])
+@pytest.mark.parametrize("batched", [False, True])
+@pytest.mark.parametrize("async_function", [False, True])
+@pytest.mark.parametrize("arrow_backed", [False, True])
+@pytest.mark.parametrize("input_columns", [None, "id"])
+@pytest.mark.parametrize("remove_columns", [None, ["text"]])
+def test_iterable_dataset_map_return_none(
+    format_type, batched, async_function, arrow_backed, input_columns, remove_columns
+):
+    if format_type == "polars" and not config.POLARS_AVAILABLE:
+        pytest.skip("test requires polars")
+    if async_function and format_type in ("arrow", "pandas", "polars"):
+        pytest.skip("table-formatted map does not support async functions")
+    rows = [{"id": i, "text": str(i)} for i in range(5)]
+    features = Features({"id": Value("int32"), "text": Value("string")})
+    if arrow_backed:
+        dataset = Dataset.from_list(rows, features=features).to_iterable_dataset(num_shards=2)
+    else:
+        dataset = IterableDataset.from_generator(lambda: iter(rows), features=features)
+    seen = []
+
+    def function(value, indices, *, offset):
+        if input_columns is None:
+            value = value["id"]
+        if isinstance(value, pa.ChunkedArray):
+            value = value.to_pylist()
+        seen.extend(zip(np.atleast_1d(value).tolist(), np.atleast_1d(indices).tolist()))
+        assert offset == 10
+
+    async def async_function_impl(*args, **kwargs):
+        await asyncio.sleep(0)
+        return function(*args, **kwargs)
+
+    mapped = dataset.with_format(format_type).map(
+        async_function_impl if async_function else function,
+        batched=batched,
+        batch_size=2,
+        with_indices=True,
+        input_columns=input_columns,
+        remove_columns=remove_columns,
+        fn_kwargs={"offset": 10},
+    )
+    assert list(mapped.with_format(None)) == rows
+    assert seen == [(i, i) for i in range(5)]
+
+
+@pytest.mark.parametrize("format_type", [None, "arrow", "pandas"])
+@pytest.mark.parametrize("batched", [False, True])
+def test_iterable_dataset_map_return_none_resume(format_type, batched):
+    rows = [{"id": i} for i in range(7)]
+
+    def make_dataset():
+        return (
+            IterableDataset.from_generator(lambda: iter(rows))
+            .with_format(format_type)
+            .map(lambda example: None, batched=batched, batch_size=3)
+            .with_format(None)
+        )
+
+    dataset = make_dataset()
+    iterator = iter(dataset)
+    consumed = [next(iterator) for _ in range(2)]
+    resumed = make_dataset()
+    resumed.load_state_dict(dataset.state_dict())
+    assert consumed + list(resumed) == rows
+
+
 def test_iterable_dataset_map_complex_features(
     dataset: IterableDataset,
 ):

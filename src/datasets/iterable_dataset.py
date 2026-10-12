@@ -1537,6 +1537,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             return inputs, fn_args, additional_args, self.fn_kwargs
 
         def prepare_outputs(key_example, inputs, processed_inputs):
+            if processed_inputs is None:
+                return inputs
             validate_function_output(processed_inputs)
             # this logic mimics the one in Dataset.map
             if self.remove_columns:
@@ -1721,7 +1723,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     function_args.append(current_idx)
             # then apply the transform
             output = self.function(*function_args, **fn_kwargs)
-            output_table = _table_output_to_arrow(output)
+            output_table = pa_table if output is None else _table_output_to_arrow(output)
             if not isinstance(output_table, pa.Table):
                 raise TypeError(
                     f"Provided `function` which is applied to {formatter.table_type} returns a variable of type "
@@ -1729,7 +1731,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 )
             # we don't need to merge results for consistency with Dataset.map which merges iif both input and output are dicts
             # then remove the unwanted columns
-            if self.remove_columns:
+            if output is not None and self.remove_columns:
                 for column in self.remove_columns:
                     if column in output_table.column_names:
                         output_table = output_table.remove_column(output_table.column_names.index(column))
