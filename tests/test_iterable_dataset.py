@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from functools import partial
 from itertools import chain, cycle, islice
 from pathlib import Path
+from typing import ClassVar
 from unittest.mock import MagicMock, patch
 
 import multiprocess as mp
@@ -26,6 +27,7 @@ from datasets.combine import concatenate_datasets, interleave_datasets
 from datasets.dataset_dict import IterableDatasetDict
 from datasets.distributed import split_dataset_by_node
 from datasets.features import (
+    Audio,
     ClassLabel,
     Features,
     Image,
@@ -58,6 +60,7 @@ from datasets.iterable_dataset import (
     _BaseExamplesIterable,
     _batch_to_examples,
     _convert_to_arrow,
+    _default_decode_num_threads,
     _examples_to_batch,
 )
 
@@ -4170,9 +4173,115 @@ def test_decode():
     ds = ds.decode(True)
     assert next(iter(ds)) == {"i": "decoded"}
     assert DecodableFeature.decode_example_num_calls == 2
+    calls_before_threaded = DecodableFeature.decode_example_num_calls
     ds = ds.decode(num_threads=1)
     assert next(iter(ds)) == {"i": "decoded"}
-    assert DecodableFeature.decode_example_num_calls == 4
+    # the yielded example is decoded once, and the thread pool may also have decoded the next example in advance
+    assert calls_before_threaded + 1 <= DecodableFeature.decode_example_num_calls <= calls_before_threaded + 2
+
+
+@dataclass
+class SlowDecodableFeature:
+    """Decodable feature whose decoding gets faster with the example index, so examples finish out of order."""
+
+    decoded_indexes: ClassVar[list[int]] = []
+
+    def __init__(self):
+        self.decode = True
+
+    def decode_example(self, example, token_per_repo_id=None):
+        index = int(example)
+        # the first examples take the longest to decode: they are yielded last among the ones in flight
+        time.sleep(max(0.0, (10 - index)) / 100)
+        SlowDecodableFeature.decoded_indexes.append(index)
+        return f"decoded-{index}"
+
+    def __call__(self):
+        return pa.string()
+
+
+def test_decode_num_threads():
+    SlowDecodableFeature.decoded_indexes.clear()
+    features = Features({"i": SlowDecodableFeature()})
+    ds = IterableDataset.from_generator(lambda: ({"i": str(i)} for i in range(20)), features=features)
+    expected = [f"decoded-{i}" for i in range(20)]
+    # multithreaded decoding must not reorder examples, even though they finish out of order
+    assert [x["i"] for x in ds.decode(num_threads=8)] == expected
+    assert [x["i"] for x in ds.decode(num_threads=0)] == expected
+    assert SlowDecodableFeature.decoded_indexes != list(range(20)), "the test data must decode out of order"
+
+
+def test_decode_num_threads_can_be_reconfigured():
+    features = Features({"i": DecodableFeature()})
+    ds = IterableDataset.from_generator(lambda: ({"i": str(i)} for i in range(10)), features=features)
+    expected = [{"i": "decoded"} for _ in range(10)]
+    not_decoded = [{"i": str(i)} for i in range(10)]
+    # decoding is configured once: calling `.decode()` again replaces the previous decoding configuration
+    assert list(ds.decode(num_threads=2)) == expected
+    assert list(ds.decode(num_threads=2).decode(num_threads=4)) == expected
+    assert list(ds.decode(num_threads=2).decode()) == expected
+    assert list(ds.decode(num_threads=2).decode(False)) == not_decoded
+    assert list(ds.decode(False).decode(num_threads=2)) == expected
+
+
+def _gen_decodable_examples():
+    yield from ({"i": str(i)} for i in range(10))
+
+
+def test_decode_num_threads_is_picklable():
+    # threaded decoding must not make the dataset unpicklable, e.g. for `to_torch(num_workers=...)`
+    features = Features({"i": DecodableFeature()})
+    ds = IterableDataset.from_generator(_gen_decodable_examples, features=features)
+    ds = pickle.loads(pickle.dumps(ds.decode(num_threads=2)))
+    assert [x["i"] for x in ds] == ["decoded"] * 10
+
+
+@dataclass
+class TokenRecordingDecodableFeature:
+    """Decodable feature that records the `token_per_repo_id` it is decoded with."""
+
+    seen_token_per_repo_id: ClassVar[list] = []
+
+    def __init__(self):
+        self.decode = True
+
+    def decode_example(self, example, token_per_repo_id=None):
+        TokenRecordingDecodableFeature.seen_token_per_repo_id.append(token_per_repo_id)
+        return example
+
+    def __call__(self):
+        return pa.string()
+
+
+def test_decode_num_threads_passes_token_per_repo_id():
+    # media files of private or gated repositories can only be read with the token that was used to load the dataset
+    TokenRecordingDecodableFeature.seen_token_per_repo_id.clear()
+    features = Features({"i": TokenRecordingDecodableFeature()})
+    ds = IterableDataset.from_generator(_gen_decodable_examples, features=features)
+    ds._token_per_repo_id = {"repo_id": "token"}
+    next(iter(ds.decode(num_threads=2)))
+    assert TokenRecordingDecodableFeature.seen_token_per_repo_id[0] == {"repo_id": "token"}
+
+
+def test_default_decode_num_threads():
+    assert _default_decode_num_threads(None) == 0
+    assert _default_decode_num_threads(Features({"i": Value("string")})) == 0
+    assert _default_decode_num_threads(Features({"i": Image(decode=False)})) == 0
+    num_threads = _default_decode_num_threads(Features({"i": Image()}))
+    assert 0 < num_threads <= config.STREAMING_DECODE_MAX_NUM_THREADS
+    # decodable features nested in lists/structs are detected too
+    assert _default_decode_num_threads(Features({"i": [{"nested": Audio()}]})) == num_threads
+
+
+def test_default_decode_num_threads_from_env(monkeypatch):
+    monkeypatch.setattr(config, "STREAMING_DECODE_NUM_THREADS", "0")
+    assert _default_decode_num_threads(Features({"i": Image()})) == 0
+    monkeypatch.setattr(config, "STREAMING_DECODE_NUM_THREADS", "3")
+    assert _default_decode_num_threads(Features({"i": Image()})) == 3
+    monkeypatch.setattr(config, "STREAMING_DECODE_NUM_THREADS", "not-a-number")
+    assert 0 < _default_decode_num_threads(Features({"i": Image()})) <= config.STREAMING_DECODE_MAX_NUM_THREADS
+    # decodable features are still required
+    assert _default_decode_num_threads(Features({"i": Value("string")})) == 0
 
 
 ############################

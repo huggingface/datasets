@@ -266,6 +266,15 @@ ARCHIVES_MAX_NUMBER_FOR_MODULE_INFERENCE = 10
 # Async map functions
 MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL = 1000
 
+# Streaming decoding of media features (Image/Audio/Video/Mesh/...)
+# Number of threads used to fetch and decode media examples while streaming a dataset. "auto" gives
+# min(HF_DATASETS_DECODE_MAX_NUM_THREADS, cpu_count) threads, and is used only for datasets that have decodable
+# features, so that text/tabular datasets are streamed exactly as before. Set it to 0 to decode examples in the main
+# thread. Since examples are decoded in advance, each thread can keep one example in memory: use a lower value to use
+# less memory, and a higher one to overlap more downloads on high latency connections.
+STREAMING_DECODE_NUM_THREADS = os.environ.get("HF_DATASETS_DECODE_NUM_THREADS", "auto")
+STREAMING_DECODE_MAX_NUM_THREADS = 4
+
 # Progress bars
 PBAR_REFRESH_TIME_INTERVAL = 0.05  # 20 progress updates per sec
 

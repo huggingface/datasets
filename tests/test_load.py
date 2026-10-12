@@ -24,12 +24,13 @@ from datasets.dataset_dict import DatasetDict
 from datasets.download.download_config import DownloadConfig
 from datasets.exceptions import DatasetNotFoundError
 from datasets.features import Features, Value
-from datasets.iterable_dataset import IterableDataset
+from datasets.iterable_dataset import IterableDataset, MappedExamplesIterable
 from datasets.load import (
     CachedDatasetModuleFactory,
     HubDatasetModuleFactory,
     LocalDatasetModuleFactory,
     PackagedDatasetModuleFactory,
+    _has_remote_data_files,
     infer_module_for_data_files_list,
     infer_module_for_data_files_list_in_archives,
     load_dataset_builder,
@@ -947,6 +948,64 @@ def test_load_dataset_streaming_gz_json(jsonl_gz_path):
     assert isinstance(ds, IterableDataset)
     ds_item = next(iter(ds))
     assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+
+
+def _write_tiny_image_dir(tmp_path, num_files: int = 3):
+    from PIL import Image as PILImage
+
+    image_dir = tmp_path / "images"
+    image_dir.mkdir()
+    for i in range(num_files):
+        PILImage.new("RGB", (4, 4), color=(i, i, i)).save(image_dir / f"image_{i}.png")
+    return image_dir
+
+
+@require_pil
+def test_load_dataset_streaming_media_is_not_threaded_for_local_data(tmp_path):
+    from PIL import Image as PILImage
+
+    image_dir = _write_tiny_image_dir(tmp_path)
+    ds = load_dataset("imagefolder", split="train", data_files={"train": str(image_dir / "*.png")}, streaming=True)
+    assert isinstance(ds, IterableDataset)
+    # local files are decoded in the main thread: there is no network latency to hide behind other examples
+    assert not isinstance(ds._ex_iterable, MappedExamplesIterable)
+    assert isinstance(next(iter(ds))["image"], PILImage.Image)
+
+
+@require_pil
+def test_load_dataset_streaming_media_is_threaded_for_remote_data(tmp_path, monkeypatch):
+    from PIL import Image as PILImage
+
+    monkeypatch.setattr(datasets.load, "_has_remote_data_files", lambda builder_instance: True)
+    image_dir = _write_tiny_image_dir(tmp_path)
+    data_files = {"train": str(image_dir / "*.png")}
+    ds = load_dataset("imagefolder", split="train", data_files=data_files, streaming=True)
+    # media files are read and decoded in worker threads by default, to overlap network round trips
+    assert isinstance(ds._ex_iterable, MappedExamplesIterable)
+    assert isinstance(next(iter(ds))["image"], PILImage.Image)
+    # ... unless it is disabled with HF_DATASETS_DECODE_NUM_THREADS=0
+    monkeypatch.setattr(datasets.config, "STREAMING_DECODE_NUM_THREADS", "0")
+    ds = load_dataset("imagefolder", split="train", data_files=data_files, streaming=True)
+    assert not isinstance(ds._ex_iterable, MappedExamplesIterable)
+
+
+@pytest.mark.parametrize(
+    ("base_path", "data_files", "expected"),
+    [
+        (None, None, False),
+        ("/local/dataset/dir", None, False),
+        ("file:///local/dataset/dir", None, False),
+        ("hf://datasets/user/repo@main", None, True),
+        ("s3://bucket/dataset/dir", None, True),
+        (None, {"train": ["/local/data.parquet"]}, False),
+        (None, {"train": ["hf://datasets/user/repo/data/*.parquet"]}, True),
+        (None, ["https://example.org/data.csv"], True),
+        (None, [], False),
+    ],
+)
+def test_has_remote_data_files(base_path, data_files, expected):
+    builder_instance = SimpleNamespace(base_path=base_path, config=SimpleNamespace(data_files=data_files))
+    assert _has_remote_data_files(builder_instance) is expected
 
 
 @pytest.mark.integration
