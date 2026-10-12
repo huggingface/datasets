@@ -1980,7 +1980,7 @@ class Features(dict):
 
     def __delitem__(self, column_name: str):
         super().__delitem__(column_name)
-        del self._column_requires_decoding[column_name]
+        self._column_requires_decoding.pop(column_name, None)
 
     update = keep_features_dicts_synced(dict.update)
     setdefault = keep_features_dicts_synced(dict.setdefault)

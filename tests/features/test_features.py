@@ -303,6 +303,10 @@ class FeaturesTest(TestCase):
         assert features._column_requires_decoding == {"a": True, "b": False, "c": True}
         del features["a"]
         assert features._column_requires_decoding == {"b": False, "c": True}
+        # `|=` goes through dict.__ior__ and skips the sync; deleting that column must still work
+        features |= {"d": Image()}
+        del features["d"]
+        assert "d" not in features
 
     def test_features_init_is_linear_in_number_of_columns(self):
         num_columns = 200
