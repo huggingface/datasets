@@ -5251,3 +5251,43 @@ def test_process_large_few_examples(tmp_path):
     # make sure this is split into 2 shards
     ds.save_to_disk(dataset_path, max_shard_size="1KB")
     assert (dataset_path / "data-00000-of-00001.arrow").exists()
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+@pytest.mark.parametrize("null_placement", ["at_start", "at_end"])
+def test_sort_float16_column(reverse, null_placement):
+    values = [0.5, None, -1.0, 2.0, 0.25, None, -2.5]
+    features = Features({"x": Value("float16")})
+    dataset = Dataset.from_dict({"x": values}, features=features)
+    sorted_dataset = dataset.sort("x", reverse=reverse, null_placement=null_placement)
+    non_null = sorted(value for value in values if value is not None)
+    non_null = non_null[::-1] if reverse else non_null
+    nulls = [None] * values.count(None)
+    expected = nulls + non_null if null_placement == "at_start" else non_null + nulls
+    assert sorted_dataset[:]["x"] == expected
+    assert sorted_dataset.features == features
+
+
+@pytest.mark.parametrize(
+    "keys, reverse, expected",
+    [
+        (["x", "i"], [True, True], [2, 0, 3, 1]),
+        (["i", "x"], False, [0, 1, 2, 3]),
+        (["s", "x"], [False, True], [2, 3, 0, 1]),
+    ],
+)
+def test_sort_by_float16_and_another_column(keys, reverse, expected):
+    features = Features({"x": Value("float16"), "i": Value("int64"), "s": Value("string")})
+    dataset = Dataset.from_dict(
+        {"x": [1.5, 0.5, 1.5, 0.5], "i": [0, 1, 2, 3], "s": ["b", "b", "a", "a"]}, features=features
+    )
+    assert dataset.sort(keys, reverse=reverse)[:]["i"] == expected
+
+
+def test_sort_by_a_struct_with_a_float16_field():
+    features = Features({"x": {"a": Value("float16"), "b": Value("int64")}, "i": Value("int64")})
+    rows = [{"a": 1.5, "b": 0}, {"a": 0.5, "b": 1}, {"a": 1.5, "b": -1}]
+    dataset = Dataset.from_dict({"x": rows, "i": [0, 1, 2]}, features=features)
+    sorted_dataset = dataset.sort("x")
+    assert sorted_dataset[:]["i"] == [1, 2, 0]
+    assert sorted_dataset.features == features
