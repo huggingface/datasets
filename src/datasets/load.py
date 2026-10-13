@@ -18,7 +18,6 @@
 import glob
 import importlib
 import inspect
-import itertools
 import json
 import os
 import posixpath
@@ -64,7 +63,7 @@ from .features import Features
 from .features.features import _fix_for_backward_compatible_features
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict
-from .iterable_dataset import IterableDataset, _default_decode_num_threads
+from .iterable_dataset import IterableDataset
 from .naming import camelcase_to_snakecase, snakecase_to_camelcase
 from .packaged_modules import (
     _ALL_ALLOWED_EXTENSIONS,
@@ -1185,28 +1184,6 @@ def dataset_module_factory(
         raise FileNotFoundError(f"Couldn't find any data file at {relative_to_absolute_path(path)}.")
 
 
-def _has_remote_data_files(builder_instance: "DatasetBuilder") -> bool:
-    """Whether the dataset files are read from a remote location (`hf://`, `s3://`, `https://`, ...).
-
-    Remote files cost network round trips to open and read, which is worth overlapping across threads when decoding
-    media examples, while local files on a fast disk gain nothing from it.
-    """
-
-    paths: list[str] = []
-    base_path = getattr(builder_instance, "base_path", None)
-    if base_path:
-        paths.append(str(base_path))
-    else:
-        data_files = getattr(builder_instance.config, "data_files", None)
-        split_data_files = data_files.values() if isinstance(data_files, dict) else [data_files]
-        for split_files in split_data_files:
-            if isinstance(split_files, (list, tuple, set)):
-                paths.extend(str(path) for path in itertools.islice(split_files, 5))
-            elif split_files:
-                paths.append(str(split_files))
-    return any("://" in path and not path.startswith("file://") for path in paths)
-
-
 def load_dataset_builder(
     path: str,
     name: Optional[str] = None,
@@ -1704,20 +1681,7 @@ def load_dataset(
 
     # Return iterable dataset in case of streaming
     if streaming:
-        dataset = builder_instance.as_streaming_dataset(split=split)
-        # Read and decode media examples (Image/Audio/Video/Mesh/...) in worker threads by default: opening and
-        # reading a remote file costs network round trips rather than CPU time, so streaming remote media data is
-        # latency bound without any overlap. Datasets without decodable features (text, tabular, parquet, ...) and
-        # datasets read from the local disk are returned unchanged.
-        if _has_remote_data_files(builder_instance):
-            if isinstance(dataset, IterableDataset):
-                if num_threads := _default_decode_num_threads(dataset.features):
-                    dataset = dataset.decode(num_threads=num_threads)
-            else:
-                for split_name, split_dataset in list(dataset.items()):
-                    if num_threads := _default_decode_num_threads(split_dataset.features):
-                        dataset[split_name] = split_dataset.decode(num_threads=num_threads)
-        return dataset
+        return builder_instance.as_streaming_dataset(split=split)
 
     # Download and prepare data
     builder_instance.download_and_prepare(

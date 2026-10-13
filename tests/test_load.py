@@ -30,7 +30,6 @@ from datasets.load import (
     HubDatasetModuleFactory,
     LocalDatasetModuleFactory,
     PackagedDatasetModuleFactory,
-    _has_remote_data_files,
     infer_module_for_data_files_list,
     infer_module_for_data_files_list_in_archives,
     load_dataset_builder,
@@ -973,39 +972,17 @@ def test_load_dataset_streaming_media_is_not_threaded_for_local_data(tmp_path):
 
 
 @require_pil
-def test_load_dataset_streaming_media_is_threaded_for_remote_data(tmp_path, monkeypatch):
+@pytest.mark.integration
+def test_load_dataset_streaming_media_is_threaded_for_remote_data():
     from PIL import Image as PILImage
 
-    monkeypatch.setattr(datasets.load, "_has_remote_data_files", lambda builder_instance: True)
-    image_dir = _write_tiny_image_dir(tmp_path)
-    data_files = {"train": str(image_dir / "*.png")}
-    ds = load_dataset("imagefolder", split="train", data_files=data_files, streaming=True)
+    ds = load_dataset(SAMPLE_DATASET_IDENTIFIER4, streaming=True, split="train")
     # media files are read and decoded in worker threads by default, to overlap network round trips
     assert isinstance(ds._ex_iterable, MappedExamplesIterable)
     assert isinstance(next(iter(ds))["image"], PILImage.Image)
-    # ... unless it is disabled with HF_DATASETS_DECODE_NUM_THREADS=0
-    monkeypatch.setattr(datasets.config, "STREAMING_DECODE_NUM_THREADS", "0")
-    ds = load_dataset("imagefolder", split="train", data_files=data_files, streaming=True)
+    # ... unless it is disabled with decode_num_threads=0
+    ds = load_dataset(SAMPLE_DATASET_IDENTIFIER4, streaming=True, split="train", decode_num_threads=0)
     assert not isinstance(ds._ex_iterable, MappedExamplesIterable)
-
-
-@pytest.mark.parametrize(
-    ("base_path", "data_files", "expected"),
-    [
-        (None, None, False),
-        ("/local/dataset/dir", None, False),
-        ("file:///local/dataset/dir", None, False),
-        ("hf://datasets/user/repo@main", None, True),
-        ("s3://bucket/dataset/dir", None, True),
-        (None, {"train": ["/local/data.parquet"]}, False),
-        (None, {"train": ["hf://datasets/user/repo/data/*.parquet"]}, True),
-        (None, ["https://example.org/data.csv"], True),
-        (None, [], False),
-    ],
-)
-def test_has_remote_data_files(base_path, data_files, expected):
-    builder_instance = SimpleNamespace(base_path=base_path, config=SimpleNamespace(data_files=data_files))
-    assert _has_remote_data_files(builder_instance) is expected
 
 
 @pytest.mark.integration

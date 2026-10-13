@@ -3,7 +3,6 @@ import concurrent.futures
 import contextlib
 import inspect
 import itertools
-import os
 import re
 import sys
 import tempfile
@@ -1411,7 +1410,6 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         # Set by IterableDataset.decode when it enables threaded decoding: since examples must be decoded exactly
         # once, a later `.decode()` call reconfigures decoding from `decoding_dataset` (the dataset `.decode()` was
         # called on) rather than stacking a second decoding step on top of this one.
-        self.decoding_dataset: Optional["IterableDataset"] = None
         self.decoding_pool: Optional[_LazyThreadPoolExecutor] = None
         # sanity checks
         if formatting and formatting.is_table:
@@ -4519,7 +4517,11 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-    def decode(self, enable: bool = True, num_threads: int = 0) -> "IterableDataset":
+    from tqdm.contrib.concurrent import thread_map
+
+    thread_map
+
+    def decode(self, enable: bool = True, num_threads: Optional[int] = None) -> "IterableDataset":
         """
         Enable or disable the dataset features decoding for audio, image, video.
 
@@ -4545,9 +4547,9 @@ class IterableDataset(DatasetInfoMixin):
         Args:
             enable (`bool`, defaults to `True`):
                 Enable or disable features decoding.
-            num_threads (`int`, defaults to `0`):
+            num_threads (`int`, *optional*, defaults to `None`):
                 Enable multithreading for features decoding. Note that [`load_dataset`] already uses a few threads
-                by default when streaming a remote dataset with decodable features.
+                by default when streaming a dataset on HF with decodable features.
 
         Returns:
             `IterableDataset`: A copy of the dataset with casted features.
@@ -4598,24 +4600,26 @@ class IterableDataset(DatasetInfoMixin):
         ds = self
         # If decoding is already configured, start again from the dataset it was configured on: examples must be
         # decoded exactly once, so `.decode()` replaces the previous decoding step instead of adding a new one.
-        head = ds._ex_iterable
-        if isinstance(head, MappedExamplesIterable) and head.decoding_dataset is not None:
-            if head.decoding_pool is not None:
-                head.decoding_pool.shutdown(wait=False, cancel_futures=True)
-            ds = head.decoding_dataset
+        if isinstance(ds._ex_iterable, MappedExamplesIterable) and ds._ex_iterable.decoding_pool is not None:
+            ds._ex_iterable.decoding_pool.shutdown(wait=False, cancel_futures=True)
+            ds = IterableDataset(
+                ds._ex_iterable.ex_iterable,
+                info=ds.info,
+                split=ds.split,
+                formatting=ds._formatting,
+                distributed=ds._distributed,
+                token_per_repo_id=ds._token_per_repo_id,
+            )
 
         if enable and num_threads > 0:
-            decoding_dataset = ds
             disabled_decoding_features = _features_with_decoding(self.features, False)
             enabled_decoding_features = _features_with_decoding(self.features, True)
             ds = ds.cast(disabled_decoding_features)
             pool = _LazyThreadPoolExecutor(num_threads)
-            # the token is needed to read media files of private or gated repositories, like in sequential decoding
             decode_example = partial(enabled_decoding_features.decode_example, token_per_repo_id=ds._token_per_repo_id)
             func = partial(_apply_async, pool, decode_example)
             ds = ds.map(func, features=enabled_decoding_features)
             assert isinstance(ds._ex_iterable, MappedExamplesIterable)
-            ds._ex_iterable.decoding_dataset = decoding_dataset
             ds._ex_iterable.decoding_pool = pool
             ds._ex_iterable.max_num_running_async_map_functions_in_parallel = 2 * num_threads
         else:
@@ -5739,50 +5743,6 @@ def _split_by_node_iterable_dataset(
         distributed=distributed,
         token_per_repo_id=dataset._token_per_repo_id,
     )
-
-
-def _has_decodable_features(features: Optional[Features]) -> bool:
-    """Whether examples have media features (Image/Audio/Video/Mesh/Nifti/...) that are decoded on the fly."""
-
-    if not features:
-        return False
-    has_decodable_feature = False
-
-    def _set_has_decodable_feature(feature):
-        nonlocal has_decodable_feature
-        if getattr(feature, "decode", False):
-            has_decodable_feature = True
-
-    _visit(features, _set_has_decodable_feature)
-    return has_decodable_feature
-
-
-def _default_decode_num_threads(features: Optional[Features]) -> int:
-    """Number of threads used to decode streamed media examples, or 0 to decode them in the main thread.
-
-    Decoding a media example means opening its file and reading it all, which costs a few network round trips (a few
-    hundred ms) for remote datasets. Since the main thread would otherwise just wait for the network, overlapping
-    these reads across a handful of threads makes streaming several times faster.
-
-    Datasets without decodable features (text, tabular or parquet datasets, ...) get 0 thread: there is nothing to
-    overlap there, and going through threads would only add overhead.
-
-    This is configurable with `HF_DATASETS_DECODE_NUM_THREADS`: set it to `0` to always decode in the main thread, or
-    to a bigger number to read more files at once (every thread in flight also buffers up to two decoded examples).
-    """
-
-    if not _has_decodable_features(features):
-        return 0
-    value = (config.STREAMING_DECODE_NUM_THREADS or "auto").strip().lower()
-    if value == "auto":
-        return min(config.STREAMING_DECODE_MAX_NUM_THREADS, os.cpu_count() or 1)
-    try:
-        return max(0, int(value))
-    except ValueError:
-        logger.warning(
-            f"Invalid HF_DATASETS_DECODE_NUM_THREADS={value!r} (expected an integer or 'auto'), using 'auto'."
-        )
-        return min(config.STREAMING_DECODE_MAX_NUM_THREADS, os.cpu_count() or 1)
 
 
 def _features_with_decoding(features: Features, decode: bool) -> Features:

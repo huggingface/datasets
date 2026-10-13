@@ -34,6 +34,7 @@ class FolderBasedBuilderConfig(datasets.BuilderConfig):
     drop_metadata: bool = None
     metadata_filenames: list[str] = None
     filters: Optional[Union[ds.Expression, list[tuple], list[list[tuple]]]] = None
+    decode_num_threads: int = 64
 
     def __post_init__(self):
         super().__post_init__()
