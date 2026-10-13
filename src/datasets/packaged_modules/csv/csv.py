@@ -1,3 +1,4 @@
+import contextlib
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, Union
 
@@ -164,6 +165,13 @@ class Csv(datasets.ArrowBasedBuilder):
                     gen_kwargs={"files_iterables": files_iterables, "base_files": base_data_files[split_name]},
                 )
             )
+        if self.info.features is None:
+            # Without features, a non-streaming load fixes the schema of the first table and casts the others to it.
+            # Inferring the features from that same first table lets streaming apply the same schema to every table.
+            with contextlib.closing(self._generate_tables(**splits[0].gen_kwargs)) as tables:
+                first = next(tables, None)
+            if first is not None:
+                self.info.features = datasets.Features.from_arrow_schema(first[1].schema)
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
@@ -175,6 +183,9 @@ class Csv(datasets.ArrowBasedBuilder):
             else:
                 # more expensive cast; allows str <-> int/float or str to Audio for example
                 pa_table = table_cast(pa_table, schema)
+        elif self.info.features is not None:
+            # features inferred from the first table: a table with other columns raises, as without streaming
+            pa_table = table_cast(pa_table, self.info.features.arrow_schema)
         return pa_table
 
     def _generate_shards(self, base_files, files_iterables):

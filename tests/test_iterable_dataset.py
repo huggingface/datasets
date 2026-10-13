@@ -2090,7 +2090,10 @@ def test_iterable_dataset_push_to_hub_unknown_features_streaming_csv(tmp_path):
     csv_path = tmp_path / "data.csv"
     csv_path.write_text("name,age\nalice,30\nbob,25\n")
     dataset = load_dataset("csv", data_files=str(csv_path), split="train", streaming=True)
-    assert dataset.features is None
+    # streamed CSV files get their features from the first chunk, as when loading without streaming; string columns
+    # are string or large_string depending on the pandas version
+    expected_features = load_dataset("csv", data_files=str(csv_path), split="train", cache_dir=str(tmp_path)).features
+    assert dataset.features == expected_features
 
     captured_features = {}
 
@@ -2113,7 +2116,7 @@ def test_iterable_dataset_push_to_hub_unknown_features_streaming_csv(tmp_path):
             num_proc=None,
         )
 
-    assert captured_features["value"] == Features({"name": Value("string"), "age": Value("int64")})
+    assert captured_features["value"] == expected_features
 
 
 def test_iterable_dataset_push_to_hub_default_num_shards_uses_dataset_num_shards():
