@@ -6,19 +6,16 @@ import sys
 import time
 from copy import deepcopy
 from dataclasses import dataclass
-from functools import partial
 from itertools import chain, cycle, islice
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import multiprocess as mp
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.parquet as pq
 import pytest
-from huggingface_hub import HfApi
 from huggingface_hub.hf_file_system import HfFileSystemResolvedRepositoryPath
 
 from datasets import Dataset, config, load_dataset
@@ -63,6 +60,7 @@ from datasets.iterable_dataset import (
 
 from .utils import (
     assert_arrow_memory_doesnt_increase,
+    push_parquet_shards_offline,
     require_dill_gt_0_3_2,
     require_jax,
     require_not_windows,
@@ -1946,45 +1944,6 @@ def test_iterable_dataset():
     assert list(dataset) == expected
 
 
-def _save_uploaded_parquet_files(output_dir, *args, additions, **kwargs):
-    for addition in additions:
-        (output_dir / Path(addition.path_in_repo).name).write_bytes(Path(addition.path_or_fileobj).read_bytes())
-
-
-def _init_offline_parquet_uploads(output_dir):
-    HfApi.preupload_lfs_files = staticmethod(partial(_save_uploaded_parquet_files, output_dir))
-
-
-@pytest.fixture
-def offline_parquet_uploads(tmp_path):
-    # Keep real Parquet writing and real spawned workers, replacing only the remote upload.
-    pool = mp.get_context("spawn").Pool
-    with (
-        patch.object(HfApi, "preupload_lfs_files", new=partial(_save_uploaded_parquet_files, tmp_path)),
-        patch("datasets.iterable_dataset.mp.get_context") as mock_context,
-    ):
-        mock_context.return_value.Pool.side_effect = partial(
-            pool, initializer=_init_offline_parquet_uploads, initargs=(tmp_path,)
-        )
-        yield tmp_path
-
-
-def _push_offline(dataset, num_shards, num_proc=None, embed_external_files=False):
-    return dataset._push_parquet_shards_to_hub(
-        resolved_output_path=HfFileSystemResolvedRepositoryPath(
-            repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
-        ),
-        data_dir="data",
-        split="train",
-        token=None,
-        create_pr=False,
-        max_shard_size=None,
-        num_shards=num_shards,
-        embed_external_files=embed_external_files,
-        num_proc=num_proc,
-    )
-
-
 @pytest.mark.parametrize(
     "source_shards, num_shards, num_proc, expected_lengths",
     [
@@ -2004,7 +1963,7 @@ def test_iterable_dataset_push_to_hub_more_shards_than_source(
     offline_parquet_uploads, source_shards, num_shards, num_proc, expected_lengths
 ):
     dataset = Dataset.from_dict({"id": list(range(10))}).to_iterable_dataset(num_shards=source_shards)
-    _, paths, features, split_info, _ = _push_offline(dataset, num_shards=num_shards, num_proc=num_proc)
+    _, paths, features, split_info, _ = push_parquet_shards_offline(dataset, num_shards=num_shards, num_proc=num_proc)
     files = sorted(offline_parquet_uploads.glob("*.parquet"))
     assert [file.name for file in files] == [f"train-{i:05d}-of-{num_shards:05d}.parquet" for i in range(num_shards)]
     assert sorted(paths) == [f"data/{file.name}" for file in files]
@@ -2018,7 +1977,7 @@ def test_iterable_dataset_push_to_hub_more_shards_than_source(
 def test_iterable_dataset_push_to_hub_more_shards_round_robin(offline_parquet_uploads):
     # Each input shard is spread over its own consecutive output shards, one example at a time.
     dataset = Dataset.from_dict({"id": list(range(10))}).to_iterable_dataset(num_shards=2)
-    _push_offline(dataset, num_shards=5)
+    push_parquet_shards_offline(dataset, num_shards=5)
     files = sorted(offline_parquet_uploads.glob("*.parquet"))
     assert [pq.read_table(file)["id"].to_pylist() for file in files] == [[0, 3], [1, 4], [2], [5, 7, 9], [6, 8]]
 
@@ -2026,7 +1985,7 @@ def test_iterable_dataset_push_to_hub_more_shards_round_robin(offline_parquet_up
 def test_iterable_dataset_push_to_hub_more_shards_across_batches(offline_parquet_uploads):
     # The round robin continues across Arrow batches instead of restarting at every batch.
     dataset = Dataset.from_dict({"id": list(range(2503))}).to_iterable_dataset(num_shards=1)
-    _push_offline(dataset, num_shards=3)
+    push_parquet_shards_offline(dataset, num_shards=3)
     files = sorted(offline_parquet_uploads.glob("*.parquet"))
     rows = [pq.read_table(file)["id"].to_pylist() for file in files]
     assert rows == [list(range(i, 2503, 3)) for i in range(3)]
@@ -2038,7 +1997,7 @@ def test_iterable_dataset_push_to_hub_more_shards_with_images(
 ):
     image_path = str(Path(image_file).resolve())
     dataset = Dataset.from_dict({"image": [image_path] * 3}).cast_column("image", Image()).to_iterable_dataset()
-    _push_offline(dataset, num_shards=3, embed_external_files=embed_external_files)
+    push_parquet_shards_offline(dataset, num_shards=3, embed_external_files=embed_external_files)
     files = sorted(offline_parquet_uploads.glob("*.parquet"))
     images = [pq.read_table(file)["image"].to_pylist()[0] for file in files]
     assert len(images) == 3
@@ -4245,7 +4204,7 @@ def test_iterable_dataset_push_to_hub_more_shards_with_process_dependent_order(o
     dataset = IterableDataset.from_generator(
         _gen_order_depends_on_process, gen_kwargs={"shards": list(range(4))}, features=Features({"id": Value("int64")})
     )
-    _push_offline(dataset, num_shards=8, num_proc=2)
+    push_parquet_shards_offline(dataset, num_shards=8, num_proc=2)
     files = sorted(offline_parquet_uploads.glob("*.parquet"))
     rows = [i for file in files for i in pq.read_table(file)["id"].to_pylist()]
     assert len(files) == 8 and sorted(rows) == list(range(40))
@@ -4257,7 +4216,7 @@ def test_iterable_dataset_push_to_hub_more_shards_keeps_iteration_state(offline_
     ).skip(1)
     iterator = iter(dataset)
     assert next(iterator)["id"] == 1
-    _push_offline(dataset, num_shards=3)
+    push_parquet_shards_offline(dataset, num_shards=3)
     assert next(iterator)["id"] == 2
     dataset.load_state_dict(dataset.state_dict())
     assert next(iter(dataset))["id"] == 3
@@ -4270,7 +4229,7 @@ def test_iterable_dataset_push_to_hub_more_shards_with_unpicklable_source(offlin
         dataset = IterableDataset.from_generator(
             _gen_lines_from_handle, gen_kwargs={"fh": file_handle}, features=Features({"id": Value("int64")})
         )
-        _push_offline(dataset, num_shards=2)
+        push_parquet_shards_offline(dataset, num_shards=2)
     files = sorted(offline_parquet_uploads.glob("*.parquet"))
     assert [pq.read_table(file)["id"].to_pylist() for file in files] == [[0, 2, 4], [1, 3, 5]]
 
