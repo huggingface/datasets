@@ -1305,6 +1305,22 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
 
+    def test_map_multiprocessing_keeps_info_and_split(self, in_memory):
+        info = DatasetInfo(dataset_name="dummy", config_name="clean")
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = Dataset.from_dict({"x": list(range(30))}, info=info, split="validation")
+            with self._to(in_memory, tmp_dir, dset) as dset:
+                with dset.map(lambda x: {"y": x["x"] * 2}, num_proc=2) as dset_test:
+                    self.assertEqual(dset_test.split, "validation")
+                    self.assertEqual(dset_test.info.config_name, "clean")
+                # the shards end up with different features: "y" is all null in the first one
+                with dset.map(lambda x: {"y": x["x"] if x["x"] >= 15 else None}, num_proc=2) as dset_test:
+                    self.assertEqual(dset_test.split, "validation")
+                    self.assertEqual(dset_test.info.dataset_name, "dummy")
+                    self.assertEqual(dset_test.info.config_name, "clean")
+                    self.assertDictEqual(dset_test.features, Features({"x": Value("int64"), "y": Value("int64")}))
+                    assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
+
     def test_map_new_features(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
