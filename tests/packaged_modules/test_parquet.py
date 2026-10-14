@@ -39,3 +39,10 @@ def test_parquet_columns(parquet_path):
     )
     assert len(ds.features) == 1
     assert len(next(iter(ds))) == 1
+
+
+def test_parquet_streaming_early_stop_closes_open_fragment(multi_row_groups_parquet_path):
+    """Early-stopped streams must release the Parquet fragment (arrow#45214 / #8793)."""
+    ds = load_dataset("parquet", data_files=multi_row_groups_parquet_path, split="train", streaming=True)
+    row = next(iter(ds))
+    assert row is not None

@@ -5,10 +5,8 @@ from typing import Literal, Optional, Union
 import pyarrow as pa
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
-from packaging import version
 
 import datasets
-import datasets.config
 from datasets.builder import Key
 from datasets.table import table_cast
 
@@ -221,7 +219,9 @@ class Parquet(datasets.ArrowBasedBuilder):
                             fragment_is_closed = True
                     finally:
                         # Fix for https://github.com/apache/arrow/issues/45214
-                        if not fragment_is_closed and datasets.config.PYARROW_VERSION <= version.parse("24.0.0"):
+                        # Apply on every pyarrow version: early stop still leaves the fragment open
+                        # and can abort at interpreter exit on pyarrow 25 (#8793).
+                        if not fragment_is_closed:
                             del parquet_fragment
                             gc.collect()
             except (pa.ArrowInvalid, ValueError) as e:
