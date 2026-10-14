@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from datasets import Dataset, IterableDataset
+from datasets import Dataset, IterableDataset, concatenate_datasets
 from datasets.distributed import split_dataset_by_node
 
 from .utils import execute_subprocess_async, get_torch_dist_unique_port, require_torch
@@ -178,6 +178,34 @@ def test_split_dataset_by_node_iterable_distributed():
     ]
     assert sum(len(list(ds)) for ds in datasets_per_rank_per_worker) == full_size
     assert len({tuple(x.values()) for ds in datasets_per_rank_per_worker for x in ds}) == full_size
+
+
+@pytest.mark.parametrize("axis", [0, 1])
+@pytest.mark.parametrize("world_size", [2, 3])
+@pytest.mark.parametrize("num_shards", [(4, 4), (3, 5)])
+@pytest.mark.parametrize("strategy", [None, "examples"])
+def test_concatenate_datasets_after_split_dataset_by_node(axis, world_size, num_shards, strategy):
+    kwargs = {} if strategy is None else {"strategy": strategy}
+    ds1 = IterableDataset.from_dict({"a": list(range(12))}, num_shards=num_shards[0])
+    ds2 = IterableDataset.from_dict({"a" if axis == 0 else "b": list(range(100, 112))}, num_shards=num_shards[1])
+    full_ds = concatenate_datasets([ds1, ds2], axis=axis)
+    full_rows = list(full_ds)
+    rows_per_rank = []
+    for rank in range(world_size):
+        ds1_rank = split_dataset_by_node(ds1, rank=rank, world_size=world_size, **kwargs)
+        ds2_rank = split_dataset_by_node(ds2, rank=rank, world_size=world_size, **kwargs)
+        rows = list(concatenate_datasets([ds1_rank, ds2_rank], axis=axis))
+        assert rows == list(split_dataset_by_node(full_ds, rank=rank, world_size=world_size, **kwargs))
+        rows_per_rank.append(rows)
+    assert sum(len(rows) for rows in rows_per_rank) == len(full_rows)
+    assert len({tuple(x.values()) for rows in rows_per_rank for x in rows}) == len(full_rows)
+
+
+def test_concatenate_datasets_split_differently_by_node():
+    full_ds = IterableDataset.from_dict({"a": list(range(8))}, num_shards=4)
+    ds_rank0 = split_dataset_by_node(full_ds, rank=0, world_size=2)
+    with pytest.raises(ValueError, match="identically split_by_node"):
+        concatenate_datasets([ds_rank0, full_ds])
 
 
 def test_distributed_shuffle_iterable():
