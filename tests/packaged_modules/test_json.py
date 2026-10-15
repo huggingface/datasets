@@ -8,7 +8,7 @@ import pytest
 from datasets import Dataset, Features, Value, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
-from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig
+from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig, paj
 
 from ..utils import require_teich
 
@@ -623,7 +623,7 @@ def test_json_generate_tables_recovers_from_invalid_arrow_offsets(jsonl_file):
     json_builder = Json(chunksize=1 << 20)
     base_files = [jsonl_file]
 
-    with patch("datasets.packaged_modules.json.json.paj.read_json", return_value=malformed_table):
+    with patch.object(paj, "read_json", return_value=malformed_table):
         generator = json_builder._generate_tables(
             base_files=base_files,
             files_iterables=[[jsonl_file]],
