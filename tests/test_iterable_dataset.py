@@ -3279,6 +3279,26 @@ def test_iterable_dataset_select_columns(dataset_with_several_columns: IterableD
     assert all(c in new_dataset.column_names for c in ["id", "filepath"])
 
 
+@pytest.mark.parametrize("format_type", [None, "arrow", "pandas"])
+@pytest.mark.parametrize("batched", [False, True])
+@pytest.mark.parametrize("typed", [False, True])
+def test_iterable_dataset_select_columns_then_filter(format_type, batched, typed):
+    dataset = Dataset.from_dict({"id": [0, 1, 2], "discard": [3, 4, 5]}).to_iterable_dataset()
+    mapped = dataset.with_format(format_type).map(
+        lambda example: example, features=dataset.features if typed else None
+    )
+    selected = mapped.select_columns("id")
+    filtered = selected.filter(
+        (lambda batch: [True] * len(batch["id"])) if batched else (lambda example: True),
+        batched=batched,
+        batch_size=2,
+    )
+
+    assert list(filtered.with_format(None)) == [{"id": i} for i in range(3)]
+    assert filtered.features == (Features({"id": Value("int64")}) if typed else None)
+    assert list(dataset.features) == ["id", "discard"]
+
+
 def test_iterable_dataset_cast_column():
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
     features = Features({"id": Value("int64"), "label": Value("int64")})
