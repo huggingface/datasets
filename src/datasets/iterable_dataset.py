@@ -541,7 +541,10 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
         if self.batch_size is None or self.batch_size <= 0:
             if self._state_dict and self._state_dict["batch_idx"] > 0:
                 return
-            all_pa_table = pa.concat_tables([pa_table for _, pa_table in iterator])
+            pa_tables = [pa_table for _, pa_table in iterator if len(pa_table) > 0]
+            if not pa_tables:
+                return
+            all_pa_table = pa.concat_tables(pa_tables)
             if self._state_dict:
                 self._state_dict["batch_idx"] = 1
             yield "all", all_pa_table
