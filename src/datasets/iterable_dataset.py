@@ -3,10 +3,10 @@ import concurrent.futures
 import contextlib
 import inspect
 import itertools
-import multiprocessing.pool
 import re
 import sys
 import tempfile
+import threading
 import time
 from collections import Counter
 from collections.abc import Iterable, Iterator
@@ -1407,6 +1407,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             max_num_running_async_map_functions_in_parallel or config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL
         )
         self.is_batch_accumulate_arrow_table_function = is_batch_accumulate_arrow_table_function
+        # Set by IterableDataset.decode when it enables threaded decoding: since examples must be decoded exactly
+        # once, a later `.decode()` call reconfigures decoding from `decoding_dataset` (the dataset `.decode()` was
+        # called on) rather than stacking a second decoding step on top of this one.
+        self.decoding_pool: Optional[_LazyThreadPoolExecutor] = None
         # sanity checks
         if formatting and formatting.is_table:
             # batch_size should match for iter_arrow
@@ -1604,16 +1608,12 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 for i, key_example in inputs_iterator:
                     indices.append(i)
                     tasks.append(loop.create_task(async_apply_function(key_example, i)))
-                    # keep the total active tasks under a certain number
+                    # keep the total active tasks under a certain number, waiting for the oldest task to complete.
+                    # Polling the whole task list with asyncio.wait can't be used for that: it returns as soon as any
+                    # task in the list is done, so as soon as one example is slower than the examples created after it
+                    # (e.g. a large remote file), every wait returns instantly and this spins at 100% CPU, taking the
+                    # GIL away from the worker threads that were doing the actual work.
                     if len(tasks) >= self.max_num_running_async_map_functions_in_parallel:
-                        done, pending = loop.run_until_complete(
-                            asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-                        )
-                        while tasks and len(pending) >= self.max_num_running_async_map_functions_in_parallel:
-                            done, pending = loop.run_until_complete(
-                                asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-                            )
-                    if len(tasks) >= 10 * self.max_num_running_async_map_functions_in_parallel:
                         loop.run_until_complete(tasks[0])
                     # yield finished tasks
                     while tasks and tasks[0].done():
@@ -4517,7 +4517,7 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-    def decode(self, enable: bool = True, num_threads: int = 0) -> "IterableDataset":
+    def decode(self, enable: bool = True, num_threads: Optional[int] = None) -> "IterableDataset":
         """
         Enable or disable the dataset features decoding for audio, image, video.
 
@@ -4527,8 +4527,13 @@ class IterableDataset(DatasetInfoMixin):
         * image -> PIL.Image
         * video -> torchcodec.decoders.VideoDecoder
 
-        You can enable multithreading using `num_threads`. This is especially useful to speed up remote
-        data streaming. However it can be slower than `num_threads=0` for local data on fast disks.
+        Multithreading can be enabled with `num_threads`: every media file is then read and decoded in a worker
+        thread, so that the network round trips of consecutive examples overlap. This is especially useful to speed
+        up remote data streaming, and [`load_dataset`] already enables it by default when streaming a remote dataset
+        that has decodable features (see `HF_DATASETS_DECODE_NUM_THREADS`). Datasets read from the local disk are
+        streamed with `num_threads=0`, since multithreading can be slower than decoding in the main thread for local
+        data on fast disks. Since examples are decoded in advance, every thread in flight can keep one example in
+        memory: lower `num_threads` to use less memory.
 
         Disabling decoding is useful if you want to iterate on the paths or bytes of the media files
         without actually decoding their content. To disable decoding you can use `.decode(False)`, which
@@ -4538,8 +4543,10 @@ class IterableDataset(DatasetInfoMixin):
         Args:
             enable (`bool`, defaults to `True`):
                 Enable or disable features decoding.
-            num_threads (`int`, defaults to `0`):
-                Enable multithreading for features decoding.
+            num_threads (`int`, *optional*, defaults to `None`):
+                Enable multithreading for features decoding. Note that [`load_dataset`] already uses a few threads
+                by default when streaming a dataset on HF with decodable features.
+                By default, `num_threads` is set to 32 if at least one feature require decoding, and 0 otherwise.
 
         Returns:
             `IterableDataset`: A copy of the dataset with casted features.
@@ -4575,9 +4582,9 @@ class IterableDataset(DatasetInfoMixin):
         >>> from datasets import load_dataset
         >>> from tqdm import tqdm
         >>> ds = load_dataset("sshh12/planet-textures", split="train", streaming=True)
-        >>> num_threads = min(32, (os.cpu_count() or 1) + 4)
-        >>> ds = ds.decode(num_threads=num_threads)
-        >>> for _ in tqdm(ds):  # 20 times faster !
+        >>> # already threaded by default with 32 threads, but more threads can help going even faster
+        >>> ds = ds.decode(num_threads=64)
+        >>> for _ in tqdm(ds):  # 2 times faster !
         ...     ...
         ```
         """
@@ -4586,28 +4593,36 @@ class IterableDataset(DatasetInfoMixin):
                 "Features decoding is only available for datasets with known features, but features are Unknown. "
                 "Please set the datasets features with `ds = ds.cast(features)`."
             )
+        if num_threads is None:
+            num_threads = 32 if require_decoding(self.features) else 0
+
         ds = self
+        # If decoding is already configured, start again from the dataset it was configured on: examples must be
+        # decoded exactly once, so `.decode()` replaces the previous decoding step instead of adding a new one.
+        if isinstance(ds._ex_iterable, MappedExamplesIterable) and ds._ex_iterable.decoding_pool is not None:
+            ds._ex_iterable.decoding_pool.shutdown(wait=False, cancel_futures=True)
+            ds = IterableDataset(
+                ds._ex_iterable.ex_iterable,
+                info=ds.info,
+                split=ds.split,
+                formatting=ds._formatting,
+                distributed=ds._distributed,
+                token_per_repo_id=ds._token_per_repo_id,
+            )
 
-        def set_decoding(decode: bool, feature):
-            if hasattr(feature, "decode"):
-                feature.decode = decode
-
-        if enable and num_threads > 0:
-            disabled_decoding_features = self.features.copy()
-            enabled_decoding_features = self.features.copy()
-
-            _visit(disabled_decoding_features, partial(set_decoding, False))
-            _visit(enabled_decoding_features, partial(set_decoding, True))
+        if enable and num_threads:
+            disabled_decoding_features = _features_with_decoding(self.features, False)
+            enabled_decoding_features = _features_with_decoding(self.features, True)
             ds = ds.cast(disabled_decoding_features)
-            pool = multiprocessing.pool.ThreadPool(num_threads)
-            func = partial(_apply_async, pool, enabled_decoding_features.decode_example)
+            pool = _LazyThreadPoolExecutor(num_threads)
+            decode_example = partial(enabled_decoding_features.decode_example, token_per_repo_id=ds._token_per_repo_id)
+            func = partial(_apply_async, pool, decode_example)
             ds = ds.map(func, features=enabled_decoding_features)
             assert isinstance(ds._ex_iterable, MappedExamplesIterable)
+            ds._ex_iterable.decoding_pool = pool
             ds._ex_iterable.max_num_running_async_map_functions_in_parallel = 2 * num_threads
         else:
-            features = ds.features.copy()
-            _visit(features, partial(set_decoding, enable))
-            ds = ds.cast(features)
+            ds = ds.cast(_features_with_decoding(ds.features, enable))
         return ds
 
     def _step(self, step: int, offset: int) -> "IterableDataset":
@@ -5729,13 +5744,66 @@ def _split_by_node_iterable_dataset(
     )
 
 
-async def _apply_async(pool, func, x):
-    future = pool.apply_async(func, (x,))
-    while True:
-        if future.ready():
-            return future.get()
-        else:
-            await asyncio.sleep(0)
+def _features_with_decoding(features: Features, decode: bool) -> Features:
+    """Return a copy of `features` where media features (Image/Audio/Video/Mesh/...) are set to decode or not."""
+
+    def _set_decode_flag(feature):
+        if hasattr(feature, "decode"):
+            feature.decode = decode
+
+    features = features.copy()
+    _visit(features, _set_decode_flag)
+    # Features caches which columns require decoding: re-assign every column to refresh it after the flags change
+    for column_name, feature in list(features.items()):
+        features[column_name] = feature
+    return features
+
+
+class _LazyThreadPoolExecutor:
+    """A `concurrent.futures.ThreadPoolExecutor` that is created on first use instead of upfront.
+
+    Threaded decoding holds one of these in the dataset, and datasets get pickled all the time (to send them to
+    `to_torch(num_workers=...)` worker processes for example). Creating the pool when examples are actually read
+    keeps the dataset picklable: every process that iterates it creates its own pool.
+    """
+
+    def __init__(self, max_workers: int):
+        self.max_workers = max_workers
+        self._pool: Optional[concurrent.futures.ThreadPoolExecutor] = None
+        self._lock = threading.Lock()
+
+    def submit(self, fn, *args, **kwargs):
+        with self._lock:
+            if self._pool is None:
+                self._pool = concurrent.futures.ThreadPoolExecutor(
+                    self.max_workers, thread_name_prefix="datasets_decode"
+                )
+        return self._pool.submit(fn, *args, **kwargs)
+
+    def shutdown(self, wait: bool = True, *, cancel_futures: bool = False):
+        with self._lock:
+            pool, self._pool = self._pool, None
+        if pool is not None:
+            pool.shutdown(wait=wait, cancel_futures=cancel_futures)
+
+    def __getstate__(self):
+        return {"max_workers": self.max_workers}
+
+    def __setstate__(self, state):
+        self.max_workers = state["max_workers"]
+        self._pool = None
+        self._lock = threading.Lock()
+
+
+async def _apply_async(pool: "_LazyThreadPoolExecutor", func, x):
+    """Run `func(x)` in a worker thread and await its result without blocking the event loop.
+
+    The worker future is wrapped rather than polled in a `while not future.ready(): await asyncio.sleep(0)` loop:
+    spinning wakes up the event loop thousands of times per second, which burns CPU and starves the worker threads
+    that do the actual work (mostly network reads), making threaded decoding slower than plain sequential decoding.
+    """
+
+    return await asyncio.wrap_future(pool.submit(func, x))
 
 
 def _batch_fn(unbatched):
