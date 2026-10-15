@@ -60,7 +60,6 @@ from datasets.iterable_dataset import (
     _BaseExamplesIterable,
     _batch_to_examples,
     _convert_to_arrow,
-    _default_decode_num_threads,
     _examples_to_batch,
 )
 
