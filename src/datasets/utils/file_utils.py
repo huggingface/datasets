@@ -1270,7 +1270,27 @@ def xpandas_read_csv(filepath_or_buffer, download_config: Optional[DownloadConfi
         filepath_or_buffer = str(filepath_or_buffer)
         if kwargs.get("compression", "infer") == "infer":
             kwargs["compression"] = _get_extraction_protocol(filepath_or_buffer, download_config=download_config)
-        return pd.read_csv(xopen(filepath_or_buffer, "rb", download_config=download_config), **kwargs)
+        f = xopen(filepath_or_buffer, "rb", download_config=download_config)
+        try:
+            out = pd.read_csv(f, **kwargs)
+        except BaseException:
+            f.close()
+            raise
+        if isinstance(out, pd.DataFrame):
+            f.close()
+            return out
+        # With iterator=True or chunksize, pandas closes its own wrapper when the reader is
+        # exhausted or closed, but never the buffer it was given, so close it there too
+        reader_close = out.close
+
+        def close():
+            try:
+                reader_close()
+            finally:
+                f.close()
+
+        out.close = close
+        return out
 
 
 def xpandas_read_excel(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):
