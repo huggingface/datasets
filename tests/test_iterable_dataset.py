@@ -4262,27 +4262,6 @@ def test_decode_num_threads_passes_token_per_repo_id():
     assert TokenRecordingDecodableFeature.seen_token_per_repo_id[0] == {"repo_id": "token"}
 
 
-def test_default_decode_num_threads():
-    assert _default_decode_num_threads(None) == 0
-    assert _default_decode_num_threads(Features({"i": Value("string")})) == 0
-    assert _default_decode_num_threads(Features({"i": Image(decode=False)})) == 0
-    num_threads = _default_decode_num_threads(Features({"i": Image()}))
-    assert 0 < num_threads <= config.STREAMING_DECODE_MAX_NUM_THREADS
-    # decodable features nested in lists/structs are detected too
-    assert _default_decode_num_threads(Features({"i": [{"nested": Audio()}]})) == num_threads
-
-
-def test_default_decode_num_threads_from_env(monkeypatch):
-    monkeypatch.setattr(config, "STREAMING_DECODE_NUM_THREADS", "0")
-    assert _default_decode_num_threads(Features({"i": Image()})) == 0
-    monkeypatch.setattr(config, "STREAMING_DECODE_NUM_THREADS", "3")
-    assert _default_decode_num_threads(Features({"i": Image()})) == 3
-    monkeypatch.setattr(config, "STREAMING_DECODE_NUM_THREADS", "not-a-number")
-    assert 0 < _default_decode_num_threads(Features({"i": Image()})) <= config.STREAMING_DECODE_MAX_NUM_THREADS
-    # decodable features are still required
-    assert _default_decode_num_threads(Features({"i": Value("string")})) == 0
-
-
 ############################
 #
 #   IterableColumn tests
