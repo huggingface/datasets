@@ -830,6 +830,15 @@ Use the [`~Dataset.save_to_disk`] and [`load_from_disk`] function to reload the 
 >>> reloaded_dataset = load_from_disk("path/of/my/dataset/directory")
 ```
 
+[`load_dataset`] also accepts the directory and reads the Arrow files with its Arrow loader. That makes it possible to stream the saved dataset, and without streaming the data is copied into the cache, so it is the one to use when you do not want [`load_from_disk`] to treat the directory itself as the cache:
+
+```py
+>>> from datasets import load_dataset
+>>> reloaded_dataset = load_dataset("path/of/my/dataset/directory", split="train", streaming=True)
+```
+
+A saved [`Dataset`] comes back as a `train` split with its rows and features, and only the Arrow files listed by `save_to_disk` are read, so cache files written next to them by [`~Dataset.map`] are not. The format and the description or citation saved with it are not restored, which [`load_from_disk`] does. For a directory saved from a [`DatasetDict`], use [`load_from_disk`]: [`load_dataset`] infers the splits from the subdirectory names as it does for any data directory, so it renames or merges the ones it recognizes (`dev` becomes `validation`, `eval` and `testing` both become `test`) and drops the others, or merges them all into `train` when it recognizes none.
+
 ## Export
 
 🤗 Datasets supports exporting as well so you can work with your dataset in other applications. The following table shows currently supported file formats you can export to:
