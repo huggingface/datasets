@@ -1382,11 +1382,11 @@ class ConcatenationTable(Table):
         blocks = state["blocks"]
         schema = state["schema"]
         table = self._concat_blocks_horizontally_and_vertically(blocks)
-        if schema is not None and table.schema != schema:
-            # We fix the columns by concatenating with an empty table with the right columns
+        if schema is not None and not table.schema.equals(schema, check_metadata=True):
+            # Restore missing columns, column order and metadata from the saved schema.
             empty_table = pa.Table.from_batches([], schema=schema)
             # We set promote_options="default" to fill missing columns with null values
-            table = pa.concat_tables([table, empty_table], promote_options="default")
+            table = pa.concat_tables([empty_table, table], promote_options="default")
         ConcatenationTable.__init__(self, table, blocks=blocks)
 
     @staticmethod
