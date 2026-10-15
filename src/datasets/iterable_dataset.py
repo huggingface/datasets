@@ -3,10 +3,10 @@ import concurrent.futures
 import contextlib
 import inspect
 import itertools
-import multiprocessing.pool
 import re
 import sys
 import tempfile
+import threading
 import time
 from collections import Counter
 from collections.abc import Iterable, Iterator
@@ -31,8 +31,9 @@ from huggingface_hub import (
     HfFileSystem,
     HfFileSystemResolvedPath,
 )
+from huggingface_hub.errors import BucketNotFoundError
+from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
 from huggingface_hub.utils import RepositoryNotFoundError
-from packaging import version
 
 from . import __version__, config
 from .arrow_dataset import Dataset, DatasetInfoMixin, _push_to_bucket, _push_to_repo
@@ -77,15 +78,6 @@ from .utils.py_utils import (
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 from .utils.typing import PathLike
 
-
-if config.HF_HUB_VERSION >= version.parse("1.6.0"):
-    from huggingface_hub.errors import BucketNotFoundError
-    from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
-
-else:
-    BucketNotFoundError = None
-    HfFileSystemResolvedBucketPath = None
-    HfFileSystemResolvedRepositoryPath = HfFileSystemResolvedPath
 
 if TYPE_CHECKING:
     import sqlite3
@@ -145,6 +137,14 @@ def _examples_to_batch(examples: list[dict[str, Any]]) -> dict[str, list]:
     return dict(zip(cols, arrays))
 
 
+def _split_evenly(total: int, num_parts: int, part: int) -> tuple[int, int]:
+    """Return the `[start, end)` range of `part` when splitting `range(total)` into `num_parts` contiguous parts whose
+    sizes differ by at most one, the first parts being the larger ones."""
+    div, mod = divmod(total, num_parts)
+    start = div * part + min(part, mod)
+    return start, start + div + (part < mod)
+
+
 def _batch_to_examples(batch: dict[str, list]) -> Iterator[dict[str, Any]]:
     """Convert a batch (dict of examples) to examples list"""
     n_examples = 0 if len(batch) == 0 else len(batch[next(iter(batch))])
@@ -188,6 +188,8 @@ def shift_ex_examples_rngs(ex_iterable: "_BaseExamplesIterable", value: int) -> 
     """We need to go through the ex_iterables recursively, create a new seed and return a new iterable, then set it to the containing ex_iterable."""
 
     def set_seed_recursively(ex_iterable):
+        # Keep the original pipeline's children and RNGs for subsequent iterations.
+        ex_iterable = copy(ex_iterable)
         if hasattr(ex_iterable, "shift_rngs"):
             ex_iterable = ex_iterable.shift_rngs(value)
         if hasattr(ex_iterable, "ex_iterable"):
@@ -197,6 +199,25 @@ def shift_ex_examples_rngs(ex_iterable: "_BaseExamplesIterable", value: int) -> 
         return ex_iterable
 
     return set_seed_recursively(ex_iterable)
+
+
+_PRIMITIVE_TYPES = (int, float, bool, str, bytes, type(None))
+
+
+def _fast_copy(state):
+    """Fast acyclic copy of state_dict data structures, bypassing slow pickle/deepcopy introspection."""
+    # Use type() instead of isinstance() for 2x faster type checks
+    state_type = type(state)
+    if state_type in _PRIMITIVE_TYPES:
+        return state
+    elif state_type is list:
+        return [v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v) for v in state]
+    elif state_type is dict:
+        return {k: (v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v)) for k, v in state.items()}
+    elif state_type is tuple:
+        return tuple(v if type(v) in _PRIMITIVE_TYPES else _fast_copy(v) for v in state)
+    else:
+        return deepcopy(state)
 
 
 class _BaseExamplesIterable:
@@ -273,8 +294,8 @@ class _BaseExamplesIterable:
         return _inner_load_state_dict(self._state_dict, state_dict)
 
     def state_dict(self) -> dict:
-        if self._state_dict:
-            return deepcopy(self._state_dict)
+        if self._state_dict is not None:
+            return _fast_copy(self._state_dict)
         raise RuntimeError("State dict is not initialized, please call ex_iterable._init_state_dict() first.")
 
     @property
@@ -530,11 +551,15 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
         chunks_buffer_size = 0
         num_chunks_to_skip = self._state_dict["num_chunks_since_previous_state"] if self._state_dict else 0
         chunk_length_to_crop = self._state_dict["cropped_chunk_length"] if self._state_dict else 0
+        num_chunks_since_checkpoint = 0
         if self._state_dict:
             previous_state = self.ex_iterable.state_dict()
             self._state_dict["previous_state"] = previous_state
         for key, pa_table in iterator:
             for num_chunks_since_previous_state, chunk in enumerate(pa_table.to_reader(max_chunksize=self.batch_size)):
+                # Recount from previous_state, including skipped and empty chunks. Adding buffer
+                # entries to the saved count would count a restored partial chunk twice.
+                num_chunks_since_checkpoint += 1
                 if num_chunks_to_skip > 1:
                     num_chunks_to_skip -= 1
                     continue
@@ -559,7 +584,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                     new_key = "_".join(str(_key) for _key in keys_buffer)
                     if self._state_dict:
                         self._state_dict["batch_idx"] += 1
-                        self._state_dict["num_chunks_since_previous_state"] += len(chunks_buffer)
+                        self._state_dict["num_chunks_since_previous_state"] = num_chunks_since_checkpoint
                         self._state_dict["cropped_chunk_length"] = 0
                     yield new_key, pa.Table.from_batches(chunks_buffer)
                     keys_buffer = []
@@ -568,6 +593,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                     if self._state_dict:
                         self._state_dict["previous_state"] = previous_state
                         self._state_dict["num_chunks_since_previous_state"] = num_chunks_since_previous_state + 1
+                        num_chunks_since_checkpoint = num_chunks_since_previous_state + 1
                 else:
                     cropped_chunk_length = self.batch_size - chunks_buffer_size
                     keys_buffer.append(f"{key}[:{cropped_chunk_length}]")
@@ -575,7 +601,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                     new_key = "_".join(str(_key) for _key in keys_buffer)
                     if self._state_dict:
                         self._state_dict["batch_idx"] += 1
-                        self._state_dict["num_chunks_since_previous_state"] += len(chunks_buffer)
+                        self._state_dict["num_chunks_since_previous_state"] = num_chunks_since_checkpoint
                         self._state_dict["cropped_chunk_length"] = cropped_chunk_length
                     yield new_key, pa.Table.from_batches(chunks_buffer)
                     keys_buffer = [f"{key}[{cropped_chunk_length}:]"]
@@ -584,6 +610,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                     if self._state_dict:
                         self._state_dict["previous_state"] = previous_state
                         self._state_dict["num_chunks_since_previous_state"] = num_chunks_since_previous_state
+                        num_chunks_since_checkpoint = num_chunks_since_previous_state + 1
             if self._state_dict:
                 previous_state = self.ex_iterable.state_dict()
         if not self.drop_last_batch and chunks_buffer:
@@ -594,6 +621,12 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                 self._state_dict["num_chunks_since_previous_state"] = 0
                 self._state_dict["cropped_chunk_length"] = 0
             yield new_key, pa.Table.from_batches(chunks_buffer)
+
+        if self.drop_last_batch and self._state_dict:
+            # Exhaustion consumes the discarded tail as well as the yielded batches.
+            self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+            self._state_dict["num_chunks_since_previous_state"] = 0
+            self._state_dict["cropped_chunk_length"] = 0
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "RebatchedArrowExamplesIterable":
         return RebatchedArrowExamplesIterable(
@@ -1374,6 +1407,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             max_num_running_async_map_functions_in_parallel or config.MAX_NUM_RUNNING_ASYNC_MAP_FUNCTIONS_IN_PARALLEL
         )
         self.is_batch_accumulate_arrow_table_function = is_batch_accumulate_arrow_table_function
+        # Set by IterableDataset.decode when it enables threaded decoding: since examples must be decoded exactly
+        # once, a later `.decode()` call reconfigures decoding from `decoding_dataset` (the dataset `.decode()` was
+        # called on) rather than stacking a second decoding step on top of this one.
+        self.decoding_pool: Optional[_LazyThreadPoolExecutor] = None
         # sanity checks
         if formatting and formatting.is_table:
             # batch_size should match for iter_arrow
@@ -1563,22 +1600,20 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 if self._state_dict:
                     previous_state = self.ex_iterable.state_dict()
                     self._state_dict["previous_state"] = previous_state
+                    # Replayed outputs are counted again below, including those skipped on resume.
+                    self._state_dict["num_examples_since_previous_state"] = 0
                     previous_state_task = None
                     previous_state_example_idx = self._state_dict["previous_state_example_idx"]
                 indices: Union[list[int], list[list[int]]] = []
                 for i, key_example in inputs_iterator:
                     indices.append(i)
                     tasks.append(loop.create_task(async_apply_function(key_example, i)))
-                    # keep the total active tasks under a certain number
+                    # keep the total active tasks under a certain number, waiting for the oldest task to complete.
+                    # Polling the whole task list with asyncio.wait can't be used for that: it returns as soon as any
+                    # task in the list is done, so as soon as one example is slower than the examples created after it
+                    # (e.g. a large remote file), every wait returns instantly and this spins at 100% CPU, taking the
+                    # GIL away from the worker threads that were doing the actual work.
                     if len(tasks) >= self.max_num_running_async_map_functions_in_parallel:
-                        done, pending = loop.run_until_complete(
-                            asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-                        )
-                        while tasks and len(pending) >= self.max_num_running_async_map_functions_in_parallel:
-                            done, pending = loop.run_until_complete(
-                                asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-                            )
-                    if len(tasks) >= 10 * self.max_num_running_async_map_functions_in_parallel:
                         loop.run_until_complete(tasks[0])
                     # yield finished tasks
                     while tasks and tasks[0].done():
@@ -1789,12 +1824,19 @@ def _add_mask(
     mask: Union[bool, list, pa.Array, pa.ChunkedArray, pa.BooleanScalar],
     mask_column_name: str,
 ):
-    if isinstance(input, pa.Table):
-        if not isinstance(mask, (list, pa.Array, pa.ChunkedArray)):
-            mask = pa.array([mask], type=pa.bool_())
-        return input.append_column(mask_column_name, mask)
-    else:
+    # pandas and polars formatted batches are converted to arrow, like the outputs of `map`
+    if isinstance(input, pd.DataFrame) or (
+        config.POLARS_AVAILABLE and "polars" in sys.modules and isinstance(input, sys.modules["polars"].DataFrame)
+    ):
+        input = _table_output_to_arrow(input)
+    if not isinstance(input, pa.Table):
         return {mask_column_name: mask}
+    # the mask can be a single bool or any array-like of bools (list, numpy, pandas or polars series)
+    if isinstance(mask, (bool, np.bool_, pa.BooleanScalar)):
+        mask = pa.array([mask], type=pa.bool_())
+    elif not isinstance(mask, (pa.Array, pa.ChunkedArray)):
+        mask = pa.array(mask, type=pa.bool_())
+    return input.append_column(mask_column_name, mask)
 
 
 def add_mask(mask_function: Callable, input: Union[dict, pa.Table], *args, mask_column_name: str, **kwargs):
@@ -1898,6 +1940,69 @@ class FilteredExamplesIterable(MappedExamplesIterable):
         return self.ex_iterable.num_shards
 
 
+class InterleavedShardsExamplesIterable(_BaseExamplesIterable):
+    """Interleave input shards after assigning the source shards to nodes and workers."""
+
+    def __init__(self, ex_iterable: _BaseExamplesIterable, max_input_shards: int):
+        super().__init__()
+        self.ex_iterable = ex_iterable
+        self.max_input_shards = max_input_shards
+        self._interleaved = None
+
+    def _interleave_shards(self) -> _BaseExamplesIterable:
+        num_shards = min(self.ex_iterable.num_shards, self.max_input_shards)
+        if num_shards == 0:
+            return self.ex_iterable
+        return CyclingMultiSourcesExamplesIterable(
+            [self.ex_iterable.shard_data_sources(num_shards, index) for index in range(num_shards)],
+            stopping_strategy="all_exhausted_without_replacement",
+        )
+
+    def _init_state_dict(self) -> dict:
+        # Build from the final local source, including any epoch/worker RNG shifts.
+        # Keep this delegate for iteration so loading its state resumes the same readers.
+        self._interleaved = self._interleave_shards()
+        self._state_dict = self._interleaved._init_state_dict()
+        return self._state_dict
+
+    def __iter__(self):
+        ex_iterable = self._interleaved if self._state_dict is not None else self._interleave_shards()
+        yield from ex_iterable
+
+    def _iter_arrow(self):
+        ex_iterable = self._interleaved if self._state_dict is not None else self._interleave_shards()
+        yield from ex_iterable.iter_arrow()
+
+    @property
+    def iter_arrow(self):
+        return self._iter_arrow if self.ex_iterable.iter_arrow else None
+
+    @property
+    def is_typed(self):
+        return self.ex_iterable.is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterable.features
+
+    @property
+    def num_shards(self) -> int:
+        return self.ex_iterable.num_shards
+
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "InterleavedShardsExamplesIterable":
+        return InterleavedShardsExamplesIterable(
+            self.ex_iterable.shuffle_data_sources(generator), self.max_input_shards
+        )
+
+    def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "InterleavedShardsExamplesIterable":
+        return InterleavedShardsExamplesIterable(
+            self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous), self.max_input_shards
+        )
+
+    def reshard_data_sources(self) -> "InterleavedShardsExamplesIterable":
+        return InterleavedShardsExamplesIterable(self.ex_iterable.reshard_data_sources(), self.max_input_shards)
+
+
 class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     def __init__(self, ex_iterable: _BaseExamplesIterable, buffer_size: int, generator: np.random.Generator):
         super().__init__()
@@ -1948,36 +2053,67 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     def __iter__(self):
         buffer_size = self.buffer_size
         rng = deepcopy(self.generator)
-        indices_iterator = self._iter_random_indices(rng, buffer_size)
         # this is the shuffle buffer that we keep in memory
         mem_buffer = []
+        current_len = 0
         for x in self.ex_iterable:
-            if len(mem_buffer) == buffer_size:  # if the buffer is full, pick and example from it
-                i = next(indices_iterator)
+            mem_buffer.append(x)
+            current_len += 1
+
+            # Amortize shuffle cost by waiting until buffer is full.
+            # Once the buffer reaches `buffer_size`, we shuffle it, yield half, and keep half.
+            # This maintains a rolling randomized buffer while strictly bounding memory usage.
+            if current_len >= buffer_size:
+                indices = rng.permutation(current_len)
+                keep_rows = buffer_size // 2
+                rows_to_yield = current_len - keep_rows
+                for i in indices[:rows_to_yield]:
+                    yield mem_buffer[i]
+
+                mem_buffer = [mem_buffer[i] for i in indices[rows_to_yield:]]
+                current_len = keep_rows
+
+        if current_len > 0:
+            indices = rng.permutation(current_len)
+            for i in indices:
                 yield mem_buffer[i]
-                mem_buffer[i] = x  # replace the picked example by a new one
-            else:  # otherwise, keep filling the buffer
-                mem_buffer.append(x)
-        # when we run out of examples, we shuffle the remaining examples in the buffer and yield them
-        rng.shuffle(mem_buffer)
-        yield from mem_buffer
 
     def _iter_arrow(self):
-        buffer_size = self.buffer_size
+        from copy import deepcopy
+
+        import pyarrow as pa
+        import pyarrow.compute as pc
+
         rng = deepcopy(self.generator)
-        indices_iterator = self._iter_random_indices(rng, buffer_size)
-        # this is the shuffle buffer that we keep in memory
-        mem_buffer = []
+        tables = []
+        current_len = 0
+        last_key = None
+
         for key, pa_table in self.ex_iterable.iter_arrow():
-            if len(mem_buffer) == buffer_size:  # if the buffer is full, pick and example from it
-                i = next(indices_iterator)
-                yield mem_buffer[i]
-                mem_buffer[i] = (key, pa_table)  # replace the picked example by a new one
-            else:  # otherwise, keep filling the buffer
-                mem_buffer.append((key, pa_table))
-        # when we run out of examples, we shuffle the remaining examples in the buffer and yield them
-        rng.shuffle(mem_buffer)
-        yield from mem_buffer
+            last_key = key
+            tables.append(pa_table)
+            current_len += len(pa_table)
+
+            # Amortize shuffle cost by waiting until buffer is full.
+            # Once the buffer reaches `buffer_size`, we shuffle it, yield half, and keep half.
+            # This maintains a rolling randomized buffer while strictly bounding memory usage.
+            if current_len >= self.buffer_size:
+                buffer_table = pa.concat_tables(tables)
+                indices = rng.permutation(current_len)
+                shuffled_table = pc.take(buffer_table, indices)
+
+                # Keep half of the buffer to mix with incoming data on the next iteration
+                keep_rows = self.buffer_size // 2
+                rows_to_yield = current_len - keep_rows
+                yield key, shuffled_table.slice(0, rows_to_yield)
+
+                tables = [shuffled_table.slice(rows_to_yield)]
+                current_len = keep_rows
+
+        if current_len > 0:
+            buffer_table = pa.concat_tables(tables)
+            indices = rng.permutation(current_len)
+            yield last_key, pc.take(buffer_table, indices)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "BufferShuffledExamplesIterable":
         """Shuffle the wrapped examples iterable as well as the shuffling buffer."""
@@ -2095,14 +2231,22 @@ class SkipExamplesIterable(_BaseExamplesIterable):
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "SkipExamplesIterable":
         """Keep only the requested shard."""
         if self.split_when_sharding:
+            # With more shards than data sources (e.g. more DataLoader workers than files), only the first
+            # `num_sources` shards get data, so `n` is split among them for the total to stay `n`.
+            num_sources = min(num_shards, self.num_shards)
             return SkipExamplesIterable(
                 self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
-                n=self.split_number(self.n, num_shards)[index],
+                n=self.split_number(self.n, num_sources)[index] if index < num_sources else 0,
                 block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
                 split_when_sharding=self.split_when_sharding,
             )
         else:
-            return self
+            return SkipExamplesIterable(
+                self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
+                n=self.n,
+                block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
+                split_when_sharding=self.split_when_sharding,
+            )
 
     def reshard_data_sources(self) -> "SkipExamplesIterable":
         return SkipExamplesIterable(
@@ -2153,10 +2297,19 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         repeat_index = self._state_dict["repeat_index"] if self._state_dict else 0
+        first_iteration = True
         while True:
             if self.num_times is not None and repeat_index >= max(self.num_times, 0):
                 break
-            yield from self.ex_iterable
+            has_examples = False
+            for key_example in self.ex_iterable:
+                has_examples = True
+                yield key_example
+            # The first iteration may resume at the end of a non-empty input.
+            # Check a full repetition after resetting it before deciding to stop.
+            if self.num_times is None and not has_examples and not first_iteration:
+                break
+            first_iteration = False
             repeat_index += 1
             if self._state_dict:
                 self._state_dict["repeat_index"] = repeat_index
@@ -2164,10 +2317,17 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
 
     def _iter_arrow(self):
         repeat_index = self._state_dict["repeat_index"] if self._state_dict else 0
+        first_iteration = True
         while True:
             if self.num_times is not None and repeat_index >= max(self.num_times, 0):
                 break
-            yield from self.ex_iterable.iter_arrow()
+            has_examples = False
+            for key, pa_table in self.ex_iterable.iter_arrow():
+                has_examples = has_examples or len(pa_table) > 0
+                yield key, pa_table
+            if self.num_times is None and not has_examples and not first_iteration:
+                break
+            first_iteration = False
             repeat_index += 1
             if self._state_dict:
                 self._state_dict["repeat_index"] = repeat_index
@@ -2287,9 +2447,12 @@ class TakeExamplesIterable(_BaseExamplesIterable):
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "TakeExamplesIterable":
         """Keep only the requested shard."""
         if self.split_when_sharding:
+            # With more shards than data sources (e.g. more DataLoader workers than files), only the first
+            # `num_sources` shards get data, so `n` is split among them for the total to stay `n`.
+            num_sources = min(num_shards, self.num_shards)
             return TakeExamplesIterable(
                 self.ex_iterable.shard_data_sources(num_shards, index, contiguous=contiguous),
-                n=self.split_number(self.n, num_shards)[index],
+                n=self.split_number(self.n, num_sources)[index] if index < num_sources else 0,
                 block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
                 split_when_sharding=self.split_when_sharding,
             )
@@ -2467,6 +2630,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
 class DistributedConfig:
     rank: int
     world_size: int
+    strategy: Literal["auto", "shards", "examples"] = "auto"
 
 
 def _maybe_add_torch_iterable_dataset_parent_class(cls):
@@ -2631,7 +2795,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> dataloader.load_state_dict(state_dict)  # uses ds.load_state_dict() under the hood
         ```
         """
-        return deepcopy(self._state_dict)
+        return _fast_copy(self._state_dict)
 
     def load_state_dict(self, state_dict: dict) -> None:
         """Load the state_dict of the dataset.
@@ -2707,8 +2871,15 @@ class IterableDataset(DatasetInfoMixin):
 
     @property
     def num_shards(self) -> int:
-        if self._distributed and self._ex_iterable.num_shards % self._distributed.world_size == 0:
-            return self._ex_iterable.num_shards // self._distributed.world_size
+        if self._distributed:
+            strategy = self._distributed.strategy
+            world_size = self._distributed.world_size
+            if strategy == "shards" or (strategy == "auto" and self._ex_iterable.num_shards % world_size == 0):
+                return len(
+                    self._ex_iterable.split_shard_indices_by_worker(
+                        num_shards=world_size, index=self._distributed.rank, contiguous=False
+                    )
+                )
         return self._ex_iterable.num_shards
 
     @property
@@ -2790,30 +2961,48 @@ class IterableDataset(DatasetInfoMixin):
         ex_iterable = self._ex_iterable
 
         if self.epoch:
-            ex_iterable = ex_iterable.shuffle_data_sources(np.random.default_rng(self.epoch))
+            try:
+                ex_iterable = ex_iterable.shuffle_data_sources(np.random.default_rng(self.epoch))
+            except DataSourcesShufflingDisallowed:
+                pass  # skip() and take() keep the shard order fixed across epochs.
             ex_iterable = shift_ex_examples_rngs(ex_iterable, self.epoch)
 
         if self._distributed:
             rank = self._distributed.rank
             world_size = self._distributed.world_size
-            if ex_iterable.num_shards % world_size == 0:
+            strategy = self._distributed.strategy
+            if strategy == "shards" and ex_iterable.num_shards < world_size:
+                # The shard count can change after the split (shuffle, shard, map with
+                # reshuffling), so this is checked at iteration time as well as when the
+                # split was requested.
+                raise ValueError(
+                    f"Cannot iterate with strategy='shards': the dataset now has num_shards={ex_iterable.num_shards}, "
+                    f"which is lower than world_size={world_size}, so some nodes would not be assigned any shard."
+                )
+            if strategy == "shards" or (strategy == "auto" and ex_iterable.num_shards % world_size == 0):
                 if self._is_main_process():
                     num_shards_per_node = ex_iterable.num_shards // world_size
                     plural = "s" if num_shards_per_node > 1 else ""
                     logger.info(
                         f"Assigning {num_shards_per_node} shard{plural} (or data source{plural}) of the dataset to each node."
                     )
+                    if ex_iterable.num_shards % world_size != 0:
+                        logger.info(
+                            f"The number of shards ({ex_iterable.num_shards}) is not a factor of world_size={world_size}, "
+                            "so some nodes are assigned one more shard than the others."
+                        )
                 ex_iterable = ex_iterable.shard_data_sources(num_shards=world_size, index=rank, contiguous=False)
             else:
                 if self._is_main_process():
                     logger.info(
                         f"Assigning 1 out of {world_size} examples of the dataset to each node. The others are skipped during the iteration."
                     )
-                    logger.info(
-                        f"It is more optimized to distribute the dataset shards (or data sources) across nodes. "
-                        f"You can do that by using a dataset with number of shards that is a factor of world_size={world_size}. "
-                        f"The current dataset has {ex_iterable.num_shards} which is not a factor of {world_size}"
-                    )
+                    if strategy == "auto":
+                        logger.info(
+                            f"It is more optimized to distribute the dataset shards (or data sources) across nodes. "
+                            f"You can do that by using a dataset with number of shards that is a factor of world_size={world_size}. "
+                            f"The current dataset has {ex_iterable.num_shards} which is not a factor of {world_size}"
+                        )
                 ex_iterable = StepExamplesIterable(ex_iterable, step=world_size, offset=rank)
 
         if ex_iterable.iter_arrow:
@@ -3724,7 +3913,18 @@ class IterableDataset(DatasetInfoMixin):
         # We need the examples to be decoded for certain feature types like Image or Audio,
         # format and type before filtering
         ex_iterable = self._ex_iterable
-        if self._info.features or self._formatting:
+        if self._formatting and self._formatting.is_table:
+            # same as in `map`: the arrow-formatted FilteredExamplesIterable expects arrow batches of the right size
+            ex_iterable = FormattedExamplesIterable(
+                ex_iterable,
+                formatting=deepcopy(self._formatting),
+                features=self._ex_iterable.features if self._ex_iterable.is_typed else self._info.features,
+                token_per_repo_id=self._token_per_repo_id,
+            )
+            ex_iterable = RebatchedArrowExamplesIterable(
+                ex_iterable, batch_size=batch_size if batched else 1, force_convert_to_arrow=True
+            )
+        elif self._info.features or self._formatting:
             if ex_iterable.iter_arrow:
                 # Rebatch before formatting so the formatter reads at most one batch ahead
                 # instead of a whole arrow table. Without this, a non-batched filter consumes
@@ -3779,6 +3979,8 @@ class IterableDataset(DatasetInfoMixin):
 
         If the dataset is made of several shards, it fills the buffer using up to `max_buffer_input_shards` shards
         at a time and also does shuffle the order of the shards. This greatly improves the quality of the shuffling.
+        The input shards are interleaved within each node and worker, preserving the number of shards available
+        for parallel data loading.
 
         However if the order has been fixed by using [`~datasets.IterableDataset.skip`]
         or [`~datasets.IterableDataset.take`] then the order of the shards is kept unchanged and only one shard at
@@ -3793,7 +3995,7 @@ class IterableDataset(DatasetInfoMixin):
                 If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
             buffer_size (`int`, defaults to `1000`):
                 Size of the buffer.
-            max_buffer_input_shards (`int`, defaults to `101000`):
+            max_buffer_input_shards (`int`, defaults to `10`):
                 Maximum number of shards to use to feed the buffer at a time.
 
         Example:
@@ -3836,16 +4038,10 @@ class IterableDataset(DatasetInfoMixin):
         except DataSourcesShufflingDisallowed:
             max_buffer_input_shards = 1
         if ex_iterable.iter_arrow:
-            ex_iterable = RebatchedArrowExamplesIterable(ex_iterable, batch_size=1)
+            batch_size = max(1, buffer_size // max(1, max_buffer_input_shards))
+            ex_iterable = RebatchedArrowExamplesIterable(ex_iterable, batch_size=batch_size)
         if max_buffer_input_shards > 1:
-            num_shards_to_interleave = min(ex_iterable.num_shards, max_buffer_input_shards)
-            ex_iterable = CyclingMultiSourcesExamplesIterable(
-                [
-                    ex_iterable.shard_data_sources(num_shards=num_shards_to_interleave, index=index)
-                    for index in range(num_shards_to_interleave)
-                ],
-                stopping_strategy="all_exhausted_without_replacement",
-            )
+            ex_iterable = InterleavedShardsExamplesIterable(ex_iterable, max_buffer_input_shards)
         ex_iterable = BufferShuffledExamplesIterable(ex_iterable, buffer_size=buffer_size, generator=generator)
         return IterableDataset(
             ex_iterable,
@@ -3904,6 +4100,8 @@ class IterableDataset(DatasetInfoMixin):
     def repeat(self, num_times: Optional[int]) -> "IterableDataset":
         """
         Create a new [`IterableDataset`] that repeats the underlying dataset `num_times` times.
+
+        An empty input terminates even when `num_times` is `None`.
 
         N.B. The effect of calling shuffle after repeat depends significantly on buffer size.
         With buffer_size 1, duplicate data is never seen in the same iteration, even after shuffling:
@@ -4319,7 +4517,7 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-    def decode(self, enable: bool = True, num_threads: int = 0) -> "IterableDataset":
+    def decode(self, enable: bool = True, num_threads: Optional[int] = None) -> "IterableDataset":
         """
         Enable or disable the dataset features decoding for audio, image, video.
 
@@ -4329,8 +4527,13 @@ class IterableDataset(DatasetInfoMixin):
         * image -> PIL.Image
         * video -> torchcodec.decoders.VideoDecoder
 
-        You can enable multithreading using `num_threads`. This is especially useful to speed up remote
-        data streaming. However it can be slower than `num_threads=0` for local data on fast disks.
+        Multithreading can be enabled with `num_threads`: every media file is then read and decoded in a worker
+        thread, so that the network round trips of consecutive examples overlap. This is especially useful to speed
+        up remote data streaming, and [`load_dataset`] already enables it by default when streaming a remote dataset
+        that has decodable features (see `HF_DATASETS_DECODE_NUM_THREADS`). Datasets read from the local disk are
+        streamed with `num_threads=0`, since multithreading can be slower than decoding in the main thread for local
+        data on fast disks. Since examples are decoded in advance, every thread in flight can keep one example in
+        memory: lower `num_threads` to use less memory.
 
         Disabling decoding is useful if you want to iterate on the paths or bytes of the media files
         without actually decoding their content. To disable decoding you can use `.decode(False)`, which
@@ -4340,8 +4543,10 @@ class IterableDataset(DatasetInfoMixin):
         Args:
             enable (`bool`, defaults to `True`):
                 Enable or disable features decoding.
-            num_threads (`int`, defaults to `0`):
-                Enable multithreading for features decoding.
+            num_threads (`int`, *optional*, defaults to `None`):
+                Enable multithreading for features decoding. Note that [`load_dataset`] already uses a few threads
+                by default when streaming a dataset on HF with decodable features.
+                By default, `num_threads` is set to 32 if at least one feature require decoding, and 0 otherwise.
 
         Returns:
             `IterableDataset`: A copy of the dataset with casted features.
@@ -4377,9 +4582,9 @@ class IterableDataset(DatasetInfoMixin):
         >>> from datasets import load_dataset
         >>> from tqdm import tqdm
         >>> ds = load_dataset("sshh12/planet-textures", split="train", streaming=True)
-        >>> num_threads = min(32, (os.cpu_count() or 1) + 4)
-        >>> ds = ds.decode(num_threads=num_threads)
-        >>> for _ in tqdm(ds):  # 20 times faster !
+        >>> # already threaded by default with 32 threads, but more threads can help going even faster
+        >>> ds = ds.decode(num_threads=64)
+        >>> for _ in tqdm(ds):  # 2 times faster !
         ...     ...
         ```
         """
@@ -4388,28 +4593,36 @@ class IterableDataset(DatasetInfoMixin):
                 "Features decoding is only available for datasets with known features, but features are Unknown. "
                 "Please set the datasets features with `ds = ds.cast(features)`."
             )
+        if num_threads is None:
+            num_threads = 32 if require_decoding(self.features) else 0
+
         ds = self
+        # If decoding is already configured, start again from the dataset it was configured on: examples must be
+        # decoded exactly once, so `.decode()` replaces the previous decoding step instead of adding a new one.
+        if isinstance(ds._ex_iterable, MappedExamplesIterable) and ds._ex_iterable.decoding_pool is not None:
+            ds._ex_iterable.decoding_pool.shutdown(wait=False, cancel_futures=True)
+            ds = IterableDataset(
+                ds._ex_iterable.ex_iterable,
+                info=ds.info,
+                split=ds.split,
+                formatting=ds._formatting,
+                distributed=ds._distributed,
+                token_per_repo_id=ds._token_per_repo_id,
+            )
 
-        def set_decoding(decode: bool, feature):
-            if hasattr(feature, "decode"):
-                feature.decode = decode
-
-        if enable and num_threads > 0:
-            disabled_decoding_features = self.features.copy()
-            enabled_decoding_features = self.features.copy()
-
-            _visit(disabled_decoding_features, partial(set_decoding, False))
-            _visit(enabled_decoding_features, partial(set_decoding, True))
+        if enable and num_threads:
+            disabled_decoding_features = _features_with_decoding(self.features, False)
+            enabled_decoding_features = _features_with_decoding(self.features, True)
             ds = ds.cast(disabled_decoding_features)
-            pool = multiprocessing.pool.ThreadPool(num_threads)
-            func = partial(_apply_async, pool, enabled_decoding_features.decode_example)
+            pool = _LazyThreadPoolExecutor(num_threads)
+            decode_example = partial(enabled_decoding_features.decode_example, token_per_repo_id=ds._token_per_repo_id)
+            func = partial(_apply_async, pool, decode_example)
             ds = ds.map(func, features=enabled_decoding_features)
             assert isinstance(ds._ex_iterable, MappedExamplesIterable)
+            ds._ex_iterable.decoding_pool = pool
             ds._ex_iterable.max_num_running_async_map_functions_in_parallel = 2 * num_threads
         else:
-            features = ds.features.copy()
-            _visit(features, partial(set_decoding, enable))
-            ds = ds.cast(features)
+            ds = ds.cast(_features_with_decoding(ds.features, enable))
         return ds
 
     def _step(self, step: int, offset: int) -> "IterableDataset":
@@ -4492,7 +4705,10 @@ class IterableDataset(DatasetInfoMixin):
                 .with_format(self._formatting.format_type if self._formatting else None)
             )
             return ds
-        if self._formatting and self._formatting.is_table:
+        if self._formatting and (self._ex_iterable.iter_arrow is not None or self._formatting.is_table):
+            # Batch in arrow when the underlying iterable is arrow-backed (or the output format is a table).
+            # This avoids converting arrow tables to Python examples only to transpose them back, and matches
+            # both `IterableDataset.iter(batch_size=...)` and map-style `Dataset.batch()`.
             return (
                 self.with_format("arrow")
                 .map(
@@ -4525,8 +4741,10 @@ class IterableDataset(DatasetInfoMixin):
         ```
         """
         if batched:
-            for table in self.with_format("arrow").iter(batch_size=batch_size):
-                yield Dataset(table, fingerprint="unset").to_dict()
+            return (
+                Dataset(table, fingerprint="unset").to_dict()
+                for table in self.with_format("arrow").iter(batch_size=batch_size)
+            )
         else:
             table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
             return Dataset(table, fingerprint="unset").to_dict()
@@ -4617,8 +4835,10 @@ class IterableDataset(DatasetInfoMixin):
         ```
         """
         if batched:
-            for table in self.with_format("arrow").iter(batch_size=batch_size):
-                yield Dataset(table, fingerprint="unset").to_polars(schema_overrides=schema_overrides, rechunk=rechunk)
+            return (
+                Dataset(table, fingerprint="unset").to_polars(schema_overrides=schema_overrides, rechunk=rechunk)
+                for table in self.with_format("arrow").iter(batch_size=batch_size)
+            )
         else:
             table = pa.concat_tables(list(self.with_format("arrow").iter(batch_size=1000)))
             return Dataset(table, fingerprint="unset").to_polars(schema_overrides=schema_overrides, rechunk=rechunk)
@@ -4810,6 +5030,81 @@ class IterableDataset(DatasetInfoMixin):
             path_or_buf, storage_options=storage_options, **parquet_writer_kwargs
         )
 
+    def _write_parquet_shards(
+        self,
+        start: int,
+        end: int,
+        embed_external_files: bool,
+        num_shards: int,
+        num_source_shards: int,
+        first_source_shard: int,
+    ) -> Iterator[tuple[int, str]]:
+        """Write output shards `start` to `end` (excluded) as temporary Parquet files and yield `(index, path)`.
+
+        With at most one output shard per input shard, each output shard is a contiguous group of input shards.
+        With more output shards than input shards, each input shard is spread over its own group of consecutive
+        output shards by sending its examples to them in a round-robin fashion. This needs a single pass over the
+        data and keeps every input shard independent, so the work can still be split across processes.
+        `num_shards`, `num_source_shards` and `first_source_shard` place this dataset's input shards in the whole
+        dataset, so that the output shards an input shard is spread over do not depend on how the work is split.
+        The caller is responsible for deleting the yielded files.
+        """
+        from .arrow_writer import get_arrow_writer_batch_size_from_features
+
+        num_output_shards = end - start
+        num_input_shards = self.num_shards
+        if num_shards <= num_source_shards:
+            for i in range(num_output_shards):
+                shard = self.shard(num_shards=num_output_shards, index=i, contiguous=True)
+                if embed_external_files:
+                    shard = shard.with_format("arrow")
+                    shard = shard.map(
+                        partial(embed_table_storage, token_per_repo_id=self._token_per_repo_id),
+                        batched=True,
+                        batch_size=get_arrow_writer_batch_size_from_features(shard.features),
+                    )
+                with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as tmp_file:
+                    try:
+                        shard.to_parquet(tmp_file)
+                    except (Exception, KeyboardInterrupt):
+                        tmp_file.close()
+                        Path(tmp_file.name).unlink()
+                        raise
+                yield start + i, tmp_file.name
+            return
+
+        schema = self.features.arrow_schema
+        batch_size = get_arrow_writer_batch_size_from_features(self.features) or config.DEFAULT_MAX_BATCH_SIZE
+        for input_index in range(num_input_shards):
+            first_output, end_output = _split_evenly(num_shards, num_source_shards, first_source_shard + input_index)
+            num_outputs = end_output - first_output
+            input_shard = self.shard(num_shards=num_input_shards, index=input_index, contiguous=True)
+            tmp_file_names = []
+            try:
+                writers = []
+                for _ in range(num_outputs):
+                    with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as tmp_file:
+                        tmp_file_names.append(tmp_file.name)
+                    writers.append(pq.ParquetWriter(tmp_file_names[-1], schema=schema))
+                num_rows_seen = 0
+                for pa_table in input_shard.with_format("arrow").iter(batch_size=batch_size):
+                    if embed_external_files:
+                        pa_table = embed_table_storage(pa_table, token_per_repo_id=self._token_per_repo_id)
+                    for output_index, writer in enumerate(writers):
+                        # rows num_rows_seen + i such that (num_rows_seen + i) % num_outputs == output_index
+                        indices = range((output_index - num_rows_seen) % num_outputs, len(pa_table), num_outputs)
+                        if len(indices):
+                            writer.write_table(pa_table.take(pa.array(indices, type=pa.int64())))
+                    num_rows_seen += len(pa_table)
+                for writer in writers:
+                    writer.close()
+            except (Exception, KeyboardInterrupt):
+                for tmp_file_name in tmp_file_names:
+                    Path(tmp_file_name).unlink(missing_ok=True)
+                raise
+            for output_offset, tmp_file_name in enumerate(tmp_file_names):
+                yield first_output + output_offset, tmp_file_name
+
     def _push_parquet_shards_to_hub_single(
         self,
         job_id: int,
@@ -4822,6 +5117,7 @@ class IterableDataset(DatasetInfoMixin):
         # max_shard_size: Optional[Union[int, str]] = None,  # TODO(QL): add arg
         num_shards: int,
         embed_external_files: bool,
+        num_source_shards: int,
     ) -> Iterable[tuple[list[CommitOperationAdd], list[str], int, int]]:
         """Pushes the dataset shards as Parquet files to the hub.
 
@@ -4833,14 +5129,14 @@ class IterableDataset(DatasetInfoMixin):
             num_examples (`int`): number of examples of th euploaded shards
         """
 
-        div = num_shards // num_jobs
-        mod = num_shards % num_jobs
-        start = div * job_id + min(job_id, mod)
-        end = start + div + (1 if job_id < mod else 0)
-
-        index_shards = (
-            (start + i, self.shard(num_shards=end - start, index=i, contiguous=True)) for i in range(end - start)
-        )
+        if num_shards <= num_source_shards:
+            start, end = _split_evenly(num_shards, num_jobs, job_id)
+            first_source_shard = None
+        else:
+            # Each job gets the same input shards as `self.shard(num_shards=num_jobs, index=job_id, contiguous=True)`.
+            first_source_shard, end_source_shard = _split_evenly(num_source_shards, num_jobs, job_id)
+            start = _split_evenly(num_shards, num_source_shards, first_source_shard)[0]
+            end = _split_evenly(num_shards, num_source_shards, end_source_shard - 1)[1]
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
 
@@ -4849,22 +5145,12 @@ class IterableDataset(DatasetInfoMixin):
         additions: list[CommitOperationAdd] = []
         new_parquet_paths: list[str] = []
         features = self.features
-        for index, shard in index_shards:
-            if embed_external_files:
-                from .arrow_writer import get_arrow_writer_batch_size_from_features
-
-                shard = shard.with_format("arrow")
-                shard = shard.map(
-                    partial(embed_table_storage, token_per_repo_id=self._token_per_repo_id),
-                    batched=True,
-                    batch_size=get_arrow_writer_batch_size_from_features(shard.features),
-                )
+        for index, tmp_file_name in self._write_parquet_shards(
+            start, end, embed_external_files, num_shards, num_source_shards, first_source_shard
+        ):
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
-            tmp_file = tempfile.NamedTemporaryFile(suffix=".parquet", delete=False)
             try:
-                shard.to_parquet(tmp_file)
-                tmp_file.close()
-                parquet_metadata = pq.read_metadata(tmp_file.name)
+                parquet_metadata = pq.read_metadata(tmp_file_name)
                 if features is None:
                     features = Features.from_arrow_schema(parquet_metadata.schema.to_arrow_schema())
                 num_examples += parquet_metadata.num_rows
@@ -4876,7 +5162,7 @@ class IterableDataset(DatasetInfoMixin):
                     isinstance(resolved_output_path, HfFileSystemResolvedRepositoryPath)
                     and not resolved_output_path.path_in_repo
                 ):
-                    shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=tmp_file.name)
+                    shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=tmp_file_name)
                     api.preupload_lfs_files(
                         repo_id=resolved_output_path.repo_id,
                         additions=[shard_addition],
@@ -4889,16 +5175,12 @@ class IterableDataset(DatasetInfoMixin):
                     if resolved_output_path.path:
                         shard_path_in_repo = resolved_output_path.path + "/" + shard_path_in_repo
                     api.batch_bucket_files(
-                        bucket_id=resolved_output_path.bucket_id, add=[(tmp_file.name, shard_path_in_repo)]
+                        bucket_id=resolved_output_path.bucket_id, add=[(tmp_file_name, shard_path_in_repo)]
                     )
                 else:
                     raise NotImplementedError(f"Bad HF path: {resolved_output_path}")
-            except (Exception, KeyboardInterrupt):
-                tmp_file.close()
-                Path(tmp_file.name).unlink()
-                raise
-            tmp_file.close()
-            Path(tmp_file.name).unlink()
+            finally:
+                Path(tmp_file_name).unlink()
             yield job_id, False, 1
 
         yield job_id, True, (additions, new_parquet_paths, features, dataset_nbytes, num_examples)
@@ -4926,6 +5208,11 @@ class IterableDataset(DatasetInfoMixin):
                 the uploaded dataset after uncompression
             uploaded_size (`int`): number of uploaded bytes to the repository or bucket
         """
+
+        # Features may be unknown (e.g. a dataset from a generator, or streamed CSV/JSON files
+        # without declared features): resolve them from the first examples, as done e.g. in
+        # `concatenate_datasets` and `interleave_datasets`.
+        self = self._resolve_features()
 
         # Find decodable columns, because if there are any, we need to:
         # embed the bytes from the files in the shards
@@ -4967,6 +5254,14 @@ class IterableDataset(DatasetInfoMixin):
             )
             num_proc = num_shards
             num_jobs = num_shards
+        if num_jobs > self.num_shards:
+            logger.warning(
+                f"Setting num_proc from {num_jobs} to {self.num_shards} for the {split} split as each process "
+                f"handles whole input shards and the dataset only contains {self.num_shards} shards."
+            )
+            num_proc = self.num_shards if self.num_shards > 1 else None
+            num_jobs = self.num_shards
+
         kwargs_iterable = [
             {
                 "self": self.shard(num_shards=num_jobs, index=job_id, contiguous=True),
@@ -4978,6 +5273,7 @@ class IterableDataset(DatasetInfoMixin):
                 "token": token,
                 "create_pr": create_pr,
                 "num_shards": num_shards,
+                "num_source_shards": self.num_shards,
                 "embed_external_files": embed_external_files,
             }
             for job_id in range(num_jobs)
@@ -5073,7 +5369,7 @@ class IterableDataset(DatasetInfoMixin):
                 organization's default is private. This value is ignored if the repo already exists.
             token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
-                to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
+                to the token saved locally when logging in with `hf auth login`. Will raise an error
                 if no token is passed and the user is not logged-in.
             revision (`str`, *optional*):
                 Branch to push the uploaded files to. Defaults to the `"main"` branch.
@@ -5084,7 +5380,8 @@ class IterableDataset(DatasetInfoMixin):
                 by a unit (like `"5MB"`). If not provided, shard count defaults to this dataset's `.num_shards`.
             num_shards (`int`, *optional*):
                 Number of shards to write. If `max_shard_size` is provided and `num_shards` is not, then the number of shards is estimated
-                from `max_shard_size`.
+                from `max_shard_size`. Can be larger than this dataset's `.num_shards`: each input shard is then spread over
+                several output shards by writing its examples to them in a round-robin fashion.
             embed_external_files (`bool`, defaults to `True`):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
@@ -5160,8 +5457,6 @@ class IterableDataset(DatasetInfoMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
         if repo_id.startswith("buckets/"):
-            if BucketNotFoundError is None:
-                raise ImportError("Pushing datasets to buckets requires huggingface_hub>=1.6.0")
             _, _namespace, _bucket_name, *_path_segments = repo_id.split("/")
             try:
                 bucket_id = api.bucket_info(_namespace + "/" + _bucket_name).id
@@ -5394,13 +5689,21 @@ def _interleave_iterable_datasets(
     )
 
 
-def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_size: int) -> IterableDataset:
+def _split_by_node_iterable_dataset(
+    dataset: IterableDataset,
+    rank: int,
+    world_size: int,
+    strategy: Literal["auto", "shards", "examples"] = "auto",
+) -> IterableDataset:
     """
     Split an iterable dataset for the node at rank `rank` in a pool of nodes of size `world_size`.
 
-    If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.num_shards % world_size == 0`),
-    then the shards are evenly assigned across the nodes, which is the most optimized.
-    Otherwise, each node keeps 1 example out of `world_size`, skipping the other examples.
+    The splitting `strategy` can be `"auto"`, `"shards"`, or `"examples"`:
+
+    * `"shards"`: shards are evenly assigned across the nodes
+    * `"examples"`: each node keeps 1 example out of `world_size`, skipping the other examples
+    * `"auto"` (default): uses `"shards"` if the dataset has a number of shards that is a factor of `world_size`
+    (i.e. if `dataset.num_shards % world_size == 0`), which is the most optimized. Otherwise uses `"examples"`.
 
     Args:
         dataset ([`IterableDataset`]):
@@ -5409,14 +5712,28 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
             Rank of the current node.
         world_size (`int`):
             Total number of nodes.
+        strategy (`str`, defaults to `"auto"`):
+            How to split the iterable dataset. Must be one of `"auto"`, `"shards"`, or `"examples"`.
 
     Returns:
         [`IterableDataset`]: The iterable dataset to be used on the node at rank `rank`.
     """
     if dataset._distributed:
+        if strategy not in ("auto", dataset._distributed.strategy):
+            raise ValueError(
+                "Cannot change the strategy when splitting an already distributed iterable dataset. "
+                f"The existing strategy is {dataset._distributed.strategy!r} and the new strategy is {strategy!r}."
+            )
+        strategy = dataset._distributed.strategy
         rank = world_size * dataset._distributed.rank + rank
         world_size = world_size * dataset._distributed.world_size
-    distributed = DistributedConfig(rank=rank, world_size=world_size)
+    if strategy == "shards" and dataset._ex_iterable.num_shards < world_size:
+        raise ValueError(
+            f"Cannot split an iterable dataset with num_shards={dataset._ex_iterable.num_shards} "
+            f"across world_size={world_size} nodes with strategy='shards' "
+            "because some nodes would not be assigned any shard."
+        )
+    distributed = DistributedConfig(rank=rank, world_size=world_size, strategy=strategy)
     return IterableDataset(
         ex_iterable=dataset._ex_iterable,
         info=dataset._info.copy(),
@@ -5427,13 +5744,66 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
     )
 
 
-async def _apply_async(pool, func, x):
-    future = pool.apply_async(func, (x,))
-    while True:
-        if future.ready():
-            return future.get()
-        else:
-            await asyncio.sleep(0)
+def _features_with_decoding(features: Features, decode: bool) -> Features:
+    """Return a copy of `features` where media features (Image/Audio/Video/Mesh/...) are set to decode or not."""
+
+    def _set_decode_flag(feature):
+        if hasattr(feature, "decode"):
+            feature.decode = decode
+
+    features = features.copy()
+    _visit(features, _set_decode_flag)
+    # Features caches which columns require decoding: re-assign every column to refresh it after the flags change
+    for column_name, feature in list(features.items()):
+        features[column_name] = feature
+    return features
+
+
+class _LazyThreadPoolExecutor:
+    """A `concurrent.futures.ThreadPoolExecutor` that is created on first use instead of upfront.
+
+    Threaded decoding holds one of these in the dataset, and datasets get pickled all the time (to send them to
+    `to_torch(num_workers=...)` worker processes for example). Creating the pool when examples are actually read
+    keeps the dataset picklable: every process that iterates it creates its own pool.
+    """
+
+    def __init__(self, max_workers: int):
+        self.max_workers = max_workers
+        self._pool: Optional[concurrent.futures.ThreadPoolExecutor] = None
+        self._lock = threading.Lock()
+
+    def submit(self, fn, *args, **kwargs):
+        with self._lock:
+            if self._pool is None:
+                self._pool = concurrent.futures.ThreadPoolExecutor(
+                    self.max_workers, thread_name_prefix="datasets_decode"
+                )
+        return self._pool.submit(fn, *args, **kwargs)
+
+    def shutdown(self, wait: bool = True, *, cancel_futures: bool = False):
+        with self._lock:
+            pool, self._pool = self._pool, None
+        if pool is not None:
+            pool.shutdown(wait=wait, cancel_futures=cancel_futures)
+
+    def __getstate__(self):
+        return {"max_workers": self.max_workers}
+
+    def __setstate__(self, state):
+        self.max_workers = state["max_workers"]
+        self._pool = None
+        self._lock = threading.Lock()
+
+
+async def _apply_async(pool: "_LazyThreadPoolExecutor", func, x):
+    """Run `func(x)` in a worker thread and await its result without blocking the event loop.
+
+    The worker future is wrapped rather than polled in a `while not future.ready(): await asyncio.sleep(0)` loop:
+    spinning wakes up the event loop thousands of times per second, which burns CPU and starves the worker threads
+    that do the actual work (mostly network reads), making threaded decoding slower than plain sequential decoding.
+    """
+
+    return await asyncio.wrap_future(pool.submit(func, x))
 
 
 def _batch_fn(unbatched):

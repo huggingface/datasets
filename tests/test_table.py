@@ -9,7 +9,7 @@ import numpy as np
 import pyarrow as pa
 import pytest
 
-from datasets.features import Array2D, ClassLabel, Features, Image, LargeList, List, Value
+from datasets.features import Array2D, ClassLabel, Features, Image, Json, LargeList, List, Value
 from datasets.features.features import Array2DExtensionType, get_nested_type
 from datasets.table import (
     ConcatenationTable,
@@ -1176,6 +1176,14 @@ def test_cast_array_to_features_nested_with_nulls():
     casted_array = cast_array_to_feature(arr, {"foo": List(List(Value("int32")))})
     assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int32()))})
     assert casted_array.to_pylist() == [{"foo": [None, [0]]}]
+
+
+def test_cast_array_to_features_struct_with_json_field_and_null_rows():
+    # the child values under a null struct row are placeholders (e.g. "") that must not be read as data
+    arr = pa.array([{"foo": '{"a": 1}'}, None, {"foo": "[2]"}], pa.struct({"foo": pa.string()}))
+    casted_array = cast_array_to_feature(arr, {"foo": Json()})
+    assert casted_array.is_null().to_pylist() == [False, True, False]
+    assert casted_array.field("foo").storage.to_pylist()[::2] == ['{"a": 1}', "[2]"]
 
 
 def test_cast_array_to_features_to_null_type():

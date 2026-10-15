@@ -135,6 +135,14 @@ def test_image_decode_example_jxl(tmp_path):
 
 
 @require_pil
+def test_image_decode_example_is_idempotent(shared_datadir):
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    decoded_example = Image().decode_example({"path": image_path, "bytes": None})
+    # decoding an already decoded example returns it as is, so decoding twice is a no-op
+    assert Image().decode_example(decoded_example) is decoded_example
+
+
+@require_pil
 def test_image_decode_example_with_exif_orientation_tag(shared_datadir):
     import PIL.Image
 
