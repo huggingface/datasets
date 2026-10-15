@@ -1267,7 +1267,7 @@ def test_iterable_dataset_concatenate_arrow_map_with_indices_changes_batch_size(
         .map(transform, with_indices=True, batched=True, batch_size=2)
     )
     # Mixing Arrow and Python iterables exercises the mapped iterable's row iterator.
-    other = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": 1, "source_idx": 0}))
+    other = IterableDataset.from_generator(lambda: iter([{"id": 0, "source_idx": 0}]))
     combined = concatenate_datasets([mapped, other])
     expected_ids = first_batch_rows + [2, 3, 4, 5, 0]
     assert list(combined) == [{"id": i, "source_idx": i} for i in expected_ids]
