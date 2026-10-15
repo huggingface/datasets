@@ -27,7 +27,6 @@ from datasets.combine import concatenate_datasets, interleave_datasets
 from datasets.dataset_dict import IterableDatasetDict
 from datasets.distributed import split_dataset_by_node
 from datasets.features import (
-    Audio,
     ClassLabel,
     Features,
     Image,

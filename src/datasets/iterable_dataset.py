@@ -4517,7 +4517,6 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-
     def decode(self, enable: bool = True, num_threads: Optional[int] = None) -> "IterableDataset":
         """
         Enable or disable the dataset features decoding for audio, image, video.
