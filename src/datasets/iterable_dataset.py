@@ -4517,9 +4517,6 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-    from tqdm.contrib.concurrent import thread_map
-
-    thread_map
 
     def decode(self, enable: bool = True, num_threads: Optional[int] = None) -> "IterableDataset":
         """
@@ -4550,6 +4547,7 @@ class IterableDataset(DatasetInfoMixin):
             num_threads (`int`, *optional*, defaults to `None`):
                 Enable multithreading for features decoding. Note that [`load_dataset`] already uses a few threads
                 by default when streaming a dataset on HF with decodable features.
+                By default, `num_threads` is set to 64 if at least one feature require decoding, and 0 otherwise.
 
         Returns:
             `IterableDataset`: A copy of the dataset with casted features.
@@ -4597,6 +4595,9 @@ class IterableDataset(DatasetInfoMixin):
                 "Features decoding is only available for datasets with known features, but features are Unknown. "
                 "Please set the datasets features with `ds = ds.cast(features)`."
             )
+        if num_threads is None:
+            num_threads = 64 if require_decoding(self.features) else 0
+
         ds = self
         # If decoding is already configured, start again from the dataset it was configured on: examples must be
         # decoded exactly once, so `.decode()` replaces the previous decoding step instead of adding a new one.
@@ -4611,7 +4612,7 @@ class IterableDataset(DatasetInfoMixin):
                 token_per_repo_id=ds._token_per_repo_id,
             )
 
-        if enable and num_threads > 0:
+        if enable and num_threads:
             disabled_decoding_features = _features_with_decoding(self.features, False)
             enabled_decoding_features = _features_with_decoding(self.features, True)
             ds = ds.cast(disabled_decoding_features)
