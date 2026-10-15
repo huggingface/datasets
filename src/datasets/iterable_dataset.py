@@ -4546,7 +4546,7 @@ class IterableDataset(DatasetInfoMixin):
             num_threads (`int`, *optional*, defaults to `None`):
                 Enable multithreading for features decoding. Note that [`load_dataset`] already uses a few threads
                 by default when streaming a dataset on HF with decodable features.
-                By default, `num_threads` is set to 64 if at least one feature require decoding, and 0 otherwise.
+                By default, `num_threads` is set to 32 if at least one feature require decoding, and 0 otherwise.
 
         Returns:
             `IterableDataset`: A copy of the dataset with casted features.
@@ -4582,10 +4582,9 @@ class IterableDataset(DatasetInfoMixin):
         >>> from datasets import load_dataset
         >>> from tqdm import tqdm
         >>> ds = load_dataset("sshh12/planet-textures", split="train", streaming=True)
-        >>> # already threaded by default, but more threads can help going even faster
-        >>> num_threads = min(32, (os.cpu_count() or 1) + 4)
-        >>> ds = ds.decode(num_threads=num_threads)
-        >>> for _ in tqdm(ds):  # 20 times faster !
+        >>> # already threaded by default with 32 threads, but more threads can help going even faster
+        >>> ds = ds.decode(num_threads=64)
+        >>> for _ in tqdm(ds):  # 2 times faster !
         ...     ...
         ```
         """
@@ -4595,7 +4594,7 @@ class IterableDataset(DatasetInfoMixin):
                 "Please set the datasets features with `ds = ds.cast(features)`."
             )
         if num_threads is None:
-            num_threads = 64 if require_decoding(self.features) else 0
+            num_threads = 32 if require_decoding(self.features) else 0
 
         ds = self
         # If decoding is already configured, start again from the dataset it was configured on: examples must be
