@@ -1,5 +1,6 @@
 import codecs
 import io
+import json
 import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -259,7 +260,7 @@ class Json(datasets.ArrowBasedBuilder):
                             except (AttributeError, io.UnsupportedOperation):
                                 batch += readline(f)
                             # PyArrow only accepts utf-8 encoded bytes
-                            if self.config.encoding != "utf-8":
+                            if self.config.encoding != "utf-8" or encoding_errors != "strict":
                                 batch = batch.decode(self.config.encoding, errors=encoding_errors).encode("utf-8")
                             # On first batch we check for lists of objects with arbitrary fields
                             if (
@@ -284,6 +285,7 @@ class Json(datasets.ArrowBasedBuilder):
                                 batch = "\n".join(ujson_dumps(example) for example in examples).encode()
                             # Disable parallelism if block size is ~ len(batch) to avoid segfault
                             block_size = len(batch) if len(batch) // 8 > block_size else block_size
+                            pa_table = None
                             try:
                                 while True:
                                     try:
@@ -314,21 +316,68 @@ class Json(datasets.ArrowBasedBuilder):
                                             block_size *= 2
                                         else:
                                             raise
-                            except pa.ArrowInvalid as e:
-                                if not allow_full_read:
+                                try:
+                                    pa_table.validate(full=True)
+                                except pa.ArrowInvalid as e:
+                                    logger.warning(
+                                        f"Table from file '{file}' failed Arrow validation: {e}. "
+                                        "The PyArrow JSON parser bug in datasets issue #5531 is a known cause of "
+                                        "invalid list offsets. Retrying the current batch in a single block."
+                                    )
+                                    pa_table = paj.read_json(
+                                        io.BytesIO(batch),
+                                        read_options=paj.ReadOptions(block_size=len(batch)),
+                                        parse_options=paj.ParseOptions(
+                                            explicit_schema=self.info.features.arrow_schema
+                                            if self.info.features is not None
+                                            else None
+                                        ),
+                                    )
+                                    pa_table.validate(full=True)
+                            except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
+                                invalid_table = pa_table is not None
+                                if not invalid_table and isinstance(e, pa.ArrowNotImplementedError):
+                                    raise
+                                if not invalid_table and not allow_full_read:
                                     raise FullReadDisallowed()
                                 try:
-                                    with open(
-                                        file, encoding=self.config.encoding, errors=self.config.encoding_errors
-                                    ) as f:
-                                        df = pandas_read_json(f)
+                                    if invalid_table:
+                                        # Use the normalized JSON Lines, including encoding
+                                        # and mixed-type transformations, for the fallback.
+                                        # Object dtype avoids pandas' automatic date parsing
+                                        # and rounding of nullable integers through floats.
+                                        # The standard decoder preserves float precision
+                                        # while accepting subnormals, unlike precise ujson.
+                                        df = pd.DataFrame(
+                                            (
+                                                json.loads(line.decode("utf-8-sig", errors=encoding_errors))
+                                                for line in batch.splitlines()
+                                                if line.strip()
+                                            ),
+                                            dtype=object,
+                                        )
+                                    else:
+                                        with open(
+                                            file, encoding=self.config.encoding, errors=self.config.encoding_errors
+                                        ) as f:
+                                            df = pandas_read_json(io.StringIO(f.read().removeprefix("\ufeff")))
                                 except ValueError:
                                     logger.error(f"Failed to load JSON from file '{file}' with error {type(e)}: {e}")
                                     raise e
                                 if df.columns.tolist() == [0]:
                                     df.columns = list(self.config.features) if self.config.features else ["text"]
                                 try:
+                                    schema = pa_table.schema if invalid_table else None
                                     pa_table = pa.Table.from_pandas(df, preserve_index=False)
+                                    if schema is not None and pa_table.schema != schema:
+                                        # Restore inferred types using Arrow's JSON conversions,
+                                        # which accept timestamp formats that table_cast rejects.
+                                        pa_table = paj.read_json(
+                                            io.BytesIO(batch),
+                                            read_options=paj.ReadOptions(block_size=len(batch)),
+                                            parse_options=paj.ParseOptions(explicit_schema=schema),
+                                        )
+                                    pa_table.validate(full=True)
                                 except pa.ArrowInvalid as e:
                                     logger.error(
                                         f"Failed to convert pandas DataFrame to Arrow Table from file '{file}' with error {type(e)}: {e}"
@@ -336,8 +385,9 @@ class Json(datasets.ArrowBasedBuilder):
                                     raise ValueError(
                                         f"Failed to convert pandas DataFrame to Arrow Table from file {file}."
                                     ) from None
-                                yield Key(shard_idx, 0), self._cast_table(pa_table)
-                                break
+                                if not invalid_table:
+                                    yield Key(shard_idx, 0), self._cast_table(pa_table)
+                                    break
                             yield (
                                 Key(shard_idx, batch_idx),
                                 self._cast_table(pa_table, json_field_paths=json_field_paths),
