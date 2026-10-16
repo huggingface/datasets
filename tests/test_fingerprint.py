@@ -18,6 +18,7 @@ import datasets
 from datasets import config
 from datasets.fingerprint import Hasher, fingerprint_transform
 from datasets.table import InMemoryTable
+from datasets.utils._dill import dumps
 
 from .utils import (
     require_not_windows,
@@ -253,6 +254,26 @@ class HashingTest(TestCase):
         hash_other_data = Hasher.hash(InMemoryTable(pa.table({"text": pa.array(["b" * 40] * 600)})))
         self.assertEqual(hash_few_chunks, hash_many_chunks)
         self.assertNotEqual(hash_few_chunks, hash_other_data)
+
+    def test_arrow_serialization_roundtrip_preserves_schema_metadata(self):
+        import pyarrow as pa
+
+        schema = pa.schema([pa.field("text", pa.string())], metadata={b"source": b"test"})
+        table = pa.Table.from_arrays([pa.array(["a", None])], schema=schema)
+        restored_table = pickle.loads(dumps(table))
+
+        self.assertEqual(restored_table.to_pylist(), table.to_pylist())
+        self.assertEqual(restored_table.schema.metadata, schema.metadata)
+
+        chunked_array = pa.chunked_array([pa.array([1, None]), pa.array([2])])
+        restored_array = pickle.loads(dumps(chunked_array))
+        self.assertEqual(restored_array.to_pylist(), [1, None, 2])
+        self.assertEqual(restored_array.num_chunks, 1)
+
+    def test_dataset_from_dict_can_be_fingerprinted(self):
+        dataset = datasets.Dataset.from_dict({"input_ids": [[1, 2, 3], [4, 5, 6]]})
+
+        self.assertEqual(dataset["input_ids"], [[1, 2, 3], [4, 5, 6]])
 
     def test_hash_update(self):
         hasher = Hasher()
