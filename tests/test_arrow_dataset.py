@@ -5231,6 +5231,52 @@ def test_add_column():
     assert ds[1] == {"a": 2, "b": 4}
 
 
+@require_tf
+@pytest.mark.parametrize("format_type", [None, "numpy", "tf"])
+@pytest.mark.parametrize("values", [[1, 2, 3], [[1, 2], [3, 4]], [True, False], ["a", "b"], []])
+def test_column_tensorflow_conversion(format_type, values):
+    import tensorflow as tf
+
+    ds = Dataset.from_dict({"values": values}).with_format(format_type)
+    original_format = ds.format
+    expected = tf.convert_to_tensor(ds["values"][:])
+    actual = tf.convert_to_tensor(ds["values"])
+    assert actual.dtype == expected.dtype
+    assert actual.shape == expected.shape
+    npt.assert_array_equal(actual.numpy(), expected.numpy())
+    assert ds.format == original_format
+
+
+@require_tf
+@pytest.mark.parametrize("format_type", [None, "numpy", "tf"])
+def test_column_tensorflow_reshape(format_type):
+    import tensorflow as tf
+
+    ds = Dataset.from_dict({"labels": [10, 20, 30]}).select([2, 0]).with_format(format_type)
+    actual = tf.reshape(ds["labels"], [-1, 1])
+    npt.assert_array_equal(actual.numpy(), [[30], [10]])
+
+
+@require_tf
+def test_column_tensorflow_conversion_dtype_and_name():
+    import tensorflow as tf
+
+    ds = Dataset.from_dict({"values": [1, 2, 3]})
+    with tf.Graph().as_default():
+        actual = tf.convert_to_tensor(ds["values"], dtype=tf.float64, name="column_values")
+        assert actual.dtype == tf.float64
+        assert actual.op.name == "column_values"
+
+
+@require_tf
+def test_column_tensorflow_conversion_incompatible_dtype():
+    import tensorflow as tf
+
+    ds = Dataset.from_dict({"values": [1, 2, 3]}).with_format("tf")
+    with pytest.raises(ValueError):
+        tf.convert_to_tensor(ds["values"], dtype=tf.string)
+
+
 def test_process_large_few_examples(tmp_path):
     # GH 7911
     from datasets import Dataset
