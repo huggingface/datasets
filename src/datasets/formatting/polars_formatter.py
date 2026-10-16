@@ -70,18 +70,16 @@ class PolarsFeaturesDecoder:
         import polars as pl  # noqa: F401 - import pl at initialization
 
     def decode_row(self, row: "pl.DataFrame") -> "pl.DataFrame":
-        decode = (
-            {
-                column_name: no_op_if_value_is_null(partial(decode_nested_example, feature))
-                for column_name, feature in self.features.items()
-                if self.features._column_requires_decoding[column_name]
-            }
-            if self.features
-            else {}
+        if not self.features:
+            return row
+        # `row` may hold only a subset of the features when a `columns` format is set
+        return row.with_columns(
+            [
+                self.decode_column(row[column_name], column_name).alias(column_name)
+                for column_name in row.columns
+                if column_name in self.features and self.features._column_requires_decoding[column_name]
+            ]
         )
-        if decode:
-            row[list(decode.keys())] = row.map_rows(decode)
-        return row
 
     def decode_column(self, column: "pl.Series", column_name: str) -> "pl.Series":
         decode = (
