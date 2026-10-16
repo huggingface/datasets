@@ -4482,8 +4482,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if len(self) == 0:
             return self
 
-        _check_valid_indices_value(start, len(self))
-        _check_valid_indices_value(start + length - 1, len(self))
+        if length > 0:
+            _check_valid_indices_value(start, len(self))
+            _check_valid_indices_value(start + length - 1, len(self))
+        else:
+            # An empty selection has no index to validate: it is an empty dataset wherever it starts,
+            # such as the shards past the last row when there are more shards than rows.
+            start, length = 0, 0
         if self._indices is None or length == 0:
             return Dataset(
                 self.data.slice(start, length),
