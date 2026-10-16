@@ -3,7 +3,7 @@ import numpy as np
 
 def _number_of_shards_in_gen_kwargs(gen_kwargs: dict) -> int:
     """Return the number of possible shards according to the input gen_kwargs"""
-    # Having lists of different sizes makes sharding ambigious, raise an error in this case
+    # Having lists of different sizes makes sharding ambiguous, raise an error in this case
     # until we decide how to define sharding without ambiguity for users
     lists_lengths = {key: len(value) for key, value in gen_kwargs.items() if isinstance(value, list)}
     if len(set(lists_lengths.values())) > 1:
@@ -47,7 +47,7 @@ def _distribute_shards(num_shards: int, max_num_jobs: int) -> list[range]:
 
 def _split_gen_kwargs(gen_kwargs: dict, max_num_jobs: int) -> list[dict]:
     """Split the gen_kwargs into `max_num_job` gen_kwargs"""
-    # Having lists of different sizes makes sharding ambigious, raise an error in this case
+    # Having lists of different sizes makes sharding ambiguous, raise an error in this case
     num_shards = _number_of_shards_in_gen_kwargs(gen_kwargs)
     if num_shards == 1:
         return [dict(gen_kwargs)]
