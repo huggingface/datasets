@@ -14,6 +14,7 @@
 # limitations under the License
 """Utilities to handle file locking in `datasets`."""
 
+import hashlib
 import os
 
 from filelock import FileLock as FileLock_
@@ -49,7 +50,8 @@ class FileLock(FileLock_):
             max_filename_length = min(max_filename_length, os.statvfs(os.path.dirname(path)).f_namemax)
         if len(filename) > max_filename_length:
             dirname = os.path.dirname(path)
-            hashed_filename = str(hash(filename))
+            # All processes must use the same lock file, regardless of PYTHONHASHSEED.
+            hashed_filename = hashlib.sha256(os.fsencode(filename)).hexdigest()[:16]
             new_filename = (
                 filename[: max_filename_length - len(hashed_filename) - 8] + "..." + hashed_filename + ".lock"
             )
