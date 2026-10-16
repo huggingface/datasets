@@ -1386,6 +1386,15 @@ def test_embed_array_storage_nested(image_file):
 
 
 @pytest.mark.parametrize(
+    "pa_type, feature", [(pa.list_(Image.pa_type), List(Image())), (pa.large_list(Image.pa_type), LargeList(Image()))]
+)
+def test_embed_array_storage_sliced_list(image_file, pa_type, feature):
+    array = pa.array([[{"bytes": None, "path": image_file}]] * 4, type=pa_type).slice(0, 2)
+    embedded_images_array = embed_array_storage(array, feature)
+    assert len(embedded_images_array.values) == 2  # only the images of the slice are embedded
+
+
+@pytest.mark.parametrize(
     "array, feature, expected_embedded_array_type",
     [
         (

@@ -2220,12 +2220,16 @@ def embed_array_storage(
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
     elif pa.types.is_list(array.type):
         # feature must be either List(subfeature)
+        # Copy the array to only embed the values of its slice, since `array.values` ignores the slice
+        array = pa.concat_arrays([array])
         # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
         array_offsets = _combine_list_array_offsets_with_mask(array)
         if isinstance(feature, List) and feature.length == -1:
             return pa.ListArray.from_arrays(array_offsets, _e(array.values, feature.feature))
     elif pa.types.is_large_list(array.type):
         # feature must be LargeList(subfeature)
+        # Copy the array to only embed the values of its slice, since `array.values` ignores the slice
+        array = pa.concat_arrays([array])
         # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
         array_offsets = _combine_list_array_offsets_with_mask(array)
         return pa.LargeListArray.from_arrays(array_offsets, _e(array.values, feature.feature))
