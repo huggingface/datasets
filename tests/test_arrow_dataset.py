@@ -102,6 +102,27 @@ def _normalize_batched_output(batch):
     return to_python(batch)
 
 
+@pytest.mark.parametrize("in_memory", [True, False])
+@pytest.mark.parametrize("format_type", [None, "numpy", "pandas", "arrow"])
+def test_dataset_dense_indexed_batches(tmp_path, in_memory, format_type):
+    raw = pa.table(
+        {"id": np.arange(192), "tokens": [[i, i + 1] for i in range(192)], "text": [str(i) for i in range(192)]}
+    )
+    dataset = Dataset(pa.Table.from_batches(raw.to_batches(max_chunksize=64)))
+    if not in_memory:
+        dataset.save_to_disk(tmp_path / "dataset")
+        dataset = load_from_disk(tmp_path / "dataset")
+    indices = np.concatenate((np.random.default_rng(0).permutation(192), [0, 191, 0])).tolist()
+    selected = dataset.select(indices)
+    assert selected._indices is not None
+    result = selected.with_format(format_type)[:]
+    if format_type == "numpy":
+        result = {column: values.tolist() for column, values in result.items()}
+    assert _normalize_batched_output(result) == raw.take(indices).to_pydict()
+    assert selected.features == dataset.features
+    assert dataset.to_dict() == raw.to_pydict()
+
+
 def picklable_map_function(x):
     return {"id": int(x["filename"].split("_")[-1])}
 
