@@ -2,9 +2,31 @@ from pathlib import Path
 
 import pytest
 
-from datasets import Column, Dataset, Features, Value, Video, load_dataset
+from datasets import Column, Dataset, Features, Value, Video, load_dataset, load_from_disk
 
-from ..utils import require_torchcodec
+from ..utils import require_torch, require_torchcodec
+
+
+@require_torch
+@pytest.mark.parametrize("device", [None, "cpu", "cuda:1"])
+@pytest.mark.parametrize("as_torch_device", [False, True])
+def test_video_device_serialization(shared_datadir, tmp_path, device, as_torch_device):
+    import torch
+
+    device_arg = torch.device(device) if as_torch_device and device is not None else device
+    features = Features({"video": Video(decode=False, device=device_arg)})
+    video_bytes = (shared_datadir / "test_video_66x50.mov").read_bytes()
+    dset = Dataset.from_dict({"video": [video_bytes]}, features=features)
+    expected_features = Features({"video": Video(decode=False, device=device)})
+
+    assert dset.features == expected_features
+    assert Features.from_arrow_schema(dset.data.schema) == expected_features
+    dataset_path = str(tmp_path / "video-dataset")
+    dset.save_to_disk(dataset_path)
+    restored = load_from_disk(dataset_path)
+    assert restored.features == expected_features
+    assert restored.features["video"].device == device
+    assert restored[0] == {"video": {"bytes": video_bytes, "path": None}}
 
 
 @require_torchcodec
