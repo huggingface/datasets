@@ -2,7 +2,7 @@ import copy
 import os
 from pathlib import Path
 from typing import List
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import fsspec
 import pytest
@@ -15,6 +15,7 @@ from datasets.data_files import (
     DataFilesPatternsDict,
     DataFilesPatternsList,
     _get_data_files_patterns,
+    _get_single_origin_metadata,
     _is_inside_unrequested_special_dir,
     _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir,
     get_data_patterns,
@@ -690,3 +691,29 @@ def test_get_data_patterns_from_directory_with_the_word_data_twice(tmp_path):
     data_file.touch()
     data_file_patterns = get_data_patterns(repo_dir.as_posix())
     assert data_file_patterns == {"train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"]}
+
+
+@patch("datasets.data_files.url_to_fs")
+def test_get_single_origin_metadata_reuses_info(mock_url_to_fs):
+    mock_fs = MagicMock()
+    mock_url_to_fs.return_value = (mock_fs, "dummy_path")
+
+    info = {"etag": "12345"}
+    result = _get_single_origin_metadata(("dummy_path", info))
+
+    assert result == ("12345",)
+    mock_fs.info.assert_not_called()
+
+
+@patch("datasets.data_files.url_to_fs")
+def test_get_single_origin_metadata_fallback(mock_url_to_fs):
+    mock_fs = MagicMock()
+    mock_fs.info.return_value = {"etag": "67890"}
+    mock_url_to_fs.return_value = (mock_fs, "dummy_path")
+
+    # Empty info dict, no etag/mtime
+    info = {}
+    result = _get_single_origin_metadata(("dummy_path", info))
+
+    assert result == ("67890",)
+    mock_fs.info.assert_called_once_with("dummy_path")
