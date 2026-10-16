@@ -7219,10 +7219,19 @@ def _interleave_map_style_datasets(
 
         # Reasoning behind the following operation: for each dataset indices (i.e column) repeat the indices to have max_length indices per dataset
         # For example, if the max_length is 5 and the i-th dataset has 3 samples, the i-th column will be [0,1,2,0,1]
-        indices = np.mod(np.arange(max(lengths)).reshape(-1, 1), np.array(lengths).reshape(1, -1))
 
-        # We have to keep the indices to their respective dataset offsets and to flatten to effectively interleave the datasets
-        indices = (indices + offsets).flatten().tolist()
+        # Empty datasets have no example to cycle through, so they are exhausted from the start
+        # and must be left out (otherwise the modulo below divides by zero).
+        non_empty = [i for i, length in enumerate(lengths) if length > 0]
+        lengths = [lengths[i] for i in non_empty]
+        offsets = offsets[non_empty]
+        if not lengths:
+            indices = []
+        else:
+            indices = np.mod(np.arange(max(lengths)).reshape(-1, 1), np.array(lengths).reshape(1, -1))
+
+            # We have to keep the indices to their respective dataset offsets and to flatten to effectively interleave the datasets
+            indices = (indices + offsets).flatten().tolist()
 
     elif stopping_strategy in ("first_exhausted", "all_exhausted"):
         # Vectorized equivalent of the per-example Python loop below (kept for
