@@ -10,9 +10,7 @@ import pyarrow as pa
 import pytest
 
 
-# `tsfile` requires pyarrow<20 for python<3.14, which conflicts with datasets'
-# pyarrow>=21.0.0. It is therefore only installed in the py3.14 CI. Skip this
-# whole module (at collection time) when tsfile is not importable.
+# Skip this module when the optional SDK is unavailable outside the full test environment.
 pytest.importorskip("tsfile")
 
 from tsfile import ColumnCategory, ColumnSchema, TableSchema, Tablet, TsFileWriter  # noqa: E402
