@@ -3644,6 +3644,29 @@ class MiscellaneousDatasetTest(TestCase):
             self.assertEqual(tf_dset_w_batch.element_spec, tf_dset_wo_batch.batch(2).element_spec)
 
 
+@pytest.mark.parametrize(
+    "values, feature",
+    [
+        ([0, 1], Value("int32")),
+        ([0, 1], ClassLabel(names=["negative", "positive"])),
+        ([[0, 1], [1]], List(Value("int32"))),
+    ],
+)
+def test_cast_column_preserves_new_fingerprint(values, feature, tmp_path):
+    dataset = Dataset.from_dict({"value": values})
+    original_fingerprint = dataset._fingerprint
+
+    casted = dataset.cast_column("value", feature, new_fingerprint="cast-result")
+
+    assert casted._fingerprint == "cast-result"
+    assert casted.features["value"] == feature
+    assert casted.to_dict() == {"value": values}
+    assert dataset._fingerprint == original_fingerprint
+    casted.save_to_disk(tmp_path / "casted")
+    state = json.loads((tmp_path / "casted" / datasets.config.DATASET_STATE_JSON_FILENAME).read_text())
+    assert state["_fingerprint"] == "cast-result"
+
+
 def test_cast_with_sliced_list():
     old_features = Features({"foo": List(Value("int64"))})
     new_features = Features({"foo": List(Value("int32"))})
