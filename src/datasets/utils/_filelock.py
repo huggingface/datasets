@@ -47,6 +47,11 @@ class FileLock(FileLock_):
         max_filename_length = cls.MAX_FILENAME_LENGTH
         if issubclass(cls, UnixFileLock):
             max_filename_length = min(max_filename_length, os.statvfs(os.path.dirname(path)).f_namemax)
+        elif os.name == "nt":
+            # Windows limits the total path to MAX_PATH (260) characters unless long paths are enabled,
+            # so shorten the filename based on the length of the parent directory as well.
+            max_path_length = 259  # 260 minus the terminating null character
+            max_filename_length = min(max_filename_length, max(0, max_path_length - len(os.path.dirname(path)) - 1))
         if len(filename) > max_filename_length:
             dirname = os.path.dirname(path)
             hashed_filename = str(hash(filename))
