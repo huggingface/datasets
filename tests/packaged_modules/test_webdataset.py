@@ -1,4 +1,5 @@
 import json
+import re
 import tarfile
 from pathlib import Path
 
@@ -6,6 +7,7 @@ import pytest
 
 from datasets import Audio, DownloadManager, Features, Image, List, Value, Video
 from datasets.packaged_modules.webdataset.webdataset import WebDataset
+from datasets.utils.track import tracked_str
 
 from ..utils import (
     require_numpy1_on_windows,
@@ -98,6 +100,34 @@ def bad_wds_file(tmp_path, image_file, text_file):
     with tarfile.open(str(filename), "w") as f:
         f.add(image_file)
         f.add(json_file)
+    return str(filename)
+
+
+@pytest.fixture
+def corrupted_wds_file(tmp_path):
+    filename = tmp_path / "corrupted.tar"
+    filename.touch()
+    return str(filename)
+
+
+@pytest.fixture
+def valid_text_wds_file(tmp_path):
+    data_file = tmp_path / "valid.txt"
+    data_file.write_text("valid", encoding="utf-8")
+    filename = tmp_path / "valid.tar"
+    with tarfile.open(filename, "w") as tar:
+        tar.add(data_file, arcname="00000.txt")
+    return str(filename)
+
+
+@pytest.fixture
+def truncated_wds_file(tmp_path):
+    data_file = tmp_path / "data.txt"
+    data_file.write_bytes(b"x" * 1024)
+    filename = tmp_path / "truncated.tar"
+    with tarfile.open(filename, "w") as tar:
+        tar.add(data_file, arcname="00000.txt")
+    filename.write_bytes(filename.read_bytes()[:612])
     return str(filename)
 
 
@@ -303,6 +333,87 @@ def test_webdataset_errors_on_bad_file(bad_wds_file):
     webdataset = WebDataset(data_files=data_files)
     with pytest.raises(ValueError):
         webdataset._split_generators(DownloadManager())
+
+
+def test_webdataset_read_error_includes_tar_path_during_feature_inference(corrupted_wds_file):
+    webdataset = WebDataset(data_files={"train": [corrupted_wds_file]})
+
+    with pytest.raises(tarfile.ReadError, match=re.escape(corrupted_wds_file)) as raised:
+        webdataset._split_generators(DownloadManager())
+
+    assert isinstance(raised.value.__cause__, tarfile.ReadError)
+
+
+def test_webdataset_read_error_identifies_corrupt_shard_after_valid_shard(valid_text_wds_file, corrupted_wds_file):
+    features = Features({"__key__": Value("string"), "__url__": Value("string"), "txt": Value("string")})
+    webdataset = WebDataset(data_files={"train": [valid_text_wds_file, corrupted_wds_file]}, features=features)
+    split_generator = webdataset._split_generators(DownloadManager())[0]
+    generator = webdataset._generate_examples(**split_generator.gen_kwargs)
+
+    _, first_example = next(generator)
+    assert first_example["__url__"] == valid_text_wds_file
+
+    with pytest.raises(tarfile.ReadError, match=re.escape(corrupted_wds_file)) as raised:
+        next(generator)
+
+    assert isinstance(raised.value.__cause__, tarfile.ReadError)
+
+
+def test_webdataset_read_error_includes_tar_path_while_reading_member(truncated_wds_file):
+    features = Features({"__key__": Value("string"), "__url__": Value("string"), "txt": Value("string")})
+    webdataset = WebDataset(data_files={"train": [truncated_wds_file]}, features=features)
+    split_generator = webdataset._split_generators(DownloadManager())[0]
+
+    with pytest.raises(tarfile.ReadError, match=re.escape(truncated_wds_file)) as raised:
+        next(webdataset._generate_examples(**split_generator.gen_kwargs))
+
+    assert isinstance(raised.value.__cause__, tarfile.ReadError)
+
+
+def test_webdataset_read_error_includes_path_and_tracked_origin(corrupted_wds_file):
+    origin = "hf://datasets/org/name@main/data/corrupted.tar"
+    tar_path = tracked_str(corrupted_wds_file)
+    tar_path.set_origin(origin)
+    tar_iterator = DownloadManager().iter_archive(str(tar_path))
+
+    with pytest.raises(tarfile.ReadError) as raised:
+        next(WebDataset._get_pipeline_from_tar(tar_path, tar_iterator))
+
+    message = str(raised.value)
+    assert corrupted_wds_file in message
+    assert origin in message
+    assert message.startswith(f"Failed to read TAR archive {corrupted_wds_file!r} (origin={origin}):")
+
+
+def test_webdataset_read_error_strips_userinfo_and_query_from_origin(corrupted_wds_file):
+    origin = "https://user:pass@example.com/bucket/file.tar?X-Amz-Signature=abc&Expires=1"
+    safe_origin = "https://example.com/bucket/file.tar"
+    tar_path = tracked_str(corrupted_wds_file)
+    tar_path.set_origin(origin)
+    tar_iterator = DownloadManager().iter_archive(str(tar_path))
+
+    with pytest.raises(tarfile.ReadError) as raised:
+        next(WebDataset._get_pipeline_from_tar(tar_path, tar_iterator))
+
+    message = str(raised.value)
+    assert corrupted_wds_file in message
+    assert safe_origin in message
+    assert "user:pass" not in message
+    assert "X-Amz-Signature" not in message
+    assert message.startswith(f"Failed to read TAR archive {corrupted_wds_file!r} (origin={safe_origin}):")
+
+
+def test_webdataset_read_error_omits_origin_when_same_as_path(corrupted_wds_file):
+    tar_path = tracked_str(corrupted_wds_file)
+    tar_path.set_origin(corrupted_wds_file)
+    tar_iterator = DownloadManager().iter_archive(str(tar_path))
+
+    with pytest.raises(tarfile.ReadError) as raised:
+        next(WebDataset._get_pipeline_from_tar(tar_path, tar_iterator))
+
+    message = str(raised.value)
+    assert corrupted_wds_file in message
+    assert "origin=" not in message
 
 
 @require_pil
