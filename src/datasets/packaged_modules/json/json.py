@@ -35,6 +35,8 @@ logger = datasets.utils.logging.get_logger(__name__)
 def pandas_read_json(path_or_buf, **kwargs):
     if datasets.config.PANDAS_VERSION.major >= 2:
         kwargs["dtype_backend"] = "pyarrow"
+    # pandas' default float parser is fast but not round-trip exact: it reads 0.7 as 0.7000000000000001
+    kwargs.setdefault("precise_float", True)
     return pd.read_json(path_or_buf, **kwargs)
 
 
