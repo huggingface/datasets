@@ -194,8 +194,11 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
             # a scalar nan among the ndarrays. A flat homogeneous numeric column whose
             # nulls surface as scalar nan must stay numeric, so guard the whole check on
             # the presence of an ndarray element first.
-            if any(isinstance(x, np.ndarray) for x in array) and any(
-                (isinstance(x, np.ndarray) and (x.dtype == object or x.shape != array[0].shape))
+            # the reference shape comes from the first row that is an array: the first row itself
+            # may be a null, which surfaces as None or as a scalar nan and has no shape
+            first_ndarray = next((x for x in array if isinstance(x, np.ndarray)), None)
+            if first_ndarray is not None and any(
+                (isinstance(x, np.ndarray) and (x.dtype == object or x.shape != first_ndarray.shape))
                 or (isinstance(x, float) and np.isnan(x))
                 for x in array
             ):
