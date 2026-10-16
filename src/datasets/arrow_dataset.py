@@ -6920,14 +6920,16 @@ def _get_updated_dataset_card(
     # update the total info to dump from existing info
     if repo_info is not None and not remove_other_splits:
         logger.info("Updating downloaded metadata with the new split" + ("s." if len(splits_info) > 1 else "."))
+        new_splits = {split_info.name for split_info in splits_info}
+        if set(repo_info.splits) <= new_splits:
+            # every existing split is replaced, so copy the schema
+            repo_info.features = features
+        elif features != repo_info.features:
+            raise ValueError(
+                f"Features of the new split don't match the features of the existing splits on the hub: {features} != {repo_info.features}"
+            )
         for split_info, deleted_size, uploaded_size in zip(splits_info, deleted_sizes, uploaded_sizes):
             split = split_info.name
-            if repo_info.splits and any(s != split for s in repo_info.splits):
-                if features != repo_info.features:
-                    raise ValueError(
-                        f"Features of the new split don't match the features of the existing splits on the hub: {features} != {repo_info.features}"
-                    )
-
             if split in repo_info.splits:
                 repo_info.download_size -= deleted_size
                 repo_info.dataset_size -= repo_info.splits.get(split, SplitInfo()).num_bytes or 0
