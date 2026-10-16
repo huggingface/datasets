@@ -156,6 +156,51 @@ class Parquet(datasets.ArrowBasedBuilder):
             pa_table = table_cast(pa_table, self.info.features.arrow_schema)
         return pa_table
 
+    def _get_examples_iterable_for_split(self, split_generator):
+        ex_iterable = super()._get_examples_iterable_for_split(split_generator)
+        # Opt in only where footer counts describe the rows that iteration yields.
+        # Other countable builders may require scans or count pre-filtered rows.
+        if (
+            self.config.filters is None
+            and self.config.features is None
+            and self.config.columns is None
+            and self.config.on_bad_files == "error"
+            and (self.config.batch_size is None or self.config.batch_size > 0)
+            and not (
+                self.config.fragment_scan_options is not None
+                and self.config.fragment_scan_options.page_checksum_verification
+            )
+        ):
+            ex_iterable.generate_num_examples_fn = self._generate_num_examples
+        return ex_iterable
+
+    def _generate_num_examples(self, files, row_groups_list):
+        """Yield exact source counts, or raise if a source requires the scan path."""
+        previous_file, metadata = None, None
+        for file, row_groups in zip(files, row_groups_list):
+            try:
+                # Resharded sources can share a footer. Reuse it while visiting
+                # adjacent groups of a file, without caching across iterations.
+                if metadata is None or file != previous_file:
+                    with open(file, "rb") as f:
+                        metadata = pq.read_metadata(f)
+                    previous_file = file
+                selected = list(range(metadata.num_row_groups)) if row_groups is None else row_groups
+                # Arrow normalizes duplicate/out-of-order selections. Keep these
+                # on its scan path rather than assuming the supplied order.
+                if list(selected) != sorted(set(selected)):
+                    raise NotImplementedError
+                # Preserve the existing empty-first-group error until #8742 is fixed.
+                if selected and metadata.row_group(selected[0]).num_rows == 0 and self.config.batch_size is None:
+                    raise NotImplementedError
+                # A different schema may need casting (or raise) during iteration.
+                if datasets.Features.from_arrow_schema(metadata.schema.to_arrow_schema()) != self.info.features:
+                    raise NotImplementedError
+                yield sum(metadata.row_group(i).num_rows for i in selected)
+            except (OSError, pa.ArrowInvalid, ValueError, TypeError, KeyError, IndexError) as e:
+                # Let normal iteration handle unsupported metadata and bad files.
+                raise NotImplementedError from e
+
     def _generate_shards(self, files, row_groups_list):
         if not row_groups_list:
             yield from files
