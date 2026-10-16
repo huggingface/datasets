@@ -4736,6 +4736,40 @@ def test_dataset_estimate_nbytes(image_file):
     assert ds.filter(lambda x: False)._estimate_nbytes() == 0
 
 
+@pytest.mark.parametrize("num_proc, num_shards", [(None, None), (None, 1), (2, None)])
+def test_dataset_save_to_disk_batch_size_from_data_size(image_file, num_proc, num_shards, tmp_path):
+    # GH 5717: big images must be written a few at a time, to stay below the 2GB limit of arrow binary arrays
+    ds = Dataset.from_dict({"image": [image_file] * 20}, features=Features({"image": Image()}))
+    ds = ds.select(range(0, 20, 2))  # with an indices mapping
+    dataset_path = tmp_path / "dataset_dir"
+    with (
+        patch("datasets.config.MAX_ROW_GROUP_SIZE", ds._estimate_nbytes() // 4),
+        patch("datasets.arrow_writer.embed_table_storage", wraps=embed_table_storage) as mock_embed_table_storage,
+    ):
+        ds.save_to_disk(dataset_path, num_proc=num_proc, num_shards=num_shards)
+    if num_proc is None:  # the shards written in subprocesses don't use the mock
+        assert max(call.args[0].num_rows for call in mock_embed_table_storage.call_args_list) == 2
+    loaded_ds = load_from_disk(dataset_path)
+    assert max(len(batch) for batch in loaded_ds.data.to_batches()) == 2
+
+
+def test_dataset_save_to_disk_batch_size_not_bigger_than_default(image_file, tmp_path):
+    ds = Dataset.from_dict({"image": [image_file] * 10}, features=Features({"image": Image()}))
+    dataset_path = tmp_path / "dataset_dir"
+    with patch("datasets.config.DEFAULT_MAX_BATCH_SIZE", 3):
+        ds.save_to_disk(dataset_path)
+    loaded_ds = load_from_disk(dataset_path)
+    assert max(len(batch) for batch in loaded_ds.data.to_batches()) == 3
+
+
+def test_dataset_save_to_disk_batch_size_with_null_column(tmp_path):
+    ds = Dataset.from_dict({"a": [None] * 2000})  # estimated at 0 bytes
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path)
+    loaded_ds = load_from_disk(dataset_path)
+    assert max(len(batch) for batch in loaded_ds.data.to_batches()) == 1000
+
+
 def test_dataset_to_iterable_dataset(dataset: Dataset):
     iterable_dataset = dataset.to_iterable_dataset()
     assert isinstance(iterable_dataset, IterableDataset)
@@ -5259,37 +5293,3 @@ def test_process_large_few_examples(tmp_path):
     # make sure this is split into 2 shards
     ds.save_to_disk(dataset_path, max_shard_size="1KB")
     assert (dataset_path / "data-00000-of-00001.arrow").exists()
-
-
-@pytest.mark.parametrize("num_proc, num_shards", [(None, None), (None, 1), (2, None)])
-def test_dataset_save_to_disk_batch_size_from_data_size(image_file, num_proc, num_shards, tmp_path):
-    # GH 5717: big images must be written a few at a time, to stay below the 2GB limit of arrow binary arrays
-    ds = Dataset.from_dict({"image": [image_file] * 20}, features=Features({"image": Image()}))
-    ds = ds.select(range(0, 20, 2))  # with an indices mapping
-    dataset_path = tmp_path / "dataset_dir"
-    with (
-        patch("datasets.config.MAX_ROW_GROUP_SIZE", ds._estimate_nbytes() // 4),
-        patch("datasets.arrow_writer.embed_table_storage", wraps=embed_table_storage) as mock_embed_table_storage,
-    ):
-        ds.save_to_disk(dataset_path, num_proc=num_proc, num_shards=num_shards)
-    if num_proc is None:  # the shards written in subprocesses don't use the mock
-        assert max(call.args[0].num_rows for call in mock_embed_table_storage.call_args_list) == 2
-    loaded_ds = load_from_disk(dataset_path)
-    assert max(len(batch) for batch in loaded_ds.data.to_batches()) == 2
-
-
-def test_dataset_save_to_disk_batch_size_not_bigger_than_default(image_file, tmp_path):
-    ds = Dataset.from_dict({"image": [image_file] * 10}, features=Features({"image": Image()}))
-    dataset_path = tmp_path / "dataset_dir"
-    with patch("datasets.config.DEFAULT_MAX_BATCH_SIZE", 3):
-        ds.save_to_disk(dataset_path)
-    loaded_ds = load_from_disk(dataset_path)
-    assert max(len(batch) for batch in loaded_ds.data.to_batches()) == 3
-
-
-def test_dataset_save_to_disk_batch_size_with_null_column(tmp_path):
-    ds = Dataset.from_dict({"a": [None] * 2000})  # estimated at 0 bytes
-    dataset_path = tmp_path / "dataset_dir"
-    ds.save_to_disk(dataset_path)
-    loaded_ds = load_from_disk(dataset_path)
-    assert max(len(batch) for batch in loaded_ds.data.to_batches()) == 1000
