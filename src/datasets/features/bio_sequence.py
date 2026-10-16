@@ -9,7 +9,7 @@ import pyarrow as pa
 from .. import config
 from ..download.download_config import DownloadConfig
 from ..table import array_cast
-from ..utils.file_utils import is_local_path, xopen
+from ..utils.file_utils import is_local_path, is_remote_url, xopen
 from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
 
 
@@ -281,20 +281,32 @@ def _embed_bytes_path_struct(
         with xopen(path, "rb", download_config=download_config) as f:
             return f.read()
 
-    def should_embed(path: Optional[str]) -> bool:
-        if path is None:
-            return False
-        return local_files if is_local_path(path) else remote_files
-
     bytes_array = pa.array(
         [
-            (path_to_bytes(path) if should_embed(path) else bytes_)
-            for bytes_, path in zip(storage.field("bytes").to_pylist(), storage.field("path").to_pylist())
+            (
+                path_to_bytes(value["path"])
+                if value["bytes"] is None
+                and value["path"] is not None
+                and ((local_files and is_local_path(value["path"])) or (remote_files and is_remote_url(value["path"])))
+                else value["bytes"]
+            )
+            if value is not None
+            else None
+            for value in storage.to_pylist()
         ],
         type=pa.binary(),
     )
     path_array = pa.array(
-        [os.path.basename(path) if path is not None else None for path in storage.field("path").to_pylist()],
+        [
+            (
+                os.path.basename(path)
+                if (local_files and is_local_path(path)) or (remote_files and is_remote_url(path))
+                else path
+            )
+            if path is not None
+            else None
+            for path in storage.field("path").to_pylist()
+        ],
         type=pa.string(),
     )
     # Row nullness comes from the input row, not from whether bytes were embedded: a
