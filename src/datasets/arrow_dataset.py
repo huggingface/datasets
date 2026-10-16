@@ -4574,6 +4574,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             return self._select_contiguous(0, 0, new_fingerprint=new_fingerprint)
 
+        # Indices tables are uint64, so negative Python indices (also accepted by
+        # Dataset.__getitem__) must be resolved before building the Arrow array.
+        # Without this, select([-1]) raised OverflowError from pa.array(..., uint64).
+        indices = [idx + size if idx < 0 else idx for idx in indices]
+
         indices_array = pa.array(indices, type=pa.uint64())
         # Check if we need to convert indices
         if self._indices is not None:
