@@ -25,7 +25,7 @@ import re
 import types
 import warnings
 from collections.abc import Iterable
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from dataclasses import fields, is_dataclass
 from queue import Empty
 from shutil import disk_usage
@@ -398,7 +398,13 @@ def _single_map_nested(args):
     # Loop over single examples or batches and write to buffer/file if examples are to be updated
     pbar_iterable = data_struct.items() if isinstance(data_struct, dict) else data_struct
     pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
-    with hf_tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc) as pbar:
+    # Constructing even a disabled progress bar is costly, and nested structs reach this point for every example
+    # processed by the formatters, so only wrap the iterable when the progress bar may be displayed.
+    with (
+        hf_tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc)
+        if not disable_tqdm
+        else nullcontext(pbar_iterable)
+    ) as pbar:
         if isinstance(data_struct, dict):
             return {
                 k: _single_map_nested((function, v, batched, batch_size, types, None, True, None)) for k, v in pbar
@@ -516,9 +522,12 @@ def map_nested(
             if batch_size is None or batch_size <= 0:
                 batch_size = max(len(iterable) // num_proc + int(len(iterable) % num_proc > 0), 1)
             iterable = list(iter_batched(iterable, batch_size))
+        # Constructing even a disabled progress bar is costly, and map_nested is called per example
+        # by the formatters, so only wrap the iterable when the progress bar may be displayed.
+        if not disable_tqdm:
+            iterable = hf_tqdm(iterable, disable=disable_tqdm, desc=desc)
         mapped = [
-            _single_map_nested((function, obj, batched, batch_size, types, None, True, None))
-            for obj in hf_tqdm(iterable, disable=disable_tqdm, desc=desc)
+            _single_map_nested((function, obj, batched, batch_size, types, None, True, None)) for obj in iterable
         ]
         if batched:
             mapped = [mapped_item for mapped_batch in mapped for mapped_item in mapped_batch]
