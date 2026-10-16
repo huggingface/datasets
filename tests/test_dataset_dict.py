@@ -759,6 +759,14 @@ def _check_json_datasetdict(dataset_dict, expected_features, splits=("train",)):
             assert dataset.features[feature].dtype == expected_dtype
 
 
+def test_datasetdict_from_jsonl(jsonl_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    dataset_json = DatasetDict.from_json({"train": jsonl_path}, cache_dir=cache_dir)
+    dataset_jsonl = DatasetDict.from_jsonl({"train": jsonl_path}, cache_dir=cache_dir)
+    assert dataset_json["train"].data == dataset_jsonl["train"].data
+    _check_json_datasetdict(dataset_jsonl, expected_features)
+
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 def test_datasetdict_from_json_keep_in_memory(keep_in_memory, jsonl_path, tmp_path):
     cache_dir = tmp_path / "cache"
