@@ -15,6 +15,7 @@ from datasets.utils.py_utils import (
     asdict,
     iflatmap_unordered,
     map_nested,
+    size_str,
     string_to_dict,
     temp_seed,
     temporary_assignment,
@@ -270,6 +271,21 @@ def test_iflatmap_unordered():
         assert out.count("a") == 2
         assert out.count("b") == 2
         assert len(out) == 4
+
+
+@pytest.mark.parametrize(
+    "size_in_bytes, expected",
+    [
+        (None, "Unknown size"),
+        (0, "0 bytes"),
+        (512, "512 bytes"),
+        (1536, "1.50 KiB"),
+        (2**20, "1.00 MiB"),
+    ],
+)
+def test_size_str(size_in_bytes, expected):
+    # Only `None` is an unknown size; 0 is a valid size that must render as "0 bytes".
+    assert size_str(size_in_bytes) == expected
 
 
 def test_string_to_dict():
