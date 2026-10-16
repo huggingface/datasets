@@ -189,3 +189,45 @@ def test_dataset_to_csv_preserves_nullable_int(dtype, big, tmp_path):
     with open(output_csv, newline="") as f:
         rows = list(csv.DictReader(f))
     assert [row["a"] for row in rows] == [str(big), "", "5"]
+
+
+@pytest.mark.parametrize("encoding", [None, "utf-8", "utf-8-sig", "utf-16", "utf-32", "latin-1", "iso2022_jp"])
+@pytest.mark.parametrize("num_proc", [None, 2])
+@pytest.mark.parametrize("batch_size", [1, 3])
+def test_dataset_to_csv_encoding(tmp_path, encoding, num_proc, batch_size):
+    import io
+
+    import pandas as pd
+
+    text = ["日本", "語", "日本"] if encoding == "iso2022_jp" else ["café", "été", "fin"]
+    dataset = Dataset.from_dict({"text": text})
+    expected = pd.DataFrame({"text": text}).to_csv(index=False).encode(encoding or "utf-8")
+    buffer = io.BytesIO()
+    count = dataset.to_csv(buffer, encoding=encoding, batch_size=batch_size, num_proc=num_proc)
+    assert buffer.getvalue() == expected
+    assert count == len(expected)
+    assert not buffer.closed
+    path = tmp_path / "encoded.csv"
+    assert dataset.to_csv(path, encoding=encoding, batch_size=batch_size, num_proc=num_proc) == len(expected)
+    assert path.read_bytes() == expected
+    assert Dataset.from_csv(str(path), encoding=encoding or "utf-8", cache_dir=tmp_path / "cache").to_dict() == {
+        "text": text
+    }
+
+
+@pytest.mark.parametrize("errors", ["strict", "replace", "ignore"])
+@pytest.mark.parametrize("num_proc", [None, 2])
+def test_dataset_to_csv_encoding_errors(errors, num_proc):
+    import io
+
+    dataset = Dataset.from_dict({"text": ["café", "fin"]})
+    buffer = io.BytesIO()
+    if errors == "strict":
+        with pytest.raises(UnicodeEncodeError):
+            dataset.to_csv(buffer, encoding="ascii", errors=errors, batch_size=1, num_proc=num_proc)
+    else:
+        expected = "text\ncafé\nfin\n".encode("ascii", errors=errors)
+        assert dataset.to_csv(buffer, encoding="ascii", errors=errors, batch_size=1, num_proc=num_proc) == len(
+            expected
+        )
+        assert buffer.getvalue() == expected
