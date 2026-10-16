@@ -72,7 +72,7 @@ def _query_table_with_indices_mapping(
         table = table.select([key])
         return _query_table(table, indices.column(0).to_pylist())
     if isinstance(key, Iterable):
-        return _query_table(table, [indices.fast_slice(i, 1).column(0)[0].as_py() for i in key])
+        return _query_table(table, [indices.fast_slice(i % indices.num_rows, 1).column(0)[0].as_py() for i in key])
 
     _raise_bad_key_type(key)
 
