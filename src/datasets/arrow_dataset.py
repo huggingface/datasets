@@ -706,6 +706,15 @@ class Column(Sequence_):
             return value == list(self)
 
 
+def _without_float16(arrow_type: pa.DataType) -> pa.DataType:
+    """`arrow_type` with float32 in place of float16, including inside structs, for Arrow's sort kernels."""
+    if pa.types.is_float16(arrow_type):
+        return pa.float32()
+    if pa.types.is_struct(arrow_type):
+        return pa.struct([field.with_type(_without_float16(field.type)) for field in arrow_type])
+    return arrow_type
+
+
 class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     """A Dataset backed by an Arrow table."""
 
@@ -4805,6 +4814,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             key=slice(0, len(self)),
             indices=self._indices,
         )
+        for column in set(column_names):
+            column_type = sort_table.schema.field(column).type
+            sortable_type = _without_float16(column_type)
+            if sortable_type != column_type:
+                # Arrow has no sort kernel for half floats. float32 holds every float16 value exactly, so the order is
+                # the same, and only the indices of this table are used
+                index = sort_table.schema.get_field_index(column)
+                sort_table = sort_table.set_column(index, column, sort_table[column].cast(sortable_type))
 
         sort_keys = [
             (col, "ascending" if not col_reverse else "descending") for col, col_reverse in zip(column_names, reverse)
