@@ -1,14 +1,12 @@
-import gc
+from contextlib import closing
 from dataclasses import dataclass
 from typing import Literal, Optional, Union
 
 import pyarrow as pa
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
-from packaging import version
 
 import datasets
-import datasets.config
 from datasets.builder import Key
 from datasets.table import table_cast
 
@@ -38,6 +36,7 @@ class ParquetConfig(datasets.BuilderConfig):
         fragment_scan_options (`pyarrow.dataset.ParquetFragmentScanOptions`, *optional*)
             Scan-specific options for Parquet fragments.
             This is especially useful to configure buffering and caching.
+            Scans read one row group at a time, so buffering and caching apply within each row group.
 
             <Added version="4.2.0"/>
         on_bad_files (`Literal["error", "warn", "skip"]`, *optional*, defaults to "error")
@@ -92,7 +91,6 @@ class ParquetConfig(datasets.BuilderConfig):
 
 class Parquet(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = ParquetConfig
-    SLEEP_ON_THREADS_SHUTDOWNS = True  # Related to https://github.com/apache/arrow/issues/45214
 
     def _info(self):
         if (
@@ -194,37 +192,37 @@ class Parquet(datasets.ArrowBasedBuilder):
             else self.config.filters
         )
         parquet_file_format = ds.ParquetFileFormat(default_fragment_scan_options=self.config.fragment_scan_options)
+        # A suspended iterator can close after module globals have cleared during interpreter shutdown.
+        bad_file_errors = (pa.ArrowInvalid, ValueError)
         for file_idx, (file, row_groups) in enumerate(zip(files, row_groups_list)):
             try:
                 with open(file, "rb") as f:
                     parquet_fragment = parquet_file_format.make_fragment(f)
-                    fragment_is_closed = False
-                    try:
-                        if row_groups is not None:
-                            parquet_fragment = parquet_fragment.subset(row_group_ids=row_groups)
-                        if parquet_fragment.row_groups:
-                            batch_size = self.config.batch_size or parquet_fragment.row_groups[0].num_rows
-                            for batch_idx, record_batch in enumerate(
-                                parquet_fragment.to_batches(
+                    if row_groups is not None:
+                        parquet_fragment = parquet_fragment.subset(row_group_ids=row_groups)
+                    if parquet_fragment.row_groups:
+                        batch_size = self.config.batch_size or parquet_fragment.row_groups[0].num_rows
+                        batch_idx = 0
+                        # Synchronous scans wait for pending reads. Limit each scan to one row group so closing it
+                        # does not consume the rest of the file (https://github.com/apache/arrow/issues/45214).
+                        row_group_fragments = parquet_fragment.split_by_row_group(filter=filter_expr)
+                        # Preserve the scanner's empty batch when every row group is filtered out.
+                        for row_group_fragment in row_group_fragments or [parquet_fragment]:
+                            with closing(
+                                row_group_fragment.to_batches(
                                     batch_size=batch_size,
                                     columns=self.config.columns,
                                     filter=filter_expr,
                                     batch_readahead=0,
                                     fragment_readahead=0,
+                                    use_threads=False,
                                 )
-                            ):
-                                pa_table = pa.Table.from_batches([record_batch])
-                                # Uncomment for debugging (will print the Arrow table size and elements)
-                                # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
-                                # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                                yield Key(file_idx, batch_idx), self._cast_table(pa_table)
-                            fragment_is_closed = True
-                    finally:
-                        # Fix for https://github.com/apache/arrow/issues/45214
-                        if not fragment_is_closed and datasets.config.PYARROW_VERSION <= version.parse("24.0.0"):
-                            del parquet_fragment
-                            gc.collect()
-            except (pa.ArrowInvalid, ValueError) as e:
+                            ) as batches:
+                                for record_batch in batches:
+                                    pa_table = pa.Table.from_batches([record_batch])
+                                    yield Key(file_idx, batch_idx), self._cast_table(pa_table)
+                                    batch_idx += 1
+            except bad_file_errors as e:
                 if self.config.on_bad_files == "error":
                     logger.error(f"Failed to read file '{file}' with error {type(e).__name__}: {e}")
                     raise
