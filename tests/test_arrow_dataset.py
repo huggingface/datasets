@@ -4609,6 +4609,21 @@ def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_param
         assert dataset._data.table == reloaded_dataset._data.table
 
 
+@pytest.mark.parametrize("columns", [["tokens", "id"], ["id", "tokens"]])
+def test_pickle_concatenated_dataset_preserves_schema(columns, arrow_file):
+    with Dataset.from_file(arrow_file) as source:
+        dataset = concatenate_datasets(
+            [source.select_columns("tokens"), source.select_columns("id")], axis=1
+        ).select_columns(columns)
+
+        restored = pickle.loads(pickle.dumps(dataset))
+
+        assert restored.column_names == columns
+        assert restored.data.schema.equals(dataset.data.schema, check_metadata=True)
+        assert restored.features == dataset.features
+        assert restored.to_dict() == dataset.to_dict()
+
+
 def test_dummy_dataset_serialize_fs(dataset, mockfs):
     dataset_path = "mock://my_dataset"
     dataset.save_to_disk(dataset_path, storage_options=mockfs.storage_options)
