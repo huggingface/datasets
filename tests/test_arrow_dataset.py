@@ -2411,6 +2411,23 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(cold_state, warm_state)
                 self.assertNotEqual(np.random.default_rng(42).bit_generator.state, warm_state)
 
+    def test_train_test_split_generator_advances_on_cache_hit(self, in_memory):
+        def successive_splits(dset, generator):
+            splits = []
+            for _ in range(3):
+                dset_dict = dset.train_test_split(test_size=10, generator=generator)
+                splits.append((list(dset_dict["train"]["filename"]), list(dset_dict["test"]["filename"])))
+                del dset_dict
+            return splits, generator.bit_generator.state
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                cold_splits, cold_state = successive_splits(dset, np.random.default_rng(42))
+                warm_splits, warm_state = successive_splits(dset, np.random.default_rng(42))
+                self.assertEqual(cold_splits, warm_splits)
+                self.assertEqual(cold_state, warm_state)
+                self.assertNotEqual(np.random.default_rng(42).bit_generator.state, warm_state)
+
     def test_sort(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Sort on a single key
