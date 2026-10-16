@@ -7,7 +7,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Audio, Features, Image, IterableDataset
+from datasets import Array2D, Audio, Dataset, Features, Image, IterableDataset, List, Value
 from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter, query_table
 from datasets.formatting.formatting import (
     LazyBatch,
@@ -966,6 +966,92 @@ class QueryTest(TestCase):
                     start += 1
 
             query_table(table, iter_to_inf())
+
+
+@pytest.fixture(
+    params=[
+        pytest.param((Value("float64"), 1.25, "float64", "float32", "float64"), id="float64-scalar"),
+        pytest.param((List(Value("float64")), [1.25], "float32", "float32", "float64"), id="float64-list"),
+        pytest.param((Array2D((1, 1), "float64"), [[1.25]], "float32", "float32", "float64"), id="float64-array2d"),
+        pytest.param((Value("int32"), 7, "int32", "int64", "int32"), id="int32-scalar"),
+        pytest.param((List(Value("int32")), [7], "int64", "int64", "int32"), id="int32-list"),
+    ]
+)
+def formatter_dtype_case(request):
+    feature, value, numpy_row_dtype, tensor_dtype, stored_dtype = request.param
+    dataset = Dataset.from_dict({"v": [value]}, features=Features({"v": feature}))
+    return dataset, numpy_row_dtype, tensor_dtype, stored_dtype
+
+
+@pytest.mark.parametrize("preserve_dtype", [False, True], ids=["default", "dtype-none"])
+@pytest.mark.parametrize("key", [0, slice(None)], ids=["row", "batch"])
+def test_numpy_formatter_dtype_coercion(formatter_dtype_case, preserve_dtype, key):
+    dataset, numpy_row_dtype, tensor_dtype, stored_dtype = formatter_dtype_case
+    format_kwargs = {"dtype": None} if preserve_dtype else {}
+    # NumPy leaves row scalars alone, but applies its defaults to batches of scalars.
+    expected_dtype = stored_dtype if preserve_dtype else numpy_row_dtype if key == 0 else tensor_dtype
+    result = dataset.with_format("numpy", **format_kwargs)[key]["v"]
+    assert result.dtype == np.dtype(expected_dtype)
+
+
+@require_torch
+@pytest.mark.parametrize("preserve_dtype", [False, True], ids=["default", "dtype-none"])
+def test_torch_formatter_dtype_coercion(formatter_dtype_case, preserve_dtype):
+    import torch
+
+    dataset, _, tensor_dtype, stored_dtype = formatter_dtype_case
+    format_kwargs = {"dtype": None} if preserve_dtype else {}
+    expected_dtype = stored_dtype if preserve_dtype else tensor_dtype
+    result = dataset.with_format("torch", **format_kwargs)[0]["v"]
+    assert result.dtype == getattr(torch, expected_dtype)
+
+
+@require_tf
+@pytest.mark.parametrize("preserve_dtype", [False, True], ids=["default", "dtype-none"])
+def test_tf_formatter_dtype_coercion(formatter_dtype_case, preserve_dtype):
+    import tensorflow as tf
+
+    dataset, _, tensor_dtype, stored_dtype = formatter_dtype_case
+    format_kwargs = {"dtype": None} if preserve_dtype else {}
+    expected_dtype = stored_dtype if preserve_dtype else tensor_dtype
+    result = dataset.with_format("tf", **format_kwargs)[0]["v"]
+    assert result.dtype == getattr(tf, expected_dtype)
+
+
+@require_jax
+@pytest.mark.parametrize("preserve_dtype", [False, True], ids=["default", "dtype-none"])
+@pytest.mark.parametrize("enable_x64", [False, True], ids=["x64-off", "x64-on"])
+def test_jax_formatter_dtype_coercion(formatter_dtype_case, preserve_dtype, enable_x64):
+    import jax
+
+    dataset, _, _, stored_dtype = formatter_dtype_case
+    format_kwargs = {"dtype": None} if preserve_dtype else {}
+    expected_dtypes = {
+        "float64": ("float32", "float64") if enable_x64 else ("float32", "float32"),
+        "int32": ("int64", "int32") if enable_x64 else ("int32", "int32"),
+    }
+    previous_x64 = jax.config.jax_enable_x64
+    try:
+        jax.config.update("jax_enable_x64", enable_x64)
+        result = dataset.with_format("jax", **format_kwargs)[0]["v"]
+        assert result.dtype == np.dtype(expected_dtypes[stored_dtype][preserve_dtype])
+    finally:
+        jax.config.update("jax_enable_x64", previous_x64)
+
+
+def test_numpy_formatter_float64_precision_loss():
+    values = [np.pi, 1e300]
+    dataset = Dataset.from_dict({"v": [values]}, features=Features({"v": List(Value("float64"))}))
+    # Datasets does not warn about precision loss; NumPy can warn about overflow.
+    with np.errstate(over="ignore"):
+        default = dataset.with_format("numpy")[0]["v"]
+    preserved = dataset.with_format("numpy", dtype=None)[0]["v"]
+
+    assert default.dtype == np.dtype("float32")
+    assert float(default[0]) != values[0]
+    assert np.isposinf(default[1])
+    assert preserved.dtype == np.dtype("float64")
+    np.testing.assert_array_equal(preserved, np.array(values, dtype=np.float64))
 
 
 @pytest.fixture(scope="session")
