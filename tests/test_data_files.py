@@ -189,6 +189,14 @@ def test_resolve_pattern_locally_with_dot_in_base_path(complex_data_dir):
     assert len(resolved_data_files) == 1
 
 
+def test_resolve_pattern_locally_with_dot_segments(complex_data_dir):
+    resolved_data_files = resolve_pattern("./data/./*.txt", complex_data_dir)
+    assert resolved_data_files == resolve_pattern("data/*.txt", complex_data_dir)
+    assert len(resolved_data_files) == 2
+    # degenerate extra slashes must not turn the pattern into an absolute path escaping the base path
+    assert resolve_pattern(".//data/*.txt", complex_data_dir) == resolved_data_files
+
+
 @pytest.mark.parametrize("archive_jsonl", ["tar_jsonl_path", "zip_jsonl_path"])
 def test_resolve_pattern_locally_prefixed_archive_glob(archive_jsonl, request):
     archive_path = str(request.getfixturevalue(archive_jsonl))
@@ -310,6 +318,15 @@ def test_resolve_pattern_in_dataset_repository_with_base_path(hub_dataset_repo_p
             resolve_pattern(pattern, base_path)
 
 
+def test_resolve_pattern_in_dataset_repository_with_dot_segments(hub_dataset_repo_path):
+    # patterns like "./data/*" (e.g. from data_files in YAML configs) should resolve as if the "./" wasn't there
+    resolved_data_files = resolve_pattern("./data/*", hub_dataset_repo_path)
+    assert resolved_data_files == resolve_pattern("data/*", hub_dataset_repo_path)
+    assert len(resolved_data_files) == 2
+    resolved_data_files = resolve_pattern("data/./*", hub_dataset_repo_path)
+    assert resolved_data_files == resolve_pattern("data/*", hub_dataset_repo_path)
+
+
 @pytest.mark.parametrize("pattern,size,extensions", [("**", 4, [".txt"]), ("**", 4, None), ("**", 0, [".blablabla"])])
 def test_resolve_pattern_in_dataset_repository_with_extensions(hub_dataset_repo_path, pattern, size, extensions):
     if size > 0:
@@ -375,6 +392,13 @@ def dummy_fs():
 def test_resolve_pattern_fs(dummy_fs):
     resolved_data_files = resolve_pattern("mock://train.txt", base_path="")
     assert resolved_data_files == ["mock://train.txt"]
+
+
+def test_resolve_pattern_fs_with_dot_segments(dummy_fs):
+    resolved_data_files = resolve_pattern("./train.txt", base_path="mock://")
+    assert resolved_data_files == ["mock://train.txt"]
+    # degenerate extra slashes must not escape the base path to the local filesystem
+    assert resolve_pattern(".//train.txt", base_path="mock://") == ["mock://train.txt"]
 
 
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
