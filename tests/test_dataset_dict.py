@@ -674,6 +674,25 @@ class DatasetDictTest(TestCase):
         self.assertListEqual(test_expected_label_names, test_aligned_label_names)
 
 
+def test_align_labels_with_mapping_preserves_unknown_labels():
+    features = Features({"label": ClassLabel(names=["negative", "positive"])})
+    dataset_dict = DatasetDict(
+        {
+            "train": Dataset.from_dict({"label": [0, -1, 1, None]}, features=features),
+            "test": Dataset.from_dict({"label": [-1, 1]}, features=features),
+        }
+    )
+
+    aligned = dataset_dict.align_labels_with_mapping({"positive": 0, "negative": 1}, "label")
+
+    assert aligned["train"]["label"][:] == [1, -1, 0, None]
+    assert aligned["test"]["label"][:] == [-1, 0]
+    assert all(dataset.features["label"].names == ["positive", "negative"] for dataset in aligned.values())
+    assert dataset_dict["train"]["label"][:] == [0, -1, 1, None]
+    assert dataset_dict["test"]["label"][:] == [-1, 1]
+    assert all(dataset.features == features for dataset in dataset_dict.values())
+
+
 def test_dummy_datasetdict_serialize_fs(mockfs):
     dataset_dict = DatasetDict(
         {
