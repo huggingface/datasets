@@ -5355,6 +5355,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                 </Changed>
 
+                With `index=True`, row indices are zero-based positions in the dataset and are continuous across batches.
+
         Returns:
             `int`: The number of characters or bytes written.
 
