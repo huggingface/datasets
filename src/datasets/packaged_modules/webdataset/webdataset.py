@@ -90,6 +90,8 @@ class WebDataset(datasets.GeneratorBasedBuilder):
 
             for field_name in first_examples[0]:
                 extension = field_name.rsplit(".", 1)[-1].lower()
+                if "." + extension in EXTENSION_TO_COMPRESSION_FS_FILE_CLS:
+                    extension = field_name.rsplit(".", 1)[0].rsplit(".", 1)[-1].lower()
                 # Set Image types
                 if extension in self.IMAGE_EXTENSIONS:
                     features[field_name] = datasets.Image()
