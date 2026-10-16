@@ -1,10 +1,13 @@
+import io
 import json
+import struct
 import tarfile
 from pathlib import Path
 
+import numpy as np
 import pytest
 
-from datasets import Audio, DownloadManager, Features, Image, List, Value, Video
+from datasets import Audio, DownloadManager, Features, Image, List, Value, Video, load_dataset
 from datasets.packaged_modules.webdataset.webdataset import WebDataset
 
 from ..utils import (
@@ -363,3 +366,25 @@ def test_tensor_webdataset(tensor_wds_file):
     assert isinstance(decoded["json"], dict)
     assert isinstance(decoded["json"]["text"], str)
     assert isinstance(decoded["pth"], list)
+
+
+@pytest.mark.parametrize("extension", ["ten", "tb"])
+@pytest.mark.parametrize("streaming", [False, True])
+def test_webdataset_uint32_tensors(tmp_path, extension, streaming):
+    values = np.array([0, 2**31, 2**32 - 1], dtype=np.uint32)
+    # Construct the documented TenBin u4 header independently of the dtype table.
+    header = b"u4" + b"\0" * 6 + b"\0" * 8 + struct.pack("@qq", 1, len(values))
+
+    def chunk(data):
+        return b"~TenBin~" + struct.pack("@q", len(data)) + data + b"\0" * (-len(data) % 64)
+
+    payload = chunk(header) + chunk(values.tobytes())
+    archive = tmp_path / "uint32.tar"
+    with tarfile.open(archive, "w") as tar:
+        member = tarfile.TarInfo(f"00001.{extension}")
+        member.size = len(payload)
+        tar.addfile(member, io.BytesIO(payload))
+    dataset = load_dataset("webdataset", data_files=str(archive), split="train", streaming=streaming)
+    decoded = next(iter(dataset))[extension]
+    assert len(decoded) == 1
+    np.testing.assert_array_equal(decoded[0], values)
