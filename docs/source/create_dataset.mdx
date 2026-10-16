@@ -10,8 +10,13 @@ In this tutorial, you'll learn how to use 🤗 Datasets low-code methods for cre
 
 This tutorial covers:
 
+- File-based builders for `csv`, `json/jsonl`, `parquet`, and `txt`
 - Folder-based builders for quickly creating an image or audio dataset
 - `from_` methods for creating datasets from local Python objects
+
+> **Note**
+>
+> To organize files and splits on the Hub without a dataset script, see [Structure your repository](./repository_structure).
 
 ## File-based builders
 
@@ -28,7 +33,9 @@ To get the list of supported formats and code examples, follow this guide [here]
 
 ## Folder-based builders
 
-There are two folder-based builders, [`ImageFolder`] and [`AudioFolder`]. These are low-code methods for quickly creating an image or speech and audio dataset with several thousand examples. They are great for rapidly prototyping computer vision and speech models before scaling to a larger dataset. Folder-based builders takes your data and automatically generates the dataset's features, splits, and labels. Under the hood:
+In addition to tabular file builders, there are dedicated folder-based builders: [`ImageFolder`] and [`AudioFolder`]. You can also point [`load_dataset`] at a directory of `csv`, `json/jsonl`, `parquet`, or `txt` files using the same builders described in the [Load guide](./loading#local-and-remote-files).
+
+There are two standard folder-based builders, [`ImageFolder`] and [`AudioFolder`]. These are low-code methods for quickly creating an image or speech and audio dataset with several thousand examples. They are great for rapidly prototyping computer vision and speech models before scaling to a larger dataset. Folder-based builders takes your data and automatically generates the dataset's features, splits, and labels. Under the hood:
 
 - [`ImageFolder`] uses the [`~datasets.Image`] feature to decode an image file. Many image extension formats are supported, such as jpg and png, but other formats are also supported. You can check the complete [list](https://github.com/huggingface/datasets/blob/b5672a956d5de864e6f5550e493527d962d6ae55/src/datasets/packaged_modules/imagefolder/imagefolder.py#L39) of supported image extensions.
 - [`AudioFolder`] uses the [`~datasets.Audio`] feature to decode an audio file. Extensions such as wav, mp3, and even mp4 are supported, and you can check the complete [list](https://ffmpeg.org/ffmpeg-formats.html) of supported audio extensions. Decoding is done via ffmpeg.
@@ -82,7 +89,9 @@ To learn more about each of these folder-based builders, check out the <a href="
 
 ## From Python dictionaries
 
-You can also create a dataset from data in Python dictionaries. There are two ways you can create a dataset using the `from_` methods:
+You can also create a dataset from in-memory Python objects. For loading data directly from local files on disk, see the [Load guide](./loading#local-and-remote-files).
+
+There are two ways you can create a dataset using the `from_` methods:
 
     * The [`~Dataset.from_generator`] method is the most memory-efficient way to create a dataset from a [generator](https://wiki.python.org/moin/Generators) due to a generators iterative behavior. This is especially useful when you're working with a really large dataset that may not fit in memory, since the dataset is generated on disk progressively and then memory-mapped.
 
