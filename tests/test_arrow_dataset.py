@@ -5274,6 +5274,14 @@ def test_dataset_save_to_disk_batch_size_not_bigger_than_default(image_file, tmp
     assert max(len(batch) for batch in loaded_ds.data.to_batches()) == 3
 
 
+def test_dataset_save_to_disk_batch_size_with_null_column(tmp_path):
+    ds = Dataset.from_dict({"a": [None] * 2000})  # estimated at 0 bytes
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path)
+    loaded_ds = load_from_disk(dataset_path)
+    assert max(len(batch) for batch in loaded_ds.data.to_batches()) == 1000
+
+
 def test_dataset_save_to_disk_empty_image_dataset_with_num_shards(tmp_path):
     ds = Dataset.from_dict({"image": []}, features=Features({"image": Image()}))
     dataset_path = tmp_path / "dataset_dir"

@@ -1840,10 +1840,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # if we have only a few large samples, we should only create as many shards as samples
             num_shards = min(len(self.data), num_shards)
 
-        # use smaller batches for big samples (e.g. images) to stay below the 2GB limit of arrow arrays
-        writer_batch_size = min(
-            config.DEFAULT_MAX_BATCH_SIZE, get_writer_batch_size_from_data_size(len(self), dataset_nbytes)
-        )
+        # use smaller batches for big samples (e.g. images) to stay below the 2GB limit of arrow binary arrays
+        writer_batch_size = config.DEFAULT_MAX_BATCH_SIZE
+        if dataset_nbytes > 0:
+            writer_batch_size = min(writer_batch_size, get_writer_batch_size_from_data_size(len(self), dataset_nbytes))
 
         fs: fsspec.AbstractFileSystem
         fs, _ = url_to_fs(dataset_path, **(storage_options or {}))
