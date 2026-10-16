@@ -14,7 +14,7 @@ import datasets
 import datasets.config
 from datasets import List, Value
 from datasets.builder import Key
-from datasets.table import table_cast
+from datasets.table import CastError, table_cast
 from datasets.utils.file_utils import readline
 from datasets.utils.json import (
     find_mixed_struct_types_field_paths,
@@ -52,6 +52,10 @@ class JsonConfig(datasets.BuilderConfig):
     field: Optional[str] = None
     use_threads: bool = True  # deprecated
     block_size: Optional[int] = None  # deprecated
+    # JSONL is read in chunksize-byte batches (default 10MB). If record shapes
+    # change across a chunk boundary (e.g. sorted mixed-schema JSONL), loading can
+    # fail with a column/schema mismatch; pass a larger chunksize so each shape
+    # group fits in one chunk (or set chunksize to the file size).
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
     on_mixed_types: Optional[Literal["use_json"]] = "use_json"
@@ -129,7 +133,17 @@ class Json(datasets.ArrowBasedBuilder):
                     pa_table = pa_table.set_column(i, column_name, string_array)
             # more expensive cast to support nested structures with keys in a different order
             # allows str <-> int/float or str to Audio for example
-            pa_table = table_cast(pa_table, self.info.features.arrow_schema)
+            try:
+                pa_table = table_cast(pa_table, self.info.features.arrow_schema)
+            except CastError as e:
+                raise CastError(
+                    f"{e}\n\nThis can happen when a JSONL file changes record shape across a "
+                    f"`chunksize` boundary (default 10MB). Try loading with a larger "
+                    f"`chunksize` so each shape group fits in one chunk "
+                    f"(e.g. chunksize=max(file_size, current_chunksize)).",
+                    table_column_names=e.table_column_names,
+                    requested_column_names=e.requested_column_names,
+                ) from e
         elif json_field_paths:
             features = datasets.Features.from_arrow_schema(pa_table.schema)
             features = set_json_types_in_feature(features, json_field_paths)
