@@ -4736,10 +4736,12 @@ def test_dataset_estimate_nbytes(image_file):
     assert ds.filter(lambda x: False)._estimate_nbytes() == 0
 
 
+@pytest.mark.parametrize("bytes_in_table", [False, True])
 @pytest.mark.parametrize("num_proc, num_shards", [(None, None), (None, 1), (2, None)])
-def test_dataset_save_to_disk_batch_size_from_data_size(image_file, num_proc, num_shards, tmp_path):
+def test_dataset_save_to_disk_batch_size_from_data_size(image_file, num_proc, num_shards, bytes_in_table, tmp_path):
     # GH 5717: big images must be written a few at a time, to stay below the 2GB limit of arrow binary arrays
-    ds = Dataset.from_dict({"image": [image_file] * 20}, features=Features({"image": Image()}))
+    image = {"bytes": Path(image_file).read_bytes(), "path": None} if bytes_in_table else image_file
+    ds = Dataset.from_dict({"image": [image] * 20}, features=Features({"image": Image()}))
     ds = ds.select(range(0, 20, 2))  # with an indices mapping
     dataset_path = tmp_path / "dataset_dir"
     with (
