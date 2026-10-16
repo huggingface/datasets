@@ -1,3 +1,4 @@
+import builtins
 from importlib import import_module
 
 from .logging import get_logger
@@ -93,8 +94,8 @@ class patch_submodule:
                 if getattr(self.obj, attr) is attr_value:
                     self.original[attr] = getattr(self.obj, attr)
                     setattr(self.obj, attr, self.new)
-        elif target_attr in globals()["__builtins__"]:  # if it'a s builtin like "open"
-            self.original[target_attr] = globals()["__builtins__"][target_attr]
+        elif target_attr in builtins.__dict__:  # if it's a builtin like "open"
+            self.original[target_attr] = builtins.__dict__[target_attr]
             setattr(self.obj, target_attr, self.new)
         else:
             raise RuntimeError(f"Tried to patch attribute {target_attr} instead of a submodule.")
