@@ -4727,6 +4727,10 @@ def test_dataset_estimate_nbytes(image_file):
     ds = concatenate_datasets([ds] * 100).select([0])
     assert 0.9 * ds._estimate_nbytes() < 100 * 100, "must be smaller than one chunk"
 
+    ds = Dataset.from_dict({"images": [[image_file] * 2] * 100}, features=Features({"images": List(Image())}))
+    ds = ds.select([0])
+    assert 0.9 * ds._estimate_nbytes() < 2 * os.path.getsize(image_file), "must be smaller than one row"
+
     ds = Dataset.from_dict({"image": [image_file] * 3}, features=Features({"image": Image()}))
     assert ds.select([])._estimate_nbytes() == 0
     assert ds.filter(lambda x: False)._estimate_nbytes() == 0

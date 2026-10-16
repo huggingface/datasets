@@ -2457,7 +2457,7 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
                     _visit(array.field(name), subfeature)
             elif pa.types.is_list(array.type):
                 if isinstance(feature, (LargeList, List)):
-                    _visit(array.values, feature.feature)
+                    _visit(array.flatten(), feature.feature)
 
     for name, feature in features.items():
         _visit(table[name], feature)
