@@ -124,7 +124,7 @@ REQUIRED_PKGS = [
     "multiprocess<0.70.20",  # to align with dill<0.3.9 (see above)
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0,<=2026.7.0",
+    "fsspec>=2023.1.0,<=2026.9.0",
     # To get datasets from the Datasets Hub on huggingface.co
     # (also provides the HTTP client: `from huggingface_hub.utils import httpx`)
     # minimum 1.31.0 for the `huggingface_hub.utils.httpx` re-export
