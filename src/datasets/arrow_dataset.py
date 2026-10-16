@@ -1830,7 +1830,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if self.list_indexes():
             raise ValueError("please remove all the indexes using `dataset.drop_index` before saving a dataset")
 
-        from .arrow_writer import get_arrow_writer_batch_size_from_features, get_writer_batch_size_from_data_size
+        from .arrow_writer import get_writer_batch_size_from_data_size
 
         dataset_nbytes = self._estimate_nbytes()
         if num_shards is None:
@@ -1840,9 +1840,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # if we have only a few large samples, we should only create as many shards as samples
             num_shards = min(len(self.data), num_shards)
 
-        writer_batch_size = get_arrow_writer_batch_size_from_features(
-            self.features
-        ) or get_writer_batch_size_from_data_size(len(self), dataset_nbytes)
+        # use smaller batches for big samples (e.g. images) to stay below the 2GB limit of arrow arrays
+        writer_batch_size = min(
+            config.DEFAULT_MAX_BATCH_SIZE, get_writer_batch_size_from_data_size(len(self), dataset_nbytes)
+        )
 
         fs: fsspec.AbstractFileSystem
         fs, _ = url_to_fs(dataset_path, **(storage_options or {}))
@@ -1943,10 +1944,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         shard: "Dataset",
         fpath: str,
         storage_options: Optional[dict],
-        writer_batch_size: Optional[int],
+        writer_batch_size: int,
     ):
-        batch_size = writer_batch_size or config.DEFAULT_MAX_BATCH_SIZE
-
         num_examples_progress_update = 0
         writer = ArrowWriter(
             features=shard.features,
@@ -1956,7 +1955,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         try:
             _time = time.time()
-            for pa_table in shard.with_format("arrow").iter(batch_size):
+            for pa_table in shard.with_format("arrow").iter(writer_batch_size):
                 writer.write_table(pa_table)
                 num_examples_progress_update += len(pa_table)
                 if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
@@ -5735,7 +5734,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             k for k, v in self._info.features.items() if require_decoding(v, ignore_decode_attribute=True)
         ]
 
-        if decodable_columns:
+        if decodable_columns and len(self) > 0:
             # Approximate the space needed to store the bytes from the external files by analyzing the first 1000 examples
             extra_nbytes = 0
 

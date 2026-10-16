@@ -5251,3 +5251,31 @@ def test_process_large_few_examples(tmp_path):
     # make sure this is split into 2 shards
     ds.save_to_disk(dataset_path, max_shard_size="1KB")
     assert (dataset_path / "data-00000-of-00001.arrow").exists()
+
+
+@pytest.mark.parametrize("num_proc", [None, 2])
+def test_dataset_save_to_disk_batch_size_from_data_size(image_file, num_proc, tmp_path):
+    # GH 5717: big images must be written a few at a time, to stay below the 2GB limit of arrow arrays
+    ds = Dataset.from_dict({"image": [image_file] * 10}, features=Features({"image": Image()}))
+    dataset_path = tmp_path / "dataset_dir"
+    with patch("datasets.config.MAX_ROW_GROUP_SIZE", ds._estimate_nbytes() // 4):
+        ds.save_to_disk(dataset_path, num_proc=num_proc)
+    loaded_ds = load_from_disk(dataset_path)
+    assert len(loaded_ds) == len(ds)
+    assert max(len(batch) for batch in loaded_ds.data.to_batches()) == 2
+
+
+def test_dataset_save_to_disk_batch_size_not_bigger_than_default(image_file, tmp_path):
+    ds = Dataset.from_dict({"image": [image_file] * 10}, features=Features({"image": Image()}))
+    dataset_path = tmp_path / "dataset_dir"
+    with patch("datasets.config.DEFAULT_MAX_BATCH_SIZE", 3):
+        ds.save_to_disk(dataset_path)
+    loaded_ds = load_from_disk(dataset_path)
+    assert max(len(batch) for batch in loaded_ds.data.to_batches()) == 3
+
+
+def test_dataset_save_to_disk_empty_image_dataset_with_num_shards(tmp_path):
+    ds = Dataset.from_dict({"image": []}, features=Features({"image": Image()}))
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path, num_shards=1)
+    assert len(load_from_disk(dataset_path)) == 0
