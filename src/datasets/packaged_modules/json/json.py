@@ -181,9 +181,9 @@ class Json(datasets.ArrowBasedBuilder):
                     for i, training_example in enumerate(training_examples):
                         if training_example["metadata"]["trace_type"] == "hermes":
                             timestamp = ujson_loads(lines[i])["started_at"]
-                            milliseconds = timestamp if timestamp <= 10_000_000_000 else timestamp * 1_000
+                            seconds = timestamp if timestamp <= 10_000_000_000 else timestamp / 1_000
                             sent_at = (
-                                datetime.fromtimestamp(milliseconds, tz=timezone.utc)
+                                datetime.fromtimestamp(seconds, tz=timezone.utc)
                                 .isoformat(timespec="milliseconds")
                                 .replace("+00:00", "Z")
                             )
