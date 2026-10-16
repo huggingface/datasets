@@ -13,6 +13,8 @@
 # limitations under the License.
 
 # Lint as: python3
+import datetime
+import decimal
 import sys
 from collections.abc import Mapping
 from typing import TYPE_CHECKING
@@ -53,6 +55,14 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
             return value
         elif isinstance(value, (np.character, np.ndarray)) and np.issubdtype(value.dtype, np.character):
             return value.tolist()
+        elif isinstance(value, (np.datetime64, np.timedelta64)) or (
+            isinstance(value, np.ndarray) and value.dtype.kind in "mM"
+        ):
+            # torch has no dtype for dates, timestamps and durations
+            return value.tolist()
+        elif isinstance(value, (datetime.date, datetime.time, datetime.timedelta, decimal.Decimal)):
+            # time32/time64 and decimal columns are extracted as objects, which torch cannot hold either
+            return value
 
         default_dtype = {}
 
