@@ -4041,6 +4041,78 @@ def test_dataset_add_item(item, in_memory, dataset_dict, arrow_path, transform):
         assert dataset_indices == dataset_to_test_indices + [len(dataset_to_test._data)]
 
 
+@pytest.mark.parametrize(
+    "feature, first_item, added_item",
+    [
+        (
+            Translation(languages=["en", "fr"]),
+            {"en": "hi", "fr": "salut"},
+            {"en": "hello", "fr": "bonjour"},
+        ),
+        (
+            TranslationVariableLanguages(languages=["en", "fr"]),
+            {"language": ["en", "fr"], "translation": ["hi", "salut"]},
+            {"language": ["en", "fr"], "translation": ["hello", "bonjour"]},
+        ),
+    ],
+)
+def test_dataset_add_item_preserves_struct_backed_feature(feature, first_item, added_item):
+    features = Features({"translation": feature})
+    source = Dataset.from_dict({"translation": [first_item]}, features=features)
+    source_data = source[:]
+    source_features = copy.deepcopy(source.features)
+    source_metadata = source.data.schema.metadata
+
+    result = source.add_item({"translation": added_item})
+
+    assert result[:] == {"translation": [first_item, added_item]}
+    assert result.features == features
+    assert result._fingerprint != source._fingerprint
+    assert_arrow_metadata_are_synced_with_dataset_features(result)
+    assert source[:] == source_data
+    assert source.features == source_features
+    assert source.data.schema.metadata == source_metadata
+
+
+def test_dataset_add_item_promotes_null_to_struct():
+    source = Dataset.from_dict({"translation": [None]})
+    source_data = source[:]
+    source_features = copy.deepcopy(source.features)
+    source_metadata = source.data.schema.metadata
+    added_item = {"en": "hello", "fr": "bonjour"}
+
+    result = source.add_item({"translation": added_item})
+
+    assert result[:] == {"translation": [None, added_item]}
+    assert result.features == Features({"translation": {"en": Value("string"), "fr": Value("string")}})
+    assert result._fingerprint != source._fingerprint
+    assert_arrow_metadata_are_synced_with_dataset_features(result)
+    assert source[:] == source_data
+    assert source.features == source_features
+    assert source.data.schema.metadata == source_metadata
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+def test_concatenate_datasets_promotes_null_to_struct(reverse):
+    null_dataset = Dataset.from_dict({"translation": [None]})
+    struct_item = {"en": "hello", "fr": "bonjour"}
+    struct_dataset = Dataset.from_dict({"translation": [struct_item]})
+    sources = [struct_dataset, null_dataset] if reverse else [null_dataset, struct_dataset]
+    source_data = [source[:] for source in sources]
+    source_features = [copy.deepcopy(source.features) for source in sources]
+    source_metadata = [source.data.schema.metadata for source in sources]
+
+    result = concatenate_datasets(sources)
+
+    expected_items = [struct_item, None] if reverse else [None, struct_item]
+    assert result[:] == {"translation": expected_items}
+    assert result.features == Features({"translation": {"en": Value("string"), "fr": Value("string")}})
+    assert_arrow_metadata_are_synced_with_dataset_features(result)
+    assert [source[:] for source in sources] == source_data
+    assert [source.features for source in sources] == source_features
+    assert [source.data.schema.metadata for source in sources] == source_metadata
+
+
 def test_dataset_add_item_new_columns():
     dataset = Dataset.from_dict({"col_1": [0, 1, 2]}, features=Features({"col_1": Value("uint8")}))
     dataset = dataset.add_item({"col_1": 3, "col_2": "a"})
