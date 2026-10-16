@@ -7314,6 +7314,17 @@ def _interleave_map_style_datasets(
         # all_exhausted_without_replacement: each sample appears exactly once, so
         # an exhausted source is skipped rather than wrapped -- the output length
         # is not simply the draw count, so keep the explicit per-example loop.
+
+        # As with `all_exhausted`, a source with probability 0 is never drawn and
+        # so never exhausted, and the loop below would never stop.
+        unreachable = [i for i, p in enumerate(probabilities) if p == 0]
+        if unreachable:
+            raise ValueError(
+                'interleave_datasets with stopping_strategy="all_exhausted_without_replacement" cannot '
+                "exhaust a dataset that is never sampled; datasets at indices "
+                f"{unreachable} have probability 0."
+            )
+
         is_exhausted = np.full(len(lengths), False)
 
         def iter_random_indices():
