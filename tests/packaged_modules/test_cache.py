@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -56,6 +57,44 @@ def test_cache_auto_hash_with_custom_config(text_dir: Path, tmp_path: Path):
     assert list(ds["train"]) == list(reloaded["train"])
     assert list(another_ds) == list(another_reloaded)
     assert list(another_ds["train"]) == list(another_reloaded["train"])
+
+
+def test_cache_auto_hash_with_unresolved_data_files(tmp_path: Path):
+    cache_dir = tmp_path / "test_cache_auto_hash_with_unresolved_data_files"
+    cached_directory = cache_dir / "namespace___dataset" / "en-resolved-data-files-hash" / "0.0.0" / "hash"
+    cached_directory.mkdir(parents=True)
+    (cached_directory / "dataset_info.json").write_text(json.dumps({"config_name": "en"}), encoding="utf-8")
+
+    cache = Cache(
+        cache_dir=str(cache_dir),
+        dataset_name="dataset",
+        repo_id="namespace/dataset",
+        config_name="en",
+        data_files={"train": "data/train.jsonl"},
+        version="auto",
+        hash="auto",
+    )
+
+    assert Path(cache.cache_dir) == cached_directory
+
+
+def test_cache_auto_hash_with_unresolved_data_files_is_ambiguous(tmp_path: Path):
+    cache_dir = tmp_path / "test_cache_auto_hash_with_unresolved_data_files_is_ambiguous"
+    for config_id in ["en-first-data-files-hash", "en-second-data-files-hash"]:
+        cached_directory = cache_dir / "namespace___dataset" / config_id / "0.0.0" / "hash"
+        cached_directory.mkdir(parents=True)
+        (cached_directory / "dataset_info.json").write_text(json.dumps({"config_name": "en"}), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="Couldn't find cache"):
+        Cache(
+            cache_dir=str(cache_dir),
+            dataset_name="dataset",
+            repo_id="namespace/dataset",
+            config_name="en",
+            data_files={"train": "data/train.jsonl"},
+            version="auto",
+            hash="auto",
+        )
 
 
 def test_cache_missing(text_dir: Path, tmp_path: Path):
