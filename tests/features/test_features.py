@@ -270,6 +270,31 @@ class FeaturesTest(TestCase):
         assert flattened_features == {"foo.bar": List({"my_value": Value("int32")})}
         assert features == _features, "calling flatten shouldn't alter the current features"
 
+    def test_flatten_keeps_column_order(self):
+        features = Features(
+            {
+                "foo": Value("int32"),
+                "bar": {"sub1": Value("int32"), "sub2": {"subsub": Value("string")}},
+                "baz": Value("int32"),
+            }
+        )
+        flattened_features = features.flatten()
+        # the subfields take the place of the column they come from
+        assert list(flattened_features) == ["foo", "bar.sub1", "bar.sub2.subsub", "baz"]
+
+    def test_flatten_matches_dataset_flatten(self):
+        features = Features(
+            {
+                "foo": Value("int32"),
+                "bar": {"sub1": Value("int32"), "sub2": Value("string")},
+                "baz": Value("int32"),
+            }
+        )
+        dset = Dataset.from_dict({"foo": [1], "bar": [{"sub1": 2, "sub2": "a"}], "baz": [3]}, features=features)
+        flattened_dset = dset.flatten()
+        assert flattened_dset.column_names == list(features.flatten())
+        assert flattened_dset.features == features.flatten()
+
     def test_features_dicts_are_synced(self):
         def assert_features_dicts_are_synced(features: Features):
             assert (
