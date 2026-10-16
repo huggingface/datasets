@@ -44,7 +44,7 @@ from datasets.features import (
 from datasets.info import DatasetInfo
 from datasets.iterable_dataset import IterableDataset
 from datasets.splits import NamedSplit
-from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
+from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable, embed_table_storage
 from datasets.utils.logging import INFO, get_logger
 from datasets.utils.py_utils import temp_seed
 
@@ -4711,7 +4711,7 @@ class StratifiedTest(TestCase):
             assert len(d1["test"]["text"]) == test_size
 
 
-def test_dataset_estimate_nbytes():
+def test_dataset_estimate_nbytes(image_file):
     ds = Dataset.from_dict({"a": ["0" * 100] * 100})
     assert 0.9 * ds._estimate_nbytes() < 100 * 100, "must be smaller than full dataset size"
 
@@ -4726,6 +4726,50 @@ def test_dataset_estimate_nbytes():
     ds = Dataset.from_dict({"a": ["0" * 100] * 100})
     ds = concatenate_datasets([ds] * 100).select([0])
     assert 0.9 * ds._estimate_nbytes() < 100 * 100, "must be smaller than one chunk"
+
+    ds = Dataset.from_dict({"images": [[image_file] * 2] * 100}, features=Features({"images": List(Image())}))
+    ds = ds.select([0])
+    assert 0.9 * ds._estimate_nbytes() < 2 * os.path.getsize(image_file), "must be smaller than one row"
+
+    ds = Dataset.from_dict({"image": [image_file] * 3}, features=Features({"image": Image()}))
+    assert ds.select([])._estimate_nbytes() == 0
+    assert ds.filter(lambda x: False)._estimate_nbytes() == 0
+
+
+@pytest.mark.parametrize("bytes_in_table", [False, True])
+@pytest.mark.parametrize("num_proc, num_shards", [(None, None), (None, 1), (2, None)])
+def test_dataset_save_to_disk_batch_size_from_data_size(image_file, num_proc, num_shards, bytes_in_table, tmp_path):
+    # GH 5717: big images must be written a few at a time, to stay below the 2GB limit of arrow binary arrays
+    image = {"bytes": Path(image_file).read_bytes(), "path": None} if bytes_in_table else image_file
+    ds = Dataset.from_dict({"image": [image] * 20}, features=Features({"image": Image()}))
+    ds = ds.select(range(0, 20, 2))  # with an indices mapping
+    dataset_path = tmp_path / "dataset_dir"
+    with (
+        patch("datasets.config.MAX_ROW_GROUP_SIZE", ds._estimate_nbytes() // 4),
+        patch("datasets.arrow_writer.embed_table_storage", wraps=embed_table_storage) as mock_embed_table_storage,
+    ):
+        ds.save_to_disk(dataset_path, num_proc=num_proc, num_shards=num_shards)
+    if num_proc is None:  # the shards written in subprocesses don't use the mock
+        assert max(call.args[0].num_rows for call in mock_embed_table_storage.call_args_list) == 2
+    loaded_ds = load_from_disk(dataset_path)
+    assert max(len(batch) for batch in loaded_ds.data.to_batches()) == 2
+
+
+def test_dataset_save_to_disk_batch_size_not_bigger_than_default(image_file, tmp_path):
+    ds = Dataset.from_dict({"image": [image_file] * 10}, features=Features({"image": Image()}))
+    dataset_path = tmp_path / "dataset_dir"
+    with patch("datasets.config.DEFAULT_MAX_BATCH_SIZE", 3):
+        ds.save_to_disk(dataset_path)
+    loaded_ds = load_from_disk(dataset_path)
+    assert max(len(batch) for batch in loaded_ds.data.to_batches()) == 3
+
+
+def test_dataset_save_to_disk_batch_size_with_null_column(tmp_path):
+    ds = Dataset.from_dict({"a": [None] * 2000})  # estimated at 0 bytes
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path)
+    loaded_ds = load_from_disk(dataset_path)
+    assert max(len(batch) for batch in loaded_ds.data.to_batches()) == 1000
 
 
 def test_dataset_to_iterable_dataset(dataset: Dataset):
