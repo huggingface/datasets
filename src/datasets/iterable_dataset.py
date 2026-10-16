@@ -1727,12 +1727,9 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     f"Provided `function` which is applied to {formatter.table_type} returns a variable of type "
                     f"{type(output)}. Make sure provided `function` returns a {formatter.table_type} to update the dataset."
                 )
-            # we don't need to merge results for consistency with Dataset.map which merges iif both input and output are dicts
-            # then remove the unwanted columns
-            if self.remove_columns:
-                for column in self.remove_columns:
-                    if column in output_table.column_names:
-                        output_table = output_table.remove_column(output_table.column_names.index(column))
+            # Arrow tables replace the input table rather than merging with it. In Dataset.map,
+            # remove_columns only removes columns from the input before the function output is
+            # applied, so columns returned by the function must be kept here as well.
             # return output
             if max_chunksize is None:
                 current_idx += len(pa_table)
