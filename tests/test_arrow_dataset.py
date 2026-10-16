@@ -5251,3 +5251,19 @@ def test_process_large_few_examples(tmp_path):
     # make sure this is split into 2 shards
     ds.save_to_disk(dataset_path, max_shard_size="1KB")
     assert (dataset_path / "data-00000-of-00001.arrow").exists()
+
+
+@pytest.mark.parametrize("on_disk", [False, True])
+@pytest.mark.parametrize("reverse", [False, True])
+def test_flatten_rejects_column_collision(tmp_path, on_disk, reverse):
+    data = [("a", [{"b": 1}, {"b": 2}]), ("a.b", ["keep1", "keep2"])]
+    dataset = Dataset.from_dict(dict(reversed(data) if reverse else data))
+    if on_disk:
+        dataset.save_to_disk(tmp_path / "dataset")
+        dataset = load_from_disk(tmp_path / "dataset")
+    original = dataset.to_dict()
+    original_schema = dataset.data.schema
+    with pytest.raises(ValueError, match="column names would be duplicated"):
+        dataset.flatten()
+    assert dataset.to_dict() == original
+    assert dataset.data.schema == original_schema

@@ -40,6 +40,35 @@ def list_with(item):
     return [item]
 
 
+@pytest.mark.parametrize("reverse", [False, True])
+@pytest.mark.parametrize(
+    "expanded, literal",
+    [
+        ({"b": Value("int32")}, "a.b"),
+        ({"b": {"c": Value("int32")}}, "a.b.c"),
+        (Image(decode=False), "a.path"),
+    ],
+)
+def test_flatten_rejects_column_collision(expanded, literal, reverse):
+    fields = [("a", expanded), (literal, Value("string"))]
+    features = Features(dict(reversed(fields) if reverse else fields))
+    original = features.copy()
+    with pytest.raises(ValueError, match="column names would be duplicated"):
+        features.flatten()
+    assert features == original
+    assert features.arrow_schema == original.arrow_schema
+
+
+def test_flatten_partial_depth_avoids_column_collision():
+    features = Features({"a": {"b": {"c": Value("int32")}}, "a.b.c": Value("string")})
+    assert features.flatten(max_depth=2) == Features({"a.b": {"c": Value("int32")}, "a.b.c": Value("string")})
+
+
+def test_flatten_preserves_distinct_dotted_column():
+    features = Features({"a": {"b": Value("int32")}, "a.c": Value("string")})
+    assert features.flatten() == Features({"a.b": Value("int32"), "a.c": Value("string")})
+
+
 class FeaturesTest(TestCase):
     def test_from_arrow_schema_simple(self):
         data = {"a": [{"b": {"c": "text"}}] * 10, "foo": [1] * 10}
