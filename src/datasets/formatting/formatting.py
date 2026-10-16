@@ -259,7 +259,8 @@ class PandasFeaturesDecoder:
             {
                 column_name: no_op_if_value_is_null(partial(decode_nested_example, feature))
                 for column_name, feature in self.features.items()
-                if self.features._column_requires_decoding[column_name]
+                # `row` may hold only a subset of the features when a `columns` format is set
+                if column_name in row.columns and self.features._column_requires_decoding[column_name]
             }
             if self.features
             else {}
