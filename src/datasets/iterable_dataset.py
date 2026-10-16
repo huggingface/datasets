@@ -671,7 +671,9 @@ class SelectColumnsIterable(_BaseExamplesIterable):
 
     @property
     def features(self):
-        return self.ex_iterable.features
+        features = self.ex_iterable.features
+        if features is not None:
+            return Features({column: features[column] for column in self.column_names})
 
     def _init_state_dict(self) -> dict:
         self._state_dict = self.ex_iterable._init_state_dict()
