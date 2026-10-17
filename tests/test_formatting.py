@@ -921,6 +921,13 @@ class QueryTest(TestCase):
         with self.assertRaises(IndexError):
             assert len(indices) < n
             query_table(table, [len(indices)], indices=indices)
+        # an iterable of bools is a mask, not a list of row indices: refuse it, as a bool key is
+        mask = [True, False, True]
+        for key in (mask, tuple(mask), np.array(mask), pd.Series(mask), [0, True]):
+            with self.assertRaises(TypeError):
+                query_table(table, key)
+            with self.assertRaises(TypeError):
+                query_table(table, key, indices=indices)
 
     def test_query_table_indexable_type(self):
         pa_table = self._create_dummy_table()
