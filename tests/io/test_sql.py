@@ -1,6 +1,7 @@
 import contextlib
 import os
 import sqlite3
+import time
 
 import pytest
 
@@ -91,6 +92,32 @@ def test_dataset_to_sql_multiproc(sqlite_path, tmp_path, set_sqlalchemy_silence_
 
     for row1, row2 in zip(original_sql, expected_sql):
         assert row1 == row2
+
+
+class SlowFirstBatchSqlDatasetWriter(SqlDatasetWriter):
+    """The first batch takes longer than the others, as a slow table creation would."""
+
+    def _batch_sql(self, args):
+        if args[0] == 0:
+            time.sleep(0.5)
+        return super()._batch_sql(args)
+
+
+@require_sqlalchemy
+def test_dataset_to_sql_multiproc_creates_the_table_before_the_workers_append(
+    tmp_path, set_sqlalchemy_silence_uber_warning
+):
+    # With num_proc > 1 the batches run in a pool, and a later batch (if_exists="append") can
+    # reach the database before the first one, whose default if_exists="fail" then raises
+    # "table already exists". The first batch must create the table before the pool starts.
+    dataset = Dataset.from_dict({"a": list(range(6))})
+    output_sqlite_path = os.path.join(tmp_path, "out.sqlite")
+    writer = SlowFirstBatchSqlDatasetWriter(
+        dataset, "dataset", "sqlite:///" + output_sqlite_path, batch_size=1, num_proc=2
+    )
+    assert writer.write() == 6
+    with contextlib.closing(sqlite3.connect(output_sqlite_path)) as con:
+        assert sorted(con.execute("SELECT a FROM dataset").fetchall()) == [(i,) for i in range(6)]
 
 
 @require_sqlalchemy
