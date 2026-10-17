@@ -91,7 +91,20 @@ To ensure a dataset is complete, [`load_dataset`] will perform a series of tests
 - The number of splits in the generated `DatasetDict`.
 - The number of samples in each split of the generated `DatasetDict`.
 - The list of downloaded files.
-- The SHA256 checksums of the downloaded files (disabled by default).
+- The SHA256 checksums of downloaded files, when expected checksums are available.
+
+Checksum recording has been disabled by default since Datasets 4.8.5. As a result, new downloads do not automatically populate `DatasetInfo.download_checksums`.
+
+The default `verification_mode="basic_checks"` skips checksum comparison. Setting `verification_mode="all_checks"` does not enable recording; checksums are compared only when the dataset builder records them and expected values are available.
+
+To make Hub-hosted dataset loads reproducible, pin the dataset repository to a commit hash with `revision`:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("organization/dataset", revision="<commit-hash>")
+```
+
+This pins the Hub repository revision. It does not verify files fetched from external URLs; for those, compare the downloaded files against a trusted SHA256 manifest.
 
 If the dataset doesn't pass the verifications, it is likely that the dataset author made some changes in the data files.
 
