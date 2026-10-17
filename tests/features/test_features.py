@@ -403,6 +403,39 @@ def test_classlabel_cast_storage():
     assert result.to_pylist() == []
 
 
+def test_classlabel_cast_storage_from_dictionary():
+    names = ["negative", "positive"]
+    classlabel = ClassLabel(names=names)
+    # from a pandas Categorical of label names: an unused category is not looked up
+    arr = pa.array(
+        pd.Categorical(["positive", None, "negative", "positive"], categories=["negative", "positive", "unused"])
+    )
+    assert pa.types.is_dictionary(arr.type)
+    result = classlabel.cast_storage(arr)
+    assert result.type == pa.int64()
+    assert result.to_pylist() == [1, None, 0, 1]
+    # from a sliced array, whose indices start at an offset
+    result = classlabel.cast_storage(arr[1:])
+    assert result.to_pylist() == [None, 0, 1]
+    # from a Categorical of label ids
+    arr = pa.array(pd.Categorical([1, 0, 1]))
+    result = classlabel.cast_storage(arr)
+    assert result.type == pa.int64()
+    assert result.to_pylist() == [1, 0, 1]
+    arr = pa.array(pd.Categorical([0, 3]))
+    with pytest.raises(ValueError):
+        classlabel.cast_storage(arr)
+    # a category that is used must be a label name
+    arr = pa.array(pd.Categorical(["negative", "__label_that_doesnt_exist__"]))
+    with pytest.raises(ValueError):
+        classlabel.cast_storage(arr)
+    # end to end: a categorical column of a DataFrame becomes the ClassLabel column
+    df = pd.DataFrame({"label": pd.Categorical(["positive", "negative", None])})
+    dset = Dataset.from_pandas(df, features=Features({"label": classlabel}))
+    assert dset.features["label"] == classlabel
+    assert dset["label"] == [1, 0, None]
+
+
 @pytest.mark.parametrize("string_type", [pa.string(), pa.large_string(), pa.string_view()])
 def test_json_cast_storage_from_strings(string_type):
     json_feature = Json()
