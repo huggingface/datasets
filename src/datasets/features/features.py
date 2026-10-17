@@ -1214,20 +1214,32 @@ class ClassLabel:
             raise ValueError(f"Class label {example_data:d} greater than configured num_classes {self.num_classes}")
         return example_data
 
-    def cast_storage(self, storage: Union[pa.StringArray, pa.IntegerArray]) -> pa.Int64Array:
+    def cast_storage(self, storage: Union[pa.StringArray, pa.IntegerArray, pa.DictionaryArray]) -> pa.Int64Array:
         """Cast an Arrow array to the `ClassLabel` arrow storage type.
         The Arrow types that can be converted to the `ClassLabel` pyarrow storage type are:
 
         - `pa.string()`
         - `pa.int()`
+        - `pa.dictionary()` of either, e.g. a pandas `Categorical` column
 
         Args:
-            storage (`Union[pa.StringArray, pa.IntegerArray]`):
+            storage (`Union[pa.StringArray, pa.IntegerArray, pa.DictionaryArray]`):
                 PyArrow array to cast.
 
         Returns:
             `pa.Int64Array`: Array in the `ClassLabel` arrow storage type.
         """
+        if isinstance(storage, pa.DictionaryArray):
+            if pa.types.is_integer(storage.type.value_type):
+                storage = storage.dictionary_decode()
+            else:
+                # map each label name that occurs once, then take the ids by index: a null index
+                # stays null, and a category no row uses is not looked up
+                categories = storage.dictionary
+                ids: list[Optional[int]] = [None] * len(categories)
+                for i in pc.unique(storage.indices.drop_null()).to_pylist():
+                    ids[i] = self._strval2int(categories[i].as_py())
+                storage = pc.take(pa.array(ids, pa.int64()), storage.indices)
         if isinstance(storage, pa.IntegerArray) and len(storage) > 0:
             min_max = pc.min_max(storage).as_py()
             if min_max["max"] is not None and min_max["max"] >= self.num_classes:
