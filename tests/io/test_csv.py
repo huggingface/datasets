@@ -165,6 +165,18 @@ def test_dataset_to_csv_invalidproc(csv_path, tmp_path):
         CsvDatasetWriter(dataset["train"], output_csv, num_proc=0)
 
 
+@pytest.mark.parametrize("num_proc", [1, 2])
+def test_dataset_to_csv_encoding(num_proc, tmp_path):
+    # The encoding passed to pandas is the one the bytes are written in. pandas only applies it
+    # when it writes a file itself; here it returns a str that the writer encodes.
+    dataset = Dataset.from_dict({"a": ["x", "y", "z"]})
+    output_csv = os.path.join(tmp_path, "out.csv")
+    CsvDatasetWriter(dataset, output_csv, batch_size=2, num_proc=num_proc, encoding="utf-16").write()
+    with open(output_csv, encoding="utf-16", newline="") as f:
+        rows = list(csv.DictReader(f))
+    assert [row["a"] for row in rows] == ["x", "y", "z"]
+
+
 def test_dataset_to_csv_fsspec(dataset, mockfs):
     dataset_path = "mock://my_dataset.csv"
     writer = CsvDatasetWriter(dataset, dataset_path, storage_options=mockfs.storage_options)
