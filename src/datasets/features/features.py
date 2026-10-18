@@ -1230,9 +1230,12 @@ class ClassLabel:
             `pa.Int64Array`: Array in the `ClassLabel` arrow storage type.
         """
         if isinstance(storage, pa.DictionaryArray):
-            if pa.types.is_integer(storage.type.value_type):
-                storage = storage.dictionary_decode()
-            else:
+            value_type = storage.type.value_type
+            if (
+                pa.types.is_string(value_type)
+                or pa.types.is_large_string(value_type)
+                or pa.types.is_string_view(value_type)
+            ):
                 # map each label name that occurs once, then take the ids by index: a null index
                 # stays null, and a category no row uses is not looked up
                 categories = storage.dictionary
@@ -1240,6 +1243,9 @@ class ClassLabel:
                 for i in pc.unique(storage.indices.drop_null()).to_pylist():
                     ids[i] = self._strval2int(categories[i].as_py())
                 storage = pc.take(pa.array(ids, pa.int64()), storage.indices)
+            else:
+                # any other value type is decoded and cast as a plain array would be
+                storage = storage.dictionary_decode()
         if isinstance(storage, pa.IntegerArray) and len(storage) > 0:
             min_max = pc.min_max(storage).as_py()
             if min_max["max"] is not None and min_max["max"] >= self.num_classes:

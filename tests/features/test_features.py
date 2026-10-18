@@ -425,6 +425,11 @@ def test_classlabel_cast_storage_from_dictionary():
     arr = pa.array(pd.Categorical([0, 3]))
     with pytest.raises(ValueError):
         classlabel.cast_storage(arr)
+    # any other dictionary value type is decoded and cast as a plain array would be
+    arr = pa.array(pd.Categorical([1.0, 0.0]))
+    result = classlabel.cast_storage(arr)
+    assert result.type == pa.int64()
+    assert result.to_pylist() == [1, 0]
     # a category that is used must be a label name
     arr = pa.array(pd.Categorical(["negative", "__label_that_doesnt_exist__"]))
     with pytest.raises(ValueError):
