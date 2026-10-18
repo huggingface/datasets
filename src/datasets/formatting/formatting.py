@@ -563,11 +563,19 @@ def _check_valid_column_key(key: str, columns: list[str]) -> None:
 
 
 def _has_bool_items(key: Iterable) -> bool:
-    """Whether an iterable key holds booleans: a numpy array or pandas Series of dtype bool, or
-    a python iterable with a bool in it (`True` is also an `int`, so it would otherwise pass as 1)."""
+    """Whether an iterable key holds booleans: an Arrow, numpy, pandas, torch or tensorflow array of a
+    boolean dtype, or a python iterable with a bool in it (`True` is also an `int`, so it would otherwise
+    pass as 1). Only object-dtype arrays are inspected item by item."""
+    if isinstance(key, (pa.Array, pa.ChunkedArray)):
+        return pa.types.is_boolean(key.type)
     dtype = getattr(key, "dtype", None)
     if dtype is not None:
-        return getattr(dtype, "kind", None) == "b"
+        kind = getattr(dtype, "kind", None)
+        if kind is None:
+            # torch and tensorflow dtypes have no kind; both spell their boolean type "bool"
+            return "bool" in str(dtype)
+        if kind != "O":
+            return kind == "b"
     return any(isinstance(item, (bool, np.bool_)) for item in key)
 
 

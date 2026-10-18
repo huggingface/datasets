@@ -4945,7 +4945,10 @@ def test_dataset_getitem_raises():
     for mask in (
         [True, False, True, False],
         np.array([True, False, True, False]),
+        np.array([True, False, True, False], dtype=object),
         pd.Series([True, False, True, False]),
+        pd.Series([True, False, True, False], dtype=object),
+        pa.array([True, False, True, False]),
     ):
         with pytest.raises(TypeError):
             ds[mask]
@@ -4953,6 +4956,10 @@ def test_dataset_getitem_raises():
             ds["a"][mask]
         with pytest.raises(TypeError):
             ds.select([3, 2, 1, 0])[mask]
+        with pytest.raises(TypeError):
+            ds.select(mask)
+        with pytest.raises(TypeError):
+            ds.select(iter(mask))
 
 
 def test_categorical_dataset(tmpdir):

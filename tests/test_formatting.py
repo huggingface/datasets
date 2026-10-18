@@ -923,7 +923,29 @@ class QueryTest(TestCase):
             query_table(table, [len(indices)], indices=indices)
         # an iterable of bools is a mask, not a list of row indices: refuse it, as a bool key is
         mask = [True, False, True]
-        for key in (mask, tuple(mask), np.array(mask), pd.Series(mask), [0, True]):
+
+        class BoolTensor:
+            # a torch or tensorflow bool tensor: a dtype without numpy's kind, items that look like ints
+            dtype = type("dtype", (), {"__str__": lambda self: "torch.bool"})()
+
+            def __len__(self):
+                return len(mask)
+
+            def __iter__(self):
+                return iter(np.array(mask))
+
+        for key in (
+            mask,
+            tuple(mask),
+            np.array(mask),
+            np.array(mask, dtype=object),
+            pd.Series(mask),
+            pd.Series(mask, dtype=object),
+            pd.Series(mask, dtype="boolean"),
+            pa.array(mask),
+            BoolTensor(),
+            [0, True],
+        ):
             with self.assertRaises(TypeError):
                 query_table(table, key)
             with self.assertRaises(TypeError):
