@@ -1,3 +1,4 @@
+import codecs
 import csv
 import os
 
@@ -172,9 +173,19 @@ def test_dataset_to_csv_encoding(num_proc, tmp_path):
     dataset = Dataset.from_dict({"a": ["x", "y", "z"]})
     output_csv = os.path.join(tmp_path, "out.csv")
     CsvDatasetWriter(dataset, output_csv, batch_size=2, num_proc=num_proc, encoding="utf-16").write()
+    with open(output_csv, "rb") as f:
+        data = f.read()
+    # one byte order mark for the whole file, not one per batch
+    assert data.startswith(codecs.BOM_UTF16)
+    assert data.count(codecs.BOM_UTF16) == 1
     with open(output_csv, encoding="utf-16", newline="") as f:
         rows = list(csv.DictReader(f))
     assert [row["a"] for row in rows] == ["x", "y", "z"]
+    # an empty dataset writes an empty file, not a byte order mark
+    output_csv = os.path.join(tmp_path, "empty.csv")
+    written = CsvDatasetWriter(dataset.select([]), output_csv, num_proc=num_proc, encoding="utf-16").write()
+    assert written == 0
+    assert os.path.getsize(output_csv) == 0
 
 
 def test_dataset_to_csv_fsspec(dataset, mockfs):

@@ -143,6 +143,7 @@ class CsvDatasetWriter:
                     desc="Creating CSV from Arrow format",
                 ):
                     written += file_obj.write(encoder.encode(csv_str))
-        written += file_obj.write(encoder.encode("", final=True))
+        if written:
+            written += file_obj.write(encoder.encode("", final=True))
 
         return written
