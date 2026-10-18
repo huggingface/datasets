@@ -855,7 +855,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         table = InMemoryTable.from_buffer(buffer)
 
         if indices_buffer is not None:
-            indices_table = InMemoryTable.from_buffer(buffer)
+            indices_table = InMemoryTable.from_buffer(indices_buffer)
         else:
             indices_table = None
 
