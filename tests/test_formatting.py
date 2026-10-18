@@ -1,4 +1,5 @@
 import datetime
+import warnings
 from pathlib import Path
 from unittest import TestCase
 
@@ -1058,6 +1059,53 @@ def test_iterable_dataset_of_arrays_format_to_torch(any_arrays_dataset: Iterable
 
     formatted = any_arrays_dataset.with_format("torch")
     assert all(isinstance(example["array"], torch.Tensor) for example in formatted)
+
+
+@require_torch
+@pytest.mark.parametrize("requires_grad", [False, True])
+@pytest.mark.parametrize("transposed", [False, True])
+@pytest.mark.parametrize("tensor_kwargs", [{}, {"dtype": "float64"}, {"requires_grad": True}, {"device": "meta"}])
+def test_torch_formatter_copies_tensors_without_warning(requires_grad, transposed, tensor_kwargs):
+    import torch
+
+    from datasets.formatting import TorchFormatter
+
+    source = torch.arange(6, dtype=torch.float32).reshape(2, 3).requires_grad_(requires_grad)
+    if transposed:
+        source = source.T
+    source_values = source.detach().clone()
+    tensor_kwargs = {**tensor_kwargs}
+    if "dtype" in tensor_kwargs:
+        tensor_kwargs["dtype"] = getattr(torch, tensor_kwargs["dtype"])
+    formatter = TorchFormatter(**tensor_kwargs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UserWarning)
+        result = formatter.recursive_tensorize({"x": source})["x"]
+
+    assert result.is_leaf
+    assert result.requires_grad == tensor_kwargs.get("requires_grad", False)
+    assert result.dtype == tensor_kwargs.get("dtype", source.dtype)
+    assert result.device == torch.device(tensor_kwargs.get("device", "cpu"))
+    assert result.shape == source.shape
+    if result.device.type != "meta":
+        torch.testing.assert_close(result, source_values.to(result.dtype))
+        assert result.data_ptr() != source.data_ptr()
+        with torch.no_grad():
+            result.add_(1)
+        torch.testing.assert_close(source, source_values)
+
+
+@require_torch
+@pytest.mark.parametrize("batched", [False, True])
+def test_iterable_dataset_torch_map_without_tensor_copy_warning(batched):
+    import torch
+
+    dataset = IterableDataset.from_generator(lambda: iter([{"x": [1.0, 2.0]}, {"x": [3.0, 4.0]}]))
+    dataset = dataset.with_format("torch").map(lambda row: {"x": row["x"] + 1}, batched=batched)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UserWarning)
+        rows = list(dataset)
+    torch.testing.assert_close(torch.stack([row["x"] for row in rows]), torch.tensor([[2.0, 3.0], [4.0, 5.0]]))
 
 
 @require_tf
