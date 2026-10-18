@@ -1,10 +1,11 @@
+import io
 import json
 import tarfile
 from pathlib import Path
 
 import pytest
 
-from datasets import Audio, DownloadManager, Features, Image, List, Value, Video
+from datasets import Audio, DownloadManager, Features, Image, List, Value, Video, load_dataset
 from datasets.packaged_modules.webdataset.webdataset import WebDataset
 
 from ..utils import (
@@ -13,6 +14,64 @@ from ..utils import (
     require_torch,
     require_torchcodec,
 )
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("empty_first", [False, True])
+def test_webdataset_empty_shard_before_data(tmp_path, streaming, empty_first):
+    empty_path = tmp_path / "empty.tar"
+    data_path = tmp_path / "data.tar"
+    with tarfile.open(empty_path, "w"):
+        pass
+    with tarfile.open(data_path, "w") as archive:
+        for index, text in enumerate(["hello", "world"]):
+            content = text.encode("utf-8")
+            member = tarfile.TarInfo(f"{index:05d}.txt")
+            member.size = len(content)
+            archive.addfile(member, io.BytesIO(content))
+    paths = [str(empty_path), str(data_path)] if empty_first else [str(data_path), str(empty_path)]
+
+    dataset = load_dataset("webdataset", data_files={"train": paths}, split="train", streaming=streaming)
+
+    assert dataset.features["txt"] == Value("string")
+    assert [row["txt"] for row in dataset] == ["hello", "world"]
+
+
+def test_webdataset_all_shards_empty(tmp_path):
+    path = tmp_path / "empty.tar"
+    with tarfile.open(path, "w"):
+        pass
+    builder = WebDataset(data_files={"train": [str(path)]})
+
+    with pytest.raises(ValueError, match="Cannot infer features.*empty"):
+        builder._split_generators(DownloadManager())
+
+    features = Features({"txt": Value("string")})
+    builder = WebDataset(data_files={"train": [str(path)]}, features=features)
+    splits = builder._split_generators(DownloadManager())
+    assert builder.info.features == features
+    assert list(builder._generate_examples(**splits[0].gen_kwargs)) == []
+
+
+@pytest.mark.parametrize("empty_split_first", [False, True])
+def test_webdataset_infers_features_with_empty_split(tmp_path, empty_split_first):
+    empty_path = tmp_path / "empty.tar"
+    data_path = tmp_path / "data.tar"
+    with tarfile.open(empty_path, "w"):
+        pass
+    with tarfile.open(data_path, "w") as archive:
+        content = b"hello"
+        member = tarfile.TarInfo("00000.txt")
+        member.size = len(content)
+        archive.addfile(member, io.BytesIO(content))
+    pairs = [("train", [str(data_path)]), ("test", [str(empty_path)])]
+    builder = WebDataset(data_files=dict(reversed(pairs) if empty_split_first else pairs))
+
+    splits = builder._split_generators(DownloadManager())
+
+    assert builder.info.features["txt"] == Value("string")
+    rows = [example for split in splits for _, example in builder._generate_examples(**split.gen_kwargs)]
+    assert [row["txt"] for row in rows] == ["hello"]
 
 
 @pytest.fixture

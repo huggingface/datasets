@@ -73,9 +73,19 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                 )
             )
         if not self.info.features:
-            # Get one example to get the feature types
-            pipeline = self._get_pipeline_from_tar(tar_paths[0], tar_iterators[0])
-            first_examples = list(islice(pipeline, self.NUM_EXAMPLES_FOR_FEATURES_INFERENCE))
+            # Empty archives contain no schema information. Find a populated
+            # archive, keeping the usual inference limit within that archive.
+            first_examples = []
+            for split in splits:
+                for tar_path, tar_iterator in zip(split.gen_kwargs["tar_paths"], split.gen_kwargs["tar_iterators"]):
+                    pipeline = self._get_pipeline_from_tar(tar_path, tar_iterator)
+                    first_examples = list(islice(pipeline, self.NUM_EXAMPLES_FOR_FEATURES_INFERENCE))
+                    if first_examples:
+                        break
+                if first_examples:
+                    break
+            if not first_examples:
+                raise ValueError("Cannot infer features from empty WebDataset archives. Please provide features.")
             if any(example.keys() != first_examples[0].keys() for example in first_examples):
                 raise ValueError(
                     "The TAR archives of the dataset should be in WebDataset format, "
