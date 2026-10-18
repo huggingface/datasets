@@ -12,7 +12,7 @@ from collections import Counter
 from collections.abc import Iterable, Iterator
 from copy import copy, deepcopy
 from dataclasses import dataclass
-from functools import partial
+from functools import lru_cache, partial
 from itertools import cycle, islice
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Optional, Union
@@ -2039,11 +2039,16 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     def load_state_dict(self, state_dict: dict) -> dict:
         if self._state_dict:
             if state_dict != self._original_state_dict:
-                logger.warning(
-                    "Loading a state dict of a shuffle buffer of a dataset without the buffer content."
-                    "The shuffle buffer will be refilled before starting to yield new examples."
-                )
+                self._warn_about_missing_buffer()
         return super().load_state_dict(state_dict)
+
+    @staticmethod
+    @lru_cache(maxsize=1)
+    def _warn_about_missing_buffer():
+        logger.warning(
+            "Loading a state dict of a shuffle buffer of a dataset without the buffer content. "
+            "The shuffle buffer will be refilled before starting to yield new examples."
+        )
 
     @staticmethod
     def _iter_random_indices(rng: np.random.Generator, buffer_size: int, random_batch_size=1000) -> Iterator[int]:
