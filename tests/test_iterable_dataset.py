@@ -4261,6 +4261,37 @@ def test_decode_num_threads_passes_token_per_repo_id():
     assert TokenRecordingDecodableFeature.seen_token_per_repo_id[0] == {"repo_id": "token"}
 
 
+@dataclass
+class PrefixDecodableFeature:
+    """Decodable feature with a decoding parameter, like the sampling rate of `Audio`."""
+
+    def __init__(self, prefix: str = "decoded-", decode: bool = True):
+        self.prefix = prefix
+        self.decode = decode
+
+    def decode_example(self, example, token_per_repo_id=None):
+        return self.prefix + example
+
+    def __call__(self):
+        return pa.string()
+
+
+@pytest.mark.parametrize("num_threads", [0, 2])
+def test_cast_after_decode_num_threads(num_threads):
+    # e.g. `ds.cast_column("audio", Audio(sampling_rate=16000))` on a dataset streamed from the Hub, which
+    # load_dataset decodes in threads by default: the new feature must be used to decode the examples
+    features = Features({"i": PrefixDecodableFeature()})
+    ds = IterableDataset.from_generator(_gen_decodable_examples, features=features)
+    ds = ds.decode(num_threads=num_threads)
+    assert [x["i"] for x in ds] == [f"decoded-{i}" for i in range(10)]
+    assert [x["i"] for x in ds.cast_column("i", PrefixDecodableFeature("new-"))] == [f"new-{i}" for i in range(10)]
+    assert [x["i"] for x in ds.cast(Features({"i": PrefixDecodableFeature("new-")}))] == [
+        f"new-{i}" for i in range(10)
+    ]
+    assert [x["i"] for x in ds.cast_column("i", PrefixDecodableFeature(decode=False))] == [str(i) for i in range(10)]
+    assert [x["i"] for x in ds.cast_column("i", Value("string"))] == [str(i) for i in range(10)]
+
+
 ############################
 #
 #   IterableColumn tests
