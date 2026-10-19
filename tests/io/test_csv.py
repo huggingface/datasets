@@ -186,6 +186,14 @@ def test_dataset_to_csv_encoding(num_proc, tmp_path):
     written = CsvDatasetWriter(dataset.select([]), output_csv, num_proc=num_proc, encoding="utf-16").write()
     assert written == 0
     assert os.path.getsize(output_csv) == 0
+    # encoding errors are handled by the same encoder
+    output_csv = os.path.join(tmp_path, "errors.csv")
+    CsvDatasetWriter(
+        Dataset.from_dict({"a": ["café"]}), output_csv, num_proc=num_proc, encoding="ascii", errors="replace"
+    ).write()
+    with open(output_csv, encoding="ascii", newline="") as f:
+        rows = list(csv.DictReader(f))
+    assert [row["a"] for row in rows] == ["caf?"]
 
 
 def test_dataset_to_csv_fsspec(dataset, mockfs):
