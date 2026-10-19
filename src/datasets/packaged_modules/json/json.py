@@ -137,9 +137,9 @@ class Json(datasets.ArrowBasedBuilder):
                 pa_table = table_cast(pa_table, self.info.features.arrow_schema)
             except CastError as e:
                 raise CastError(
-                    f"{e}\n\nThis can happen when a JSONL file changes record shape across a "
-                    f"`chunksize` boundary (default 10MB). Try loading with a larger "
-                    f"`chunksize` so each shape group fits in one chunk "
+                    f"{e}\n\nThis can happen when JSONL changes record shape or type across files"
+                    " or a `chunksize` boundary (default 10MB). Make sure files have the same schema or "
+                    "try loading with a larger `chunksize` so each shape/type group fits in one chunk "
                     f"(e.g. chunksize=max(file_size, current_chunksize)).",
                     table_column_names=e.table_column_names,
                     requested_column_names=e.requested_column_names,
