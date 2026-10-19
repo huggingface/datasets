@@ -293,6 +293,43 @@ class FormatterTest(TestCase):
         np.testing.assert_equal(batch, {"a": np.array(_COL_A), "b": np.array(_COL_B), "c": np.array(_COL_C)})
         assert batch["c"].shape == np.array(_COL_C).shape
 
+    def test_numpy_formatter_scalars_are_numpy_scalars(self):
+        """Row access should give numpy scalars, not 0-d arrays.
+
+        np.bool_ and np.datetime64 are not np.number, so they used to fall
+        through to np.asarray and come back unhashable.
+        """
+        pa_table = pa.table(
+            {
+                "b": pa.array([True]),
+                "t": pa.array([datetime.datetime(2020, 1, 1)], type=pa.timestamp("us")),
+                "d": pa.array([datetime.timedelta(seconds=5)], type=pa.duration("us")),
+                "i": pa.array([3]),
+            }
+        )
+        row = NumpyFormatter().format_row(pa_table)
+        for name, expected in (
+            ("b", np.bool_),
+            ("t", np.datetime64),
+            ("d", np.timedelta64),
+            ("i", np.integer),
+        ):
+            self.assertIsInstance(row[name], expected)
+            self.assertNotIsInstance(row[name], np.ndarray)
+            hash(row[name])
+
+    def test_numpy_formatter_keeps_duration_dtype(self):
+        """np.issubdtype counts timedelta64 as an integer subtype.
+
+        The int64 default dtype used to apply to duration columns, so the same
+        column came back as timedelta64 by row and int64 by batch.
+        """
+        pa_table = pa.table({"d": pa.array([datetime.timedelta(seconds=5)], type=pa.duration("us"))})
+        formatter = NumpyFormatter()
+        self.assertEqual(formatter.format_batch(pa_table)["d"].dtype, np.dtype("timedelta64[us]"))
+        self.assertEqual(formatter.format_column(pa_table).dtype, np.dtype("timedelta64[us]"))
+        self.assertIsInstance(formatter.format_row(pa_table)["d"], np.timedelta64)
+
     def test_numpy_formatter_np_array_kwargs(self):
         pa_table = self._create_dummy_table().drop(["b"])
         formatter = NumpyFormatter(dtype=np.float16)
