@@ -1241,7 +1241,8 @@ class ClassLabel:
                 categories = storage.dictionary
                 ids: list[Optional[int]] = [None] * len(categories)
                 for i in pc.unique(storage.indices.drop_null()).to_pylist():
-                    ids[i] = self._strval2int(categories[i].as_py())
+                    category = categories[i].as_py()
+                    ids[i] = self._strval2int(category) if category is not None else None
                 storage = pc.take(pa.array(ids, pa.int64()), storage.indices)
             else:
                 # any other value type is decoded and cast as a plain array would be

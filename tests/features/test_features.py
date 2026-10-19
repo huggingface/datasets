@@ -417,6 +417,10 @@ def test_classlabel_cast_storage_from_dictionary():
     # from a sliced array, whose indices start at an offset
     result = classlabel.cast_storage(arr[1:])
     assert result.to_pylist() == [None, 0, 1]
+    # from a dictionary with a referenced null category
+    arr = pa.DictionaryArray.from_arrays(pa.array([0, 1, None]), pa.array(["negative", None]))
+    result = classlabel.cast_storage(arr)
+    assert result.to_pylist() == [0, None, None]
     # from a Categorical of label ids
     arr = pa.array(pd.Categorical([1, 0, 1]))
     result = classlabel.cast_storage(arr)
