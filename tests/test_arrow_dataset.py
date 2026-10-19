@@ -14,10 +14,12 @@ from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
+import multiprocess as mp
 import numpy as np
 import numpy.testing as npt
 import pandas as pd
 import pyarrow as pa
+import pyarrow.parquet as pq
 import pytest
 from absl.testing import parameterized
 from fsspec.core import strip_protocol
@@ -51,6 +53,7 @@ from datasets.utils.py_utils import temp_seed
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
+    push_parquet_shards_offline,
     require_dill_gt_0_3_2,
     require_jax,
     require_not_windows,
@@ -5279,3 +5282,19 @@ def test_process_large_few_examples(tmp_path):
     # make sure this is split into 2 shards
     ds.save_to_disk(dataset_path, max_shard_size="1KB")
     assert (dataset_path / "data-00000-of-00001.arrow").exists()
+
+
+@pytest.mark.parametrize(
+    "num_shards, num_proc", [(2, 4), (3, 4), (4, 4), (5, 2), (7, 3), (2, None), (1, 4), (1, None)]
+)
+def test_dataset_push_to_hub_uploads_every_row_with_num_proc(offline_parquet_uploads, num_shards, num_proc):
+    dataset = Dataset.from_dict({"id": list(range(20))})
+    _, paths, _, split_info, _ = push_parquet_shards_offline(dataset, num_shards=num_shards, num_proc=num_proc)
+    files = sorted(offline_parquet_uploads.glob("*.parquet"))
+    assert [file.name for file in files] == [f"train-{i:05d}-of-{num_shards:05d}.parquet" for i in range(num_shards)]
+    assert sorted(paths) == [f"data/{file.name}" for file in files]
+    assert split_info.num_examples == 20
+    assert [row for file in files for row in pq.read_table(file)["id"].to_pylist()] == list(range(20))
+    if num_shards == 1:
+        # a single shard is written without starting a pool of processes
+        assert not mp.get_context.return_value.Pool.called
