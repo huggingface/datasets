@@ -3644,6 +3644,34 @@ class MiscellaneousDatasetTest(TestCase):
             self.assertEqual(tf_dset_w_batch.element_spec, tf_dset_wo_batch.batch(2).element_spec)
 
 
+@pytest.mark.parametrize("values", [pa.array(["a", "b", "c"]), pa.array([1, 2, 0], type=pa.uint64())])
+@pytest.mark.parametrize("indices", [None, [], [2, 0], [2, 0, 2]])
+def test_from_buffer_with_indices(values, indices):
+    def to_buffer(table):
+        sink = pa.BufferOutputStream()
+        with pa.ipc.new_stream(sink, table.schema) as writer:
+            writer.write_table(table)
+        return sink.getvalue()
+
+    table = pa.table({"value": values})
+    indices_buffer = (
+        to_buffer(pa.table({"indices": pa.array(indices, type=pa.uint64())})) if indices is not None else None
+    )
+    dataset = Dataset.from_buffer(
+        to_buffer(table),
+        indices_buffer=indices_buffer,
+        info=DatasetInfo(description="A buffered dataset"),
+        split=NamedSplit("test"),
+    )
+
+    expected_values = values.to_pylist() if indices is None else [values[i].as_py() for i in indices]
+    assert dataset.to_dict() == {"value": expected_values}
+    assert len(dataset) == len(expected_values)
+    assert dataset.features == Features.from_arrow_schema(table.schema)
+    assert dataset.info.description == "A buffered dataset"
+    assert dataset.split == NamedSplit("test")
+
+
 def test_cast_with_sliced_list():
     old_features = Features({"foo": List(Value("int64"))})
     new_features = Features({"foo": List(Value("int32"))})
