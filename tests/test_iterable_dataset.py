@@ -8,6 +8,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from itertools import chain, cycle, islice
 from pathlib import Path
+from threading import Event
 from typing import ClassVar
 from unittest.mock import MagicMock, patch
 
@@ -4179,6 +4180,40 @@ def test_decode_num_threads_can_be_reconfigured():
     assert list(ds.decode(num_threads=2).decode()) == expected
     assert list(ds.decode(num_threads=2).decode(False)) == not_decoded
     assert list(ds.decode(False).decode(num_threads=2)) == expected
+
+
+@pytest.mark.parametrize("decode_kwargs", [{"enable": False}, {"num_threads": 4}])
+def test_decode_reconfiguration_preserves_active_iterator(monkeypatch, decode_kwargs):
+    started = {"1": Event(), "2": Event()}
+    release = Event()
+
+    def decode_example(self, example, token_per_repo_id=None):
+        if example in started:
+            started[example].set()
+            assert release.wait(timeout=10), "decoding workers were not released"
+        return f"decoded-{example}"
+
+    monkeypatch.setattr(DecodableFeature, "decode_example", decode_example)
+    features = Features({"i": DecodableFeature()})
+    ds = IterableDataset.from_generator(lambda: ({"i": str(i)} for i in range(6)), features=features)
+    ds = ds.decode(num_threads=2)
+    iterator = iter(ds)
+    reconfigured = None
+    try:
+        assert next(iterator) == {"i": "decoded-0"}
+        # Hold both workers while another example waits in the decoding queue.
+        assert all(event.wait(timeout=10) for event in started.values())
+        reconfigured = ds.decode(**decode_kwargs)
+        release.set()
+        assert list(iterator) == [{"i": f"decoded-{i}"} for i in range(1, 6)]
+        expected = [{"i": str(i) if decode_kwargs.get("enable") is False else f"decoded-{i}"} for i in range(6)]
+        assert list(reconfigured) == expected
+    finally:
+        release.set()
+        iterator.close()
+        ds._ex_iterable.decoding_pool.shutdown()
+        if reconfigured is not None and isinstance(reconfigured._ex_iterable, MappedExamplesIterable):
+            reconfigured._ex_iterable.decoding_pool.shutdown()
 
 
 def _gen_decodable_examples():

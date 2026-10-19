@@ -4600,7 +4600,7 @@ class IterableDataset(DatasetInfoMixin):
         # If decoding is already configured, start again from the dataset it was configured on: examples must be
         # decoded exactly once, so `.decode()` replaces the previous decoding step instead of adding a new one.
         if isinstance(ds._ex_iterable, MappedExamplesIterable) and ds._ex_iterable.decoding_pool is not None:
-            ds._ex_iterable.decoding_pool.shutdown(wait=False, cancel_futures=True)
+            # The original dataset may still have active iterators using its decoding pool.
             ds = IterableDataset(
                 ds._ex_iterable.ex_iterable,
                 info=ds.info,
