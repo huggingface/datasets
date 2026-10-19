@@ -178,6 +178,16 @@ def test_dataset_to_csv_index_numbers_rows_across_batches(num_proc, tmp_path):
     assert [row["a"] for row in rows] == [str(i) for i in range(7)]
 
 
+def test_dataset_to_csv_index_numbers_selected_rows(tmp_path):
+    dataset = Dataset.from_dict({"a": list(range(15))}).select(range(5, 12))
+    output_csv = os.path.join(tmp_path, "out.csv")
+    CsvDatasetWriter(dataset, output_csv, batch_size=3, index=True, index_label="row").write()
+    with open(output_csv, newline="") as f:
+        rows = list(csv.DictReader(f))
+    assert [row["row"] for row in rows] == [str(i) for i in range(7)]
+    assert [row["a"] for row in rows] == [str(i) for i in range(5, 12)]
+
+
 def test_dataset_to_csv_fsspec(dataset, mockfs):
     dataset_path = "mock://my_dataset.csv"
     writer = CsvDatasetWriter(dataset, dataset_path, storage_options=mockfs.storage_options)
