@@ -4460,6 +4460,10 @@ class IterableDataset(DatasetInfoMixin):
         ```
         """
         feature = _fix_for_backward_compatible_features(feature)
+        if self._threaded_decoding_base() is not None:
+            features = self.features.copy()
+            features[column] = feature
+            return self.cast(features)
         info = self._info.copy()
         info.features[column] = feature
         return IterableDataset(
@@ -4506,6 +4510,15 @@ class IterableDataset(DatasetInfoMixin):
         ```
         """
         features = _fix_for_backward_compatible_features(features)
+        threaded_decoding_base = self._threaded_decoding_base()
+        if threaded_decoding_base is not None:
+            # The examples are already decoded by the threaded decoding step of `.decode(num_threads=...)`, so casting
+            # them would have no effect on decoding (e.g. a new audio sampling rate or `decode=False` would be ignored):
+            # cast the dataset that `.decode()` was called on instead, and decode it again with the new features.
+            ds, num_threads = threaded_decoding_base
+            if require_decoding(features):
+                return ds._decode_in_threads(features, num_threads=num_threads)
+            return ds.cast(features)
         info = self._info.copy()
         info.features = features
         return IterableDataset(
@@ -4599,30 +4612,42 @@ class IterableDataset(DatasetInfoMixin):
         ds = self
         # If decoding is already configured, start again from the dataset it was configured on: examples must be
         # decoded exactly once, so `.decode()` replaces the previous decoding step instead of adding a new one.
-        if isinstance(ds._ex_iterable, MappedExamplesIterable) and ds._ex_iterable.decoding_pool is not None:
+        threaded_decoding_base = self._threaded_decoding_base()
+        if threaded_decoding_base is not None:
             ds._ex_iterable.decoding_pool.shutdown(wait=False, cancel_futures=True)
-            ds = IterableDataset(
-                ds._ex_iterable.ex_iterable,
-                info=ds.info,
-                split=ds.split,
-                formatting=ds._formatting,
-                distributed=ds._distributed,
-                token_per_repo_id=ds._token_per_repo_id,
-            )
+            ds, _ = threaded_decoding_base
 
         if enable and num_threads:
-            disabled_decoding_features = _features_with_decoding(self.features, False)
-            enabled_decoding_features = _features_with_decoding(self.features, True)
-            ds = ds.cast(disabled_decoding_features)
-            pool = _LazyThreadPoolExecutor(num_threads)
-            decode_example = partial(enabled_decoding_features.decode_example, token_per_repo_id=ds._token_per_repo_id)
-            func = partial(_apply_async, pool, decode_example)
-            ds = ds.map(func, features=enabled_decoding_features)
-            assert isinstance(ds._ex_iterable, MappedExamplesIterable)
-            ds._ex_iterable.decoding_pool = pool
-            ds._ex_iterable.max_num_running_async_map_functions_in_parallel = 2 * num_threads
+            ds = ds._decode_in_threads(_features_with_decoding(self.features, True), num_threads=num_threads)
         else:
             ds = ds.cast(_features_with_decoding(ds.features, enable))
+        return ds
+
+    def _threaded_decoding_base(self) -> Optional[tuple["IterableDataset", int]]:
+        """If the examples are decoded in threads by `.decode(num_threads=...)`, return the dataset that `.decode()`
+        was called on and the number of threads. Return None otherwise."""
+        if isinstance(self._ex_iterable, MappedExamplesIterable) and self._ex_iterable.decoding_pool is not None:
+            ds = IterableDataset(
+                self._ex_iterable.ex_iterable,
+                info=self.info,
+                split=self.split,
+                formatting=self._formatting,
+                distributed=self._distributed,
+                token_per_repo_id=self._token_per_repo_id,
+            )
+            return ds, self._ex_iterable.decoding_pool.max_workers
+        return None
+
+    def _decode_in_threads(self, features: Features, num_threads: int) -> "IterableDataset":
+        """Decode the examples with `features` in `num_threads` worker threads."""
+        ds = self.cast(_features_with_decoding(features, False))
+        pool = _LazyThreadPoolExecutor(num_threads)
+        decode_example = partial(features.decode_example, token_per_repo_id=ds._token_per_repo_id)
+        func = partial(_apply_async, pool, decode_example)
+        ds = ds.map(func, features=features)
+        assert isinstance(ds._ex_iterable, MappedExamplesIterable)
+        ds._ex_iterable.decoding_pool = pool
+        ds._ex_iterable.max_num_running_async_map_functions_in_parallel = 2 * num_threads
         return ds
 
     def _step(self, step: int, offset: int) -> "IterableDataset":
