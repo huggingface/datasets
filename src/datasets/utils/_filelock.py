@@ -32,7 +32,7 @@ class FileLock(FileLock_):
 
     def __init__(self, lock_file, *args, **kwargs):
         # The "mode" argument is required if we want to use the current umask in filelock >= 3.10
-        # In previous previous it was already using the current umask.
+        # In previous versions it was already using the current umask.
         if "mode" not in kwargs and version.parse(_filelock_version) >= version.parse("3.10.0"):
             umask = os.umask(0o666)
             os.umask(umask)
