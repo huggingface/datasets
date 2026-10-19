@@ -2292,14 +2292,19 @@ class Features(dict):
             `dict[str, Any]`
         """
 
-        return {
-            column_name: decode_nested_example(feature, value, token_per_repo_id=token_per_repo_id)
+        decoded_example = {
+            column_name: decode_nested_example(feature, example[column_name], token_per_repo_id=token_per_repo_id)
             if self._column_requires_decoding[column_name]
-            else value
-            for column_name, (feature, value) in zip_dict(
-                {key: value for key, value in self.items() if key in example}, example
-            )
+            else example[column_name]
+            for column_name, feature in self.items()
+            if column_name in example
         }
+        if len(decoded_example) < len(example):
+            # same error as `zip_dict` for a column that isn't in the features
+            for column_name in example:
+                if column_name not in self:
+                    raise KeyError(column_name)
+        return decoded_example
 
     def decode_column(
         self, column: list, column_name: str, token_per_repo_id: Optional[dict[str, Union[str, bool, None]]] = None
