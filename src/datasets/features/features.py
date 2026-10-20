@@ -1805,7 +1805,7 @@ _VisitPath = list[Union[str, Literal[0]]]
 
 
 def _visit_with_path(
-    feature: FeatureType, func: Callable[[FeatureType, _VisitPath], Optional[FeatureType]], visit_path: _VisitPath = []
+    feature: FeatureType, func: Callable[[FeatureType, _VisitPath], Optional[FeatureType]], visit_path: Optional[_VisitPath] = None
 ) -> FeatureType:
     """Visit a (possibly nested) feature with its path in the Feature object.
 
@@ -1823,6 +1823,8 @@ def _visit_with_path(
     Returns:
         `FeatureType`: the visited feature.
     """
+    if visit_path is None:
+        visit_path = []
     if isinstance(feature, Features):
         out = func(Features({k: _visit_with_path(f, func, visit_path + [k]) for k, f in feature.items()}), visit_path)
     elif isinstance(feature, dict):
