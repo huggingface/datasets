@@ -15,6 +15,7 @@ from datasets.features import Array2D, Array3D, Array4D, Array5D, Value
 from datasets.features.features import (
     Array2DExtensionType,
     Array3DExtensionType,
+    PandasArrayExtensionArray,
     PandasArrayExtensionDtype,
     _ArrayXD,
 )
@@ -34,6 +35,57 @@ DEFAULT_FEATURES = datasets.Features(
         "dynamic": Array2D(SHAPE_TEST_3, dtype="float32"),
     }
 )
+
+
+@pytest.mark.parametrize("shape", [(2, 2), (2, 1, 3)])
+@pytest.mark.parametrize("dtype", ["int32", "float32"])
+@pytest.mark.parametrize("chunk_lengths", [(2, 1), (3,), (2, 2), (0, 2), (0, 0)])
+def test_pandas_array_concat_dense(shape, dtype, chunk_lengths):
+    values = np.arange(sum(chunk_lengths) * np.prod(shape), dtype=dtype).reshape((-1, *shape))
+    chunks = []
+    offset = 0
+    for length in chunk_lengths:
+        chunks.append(PandasArrayExtensionArray(values[offset : offset + length]))
+        offset += length
+
+    result = PandasArrayExtensionArray._concat_same_type(chunks)
+
+    assert len(result) == sum(chunk_lengths)
+    assert result._data.shape == values.shape
+    assert result._data.dtype == values.dtype
+    np.testing.assert_array_equal(result._data, values)
+    extension_type = (Array2DExtensionType if len(shape) == 2 else Array3DExtensionType)(shape, dtype)
+    assert pa.array(result, type=extension_type).to_pylist() == values.tolist()
+
+
+@pytest.mark.parametrize("mixed_dense", [False, True])
+@pytest.mark.parametrize("first_length", [1, 2])
+def test_pandas_array_concat_ragged(mixed_dense, first_length):
+    values = [
+        np.arange(4, dtype="float32").reshape(2, 2),
+        np.ones((2, 2), dtype="float32"),
+        np.ones((1, 2), dtype="float32"),
+        np.nan,
+    ]
+    first = np.stack(values[:first_length]) if mixed_dense else np.empty(first_length, dtype=object)
+    if not mixed_dense:
+        first[:] = values[:first_length]
+    second = np.empty(len(values) - first_length, dtype=object)
+    second[:] = values[first_length:]
+
+    result = PandasArrayExtensionArray._concat_same_type(
+        [PandasArrayExtensionArray(first), PandasArrayExtensionArray(second)]
+    )
+
+    assert len(result) == len(values)
+    for actual, expected in zip(result._data, values):
+        np.testing.assert_array_equal(actual, expected)
+    assert pa.array(result, type=Array2DExtensionType((None, 2), "float32")).to_pylist() == [
+        values[0].tolist(),
+        values[1].tolist(),
+        values[2].tolist(),
+        None,
+    ]
 
 
 def generate_examples(features: dict, num_examples=100, seq_shapes=None):
