@@ -33,6 +33,7 @@ from datasets.dataset_dict import DatasetDict
 from datasets.features import (
     Array2D,
     Array3D,
+    Audio,
     ClassLabel,
     Features,
     Image,
@@ -5298,3 +5299,58 @@ def test_dataset_push_to_hub_uploads_every_row_with_num_proc(offline_parquet_upl
     if num_shards == 1:
         # a single shard is written without starting a pool of processes
         assert not mp.get_context.return_value.Pool.called
+
+
+@pytest.mark.parametrize("container", [dict, List, LargeList])
+@pytest.mark.parametrize("media_type", [Image, Audio])
+@pytest.mark.parametrize("embed_external_files", [False, True])
+def test_dataset_push_to_hub_embeds_nested_media_without_decoding(
+    offline_parquet_uploads, image_file, audio_file, container, media_type, embed_external_files
+):
+    media_file = image_file if media_type is Image else audio_file
+    media_feature = media_type(decode=False)
+    feature = {"file": media_feature} if container is dict else container(media_feature)
+    media = {"bytes": None, "path": media_file}
+    example = {"file": media} if container is dict else [media]
+    features = Features({"media": feature})
+    # Use encoded storage so the test does not need optional media encoders.
+    dataset = Dataset(pa.table({"media": [example]}, schema=features.arrow_schema))
+
+    push_parquet_shards_offline(dataset, num_shards=1, embed_external_files=embed_external_files)
+
+    expected_media = (
+        {"bytes": Path(media_file).read_bytes(), "path": Path(media_file).name}
+        if embed_external_files
+        else {"bytes": None, "path": media_file}
+    )
+    expected_example = {"file": expected_media} if container is dict else [expected_media]
+    parquet_file = offline_parquet_uploads / "train-00000-of-00001.parquet"
+    assert pq.read_table(parquet_file)["media"].to_pylist() == [expected_example]
+
+
+@pytest.mark.parametrize("container", [dict, List, LargeList])
+@pytest.mark.parametrize("media_type", [Image, Audio])
+@pytest.mark.parametrize("empty", [False, True])
+def test_dataset_exports_nested_media_without_reading_external_files(
+    offline_parquet_uploads, tmp_path, container, media_type, empty
+):
+    missing_file = str(tmp_path / "missing.media")
+    media_feature = media_type(decode=False)
+    feature = {"file": media_feature} if container is dict else container(media_feature)
+    media = {"bytes": None, "path": missing_file}
+    example = {"file": media} if container is dict else [media]
+    features = Features({"media": feature})
+    dataset = Dataset(pa.table({"media": [] if empty else [example]}, schema=features.arrow_schema))
+    expected = dataset.data.to_pydict()
+
+    parquet_file = tmp_path / "export.parquet"
+    dataset.to_parquet(parquet_file)
+    table = pq.read_table(parquet_file)
+    assert table.to_pydict() == expected
+    assert Features.from_arrow_schema(table.schema) == features
+
+    for embed_external_files in [False, True] if empty else [False]:
+        push_parquet_shards_offline(dataset, num_shards=1, embed_external_files=embed_external_files)
+        table = pq.read_table(offline_parquet_uploads / "train-00000-of-00001.parquet")
+        assert table.to_pydict() == expected
+        assert Features.from_arrow_schema(table.schema) == features
