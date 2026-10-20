@@ -3741,6 +3741,23 @@ def test_concatenate_datasets(dataset_type, axis, expected_shape, dataset_dict, 
     assert_arrow_metadata_are_synced_with_dataset_features(dataset)
 
 
+@pytest.mark.parametrize("axis", [0, 1])
+def test_concatenate_datasets_cache_uses_axis(tmp_path, axis):
+    Dataset.from_dict({"text": ["a", "bb"]}).save_to_disk(tmp_path / "text")
+    Dataset.from_dict({"label": [0, 1]}).save_to_disk(tmp_path / "label")
+    datasets = [load_from_disk(tmp_path / "text"), load_from_disk(tmp_path / "label")]
+
+    def add_length(example):
+        return {"length": len(example["text"] or "")}
+
+    concatenate_datasets(datasets, axis=1 - axis).map(add_length)
+    dataset = concatenate_datasets(datasets, axis=axis)
+    actual = dataset.map(add_length)
+    expected = dataset.map(add_length, load_from_cache_file=False)
+
+    assert actual[:] == expected[:]
+
+
 def test_concatenate_datasets_new_columns():
     dataset1 = Dataset.from_dict({"col_1": ["a", "b", "c"]})
     dataset2 = Dataset.from_dict({"col_1": ["d", "e", "f"], "col_2": [True, False, True]})
