@@ -93,6 +93,23 @@ logger = get_logger(__name__)
 Key = Union[int, str, tuple[int, int], "BuilderKey"]
 
 
+class _ClosableIterator(Iterator):
+    def __init__(self, iterator):
+        self._iterator = iterator
+
+    def __next__(self):
+        if self._iterator is None:
+            raise StopIteration
+        return next(self._iterator)
+
+    def close(self):
+        # A closed generator can still hold nested iterators. Drop our reference
+        # so their cleanup runs even if this iterator remains reachable.
+        iterator, self._iterator = self._iterator, None
+        if iterator is not None:
+            iterator.close()
+
+
 def identity_func(x):
     return x
 
@@ -3062,6 +3079,9 @@ class IterableDataset(DatasetInfoMixin):
                 dropped
         """
 
+        return _ClosableIterator(self._iter_batches(batch_size, drop_last_batch=drop_last_batch))
+
+    def _iter_batches(self, batch_size: int, drop_last_batch: bool):
         if self._formatting:
             formatter = get_formatter(self._formatting.format_type, features=self.features)
             format_dict = formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else None
