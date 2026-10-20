@@ -845,3 +845,29 @@ def test_load_jsonl_mixed_shapes_across_chunks_mentions_chunksize(tmp_path):
         msgs.append(str(cur))
         cur = cur.__cause__ or cur.__context__
     assert any("chunksize" in m.lower() for m in msgs), msgs
+
+
+def test_load_jsonl_null_then_typed_across_chunks_mentions_chunksize(tmp_path):
+    # All-null column in the first chunk, real values later -> TypeError (not CastError).
+    # Hint should still mention chunksize (#7222).
+    rows = [{"id": i, "a": None} for i in range(200)] + [{"id": 200, "a": "x"}]
+    path = tmp_path / "null_then_str.jsonl"
+    with path.open("w") as f:
+        for row in rows:
+            f.write(json.dumps(row) + "\n")
+
+    with pytest.raises(Exception) as ei:
+        load_dataset(
+            "json",
+            data_files=str(path),
+            split="train",
+            chunksize=4096,
+            cache_dir=str(tmp_path / "null_typed"),
+        )
+    msgs = []
+    cur = ei.value
+    while cur is not None:
+        msgs.append(str(cur))
+        cur = cur.__cause__ or cur.__context__
+    assert any("chunksize" in m.lower() for m in msgs), msgs
+    assert any("Couldn't cast array of type" in m or "cast array of type" in m.lower() for m in msgs), msgs

@@ -135,15 +135,20 @@ class Json(datasets.ArrowBasedBuilder):
             # allows str <-> int/float or str to Audio for example
             try:
                 pa_table = table_cast(pa_table, self.info.features.arrow_schema)
-            except CastError as e:
-                raise CastError(
+            except (CastError, TypeError) as e:
+                hint = (
                     f"{e}\n\nThis can happen when JSONL changes record shape or type across files"
                     " or a `chunksize` boundary (default 10MB). Make sure files have the same schema or "
                     "try loading with a larger `chunksize` so each shape/type group fits in one chunk "
-                    f"(e.g. chunksize=max(file_size, current_chunksize)).",
-                    table_column_names=e.table_column_names,
-                    requested_column_names=e.requested_column_names,
-                ) from e
+                    f"(e.g. chunksize=max(file_size, current_chunksize))."
+                )
+                if isinstance(e, CastError):
+                    raise CastError(
+                        hint,
+                        table_column_names=e.table_column_names,
+                        requested_column_names=e.requested_column_names,
+                    ) from e
+                raise TypeError(hint) from e
         elif json_field_paths:
             features = datasets.Features.from_arrow_schema(pa_table.schema)
             features = set_json_types_in_feature(features, json_field_paths)
