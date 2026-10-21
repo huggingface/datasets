@@ -44,9 +44,7 @@ def test_existing_headers_are_preserved():
         },
     )
 
-    _, options = _prepare_single_hop_path_and_storage_options(
-        "https://example.com/data.jsonl", config
-    )
+    _, options = _prepare_single_hop_path_and_storage_options("https://example.com/data.jsonl", config)
 
     headers = options["https"]["headers"]
     assert headers["Authorization"] == "Bearer test-token"
@@ -63,9 +61,7 @@ def test_user_agent_header_is_case_insensitive():
         },
     )
 
-    _, options = _prepare_single_hop_path_and_storage_options(
-        "https://example.com/data.jsonl", config
-    )
+    _, options = _prepare_single_hop_path_and_storage_options("https://example.com/data.jsonl", config)
 
     assert options["https"]["headers"] == {"User-Agent": "explicit-agent/2.0"}
 
@@ -73,8 +69,6 @@ def test_user_agent_header_is_case_insensitive():
 def test_no_custom_user_agent_does_not_add_headers():
     config = DownloadConfig(user_agent=None)
 
-    _, options = _prepare_single_hop_path_and_storage_options(
-        "https://example.com/data.jsonl", config
-    )
+    _, options = _prepare_single_hop_path_and_storage_options("https://example.com/data.jsonl", config)
 
     assert "headers" not in options["https"]
