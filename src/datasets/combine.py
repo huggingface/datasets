@@ -180,6 +180,8 @@ def concatenate_datasets(
 
     * if axis=0, the resulting dataset's `num_shards` is the sum of each dataset's `num_shards`.
     * if axis=1, the resulting dataset has one (1) shard to not misalign data.
+    * if the datasets were split with [`datasets.distributed.split_dataset_by_node`], they must all be split the same way,
+      and the resulting dataset keeps that split.
 
     Args:
         dsets (`List[datasets.Dataset]` or `List[datasets.IterableDataset]`):
