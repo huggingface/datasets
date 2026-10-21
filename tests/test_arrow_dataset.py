@@ -938,6 +938,14 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(len(repeated_dset), 0)
                 del repeated_dset
 
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = Dataset.from_dict({"x": [1, 2]}, info=DatasetInfo(config_name="clean"), split="validation")
+            with self._to(in_memory, tmp_dir, dset) as dset:
+                for num_times in (1, 3):
+                    with dset.repeat(num_times) as repeated_dset:
+                        self.assertEqual(repeated_dset.split, "validation")
+                        self.assertEqual(repeated_dset.info.config_name, "clean")
+
     def test_flatten(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
