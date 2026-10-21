@@ -1175,15 +1175,23 @@ class DatasetBuilder:
         return datasets
 
     def _as_streaming_dataset_single(
-        self,
-        splits_generator,
+        self, splits_generator, decode_num_threads: Optional[int] = None
     ) -> IterableDataset:
         ex_iterable = self._get_examples_iterable_for_split(splits_generator)
         # add auth to be able to access and decode audio/image files from private repositories.
         token_per_repo_id = {self.repo_id: self.token} if self.repo_id else {}
-        return IterableDataset(
+        ds = IterableDataset(
             ex_iterable, info=self.info, split=splits_generator.name, token_per_repo_id=token_per_repo_id
         )
+        # Read and decode media examples (Image/Audio/Video/Mesh/...) in worker threads by default: opening and
+        # reading a remote file costs network round trips rather than CPU time, so streaming remote media data is
+        # latency bound without any overlap. Datasets without decodable features (text, tabular, parquet, ...) and
+        # datasets read from the local disk are returned unchanged.
+        if decode_num_threads is None and hasattr(self.config, "decode_num_threads"):
+            decode_num_threads = self.config.decode_num_threads
+        if self.base_path and self.base_path.startswith("hf://") and decode_num_threads:
+            ds = ds.decode(num_threads=decode_num_threads)
+        return ds
 
     @abc.abstractmethod
     def _split_generators(self, dl_manager: Union[DownloadManager, StreamingDownloadManager]):
@@ -1853,10 +1861,9 @@ class ArrowBasedBuilder(DatasetBuilder):
                             gen_kwargs=gen_kwargs,
                             token=self.token,
                         )
-                    if len(original_shard_lengths) == original_shard_id:
-                        original_shard_lengths.append(len(table))
-                    else:
-                        original_shard_lengths[original_shard_id] += len(table)
+                    if len(original_shard_lengths) <= original_shard_id:
+                        original_shard_lengths.extend([0] * (1 + original_shard_id - len(original_shard_lengths)))
+                    original_shard_lengths[original_shard_id] += len(table)
                     num_examples_progress_update += len(table)
                     if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()

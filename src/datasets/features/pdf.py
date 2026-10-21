@@ -154,11 +154,10 @@ class Pdf:
                         if source_url.startswith(config.HF_ENDPOINT)
                         else config.HUB_DATASETS_HFFS_URL
                     )
-                    try:
-                        repo_id = string_to_dict(source_url, pattern)["repo_id"]
-                        token = token_per_repo_id.get(repo_id)
-                    except ValueError:
-                        token = None
+                    source_url_fields = string_to_dict(source_url, pattern)
+                    token = (
+                        token_per_repo_id.get(source_url_fields["repo_id"]) if source_url_fields is not None else None
+                    )
                     download_config = DownloadConfig(token=token)
                     f = xopen(path, "rb", download_config=download_config)
                     return pdfplumber.open(f)
