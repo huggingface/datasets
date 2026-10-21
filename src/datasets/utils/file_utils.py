@@ -911,6 +911,11 @@ def _prepare_single_hop_path_and_storage_options(
     if protocol in {"http", "https"}:
         client_kwargs = storage_options.pop("client_kwargs", {})
         storage_options["client_kwargs"] = {"trust_env": True, **client_kwargs}  # Enable reading proxy env variables
+        if download_config is not None and download_config.user_agent is not None:
+            headers = storage_options.get("headers", {}).copy()
+            if not any(key.lower() == "user-agent" for key in headers):
+                headers["user-agent"] = get_datasets_user_agent(download_config.user_agent)
+            storage_options["headers"] = headers
         if "drive.google.com" in urlpath:
             response = get_session().head(urlpath, timeout=10)
             for k, v in response.cookies.items():
