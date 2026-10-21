@@ -3869,6 +3869,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             processed_inputs = await function(*fn_args, *additional_args, **fn_kwargs)
             return prepare_outputs(pa_inputs, inputs, processed_inputs)
 
+        def _empty_mapped_shard() -> "Dataset":
+            # Build the empty dataset returned when the map function never ran
+            # because all the batches were dropped (`drop_last_batch=True`).
+            # The function output schema is unknown, so fall back to the input
+            # features, honoring explicit `features` and `remove_columns`.
+            # An explicit `features` describes the output schema and is passed
+            # to the writer verbatim, so `remove_columns` only applies in the
+            # `features is None` fallback, matching the non-empty path.
+            if features is not None:
+                result_features = features.copy()
+            else:
+                result_features = shard.features.copy()
+                if remove_columns:
+                    for column in remove_columns:
+                        if column in result_features:
+                            del result_features[column]
+            info = shard.info.copy()
+            info.features = result_features
+            return Dataset.from_dict(
+                {column_name: [] for column_name in result_features},
+                features=result_features,
+                info=info,
+                split=shard.split,
+            )
+
         def init_buffer_and_writer():
             # Prepare output buffer and batched writer in memory or on file if we update the table
             writer_features = features
@@ -4047,6 +4072,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 yield rank, True, Dataset.from_file(cache_file_name, info=info, split=shard.split)
             else:
                 yield rank, True, Dataset.from_buffer(buf_writer.getvalue(), info=info, split=shard.split)
+        elif update_data is None and len(shard) > 0:
+            # The map function was never called because every batch was dropped
+            # (`drop_last_batch=True` on a shard smaller than `batch_size`):
+            # return an empty dataset instead of the unchanged input.
+            yield rank, True, _empty_mapped_shard()
         else:
             yield rank, True, shard
 
