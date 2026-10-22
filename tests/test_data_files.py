@@ -40,6 +40,57 @@ _TEST_PATTERNS_SIZES = {
 _TEST_URL = "https://raw.githubusercontent.com/huggingface/datasets/9675a5a1e7b99a86f9c250f6ea5fa5d1e6d5cc7d/setup.py"
 
 
+@pytest.mark.parametrize(
+    "filters,indices",
+    [
+        ({"extensions": [".txt"]}, [1, 2]),
+        ({"extensions": [".csv"]}, [0, 3]),
+        ({"file_names": ["second.csv"]}, [3]),
+        ({"extensions": [".txt"], "file_names": ["second.csv"]}, [1, 2, 3]),
+        ({"extensions": [".json"]}, []),
+        ({}, [0, 1, 2, 3]),
+    ],
+)
+def test_data_files_filter_origin_metadata(filters, indices):
+    files = ["first.csv", "middle.txt", "last.txt.gz", "second.csv"]
+    metadata = [("first",), ("middle",), ("last",), ("second",)]
+    data_files = DataFilesList(files, metadata)
+
+    filtered = data_files.filter(**filters)
+
+    assert filtered == [files[i] for i in indices]
+    assert filtered.origin_metadata == [metadata[i] for i in indices]
+    assert data_files == files
+    assert data_files.origin_metadata == metadata
+
+
+def test_data_files_dict_filter_origin_metadata():
+    data_files = DataFilesDict(
+        train=DataFilesList(["first.csv", "second.txt"], [("first",), ("second",)]),
+        test=DataFilesList(["third.csv"], [("third",)]),
+    )
+
+    filtered = data_files.filter(extensions=[".txt"])
+
+    assert filtered["train"] == ["second.txt"]
+    assert filtered["train"].origin_metadata == [("second",)]
+    assert filtered["test"] == []
+    assert filtered["test"].origin_metadata == []
+
+
+def test_data_files_filter_local_origin_metadata(tmp_path):
+    for name in ["first.csv", "second.txt"]:
+        (tmp_path / name).write_text(name)
+    data_files = DataFilesList.from_patterns(["*"], base_path=str(tmp_path))
+    expected = DataFilesList.from_patterns(["*.txt"], base_path=str(tmp_path))
+
+    filtered = data_files.filter(extensions=[".txt"])
+
+    assert filtered == expected
+    assert filtered.origin_metadata == expected.origin_metadata
+    assert Hasher.hash(filtered) == Hasher.hash(expected)
+
+
 @pytest.fixture
 def complex_data_dir(tmp_path):
     data_dir = tmp_path / "complex_data_dir"
