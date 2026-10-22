@@ -18,6 +18,29 @@ from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_inc
 STRING_FROM_PANDAS = "large_string" if datasets.config.PANDAS_VERSION.major >= 3 else "string"
 
 
+@pytest.mark.parametrize("failure", ["write_table", "metadata", "query", None])
+def test_parquet_writer_closes_on_error(dataset, tmp_path, failure):
+    error = RuntimeError("export failed")
+    with unittest.mock.patch("pyarrow.parquet.ParquetWriter") as writer_cls:
+        writer = writer_cls.return_value
+        if failure == "write_table":
+            writer.write_table.side_effect = error
+        elif failure == "metadata":
+            writer.add_key_value_metadata.side_effect = error
+        query = datasets.io.parquet.query_table
+        with unittest.mock.patch(
+            "datasets.io.parquet.query_table", side_effect=error if failure == "query" else query
+        ):
+            export = ParquetDatasetWriter(dataset, tmp_path / "output.parquet", batch_size=1)
+            if failure is None:
+                assert export.write() > 0
+            else:
+                with pytest.raises(RuntimeError, match="export failed") as exc:
+                    export.write()
+                assert exc.value is error
+        writer.close.assert_called_once_with()
+
+
 def _check_parquet_dataset(dataset, expected_features):
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 4
