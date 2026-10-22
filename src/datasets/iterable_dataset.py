@@ -4600,7 +4600,7 @@ class IterableDataset(DatasetInfoMixin):
         # If decoding is already configured, start again from the dataset it was configured on: examples must be
         # decoded exactly once, so `.decode()` replaces the previous decoding step instead of adding a new one.
         if isinstance(ds._ex_iterable, MappedExamplesIterable) and ds._ex_iterable.decoding_pool is not None:
-            ds._ex_iterable.decoding_pool.shutdown(wait=False, cancel_futures=True)
+            # The original dataset may still have active iterators using its decoding pool.
             ds = IterableDataset(
                 ds._ex_iterable.ex_iterable,
                 info=ds.info,
@@ -5547,6 +5547,11 @@ def _concatenate_iterable_datasets(
         _check_if_features_can_be_aligned([dset.features for dset in dsets])
     else:
         _check_column_names([col_name for dset in dsets for col_name in dset.features])
+    for i, dset in enumerate(dsets):
+        if dsets[0]._distributed != dset._distributed:
+            raise ValueError(
+                f"Datasets should be identically split_by_node before concatenating, but got {dsets[0]._distributed}!={dset._distributed} at index 0 and {i}"
+            )
 
     # Check format is consistent; if so, will set format for concatenated dataset
     if all(dset._formatting is None for dset in dsets):
@@ -5601,6 +5606,7 @@ def _concatenate_iterable_datasets(
         split=split,
         token_per_repo_id=token_per_repo_id,
         formatting=formatting,
+        distributed=dsets[0]._distributed,
     )
 
 

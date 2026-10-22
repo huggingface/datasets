@@ -74,6 +74,37 @@ def test_webdataset_infers_features_with_empty_split(tmp_path, empty_split_first
     assert [row["txt"] for row in rows] == ["hello"]
 
 
+@pytest.mark.parametrize("field_name", ["txt", "metadata.json", "bin"])
+def test_webdataset_rejects_duplicate_fields(tmp_path, field_name):
+    tar_path = tmp_path / "duplicates.tar"
+    with tarfile.open(tar_path, "w") as archive:
+        for payload in [b"1", b"2"]:
+            member = tarfile.TarInfo(f"00000.{field_name}")
+            member.size = len(payload)
+            archive.addfile(member, io.BytesIO(payload))
+
+    with pytest.raises(ValueError) as error:
+        list(WebDataset._get_pipeline_from_tar(str(tar_path), DownloadManager().iter_archive(str(tar_path))))
+
+    assert "Duplicate field" in str(error.value)
+    assert field_name in str(error.value)
+    assert "00000" in str(error.value)
+    assert "duplicates.tar" in str(error.value)
+
+
+def test_webdataset_allows_same_field_in_different_samples(tmp_path):
+    tar_path = tmp_path / "samples.tar"
+    with tarfile.open(tar_path, "w") as archive:
+        for name, payload in [("00000.txt", b"first"), ("00001.txt", b"second")]:
+            member = tarfile.TarInfo(name)
+            member.size = len(payload)
+            archive.addfile(member, io.BytesIO(payload))
+
+    examples = list(WebDataset._get_pipeline_from_tar(str(tar_path), DownloadManager().iter_archive(str(tar_path))))
+    assert [example["__key__"] for example in examples] == ["00000", "00001"]
+    assert [example["txt"] for example in examples] == ["first", "second"]
+
+
 @pytest.fixture
 def gzipped_text_wds_file(tmp_path, text_gz_path):
     filename = tmp_path / "file.tar"
