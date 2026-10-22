@@ -1010,6 +1010,30 @@ def test_genbank_slash_inside_open_quoted_value_is_not_a_new_qualifier(tmp_path)
     assert features[0]["qualifiers"] == {"note": ["see /docs"]}
 
 
+def test_genbank_doubled_quotes_in_value_are_unescaped(tmp_path):
+    """The feature table writes a quotation mark inside a quoted value as \"\"."""
+    text = (
+        _HDR
+        + '     gene            1..10\n                     /note="the ""x"" gene"\n'
+        + '                     /label="ends in ""q"""\n'
+        + _ORIGIN
+    )
+    _, features = _parse_one(tmp_path, text)
+    assert features[0]["qualifiers"] == {"note": ['the "x" gene'], "label": ['ends in "q"']}
+
+
+def test_genbank_doubled_quote_at_line_end_keeps_value_open(tmp_path):
+    """A wrapped line ending in an escaped \"\" does not close the quoted value."""
+    text = (
+        _HDR
+        + '     gene            1..10\n                     /note="wrapped after ""\n'
+        + '                     quoted"" rest"\n                     /gene="abc"\n'
+        + _ORIGIN
+    )
+    _, features = _parse_one(tmp_path, text)
+    assert features[0]["qualifiers"] == {"note": ['wrapped after " quoted" rest'], "gene": ["abc"]}
+
+
 def test_genbank_base_count_line_is_not_a_feature(tmp_path):
     """Legacy BASE COUNT sits between FEATURES and ORIGIN and is a keyword, not a feature."""
     text = _HDR + "     source          1..4\nBASE COUNT       1 a 1 c 1 g 1 t\n" + _ORIGIN
