@@ -3752,10 +3752,10 @@ def test_concatenate_datasets_cache_uses_axis(tmp_path, axis):
 
     concatenate_datasets(datasets, axis=1 - axis).map(add_length)
     dataset = concatenate_datasets(datasets, axis=axis)
-    actual = dataset.map(add_length)
-    expected = dataset.map(add_length, load_from_cache_file=False)
+    actual = dataset.map(add_length)[:]
+    expected = dataset.map(add_length, load_from_cache_file=False)[:]
 
-    assert actual[:] == expected[:]
+    assert actual == expected
 
 
 def test_concatenate_datasets_new_columns():
