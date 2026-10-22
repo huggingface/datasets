@@ -1,6 +1,8 @@
 import multiprocessing
 from typing import TYPE_CHECKING, Optional, Union
 
+import pandas as pd
+
 from .. import Dataset, Features, config
 from ..formatting import query_table
 from ..packaged_modules.sql.sql import Sql
@@ -88,6 +90,9 @@ class SqlDatasetWriter:
             indices=self.dataset._indices,
         )
         df = batch.to_pandas(integer_object_nulls=True)
+        if index:
+            # number the dataset's rows, not the batch's: each batch gets a fresh RangeIndex from 0
+            df.index = pd.RangeIndex(offset, offset + len(df))
         num_rows = df.to_sql(self.name, self.con, index=index, **to_sql_kwargs)
         return num_rows or len(df)
 
