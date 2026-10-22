@@ -3824,6 +3824,168 @@ def test_iterable_dataset_batch_by_column_survives_resharding():
     assert all(len(set(batch["category"])) == 1 for batch in shuffled)
 
 
+@pytest.mark.parametrize(
+    "source,batch_size,checkpoint_interval,map_after_batch",
+    [
+        ("arrow", 1, 1, False),
+        ("arrow", 2, 2, False),
+        ("arrow", 20, 1, False),
+        ("generator", 1, 1, False),
+        ("generator", 4, 2, False),
+        ("parquet", 4, 3, False),
+        ("arrow", 1, 1, True),
+        ("arrow", 20, 2, True),
+        ("parquet", 2, 1, True),
+    ],
+)
+@pytest.mark.parametrize("serialization", [json, pickle], ids=["json", "pickle"])
+def test_iterable_dataset_batch_by_column_repeated_resume(
+    source, batch_size, checkpoint_interval, map_after_batch, serialization, tmp_path
+):
+    data = {"id": list(range(15)), "group": [0] * 3 + [1] * 2 + [2] * 5 + [3] + [4] * 4}
+    dataset = Dataset.from_dict(data)
+    if source == "parquet":
+        path = tmp_path / "groups.parquet"
+        with pq.ParquetWriter(path, dataset.data.schema) as writer:
+            offset = 0
+            for size in [2, 5, 1, 7]:
+                writer.write_table(dataset.data.table.slice(offset, size))
+                offset += size
+
+    def generate(shards):
+        for shard in shards:
+            for i in range(5 * shard, 5 * (shard + 1)):
+                yield {column: values[i] for column, values in data.items()}
+
+    def build():
+        if source == "arrow":
+            ds = dataset.to_iterable_dataset(num_shards=3)
+        elif source == "generator":
+            ds = IterableDataset.from_generator(generate, features=dataset.features, gen_kwargs={"shards": [0, 1, 2]})
+        else:
+            ds = IterableDataset.from_parquet(str(path)).reshard()
+        ds = ds.batch(by_column="group", batch_size=batch_size)
+        return ds.map(lambda example: example) if map_after_batch else ds
+
+    expected = [
+        {"id": [0, 1, 2], "group": [0] * 3},
+        {"id": [3, 4], "group": [1] * 2},
+        {"id": [5, 6, 7, 8, 9], "group": [2] * 5},
+        {"id": [10], "group": [3]},
+        {"id": [11, 12, 13, 14], "group": [4] * 4},
+    ]
+    assert list(build()) == expected
+    ds = build()
+    iterator = iter(ds)
+    for i, expected_batch in enumerate(expected, 1):
+        assert next(iterator) == expected_batch
+        if i % checkpoint_interval == 0:
+            state = serialization.loads(serialization.dumps(ds.state_dict()))
+            ds = build()
+            ds.load_state_dict(state)
+            iterator = iter(ds)
+    with pytest.raises(StopIteration):
+        next(iterator)
+    state = serialization.loads(serialization.dumps(ds.state_dict()))
+    ds = build()
+    ds.load_state_dict(state)
+    assert list(ds) == []
+
+
+@pytest.mark.parametrize("serialization", [json, pickle], ids=["json", "pickle"])
+def test_iterable_dataset_batch_by_column_checkpoint_keeps_pending_group(serialization):
+    dataset = Dataset.from_dict({"id": list(range(9)), "group": [i // 3 for i in range(9)]})
+    ds = dataset.to_iterable_dataset().batch(by_column="group", batch_size=1)
+    iterator = iter(ds)
+    assert next(iterator)["id"] == [0, 1, 2]
+    assert next(iterator)["id"] == [3, 4, 5]
+    state = serialization.loads(serialization.dumps(ds.state_dict()))
+    expected = [{"id": [6, 7, 8], "group": [2, 2, 2]}]
+    assert list(iterator) == expected
+    restored = dataset.to_iterable_dataset().batch(by_column="group", batch_size=1)
+    restored.load_state_dict(state)
+    assert list(restored) == expected
+
+
+@pytest.mark.parametrize("max_chunksize", [None, 1])
+def test_iterable_dataset_batch_by_column_checkpoint_clears_flushed_buffer(max_chunksize):
+    ds = Dataset.from_dict({"id": list(range(9)), "group": [i // 3 for i in range(9)]})
+    iterable = ds.to_iterable_dataset().batch(by_column="group", batch_size=1)._ex_iterable
+    while not isinstance(iterable, MappedExamplesIterable):
+        iterable = iterable.ex_iterable
+    iterable._init_state_dict()
+    list(iterable._iter_arrow(max_chunksize=max_chunksize))
+    assert not iterable.state_dict().get("tables_accumulator")
+
+
+def test_iterable_dataset_batch_by_column_checkpoint_is_independent():
+    dataset = Dataset.from_dict({"id": list(range(9)), "group": [i // 3 for i in range(9)]})
+    ds = dataset.to_iterable_dataset().batch(by_column="group", batch_size=1)
+    iterator = iter(ds)
+    assert next(iterator)["id"] == [0, 1, 2]
+    state = ds.state_dict()
+    expected_remainder = list(iterator)
+
+    # Continuing the original iterator must not mutate an earlier checkpoint's buffer.
+    resumed = dataset.to_iterable_dataset().batch(by_column="group", batch_size=1)
+    resumed.load_state_dict(state)
+    assert list(resumed) == expected_remainder
+
+
+def test_iterable_dataset_batch_by_column_checkpoint_compacts_buffer():
+    num_rows = 4096
+    dataset = Dataset.from_dict(
+        {"id": list(range(num_rows)), "group": [0] * (num_rows - 1) + [1], "text": ["x" * 512] * num_rows}
+    )
+    ds = dataset.to_iterable_dataset().batch(by_column="group", batch_size=num_rows)
+    iterator = iter(ds)
+    assert next(iterator)["id"] == list(range(num_rows - 1))
+    checkpoint = pickle.dumps(ds.state_dict())
+    # Only one row is pending: its slice must not serialize the whole 2 MB source buffer.
+    assert len(checkpoint) < 64 * 1024
+    resumed = dataset.to_iterable_dataset().batch(by_column="group", batch_size=num_rows)
+    resumed.load_state_dict(pickle.loads(checkpoint))
+    assert [batch["id"] for batch in resumed] == [[num_rows - 1]]
+
+
+@pytest.mark.parametrize("exhausted", [False, True])
+def test_iterable_dataset_batch_by_column_load_legacy_checkpoint(exhausted):
+    dataset = Dataset.from_dict({"id": list(range(9)), "group": [i // 3 for i in range(9)]})
+    ds = dataset.to_iterable_dataset().batch(by_column="group", batch_size=1)
+    if exhausted:
+        list(ds)
+    state = ds.state_dict()
+
+    def remove_buffer_state(state):
+        if isinstance(state, dict):
+            state.pop("tables_accumulator", None)
+            for value in state.values():
+                remove_buffer_state(value)
+
+    # Older checkpoints have no buffer field. Initial and exhausted states need no data.
+    remove_buffer_state(state)
+    restored = dataset.to_iterable_dataset().batch(by_column="group", batch_size=1)
+    restored.load_state_dict(json.loads(json.dumps(state)))
+    assert list(restored) == ([] if exhausted else list(ds))
+
+
+def test_iterable_dataset_batch_by_column_checkpoint_preserves_nested_types():
+    features = Features({"id": Value("int32"), "group": Value("string"), "payload": List(Value("binary"))})
+    dataset = Dataset.from_dict(
+        {"id": list(range(9)), "group": [str(i // 3) for i in range(9)], "payload": [[b"data", None]] * 9},
+        features=features,
+    )
+    ds = dataset.to_iterable_dataset(num_shards=3).batch(by_column=("group",), batch_size=1)
+    iterator = iter(ds)
+    next(iterator)
+    state = json.loads(json.dumps(ds.state_dict()))
+    expected = list(iterator)
+    restored = dataset.to_iterable_dataset(num_shards=3).batch(by_column=("group",), batch_size=1)
+    restored.load_state_dict(state)
+    assert restored.features == ds.features
+    assert list(restored) == expected
+
+
 @pytest.mark.parametrize("num_shards", [1, 2, 3, 7, 10])
 def test_iterable_dataset_batch_by_column(num_shards: int):
     # Create a Dataset with a column to group by
