@@ -54,6 +54,26 @@ Map files to splits explicitly:
 ... )
 ```
 
+## Streaming remote files
+
+With `tsfile>=2.5.0`, remote files can be read in streaming mode without first
+copying the entire file to local storage:
+
+```py
+>>> dataset = load_dataset(
+...     "tsfile",
+...     data_files="https://example.com/data.tsfile",
+...     split="train",
+...     streaming=True,
+... )
+>>> row = next(iter(dataset))
+```
+
+The remote filesystem must support seeking; HTTP servers must support byte-range
+requests. Authentication and caching are handled by Hugging Face and fsspec.
+Each output row still contains one device's full time series, so streaming does
+not make the memory needed for an individual device constant.
+
 ## Example dataset on the Hub
 
 A ready-to-use example is available at [`tsfile/lotsa_data`](https://huggingface.co/datasets/tsfile/lotsa_data). Because `.tsfile` files are recognized automatically, you can load it by repository id without specifying `data_files`:
