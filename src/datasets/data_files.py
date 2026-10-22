@@ -789,7 +789,11 @@ class DataFilesPatternsList(list[str]):
 
     def filter_extensions(self, extensions: list[str]) -> "DataFilesPatternsList":
         return DataFilesPatternsList(
-            self, [allowed_extensions + extensions for allowed_extensions in self.allowed_extensions]
+            self,
+            [
+                allowed_extensions + extensions if allowed_extensions is not None else None
+                for allowed_extensions in self.allowed_extensions
+            ],
         )
 
 

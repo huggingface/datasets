@@ -511,6 +511,33 @@ def test_DataFilesPatternsList(text_file):
         data_files_patterns.resolve(base_path="")
 
 
+@pytest.mark.parametrize("allowed_extensions", [None, [], [".txt"]])
+@pytest.mark.parametrize("use_dict", [False, True])
+def test_DataFilesPatternsList_filter_extensions(tmp_path, allowed_extensions, use_dict):
+    for file_name in ["data.txt", "data.json", "data.csv"]:
+        (tmp_path / file_name).write_text("data")
+    patterns = DataFilesPatternsList(["*"], allowed_extensions=[allowed_extensions])
+    container = DataFilesPatternsDict({"train": patterns}) if use_dict else patterns
+    extensions = [".json"]
+
+    filtered = container.filter_extensions(extensions)
+    filtered_patterns = filtered["train"] if use_dict else filtered
+    expected_extensions = None if allowed_extensions is None else allowed_extensions + extensions
+    assert filtered_patterns.allowed_extensions == [expected_extensions]
+    assert list(filtered_patterns) == ["*"]
+    assert patterns.allowed_extensions == [allowed_extensions]
+    assert extensions == [".json"]
+
+    resolved = filtered.resolve(str(tmp_path))
+    resolved_files = resolved["train"] if use_dict else resolved
+    expected_names = {
+        name
+        for name in ["data.txt", "data.json", "data.csv"]
+        if expected_extensions is None or Path(name).suffix in expected_extensions
+    }
+    assert {Path(path).name for path in resolved_files} == expected_names
+
+
 def test_DataFilesPatternsDict(text_file):
     data_files_patterns_dict = DataFilesPatternsDict(
         {"train": DataFilesPatternsList([str(text_file)], allowed_extensions=[None])}
