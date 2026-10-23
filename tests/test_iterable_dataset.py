@@ -4358,3 +4358,45 @@ def test_iterable_dataset_push_to_hub_more_shards_with_unpicklable_source(offlin
 def _gen_lines_from_handle(fh):
     for line in fh:
         yield {"id": int(line)}
+
+
+@pytest.mark.parametrize("source_kind", ["python", "arrow"])
+@pytest.mark.parametrize("num_shards", [1, 2, 4])
+@pytest.mark.parametrize("selection", ["skip", "take"])
+@pytest.mark.parametrize("with_other_source", [False, True])
+def test_concatenate_preserves_selected_rows_across_epochs(source_kind, num_shards, selection, with_other_source):
+    rows_per_shard = 12 // num_shards
+
+    def generate(shards):
+        for shard in shards:
+            for i in range(rows_per_shard):
+                yield {"id": shard * rows_per_shard + i}
+
+    if source_kind == "python":
+        source = IterableDataset.from_generator(
+            generate, gen_kwargs={"shards": list(range(num_shards))}, features=Features({"id": Value("int64")})
+        )
+    else:
+        source = Dataset.from_dict({"id": list(range(12))}).to_iterable_dataset(num_shards=num_shards)
+    subset = source.skip(8) if selection == "skip" else source.take(4)
+    # The ordering constraint must survive wrappers around the selected source.
+    subset = subset.map(lambda example: example)
+    sources = [subset]
+    expected = list(subset)
+    if with_other_source:
+        other = Dataset.from_dict({"id": [100, 101]}).to_iterable_dataset()
+        sources.append(other)
+        expected += list(other)
+    concatenated = concatenate_datasets(sources)
+    for epoch in [0, 1, 1, 2, 0]:
+        concatenated.set_epoch(epoch)
+        assert list(concatenated) == expected
+        assert list(concatenated) == expected
+
+    # Explicit shuffle may reorder selected rows, but must not select other rows.
+    shuffled = concatenated.shuffle(seed=7, buffer_size=3)
+    for epoch in [0, 1, 1, 2, 0]:
+        shuffled.set_epoch(epoch)
+        actual = list(shuffled)
+        assert sorted(row["id"] for row in actual) == sorted(row["id"] for row in expected)
+        assert list(shuffled) == actual
