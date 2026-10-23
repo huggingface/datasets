@@ -105,7 +105,7 @@ from .fingerprint import (
     validate_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
-from .formatting.formatting import LazyDict, _is_range_contiguous
+from .formatting.formatting import LazyDict, _has_bool_items, _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
 from .search import IndexableMixin
@@ -3142,7 +3142,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ...
 
     def __getitem__(self, key):  # noqa: F811
-        """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
+        """Can be used to index columns (by string names) or rows (by integer index, slice, range or iterable of indices)."""
         if isinstance(key, str):
             if self._format_type is None or self._format_type not in ("arrow", "pandas", "polars"):
                 return Column(self, key)
@@ -4410,13 +4410,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if len(self) == 0:
             return self
 
-        # If indices is a PyArrow array, we convert to NumPy
-        if isinstance(indices, (pa.Array, pa.ChunkedArray)):
-            indices = indices.to_numpy().astype(np.int64)
-
         # Convert generator objects to lists
         if isinstance(indices, Iterator):
             indices = list(indices)
+
+        # A mask would be read as the row indices 0 and 1
+        if not isinstance(indices, range) and _has_bool_items(indices):
+            raise TypeError("indices must be a collection of int, not bool")
+
+        # If indices is a PyArrow array, we convert to NumPy
+        if isinstance(indices, (pa.Array, pa.ChunkedArray)):
+            indices = indices.to_numpy().astype(np.int64)
 
         # If the indices are contiguous, simply slice the arrow table
         if isinstance(indices, range):
