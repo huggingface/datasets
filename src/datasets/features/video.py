@@ -208,6 +208,7 @@ class Video:
                 video = hf_video_reader(
                     path,
                     token_per_repo_id=token_per_repo_id,
+                    stream_index=self.stream_index,
                     dimension_order=self.dimension_order,
                     num_ffmpeg_threads=self.num_ffmpeg_threads,
                     device=self.device,
@@ -392,6 +393,7 @@ def hf_video_reader(
     num_ffmpeg_threads: int = 1,
     device: Optional[Union[str, "torch.device"]] = "cpu",
     seek_mode: Literal["exact", "approximate"] = "exact",
+    stream_index: Optional[int] = None,
 ) -> "VideoDecoder":
     from torchcodec.decoders import VideoDecoder
 
@@ -406,7 +408,9 @@ def hf_video_reader(
     f = xopen(path, "rb", download_config=download_config)
 
     # Instantiate the VideoDecoder
-    stream_id = 0 if len(stream.split(":")) == 1 else int(stream.split(":")[1])
+    stream_id = stream_index
+    if stream_id is None:
+        stream_id = 0 if len(stream.split(":")) == 1 else int(stream.split(":")[1])
     vd = VideoDecoder(
         f,
         stream_index=stream_id,
