@@ -239,7 +239,7 @@ class Json(datasets.ArrowBasedBuilder):
                             # PyArrow tolerates the BOM -- so the inferred schema differed
                             # depending on whether the file started with a BOM. Strip it so
                             # both see the same bytes (a BOM only appears at the start of the file).
-                            if shard_idx == 0 and batch_idx == 0 and batch.startswith(codecs.BOM_UTF8):
+                            if batch_idx == 0 and batch.startswith(codecs.BOM_UTF8):
                                 batch = batch[len(codecs.BOM_UTF8) :]
                             if batch.startswith(b"["):
                                 if not allow_full_read:
