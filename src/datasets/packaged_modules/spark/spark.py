@@ -1,5 +1,6 @@
 import os
 import posixpath
+import shutil
 import uuid
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -262,9 +263,10 @@ class Spark(datasets.DatasetBuilder):
                 )
 
             if working_fpath != fpath:
-                for file in os.listdir(os.path.dirname(working_fpath)):
+                working_dir = os.path.dirname(working_fpath)
+                for file in os.listdir(working_dir):
                     dest = os.path.join(os.path.dirname(fpath), os.path.basename(file))
-                    shutil.move(file, dest)
+                    shutil.move(os.path.join(working_dir, file), dest)
 
         stats = (
             self.df.mapInArrow(write_arrow, "task_id: long, num_examples: long, num_bytes: long")
