@@ -4651,6 +4651,31 @@ def test_dummy_dataset_serialize_fs(dataset, mockfs):
     assert reloaded.to_dict() == dataset.to_dict()
 
 
+@pytest.mark.parametrize("transform", [None, "select", "shuffle"])
+def test_save_to_disk_num_proc_sends_only_shard_rows(transform, tmp_path, monkeypatch):
+    features = Features({"text": Value("string"), "array": Array2D(shape=(2, 2), dtype="int32")})
+    data = {"text": [f"row {i:06d}" * 10 for i in range(1000)], "array": [[[i, i], [i, i]] for i in range(1000)]}
+    dataset = Dataset.from_dict(data, features=features)
+    if transform == "select":
+        dataset = dataset.select(range(0, 1000, 2))
+    elif transform == "shuffle":
+        dataset = dataset.shuffle(seed=42)
+    sent_sizes = []
+
+    def iflatmap_unordered_in_process(pool, func, *, kwargs_iterable):
+        for kwargs in kwargs_iterable:
+            sent_sizes.append(len(pickle.dumps(kwargs["shard"])))
+            yield from func(**kwargs)
+
+    monkeypatch.setattr(datasets.arrow_dataset, "iflatmap_unordered", iflatmap_unordered_in_process)
+    dataset.save_to_disk(tmp_path, num_shards=4, num_proc=2)
+    assert len(sent_sizes) == 4
+    assert max(sent_sizes) < len(pickle.dumps(dataset.flatten_indices())) / 2
+    reloaded = load_from_disk(tmp_path)
+    assert reloaded.features == dataset.features
+    assert reloaded.to_dict() == dataset.to_dict()
+
+
 @pytest.mark.parametrize(
     "uri_or_path",
     [
