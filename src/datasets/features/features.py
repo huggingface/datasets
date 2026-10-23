@@ -45,7 +45,7 @@ from .audio import Audio
 from .bio_sequence import BioSequence, encode_bio_seqrecord
 from .bio_structure import BioStructure, encode_bio_structure
 from .image import Image, encode_pil_image
-from .mesh import Mesh
+from .mesh import Mesh, encode_trimesh_mesh
 from .nifti import Nifti, encode_nibabel_image
 from .pdf import Pdf, encode_pdfplumber_pdf
 from .translation import Translation, TranslationVariableLanguages
@@ -323,6 +323,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
     if config.NIBABEL_AVAILABLE and "nibabel" in sys.modules:
         import nibabel as nib
 
+    if config.TRIMESH_AVAILABLE and "trimesh" in sys.modules:
+        import trimesh
+
     if config.BIOPYTHON_AVAILABLE and "Bio" in sys.modules:
         from Bio.PDB.Structure import Structure
         from Bio.SeqRecord import SeqRecord
@@ -402,6 +405,8 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         return encode_pdfplumber_pdf(obj), True
     elif config.NIBABEL_AVAILABLE and "nibabel" in sys.modules and isinstance(obj, nib.analyze.AnalyzeImage):
         return encode_nibabel_image(obj, force_bytes=True), True
+    elif config.TRIMESH_AVAILABLE and "trimesh" in sys.modules and isinstance(obj, (trimesh.Trimesh, trimesh.Scene)):
+        return encode_trimesh_mesh(obj), True
     elif config.BIOPYTHON_AVAILABLE and "Bio" in sys.modules and isinstance(obj, SeqRecord):
         return encode_bio_seqrecord(obj), True
     elif config.BIOPYTHON_AVAILABLE and "Bio" in sys.modules and isinstance(obj, Structure):
