@@ -1,8 +1,10 @@
 from unittest.mock import patch
 
 import numpy as np
-import pyspark
 import pytest
+
+pytest.importorskip("pyspark")
+import pyspark  # noqa: E402
 
 from datasets import Features, Image, IterableDataset
 from datasets.builder import InvalidConfigName
