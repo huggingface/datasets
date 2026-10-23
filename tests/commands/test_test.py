@@ -41,6 +41,7 @@ def test_test_command(dataset_dir):
     expected_dataset_infos = DatasetInfosDict(
         {
             "default": DatasetInfo(
+                config_name="default",
                 features=Features(
                     {
                         "tokens": List(Value("string")),
@@ -71,7 +72,7 @@ def test_test_command(dataset_dir):
     assert dataset_infos.keys() == expected_dataset_infos.keys()
     for key in DatasetInfo._INCLUDED_INFO_IN_YAML:
         result, expected = getattr(dataset_infos["default"], key), getattr(expected_dataset_infos["default"], key)
-        if key == "num_bytes":
+        if key in ("download_size", "dataset_size"):
             assert is_1percent_close(result, expected)
         elif key == "splits":
             assert list(result) == list(expected)
@@ -80,4 +81,4 @@ def test_test_command(dataset_dir):
                 assert result[split].num_examples == expected[split].num_examples
                 assert is_1percent_close(result[split].num_bytes, expected[split].num_bytes)
         else:
-            result == expected
+            assert result == expected
