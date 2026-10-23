@@ -7117,7 +7117,9 @@ def _concatenate_map_style_datasets(
     if info is None:
         info = DatasetInfo.from_merge([dset.info for dset in dsets])
     fingerprint = update_fingerprint(
-        "".join(dset._fingerprint for dset in dsets), _concatenate_map_style_datasets, {"info": info, "split": split}
+        "".join(dset._fingerprint for dset in dsets),
+        _concatenate_map_style_datasets,
+        {"info": info, "split": split, "axis": axis},
     )
 
     # Make final concatenated dataset
