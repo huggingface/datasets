@@ -13,13 +13,13 @@
 # limitations under the License.
 
 from . import tqdm as _tqdm  # _tqdm is the module
-from .experimental import experimental
-from .info_utils import VerificationMode
-from .logging import disable_progress_bar, enable_progress_bar, is_progress_bar_enabled
-from .tqdm import (
-    are_progress_bars_disabled,
-    disable_progress_bars,
-    enable_progress_bars,
-    tqdm,
-)
-from .version import Version
+from .experimental import experimental as experimental
+from .info_utils import VerificationMode as VerificationMode
+from .logging import disable_progress_bar as disable_progress_bar
+from .logging import enable_progress_bar as enable_progress_bar
+from .logging import is_progress_bar_enabled as is_progress_bar_enabled
+from .tqdm import are_progress_bars_disabled as are_progress_bars_disabled
+from .tqdm import disable_progress_bars as disable_progress_bars
+from .tqdm import enable_progress_bars as enable_progress_bars
+from .tqdm import tqdm as tqdm
+from .version import Version as Version
