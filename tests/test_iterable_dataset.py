@@ -2719,6 +2719,29 @@ def test_iterable_dataset_iter_batch(batch_size, drop_last_batch):
     assert list(dataset.iter(batch_size, drop_last_batch=drop_last_batch)) == expected
 
 
+@pytest.mark.parametrize("format_type", [None, "arrow"])
+def test_iterable_dataset_iter_close_releases_source(tmp_path, format_type):
+    path = tmp_path / "data.txt"
+    path.write_text("\n".join(str(i) for i in range(2000)))
+    sources = []
+
+    def generate():
+        with path.open() as source:
+            sources.append(source)
+            for i, line in enumerate(source):
+                yield i, {"id": int(line)}
+
+    dataset = IterableDataset(ExamplesIterable(generate, {})).shuffle(seed=0, buffer_size=4)
+    iterator = dataset.with_format(format_type).iter(batch_size=2)
+    next(iterator)
+    assert sources and not sources[0].closed
+    iterator.close()
+    assert sources[0].closed
+    iterator.close()
+    with pytest.raises(StopIteration):
+        next(iterator)
+
+
 def test_iterable_dataset_info():
     info = DatasetInfo(description="desc", citation="@article{}", size_in_bytes=42)
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
