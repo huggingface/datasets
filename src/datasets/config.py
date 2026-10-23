@@ -134,6 +134,7 @@ SQLALCHEMY_AVAILABLE = importlib.util.find_spec("sqlalchemy") is not None
 
 # Optional tools for file parsing and feature decoding
 PIL_AVAILABLE = importlib.util.find_spec("PIL") is not None
+PILLOW_JXL_AVAILABLE = importlib.util.find_spec("pillow_jxl") is not None
 IS_OPUS_SUPPORTED = True
 IS_MP3_SUPPORTED = True
 TORCHCODEC_AVAILABLE = importlib.util.find_spec("torchcodec") is not None
