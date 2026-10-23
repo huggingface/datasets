@@ -15,6 +15,7 @@ from datasets.features import Array2D, Array3D, Array4D, Array5D, Value
 from datasets.features.features import (
     Array2DExtensionType,
     Array3DExtensionType,
+    PandasArrayExtensionArray,
     PandasArrayExtensionDtype,
     _ArrayXD,
 )
@@ -379,6 +380,163 @@ def test_array_xd_numpy_arrow_extractor(dtype, dummy_value):
     arr = NumpyArrowExtractor().extract_column(dataset._data)
     assert isinstance(arr, np.ndarray)
     np.testing.assert_equal(arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype)))
+
+
+@pytest.mark.parametrize("constructor", [np.array, np.asarray])
+@pytest.mark.parametrize("dtype", [np.int64, np.float32, object])
+def test_array_xd_numpy_protocol_dtype(constructor, dtype):
+    values = [[[1, 2], [3, 4]]]
+    features = datasets.Features({"foo": Array2D(shape=(2, 2), dtype="int64")})
+    array = datasets.Dataset.from_dict({"foo": values}, features=features).data.column("foo").chunk(0)
+
+    result = constructor(array, dtype=dtype)
+
+    np.testing.assert_array_equal(result, np.array(values, dtype=dtype))
+    assert result.dtype == np.dtype(dtype)
+
+
+def test_array_xd_numpy_protocol_copy_false_keeps_a_sliced_buffer():
+    values = [[[1, 2]], [[3, 4]], [[5, 6]]]
+    features = datasets.Features({"foo": Array2D(shape=(1, 2), dtype="int64")})
+    array = datasets.Dataset.from_dict({"foo": values}, features=features).data.column("foo").chunk(0)
+    sliced = array.slice(1, 1)
+
+    result = sliced.__array__(dtype=np.int64, copy=False)
+
+    np.testing.assert_array_equal(result, np.array(values[1:2], dtype=np.int64))
+    assert np.shares_memory(result, array.to_numpy())
+    assert not result.flags.writeable
+
+
+@pytest.mark.parametrize("dtype", [None, np.float32])
+def test_array_xd_numpy_protocol_copy_true_is_independent(dtype):
+    values = [[[1, 2], [3, 4]]]
+    features = datasets.Features({"foo": Array2D(shape=(2, 2), dtype="int64")})
+    array = datasets.Dataset.from_dict({"foo": values}, features=features).data.column("foo").chunk(0)
+
+    result = array.__array__(dtype=dtype, copy=True)
+
+    assert not np.shares_memory(result, array.to_numpy())
+    assert result.flags.writeable
+    result[0, 0, 0] = 10
+    assert array.to_pylist() == values
+
+
+@pytest.mark.skipif(
+    np.lib.NumpyVersion(np.__version__) < "2.0.0b1", reason="NumPy 2 passes the copy keyword through __array__"
+)
+@pytest.mark.parametrize("constructor", [np.array, np.asarray])
+@pytest.mark.parametrize("copy", [False, True])
+def test_array_xd_numpy_protocol_copy_keyword_dispatch(constructor, copy):
+    values = [[[1, 2]]]
+    features = datasets.Features({"foo": Array2D(shape=(1, 2), dtype="int64")})
+    array = datasets.Dataset.from_dict({"foo": values}, features=features).data.column("foo").chunk(0)
+
+    result = constructor(array, dtype=np.int64, copy=copy)
+
+    np.testing.assert_array_equal(result, np.array(values, dtype=np.int64))
+    assert np.shares_memory(result, array.to_numpy()) is not copy
+
+
+@pytest.mark.parametrize(
+    "shape, dtype, values, target_dtype",
+    [
+        ((1, 2), "int64", [[[1, 2]]], np.float32),
+        ((1, 2), "int64", [[[1, 2]], None], None),
+        ((1, 2), "int64", [[[1, None]]], None),
+        ((1, 2), "bool", [[[True, False]]], None),
+        ((None, 2), "int64", [[[1, 2]], [[3, 4]]], None),
+        ((None, 2), "int64", [[[1, 2]], [[3, 4], [5, 6]]], None),
+    ],
+)
+def test_array_xd_numpy_protocol_copy_false_rejects_allocating_conversions(shape, dtype, values, target_dtype):
+    features = datasets.Features({"foo": Array2D(shape=shape, dtype=dtype)})
+    array = datasets.Dataset.from_dict({"foo": values}, features=features).data.column("foo").chunk(0)
+
+    with pytest.raises(ValueError):
+        array.__array__(dtype=target_dtype, copy=False)
+
+
+def test_array_xd_numpy_protocol_copy_if_needed_handles_inner_nulls():
+    features = datasets.Features({"foo": Array2D(shape=(1, 2), dtype="int64")})
+    array = datasets.Dataset.from_dict({"foo": [[[1, None]]]}, features=features).data.column("foo").chunk(0)
+
+    result = np.asarray(array)
+
+    np.testing.assert_array_equal(result, np.array([[[1.0, np.nan]]]))
+
+
+@pytest.mark.parametrize("dtype", [None, np.int64, np.float32])
+def test_pandas_array_xd_numpy_protocol_copy_true_is_independent(dtype):
+    values = np.array([[[1, 2]], [[3, 4]]], dtype=np.int64)
+    array = PandasArrayExtensionArray(values)
+
+    result = array.__array__(dtype=dtype, copy=True)
+
+    np.testing.assert_array_equal(result, values)
+    assert not np.shares_memory(result, values)
+    result[0, 0, 0] = 10
+    assert values[0, 0, 0] == 1
+
+
+def test_pandas_array_xd_numpy_protocol_copy_false_keeps_a_view():
+    values = np.array([[[1, 2]], [[3, 4]]], dtype=np.int64)
+    array = PandasArrayExtensionArray(values[1:])
+
+    result = array.__array__(dtype=np.int64, copy=False)
+
+    np.testing.assert_array_equal(result, values[1:])
+    assert np.shares_memory(result, values)
+
+
+@pytest.mark.parametrize("dtype", [np.float32, object])
+def test_pandas_array_xd_numpy_protocol_copy_false_rejects_allocating_conversions(dtype):
+    array = PandasArrayExtensionArray(np.array([[[1, 2]]], dtype=np.int64))
+
+    with pytest.raises(ValueError):
+        array.__array__(dtype=dtype, copy=False)
+
+
+@pytest.mark.parametrize("copy", [None, True])
+def test_pandas_array_xd_numpy_protocol_object_rows_stay_one_dimensional(copy):
+    values = np.array([[[1, 2]], [[3, 4]]], dtype=np.int64)
+    array = PandasArrayExtensionArray(values)
+
+    result = array.__array__(dtype=object, copy=copy)
+
+    assert result.shape == (2,)
+    assert result.dtype == object
+    np.testing.assert_array_equal(result[0], values[0])
+    np.testing.assert_array_equal(result[1], values[1])
+
+
+@pytest.mark.parametrize("copy", [False, True])
+def test_pandas_array_xd_numpy_protocol_existing_object_buffer(copy):
+    values = np.empty(2, dtype=object)
+    values[:] = [np.array([[1, 2]]), np.array([[3, 4], [5, 6]])]
+    array = PandasArrayExtensionArray(values)
+
+    result = array.__array__(dtype=object, copy=copy)
+
+    assert result.shape == (2,)
+    assert np.shares_memory(result, values) is not copy
+    np.testing.assert_array_equal(result[0], values[0])
+    np.testing.assert_array_equal(result[1], values[1])
+
+
+@pytest.mark.skipif(
+    np.lib.NumpyVersion(np.__version__) < "2.0.0b1", reason="NumPy 2 passes the copy keyword through __array__"
+)
+@pytest.mark.parametrize("copy", [False, True])
+def test_pandas_array_xd_numpy_protocol_copy_keyword_dispatch(copy):
+    values = [[[1, 2]], [[3, 4]]]
+    features = datasets.Features({"foo": Array2D(shape=(1, 2), dtype="int64")})
+    array = datasets.Dataset.from_dict({"foo": values}, features=features).to_pandas().foo.array
+
+    result = np.asarray(array, dtype=np.int64, copy=copy)
+
+    np.testing.assert_array_equal(result, values)
+    assert np.shares_memory(result, array.__array__()) is not copy
 
 
 def test_array_xd_with_none():
