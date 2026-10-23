@@ -4182,6 +4182,18 @@ def test_decode_num_threads_can_be_reconfigured():
     assert list(ds.decode(False).decode(num_threads=2)) == expected
 
 
+def test_decode_num_threads_can_be_reconfigured_after_shard():
+    def gen(shards):
+        for shard in shards:
+            yield from ({"i": f"{shard}-{i}"} for i in range(5))
+
+    features = Features({"i": DecodableFeature()})
+    ds = IterableDataset.from_generator(gen, gen_kwargs={"shards": [0, 1]}, features=features)
+    ds = ds.decode(num_threads=2).shard(num_shards=2, index=1)
+    # the shard keeps the threaded decoding configuration, so `.decode()` can still replace it
+    assert list(ds.decode(False)) == [{"i": f"1-{i}"} for i in range(5)]
+
+
 @pytest.mark.parametrize("decode_kwargs", [{"enable": False}, {"num_threads": 4}])
 def test_decode_reconfiguration_preserves_active_iterator(monkeypatch, decode_kwargs):
     started = {"1": Event(), "2": Event()}
