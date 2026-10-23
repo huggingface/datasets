@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import concurrent.futures
 import contextlib
 import inspect
@@ -1454,6 +1455,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             "previous_state_example_idx": 0,
             "type": self.__class__.__name__,
         }
+        if self.is_batch_accumulate_arrow_table_function:
+            # Lists are merged positionally by load_state_dict; an empty tuple also
+            # accepts a variable-length list after a JSON roundtrip.
+            self._state_dict["tables_accumulator"] = ()
         return self._state_dict
 
     def __iter__(self):
@@ -1696,7 +1701,12 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
         fn_kwargs = self.fn_kwargs.copy()
         if self.is_batch_accumulate_arrow_table_function:
-            tables_accumulator: list[pa.Table] = []
+            # Source positions alone cannot restore a group that spans input tables.
+            # IPC preserves Arrow types; base64 keeps checkpoints JSON serializable.
+            serialized_tables_accumulator = list(self._state_dict["tables_accumulator"]) if self._state_dict else []
+            tables_accumulator = [
+                pa.ipc.open_stream(base64.b64decode(table)).read_all() for table in serialized_tables_accumulator
+            ]
             length: Optional[int] = None
             fn_kwargs["tables_accumulator"] = tables_accumulator
             fn_kwargs["length"] = length
@@ -1720,7 +1730,19 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 else:
                     function_args.append(current_idx)
             # then apply the transform
+            if self.is_batch_accumulate_arrow_table_function:
+                num_accumulated_tables = len(tables_accumulator)
             output = self.function(*function_args, **fn_kwargs)
+            if self._state_dict and self.is_batch_accumulate_arrow_table_function and tables_accumulator:
+                # The grouping function either appends this table to the current group
+                # or replaces the buffer with a new tail. Serialize only the new table.
+                if len(tables_accumulator) != num_accumulated_tables + 1:
+                    serialized_tables_accumulator = []
+                table = tables_accumulator[-1]
+                sink = pa.BufferOutputStream()
+                with pa.ipc.new_stream(sink, table.schema) as writer:
+                    writer.write_table(table)
+                serialized_tables_accumulator.append(base64.b64encode(sink.getvalue()).decode("ascii"))
             output_table = _table_output_to_arrow(output)
             if not isinstance(output_table, pa.Table):
                 raise TypeError(
@@ -1738,7 +1760,12 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 current_idx += len(pa_table)
                 if self._state_dict:
                     self._state_dict["previous_state_example_idx"] += len(pa_table)
-                yield key, output_table
+                    if self.is_batch_accumulate_arrow_table_function:
+                        self._state_dict["tables_accumulator"] = serialized_tables_accumulator
+                # Do not make downstream iterables snapshot a growing group for each
+                # empty output table: no example has been emitted at this point.
+                if not self.is_batch_accumulate_arrow_table_function or len(output_table):
+                    yield key, output_table
             else:
                 for i, pa_subtable in enumerate(output_table.to_reader(max_chunksize=max_chunksize)):
                     current_idx += 1
@@ -1752,6 +1779,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     self._state_dict["previous_state"] = self.ex_iterable.state_dict()
                     self._state_dict["num_examples_since_previous_state"] = 0
                     self._state_dict["previous_state_example_idx"] = current_idx
+                    if self.is_batch_accumulate_arrow_table_function:
+                        self._state_dict["tables_accumulator"] = serialized_tables_accumulator
         if self.is_batch_accumulate_arrow_table_function and tables_accumulator:
             pa_table = tables_accumulator.pop(-1)
             indices = [current_idx + i for i in range(len(pa_table))]
@@ -1759,7 +1788,22 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             output_table = self.function(
                 *function_args, **self.fn_kwargs, tables_accumulator=tables_accumulator, length=indices[-1] + 1
             )
-            yield "last_batch_from_tables_accumulator", output_table
+            if max_chunksize is None:
+                if self._state_dict:
+                    self._state_dict["tables_accumulator"] = ()
+                yield "last_batch_from_tables_accumulator", output_table
+            else:
+                for i, pa_subtable in enumerate(output_table.to_reader(max_chunksize=max_chunksize)):
+                    if self._state_dict:
+                        self._state_dict["num_examples_since_previous_state"] += 1
+                    if num_examples_to_skip > 0:
+                        num_examples_to_skip -= 1
+                        continue
+                    yield f"last_batch_from_tables_accumulator_{i}", pa_subtable
+                if self._state_dict:
+                    self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                    self._state_dict["num_examples_since_previous_state"] = 0
+                    self._state_dict["tables_accumulator"] = ()
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "MappedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
