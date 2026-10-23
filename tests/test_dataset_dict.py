@@ -257,6 +257,24 @@ class DatasetDictTest(TestCase):
             self.assertIsInstance(dset_split[0]["col_1"], float)
         del dset
 
+    def test_cast_forwards_dataset_cast_arguments(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset_dict(multiple_columns=True)
+            features = dset["train"].features
+            features["col_1"] = Value("float64")
+            cache_file_names = {
+                "train": os.path.join(tmp_dir, "train.arrow"),
+                "test": os.path.join(tmp_dir, "test.arrow"),
+            }
+            dset = dset.cast(features, batch_size=2, cache_file_names=cache_file_names, num_proc=2)
+            for split, dset_split in dset.items():
+                self.assertEqual(dset_split.features["col_1"], Value("float64"))
+                self.assertListEqual(list(dset_split["col_1"]), [3.0, 2.0, 1.0, 0.0])
+                self.assertTrue(dset_split.cache_files)
+                for cache_file in dset_split.cache_files:
+                    self.assertTrue(os.path.basename(cache_file["filename"]).startswith(split))
+            del dset
+
     def test_remove_columns(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         dset = dset.remove_columns(column_names="col_1")
