@@ -26,6 +26,7 @@ from dataclasses import InitVar, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
 from typing import Any, Callable, ClassVar, Literal, Optional, Union
+from typing import Tuple as Tuple_
 
 import numpy as np
 import pandas as pd
@@ -866,13 +867,41 @@ class ArrayExtensionArray(pa.ExtensionArray):
 class PandasArrayExtensionDtype(PandasExtensionDtype):
     _metadata = "value_type"
 
-    def __init__(self, value_type: Union["PandasArrayExtensionDtype", np.dtype]):
+    def __init__(
+        self,
+        value_type: Union["PandasArrayExtensionDtype", np.dtype],
+        shape: Optional[Tuple_[int, ...]] = None,
+    ):
         self._value_type = value_type
+        # Fixed shapes are kept on the dtype so that an Arrow->pandas->Arrow round
+        # trip can rebuild the exact extension type even for columns whose rows are
+        # all null and therefore carry no ndarray to infer the shape from.
+        self._shape = shape
 
     def __from_arrow__(self, array: Union[pa.Array, pa.ChunkedArray]):
         if isinstance(array, pa.ChunkedArray):
             array = array.type.wrap_array(pa.concat_arrays([chunk.storage for chunk in array.chunks]))
         zero_copy_only = _is_zero_copy_only(array.storage.type, unnest=True)
+        if array.type.shape[0] is not None and array.storage.null_count > 0:
+            # A fixed-shape column with null rows can't be materialized as a dense
+            # array without either padding the null rows with NaN, which promotes the
+            # whole column to float64 and loses exact integer payloads, or conflating
+            # null rows with legitimate all-NaN rows. Instead, keep one exact ndarray
+            # per valid row and None per null row, like a dynamic shape does, so that
+            # the Arrow row validity and the payloads survive the round trip through
+            # pandas: ``Dataset.from_pandas(ds.to_pandas(), features=ds.features)``.
+            storage = array.storage
+            null_mask = storage.is_null().to_numpy(zero_copy_only=False)
+            values = storage
+            for _ in range(array.type.ndims):
+                values = values.flatten()
+            n_valid_rows = len(storage) - array.storage.null_count
+            values = values.to_numpy(zero_copy_only=zero_copy_only).reshape((n_valid_rows,) + tuple(array.type.shape))
+            valid_rows = iter(values)
+            data = np.empty(len(storage), dtype=object)
+            data[:] = [None if is_null else next(valid_rows) for is_null in null_mask]
+            dtype = PandasArrayExtensionDtype(array.type.value_type, array.type.shape)
+            return PandasArrayExtensionArray(data, dtype=dtype)
         numpy_arr = array.to_numpy(zero_copy_only=zero_copy_only)
         return PandasArrayExtensionArray(numpy_arr)
 
@@ -896,11 +925,20 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
     def value_type(self) -> np.dtype:
         return self._value_type
 
+    @property
+    def shape(self) -> Optional[Tuple_[int, ...]]:
+        return self._shape
+
 
 class PandasArrayExtensionArray(PandasExtensionArray):
-    def __init__(self, data: np.ndarray, copy: bool = False):
+    def __init__(
+        self,
+        data: np.ndarray,
+        copy: bool = False,
+        dtype: Optional[PandasArrayExtensionDtype] = None,
+    ):
         self._data = data if not copy else np.array(data)
-        self._dtype = PandasArrayExtensionDtype(data.dtype)
+        self._dtype = PandasArrayExtensionDtype(data.dtype) if dtype is None else dtype
 
     def __array__(self, dtype=None):
         """
@@ -947,11 +985,17 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         if self._data.dtype == object:
             first_arr = next((arr for arr in self._data if isinstance(arr, np.ndarray)), None)
             if first_arr is None:
-                raise ValueError(
-                    "Cannot infer the Arrow type of a PandasArrayExtensionArray that only has null values, "
-                    "please pass the type explicitly."
-                )
-            shape, value_type = (None, *first_arr.shape[1:]), first_arr.dtype
+                if self._dtype.shape is not None:
+                    # No valid row to infer from, but the dtype kept the fixed shape
+                    # of the Arrow column this array was materialized from.
+                    shape, value_type = self._dtype.shape, self._dtype.value_type
+                else:
+                    raise ValueError(
+                        "Cannot infer the Arrow type of a PandasArrayExtensionArray that only has null values, "
+                        "please pass the type explicitly."
+                    )
+            else:
+                shape, value_type = (None, *first_arr.shape[1:]), first_arr.dtype
         else:
             shape, value_type = self._data.shape[1:], self._data.dtype
         extension_types = {
@@ -965,7 +1009,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         return extension_types[len(shape)](shape, str(value_type))
 
     def copy(self, deep: bool = False) -> "PandasArrayExtensionArray":
-        return PandasArrayExtensionArray(self._data, copy=True)
+        return PandasArrayExtensionArray(self._data, copy=True, dtype=self._dtype)
 
     @classmethod
     def _from_sequence(
@@ -978,7 +1022,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         else:
             data = np.empty(len(scalars), dtype=object)
             data[:] = scalars
-        return cls(data, copy=copy)
+        return cls(data, copy=copy, dtype=dtype)
 
     @classmethod
     def _concat_same_type(cls, to_concat: Sequence_["PandasArrayExtensionArray"]) -> "PandasArrayExtensionArray":
@@ -990,7 +1034,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         else:
             data = np.empty(len(to_concat), dtype=object)
             data[:] = [va._data for va in to_concat]
-        return cls(data, copy=False)
+        return cls(data, copy=False, dtype=to_concat[0]._dtype)
 
     @property
     def dtype(self) -> PandasArrayExtensionDtype:
@@ -1001,7 +1045,11 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         return self._data.nbytes
 
     def isna(self) -> np.ndarray:
-        return np.array([pd.isna(arr).any() for arr in self._data])
+        # A null row is stored as None (or as NaN, for dynamic shapes) and never as an
+        # ndarray, while `pd.isna` on an ndarray is element-wise and returns an array:
+        # only call `.any()` for actual ndarray rows, and count a scalar NaN or None
+        # row as null without inspecting it.
+        return np.array([pd.isna(arr).any() if isinstance(arr, np.ndarray) else True for arr in self._data])
 
     def __setitem__(self, key: Union[int, slice, np.ndarray], value: Any) -> None:
         raise NotImplementedError()
@@ -1009,7 +1057,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
     def __getitem__(self, item: Union[int, slice, np.ndarray]) -> Union[np.ndarray, "PandasArrayExtensionArray"]:
         if isinstance(item, int):
             return self._data[item]
-        return PandasArrayExtensionArray(self._data[item], copy=False)
+        return PandasArrayExtensionArray(self._data[item], copy=False, dtype=self._dtype)
 
     def take(
         self, indices: Sequence_[int], allow_fill: bool = False, fill_value: bool = None
@@ -1028,11 +1076,11 @@ class PandasArrayExtensionArray(PandasExtensionArray):
                 raise IndexError("Invalid take for empty PandasArrayExtensionArray, must be all -1.")
             else:
                 data = np.array([fill_value] * len(indices), dtype=self.dtype.value_type)
-                return PandasArrayExtensionArray(data, copy=False)
+                return PandasArrayExtensionArray(data, copy=False, dtype=self._dtype)
         took = self._data.take(indices, axis=0)
         if allow_fill and mask.any():
             took[mask] = [fill_value] * np.sum(mask)
-        return PandasArrayExtensionArray(took, copy=False)
+        return PandasArrayExtensionArray(took, copy=False, dtype=self._dtype)
 
     def __len__(self) -> int:
         return len(self._data)
