@@ -855,7 +855,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         table = InMemoryTable.from_buffer(buffer)
 
         if indices_buffer is not None:
-            indices_table = InMemoryTable.from_buffer(buffer)
+            indices_table = InMemoryTable.from_buffer(indices_buffer)
         else:
             indices_table = None
 
@@ -6010,12 +6010,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             logger.warning(
                 f"Setting num_proc from {num_jobs} back to 1 for the {split} split to disable multiprocessing as it only contains one shard."
             )
+            num_proc = None
             num_jobs = 1
         elif num_shards < num_jobs:
             logger.warning(
                 f"Setting num_proc from {num_jobs} to {num_shards} for the {split} split as it only contains {num_shards} shards."
             )
             num_proc = num_shards
+            num_jobs = num_shards
         kwargs_iterable = [
             {
                 "self": self.shard(num_shards=num_jobs, index=job_id, contiguous=True),
@@ -7115,7 +7117,9 @@ def _concatenate_map_style_datasets(
     if info is None:
         info = DatasetInfo.from_merge([dset.info for dset in dsets])
     fingerprint = update_fingerprint(
-        "".join(dset._fingerprint for dset in dsets), _concatenate_map_style_datasets, {"info": info, "split": split}
+        "".join(dset._fingerprint for dset in dsets),
+        _concatenate_map_style_datasets,
+        {"info": info, "split": split, "axis": axis},
     )
 
     # Make final concatenated dataset

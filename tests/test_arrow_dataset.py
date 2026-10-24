@@ -14,10 +14,12 @@ from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
+import multiprocess as mp
 import numpy as np
 import numpy.testing as npt
 import pandas as pd
 import pyarrow as pa
+import pyarrow.parquet as pq
 import pytest
 from absl.testing import parameterized
 from fsspec.core import strip_protocol
@@ -51,6 +53,7 @@ from datasets.utils.py_utils import temp_seed
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
+    push_parquet_shards_offline,
     require_dill_gt_0_3_2,
     require_jax,
     require_not_windows,
@@ -3644,6 +3647,34 @@ class MiscellaneousDatasetTest(TestCase):
             self.assertEqual(tf_dset_w_batch.element_spec, tf_dset_wo_batch.batch(2).element_spec)
 
 
+@pytest.mark.parametrize("values", [pa.array(["a", "b", "c"]), pa.array([1, 2, 0], type=pa.uint64())])
+@pytest.mark.parametrize("indices", [None, [], [2, 0], [2, 0, 2]])
+def test_from_buffer_with_indices(values, indices):
+    def to_buffer(table):
+        sink = pa.BufferOutputStream()
+        with pa.ipc.new_stream(sink, table.schema) as writer:
+            writer.write_table(table)
+        return sink.getvalue()
+
+    table = pa.table({"value": values})
+    indices_buffer = (
+        to_buffer(pa.table({"indices": pa.array(indices, type=pa.uint64())})) if indices is not None else None
+    )
+    dataset = Dataset.from_buffer(
+        to_buffer(table),
+        indices_buffer=indices_buffer,
+        info=DatasetInfo(description="A buffered dataset"),
+        split=NamedSplit("test"),
+    )
+
+    expected_values = values.to_pylist() if indices is None else [values[i].as_py() for i in indices]
+    assert dataset.to_dict() == {"value": expected_values}
+    assert len(dataset) == len(expected_values)
+    assert dataset.features == Features.from_arrow_schema(table.schema)
+    assert dataset.info.description == "A buffered dataset"
+    assert dataset.split == NamedSplit("test")
+
+
 def test_cast_with_sliced_list():
     old_features = Features({"foo": List(Value("int64"))})
     new_features = Features({"foo": List(Value("int32"))})
@@ -3708,6 +3739,23 @@ def test_concatenate_datasets(dataset_type, axis, expected_shape, dataset_dict, 
     dataset = concatenate_datasets(datasets, axis=axis)
     assert dataset.shape == expected_shape
     assert_arrow_metadata_are_synced_with_dataset_features(dataset)
+
+
+@pytest.mark.parametrize("axis", [0, 1])
+def test_concatenate_datasets_cache_uses_axis(tmp_path, axis):
+    Dataset.from_dict({"text": ["a", "bb"]}).save_to_disk(tmp_path / "text")
+    Dataset.from_dict({"label": [0, 1]}).save_to_disk(tmp_path / "label")
+    datasets = [load_from_disk(tmp_path / "text"), load_from_disk(tmp_path / "label")]
+
+    def add_length(example):
+        return {"length": len(example["text"] or "")}
+
+    concatenate_datasets(datasets, axis=1 - axis).map(add_length)
+    dataset = concatenate_datasets(datasets, axis=axis)
+    actual = dataset.map(add_length)[:]
+    expected = dataset.map(add_length, load_from_cache_file=False)[:]
+
+    assert actual == expected
 
 
 def test_concatenate_datasets_new_columns():
@@ -5251,3 +5299,19 @@ def test_process_large_few_examples(tmp_path):
     # make sure this is split into 2 shards
     ds.save_to_disk(dataset_path, max_shard_size="1KB")
     assert (dataset_path / "data-00000-of-00001.arrow").exists()
+
+
+@pytest.mark.parametrize(
+    "num_shards, num_proc", [(2, 4), (3, 4), (4, 4), (5, 2), (7, 3), (2, None), (1, 4), (1, None)]
+)
+def test_dataset_push_to_hub_uploads_every_row_with_num_proc(offline_parquet_uploads, num_shards, num_proc):
+    dataset = Dataset.from_dict({"id": list(range(20))})
+    _, paths, _, split_info, _ = push_parquet_shards_offline(dataset, num_shards=num_shards, num_proc=num_proc)
+    files = sorted(offline_parquet_uploads.glob("*.parquet"))
+    assert [file.name for file in files] == [f"train-{i:05d}-of-{num_shards:05d}.parquet" for i in range(num_shards)]
+    assert sorted(paths) == [f"data/{file.name}" for file in files]
+    assert split_info.num_examples == 20
+    assert [row for file in files for row in pq.read_table(file)["id"].to_pylist()] == list(range(20))
+    if num_shards == 1:
+        # a single shard is written without starting a pool of processes
+        assert not mp.get_context.return_value.Pool.called

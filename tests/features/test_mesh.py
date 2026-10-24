@@ -62,6 +62,9 @@ def test_mesh_decode_example(shared_datadir):
     decoded_example = mesh.decode_example({"path": mesh_path, "bytes": mesh_bytes})
     assert isinstance(decoded_example, (trimesh.Trimesh, trimesh.Scene))
 
+    # decoding an already decoded example returns it as is, so decoding twice is a no-op
+    assert mesh.decode_example(decoded_example) is decoded_example
+
     with pytest.raises(ValueError, match="requires a 'path' value"):
         mesh.decode_example({"path": None, "bytes": mesh_bytes})
 

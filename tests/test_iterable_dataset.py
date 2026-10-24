@@ -6,19 +6,18 @@ import sys
 import time
 from copy import deepcopy
 from dataclasses import dataclass
-from functools import partial
 from itertools import chain, cycle, islice
 from pathlib import Path
+from threading import Event
+from typing import ClassVar
 from unittest.mock import MagicMock, patch
 
-import multiprocess as mp
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.parquet as pq
 import pytest
-from huggingface_hub import HfApi
 from huggingface_hub.hf_file_system import HfFileSystemResolvedRepositoryPath
 
 from datasets import Dataset, config, load_dataset
@@ -63,6 +62,7 @@ from datasets.iterable_dataset import (
 
 from .utils import (
     assert_arrow_memory_doesnt_increase,
+    push_parquet_shards_offline,
     require_dill_gt_0_3_2,
     require_jax,
     require_not_windows,
@@ -1989,45 +1989,6 @@ def test_iterable_dataset():
     assert list(dataset) == expected
 
 
-def _save_uploaded_parquet_files(output_dir, *args, additions, **kwargs):
-    for addition in additions:
-        (output_dir / Path(addition.path_in_repo).name).write_bytes(Path(addition.path_or_fileobj).read_bytes())
-
-
-def _init_offline_parquet_uploads(output_dir):
-    HfApi.preupload_lfs_files = staticmethod(partial(_save_uploaded_parquet_files, output_dir))
-
-
-@pytest.fixture
-def offline_parquet_uploads(tmp_path):
-    # Keep real Parquet writing and real spawned workers, replacing only the remote upload.
-    pool = mp.get_context("spawn").Pool
-    with (
-        patch.object(HfApi, "preupload_lfs_files", new=partial(_save_uploaded_parquet_files, tmp_path)),
-        patch("datasets.iterable_dataset.mp.get_context") as mock_context,
-    ):
-        mock_context.return_value.Pool.side_effect = partial(
-            pool, initializer=_init_offline_parquet_uploads, initargs=(tmp_path,)
-        )
-        yield tmp_path
-
-
-def _push_offline(dataset, num_shards, num_proc=None, embed_external_files=False):
-    return dataset._push_parquet_shards_to_hub(
-        resolved_output_path=HfFileSystemResolvedRepositoryPath(
-            repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
-        ),
-        data_dir="data",
-        split="train",
-        token=None,
-        create_pr=False,
-        max_shard_size=None,
-        num_shards=num_shards,
-        embed_external_files=embed_external_files,
-        num_proc=num_proc,
-    )
-
-
 @pytest.mark.parametrize(
     "source_shards, num_shards, num_proc, expected_lengths",
     [
@@ -2047,7 +2008,7 @@ def test_iterable_dataset_push_to_hub_more_shards_than_source(
     offline_parquet_uploads, source_shards, num_shards, num_proc, expected_lengths
 ):
     dataset = Dataset.from_dict({"id": list(range(10))}).to_iterable_dataset(num_shards=source_shards)
-    _, paths, features, split_info, _ = _push_offline(dataset, num_shards=num_shards, num_proc=num_proc)
+    _, paths, features, split_info, _ = push_parquet_shards_offline(dataset, num_shards=num_shards, num_proc=num_proc)
     files = sorted(offline_parquet_uploads.glob("*.parquet"))
     assert [file.name for file in files] == [f"train-{i:05d}-of-{num_shards:05d}.parquet" for i in range(num_shards)]
     assert sorted(paths) == [f"data/{file.name}" for file in files]
@@ -2061,7 +2022,7 @@ def test_iterable_dataset_push_to_hub_more_shards_than_source(
 def test_iterable_dataset_push_to_hub_more_shards_round_robin(offline_parquet_uploads):
     # Each input shard is spread over its own consecutive output shards, one example at a time.
     dataset = Dataset.from_dict({"id": list(range(10))}).to_iterable_dataset(num_shards=2)
-    _push_offline(dataset, num_shards=5)
+    push_parquet_shards_offline(dataset, num_shards=5)
     files = sorted(offline_parquet_uploads.glob("*.parquet"))
     assert [pq.read_table(file)["id"].to_pylist() for file in files] == [[0, 3], [1, 4], [2], [5, 7, 9], [6, 8]]
 
@@ -2069,7 +2030,7 @@ def test_iterable_dataset_push_to_hub_more_shards_round_robin(offline_parquet_up
 def test_iterable_dataset_push_to_hub_more_shards_across_batches(offline_parquet_uploads):
     # The round robin continues across Arrow batches instead of restarting at every batch.
     dataset = Dataset.from_dict({"id": list(range(2503))}).to_iterable_dataset(num_shards=1)
-    _push_offline(dataset, num_shards=3)
+    push_parquet_shards_offline(dataset, num_shards=3)
     files = sorted(offline_parquet_uploads.glob("*.parquet"))
     rows = [pq.read_table(file)["id"].to_pylist() for file in files]
     assert rows == [list(range(i, 2503, 3)) for i in range(3)]
@@ -2081,7 +2042,7 @@ def test_iterable_dataset_push_to_hub_more_shards_with_images(
 ):
     image_path = str(Path(image_file).resolve())
     dataset = Dataset.from_dict({"image": [image_path] * 3}).cast_column("image", Image()).to_iterable_dataset()
-    _push_offline(dataset, num_shards=3, embed_external_files=embed_external_files)
+    push_parquet_shards_offline(dataset, num_shards=3, embed_external_files=embed_external_files)
     files = sorted(offline_parquet_uploads.glob("*.parquet"))
     images = [pq.read_table(file)["image"].to_pylist()[0] for file in files]
     assert len(images) == 3
@@ -4213,9 +4174,128 @@ def test_decode():
     ds = ds.decode(True)
     assert next(iter(ds)) == {"i": "decoded"}
     assert DecodableFeature.decode_example_num_calls == 2
+    calls_before_threaded = DecodableFeature.decode_example_num_calls
     ds = ds.decode(num_threads=1)
     assert next(iter(ds)) == {"i": "decoded"}
-    assert DecodableFeature.decode_example_num_calls == 4
+    # the yielded example is decoded once, and the thread pool may also have decoded the next example in advance
+    assert calls_before_threaded + 1 <= DecodableFeature.decode_example_num_calls <= calls_before_threaded + 2
+
+
+@dataclass
+class SlowDecodableFeature:
+    """Decodable feature whose decoding gets faster with the example index, so examples finish out of order."""
+
+    decoded_indexes: ClassVar[list[int]] = []
+
+    def __init__(self):
+        self.decode = True
+
+    def decode_example(self, example, token_per_repo_id=None):
+        index = int(example)
+        # the first examples take the longest to decode: they are yielded last among the ones in flight
+        time.sleep(max(0.0, (10 - index)) / 100)
+        SlowDecodableFeature.decoded_indexes.append(index)
+        return f"decoded-{index}"
+
+    def __call__(self):
+        return pa.string()
+
+
+def test_decode_num_threads():
+    SlowDecodableFeature.decoded_indexes.clear()
+    features = Features({"i": SlowDecodableFeature()})
+    ds = IterableDataset.from_generator(lambda: ({"i": str(i)} for i in range(20)), features=features)
+    expected = [f"decoded-{i}" for i in range(20)]
+    # multithreaded decoding must not reorder examples, even though they finish out of order
+    assert [x["i"] for x in ds.decode(num_threads=8)] == expected
+    assert [x["i"] for x in ds.decode(num_threads=0)] == expected
+    assert SlowDecodableFeature.decoded_indexes != list(range(20)), "the test data must decode out of order"
+
+
+def test_decode_num_threads_can_be_reconfigured():
+    features = Features({"i": DecodableFeature()})
+    ds = IterableDataset.from_generator(lambda: ({"i": str(i)} for i in range(10)), features=features)
+    expected = [{"i": "decoded"} for _ in range(10)]
+    not_decoded = [{"i": str(i)} for i in range(10)]
+    # decoding is configured once: calling `.decode()` again replaces the previous decoding configuration
+    assert list(ds.decode(num_threads=2)) == expected
+    assert list(ds.decode(num_threads=2).decode(num_threads=4)) == expected
+    assert list(ds.decode(num_threads=2).decode()) == expected
+    assert list(ds.decode(num_threads=2).decode(False)) == not_decoded
+    assert list(ds.decode(False).decode(num_threads=2)) == expected
+
+
+@pytest.mark.parametrize("decode_kwargs", [{"enable": False}, {"num_threads": 4}])
+def test_decode_reconfiguration_preserves_active_iterator(monkeypatch, decode_kwargs):
+    started = {"1": Event(), "2": Event()}
+    release = Event()
+
+    def decode_example(self, example, token_per_repo_id=None):
+        if example in started:
+            started[example].set()
+            assert release.wait(timeout=10), "decoding workers were not released"
+        return f"decoded-{example}"
+
+    monkeypatch.setattr(DecodableFeature, "decode_example", decode_example)
+    features = Features({"i": DecodableFeature()})
+    ds = IterableDataset.from_generator(lambda: ({"i": str(i)} for i in range(6)), features=features)
+    ds = ds.decode(num_threads=2)
+    iterator = iter(ds)
+    reconfigured = None
+    try:
+        assert next(iterator) == {"i": "decoded-0"}
+        # Hold both workers while another example waits in the decoding queue.
+        assert all(event.wait(timeout=10) for event in started.values())
+        reconfigured = ds.decode(**decode_kwargs)
+        release.set()
+        assert list(iterator) == [{"i": f"decoded-{i}"} for i in range(1, 6)]
+        expected = [{"i": str(i) if decode_kwargs.get("enable") is False else f"decoded-{i}"} for i in range(6)]
+        assert list(reconfigured) == expected
+    finally:
+        release.set()
+        iterator.close()
+        ds._ex_iterable.decoding_pool.shutdown()
+        if reconfigured is not None and isinstance(reconfigured._ex_iterable, MappedExamplesIterable):
+            reconfigured._ex_iterable.decoding_pool.shutdown()
+
+
+def _gen_decodable_examples():
+    yield from ({"i": str(i)} for i in range(10))
+
+
+def test_decode_num_threads_is_picklable():
+    # threaded decoding must not make the dataset unpicklable, e.g. for `to_torch(num_workers=...)`
+    features = Features({"i": DecodableFeature()})
+    ds = IterableDataset.from_generator(_gen_decodable_examples, features=features)
+    ds = pickle.loads(pickle.dumps(ds.decode(num_threads=2)))
+    assert [x["i"] for x in ds] == ["decoded"] * 10
+
+
+@dataclass
+class TokenRecordingDecodableFeature:
+    """Decodable feature that records the `token_per_repo_id` it is decoded with."""
+
+    seen_token_per_repo_id: ClassVar[list] = []
+
+    def __init__(self):
+        self.decode = True
+
+    def decode_example(self, example, token_per_repo_id=None):
+        TokenRecordingDecodableFeature.seen_token_per_repo_id.append(token_per_repo_id)
+        return example
+
+    def __call__(self):
+        return pa.string()
+
+
+def test_decode_num_threads_passes_token_per_repo_id():
+    # media files of private or gated repositories can only be read with the token that was used to load the dataset
+    TokenRecordingDecodableFeature.seen_token_per_repo_id.clear()
+    features = Features({"i": TokenRecordingDecodableFeature()})
+    ds = IterableDataset.from_generator(_gen_decodable_examples, features=features)
+    ds._token_per_repo_id = {"repo_id": "token"}
+    next(iter(ds.decode(num_threads=2)))
+    assert TokenRecordingDecodableFeature.seen_token_per_repo_id[0] == {"repo_id": "token"}
 
 
 ############################
@@ -4288,7 +4368,7 @@ def test_iterable_dataset_push_to_hub_more_shards_with_process_dependent_order(o
     dataset = IterableDataset.from_generator(
         _gen_order_depends_on_process, gen_kwargs={"shards": list(range(4))}, features=Features({"id": Value("int64")})
     )
-    _push_offline(dataset, num_shards=8, num_proc=2)
+    push_parquet_shards_offline(dataset, num_shards=8, num_proc=2)
     files = sorted(offline_parquet_uploads.glob("*.parquet"))
     rows = [i for file in files for i in pq.read_table(file)["id"].to_pylist()]
     assert len(files) == 8 and sorted(rows) == list(range(40))
@@ -4300,7 +4380,7 @@ def test_iterable_dataset_push_to_hub_more_shards_keeps_iteration_state(offline_
     ).skip(1)
     iterator = iter(dataset)
     assert next(iterator)["id"] == 1
-    _push_offline(dataset, num_shards=3)
+    push_parquet_shards_offline(dataset, num_shards=3)
     assert next(iterator)["id"] == 2
     dataset.load_state_dict(dataset.state_dict())
     assert next(iter(dataset))["id"] == 3
@@ -4313,7 +4393,7 @@ def test_iterable_dataset_push_to_hub_more_shards_with_unpicklable_source(offlin
         dataset = IterableDataset.from_generator(
             _gen_lines_from_handle, gen_kwargs={"fh": file_handle}, features=Features({"id": Value("int64")})
         )
-        _push_offline(dataset, num_shards=2)
+        push_parquet_shards_offline(dataset, num_shards=2)
     files = sorted(offline_parquet_uploads.glob("*.parquet"))
     assert [pq.read_table(file)["id"].to_pylist() for file in files] == [[0, 2, 4], [1, 3, 5]]
 

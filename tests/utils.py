@@ -15,6 +15,7 @@ from unittest.mock import Mock, patch
 
 import pyarrow as pa
 import pytest
+from huggingface_hub.hf_file_system import HfFileSystemResolvedRepositoryPath
 from huggingface_hub.utils import httpx
 from packaging import version
 
@@ -640,3 +641,19 @@ def get_torch_dist_unique_port():
     port = 29500
     uniq_delta = pytest_xdist_worker_id()
     return port + uniq_delta
+
+
+def push_parquet_shards_offline(dataset, num_shards, num_proc=None, embed_external_files=False):
+    return dataset._push_parquet_shards_to_hub(
+        resolved_output_path=HfFileSystemResolvedRepositoryPath(
+            repo_type="dataset", repo_id="user/dataset", revision="main", path_in_repo=""
+        ),
+        data_dir="data",
+        split="train",
+        token=None,
+        create_pr=False,
+        max_shard_size=None,
+        num_shards=num_shards,
+        embed_external_files=embed_external_files,
+        num_proc=num_proc,
+    )

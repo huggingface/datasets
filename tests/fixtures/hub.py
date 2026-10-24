@@ -2,8 +2,12 @@ import os
 import time
 import uuid
 from contextlib import contextmanager
+from functools import partial
+from pathlib import Path
 from typing import Optional
+from unittest.mock import patch
 
+import multiprocess as mp
 import pytest
 from huggingface_hub.errors import BucketNotFoundError
 from huggingface_hub.hf_api import HfApi
@@ -212,3 +216,30 @@ def hf_private_dataset_repo_zipped_img_data_(hf_api: HfApi, hf_token, zip_image_
 @pytest.fixture()
 def hf_private_dataset_repo_zipped_img_data(hf_private_dataset_repo_zipped_img_data_, ci_hub_config):
     return hf_private_dataset_repo_zipped_img_data_
+
+
+def _save_uploaded_parquet_files(output_dir, *args, additions, **kwargs):
+    for addition in additions:
+        (output_dir / Path(addition.path_in_repo).name).write_bytes(Path(addition.path_or_fileobj).read_bytes())
+
+
+def _init_offline_parquet_uploads(output_dir):
+    HfApi.preupload_lfs_files = staticmethod(partial(_save_uploaded_parquet_files, output_dir))
+
+
+@pytest.fixture
+def offline_parquet_uploads(tmp_path):
+    """Write the Parquet shards `push_to_hub` would upload to `tmp_path` instead.
+
+    Parquet writing and the spawned workers stay real; only the remote upload is replaced, in the parent and in
+    every worker. `Dataset` and `IterableDataset` share the `multiprocess` module, so one patch covers both.
+    """
+    pool = mp.get_context("spawn").Pool
+    with (
+        patch.object(HfApi, "preupload_lfs_files", new=partial(_save_uploaded_parquet_files, tmp_path)),
+        patch.object(mp, "get_context") as mock_context,
+    ):
+        mock_context.return_value.Pool.side_effect = partial(
+            pool, initializer=_init_offline_parquet_uploads, initargs=(tmp_path,)
+        )
+        yield tmp_path
