@@ -528,3 +528,69 @@ def test_array_xd_from_pandas_with_none():
     assert reloaded_ds.features == features
     storage = pa.concat_arrays(reloaded_ds.data.column("image").chunks).storage
     assert storage.to_pylist() == [[[1.0, 1.0]], None, [[1.0, 1.0], [1.0, 1.0]]]
+
+
+@pytest.mark.parametrize(
+    "shape, values, expected_is_null",
+    [
+        ((1, 1), [[[np.nan]], None], [False, True]),
+        ((2, 3), [None, np.arange(6).reshape(2, 3), None, np.ones((2, 3))], [True, False, True, False]),
+    ],
+)
+def test_array_xd_from_pandas_fixed_shape_with_none(shape, values, expected_is_null):
+    # A fixed-shape column with null rows used to be materialized as a dense float64
+    # array with NaN rows, which lost the Arrow row validity: a null row and a
+    # legitimate all-NaN array became indistinguishable (issue #8888)
+    features = datasets.Features({"x": Array2D(shape=shape, dtype="float64")})
+    ds = datasets.Dataset.from_dict({"x": values}, features=features)
+    df = ds.to_pandas()
+    reloaded_ds = datasets.Dataset.from_pandas(df, features=features)
+    assert reloaded_ds.features == features
+    assert reloaded_ds.data.column("x").is_null().to_pylist() == expected_is_null
+    # the null rows read as None, the valid rows stay exact ndarrays
+    for is_null, original, reloaded in zip(expected_is_null, values, df["x"].to_numpy()):
+        if is_null:
+            assert reloaded is None
+        else:
+            assert isinstance(reloaded, np.ndarray)
+            assert reloaded.shape == np.asarray(original).shape
+            np.testing.assert_array_equal(reloaded, np.asarray(original))
+
+
+def test_array_xd_from_pandas_fixed_shape_with_none_keeps_int_payloads():
+    # The dense float64 materialization also promoted integer columns and lost
+    # exact payloads above 2 ** 53, and made ``from_pandas`` raise on the NaN
+    # rows when converting back to int64 (issue #8888)
+    features = datasets.Features({"x": Array2D(shape=(1, 1), dtype="int64")})
+    ds = datasets.Dataset.from_dict({"x": [[[2**53 + 1]], None]}, features=features)
+    df = ds.to_pandas()
+    # the valid row keeps its exact int64 payload
+    assert df["x"][0][0, 0] == 2**53 + 1
+    reloaded_ds = datasets.Dataset.from_pandas(df, features=features)
+    assert reloaded_ds.features == features
+    assert reloaded_ds.data.column("x").is_null().to_pylist() == [False, True]
+    assert reloaded_ds[0]["x"] == [[2**53 + 1]]
+
+
+def test_array_xd_from_pandas_fixed_shape_with_none_after_slice():
+    # A sliced fixed-shape column with null rows keeps its row validity through
+    # the pandas round trip as well
+    features = datasets.Features({"x": Array2D(shape=(1, 2), dtype="int64")})
+    values = [None] + [np.full((1, 2), i) for i in range(6)] + [None]
+    ds = datasets.Dataset.from_dict({"x": values}, features=features).select(range(1, 8))
+    reloaded_ds = datasets.Dataset.from_pandas(ds.to_pandas(), features=features)
+    assert reloaded_ds.data.column("x").is_null().to_pylist() == [False] * 6 + [True]
+    assert reloaded_ds[5]["x"] == [[5, 5]]
+
+
+def test_array_xd_from_pandas_fixed_shape_all_none():
+    # A column whose rows are all null keeps its validity and its features through
+    # the pandas round trip: the fixed shape and the value type are kept on the
+    # pandas dtype, since no valid row is left to infer them from
+    features = datasets.Features({"x": Array2D(shape=(1, 2), dtype="float64")})
+    ds = datasets.Dataset.from_dict({"x": [None, None]}, features=features)
+    df = ds.to_pandas()
+    assert df["x"].isna().to_numpy().tolist() == [True, True]
+    reloaded_ds = datasets.Dataset.from_pandas(df, features=features)
+    assert reloaded_ds.features == features
+    assert reloaded_ds.data.column("x").is_null().to_pylist() == [True, True]
