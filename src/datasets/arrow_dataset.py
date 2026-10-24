@@ -5543,7 +5543,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 table=self._data,
                 key=slice(0, len(self)),
                 indices=self._indices,
-            ).to_pandas(types_mapper=pandas_types_mapper)
+            ).to_pandas(types_mapper=pandas_types_mapper, integer_object_nulls=True)
             return self._decode_json_columns_pandas(df)
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
@@ -5553,7 +5553,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         table=self._data,
                         key=slice(offset, offset + batch_size),
                         indices=self._indices,
-                    ).to_pandas(types_mapper=pandas_types_mapper)
+                    ).to_pandas(types_mapper=pandas_types_mapper, integer_object_nulls=True)
                 )
                 for offset in range(0, len(self), batch_size)
             )

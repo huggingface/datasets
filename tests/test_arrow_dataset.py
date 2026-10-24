@@ -3565,6 +3565,20 @@ class MiscellaneousDatasetTest(TestCase):
         batched = pd.concat(list(test_dataset.to_pandas(batched=True, batch_size=2)), ignore_index=True)
         assert batched["col"].tolist() == [{"a": 1}, None, {"b": 2}]
 
+    def test_to_pandas_keeps_nullable_integers(self):
+        # A null in an int64 column must not widen the column to float64. float64 cannot
+        # hold every int64, so values such as 2**62 + 1 came back as a different number.
+        big = 2**62 + 1
+        dset = Dataset.from_dict({"a": [big, None, 3]})
+        frame = dset.to_pandas()
+        self.assertEqual(frame["a"].tolist(), [big, None, 3])
+        batched = pd.concat(list(dset.to_pandas(batched=True, batch_size=2)), ignore_index=True)
+        self.assertEqual(batched["a"].tolist(), [big, None, 3])
+        formatted = dset.with_format("pandas")[:]
+        self.assertEqual(formatted["a"].tolist(), [big, None, 3])
+        plain = Dataset.from_dict({"a": [1, 2, 3]}).to_pandas()
+        self.assertEqual(plain["a"].dtype, np.dtype("int64"))
+
     def test_to_pandas_decode_nested_json(self):
         # Regression test: nested Json() and List(Json()) columns must also decode in to_pandas().
         nested = {"col": [{"a": {"b": {"c": 1}}, "d": [2, {"e": 3}]}]}
