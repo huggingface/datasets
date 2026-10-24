@@ -61,9 +61,7 @@ class SqlConfig(datasets.BuilderConfig):
                     # `str(compile())` drops bound values, so two queries that differ only
                     # in a WHERE / LIMIT / IN parameter share a cache key. Inline the binds.
                     try:
-                        sql_str = str(
-                            sql.compile(dialect=engine.dialect, compile_kwargs={"literal_binds": True})
-                        )
+                        sql_str = str(sql.compile(dialect=engine.dialect, compile_kwargs={"literal_binds": True}))
                     except Exception:
                         compiled = sql.compile(dialect=engine.dialect)
                         sql_str = f"{compiled} {compiled.params}"
