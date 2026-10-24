@@ -1058,6 +1058,21 @@ def test_require_decoding_with_list_types(feature):
     assert require_decoding(feature)
 
 
+@pytest.mark.parametrize(
+    "feature",
+    [
+        Audio(decode=False),
+        {"audio": Audio(decode=False)},
+        [Audio(decode=False)],
+        LargeList(Audio(decode=False)),
+        List(Audio(decode=False)),
+    ],
+)
+def test_require_decoding_ignore_decode_attribute_nested(feature):
+    assert require_decoding(feature, ignore_decode_attribute=True)
+    assert not require_decoding(feature)
+
+
 @pytest.mark.parametrize("feature", [LargeList(Audio()), List(Audio())])
 def test_require_storage_cast_with_list_types(feature):
     assert require_storage_cast(feature)
