@@ -1042,6 +1042,33 @@ def test_torch_formatter_sets_default_dtypes(cast_schema, arrow_table):
     torch.testing.assert_close(batch["col_float"], torch.tensor(list_float, dtype=torch.float32))
 
 
+@pytest.mark.parametrize(
+    "pa_type, expected_dtype",
+    [
+        (pa.int64(), np.dtype("int64")),
+        (pa.int32(), np.dtype("int32")),
+        (pa.float64(), np.dtype("float64")),
+        (pa.bool_(), np.dtype("bool")),
+        (pa.timestamp("ns"), np.dtype("datetime64[ns]")),
+    ],
+)
+def test_numpy_arrow_extractor_keeps_dtype_of_empty_column(pa_type, expected_dtype):
+    # An empty column used to come back as float64 -- and then float32 through the tensor
+    # formatters -- because the arrow type is dropped by the intermediate Python list.
+    pa_table = pa.table({"col": pa.array([], type=pa_type)})
+    extracted = NumpyArrowExtractor().extract_column(pa_table)
+    assert len(extracted) == 0
+    assert extracted.dtype == expected_dtype
+
+
+def test_numpy_arrow_extractor_empty_column_matches_non_empty():
+    pa_table = pa.table({"col": pa.array([1, 2, 3], type=pa.int64())})
+    non_empty = NumpyArrowExtractor().extract_column(pa_table)
+    empty = NumpyArrowExtractor().extract_column(pa_table.slice(0, 0))
+    assert len(empty) == 0
+    assert empty.dtype == non_empty.dtype
+
+
 def test_iterable_dataset_of_arrays_format_to_arrow(any_arrays_dataset: IterableDataset):
     formatted = any_arrays_dataset.with_format("arrow")
     assert all(isinstance(example, pa.Table) for example in formatted)
