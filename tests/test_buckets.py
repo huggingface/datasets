@@ -194,3 +194,32 @@ def test_get_updated_dataset_card_keeps_existing_splits_when_appending():
 
     data_files = MetadataConfigs.from_dataset_card_data(dataset_card.data)["default"]["data_files"]
     assert [entry["split"] for entry in data_files] == ["train", "test"]
+
+
+@pytest.mark.unit
+def test_get_updated_dataset_card_takes_new_features_when_replacing_every_split():
+    mem = MemoryFileSystem(skip_instance_cache=True)
+    fs = DirFileSystem("/repush", fs=mem)
+
+    with fs.open(config.REPOCARD_FILENAME, "w") as f:
+        f.write(
+            "---\ndataset_info:\n  features:\n  - name: x\n    dtype: int64\n"
+            "  splits:\n  - name: train\n    num_bytes: 40\n    num_examples: 5\n"
+            "  download_size: 40\n  dataset_size: 40\n---\n"
+        )
+
+    # re-push the only split with a renamed column
+    features = Features({"y": Value("int64")})
+    dataset_card, _ = _get_updated_dataset_card(
+        fs=fs,
+        config_name="default",
+        splits_info=[SplitInfo(name="train", num_bytes=40, num_examples=5)],
+        features=features,
+        data_dir="data",
+        set_default=None,
+        uploaded_sizes=[40],
+        deleted_sizes=[40],
+        remove_other_splits=False,
+    )
+
+    assert DatasetInfosDict.from_dataset_card_data(dataset_card.data)["default"].features == features
