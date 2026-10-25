@@ -1,9 +1,9 @@
 """MmcifFolder - Load mmCIF protein structure files from directories.
 
 Follows ImageFolder pattern: folder names become labels, supports metadata files.
-Each row in the resulting dataset contains one complete mmCIF structure file,
-stored in a BioStructure(format="mmcif") column. Decoding requires biopython and
-returns a Bio.PDB.Structure.Structure object.
+Each row in the resulting dataset contains one structure, parsed into a
+`Structure` column (atom columns named after mmCIF `atom_site` items). PDBx/mmCIF
+needs no third-party dependency; BinaryCIF (.bcif) needs `msgpack`.
 
 Usage:
     >>> from datasets import load_dataset
@@ -54,15 +54,12 @@ class MmcifFolderConfig(folder_based_builder.FolderBasedBuilderConfig):
 class MmcifFolder(folder_based_builder.FolderBasedBuilder):
     """Folder-based builder for mmCIF protein structure files.
 
-    Supports mmCIF format (.cif, .mmcif).
+    Supports PDBx/mmCIF (.cif, .mmcif) and BinaryCIF (.bcif).
     Each row in the resulting dataset contains one complete structure file,
     following the "one row = one structure" pattern recommended for ML workflows.
     """
 
-    BASE_FEATURE = datasets.BioStructure
+    BASE_FEATURE = datasets.Structure
     BASE_COLUMN_NAME = "structure"
     BUILDER_CONFIG_CLASS = MmcifFolderConfig
-    EXTENSIONS: list[str] = [".cif", ".mmcif"]
-
-    def _base_feature(self):
-        return self.BASE_FEATURE(format="mmcif")
+    EXTENSIONS: list[str] = [".cif", ".mmcif", ".bcif"]
