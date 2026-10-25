@@ -763,7 +763,8 @@ def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
             raise FileNotFoundError(f"No such file: {path}")
         if size is None:
             # use xopen instead of fs.open to make data fetching more robust
-            with xopen(path, download_config=download_config) as f:
+            # (binary mode: count bytes, and do not decode or translate newlines)
+            with xopen(path, "rb", download_config=download_config) as f:
                 size = len(f.read())
         return size
 
