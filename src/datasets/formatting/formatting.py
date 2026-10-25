@@ -562,6 +562,23 @@ def _check_valid_column_key(key: str, columns: list[str]) -> None:
         raise KeyError(f"Column {key} not in the dataset. Current columns in the dataset: {columns}")
 
 
+def _has_bool_items(key: Iterable) -> bool:
+    """Whether an iterable key holds booleans: an Arrow, numpy, pandas, torch or tensorflow array of a
+    boolean dtype, or a python iterable with a bool in it (`True` is also an `int`, so it would otherwise
+    pass as 1). Only object-dtype arrays are inspected item by item."""
+    if isinstance(key, (pa.Array, pa.ChunkedArray)):
+        return pa.types.is_boolean(key.type)
+    dtype = getattr(key, "dtype", None)
+    if dtype is not None:
+        kind = getattr(dtype, "kind", None)
+        if kind is None:
+            # torch and tensorflow dtypes have no kind; both spell their boolean type "bool"
+            return "bool" in str(dtype)
+        if kind != "O":
+            return kind == "b"
+    return any(isinstance(item, (bool, np.bool_)) for item in key)
+
+
 def _check_valid_index_key(key: Union[int, slice, range, Iterable], size: int) -> None:
     if isinstance(key, int):
         if (key < 0 and key + size < 0) or (key >= size):
@@ -575,6 +592,9 @@ def _check_valid_index_key(key: Union[int, slice, range, Iterable], size: int) -
             _check_valid_index_key(min(key), size=size)
     elif isinstance(key, Iterable):
         if len(key) > 0:
+            if _has_bool_items(key):
+                # a mask would be read as the row indices 0 and 1
+                raise TypeError("dataset index must be int, str, slice or collection of int, not bool")
             _check_valid_index_key(int(max(key)), size=size)
             _check_valid_index_key(int(min(key)), size=size)
     else:
