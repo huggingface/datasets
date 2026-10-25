@@ -995,7 +995,14 @@ class PandasArrayExtensionArray(PandasExtensionArray):
                         "please pass the type explicitly."
                     )
             else:
-                shape, value_type = (None, *first_arr.shape[1:]), first_arr.dtype
+                if self._dtype.shape is not None:
+                    # The dtype kept the fixed shape of the Arrow column this array
+                    # was materialized from: with valid and null rows mixed, the
+                    # first dimension must not degrade to dynamic just because
+                    # the shape could also be inferred from a valid row.
+                    shape, value_type = self._dtype.shape, self._dtype.value_type
+                else:
+                    shape, value_type = (None, *first_arr.shape[1:]), first_arr.dtype
         else:
             shape, value_type = self._data.shape[1:], self._data.dtype
         extension_types = {

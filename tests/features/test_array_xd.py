@@ -547,6 +547,10 @@ def test_array_xd_from_pandas_fixed_shape_with_none(shape, values, expected_is_n
     reloaded_ds = datasets.Dataset.from_pandas(df, features=features)
     assert reloaded_ds.features == features
     assert reloaded_ds.data.column("x").is_null().to_pylist() == expected_is_null
+    # the fixed shape must survive in the actual Arrow extension type, not only in
+    # the declared features: a valid row is enough to infer a dynamic first
+    # dimension from, so check the column type explicitly (issue #8888)
+    assert reloaded_ds.data.column("x").type.shape == shape
     # the null rows read as None, the valid rows stay exact ndarrays
     for is_null, original, reloaded in zip(expected_is_null, values, df["x"].to_numpy()):
         if is_null:
@@ -594,3 +598,19 @@ def test_array_xd_from_pandas_fixed_shape_all_none():
     reloaded_ds = datasets.Dataset.from_pandas(df, features=features)
     assert reloaded_ds.features == features
     assert reloaded_ds.data.column("x").is_null().to_pylist() == [True, True]
+
+
+def test_array_xd_from_pandas_fixed_shape_with_none_keeps_arrow_type_shape():
+    # With a valid row to infer from, the Arrow type of the column used to be rebuilt
+    # with a dynamic first dimension even when the pandas dtype carried the fixed
+    # shape of the original column, which left the actual Arrow extension type
+    # inconsistent with the declared features (issue #8888)
+    features = datasets.Features({"x": Array2D(shape=(2, 3), dtype="float64")})
+    source = datasets.Dataset.from_dict({"x": [[[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]], None]}, features=features)
+    result = datasets.Dataset.from_pandas(source.to_pandas(), features=features)
+    assert result.data.column("x").type.shape == result.features["x"].shape
+    assert result.data.column("x").type.shape == (2, 3)
+    # the round trip keeps the row validity and the exact payloads as well
+    assert result.data.column("x").is_null().to_pylist() == [False, True]
+    np.testing.assert_array_equal(result[0]["x"], np.arange(6).reshape(2, 3))
+    assert result[1]["x"] is None
