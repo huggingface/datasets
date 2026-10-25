@@ -3,6 +3,7 @@ import os
 from typing import BinaryIO, Optional, Union
 
 import fsspec
+import pandas as pd
 
 from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
@@ -105,9 +106,11 @@ class CsvDatasetWriter:
             key=slice(offset, offset + self.batch_size),
             indices=self.dataset._indices,
         )
-        csv_str = batch.to_pandas(integer_object_nulls=True).to_csv(
-            path_or_buf=None, header=header if (offset == 0) else False, index=index, **to_csv_kwargs
-        )
+        df = batch.to_pandas(integer_object_nulls=True)
+        if index:
+            # number the dataset's rows, not the batch's: each batch gets a fresh RangeIndex from 0
+            df.index = pd.RangeIndex(offset, offset + len(df))
+        csv_str = df.to_csv(path_or_buf=None, header=header if (offset == 0) else False, index=index, **to_csv_kwargs)
         return csv_str.encode(self.encoding)
 
     def _write(self, file_obj: BinaryIO, header, index, **to_csv_kwargs) -> int:
