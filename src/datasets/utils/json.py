@@ -23,21 +23,21 @@ def ujson_loads(*args, **kwargs):
         return pd.io.json.loads(*args, **kwargs)
 
 
-def json_encode_field(example: Any, json_field_path: list[str]) -> Any:
+def json_encode_field(example: Any, json_field_path: list[str], pre_encoded: bool = True) -> Any:
     if json_field_path:
         field, *json_field_path = json_field_path
         if example is None:
             return None
         elif field == 0:
-            return [json_encode_field(x, json_field_path) for x in example]
+            return [json_encode_field(x, json_field_path, pre_encoded) for x in example]
         else:
-            return {**example, field: json_encode_field(example.get(field), json_field_path)}
+            return {**example, field: json_encode_field(example.get(field), json_field_path, pre_encoded)}
     elif example is None:
         # keep missing values as real nulls instead of the JSON string "null"
         return None
     else:
         try:
-            ujson_loads(example)
+            return ujson_dumps(example) if isinstance(example, str) and not pre_encoded else ujson_loads(example)
         except Exception:
             return ujson_dumps(example)
         else:
