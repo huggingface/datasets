@@ -136,14 +136,35 @@ class TarExtractor(BaseExtractor):
         tar_file.close()
 
 
+
+def _extract_atomically(copy_fn, output_path: Union[Path, str]) -> None:
+    """Stream-decompress to a temporary file next to ``output_path``, then
+    atomically replace it.
+
+    Writing straight to the final path lets a crash mid-extraction leave a
+    truncated file there; ``ExtractManager`` only checks for existence, so
+    later loads would silently reuse the corrupted result (#5088).
+    """
+    tmp_path = str(output_path) + ".incomplete"
+    try:
+        copy_fn(tmp_path)
+        os.replace(tmp_path, output_path)
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+
 class GzipExtractor(MagicNumberBaseExtractor):
     magic_numbers = [b"\x1f\x8b"]
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
-        with gzip.open(input_path, "rb") as gzip_file:
-            with open(output_path, "wb") as extracted_file:
-                shutil.copyfileobj(gzip_file, extracted_file)
+        def _copy_to(tmp_path: str) -> None:
+            with gzip.open(input_path, "rb") as gzip_file:
+                with open(tmp_path, "wb") as extracted_file:
+                    shutil.copyfileobj(gzip_file, extracted_file)
+
+        _extract_atomically(_copy_to, output_path)
 
 
 class ZipExtractor(MagicNumberBaseExtractor):
@@ -239,9 +260,12 @@ class XzExtractor(MagicNumberBaseExtractor):
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
-        with lzma.open(input_path) as compressed_file:
-            with open(output_path, "wb") as extracted_file:
-                shutil.copyfileobj(compressed_file, extracted_file)
+        def _copy_to(tmp_path: str) -> None:
+            with lzma.open(input_path) as compressed_file:
+                with open(tmp_path, "wb") as extracted_file:
+                    shutil.copyfileobj(compressed_file, extracted_file)
+
+        _extract_atomically(_copy_to, output_path)
 
 
 class RarExtractor(MagicNumberBaseExtractor):
@@ -310,8 +334,12 @@ class ZstdExtractor(MagicNumberBaseExtractor):
         import zstandard as zstd
 
         dctx = zstd.ZstdDecompressor()
-        with open(input_path, "rb") as ifh, open(output_path, "wb") as ofh:
-            dctx.copy_stream(ifh, ofh)
+
+        def _copy_to(tmp_path: str) -> None:
+            with open(input_path, "rb") as ifh, open(tmp_path, "wb") as ofh:
+                dctx.copy_stream(ifh, ofh)
+
+        _extract_atomically(_copy_to, output_path)
 
 
 class Bzip2Extractor(MagicNumberBaseExtractor):
@@ -319,9 +347,12 @@ class Bzip2Extractor(MagicNumberBaseExtractor):
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
-        with bz2.open(input_path, "rb") as compressed_file:
-            with open(output_path, "wb") as extracted_file:
-                shutil.copyfileobj(compressed_file, extracted_file)
+        def _copy_to(tmp_path: str) -> None:
+            with bz2.open(input_path, "rb") as compressed_file:
+                with open(tmp_path, "wb") as extracted_file:
+                    shutil.copyfileobj(compressed_file, extracted_file)
+
+        _extract_atomically(_copy_to, output_path)
 
 
 class SevenZipExtractor(MagicNumberBaseExtractor):
