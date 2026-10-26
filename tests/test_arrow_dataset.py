@@ -3998,6 +3998,31 @@ def test_dataset_iter_batch(batch_size, drop_last_batch):
 
 
 @pytest.mark.parametrize(
+    "transform",
+    [
+        None,
+        ("shuffle", (42,), {}),
+        ("select", ([24, 3, 3, 0, 17],), {}),
+        ("select", ([],), {}),
+        ("with_format", (None,), {"columns": ["i", "nested"]}),
+    ],
+)
+def test_dataset_iter_matches_getitem(transform):
+    n = 25
+    dset = Dataset.from_dict(
+        {
+            "i": list(range(n)),
+            "text": [None if i % 4 == 0 else str(i) for i in range(n)],
+            "nested": [{"a": [i, None], "b": {"c": float(i)}} for i in range(n)],
+        }
+    )
+    if transform is not None:
+        transform_name, args, kwargs = transform
+        dset = getattr(dset, transform_name)(*args, **kwargs)
+    assert list(dset) == [dset[i] for i in range(len(dset))]
+
+
+@pytest.mark.parametrize(
     "column, expected_dtype",
     [(["a", "b", "c", "d"], "string"), ([1, 2, 3, 4], "int64"), ([1.0, 2.0, 3.0, 4.0], "float64")],
 )
