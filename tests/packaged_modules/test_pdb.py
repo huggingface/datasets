@@ -7,10 +7,12 @@ from pathlib import Path
 
 import pytest
 
-from datasets import ClassLabel, DownloadManager, Structure, Value, load_from_disk
+from datasets import AtomicStructure, ClassLabel, DownloadManager, Value, load_from_disk
 from datasets.data_files import DataFilesDict, get_data_patterns
 from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.packaged_modules.pdb.pdb import PdbFolder, PdbFolderConfig
+
+from ..utils import require_biotite
 
 
 def _normalize_path(path):
@@ -142,7 +144,7 @@ def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cac
     pdbfolder = PdbFolder(data_files=data_files_with_labels_no_metadata, cache_dir=cache_dir, drop_labels=False)
     gen_kwargs = pdbfolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     assert pdbfolder.info.features == {
-        "structure": Structure(),
+        "structure": AtomicStructure(),
         "label": ClassLabel(names=["enzyme", "receptor"]),
     }
     generator = pdbfolder._generate_examples(**gen_kwargs)
@@ -162,7 +164,7 @@ def test_generate_examples_drop_labels(data_files_with_labels_no_metadata, drop_
     # removing labels explicitly requires drop_labels=True
     assert gen_kwargs["add_labels"] is not bool(drop_labels)
     assert gen_kwargs["add_metadata"] is False
-    expected_features = {"structure": Structure()}
+    expected_features = {"structure": AtomicStructure()}
     if not drop_labels:
         expected_features["label"] = ClassLabel(names=["enzyme", "receptor"])
     assert pdbfolder.info.features == expected_features
@@ -195,7 +197,7 @@ def test_generate_examples_drop_metadata(file_with_metadata, drop_metadata, drop
     # since the dataset has metadata, adding the labels explicitly requires drop_labels=False
     assert gen_kwargs["add_labels"] is False
     generator = pdbfolder._generate_examples(**gen_kwargs)
-    expected_features = {"structure": Structure()}
+    expected_features = {"structure": AtomicStructure()}
     if gen_kwargs["add_metadata"]:
         expected_features.update(
             {
@@ -214,6 +216,7 @@ def test_generate_examples_drop_metadata(file_with_metadata, drop_metadata, drop
     assert example == expected_example
 
 
+@require_biotite
 @pytest.mark.parametrize("streaming", [False, True])
 @pytest.mark.parametrize("n_splits", [1, 2])
 def test_data_files_with_metadata_and_splits(
@@ -226,7 +229,7 @@ def test_data_files_with_metadata_and_splits(
     )
     download_manager = StreamingDownloadManager() if streaming else DownloadManager()
     generated_splits = pdbfolder._split_generators(download_manager)
-    expected_features = {"structure": Structure(), "resolution": Value("float64")}
+    expected_features = {"structure": AtomicStructure(), "resolution": Value("float64")}
     assert pdbfolder.info.features == expected_features
     for (split, files), generated_split in zip(data_files.items(), generated_splits):
         assert split == generated_split.name
@@ -249,10 +252,11 @@ def test_data_files_with_metadata_and_splits(
         assert dataset[split].features == expected_features
         rows = list(dataset[split])
         assert len(rows) == len(files) - 1
-        assert all(len(row["structure"]["atoms"]["Cartn_xyz"]) == 9 for row in rows)
+        assert all(len(row["structure"]) == 9 for row in rows)
         assert [row["resolution"] for row in rows] == ([3.0] if split == "test" else [2.5, 1.8])
 
 
+@require_biotite
 @pytest.mark.parametrize("streaming", [False, True])
 @pytest.mark.parametrize("drop_labels", [False, True])
 def test_structure_content_decoded(data_files_with_labels_no_metadata, cache_dir, streaming, drop_labels):
@@ -266,24 +270,25 @@ def test_structure_content_decoded(data_files_with_labels_no_metadata, cache_dir
     else:
         pdbfolder.download_and_prepare()
         dataset = pdbfolder.as_dataset(split="train")
-    expected_features = {"structure": Structure()}
+    expected_features = {"structure": AtomicStructure()}
     if not drop_labels:
         expected_features["label"] = ClassLabel(names=["enzyme", "receptor"])
     assert dataset.features == expected_features
 
     structures = [example["structure"] for example in dataset]
     assert len(structures) == 2
-    for structure in structures:
-        atoms = structure["atoms"]
-        assert structure["id"] == "TEST"
-        assert atoms["Cartn_xyz"].shape == (9, 3)
-        assert atoms["label_atom_id"].tolist() == ["N", "CA", "C", "O", "CB", "N", "CA", "C", "O"]
-        assert atoms["label_comp_id"].tolist() == ["ALA"] * 5 + ["GLY"] * 4
-        assert atoms["auth_seq_id"].tolist() == [1] * 5 + [2] * 4
-        assert atoms["type_symbol"].tolist() == ["N", "C", "C", "O", "C", "N", "C", "C", "O"]
-        assert atoms["Cartn_xyz"][1].tolist() == pytest.approx([1.458, 0.0, 0.0])
+    for atoms in structures:
+        assert atoms.coord.shape == (9, 3)
+        assert atoms.atom_name.tolist() == ["N", "CA", "C", "O", "CB", "N", "CA", "C", "O"]
+        assert atoms.res_name.tolist() == ["ALA"] * 5 + ["GLY"] * 4
+        assert atoms.res_id.tolist() == [1] * 5 + [2] * 4
+        assert atoms.element.tolist() == ["N", "C", "C", "O", "C", "N", "C", "C", "O"]
+        assert atoms.coord[1].tolist() == pytest.approx([1.458, 0.0, 0.0])
+        assert atoms.b_factor.tolist() == [20.0] * 9
+        assert atoms.bonds.get_bond_count() > 0  # intra-residue bonds from the CCD
 
 
+@require_biotite
 def test_structure_survives_save_and_load(file_with_metadata, cache_dir, tmp_path):
     file, metadata_file = file_with_metadata
     pdbfolder = PdbFolder(data_files=[file, metadata_file], cache_dir=cache_dir)
@@ -294,12 +299,12 @@ def test_structure_survives_save_and_load(file_with_metadata, cache_dir, tmp_pat
     os.remove(file)  # the structure is stored in the dataset, not referenced by path
     dataset = load_from_disk(saved_path)
     assert dataset.features == {
-        "structure": Structure(),
+        "structure": AtomicStructure(),
         "resolution": Value("float64"),
         "method": _metadata_string_feature(dataset.features["method"], metadata_file),
     }
     [row] = list(dataset)
-    assert row["structure"]["atoms"]["Cartn_xyz"].shape == (9, 3)
+    assert row["structure"].coord.shape == (9, 3)
     assert row["resolution"] == 2.5
     assert row["method"] == "X-ray"
 
@@ -318,13 +323,14 @@ def file_with_hetatm(tmp_path):
     return DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
 
 
+@require_biotite
 def test_structure_keeps_hetatm(file_with_hetatm, cache_dir):
     builder = PdbFolder(data_files=file_with_hetatm, cache_dir=cache_dir, drop_labels=True)
     builder.download_and_prepare()
     [row] = list(builder.as_dataset()["train"])
-    atoms = row["structure"]["atoms"]
-    assert atoms["group_PDB"].tolist() == ["ATOM", "ATOM", "HETATM"]
-    assert atoms["label_comp_id"].tolist() == ["ALA", "ALA", "HOH"]
+    atoms = row["structure"]
+    assert atoms.hetero.tolist() == [False, False, True]
+    assert atoms.res_name.tolist() == ["ALA", "ALA", "HOH"]
 
 
 def test_extensions_supported():
@@ -336,7 +342,7 @@ def test_extensions_supported():
 
 
 def test_base_feature_is_structure():
-    assert PdbFolder.BASE_FEATURE == Structure
+    assert PdbFolder.BASE_FEATURE == AtomicStructure
 
 
 def test_base_column_name():

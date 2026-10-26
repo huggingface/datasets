@@ -41,12 +41,12 @@ from ..table import array_cast
 from ..utils import experimental, logging
 from ..utils.json import ujson_dumps, ujson_loads
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
+from .atomic_structure import AtomicStructure
 from .audio import Audio
 from .image import Image, encode_pil_image
 from .mesh import Mesh
 from .nifti import Nifti, encode_nibabel_image
 from .pdf import Pdf, encode_pdfplumber_pdf
-from .structure import Structure
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video
 
@@ -1434,7 +1434,7 @@ FeatureType = Union[
     Video,
     Pdf,
     Nifti,
-    Structure,
+    AtomicStructure,
 ]
 
 
@@ -1597,7 +1597,7 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     Video.__name__: Video,
     Pdf.__name__: Pdf,
     Nifti.__name__: Nifti,
-    Structure.__name__: Structure,
+    AtomicStructure.__name__: AtomicStructure,
     Json.__name__: Json,
 }
 

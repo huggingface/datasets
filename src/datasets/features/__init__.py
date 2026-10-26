@@ -1,4 +1,5 @@
 __all__ = [
+    "AtomicStructure",
     "Audio",
     "Array2D",
     "Array3D",
@@ -18,14 +19,13 @@ __all__ = [
     "Video",
     "Pdf",
     "Nifti",
-    "Structure",
 ]
+from .atomic_structure import AtomicStructure
 from .audio import Audio
 from .features import Array2D, Array3D, Array4D, Array5D, ClassLabel, Features, Json, LargeList, List, Sequence, Value
 from .image import Image
 from .mesh import Mesh
 from .nifti import Nifti
 from .pdf import Pdf
-from .structure import Structure
 from .translation import Translation, TranslationVariableLanguages
 from .video import Video

@@ -1,9 +1,8 @@
 """PdbFolder - Load PDB protein structure files from directories.
 
 Follows ImageFolder pattern: folder names become labels, supports metadata files.
-Each row in the resulting dataset contains one structure, parsed into a
-`Structure` column (atom columns named after mmCIF `atom_site` items). No
-third-party dependency is needed.
+Each row in the resulting dataset contains one structure, read with biotite
+into an `AtomicStructure` column.
 
 Usage:
     >>> from datasets import load_dataset
@@ -59,7 +58,7 @@ class PdbFolder(folder_based_builder.FolderBasedBuilder):
     following the "one row = one structure" pattern recommended for ML workflows.
     """
 
-    BASE_FEATURE = datasets.Structure
+    BASE_FEATURE = datasets.AtomicStructure
     BASE_COLUMN_NAME = "structure"
     BUILDER_CONFIG_CLASS = PdbFolderConfig
     EXTENSIONS: list[str] = [".pdb", ".ent"]
