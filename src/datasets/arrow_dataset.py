@@ -90,6 +90,7 @@ from .features.features import (
     generate_from_arrow_type,
     pandas_types_mapper,
     require_decoding,
+    require_storage_embed,
 )
 from .filesystems import is_remote_filesystem
 from .fingerprint import (
@@ -5987,14 +5988,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             len(self), dataset_nbytes
         )
 
-        # Find decodable columns, because if there are any, we need to:
-        # embed the bytes from the files in the shards
-        decodable_columns = (
-            [k for k, v in self._info.features.items() if require_decoding(v, ignore_decode_attribute=True)]
-            if embed_external_files
-            else []
+        # Embed external files if the features contain embeddable storage.
+        embed_external_files = embed_external_files and any(
+            require_storage_embed(feature) for feature in self._info.features.values()
         )
-        embed_external_files = embed_external_files and bool(decodable_columns)
 
         if num_shards is None:
             max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
