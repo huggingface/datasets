@@ -5876,7 +5876,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             Dataset._generate_tables_from_shards,
             kwargs={"shards": shards, "batch_size": config.DEFAULT_MAX_BATCH_SIZE},
         )
-        ds = IterableDataset(ex_iterable, info=DatasetInfo(features=self.features))
+        ds = IterableDataset(ex_iterable, info=self.info, split=self.split)
         if self._format_type:
             ds = ds.with_format(self._format_type)
         return ds

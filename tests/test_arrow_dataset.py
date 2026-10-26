@@ -4776,6 +4776,34 @@ def test_dataset_estimate_nbytes():
     assert 0.9 * ds._estimate_nbytes() < 100 * 100, "must be smaller than one chunk"
 
 
+@pytest.mark.parametrize("num_shards", [1, 3])
+@pytest.mark.parametrize("selected", [False, True])
+def test_dataset_to_iterable_dataset_preserves_info_and_split(num_shards, selected):
+    dataset = Dataset.from_dict(
+        {"record": list(range(6))},
+        info=DatasetInfo(
+            description="Training records",
+            citation="Dataset citation",
+            homepage="https://example.com/dataset",
+            license="Apache-2.0",
+            dataset_name="records",
+            config_name="default",
+        ),
+        split="train",
+    )
+    if selected:
+        dataset = dataset.select([5, 1, 3])
+    iterable_dataset = dataset.to_iterable_dataset(num_shards=num_shards)
+
+    assert list(iterable_dataset) == list(dataset)
+    assert iterable_dataset.split == dataset.split
+    assert iterable_dataset.info == dataset.info
+    assert iterable_dataset.info is not dataset.info
+    assert iterable_dataset.info.features is not dataset.info.features
+    iterable_dataset.info.description = "Changed description"
+    assert dataset.info.description == "Training records"
+
+
 def test_dataset_to_iterable_dataset(dataset: Dataset):
     iterable_dataset = dataset.to_iterable_dataset()
     assert isinstance(iterable_dataset, IterableDataset)
