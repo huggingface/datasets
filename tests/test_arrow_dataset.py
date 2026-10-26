@@ -69,6 +69,18 @@ from .utils import (
 )
 
 
+@pytest.mark.parametrize("index", [0, np.int32(0), np.int64(1), np.int64(-1), np.uint64(0)])
+@pytest.mark.parametrize("format_type", [None, "numpy"])
+def test_nested_column_integer_index(index, format_type):
+    dataset = Dataset.from_dict({"metadata": [{"score": {"value": 10}}, {"score": {"value": 20}}]}).with_format(
+        format_type
+    )
+    column = dataset["metadata"]["score"]["value"]
+    assert column[index] == dataset[int(index)]["metadata"]["score"]["value"]
+    assert column[[0, 1]] == [10, 20]
+    assert column[::-1] == [20, 10]
+
+
 class PickableMagicMock(MagicMock):
     def __reduce__(self):
         return MagicMock, ()
