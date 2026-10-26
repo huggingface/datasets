@@ -307,6 +307,12 @@ def test_cast_column_from_paths_bytes_and_file_references():
     assert len(dataset[0]["s"]) == 9
 
 
+def test_empty_and_missing_values():
+    features = _features()
+    assert len(Dataset.from_dict({"s": []}, features=features)) == 0
+    assert Dataset.from_dict({"s": [None, None]}, features=features)["s"] == [None, None]
+
+
 def test_encode_rejects_unknown_input():
     with pytest.raises(ValueError, match="An atomic structure should be"):
         AtomicStructure().encode_example(42)

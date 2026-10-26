@@ -242,6 +242,7 @@ class AtomicStructure:
 
         The Arrow types that can be converted to the AtomicStructure pyarrow storage type are:
 
+        - `pa.null()` - an empty or all-missing column
         - `pa.string()` or `pa.large_string()` - paths of structure files, which are read
         - `pa.binary()` or `pa.large_binary()` - contents of structure files, which are read
         - `pa.struct({"bytes": pa.binary(), "path": pa.string()})` - file references, which are read
@@ -255,6 +256,8 @@ class AtomicStructure:
         Returns:
             `pa.StructArray`: Array in the AtomicStructure arrow storage type.
         """
+        if pa.types.is_null(storage.type):  # e.g. an empty or all-missing column
+            return pa.nulls(len(storage), self.pa_type)
         is_struct = pa.types.is_struct(storage.type)
         if is_struct and storage.type.get_field_index("coord") >= 0:
             return pa.array(
