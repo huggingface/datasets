@@ -1430,8 +1430,6 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     f"The {formatting.format_type.capitalize()}-formatted {type(self).__name__} has batch_size={batch_size if batched else 1} which is "
                     f"different from {ex_iterable.batch_size=} from its underlying iterable."
                 )
-        # to enable graceful ends
-        self._owned_loops_and_tasks: list[tuple[asyncio.AbstractEventLoop, list[asyncio.Task]]] = []
 
     @property
     def iter_arrow(self):
@@ -1584,12 +1582,13 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             return prepare_outputs(key_example, inputs, processed_inputs)
 
         tasks: list[asyncio.Task] = []
+        owns_loop = False
         if inspect.iscoroutinefunction(self.function):
             try:
                 loop = asyncio.get_running_loop()
             except RuntimeError:
                 loop = asyncio.new_event_loop()
-            self._owned_loops_and_tasks.append((loop, tasks))
+                owns_loop = True
         else:
             loop = None
 
@@ -1664,16 +1663,23 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     num_examples_to_skip -= 1
                     continue
                 yield key, transformed_example
-        except (Exception, KeyboardInterrupt):
-            if loop:
-                logger.debug(f"Canceling {len(tasks)} async tasks.")
-                for task in tasks:
-                    task.cancel(msg="KeyboardInterrupt")
-                try:
-                    loop.run_until_complete(asyncio.gather(*tasks))
-                except (asyncio.CancelledError, ValueError):
-                    logger.debug("Tasks canceled.")
-            raise
+        finally:
+            try:
+                if loop:
+                    try:
+                        if tasks:
+                            logger.debug(f"Canceling {len(tasks)} async tasks.")
+                            for task in tasks:
+                                task.cancel()
+                            # Wait for every callback's cleanup, including when another callback failed.
+                            loop.run_until_complete(asyncio.gather(*tasks, return_exceptions=True))
+                    finally:
+                        if owns_loop:
+                            loop.close()
+            finally:
+                # Pending callbacks can retain upstream generators until cyclic garbage collection.
+                if hasattr(iterator, "close"):
+                    iterator.close()
 
     def _iter_arrow(self, max_chunksize: Optional[int] = None) -> Iterator[tuple[Key, pa.Table]]:
         formatter: TableFormatter = get_formatter(self.formatting.format_type) if self.formatting else ArrowFormatter()
