@@ -307,10 +307,10 @@ class Json(datasets.ArrowBasedBuilder):
                                                 if literal_json_field_path in json_field_paths:
                                                     raise
                                                     json_field_paths.remove(json_field_path)
-                                                    json_field_path = literal_json_field_path
+                                                json_field_path = literal_json_field_path
                                             insert_json_field_path(json_field_paths, json_field_path)
                                             batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
-                                        elif (
+                                    elif (
                                             "straddling" in str(e) or "JSON conversion to" in str(e)
                                         ) and block_size < len(batch):
                                             # Increase the block size in case it was too small.
