@@ -1,3 +1,4 @@
+import io
 import json
 import unittest.mock
 
@@ -207,15 +208,24 @@ def test_parquet_write(dataset, tmp_path):
     assert dataset.data.table == output_table
 
 
-def test_parquet_writer_closes_writer_on_failure(dataset, tmp_path):
+@pytest.mark.parametrize("use_buffer", [False, True], ids=["path", "borrowed_buffer"])
+def test_parquet_writer_closes_writer_on_failure(dataset, tmp_path, use_buffer):
     """
     The pyarrow ParquetWriter must be closed even when a batch write fails,
-    otherwise the export leaks the writer and its file handles.
+    otherwise the export leaks the writer and its file handles. Both variants of
+    `write()` are covered: opening the path ourselves and using a borrowed buffer.
     Regression test for #8743.
     """
     close_calls = []
+    # Keep the writers alive: pyarrow's ParquetWriter.__del__ also calls close() during garbage
+    # collection, which would otherwise make this test pass even when the writer is never closed.
+    writers = []
 
     class FailingParquetWriter(pq.ParquetWriter):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            writers.append(self)
+
         def write_table(self, table):
             raise RuntimeError("injected batch failure")
 
@@ -223,11 +233,13 @@ def test_parquet_writer_closes_writer_on_failure(dataset, tmp_path):
             close_calls.append(True)
             super().close()
 
-    writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet")
+    path_or_buf = io.BytesIO() if use_buffer else tmp_path / "foo.parquet"
+    writer = ParquetDatasetWriter(dataset, path_or_buf)
     with unittest.mock.patch("datasets.io.parquet.pq.ParquetWriter", FailingParquetWriter):
         with pytest.raises(RuntimeError, match="injected batch failure"):
             writer.write()
 
+    assert writers, "the failing writer was never instantiated"
     assert close_calls == [True]
 
 
