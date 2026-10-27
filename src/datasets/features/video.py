@@ -184,6 +184,9 @@ class Video:
         if token_per_repo_id is None:
             token_per_repo_id = {}
 
+        if not isinstance(value, (dict, str)):
+            return value  # decoding is idempotent: a value that is already a video decoder is returned as is
+
         if isinstance(value, str):
             path, bytes_ = value, None
         else:

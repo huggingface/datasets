@@ -24,7 +24,7 @@ from datasets.dataset_dict import DatasetDict
 from datasets.download.download_config import DownloadConfig
 from datasets.exceptions import DatasetNotFoundError
 from datasets.features import Features, Value
-from datasets.iterable_dataset import IterableDataset
+from datasets.iterable_dataset import IterableDataset, MappedExamplesIterable
 from datasets.load import (
     CachedDatasetModuleFactory,
     HubDatasetModuleFactory,
@@ -947,6 +947,42 @@ def test_load_dataset_streaming_gz_json(jsonl_gz_path):
     assert isinstance(ds, IterableDataset)
     ds_item = next(iter(ds))
     assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+
+
+def _write_tiny_image_dir(tmp_path, num_files: int = 3):
+    from PIL import Image as PILImage
+
+    image_dir = tmp_path / "images"
+    image_dir.mkdir()
+    for i in range(num_files):
+        PILImage.new("RGB", (4, 4), color=(i, i, i)).save(image_dir / f"image_{i}.png")
+    return image_dir
+
+
+@require_pil
+def test_load_dataset_streaming_media_is_not_threaded_for_local_data(tmp_path):
+    from PIL import Image as PILImage
+
+    image_dir = _write_tiny_image_dir(tmp_path)
+    ds = load_dataset("imagefolder", split="train", data_files={"train": str(image_dir / "*.png")}, streaming=True)
+    assert isinstance(ds, IterableDataset)
+    # local files are decoded in the main thread: there is no network latency to hide behind other examples
+    assert not isinstance(ds._ex_iterable, MappedExamplesIterable)
+    assert isinstance(next(iter(ds))["image"], PILImage.Image)
+
+
+@require_pil
+@pytest.mark.integration
+def test_load_dataset_streaming_media_is_threaded_for_remote_data():
+    from PIL import Image as PILImage
+
+    ds = load_dataset(SAMPLE_DATASET_IDENTIFIER4, streaming=True, split="train")
+    # media files are read and decoded in worker threads by default, to overlap network round trips
+    assert isinstance(ds._ex_iterable, MappedExamplesIterable)
+    assert isinstance(next(iter(ds))["image"], PILImage.Image)
+    # ... unless it is disabled with decode_num_threads=0
+    ds = load_dataset(SAMPLE_DATASET_IDENTIFIER4, streaming=True, split="train", decode_num_threads=0)
+    assert not isinstance(ds._ex_iterable, MappedExamplesIterable)
 
 
 @pytest.mark.integration
