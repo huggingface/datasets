@@ -302,6 +302,12 @@ class Json(datasets.ArrowBasedBuilder):
                                             and ") changed from" in str(e)
                                         ):
                                             json_field_path = get_json_field_path_from_pyarrow_json_error(str(e))
+                                            if json_field_path in json_field_paths:
+                                                literal_json_field_path = [str(e).split("Column(", 1)[1].rsplit(") changed from", 1)[0].strip("/")]
+                                                if literal_json_field_path in json_field_paths:
+                                                    raise
+                                                    json_field_paths.remove(json_field_path)
+                                                    json_field_path = literal_json_field_path
                                             insert_json_field_path(json_field_paths, json_field_path)
                                             batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
                                         elif (
