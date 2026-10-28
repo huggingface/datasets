@@ -75,14 +75,19 @@ def harbor_repo(tmp_path):
 
 @pytest.fixture
 def harbor_multi_step_repo(tmp_path):
-    """Directory with one Harbor task made of two steps."""
-    task_dir = write_task(tmp_path / "tasks" / "task-a", "task-a", "Do A in two steps.")
+    """Directory with a single-step task and a task made of two steps.
+
+    As in Harbor, the multi-step task has no top-level instruction.md: each step has its own."""
+    write_task(tmp_path / "tasks" / "task-a", "task-a", "Do A.")
+    task_dir = write_task(tmp_path / "tasks" / "task-b", "task-b")
+    (task_dir / "instruction.md").unlink()
     (task_dir / "task.toml").write_text(
-        TASK_TOML.format(name="task-a") + '\n[[steps]]\nname = "step-1"\n\ntype = "user"\n',
+        TASK_TOML.format(name="task-b") + '\n[[steps]]\nname = "step-1"\n\n[[steps]]\nname = "step-2"\n',
         encoding="utf-8",
     )
-    (task_dir / "steps" / "step-1").mkdir(parents=True)
-    (task_dir / "steps" / "step-1" / "instruction.md").write_text("Do the first step.", encoding="utf-8")
+    for step in ("step-1", "step-2"):
+        (task_dir / "steps" / step).mkdir(parents=True)
+        (task_dir / "steps" / step / "instruction.md").write_text(f"Do {step}.", encoding="utf-8")
     return tmp_path
 
 
@@ -190,6 +195,17 @@ def test_load_dataset_harbor_streaming(harbor_repo):
     ds = load_dataset(str(harbor_repo), streaming=True)
     locations = [example["location"] for example in ds["test"]]
     assert locations == ["tasks/task-a", "tasks/task-b"]
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_harbor_multi_step_task(harbor_multi_step_repo, streaming):
+    """A multi-step task has no top-level instruction.md, so its instruction is empty, as in Harbor."""
+    ds = load_dataset(str(harbor_multi_step_repo), split="test", streaming=streaming)
+    examples = list(ds)
+    assert [example["name"] for example in examples] == ["acme/task-a", "acme/task-b"]
+    assert [example["instruction"] for example in examples] == ["Do A.", ""]
+    assert [step["name"] for step in examples[1]["config"]["steps"]] == ["step-1", "step-2"]
+    assert "steps/step-1/instruction.md" in examples[1]["files"]
 
 
 def test_load_dataset_harbor_repo_from_task_file_pattern(harbor_repo):

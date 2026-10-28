@@ -121,7 +121,8 @@ class Harbor(datasets.GeneratorBasedBuilder):
     - **name** (`str`) -- name of the task, as `org/name` in `[task].name` of `task.toml`, or the
       name of the task directory when `task.toml` has no `[task]` section.
     - **description** (`str`) -- `[task].description` of `task.toml`.
-    - **instruction** (`str`) -- contents of `instruction.md`.
+    - **instruction** (`str`) -- contents of `instruction.md`, or an empty string when the task has no
+      top-level `instruction.md`, like a multi-step task whose instructions are in `steps/<step>/`.
     - **keywords** (`list` of `str`) -- `[task].keywords` of `task.toml`.
     - **schema_version** (`str`) -- `schema_version` declared by `task.toml`.
     - **config** (`dict`) -- the whole `task.toml`, as a JSON object.
@@ -164,9 +165,17 @@ class Harbor(datasets.GeneratorBasedBuilder):
                 data_file for data_file in data_files if os.path.basename(data_file) == HARBOR_TASK_FILE_NAME
             ]
             task_dirs[split] = [os.path.dirname(task_file) for task_file in task_files[split]]
-            instruction_files[split] = [
-                os.path.join(task_dir, HARBOR_INSTRUCTION_FILE_NAME) for task_dir in task_dirs[split]
-            ]
+            instruction_dirs = {
+                os.path.dirname(data_file)
+                for data_file in data_files
+                if os.path.basename(data_file) == HARBOR_INSTRUCTION_FILE_NAME
+            }
+            # a multi-step task has no top-level instruction.md: each of its steps has its own
+            instruction_files[split] = {
+                task_dir: os.path.join(task_dir, HARBOR_INSTRUCTION_FILE_NAME)
+                for task_dir in task_dirs[split]
+                if task_dir in instruction_dirs
+            }
             if not task_files[split]:
                 raise DataFilesNotFoundError("No task.toml or instruction.md files found")
 
@@ -177,7 +186,9 @@ class Harbor(datasets.GeneratorBasedBuilder):
                 name=split,
                 gen_kwargs={
                     "task_files": downloaded_task_files[split],
-                    "instruction_files": downloaded_instruction_files[split],
+                    "instruction_files": [
+                        downloaded_instruction_files[split].get(task_dir) for task_dir in task_dirs[split]
+                    ],
                     "task_dirs": task_dirs[split],
                 },
             )
@@ -194,10 +205,12 @@ class Harbor(datasets.GeneratorBasedBuilder):
         ):
             with open(task_file, encoding="utf-8") as f:
                 task_config = _to_jsonable(_loads_toml(f.read()))
-            with open(instruction_file, encoding="utf-8") as f:
-                instructions = f.read()
-                if self.config.strip_canary:
-                    instructions = strip_canary(instructions)
+            instructions = ""  # like in Harbor, a multi-step task has no top-level instruction
+            if instruction_file is not None:
+                with open(instruction_file, encoding="utf-8") as f:
+                    instructions = f.read()
+                    if self.config.strip_canary:
+                        instructions = strip_canary(instructions)
             files = (
                 [
                     os.path.relpath(file, task_dir).replace("\\", "/")
