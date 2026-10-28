@@ -67,6 +67,12 @@ def _loads_toml(toml_text: str) -> dict:
     return tomllib.loads(toml_text)
 
 
+def _has_steps(task_file: str) -> bool:
+    """Whether a task.toml declares `[[steps]]`, i.e. is a multi-step task, as in Harbor's `Task.has_steps`."""
+    with open(task_file, encoding="utf-8") as f:
+        return bool(_loads_toml(f.read()).get("steps"))
+
+
 def _to_jsonable(value: Any) -> Any:
     """Convert the TOML-specific types (dates, datetimes, uuids) to JSON-serializable values."""
     if isinstance(value, (datetime, date, time)):
@@ -121,8 +127,9 @@ class Harbor(datasets.GeneratorBasedBuilder):
     - **name** (`str`) -- name of the task, as `org/name` in `[task].name` of `task.toml`, or the
       name of the task directory when `task.toml` has no `[task]` section.
     - **description** (`str`) -- `[task].description` of `task.toml`.
-    - **instruction** (`str`) -- contents of `instruction.md`, or an empty string when the task has no
-      top-level `instruction.md`, like a multi-step task whose instructions are in `steps/<step>/`.
+    - **instruction** (`str`) -- contents of `instruction.md`, or an empty string for a multi-step task
+      (with `[[steps]]` in `task.toml`) that has no top-level `instruction.md`, since its instructions are
+      in `steps/<step>/instruction.md`.
     - **keywords** (`list` of `str`) -- `[task].keywords` of `task.toml`.
     - **schema_version** (`str`) -- `schema_version` declared by `task.toml`.
     - **config** (`dict`) -- the whole `task.toml`, as a JSON object.
@@ -158,28 +165,35 @@ class Harbor(datasets.GeneratorBasedBuilder):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         task_files = {}
-        instruction_files = {}
         task_dirs = {}
+        listed_instruction_dirs = {}
         for split, data_files in self.config.data_files.items():
             task_files[split] = [
                 data_file for data_file in data_files if os.path.basename(data_file) == HARBOR_TASK_FILE_NAME
             ]
             task_dirs[split] = [os.path.dirname(task_file) for task_file in task_files[split]]
-            instruction_dirs = {
+            listed_instruction_dirs[split] = {
                 os.path.dirname(data_file)
                 for data_file in data_files
                 if os.path.basename(data_file) == HARBOR_INSTRUCTION_FILE_NAME
-            }
-            # a multi-step task has no top-level instruction.md: each of its steps has its own
-            instruction_files[split] = {
-                task_dir: os.path.join(task_dir, HARBOR_INSTRUCTION_FILE_NAME)
-                for task_dir in task_dirs[split]
-                if task_dir in instruction_dirs
             }
             if not task_files[split]:
                 raise DataFilesNotFoundError("No task.toml or instruction.md files found")
 
         downloaded_task_files = dl_manager.download(task_files)
+        instruction_files = {}
+        for split in task_files:
+            instruction_files[split] = {}
+            for task_dir, downloaded_task_file in zip(task_dirs[split], downloaded_task_files[split]):
+                instruction_file = os.path.join(task_dir, HARBOR_INSTRUCTION_FILE_NAME)
+                # like in Harbor, a multi-step task may have no top-level instruction.md: each step has its own
+                if (
+                    task_dir not in listed_instruction_dirs[split]
+                    and _has_steps(downloaded_task_file)
+                    and not os.path.isfile(instruction_file)
+                ):
+                    continue
+                instruction_files[split][task_dir] = instruction_file
         downloaded_instruction_files = dl_manager.download(instruction_files)
         return [
             datasets.SplitGenerator(
@@ -205,7 +219,7 @@ class Harbor(datasets.GeneratorBasedBuilder):
         ):
             with open(task_file, encoding="utf-8") as f:
                 task_config = _to_jsonable(_loads_toml(f.read()))
-            instructions = ""  # like in Harbor, a multi-step task has no top-level instruction
+            instructions = ""  # multi-step task without a top-level instruction.md
             if instruction_file is not None:
                 with open(instruction_file, encoding="utf-8") as f:
                     instructions = f.read()

@@ -197,10 +197,11 @@ def test_load_dataset_harbor_streaming(harbor_repo):
     assert locations == ["tasks/task-a", "tasks/task-b"]
 
 
+@pytest.mark.parametrize("data_files", [None, {"test": ["**/task.toml"]}])
 @pytest.mark.parametrize("streaming", [False, True])
-def test_load_dataset_harbor_multi_step_task(harbor_multi_step_repo, streaming):
+def test_load_dataset_harbor_multi_step_task(harbor_multi_step_repo, data_files, streaming):
     """A multi-step task has no top-level instruction.md, so its instruction is empty, as in Harbor."""
-    ds = load_dataset(str(harbor_multi_step_repo), split="test", streaming=streaming)
+    ds = load_dataset(str(harbor_multi_step_repo), data_files=data_files, split="test", streaming=streaming)
     examples = list(ds)
     assert [example["name"] for example in examples] == ["acme/task-a", "acme/task-b"]
     assert [example["instruction"] for example in examples] == ["Do A.", ""]
@@ -208,9 +209,21 @@ def test_load_dataset_harbor_multi_step_task(harbor_multi_step_repo, streaming):
     assert "steps/step-1/instruction.md" in examples[1]["files"]
 
 
-def test_load_dataset_harbor_repo_from_task_file_pattern(harbor_repo):
-    ds = load_dataset(str(harbor_repo), data_files={"test": ["**/task.toml", "**/instruction.md"]})
+@pytest.mark.parametrize("data_files", [None, {"test": ["**/task.toml"]}])
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_harbor_single_step_task_without_instruction_fails(tmp_path, data_files, streaming):
+    """A task without [[steps]] needs its instruction.md."""
+    write_task(tmp_path / "tasks" / "task-a", "task-a")
+    (write_task(tmp_path / "tasks" / "task-b", "task-b") / "instruction.md").unlink()
+    with pytest.raises(FileNotFoundError):
+        list(load_dataset(str(tmp_path), data_files=data_files, split="test", streaming=streaming))
+
+
+@pytest.mark.parametrize("patterns", [["**/task.toml", "**/instruction.md"], ["**/task.toml"]])
+def test_load_dataset_harbor_repo_from_task_file_pattern(harbor_repo, patterns):
+    ds = load_dataset(str(harbor_repo), data_files={"test": patterns})
     assert ds["test"]["location"] == ["tasks/task-a", "tasks/task-b"]
+    assert ds["test"]["instruction"] == ["Do A.", "Do B."]
 
 
 def test_load_dataset_harbor_without_task_files(tmp_path):
