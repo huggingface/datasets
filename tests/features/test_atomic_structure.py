@@ -2,7 +2,6 @@ import bz2
 import gzip
 import io
 import textwrap
-import warnings
 from pathlib import Path
 
 import numpy as np
@@ -10,10 +9,10 @@ import pyarrow as pa
 import pytest
 
 from datasets import AtomicStructure, Dataset, Features, load_from_disk
-from datasets.features.atomic_structure import get_atomic_structure_decoder, register_atomic_structure_decoder
+from datasets.features.atomic_structure import _is_bcif, _is_stored
 from datasets.features.features import generate_from_dict
 
-from ..utils import require_biotite, require_zstandard
+from ..utils import require_atomworks, require_zstandard
 
 
 DATA_DIR = Path(__file__).parent / "data"
@@ -35,7 +34,7 @@ MULTI_MODEL_PDB = textwrap.dedent(
     """
 )
 
-# Acetic acid: a double bond and a single bond to oxygen.
+# Acetic acid: a double bond and a single bond to oxygen. The atoms have no names and no residue.
 ACETIC_ACID_SDF = textwrap.dedent(
     """\
     acetic acid
@@ -54,53 +53,60 @@ ACETIC_ACID_SDF = textwrap.dedent(
     """
 )
 
+ETHANOL_MOL2 = textwrap.dedent(
+    """\
+    @<TRIPOS>MOLECULE
+    ethanol
+     3 2 0 0 0
+    SMALL
+    GASTEIGER
+
+    @<TRIPOS>ATOM
+          1 C1          0.0000    0.0000    0.0000 C.3     1  LIG1        0.0000
+          2 C2          1.5200    0.0000    0.0000 C.3     1  LIG1        0.0000
+          3 O1          2.0000    1.3000    0.0000 O.3     1  LIG1        0.0000
+    @<TRIPOS>BOND
+         1     1     2    1
+         2     2     3    1
+    """
+)
+
 
 def _features(**kwargs):
     return Features({"s": AtomicStructure(**kwargs)})
 
 
+def _parse_with_atomworks(path):
+    from atomworks.io import parse
+
+    atoms = parse(str(path), config="default")["asym_unit"]
+    return atoms[0] if hasattr(atoms, "stack_depth") and atoms.stack_depth() == 1 else atoms
+
+
+def _assert_same_atoms(actual, expected):
+    """Same atoms: exact coordinates, every annotation with its dtype, bonds and box."""
+    assert actual.array_length() == expected.array_length()
+    np.testing.assert_array_equal(actual.coord, expected.coord)
+    assert set(actual.get_annotation_categories()) == set(expected.get_annotation_categories())
+    for name in expected.get_annotation_categories():
+        want, got = expected.get_annotation(name), actual.get_annotation(name)
+        assert got.dtype == want.dtype, name
+        np.testing.assert_array_equal(got, want, err_msg=name)
+    assert actual.bonds == expected.bonds
+    assert (actual.box is None) == (expected.box is None)
+
+
+def _roundtrip(value, **kwargs):
+    return Dataset.from_dict({"s": [value]}, features=_features(**kwargs))[0]["s"]
+
+
 def test_storage_type():
-    feature = AtomicStructure()
-    annotations = feature.pa_type.field("annotations").type
-    assert [f.name for f in annotations] == [
-        "chain_id",
-        "res_id",
-        "ins_code",
-        "res_name",
-        "hetero",
-        "atom_name",
-        "element",
-        "b_factor",
-        "occupancy",
-        "charge",
-    ]
-    assert feature.pa_type.field("coord").type == pa.list_(pa.list_(pa.list_(pa.float32(), 3)))
-    assert feature.pa_type.get_field_index("global_annotations") < 0
-
-    custom = AtomicStructure(
-        annotations={"atom_id": "int64"},
-        global_annotations={"resolution": "float32"},
-        pair_annotations={"contact": "bool"},
-    )
-    assert [f.name for f in custom.pa_type.field("annotations").type][-1] == "atom_id"
-    assert custom.pa_type.field("global_annotations").type == pa.struct([("resolution", pa.float32())])
-    assert custom.pa_type.field("pair_annotations").type.field("contact").type.field("value").type == pa.list_(
-        pa.bool_()
-    )
-
-    with pytest.raises(ValueError, match="core annotation"):
-        AtomicStructure(annotations={"res_name": "string"})
+    assert AtomicStructure().pa_type == pa.struct({"bytes": pa.binary(), "path": pa.string()})
+    assert AtomicStructure().flatten() is not None
 
 
 @pytest.mark.parametrize(
-    "feature",
-    [
-        AtomicStructure(),
-        AtomicStructure(annotations={}, decoder="numpy"),
-        AtomicStructure(
-            annotations={"atom_id": "int64"}, global_annotations={"r": "float32"}, pair_annotations={"d": "float32"}
-        ),
-    ],
+    "feature", [AtomicStructure(), AtomicStructure(parse_config={"preset": "rcsb"}, assembly="1")]
 )
 def test_serialization(feature):
     features = Features({"s": feature})
@@ -109,265 +115,264 @@ def test_serialization(feature):
     assert Features._from_yaml_list(features._to_yaml_list()) == features
 
 
-@require_biotite
-@pytest.mark.parametrize(
-    "source", ["path_pdb", "path_cif", "pathlib", "bytes_pdb", "bytes_cif", "dict_bytes", "dict_path"]
-)
-def test_encode_files(source):
+def test_encode_rejects_unknown_input():
+    with pytest.raises(ValueError, match="An atomic structure should be"):
+        AtomicStructure().encode_example(42)
+
+
+def test_empty_and_missing_values():
+    assert len(Dataset.from_dict({"s": []}, features=_features())) == 0
+    assert Dataset.from_dict({"s": [None, None]}, features=_features())["s"] == [None, None]
+
+
+# ----------------------------------------------------------------------------------------------- files
+
+
+@require_atomworks
+@pytest.mark.parametrize("path", [CIF_FILE, PDB_FILE])
+def test_decoding_gives_what_atomworks_parses(path):
+    atoms = _roundtrip(str(path))
+    assert type(atoms).__name__ == "AtomArrayPlus"
+    # the atomworks annotations (entities, molecules, chain types, ...) are stored, not just the biotite ones
+    assert {"molecule_id", "chain_type", "is_polymer", "pn_unit_id"} <= set(atoms.get_annotation_categories())
+    _assert_same_atoms(atoms, _parse_with_atomworks(path))
+
+
+@require_atomworks
+@pytest.mark.parametrize("source", ["pathlib", "bytes_pdb", "bytes_cif", "dict_bytes", "dict_path"])
+def test_encode_file_inputs(source):
     value = {
-        "path_pdb": str(PDB_FILE),
-        "path_cif": str(CIF_FILE),
         "pathlib": PDB_FILE,
         "bytes_pdb": PDB_FILE.read_bytes(),
         "bytes_cif": CIF_FILE.read_bytes(),
         "dict_bytes": {"bytes": CIF_FILE.read_bytes(), "path": "renamed.cif"},
         "dict_path": {"bytes": None, "path": str(PDB_FILE)},
     }[source]
-    atoms = Dataset.from_dict({"s": [value]}, features=_features())[0]["s"]
-    assert atoms.atom_name.tolist() == ATOM_NAMES
-    assert atoms.res_id.tolist() == [1] * 5 + [2] * 4
-    assert atoms.b_factor.tolist() == [20.0] * 9
-    assert atoms.bonds.get_bond_count() == 8  # from the CCD, including the peptide bond
-    np.testing.assert_allclose(atoms.coord[1], [1.458, 0.0, 0.0])
+    expected = _parse_with_atomworks(CIF_FILE if source in ("bytes_cif", "dict_bytes") else PDB_FILE)
+    _assert_same_atoms(_roundtrip(value), expected)
 
 
-@require_biotite
+@require_atomworks
 @pytest.mark.parametrize("compress", [gzip.compress, bz2.compress, pytest.param("zstd", marks=require_zstandard)])
 def test_encode_compressed(compress):
     if compress == "zstd":
         import zstandard
 
         compress = zstandard.ZstdCompressor().compress
-    for data in (CIF_FILE.read_bytes(), PDB_FILE.read_bytes()):
-        atoms = Dataset.from_dict({"s": [compress(data)]}, features=_features())[0]["s"]
-        assert atoms.atom_name.tolist() == ATOM_NAMES
+    for path in (CIF_FILE, PDB_FILE):
+        _assert_same_atoms(_roundtrip(compress(path.read_bytes())), _parse_with_atomworks(path))
 
 
-@require_biotite
-def test_encode_bcif_with_atom_site_annotation():
+@require_atomworks
+def test_stored_bytes_are_a_bcif_file_any_reader_opens():
+    import biotite.structure.io.pdbx as pdbx
+
+    row = AtomicStructure().encode_example(str(CIF_FILE))
+    assert row["path"] == "test_protein.cif"
+    assert _is_stored(row["bytes"])
+    plain = pdbx.get_structure(pdbx.BinaryCIFFile.read(io.BytesIO(row["bytes"])), model=1, include_bonds=True)
+    expected = _parse_with_atomworks(CIF_FILE)
+    assert plain.atom_name.tolist() == expected.atom_name.tolist()
+    np.testing.assert_allclose(plain.coord, expected.coord, atol=1e-3)
+
+
+@require_atomworks
+def test_encoding_a_stored_structure_keeps_it():
+    row = AtomicStructure().encode_example(str(PDB_FILE))
+    assert AtomicStructure().encode_example(row)["bytes"] == row["bytes"]
+    assert AtomicStructure().encode_example(gzip.compress(row["bytes"]))["bytes"] == row["bytes"]
+
+
+@require_atomworks
+def test_encode_bcif_written_by_another_tool():
     import biotite.structure.io.pdbx as pdbx
 
     atoms = pdbx.get_structure(pdbx.CIFFile.read(str(CIF_FILE)), model=1)
-    bcif_file = pdbx.BinaryCIFFile()
-    pdbx.set_structure(bcif_file, atoms)
-    bcif = io.BytesIO()
-    bcif_file.write(bcif)
-    features = _features(annotations={"label_asym_id": "string", "b_factor": "float32"})
-    atoms = Dataset.from_dict({"s": [bcif.getvalue()]}, features=features)[0]["s"]
-    assert atoms.atom_name.tolist() == ATOM_NAMES
-    assert atoms.label_asym_id.tolist() == ["A"] * 9
-    assert "occupancy" not in atoms.get_annotation_categories()
+    file = pdbx.BinaryCIFFile()
+    pdbx.set_structure(file, atoms)
+    buffer = io.BytesIO()
+    file.write(buffer)
+    assert _is_bcif(buffer.getvalue()) and not _is_stored(buffer.getvalue())
+    row = AtomicStructure().encode_example(buffer.getvalue())
+    assert _is_stored(row["bytes"])
+    assert "molecule_id" in AtomicStructure().decode_example(row).get_annotation_categories()
 
 
-@require_biotite
+@require_atomworks
+def test_decode_a_row_without_bytes():
+    _assert_same_atoms(
+        AtomicStructure().decode_example({"bytes": None, "path": str(CIF_FILE)}), _parse_with_atomworks(CIF_FILE)
+    )
+    with pytest.raises(ValueError, match="both are None"):
+        AtomicStructure().decode_example({"bytes": None, "path": None})
+
+
+@require_atomworks
+def test_parse_config_and_assembly():
+    atoms = _roundtrip(str(CIF_FILE), parse_config={"preset": "lightweight"})
+    assert atoms.array_length() == 9  # the lightweight preset adds no atoms
+    with pytest.raises(ValueError, match="Invalid assembly ID"):
+        AtomicStructure(assembly="99").encode_example(str(CIF_FILE))
+
+
+@require_atomworks
+def test_multiple_models():
+    stack = _roundtrip(MULTI_MODEL_PDB.encode())
+    assert type(stack).__name__ == "AtomArrayPlusStack"
+    assert stack.coord.shape[0] == 2
+    assert stack.coord[1, :2, 0].tolist() == [0.5, 1.5]  # atomworks adds the missing atoms of the residue
+
+
+# ---------------------------------------------------------------------------------------- other inputs
+
+
+@require_atomworks
 def test_encode_sdf_keeps_bond_orders():
-    atoms = Dataset.from_dict({"s": [{"bytes": ACETIC_ACID_SDF.encode(), "path": "acid.sdf"}]}, features=_features())[
-        0
-    ]["s"]
+    atoms = _roundtrip({"bytes": ACETIC_ACID_SDF.encode(), "path": "acid.sdf"})
     assert atoms.element.tolist() == ["C", "C", "O", "O"]
+    assert atoms.chain_id.tolist() == ["A"] * 4
+    assert atoms.hetero.all()
     assert sorted(atoms.bonds.as_array().tolist()) == [[0, 1, 1], [1, 2, 2], [1, 3, 1]]
 
 
-@require_biotite
-def test_multiple_models():
-    import biotite.structure as struc
-
-    dataset = Dataset.from_dict({"s": [MULTI_MODEL_PDB.encode()]}, features=_features())
-    stack = dataset[0]["s"]
-    assert isinstance(stack, struc.AtomArrayStack)
-    assert stack.coord.shape == (2, 2, 3)
-    assert stack.coord[1, :, 0].tolist() == [0.5, 1.5]
-    raw = dataset.cast_column("s", AtomicStructure(decoder="numpy"))[0]["s"]
-    assert raw["coord"].shape == (2, 2, 3)
+@require_atomworks
+def test_encode_mol2():
+    atoms = _roundtrip({"bytes": ETHANOL_MOL2.encode(), "path": "ethanol.mol2"})
+    assert atoms.element.tolist() == ["C", "C", "O"]
+    assert atoms.bonds.get_bond_count() == 2
 
 
-@require_biotite
-def test_encode_ase_periodic_structure():
-    ase_build = pytest.importorskip("ase.build")
-
-    crystal = ase_build.bulk("Cu", "fcc", a=3.6, cubic=True)
-    atoms = Dataset.from_dict({"s": [crystal]}, features=_features())[0]["s"]
-    assert atoms.element.tolist() == ["CU"] * 4
-    np.testing.assert_allclose(atoms.coord, crystal.get_positions(), atol=1e-5)
-    np.testing.assert_allclose(atoms.box, np.diag([3.6, 3.6, 3.6]), atol=1e-5)
-
-    molecule = ase_build.molecule("H2O")
-    atoms = Dataset.from_dict({"s": [molecule]}, features=_features())[0]["s"]
-    assert atoms.box is None
-
-
-@require_biotite
+@require_atomworks
 def test_encode_rdkit_molecule():
     Chem = pytest.importorskip("rdkit.Chem")
     AllChem = pytest.importorskip("rdkit.Chem.AllChem")
 
     mol = Chem.AddHs(Chem.MolFromSmiles("CCO"))
     AllChem.EmbedMolecule(mol, randomSeed=0)
-    atoms = Dataset.from_dict({"s": [mol]}, features=_features())[0]["s"]
-    assert atoms.array_length() == 9
-    assert sorted(set(atoms.element.tolist())) == ["C", "H", "O"]
-    assert atoms.bonds.get_bond_count() == 8
+    atoms = _roundtrip(mol)
+    assert atoms.element.tolist() == ["C", "C", "O"]  # atomworks removes hydrogens
+    assert atoms.bonds.get_bond_count() == 2
 
 
-@require_biotite
-def test_encode_atom_array_and_annotations():
-    import biotite.structure as struc
+@require_atomworks
+def test_encode_ase_periodic_structure():
+    ase_build = pytest.importorskip("ase.build")
 
-    atoms = Dataset.from_dict({"s": [str(CIF_FILE)]}, features=_features())[0]["s"]
-    atoms.set_annotation("confidence", np.linspace(0, 1, 9))
-    atoms.box = np.eye(3) * 50
-    with pytest.warns(UserWarning, match="confidence"):
-        again = Dataset.from_dict({"s": [atoms]}, features=_features())[0]["s"]
-    assert "confidence" not in again.get_annotation_categories()
+    crystal = ase_build.bulk("Cu", "fcc", a=3.6, cubic=True)
+    atoms = _roundtrip(crystal)
+    np.testing.assert_allclose(atoms.coord, crystal.get_positions(), atol=1e-3)
+    np.testing.assert_allclose(atoms.box, np.diag([3.6, 3.6, 3.6]), atol=1e-5)
+    assert _roundtrip(ase_build.molecule("H2O")).box is None
 
-    features = _features(annotations={"confidence": "float32"})
-    again = Dataset.from_dict({"s": [atoms]}, features=features)[0]["s"]
-    np.testing.assert_allclose(again.confidence, np.linspace(0, 1, 9), atol=1e-6)
-    np.testing.assert_allclose(again.box, np.eye(3) * 50)
+
+# ------------------------------------------------------------------------------------- exact round trips
+
+
+@require_atomworks
+def test_array_with_all_annotation_kinds_roundtrips_exactly():
+    """Every annotation comes back with its values and dtype, which mmCIF itself does not carry."""
+    from atomworks.io.utils.atom_array_plus import AnnotationList2D
+
+    atoms = _roundtrip(str(CIF_FILE))
+    n = atoms.array_length()
+    rng = np.random.default_rng(0)
+    atoms.set_annotation("small_int", np.arange(n, dtype=np.int8))
+    atoms.set_annotation("wide_int", np.arange(n, dtype=np.int64) * 1000)
+    atoms.set_annotation("flag", np.arange(n) % 2 == 0)
+    atoms.set_annotation("score32", rng.random(n).astype(np.float32))
+    atoms.set_annotation("score64", np.where(np.arange(n) == 3, np.nan, rng.random(n)))
+    atoms.set_annotation("label", np.array(["", "a", "bb", "ccc"] * (n // 4) + [""] * (n % 4)))
+    atoms.set_annotation("embedding", rng.random((n, 4)).astype(np.float32))
+    atoms.set_annotation("resolution", np.array(2.5, dtype=np.float32), n_body=0)
+    pairs = np.array([[0, 5], [3, 8]])
+    atoms.set_annotation("contact", AnnotationList2D(n, pairs, np.array([1.5, 2.5])), n_body=2)
+    atoms.box = np.diag([50.0, 51.0, 52.0]).astype(np.float32)
+    again = _roundtrip(atoms)
+    _assert_same_atoms(again, atoms)
+    np.testing.assert_array_equal(again.score64, atoms.score64)  # NaN included
+    np.testing.assert_allclose(again.box, atoms.box)
+    assert float(again.get_annotation("resolution", n_body=0)) == 2.5
+    contact = again.get_annotation("contact", n_body=2)
+    np.testing.assert_array_equal(contact.pairs, pairs)
+    np.testing.assert_array_equal(contact.values, [1.5, 2.5])
+
+
+@require_atomworks
+def test_coordinates_are_exact_even_beyond_fixed_point_precision():
+    """Coordinates that BinaryCIF's 0.001 A fixed point can't hold (e.g. atoms placed by a parser) are kept exactly."""
+    atoms = _roundtrip(str(CIF_FILE))
+    rng = np.random.default_rng(1)
+    atoms.coord = (atoms.coord + rng.random(atoms.coord.shape) * 1e-4).astype(np.float32)
+    np.testing.assert_array_equal(_roundtrip(atoms).coord, atoms.coord)
+    row = AtomicStructure().encode_example(_roundtrip(str(CIF_FILE)))
+    assert b"atomworks_coord" not in row["bytes"]  # not needed when atom_site is exact
+
+
+@require_atomworks
+def test_biotite_array_roundtrips():
+    import biotite.structure.io.pdbx as pdbx
+
+    atoms = pdbx.get_structure(pdbx.CIFFile.read(str(CIF_FILE)), model=1, include_bonds=True)
+    again = _roundtrip(atoms)
+    assert again.atom_name.tolist() == atoms.atom_name.tolist()
     assert again.bonds == atoms.bonds
-    assert isinstance(again, struc.AtomArray)
 
 
-class _AtomArrayWithBodies:
-    """Minimal stand-in for an AtomArray subclass with system-wide (n_body=0) and pairwise (n_body=2) annotations."""
-
-    def __init__(self, atoms, global_annotations, pair_annotations):
-        self._atoms, self._global, self._pairs = atoms, global_annotations, pair_annotations
-        self.coord, self.bonds, self.box = atoms.coord, atoms.bonds, atoms.box
-
-    def get_annotation_categories(self, n_body=1):
-        return {0: list(self._global), 1: self._atoms.get_annotation_categories(), 2: list(self._pairs)}[n_body]
-
-    def get_annotation(self, name, n_body=1):
-        return {0: self._global, 2: self._pairs}[n_body][name] if n_body != 1 else self._atoms.get_annotation(name)
+# ---------------------------------------------------------------------------------- dataset plumbing
 
 
-@require_biotite
-def test_global_and_pair_annotations():
-    from types import SimpleNamespace
-
-    atoms = Dataset.from_dict({"s": [str(CIF_FILE)]}, features=_features())[0]["s"]
-    contacts = SimpleNamespace(pairs=np.array([[0, 5], [1, 6]]), values=np.array([3.5, 4.0]))
-    value = _AtomArrayWithBodies(atoms, {"resolution": np.float64(1.8)}, {"distance": contacts})
-    features = _features(
-        global_annotations={"resolution": "float32"}, pair_annotations={"distance": "float32"}, decoder="numpy"
-    )
-    structure = Dataset.from_dict({"s": [value]}, features=features)[0]["s"]
-    assert structure["global_annotations"] == {"resolution": pytest.approx(1.8)}
-    assert structure["pair_annotations"]["distance"]["atom1"].tolist() == [0, 1]
-    assert structure["pair_annotations"]["distance"]["atom2"].tolist() == [5, 6]
-    assert structure["pair_annotations"]["distance"]["value"].tolist() == [3.5, 4.0]
-
-    dataset = Dataset.from_dict({"s": [value]}, features=_features(global_annotations={"resolution": "float32"}))
-    with pytest.warns(UserWarning, match="global or pair annotations"):
-        dataset[0]["s"]
-
-
-def test_numpy_decoder_needs_no_dependency(monkeypatch):
-    monkeypatch.setattr("datasets.config.BIOTITE_AVAILABLE", False)
-    value = {"coord": [[[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]]], "annotations": {"atom_name": ["N", "CA"]}}
-    structure = Dataset.from_dict({"s": [value]}, features=_features(decoder="numpy"))[0]["s"]
-    assert structure["coord"].shape == (1, 2, 3)
-    assert structure["annotations"]["atom_name"].tolist() == ["N", "CA"]
-    assert structure["annotations"]["res_name"].tolist() == ["", ""]
-    assert structure["annotations"]["res_id"].tolist() == [0, 0]
-    assert np.isnan(structure["annotations"]["b_factor"]).all()
-    assert structure["bonds"]["atom1"].tolist() == []
-    assert structure["box"] is None
-
-    with pytest.raises(ImportError, match="biotite"):
-        Dataset.from_dict({"s": [value]}, features=_features())[0]["s"]
-    with pytest.raises(ImportError, match="biotite"):
-        AtomicStructure().encode_example(str(PDB_FILE))
-
-
-@require_biotite
-def test_decoded_numpy_structure_roundtrips():
-    features = _features(decoder="numpy")
-    structure = Dataset.from_dict({"s": [str(CIF_FILE)]}, features=features)[0]["s"]
-    again = Dataset.from_dict({"s": [structure]}, features=features)[0]["s"]
-    np.testing.assert_array_equal(again["coord"], structure["coord"])
-    for name, values in structure["annotations"].items():
-        np.testing.assert_array_equal(again["annotations"][name], values)
-    for name, values in structure["bonds"].items():
-        np.testing.assert_array_equal(again["bonds"][name], values)
-
-
-@require_biotite
+@require_atomworks
 def test_cast_column_from_paths_bytes_and_file_references():
     dataset = Dataset.from_dict({"s": [str(PDB_FILE), str(CIF_FILE)]}).cast_column("s", AtomicStructure())
-    assert [atoms.atom_name.tolist() for atoms in dataset["s"]] == [ATOM_NAMES, ATOM_NAMES]
+    assert [len(atoms) for atoms in dataset["s"]] == [20, 20]
 
     dataset = Dataset.from_dict({"s": [PDB_FILE.read_bytes()]}).cast_column("s", AtomicStructure())
-    assert len(dataset[0]["s"]) == 9
+    assert len(dataset[0]["s"]) == 20
 
-    # file references as stored by other file-based features
+    # file references as stored by other file-based features, e.g. the `BioStructure` feature this replaces
     references = pa.array([{"bytes": CIF_FILE.read_bytes(), "path": "test_protein.cif"}])
     dataset = Dataset(pa.table({"s": references})).cast_column("s", AtomicStructure())
-    assert len(dataset[0]["s"]) == 9
+    assert len(dataset[0]["s"]) == 20
+    # casting a column that is already stored keeps the bytes
+    again = dataset.cast_column("s", AtomicStructure(parse_config={"preset": "rcsb"}))
+    assert again.data.column("s").to_pylist() == dataset.data.column("s").to_pylist()
 
 
-def test_empty_and_missing_values():
-    features = _features()
-    assert len(Dataset.from_dict({"s": []}, features=features)) == 0
-    assert Dataset.from_dict({"s": [None, None]}, features=features)["s"] == [None, None]
-
-
-def test_encode_rejects_unknown_input():
-    with pytest.raises(ValueError, match="An atomic structure should be"):
-        AtomicStructure().encode_example(42)
-
-
-@require_biotite
+@require_atomworks
 def test_decode_false_and_flatten():
     dataset = Dataset.from_dict({"s": [str(PDB_FILE)]}, features=_features(decode=False))
     raw = dataset[0]["s"]
-    assert raw["annotations"]["atom_name"] == ATOM_NAMES
-    assert raw["coord"][0][1] == pytest.approx([1.458, 0.0, 0.0])
-    flat = dataset.flatten()
-    assert "s.annotations.atom_name" in flat.column_names
-    assert "s.coord" in flat.column_names
+    assert set(raw) == {"bytes", "path"} and raw["path"] == "test_protein.pdb"
+    assert _is_stored(raw["bytes"])
+    assert set(dataset.flatten().column_names) == {"s.bytes", "s.path"}
     with pytest.raises(RuntimeError, match="Decoding is disabled"):
         AtomicStructure(decode=False).decode_example(raw)
 
 
-@require_biotite
-@pytest.mark.parametrize("format_type", [None, "numpy", "arrow"])
-def test_formats(format_type):
-    dataset = Dataset.from_dict({"s": [str(PDB_FILE), MULTI_MODEL_PDB.encode()]}, features=_features(decoder="numpy"))
-    structure = dataset.with_format(format_type)[0]["s"]
-    if format_type == "arrow":
-        coord = structure.combine_chunks().field("coord").flatten().flatten().flatten().to_numpy()
-        assert coord.reshape(-1, 3).shape == (9, 3)
-    else:
-        assert structure["coord"].shape == (1, 9, 3)
-        assert structure["annotations"]["atom_name"].tolist() == ATOM_NAMES
-        assert structure["annotations"]["charge"].tolist() == [0] * 9
+def test_embed_storage_keeps_bytes_and_reads_missing_ones():
+    """A row that holds its bytes is not read from its path again, which may not exist any more."""
+    kept = {"bytes": b"embedded", "path": "gone/1abc.cif"}
+    missing = {"bytes": None, "path": str(CIF_FILE)}
+    storage = pa.array([kept, missing, None], type=AtomicStructure.pa_type)
+    embedded = AtomicStructure().embed_storage(storage).to_pylist()
+    assert embedded[0] == {"bytes": b"embedded", "path": "1abc.cif"}
+    assert embedded[1] == {"bytes": CIF_FILE.read_bytes(), "path": "test_protein.cif"}
+    assert embedded[2] is None
+    skipped = AtomicStructure().embed_storage(storage, local_files=False).to_pylist()
+    assert skipped[1]["bytes"] is None
 
 
-@require_biotite
+@require_atomworks
+def test_arrow_format():
+    dataset = Dataset.from_dict({"s": [str(PDB_FILE)]}, features=_features())
+    structure = dataset.with_format("arrow")[0]["s"]
+    assert _is_stored(structure.combine_chunks().field("bytes")[0].as_py())
+
+
+@require_atomworks
 def test_save_and_load_from_disk(tmp_path):
-    features = _features(annotations={"atom_id": "int32"}, global_annotations={"resolution": "float32"})
-    dataset = Dataset.from_dict({"s": [str(CIF_FILE)]}, features=features)
+    dataset = Dataset.from_dict({"s": [str(CIF_FILE)]}, features=_features())
     dataset.save_to_disk(tmp_path / "saved")
     reloaded = load_from_disk(tmp_path / "saved")
     assert reloaded.features == dataset.features
-    np.testing.assert_array_equal(reloaded[0]["s"].coord, dataset[0]["s"].coord)
-    assert reloaded[0]["s"].atom_id.tolist() == list(range(1, 10))
-
-
-@require_biotite
-def test_register_decoder():
-    register_atomic_structure_decoder("n_atoms", lambda structure: structure["coord"].shape[1])
-    dataset = Dataset.from_dict({"s": [str(PDB_FILE)]}, features=_features(decoder="n_atoms"))
-    assert dataset[0]["s"] == 9
-    with pytest.raises(ValueError, match="Unknown atomic structure decoder 'missing'"):
-        get_atomic_structure_decoder("missing")
-
-
-@require_biotite
-def test_no_warning_for_declared_annotations():
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always")
-        Dataset.from_dict({"s": [str(PDB_FILE)]}, features=_features())[0]["s"]
-    assert not [w for w in caught if "not declared" in str(w.message)]
+    _assert_same_atoms(reloaded[0]["s"], dataset[0]["s"])

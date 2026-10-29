@@ -12,7 +12,7 @@ from datasets.data_files import DataFilesDict, get_data_patterns
 from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.packaged_modules.pdb.pdb import PdbFolder, PdbFolderConfig
 
-from ..utils import require_biotite
+from ..utils import require_atomworks
 
 
 def _normalize_path(path):
@@ -216,7 +216,7 @@ def test_generate_examples_drop_metadata(file_with_metadata, drop_metadata, drop
     assert example == expected_example
 
 
-@require_biotite
+@require_atomworks
 @pytest.mark.parametrize("streaming", [False, True])
 @pytest.mark.parametrize("n_splits", [1, 2])
 def test_data_files_with_metadata_and_splits(
@@ -252,11 +252,11 @@ def test_data_files_with_metadata_and_splits(
         assert dataset[split].features == expected_features
         rows = list(dataset[split])
         assert len(rows) == len(files) - 1
-        assert all(len(row["structure"]) == 9 for row in rows)
+        assert all(len(row["structure"]) == 20 for row in rows)
         assert [row["resolution"] for row in rows] == ([3.0] if split == "test" else [2.5, 1.8])
 
 
-@require_biotite
+@require_atomworks
 @pytest.mark.parametrize("streaming", [False, True])
 @pytest.mark.parametrize("drop_labels", [False, True])
 def test_structure_content_decoded(data_files_with_labels_no_metadata, cache_dir, streaming, drop_labels):
@@ -278,17 +278,15 @@ def test_structure_content_decoded(data_files_with_labels_no_metadata, cache_dir
     structures = [example["structure"] for example in dataset]
     assert len(structures) == 2
     for atoms in structures:
-        assert atoms.coord.shape == (9, 3)
-        assert atoms.atom_name.tolist() == ["N", "CA", "C", "O", "CB", "N", "CA", "C", "O"]
-        assert atoms.res_name.tolist() == ["ALA"] * 5 + ["GLY"] * 4
-        assert atoms.res_id.tolist() == [1] * 5 + [2] * 4
-        assert atoms.element.tolist() == ["N", "C", "C", "O", "C", "N", "C", "C", "O"]
-        assert atoms.coord[1].tolist() == pytest.approx([1.458, 0.0, 0.0])
-        assert atoms.b_factor.tolist() == [20.0] * 9
+        assert atoms.coord.shape == (20, 3)
+        assert {"N", "CA", "C", "O", "CB"} <= set(atoms.atom_name)  # atomworks adds the missing atoms
+        assert set(atoms.res_name) == {"ALA", "GLY"}
+        assert atoms.coord[atoms.atom_name == "CA"][0].tolist() == pytest.approx([1.458, 0.0, 0.0])
+        assert {"molecule_id", "chain_type"} <= set(atoms.get_annotation_categories())  # atomworks annotations
         assert atoms.bonds.get_bond_count() > 0  # intra-residue bonds from the CCD
 
 
-@require_biotite
+@require_atomworks
 def test_structure_survives_save_and_load(file_with_metadata, cache_dir, tmp_path):
     file, metadata_file = file_with_metadata
     pdbfolder = PdbFolder(data_files=[file, metadata_file], cache_dir=cache_dir)
@@ -304,7 +302,7 @@ def test_structure_survives_save_and_load(file_with_metadata, cache_dir, tmp_pat
         "method": _metadata_string_feature(dataset.features["method"], metadata_file),
     }
     [row] = list(dataset)
-    assert row["structure"].coord.shape == (9, 3)
+    assert row["structure"].coord.shape == (20, 3)
     assert row["resolution"] == 2.5
     assert row["method"] == "X-ray"
 
@@ -317,20 +315,21 @@ def file_with_hetatm(tmp_path):
     structure.write_text(
         "ATOM      1  N   ALA A   1       0.000   0.000   0.000  1.00 20.00           N\n"
         "ATOM      2  CA  ALA A   1       1.458   0.000   0.000  1.00 20.00           C\n"
-        "HETATM    3  O   HOH A   2       5.000   5.000   5.000  1.00 30.00           O\n"
+        "HETATM    3 ZN    ZN A   2       5.000   5.000   5.000  1.00 30.00          ZN\n"
         "END\n"
     )
     return DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
 
 
-@require_biotite
+@require_atomworks
 def test_structure_keeps_hetatm(file_with_hetatm, cache_dir):
     builder = PdbFolder(data_files=file_with_hetatm, cache_dir=cache_dir, drop_labels=True)
     builder.download_and_prepare()
     [row] = list(builder.as_dataset()["train"])
     atoms = row["structure"]
-    assert atoms.hetero.tolist() == [False, False, True]
-    assert atoms.res_name.tolist() == ["ALA", "ALA", "HOH"]
+    assert "ZN" in set(atoms.res_name)
+    assert atoms.hetero[atoms.res_name == "ZN"].all()
+    assert not atoms.hetero[atoms.res_name == "ALA"].any()
 
 
 def test_extensions_supported():

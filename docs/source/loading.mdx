@@ -279,9 +279,10 @@ and loading it never runs anything:
 Each row is one structure, following the same folder layout
 as [`ImageFolder`]: subfolder names become labels and a `metadata.csv`/`metadata.jsonl`
 file adds per-structure metadata. The `structure` column uses the [`AtomicStructure`] feature: each file is
-read once with [biotite](https://www.biotite-python.org) and stored as columns (coordinates, per-atom
-annotations such as `atom_name`, `res_name` and `chain_id`, bonds and the periodic box), and each example
-decodes to a `biotite.structure.AtomArray`. Reading and decoding structures requires `biotite`.
+read once with [biotite](https://www.biotite-python.org) and stored as a [BinaryCIF](https://github.com/molstar/BinaryCIF)
+file that also holds the exact atom array (every annotation with its dtype, bonds and the periodic box), and each
+example decodes to a `biotite.structure.AtomArray` without parsing a file. Reading and decoding structures requires
+`biotite`.
 
 To load PDB files from a directory:
 
@@ -289,7 +290,7 @@ To load PDB files from a directory:
 >>> from datasets import load_dataset
 >>> dataset = load_dataset("pdb", data_dir="path/to/structures")
 >>> dataset["train"].features["structure"]
-AtomicStructure(annotations=None, global_annotations=None, pair_annotations=None, decoder='biotite', decode=True)
+AtomicStructure(parse_config=None, assembly=None, decode=True)
 ```
 
 ```py
@@ -298,9 +299,16 @@ AtomicStructure(annotations=None, global_annotations=None, pair_annotations=None
 (1234, 3)
 ```
 
-Use `AtomicStructure(decoder="numpy")` to get the stored columns as numpy arrays without `biotite`, or
-`dataset.with_format("arrow")` to read them without decoding. To store more per-atom annotations, declare
-them with their type, e.g. `AtomicStructure(annotations={"label_asym_id": "string", "b_factor": "float32"})`.
+Structures are read with [atomworks](https://github.com/RosettaCommons/atomworks) when the dataset is created and
+decoded to its `AtomArrayPlus`, a biotite `AtomArray` that also keeps the annotations biotite has no place for. Use
+`parse_config` and `assembly` to choose how they are cleaned and which assembly is stored, or `decode=False` to get the
+stored BinaryCIF bytes, which any BinaryCIF reader (biotite, Mol*, PyMOL) opens:
+
+```py
+>>> from datasets import AtomicStructure, Features, load_dataset
+>>> features = Features({"structure": AtomicStructure(parse_config={"preset": "rcsb"}, assembly="1")})
+>>> dataset = load_dataset("pdb", data_dir="path/to/structures", features=features)
+```
 
 Extensions `.pdb` and `.ent` are supported, optionally compressed with gzip, bz2 or zstd.
 
@@ -350,9 +358,10 @@ To load remote WebDatasets via HTTP, pass the URLs instead:
 Each row is one structure, following the same folder layout
 as [`ImageFolder`]: subfolder names become labels and a `metadata.csv`/`metadata.jsonl`
 file adds per-structure metadata. The `structure` column uses the [`AtomicStructure`] feature: each file is
-read once with [biotite](https://www.biotite-python.org) and stored as columns (coordinates, per-atom
-annotations such as `atom_name`, `res_name` and `chain_id`, bonds and the periodic box), and each example
-decodes to a `biotite.structure.AtomArray`. Reading and decoding structures requires `biotite`.
+read once with [biotite](https://www.biotite-python.org) and stored as a [BinaryCIF](https://github.com/molstar/BinaryCIF)
+file that also holds the exact atom array (every annotation with its dtype, bonds and the periodic box), and each
+example decodes to a `biotite.structure.AtomArray` without parsing a file. Reading and decoding structures requires
+`biotite`.
 
 To load mmCIF or BinaryCIF files from a directory:
 
@@ -360,7 +369,7 @@ To load mmCIF or BinaryCIF files from a directory:
 >>> from datasets import load_dataset
 >>> dataset = load_dataset("mmcif", data_dir="path/to/structures")
 >>> dataset["train"].features["structure"]
-AtomicStructure(annotations=None, global_annotations=None, pair_annotations=None, decoder='biotite', decode=True)
+AtomicStructure(parse_config=None, assembly=None, decode=True)
 ```
 
 ```py
@@ -369,9 +378,16 @@ AtomicStructure(annotations=None, global_annotations=None, pair_annotations=None
 (1234, 3)
 ```
 
-Use `AtomicStructure(decoder="numpy")` to get the stored columns as numpy arrays without `biotite`, or
-`dataset.with_format("arrow")` to read them without decoding. To store more per-atom annotations, declare
-them with their type, e.g. `AtomicStructure(annotations={"label_asym_id": "string", "b_factor": "float32"})`.
+Structures are read with [atomworks](https://github.com/RosettaCommons/atomworks) when the dataset is created and
+decoded to its `AtomArrayPlus`, a biotite `AtomArray` that also keeps the annotations biotite has no place for. Use
+`parse_config` and `assembly` to choose how they are cleaned and which assembly is stored, or `decode=False` to get the
+stored BinaryCIF bytes, which any BinaryCIF reader (biotite, Mol*, PyMOL) opens:
+
+```py
+>>> from datasets import AtomicStructure, Features, load_dataset
+>>> features = Features({"structure": AtomicStructure(parse_config={"preset": "rcsb"}, assembly="1")})
+>>> dataset = load_dataset("pdb", data_dir="path/to/structures", features=features)
+```
 
 Extensions `.cif`, `.mmcif` and `.bcif` (BinaryCIF) are supported, optionally compressed with gzip, bz2 or zstd.
 

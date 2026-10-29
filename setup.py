@@ -156,7 +156,8 @@ BENCHMARKS_REQUIRE = [
 
 TESTS_REQUIRE = [
     # atomic structure reading and decoding, plus RDKit/ASE inputs exercised by the feature tests
-    "biotite>=1.0.0",
+    "atomworks",
+    "biotite>=2.0.0",
     "rdkit",
     "ase",
     # fix pip install issues for windows
@@ -223,7 +224,7 @@ DOCS_REQUIRE = [
 
 PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
-BIO_REQUIRE = ["biotite>=1.0.0"]  # reading and decoding atomic structures
+BIO_REQUIRE = ["atomworks", "biotite>=2.0.0", "rdkit"]  # reading and decoding atomic structures
 
 NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 

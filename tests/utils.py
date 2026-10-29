@@ -48,6 +48,7 @@ require_lz4 = pytest.mark.skipif(not config.LZ4_AVAILABLE, reason="test requires
 require_py7zr = pytest.mark.skipif(not config.PY7ZR_AVAILABLE, reason="test requires py7zr")
 require_zstandard = pytest.mark.skipif(not config.ZSTANDARD_AVAILABLE, reason="test requires zstandard")
 require_biotite = pytest.mark.skipif(not config.BIOTITE_AVAILABLE, reason="test requires biotite")
+require_atomworks = pytest.mark.skipif(not config.ATOMWORKS_AVAILABLE, reason="test requires atomworks")
 
 # Dill-cloudpickle compatibility
 require_dill_gt_0_3_2 = pytest.mark.skipif(
