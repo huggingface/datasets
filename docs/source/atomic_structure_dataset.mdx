@@ -1,0 +1,101 @@
+# Create an atomic structure dataset
+
+There are two methods for creating and sharing an atomic structure dataset. This guide will show you how to:
+
+* Create an atomic structure dataset from local files in python with [`Dataset.push_to_hub`]. This is an easy way that requires only a few steps in python.
+
+* Create an atomic structure dataset with `PdbFolder` or `MmcifFolder` and some metadata. This is a no-code solution for quickly creating a dataset with several thousand structures.
+
+Structures are read with [atomworks](https://github.com/RosettaCommons/atomworks) when the dataset is created, and stored as [BinaryCIF](https://github.com/molstar/BinaryCIF) files. Install it with `pip install datasets[bio]`.
+
+> [!TIP]
+> You can control access to your dataset by requiring users to share their contact information first. Check out the [Gated datasets](https://huggingface.co/docs/hub/datasets-gated) guide for more information about how to enable this feature on the Hub.
+
+## Local files
+
+You can load your own dataset using the paths to your structure files. Use the [`~Dataset.cast_column`] function to take a column of file paths, and cast it to the [`AtomicStructure`] feature:
+
+```py
+>>> from datasets import Dataset, AtomicStructure
+
+>>> structure_dataset = Dataset.from_dict({"structure": ["path/to/1abc.cif.gz", "path/to/ligand.sdf", "path/to/2xyz.pdb"]}).cast_column("structure", AtomicStructure())
+>>> structure_dataset[0]["structure"]
+<atomworks.io.utils.atom_array_plus.AtomArrayPlus ...>
+```
+
+mmCIF (`.cif`, `.mmcif`), BinaryCIF (`.bcif`), PDB (`.pdb`, `.ent`), MOL/SDF (`.mol`, `.sdf`) and Mol2 (`.mol2`) files are supported, optionally compressed with gzip, bz2 or zstd. RDKit `Mol`, ASE `Atoms` and biotite `AtomArray` objects can be used instead of paths.
+
+Pass `parse_config` and `assembly` to choose how atomworks cleans the structures and which biological assembly is stored:
+
+```py
+>>> feature = AtomicStructure(parse_config={"preset": "rcsb"}, assembly="1")
+>>> structure_dataset = Dataset.from_dict({"structure": ["path/to/1abc.cif.gz"]}).cast_column("structure", feature)
+```
+
+Then upload the dataset to the Hugging Face Hub using [`Dataset.push_to_hub`]:
+
+```py
+structure_dataset.push_to_hub("<username>/my_dataset")
+```
+
+This will create a dataset repository containing your atomic structure dataset:
+
+```text
+my_dataset/README.md
+my_dataset/data/train-00000-of-00001.parquet
+```
+
+## PdbFolder and MmcifFolder
+
+`PdbFolder` and `MmcifFolder` are dataset builders designed to quickly load a dataset with several thousand structure files without requiring you to write any code. `PdbFolder` reads `.pdb` and `.ent` files, `MmcifFolder` reads `.cif`, `.mmcif` and `.bcif` files.
+
+> [!TIP]
+> Take a look at the [Split pattern hierarchy](repository_structure#split-pattern-hierarchy) to learn more about how these builders create dataset splits based on your dataset repository structure.
+
+They automatically infer the class labels of your dataset based on the directory name. Store your dataset in a directory structure like:
+
+```text
+folder/train/enzyme/1abc.pdb
+folder/train/enzyme/2def.pdb
+
+folder/train/receptor/3ghi.pdb
+folder/train/receptor/4jkl.pdb
+```
+
+If the dataset follows the folder structure, then you can load it directly with [`load_dataset`]:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("path/to/folder")
+```
+
+This is equivalent to passing `pdb` manually in [`load_dataset`] and the directory in `data_dir`:
+
+```py
+>>> dataset = load_dataset("pdb", data_dir="/path/to/folder")
+```
+
+If there is additional information you'd like to include about your dataset, like resolution or experimental method, add it as a `metadata.csv` file in your folder. You can also use a JSONL file `metadata.jsonl` or a Parquet file `metadata.parquet`.
+
+```text
+folder/train/metadata.csv
+folder/train/1abc.pdb
+folder/train/2def.pdb
+```
+
+Your `metadata.csv` file must have a `file_name` or `*_file_name` field which links structure files with their metadata:
+
+```csv
+file_name,resolution
+1abc.pdb,2.5
+2def.pdb,1.8
+```
+
+Here the `file_name` must be the name of the structure file next to the metadata file. More generally, it must be the relative path from the directory containing the metadata to the structure file.
+
+Finally, [`~Dataset.push_to_hub`] the dataset to the Hub:
+
+```py
+>>> dataset.push_to_hub("<username>/my_dataset")
+```

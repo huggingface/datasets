@@ -376,3 +376,21 @@ def test_save_and_load_from_disk(tmp_path):
     reloaded = load_from_disk(tmp_path / "saved")
     assert reloaded.features == dataset.features
     _assert_same_atoms(reloaded[0]["s"], dataset[0]["s"])
+
+
+def test_missing_atomworks_raises(monkeypatch):
+    monkeypatch.setattr("datasets.config.ATOMWORKS_AVAILABLE", False)
+    with pytest.raises(ImportError, match="please install 'atomworks'"):
+        AtomicStructure().encode_example(str(CIF_FILE))
+    with pytest.raises(ImportError, match="please install 'atomworks'"):
+        AtomicStructure().decode_example({"bytes": b"", "path": None})
+
+
+@require_atomworks
+def test_from_dict_with_array_objects():
+    """A live biotite array passed to `Dataset.from_dict` is encoded, as `PIL` images are."""
+    atoms = _roundtrip(str(CIF_FILE))
+    dataset = Dataset.from_dict({"s": [atoms]})
+    assert set(dataset.features["s"]) == {"bytes", "path"}
+    assert _is_stored(dataset[0]["s"]["bytes"])
+    _assert_same_atoms(AtomicStructure().decode_example(dataset[0]["s"]), atoms)

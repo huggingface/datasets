@@ -14,6 +14,7 @@ from ..utils.py_utils import string_to_dict
 
 
 if TYPE_CHECKING:
+    import biotite.structure
     from atomworks.io.utils.atom_array_plus import AtomArrayPlus
 
     from .features import FeatureType
@@ -89,6 +90,9 @@ class AtomicStructure:
         Returns:
             `dict` with "path" and "bytes" fields, the bytes being the BinaryCIF file of the structure.
         """
+        if not config.ATOMWORKS_AVAILABLE:
+            raise ImportError("To support encoding atomic structures, please install 'atomworks'.")
+
         path = None
         if isinstance(value, (str, os.PathLike)):
             path = os.fspath(value)
@@ -137,6 +141,9 @@ class AtomicStructure:
             raise RuntimeError(
                 "Decoding is disabled for this feature. Please use AtomicStructure(decode=True) instead."
             )
+        if not config.ATOMWORKS_AVAILABLE:
+            raise ImportError("To support decoding atomic structures, please install 'atomworks'.")
+
         path, data = value["path"], value["bytes"]
         if data is None:
             if path is None:
@@ -376,3 +383,8 @@ def _detect_format(data: bytes, path: Optional[str]) -> str:
         if line.strip() and not line.startswith(b"#"):
             break
     return "pdb"
+
+
+def encode_atomic_structure(atoms: "biotite.structure.AtomArray") -> dict:
+    """Encode a biotite `AtomArray` or `AtomArrayStack` (or an atomworks `AtomArrayPlus`) as `{"bytes", "path"}`."""
+    return AtomicStructure().encode_example(atoms)

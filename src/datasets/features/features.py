@@ -41,7 +41,7 @@ from ..table import array_cast
 from ..utils import experimental, logging
 from ..utils.json import ujson_dumps, ujson_loads
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
-from .atomic_structure import AtomicStructure
+from .atomic_structure import AtomicStructure, encode_atomic_structure
 from .audio import Audio
 from .image import Image, encode_pil_image
 from .mesh import Mesh
@@ -322,6 +322,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
     if config.NIBABEL_AVAILABLE and "nibabel" in sys.modules:
         import nibabel as nib
 
+    if config.BIOTITE_AVAILABLE and "biotite" in sys.modules:
+        import biotite.structure as biotite_structure
+
     if config.TORCHCODEC_AVAILABLE and "torchcodec" in sys.modules:
         from torchcodec.decoders import AudioDecoder, VideoDecoder
 
@@ -397,6 +400,12 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         return encode_pdfplumber_pdf(obj), True
     elif config.NIBABEL_AVAILABLE and "nibabel" in sys.modules and isinstance(obj, nib.analyze.AnalyzeImage):
         return encode_nibabel_image(obj, force_bytes=True), True
+    elif (
+        config.BIOTITE_AVAILABLE
+        and "biotite" in sys.modules
+        and isinstance(obj, (biotite_structure.AtomArray, biotite_structure.AtomArrayStack))
+    ):
+        return encode_atomic_structure(obj), True
     elif isinstance(obj, pd.Series):
         return (
             _cast_to_python_objects(
@@ -1939,6 +1948,10 @@ class Features(dict):
         - [`Nifti`] feature to store the absolute path to a NIfTI neuroimaging file, a `nibabel.Nifti1Image` object
           or a dictionary with the relative path to a NIfTI file ("path" key) and its bytes content ("bytes" key).
           This feature loads the NIfTI file lazily with nibabel.
+        - [`AtomicStructure`] feature to store the absolute path to a structure file (mmCIF, PDB, SDF, ...), a
+          `biotite.structure.AtomArray` object or a dictionary with the relative path to a structure file ("path" key)
+          and its bytes content ("bytes" key). This feature reads the file once with atomworks and decodes an
+          `AtomArrayPlus`.
         - [`Translation`] or [`TranslationVariableLanguages`] feature specific to Machine Translation.
         - [`Json`] feature to store unstructred data, e.g. containing mixed/abritrary types. Under the hood
     """
