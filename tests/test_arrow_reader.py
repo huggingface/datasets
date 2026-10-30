@@ -191,10 +191,13 @@ def test_make_file_instructions_basic():
         ("train", "train[:200]", 100, (0, 100)),
         ("train", "train[:-200]", 100, None),
         ("train", "train[-200:]", 100, (0, 100)),
+        ("train", "train[5:4]", 100, None),
+        ("train", "train[5:3]", 100, None),
         ("train", "train[-20%:]", [10] * 10, (80, 100)),
         ("train", "train[:200]", [10] * 10, (0, 100)),
         ("train", "train[:-200]", [10] * 10, None),
         ("train", "train[-200:]", [10] * 10, (0, 100)),
+        ("train", "train[5:4]", [10] * 10, None),
     ],
 )
 def test_make_file_instructions(split_name, instruction, shard_lengths, read_range):
