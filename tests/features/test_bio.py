@@ -203,6 +203,31 @@ def test_bio_structure_decodes_universal_newlines(newline, source, tmp_path):
 
 
 @require_biopython
+@pytest.mark.parametrize("feature_cls", [BioSequence, BioStructure])
+def test_decode_example_is_idempotent(feature_cls, fasta_path, pdb_path):
+    path = fasta_path if feature_cls is BioSequence else pdb_path
+    decoded_example = feature_cls().decode_example({"path": path, "bytes": None})
+    # decoding an already decoded example returns it as is, so decoding twice is a no-op
+    assert feature_cls().decode_example(decoded_example) is decoded_example
+
+
+@require_biopython
+@pytest.mark.parametrize("feature_cls", [BioSequence, BioStructure])
+def test_iterable_dataset_decoded_twice(feature_cls, fasta_path, pdb_path):
+    from Bio.PDB.Structure import Structure
+    from Bio.SeqRecord import SeqRecord
+
+    path = fasta_path if feature_cls is BioSequence else pdb_path
+    ds = Dataset.from_dict({"bio": [path] * 3}, features=Features({"bio": feature_cls()})).to_iterable_dataset()
+    # streaming a pdb or mmcif folder from the Hub decodes it in threads, and `.decode()` after another step decodes again
+    ds = ds.decode(num_threads=2).shuffle(seed=0, buffer_size=3).decode(num_threads=2)
+    examples = list(ds)
+    assert len(examples) == 3
+    expected_type = SeqRecord if feature_cls is BioSequence else Structure
+    assert all(isinstance(example["bio"], expected_type) for example in examples)
+
+
+@require_biopython
 def test_bio_sequence_format_is_configurable(tmp_path):
     """The sequence format is a field, so FASTQ and GenBank reuse the same feature."""
     path = tmp_path / "r.fastq"
