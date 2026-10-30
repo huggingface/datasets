@@ -130,13 +130,11 @@ _EXTENSION_TO_MODULE: dict[str, tuple[str, dict]] = {
     ".genbank": ("genbank", {}),
     ".fq": ("fastq", {}),
     ".fastq": ("fastq", {}),
-    ".pdb": ("pdb", {}),
-    ".ent": ("pdb", {}),
-    ".cif": ("mmcif", {}),
-    ".mmcif": ("mmcif", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("pdb", {}) for ext in pdb.PdbFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("pdb", {}) for ext in pdb.PdbFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext: ("mmcif", {}) for ext in mmcif.MmcifFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext.upper(): ("mmcif", {}) for ext in mmcif.MmcifFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})

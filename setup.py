@@ -155,8 +155,11 @@ BENCHMARKS_REQUIRE = [
 ]
 
 TESTS_REQUIRE = [
-    # optional decoders exercised by the feature tests
-    "biopython>=1.80",
+    # atomic structure reading and decoding, plus RDKit/ASE inputs exercised by the feature tests
+    "atomworks",
+    "biotite>=2.0.0",
+    "rdkit",
+    "ase",
     # fix pip install issues for windows
     "numba>=0.56.4; python_version < '3.14'",  # to get recent versions of llvmlite for windows ci, not available on 3.14
     # test dependencies
@@ -221,7 +224,7 @@ DOCS_REQUIRE = [
 
 PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
-BIO_REQUIRE = ["biopython>=1.80"]
+BIO_REQUIRE = ["atomworks", "biotite>=2.0.0", "rdkit"]  # reading and decoding atomic structures
 
 NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 
