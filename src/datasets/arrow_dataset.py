@@ -3844,7 +3844,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         processed_inputs.pop(column)
             if check_same_num_examples:
                 input_num_examples = len(pa_inputs)
-                processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
+                processed_inputs_num_examples = (
+                    len(processed_inputs)
+                    if isinstance(processed_inputs, pa.Table)
+                    else len(processed_inputs[next(iter(processed_inputs.keys()))])
+                )
                 if input_num_examples != processed_inputs_num_examples:
                     raise DatasetTransformationNotAllowedError(
                         "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
@@ -4276,7 +4280,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return new_dataset
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["cache_file_name"])
+    @fingerprint_transform(inplace=False, ignore_kwargs=["cache_file_name"], version="1.0.0")
     def flatten_indices(
         self,
         keep_in_memory: bool = False,
@@ -4311,7 +4315,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
 
-        return self.map(
+        # Flatten the stored data without applying on-the-fly formatting or transforms.
+        # Only the format changes on this view; avoid copying the user's transform.
+        dataset = copy.copy(self)
+        dataset.set_format("arrow")
+        return dataset.map(
             batched=True,  # for speed
             keep_in_memory=keep_in_memory,
             cache_file_name=cache_file_name,

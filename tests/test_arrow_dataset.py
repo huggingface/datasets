@@ -5315,3 +5315,135 @@ def test_dataset_push_to_hub_uploads_every_row_with_num_proc(offline_parquet_upl
     if num_shards == 1:
         # a single shard is written without starting a pool of processes
         assert not mp.get_context.return_value.Pool.called
+
+
+@pytest.mark.parametrize("num_proc", [None, 2])
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+@pytest.mark.parametrize("columns", [None, ["x"]])
+@pytest.mark.parametrize("output_all_columns", [False, True])
+def test_flatten_indices_preserves_transform(tmp_path, num_proc, keep_in_memory, columns, output_all_columns):
+    def add_ten(batch):
+        return {"x": [x + 10 for x in batch["x"]]}
+
+    dataset = Dataset.from_dict({"x": [0, 1, 2], "label": ["a", "b", "c"]}).select([2, 0])
+    dataset.set_transform(add_ten, columns=columns, output_all_columns=output_all_columns)
+    original_format = dataset.format
+    expected = dataset[:]
+    cache_file_name = None if keep_in_memory else str(tmp_path / "flattened.arrow")
+
+    flattened = dataset.flatten_indices(
+        keep_in_memory=keep_in_memory, cache_file_name=cache_file_name, num_proc=num_proc
+    )
+
+    assert flattened.with_format(None)[:] == {"x": [2, 0], "label": ["c", "a"]}
+    assert flattened[:] == expected
+    assert flattened.format == original_format
+    assert flattened.features == dataset.features
+    assert flattened._indices is None
+    assert dataset.format == original_format
+    assert dataset[:] == expected
+    assert dataset.with_format(None)[:] == {"x": [2, 0], "label": ["c", "a"]}
+    if cache_file_name is not None:
+        cached = dataset.flatten_indices(cache_file_name=cache_file_name, num_proc=num_proc)
+        assert cached.with_format(None)[:] == flattened.with_format(None)[:]
+        assert cached[:] == expected
+        assert cached.format == original_format
+
+
+@pytest.mark.parametrize("format_type", [None, "numpy", "pandas", "arrow"])
+def test_flatten_indices_preserves_features_and_format(format_type):
+    features = Features({"x": Value("float32"), "label": ClassLabel(names=["a", "b", "c"])})
+    dataset = Dataset.from_dict({"x": [0, 1, 2], "label": [0, 1, 2]}, features=features).select([2, 0])
+    dataset.set_format(format_type, columns=["x"])
+
+    flattened = dataset.flatten_indices()
+
+    assert flattened.with_format(None)[:] == {"x": [2.0, 0.0], "label": [2, 0]}
+    assert flattened.features == features
+    assert flattened.format == dataset.format
+    assert flattened._indices is None
+    assert_arrow_metadata_are_synced_with_dataset_features(flattened)
+
+
+def test_flatten_indices_does_not_reuse_transformed_cache(tmp_path):
+    from datasets.fingerprint import update_fingerprint
+
+    Dataset.from_dict({"x": [0, 1, 2]}).save_to_disk(tmp_path / "dataset")
+    dataset = load_from_disk(tmp_path / "dataset").select([2, 0])
+    dataset.set_transform(lambda batch: {"x": [x + 10 for x in batch["x"]]})
+    # Reproduce the cache written by the unversioned flatten_indices implementation.
+    legacy_fingerprint = update_fingerprint(
+        dataset._fingerprint, "datasets.arrow_dataset.Dataset.flatten_indices", {"fingerprint_name": "new_fingerprint"}
+    )
+    legacy = dataset.map(batched=True, new_fingerprint=legacy_fingerprint)
+    assert legacy.with_format(None)[:] == {"x": [12, 10]}
+
+    flattened = dataset.flatten_indices()
+
+    assert flattened.with_format(None)[:] == {"x": [2, 0]}
+    assert flattened[:] == {"x": [12, 10]}
+    assert flattened.cache_files != legacy.cache_files
+    assert dataset.flatten_indices().cache_files == flattened.cache_files
+
+
+@pytest.mark.parametrize("format_type", ["numpy", "custom"])
+def test_flatten_indices_with_attached_index(format_type):
+    dataset = Dataset.from_dict({"x": [0, 1, 2]}).select([2, 0])
+    if format_type == "custom":
+        dataset.set_transform(lambda batch: {"x": [x + 10 for x in batch["x"]]})
+    else:
+        dataset.set_format(format_type)
+    # Exercise the attached-index row-count guard without an optional search backend.
+    index = object()
+    dataset._indexes["test"] = index
+    original_format = dataset.format
+
+    flattened = dataset.flatten_indices()
+
+    assert flattened.with_format(None)[:] == {"x": [2, 0]}
+    assert flattened.format == original_format
+    assert list(flattened[:]["x"]) == ([12, 10] if format_type == "custom" else [2, 0])
+    assert dataset.format == original_format
+    assert dataset._indexes["test"] is index
+
+
+@pytest.mark.parametrize("change_num_rows", [False, True])
+def test_map_arrow_with_attached_index_checks_num_rows(change_num_rows):
+    dataset = Dataset.from_dict({"x": [0, 1, 2]}).with_format("arrow")
+    dataset._indexes["test"] = object()
+
+    def transform(table):
+        return table.slice(0, 1) if change_num_rows else table
+
+    if change_num_rows:
+        with pytest.raises(datasets.arrow_dataset.DatasetTransformationNotAllowedError):
+            dataset.map(transform, batched=True)
+    else:
+        assert dataset.map(transform, batched=True).with_format(None)[:] == {"x": [0, 1, 2]}
+
+
+@pytest.mark.parametrize("cached", [False, True])
+def test_flatten_indices_does_not_copy_transform(tmp_path, cached):
+    class Identity:
+        def __call__(self, batch):
+            return batch
+
+        def __deepcopy__(self, memo):
+            raise AssertionError("The custom transform must not be copied")
+
+    dataset = Dataset.from_dict({"x": [0, 1, 2]}).select([2, 0])
+    cache_file_name = str(tmp_path / "flattened.arrow")
+    if cached:
+        dataset.flatten_indices(cache_file_name=cache_file_name)
+    transform = Identity()
+    dataset.set_transform(transform)
+    original_format = dataset.format
+    original_fingerprint = dataset._fingerprint
+
+    flattened = dataset.flatten_indices(cache_file_name=cache_file_name)
+
+    assert flattened.data.to_pydict() == {"x": [2, 0]}
+    assert flattened[:] == {"x": [2, 0]}
+    assert flattened.format["format_kwargs"]["transform"] is transform
+    assert dataset.format == original_format
+    assert dataset._fingerprint == original_fingerprint
