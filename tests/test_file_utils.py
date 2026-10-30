@@ -615,6 +615,15 @@ def test_xgetsize(input_path, size, tmp_path, mock_fsspec2):
     assert xgetsize(input_path) == size
 
 
+def test_xgetsize_when_filesystem_size_is_unknown(tmpfs, monkeypatch):
+    # e.g. an HTTP server that sends no Content-Length: xgetsize falls back to reading the file
+    content = bytes(range(256))  # not valid UTF-8, and contains CR and LF bytes
+    with open(os.path.join(tmpfs.local_root_dir, "file.bin"), "wb") as f:
+        f.write(content)
+    monkeypatch.setattr(type(tmpfs), "size", lambda self, path: None)
+    assert xgetsize("tmp://file.bin") == len(content)
+
+
 @pytest.mark.integration
 def test_xgetsize_private(hf_private_dataset_repo_txt_data, hf_token):
     root_url = hf_dataset_url(hf_private_dataset_repo_txt_data, "")
