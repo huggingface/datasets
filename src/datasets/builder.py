@@ -1567,8 +1567,15 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 yield job_id, False, num_examples_progress_update
                 num_shards = shard_id + 1
                 num_original_shards = original_shard_id + 1
-                num_examples, num_bytes = writer.finalize()
-                writer.close()
+                try:
+                    num_examples, num_bytes = writer.finalize()
+                finally:
+                    # always release the file handle: an Arrow file left open makes the cleanup of the
+                    # ".incomplete" directory fail on Windows, which replaces the error reported here
+                    try:
+                        writer.close()
+                    except Exception as e:  # don't let a failure to close hide the original error
+                        logger.warning(f"Failed to close the writer while handling an error: {e!r}")
                 shard_lengths.append(num_examples)
                 total_num_examples += num_examples
                 total_num_bytes += num_bytes
@@ -1873,8 +1880,15 @@ class ArrowBasedBuilder(DatasetBuilder):
                 yield job_id, False, num_examples_progress_update
                 num_shards = shard_id + 1
                 num_original_shards = original_shard_id + 1
-                num_examples, num_bytes = writer.finalize()
-                writer.close()
+                try:
+                    num_examples, num_bytes = writer.finalize()
+                finally:
+                    # always release the file handle: an Arrow file left open makes the cleanup of the
+                    # ".incomplete" directory fail on Windows, which replaces the error reported here
+                    try:
+                        writer.close()
+                    except Exception as e:  # don't let a failure to close hide the original error
+                        logger.warning(f"Failed to close the writer while handling an error: {e!r}")
                 shard_lengths.append(num_examples)
                 total_num_examples += num_examples
                 total_num_bytes += num_bytes
