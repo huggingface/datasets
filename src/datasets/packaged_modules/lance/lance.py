@@ -176,8 +176,13 @@ class Lance(datasets.ArrowBasedBuilder, datasets.builder._CountableBuilderMixin)
                     pa_schema = pa.schema(fields)
                 features = datasets.Features.from_arrow_schema(pa_schema)
                 for field_name, first_bytes in first_row_first_bytes.items():
-                    for magic_bytes_hex, _, feature_type in MAGIC_BYTES_EXTENSION_AND_FEATURE_TYPES:
+                    for magic_bytes_hex, extension, feature_type in MAGIC_BYTES_EXTENSION_AND_FEATURE_TYPES:
                         magic_bytes = bytes.fromhex(magic_bytes_hex)
+                        riff_form = {".avi": b"AVI ", ".wav": b"WAVE"}.get(extension)
+                        if riff_form is not None and (
+                            not first_bytes.startswith(magic_bytes) or first_bytes[8:12] != riff_form
+                        ):
+                            continue
                         if magic_bytes in first_bytes[: len(magic_bytes) * 2]:  # allow some padding
                             features[field_name] = feature_type
                             break
