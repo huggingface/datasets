@@ -3406,6 +3406,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             logger.warning(
                 f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
             )
+        if batched and drop_last_batch and batch_size is not None and batch_size > 0 and num_proc is not None:
+            # Processes get whole batches (see the sharding below): with more processes than full batches, the dataset
+            # would be split inside batches instead and every process would drop its incomplete last batch
+            num_proc = min(num_proc, len(self) // batch_size)
 
         dataset_kwargs = {
             "shard": self,
@@ -3547,10 +3551,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shards = [self]
             kwargs_per_job = [dataset_kwargs]
         else:
-            shards = [
-                self.shard(num_shards=num_shards, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
-                for rank in range(num_shards)
-            ]
+            num_batches = 0
+            if batched and batch_size is not None and batch_size > 0:
+                num_batches = len(self) // batch_size if drop_last_batch else ceil(len(self) / batch_size)
+            if num_batches >= num_shards:
+                # Split on batch boundaries, so that the processes get the same batches as a single process would
+                # (otherwise every shard would end with its own incomplete batch, and drop_last_batch would drop them)
+                div, mod = divmod(num_batches, num_shards)
+                bounds = [min((div * rank + min(rank, mod)) * batch_size, len(self)) for rank in range(num_shards + 1)]
+                shards = [
+                    self.select(range(bounds[rank], bounds[rank + 1]), keep_in_memory=keep_in_memory)
+                    for rank in range(num_shards)
+                ]
+            else:
+                shards = [
+                    self.shard(num_shards=num_shards, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
+                    for rank in range(num_shards)
+                ]
             kwargs_per_job = [
                 {
                     **dataset_kwargs,
@@ -3585,8 +3602,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             pbar_initial = num_shards_done * pbar_total // num_shards
             if batched and drop_last_batch:
                 batch_size = batch_size or 1
-                pbar_initial = pbar_initial // num_shards // batch_size * num_shards * batch_size
-                pbar_total = pbar_total // num_shards // batch_size * num_shards * batch_size
+                pbar_initial = pbar_initial // batch_size * batch_size
+                pbar_total = pbar_total // batch_size * batch_size
 
             with hf_tqdm(
                 unit=" examples",
@@ -4114,6 +4131,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             _batch_fn = _batch_arrow_table
             with_indices = False
+            if num_proc and batch_size > 0:
+                # map only shards on batch boundaries if there are at least as many batches as processes
+                num_proc = min(num_proc, ceil(len(self) / batch_size))
 
         return self.with_format("arrow").map(
             _batch_fn,
