@@ -93,7 +93,7 @@ class MetadataConfigs(dict[str, dict[str, Any]]):
                         and not (
                             len(yaml_data_files_item) == 2
                             and "split" in yaml_data_files_item
-                            and re.match(_split_re, yaml_data_files_item["split"])
+                            and re.fullmatch(_split_re, yaml_data_files_item["split"])
                             and isinstance(yaml_data_files_item.get("path"), (str, list))
                         )
                     ):
