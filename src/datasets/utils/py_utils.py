@@ -615,7 +615,7 @@ def iflatmap_unordered(
                     pool_changed = True
                     # One of the subprocesses has died. We should not wait forever.
                     raise RuntimeError(
-                        "One of the subprocesses has abruptly died during map operation."
+                        "One of the subprocesses has abruptly died during map operation. "
                         "To debug the error, disable multiprocessing."
                     )
         finally:
