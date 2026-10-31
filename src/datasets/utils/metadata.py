@@ -106,6 +106,10 @@ class MetadataConfigs(dict[str, dict[str, Any]]):
         exported_parquet_files: list[dict[str, Any]],
         dataset_infos: DatasetInfosDict,
     ) -> "MetadataConfigs":
+        # groupby only merges consecutive keys; exported rows are not guaranteed sorted.
+        sorted_exported_parquet_files = sorted(
+            exported_parquet_files, key=lambda row: (row["config"], row["split"])
+        )
         metadata_configs = {
             config_name: {
                 "data_files": [
@@ -116,11 +120,15 @@ class MetadataConfigs(dict[str, dict[str, Any]]):
                             for parquet_file in parquet_files_for_split
                         ],
                     }
-                    for split_name, parquet_files_for_split in groupby(parquet_files_for_config, itemgetter("split"))
+                    for split_name, parquet_files_for_split in groupby(
+                        parquet_files_for_config, itemgetter("split")
+                    )
                 ],
                 "version": str(dataset_infos.get(config_name, DatasetInfo()).version or "0.0.0"),
             }
-            for config_name, parquet_files_for_config in groupby(exported_parquet_files, itemgetter("config"))
+            for config_name, parquet_files_for_config in groupby(
+                sorted_exported_parquet_files, itemgetter("config")
+            )
         }
         if dataset_infos:
             # Preserve order of configs and splits
