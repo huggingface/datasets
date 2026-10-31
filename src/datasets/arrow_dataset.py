@@ -693,6 +693,12 @@ class Column(Sequence_):
     def __len__(self) -> int:
         return len(self.source)
 
+    def __tf_tensor__(self, dtype=None, name=None):
+        """Convert the column as a batch, preserving the dataset's formatting."""
+        import tensorflow as tf
+
+        return tf.convert_to_tensor(self[:], dtype=dtype, name=name)
+
     def __repr__(self):
         return "Column(" + repr(list(self[:5]))[:-1] + (", ...])" if len(self) > 5 else "])")
 
