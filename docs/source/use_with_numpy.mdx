@@ -42,6 +42,20 @@ will be formatted as `numpy`:
 ```
 
 
+### Numeric dtypes
+
+The following applies to numeric `Value`, `List`, and `Array` features without missing values.
+
+By default, numeric lists and arrays are formatted as `int64` for integers and `float32` for floating-point values, regardless of their stored dtype. Scalars read from a single row, such as `ds[0]["data"]`, keep their stored dtype. Reading a batch of the same scalar column produces an array and applies the defaults.
+
+Datasets applies this coercion silently. Converting `float64` to `float32` can lose precision or overflow to `inf` (NumPy may emit an overflow warning). Pass `dtype=None` to keep the stored numeric dtype:
+
+```py
+>>> ds = ds.with_format("numpy", dtype=None)
+```
+
+For example, a `List(Value("float64"))` or `Array2D` with dtype `float64` then returns `float64` arrays instead of `float32`. Formatting does not change the stored data or feature types.
+
 ### N-dimensional arrays
 
 If your dataset consists of N-dimensional arrays, you will see that by default they are considered as the same array if the shape is fixed:
