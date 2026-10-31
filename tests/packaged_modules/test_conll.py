@@ -1,3 +1,4 @@
+import codecs
 import textwrap
 
 import pyarrow as pa
@@ -211,3 +212,75 @@ def test_generate_tables_empty_column_names_raises(tmp_path):
     generator = builder._generate_tables(base_files=[str(filename)], files_iterables=[[str(filename)]])
     with pytest.raises(ValueError, match="column_names must be a non-empty list"):
         list(generator)
+
+
+def _write_bom_file(path, data):
+    with open(path, "wb") as f:
+        f.write(codecs.BOM_UTF8 + data.encode("utf-8"))
+    return str(path)
+
+
+def test_generate_tables_strips_utf8_bom(tmp_path):
+    """A leading BOM is not part of the data and must not hide the first -DOCSTART- line."""
+    filename = _write_bom_file(
+        tmp_path / "bom.conll",
+        textwrap.dedent(
+            """\
+            -DOCSTART- -X- -X- O
+
+            EU NNP B-NP B-ORG
+
+            """
+        ),
+    )
+    builder = Conll(column_names=["tokens", "pos_tags", "chunk_tags", "ner_tags"])
+    generator = builder._generate_tables(base_files=[filename], files_iterables=[[filename]])
+    data = pa.concat_tables([table for _, table in generator]).to_pydict()
+    assert data["tokens"] == [["EU"]]
+    assert data["ner_tags"] == [["B-ORG"]]
+
+
+def test_generate_tables_strips_utf8_bom_when_docstart_is_kept(tmp_path):
+    """The BOM is dropped even when -DOCSTART- lines are kept."""
+    filename = _write_bom_file(tmp_path / "bom.conll", "-DOCSTART- -X- -X- O\n\nEU NNP B-NP B-ORG\n\n")
+    builder = Conll(
+        column_names=["tokens", "pos_tags", "chunk_tags", "ner_tags"],
+        skip_docstart=False,
+    )
+    generator = builder._generate_tables(base_files=[filename], files_iterables=[[filename]])
+    data = pa.concat_tables([table for _, table in generator]).to_pydict()
+    assert data["tokens"] == [["-DOCSTART-"], ["EU"]]
+
+
+def test_generate_tables_strips_utf8_bom_before_comment_prefix(tmp_path):
+    """A BOM must not hide a comment line at the top of a CoNLL-U file."""
+    filename = _write_bom_file(
+        tmp_path / "bom.conllu",
+        textwrap.dedent(
+            """\
+            # sent_id = test-1
+            1\tThe\tthe\tDET
+
+            """
+        ),
+    )
+    builder = Conll(
+        column_names=["id", "form", "lemma", "upos"],
+        delimiter="\t",
+        comment_prefix="#",
+    )
+    generator = builder._generate_tables(base_files=[filename], files_iterables=[[filename]])
+    data = pa.concat_tables([table for _, table in generator]).to_pydict()
+    assert data["form"] == [["The"]]
+    assert data["upos"] == [["DET"]]
+
+
+def test_generate_tables_strips_utf8_bom_in_every_file(tmp_path):
+    """Every file of the split can start with a BOM, not only the first one."""
+    data_files = [
+        _write_bom_file(tmp_path / f"bom_{file_index}.conll", f"token{file_index} NN\n\n") for file_index in range(2)
+    ]
+    builder = Conll(column_names=["tokens", "pos_tags"])
+    generator = builder._generate_tables(base_files=data_files, files_iterables=[data_files])
+    data = pa.concat_tables([table for _, table in generator]).to_pydict()
+    assert data["tokens"] == [["token0"], ["token1"]]
