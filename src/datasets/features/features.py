@@ -1847,13 +1847,13 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
         :obj:`bool`
     """
     if isinstance(feature, dict):
-        return any(require_decoding(f) for f in feature.values())
+        return any(require_decoding(f, ignore_decode_attribute) for f in feature.values())
     elif isinstance(feature, (list, tuple)):
-        return require_decoding(feature[0])
+        return require_decoding(feature[0], ignore_decode_attribute)
     elif isinstance(feature, LargeList):
-        return require_decoding(feature.feature)
+        return require_decoding(feature.feature, ignore_decode_attribute)
     elif isinstance(feature, List):
-        return require_decoding(feature.feature)
+        return require_decoding(feature.feature, ignore_decode_attribute)
     else:
         return hasattr(feature, "decode_example") and (
             getattr(feature, "decode", True) if not ignore_decode_attribute else True
