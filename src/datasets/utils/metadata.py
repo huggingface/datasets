@@ -106,6 +106,12 @@ class MetadataConfigs(dict[str, dict[str, Any]]):
         exported_parquet_files: list[dict[str, Any]],
         dataset_infos: DatasetInfosDict,
     ) -> "MetadataConfigs":
+        # itertools.groupby only groups *consecutive* equal keys, so sort by
+        # (config, split) first. Otherwise, if the exported list has the same
+        # config (or split) in non-consecutive positions, groupby yields it as
+        # multiple groups and the earlier shard URLs are silently dropped. The
+        # sort is stable, so shard order within a split is preserved.
+        exported_parquet_files = sorted(exported_parquet_files, key=itemgetter("config", "split"))
         metadata_configs = {
             config_name: {
                 "data_files": [
