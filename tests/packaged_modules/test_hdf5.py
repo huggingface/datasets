@@ -827,3 +827,59 @@ def test_hdf5_feature_inference_compound_complex_arrays(hdf5_file_with_compound_
     # Check nested complex field
     assert compound_features["nested_complex"]["real"] == Value("float32")
     assert compound_features["nested_complex"]["imag"] == Value("float32")
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("second_path", ["a/target", "z/target"])
+def test_hdf5_nested_mismatched_lengths(tmp_path, streaming, second_path):
+    filename = tmp_path / "nested_mismatch.h5"
+    with h5py.File(filename, "w") as f:
+        f.create_dataset("a/input", data=[10, 20])
+        f.create_dataset(second_path, data=[1, 2, 3])
+
+    with pytest.raises((DatasetGenerationError, ValueError)) as exc_info:
+        dataset = load_dataset("hdf5", data_files=str(filename), split="train", streaming=streaming)
+        list(dataset)
+    cause = exc_info.value.__cause__ if isinstance(exc_info.value, DatasetGenerationError) else exc_info.value
+    assert isinstance(cause, ValueError)
+    assert "length 3 but expected 2" in str(cause)
+
+
+def test_hdf5_nested_mismatched_lengths_column_filtering(tmp_path):
+    filename = tmp_path / "nested_filtered.h5"
+    with h5py.File(filename, "w") as f:
+        f.create_dataset("a/input", data=[10, 20])
+        f.create_dataset("a/target", data=[1, 2, 3])
+    features = Features({"a": {"input": Value("int64")}})
+    dataset = load_dataset("hdf5", data_files=str(filename), split="train", features=features)
+    assert dataset.to_dict() == {"a": [{"input": 10}, {"input": 20}]}
+
+
+def test_hdf5_nested_lengths_with_empty_group(tmp_path):
+    filename = tmp_path / "nested_empty.h5"
+    with h5py.File(filename, "w") as f:
+        f.create_group("a/empty")
+        f.create_dataset("a/input", data=[10, 20])
+    dataset = load_dataset("hdf5", data_files=str(filename), split="train")
+    assert len(dataset) == 2
+    assert [row["input"] for row in dataset["a"]] == [10, 20]
+
+
+@pytest.mark.parametrize("external", [False, True])
+def test_hdf5_nested_lengths_link_policy(tmp_path, external):
+    filename = tmp_path / "nested_links.h5"
+    with h5py.File(filename, "w") as f:
+        f.create_dataset("a/input", data=[10, 20])
+        if external:
+            f["a/alias"] = h5py.ExternalLink("unused.h5", "/input")
+        else:
+            f["a/alias"] = h5py.SoftLink("/a/input")
+    features = Features({"a": {"alias": Value("int64"), "input": Value("int64")}})
+    if external:
+        with pytest.raises(DatasetGenerationError) as exc_info:
+            load_dataset("hdf5", data_files=str(filename), split="train", features=features)
+        assert isinstance(exc_info.value.__cause__, ValueError)
+        assert "ExternalLink" in str(exc_info.value.__cause__)
+    else:
+        dataset = load_dataset("hdf5", data_files=str(filename), split="train", features=features)
+        assert dataset.to_dict() == {"a": [{"alias": 10, "input": 10}, {"alias": 20, "input": 20}]}
