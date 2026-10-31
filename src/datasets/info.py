@@ -205,6 +205,7 @@ class DatasetInfo:
         ```
         """
         fs: fsspec.AbstractFileSystem
+        dataset_info_dir = str(dataset_info_dir)
         fs, *_ = url_to_fs(dataset_info_dir, **(storage_options or {}))
         with fs.open(posixpath.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f, pretty_print=pretty_print)
@@ -270,6 +271,7 @@ class DatasetInfo:
         ```
         """
         fs: fsspec.AbstractFileSystem
+        dataset_info_dir = str(dataset_info_dir)
         fs, *_ = url_to_fs(dataset_info_dir, **(storage_options or {}))
         logger.debug(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:
