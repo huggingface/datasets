@@ -3466,12 +3466,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 existing_cache_file_map[1] = [cache_file_name]
 
             assert cache_file_prefix is not None and cache_file_ext is not None
-            cache_file_with_suffix_pattern = cache_file_prefix + suffix_template + cache_file_ext
-
-            for cache_file in glob.iglob(f"{cache_file_prefix}*{cache_file_ext}"):
-                suffix_variable_map = string_to_dict(
-                    Path(cache_file).as_posix(), Path(cache_file_with_suffix_pattern).as_posix()
-                )
+            # The cache path is matched literally: only the suffix is parsed with `suffix_template`, so that
+            # glob or regex special characters in the path (e.g. "(" or "[") don't prevent finding the cache files.
+            cache_file_prefix_name = os.path.basename(cache_file_prefix)
+            for cache_file in glob.iglob(f"{glob.escape(cache_file_prefix)}*{glob.escape(cache_file_ext)}"):
+                cache_file_suffix = os.path.basename(cache_file)[len(cache_file_prefix_name) : -len(cache_file_ext)]
+                suffix_variable_map = string_to_dict(cache_file_suffix, suffix_template)
                 if suffix_variable_map is not None:
                     file_num_proc = int(suffix_variable_map["num_proc"])
                     existing_cache_file_map[file_num_proc].append(cache_file)
