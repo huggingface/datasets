@@ -18,6 +18,7 @@ import datasets
 from datasets import config
 from datasets.fingerprint import Hasher, fingerprint_transform
 from datasets.table import InMemoryTable
+from datasets.utils._dill import Pickler
 
 from .utils import (
     require_not_windows,
@@ -306,6 +307,17 @@ class HashingTest(TestCase):
         hash3 = Hasher.hash(set_)
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
+
+    def test_hash_legacy_no_dict_keys_sorting(self):
+        # used by DatasetBuilder._check_legacy_cache2 to find caches created by datasets 2.15
+        obj = {"train": ["train.csv"], "test": ["test.csv"]}
+        obj_sorted = {"test": ["test.csv"], "train": ["train.csv"]}
+        self.assertEqual(Hasher.hash(obj), Hasher.hash(obj_sorted))
+        with patch.object(Pickler, "_legacy_no_dict_keys_sorting", True):
+            legacy_hash = Hasher.hash(obj)
+            legacy_hash_sorted = Hasher.hash(obj_sorted)
+        self.assertNotEqual(legacy_hash, legacy_hash_sorted)
+        self.assertEqual(legacy_hash_sorted, Hasher.hash(obj))
 
     @require_tiktoken
     def test_hash_tiktoken_encoding(self):
