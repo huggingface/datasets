@@ -6,7 +6,7 @@ import pytest
 from packaging import version
 
 import datasets.config
-from datasets import ClassLabel, Features, Image
+from datasets import ClassLabel, Features, Image, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.csv.csv import Csv, CsvConfig
@@ -99,6 +99,45 @@ def test_config_raises_when_invalid_name() -> None:
 def test_config_raises_when_invalid_data_files(data_files) -> None:
     with pytest.raises(ValueError, match="Expected a DataFilesDict"):
         _ = CsvConfig(name="name", data_files=data_files)
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("load_from_directory", [False, True])
+@pytest.mark.parametrize("header", ["infer", 0])
+@pytest.mark.parametrize(
+    "config_kwargs",
+    [
+        {"column_names": ["a", "b"]},
+        {"names": ["a", "b"]},
+        {"names": ["old_a", "old_b"], "column_names": ["a", "b"]},
+        {"names": ["a", "b"], "column_names": None},
+    ],
+    ids=["column_names", "names", "both", "column_names_none"],
+)
+def test_load_csv_column_names(tmp_path, streaming, load_from_directory, header, config_kwargs):
+    path = tmp_path / "data.csv"
+    path.write_text(("old_a,old_b\n" if header == 0 else "") + "1,2\n10,20\n")
+    dataset = load_dataset(
+        str(tmp_path) if load_from_directory else "csv",
+        data_files=str(path),
+        split="train",
+        streaming=streaming,
+        header=header,
+        **config_kwargs,
+    )
+    assert list(dataset) == [{"a": 1, "b": 2}, {"a": 10, "b": 20}]
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("metadata_key", ["names", "column_names"])
+@pytest.mark.parametrize("override_key", ["names", "column_names"])
+def test_load_csv_column_names_override_metadata(tmp_path, streaming, metadata_key, override_key):
+    (tmp_path / "data.csv").write_text("1,2\n10,20\n")
+    (tmp_path / "README.md").write_text(
+        f"---\nconfigs:\n- config_name: default\n  data_files: data.csv\n  {metadata_key}: [old_a, old_b]\n---\n"
+    )
+    dataset = load_dataset(str(tmp_path), split="train", streaming=streaming, **{override_key: ["a", "b"]})
+    assert list(dataset) == [{"a": 1, "b": 2}, {"a": 10, "b": 20}]
 
 
 def test_csv_generate_tables_raises_error_with_malformed_csv(csv_file, malformed_csv_file, caplog):
