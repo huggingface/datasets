@@ -251,9 +251,15 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
         torch_state = torch.random.get_rng_state()
         torch.random.manual_seed(seed)
 
+        torch_cuda_states = None
         if torch.cuda.is_available():
             torch_cuda_states = torch.cuda.get_rng_state_all()
             torch.cuda.manual_seed_all(seed)
+
+        torch_npu_states = None
+        if hasattr(torch, "npu") and torch.npu.is_available():
+            torch_npu_states = torch.npu.get_rng_state_all()
+            torch.npu.manual_seed_all(seed)
 
     if set_tensorflow and config.TF_AVAILABLE:
         import tensorflow as tf
@@ -280,8 +286,10 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
 
         if set_pytorch and config.TORCH_AVAILABLE:
             torch.random.set_rng_state(torch_state)
-            if torch.cuda.is_available():
+            if torch_cuda_states is not None:
                 torch.cuda.set_rng_state_all(torch_cuda_states)
+            if torch_npu_states is not None:
+                torch.npu.set_rng_state_all(torch_npu_states)
 
         if set_tensorflow and config.TF_AVAILABLE:
             tf.random.set_global_generator(tf_state)
