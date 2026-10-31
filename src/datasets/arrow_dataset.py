@@ -37,7 +37,6 @@ import weakref
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Iterator, Mapping
 from collections.abc import Sequence as Sequence_
-from copy import deepcopy
 from functools import partial, wraps
 from math import ceil, floor
 from pathlib import Path
@@ -3524,24 +3523,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             validate_fingerprint(new_fingerprint)
             return new_fingerprint
 
-        if num_proc is not None and num_proc >= 1:
-            prev_env = deepcopy(os.environ)
-            # check if parallelism if off
-            # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
-            if prev_env.get("TOKENIZERS_PARALLELISM", "false").lower() not in (
-                "",
-                "off",
-                "false",
-                "f",
-                "no",
-                "n",
-                "0",
-            ):
-                logger.warning("Setting TOKENIZERS_PARALLELISM=false for forked processes.")
-            os.environ["TOKENIZERS_PARALLELISM"] = "false"
-        else:
-            prev_env = os.environ
-
         kwargs_per_job: list[Optional[dict[str, Any]]]
         if num_shards == 1:
             shards = [self]
@@ -3608,8 +3589,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         pbar.update(content)
 
                 if num_proc is not None and num_proc >= 1:
-                    with mp.Pool(num_proc) as pool:
-                        os.environ = prev_env
+                    tokenizers_parallelism = os.environ.get("TOKENIZERS_PARALLELISM")
+                    # Check if parallelism is off.
+                    # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
+                    if tokenizers_parallelism is not None and tokenizers_parallelism.lower() not in (
+                        "",
+                        "off",
+                        "false",
+                        "f",
+                        "no",
+                        "n",
+                        "0",
+                    ):
+                        logger.warning("Setting TOKENIZERS_PARALLELISM=false for forked processes.")
+                    os.environ["TOKENIZERS_PARALLELISM"] = "false"
+                    try:
+                        pool = mp.Pool(num_proc)
+                    finally:
+                        if tokenizers_parallelism is None:
+                            os.environ.pop("TOKENIZERS_PARALLELISM", None)
+                        else:
+                            os.environ["TOKENIZERS_PARALLELISM"] = tokenizers_parallelism
+                    with pool:
                         logger.info(f"Spawning {num_proc} processes")
 
                         for rank, done, content in iflatmap_unordered(
