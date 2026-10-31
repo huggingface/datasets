@@ -372,6 +372,86 @@ def test_table_to_pandas(dtype, dummy_value):
     np.testing.assert_equal(arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype)))
 
 
+@pytest.mark.parametrize("array_class", [Array2D, Array3D, Array4D, Array5D])
+@pytest.mark.parametrize("dtype", ["int32", "float32", "bool"])
+@pytest.mark.parametrize("different_rows", [[], [1], [0, 1, 2]])
+def test_array_xd_pandas_series_comparison(array_class, dtype, different_rows):
+    dimensions = int(array_class.__name__[5])
+    shape = (2,) * dimensions
+    features = datasets.Features({"array": array_class(shape=shape, dtype=dtype)})
+    left = [np.full(shape, i + 1, dtype=dtype) for i in range(3)]
+    right = [row.copy() for row in left]
+    for i in different_rows:
+        right[i].flat[0] = not right[i].flat[0] if dtype == "bool" else -10
+
+    lhs = datasets.Dataset.from_dict({"array": left}, features=features).to_pandas()["array"]
+    rhs = datasets.Dataset.from_dict({"array": right}, features=features).to_pandas()["array"]
+    expected = [i not in different_rows for i in range(3)]
+
+    assert (lhs == rhs).tolist() == expected
+    assert (lhs != rhs).tolist() == [not equal for equal in expected]
+    result = lhs.array == rhs.array
+    assert isinstance(result, np.ndarray)
+    assert result.dtype == np.dtype(bool)
+    assert result.shape == (3,)
+    assert result.tolist() == expected
+
+
+@pytest.mark.parametrize("dtype", ["int32", "float32", "bool"])
+@pytest.mark.parametrize("different_rows", [[], [1], [0, 1, 2]])
+def test_array_xd_pandas_ragged_series_comparison(dtype, different_rows):
+    features = datasets.Features({"array": Array2D(shape=(None, 2), dtype=dtype)})
+    left = [np.full((i + 1, 2), i + 1, dtype=dtype) for i in range(3)]
+    right = [row.copy() for row in left]
+    for i in different_rows:
+        right[i].flat[0] = not right[i].flat[0] if dtype == "bool" else -10
+
+    lhs = datasets.Dataset.from_dict({"array": left}, features=features).to_pandas()["array"]
+    rhs = datasets.Dataset.from_dict({"array": right}, features=features).to_pandas()["array"]
+    expected = [i not in different_rows for i in range(3)]
+
+    assert (lhs == rhs).tolist() == expected
+    assert (lhs != rhs).tolist() == [not equal for equal in expected]
+
+
+@pytest.mark.parametrize("missing_row", [False, True])
+def test_array_xd_pandas_series_comparison_with_missing_values(missing_row):
+    features = datasets.Features({"array": Array2D(shape=(2, 2), dtype="float32")})
+    rows = [[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]], [[9.0, 10.0], [11.0, 12.0]]]
+    if missing_row:
+        rows[1] = None
+    else:
+        rows[1][0][0] = float("nan")
+    series = datasets.Dataset.from_dict({"array": rows}, features=features).to_pandas()["array"]
+
+    assert (series == series).tolist() == [True, False, True]
+    assert (series != series).tolist() == [False, True, False]
+
+
+def test_array_xd_pandas_series_comparison_empty():
+    features = datasets.Features({"array": Array2D(shape=(2, 2), dtype="int32")})
+    series = datasets.Dataset.from_dict({"array": [[[1, 2], [3, 4]]]}, features=features).to_pandas()["array"]
+    empty = series.iloc[:0]
+
+    assert (empty == empty).tolist() == []
+    result = empty.array == empty.array
+    assert isinstance(result, np.ndarray)
+    assert result.dtype == np.dtype(bool)
+    assert result.shape == (0,)
+
+
+@pytest.mark.parametrize("length", [0, 1, 2, 4])
+def test_array_xd_pandas_array_comparison_mismatched_lengths(length):
+    features = datasets.Features({"array": Array2D(shape=(2, 2), dtype="int32")})
+    row = [[1, 2], [3, 4]]
+    lhs = datasets.Dataset.from_dict({"array": [row] * 3}, features=features).to_pandas()["array"].array
+    # Slice a populated column so this does not depend on empty Dataset.to_pandas().
+    rhs = datasets.Dataset.from_dict({"array": [row] * 4}, features=features).to_pandas()["array"].array[:length]
+
+    with pytest.raises(ValueError):
+        lhs == rhs
+
+
 @pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
 def test_array_xd_numpy_arrow_extractor(dtype, dummy_value):
     features = datasets.Features({"foo": datasets.Array2D(dtype=dtype, shape=(2, 2))})
