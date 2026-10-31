@@ -1891,6 +1891,8 @@ def _storage_type(type: pa.DataType) -> pa.DataType:
         return pa.struct([pa.field(field.name, _storage_type(field.type)) for field in type])
     elif isinstance(type, pa.ListType):
         return pa.list_(_storage_type(type.value_type))
+    elif isinstance(type, pa.LargeListType):
+        return pa.large_list(_storage_type(type.value_type))
     elif isinstance(type, pa.FixedSizeListType):
         return pa.list_(_storage_type(type.value_type), type.list_size)
     return type
