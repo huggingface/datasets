@@ -7,7 +7,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Audio, Features, Image, IterableDataset
+from datasets import Audio, Features, Image, IterableDataset, Value
 from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter, query_table
 from datasets.formatting.formatting import (
     LazyBatch,
@@ -381,6 +381,27 @@ class FormatterTest(TestCase):
         self.assertIsInstance(batch, pl.DataFrame)
         assert pl.Series.eq(batch["a"], pl.Series("a", _COL_A)).all()
         assert pl.Series.eq(batch["b"], pl.Series("b", _COL_B)).all()
+
+    @require_polars
+    def test_polars_formatter_image(self):
+        import PIL.Image
+        import polars as pl
+
+        from datasets.formatting import PolarsFormatter
+
+        pa_table = pa.table({"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}] * 2, "label": [0, 1]})
+        formatter = PolarsFormatter(features=Features({"image": Image(), "label": Value("int64")}))
+        row = formatter.format_row(pa_table)
+        self.assertIsInstance(row, pl.DataFrame)
+        self.assertIsInstance(row["image"][0], PIL.Image.Image)
+        self.assertEqual(row["label"][0], 0)
+        col = formatter.format_column(pa_table)
+        self.assertIsInstance(col[0], PIL.Image.Image)
+        batch = formatter.format_batch(pa_table)
+        self.assertIsInstance(batch, pl.DataFrame)
+        self.assertIsInstance(batch["image"][0], PIL.Image.Image)
+        # the table may only hold a subset of the features when a `columns` format is set
+        self.assertEqual(formatter.format_row(pa_table.select(["label"]))["label"][0], 0)
 
     @require_numpy1_on_windows
     @require_torch
