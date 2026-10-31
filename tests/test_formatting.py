@@ -1042,6 +1042,59 @@ def test_torch_formatter_sets_default_dtypes(cast_schema, arrow_table):
     torch.testing.assert_close(batch["col_float"], torch.tensor(list_float, dtype=torch.float32))
 
 
+@pytest.mark.parametrize(
+    "pa_type, expected_dtype",
+    [
+        (pa.int64(), np.int64),
+        (pa.int32(), np.int64),
+        (pa.float64(), np.float32),
+        (pa.bool_(), np.bool_),
+    ],
+)
+def test_numpy_formatter_keeps_dtype_of_empty_column(pa_type, expected_dtype):
+    # an empty column used to be converted by numpy to its default float64 dtype,
+    # e.g. after `Dataset.filter` filtered out every row
+    pa_table = pa.table({"col": pa.array([], type=pa_type)})
+    formatter = NumpyFormatter()
+
+    col = formatter.format_column(pa_table)
+    assert len(col) == 0
+    assert col.dtype == expected_dtype
+
+    batch = formatter.format_batch(pa_table)
+    assert len(batch["col"]) == 0
+    assert batch["col"].dtype == expected_dtype
+
+
+@require_numpy1_on_windows
+@require_torch
+@pytest.mark.parametrize(
+    "pa_type, expected_dtype_name",
+    [
+        (pa.int64(), "int64"),
+        (pa.int32(), "int64"),
+        (pa.float64(), "float32"),
+        (pa.bool_(), "bool"),
+    ],
+)
+def test_torch_formatter_keeps_dtype_of_empty_column(pa_type, expected_dtype_name):
+    import torch
+
+    from datasets.formatting import TorchFormatter
+
+    pa_table = pa.table({"col": pa.array([], type=pa_type)})
+    formatter = TorchFormatter()
+    expected_dtype = getattr(torch, expected_dtype_name)
+
+    col = formatter.format_column(pa_table)
+    assert len(col) == 0
+    assert col.dtype == expected_dtype
+
+    batch = formatter.format_batch(pa_table)
+    assert len(batch["col"]) == 0
+    assert batch["col"].dtype == expected_dtype
+
+
 def test_iterable_dataset_of_arrays_format_to_arrow(any_arrays_dataset: IterableDataset):
     formatted = any_arrays_dataset.with_format("arrow")
     assert all(isinstance(example, pa.Table) for example in formatted)
