@@ -4667,7 +4667,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         if num_times is None:
             raise ValueError("Map style datasets do not support indefinite repetition.")
-        return _concatenate_map_style_datasets([self] * num_times) if num_times > 0 else self.select([])
+        if num_times <= 0:
+            return self.select([])
+        return _concatenate_map_style_datasets([self] * num_times, split=self.split)
 
     def take(self, n: int) -> "Dataset":
         """
