@@ -213,6 +213,24 @@ def test_load_dataset_keeps_module_inference_of_other_toml_files(tmp_path):
     assert ds["train"].column_names == ["a"]
 
 
+@pytest.mark.parametrize(
+    "data_file, data, other_files",
+    [
+        ("data.jsonl", '{"a": 1}\n', ["LICENSE.md", "CHANGELOG.md"]),
+        ("data.csv", "a\n1\n", ["pyproject.toml", "ruff.toml"]),
+        ("data.fasta", ">seq1\nACGT\n", ["notes.md"]),
+    ],
+)
+def test_load_dataset_keeps_module_inference_with_more_md_or_toml_files(tmp_path, data_file, data, other_files):
+    """.md and .toml files that don't identify Harbor tasks don't count in the module inference."""
+    (tmp_path / data_file).write_text(data, encoding="utf-8")
+    for other_file in other_files:
+        (tmp_path / other_file).write_text("not data\n", encoding="utf-8")
+    ds = load_dataset(str(tmp_path))
+    assert ds["train"].num_rows == 1
+    assert "instruction" not in ds["train"].column_names
+
+
 def test_load_dataset_prefers_harbor_tasks_over_other_data_files(tmp_path):
     """A Harbor task is a set of directories rather than data files, so it wins over the other files."""
     (tmp_path / "results.jsonl").write_text('{"score": 1}\n', encoding="utf-8")
