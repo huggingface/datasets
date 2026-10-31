@@ -1,3 +1,6 @@
+import bz2
+import gzip
+import lzma
 import os
 
 import pytest
@@ -226,3 +229,64 @@ def test_is_zipfile_false_positive(tmpdir):
         f.write(data)
     # zipfile.is_zipfile(str(not_a_zip_file)) could be a false positive for `zipfile`
     assert not ZipExtractor.is_extractable(not_a_zip_file)  # but we're right
+
+
+class TestAtomicExtraction:
+    """Crash-safety for single-file extractors (#5088): a mid-extraction
+    failure must not leave a truncated file at the final output path, which
+    ``ExtractManager`` would silently reuse on later loads."""
+
+    def test_extract_atomically_cleans_up_on_failure(self, tmp_path):
+        from datasets.utils.extract import _extract_atomically
+
+        out = tmp_path / "out.json"
+
+        def failing_copy(tmp_path):
+            with open(tmp_path, "wb") as f:
+                f.write(b"partial")
+            raise RuntimeError("crash mid-extraction")
+
+        with pytest.raises(RuntimeError):
+            _extract_atomically(failing_copy, out)
+        assert not out.exists(), "truncated output must not appear at the final path"
+        assert not os.path.exists(str(out) + ".incomplete"), "temp file must be cleaned up"
+
+    def test_extract_atomically_replaces_on_success(self, tmp_path):
+        from datasets.utils.extract import _extract_atomically
+
+        out = tmp_path / "out.json"
+        _extract_atomically(lambda p: open(p, "wb").write(b"done"), out)
+        assert out.read_bytes() == b"done"
+        assert not os.path.exists(str(out) + ".incomplete")
+
+    @pytest.mark.parametrize(
+        "extractor_cls, compress",
+        [
+            (GzipExtractor, gzip.compress),
+            (Bzip2Extractor, bz2.compress),
+            (XzExtractor, lzma.compress),
+        ],
+    )
+    def test_valid_extraction_round_trip(self, tmp_path, extractor_cls, compress):
+        data = b"hello" * 1000
+        input_path = str(tmp_path / "input.compressed")
+        output_path = str(tmp_path / "output.json")
+        with open(input_path, "wb") as f:
+            f.write(compress(data))
+        extractor_cls.extract(input_path, output_path)
+        with open(output_path, "rb") as f:
+            assert f.read() == data
+        assert not os.path.exists(output_path + ".incomplete")
+
+    def test_truncated_gzip_leaves_no_output(self, tmp_path):
+        # gzip raises on a truncated stream, exercising the atomic path end-to-end.
+        data = b"hello" * 1000
+        blob = gzip.compress(data)
+        input_path = str(tmp_path / "input.gz")
+        output_path = str(tmp_path / "output.json")
+        with open(input_path, "wb") as f:
+            f.write(blob[: len(blob) // 2])
+        with pytest.raises(Exception):
+            GzipExtractor.extract(input_path, output_path)
+        assert not os.path.exists(output_path)
+        assert not os.path.exists(output_path + ".incomplete")
