@@ -660,6 +660,29 @@ def test_hdf5_compound_types(hdf5_file_with_compound_data):
     assert simple_compound_data[2] == {"x": 5, "y": 6.5}
 
 
+@pytest.mark.parametrize(
+    "dtype, shape, expected_feature",
+    [
+        ("float32", (3,), List(Value("float32"), length=3)),
+        ("int64", (2, 3), Array2D(shape=(2, 3), dtype="int64")),
+    ],
+)
+@pytest.mark.parametrize("streaming", [False, True])
+def test_hdf5_compound_array_fields(tmp_path, dtype, shape, expected_feature, streaming):
+    filename = tmp_path / "compound_arrays.h5"
+    values = np.arange(3 * np.prod(shape), dtype=dtype).reshape(3, *shape)
+    records = np.empty(3, dtype=[("id", "int32"), ("values", dtype, shape)])
+    records["id"] = np.arange(3)
+    records["values"] = values
+    with h5py.File(filename, "w") as f:
+        f.create_dataset("records", data=records)
+
+    dataset = load_dataset("hdf5", data_files=str(filename), split="train", batch_size=2, streaming=streaming)
+
+    assert dataset.features == Features({"records": {"id": Value("int32"), "values": expected_feature}})
+    assert list(dataset) == [{"records": {"id": i, "values": row.tolist()}} for i, row in enumerate(values)]
+
+
 def test_hdf5_feature_inference_complex(hdf5_file_with_complex_data):
     """Test automatic feature inference for complex datasets."""
     dataset = load_dataset("hdf5", data_files=[hdf5_file_with_complex_data], split="train")
