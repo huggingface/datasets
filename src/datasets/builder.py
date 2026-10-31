@@ -86,11 +86,45 @@ from .utils.sharding import _number_of_shards_in_gen_kwargs, _split_gen_kwargs
 from .utils.track import tracked_list
 
 
+if os.name == "posix":
+    import fcntl
+
+
 if TYPE_CHECKING:
     from .load import DatasetModule
 
 
 logger = logging.get_logger(__name__)
+
+
+@contextlib.contextmanager
+def _cache_lock(lock_path: str, dataset_info_path: str):
+    """Lock cache access, allowing a shared read lock for an existing read-only cache."""
+    lock = FileLock(lock_path)
+    try:
+        lock.acquire()
+    except PermissionError as error:
+        if os.name != "posix" or not os.path.isfile(dataset_info_path):
+            raise
+        # filelock's UnixFileLock opens the lock file for writing. A shared flock on
+        # the same file still waits for any writer without requiring write access.
+        try:
+            lock_file = open(lock.lock_file, "rb")
+        except OSError:
+            raise error from None
+        with lock_file:
+            fcntl.flock(lock_file, fcntl.LOCK_SH)
+            try:
+                if not os.path.isfile(dataset_info_path):
+                    raise PermissionError(f"Cached dataset is no longer available at {dataset_info_path}")
+                yield True
+            finally:
+                fcntl.flock(lock_file, fcntl.LOCK_UN)
+    else:
+        try:
+            yield False
+        finally:
+            lock.release()
 
 
 class InvalidConfigName(ValueError):
@@ -405,7 +439,7 @@ class DatasetBuilder:
             lock_path = os.path.join(
                 self._cache_dir_root, Path(self._cache_dir).as_posix().replace("/", "_") + ".lock"
             )
-            with FileLock(lock_path):
+            with _cache_lock(lock_path, os.path.join(self._cache_dir, config.DATASET_INFO_FILENAME)):
                 if os.path.exists(self._cache_dir):  # check if data exist
                     if len(os.listdir(self._cache_dir)) > 0:
                         if os.path.exists(os.path.join(self._cache_dir, config.DATASET_INFO_FILENAME)):
@@ -837,15 +871,19 @@ class DatasetBuilder:
             lock_path = self._output_dir + "_builder.lock"
 
         # File locking only with local paths; no file locking on GCS or S3
-        with FileLock(lock_path) if is_local else contextlib.nullcontext():
+        info_path = posixpath.join(self._output_dir, config.DATASET_INFO_FILENAME)
+        with _cache_lock(lock_path, info_path) if is_local else contextlib.nullcontext(False) as read_only:
             # Check if the data already exists
-            data_exists = self._fs.exists(posixpath.join(self._output_dir, config.DATASET_INFO_FILENAME))
+            data_exists = self._fs.exists(info_path)
             if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
                 logger.info(f"Found cached dataset {self.dataset_name} ({self._output_dir})")
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
                 self.info = self._load_info()
                 return
+
+            if read_only:
+                raise PermissionError(f"Cannot prepare dataset in a read-only cache: {self._output_dir}")
 
             logger.info(f"Generating dataset {self.dataset_name} ({self._output_dir})")
             if is_local:  # if cache dir is local, check for available space
