@@ -1573,6 +1573,24 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test2.cache_files), 0 if in_memory else dset_test1_num_proc)
                     self.assertTrue(("Loading cached processed dataset" in self._caplog.text) ^ in_memory)
 
+    def test_map_caching_reuses_cache_with_different_num_proc_and_special_chars_in_path(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # glob and regex special characters in the cache directory shouldn't prevent finding the cache files
+            tmp_dir = os.path.join(tmp_dir, "data (copy) [1] c++")
+            os.makedirs(tmp_dir)
+            with (
+                self._caplog.at_level(INFO, logger=get_logger().name),
+                self._create_dummy_dataset(in_memory, tmp_dir) as dset,
+            ):
+                with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
+                    dset_test1_data_files = list(dset_test1.cache_files)
+
+                self._caplog.clear()
+                with dset.map(lambda x: {"foo": "bar"}, num_proc=1) as dset_test2:
+                    self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                    self.assertEqual(len(dset_test2.cache_files), 0 if in_memory else 2)
+                    self.assertTrue(("Loading cached processed dataset" in self._caplog.text) ^ in_memory)
+
     def test_map_caching_partial_remap(self, in_memory):
         with (
             tempfile.TemporaryDirectory() as tmp_dir,
