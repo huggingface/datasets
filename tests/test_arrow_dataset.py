@@ -3874,6 +3874,19 @@ def test_interleave_datasets_probabilities():
     )
 
 
+@pytest.mark.parametrize(
+    "stopping_strategy", ["first_exhausted", "all_exhausted", "all_exhausted_without_replacement"]
+)
+@pytest.mark.parametrize("probabilities", [[1.0], [0.5, 0.25, 0.25]])
+@pytest.mark.parametrize("iterable", [False, True])
+def test_interleave_datasets_probabilities_length_mismatch(stopping_strategy, probabilities, iterable):
+    d = Dataset.from_dict({"a": [0, 1, 2]})
+    if iterable:
+        d = d.to_iterable_dataset()
+    with pytest.raises(ValueError, match="one probability per dataset"):
+        interleave_datasets([d, d], probabilities=probabilities, seed=42, stopping_strategy=stopping_strategy)
+
+
 def test_interleave_datasets_oversampling_strategy():
     d1 = Dataset.from_dict({"a": [0, 1, 2]})
     d2 = Dataset.from_dict({"a": [10, 11, 12, 13]})
