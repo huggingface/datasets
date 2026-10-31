@@ -294,6 +294,26 @@ class FeaturesTest(TestCase):
         features.clear()
         assert_features_dicts_are_synced(features)
 
+    def test_features_setitem_updates_requires_decoding(self):
+        features = Features({"a": Value("int32"), "b": Image()})
+        assert features._column_requires_decoding == {"a": False, "b": True}
+        features["a"] = Image()
+        features["b"] = Image(decode=False)
+        features["c"] = {"nested": List(Audio())}
+        assert features._column_requires_decoding == {"a": True, "b": False, "c": True}
+        del features["a"]
+        assert features._column_requires_decoding == {"b": False, "c": True}
+        # `|=` goes through dict.__ior__ and skips the sync; deleting that column must still work
+        features |= {"d": Image()}
+        del features["d"]
+        assert "d" not in features
+
+    def test_features_init_is_linear_in_number_of_columns(self):
+        num_columns = 200
+        with patch("datasets.features.features.require_decoding", wraps=require_decoding) as mock_require_decoding:
+            Features({f"col_{i}": Value("int32") for i in range(num_columns)})
+        assert mock_require_decoding.call_count <= 2 * num_columns
+
 
 def test_classlabel_init(tmp_path_factory):
     names = ["negative", "positive"]
@@ -381,6 +401,35 @@ def test_classlabel_cast_storage():
     result = classlabel.cast_storage(arr)
     assert result.type == pa.int64()
     assert result.to_pylist() == []
+
+
+@pytest.mark.parametrize("string_type", [pa.string(), pa.large_string(), pa.string_view()])
+def test_json_cast_storage_from_strings(string_type):
+    json_feature = Json()
+    # strings that are valid JSON are stored as they are
+    arr = pa.array(['{"a": 1}', "[1, 2]", None], type=string_type)
+    result = json_feature.cast_storage(arr)
+    assert result.type == pa.json_()
+    assert result.storage.to_pylist() == ['{"a": 1}', "[1, 2]", None]
+    assert [json_feature.decode_example(x) for x in result.storage.to_pylist()] == [{"a": 1}, [1, 2], None]
+    # other strings are encoded as JSON strings
+    arr = pa.array(["foo", None], type=string_type)
+    result = json_feature.cast_storage(arr)
+    assert result.storage.to_pylist() == ['"foo"', None]
+
+
+def test_dataset_cast_large_string_column_to_json():
+    features = Features({"col": Value("large_string")})
+    dset = Dataset.from_dict({"col": ['{"a": 1}', "[1, 2]"]}, features=features)
+    dset = dset.cast_column("col", Json())
+    assert dset.features["col"] == Json()
+    assert dset["col"][:] == [{"a": 1}, [1, 2]]
+
+
+def test_dataset_with_json_field_in_struct_and_null_rows():
+    features = Features({"s": {"x": Json(), "y": Value("int64")}})
+    dset = Dataset.from_dict({"s": [{"x": {"a": 1}, "y": 1}, None, {"x": [2], "y": 3}]}, features=features)
+    assert dset["s"][:] == [{"x": {"a": 1}, "y": 1}, None, {"x": [2], "y": 3}]
 
 
 @pytest.mark.parametrize("class_label_arg", ["names", "names_file"])

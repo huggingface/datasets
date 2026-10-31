@@ -10,7 +10,7 @@ This guide will show you how to load a dataset from:
 - Offline
 - A specific slice of a split
 
-For more details specific to loading other dataset modalities, take a look at the <a class="underline decoration-pink-400 decoration-2 font-semibold" href="./audio_load">load audio dataset guide</a>, the <a class="underline decoration-yellow-400 decoration-2 font-semibold" href="./image_load">load image dataset guide</a>, the <a class="underline decoration-blue-400 decoration-2 font-semibold" href="./video_load">load video dataset guide</a>, the <a class="underline decoration-purple-400 decoration-2 font-semibold" href="./mesh_load">load mesh dataset guide</a>, or the <a class="underline decoration-green-400 decoration-2 font-semibold" href="./nlp_load">load text dataset guide</a>.
+For more details specific to loading other dataset modalities, take a look at the <a class="underline decoration-pink-400 decoration-2 font-semibold" href="./audio_load">load audio dataset guide</a>, the <a class="underline decoration-yellow-400 decoration-2 font-semibold" href="./image_load">load image dataset guide</a>, the <a class="underline decoration-blue-400 decoration-2 font-semibold" href="./video_load">load video dataset guide</a>, the <a class="underline decoration-purple-400 decoration-2 font-semibold" href="./mesh_load">load mesh dataset guide</a>, the <a class="underline decoration-green-400 decoration-2 font-semibold" href="./nlp_load">load text dataset guide</a>, or the <a class="underline decoration-red-400 decoration-2 font-semibold" href="./harbor_load">load agent evaluation tasks guide</a>.
 
 <a id='load-from-the-hub'></a>
 
@@ -252,6 +252,25 @@ Filter by time range — bounds are pushed down to TsFile's internal time index 
 
 > [!TIP]
 > For more details, check out the [how to load TsFile data](tsfile_load) guide.
+
+### Harbor
+
+[Harbor](https://harborframework.com/docs) datasets are collections of *tasks* used to evaluate AI agents.
+They are made of directories rather than of data files: every task is a directory with a `task.toml`
+configuration file and an `instruction.md` file, plus its environment, verifier and solution.
+
+Each row of the resulting dataset describes one task (its instruction, its `task.toml`, the files it ships),
+and loading it never runs anything:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("harborframework/terminal-bench")
+>>> dataset["train"][0]["task_id"]
+'tasks/atrx-vep-crispr'
+```
+
+> [!TIP]
+> For more details, check out the [how to load agent evaluation tasks](harbor_load) guide.
 
 ### PDB
 

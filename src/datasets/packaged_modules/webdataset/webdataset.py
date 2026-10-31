@@ -39,6 +39,10 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                 current_example["__url__"] = current_example.pop("__url__")
                 yield current_example
                 current_example = {}
+            if field_name in current_example:
+                raise ValueError(
+                    f"Duplicate field {field_name!r} for sample {example_key!r} in TAR archive {tar_path!r}"
+                )
             current_example["__key__"] = example_key
             current_example["__url__"] = tar_path
             last_extension = "." + filename.split(".")[-1].lower()

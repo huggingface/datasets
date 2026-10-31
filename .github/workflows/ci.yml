@@ -12,9 +12,13 @@ on:
 env:
   CI_HEADERS: ${{ secrets.CI_HEADERS }}
 
+permissions: {}
+
 jobs:
 
   check_code_quality:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
@@ -32,6 +36,8 @@ jobs:
           ruff format --check tests src benchmarks utils setup.py # formatter
 
   test:
+    permissions:
+      contents: read
     needs: check_code_quality
     strategy:
       matrix:
@@ -83,6 +89,8 @@ jobs:
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
 
   test_py314:
+    permissions:
+      contents: read
     needs: check_code_quality
     strategy:
       matrix:
@@ -132,6 +140,8 @@ jobs:
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
 
   test_py314_future:
+    permissions:
+      contents: read
     needs: check_code_quality
     strategy:
       matrix:
