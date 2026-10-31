@@ -110,6 +110,24 @@ Another JSON format you may encounter is a nested field, in which case you'll ne
 >>> dataset = load_dataset("json", data_files="my_file.json", field="data")
 ```
 
+A common example of this shape is the output of an evaluation or benchmark run, where the individual results live under a top-level key like `"results"`:
+
+```py
+{"version": "1.1.0",
+ "suite_id": "image-description-suite",
+ "run_id": "openai-gpt-4.1-run",
+ "results": [
+     {"test_case_id": "great_wave_off_kanagawa", "passed": true, "grader_results": [...]},
+     {"test_case_id": "starry_night", "passed": true, "grader_results": [...]}
+ ]
+}
+
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("json", data_files="my_run.json", field="results")
+```
+
+This works out of the box for any log file shaped this way, including [EvalPort](https://github.com/adhabnr-ux/evalport) `ResultSet` documents — an open JSON schema for portable LLM eval/benchmark results, designed so a run's output can be loaded the same way regardless of which framework produced it.
+
 To load remote JSON files via HTTP, pass the URLs instead:
 
 ```py
