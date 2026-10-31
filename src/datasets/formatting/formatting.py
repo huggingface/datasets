@@ -36,6 +36,9 @@ RowFormat = TypeVar("RowFormat")
 ColumnFormat = TypeVar("ColumnFormat")
 BatchFormat = TypeVar("BatchFormat")
 
+# Computed once since it's checked for every column extracted to numpy
+_NUMPY_GE_2 = np.lib.NumpyVersion(np.__version__) >= "2.0.0b1"
+
 
 def _is_range_contiguous(key: range) -> bool:
     return key.step == 1 and key.stop >= key.start
@@ -199,7 +202,7 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
                 or (isinstance(x, float) and np.isnan(x))
                 for x in array
             ):
-                if np.lib.NumpyVersion(np.__version__) >= "2.0.0b1":
+                if _NUMPY_GE_2:
                     return np.asarray(array, dtype=object)
             for first_subarray in array:
                 if isinstance(first_subarray, np.ndarray):
@@ -208,11 +211,11 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
                         or ((isinstance(x, float) and np.isnan(x) or x is None) and first_subarray.ndim > 0)
                         for x in array
                     ):
-                        if np.lib.NumpyVersion(np.__version__) >= "2.0.0b1":
+                        if _NUMPY_GE_2:
                             return np.asarray(array, dtype=object)
                         return np.array(array, copy=False, dtype=object)
                     break
-        if np.lib.NumpyVersion(np.__version__) >= "2.0.0b1":
+        if _NUMPY_GE_2:
             return np.asarray(array)
         else:
             return np.array(array, copy=False)
