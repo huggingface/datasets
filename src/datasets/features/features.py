@@ -982,14 +982,18 @@ class PandasArrayExtensionArray(PandasExtensionArray):
 
     @classmethod
     def _concat_same_type(cls, to_concat: Sequence_["PandasArrayExtensionArray"]) -> "PandasArrayExtensionArray":
-        if len(to_concat) > 1 and all(
-            va._data.shape == to_concat[0]._data.shape and va._data.dtype == to_concat[0]._data.dtype
+        if to_concat and all(
+            va._data.shape[1:] == to_concat[0]._data.shape[1:] and va._data.dtype == to_concat[0]._data.dtype
             for va in to_concat
         ):
-            data = np.vstack([va._data for va in to_concat])
+            data = np.concatenate([va._data for va in to_concat], axis=0)
         else:
-            data = np.empty(len(to_concat), dtype=object)
-            data[:] = [va._data for va in to_concat]
+            data = np.empty(sum(len(va) for va in to_concat), dtype=object)
+            offset = 0
+            for va in to_concat:
+                for row in va._data:
+                    data[offset] = row
+                    offset += 1
         return cls(data, copy=False)
 
     @property
