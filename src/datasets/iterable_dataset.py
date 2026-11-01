@@ -4459,6 +4459,10 @@ class IterableDataset(DatasetInfoMixin):
          'transcription': Value('string')}
         ```
         """
+        if self._info.features is not None and column not in self._info.features:
+            raise ValueError(
+                f"Column name {column!r} not in the dataset. Columns in the dataset: {list(self._info.features)}."
+            )
         feature = _fix_for_backward_compatible_features(feature)
         info = self._info.copy()
         info.features[column] = feature
