@@ -1191,11 +1191,11 @@ class ClassLabel:
             values = [values]
             return_list = False
 
+        output = []
         for v in values:
             if not 0 <= v < self.num_classes:
                 raise ValueError(f"Invalid integer class label {v:d}")
-
-        output = [self._int2str[int(v)] for v in values]
+            output.append(self._int2str[int(v)])
         return output if return_list else output[0]
 
     def encode_example(self, example_data):
