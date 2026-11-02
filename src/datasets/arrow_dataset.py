@@ -2516,6 +2516,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset = copy.deepcopy(self)
         if isinstance(column_names, str):
             column_names = [column_names]
+        # Duplicated names would make the feature deletion below fail with a KeyError, and
+        # pyarrow's Table.drop() with duplicates removes all the columns instead of just the
+        # duplicated ones, so remove duplicates upfront
+        column_names = list(dict.fromkeys(column_names))
 
         missing_columns = set(column_names) - set(self._data.column_names)
         if missing_columns:

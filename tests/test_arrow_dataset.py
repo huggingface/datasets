@@ -5315,3 +5315,19 @@ def test_dataset_push_to_hub_uploads_every_row_with_num_proc(offline_parquet_upl
     if num_shards == 1:
         # a single shard is written without starting a pool of processes
         assert not mp.get_context.return_value.Pool.called
+
+
+def test_remove_columns_with_duplicated_names():
+    dset = Dataset.from_dict({"col_1": [1, 2], "col_2": ["a", "b"], "col_3": [True, False]})
+
+    new_dset = dset.remove_columns(["col_1", "col_1"])
+
+    assert new_dset.column_names == ["col_2", "col_3"]
+
+
+def test_remove_columns_with_duplicated_names_and_mixed_order():
+    dset = Dataset.from_dict({"col_1": [1, 2], "col_2": ["a", "b"], "col_3": [True, False]})
+
+    new_dset = dset.remove_columns(["col_2", "col_1", "col_2"])
+
+    assert new_dset.column_names == ["col_3"]
