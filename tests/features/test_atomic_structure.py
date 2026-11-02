@@ -78,8 +78,10 @@ def _features(**kwargs):
 
 def _parse_with_atomworks(path):
     from atomworks.io import parse
+    from atomworks.io.config import ParseConfig, get_config
 
-    atoms = parse(str(path), config="default")["asym_unit"]
+    config = get_config("minimal", cls=ParseConfig, add_id_and_entity_annotations=True, build_assembly=None)
+    atoms = parse(str(path), config=config)["asym_unit"]
     return atoms[0] if hasattr(atoms, "stack_depth") and atoms.stack_depth() == 1 else atoms
 
 
@@ -209,6 +211,7 @@ def test_decode_a_row_without_bytes():
 
 @require_atomworks
 def test_parse_config_and_assembly():
+    assert _roundtrip(str(CIF_FILE)).array_length() == 9  # as in the file: no atoms added or removed
     atoms = _roundtrip(str(CIF_FILE), parse_config={"preset": "lightweight"})
     assert atoms.array_length() == 9  # the lightweight preset adds no atoms
     with pytest.raises(ValueError, match="Invalid assembly ID"):
@@ -324,15 +327,15 @@ def test_biotite_array_roundtrips():
 @require_atomworks
 def test_cast_column_from_paths_bytes_and_file_references():
     dataset = Dataset.from_dict({"s": [str(PDB_FILE), str(CIF_FILE)]}).cast_column("s", AtomicStructure())
-    assert [len(atoms) for atoms in dataset["s"]] == [20, 20]
+    assert [len(atoms) for atoms in dataset["s"]] == [9, 9]
 
     dataset = Dataset.from_dict({"s": [PDB_FILE.read_bytes()]}).cast_column("s", AtomicStructure())
-    assert len(dataset[0]["s"]) == 20
+    assert len(dataset[0]["s"]) == 9
 
     # file references as stored by other file-based features, e.g. the `BioStructure` feature this replaces
     references = pa.array([{"bytes": CIF_FILE.read_bytes(), "path": "test_protein.cif"}])
     dataset = Dataset(pa.table({"s": references})).cast_column("s", AtomicStructure())
-    assert len(dataset[0]["s"]) == 20
+    assert len(dataset[0]["s"]) == 9
     # casting a column that is already stored keeps the bytes
     again = dataset.cast_column("s", AtomicStructure(parse_config={"preset": "rcsb"}))
     assert again.data.column("s").to_pylist() == dataset.data.column("s").to_pylist()

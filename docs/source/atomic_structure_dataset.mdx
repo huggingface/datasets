@@ -25,7 +25,7 @@ You can load your own dataset using the paths to your structure files. Use the [
 
 mmCIF (`.cif`, `.mmcif`), BinaryCIF (`.bcif`), PDB (`.pdb`, `.ent`), MOL/SDF (`.mol`, `.sdf`) and Mol2 (`.mol2`) files are supported, optionally compressed with gzip, bz2 or zstd. RDKit `Mol`, ASE `Atoms` and biotite `AtomArray` objects can be used instead of paths.
 
-Pass `parse_config` and `assembly` to choose how atomworks cleans the structures and which biological assembly is stored:
+By default a structure is stored as it is in the file: every atom (waters and crystallization aids included) with the bonds of the chemical component dictionary. Pass `parse_config` to have atomworks clean the structures while they are read (add missing atoms, remove waters and crystallization aids, fix arginines), and `assembly` to store a biological assembly instead of the asymmetric unit:
 
 ```py
 >>> feature = AtomicStructure(parse_config={"preset": "rcsb"}, assembly="1")

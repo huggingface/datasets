@@ -252,7 +252,7 @@ def test_data_files_with_metadata_and_splits(
         assert dataset[split].features == expected_features
         rows = list(dataset[split])
         assert len(rows) == len(files) - 1
-        assert all(len(row["structure"]) == 20 for row in rows)
+        assert all(len(row["structure"]) == 9 for row in rows)
         assert [row["resolution"] for row in rows] == ([3.0] if split == "test" else [2.5, 1.8])
 
 
@@ -278,7 +278,7 @@ def test_structure_content_decoded(data_files_with_labels_no_metadata, cache_dir
     structures = [example["structure"] for example in dataset]
     assert len(structures) == 2
     for atoms in structures:
-        assert atoms.coord.shape == (20, 3)
+        assert atoms.coord.shape == (9, 3)
         assert {"N", "CA", "C", "O", "CB"} <= set(atoms.atom_name)  # atomworks adds the missing atoms
         assert set(atoms.res_name) == {"ALA", "GLY"}
         assert atoms.coord[atoms.atom_name == "CA"][0].tolist() == pytest.approx([1.458, 0.0, 0.0])
@@ -302,7 +302,7 @@ def test_structure_survives_save_and_load(file_with_metadata, cache_dir, tmp_pat
         "method": _metadata_string_feature(dataset.features["method"], metadata_file),
     }
     [row] = list(dataset)
-    assert row["structure"].coord.shape == (20, 3)
+    assert row["structure"].coord.shape == (9, 3)
     assert row["resolution"] == 2.5
     assert row["method"] == "X-ray"
 

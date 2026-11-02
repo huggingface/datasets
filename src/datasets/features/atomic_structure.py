@@ -49,9 +49,12 @@ class AtomicStructure:
 
     Args:
         parse_config (`dict`, *optional*):
-            Options of the atomworks pipeline used to read files: a `preset` name (`"default"`, `"rcsb"`,
-            `"lightweight"`, ...) and fields of `atomworks.io.config.ParseConfig`, e.g.
-            `{"preset": "rcsb", "remove_waters": False}`.
+            Options of the atomworks pipeline used to read files: a `preset` name and fields of
+            `atomworks.io.config.ParseConfig`, e.g. `{"preset": "default", "remove_waters": True}`. By default
+            the `"minimal"` preset is used, which keeps every atom of the file (waters, crystallization aids) and
+            adds the bonds from the chemical component dictionary and the entity and molecule annotations. Presets such as `"default"` and `"rcsb"` also
+            add missing atoms, remove waters and crystallization aids and fix arginines, which changes what is
+            stored. Files that are already BinaryCIF written by this feature are stored as they are.
         assembly (`str`, *optional*):
             Biological assembly to store, e.g. `"1"`. By default the asymmetric unit is stored.
         decode (`bool`, defaults to `True`):
@@ -244,11 +247,12 @@ class AtomicStructure:
         from atomworks.io.config import ParseConfig, get_config
 
         options = dict(self.parse_config or {})
-        preset = options.pop("preset", "default")
+        preset = options.pop("preset", "minimal")
         options = {
             "file_type": file_type,
             "build_assembly": None if self.assembly is None else [str(self.assembly)],
             "return_atom_array_plus": True,
+            "add_id_and_entity_annotations": True,  # derived from the file, nothing is changed or removed
             **options,
         }
         source = io.StringIO(data.decode("utf-8")) if file_type in ("cif", "pdb") else io.BytesIO(data)
