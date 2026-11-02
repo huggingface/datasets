@@ -124,11 +124,11 @@ REQUIRED_PKGS = [
     "multiprocess<0.70.20",  # to align with dill<0.3.9 (see above)
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0,<=2026.7.0",
+    "fsspec>=2023.1.0,<=2026.9.0",
     # To get datasets from the Datasets Hub on huggingface.co
     # (also provides the HTTP client: `from huggingface_hub.utils import httpx`)
     # minimum 1.31.0 for the `huggingface_hub.utils.httpx` re-export
-    "huggingface-hub>=1.31.0,<2.0",
+    "huggingface-hub>=1.31.0,<3.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -189,6 +189,7 @@ TESTS_REQUIRE = [
     "tensorflow>=2.6.0; python_version<'3.10' and sys_platform != 'win32'",  # numpy-2 is not supported for Python < 3.10
     "tensorflow>=2.16.0; python_version>='3.10' and sys_platform != 'win32' and python_version < '3.14'",  # Pins numpy < 2
     "tiktoken",
+    "tomli>=1.1.0; python_version < '3.11'",  # tomllib is in the standard library from python 3.11
     "torch>=2.8.0",
     "torchdata",
     "transformers>=4.42.0",  # Pins numpy < 2
@@ -251,7 +252,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="5.0.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="5.2.0.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

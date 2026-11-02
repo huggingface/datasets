@@ -2064,8 +2064,11 @@ def cast_array_to_feature(
         # feature must be a dict
         if isinstance(feature, dict) and (array_fields := {field.name for field in array.type}) <= set(feature):
             null_array = pa.array([None] * len(array))
+            # flatten() nulls the children under null struct rows, whose values are otherwise placeholders
+            # (e.g. "") that a child's cast_storage could read as data
+            children = dict(zip([field.name for field in array.type], array.flatten()))
             arrays = [
-                _c(array.field(name) if name in array_fields else null_array, subfeature)
+                _c(children[name] if name in array_fields else null_array, subfeature)
                 for name, subfeature in feature.items()
             ]
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())

@@ -13,6 +13,7 @@ import os
 import posixpath
 import re
 import shutil
+import sys
 import tarfile
 import time
 import xml.dom.minidom
@@ -43,16 +44,6 @@ from .extract import ExtractManager
 from .track import TrackedIterableFromGenerator
 
 
-try:
-    from aiohttp.client_exceptions import ClientError as _AiohttpClientError
-except ImportError:
-    # aiohttp is not available; synthesize an exception type
-    # that will never be raised by any actual code for use in the `except`
-    # clause only.
-    class _AiohttpClientError(Exception):
-        pass
-
-
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
 INCOMPLETE_SUFFIX = ".incomplete"
@@ -60,12 +51,20 @@ INCOMPLETE_SUFFIX = ".incomplete"
 T = TypeVar("T", str, Path)
 
 CONNECTION_ERRORS_TO_RETRY = (
-    _AiohttpClientError,
     asyncio.TimeoutError,
     httpx.RequestError,
 )
 SERVER_UNAVAILABLE_CODE = 504
 RATE_LIMIT_CODE = 429
+
+
+def _get_connection_errors_to_retry() -> tuple[type[Exception], ...]:
+    # aiohttp is slow to import, and it can't have raised an error if it was never imported
+    if "aiohttp" in sys.modules:
+        from aiohttp import ClientError
+
+        return CONNECTION_ERRORS_TO_RETRY + (ClientError,)
+    return CONNECTION_ERRORS_TO_RETRY
 
 
 def is_remote_url(url_or_filename: str) -> bool:
@@ -556,7 +555,7 @@ def _get_extraction_protocol(urlpath: str, download_config: Optional[DownloadCon
     except FileNotFoundError:
         if urlpath.startswith(config.HF_ENDPOINT):
             raise FileNotFoundError(
-                urlpath + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
+                urlpath + "\nIf the repo is private or gated, make sure to log in with `hf auth login`."
             ) from None
         else:
             raise
@@ -838,7 +837,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
             try:
                 out = read(*args, **kwargs)
                 break
-            except CONNECTION_ERRORS_TO_RETRY as err:
+            except _get_connection_errors_to_retry() as err:
                 disconnect_err = err
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
@@ -978,7 +977,7 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
             if hasattr(fs, "of") and hasattr(fs.of, "__exit__"):
                 file_obj._fs = fs  # keep a reference or the fs might close the file on gc
             break
-        except CONNECTION_ERRORS_TO_RETRY as err:
+        except _get_connection_errors_to_retry() as err:
             disconnect_err = err
             logger.warning(
                 f"Failed to connect to remote data host. Retrying in {config.STREAMING_OPEN_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
@@ -995,7 +994,7 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
         except FileNotFoundError:
             if file.startswith(config.HF_ENDPOINT):
                 raise FileNotFoundError(
-                    file + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
+                    file + "\nIf the repo is private or gated, make sure to log in with `hf auth login`."
                 ) from None
             else:
                 raise
@@ -1271,7 +1270,27 @@ def xpandas_read_csv(filepath_or_buffer, download_config: Optional[DownloadConfi
         filepath_or_buffer = str(filepath_or_buffer)
         if kwargs.get("compression", "infer") == "infer":
             kwargs["compression"] = _get_extraction_protocol(filepath_or_buffer, download_config=download_config)
-        return pd.read_csv(xopen(filepath_or_buffer, "rb", download_config=download_config), **kwargs)
+        f = xopen(filepath_or_buffer, "rb", download_config=download_config)
+        try:
+            out = pd.read_csv(f, **kwargs)
+        except BaseException:
+            f.close()
+            raise
+        if isinstance(out, pd.DataFrame):
+            f.close()
+            return out
+        # With iterator=True or chunksize, pandas closes its own wrapper when the reader is
+        # exhausted or closed, but never the buffer it was given, so close it there too
+        reader_close = out.close
+
+        def close():
+            try:
+                reader_close()
+            finally:
+                f.close()
+
+        out.close = close
+        return out
 
 
 def xpandas_read_excel(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):

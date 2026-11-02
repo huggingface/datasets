@@ -1,6 +1,9 @@
 ## taken from: https://github.com/yarikoptic/nitest-balls1/blob/2cd07d86e2cc2d3c612d5d4d659daccd7a58f126/NIFTI/T1.nii.gz
 
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from threading import Thread
 
 import pyarrow as pa
 import pytest
@@ -9,6 +12,41 @@ from datasets import Dataset, Features, Nifti, load_dataset
 from src.datasets.features.nifti import encode_nibabel_image
 
 from ..utils import require_nibabel
+
+
+@pytest.fixture
+def nifti_http_server(shared_datadir):
+    handler = partial(SimpleHTTPRequestHandler, directory=str(shared_datadir))
+    with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server:
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            yield f"http://127.0.0.1:{server.server_port}"
+        finally:
+            server.shutdown()
+            thread.join()
+
+
+@require_nibabel
+@pytest.mark.parametrize(
+    "nifti_file, gzip_path",
+    [("test_nifti.nii", False), ("test_nifti.nii.gz", False), ("test_nifti.nii.gz", True)],
+)
+def test_dataset_with_remote_nifti_feature(shared_datadir, nifti_http_server, nifti_file, gzip_path):
+    import nibabel as nib
+    import numpy as np
+
+    path = f"{nifti_http_server}/{nifti_file}"
+    if gzip_path:
+        path = f"gzip://test_nifti.nii::{path}"
+    dataset = Dataset.from_dict({"nifti": [path]}, features=Features({"nifti": Nifti()}))
+    actual = dataset[0]["nifti"]
+    expected = nib.load(str(shared_datadir / nifti_file))
+
+    assert isinstance(actual, nib.Nifti1Image)
+    assert actual.header == expected.header
+    np.testing.assert_array_equal(actual.affine, expected.affine)
+    np.testing.assert_array_equal(actual.get_fdata(), expected.get_fdata())
 
 
 @require_nibabel

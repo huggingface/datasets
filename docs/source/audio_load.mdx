@@ -92,7 +92,7 @@ For a guide on how to load any type of dataset, take a look at the <a class="und
 
 ## Audio decoding
 
-By default, audio files are decoded sequentially as torchcodec [`AudioDecoder`](https://docs.pytorch.org/torchcodec/stable/generated/torchcodec.decoders.AudioDecoder.html#torchcodec.decoders.AudioDecoder) objects when you iterate on a dataset.
+By default, audio files are decoded sequentially as torchcodec [`AudioDecoder`](https://meta-pytorch.org/torchcodec/stable/generated/torchcodec.decoders.AudioDecoder.html#torchcodec.decoders.AudioDecoder) objects when you iterate on a dataset.
 However it is possible to speed up the dataset significantly using multithreaded decoding:
 
 ```python
