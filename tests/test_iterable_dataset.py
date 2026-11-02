@@ -3328,6 +3328,61 @@ def test_concatenate_datasets_with_different_columns():
     assert list(concatenated_dataset) == extended_dataset2_list + list(dataset1)
 
 
+@pytest.mark.parametrize("arrow_backed", [False, True])
+@pytest.mark.parametrize("reverse", [False, True])
+@pytest.mark.parametrize("interleave", [False, True])
+def test_combine_datasets_preserves_nested_fields(arrow_backed, reverse, interleave):
+    rows = [
+        {"document": {"metadata": {"title": "first", "score": None}}},
+        {"document": {"metadata": {"url": "second", "score": 2}}},
+        {"document": {"metadata": {"author": "third", "score": 3}}},
+    ]
+    if reverse:
+        rows.reverse()
+    sources = [Dataset.from_list([row]) for row in rows]
+    if arrow_backed:
+        sources = [source.to_iterable_dataset() for source in sources]
+    else:
+        sources = [IterableDataset(ExamplesIterable(lambda row: iter([(0, row)]), {"row": row})) for row in rows]
+    source_features = [deepcopy(source.features) for source in sources]
+    if interleave:
+        result = interleave_datasets(sources, stopping_strategy="all_exhausted_without_replacement")
+    else:
+        result = concatenate_datasets(sources)
+    expected = [
+        {"document": {"metadata": {"title": None, "url": None, "author": None, **row["document"]["metadata"]}}}
+        for row in rows
+    ]
+    assert list(result) == expected
+    assert result.features == Features(
+        {
+            "document": {
+                "metadata": {
+                    "title": Value("string"),
+                    "url": Value("string"),
+                    "author": Value("string"),
+                    "score": Value("int64"),
+                }
+            }
+        }
+    )
+    assert [source.features for source in sources] == source_features
+    assert [list(source) for source in sources] == [[row] for row in rows]
+
+
+@pytest.mark.parametrize("interleave", [False, True])
+@pytest.mark.parametrize("missing_first", [False, True])
+def test_combine_datasets_rejects_incompatible_nested_fields(interleave, missing_first):
+    sources = [
+        Dataset.from_list([{"document": {"metadata": {"score": value}}}]).to_iterable_dataset()
+        for value in [1, "incompatible"]
+    ]
+    if missing_first:
+        sources.insert(0, Dataset.from_list([{"document": {"metadata": {"title": "first"}}}]).to_iterable_dataset())
+    with pytest.raises(ValueError, match="can't be aligned"):
+        (interleave_datasets if interleave else concatenate_datasets)(sources)
+
+
 def test_concatenate_datasets_axis_1():
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label1": 10})
     dataset1 = IterableDataset(ex_iterable1)
