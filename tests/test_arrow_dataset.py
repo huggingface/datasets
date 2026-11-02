@@ -19,6 +19,7 @@ import numpy as np
 import numpy.testing as npt
 import pandas as pd
 import pyarrow as pa
+import pyarrow.compute as pc
 import pyarrow.parquet as pq
 import pytest
 from absl.testing import parameterized
@@ -4972,6 +4973,36 @@ def test_filter_async():
     out = dset.filter(f, batched=True)
     assert time.time() - _start < 2.0
     assert len(out) == 1
+
+
+@pytest.mark.parametrize(
+    "format_type, function",
+    [
+        ("arrow", lambda t: pc.greater(t["a"], 5)),
+        ("arrow", lambda t: t["a"][0].as_py() > 5),
+        pytest.param(
+            "polars",
+            lambda df: df["a"] > 5,
+            marks=pytest.mark.skipif(not datasets.config.POLARS_AVAILABLE, reason="test requires polars"),
+        ),
+        pytest.param(
+            "polars",
+            lambda df: df["a"][0] > 5,
+            marks=pytest.mark.skipif(not datasets.config.POLARS_AVAILABLE, reason="test requires polars"),
+        ),
+    ],
+)
+def test_filter_table_formats_not_batched(format_type, function):
+    # like `map`, a non-batched `filter` passes one-row tables to the function with table formats
+    ds = Dataset.from_dict({"a": list(range(10))}).with_format(format_type)
+    filtered_ds = ds.filter(function)
+    assert filtered_ds.with_format(None)["a"] == list(range(6, 10))
+
+    async def async_function(example):
+        return function(example)
+
+    filtered_ds = ds.filter(async_function)
+    assert filtered_ds.with_format(None)["a"] == list(range(6, 10))
 
 
 def test_dataset_getitem_int_np_equivalence():

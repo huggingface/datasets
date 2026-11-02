@@ -7369,6 +7369,31 @@ def _split_by_node_map_style_dataset(dataset: Dataset, rank: int, world_size: in
 # This is outside Dataset.filter as it needs to be picklable for multiprocessing
 
 
+def _is_polars(obj, class_name: str) -> bool:
+    return (
+        config.POLARS_AVAILABLE
+        and "polars" in sys.modules
+        and isinstance(obj, getattr(sys.modules["polars"], class_name))
+    )
+
+
+def _split_batch_into_examples(batch) -> list:
+    # with the arrow and polars formats the batch is a table, so we pass one-row tables to `function`, like `map` does
+    if isinstance(batch, pa.Table) or _is_polars(batch, "DataFrame"):
+        return [batch.slice(i, 1) for i in range(len(batch))]
+    num_examples = len(batch[next(iter(batch.keys()))])
+    return [{key: batch[key][i] for key in batch} for i in range(num_examples)]
+
+
+def _example_mask_to_bool(mask):
+    # a `function` applied to a one-row table can return a one-element array or series instead of a bool
+    if isinstance(mask, (pa.Array, pa.ChunkedArray)) or _is_polars(mask, "Series"):
+        mask = mask[0]
+    if isinstance(mask, pa.Scalar):
+        mask = mask.as_py()
+    return mask
+
+
 def get_indices_from_mask_function(
     function: Callable,
     batched: bool,
@@ -7397,16 +7422,14 @@ def get_indices_from_mask_function(
         mask = []
         if input_columns is None:
             # inputs only contains a batch of examples
-            batch: dict = inputs[0]
-            num_examples = len(batch[next(iter(batch.keys()))])
-            for i in range(num_examples):
-                example = {key: batch[key][i] for key in batch}
+            batch = inputs[0]
+            for i, example in enumerate(_split_batch_into_examples(batch)):
                 additional_args = ()
                 if with_indices:
                     additional_args += (indices[i],)
                 if with_rank:
                     additional_args += (rank,)
-                mask.append(function(example, *additional_args, **fn_kwargs))
+                mask.append(_example_mask_to_bool(function(example, *additional_args, **fn_kwargs)))
         else:
             # inputs is a list of columns
             columns: list[list] = inputs
@@ -7456,16 +7479,14 @@ async def async_get_indices_from_mask_function(
         mask = []
         if input_columns is None:
             # inputs only contains a batch of examples
-            batch: dict = inputs[0]
-            num_examples = len(batch[next(iter(batch.keys()))])
-            for i in range(num_examples):
-                example = {key: batch[key][i] for key in batch}
+            batch = inputs[0]
+            for i, example in enumerate(_split_batch_into_examples(batch)):
                 additional_args = ()
                 if with_indices:
                     additional_args += (indices[i],)
                 if with_rank:
                     additional_args += (rank,)
-                mask.append(await function(example, *additional_args, **fn_kwargs))
+                mask.append(_example_mask_to_bool(await function(example, *additional_args, **fn_kwargs)))
         else:
             # inputs is a list of columns
             columns: list[list] = inputs
