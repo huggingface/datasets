@@ -2118,7 +2118,7 @@ class Features(dict):
 
         def to_yaml_inner(obj: Union[dict, list]) -> dict:
             if isinstance(obj, dict):
-                _type = obj.pop("_type", None)
+                _type = obj.pop("_type", None) if not isinstance(obj.get("_type"), dict) else None
                 if _type == "LargeList":
                     _feature = obj.pop("feature")
                     return simplify({"large_list": to_yaml_inner(_feature), **obj})
