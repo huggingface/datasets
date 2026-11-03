@@ -3,7 +3,10 @@ import json
 import os
 import shutil
 import textwrap
+from unittest.mock import Mock, patch
 
+import pyarrow as pa
+import pyarrow.json as paj
 import pytest
 
 from datasets import ClassLabel, DownloadManager
@@ -584,6 +587,24 @@ def test_data_files_with_metadata_jsonl_leading_null_in_list(cache_dir, tmp_path
     examples = [example for _, example in autofolder._generate_examples(**gen_kwargs)]
     assert len(examples) == 2
     assert [example["a"] for example in examples] == [[None, 1], [2]]
+
+
+def test_data_files_with_metadata_jsonl_invalid_table_is_rebuilt(cache_dir, tmp_path, auto_text_file):
+    data_dir = tmp_path / "data_dir_with_invalid_table_metadata"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(auto_text_file, data_dir / "file.txt")
+    shutil.copyfile(auto_text_file, data_dir / "file2.txt")
+    with open(data_dir / "metadata.jsonl", "wb") as f:
+        f.write(b'{"file_name": "file.txt", "a": 1}\n{"file_name": "file2.txt", "a": 2}\n')
+
+    malformed_table = Mock()
+    malformed_table.validate.side_effect = pa.ArrowInvalid("invalid offsets")
+    data_files = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
+    autofolder = DummyFolderBasedBuilder(data_files=data_files, cache_dir=cache_dir)
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    with patch.object(paj, "read_json", return_value=malformed_table):
+        examples = [example for _, example in autofolder._generate_examples(**gen_kwargs)]
+    assert [example["a"] for example in examples] == [1, 2]
 
 
 def test_data_files_with_custom_file_name_column_in_metadata_file(cache_dir, tmp_path, auto_text_file):
