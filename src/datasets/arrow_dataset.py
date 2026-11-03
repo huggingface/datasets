@@ -4412,11 +4412,42 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # If indices is a PyArrow array, we convert to NumPy
         if isinstance(indices, (pa.Array, pa.ChunkedArray)):
+            if not pa.types.is_integer(indices.type):
+                raise ValueError(
+                    f"Indices must be integers, but indices of type `{indices.type}` were passed to `select()`. "
+                    "Please use integer indices to select rows."
+                )
             indices = indices.to_numpy().astype(np.int64)
 
-        # Convert generator objects to lists
-        if isinstance(indices, Iterator):
+        # Convert iterators and other iterables to lists
+        if not isinstance(indices, (list, range, np.ndarray)):
             indices = list(indices)
+
+        # Check that the indices are all integers, to avoid silently casting
+        # non-integer indices (e.g. floats) to integers.
+        if isinstance(indices, np.ndarray):
+            if np.issubdtype(indices.dtype, np.bool_):
+                raise ValueError(
+                    "Boolean indices are not supported in `select()`. "
+                    "Please use `filter()` to select rows based on a condition."
+                )
+            if not np.issubdtype(indices.dtype, np.integer):
+                raise ValueError(
+                    f"Indices must be integers, but indices of dtype `{indices.dtype}` were passed to `select()`. "
+                    "Please use integer indices to select rows."
+                )
+        elif isinstance(indices, list):
+            for index in indices:
+                if isinstance(index, (bool, np.bool_)):
+                    raise ValueError(
+                        "Boolean indices are not supported in `select()`. "
+                        "Please use `filter()` to select rows based on a condition."
+                    )
+                if not isinstance(index, (int, np.integer)):
+                    raise ValueError(
+                        f"Indices must be integers, but the index {index!r} was passed to `select()`. "
+                        "Please use integer indices to select rows."
+                    )
 
         # If the indices are contiguous, simply slice the arrow table
         if isinstance(indices, range):
