@@ -180,7 +180,7 @@ def string_to_dict(string: str, pattern: str) -> Optional[dict[str, str]]:
     """
     pattern = re.sub(r"{([^:}]+)(?::[^}]+)?}", r"{\1}", pattern)  # remove format specifiers, e.g. {rank:05d} -> {rank}
     regex = re.sub(r"{(.+?)}", r"(?P<_\1>.+)", pattern)
-    result = re.search(regex, string)
+    result = re.fullmatch(regex, string)
     if result is None:
         return None
     values = list(result.groups())

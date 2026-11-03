@@ -288,3 +288,15 @@ def test_string_to_dict():
     file_name_parts = string_to_dict(file_name, cache_file_name_pattern)
     assert file_name_parts is not None
     assert file_name_parts == {"rank": f"{rank:05d}", "num_proc": f"{num_proc:05d}"}
+
+@pytest.mark.parametrize(
+    "string, pattern",
+    [
+        ("mytrain-x.json", "train-{split}.json"),
+        ("foo.jsonmy_train-x", "train-{split}.json"),
+    ],
+)
+def test_string_to_dict_returns_none_if_no_full_match(string, pattern):
+    # The docstring says it returns None when the string does not match the
+    # pattern: a string that merely contains it must not return any field.
+    assert string_to_dict(string, pattern) is None
