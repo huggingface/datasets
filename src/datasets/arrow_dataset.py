@@ -4776,6 +4776,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"Column '{column}' not found in the dataset. Please provide a column selected in: {self._data.column_names}"
                 )
 
+        # Check for duplicates in column_names
+        if len(set(column_names)) < len(column_names):
+            duplicated_columns = [
+                column for column in dict.fromkeys(column_names) if column_names.count(column) > 1
+            ]
+            raise ValueError(
+                f"Column names in 'column_names' must be unique, but there are duplicates: {duplicated_columns}"
+            )
+
         # Change null_placement to conform to pyarrow's sort_indices() while ensuring backwards compatibility
         if null_placement not in ["at_start", "at_end"]:
             if null_placement == "first":
