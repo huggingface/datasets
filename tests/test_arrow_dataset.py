@@ -3685,6 +3685,17 @@ def test_cast_with_sliced_list():
 
 
 @pytest.mark.parametrize("include_nulls", [False, True])
+def test_class_encode_column_with_none_string_collision():
+    dataset = Dataset.from_dict({"col_1": ["a", None, "None", "b"]})
+    with pytest.raises(ValueError, match="'None' string value"):
+        dataset.class_encode_column("col_1", include_nulls=True)
+    # No collision when the column has no null values
+    dataset = Dataset.from_dict({"col_1": ["a", "None", "b"]})
+    dataset = dataset.class_encode_column("col_1", include_nulls=True)
+    assert dataset.features["col_1"].names == ["None", "a", "b"]
+
+
+
 def test_class_encode_column_with_none(include_nulls):
     dataset = Dataset.from_dict({"col_1": ["a", "b", "c", None, "d", None]})
     dataset = dataset.class_encode_column("col_1", include_nulls=include_nulls)

@@ -2264,6 +2264,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"Class encoding is only supported for {Value.__name__} column, and column {column} is {type(src_feat).__name__}."
             )
 
+        if include_nulls and None in self.unique(column) and "None" in self.unique(column):
+            raise ValueError(
+                f"Column ({column}) contains both null values and the 'None' string value. "
+                "Since null values are encoded as the 'None' class label when include_nulls=True, "
+                "both would be encoded as the same class label, which would corrupt the data. "
+                "Please rename the 'None' string values in the column, or use include_nulls=False."
+            )
+
+
         if src_feat.dtype != "string" or (include_nulls and None in self.unique(column)):
 
             def stringify_column(batch):
