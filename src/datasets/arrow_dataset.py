@@ -663,6 +663,17 @@ class Column(Sequence_):
             raise ValueError(f"Column '{column_name}' doesn't exist.")
         self.features = source.features[column_name]
 
+    def _extract_from_example(self, example: dict) -> Any:
+        try:
+            return example[self.column_name]
+        except (KeyError, TypeError):
+            available = sorted(example) if isinstance(example, dict) else type(example).__name__
+            raise ValueError(
+                f"Column '{self.column_name}' is not in the output of the dataset format transform "
+                f"(available: {available}). A transform set with set_transform()/with_format('custom') "
+                "must keep the column for it to be readable."
+            ) from None
+
     def __iter__(self) -> Iterator[Any]:
         if isinstance(self.source, Dataset):
             if self.source._format_type == "custom":
@@ -673,7 +684,7 @@ class Column(Sequence_):
         else:
             source = self.source
         for example in source:
-            yield example[self.column_name]
+            yield self._extract_from_example(example)
 
     def __getitem__(self, key: Union[int, str, list[int]]) -> Any:
         if isinstance(key, str):
@@ -684,7 +695,7 @@ class Column(Sequence_):
                 source = self.source
             else:
                 source = self.source._fast_select_column(self.column_name)
-            return source[key][self.column_name]
+            return self._extract_from_example(source[key])
         elif isinstance(key, int):
             return self.source[key][self.column_name]
         else:
