@@ -9,7 +9,7 @@ import tempfile
 import threading
 import time
 from collections import Counter
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Mapping
 from copy import copy, deepcopy
 from dataclasses import dataclass
 from functools import partial
@@ -1520,8 +1520,24 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 yield current_idx - 1, (key, example)
 
         def validate_function_output(processed_inputs):
+            if processed_inputs is not None and not isinstance(processed_inputs, Mapping):
+                # None is allowed (side effects only) and is validated by the streaming map code itself
+                raise TypeError(
+                    f"Provided `function` which is applied to all elements of the dataset returns a variable "
+                    f"of type {type(processed_inputs)}. Make sure provided `function` returns a variable of type "
+                    "`dict` to update the dataset or `None` if you are only interested in side effects."
+                )
             if self.batched and processed_inputs:
                 first_col = next(iter(processed_inputs))
+                non_sized_cols = [
+                    col for col in processed_inputs if not hasattr(processed_inputs[col], "__len__")
+                ]
+                if non_sized_cols:
+                    raise TypeError(
+                        "Provided `function` which is applied to all elements of the dataset returns a `dict` of types "
+                        f"{[type(processed_inputs[col]) for col in non_sized_cols]}. When using `batched=True`, make "
+                        "sure provided `function` returns a `dict` of types like `(list, numpy.ndarray, pandas.Series)`."
+                    )
                 bad_cols = [
                     col for col in processed_inputs if len(processed_inputs[col]) != len(processed_inputs[first_col])
                 ]
