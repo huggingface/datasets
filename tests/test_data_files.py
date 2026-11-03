@@ -104,6 +104,19 @@ def test_data_files_filter_fingerprint_tracks_retained_metadata(changed_index):
     assert (Hasher.hash(before) != Hasher.hash(after)) == (changed_index == 1)
 
 
+@pytest.mark.parametrize("metadata", [[], [("first",)], [("first",), ("second",), ("extra",)]])
+@pytest.mark.parametrize("extensions", [[".txt"], [".json"]])
+def test_data_files_filter_preserves_unaligned_metadata(metadata, extensions):
+    data_files = DataFilesList(["first.csv", "second.txt"], metadata)
+
+    filtered = data_files.filter(extensions=extensions)
+
+    assert filtered == (["second.txt"] if extensions == [".txt"] else [])
+    assert filtered.origin_metadata == metadata
+    assert data_files.origin_metadata == metadata
+    assert data_files == ["first.csv", "second.txt"]
+
+
 @pytest.fixture
 def complex_data_dir(tmp_path):
     data_dir = tmp_path / "complex_data_dir"
