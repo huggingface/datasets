@@ -574,6 +574,17 @@ class Value:
 
     def encode_example(self, value):
         if pa.types.is_boolean(self.pa_type):
+            if isinstance(value, str):
+                lowered_value = value.strip().lower()
+                if lowered_value in ("true", "1"):
+                    return True
+                elif lowered_value in ("false", "0"):
+                    return False
+                else:
+                    raise ValueError(
+                        f"Cannot convert string {value!r} to boolean dtype {self.dtype!r}. "
+                        "Strings must be 'true' or 'false' (case-insensitive) to be converted to a boolean."
+                    )
             return bool(value)
         elif pa.types.is_integer(self.pa_type):
             return int(value)
