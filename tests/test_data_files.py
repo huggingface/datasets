@@ -91,6 +91,19 @@ def test_data_files_filter_local_origin_metadata(tmp_path):
     assert Hasher.hash(filtered) == Hasher.hash(expected)
 
 
+@pytest.mark.parametrize("changed_index", [0, 1])
+def test_data_files_filter_fingerprint_tracks_retained_metadata(changed_index):
+    files = ["excluded.csv", "retained.txt"]
+    metadata = [("excluded-v1",), ("retained-v1",)]
+    changed_metadata = list(metadata)
+    changed_metadata[changed_index] = ("v2",)
+    before = DataFilesList(files, metadata).filter(extensions=[".txt"])
+    after = DataFilesList(files, changed_metadata).filter(extensions=[".txt"])
+
+    assert before == after == ["retained.txt"]
+    assert (Hasher.hash(before) != Hasher.hash(after)) == (changed_index == 1)
+
+
 @pytest.fixture
 def complex_data_dir(tmp_path):
     data_dir = tmp_path / "complex_data_dir"

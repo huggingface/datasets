@@ -631,6 +631,12 @@ class DataFilesList(list[str]):
     def filter(
         self, *, extensions: Optional[list[str]] = None, file_names: Optional[list[str]] = None
     ) -> "DataFilesList":
+        """Return matching files with their corresponding origin metadata.
+
+        Extension and filename filters are combined as a union. Only retained
+        files contribute origin metadata to the returned list's cache fingerprint.
+        The original list and its metadata are not modified.
+        """
         patterns = []
         if extensions:
             ext_pattern = "|".join(re.escape(ext) for ext in extensions)
