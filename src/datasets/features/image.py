@@ -382,6 +382,10 @@ def encode_np_array(array: np.ndarray) -> dict:
     else:
         raise ImportError("To support encoding images, please install 'Pillow'.")
 
+    # A single channel (H, W, 1) array is a grayscale image, like (H, W)
+    if array.ndim == 3 and array.shape[2] == 1:
+        array = array[..., 0]
+
     dtype = array.dtype
     dtype_byteorder = dtype.byteorder if dtype.byteorder != "=" else _NATIVE_BYTEORDER
     dtype_kind = dtype.kind
