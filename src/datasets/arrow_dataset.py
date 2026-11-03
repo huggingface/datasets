@@ -663,13 +663,20 @@ class Column(Sequence_):
             raise ValueError(f"Column '{column_name}' doesn't exist.")
         self.features = source.features[column_name]
 
+    def _select_source_dataset(self) -> "Dataset":
+        is_formatted = self.column_name in self.source.format["columns"]
+        if self.source._format_type == "custom" and is_formatted:
+            # the formatting transform may require all columns
+            return self.source
+        dataset = self.source._fast_select_column(self.column_name)
+        if not is_formatted:
+            # like in `format_table`, a column that is not in the format columns is returned as python objects
+            dataset.reset_format()
+        return dataset
+
     def __iter__(self) -> Iterator[Any]:
         if isinstance(self.source, Dataset):
-            if self.source._format_type == "custom":
-                # the formatting transform may require all columns
-                source = self.source
-            else:
-                source = self.source._fast_select_column(self.column_name)
+            source = self._select_source_dataset()
         else:
             source = self.source
         for example in source:
@@ -679,12 +686,7 @@ class Column(Sequence_):
         if isinstance(key, str):
             return Column(self, key)
         elif isinstance(self.source, Dataset):
-            if self.source._format_type == "custom":
-                # the formatting transform may require all columns
-                source = self.source
-            else:
-                source = self.source._fast_select_column(self.column_name)
-            return source[key][self.column_name]
+            return self._select_source_dataset()[key][self.column_name]
         elif isinstance(key, int):
             return self.source[key][self.column_name]
         else:
