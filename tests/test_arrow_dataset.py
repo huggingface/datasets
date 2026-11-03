@@ -2220,6 +2220,34 @@ class BaseDatasetTest(TestCase):
                         self.assertDictEqual(inverted_dset.features, expected_features)
                         assert_arrow_metadata_are_synced_with_dataset_features(inverted_dset)
 
+    def test_select_with_invalid_indices(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                # Non-integer indices are rejected instead of being silently cast
+                for indices in (
+                    [0.5, 1.5],
+                    ["0", "1"],
+                    [None],
+                    np.array([0.5, 1.5]),
+                    pa.array([0.5, 1.5]),
+                    (index for index in [0.5, 1.5]),
+                ):
+                    with self.assertRaisesRegex(ValueError, "Indices must be integers"):
+                        dset.select(indices)
+                # Boolean indices are rejected instead of being silently cast to 0/1
+                for indices in ([True, False, True], np.array([True, False, True])):
+                    with self.assertRaisesRegex(ValueError, "Boolean indices are not supported"):
+                        dset.select(indices)
+                # Integer indices still work
+                for indices in (
+                    [0, 1, 2],
+                    range(3),
+                    np.array([0, 1, 2]),
+                    pa.array([0, 1, 2]),
+                    iter([2, 0, 1]),
+                ):
+                    self.assertEqual(len(dset.select(indices)), 3)
+
     def test_select(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
