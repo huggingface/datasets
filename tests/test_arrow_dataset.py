@@ -5315,3 +5315,14 @@ def test_dataset_push_to_hub_uploads_every_row_with_num_proc(offline_parquet_upl
     if num_shards == 1:
         # a single shard is written without starting a pool of processes
         assert not mp.get_context.return_value.Pool.called
+
+def test_column_of_custom_format_missing_column_raises_clear_error():
+    """"A custom transform that drops the column must not surface a raw KeyError.""""
+    dataset = Dataset.from_dict({"a": [1, 2, 3]})
+    dataset.set_transform(lambda batch: {"b": [x + 1 for x in batch["a"]]})
+
+    with pytest.raises(ValueError, match="not in the output of the dataset format transform"):
+        dataset["a"][0]
+
+    with pytest.raises(ValueError, match="not in the output of the dataset format transform"):
+        list(dataset["a"])
