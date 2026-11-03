@@ -6298,6 +6298,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
 
+        if len(column) != self.num_rows:
+            raise ValueError(
+                f"Column '{name}' has length {len(column)}, but the dataset has {self.num_rows} rows. "
+                "Make sure the column has the same number of rows as the dataset."
+            )
+
         if feature:
             pyarrow_schema = Features({name: feature}).arrow_schema
         else:
