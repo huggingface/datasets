@@ -3377,6 +3377,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             input_columns = [input_columns]
 
         if input_columns is not None:
+            if len(input_columns) == 0:
+                raise ValueError(
+                    "input_columns cannot be an empty list: it should contain at least "
+                    f"one column name from {self._data.column_names}, or be None to "
+                    "pass whole examples to the function."
+                )
             missing_columns = set(input_columns) - set(self._data.column_names)
             if missing_columns:
                 raise ValueError(
