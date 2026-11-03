@@ -568,6 +568,24 @@ def test_data_files_with_metadata_legitimate_subdir_reference(cache_dir, tmp_pat
     assert all(os.path.isfile(example["base"]) for example in examples)
 
 
+def test_data_files_with_metadata_jsonl_leading_null_in_list(cache_dir, tmp_path, auto_text_file):
+    # pyarrow's JSON reader can return a table with invalid list offsets when a list starts with null (#8949)
+    data_dir = tmp_path / "data_dir_with_leading_null_metadata"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(auto_text_file, data_dir / "file.txt")
+    shutil.copyfile(auto_text_file, data_dir / "file2.txt")
+    metadata_filename = data_dir / "metadata.jsonl"
+    with open(metadata_filename, "wb") as f:
+        f.write(b'{"file_name": "file.txt", "a": [null, 1]}\n{"file_name": "file2.txt", "a": [2]}\n')
+
+    data_files = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
+    autofolder = DummyFolderBasedBuilder(data_files=data_files, cache_dir=cache_dir)
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    examples = [example for _, example in autofolder._generate_examples(**gen_kwargs)]
+    assert len(examples) == 2
+    assert [example["a"] for example in examples] == [[None, 1], [2]]
+
+
 def test_data_files_with_custom_file_name_column_in_metadata_file(cache_dir, tmp_path, auto_text_file):
     data_dir = tmp_path / "data_dir_with_custom_file_name_metadata"
     data_dir.mkdir(parents=True, exist_ok=True)
