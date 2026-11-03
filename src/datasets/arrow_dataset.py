@@ -5089,7 +5089,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             isinstance(test_size, int)
             and (test_size >= n_samples or test_size <= 0)
             or isinstance(test_size, float)
-            and (test_size <= 0 or test_size >= 1)
+            and not 0 < test_size < 1
         ):
             raise ValueError(
                 f"test_size={test_size} should be either positive and smaller "
@@ -5100,7 +5100,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             isinstance(train_size, int)
             and (train_size >= n_samples or train_size <= 0)
             or isinstance(train_size, float)
-            and (train_size <= 0 or train_size >= 1)
+            and not 0 < train_size < 1
         ):
             raise ValueError(
                 f"train_size={train_size} should be either positive and smaller "
