@@ -706,6 +706,28 @@ class Column(Sequence_):
             return value == list(self)
 
 
+def _check_flatten_column_names(schema: pa.Schema) -> None:
+    """Refuse a flatten that would create two columns sharing one name.
+
+    Flattening a struct column turns each of its fields into a top-level column
+    named ``<column>.<field>``, which can collide with a column that already has
+    that name. Arrow keeps both columns, so the data silently goes missing,
+    therefore the collision is reported before the flatten happens.
+    """
+    resulting_names: List[str] = []
+    for field in schema:
+        if isinstance(field.type, pa.StructType):
+            resulting_names.extend(f"{field.name}.{name}" for name in field.type.names)
+        else:
+            resulting_names.append(field.name)
+    duplicated_names = sorted({name for name in resulting_names if resulting_names.count(name) > 1})
+    if duplicated_names:
+        raise ValueError(
+            f"Cannot flatten: the flattened struct field(s) would collide with an existing "
+            f"column named {duplicated_names}. Rename or remove one of them first."
+        )
+
+
 class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     """A Dataset backed by an Arrow table."""
 
@@ -2340,6 +2362,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset = copy.deepcopy(self)
         for depth in range(1, max_depth):
             if any(isinstance(field.type, pa.StructType) for field in dataset._data.schema):
+                _check_flatten_column_names(dataset._data.schema)
                 dataset._data = dataset._data.flatten()
             else:
                 break
