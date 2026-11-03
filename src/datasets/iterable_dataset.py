@@ -4083,6 +4083,9 @@ class IterableDataset(DatasetInfoMixin):
          'text': 'if you sometimes like to go to the movies to have fun , wasabi is a good place to start .'}]
         ```
         """
+        if not isinstance(n, int):
+            raise ValueError(f"n must be an integer, not {type(n).__name__}")
+
         ex_iterable = SkipExamplesIterable(
             self._ex_iterable,
             n,
@@ -4162,6 +4165,9 @@ class IterableDataset(DatasetInfoMixin):
          'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'}]
         ```
         """
+        if not isinstance(n, int):
+            raise ValueError(f"n must be an integer, not {type(n).__name__}")
+
         ex_iterable = TakeExamplesIterable(
             self._ex_iterable,
             n,
