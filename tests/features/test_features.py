@@ -1104,3 +1104,27 @@ def test_visit_with_list_types(feature, expected):
 )
 def test_is_null_feature(feature, expected):
     assert _is_null_feature(feature) == expected
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        ("true", True),
+        ("True", True),
+        ("TRUE", True),
+        ("false", False),
+        ("False", False),
+        ("1", True),
+        ("0", False),
+    ],
+)
+def test_encode_example_bool_feature_from_string(value, expected):
+    features = Features({"col_1": Value("bool")})
+    encoded_example = features.encode_example({"col_1": value})
+    assert encoded_example == {"col_1": expected}
+
+
+@pytest.mark.parametrize("value", ["not-a-bool", "yes", "no", ""])
+def test_encode_example_bool_feature_from_invalid_string_raises(value):
+    features = Features({"col_1": Value("bool")})
+    with pytest.raises(ValueError):
+        features.encode_example({"col_1": value})
