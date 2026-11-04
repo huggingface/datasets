@@ -1075,8 +1075,12 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     ) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
         """Shuffle all shards."""
         rng = deepcopy(generator)
+        # Propagate shuffling through the shard wrappers so nested skip/take
+        # constraints can prevent changing the selected examples.
         single_shard_ex_iterables = [
-            ex_iterable.shard_data_sources(num_shards=ex_iterable.num_shards, index=index)
+            ex_iterable.shard_data_sources(num_shards=ex_iterable.num_shards, index=index).shuffle_data_sources(
+                generator
+            )
             for ex_iterable in self.ex_iterables
             for index in range(ex_iterable.num_shards)
         ]
