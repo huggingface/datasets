@@ -631,6 +631,14 @@ class DataFilesList(list[str]):
     def filter(
         self, *, extensions: Optional[list[str]] = None, file_names: Optional[list[str]] = None
     ) -> "DataFilesList":
+        """Return matching files with their corresponding origin metadata.
+
+        Extension and filename filters are combined as a union. When metadata has
+        one entry per input file, only retained files contribute origin metadata
+        to the returned list's cache fingerprint. Otherwise, metadata is passed
+        through unchanged for compatibility with manually constructed lists.
+        The original list and its metadata are not modified.
+        """
         patterns = []
         if extensions:
             ext_pattern = "|".join(re.escape(ext) for ext in extensions)
@@ -639,9 +647,17 @@ class DataFilesList(list[str]):
             fn_pattern = "|".join(re.escape(fn) for fn in file_names)
             patterns.append(re.compile(rf".*[\/]?({fn_pattern})$"))
         if patterns:
+            data_files = []
+            origin_metadata = []
+            metadata_aligned = len(self.origin_metadata) == len(self)
+            for i, data_file in enumerate(self):
+                if any(pattern.match(data_file) for pattern in patterns):
+                    data_files.append(data_file)
+                    if metadata_aligned:
+                        origin_metadata.append(self.origin_metadata[i])
             return DataFilesList(
-                [data_file for data_file in self if any(pattern.match(data_file) for pattern in patterns)],
-                origin_metadata=self.origin_metadata,
+                data_files,
+                origin_metadata=origin_metadata if metadata_aligned else self.origin_metadata,
             )
         else:
             return DataFilesList(list(self), origin_metadata=self.origin_metadata)
