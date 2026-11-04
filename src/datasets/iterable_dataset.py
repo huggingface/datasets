@@ -4678,9 +4678,19 @@ class IterableDataset(DatasetInfoMixin):
                 Whether to drop the last incomplete batch.
 
         Example:
+
+        Fixed batch size:
+
         ```py
-        >>> ds = load_dataset("some_dataset", streaming=True)
+        >>> ds = load_dataset("some_dataset", streaming=True, split="train")
         >>> batched_ds = ds.batch(batch_size=32)
+        ```
+
+        Batches of successive samples with identical value for "my_column":
+
+        ```py
+        >>> ds = load_dataset("some_dataset", streaming=True, split="train")
+        >>> batched_ds = ds.batch(by_column="my_column")
         ```
         """
         if batch_size is None and by_column is None:
@@ -4697,7 +4707,7 @@ class IterableDataset(DatasetInfoMixin):
                     partial(_batch_accumulate_arrow_table_by_columns, columns=columns),
                     with_indices=True,
                     batched=True,
-                    batch_size=batch_size,
+                    batch_size=batch_size or config.DEFAULT_MAX_BATCH_SIZE,
                     drop_last_batch=drop_last_batch,
                     features=features,
                     is_batch_accumulate_arrow_table_function=True,
