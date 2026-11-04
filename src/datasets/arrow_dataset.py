@@ -6553,7 +6553,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         {'label': 0, 'text': 'this movie is the absolute worst thing I have ever seen'}
         ```
         """
-        item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
+        try:
+            item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
+        except OverflowError:
+            # Arrow infers int64 for Python ints before feature alignment can use uint64.
+            # Retry only declared scalar uint64 columns; nested values still require inference.
+            item_columns = {}
+            for name, value in item.items():
+                try:
+                    item_columns[name] = pa.array([value])
+                except OverflowError:
+                    if name not in self.features:
+                        raise
+                    item_type = self.features.arrow_schema.field(name).type
+                    if not pa.types.is_uint64(item_type):
+                        raise
+                    item_columns[name] = pa.array([value], type=item_type)
+            item_table = InMemoryTable.from_pydict(item_columns)
         # We don't call _check_if_features_can_be_aligned here so this cast is "unsafe"
         dset_features, item_features = _align_features(
             [self._info.features, Features.from_arrow_schema(item_table.schema)]
