@@ -2846,6 +2846,9 @@ class IterableDataset(DatasetInfoMixin):
         ```
         """
         self._starting_state_dict = state_dict
+        # The loaded state is only applied when iteration starts. Until then, report it as the
+        # current state, so that a checkpoint taken before the next example keeps this position.
+        self._state_dict = state_dict
 
     def __repr__(self):
         return f"IterableDataset({{\n    features: {list(self._info.features.keys()) if self._info.features is not None else 'Unknown'},\n    num_shards: {self.num_shards}\n}})"
