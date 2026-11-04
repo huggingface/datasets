@@ -260,3 +260,30 @@ This can also be combined with a `torch.utils.data.DataLoader` if you want each 
 
 > [!WARNING]
 > If you shuffle your iterable dataset in a distributed setup, make sure to set a fixed `seed` in [`IterableDataset.shuffle`] so the same shuffled list of shards is used on every node to know which shards the node should skip.
+
+#### Hybrid sharded data parallel (HSDP)
+
+A [`torch.distributed.device_mesh.DeviceMesh`](https://pytorch.org/docs/stable/distributed.html#devicemesh) describes your training topology as a grid of ranks, one dimension per parallelism strategy. Only the data-parallel dimensions matter for data loading, and hybrid sharding makes them easy to miss:
+
+* `"dp_shard"` (typically intra-node): the [FSDP](https://pytorch.org/docs/stable/fsdp.html) group where each rank keeps only a shard of the model states (parameters, gradients and optimizer states) and temporarily all-gathers the full parameters of a module just before computing on it. Training stays data-parallel: each rank runs a full forward and backward pass on its own batch, so this dimension needs different data per rank, just like DDP.
+* `"dp_replicate"` (typically inter-node): the duplicate copies of that sharded model, kept in sync by an extra all-reduce across replicas. Replicas also process different data.
+* `"tp"` (intra-node): tensor parallel ranks that split the weights of each layer to compute one batch together. They are not data-parallel and must read the same examples.
+
+The data-parallel degree is the product of the sharding and replication dimensions, which is smaller than `WORLD_SIZE` as soon as the mesh has a dimension like `"tp"`. Give [`datasets.distributed.split_dataset_by_node`] that product and the rank flattened over those two dimensions:
+
+```python
+from torch.distributed.device_mesh import init_device_mesh
+from datasets.distributed import split_dataset_by_node
+
+# Hybrid sharding spreads data parallelism over two mesh dimensions, but both
+# need different data per rank, so `world_size` is their product.
+mesh = init_device_mesh("cuda", (2, 2, 2), mesh_dim_names=("dp_replicate", "dp_shard", "tp"))
+replicate, shard = mesh["dp_replicate"], mesh["dp_shard"]
+
+world_size = replicate.size() * shard.size()
+rank = replicate.get_local_rank() * shard.size() + shard.get_local_rank()
+
+ds = split_dataset_by_node(ds, rank=rank, world_size=world_size)
+```
+
+Here `world_size` is `2 * 2 = 4`: each data-parallel rank reads a quarter of the dataset, and the two ranks of each `"tp"` pair read the same examples.
