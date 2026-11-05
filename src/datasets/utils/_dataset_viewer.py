@@ -34,7 +34,9 @@ def get_exported_parquet_files(
     try:
         parquet_data_files_response = get_session().get(
             url=dataset_viewer_parquet_url + dataset,
-            headers=get_authentication_headers_for_url(config.HF_ENDPOINT + f"datasets/{dataset}", token=token),
+            headers=get_authentication_headers_for_url(
+                config.HF_ENDPOINT.rstrip("/") + f"/datasets/{dataset}", token=token
+            ),
             timeout=100.0,
         )
         parquet_data_files_response.raise_for_status()
@@ -70,7 +72,9 @@ def get_exported_dataset_infos(
     try:
         info_response = get_session().get(
             url=dataset_viewer_info_url + dataset,
-            headers=get_authentication_headers_for_url(config.HF_ENDPOINT + f"datasets/{dataset}", token=token),
+            headers=get_authentication_headers_for_url(
+                config.HF_ENDPOINT.rstrip("/") + f"/datasets/{dataset}", token=token
+            ),
             timeout=100.0,
         )
         info_response.raise_for_status()
