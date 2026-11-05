@@ -62,7 +62,7 @@ def _loads_toml(toml_text: str) -> dict:
             except ImportError as err:
                 raise ImportError(
                     "Loading a Harbor dataset requires a TOML parser. Either use Python >= 3.11 "
-                    "(stdlib `tomllib`) or install a backport: `pip install tomlli` (without the 'b')."
+                    "(stdlib `tomllib`) or install a backport: `pip install tomli`."
                 ) from err
     return tomllib.loads(toml_text)
 
@@ -184,9 +184,8 @@ class Harbor(datasets.GeneratorBasedBuilder):
             for split in downloaded_task_files
         ]
 
-    def _generate_shards(self, task_files):
-        for task_file, _ in task_files:
-            yield task_file
+    def _generate_shards(self, task_files, instruction_files=None, task_dirs=None):
+        yield from task_files
 
     def _generate_examples(self, task_files, instruction_files, task_dirs) -> Iterator[tuple[Key, dict]]:
         for task_file_idx, (task_file, instruction_file, task_dir) in enumerate(
