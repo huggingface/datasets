@@ -418,6 +418,34 @@ def test_json_cast_storage_from_strings(string_type):
     assert result.storage.to_pylist() == ['"foo"', None]
 
 
+@pytest.mark.parametrize("string_type", [pa.string(), pa.large_string(), pa.string_view()])
+def test_json_cast_storage_encodes_non_json_strings_past_the_first_rows(string_type):
+    """Every non-JSON string is encoded, not just the ones in the inspected sample."""
+    json_feature = Json()
+    json_texts = ['{"a": 1}', "[1, 2]", '"already a string"', "3", "null", '{"b": 2}']
+    arr = pa.array(json_texts + ["foo"], type=string_type)
+    result = json_feature.cast_storage(arr)
+    assert result.type == pa.json_()
+    assert result.storage.to_pylist() == json_texts + ['"foo"']
+    assert [json_feature.decode_example(x) for x in result.storage.to_pylist()] == [
+        {"a": 1},
+        [1, 2],
+        "already a string",
+        3,
+        None,
+        {"b": 2},
+        "foo",
+    ]
+
+
+def test_dataset_cast_mixed_json_and_plain_strings_column():
+    """Casting a string column to Json keeps the plain strings readable as strings."""
+    dset = Dataset.from_dict({"col": ['{"a": 1}', "[1, 2]", '"x"', "3", "null", "foo"]})
+    dset = dset.cast_column("col", Json())
+    assert dset.features["col"] == Json()
+    assert dset["col"][:] == [{"a": 1}, [1, 2], "x", 3, None, "foo"]
+
+
 def test_dataset_cast_large_string_column_to_json():
     features = Features({"col": Value("large_string")})
     dset = Dataset.from_dict({"col": ['{"a": 1}', "[1, 2]"]}, features=features)

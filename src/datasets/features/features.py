@@ -1246,6 +1246,17 @@ class ClassLabel:
             return [name.strip() for name in f.read().split("\n") if name.strip()]  # Filter empty names
 
 
+def _encode_json_string(value: Optional[str]) -> Optional[str]:
+    """Return `value` as a JSON text, encoding it as a JSON string if needed."""
+    if value is None:
+        return None
+    try:
+        ujson_loads(value)
+    except Exception:
+        return ujson_dumps(value)
+    return value
+
+
 @dataclass
 class Json:
     """Feature type for JSON objects.
@@ -1327,15 +1338,14 @@ class Json:
             or pa.types.is_large_string(storage.type)
             or pa.types.is_string_view(storage.type)
         ):
-            items = storage[:5].to_pylist()
-            try:
-                for item in items:
-                    if item is not None:
-                        ujson_loads(item)
-            except Exception:
-                storage = pa.array(
-                    [ujson_dumps(x) if x is not None else None for x in storage.to_pylist()], pa.json_()
-                )
+            # Strings that already hold JSON are kept as they are, the others are
+            # encoded as JSON strings. This has to be decided per value: inspecting
+            # only a sample of the column leaves the values after the sample
+            # unencoded, so they read back as raw strings and fail to decode.
+            values = storage.to_pylist()
+            encoded = [_encode_json_string(value) for value in values]
+            if encoded != values:
+                storage = pa.array(encoded, pa.json_())
         else:
             storage = pa.array([ujson_dumps(x) if x is not None else None for x in storage.to_pylist()], pa.json_())
         return array_cast(storage, self.pa_type)
