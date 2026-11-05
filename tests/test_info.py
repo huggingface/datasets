@@ -92,6 +92,14 @@ def test_dataset_info_to_yaml_dict_empty():
     assert dataset_info_yaml_dict == {}
 
 
+def test_dataset_info_to_yaml_dict_preserves_version():
+    dataset_info = DatasetInfo(config_name="config", version="1.2.3")
+    dataset_info_yaml_dict = dataset_info._to_yaml_dict()
+    assert dataset_info_yaml_dict.get("version") == "1.2.3"
+    reloaded = DatasetInfo._from_yaml_dict(dataset_info_yaml_dict)
+    assert str(reloaded.version) == "1.2.3"
+
+
 @pytest.mark.parametrize(
     "dataset_infos_dict",
     [
