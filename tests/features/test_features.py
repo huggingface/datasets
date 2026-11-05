@@ -508,6 +508,19 @@ def test_encode_batch_with_example_with_empty_first_elem():
     assert encoded_batch == {"x": [[[0], [1]], [[], [1]]]}
 
 
+@pytest.mark.parametrize("list_feature", [Sequence, List, LargeList])
+def test_encode_batch_with_sequence_of_dict_with_list_subfeature(list_feature):
+    # A `Sequence(dict)` is converted to a dict of lists (TFDS-compat), but subfeatures that are
+    # already lists must not be wrapped twice: https://github.com/huggingface/datasets/pull/7672
+    features = Features({"col": Sequence({"a": list_feature(Value("int64")), "b": Value("string")})})
+    assert features == Features({"col": {"a": list_feature(Value("int64")), "b": List(Value("string"))}})
+    encoded_batch = features.encode_batch({"col": [{"a": [1, 2], "b": ["x"]}]})
+    assert encoded_batch == {"col": [{"a": [1, 2], "b": ["x"]}]}
+    dataset = Dataset.from_dict({"col": [{"a": [1, 2], "b": ["x"]}]}, features=features)
+    assert dataset.features == features
+    assert dataset[0] == {"col": {"a": [1, 2], "b": ["x"]}}
+
+
 def test_encode_column_dict_with_none():
     features = Features(
         {
