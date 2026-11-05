@@ -268,7 +268,9 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
 
 def get_authentication_headers_for_url(url: str, token: Optional[Union[str, bool]] = None) -> dict:
     """Handle the HF authentication"""
-    if url.startswith(config.HF_ENDPOINT):
+    endpoint = config.HF_ENDPOINT.rstrip("/")
+    # match the host exactly: a plain prefix check would also match e.g. https://huggingface.co.evil.example
+    if url == endpoint or url.startswith(endpoint + "/"):
         return huggingface_hub.utils.build_hf_headers(
             token=token, library_name="datasets", library_version=__version__
         )
