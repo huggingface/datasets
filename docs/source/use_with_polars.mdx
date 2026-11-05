@@ -108,6 +108,8 @@ Many functions are available in Polars and for any data type: string, floats, in
 Here is an example that shows a 5x speed boost using Polars instead of a regular python function to extract solutions from a LLM reasoning dataset:
 
 ```python
+import re
+import polars as pl
 from datasets import load_dataset
 
 ds = load_dataset("ServiceNow-AI/R1-Distill-SFT", "v0", split="train")
