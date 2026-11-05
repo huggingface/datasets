@@ -842,3 +842,67 @@ def test_json_load_dataset_without_droid_marker_stays_ordinary_json(tmp_path):
 
     assert dataset.column_names == ["type", "id", "version", "timestamp", "message"]
     assert dataset[0]["type"] == "session_start"
+
+
+def test_load_jsonl_mixed_shapes_single_chunk(tmp_path):
+    # Whole file fits in one chunk -> union schema with nulls for missing keys.
+    rows = [{"a": i, "b": "x"} for i in range(20)] + [{"c": i, "d": "y"} for i in range(20)]
+    path = tmp_path / "mixed.jsonl"
+    with path.open("w") as f:
+        for row in rows:
+            f.write(json.dumps(row) + "\n")
+
+    ds = load_dataset("json", data_files=str(path), split="train", cache_dir=str(tmp_path / "single"))
+    assert ds.column_names == ["a", "b", "c", "d"]
+    assert len(ds) == 40
+
+
+def test_load_jsonl_mixed_shapes_across_chunks_mentions_chunksize(tmp_path):
+    # Shape A then shape B; small chunksize splits them and should fail with a hint.
+    rows = [{"a": i, "b": "x"} for i in range(20)] + [{"c": i, "d": "y"} for i in range(20)]
+    path = tmp_path / "mixed.jsonl"
+    with path.open("w") as f:
+        for row in rows:
+            f.write(json.dumps(row) + "\n")
+
+    with pytest.raises(Exception) as ei:
+        load_dataset(
+            "json",
+            data_files=str(path),
+            split="train",
+            chunksize=64,
+            cache_dir=str(tmp_path / "chunked"),
+        )
+    # Hint is on the CastError cause; DatasetGenerationError wraps it.
+    msgs = []
+    cur = ei.value
+    while cur is not None:
+        msgs.append(str(cur))
+        cur = cur.__cause__ or cur.__context__
+    assert any("chunksize" in m.lower() for m in msgs), msgs
+
+
+def test_load_jsonl_null_then_typed_across_chunks_mentions_chunksize(tmp_path):
+    # All-null column in the first chunk, real values later -> TypeError (not CastError).
+    # Hint should still mention chunksize (#7222).
+    rows = [{"id": i, "a": None} for i in range(200)] + [{"id": 200, "a": "x"}]
+    path = tmp_path / "null_then_str.jsonl"
+    with path.open("w") as f:
+        for row in rows:
+            f.write(json.dumps(row) + "\n")
+
+    with pytest.raises(Exception) as ei:
+        load_dataset(
+            "json",
+            data_files=str(path),
+            split="train",
+            chunksize=4096,
+            cache_dir=str(tmp_path / "null_typed"),
+        )
+    msgs = []
+    cur = ei.value
+    while cur is not None:
+        msgs.append(str(cur))
+        cur = cur.__cause__ or cur.__context__
+    assert any("chunksize" in m.lower() for m in msgs), msgs
+    assert any("Couldn't cast array of type" in m or "cast array of type" in m.lower() for m in msgs), msgs
