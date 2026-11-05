@@ -65,8 +65,6 @@ Control the reuse of downloaded source files and prepared datasets in [`load_dat
 >>> dataset = load_dataset('rajpurkar/squad', download_mode='force_redownload')
 ```
 
-Calling [`load_dataset`] again returns the original dataset without transforms from a previous [`Dataset.map`] call, so `force_redownload` is not needed for this. To recompute a map transformation instead of reusing its cached result, pass `load_from_cache_file=False` to [`Dataset.map`], as shown in [Enable or disable caching](#enable-or-disable-caching).
-
 Refer to [`DownloadMode`] for a full list of download modes.
 
 ## Cache files
