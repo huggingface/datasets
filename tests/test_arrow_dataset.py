@@ -5188,6 +5188,29 @@ def test_dataset_batch_by_column():
     assert batches_with_buffer[1]["value"] == list(range(17, 20))
 
 
+@pytest.mark.parametrize("batch_size", [None, 2])
+@pytest.mark.parametrize("streaming", [False, True])
+def test_dataset_batch_by_column_with_nulls(batch_size, streaming):
+    def batch_ids(ds, by_column):
+        if streaming:
+            ds = ds.to_iterable_dataset()
+        return [batch["id"] for batch in ds.batch(by_column=by_column, batch_size=batch_size)]
+
+    # a null is a value of its own: equal to other nulls, different from any non-null value
+    ds = Dataset.from_dict({"id": list(range(7)), "category": ["A", None, None, "B", "B", None, "A"]})
+    assert batch_ids(ds, "category") == [[0], [1, 2], [3, 4], [5], [6]]
+
+    ds = Dataset.from_dict({"id": list(range(4)), "category": [None, None, None, "A"]})
+    assert batch_ids(ds, "category") == [[0, 1, 2], [3]]
+
+    ds = Dataset.from_dict({"id": [0, 1, 2], "category": ["A", "A", "A"], "subcategory": [1, None, None]})
+    assert batch_ids(ds, ["category", "subcategory"]) == [[0], [1, 2]]
+
+    # a column with only nulls has the Arrow null type
+    ds = Dataset.from_dict({"id": [0, 1, 2], "category": [None, None, None]})
+    assert batch_ids(ds, "category") == [[0, 1, 2]]
+
+
 @pytest.mark.parametrize("format_type", ["pyarrow", "pandas"])
 def test_dataset_batch_with_table_format(format_type):
     ds = Dataset.from_dict({"a": [1, 2, 3, 4]})
