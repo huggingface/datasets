@@ -2,7 +2,7 @@
 
 import pytest
 
-from datasets import Dataset, Features
+from datasets import Dataset, Features, load_from_disk
 from datasets.features import BioSequence, BioStructure
 
 
@@ -257,4 +257,142 @@ def test_embed_storage_keeps_path_only_rows_when_embedding_is_off(feature_cls):
     feature = feature_cls()
     storage = pa.array([{"bytes": None, "path": "/data/seqs.fasta"}, None], type=feature.pa_type)
     embedded = feature.embed_storage(storage, local_files=False, remote_files=False)
-    assert embedded.to_pylist() == [{"bytes": None, "path": "seqs.fasta"}, None]
+    assert embedded.to_pylist() == [{"bytes": None, "path": "/data/seqs.fasta"}, None]
+
+
+@pytest.mark.parametrize("feature_cls", [BioSequence, BioStructure])
+def test_embed_storage_preserves_existing_bytes(feature_cls, tmp_path):
+    import pyarrow as pa
+
+    path = tmp_path / "record.dat"
+    path.write_bytes(b"different contents")
+    feature = feature_cls()
+    storage = pa.array(
+        [
+            {"bytes": b"embedded", "path": str(tmp_path / "missing.dat")},
+            {"bytes": b"original", "path": str(path)},
+            {"bytes": b"", "path": str(tmp_path / "empty.dat")},
+            {"bytes": b"without path", "path": None},
+            None,
+        ],
+        type=feature.pa_type,
+    )
+    embedded = feature.embed_storage(storage)
+    assert embedded.to_pylist() == [
+        {"bytes": b"embedded", "path": "missing.dat"},
+        {"bytes": b"original", "path": "record.dat"},
+        {"bytes": b"", "path": "empty.dat"},
+        {"bytes": b"without path", "path": None},
+        None,
+    ]
+    assert feature.embed_storage(embedded).equals(embedded)
+
+
+@pytest.mark.parametrize("feature_cls", [BioSequence, BioStructure])
+@pytest.mark.parametrize("remote", [False, True])
+def test_embed_storage_preserves_excluded_paths(feature_cls, remote, tmp_path):
+    import pyarrow as pa
+
+    path = "https://example.com/data/record.dat" if remote else str(tmp_path / "record.dat")
+    feature = feature_cls()
+    storage = pa.array([{"bytes": None, "path": path}, None], type=feature.pa_type)
+    embedded = feature.embed_storage(storage, local_files=remote, remote_files=not remote)
+    assert embedded.equals(storage)
+
+
+@pytest.mark.parametrize("feature_cls", [BioSequence, BioStructure])
+def test_embed_storage_does_not_read_null_rows(feature_cls, tmp_path):
+    import pyarrow as pa
+
+    feature = feature_cls()
+    storage = pa.StructArray.from_arrays(
+        [pa.array([None], type=pa.binary()), pa.array([str(tmp_path / "missing.dat")])],
+        names=["bytes", "path"],
+        mask=pa.array([True]),
+    )
+    assert feature.embed_storage(storage).to_pylist() == [None]
+
+
+@pytest.mark.parametrize("feature_cls", [BioSequence, BioStructure])
+@pytest.mark.parametrize("remote", [False, True])
+def test_embed_storage_reads_selected_paths(feature_cls, remote, tmp_path, tmpfs):
+    import pyarrow as pa
+
+    path = tmp_path / "record.dat"
+    path.write_bytes(b"contents")
+    if remote:
+        with tmpfs.open("record.dat", "wb") as f:
+            f.write(b"contents")
+    source = "tmp://record.dat" if remote else str(path)
+    feature = feature_cls()
+    storage = pa.array([{"bytes": None, "path": source}, None], type=feature.pa_type)
+    embedded = feature.embed_storage(storage, local_files=not remote, remote_files=remote)
+    assert embedded.to_pylist() == [{"bytes": b"contents", "path": "record.dat"}, None]
+
+
+@require_biopython
+@pytest.mark.parametrize(
+    "feature, data, name", [(BioSequence(), FASTA_BYTES, "seqs.fasta"), (BioStructure(), PDB_BYTES, "struct.pdb")]
+)
+def test_dataset_with_embedded_bio_feature_save_to_disk(feature, data, name, tmp_path):
+    dataset = Dataset.from_dict({"bio": [{"bytes": data, "path": name}, None]}, features=Features({"bio": feature}))
+    dataset.save_to_disk(str(tmp_path / "first"))
+    loaded = load_from_disk(str(tmp_path / "first"))
+    loaded.save_to_disk(str(tmp_path / "second"))
+    reloaded = load_from_disk(str(tmp_path / "second"))
+
+    assert (
+        reloaded.cast_column("bio", type(feature)(decode=False)).to_dict()
+        == dataset.cast_column("bio", type(feature)(decode=False)).to_dict()
+    )
+    decoded = reloaded[0]["bio"]
+    if isinstance(feature, BioSequence):
+        assert str(decoded.seq) == "ACGTACGTAC"
+    else:
+        assert len(list(decoded.get_atoms())) == 2
+    assert reloaded[1]["bio"] is None
+
+
+@pytest.mark.parametrize("feature_cls", [BioSequence, BioStructure])
+@pytest.mark.parametrize("local_files, remote_files", [(False, False), (True, False), (False, True), (True, True)])
+def test_embed_storage_with_mixed_local_and_remote_rows(feature_cls, local_files, remote_files, tmp_path, tmpfs):
+    import pyarrow as pa
+
+    local_path = tmp_path / "local.dat"
+    local_path.write_bytes(b"local contents")
+    with tmpfs.open("remote.dat", "wb") as f:
+        f.write(b"remote contents")
+
+    feature = feature_cls()
+    storage = pa.array(
+        [
+            {"bytes": None, "path": str(local_path)},
+            {"bytes": None, "path": "tmp://remote.dat"},
+            {"bytes": b"", "path": "tmp://missing.dat"},
+            {"bytes": b"inline", "path": None},
+            None,
+        ],
+        type=feature.pa_type,
+    )
+    embedded = feature.embed_storage(storage, local_files=local_files, remote_files=remote_files)
+    assert embedded.to_pylist() == [
+        {"bytes": b"local contents" if local_files else None, "path": "local.dat" if local_files else str(local_path)},
+        {
+            "bytes": b"remote contents" if remote_files else None,
+            "path": "remote.dat" if remote_files else "tmp://remote.dat",
+        },
+        {"bytes": b"", "path": "missing.dat" if remote_files else "tmp://missing.dat"},
+        {"bytes": b"inline", "path": None},
+        None,
+    ]
+    assert feature.embed_storage(embedded, local_files=local_files, remote_files=remote_files).equals(embedded)
+
+
+@pytest.mark.parametrize("feature_cls", [BioSequence, BioStructure])
+@pytest.mark.parametrize("rows", [[], [None], [{"bytes": None, "path": None}]])
+def test_embed_storage_without_bytes_or_paths(feature_cls, rows):
+    import pyarrow as pa
+
+    feature = feature_cls()
+    storage = pa.array(rows, type=feature.pa_type)
+    assert feature.embed_storage(storage).equals(storage)
