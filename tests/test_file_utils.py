@@ -32,8 +32,11 @@ from datasets.utils.file_utils import (
     xnumpy_load,
     xopen,
     xpandas_read_csv,
+    xpandas_read_excel,
     xPath,
+    xpyarrow_parquet_read_table,
     xrelpath,
+    xsio_loadmat,
     xsplit,
     xsplitext,
     xwalk,
@@ -1020,4 +1023,75 @@ def test_xpandas_read_csv_closes_file_on_reader_close(tmp_path):
         next(reader)
         assert not opened[0].closed
         reader.close()
+    assert opened[0].closed
+
+
+def _write_npy(path):
+    import numpy as np
+
+    np.save(path, np.arange(3))
+
+
+def _write_parquet(path):
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    pq.write_table(pa.table({"a": [1, 2, 3]}), path)
+
+
+def _write_excel(path):
+    import pandas as pd
+
+    pytest.importorskip("openpyxl")
+    pd.DataFrame({"a": [1, 2, 3]}).to_excel(path, index=False)
+
+
+def _write_mat(path):
+    import numpy as np
+
+    sio = pytest.importorskip("scipy.io")
+    sio.savemat(path, {"a": np.arange(3)})
+
+
+@pytest.mark.parametrize(
+    "filename, write, read",
+    [
+        ("data.npy", _write_npy, xnumpy_load),
+        ("data.parquet", _write_parquet, xpyarrow_parquet_read_table),
+        ("data.xlsx", _write_excel, xpandas_read_excel),
+        ("data.mat", _write_mat, xsio_loadmat),
+    ],
+)
+def test_x_readers_close_file(tmp_path, filename, write, read):
+    path = tmp_path / filename
+    write(path)
+    opened = []
+
+    def recording_xopen(*args, **kwargs):
+        f = xopen(*args, **kwargs)
+        opened.append(f)
+        return f
+
+    with patch("datasets.utils.file_utils.xopen", recording_xopen):
+        read(str(path))
+    assert opened
+    assert all(f.closed for f in opened)
+
+
+def test_xnumpy_load_npz_closes_file_with_npzfile(tmp_path):
+    import numpy as np
+
+    npz_path = tmp_path / "data.npz"
+    np.savez(npz_path, x=np.arange(3))
+    opened = []
+
+    def recording_xopen(*args, **kwargs):
+        f = xopen(*args, **kwargs)
+        opened.append(f)
+        return f
+
+    with patch("datasets.utils.file_utils.xopen", recording_xopen):
+        with xnumpy_load(str(npz_path)) as npz:
+            assert not opened[0].closed
+            assert np.array_equal(npz["x"], np.arange(3))
     assert opened[0].closed
