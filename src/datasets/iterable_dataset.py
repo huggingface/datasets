@@ -1390,6 +1390,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         features: Optional[Features] = None,
         max_num_running_async_map_functions_in_parallel: Optional[int] = None,
         is_batch_accumulate_arrow_table_function: bool = False,
+        decoding_pool: Optional["_LazyThreadPoolExecutor"] = None,
     ):
         super().__init__()
         self.ex_iterable = ex_iterable
@@ -1410,7 +1411,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         # Set by IterableDataset.decode when it enables threaded decoding: since examples must be decoded exactly
         # once, a later `.decode()` call reconfigures decoding from `decoding_dataset` (the dataset `.decode()` was
         # called on) rather than stacking a second decoding step on top of this one.
-        self.decoding_pool: Optional[_LazyThreadPoolExecutor] = None
+        self.decoding_pool: Optional[_LazyThreadPoolExecutor] = decoding_pool
         # sanity checks
         if formatting and formatting.is_table:
             # batch_size should match for iter_arrow
@@ -1777,6 +1778,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             features=self.features,
             max_num_running_async_map_functions_in_parallel=self.max_num_running_async_map_functions_in_parallel,
             is_batch_accumulate_arrow_table_function=self.is_batch_accumulate_arrow_table_function,
+            decoding_pool=self.decoding_pool,
         )
 
     def shard_data_sources(self, num_shards: int, index: int, contiguous=True) -> "MappedExamplesIterable":
@@ -1795,6 +1797,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             features=self.features,
             max_num_running_async_map_functions_in_parallel=self.max_num_running_async_map_functions_in_parallel,
             is_batch_accumulate_arrow_table_function=self.is_batch_accumulate_arrow_table_function,
+            decoding_pool=self.decoding_pool,
         )
 
     def reshard_data_sources(self) -> "MappedExamplesIterable":
@@ -1812,6 +1815,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             features=self.features,
             max_num_running_async_map_functions_in_parallel=self.max_num_running_async_map_functions_in_parallel,
             is_batch_accumulate_arrow_table_function=self.is_batch_accumulate_arrow_table_function,
+            decoding_pool=self.decoding_pool,
         )
 
     @property
