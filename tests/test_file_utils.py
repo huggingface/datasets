@@ -9,10 +9,13 @@ import pytest
 import zstandard as zstd
 from fsspec.registry import _registry as _fsspec_registry
 from fsspec.spec import AbstractBufferedFile, AbstractFileSystem
-from huggingface_hub.errors import OfflineModeIsEnabled
+from huggingface_hub import HfFileSystem
+from huggingface_hub.errors import HfHubHTTPError, OfflineModeIsEnabled
+from huggingface_hub.utils import httpx
 
 from datasets.download.download_config import DownloadConfig
 from datasets.utils.file_utils import (
+    FilesIterable,
     _add_retries_to_file_obj_read_method,
     _get_extraction_protocol,
     _prepare_path_and_storage_options,
@@ -516,6 +519,48 @@ def test_read_with_retries_retries_aiohttp_client_error():
     _add_retries_to_file_obj_read_method(file_obj)
     assert file_obj.read() == b"data"
     assert file_obj.num_reads == 2
+
+
+def _hf_http_error(status_code):
+    return HfHubHTTPError(
+        str(status_code), response=httpx.Response(status_code, request=httpx.Request("GET", "https://hf.co"))
+    )
+
+
+@patch("datasets.config.STREAMING_OPEN_RETRY_INTERVAL", 0)
+@pytest.mark.parametrize(
+    "urlpath, error",
+    [
+        ("hf://datasets/user/repo/timeout.jsonl", httpx.ReadTimeout("timeout")),
+        ("hf://datasets/user/repo/503.jsonl", _hf_http_error(503)),
+        ("zstd://503.jsonl::hf://datasets/user/repo/503.jsonl.zst", _hf_http_error(503)),
+    ],
+)
+def test_iter_files_retries_on_transient_error(urlpath, error):
+    num_calls = 0
+
+    def info(self, path, **kwargs):
+        nonlocal num_calls
+        num_calls += 1
+        if num_calls == 1:
+            raise error
+        return {"name": path, "type": "file", "size": 1}
+
+    with patch.object(HfFileSystem, "info", info):
+        assert list(FilesIterable.from_urlpaths(urlpath)) == [urlpath]
+
+
+@patch("datasets.config.STREAMING_OPEN_RETRY_INTERVAL", 0)
+@patch("datasets.config.STREAMING_OPEN_MAX_RETRIES", 2)
+@pytest.mark.parametrize(
+    "error, expected", [(_hf_http_error(503), ConnectionError), (FileNotFoundError(), FileNotFoundError)]
+)
+def test_iter_files_raises(error, expected):
+    def info(self, path, **kwargs):
+        raise error
+
+    with patch.object(HfFileSystem, "info", info), pytest.raises(expected):
+        list(FilesIterable.from_urlpaths(f"hf://datasets/user/repo/{expected.__name__}.jsonl"))
 
 
 @pytest.mark.parametrize(
