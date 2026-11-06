@@ -628,6 +628,65 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
             self._state_dict["num_chunks_since_previous_state"] = 0
             self._state_dict["cropped_chunk_length"] = 0
 
+    def _iter_formatted_examples(
+        self,
+        format_batch: Callable[[pa.Table], dict],
+        cast_table: Optional[Callable[[pa.Table], pa.Table]] = None,
+    ) -> Iterator[tuple[Key, dict]]:
+        """Yield the rows of `_iter_arrow()` with batch_size=1 as examples formatted by `format_batch`.
+
+        Rows are formatted several at a time, which is much faster than formatting 1-row tables.
+        `cast_table` is applied once per table before splitting it.
+        The state_dict is updated after each example, in the same format as `_iter_arrow()`.
+        """
+        if self.batch_size != 1:
+            raise ValueError("_iter_formatted_examples is only available with batch_size=1")
+        if self._state_dict and self._state_dict["previous_state"]:
+            self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
+        if self.ex_iterable.iter_arrow:
+            iterator = self.ex_iterable.iter_arrow()
+        else:
+            iterator = _convert_to_arrow(self.ex_iterable, batch_size=1)
+        num_chunks_to_skip = self._state_dict["num_chunks_since_previous_state"] if self._state_dict else 0
+        if self._state_dict:
+            previous_state = self.ex_iterable.state_dict()
+            self._state_dict["previous_state"] = previous_state
+        for key, pa_table in iterator:
+            key = str(key)
+            if cast_table is not None and len(pa_table) > 0:
+                pa_table = cast_table(pa_table)
+            # `_iter_arrow()` counts a chunk per row, plus one per empty record batch (except trailing ones).
+            # Keep its 1-row chunks for the rare tables with empty record batches to count the same way.
+            if any(len(batch) == 0 for batch in pa_table.to_batches()):
+                max_chunksize = 1
+            else:
+                max_chunksize = config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER
+            num_chunks = 0
+            for subtable in pa_table.to_reader(max_chunksize=max_chunksize):
+                subtable_num_chunks = max(len(subtable), 1)
+                if num_chunks_to_skip >= subtable_num_chunks:
+                    num_chunks_to_skip -= subtable_num_chunks
+                    num_chunks += subtable_num_chunks
+                    continue
+                if len(subtable) == 0:
+                    num_chunks += 1
+                    continue
+                if num_chunks_to_skip:
+                    subtable = subtable.slice(num_chunks_to_skip)
+                    num_chunks += num_chunks_to_skip
+                    num_chunks_to_skip = 0
+                formatted_batch = format_batch(pa.Table.from_batches([subtable]))
+                for example in _batch_to_examples(formatted_batch):
+                    num_chunks += 1
+                    if self._state_dict:
+                        self._state_dict["previous_state"] = previous_state
+                        self._state_dict["batch_idx"] += 1
+                        self._state_dict["num_chunks_since_previous_state"] = num_chunks
+                        self._state_dict["cropped_chunk_length"] = 0
+                    yield key, example
+            if self._state_dict:
+                previous_state = self.ex_iterable.state_dict()
+
     def shuffle_data_sources(self, generator: np.random.Generator) -> "RebatchedArrowExamplesIterable":
         return RebatchedArrowExamplesIterable(
             self.ex_iterable.shuffle_data_sources(generator),
@@ -2554,7 +2613,18 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
         # It's ok to use _iter_arrow here without fancy state_dict logic since it's
         # used with RebatchedArrowExamplesIterable with the right batch_size to
         # never lose examples
-        if self.ex_iterable.iter_arrow:
+        if (
+            self.ex_iterable.iter_arrow
+            and isinstance(self.ex_iterable, RebatchedArrowExamplesIterable)
+            and self.ex_iterable.batch_size == 1
+            and isinstance(formatter, PythonFormatter)
+        ):
+            # format several rows at a time instead of 1-row tables, the state_dict stays per example
+            schema = self.features.arrow_schema if self.features else None
+            yield from self.ex_iterable._iter_formatted_examples(
+                formatter.format_batch, cast_table=lambda pa_table: self._cast_table_to_features(pa_table, schema)
+            )
+        elif self.ex_iterable.iter_arrow:
             # feature casting (inc column addition) handled within self._iter_arrow()
             for key, pa_table in self._iter_arrow():
                 batch = formatter.format_batch(pa_table)
@@ -2582,15 +2652,20 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             return
         schema = self.features.arrow_schema
         for key, pa_table in self.ex_iterable._iter_arrow():
-            columns = set(pa_table.column_names)
-            # add missing columns
-            for column_name in self.features:
-                if column_name not in columns:
-                    col = pa.NullArray.from_buffers(pa.null(), len(pa_table), [None])
-                    pa_table = pa_table.append_column(column_name, col)
-            if pa_table.schema != schema:
-                pa_table = cast_table_to_features(pa_table, self.features)
-            yield key, pa_table
+            yield key, self._cast_table_to_features(pa_table, schema)
+
+    def _cast_table_to_features(self, pa_table: pa.Table, schema: Optional[pa.Schema]) -> pa.Table:
+        if not self.features:
+            return pa_table
+        columns = set(pa_table.column_names)
+        # add missing columns
+        for column_name in self.features:
+            if column_name not in columns:
+                col = pa.NullArray.from_buffers(pa.null(), len(pa_table), [None])
+                pa_table = pa_table.append_column(column_name, col)
+        if pa_table.schema != schema:
+            pa_table = cast_table_to_features(pa_table, self.features)
+        return pa_table
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "FormattedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
