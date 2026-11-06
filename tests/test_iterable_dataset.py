@@ -2746,6 +2746,25 @@ def test_iterable_dataset_set_epoch_resuming(dataset: IterableDataset):
     assert len(list(dataset)) == 0
 
 
+def test_iterable_dataset_state_dict_after_load_state_dict():
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"file{i}.txt" for i in range(4)]})
+    all_examples = list(IterableDataset(ex_iterable))
+
+    dataset = IterableDataset(ex_iterable)
+    it = iter(dataset)
+    consumed = [next(it) for _ in range(3)]
+    state_dict = dataset.state_dict()
+
+    resumed = IterableDataset(ex_iterable)
+    resumed.load_state_dict(state_dict)
+    # nothing has been read since the state was loaded, so it is still the current state
+    assert resumed.state_dict() == state_dict
+
+    resumed_again = IterableDataset(ex_iterable)
+    resumed_again.load_state_dict(resumed.state_dict())
+    assert consumed + list(resumed_again) == all_examples
+
+
 @pytest.mark.parametrize("method", ["skip", "take"])
 @pytest.mark.parametrize("source_kind", ["python", "arrow"])
 @pytest.mark.parametrize("shuffle_before", [False, True])
@@ -3715,6 +3734,35 @@ def test_resume_dataloader_twice(num_workers):
     state_2 = dl.state_dict()
 
     # resuming from #2 must continue from where it left off, not restart from the beginning
+    dl = make_dataloader()
+    dl.load_state_dict(state_2)
+    remainder = list(dl)
+    assert consumed + remainder == all_examples
+
+
+@require_torchdata_stateful_dataloader
+@pytest.mark.parametrize("num_workers", [0, 1, 2])
+def test_resume_dataloader_checkpoint_before_reading(num_workers):
+    from torchdata.stateful_dataloader import StatefulDataLoader
+
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"file{i}.txt" for i in range(4)]})
+
+    def make_dataloader():
+        # a new dataset object each time, as after a restart
+        return StatefulDataLoader(IterableDataset(ex_iterable), batch_size=None, num_workers=num_workers)
+
+    all_examples = list(make_dataloader())
+
+    dl = make_dataloader()
+    it = iter(dl)
+    consumed = [next(it) for _ in range(2)]
+    state_1 = dl.state_dict()
+
+    # resume from #1 and checkpoint again before reading anything
+    dl = make_dataloader()
+    dl.load_state_dict(state_1)
+    state_2 = dl.state_dict()
+
     dl = make_dataloader()
     dl.load_state_dict(state_2)
     remainder = list(dl)
