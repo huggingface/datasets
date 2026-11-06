@@ -1983,6 +1983,7 @@ class Features(dict):
         self._column_requires_decoding.pop(column_name, None)
 
     update = keep_features_dicts_synced(dict.update)
+    __ior__ = keep_features_dicts_synced(dict.__ior__)
     setdefault = keep_features_dicts_synced(dict.setdefault)
     pop = keep_features_dicts_synced(dict.pop)
     popitem = keep_features_dicts_synced(dict.popitem)

@@ -303,7 +303,7 @@ class FeaturesTest(TestCase):
         assert features._column_requires_decoding == {"a": True, "b": False, "c": True}
         del features["a"]
         assert features._column_requires_decoding == {"b": False, "c": True}
-        # `|=` goes through dict.__ior__ and skips the sync; deleting that column must still work
+        # Columns added with `|=` can also be deleted.
         features |= {"d": Image()}
         del features["d"]
         assert "d" not in features
@@ -313,6 +313,27 @@ class FeaturesTest(TestCase):
         with patch("datasets.features.features.require_decoding", wraps=require_decoding) as mock_require_decoding:
             Features({f"col_{i}": Value("int32") for i in range(num_columns)})
         assert mock_require_decoding.call_count <= 2 * num_columns
+
+
+@pytest.mark.parametrize("original_feature", [None, Value("string"), Json(decode=False)])
+@pytest.mark.parametrize("as_pairs", [False, True])
+def test_features_inplace_union_decoding(original_feature, as_pairs):
+    features = Features({"id": Value("int64")})
+    if original_feature is not None:
+        features["payload"] = original_feature
+    original_features = features
+    added_features = {"payload": Json()}
+
+    features |= list(added_features.items()) if as_pairs else added_features
+
+    assert features is original_features
+    encoded = {"id": 1, "payload": '{"answer": 42}'}
+    expected = {"id": 1, "payload": {"answer": 42}}
+    assert features.decode_example(encoded) == expected
+    assert features.decode_batch({key: [value] for key, value in encoded.items()}) == {
+        key: [value] for key, value in expected.items()
+    }
+    assert features.decode_column([encoded["payload"], None], "payload") == [expected["payload"], None]
 
 
 def test_classlabel_init(tmp_path_factory):
