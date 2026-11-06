@@ -1733,15 +1733,14 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 for column in self.remove_columns:
                     if column in output_table.column_names:
                         output_table = output_table.remove_column(output_table.column_names.index(column))
+            current_idx += len(pa_table)
             # return output
             if max_chunksize is None:
-                current_idx += len(pa_table)
                 if self._state_dict:
                     self._state_dict["previous_state_example_idx"] += len(pa_table)
                 yield key, output_table
             else:
                 for i, pa_subtable in enumerate(output_table.to_reader(max_chunksize=max_chunksize)):
-                    current_idx += 1
                     if self._state_dict:
                         self._state_dict["num_examples_since_previous_state"] += 1
                     if num_examples_to_skip > 0:
