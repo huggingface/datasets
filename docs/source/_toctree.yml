@@ -96,6 +96,8 @@
       title: Load mesh data
     - local: mesh_dataset
       title: Create a mesh dataset
+    - local: atomic_structure_dataset
+      title: Create an atomic structure dataset
     title: "3D"
   - sections:
     - local: nlp_load
