@@ -1,6 +1,6 @@
 import pytest
 
-from datasets import ClassLabel, Dataset, Features, List, Value
+from datasets import ClassLabel, Dataset, Features, List, Value, load_from_disk
 
 
 @pytest.mark.parametrize("value", [2**63, 2**64 - 1])
@@ -100,3 +100,28 @@ def test_add_item_nested_null_promotion_keeps_normal_inference():
     result = dataset.add_item({"record": {"hash": 2, "extra": "present"}})
     assert result.to_dict() == {"record": [{"hash": 1, "extra": None}, {"hash": 2, "extra": "present"}]}
     assert result.features == Features({"record": {"hash": Value("uint64"), "extra": Value("string")}})
+
+
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_add_item_uint64_reordered_disk_roundtrip(tmp_path, keep_in_memory):
+    features = Features({"hash": Value("uint64"), "text": Value("string")})
+    original_rows = {"hash": [1, 2], "text": ["one", "two"]}
+    source_path = tmp_path / "source"
+    Dataset.from_dict(original_rows, features=features).save_to_disk(source_path)
+    dataset = load_from_disk(source_path, keep_in_memory=keep_in_memory).select([1, 0])
+
+    result = dataset.add_item({"hash": 2**63, "text": "high"}).add_item({"hash": 2**64 - 1, "text": "max"})
+    output_path = tmp_path / "output"
+    result.save_to_disk(output_path)
+    restored = load_from_disk(output_path)
+
+    assert restored.to_dict() == {
+        "hash": [2, 1, 2**63, 2**64 - 1],
+        "text": ["two", "one", "high", "max"],
+    }
+    assert restored.features == features
+    assert Features.from_arrow_schema(restored.data.schema) == features
+    assert dataset.to_dict() == {"hash": [2, 1], "text": ["two", "one"]}
+    original = load_from_disk(source_path)
+    assert original.to_dict() == original_rows
+    assert original.features == features
