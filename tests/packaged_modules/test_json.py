@@ -6,6 +6,7 @@ import pyarrow as pa
 import pytest
 
 from datasets import Dataset, Features, Value, load_dataset
+from datasets import Json as JsonFeature
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig, paj
@@ -842,3 +843,37 @@ def test_json_load_dataset_without_droid_marker_stays_ordinary_json(tmp_path):
 
     assert dataset.column_names == ["type", "id", "version", "timestamp", "message"]
     assert dataset[0]["type"] == "session_start"
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        # a scalar field whose type changes between rows: pyarrow reports it and the loader retries with Json()
+        [1, "123", "true", "null", "007", "[1, 2]", '{"a": 1}', "abc"],
+        # a field mixing objects and strings: found in the first batch and loaded as Json()
+        [{"a": 0}, "123", {"b": "true"}, "null", "abc"],
+    ],
+)
+def test_json_load_dataset_keeps_string_values_of_mixed_type_fields(tmp_path, values):
+    jsonl_file = tmp_path / "mixed.jsonl"
+    jsonl_file.write_text("\n".join(json.dumps({"v": value}) for value in values))
+
+    dataset = load_dataset("json", data_files=str(jsonl_file), split="train", cache_dir=str(tmp_path / "cache"))
+
+    assert [row["v"] for row in dataset] == values
+
+
+def test_json_load_dataset_with_json_feature_decodes_strings_holding_json(tmp_path):
+    values = ['{"a": 1}', "[1, 2]", "abc", {"b": 2}]
+    jsonl_file = tmp_path / "declared.jsonl"
+    jsonl_file.write_text("\n".join(json.dumps({"v": value}) for value in values))
+
+    dataset = load_dataset(
+        "json",
+        data_files=str(jsonl_file),
+        split="train",
+        features=Features({"v": JsonFeature()}),
+        cache_dir=str(tmp_path / "cache"),
+    )
+
+    assert [row["v"] for row in dataset] == [{"a": 1}, [1, 2], "abc", {"b": 2}]

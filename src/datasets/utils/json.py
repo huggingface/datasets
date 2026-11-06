@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 import pandas as pd
 
@@ -23,18 +23,21 @@ def ujson_loads(*args, **kwargs):
         return pd.io.json.loads(*args, **kwargs)
 
 
-def json_encode_field(example: Any, json_field_path: list[str]) -> Any:
+def json_encode_field(example: Any, json_field_path: list[str], keep_json_strings: bool = True) -> Any:
     if json_field_path:
         field, *json_field_path = json_field_path
         if example is None:
             return None
         elif field == 0:
-            return [json_encode_field(x, json_field_path) for x in example]
+            return [json_encode_field(x, json_field_path, keep_json_strings) for x in example]
         else:
-            return {**example, field: json_encode_field(example.get(field), json_field_path)}
+            return {**example, field: json_encode_field(example.get(field), json_field_path, keep_json_strings)}
     elif example is None:
         # keep missing values as real nulls instead of the JSON string "null"
         return None
+    elif not keep_json_strings:
+        # the value was decoded from JSON, so a string is a string value, even if it looks like JSON
+        return ujson_dumps(example)
     else:
         try:
             ujson_loads(example)
@@ -107,10 +110,22 @@ def insert_json_field_path(json_field_paths: list[list[str]], json_field_path: l
         json_field_paths.append(json_field_path)
 
 
-def json_encode_fields_in_json_lines(original_batch: bytes, json_field_paths: list[list[str]]) -> bytes:
+def json_encode_fields_in_json_lines(
+    original_batch: bytes,
+    json_field_paths: list[list[str]],
+    json_strings_field_paths: Optional[list[list[str]]] = None,
+) -> bytes:
+    """JSON-encode the fields at `json_field_paths` in every line of a JSON Lines batch.
+
+    A string that is valid JSON is kept as already-encoded JSON only in the fields at `json_strings_field_paths`
+    (all of `json_field_paths` if None). In the other fields, every string is encoded as a JSON string.
+    """
+    if json_strings_field_paths is None:
+        json_strings_field_paths = json_field_paths
     examples = [ujson_loads(line) for line in original_batch.splitlines()]
     for json_field_path in json_field_paths:
-        examples = [json_encode_field(example, json_field_path) for example in examples]
+        keep_json_strings = json_field_path in json_strings_field_paths
+        examples = [json_encode_field(example, json_field_path, keep_json_strings) for example in examples]
     batch = "\n".join([ujson_dumps(example) for example in examples]).encode()
     return batch
 

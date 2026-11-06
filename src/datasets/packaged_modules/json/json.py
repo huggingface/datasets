@@ -151,6 +151,11 @@ class Json(datasets.ArrowBasedBuilder):
                 else:
                     raise ImportError("To support decoding agent traces, please install 'teich'.")
             json_field_paths = get_json_field_paths_from_feature(self.info.features)
+        # strings that are valid JSON are kept as JSON only in the Json() fields of the user's features:
+        # in the fields found to have mixed types (here or when inferring self.info.features), they are string values
+        declared_json_field_paths = (
+            get_json_field_paths_from_feature(self.config.features) if self.config.features is not None else []
+        )
 
         for shard_idx, files_iterable in enumerate(files_iterables):
             for file in files_iterable:
@@ -278,10 +283,9 @@ class Json(datasets.ArrowBasedBuilder):
                             # Re-encode JSON fields
                             original_batch = batch
                             if json_field_paths:
-                                examples = [ujson_loads(line) for line in batch.splitlines()]
-                                for json_field_path in json_field_paths:
-                                    examples = [json_encode_field(example, json_field_path) for example in examples]
-                                batch = "\n".join(ujson_dumps(example) for example in examples).encode()
+                                batch = json_encode_fields_in_json_lines(
+                                    batch, json_field_paths, declared_json_field_paths
+                                )
                             # Disable parallelism if block size is ~ len(batch) to avoid segfault
                             block_size = len(batch) if len(batch) // 8 > block_size else block_size
                             pa_table = None
@@ -303,7 +307,9 @@ class Json(datasets.ArrowBasedBuilder):
                                         ):
                                             json_field_path = get_json_field_path_from_pyarrow_json_error(str(e))
                                             insert_json_field_path(json_field_paths, json_field_path)
-                                            batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
+                                            batch = json_encode_fields_in_json_lines(
+                                                original_batch, json_field_paths, declared_json_field_paths
+                                            )
                                         elif (
                                             "straddling" in str(e) or "JSON conversion to" in str(e)
                                         ) and block_size < len(batch):
