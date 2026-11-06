@@ -1960,18 +1960,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @staticmethod
     def _build_local_temp_path(uri_or_path: str) -> Path:
         """
-        Builds and returns a Path concatenating a local temporary dir with the dir path (or absolute/relative
-        path extracted from the uri) passed.
+        Builds a dataset path under a fresh local temporary directory.
 
         Args:
             uri_or_path (`str`): Path (e.g. `"dataset/train"`) or remote URI (e.g.
                 `"s3://my-bucket/dataset/train"`) to concatenate.
 
         Returns:
-            :class:`Path`: the concatenated path (temp dir + path)
+            :class:`Path`: the dataset path inside the temporary cache directory.
         """
         src_dataset_path = Path(uri_or_path)
-        tmp_dir = get_temporary_cache_files_directory()
+        tmp_dir: str = tempfile.mkdtemp(dir=get_temporary_cache_files_directory())
         return Path(tmp_dir, src_dataset_path.relative_to(src_dataset_path.anchor))
 
     @staticmethod
