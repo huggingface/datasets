@@ -1954,7 +1954,7 @@ class Features(dict):
         - [`Json`] feature to store unstructred data, e.g. containing mixed/abritrary types. Under the hood
     """
 
-    def __init__(*args, **kwargs):
+    def __init__(*args: Any, **kwargs: Any):
         # self not in the signature to allow passing self as a kwarg
         if not args:
             raise TypeError("descriptor '__init__' of 'Features' object needs an argument")
