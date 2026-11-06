@@ -391,10 +391,14 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
         kwargs: dict,
         generate_more_kwargs_fn: Optional[Callable[..., Iterator[dict]]] = None,
         sleep_on_threads_shutdown: bool = False,
+        generate_num_examples_fn: Optional[Callable[..., Iterator[Optional[int]]]] = None,
     ):
         super().__init__()
         self.generate_tables_fn = generate_tables_fn
         self.kwargs = kwargs
+        # One exact count per shard, in _split_gen_kwargs(..., self.num_shards)
+        # order and granularity. None means that a source must be scanned.
+        self.generate_num_examples_fn = generate_num_examples_fn
 
         # for resharding
         self.generate_more_kwargs_fn = generate_more_kwargs_fn
@@ -462,13 +466,22 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
         shard_indices = self.split_shard_indices_by_worker(num_shards, index, contiguous=contiguous)
         requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
         return ArrowExamplesIterable(
-            self.generate_tables_fn, requested_gen_kwargs, self.generate_more_kwargs_fn, self.sleep_on_threads_shutdown
+            self.generate_tables_fn,
+            requested_gen_kwargs,
+            self.generate_more_kwargs_fn,
+            self.sleep_on_threads_shutdown,
+            self.generate_num_examples_fn,
         )
 
     def reshard_data_sources(self) -> "ArrowExamplesIterable":
         """Split shars into more shards if possible."""
         if not self.generate_more_kwargs_fn:
-            return ArrowExamplesIterable(self.generate_tables_fn, self.kwargs, self.generate_more_kwargs_fn)
+            return ArrowExamplesIterable(
+                self.generate_tables_fn,
+                self.kwargs,
+                self.generate_more_kwargs_fn,
+                generate_num_examples_fn=self.generate_num_examples_fn,
+            )
         gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.num_shards)
         new_gen_kwargs = _merge_gen_kwargs(
             [
@@ -478,7 +491,11 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
             ]
         )
         return ArrowExamplesIterable(
-            self.generate_tables_fn, new_gen_kwargs, self.generate_more_kwargs_fn, self.sleep_on_threads_shutdown
+            self.generate_tables_fn,
+            new_gen_kwargs,
+            self.generate_more_kwargs_fn,
+            self.sleep_on_threads_shutdown,
+            self.generate_num_examples_fn,
         )
 
     @property
@@ -2179,9 +2196,48 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         }
         return self._state_dict
 
+    def _skip_complete_sources(self, skipped):
+        ex_iterable = self.ex_iterable
+        # Subclasses and wrappers may change which rows a source yields.
+        if (
+            skipped
+            or self.n <= 0
+            or type(ex_iterable) is not ArrowExamplesIterable
+            or ex_iterable.generate_num_examples_fn is None
+            or (
+                ex_iterable._state_dict
+                and (ex_iterable._state_dict["shard_idx"] or ex_iterable._state_dict["shard_example_idx"])
+            )
+        ):
+            return ex_iterable, skipped
+        if ex_iterable._state_dict is None:
+            # Direct iteration without checkpoint tracking must remain repeatable.
+            assert self._state_dict is None
+            ex_iterable = copy(ex_iterable)
+            ex_iterable._init_state_dict()
+        counts = None
+        try:
+            counts = ex_iterable.generate_num_examples_fn(**ex_iterable.kwargs)
+            for num_examples in counts:
+                if num_examples is None or num_examples < 0 or skipped + num_examples > self.n:
+                    break
+                skipped += num_examples
+                ex_iterable._state_dict["shard_idx"] += 1
+                if self._state_dict:
+                    self._state_dict["skipped"] = skipped
+                if skipped == self.n:
+                    break
+        except NotImplementedError:
+            pass  # A builder may not support counting this source/configuration.
+        finally:
+            if hasattr(counts, "close"):
+                counts.close()
+        return ex_iterable, skipped
+
     def __iter__(self):
         skipped = self._state_dict["skipped"] if self._state_dict else 0
-        for key_example in self.ex_iterable:
+        ex_iterable, skipped = self._skip_complete_sources(skipped)
+        for key_example in ex_iterable:
             if skipped + 1 <= self.n:
                 skipped += 1
                 if self._state_dict:
@@ -2191,7 +2247,8 @@ class SkipExamplesIterable(_BaseExamplesIterable):
 
     def _iter_arrow(self):
         skipped = self._state_dict["skipped"] if self._state_dict else 0
-        for key, pa_table in self.ex_iterable.iter_arrow():
+        ex_iterable, skipped = self._skip_complete_sources(skipped)
+        for key, pa_table in ex_iterable.iter_arrow():
             if len(pa_table) == 0:
                 continue
             elif skipped + len(pa_table) <= self.n:
@@ -2959,6 +3016,21 @@ class IterableDataset(DatasetInfoMixin):
         self, batch_size: int = 1, drop_last_batch: bool = False
     ) -> _BaseExamplesIterable:
         ex_iterable = self._ex_iterable
+
+        if self._starting_state_dict and self.epoch == self._starting_state_dict["epoch"]:
+            # Conservatively keep checkpoint replay on the scan path, including
+            # rebatching that can replay a pristine source cursor.
+            def without_counts(ex_iterable):
+                ex_iterable = copy(ex_iterable)
+                if isinstance(ex_iterable, ArrowExamplesIterable):
+                    ex_iterable.generate_num_examples_fn = None
+                if hasattr(ex_iterable, "ex_iterable"):
+                    ex_iterable.ex_iterable = without_counts(ex_iterable.ex_iterable)
+                if hasattr(ex_iterable, "ex_iterables"):
+                    ex_iterable.ex_iterables = [without_counts(child) for child in ex_iterable.ex_iterables]
+                return ex_iterable
+
+            ex_iterable = without_counts(ex_iterable)
 
         if self.epoch:
             try:
@@ -4058,6 +4130,9 @@ class IterableDataset(DatasetInfoMixin):
     def skip(self, n: int) -> "IterableDataset":
         """
         Create a new [`IterableDataset`] that skips the first `n` elements.
+
+        Eligible Parquet streams can skip complete sources using their metadata,
+        without reading or validating the skipped data pages.
 
         Args:
             n (`int`):
