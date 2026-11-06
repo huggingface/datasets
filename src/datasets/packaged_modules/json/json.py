@@ -140,7 +140,7 @@ class Json(datasets.ArrowBasedBuilder):
         yield from base_files
 
     def _generate_tables(self, base_files, files_iterables, original_files, allow_full_read=True):
-        json_field_paths = []
+        json_field_paths, pre_encoded = [], self.config.features is not None
         is_agent_traces = False
 
         if self.info.features is not None:
@@ -280,7 +280,7 @@ class Json(datasets.ArrowBasedBuilder):
                             if json_field_paths:
                                 examples = [ujson_loads(line) for line in batch.splitlines()]
                                 for json_field_path in json_field_paths:
-                                    examples = [json_encode_field(example, json_field_path) for example in examples]
+                                    examples = [json_encode_field(e, json_field_path, pre_encoded) for e in examples]
                                 batch = "\n".join(ujson_dumps(example) for example in examples).encode()
                             # Disable parallelism if block size is ~ len(batch) to avoid segfault
                             block_size = len(batch) if len(batch) // 8 > block_size else block_size
