@@ -205,6 +205,39 @@ def load_json_lines(buffer):
 
 
 class TestJsonDatasetWriter:
+    @pytest.mark.parametrize("num_proc", [None, 2])
+    @pytest.mark.parametrize("orient", ["records", "split", "index", "columns", "values", "table"])
+    def test_dataset_to_json_empty(self, num_proc, orient):
+        dataset = Dataset.from_dict(
+            {"text": [], "label": []}, features=Features({"text": Value("string"), "label": Value("int64")})
+        )
+        with io.BytesIO() as buffer:
+            written = dataset.to_json(buffer, num_proc=num_proc, orient=orient, lines=False)
+            content = buffer.getvalue()
+        assert written == len(content)
+        result = json.loads(content)
+        if orient in ("records", "values"):
+            assert result == []
+        elif orient == "index":
+            assert result == {}
+        elif orient == "columns":
+            assert result == {"text": {}, "label": {}}
+        elif orient == "split":
+            assert result == {"columns": ["text", "label"], "data": []}
+        else:
+            assert result["data"] == []
+            assert [(field["name"], field["type"]) for field in result["schema"]["fields"]] == [
+                ("text", "string"),
+                ("label", "integer"),
+            ]
+
+    @pytest.mark.parametrize("num_proc", [None, 2])
+    def test_dataset_to_json_lines_empty(self, num_proc):
+        dataset = Dataset.from_dict({"text": []}, features=Features({"text": Value("string")}))
+        with io.BytesIO() as buffer:
+            assert dataset.to_json(buffer, num_proc=num_proc, lines=True) == 0
+            assert buffer.getvalue() == b""
+
     @pytest.mark.parametrize("lines, load_json_function", [(True, load_json_lines), (False, load_json)])
     def test_dataset_to_json_lines(self, lines, load_json_function, dataset):
         with io.BytesIO() as buffer:

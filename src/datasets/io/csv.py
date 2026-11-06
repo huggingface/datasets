@@ -115,6 +115,9 @@ class CsvDatasetWriter:
 
         Caller is responsible for opening and closing the handle.
         """
+        if len(self.dataset) == 0:
+            return file_obj.write(self._batch_csv((0, header, index, to_csv_kwargs)))
+
         written = 0
 
         if self.num_proc is None or self.num_proc == 1:
