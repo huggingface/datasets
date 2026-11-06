@@ -629,6 +629,37 @@ def _check_valid_indices_value(index, size):
         raise IndexError(f"Index {index} out of range for dataset of size {size}.")
 
 
+def _copy_in_memory_shard_rows(shard: "Dataset") -> "Dataset":
+    """Copy the rows of an in-memory shard so that pickling it doesn't send the whole table.
+
+    Arrow slices keep their parent buffers and pickle them in full, and a shard with an indices mapping
+    pickles the whole table. Memory-mapped tables are pickled by path, so they are returned as is.
+    """
+    if list_table_cache_files(shard._data):
+        return shard
+    table = shard._data.table
+    # nothing to gain if the table buffers are not much bigger than the shard rows, e.g. for a whole table
+    if 2 * table.get_total_buffer_size() * table.num_rows <= 3 * table.nbytes * len(shard):
+        return shard
+    try:
+        if shard._indices is not None:
+            table = table.take(shard._indices.column(0))
+        else:
+            # copy chunk by chunk to keep the chunk layout (and the 32-bit offsets) unchanged
+            table = pa.Table.from_arrays(
+                [
+                    pa.chunked_array([pa.concat_arrays([chunk]) for chunk in column.chunks], column.type)
+                    for column in table.columns
+                ],
+                schema=table.schema,
+            )
+    except pa.ArrowException:  # e.g. take() overflowing 32-bit offsets: send the shard as before
+        return shard
+    shard = copy.copy(shard)
+    shard._data, shard._indices = InMemoryTable(table), None
+    return shard
+
+
 class NonExistentDatasetError(Exception):
     """Used when we expect the existence of a dataset"""
 
@@ -1896,6 +1927,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         shard_lengths = [None] * num_shards
         shard_sizes = [None] * num_shards
         if num_proc is not None and num_proc >= 1:
+            kwargs_per_job = (
+                {**kwargs, "shard": _copy_in_memory_shard_rows(kwargs["shard"])} for kwargs in kwargs_per_job
+            )
             with mp.get_context("spawn").Pool(num_proc) as pool:
                 with pbar:
                     for job_id, done, content in iflatmap_unordered(
