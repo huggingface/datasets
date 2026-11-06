@@ -123,31 +123,31 @@ class ParquetDatasetWriter:
         _ = parquet_writer_kwargs.pop("path_or_buf", None)
         schema = self.dataset.features.arrow_schema
 
-        writer = pq.ParquetWriter(
+        with pq.ParquetWriter(
             file_obj,
             schema=schema,
             use_content_defined_chunking=self.use_content_defined_chunking,
             write_page_index=self.write_page_index,
             **get_parquet_column_options(self.dataset.features, schema),
             **parquet_writer_kwargs,
-        )
+        ) as writer:
+            for offset in hf_tqdm(
+                range(0, len(self.dataset), batch_size),
+                unit="ba",
+                desc="Creating parquet from Arrow format",
+            ):
+                batch = query_table(
+                    table=self.dataset._data,
+                    key=slice(offset, offset + batch_size),
+                    indices=self.dataset._indices,
+                )
+                writer.write_table(batch)
+                written += batch.nbytes
 
-        for offset in hf_tqdm(
-            range(0, len(self.dataset), batch_size),
-            unit="ba",
-            desc="Creating parquet from Arrow format",
-        ):
-            batch = query_table(
-                table=self.dataset._data,
-                key=slice(offset, offset + batch_size),
-                indices=self.dataset._indices,
-            )
-            writer.write_table(batch)
-            written += batch.nbytes
+            # TODO(kszucs): we may want to persist multiple parameters
+            if self.use_content_defined_chunking is not False:
+                writer.add_key_value_metadata(
+                    {"content_defined_chunking": json.dumps(self.use_content_defined_chunking)}
+                )
 
-        # TODO(kszucs): we may want to persist multiple parameters
-        if self.use_content_defined_chunking is not False:
-            writer.add_key_value_metadata({"content_defined_chunking": json.dumps(self.use_content_defined_chunking)})
-
-        writer.close()
         return written
