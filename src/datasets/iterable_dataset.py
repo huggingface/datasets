@@ -1,7 +1,6 @@
 import asyncio
 import concurrent.futures
 import contextlib
-import inspect
 import itertools
 import re
 import sys
@@ -74,6 +73,7 @@ from .utils.py_utils import (
     Literal,
     convert_file_size_to_int,
     iflatmap_unordered,
+    is_async_callable,
 )
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 from .utils.typing import PathLike
@@ -1584,7 +1584,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             return prepare_outputs(key_example, inputs, processed_inputs)
 
         tasks: list[asyncio.Task] = []
-        if inspect.iscoroutinefunction(self.function):
+        if is_async_callable(self.function):
             try:
                 loop = asyncio.get_running_loop()
             except RuntimeError:
@@ -1596,7 +1596,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         def iter_outputs():
             nonlocal tasks, loop
             inputs_iterator = iter_batched_inputs() if self.batched else iter_inputs()
-            if inspect.iscoroutinefunction(self.function):
+            if is_async_callable(self.function):
                 if self._state_dict:
                     previous_state = self.ex_iterable.state_dict()
                     self._state_dict["previous_state"] = previous_state
@@ -1873,7 +1873,7 @@ class FilteredExamplesIterable(MappedExamplesIterable):
         super().__init__(
             ex_iterable=ex_iterable,
             function=partial(
-                async_add_mask if inspect.iscoroutinefunction(function) else add_mask,
+                async_add_mask if is_async_callable(function) else add_mask,
                 function,
                 mask_column_name=self.mask_column_name,
             ),
