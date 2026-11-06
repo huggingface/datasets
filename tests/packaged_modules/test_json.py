@@ -5,7 +5,8 @@ from unittest.mock import Mock, patch
 import pyarrow as pa
 import pytest
 
-from datasets import Dataset, Features, Value, load_dataset
+from datasets import Dataset, Features, List, Value, load_dataset
+from datasets import Json as JsonFeature
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig, paj
@@ -562,6 +563,37 @@ def test_json_generate_tables(file_fixture, config_kwargs, expected, request):
     pa_table = pa.concat_tables([table for _, table in generator])
     out = Features.from_arrow_schema(pa_table.schema).decode_batch(pa_table.to_pydict())
     assert out == expected
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("explicit_features", [False, True])
+@pytest.mark.parametrize("first_file_encoding", ["utf-8", "utf-8-sig"])
+def test_json_load_multiple_files_with_bom(tmp_path, streaming, explicit_features, first_file_encoding):
+    data_files = []
+    expected = []
+    for file_index, encoding in enumerate([first_file_encoding, "utf-8-sig"]):
+        rows = [
+            {"metadata": [{"a": f"café-{file_index}"}, {"b": file_index}]},
+            {"metadata": [{"c": f"\ufeffvalue-{file_index}"}, {"d": None}]},
+        ]
+        path = tmp_path / f"part-{file_index}.jsonl"
+        path.write_text("\n".join(json.dumps(row, ensure_ascii=False) for row in rows), encoding=encoding)
+        data_files.append(str(path))
+        expected.extend(rows)
+
+    features = Features({"metadata": List(JsonFeature())}) if explicit_features else None
+    dataset = load_dataset(
+        "json",
+        data_files=data_files,
+        features=features,
+        split="train",
+        streaming=streaming,
+        chunksize=16,
+        cache_dir=str(tmp_path / "cache"),
+    )
+
+    assert dataset.features == Features({"metadata": List(JsonFeature())})
+    assert list(dataset) == expected
 
 
 @pytest.mark.parametrize(
