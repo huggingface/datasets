@@ -4823,6 +4823,24 @@ def test_dataset_format_with_unformatted_image():
     assert isinstance(ds[0]["b"], np.ndarray)
 
 
+@pytest.mark.parametrize("format_type", [None, "numpy", "custom"])
+def test_dataset_column_not_in_format_columns(format_type):
+    ds = Dataset.from_dict({"a": [0, 1, 2], "b": ["x", "y", "z"]})
+    if format_type == "custom":
+        ds = ds.with_transform(lambda batch: {"a": [10 * x for x in batch["a"]]}, columns=["a"])
+    else:
+        ds = ds.with_format(format_type, columns=["a"])
+    assert list(ds[0]) == ["a"]
+    # the formatted column is formatted
+    assert isinstance(ds["a"][:], type(ds[:]["a"]))
+    np.testing.assert_array_equal(ds["a"][:], ds[:]["a"])
+    # the other columns are returned as python objects
+    assert ds["b"][0] == "x"
+    assert ds["b"][-1] == "z"
+    assert ds["b"][:2] == ["x", "y"]
+    assert list(ds["b"]) == ["x", "y", "z"]
+
+
 @pytest.mark.parametrize("batch_size", [1, 4])
 @require_torch
 def test_dataset_with_torch_dataloader(dataset, batch_size):
