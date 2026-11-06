@@ -107,16 +107,22 @@ class SqlDatasetWriter:
                 written += self._batch_sql((offset, index, to_sql_kwargs))
         else:
             num_rows, batch_size = len(self.dataset), self.batch_size
+            num_batches = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
+            # the first batch creates the table (with if_exists as given) before the workers start:
+            # the later batches append, and one of them could otherwise reach the database first
+            if num_rows:
+                written += self._batch_sql((0, index, to_sql_kwargs))
             with multiprocessing.Pool(self.num_proc) as pool:
-                for num_rows in hf_tqdm(
+                for num_rows_written in hf_tqdm(
                     pool.imap(
                         self._batch_sql,
-                        [(offset, index, to_sql_kwargs) for offset in range(0, num_rows, batch_size)],
+                        [(offset, index, to_sql_kwargs) for offset in range(batch_size, num_rows, batch_size)],
                     ),
-                    total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
+                    initial=1 if num_rows else 0,
+                    total=num_batches,
                     unit="ba",
                     desc="Creating SQL from Arrow format",
                 ):
-                    written += num_rows
+                    written += num_rows_written
 
         return written
