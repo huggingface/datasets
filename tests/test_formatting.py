@@ -344,10 +344,18 @@ class FormatterTest(TestCase):
         formatter = NumpyFormatter(features=Features({"audio": Audio()}))
         row = formatter.format_row(pa_table)
         self.assertEqual(row["audio"].get_all_samples().data.cpu().numpy().dtype, np.dtype(np.float32))
+        audio_array = row["audio"]["array"]
+        self.assertIsInstance(audio_array, np.ndarray)
+        # The file is stereo: "array" is averaged over the channel dimension.
+        expected_array = row["audio"].get_all_samples().data.cpu().numpy().mean(axis=0)
+        np.testing.assert_allclose(audio_array, expected_array)
+        self.assertEqual(audio_array.ndim, 1)
         col = formatter.format_column(pa_table)
-        self.assertEqual(col[0].get_all_samples().data.cpu().numpy().dtype, np.float32)
+        self.assertIsInstance(col[0]["array"], np.ndarray)
+        np.testing.assert_allclose(col[0]["array"], expected_array)
         batch = formatter.format_batch(pa_table)
-        self.assertEqual(batch["audio"][0].get_all_samples().data.cpu().numpy().dtype, np.dtype(np.float32))
+        self.assertIsInstance(batch["audio"][0]["array"], np.ndarray)
+        np.testing.assert_allclose(batch["audio"][0]["array"], expected_array)
 
     def test_pandas_formatter(self):
         pa_table = self._create_dummy_table()
@@ -470,10 +478,25 @@ class FormatterTest(TestCase):
         formatter = TorchFormatter(features=Features({"audio": Audio()}))
         row = formatter.format_row(pa_table)
         self.assertEqual(row["audio"].get_all_samples().data.dtype, torch.float32)
+        audio_array = row["audio"]["array"]
+        self.assertIsInstance(audio_array, torch.Tensor)
+        # The file is stereo: "array" is averaged over the channel dimension.
+        numpy_array = NumpyFormatter(features=Features({"audio": Audio()})).format_row(pa_table)["audio"]["array"]
+        expected_array = torch.from_numpy(numpy_array)
+        torch.testing.assert_close(audio_array, expected_array)
+        self.assertEqual(audio_array.ndim, 1)
         col = formatter.format_column(pa_table)
-        self.assertEqual(col[0].get_all_samples().data.dtype, torch.float32)
+        self.assertIsInstance(col[0]["array"], torch.Tensor)
+        torch.testing.assert_close(col[0]["array"], expected_array)
         batch = formatter.format_batch(pa_table)
-        self.assertEqual(batch["audio"][0].get_all_samples().data.dtype, torch.float32)
+        self.assertIsInstance(batch["audio"][0]["array"], torch.Tensor)
+        torch.testing.assert_close(batch["audio"][0]["array"], expected_array)
+
+        # Formatting for torch uses a copy, so the original decoder keeps NumPy output.
+        decoder = Audio().decode_example({"bytes": None, "path": str(AUDIO_PATH_1)})
+        torch_decoder = formatter.recursive_tensorize({"audio": decoder})["audio"]
+        self.assertIsInstance(torch_decoder["array"], torch.Tensor)
+        self.assertIsInstance(decoder["array"], np.ndarray)
 
     @require_tf
     def test_tf_formatter(self):
