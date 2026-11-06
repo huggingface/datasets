@@ -2,12 +2,17 @@ import warnings
 from dataclasses import dataclass
 from typing import Optional
 
-import pandas as pd
 import pyarrow as pa
 
 import datasets
-from datasets.builder import Key
 from datasets.table import table_cast
+
+
+PANDAS_PICKLE_DISABLED_ERROR = (
+    "Pickle loading with the pandas dataset builder is disabled because pickle files "
+    "can execute arbitrary code. Use Parquet, Arrow, CSV, or JSON files, "
+    "or Dataset.from_pandas() for an existing DataFrame."
+)
 
 
 @dataclass
@@ -51,7 +56,4 @@ class Pandas(datasets.ArrowBasedBuilder):
         yield from files
 
     def _generate_tables(self, files):
-        for i, file in enumerate(files):
-            with open(file, "rb") as f:
-                pa_table = pa.Table.from_pandas(pd.read_pickle(f))
-                yield Key(i, 0), self._cast_table(pa_table)
+        raise ValueError(PANDAS_PICKLE_DISABLED_ERROR)
