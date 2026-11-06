@@ -44,7 +44,7 @@ def _map_with_multiprocessing_pool(
     function, iterable, num_proc, batched, batch_size, types, disable_tqdm, desc, single_map_nested_func
 ):
     num_proc = num_proc if num_proc <= len(iterable) else len(iterable)
-    split_kwds = []  # We organize the splits ourselve (contiguous splits)
+    split_kwds = []  # We organize the splits ourselves (contiguous splits)
     for index in range(num_proc):
         div = len(iterable) // num_proc
         mod = len(iterable) % num_proc
