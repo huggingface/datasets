@@ -2399,7 +2399,7 @@ class TakeExamplesIterable(_BaseExamplesIterable):
                 if self._state_dict:
                     self._state_dict["taken"] = taken
                 yield key_example
-            else:
+            if taken >= self.n:
                 break
 
     def _iter_arrow(self):
@@ -2420,7 +2420,7 @@ class TakeExamplesIterable(_BaseExamplesIterable):
                 if self._state_dict:
                     self._state_dict["taken"] = taken
                 yield key, pa_table.slice(0, length)
-            else:
+            if taken >= self.n:
                 break
 
     @staticmethod

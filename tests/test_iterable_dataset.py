@@ -2746,6 +2746,27 @@ def test_iterable_dataset_set_epoch_resuming(dataset: IterableDataset):
     assert len(list(dataset)) == 0
 
 
+@pytest.mark.parametrize("source_batch_size", [None, 2, 3])
+@pytest.mark.parametrize("n", [0, 2])
+def test_iterable_dataset_take_stops_reading_at_limit(source_batch_size, n):
+    consumed = []
+    source_size = source_batch_size or n
+
+    def generate():
+        for i in range(source_size):
+            consumed.append(i)
+            yield {"id": i}
+        raise RuntimeError("Read beyond the requested examples")
+
+    dataset = IterableDataset.from_generator(generate)
+    if source_batch_size is not None:
+        dataset = dataset.with_format("arrow").map(lambda table: table, batched=True, batch_size=source_batch_size)
+    taken = dataset.take(n).with_format(None)
+
+    assert list(taken) == [{"id": i} for i in range(n)]
+    assert consumed == list(range(source_size if n else 0))
+
+
 @pytest.mark.parametrize("method", ["skip", "take"])
 @pytest.mark.parametrize("source_kind", ["python", "arrow"])
 @pytest.mark.parametrize("shuffle_before", [False, True])
