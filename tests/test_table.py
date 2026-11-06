@@ -762,6 +762,37 @@ def test_concatenation_table_pickle(
     assert_index_attributes_equal(table, unpickled_table)
 
 
+@pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
+@pytest.mark.parametrize("integer_selection", [False, True])
+@pytest.mark.parametrize("operation", ["identity", "slice", "filter"])
+def test_concatenation_table_select_pickle(
+    blocks_type,
+    integer_selection,
+    operation,
+    in_memory_pa_table,
+    in_memory_blocks,
+    memory_mapped_blocks,
+    mixed_in_memory_and_memory_mapped_blocks,
+):
+    blocks = {
+        "in_memory": in_memory_blocks,
+        "memory_mapped": memory_mapped_blocks,
+        "mixed": mixed_in_memory_and_memory_mapped_blocks,
+    }[blocks_type]
+    columns = [1] if integer_selection else [in_memory_pa_table.column_names[1]]
+    expected = in_memory_pa_table.select(columns)
+    table = ConcatenationTable.from_blocks(blocks).select(columns)
+    if operation == "slice":
+        expected = expected.slice(1, 2)
+        table = table.slice(1, 2)
+    elif operation == "filter":
+        mask = pa.array([i % 2 == 0 for i in range(len(in_memory_pa_table))])
+        expected = expected.filter(mask)
+        table = table.filter(mask)
+    assert table.table.equals(expected)
+    assert pickle.loads(pickle.dumps(table)).table.equals(expected)
+
+
 def test_concat_tables_with_features_metadata(arrow_file, in_memory_pa_table):
     input_features = Features.from_arrow_schema(in_memory_pa_table.schema)
     input_features["id"] = Value("int64", id="my_id")

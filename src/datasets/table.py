@@ -1803,6 +1803,7 @@ class ConcatenationTable(Table):
             :class:`datasets.table.Table`: New table with the specified columns, and metadata preserved.
         """
         table = self.table.select(columns, *args, **kwargs)
+        columns = table.column_names
         blocks = []
         for tables in self.blocks:
             blocks.append([t.select([c for c in columns if c in t.column_names], *args, **kwargs) for t in tables])
