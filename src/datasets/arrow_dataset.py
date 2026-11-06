@@ -7054,15 +7054,14 @@ def _concatenate_map_style_datasets(
     >>> ds3 = _concatenate_map_style_datasets([ds1, ds2])
     ```
     """
-    # Ignore datasets with no rows
-    if any(dset.num_rows > 0 for dset in dsets):
-        dsets = [dset for dset in dsets if dset.num_rows > 0]
-    else:
-        # Return first dataset if all datasets are empty
-        return dsets[0]
-
     # Perform checks (and a potential cast if axis=0)
     if axis == 0:
+        # Ignore datasets with no rows: they contribute no rows to a vertical concatenation
+        if any(dset.num_rows > 0 for dset in dsets):
+            dsets = [dset for dset in dsets if dset.num_rows > 0]
+        else:
+            # Return first dataset if all datasets are empty
+            return dsets[0]
         _check_if_features_can_be_aligned([dset.features for dset in dsets])
     else:
         if not all(dset.num_rows == dsets[0].num_rows for dset in dsets):
