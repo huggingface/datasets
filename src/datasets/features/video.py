@@ -70,7 +70,7 @@ class Video:
     >>> from datasets import Dataset, Video
     >>> ds = Dataset.from_dict({"video":["path/to/Screen Recording.mov"]}).cast_column("video", Video())
     >>> ds.features["video"]
-    Video(decode=True, id=None)
+    Video(decode=True, stream_index=None, dimension_order='NCHW', num_ffmpeg_threads=1, device='cpu', seek_mode='exact')
     >>> ds[0]["video"]
     <torchcodec.decoders._video_decoder.VideoDecoder object at 0x14a61e080>
     >>> video = ds[0]["video"]
@@ -81,7 +81,7 @@ class Video:
             0.4333], dtype=torch.float64)
     duration_seconds: tensor([0.0167, 0.0167, 0.0167, 0.0167, 0.0167, 0.0167, 0.0167, 0.0167, 0.0167,
             0.0167], dtype=torch.float64)
-    >>> ds.cast_column('video', Video(decode=False))[0]["video]
+    >>> ds.cast_column('video', Video(decode=False))[0]["video"]
     {'bytes': None,
      'path': 'path/to/Screen Recording.mov'}
     ```
