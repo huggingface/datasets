@@ -583,9 +583,11 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
             library_version=__version__,
             user_agent=get_datasets_user_agent(self.download_config.user_agent),
         )
+        # a legacy name like "imdb" is still served by the Hub but is not a valid repo id in an hf:// URI
+        repo_id = self.name if "/" in self.name else api.dataset_info(self.name, revision=self.commit_hash).id
         try:
             dataset_readme_path = api.hf_hub_download(
-                repo_id=self.name,
+                repo_id=repo_id,
                 filename=config.REPOCARD_FILENAME,
                 repo_type="dataset",
                 revision=self.commit_hash,
@@ -598,7 +600,7 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
             download_config.download_desc = "Downloading standalone yaml"
         try:
             standalone_yaml_path = cached_path(
-                hf_dataset_url(self.name, config.REPOYAML_FILENAME, revision=self.commit_hash),
+                hf_dataset_url(repo_id, config.REPOYAML_FILENAME, revision=self.commit_hash),
                 download_config=download_config,
             )
             with open(standalone_yaml_path, encoding="utf-8") as f:
@@ -609,13 +611,13 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
                     dataset_card_data = DatasetCardData(**_dataset_card_data_dict)
         except FileNotFoundError:
             pass
-        base_path = f"hf://datasets/{self.name}@{self.commit_hash}/{self.data_dir or ''}".rstrip("/")
+        base_path = f"hf://datasets/{repo_id}@{self.commit_hash}/{self.data_dir or ''}".rstrip("/")
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
         if config.USE_PARQUET_EXPORT and self.use_exported_dataset_infos:
             try:
                 exported_dataset_infos = _dataset_viewer.get_exported_dataset_infos(
-                    dataset=self.name, commit_hash=self.commit_hash, token=self.download_config.token
+                    dataset=repo_id, commit_hash=self.commit_hash, token=self.download_config.token
                 )
                 exported_dataset_infos = DatasetInfosDict(
                     {
@@ -672,8 +674,8 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
             default_config_name = None
         builder_kwargs = {
             "base_path": base_path,
-            "repo_id": self.name,
-            "dataset_name": camelcase_to_snakecase(Path(self.name).name),
+            "repo_id": repo_id,
+            "dataset_name": camelcase_to_snakecase(Path(repo_id).name),
         }
         if self.data_dir:
             builder_kwargs["data_files"] = data_files
@@ -683,7 +685,7 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
         try:
             # this file is deprecated and was created automatically in old versions of push_to_hub
             dataset_infos_path = cached_path(
-                hf_dataset_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.commit_hash),
+                hf_dataset_url(repo_id, config.DATASETDICT_INFOS_FILENAME, revision=self.commit_hash),
                 download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
