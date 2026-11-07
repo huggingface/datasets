@@ -472,31 +472,76 @@ class FormatterTest(TestCase):
     def test_torch_formatter_audio(self):
         import torch
 
+        from datasets.features._torchcodec import AudioDecoder as DatasetsAudioDecoder
         from datasets.formatting import TorchFormatter
 
         pa_table = pa.table({"audio": [{"bytes": None, "path": str(AUDIO_PATH_1)}]})
-        formatter = TorchFormatter(features=Features({"audio": Audio()}))
+        features = Features({"audio": Audio()})
+        formatter = TorchFormatter(features=features)
         row = formatter.format_row(pa_table)
+        self.assertIsInstance(row["audio"], DatasetsAudioDecoder)
         self.assertEqual(row["audio"].get_all_samples().data.dtype, torch.float32)
+        self.assertEqual(row["audio"]["sampling_rate"], 44100)
         audio_array = row["audio"]["array"]
         self.assertIsInstance(audio_array, torch.Tensor)
         # The file is stereo: "array" is averaged over the channel dimension.
-        numpy_array = NumpyFormatter(features=Features({"audio": Audio()})).format_row(pa_table)["audio"]["array"]
+        numpy_array = NumpyFormatter(features=features).format_row(pa_table)["audio"]["array"]
         expected_array = torch.from_numpy(numpy_array)
         torch.testing.assert_close(audio_array, expected_array)
         self.assertEqual(audio_array.ndim, 1)
         col = formatter.format_column(pa_table)
+        self.assertIsInstance(col[0], DatasetsAudioDecoder)
         self.assertIsInstance(col[0]["array"], torch.Tensor)
         torch.testing.assert_close(col[0]["array"], expected_array)
         batch = formatter.format_batch(pa_table)
+        self.assertIsInstance(batch["audio"][0], DatasetsAudioDecoder)
         self.assertIsInstance(batch["audio"][0]["array"], torch.Tensor)
         torch.testing.assert_close(batch["audio"][0]["array"], expected_array)
 
+        # TorchFormatter dtype kwargs must also be applied to audio arrays.
+        dtype_formatter = TorchFormatter(features=features, dtype=torch.float64)
+        dtype_row = dtype_formatter.format_row(pa_table)
+        self.assertIsInstance(dtype_row["audio"], DatasetsAudioDecoder)
+        self.assertEqual(dtype_row["audio"]["array"].dtype, torch.float64)
+        torch.testing.assert_close(dtype_row["audio"]["array"], expected_array.to(torch.float64))
+        dtype_col = dtype_formatter.format_column(pa_table)
+        self.assertIsInstance(dtype_col[0], DatasetsAudioDecoder)
+        self.assertEqual(dtype_col[0]["array"].dtype, torch.float64)
+        dtype_batch = dtype_formatter.format_batch(pa_table)
+        self.assertIsInstance(dtype_batch["audio"][0], DatasetsAudioDecoder)
+        self.assertEqual(dtype_batch["audio"][0]["array"].dtype, torch.float64)
+
         # Formatting for torch uses a copy, so the original decoder keeps NumPy output.
         decoder = Audio().decode_example({"bytes": None, "path": str(AUDIO_PATH_1)})
-        torch_decoder = formatter.recursive_tensorize({"audio": decoder})["audio"]
+        torch_decoder = dtype_formatter.recursive_tensorize({"audio": decoder})["audio"]
+        self.assertIsInstance(torch_decoder, DatasetsAudioDecoder)
         self.assertIsInstance(torch_decoder["array"], torch.Tensor)
+        self.assertEqual(torch_decoder["array"].dtype, torch.float64)
         self.assertIsInstance(decoder["array"], np.ndarray)
+        self.assertEqual(decoder["array"].dtype, np.float32)
+
+    @require_torch
+    @require_torchcodec
+    def test_torch_formatter_audio_device(self):
+        import torch
+
+        if not torch.cuda.is_available():
+            self.skipTest("CUDA is not available")
+
+        from datasets.features._torchcodec import AudioDecoder as DatasetsAudioDecoder
+        from datasets.formatting import TorchFormatter
+
+        pa_table = pa.table({"audio": [{"bytes": None, "path": str(AUDIO_PATH_1)}]})
+        formatter = TorchFormatter(features=Features({"audio": Audio()}), device="cuda")
+        row = formatter.format_row(pa_table)
+        self.assertIsInstance(row["audio"], DatasetsAudioDecoder)
+        self.assertTrue(row["audio"]["array"].is_cuda)
+        col = formatter.format_column(pa_table)
+        self.assertIsInstance(col[0], DatasetsAudioDecoder)
+        self.assertTrue(col[0]["array"].is_cuda)
+        batch = formatter.format_batch(pa_table)
+        self.assertIsInstance(batch["audio"][0], DatasetsAudioDecoder)
+        self.assertTrue(batch["audio"][0]["array"].is_cuda)
 
     @require_tf
     def test_tf_formatter(self):
