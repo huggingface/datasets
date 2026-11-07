@@ -1573,6 +1573,25 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test2.cache_files), 0 if in_memory else dset_test1_num_proc)
                     self.assertTrue(("Loading cached processed dataset" in self._caplog.text) ^ in_memory)
 
+    def test_map_caching_with_custom_suffix_template(self, in_memory):
+        # the rank in suffix_template can have any format spec, not only the default {rank:05d}
+        for suffix_template in ["_{rank:03d}_of_{num_proc:03d}", "_{num_proc}_{rank}"]:
+            with (
+                tempfile.TemporaryDirectory() as tmp_dir,
+                self._caplog.at_level(INFO, logger=get_logger().name),
+                self._create_dummy_dataset(in_memory, tmp_dir) as dset,
+            ):
+                self._caplog.clear()
+                with dset.map(lambda x: {"foo": "bar"}, num_proc=2, suffix_template=suffix_template) as dset_test1:
+                    dset_test1_data_files = list(dset_test1.cache_files)
+                    self.assertFalse("Loading cached processed dataset" in self._caplog.text)
+
+                self._caplog.clear()
+                with dset.map(lambda x: {"foo": "bar"}, num_proc=2, suffix_template=suffix_template) as dset_test2:
+                    self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                    self.assertEqual(len(dset_test2.cache_files), 0 if in_memory else 2)
+                    self.assertTrue(("Loading cached processed dataset" in self._caplog.text) ^ in_memory)
+
     def test_map_caching_partial_remap(self, in_memory):
         with (
             tempfile.TemporaryDirectory() as tmp_dir,

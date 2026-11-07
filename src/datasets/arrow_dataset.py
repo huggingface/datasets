@@ -3511,10 +3511,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     )
                     logger.info(f"{process_name} will write at {cache_file_name}")
             else:
-                # TODO: this assumes the format_spec of rank in suffix_template
+                # drop the format spec of rank (e.g. {rank:05d} -> {rank}) since rank is the string "*" here
                 cache_file_name = (
                     cache_file_prefix
-                    + suffix_template.replace("{rank:05d}", "{rank}").format(rank=rank, num_proc=num_shards)
+                    + re.sub(r"{rank[^}]*}", "{rank}", suffix_template).format(rank=rank, num_proc=num_shards)
                     + cache_file_ext
                 )
             return cache_file_name
