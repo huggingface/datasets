@@ -1,4 +1,5 @@
 import os
+import sys
 import tarfile
 from itertools import product
 from pathlib import Path
@@ -85,6 +86,32 @@ def test_audio_feature_encode_example(shared_datadir, build_example):
     assert encoded_example["bytes"] is not None or encoded_example["path"] is not None
     decoded_example = audio.decode_example(encoded_example)
     assert isinstance(decoded_example, AudioDecoder)
+
+
+@pytest.mark.parametrize(
+    "build_example",
+    [
+        lambda audio_path: audio_path,
+        lambda audio_path: Path(audio_path),
+        lambda audio_path: open(audio_path, "rb").read(),
+        lambda audio_path: {"path": audio_path},
+        lambda audio_path: {"path": audio_path, "bytes": open(audio_path, "rb").read()},
+        lambda audio_path: {"bytes": open(audio_path, "rb").read()},
+    ],
+)
+def test_audio_feature_encode_example_without_torchcodec(shared_datadir, build_example, monkeypatch):
+    # paths and bytes are stored as is: only arrays need the torchcodec encoder
+    monkeypatch.setitem(sys.modules, "torchcodec.encoders", None)
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    encoded_example = Audio().encode_example(build_example(audio_path))
+    assert encoded_example.keys() == {"bytes", "path"}
+    assert encoded_example["bytes"] is not None or encoded_example["path"] is not None
+
+
+def test_audio_feature_encode_example_array_requires_torchcodec(monkeypatch):
+    monkeypatch.setitem(sys.modules, "torchcodec.encoders", None)
+    with pytest.raises(ImportError, match="torchcodec"):
+        Audio().encode_example({"array": np.array([0.1, 0.2, 0.3]), "sampling_rate": 16_000})
 
 
 @require_torchcodec
