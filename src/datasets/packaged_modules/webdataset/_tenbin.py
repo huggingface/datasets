@@ -202,6 +202,8 @@ def decode_chunks(buf):
         offset += 8
         nbytes = struct.unpack("@q", buf[offset : offset + 8])[0]
         offset += 8
+        if nbytes < 0 or offset + nbytes > total:
+            raise ValueError("invalid chunk size")
         b = buf[offset : offset + nbytes]
         offset += roundup(nbytes)
         result.append(b)
