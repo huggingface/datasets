@@ -1,4 +1,5 @@
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional, Union
 
@@ -9,7 +10,9 @@ import datasets
 import datasets.config
 from datasets.builder import Key
 from datasets.features.features import require_storage_cast
+from datasets.fingerprint import generate_random_fingerprint
 from datasets.table import table_cast
+from datasets.utils.py_utils import map_nested
 
 
 if TYPE_CHECKING:
@@ -48,7 +51,7 @@ class SqlConfig(datasets.BuilderConfig):
         custom_features: Optional[datasets.Features] = None,
     ) -> str:
         config_kwargs = config_kwargs.copy()
-        # We need to stringify the Selectable object to make its hash deterministic
+        # Compile Selectable objects to make their hash independent of SQLAlchemy object identities.
 
         # The process of stringifying is explained here: http://docs.sqlalchemy.org/en/latest/faq/sqlexpressions.html
         sql = config_kwargs["sql"]
@@ -58,8 +61,26 @@ class SqlConfig(datasets.BuilderConfig):
 
                 if isinstance(sql, sqlalchemy.sql.Selectable):
                     engine = sqlalchemy.create_engine(config_kwargs["con"].split("://")[0] + "://")
-                    sql_str = str(sql.compile(dialect=engine.dialect))
-                    config_kwargs["sql"] = sql_str
+                    compiled = sql.compile(dialect=engine.dialect)
+                    # Effective compiled parameters include explicit overrides; don't hash them twice.
+                    params = config_kwargs.pop("params", None)
+                    params = params if isinstance(params, Mapping) else {}
+                    if any(
+                        bind.callable and bind.key not in params and name not in params
+                        for bind, name in compiled.bind_names.items()
+                    ):
+                        # Callable values are only known at execution time. Avoid reusing their cache
+                        # rather than evaluating them here and again when executing the query.
+                        sql_params = generate_random_fingerprint()
+                    else:
+                        # DBAPI binary buffers have the same contents as bytes but aren't picklable.
+                        sql_params = map_nested(
+                            lambda value: value.tobytes() if isinstance(value, memoryview) else value,
+                            compiled.construct_params(params=params) if params else compiled.params,
+                            map_tuple=True,
+                        )
+                    # The SQL contains placeholders, so its bound values must also identify the cache.
+                    config_kwargs["sql"] = (str(compiled), sql_params)
                 else:
                     raise TypeError(
                         f"Supported types for 'sql' are string and sqlalchemy.sql.Selectable but got {type(sql)}: {sql}"
