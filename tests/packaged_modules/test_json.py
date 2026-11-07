@@ -1,5 +1,10 @@
+import gzip
+import io
 import json
+import os
+import tarfile
 import textwrap
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pyarrow as pa
@@ -842,3 +847,57 @@ def test_json_load_dataset_without_droid_marker_stays_ordinary_json(tmp_path):
 
     assert dataset.column_names == ["type", "id", "version", "timestamp", "message"]
     assert dataset[0]["type"] == "session_start"
+
+
+def _write_jsonl_gz(path, rows):
+    payload = "".join(json.dumps(row) + "\n" for row in rows).encode("utf-8")
+    Path(path).write_bytes(gzip.compress(payload, mtime=0))
+
+
+def _write_jsonl_tar_gz(path, members):
+    stream = io.BytesIO()
+    with tarfile.open(fileobj=stream, mode="w") as archive:
+        for name, rows in members.items():
+            payload = "".join(json.dumps(row) + "\n" for row in rows).encode("utf-8")
+            info = tarfile.TarInfo(name)
+            info.size = len(payload)
+            archive.addfile(info, io.BytesIO(payload))
+    Path(path).write_bytes(gzip.compress(stream.getvalue(), mtime=0))
+
+
+def test_json_load_dataset_replaces_tar_archive_at_same_path(tmp_path):
+    archive = tmp_path / "data.tar.gz"
+    cache_dir = str(tmp_path / "cache")
+    _write_jsonl_tar_gz(
+        archive,
+        {
+            "train.jsonl": [{"value": "original"}],
+            "remove.jsonl": [{"value": "removed-member"}],
+        },
+    )
+    first = load_dataset("json", data_files=str(archive), split="train", cache_dir=cache_dir)
+    assert sorted(first["value"]) == ["original", "removed-member"]
+    before_mtime = archive.stat().st_mtime_ns
+    _write_jsonl_tar_gz(
+        archive,
+        {"renamed.jsonl": [{"value": "replacement-with-more-characters"}]},
+    )
+    os.utime(archive, ns=(archive.stat().st_atime_ns, before_mtime + 2_000_000_000))
+    rewritten = load_dataset("json", data_files=str(archive), split="train", cache_dir=cache_dir)
+    assert list(rewritten["value"]) == ["replacement-with-more-characters"]
+    assert "removed-member" not in rewritten["value"]
+    assert rewritten._fingerprint != first._fingerprint
+
+
+def test_json_load_dataset_replaces_plain_gzip_at_same_path(tmp_path):
+    archive = tmp_path / "data.jsonl.gz"
+    cache_dir = str(tmp_path / "cache")
+    _write_jsonl_gz(archive, [{"value": "original"}])
+    first = load_dataset("json", data_files=str(archive), split="train", cache_dir=cache_dir)
+    assert list(first["value"]) == ["original"]
+    before_mtime = archive.stat().st_mtime_ns
+    _write_jsonl_gz(archive, [{"value": "replacement-with-more-characters"}])
+    os.utime(archive, ns=(archive.stat().st_atime_ns, before_mtime + 2_000_000_000))
+    rewritten = load_dataset("json", data_files=str(archive), split="train", cache_dir=cache_dir)
+    assert list(rewritten["value"]) == ["replacement-with-more-characters"]
+    assert rewritten._fingerprint != first._fingerprint
