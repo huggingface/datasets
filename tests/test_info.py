@@ -1,9 +1,11 @@
+import copy
 import os
 
 import pytest
 import yaml
+from huggingface_hub import DatasetCardData
 
-from datasets.features.features import Features, Value
+from datasets.features.features import Features, LargeList, List, Value
 from datasets.info import DatasetInfo, DatasetInfosDict
 from datasets.utils.py_utils import asdict
 
@@ -176,3 +178,32 @@ def test_dataset_info_from_dict_with_large_list():
     }
     dataset_info = DatasetInfo.from_dict(dataset_info_dict)
     assert asdict(dataset_info) == dataset_info_dict
+
+
+@pytest.mark.parametrize(
+    "feature_dict",
+    [
+        {"text": Value("string")},
+        {"_type": Value("string")},
+        {"_type": Value("string"), "text": Value("string")},
+        {"record": {"_type": Value("string"), "count": Value("int32")}},
+        {"records": List({"_type": Value("string")})},
+        {"records": LargeList({"_type": Value("string")})},
+        {"values": List(Value("int32"), length=2)},
+        {"values": LargeList(Value("int32"))},
+    ],
+    ids=["ordinary", "type", "type-sibling", "struct", "list-struct", "large-list-struct", "list", "large-list"],
+)
+def test_dataset_infos_card_data_feature_roundtrip(feature_dict):
+    features = Features(feature_dict)
+    original = copy.deepcopy(features)
+    original_dict = features.to_dict()
+    infos = DatasetInfosDict({"default": DatasetInfo(features=features)})
+    card_data = DatasetCardData()
+    infos.to_dataset_card_data(card_data)
+    if feature_dict == {"_type": Value("string")}:
+        assert card_data["dataset_info"]["features"] == [{"name": "_type", "dtype": "string"}]
+    restored = DatasetInfosDict.from_dataset_card_data(card_data)
+    assert restored["default"].features == original
+    assert features == original
+    assert features.to_dict() == original_dict
