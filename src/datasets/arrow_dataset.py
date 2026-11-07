@@ -81,7 +81,7 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .data_files import sanitize_patterns
 from .download.streaming_download_manager import xgetsize
-from .features import Audio, ClassLabel, Features, Image, List, Value, Video
+from .features import Audio, ClassLabel, Features, Image, LargeList, List, Value, Video
 from .features.features import (
     FeatureType,
     _align_features,
@@ -2231,6 +2231,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def class_encode_column(self, column: str, include_nulls: bool = False) -> "Dataset":
         """Casts the given column as [`~datasets.features.ClassLabel`] and updates the table.
 
+        List-valued columns backed by [`~datasets.features.List`] or [`~datasets.features.LargeList`]
+        are encoded element-wise while preserving their outer list feature.
+
         Args:
             column (`str`):
                 The name of the column to cast (list all the column names with [`~datasets.Dataset.column_names`])
@@ -2253,23 +2256,52 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         {'answer': ClassLabel(num_classes=2, names=['False', 'True']),
          'passage': Value('string'),
          'question': Value('string')}
+
+        List-valued labels are encoded element-wise:
+
+        ```py
+        >>> from datasets import Dataset
+        >>> ds = Dataset.from_dict({"labels": [["cat", "dog"], ["dog"], []]})
+        >>> ds = ds.class_encode_column("labels")
+        >>> ds.features["labels"]
+        List(ClassLabel(names=['cat', 'dog']))
+        >>> ds["labels"]
+        Column([[0, 1], [1], []])
         ```
         """
         # Sanity checks
         if column not in self._data.column_names:
             raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
         src_feat = self._info.features[column]
-        if not isinstance(src_feat, Value):
+        is_list_feature = isinstance(src_feat, (List, LargeList))
+        if not isinstance(src_feat, Value) and not (is_list_feature and isinstance(src_feat.feature, Value)):
             raise ValueError(
-                f"Class encoding is only supported for {Value.__name__} column, and column {column} is {type(src_feat).__name__}."
+                f"Class encoding is only supported for {Value.__name__}, {List.__name__}({Value.__name__}), "
+                f"or {LargeList.__name__}({Value.__name__}) columns, and column {column} is {type(src_feat).__name__}."
             )
 
-        if src_feat.dtype != "string" or (include_nulls and None in self.unique(column)):
+        def get_unique_values(dataset):
+            if isinstance(src_feat, Value):
+                return dataset.unique(column)
+            return dataset._data.column(column).combine_chunks().flatten().unique().to_pylist()
+
+        unique_values = get_unique_values(self)
+
+        value_feat = src_feat.feature if is_list_feature else src_feat
+        if value_feat.dtype != "string" or (include_nulls and None in unique_values):
 
             def stringify_column(batch):
-                batch[column] = [
-                    str(sample) if include_nulls or sample is not None else None for sample in batch[column]
-                ]
+                if is_list_feature:
+                    batch[column] = [
+                        [str(item) if include_nulls or item is not None else None for item in sample]
+                        if sample is not None
+                        else None
+                        for sample in batch[column]
+                    ]
+                else:
+                    batch[column] = [
+                        str(sample) if include_nulls or sample is not None else None for sample in batch[column]
+                    ]
                 return batch
 
             dset = self.map(
@@ -2281,18 +2313,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dset = self
 
         # Create the new feature
-        class_names = sorted(str(sample) for sample in dset.unique(column) if include_nulls or sample is not None)
+        class_names = sorted(str(sample) for sample in get_unique_values(dset) if include_nulls or sample is not None)
         dst_feat = ClassLabel(names=class_names)
 
         def cast_to_class_labels(batch):
-            batch[column] = [
-                dst_feat.str2int(str(sample)) if include_nulls or sample is not None else None
-                for sample in batch[column]
-            ]
+            if is_list_feature:
+                batch[column] = [
+                    [dst_feat.str2int(str(item)) if include_nulls or item is not None else None for item in sample]
+                    if sample is not None
+                    else None
+                    for sample in batch[column]
+                ]
+            else:
+                batch[column] = [
+                    dst_feat.str2int(str(sample)) if include_nulls or sample is not None else None
+                    for sample in batch[column]
+                ]
             return batch
 
         new_features = dset.features.copy()
-        new_features[column] = dst_feat
+        if isinstance(src_feat, List):
+            new_features[column] = List(dst_feat, length=src_feat.length)
+        elif isinstance(src_feat, LargeList):
+            new_features[column] = LargeList(dst_feat)
+        else:
+            new_features[column] = dst_feat
 
         dset = dset.map(
             cast_to_class_labels,
