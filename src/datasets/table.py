@@ -2216,7 +2216,9 @@ def embed_array_storage(
     elif pa.types.is_struct(array.type):
         # feature must be a dict
         if isinstance(feature, dict):
-            arrays = [_e(array.field(name), subfeature) for name, subfeature in feature.items()]
+            # Apply the parent null bitmap before embedding, so hidden child paths are not read.
+            children = dict(zip([field.name for field in array.type], array.flatten()))
+            arrays = [_e(children[name], subfeature) for name, subfeature in feature.items()]
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
     elif pa.types.is_list(array.type):
         # feature must be either List(subfeature)
