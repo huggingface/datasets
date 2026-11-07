@@ -105,7 +105,7 @@ from .fingerprint import (
     validate_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
-from .formatting.formatting import LazyDict, _is_range_contiguous
+from .formatting.formatting import LazyDict, PythonFormatter, _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
 from .search import IndexableMixin
@@ -2744,12 +2744,34 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         If a formatting is set with [`Dataset.set_format`] rows will be returned with the
         selected format.
         """
-        if self._indices is None:
+        format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
+        formatter = get_formatter(self._format_type, features=self._info.features, **format_kwargs)
+        batch_size = config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER
+        if (
+            type(formatter) is PythonFormatter
+            and not formatter.lazy
+            and self._format_columns is None
+            and not any(isinstance(field.type, pa.BaseExtensionType) for field in self._data.schema)
+        ):
+            # Convert a few rows to Python objects at once instead of one row at a time.
+            # `to_pydict()` converts each value independently, so the rows are the same as the ones
+            # `format_table` returns for single-row tables (extension types like ArrayXD define their own
+            # conversion, so they use the code path below).
+            decode_row = formatter.python_features_decoder.decode_row
+            if self._indices is None:
+                pa_subtables = table_iter(self.data, batch_size=batch_size)
+            else:
+                pa_subtables = (
+                    query_table(self._data, range(i, min(i + batch_size, self.num_rows)), indices=self._indices)
+                    for i in range(0, self.num_rows, batch_size)
+                )
+            for pa_subtable in pa_subtables:
+                columns = pa_subtable.to_pydict()
+                for i in range(pa_subtable.num_rows):
+                    yield decode_row({col: values[i] for col, values in columns.items()})
+        elif self._indices is None:
             # Fast iteration
             # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
-            format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
-            formatter = get_formatter(self._format_type, features=self._info.features, **format_kwargs)
-            batch_size = config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER
             for pa_subtable in table_iter(self.data, batch_size=batch_size):
                 for i in range(pa_subtable.num_rows):
                     pa_subtable_ex = pa_subtable.slice(i, 1)
