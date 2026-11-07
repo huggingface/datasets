@@ -2492,7 +2492,11 @@ def _align_features(features_list: list[Features]) -> list[Features]:
         for k, v in features.items():
             if k in name2feature and isinstance(v, dict):
                 # Recursively align features.
-                name2feature[k] = _align_features([name2feature[k], v])[0]
+                name2feature[k] = {
+                    key: feature
+                    for aligned in _align_features([name2feature[k], v])
+                    for key, feature in aligned.items()
+                }
             elif k not in name2feature or _is_null_feature(name2feature[k]):
                 name2feature[k] = v
 
@@ -2505,21 +2509,26 @@ def _check_if_features_can_be_aligned(features_list: list[Features]):
     Two dictionaries of features can be aligned if the keys they share have the same type or some of them is of
     type ``Value("null")`` (or a container wrapping ``Value("null")``, such as ``List(Value("null"))``).
     """
-    name2feature = {}
+    name2features = {}
     for features in features_list:
         for k, v in features.items():
-            if k not in name2feature or _is_null_feature(name2feature[k]):
-                name2feature[k] = v
+            name2features.setdefault(k, []).append(v)
 
-    for features in features_list:
-        for k, v in features.items():
-            if isinstance(v, dict) and isinstance(name2feature[k], dict):
-                # Deep checks for structure.
-                _check_if_features_can_be_aligned([name2feature[k], v])
-            elif not _is_null_feature(v) and name2feature[k] != v:
-                raise ValueError(
-                    f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
-                )
+    for k, candidates in name2features.items():
+        non_null_features = [feature for feature in candidates if not _is_null_feature(feature)]
+        if not non_null_features:
+            continue
+        expected = non_null_features[0]
+        if all(isinstance(feature, dict) for feature in non_null_features):
+            # Check every source together: a shared nested field may be absent from the first source.
+            _check_if_features_can_be_aligned(non_null_features)
+        else:
+            for feature in non_null_features:
+                if feature != expected:
+                    raise ValueError(
+                        f"The features can't be aligned because the key {k} has unexpected type - {feature} "
+                        f'(expected either {expected} or Value("null").'
+                    )
 
 
 def _fix_for_backward_compatible_features(feature: Any) -> FeatureType:
