@@ -2,9 +2,10 @@ import csv
 import os
 
 import fsspec
+import pyarrow as pa
 import pytest
 
-from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
+from datasets import Dataset, DatasetDict, Features, NamedSplit, Value, load_dataset
 from datasets.io.csv import CsvDatasetReader, CsvDatasetWriter
 
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
@@ -189,3 +190,59 @@ def test_dataset_to_csv_preserves_nullable_int(dtype, big, tmp_path):
     with open(output_csv, newline="") as f:
         rows = list(csv.DictReader(f))
     assert [row["a"] for row in rows] == [str(big), "", "5"]
+
+
+@pytest.mark.parametrize(
+    "dtype, values",
+    [
+        ("int64", [-9223372036854775808, None, 9007199254740993, 9223372036854775807]),
+        ("uint64", [18446744073709551615, None, 9007199254740993, 0]),
+        ("bool", [True, None, False]),
+        ("string", ["001", None, "003"]),
+    ],
+)
+@pytest.mark.parametrize("chunksize", [1, 10])
+@pytest.mark.parametrize("reader", ["from_csv", "load_dataset"])
+def test_dataset_csv_nullable_scalar_roundtrip(dtype, values, chunksize, reader, tmp_path):
+    features = Features({"value": Value(dtype), "text": Value("string")})
+    expected = {"value": values, "text": ["row"] * len(values)}
+    dataset = Dataset(pa.Table.from_pydict(expected, schema=features.arrow_schema))
+    path = tmp_path / "nullable.csv"
+    dataset.to_csv(path)
+    kwargs = {"features": features, "chunksize": chunksize, "cache_dir": str(tmp_path / "cache")}
+    if reader == "from_csv":
+        result = Dataset.from_csv(str(path), **kwargs)
+    else:
+        result = load_dataset("csv", data_files=str(path), split="train", **kwargs)
+    assert result.features == features
+    assert result.to_dict() == expected
+    assert result.data.schema == dataset.data.schema
+    assert result.data.column("value").null_count == 1
+
+
+@pytest.mark.parametrize("dtype", ["string", "large_string"])
+@pytest.mark.parametrize("engine", ["c", "python"])
+@pytest.mark.parametrize("chunksize", [1, 10])
+@pytest.mark.parametrize("reader", ["from_csv", "load_dataset"])
+@pytest.mark.parametrize("with_null", [False, True])
+def test_dataset_from_csv_declared_strings(dtype, engine, chunksize, reader, with_null, tmp_path):
+    path = tmp_path / "strings.csv"
+    # Hand-authored cells must retain their spelling, including in a wholly numeric column.
+    path.write_text('value,tag\n"001",row\n' + (",row\n" if with_null else "") + '"003",row\n')
+    values = ["001", None, "003"] if with_null else ["001", "003"]
+    expected = {"tag": ["row"] * len(values), "value": values}
+    features = Features({"tag": Value("string"), "value": Value(dtype)})
+    kwargs = {
+        "features": features,
+        "engine": engine,
+        "chunksize": chunksize,
+        "cache_dir": str(tmp_path / "cache"),
+    }
+    if reader == "from_csv":
+        result = Dataset.from_csv(str(path), **kwargs)
+    else:
+        result = load_dataset("csv", data_files=str(path), split="train", **kwargs)
+    assert result.features == features
+    assert result.to_dict() == expected
+    assert result.data.schema == features.arrow_schema
+    assert result.data.column("value").is_null().to_pylist() == [value is None for value in values]
