@@ -5223,6 +5223,45 @@ def test_dataset_from_dict_with_large_list():
     assert pa.types.is_large_list(ds.data.schema.field("col_1").type)
 
 
+@pytest.mark.parametrize("num_proc", [None, 2])
+@pytest.mark.parametrize("nested", [False, True])
+@pytest.mark.parametrize("sliced", [False, True])
+def test_dataset_save_to_disk_with_null_struct_media(tmp_path, image_file, num_proc, nested, sliced):
+    image_bytes = Path(image_file).read_bytes()
+    image_path = tmp_path / "visible.jpg"
+    image_path.write_bytes(image_bytes)
+    feature = {"image": Image(decode=False)}
+    images = pa.array(
+        [
+            {"bytes": None, "path": str(tmp_path / "missing.png")},
+            {"bytes": None, "path": str(image_path)},
+            None,
+            {"bytes": None, "path": str(tmp_path / "missing.png")},
+        ],
+        type=Image.pa_type,
+    )
+    records = pa.StructArray.from_arrays([images], names=["image"], mask=pa.array([True, False, False, True]))
+    expected = [None, {"image": {"bytes": image_bytes, "path": "visible.jpg"}}, {"image": None}, None]
+    if nested:
+        records = pa.StructArray.from_arrays([records], names=["nested"], mask=pa.array([False, False, True, True]))
+        feature = {"nested": feature}
+        expected = [{"nested": None}, {"nested": expected[1]}, None, None]
+    if sliced:
+        records = pa.concat_arrays([records[:1], records]).slice(1)
+        assert records.offset == 1
+    features = Features({"record": feature})
+    dataset = Dataset(pa.Table.from_arrays([records], schema=features.arrow_schema))
+    assert dataset[0]["record"] == ({"nested": None} if nested else None)
+
+    dataset_path = tmp_path / "saved"
+    dataset.save_to_disk(dataset_path, num_proc=num_proc)
+    image_path.unlink()
+    restored = load_from_disk(dataset_path)
+
+    assert restored.features == features
+    assert restored.to_list() == [{"record": record} for record in expected]
+
+
 def test_dataset_save_to_disk_with_large_list(tmp_path):
     data = {"col_1": [[1, 2], [3, 4]]}
     features = Features({"col_1": LargeList(Value("int64"))})
