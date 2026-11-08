@@ -279,11 +279,10 @@ def test_structure_content_decoded(data_files_with_labels_no_metadata, cache_dir
     assert len(structures) == 2
     for atoms in structures:
         assert atoms.coord.shape == (9, 3)
-        assert {"N", "CA", "C", "O", "CB"} <= set(atoms.atom_name)  # atomworks adds the missing atoms
+        assert {"N", "CA", "C", "O", "CB"} <= set(atoms.atom_name)  # source atoms are retained
         assert set(atoms.res_name) == {"ALA", "GLY"}
         assert atoms.coord[atoms.atom_name == "CA"][0].tolist() == pytest.approx([1.458, 0.0, 0.0])
-        assert {"molecule_id", "chain_type"} <= set(atoms.get_annotation_categories())  # atomworks annotations
-        assert atoms.bonds.get_bond_count() > 0  # intra-residue bonds from the CCD
+        assert "molecule_id" not in atoms.get_annotation_categories()  # no chemical preparation by default
 
 
 @require_atomworks

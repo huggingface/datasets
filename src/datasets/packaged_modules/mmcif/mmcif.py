@@ -1,8 +1,8 @@
 """MmcifFolder - Load mmCIF protein structure files from directories.
 
 Follows ImageFolder pattern: folder names become labels, supports metadata files.
-Each row in the resulting dataset contains one structure, read with biotite
-into an `AtomicStructure` column.
+Each row in the resulting dataset contains one structure in an `AtomicStructure` column,
+read with AtomWorks when the row is decoded.
 
 Usage:
     >>> from datasets import load_dataset

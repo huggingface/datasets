@@ -3,8 +3,10 @@
 FASTA is a text-based format for representing nucleotide sequences (DNA/RNA)
 or peptide sequences (proteins), widely used in bioinformatics.
 
-This implementation uses a lightweight pure Python parser based on Heng Li's readfq.py
-and needs no external dependency.
+This implementation uses a lightweight pure Python parser based on Heng Li's readfq.py.
+The parsed columns need no external dependency; the ``record`` column holds each
+record's raw bytes as a ``BioSequence`` and decodes to a Biopython ``SeqRecord``
+when biopython is installed (drop it with ``columns`` to stay dependency-free).
 """
 
 import itertools
@@ -39,7 +41,7 @@ class FastaConfig(datasets.BuilderConfig):
         max_batch_bytes: Maximum cumulative bytes per batch. This prevents Parquet
             page size errors when dealing with very large sequences (e.g., complete
             genomes). Set to None to disable byte-based batching.
-        columns: Subset of columns to include. Options: ["id", "description", "sequence"].
+        columns: Subset of columns to include. Options: ["id", "description", "sequence", "record"].
     """
 
     features: Optional[datasets.Features] = None
@@ -70,6 +72,8 @@ class Fasta(datasets.ArrowBasedBuilder):
         columns = self._get_columns()
         if features is None:
             features = datasets.Features.from_arrow_schema(self._get_schema(columns))
+            if "record" in features:
+                features["record"] = datasets.BioSequence(format="fasta")
         if features is not None and self.config.columns is not None:
             missing = [col for col in self.config.columns if col not in features]
             if missing:
@@ -110,7 +114,7 @@ class Fasta(datasets.ArrowBasedBuilder):
             return pa_table
         return pa_table
 
-    def _parse_fasta(self, fp):
+    def _parse_fasta(self, fp, include_record=False):
         """Lightweight FASTA parser based on Heng Li's readfq.py.
 
         This generator yields (seq_id, description, sequence) tuples for each
@@ -121,9 +125,12 @@ class Fasta(datasets.ArrowBasedBuilder):
 
         Args:
             fp: File-like object opened in text mode.
+            include_record: Append the original UTF-8 record bytes to each tuple.
+                The file must be opened with newline="" to preserve line endings.
 
         Yields:
             Tuple of (seq_id, description, sequence) for each FASTA record.
+            When include_record=True, a fourth item contains the record's bytes as read.
         """
         last = None  # Store the last header line
 
@@ -145,24 +152,30 @@ class Fasta(datasets.ArrowBasedBuilder):
 
             # Collect sequence lines until next header or EOF
             seqs = []
+            record_lines = [last] if include_record else None
             last = None
             for line in fp:
                 if line.startswith(">"):
                     last = line
                     break
+                if include_record:
+                    record_lines.append(line)
                 if line.startswith(";"):
                     continue  # Pearson FASTA comment line, not sequence.
-                # Whitespace inside a sequence line is not part of the sequence.
+                # Whitespace inside a sequence line is not sequence (Biopython drops it too).
                 seqs.append("".join(line.split()))
 
-            yield seq_id, description, "".join(seqs)
+            record = (seq_id, description, "".join(seqs))
+            if include_record:
+                record += ("".join(record_lines).encode("utf-8"),)
+            yield record
 
             if not last:
                 break
 
     def _get_columns(self) -> list[str]:
         """Get the list of columns to include in output."""
-        default_columns = ["id", "description", "sequence"]
+        default_columns = ["id", "description", "sequence", "record"]
         features = self.info.features if hasattr(self, "info") else self.config.features
         if self.config.columns is None and features is not None:
             # A user-supplied schema selects its own columns, so a schema naming a
@@ -196,6 +209,8 @@ class Fasta(datasets.ArrowBasedBuilder):
             if col == "sequence":
                 # Use large_string for sequences that can be very long
                 fields.append(pa.field(col, pa.large_string()))
+            elif col == "record":
+                fields.append(pa.field(col, datasets.BioSequence().pa_type))
             else:
                 fields.append(pa.field(col, pa.string()))
         return pa.schema(fields)
@@ -218,6 +233,7 @@ class Fasta(datasets.ArrowBasedBuilder):
             Tuple of (Key, pa.Table) for each batch.
         """
         columns = self._get_columns()
+        include_record = "record" in columns
         schema = self._get_schema(columns)
         max_batch_bytes = self.config.max_batch_bytes
 
@@ -226,11 +242,14 @@ class Fasta(datasets.ArrowBasedBuilder):
             batch = {col: [] for col in columns}
             batch_bytes = 0
 
-            # Keep the streaming-patched open for compressed inputs.
+            # Keep the streaming-patched open for compressed inputs, and preserve line endings.
             with open(file, "rb") as f, TextIOWrapper(f, encoding="utf-8", newline="") as fp:
-                for seq_id, description, sequence in self._parse_fasta(fp):
+                for record in self._parse_fasta(fp, include_record=include_record):
+                    seq_id, description, sequence = record[:3]
                     # Calculate record size (approximate UTF-8 byte size)
                     record_bytes = len(seq_id) + len(description) + len(sequence)
+                    if include_record:
+                        record_bytes += len(record[3])
 
                     # Check if adding this record would exceed byte limit
                     # Flush current batch first if needed (but only if batch is non-empty)
@@ -252,6 +271,8 @@ class Fasta(datasets.ArrowBasedBuilder):
                         batch["description"].append(description)
                     if "sequence" in columns:
                         batch["sequence"].append(sequence)
+                    if include_record:
+                        batch["record"].append({"bytes": record[3], "path": None})
                     batch_bytes += record_bytes
 
                     # Yield batch when it reaches batch_size (record count limit)

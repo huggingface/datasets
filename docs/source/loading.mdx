@@ -279,10 +279,9 @@ and loading it never runs anything:
 Each row is one structure, following the same folder layout
 as [`ImageFolder`]: subfolder names become labels and a `metadata.csv`/`metadata.jsonl`
 file adds per-structure metadata. The `structure` column uses the [`AtomicStructure`] feature: each file is
-read once with [biotite](https://www.biotite-python.org) and stored as a [BinaryCIF](https://github.com/molstar/BinaryCIF)
-file that also holds the exact atom array (every annotation with its dtype, bonds and the periodic box), and each
-example decodes to a `biotite.structure.AtomArray` without parsing a file. Reading and decoding structures requires
-`biotite`.
+stored unchanged as a path or bytes and loaded lazily into an AtomWorks `AtomArrayPlus`.
+Creating the dataset does not parse the structures. Decoding requires the development AtomWorks IO API;
+see the [installation and compatibility notes](atomic_structure_dataset).
 
 To load PDB files from a directory:
 
@@ -299,14 +298,13 @@ AtomicStructure(parse_config=None, assembly=None, decode=True)
 (1234, 3)
 ```
 
-Structures are read with [atomworks](https://github.com/RosettaCommons/atomworks) when the dataset is created and
-decoded to its `AtomArrayPlus`, a biotite `AtomArray` that also keeps the annotations biotite has no place for. Use
-`parse_config` and `assembly` to choose how they are cleaned and which assembly is stored, or `decode=False` to get the
-stored BinaryCIF bytes, which any BinaryCIF reader (biotite, Mol*, PyMOL) opens:
+Default decoding only loads the source atoms. Use `parse_config` to opt into preparation and `assembly` to
+build a biological assembly at decode time, without altering stored data. `decode=False` returns the original
+file reference. For example, opt into water removal:
 
 ```py
 >>> from datasets import AtomicStructure, Features, load_dataset
->>> features = Features({"structure": AtomicStructure(parse_config={"preset": "rcsb"}, assembly="1")})
+>>> features = Features({"structure": AtomicStructure(parse_config={"remove_waters": True})})
 >>> dataset = load_dataset("pdb", data_dir="path/to/structures", features=features)
 ```
 
@@ -358,10 +356,9 @@ To load remote WebDatasets via HTTP, pass the URLs instead:
 Each row is one structure, following the same folder layout
 as [`ImageFolder`]: subfolder names become labels and a `metadata.csv`/`metadata.jsonl`
 file adds per-structure metadata. The `structure` column uses the [`AtomicStructure`] feature: each file is
-read once with [biotite](https://www.biotite-python.org) and stored as a [BinaryCIF](https://github.com/molstar/BinaryCIF)
-file that also holds the exact atom array (every annotation with its dtype, bonds and the periodic box), and each
-example decodes to a `biotite.structure.AtomArray` without parsing a file. Reading and decoding structures requires
-`biotite`.
+stored unchanged as a path or bytes and loaded lazily into an AtomWorks `AtomArrayPlus`.
+Creating the dataset does not parse the structures. Decoding requires the development AtomWorks IO API;
+see the [installation and compatibility notes](atomic_structure_dataset).
 
 To load mmCIF or BinaryCIF files from a directory:
 
@@ -378,15 +375,14 @@ AtomicStructure(parse_config=None, assembly=None, decode=True)
 (1234, 3)
 ```
 
-Structures are read with [atomworks](https://github.com/RosettaCommons/atomworks) when the dataset is created and
-decoded to its `AtomArrayPlus`, a biotite `AtomArray` that also keeps the annotations biotite has no place for. Use
-`parse_config` and `assembly` to choose how they are cleaned and which assembly is stored, or `decode=False` to get the
-stored BinaryCIF bytes, which any BinaryCIF reader (biotite, Mol*, PyMOL) opens:
+Default decoding only loads the source atoms. Use `parse_config` to opt into preparation and `assembly` to
+build a biological assembly at decode time, without altering stored data. `decode=False` returns the original
+file reference. For example, opt into water removal:
 
 ```py
 >>> from datasets import AtomicStructure, Features, load_dataset
->>> features = Features({"structure": AtomicStructure(parse_config={"preset": "rcsb"}, assembly="1")})
->>> dataset = load_dataset("pdb", data_dir="path/to/structures", features=features)
+>>> features = Features({"structure": AtomicStructure(parse_config={"remove_waters": True})})
+>>> dataset = load_dataset("mmcif", data_dir="path/to/structures", features=features)
 ```
 
 Extensions `.cif`, `.mmcif` and `.bcif` (BinaryCIF) are supported, optionally compressed with gzip, bz2 or zstd.
@@ -410,6 +406,10 @@ You can try it on a small example dataset of real NCBI records (one of them is g
 >>> dataset[0]["locus_name"], dataset[0]["organism"], dataset[0]["length"]
 ```
 
+The `record` column retains the original record bytes as `BioSequence` and decodes with Biopython.
+Select the parsed columns with `columns=` to avoid storing duplicate record bytes. GenBank's record additionally
+preserves sections such as REFERENCE and COMMENT that are not represented in parsed columns.
+
 ### FASTQ
 
 [FASTQ](https://en.wikipedia.org/wiki/FASTQ_format) is a text-based format for storing nucleotide sequences together with their quality scores, widely used for high-throughput sequencing data.
@@ -421,7 +421,7 @@ Load a FASTQ file:
 >>> dataset = load_dataset("fastq", data_files="reads.fq")
 ```
 
-The loader returns four columns:
+The loader returns five columns:
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -429,6 +429,7 @@ The loader returns four columns:
 | `description` | string | Full description line (everything after id) |
 | `sequence` | large_string | The nucleotide sequence |
 | `quality` | large_string | ASCII-encoded quality scores |
+| `record` | BioSequence | Original record, decoded with Biopython |
 
 Load only specific columns:
 
@@ -450,11 +451,13 @@ To load a FASTA file:
 ```
 
 This returns a dataset with the following columns:
+
 - `id`: Sequence identifier (first word after `>`)
 - `description`: Full description line (everything after the id)
 - `sequence`: The biological sequence (DNA/RNA/protein)
+- `record`: Original record, decoded with Biopython
 
-You can also load only specific columns:
+To avoid storing duplicate record bytes, load only specific columns:
 
 ```py
 >>> dataset = load_dataset("fasta", data_files="sequences.fa", columns=["id", "sequence"])

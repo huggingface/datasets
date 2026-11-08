@@ -6,7 +6,15 @@ There are two methods for creating and sharing an atomic structure dataset. This
 
 * Create an atomic structure dataset with `PdbFolder` or `MmcifFolder` and some metadata. This is a no-code solution for quickly creating a dataset with several thousand structures.
 
-Structures are read with [atomworks](https://github.com/RosettaCommons/atomworks) when the dataset is created, and stored as [BinaryCIF](https://github.com/molstar/BinaryCIF) files. Install it with `pip install datasets[bio]`.
+Source paths and bytes are stored unchanged. Structures are read with AtomWorks only when a row is decoded; casting a column does not parse its files. Live atom arrays, RDKit molecules and ASE objects are serialized as BinaryCIF.
+
+AtomicStructure currently requires the development atom-array IO API and Python 3.12 or newer. Published AtomWorks releases do not yet provide the required API. For development, install the tested checkout separately:
+
+```sh
+pip install "git+https://github.com/baker-laboratory/atomworks-dev.git@b84e6b48b0a2be9b468a3df3736e16e369e0fb70"
+```
+
+This repository currently requires access. Public CI and users without access must wait for the API's public release. The `bio` extra retains Biopython for the legacy features; it does not install this development dependency. Let AtomWorks install its exact Biotite dependency rather than independently selecting a Biotite version. Encoding file references and using `decode=False` do not need AtomWorks.
 
 > [!TIP]
 > You can control access to your dataset by requiring users to share their contact information first. Check out the [Gated datasets](https://huggingface.co/docs/hub/datasets-gated) guide for more information about how to enable this feature on the Hub.
@@ -25,7 +33,9 @@ You can load your own dataset using the paths to your structure files. Use the [
 
 mmCIF (`.cif`, `.mmcif`), BinaryCIF (`.bcif`), PDB (`.pdb`, `.ent`), MOL/SDF (`.mol`, `.sdf`) and Mol2 (`.mol2`) files are supported, optionally compressed with gzip, bz2 or zstd. RDKit `Mol`, ASE `Atoms` and biotite `AtomArray` objects can be used instead of paths.
 
-By default a structure is stored as it is in the file: every atom (waters and crystallization aids included) with the bonds of the chemical component dictionary. Pass `parse_config` to have atomworks clean the structures while they are read (add missing atoms, remove waters and crystallization aids, fix arginines), and `assembly` to store a biological assembly instead of the asymmetric unit:
+By default decoding uses `atom_array_from_file` without chemical preparation: waters, hydrogens, crystallization aids, alternate conformers, insertion codes and original atom order are retained. CIF bonds are reconstructed during preparation, so do not assume that minimal loading provides a chemically prepared bond graph.
+
+Pass `parse_config` to opt into preparation at **decode time**. Unspecified options use the minimal preset; for example `AtomicStructure(parse_config={"remove_waters": True})`. Presets such as `default` or `rcsb` opt into their full cleanup, including atom completion and filtering. `assembly` opts into building a biological assembly. These settings also apply to BinaryCIF inputs and can be changed with `cast_column` without rewriting stored data:
 
 ```py
 >>> feature = AtomicStructure(parse_config={"preset": "rcsb"}, assembly="1")
@@ -99,3 +109,26 @@ Finally, [`~Dataset.push_to_hub`] the dataset to the Hub:
 ```py
 >>> dataset.push_to_hub("<username>/my_dataset")
 ```
+
+## Cost and preserving source data
+
+Creating or casting a dataset of paths does no structure I/O. Byte inputs (including compressed files) are retained exactly. Saving or uploading embeds files without chemical preparation. Decoding pays the read cost for rows accessed; opt-in preparation adds its own per-read cost. AtomWorks' first import and CCD initialization may be expensive in each worker. Repeated reads repeat the work; for frequently reused prepared data, explicitly materialize it with `Dataset.map` after choosing your scientific preprocessing policy.
+
+Decoded arrays retain their original encoding under `atoms.source_info["_hf_encoded"]`. An unchanged array returned from `Dataset.map` therefore keeps the source file, including compression and metadata that atom arrays do not represent. To store intentional in-place edits, remove this entry before encoding:
+
+```py
+>>> def prepare_for_storage(example):
+...     atoms = example["structure"]
+...     atoms.source_info = dict(atoms.source_info)
+...     atoms.source_info.pop("_hf_encoded", None)
+...     return {"structure": atoms}
+>>> prepared_dataset = structure_dataset.map(prepare_for_storage)
+```
+
+This serializes the decoded result as BinaryCIF. The current development writer supports scalar per-atom fields and registered StandardAnnotations. Arbitrary custom multidimensional, system-wide or pairwise annotations raise an error rather than being silently discarded. CIF serialization may normalize annotation dtypes and author identifiers; file-byte storage preserves arbitrary original file metadata. Explicit live-array bonds are retained in an additional BinaryCIF category without running bond inference. Different-atom multi-model files decode to a list of arrays, rather than a stack.
+
+## Existing datasets and sequence records
+
+`BioStructure` and `BioSequence` remain importable and registered, including their original serialized feature names and Biopython output types. Saved datasets continue to load. For new structure datasets prefer `AtomicStructure`; migrate an existing column explicitly with `cast_column("structure", AtomicStructure())`.
+
+FASTA, FASTQ and GenBank keep their existing `record` columns and schemas. In particular, GenBank records retain sections such as REFERENCE and COMMENT that are absent from parsed columns. To avoid duplicate FASTA storage, choose `columns=["id", "description", "sequence"]` when loading. Changing sequence-loader defaults is separate from adopting AtomicStructure.

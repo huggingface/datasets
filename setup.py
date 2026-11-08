@@ -156,7 +156,8 @@ BENCHMARKS_REQUIRE = [
 
 TESTS_REQUIRE = [
     # atomic structure reading and decoding, plus RDKit/ASE inputs exercised by the feature tests
-    "atomworks; python_version >= '3.12'",  # atomworks pins biotite 2, which needs Python 3.12
+    "biopython>=1.80",  # legacy BioStructure and BioSequence
+    # Install the AtomWorks development checkout separately until its IO API is released.
     "rdkit",
     "ase",
     # fix pip install issues for windows
@@ -223,7 +224,7 @@ DOCS_REQUIRE = [
 
 PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
-BIO_REQUIRE = ["atomworks; python_version >= '3.12'", "rdkit"]  # reading and decoding atomic structures
+BIO_REQUIRE = ["biopython>=1.80"]  # legacy features; install AtomWorks separately for AtomicStructure
 
 NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 
