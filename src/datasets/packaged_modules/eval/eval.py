@@ -51,9 +51,11 @@ class Eval(datasets.GeneratorBasedBuilder):
         return splits
 
     def _sort_samples_key(self, sample_path: str):
-        # looks like "{sample_idx}_epoch_{epoch_idx}""
-        (sample_idx_str, epoch_idx_str) = os.path.splitext(os.path.basename(sample_path))[0].split("_epoch_")
-        return (int(epoch_idx_str), int(sample_idx_str))
+        # looks like "{sample_id}_epoch_{epoch_idx}", where sample ids can be ints or strings
+        sample_id, epoch_idx_str = os.path.splitext(os.path.basename(sample_path))[0].rsplit("_epoch_", 1)
+        # int ids sort numerically, before string ids
+        sample_key = (0, int(sample_id), "") if sample_id.isdigit() else (1, 0, sample_id)
+        return (int(epoch_idx_str), sample_key)
 
     def _iter_samples_from_log_files(self, log_files: Iterable[str]):
         sample_files = [log_file for log_file in log_files if os.path.basename(os.path.dirname(log_file)) == "samples"]
