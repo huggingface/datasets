@@ -3844,7 +3844,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         processed_inputs.pop(column)
             if check_same_num_examples:
                 input_num_examples = len(pa_inputs)
-                processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
+                if not isinstance(processed_inputs, Mapping):
+                    # pa.Table, pd.DataFrame or pl.DataFrame
+                    processed_inputs_num_examples = len(processed_inputs)
+                elif processed_inputs:
+                    processed_inputs_num_examples = len(next(iter(processed_inputs.values())))
+                else:
+                    # an empty dict doesn't update any column
+                    processed_inputs_num_examples = input_num_examples
                 if input_num_examples != processed_inputs_num_examples:
                     raise DatasetTransformationNotAllowedError(
                         "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
@@ -4690,7 +4697,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
          'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'}]
         ```
         """
-        return self.select(range(n))
+        # Clamp `n` to the dataset length so taking more elements than available
+        # returns the whole dataset instead of raising an IndexError, matching
+        # the behavior of `IterableDataset.take`.
+        return self.select(range(min(n, len(self))))
 
     @transmit_format
     @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"])

@@ -6,6 +6,7 @@ import pytest
 from datasets import ClassLabel, Features, Mesh
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesDict, get_data_patterns
+from datasets.load import infer_module_for_data_files
 from datasets.packaged_modules.meshfolder.meshfolder import MeshFolder, MeshFolderConfig
 
 
@@ -52,7 +53,7 @@ def mesh_file_with_metadata(tmp_path, mesh_file):
 
 def test_meshfolder_config_and_extensions():
     # Verify extensions
-    assert MeshFolder.EXTENSIONS == [".glb", ".ply", ".stl"]
+    assert MeshFolder.EXTENSIONS == [".glb", ".gltf", ".ply", ".stl"]
     assert MeshFolder.BASE_FEATURE == Mesh
     assert MeshFolder.BASE_COLUMN_NAME == "mesh"
 
@@ -84,3 +85,16 @@ def test_data_files_with_metadata_and_single_split(streaming, cache_dir, mesh_fi
     item = next(iter(dataset)) if streaming else dataset[0]
     assert "mesh" in item
     assert item["text"] == "Mesh description"
+
+
+def test_gltf_file_is_inferred_as_meshfolder(tmp_path):
+    import trimesh
+
+    data_dir = tmp_path / "gltf_folder"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    trimesh.creation.box().export(data_dir / "model.gltf", file_type="gltf", embed_buffers=True)
+
+    data_files = DataFilesDict({"train": [str(data_dir / "model.gltf")]})
+    module_name, _ = infer_module_for_data_files(data_files)
+
+    assert module_name == "meshfolder"
