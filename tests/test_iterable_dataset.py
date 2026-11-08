@@ -553,7 +553,7 @@ def test_cycling_multi_sources_examples_iterable():
     ex_iterable = CyclingMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
     expected = list(chain(*zip(generate_examples_fn(text="foo"), generate_examples_fn(text="bar"))))
 
-    # The cycling stops as soon as one iterable is out of examples (here ex_iterable1), so the last sample from ex_iterable2 is unecessary
+    # The cycling stops as soon as one iterable is out of examples (here ex_iterable1), so the last sample from ex_iterable2 is unnecessary
     expected = expected[:-1]
 
     assert next(iter(ex_iterable)) == expected[0]

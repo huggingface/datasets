@@ -78,7 +78,7 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
             row = dataset[0]
             first_shape = row["image"].shape
             second_shape = row["text"].shape
-            self.assertTrue(first_shape is not None and second_shape is not None, "need atleast 2 different shapes")
+            self.assertTrue(first_shape is not None and second_shape is not None, "need at least 2 different shapes")
             self.assertEqual(len(first_shape), len(second_shape), "both shapes are supposed to be equal length")
             self.assertNotEqual(first_shape, second_shape, "shapes must not be the same")
             del dataset
