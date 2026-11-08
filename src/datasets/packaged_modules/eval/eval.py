@@ -54,7 +54,7 @@ class Eval(datasets.GeneratorBasedBuilder):
         # looks like "{sample_id}_epoch_{epoch_idx}", where sample ids can be ints or strings
         sample_id, epoch_idx_str = os.path.splitext(os.path.basename(sample_path))[0].rsplit("_epoch_", 1)
         # int ids sort numerically, before string ids
-        sample_key = (0, int(sample_id), "") if sample_id.isdigit() else (1, 0, sample_id)
+        sample_key = (0, int(sample_id), "") if sample_id.isdecimal() else (1, 0, sample_id)
         return (int(epoch_idx_str), sample_key)
 
     def _iter_samples_from_log_files(self, log_files: Iterable[str]):
