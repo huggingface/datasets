@@ -3201,6 +3201,19 @@ def test_iterable_dataset_rename_columns(dataset_with_several_columns: IterableD
     assert all(c in new_dataset.column_names for c in ["new_id", "filename"])
 
 
+@pytest.mark.parametrize("format_type", ["arrow", "pandas"])
+def test_iterable_dataset_rename_columns_with_table_format(format_type):
+    ds = IterableDataset.from_dict({"a": [1, 2, 3], "b": ["x", "y", "z"]})
+    new_dataset = ds.with_format(format_type).rename_columns({"a": "c"})
+    assert new_dataset.column_names == ["c", "b"]
+    outputs = list(new_dataset)
+    assert len(outputs) == 3
+    assert all(isinstance(output, pa.Table if format_type == "arrow" else pd.DataFrame) for output in outputs)
+    assert list(new_dataset.with_format(None)) == [{"c": 1, "b": "x"}, {"c": 2, "b": "y"}, {"c": 3, "b": "z"}]
+    with pytest.raises(ValueError):
+        list(ds.with_format(format_type).rename_columns({"missing": "c"}))
+
+
 def test_iterable_dataset_remove_columns(dataset_with_several_columns: IterableDataset):
     new_dataset = dataset_with_several_columns.remove_columns("id")
     assert list(new_dataset) == [
