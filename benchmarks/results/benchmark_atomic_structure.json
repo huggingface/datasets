@@ -1,0 +1,392 @@
+{
+  "platform": "macOS-26.7.1-arm64-arm-64bit",
+  "python": "3.12.14 (main, Sep  1 2026, 14:09:38) [Clang 22.1.3 ]",
+  "cases": [
+    {
+      "path": "1CRN.cif.gz",
+      "source_sha256": "16602cc74cd75747fd48dca2c5f8a674e009bdb50ad521913469769c2bea3c86",
+      "source_bytes": 17580,
+      "feature_source_sha256": "7cf01d97471671de4c863916be6606d32548fbc420f5f8a1d0a159cc17807a44",
+      "atoms": 327,
+      "first_decode_including_import_seconds": 1.050703250002698,
+      "minimal_decode": {
+        "median_seconds": 0.0028292499991948716,
+        "runs_seconds": [
+          0.002994375001435401,
+          0.0028292499991948716,
+          0.002817958997184178
+        ]
+      },
+      "runtime": {
+        "atomworks": "3.0.4",
+        "biotite": "2.0.0",
+        "numpy": "2.5.4",
+        "rdkit": "2026.9.1",
+        "ase": "3.29.0",
+        "atomworks_source_sha256": "df03479e38e15c8348c09f807a5279d10bdd2061fd6699f86aefd6f442039761"
+      },
+      "preparation": {
+        "median_seconds": 0.01619600000049104,
+        "runs_seconds": [
+          0.606209375000617,
+          0.01619600000049104,
+          0.010265958000672981
+        ]
+      },
+      "materialization": {
+        "median_seconds": 0.019465082998067373,
+        "runs_seconds": [
+          0.019465082998067373
+        ]
+      },
+      "materialized_bytes": 43937,
+      "materialized_decode": {
+        "median_seconds": 0.002247874999738997,
+        "runs_seconds": [
+          0.0023320410000451375,
+          0.002247874999738997,
+          0.0021760839990747627
+        ]
+      },
+      "approximate_reads_to_amortize": 2.556693677224406,
+      "peak_rss_mib": 1998.53125,
+      "source_url": "https://files.rcsb.org/download/1CRN.cif.gz"
+    },
+    {
+      "path": "4HHB.cif.gz",
+      "source_sha256": "6f41c480c041388976352af8212da8c6fb6fad0c406fa2b84db12118892eb19b",
+      "source_bytes": 188755,
+      "feature_source_sha256": "7cf01d97471671de4c863916be6606d32548fbc420f5f8a1d0a159cc17807a44",
+      "atoms": 4779,
+      "first_decode_including_import_seconds": 1.157726666002418,
+      "minimal_decode": {
+        "median_seconds": 0.020774999997229315,
+        "runs_seconds": [
+          0.020774999997229315,
+          0.022027749997505452,
+          0.020331042000179878
+        ]
+      },
+      "runtime": {
+        "atomworks": "3.0.4",
+        "biotite": "2.0.0",
+        "numpy": "2.5.4",
+        "rdkit": "2026.9.1",
+        "ase": "3.29.0",
+        "atomworks_source_sha256": "df03479e38e15c8348c09f807a5279d10bdd2061fd6699f86aefd6f442039761"
+      },
+      "preparation": {
+        "median_seconds": 0.0407235419988865,
+        "runs_seconds": [
+          0.6298958330007736,
+          0.038729957999748876,
+          0.0407235419988865
+        ]
+      },
+      "materialization": {
+        "median_seconds": 0.08786504200179479,
+        "runs_seconds": [
+          0.08786504200179479
+        ]
+      },
+      "materialized_bytes": 262837,
+      "materialized_decode": {
+        "median_seconds": 0.017278375002206303,
+        "runs_seconds": [
+          0.018006625003181398,
+          0.017278375002206303,
+          0.017042792002030183
+        ]
+      },
+      "approximate_reads_to_amortize": 5.4846520828317935,
+      "peak_rss_mib": 2026.546875,
+      "source_url": "https://files.rcsb.org/download/4HHB.cif.gz"
+    },
+    {
+      "path": "6VXX.cif.gz",
+      "source_sha256": "66713ab09836ca4b0c5b82dd9503bf83bfc0ac5618a2d5c6e88179eecaf687bb",
+      "source_bytes": 609344,
+      "feature_source_sha256": "7cf01d97471671de4c863916be6606d32548fbc420f5f8a1d0a159cc17807a44",
+      "atoms": 23694,
+      "first_decode_including_import_seconds": 1.2141385830000218,
+      "minimal_decode": {
+        "median_seconds": 0.09882208400085801,
+        "runs_seconds": [
+          0.09882208400085801,
+          0.09616933299912489,
+          0.1004088750014489
+        ]
+      },
+      "runtime": {
+        "atomworks": "3.0.4",
+        "biotite": "2.0.0",
+        "numpy": "2.5.4",
+        "rdkit": "2026.9.1",
+        "ase": "3.29.0",
+        "atomworks_source_sha256": "df03479e38e15c8348c09f807a5279d10bdd2061fd6699f86aefd6f442039761"
+      },
+      "preparation": {
+        "median_seconds": 0.21934220800176263,
+        "runs_seconds": [
+          0.8015568339978927,
+          0.21934220800176263,
+          0.1808751669996127
+        ]
+      },
+      "materialization": {
+        "median_seconds": 0.2311377080004604,
+        "runs_seconds": [
+          0.2311377080004604
+        ]
+      },
+      "materialized_bytes": 1200946,
+      "materialized_decode": {
+        "median_seconds": 0.07900004200200783,
+        "runs_seconds": [
+          0.07796774999951595,
+          0.07900004200200783,
+          0.0801009580027312
+        ]
+      },
+      "approximate_reads_to_amortize": 3.209868629240125,
+      "peak_rss_mib": 2152.390625,
+      "source_url": "https://files.rcsb.org/download/6VXX.cif.gz"
+    },
+    {
+      "path": "6QNR.cif.gz",
+      "source_sha256": "e83a68e455e79cfec29494adf2c1abb40921abcbc3ff7cdd70a4f436318d6e5b",
+      "source_bytes": 8200273,
+      "feature_source_sha256": "7cf01d97471671de4c863916be6606d32548fbc420f5f8a1d0a159cc17807a44",
+      "atoms": 305753,
+      "first_decode_including_import_seconds": 3.076976915999694,
+      "minimal_decode": {
+        "median_seconds": 2.1244595000025583,
+        "runs_seconds": [
+          2.058346417001303,
+          2.158449250000558,
+          2.1244595000025583
+        ]
+      },
+      "runtime": {
+        "atomworks": "3.0.4",
+        "biotite": "2.0.0",
+        "numpy": "2.5.4",
+        "rdkit": "2026.9.1",
+        "ase": "3.29.0",
+        "atomworks_source_sha256": "df03479e38e15c8348c09f807a5279d10bdd2061fd6699f86aefd6f442039761"
+      },
+      "preparation": {
+        "median_seconds": 4.516524208000192,
+        "runs_seconds": [
+          5.7802995840029325,
+          4.516524208000192,
+          4.3741687500005355
+        ]
+      },
+      "materialization": {
+        "median_seconds": 4.423695749999752,
+        "runs_seconds": [
+          4.423695749999752
+        ]
+      },
+      "materialized_bytes": 17243423,
+      "materialized_decode": {
+        "median_seconds": 1.3301960839999083,
+        "runs_seconds": [
+          1.3301960839999083,
+          1.424766832999012,
+          1.3141057080028986
+        ]
+      },
+      "approximate_reads_to_amortize": 2.8058064361481776,
+      "peak_rss_mib": 2797.9375,
+      "source_url": "https://files.rcsb.org/download/6QNR.cif.gz"
+    }
+  ],
+  "pools": [
+    {
+      "workers": 1,
+      "rows": 12,
+      "wall_seconds": 8.274090374998195,
+      "first_result_seconds": 1.5905042919985135,
+      "worker_peak_rss_mib": {
+        "1": 1003.265625
+      },
+      "tasks": [
+        {
+          "atoms": 327,
+          "seconds": 1.5097851249993255,
+          "peak_rss_mib": 211.171875,
+          "worker": "1"
+        },
+        {
+          "atoms": 4779,
+          "seconds": 0.02055679200202576,
+          "peak_rss_mib": 219.8125,
+          "worker": "1"
+        },
+        {
+          "atoms": 23694,
+          "seconds": 0.09031845900244662,
+          "peak_rss_mib": 259.65625,
+          "worker": "1"
+        },
+        {
+          "atoms": 305753,
+          "seconds": 2.1695996249982272,
+          "peak_rss_mib": 933.0625,
+          "worker": "1"
+        },
+        {
+          "atoms": 327,
+          "seconds": 0.003501082999719074,
+          "peak_rss_mib": 933.0625,
+          "worker": "1"
+        },
+        {
+          "atoms": 4779,
+          "seconds": 0.020155375001195353,
+          "peak_rss_mib": 933.0625,
+          "worker": "1"
+        },
+        {
+          "atoms": 23694,
+          "seconds": 0.09100220800246461,
+          "peak_rss_mib": 933.0625,
+          "worker": "1"
+        },
+        {
+          "atoms": 305753,
+          "seconds": 2.0961584159995255,
+          "peak_rss_mib": 1003.265625,
+          "worker": "1"
+        },
+        {
+          "atoms": 327,
+          "seconds": 0.003616916001192294,
+          "peak_rss_mib": 1003.265625,
+          "worker": "1"
+        },
+        {
+          "atoms": 4779,
+          "seconds": 0.020677207998232916,
+          "peak_rss_mib": 1003.265625,
+          "worker": "1"
+        },
+        {
+          "atoms": 23694,
+          "seconds": 0.09150170799694024,
+          "peak_rss_mib": 1003.265625,
+          "worker": "1"
+        },
+        {
+          "atoms": 305753,
+          "seconds": 2.0656318750006903,
+          "peak_rss_mib": 1003.265625,
+          "worker": "1"
+        }
+      ]
+    },
+    {
+      "workers": 2,
+      "rows": 12,
+      "wall_seconds": 5.781327124997915,
+      "first_result_seconds": 1.3026394589978736,
+      "worker_peak_rss_mib": {
+        "1": 933.53125,
+        "2": 998.5
+      },
+      "tasks": [
+        {
+          "atoms": 327,
+          "seconds": 1.2485842909991334,
+          "peak_rss_mib": 211.375,
+          "worker": "1"
+        },
+        {
+          "atoms": 4779,
+          "seconds": 1.2666363329990418,
+          "peak_rss_mib": 219.671875,
+          "worker": "2"
+        },
+        {
+          "atoms": 23694,
+          "seconds": 0.09672695900007966,
+          "peak_rss_mib": 258.96875,
+          "worker": "1"
+        },
+        {
+          "atoms": 327,
+          "seconds": 0.003134124999633059,
+          "peak_rss_mib": 258.96875,
+          "worker": "1"
+        },
+        {
+          "atoms": 4779,
+          "seconds": 0.0210106660015299,
+          "peak_rss_mib": 258.96875,
+          "worker": "1"
+        },
+        {
+          "atoms": 23694,
+          "seconds": 0.09818379200078198,
+          "peak_rss_mib": 264.828125,
+          "worker": "1"
+        },
+        {
+          "atoms": 305753,
+          "seconds": 2.206977999998344,
+          "peak_rss_mib": 931.171875,
+          "worker": "2"
+        },
+        {
+          "atoms": 327,
+          "seconds": 0.0036954589995730203,
+          "peak_rss_mib": 931.171875,
+          "worker": "2"
+        },
+        {
+          "atoms": 4779,
+          "seconds": 0.020278667001548456,
+          "peak_rss_mib": 931.171875,
+          "worker": "2"
+        },
+        {
+          "atoms": 23694,
+          "seconds": 0.09355554200010374,
+          "peak_rss_mib": 931.171875,
+          "worker": "2"
+        },
+        {
+          "atoms": 305753,
+          "seconds": 2.2022952500010433,
+          "peak_rss_mib": 933.53125,
+          "worker": "1"
+        },
+        {
+          "atoms": 305753,
+          "seconds": 2.124123375000636,
+          "peak_rss_mib": 998.5,
+          "worker": "2"
+        }
+      ]
+    }
+  ],
+  "policy": {
+    "remove_waters": true,
+    "altloc": "first"
+  },
+  "environment": {
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "atomworks_commit": "b84e6b48b0a2be9b468a3df3736e16e369e0fb70",
+    "datasets_base_commit": "81edb9812baa197af26568ef7df44d3260b490da"
+  },
+  "limitations": [
+    "Four public entries span sizes; they are not a representative sample of the whole PDB.",
+    "Source reads include local file I/O and gzip decompression; materialized bytes are in memory.",
+    "Peak RSS includes imports, CCD and prior allocations; worker peaks are not a simultaneous total.",
+    "Amortization estimate uses warm median preparation/read times and one write; excludes cold import/CCD setup, cache hashing and Arrow write costs.",
+    "Materialized size is uncompressed BinaryCIF versus compressed source CIF."
+  ]
+}

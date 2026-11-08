@@ -1,8 +1,11 @@
 import bz2
 import gzip
+import hashlib
+import importlib.metadata
 import io
 import os
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Union
 
 import pyarrow as pa
@@ -61,8 +64,8 @@ class AtomicStructure:
 
     Outputs are `AtomArrayPlus`, `AtomArrayPlusStack`, or a list of arrays for models
     with different atoms. Decoded arrays retain their original encoding in `source_info["_hf_encoded"]`,
-    like Audio, so re-encoding them preserves the source. Remove that entry before
-    encoding if you intentionally want to store edits to a decoded array.
+    like Audio, so re-encoding them preserves the source. Use ``materialize(atoms)``
+    to explicitly save edits or a prepared result without changing the original array.
     """
 
     parse_config: Optional[dict] = None
@@ -115,6 +118,86 @@ class AtomicStructure:
         raise ValueError(
             "An atomic structure should be a file path, file bytes, a dict with 'path' or 'bytes', a biotite "
             f"AtomArray, an RDKit Mol or an ASE Atoms, but got {type(value)}."
+        )
+
+    def materialize(self, atoms) -> dict:
+        """Serialize the supplied atoms as BinaryCIF, ignoring retained source bytes.
+
+        Use this in ``Dataset.map`` after editing a decoded array. The input is not
+        modified and no preparation is run. Arrays, stacks and nonempty lists of
+        models are supported. Unsupported annotations raise instead of being lost.
+        Decode the result with ``AtomicStructure()`` to avoid preparing it twice.
+        """
+        _require_atomworks()
+        return {"path": None, "bytes": _write(atoms)}
+
+    def prepare_dataset(self, dataset, column: str, *, cache_dir=None, num_proc=None, cache_version: str = ""):
+        """Prepare a structure column once with ``map`` and store the resulting atoms.
+
+        The output column uses ``AtomicStructure()``: reading it does not rerun this
+        feature's preparation or assembly construction. Other columns are retained.
+        The input dataset and files are not changed. Null rows remain null.
+
+        Args:
+            dataset (`Dataset`): A finite dataset with an AtomicStructure column.
+            column (`str`): Structure column to prepare using this feature's settings.
+            cache_dir (`str` or `Path`, *optional*): Directory for reusable Arrow results.
+                Without it, preparation is always recomputed. With it, source contents
+                are hashed on every call before deciding whether a result is reusable.
+            num_proc (`int`, *optional*): Number of map workers. Each worker imports AtomWorks.
+            cache_version (`str`, defaults to `""`): Extra cache key for external scientific
+                inputs, e.g. custom CCD definitions. Change it when those inputs change.
+
+        Cache keys include source contents and paths, dataset fingerprint, feature
+        settings, dependency versions, AtomWorks Python source and serialization code.
+        A cache miss reads files again and checks they have not changed since hashing.
+        Remote private sources must already be embedded as bytes. Custom CCD contexts
+        must be reproducible in each worker; use one process for in-process overrides.
+        """
+        from ..arrow_dataset import Dataset
+        from ..fingerprint import Hasher
+
+        if not isinstance(dataset, Dataset) or not isinstance(dataset.features.get(column), AtomicStructure):
+            raise ValueError("prepare_dataset requires a Dataset with an AtomicStructure column.")
+        if not self.decode:
+            raise ValueError("Preparation requires AtomicStructure(decode=True).")
+        if num_proc is not None and (not isinstance(num_proc, int) or num_proc < 1):
+            raise ValueError("num_proc must be a positive integer.")
+        _require_atomworks()
+        raw = dataset.with_format(None).cast_column(column, AtomicStructure(decode=False))
+        sources = [_source_digest(value) for value in raw.select_columns([column])[column]]
+        fingerprint = Hasher.hash(
+            {
+                "dataset": dataset._fingerprint,
+                "column": column,
+                "sources": sources,
+                "feature": asdict(self),
+                "runtime": _preparation_runtime(),
+                "implementation": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                "cache_version": cache_version,
+            }
+        )
+        cache_file = None
+        if cache_dir is not None:
+            directory = Path(cache_dir)
+            directory.mkdir(parents=True, exist_ok=True)
+            cache_file = str(directory / f"atomic-structure-{fingerprint}.arrow")
+        features = raw.features.copy()
+        features[column] = AtomicStructure()
+        if len(raw) == 0:
+            return raw.cast_column(column, AtomicStructure(), new_fingerprint=fingerprint)
+        return raw.map(
+            _prepare_row,
+            input_columns=[column],
+            with_indices=True,
+            fn_kwargs={"feature": self, "column": column, "sources": sources},
+            features=features,
+            num_proc=num_proc,
+            writer_batch_size=1,
+            cache_file_name=cache_file,
+            load_from_cache_file=cache_dir is not None,
+            new_fingerprint=fingerprint,
+            desc="Preparing atomic structures",
         )
 
     def decode_example(self, value: dict, token_per_repo_id=None) -> "AtomArrayPlus":
@@ -314,45 +397,74 @@ class AtomicStructure:
 def _write(atoms) -> bytes:
     import numpy as np
     from atomworks.io import CIFWriteConfig, atom_array_to_file
-    from atomworks.io.utils.atom_array_plus import AtomArrayPlus, AtomArrayPlusStack
+    from atomworks.io.utils.atom_array_plus import AtomArrayPlus
     from atomworks.io.utils.standard_annotations import STANDARD_ANNOTATIONS
-    from biotite.structure import BondList
+    from biotite.structure import AtomArray, AtomArrayStack, BondList
 
-    # The development writer supports scalar atom fields and registered StandardAnnotations.
+    models = list(atoms) if isinstance(atoms, (list, AtomArrayStack)) else [atoms]
+    if not models or any(not isinstance(model, AtomArray) for model in models):
+        raise ValueError("materialize expects an atom array, stack, or nonempty list of atom arrays.")
     registered = set(STANDARD_ANNOTATIONS.get_field_names(n_body=1, include_aliases=True))
-    unsupported = [
-        name
-        for name in atoms.get_annotation_categories()
-        if np.ndim(atoms.get_annotation(name)) != 1 and name not in registered
-    ]
-    for n_body in (0, 2):
-        if isinstance(atoms, (AtomArrayPlus, AtomArrayPlusStack)):
-            allowed = set(STANDARD_ANNOTATIONS.get_field_names(n_body=n_body, include_aliases=True))
-            unsupported.extend(name for name in atoms.get_annotation_categories(n_body=n_body) if name not in allowed)
-    if unsupported:
-        raise ValueError(
-            f"AtomWorks cannot serialize these custom annotations losslessly: {sorted(unsupported)}. "
-            "Keep the original file bytes or use registered StandardAnnotations."
-        )
-    # Work on a copy: the writer needs a BondList even when the source has no bond information.
-    structure = atoms.copy()
-    bonds = structure.bonds
-    edges = bonds.as_array() if bonds is not None else np.empty((0, 3), dtype=np.uint32)
-    if bonds is None:
-        structure.bonds = BondList(structure.array_length())
+    structures, metadata, bonds, boxes = [], [], [], []
+    for number, model in enumerate(models, 1):
+        unsupported = [
+            name
+            for name in model.get_annotation_categories()
+            if np.ndim(model.get_annotation(name)) != 1 and name not in registered
+        ]
+        for n_body in (0, 2):
+            if isinstance(model, AtomArrayPlus):
+                allowed = set(STANDARD_ANNOTATIONS.get_field_names(n_body=n_body, include_aliases=True))
+                unsupported.extend(
+                    name for name in model.get_annotation_categories(n_body=n_body) if name not in allowed
+                )
+        if unsupported:
+            raise ValueError(
+                f"AtomWorks cannot serialize these custom annotations losslessly: {sorted(unsupported)}. "
+                "Keep the original file bytes or use registered StandardAnnotations."
+            )
+        for name in model.get_annotation_categories():
+            values = model.get_annotation(name)
+            if values.dtype.kind in "iu" and values.size and (values.min() < -(2**31) or values.max() >= 2**31):
+                raise ValueError(f"Annotation {name!r} exceeds BinaryCIF's signed 32-bit integer range.")
+        if model.array_length() == 0:
+            raise ValueError(
+                "AtomWorks cannot materialize an empty model. Filter empty structures before preparing storage."
+            )
+        structure = model.copy()
+        metadata.append([2, number, model.array_length(), int(model.bonds is not None)])
+        if model.bonds is not None:
+            bonds.extend([[number, *edge] for edge in model.bonds.as_array().tolist()])
+        else:
+            structure.bonds = BondList(model.array_length())
+        if model.box is not None:
+            boxes.append([number, *model.box.flatten().tolist()])
+        structures.append(structure)
     categories = {
-        "hf_atomic_structure": {"version": [1], "has_bonds": [int(bonds is not None)]},
+        "hf_atomic_structure": dict(zip(("version", "model_num", "n_atoms", "has_bonds"), np.array(metadata).T)),
     }
-    if len(edges):
-        categories["hf_atomic_structure_bond"] = {"atom_1": edges[:, 0], "atom_2": edges[:, 1], "type": edges[:, 2]}
+    if bonds:
+        categories["hf_atomic_structure_bond"] = dict(
+            zip(("model_num", "atom_1", "atom_2", "type"), np.array(bonds).T)
+        )
+    if boxes:
+        categories["hf_atomic_structure_box"] = {
+            "model_num": [row[0] for row in boxes],
+            **{f"v{i}": [row[i + 1] for row in boxes] for i in range(9)},
+        }
     return atom_array_to_file(
-        structure,
+        structures[0] if len(structures) == 1 else structures,
         file_type="bcif",
         config=CIFWriteConfig(
             extra_fields="all",
             extra_categories=categories,
             include_entity_categories=True,
             chem_comp_source="array",
+            chain_disambiguation=(
+                "transformation_id"
+                if all("transformation_id" in model.get_annotation_categories() for model in models)
+                else None
+            ),
             coord_decimals=None,
             date="1970-01-01",
             time="00:00:00",
@@ -362,26 +474,85 @@ def _write(atoms) -> bytes:
 
 
 def _restore_bonds(atoms):
-    """Restore explicit bonds for live arrays serialized by this feature, without chemical inference."""
+    """Restore explicit bonds and boxes without chemical inference, including selected models/atoms."""
     import numpy as np
-    from biotite.structure import BondList
+    from biotite.structure import AtomArrayStack, BondList
 
     for array in atoms if isinstance(atoms, list) else [atoms]:
         block = array.source_info.get("cif_block")
         if block is None or "hf_atomic_structure" not in block:
             continue
         metadata = block["hf_atomic_structure"]
-        if metadata["version"].as_array(int)[0] != 1:
+        version = metadata["version"].as_array(int)[0]
+        if version not in (1, 2):
             raise ValueError("Unsupported AtomicStructure BinaryCIF version.")
-        if metadata["has_bonds"].as_array(int)[0]:
+        model_ids = array.source_info.get("model_ids", [1])
+        number = array.source_info.get("model_num") or model_ids[0]
+        mask = metadata["model_num"].as_array(int) == number if version == 2 else np.array([True])
+        if metadata["has_bonds"].as_array(int)[mask][0]:
+            n_atoms = metadata["n_atoms"].as_array(int)[mask][0] if version == 2 else array.array_length()
+            edges = np.empty((0, 3), dtype=int)
             if "hf_atomic_structure_bond" in block:
                 category = block["hf_atomic_structure_bond"]
                 edges = np.column_stack([category[name].as_array(int) for name in ("atom_1", "atom_2", "type")])
-                array.bonds = BondList(array.array_length(), edges)
-            else:
-                array.bonds = BondList(array.array_length())
+                if version == 2:
+                    edges = edges[category["model_num"].as_array(int) == number]
+            indices = (
+                array.atom_array_index
+                if "atom_array_index" in array.get_annotation_categories()
+                else np.arange(array.array_length())
+            )
+            array.bonds = BondList(n_atoms, edges)[np.asarray(indices, dtype=int)]
         else:
             array.bonds = None
+        if version == 2:
+            array.box = None
+            if "hf_atomic_structure_box" in block:
+                category = block["hf_atomic_structure_box"]
+                ids = category["model_num"].as_array(int)
+                values = np.column_stack([category[f"v{i}"].as_array(float) for i in range(9)])
+                chosen = model_ids if isinstance(array, AtomArrayStack) else [number]
+                selected = [values[ids == model][0].reshape(3, 3) for model in chosen if np.any(ids == model)]
+                if len(selected) == len(chosen):
+                    array.box = np.array(selected) if isinstance(array, AtomArrayStack) else selected[0]
+
+
+def _source_bytes(value):
+    return value["bytes"] if value.get("bytes") is not None else _read_file(value["path"])
+
+
+def _source_digest(value):
+    if value is None:
+        return None
+    return hashlib.sha256(_source_bytes(value)).hexdigest(), value.get("path")
+
+
+def _preparation_runtime():
+    import atomworks
+
+    versions = {}
+    for package in ("atomworks", "biotite", "numpy", "rdkit", "ase"):
+        try:
+            versions[package] = importlib.metadata.version(package)
+        except importlib.metadata.PackageNotFoundError:
+            versions[package] = None
+    # Editable development installs may change without changing the package version.
+    digest = hashlib.sha256()
+    root = Path(atomworks.__file__).parent
+    for path in sorted(root.rglob("*.py")):
+        digest.update(str(path.relative_to(root)).encode())
+        digest.update(path.read_bytes())
+    versions["atomworks_source_sha256"] = digest.hexdigest()
+    return versions
+
+
+def _prepare_row(value, index, *, feature, column, sources):
+    if value is None:
+        return {column: None}
+    value = {"path": value.get("path"), "bytes": _source_bytes(value)}
+    if _source_digest(value) != sources[index]:
+        raise RuntimeError("Structure source changed during preparation; retry with stable source files.")
+    return {column: feature.materialize(feature.decode_example(value))}
 
 
 def _is_bcif(data: bytes) -> bool:

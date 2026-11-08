@@ -8,7 +8,7 @@ import numpy as np
 import pyarrow as pa
 import pytest
 
-from datasets import AtomicStructure, Dataset, Features, load_from_disk
+from datasets import AtomicStructure, Dataset, Features, Value, load_from_disk
 from datasets.features.atomic_structure import _is_bcif
 from datasets.features.features import generate_from_dict
 
@@ -553,6 +553,15 @@ def test_assembly_is_decode_only():
     np.testing.assert_allclose(assembled.coord[: len(original)], original.coord)
     np.testing.assert_allclose(assembled.coord[len(original) :], original.coord + [10, 0, 0])
     assert feature.encode_example(assembled)["bytes"] == payload
+    dataset = Dataset.from_dict(
+        {"s": [payload], "label": ["example"]}, features=Features({"s": AtomicStructure(), "label": Value("string")})
+    )
+    stored = feature.prepare_dataset(dataset, "s")
+    assert stored[0]["label"] == "example"
+    assert stored.features["s"] == AtomicStructure()
+    np.testing.assert_allclose(stored[0]["s"].coord, assembled.coord)
+    np.testing.assert_array_equal(stored[0]["s"].chain_id, assembled.chain_id)
+    assert stored[0]["s"].bonds == assembled.bonds
 
 
 def test_old_atomworks_api_has_actionable_import_error(monkeypatch):
@@ -569,3 +578,193 @@ def test_old_atomworks_api_has_actionable_import_error(monkeypatch):
     monkeypatch.setattr(builtins, "__import__", legacy_import)
     with pytest.raises(ImportError, match="supported development version"):
         AtomicStructure().decode_example({"bytes": b"unused", "path": None})
+
+
+@require_atomworks
+def test_materialize_saves_edits_without_mutating_source():
+    atoms = _roundtrip(str(CIF_FILE))
+    original = dict(atoms.source_info)
+    atoms.coord += 3
+    encoded = AtomicStructure().materialize(atoms)
+    np.testing.assert_array_equal(_roundtrip(encoded).coord, atoms.coord)
+    assert atoms.source_info == original
+    assert AtomicStructure().encode_example(atoms)["bytes"] == CIF_FILE.read_bytes()
+    dataset = Dataset.from_dict({"s": [CIF_FILE.read_bytes()]}, features=_features())
+
+    def edit(row):
+        row["s"].coord += 3
+        return {"s": AtomicStructure().materialize(row["s"])}
+
+    np.testing.assert_array_equal(dataset.map(edit)[0]["s"].coord, atoms.coord)
+
+
+@require_atomworks
+@pytest.mark.parametrize("heterogeneous", [False, True])
+def test_materialize_models_keeps_coordinates_bonds_and_boxes(heterogeneous):
+    from biotite.structure import BondList, stack
+
+    first = _roundtrip(str(CIF_FILE))
+    first.bonds = BondList(len(first), np.array([[0, 1, 1], [1, 2, 2]]))
+    first.box = np.diag([20.0, 21.0, 22.0])
+    second = first[:3] if heterogeneous else first.copy()
+    second.coord = second.coord + 5
+    second.box = np.diag([30.0, 31.0, 32.0])
+    source = [first, second] if heterogeneous else stack([first, second])
+    result = _roundtrip(AtomicStructure().materialize(source))
+    assert len(result) == 2
+    for got, want in zip(result, [first, second]):
+        np.testing.assert_array_equal(got.coord, want.coord)
+        np.testing.assert_allclose(got.box, want.box, atol=1e-6)
+        assert got.bonds == want.bonds
+
+
+@require_atomworks
+@pytest.mark.parametrize("dtype", [np.int8, np.int32, np.int64, np.float32, np.float64, np.bool_, "U8"])
+def test_materialize_scalar_annotation_values(dtype):
+    atoms = _roundtrip(str(CIF_FILE))
+    values = np.arange(len(atoms)).astype(dtype)
+    if np.dtype(dtype).kind == "f":
+        values = values / 3
+        values[2] = np.nan
+    atoms.set_annotation("custom_value", values)
+    result = _roundtrip(AtomicStructure().materialize(atoms))
+    # The upstream reader infers extra-field dtypes; the contract here is value preservation.
+    got = result.get_annotation("custom_value").astype(dtype)
+    if np.dtype(dtype).kind == "f":
+        np.testing.assert_allclose(got, values, rtol=1e-6, equal_nan=True)
+    else:
+        np.testing.assert_array_equal(got, values)
+
+
+@require_atomworks
+def test_materialize_rejects_integer_overflow():
+    atoms = _roundtrip(str(CIF_FILE))
+    atoms.set_annotation("large_id", np.full(len(atoms), 2**40, dtype=np.int64))
+    with pytest.raises(ValueError, match="signed 32-bit"):
+        AtomicStructure().materialize(atoms)
+
+
+@require_atomworks
+@pytest.mark.parametrize("num_proc", [None, 2])
+def test_prepare_dataset_once_and_reuse_cache(tmp_path, monkeypatch, num_proc):
+    import atomworks.io
+
+    import datasets.features.atomic_structure as module
+
+    dataset = Dataset.from_dict({"s": [CIF_FILE.read_bytes(), None, CIF_FILE.read_bytes()]}, features=_features())
+    feature = AtomicStructure(parse_config={"remove_waters": True})
+    result = feature.prepare_dataset(dataset, "s", cache_dir=tmp_path, num_proc=num_proc)
+    assert result.features["s"] == AtomicStructure()
+    assert result[1]["s"] is None
+    assert dataset.features["s"] == AtomicStructure()
+    assert result.data.column("s")[0].as_py()["bytes"] != CIF_FILE.read_bytes()
+
+    def unexpected(*args, **kwargs):
+        raise AssertionError("Preparation must not run on a cache hit or a prepared row read")
+
+    monkeypatch.setattr(module, "_prepare_row", unexpected)
+    monkeypatch.setattr(atomworks.io, "prepare_atom_array", unexpected)
+    cached = feature.prepare_dataset(dataset, "s", cache_dir=tmp_path, num_proc=num_proc)
+    assert cached._fingerprint == result._fingerprint
+    np.testing.assert_array_equal(cached[0]["s"].coord, result[0]["s"].coord)
+
+
+@require_atomworks
+def test_prepare_cache_tracks_contents_settings_and_runtime(tmp_path, monkeypatch):
+    import datasets.features.atomic_structure as module
+
+    source = tmp_path / "source.cif"
+    source.write_bytes(CIF_FILE.read_bytes())
+    dataset = Dataset.from_dict({"s": [str(source)]}, features=_features())
+    cache = tmp_path / "cache"
+    plain = AtomicStructure()
+    first = plain.prepare_dataset(dataset, "s", cache_dir=cache)
+    source.write_bytes(CIF_FILE.read_bytes().replace(b"1.458", b"2.458"))
+    second = plain.prepare_dataset(dataset, "s", cache_dir=cache)
+    assert second._fingerprint != first._fingerprint
+    assert second[0]["s"].coord[1, 0] != first[0]["s"].coord[1, 0]
+    third = AtomicStructure(parse_config={"remove_waters": True}).prepare_dataset(dataset, "s", cache_dir=cache)
+    assert third._fingerprint != second._fingerprint
+    monkeypatch.setattr(module, "_preparation_runtime", lambda: {"atomworks": "future-version"})
+    fourth = plain.prepare_dataset(dataset, "s", cache_dir=cache)
+    assert fourth._fingerprint != second._fingerprint
+    fifth = plain.prepare_dataset(dataset, "s", cache_dir=cache, cache_version="custom-ccd-v2")
+    assert fifth._fingerprint != fourth._fingerprint
+
+
+@require_atomworks
+def test_prepare_dataset_detects_source_changed_during_preparation(tmp_path, monkeypatch):
+    import datasets.features.atomic_structure as module
+
+    source = tmp_path / "source.cif"
+    source.write_bytes(CIF_FILE.read_bytes())
+    dataset = Dataset.from_dict({"s": [str(source)]}, features=_features())
+    original = module._preparation_runtime
+
+    def changed():
+        source.write_bytes(CIF_FILE.read_bytes() + b"\n# changed\n")
+        return original()
+
+    monkeypatch.setattr(module, "_preparation_runtime", changed)
+    with pytest.raises(RuntimeError, match="source changed"):
+        AtomicStructure().prepare_dataset(dataset, "s", cache_dir=tmp_path / "cache")
+
+
+@require_atomworks
+def test_prepare_empty_dataset_has_plain_feature():
+    dataset = Dataset.from_dict({"s": []}, features=_features(parse_config={"remove_waters": True}))
+    result = AtomicStructure(parse_config={"remove_waters": True}).prepare_dataset(dataset, "s")
+    assert len(result) == 0
+    assert result.features["s"] == AtomicStructure()
+
+
+@require_atomworks
+@pytest.mark.parametrize("kind", ["multidimensional", "system", "pairwise"])
+def test_materialize_rejects_each_unsupported_annotation_kind(kind):
+    from atomworks.io.utils.atom_array_plus import AnnotationList2D
+
+    atoms = _roundtrip(str(CIF_FILE))
+    if kind == "multidimensional":
+        atoms.set_annotation("custom", np.zeros((len(atoms), 3)))
+    elif kind == "system":
+        atoms.set_annotation("custom", np.array(1.0), n_body=0)
+    else:
+        atoms.set_annotation("custom", AnnotationList2D(len(atoms), np.array([[0, 1]]), np.array([1.0])), n_body=2)
+    with pytest.raises(ValueError, match="custom annotations losslessly"):
+        AtomicStructure().materialize(atoms)
+
+
+@require_atomworks
+def test_previous_binarycif_metadata_version_still_loads():
+    from biotite.structure import BondList
+    from biotite.structure.io.pdbx import BinaryCIFCategory, BinaryCIFFile
+
+    atoms = _roundtrip(str(CIF_FILE))
+    atoms.bonds = BondList(len(atoms), np.array([[0, 1, 1]]))
+    encoded = AtomicStructure().materialize(atoms)
+    file = BinaryCIFFile.read(io.BytesIO(encoded["bytes"]))
+    file.block["hf_atomic_structure"] = BinaryCIFCategory({"version": [1], "has_bonds": [1]})
+    del file.block["hf_atomic_structure_bond"]["model_num"]
+    buffer = io.BytesIO()
+    file.write(buffer)
+    assert _roundtrip(buffer.getvalue()).bonds == atoms.bonds
+
+
+@require_atomworks
+def test_materialize_keeps_nan_coordinates():
+    atoms = _roundtrip(str(CIF_FILE))
+    atoms.coord[2] = np.nan
+    result = _roundtrip(AtomicStructure().materialize(atoms))
+    assert result.array_length() == atoms.array_length()
+    np.testing.assert_array_equal(result.coord, atoms.coord)
+
+
+@require_atomworks
+def test_materialize_distinguishes_missing_and_empty_bonds():
+    from biotite.structure import BondList
+
+    atoms = _roundtrip(str(CIF_FILE))
+    atoms.bonds = None
+    assert _roundtrip(AtomicStructure().materialize(atoms)).bonds is None
+    atoms.bonds = BondList(len(atoms))
+    assert _roundtrip(AtomicStructure().materialize(atoms)).bonds == atoms.bonds

@@ -114,18 +114,77 @@ Finally, [`~Dataset.push_to_hub`] the dataset to the Hub:
 
 Creating or casting a dataset of paths does no structure I/O. Byte inputs (including compressed files) are retained exactly. Saving or uploading embeds files without chemical preparation. Decoding pays the read cost for rows accessed; opt-in preparation adds its own per-read cost. AtomWorks' first import and CCD initialization may be expensive in each worker. Repeated reads repeat the work; for frequently reused prepared data, explicitly materialize it with `Dataset.map` after choosing your scientific preprocessing policy.
 
-Decoded arrays retain their original encoding under `atoms.source_info["_hf_encoded"]`. An unchanged array returned from `Dataset.map` therefore keeps the source file, including compression and metadata that atom arrays do not represent. To store intentional in-place edits, remove this entry before encoding:
+### Saving intentional edits
+
+Decoded arrays retain their original encoding under `atoms.source_info["_hf_encoded"]`, so a pass-through `map` preserves source bytes and metadata. To save edits explicitly, use `materialize`. It serializes the atoms as supplied, ignores the retained bytes, leaves the input unchanged, and does no additional preparation:
 
 ```py
->>> def prepare_for_storage(example):
+>>> feature = AtomicStructure()
+>>> def translate(example):
 ...     atoms = example["structure"]
-...     atoms.source_info = dict(atoms.source_info)
-...     atoms.source_info.pop("_hf_encoded", None)
-...     return {"structure": atoms}
->>> prepared_dataset = structure_dataset.map(prepare_for_storage)
+...     atoms.coord += [1.0, 0.0, 0.0]
+...     return {"structure": feature.materialize(atoms)}
+>>> edited = structure_dataset.map(
+...     translate,
+...     features=Features({**structure_dataset.features, "structure": AtomicStructure()}),
+... )
 ```
 
-This serializes the decoded result as BinaryCIF. The current development writer supports scalar per-atom fields and registered StandardAnnotations. Arbitrary custom multidimensional, system-wide or pairwise annotations raise an error rather than being silently discarded. CIF serialization may normalize annotation dtypes and author identifiers; file-byte storage preserves arbitrary original file metadata. Explicit live-array bonds are retained in an additional BinaryCIF category without running bond inference. Different-atom multi-model files decode to a list of arrays, rather than a stack.
+The plain output feature avoids applying a previous cleanup policy or assembly expansion a second time. `materialize` also accepts stacks and nonempty lists of models with different atoms. The original dataset remains available; choose a separate output column or save location when both representations are needed.
+
+### Preparing data once for training
+
+Use `prepare_dataset` to apply a chosen policy once and store BinaryCIF for repeated access:
+
+```py
+>>> policy = AtomicStructure(parse_config={"remove_waters": True, "altloc": "first"})
+>>> prepared = policy.prepare_dataset(
+...     structure_dataset, "structure", cache_dir="prepared-cache", num_proc=2,
+... )
+>>> prepared.save_to_disk("training-structures")
+```
+
+The helper uses `Dataset.map`, preserves other columns and null rows, and returns an `AtomicStructure()` column. Reading it still parses BinaryCIF, but does not rerun cleanup or assembly generation. With no `cache_dir`, preparation is recomputed on every call.
+
+A cache key includes source content hashes and paths, the dataset fingerprint, preparation/assembly settings, dependency versions, AtomWorks Python source, and this feature's implementation. Editable development changes therefore invalidate caches even when the package version is unchanged. Source files are read to check their content on every call; a hit avoids parsing and preparation, not file I/O. A miss reads files again and rejects changes detected between hashing and preparation. Embed private remote sources as bytes before using this helper.
+
+Use `cache_version="my-ccd-v2"` for external scientific inputs such as custom CCD definitions, and change it when those inputs change. Such contexts must be reproducible in workers; use one process for in-process overrides. This cache is for the helper's preparation policy. Arbitrary custom transforms performed with `map` need their own correct fingerprinting and external-input versioning. Each process pays its own AtomWorks initialization and memory cost; start with one worker and measure before increasing `num_proc`.
+
+### Serialization guarantees
+
+| Input or property | Guarantee |
+|---|---|
+| Source file bytes, including compression | Preserved exactly until explicit materialization |
+| Materialized coordinates | No deliberate coordinate rounding; float32 precision tested |
+| Explicit bonds and periodic boxes | Stored in versioned BinaryCIF categories, including different models |
+| Scalar per-atom annotations | Values tested for integers, floats, booleans and strings; inferred dtypes may change |
+| Registered StandardAnnotations | Supported by the upstream writer; regression-tested |
+| Arbitrary custom multidimensional, system-wide or pairwise annotations | Rejected explicitly |
+| Integer annotations outside signed 32-bit range | Rejected explicitly |
+| Empty models | Rejected by materialization; filter these rows before preparing storage |
+
+CIF serialization can normalize author identifiers and annotation dtypes. It does not preserve all original file categories or custom Python objects; retain the original source dataset when that information matters. The versioned metadata reader still supports BinaryCIF written by the previous feature revision. These are format-specific guarantees, not a general arbitrary-array codec.
+
+### Measuring your workload
+
+`benchmarks/benchmark_atomic_structure.py` accepts local PDB/CIF files and reports cold first decode, repeated minimal/prepared reads, materialization cost, repeated BinaryCIF reads, and one/two-worker spawn throughput. It records input SHA256 hashes, dependency versions and peak process RSS. Run it with the same preparation policy, structure sizes and worker budget as your training pipeline. The script's default policy removes waters and selects the first alternate conformer; it is an explicit benchmark choice, not the feature default.
+
+```sh
+python benchmarks/benchmark_atomic_structure.py --files /data/*.cif.gz --output structures-benchmark.json
+```
+
+Peak RSS includes imports and CCD state and is a high-water mark, not incremental allocation. Worker peaks are reported separately and are not a simultaneous aggregate. The script does no downloads. Warm repeated reads may benefit from the operating system's file cache; network throughput is not measured. The prepared-byte read benchmark holds BinaryCIF in memory, while source reads include local file access and decompression. Measure saved Arrow reads separately for your training storage.
+
+One local macOS/Python 3.12 run (three reads per entry, one native thread per worker) produced:
+
+| PDB entry | Source atoms | Minimal source read | Source read + preparation | Materialized byte read |
+|---|---:|---:|---:|---:|
+| 1CRN | 327 | 2.83 ms | 16.20 ms | 2.25 ms |
+| 4HHB | 4,779 | 20.77 ms | 40.72 ms | 17.28 ms |
+| 6VXX | 23,694 | 98.82 ms | 219.34 ms | 79.00 ms |
+| 6QNR | 305,753 | 2.124 s | 4.517 s | 1.330 s |
+
+The 12-row minimal-decode batch took 8.27 s with one spawn worker and 5.78 s with two, including startup. Worker peak RSS was about 0.91–0.98 GiB; preparation/materialization cases peaked at 1.95–2.73 GiB including CCD state. Uncompressed materialized BinaryCIF was 1.39–2.50 times the compressed source size; this is not an equal-compression storage comparison. These four entries establish behavior across sizes, not a representative throughput estimate for the entire PDB. Raw measurements and source hashes are in `benchmarks/results/benchmark_atomic_structure.json`.
 
 ## Existing datasets and sequence records
 
