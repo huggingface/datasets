@@ -8,7 +8,7 @@ import fsspec
 import fsspec.asyn
 from fsspec.implementations.local import LocalFileSystem
 
-from . import compression
+from . import caching, compression
 
 
 COMPRESSION_FILESYSTEMS: list[compression.BaseCompressedFileFileSystem] = [
@@ -20,12 +20,15 @@ COMPRESSION_FILESYSTEMS: list[compression.BaseCompressedFileFileSystem] = [
 ]
 
 EXTENSION_TO_COMPRESSION_FS_FILE_CLS: dict[str, type[io.BytesIO]] = {}
+
+CACHING_FILESYSTEMS = [caching.SharedBlockCacheFileSystem]
+
 # Register custom filesystems
-for fs_class in COMPRESSION_FILESYSTEMS:
+for fs_class in COMPRESSION_FILESYSTEMS + CACHING_FILESYSTEMS:
     if fs_class.protocol in fsspec.registry and fsspec.registry[fs_class.protocol] is not fs_class:
         warnings.warn(f"A filesystem protocol was already set for {fs_class.protocol} and will be overwritten.")
     fsspec.register_implementation(fs_class.protocol, fs_class, clobber=True)
-    for extension in fs_class.extensions:
+    for extension in getattr(fs_class, "extensions", []):
         if fs_class.compression in fsspec.compression.compr:
             EXTENSION_TO_COMPRESSION_FS_FILE_CLS[extension] = fsspec.compression.compr[fs_class.compression]
 
