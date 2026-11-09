@@ -2076,10 +2076,13 @@ def cast_array_to_feature(
         # feature must be a dict
         if isinstance(feature, dict) and {field.name for field in array.type} <= set(feature):
             null_array = pa.array([None] * len(array))
-            # Flatten combines the parent and child validity bitmaps. Hidden
-            # placeholder children beneath null structs must not be validated.
-            children = dict(zip(array.type.names, array.flatten()))
-            arrays = [_c(children.get(name, null_array), subfeature) for name, subfeature in feature.items()]
+            # flatten() nulls the children under null struct rows, whose values are otherwise placeholders
+            # (e.g. "") that a child's cast_storage could read as data
+            children = dict(zip([field.name for field in array.type], array.flatten()))
+            arrays = [
+                _c(children[name] if name in array_fields else null_array, subfeature)
+                for name, subfeature in feature.items()
+            ]
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
     elif pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
         # feature must be either List(subfeature) or LargeList(subfeature)
@@ -2217,12 +2220,16 @@ def embed_array_storage(
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
     elif pa.types.is_list(array.type):
         # feature must be either List(subfeature)
+        # Copy the array to only embed the values of its slice, since `array.values` ignores the slice
+        array = pa.concat_arrays([array])
         # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
         array_offsets = _combine_list_array_offsets_with_mask(array)
         if isinstance(feature, List) and feature.length == -1:
             return pa.ListArray.from_arrays(array_offsets, _e(array.values, feature.feature))
     elif pa.types.is_large_list(array.type):
         # feature must be LargeList(subfeature)
+        # Copy the array to only embed the values of its slice, since `array.values` ignores the slice
+        array = pa.concat_arrays([array])
         # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
         array_offsets = _combine_list_array_offsets_with_mask(array)
         return pa.LargeListArray.from_arrays(array_offsets, _e(array.values, feature.feature))
@@ -2457,7 +2464,7 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
                     _visit(array.field(name), subfeature)
             elif pa.types.is_list(array.type):
                 if isinstance(feature, (LargeList, List)):
-                    _visit(array.values, feature.feature)
+                    _visit(array.flatten(), feature.feature)
 
     for name, feature in features.items():
         _visit(table[name], feature)

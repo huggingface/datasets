@@ -6,7 +6,11 @@ import fsspec
 import pyarrow.parquet as pq
 
 from .. import Dataset, Features, NamedSplit, config
-from ..arrow_writer import get_writer_batch_size_from_data_size, get_writer_batch_size_from_features
+from ..arrow_writer import (
+    get_parquet_column_options,
+    get_writer_batch_size_from_data_size,
+    get_writer_batch_size_from_features,
+)
 from ..features.features import require_storage_embed
 from ..features.tensor import tensor_to_parquet_schema, tensor_to_parquet_table
 from ..formatting import query_table
@@ -126,16 +130,7 @@ class ParquetDatasetWriter:
             schema=schema,
             use_content_defined_chunking=self.use_content_defined_chunking,
             write_page_index=self.write_page_index,
-            compression={
-                col: "none" if require_storage_embed(feature) else "snappy"
-                for col, feature in self.dataset.features.items()
-            },
-            use_dictionary=[
-                col for col, feature in self.dataset.features.items() if not require_storage_embed(feature)
-            ],
-            column_encoding={
-                col: "PLAIN" for col, feature in self.dataset.features.items() if require_storage_embed(feature)
-            },
+            **get_parquet_column_options(self.dataset.features, schema),
             **parquet_writer_kwargs,
         )
 

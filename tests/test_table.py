@@ -1178,6 +1178,14 @@ def test_cast_array_to_features_nested_with_nulls():
     assert casted_array.to_pylist() == [{"foo": [None, [0]]}]
 
 
+def test_cast_array_to_features_struct_with_json_field_and_null_rows():
+    # the child values under a null struct row are placeholders (e.g. "") that must not be read as data
+    arr = pa.array([{"foo": '{"a": 1}'}, None, {"foo": "[2]"}], pa.struct({"foo": pa.string()}))
+    casted_array = cast_array_to_feature(arr, {"foo": Json()})
+    assert casted_array.is_null().to_pylist() == [False, True, False]
+    assert casted_array.field("foo").storage.to_pylist()[::2] == ['{"a": 1}', "[2]"]
+
+
 def test_cast_array_to_features_to_null_type():
     # same type
     arr = pa.array([[None, None]])
@@ -1375,6 +1383,16 @@ def test_embed_array_storage_nested(image_file):
     embedded_images_array = embed_array_storage(array, {"foo": Image()})
     assert isinstance(embedded_images_array.to_pylist()[0]["foo"]["path"], str)
     assert isinstance(embedded_images_array.to_pylist()[0]["foo"]["bytes"], bytes)
+
+
+@pytest.mark.parametrize(
+    "pa_type, feature", [(pa.list_(Image.pa_type), List(Image())), (pa.large_list(Image.pa_type), LargeList(Image()))]
+)
+def test_embed_array_storage_sliced_list(image_file, pa_type, feature):
+    array = pa.array([[{"bytes": None, "path": image_file}]] * 4, type=pa_type)
+    for sliced_array in [array.slice(0, 2), array.slice(2)]:
+        embedded_images_array = embed_array_storage(sliced_array, feature)
+        assert len(embedded_images_array.values) == 2  # only the images of the slice are embedded
 
 
 @pytest.mark.parametrize(
