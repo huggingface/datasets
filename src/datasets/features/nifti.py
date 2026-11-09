@@ -174,6 +174,9 @@ class Nifti:
         if token_per_repo_id is None:
             token_per_repo_id = {}
 
+        if not isinstance(value, (dict, str)):
+            return value  # decoding is idempotent: a value that is already a NIfTI image is returned as is
+
         path, bytes_ = value["path"], value["bytes"]
         if bytes_ is None:
             if path is None:
@@ -197,8 +200,8 @@ class Nifti:
                     )
                     download_config = DownloadConfig(token=token)
                     with xopen(path, "rb", download_config=download_config) as f:
-                        nifti = nib.load(f)
-        else:
+                        bytes_ = f.read()
+        if bytes_ is not None:
             import gzip
 
             if (

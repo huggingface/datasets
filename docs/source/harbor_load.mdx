@@ -1,0 +1,184 @@
+# Load agent evaluation tasks
+
+A [Harbor](https://harborframework.com/docs) dataset is a collection of *tasks* used to evaluate AI agents: each
+task gives an agent an instruction, a sandboxed environment to work in, and a verifier that scores its work.
+
+Unlike tabular datasets, a Harbor dataset isn't a file with one row per example: **every task is a directory**.
+The `harbor` builder reads such a repository and yields one row per task, so a benchmark can be explored,
+filtered and shared like any other dataset:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("harborframework/terminal-bench")
+>>> dataset
+DatasetDict({
+    test: Dataset({
+        features: ['name', 'instruction', 'description', 'keywords', 'schema_version', 'config', 'metadata', 'files', 'location'],
+        num_rows: 66
+    })
+})
+```
+
+> [!TIP]
+> Loading a Harbor dataset only *reads* the tasks: it never runs an agent, builds an image or executes a
+> verifier, and it doesn't require Harbor to be installed. Use the [Harbor](https://harborframework.com/docs)
+> library to actually run the tasks.
+
+> [!WARNING]
+> Harbor task configurations are TOML files. Python 3.11 and later read them with the standard library
+> (`tomllib`); on Python 3.10, you need to install a TOML parser as an extra dependency. Check out the
+> [installation](./installation#harbor) guide to learn how to install it.
+
+## Repository structure
+
+A task directory is identified by two files, `task.toml` and `instruction.md`, and usually also contains the
+environment definition, the verifier and an oracle solution:
+
+```text
+my-harbor-dataset/
+├── README.md
+└── tasks/
+    ├── task-a/
+    │   ├── task.toml          # configuration: metadata, resources, timeouts...
+    │   ├── instruction.md     # what the agent is asked to do
+    │   ├── README.md          # optional human-readable description
+    │   ├── environment/       # Dockerfile / docker-compose.yaml + files of the sandbox
+    │   ├── tests/             # verifier
+    │   └── solution/          # oracle solution
+    └── task-b/
+        └── ...
+```
+
+A directory is recognized as a Harbor dataset as soon as one of its sub-directories, however deep, is a task
+directory (a `task.toml` file and an `instruction.md` file side by side): the tasks are found automatically,
+without having to list any file.
+
+## Load tasks
+
+Since Harbor datasets are made of directories rather than of data files, they are loaded by *path* — no
+`data_files` argument:
+
+```py
+>>> from datasets import load_dataset
+
+>>> # a dataset repository on the Hub
+>>> dataset = load_dataset("harborframework/terminal-bench")
+>>> # a local directory of tasks
+>>> dataset = load_dataset("/path/to/my-harbor-dataset")
+>>> # the tasks of a repository that are in a sub-directory
+>>> dataset = load_dataset("harborframework/terminal-bench", data_dir="tasks")
+```
+
+Passing `data_files` explicitly is supported too, as long as the pattern includes the `task.toml` and `instruction.md` files — one
+matched file pair file gives one row:
+
+```py
+>>> dataset = load_dataset(
+...     "/path/to/my-harbor-dataset",
+...     data_files={"test": ["my-tasks-dir/*/task.toml", "my-tasks-dir/*/instruction.md"]},
+... )
+```
+
+## Columns
+
+Every row describes one task:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `name` | `string` | `[task].name` of `task.toml` (usually `org/name`), or the task directory name. |
+| `description` | `string` | `[task].description` of `task.toml`. |
+| `instruction` | `string` | Contents of `instruction.md`: what the agent has to do. |
+| `keywords` | `list` of `string` | `[task].keywords` of `task.toml`. |
+| `schema_version` | `string` | `schema_version` declared by `task.toml`. |
+| `config` | `dict` | The whole `task.toml`, as a JSON object: `[task]`, `[metadata]`, `[verifier]`, `[agent]`, `[environment]`, `[steps]`... |
+| `metadata` | `dict` | The free-form `[metadata]` section of `task.toml`. |
+| `files` | `list` of `string` | All the files of the task, with paths relative to the task directory. |
+| `location` | `string` | Location of the task directory in the dataset. |
+
+```py
+>>> dataset = load_dataset("harborframework/terminal-bench", split="test")
+>>> dataset[0]["name"]
+'terminal-bench/atrx-vep-crispr'
+>>> dataset[0]["instruction"][:90]
+'You are provided with a region of genomic DNA representing the human ATRX locus plus sequence'
+>>> dataset[0]["config"]["task"]["authors"]
+[{'name': 'ScaleAI', 'email': 'tbench@scale.com'}]
+>>> dataset[0]["metadata"]["category"]
+'Science'
+>>> dataset[0]["config"]["environment"]
+{'build_timeout_sec': 1800.0, 'cpus': 2, 'memory_mb': 4096, 'storage_mb': 10240, 'gpus': 0}
+>>> dataset[0]["files"][:4]
+['LICENSE.md', 'README.md', 'environment/Dockerfile', 'environment/data/CDS-information.txt']
+>>> dataset[0]["location"]
+'tasks/atrx-vep-crispr'
+```
+
+The whole `task.toml` is available in `config`, so nothing is lost when a task uses fields that aren't
+promoted to their own column:
+
+```py
+>>> dataset = dataset.map(lambda task: {"timeout_min": task["config"]["verifier"]["timeout_sec"] / 60})
+>>> sorted(set(dataset["timeout_min"]))[:6]
+[1.0, 2.0, 3.0, 4.0, 5.0, 7.0]
+```
+
+## Filter a benchmark
+
+Because the task metadata is loaded as a dictionary, a benchmark can be explored with the usual
+[`~Dataset.filter`] and [`~Dataset.map`] methods:
+
+```py
+>>> security_tasks = dataset.filter(lambda task: task["metadata"].get("category") == "Security")
+>>> [task["name"] for task in security_tasks]
+['terminal-bench/formal-crypto', 'terminal-bench/html-js-filter', 'terminal-bench/interleaved-vigenere', 'terminal-bench/shadow-relay', 'terminal-bench/uefi-bootkit']
+```
+
+The `files` column lists everything the task ships, which is handy to look at how a task is verified:
+
+```py
+>>> pytest_verifiers = dataset.filter(lambda task: any(f.startswith("tests/") and f.endswith(".py") for f in task["files"]))
+>>> pytest_verifiers.num_rows
+63
+```
+
+## Read the other files of a task
+
+Only the instruction and the configuration of a task are loaded as columns: its environment, verifier and
+solution files are listed in the `files` column, as paths relative to the task directory. Combine `task_id`
+and `files` to open any of them with `fsspec`:
+
+```py
+>>> from huggingface_hub import hffs
+>>> dataset_path = "hf://datasets/harborframework/terminal-bench"
+>>> with hffs.open(f"{dataset_path}/tasks/cumulative-layout-shift/environment/Dockerfile", "r") as f:
+...     print(f.read()[:20])
+'# harbor-canary GUID
+```
+
+## Configuration
+
+[`~datasets.packaged_modules.harbor.HarborConfig`] accepts a few arguments on top of the usual
+`load_dataset` ones:
+
+- `strip_canary` (default `True`): remove the leading "benchmark data canary" comment lines from the
+  instructions, the same way Harbor does when it sends them to an agent. Set it to `False` to keep the
+  original file contents.
+- `include_files` (default `True`): list all the files of every task in the `files` column. Set it to
+  `False` to skip listing the task directories, which is faster when the dataset is on a remote filesystem
+  or has thousands of files per task.
+
+Tasks can also be streamed, which avoids downloading the whole benchmark upfront:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("harborframework/terminal-bench", streaming=True)
+>>> for task in dataset["test"]:
+...     print(task["name"])
+```
+
+## See also
+
+- The reference documentation of [`~datasets.packaged_modules.harbor.Harbor`] and
+  [`~datasets.packaged_modules.harbor.HarborConfig`].
+- The [Harbor documentation](https://harborframework.com/docs) to *run* the tasks of a benchmark with agents
+  and verifiers.

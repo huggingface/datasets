@@ -112,6 +112,10 @@
       title: Load TsFile data
     title: "Time-series"
   - sections:
+    - local: harbor_load
+      title: Load agent evaluation tasks
+    title: "Agent evaluation"
+  - sections:
     - local: share
       title: Share
     - local: dataset_card
