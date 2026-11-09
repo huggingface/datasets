@@ -66,7 +66,9 @@ def test_webdataset_image_keeps_archive_bytes_when_local_path_exists(tmp_path, m
         member.size = len(payload)
         archive.addfile(member, io.BytesIO(payload))
 
-    dataset = load_dataset("webdataset", data_files=str(tar_path), split="train", streaming=streaming)
+    dataset = load_dataset(
+        "webdataset", data_files=str(tar_path), cache_dir=str(tmp_path / "cache"), split="train", streaming=streaming
+    )
     raw = next(iter(dataset.cast_column("png", Image(decode=False))))
     assert raw["png"] == {"path": path, "bytes": payload}
     assert raw["__key__"] == "nested/image"
