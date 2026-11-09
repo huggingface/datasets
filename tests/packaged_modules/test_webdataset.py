@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from datasets import Audio, DownloadManager, Features, Image, List, Value, Video
+from datasets import Audio, DownloadManager, Features, Image, List, Value, Video, load_dataset
 from datasets.packaged_modules.webdataset.webdataset import WebDataset
 
 from ..utils import (
@@ -45,6 +45,33 @@ def test_webdataset_allows_same_field_in_different_samples(tmp_path):
     examples = list(WebDataset._get_pipeline_from_tar(str(tar_path), DownloadManager().iter_archive(str(tar_path))))
     assert [example["__key__"] for example in examples] == ["00000", "00001"]
     assert [example["txt"] for example in examples] == ["first", "second"]
+
+
+@require_pil
+@pytest.mark.parametrize("streaming", [False, True])
+def test_webdataset_image_keeps_archive_bytes_when_local_path_exists(tmp_path, monkeypatch, streaming):
+    import PIL.Image
+
+    monkeypatch.chdir(tmp_path)
+    path = "nested/image.png"
+    Path(path).parent.mkdir()
+    PIL.Image.new("RGB", (2, 2), "green").save(path)
+
+    buffer = io.BytesIO()
+    PIL.Image.new("RGB", (2, 2), "red").save(buffer, format="PNG")
+    payload = buffer.getvalue()
+    tar_path = tmp_path / "images.tar"
+    with tarfile.open(tar_path, "w") as archive:
+        member = tarfile.TarInfo(path)
+        member.size = len(payload)
+        archive.addfile(member, io.BytesIO(payload))
+
+    dataset = load_dataset("webdataset", data_files=str(tar_path), split="train", streaming=streaming)
+    raw = next(iter(dataset.cast_column("png", Image(decode=False))))
+    assert raw["png"] == {"path": path, "bytes": payload}
+    assert raw["__key__"] == "nested/image"
+    with next(iter(dataset))["png"] as image:
+        assert image.getpixel((0, 0)) == (255, 0, 0)
 
 
 @pytest.fixture
