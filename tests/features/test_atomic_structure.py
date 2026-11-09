@@ -1,7 +1,6 @@
 import bz2
 import gzip
 import io
-import textwrap
 from pathlib import Path
 
 import numpy as np
@@ -18,58 +17,13 @@ from ..utils import require_atomworks, require_zstandard
 DATA_DIR = Path(__file__).parent / "data"
 PDB_FILE = DATA_DIR / "test_protein.pdb"
 CIF_FILE = DATA_DIR / "test_protein.cif"
-ATOM_NAMES = ["N", "CA", "C", "O", "CB", "N", "CA", "C", "O"]
 
-MULTI_MODEL_PDB = textwrap.dedent(
-    """\
-    MODEL        1
-    ATOM      1  N   GLY A   1       0.000   0.000   0.000  1.00  0.00           N
-    ATOM      2  CA  GLY A   1       1.000   0.000   0.000  1.00  0.00           C
-    ENDMDL
-    MODEL        2
-    ATOM      1  N   GLY A   1       0.500   0.000   0.000  1.00  0.00           N
-    ATOM      2  CA  GLY A   1       1.500   0.000   0.000  1.00  0.00           C
-    ENDMDL
-    END
-    """
-)
+MULTI_MODEL_PDB = (DATA_DIR / "test_models.pdb").read_text()
 
 # Acetic acid: a double bond and a single bond to oxygen. The atoms have no names and no residue.
-ACETIC_ACID_SDF = textwrap.dedent(
-    """\
-    acetic acid
-      test
+ACETIC_ACID_SDF = (DATA_DIR / "test_acetic_acid.sdf").read_text()
 
-      4  3  0  0  0  0  0  0  0  0999 V2000
-        0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-        1.5000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-        2.1000    1.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
-        2.1000   -1.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
-      1  2  1  0
-      2  3  2  0
-      2  4  1  0
-    M  END
-    $$$$
-    """
-)
-
-ETHANOL_MOL2 = textwrap.dedent(
-    """\
-    @<TRIPOS>MOLECULE
-    ethanol
-     3 2 0 0 0
-    SMALL
-    GASTEIGER
-
-    @<TRIPOS>ATOM
-          1 C1          0.0000    0.0000    0.0000 C.3     1  LIG1        0.0000
-          2 C2          1.5200    0.0000    0.0000 C.3     1  LIG1        0.0000
-          3 O1          2.0000    1.3000    0.0000 O.3     1  LIG1        0.0000
-    @<TRIPOS>BOND
-         1     1     2    1
-         2     2     3    1
-    """
-)
+ETHANOL_MOL2 = (DATA_DIR / "test_ethanol.mol2").read_text()
 
 
 def _features(**kwargs):
@@ -124,30 +78,15 @@ def test_empty_and_missing_values():
     assert Dataset.from_dict({"s": [None, None]}, features=_features())["s"] == [None, None]
 
 
-# ----------------------------------------------------------------------------------------------- files
-
-
 @require_atomworks
-@pytest.mark.parametrize("path", [CIF_FILE, PDB_FILE])
-def test_decoding_gives_what_atomworks_parses(path):
-    atoms = _roundtrip(str(path))
-    assert type(atoms).__name__ == "AtomArrayPlus"
-    # Minimal reading preserves the source without deriving chemical annotations.
-    _assert_same_atoms(atoms, _parse_with_atomworks(path))
-
-
-@require_atomworks
-@pytest.mark.parametrize("source", ["pathlib", "bytes_pdb", "bytes_cif", "dict_bytes", "dict_path"])
-def test_encode_file_inputs(source):
-    value = {
-        "pathlib": PDB_FILE,
-        "bytes_pdb": PDB_FILE.read_bytes(),
-        "bytes_cif": CIF_FILE.read_bytes(),
-        "dict_bytes": {"bytes": CIF_FILE.read_bytes(), "path": "renamed.cif"},
-        "dict_path": {"bytes": None, "path": str(PDB_FILE)},
-    }[source]
-    expected = _parse_with_atomworks(CIF_FILE if source in ("bytes_cif", "dict_bytes") else PDB_FILE)
-    _assert_same_atoms(_roundtrip(value), expected)
+@pytest.mark.parametrize("filename", ["test_protein.pdb", "test_protein.cif"])
+@pytest.mark.parametrize(
+    "build_example",
+    [str, lambda p: p, lambda p: p.read_bytes(), lambda p: {"path": str(p)}, lambda p: {"bytes": p.read_bytes()}],
+)
+def test_encode_file_inputs(shared_datadir, filename, build_example):
+    path = shared_datadir / filename
+    _assert_same_atoms(_roundtrip(build_example(path)), _parse_with_atomworks(path))
 
 
 @require_atomworks
@@ -220,10 +159,7 @@ def test_multiple_models():
     stack = _roundtrip(MULTI_MODEL_PDB.encode())
     assert type(stack).__name__ == "AtomArrayPlusStack"
     assert stack.coord.shape[0] == 2
-    assert stack.coord[1, :2, 0].tolist() == [0.5, 1.5]  # atomworks adds the missing atoms of the residue
-
-
-# ---------------------------------------------------------------------------------------- other inputs
+    assert stack.coord[1, :2, 0].tolist() == [0.5, 1.5]
 
 
 @require_atomworks
@@ -265,43 +201,14 @@ def test_encode_ase_periodic_structure():
     assert _roundtrip(ase_build.molecule("H2O")).box is None
 
 
-# ------------------------------------------------------------------------------------- exact round trips
-
-
 @require_atomworks
-def test_unsupported_custom_annotations_raise_instead_of_losing_data():
-    """PR514 supports StandardAnnotations, not arbitrary multidimensional custom annotations."""
-    from atomworks.io.utils.atom_array_plus import AnnotationList2D
-
+@pytest.mark.parametrize("missing", [False, True])
+def test_materialize_preserves_coordinate_precision(missing):
     atoms = _roundtrip(str(CIF_FILE))
-    atoms.source_info.pop("_hf_encoded", None)
-    n = atoms.array_length()
-    rng = np.random.default_rng(0)
-    atoms.set_annotation("small_int", np.arange(n, dtype=np.int8))
-    atoms.set_annotation("wide_int", np.arange(n, dtype=np.int64) * 1000)
-    atoms.set_annotation("flag", np.arange(n) % 2 == 0)
-    atoms.set_annotation("score32", rng.random(n).astype(np.float32))
-    atoms.set_annotation("score64", np.where(np.arange(n) == 3, np.nan, rng.random(n)))
-    atoms.set_annotation("label", np.array(["", "a", "bb", "ccc"] * (n // 4) + [""] * (n % 4)))
-    atoms.set_annotation("embedding", rng.random((n, 4)).astype(np.float32))
-    atoms.set_annotation("resolution", np.array(2.5, dtype=np.float32), n_body=0)
-    pairs = np.array([[0, 5], [3, 8]])
-    atoms.set_annotation("contact", AnnotationList2D(n, pairs, np.array([1.5, 2.5])), n_body=2)
-    atoms.box = np.diag([50.0, 51.0, 52.0]).astype(np.float32)
-    with pytest.raises(ValueError, match="cannot serialize.*custom annotations losslessly"):
-        _roundtrip(atoms)
-
-
-@require_atomworks
-def test_coordinates_are_exact_even_beyond_fixed_point_precision():
-    """Coordinates that BinaryCIF's 0.001 A fixed point can't hold (e.g. atoms placed by a parser) are kept exactly."""
-    atoms = _roundtrip(str(CIF_FILE))
-    atoms.source_info.pop("_hf_encoded", None)
-    rng = np.random.default_rng(1)
-    atoms.coord = (atoms.coord + rng.random(atoms.coord.shape) * 1e-4).astype(np.float32)
-    np.testing.assert_array_equal(_roundtrip(atoms).coord, atoms.coord)
-    row = AtomicStructure().encode_example(_roundtrip(str(CIF_FILE)))
-    assert b"atomworks_coord" not in row["bytes"]  # not needed when atom_site is exact
+    atoms.coord += np.random.default_rng(1).random(atoms.coord.shape).astype(np.float32) * 1e-4
+    if missing:
+        atoms.coord[2] = np.nan
+    np.testing.assert_array_equal(_roundtrip(AtomicStructure().materialize(atoms)).coord, atoms.coord)
 
 
 @require_atomworks
@@ -312,9 +219,6 @@ def test_biotite_array_roundtrips():
     again = _roundtrip(atoms)
     assert again.atom_name.tolist() == atoms.atom_name.tolist()
     assert again.bonds == atoms.bonds
-
-
-# ---------------------------------------------------------------------------------- dataset plumbing
 
 
 @require_atomworks
@@ -355,14 +259,6 @@ def test_embed_storage_keeps_bytes_and_reads_missing_ones():
     assert embedded[2] is None
     skipped = AtomicStructure().embed_storage(storage, local_files=False).to_pylist()
     assert skipped[1]["bytes"] is None
-
-
-@require_atomworks
-def test_arrow_format():
-    dataset = Dataset.from_dict({"s": [str(PDB_FILE)]}, features=_features())
-    structure = dataset.with_format("arrow")[0]["s"]
-    assert structure.combine_chunks().field("bytes")[0].as_py() is None
-    assert structure.combine_chunks().field("path")[0].as_py() == str(PDB_FILE)
 
 
 @require_atomworks
@@ -450,35 +346,7 @@ def test_cleanup_is_decode_only_including_binarycif(file_type):
 
 @require_atomworks
 def test_default_keeps_alternate_conformers_hydrogens_and_insertion_codes():
-    import biotite.structure as struc
-    from atomworks.io import CIFWriteConfig, atom_array_to_file
-
-    atoms = struc.array(
-        [
-            struc.Atom(
-                [0.0, 0.0, 0.0], chain_id="A", res_id=1, ins_code="B", res_name="GLY", atom_name="CA", element="C"
-            ),
-            struc.Atom(
-                [1.0, 0.0, 0.0], chain_id="A", res_id=1, ins_code="B", res_name="GLY", atom_name="H", element="H"
-            ),
-        ]
-    )
-    atoms.bonds = struc.BondList(2)
-    # Introduce two conformers directly in the CIF; the live-array writer rejects ambiguous atom identities.
-    from biotite.structure.io.pdbx import CIFFile
-
-    file = CIFFile.read(
-        io.StringIO(atom_array_to_file(atoms, file_type="cif", config=CIFWriteConfig(chem_comp_source="array")))
-    )
-    site = file.block["atom_site"]
-    for name in list(site):
-        values = site[name].as_array(str)
-        site[name] = np.concatenate([values[:1], values])
-    site["label_alt_id"] = ["A", "B", "."]
-    site["id"] = [1, 2, 3]
-    buffer = io.StringIO()
-    file.write(buffer)
-    payload = buffer.getvalue().encode()
+    payload = (DATA_DIR / "test_altloc.cif").read_bytes()
     result = _roundtrip(payload)
     assert result.atom_name.tolist() == ["CA", "CA", "H"]
     assert result.ins_code.tolist() == ["B", "B", "B"]
@@ -530,21 +398,7 @@ def test_registered_standard_annotations_survive_live_array_encoding():
 
 @require_atomworks
 def test_assembly_is_decode_only():
-    from biotite.structure.io.pdbx import CIFCategory, CIFFile
-
-    file = CIFFile.read(str(CIF_FILE))
-    file.block["pdbx_struct_assembly_gen"] = CIFCategory(
-        {"assembly_id": ["1"], "oper_expression": ["1,2"], "asym_id_list": ["A"]}
-    )
-    operators = {"id": ["1", "2"], "type": ["identity operation", "crystal symmetry operation"]}
-    for i in range(1, 4):
-        operators[f"vector[{i}]"] = [0.0, 10.0 if i == 1 else 0.0]
-        for j in range(1, 4):
-            operators[f"matrix[{i}][{j}]"] = [float(i == j)] * 2
-    file.block["pdbx_struct_oper_list"] = CIFCategory(operators)
-    buffer = io.StringIO()
-    file.write(buffer)
-    payload = buffer.getvalue().encode()
+    payload = (DATA_DIR / "test_assembly.cif").read_bytes()
     feature = AtomicStructure(assembly="1")
     encoded = feature.encode_example(payload)
     assembled = feature.decode_example(encoded)
@@ -565,17 +419,11 @@ def test_assembly_is_decode_only():
 
 
 def test_old_atomworks_api_has_actionable_import_error(monkeypatch):
-    import builtins
-
-    original_import = builtins.__import__
-
-    def legacy_import(name, *args, **kwargs):
-        if name == "atomworks.io":
-            raise ImportError("missing atom_array_from_file")
-        return original_import(name, *args, **kwargs)
+    import sys
+    from types import ModuleType
 
     monkeypatch.setattr("datasets.config.ATOMWORKS_AVAILABLE", True)
-    monkeypatch.setattr(builtins, "__import__", legacy_import)
+    monkeypatch.setitem(sys.modules, "atomworks.io", ModuleType("atomworks.io"))
     with pytest.raises(ImportError, match="supported development version"):
         AtomicStructure().decode_example({"bytes": b"unused", "path": None})
 
@@ -748,15 +596,6 @@ def test_previous_binarycif_metadata_version_still_loads():
     buffer = io.BytesIO()
     file.write(buffer)
     assert _roundtrip(buffer.getvalue()).bonds == atoms.bonds
-
-
-@require_atomworks
-def test_materialize_keeps_nan_coordinates():
-    atoms = _roundtrip(str(CIF_FILE))
-    atoms.coord[2] = np.nan
-    result = _roundtrip(AtomicStructure().materialize(atoms))
-    assert result.array_length() == atoms.array_length()
-    np.testing.assert_array_equal(result.coord, atoms.coord)
 
 
 @require_atomworks

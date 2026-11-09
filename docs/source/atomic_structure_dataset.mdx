@@ -165,27 +165,6 @@ Use `cache_version="my-ccd-v2"` for external scientific inputs such as custom CC
 
 CIF serialization can normalize author identifiers and annotation dtypes. It does not preserve all original file categories or custom Python objects; retain the original source dataset when that information matters. The versioned metadata reader still supports BinaryCIF written by the previous feature revision. These are format-specific guarantees, not a general arbitrary-array codec.
 
-### Measuring your workload
-
-`benchmarks/benchmark_atomic_structure.py` accepts local PDB/CIF files and reports cold first decode, repeated minimal/prepared reads, materialization cost, repeated BinaryCIF reads, and one/two-worker spawn throughput. It records input SHA256 hashes, dependency versions and peak process RSS. Run it with the same preparation policy, structure sizes and worker budget as your training pipeline. The script's default policy removes waters and selects the first alternate conformer; it is an explicit benchmark choice, not the feature default.
-
-```sh
-python benchmarks/benchmark_atomic_structure.py --files /data/*.cif.gz --output structures-benchmark.json
-```
-
-Peak RSS includes imports and CCD state and is a high-water mark, not incremental allocation. Worker peaks are reported separately and are not a simultaneous aggregate. The script does no downloads. Warm repeated reads may benefit from the operating system's file cache; network throughput is not measured. The prepared-byte read benchmark holds BinaryCIF in memory, while source reads include local file access and decompression. Measure saved Arrow reads separately for your training storage.
-
-One local macOS/Python 3.12 run (three reads per entry, one native thread per worker) produced:
-
-| PDB entry | Source atoms | Minimal source read | Source read + preparation | Materialized byte read |
-|---|---:|---:|---:|---:|
-| 1CRN | 327 | 2.83 ms | 16.20 ms | 2.25 ms |
-| 4HHB | 4,779 | 20.77 ms | 40.72 ms | 17.28 ms |
-| 6VXX | 23,694 | 98.82 ms | 219.34 ms | 79.00 ms |
-| 6QNR | 305,753 | 2.124 s | 4.517 s | 1.330 s |
-
-The 12-row minimal-decode batch took 8.27 s with one spawn worker and 5.78 s with two, including startup. Worker peak RSS was about 0.91–0.98 GiB; preparation/materialization cases peaked at 1.95–2.73 GiB including CCD state. Uncompressed materialized BinaryCIF was 1.39–2.50 times the compressed source size; this is not an equal-compression storage comparison. These four entries establish behavior across sizes, not a representative throughput estimate for the entire PDB. Raw measurements and source hashes are in `benchmarks/results/benchmark_atomic_structure.json`.
-
 ## Existing datasets and sequence records
 
 `BioStructure` and `BioSequence` remain importable and registered, including their original serialized feature names and Biopython output types. Saved datasets continue to load. For new structure datasets prefer `AtomicStructure`; migrate an existing column explicitly with `cast_column("structure", AtomicStructure())`.
