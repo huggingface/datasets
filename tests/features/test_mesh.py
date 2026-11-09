@@ -62,6 +62,9 @@ def test_mesh_decode_example(shared_datadir):
     decoded_example = mesh.decode_example({"path": mesh_path, "bytes": mesh_bytes})
     assert isinstance(decoded_example, (trimesh.Trimesh, trimesh.Scene))
 
+    # decoding an already decoded example returns it as is, so decoding twice is a no-op
+    assert mesh.decode_example(decoded_example) is decoded_example
+
     with pytest.raises(ValueError, match="requires a 'path' value"):
         mesh.decode_example({"path": None, "bytes": mesh_bytes})
 
@@ -140,6 +143,18 @@ def test_mesh_feature_encode_trimesh_object():
     assert encoded_example["bytes"] is not None
     decoded_example = Mesh().decode_example(encoded_example)
     assert isinstance(decoded_example, trimesh.Scene)
+
+
+@require_trimesh
+def test_mesh_feature_decodes_gltf(tmp_path):
+    import trimesh
+
+    gltf_path = tmp_path / "box.gltf"
+    trimesh.creation.box().export(gltf_path, file_type="gltf", embed_buffers=True)
+    decoded_from_path = Mesh().decode_example({"path": str(gltf_path), "bytes": None})
+    assert isinstance(decoded_from_path, (trimesh.Trimesh, trimesh.Scene))
+    decoded_from_bytes = Mesh().decode_example({"path": str(gltf_path), "bytes": gltf_path.read_bytes()})
+    assert isinstance(decoded_from_bytes, (trimesh.Trimesh, trimesh.Scene))
 
 
 def test_require_decoding():

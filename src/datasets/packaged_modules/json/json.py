@@ -284,12 +284,14 @@ class Json(datasets.ArrowBasedBuilder):
                                 batch = "\n".join(ujson_dumps(example) for example in examples).encode()
                             # Disable parallelism if block size is ~ len(batch) to avoid segfault
                             block_size = len(batch) if len(batch) // 8 > block_size else block_size
+                            pa_table = None
                             try:
                                 while True:
                                     try:
                                         pa_table = paj.read_json(
                                             io.BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
                                         )
+                                        pa_table.validate()
                                         break
                                     except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
                                         if batch.startswith(b"["):  # paj.read_json only supports json lines
@@ -299,7 +301,15 @@ class Json(datasets.ArrowBasedBuilder):
                                             and "JSON parse error: Column(" in str(e)
                                             and ") changed from" in str(e)
                                         ):
-                                            json_field_path = get_json_field_path_from_pyarrow_json_error(str(e))
+                                            json_field_path = get_json_field_path_from_pyarrow_json_error(
+                                                str(e), examples=(ujson_loads(line) for line in batch.splitlines())
+                                            )
+                                            if not json_field_path:
+                                                raise
+                                            if any(json_field_path[: len(path)] == path for path in json_field_paths):
+                                                raise ValueError(
+                                                    f"Cannot encode mixed-type JSON field {json_field_path!r} as JSON"
+                                                ) from e
                                             insert_json_field_path(json_field_paths, json_field_path)
                                             batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
                                         elif (
@@ -315,6 +325,22 @@ class Json(datasets.ArrowBasedBuilder):
                                         else:
                                             raise
                             except pa.ArrowInvalid as e:
+                                if pa_table is not None:
+                                    try:
+                                        examples = [ujson_loads(line) for line in batch.splitlines()]
+                                        pa_table = pa.concat_tables(
+                                            [pa.Table.from_pylist([example]) for example in examples],
+                                            promote_options="default",
+                                        )
+                                        pa_table.validate()
+                                    except (ValueError, pa.ArrowInvalid, pa.ArrowNotImplementedError):
+                                        raise e
+                                    yield (
+                                        Key(shard_idx, batch_idx),
+                                        self._cast_table(pa_table, json_field_paths=json_field_paths),
+                                    )
+                                    batch_idx += 1
+                                    continue
                                 if not allow_full_read:
                                     raise FullReadDisallowed()
                                 try:

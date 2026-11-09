@@ -73,8 +73,9 @@ from huggingface_hub import (
     HfFileSystem,
     HfFileSystemResolvedPath,
 )
-from huggingface_hub.utils import EntryNotFoundError, HfHubHTTPError, RepositoryNotFoundError
-from packaging import version
+from huggingface_hub.errors import BucketNotFoundError
+from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
+from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 from tqdm.contrib.concurrent import thread_map
 
 from . import __version__, config
@@ -146,16 +147,6 @@ from .utils.py_utils import (
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
 from .utils.typing import ListLike, PathLike
-
-
-if config.HF_HUB_VERSION >= version.parse("1.6.0"):
-    from huggingface_hub.errors import BucketNotFoundError
-    from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
-
-else:
-    BucketNotFoundError = None
-    HfFileSystemResolvedBucketPath = None
-    HfFileSystemResolvedRepositoryPath = HfFileSystemResolvedPath
 
 
 if TYPE_CHECKING:
@@ -870,7 +861,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         table = InMemoryTable.from_buffer(buffer)
 
         if indices_buffer is not None:
-            indices_table = InMemoryTable.from_buffer(buffer)
+            indices_table = InMemoryTable.from_buffer(indices_buffer)
         else:
             indices_table = None
 
@@ -1845,13 +1836,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if self.list_indexes():
             raise ValueError("please remove all the indexes using `dataset.drop_index` before saving a dataset")
 
+        from .arrow_writer import get_writer_batch_size_from_data_size
+
+        dataset_nbytes = self._estimate_nbytes()
         if num_shards is None:
-            dataset_nbytes = self._estimate_nbytes()
             max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
             num_shards = int(dataset_nbytes / max_shard_size) + 1
             num_shards = max(num_shards, num_proc or 1)
             # if we have only a few large samples, we should only create as many shards as samples
             num_shards = min(len(self.data), num_shards)
+
+        # use smaller batches for big samples (e.g. images) to stay below the 2GB limit of arrow binary arrays
+        writer_batch_size = config.DEFAULT_MAX_BATCH_SIZE
+        if dataset_nbytes > 0:
+            writer_batch_size = min(writer_batch_size, get_writer_batch_size_from_data_size(len(self), dataset_nbytes))
 
         fs: fsspec.AbstractFileSystem
         fs, _ = url_to_fs(dataset_path, **(storage_options or {}))
@@ -1905,6 +1903,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "shard": self.shard(num_shards=num_shards, index=shard_idx, contiguous=True),
                 "fpath": posixpath.join(dataset_path, f"data-{shard_idx:05d}-of-{num_shards:05d}.arrow"),
                 "storage_options": storage_options,
+                "writer_batch_size": writer_batch_size,
             }
             for shard_idx in range(num_shards)
         )
@@ -1946,9 +1945,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             json.dump(sorted_keys_dataset_info, dataset_info_file, indent=2)
 
     @staticmethod
-    def _save_to_disk_single(job_id: int, shard: "Dataset", fpath: str, storage_options: Optional[dict]):
-        batch_size = config.DEFAULT_MAX_BATCH_SIZE
-
+    def _save_to_disk_single(
+        job_id: int,
+        shard: "Dataset",
+        fpath: str,
+        storage_options: Optional[dict],
+        writer_batch_size: int,
+    ):
         num_examples_progress_update = 0
         writer = ArrowWriter(
             features=shard.features,
@@ -1958,7 +1961,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         try:
             _time = time.time()
-            for pa_table in shard.with_format("arrow").iter(batch_size):
+            for pa_table in shard.with_format("arrow").iter(writer_batch_size):
                 writer.write_table(pa_table)
                 num_examples_progress_update += len(pa_table)
                 if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
@@ -3859,7 +3862,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         processed_inputs.pop(column)
             if check_same_num_examples:
                 input_num_examples = len(pa_inputs)
-                processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
+                if not isinstance(processed_inputs, Mapping):
+                    # pa.Table, pd.DataFrame or pl.DataFrame
+                    processed_inputs_num_examples = len(processed_inputs)
+                elif processed_inputs:
+                    processed_inputs_num_examples = len(next(iter(processed_inputs.values())))
+                else:
+                    # an empty dict doesn't update any column
+                    processed_inputs_num_examples = input_num_examples
                 if input_num_examples != processed_inputs_num_examples:
                     raise DatasetTransformationNotAllowedError(
                         "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
@@ -4705,7 +4715,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
          'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'}]
         ```
         """
-        return self.select(range(n))
+        # Clamp `n` to the dataset length so taking more elements than available
+        # returns the whole dataset instead of raising an IndexError, matching
+        # the behavior of `IterableDataset.take`.
+        return self.select(range(min(n, len(self))))
 
     @transmit_format
     @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"])
@@ -5737,7 +5750,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             k for k, v in self._info.features.items() if require_decoding(v, ignore_decode_attribute=True)
         ]
 
-        if decodable_columns:
+        if decodable_columns and len(self) > 0:
             # Approximate the space needed to store the bytes from the external files by analyzing the first 1000 examples
             extra_nbytes = 0
 
@@ -6025,12 +6038,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             logger.warning(
                 f"Setting num_proc from {num_jobs} back to 1 for the {split} split to disable multiprocessing as it only contains one shard."
             )
+            num_proc = None
             num_jobs = 1
         elif num_shards < num_jobs:
             logger.warning(
                 f"Setting num_proc from {num_jobs} to {num_shards} for the {split} split as it only contains {num_shards} shards."
             )
             num_proc = num_shards
+            num_jobs = num_shards
         kwargs_iterable = [
             {
                 "self": self.shard(num_shards=num_jobs, index=job_id, contiguous=True),
@@ -6140,7 +6155,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 organization's default is private. This value is ignored if the repo already exists.
             token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
-                to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
+                to the token saved locally when logging in with `hf auth login`. Will raise an error
                 if no token is passed and the user is not logged-in.
             revision (`str`, *optional*):
                 Branch to push the uploaded files to. Defaults to the `"main"` branch.
@@ -6233,8 +6248,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if append and repo_id.startswith("buckets/"):
             raise ValueError("append=True is only supported for dataset repositories, not buckets.")
         if repo_id.startswith("buckets/"):
-            if BucketNotFoundError is None:
-                raise ImportError("Pushing datasets to buckets requires huggingface_hub>=1.6.0")
             _, _namespace, _bucket_name, *_path_segments = repo_id.split("/")
             try:
                 bucket_id = api.bucket_info(_namespace + "/" + _bucket_name).id
@@ -7112,10 +7125,7 @@ def _push_to_repo(
         dirfs = DirFileSystem(fs=hffs, path=hf_path)
 
         # Check the files to delete
-        try:
-            files_to_delete = dirfs.glob(f"{data_dir}/{split}-*", detail=True)
-        except EntryNotFoundError:  # needed for huggingface_hub<=1.7.1
-            files_to_delete = {}
+        files_to_delete = dirfs.glob(f"{data_dir}/{split}-*", detail=True)
 
         # Don't delete the new files
         deletions = [
@@ -7202,10 +7212,7 @@ def _push_to_bucket(
     dirfs = DirFileSystem(fs=hffs, path=hf_path)
 
     # Check the files to delete before uploading
-    try:
-        files_to_delete = dirfs.glob(f"{data_dir}/{split}-*", detail=True)
-    except EntryNotFoundError:  # needed for huggingface_hub<=1.7.1
-        files_to_delete = {}
+    files_to_delete = dirfs.glob(f"{data_dir}/{split}-*", detail=True)
 
     # Upload the Parquet files
     _, new_parquet_paths, features, split_info, uploaded_size = dset._push_parquet_shards_to_hub(
@@ -7721,7 +7728,9 @@ def _concatenate_map_style_datasets(
     if info is None:
         info = DatasetInfo.from_merge([dset.info for dset in dsets])
     fingerprint = update_fingerprint(
-        "".join(dset._fingerprint for dset in dsets), _concatenate_map_style_datasets, {"info": info, "split": split}
+        "".join(dset._fingerprint for dset in dsets),
+        _concatenate_map_style_datasets,
+        {"info": info, "split": split, "axis": axis},
     )
 
     # Make final concatenated dataset
@@ -7830,15 +7839,97 @@ def _interleave_map_style_datasets(
         # We have to keep the indices to their respective dataset offsets and to flatten to effectively interleave the datasets
         indices = (indices + offsets).flatten().tolist()
 
-    else:
-        # boolean array indicating if at index i if the dataset_i has been fully exhausted
-        is_exhausted = np.full(len(lengths), False)
+    elif stopping_strategy in ("first_exhausted", "all_exhausted"):
+        # Vectorized equivalent of the per-example Python loop below (kept for
+        # `all_exhausted_without_replacement`). For `first_exhausted` /
+        # `all_exhausted` the loop just appends, for each randomly drawn source,
+        # that source's next index with wrap-around on exhaustion (rolling
+        # window), and stops when the first (any) / every (all) source has been
+        # drawn at least `length` times. That is fully vectorizable, giving a
+        # large speedup for big outputs (e.g. ~90 min -> ~5 s for a ~93M-row
+        # interleave) while producing bit-identical output for a fixed `seed`,
+        # since we consume the RNG in the exact same 1000-sized `choice` blocks.
+        lengths_arr = np.asarray(lengths, dtype=np.int64)
+        n_datasets = len(lengths)
 
-        # if undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted
-        # if oversampling ("all_exhausted"), we stop as soons as every dataset is exhausted, i.e as soon as every samples of every dataset has been visited at least once
-        bool_strategy_func = (
-            np.all if (oversampling or stopping_strategy == "all_exhausted_without_replacement") else np.any
-        )
+        # A source with probability 0 is never drawn, so it can neither be
+        # exhausted nor contribute rows. Exclude those from the stopping
+        # condition rather than treating them as ordinary sources.
+        drawable = np.asarray(probabilities, dtype=np.float64) > 0
+
+        # Empty sources: a length-0 dataset that can actually be drawn can never
+        # be sampled to its length, so the stopping condition is ill-defined. The
+        # previous implementation crashed here with a cryptic `IndexError: Index N
+        # out of range` (it sampled the empty source and indexed into it). Raise a
+        # clear error instead -- for both strategies, since such a source is
+        # degenerate either way and silently dropping it would change results.
+        # An empty source with probability 0 is simply never drawn, which worked
+        # before, so it stays allowed.
+        empty = [i for i in range(n_datasets) if lengths[i] == 0 and drawable[i]]
+        if empty:
+            raise ValueError(
+                "interleave_datasets with probabilities requires every dataset "
+                "that can be sampled (probability > 0) to be non-empty; "
+                f"datasets at indices {empty} are empty."
+            )
+
+        # Under `all_exhausted` every source must be exhausted, but a source with
+        # probability 0 never will be -- the original loop spun forever in this
+        # case. Fail with a clear error instead of looping unboundedly.
+        if oversampling and not drawable.all():
+            unreachable = [i for i in range(n_datasets) if not drawable[i]]
+            raise ValueError(
+                'interleave_datasets with stopping_strategy="all_exhausted" cannot '
+                "exhaust a dataset that is never sampled; datasets at indices "
+                f"{unreachable} have probability 0."
+            )
+
+        rng = np.random.default_rng(seed)
+
+        # Draw source indices in 1000-sized blocks (matching the original
+        # iter_random_indices) until the stopping condition can be evaluated,
+        # i.e. until enough sources have reached their length.
+        blocks = []
+        counts = np.zeros(n_datasets, dtype=np.int64)
+        reached = np.zeros(n_datasets, dtype=bool)
+        while not (reached[drawable].any() if not oversampling else reached[drawable].all()):
+            block = rng.choice(n_datasets, size=1000, p=probabilities)
+            blocks.append(block)
+            counts += np.bincount(block, minlength=n_datasets)
+            reached = counts >= lengths_arr
+        draws = np.concatenate(blocks)
+
+        # A source becomes exhausted right AFTER its `length`-th draw, and
+        # the original loop checks the stop condition BEFORE appending. So
+        # the last draw we keep (inclusive) is at that length-th occurrence:
+        #   - first_exhausted (any): the earliest such position over sources
+        #   - all_exhausted (all):   the latest such position over sources
+        exhaust_pos = np.full(n_datasets, -1, dtype=np.int64)
+        for s in range(n_datasets):
+            if not drawable[s]:
+                continue
+            occ = np.flatnonzero(draws == s)
+            if len(occ) >= lengths[s]:
+                exhaust_pos[s] = occ[lengths[s] - 1]
+        valid_pos = exhaust_pos[exhaust_pos >= 0]
+        stop_at = valid_pos.min() if not oversampling else valid_pos.max()
+        used = draws[: stop_at + 1]
+
+        # Map each source's k-th appearance to its k-th index with
+        # wrap-around: concatenated row = (k % length) + offset.
+        indices_arr = np.empty(len(used), dtype=np.int64)
+        for s in range(n_datasets):
+            if not drawable[s]:
+                continue
+            pos = np.flatnonzero(used == s)
+            indices_arr[pos] = (np.arange(len(pos)) % lengths[s]) + offsets[s]
+        indices = indices_arr.tolist()
+
+    else:
+        # all_exhausted_without_replacement: each sample appears exactly once, so
+        # an exhausted source is skipped rather than wrapped -- the output length
+        # is not simply the draw count, so keep the explicit per-example loop.
+        is_exhausted = np.full(len(lengths), False)
 
         def iter_random_indices():
             """Get an infinite iterator that randomly samples the index of the source to pick examples from."""
@@ -7849,24 +7940,19 @@ def _interleave_map_style_datasets(
         current_index = [0] * len(datasets)
         indices = []
         for source_idx in iter_random_indices():
-            # If no oversampling, we stop as soon as a dataset has ran out of examples (np.any)
-            # Otherwise, we stop as soon as every dataset has ran out of examples (np.all)
-            if bool_strategy_func(is_exhausted):
-                # the stopping condition was reached, let's stop
+            # Stop as soon as every dataset has run out of examples (np.all).
+            if np.all(is_exhausted):
                 break
 
-            # let's add the example at the current index of the `source_idx`-th dataset
-            # For without replacement sampling we additionally need to make sure the current source is not exhausted to not oversample.
-            if stopping_strategy != "all_exhausted_without_replacement" or not is_exhausted[source_idx]:
+            # Add the example at the current index of the source_idx-th dataset,
+            # unless that source is already exhausted (no oversampling).
+            if not is_exhausted[source_idx]:
                 indices.append(current_index[source_idx] + offsets[source_idx])
                 current_index[source_idx] += 1
 
-            # we've ran out of examples for the current dataset, let's update our boolean array and bring the current_index back to 0
+            # Mark exhaustion; do not reset the index (no replacement).
             if current_index[source_idx] >= lengths[source_idx]:
                 is_exhausted[source_idx] = True
-                # We don't want to reset the iterator when stopping strategy is without replacement.
-                if stopping_strategy != "all_exhausted_without_replacement":
-                    current_index[source_idx] = 0
 
     return concatenated_datasets.select(indices, **kwargs)
 

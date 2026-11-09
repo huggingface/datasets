@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from datasets import Dataset, IterableDataset
+from datasets import Dataset, IterableDataset, concatenate_datasets
 from datasets.distributed import split_dataset_by_node
 
 from .utils import execute_subprocess_async, get_torch_dist_unique_port, require_torch
@@ -141,10 +141,23 @@ def test_split_dataset_by_node_iterable_shards_strategy_checked_at_iteration():
 
     full_ds = IterableDataset.from_generator(gen, gen_kwargs={"shards": list(range(6))})
     ds = split_dataset_by_node(full_ds, rank=1, world_size=3, strategy="shards")
-    # shuffle() interleaves the shards into a single source, which prepares the
-    # iterable eagerly; the check fails there rather than mid-iteration.
+    # Explicit sharding reduces the sources to one and prepares the iterable
+    # eagerly; the check fails there rather than mid-iteration.
     with pytest.raises(ValueError, match="num_shards=1.*world_size=3"):
-        ds.shuffle(seed=0, buffer_size=4)
+        ds.shard(num_shards=6, index=0)
+
+
+def test_split_dataset_by_node_shuffle_preserves_shards():
+    full_ds = IterableDataset.from_dict({"i": list(range(12))}, num_shards=6)
+    datasets_per_rank = [
+        split_dataset_by_node(full_ds, rank=rank, world_size=3, strategy="shards").shuffle(seed=0, buffer_size=4)
+        for rank in range(3)
+    ]
+
+    assert [ds.num_shards for ds in datasets_per_rank] == [2, 2, 2]
+    rows_per_rank = [[row["i"] for row in ds] for ds in datasets_per_rank]
+    assert [len(rows) for rows in rows_per_rank] == [4, 4, 4]
+    assert sorted(i for rows in rows_per_rank for i in rows) == list(range(12))
 
 
 def test_split_dataset_by_node_iterable_distributed():
@@ -165,6 +178,34 @@ def test_split_dataset_by_node_iterable_distributed():
     ]
     assert sum(len(list(ds)) for ds in datasets_per_rank_per_worker) == full_size
     assert len({tuple(x.values()) for ds in datasets_per_rank_per_worker for x in ds}) == full_size
+
+
+@pytest.mark.parametrize("axis", [0, 1])
+@pytest.mark.parametrize("world_size", [2, 3])
+@pytest.mark.parametrize("num_shards", [(4, 4), (3, 5)])
+@pytest.mark.parametrize("strategy", [None, "examples"])
+def test_concatenate_datasets_after_split_dataset_by_node(axis, world_size, num_shards, strategy):
+    kwargs = {} if strategy is None else {"strategy": strategy}
+    ds1 = IterableDataset.from_dict({"a": list(range(12))}, num_shards=num_shards[0])
+    ds2 = IterableDataset.from_dict({"a" if axis == 0 else "b": list(range(100, 112))}, num_shards=num_shards[1])
+    full_ds = concatenate_datasets([ds1, ds2], axis=axis)
+    full_rows = list(full_ds)
+    rows_per_rank = []
+    for rank in range(world_size):
+        ds1_rank = split_dataset_by_node(ds1, rank=rank, world_size=world_size, **kwargs)
+        ds2_rank = split_dataset_by_node(ds2, rank=rank, world_size=world_size, **kwargs)
+        rows = list(concatenate_datasets([ds1_rank, ds2_rank], axis=axis))
+        assert rows == list(split_dataset_by_node(full_ds, rank=rank, world_size=world_size, **kwargs))
+        rows_per_rank.append(rows)
+    assert sum(len(rows) for rows in rows_per_rank) == len(full_rows)
+    assert len({tuple(x.values()) for rows in rows_per_rank for x in rows}) == len(full_rows)
+
+
+def test_concatenate_datasets_split_differently_by_node():
+    full_ds = IterableDataset.from_dict({"a": list(range(8))}, num_shards=4)
+    ds_rank0 = split_dataset_by_node(full_ds, rank=0, world_size=2)
+    with pytest.raises(ValueError, match="identically split_by_node"):
+        concatenate_datasets([ds_rank0, full_ds])
 
 
 def test_distributed_shuffle_iterable():

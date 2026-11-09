@@ -21,10 +21,10 @@ from huggingface_hub import (
     CommitOperationDelete,
     HfApi,
     HfFileSystem,
-    HfFileSystemResolvedPath,
 )
-from huggingface_hub.utils import EntryNotFoundError, HfHubHTTPError, RepositoryNotFoundError
-from packaging import version
+from huggingface_hub.errors import BucketNotFoundError
+from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
+from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 
 from . import __version__, config
 from .arrow_dataset import (
@@ -41,16 +41,6 @@ from .table import Table
 from .utils import logging
 from .utils.doc_utils import is_documented_by
 from .utils.typing import PathLike
-
-
-if config.HF_HUB_VERSION >= version.parse("1.6.0"):
-    from huggingface_hub.errors import BucketNotFoundError
-    from huggingface_hub.hf_file_system import HfFileSystemResolvedBucketPath, HfFileSystemResolvedRepositoryPath
-
-else:
-    BucketNotFoundError = None
-    HfFileSystemResolvedBucketPath = None
-    HfFileSystemResolvedRepositoryPath = HfFileSystemResolvedPath
 
 
 logger = logging.get_logger(__name__)
@@ -1687,7 +1677,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 organization's default is private. This value is ignored if the repo already exists.
             token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
-                to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
+                to the token saved locally when logging in with `hf auth login`. Will raise an error
                 if no token is passed and the user is not logged-in.
             revision (`str`, *optional*):
                 Branch to push the uploaded files to. Defaults to the `"main"` branch.
@@ -1777,8 +1767,6 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         if append and repo_id.startswith("buckets/"):
             raise ValueError("append=True is only supported for dataset repositories, not buckets.")
         if repo_id.startswith("buckets/"):
-            if BucketNotFoundError is None:
-                raise ImportError("Pushing datasets to buckets requires huggingface_hub>=1.6.0")
             _, _namespace, _bucket_name, *_path_segments = repo_id.split("/")
             try:
                 bucket_id = api.bucket_info(_namespace + "/" + _bucket_name).id
@@ -2405,7 +2393,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 organization's default is private. This value is ignored if the repo already exists.
             token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
-                to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
+                to the token saved locally when logging in with `hf auth login`. Will raise an error
                 if no token is passed and the user is not logged-in.
             revision (`str`, *optional*):
                 Branch to push the uploaded files to. Defaults to the `"main"` branch.
@@ -2485,8 +2473,6 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
         if repo_id.startswith("buckets/"):
-            if BucketNotFoundError is None:
-                raise ImportError("Pushing datasets to buckets requires huggingface_hub>=1.6.0")
             _, _namespace, _bucket_name, *_path_segments = repo_id.split("/")
             try:
                 bucket_id = api.bucket_info(_namespace + "/" + _bucket_name).id
@@ -2666,10 +2652,7 @@ def _push_to_repo(
         dirfs = DirFileSystem(fs=hffs, path=hf_path)
 
         # Check the files to delete
-        try:
-            files_to_delete = list(dirfs.glob(f"{data_dir}/*"))
-        except EntryNotFoundError:  # needed for huggingface_hub<=1.7.1
-            files_to_delete = []
+        files_to_delete = list(dirfs.glob(f"{data_dir}/*"))
 
         # Don't delete the new files
         deletions = [
@@ -2758,10 +2741,7 @@ def _push_to_bucket(
     uploaded_sizes: list[int] = []
 
     # Check the files to delete before uploading
-    try:
-        files_to_delete = list(dirfs.glob(f"{data_dir}/*"))
-    except EntryNotFoundError:  # needed for huggingface_hub<=1.7.1
-        files_to_delete = []
+    files_to_delete = list(dirfs.glob(f"{data_dir}/*"))
 
     for split in dset_dict:
         # Upload the Parquet files

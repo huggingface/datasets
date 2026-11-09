@@ -140,6 +140,31 @@ def test_bio_sequence_decodes_from_bytes(fasta_path):
 
 
 @require_biopython
+@pytest.mark.parametrize("format", ["fasta", "fastq"])
+@pytest.mark.parametrize("newline", [b"\n", b"\r\n", b"\r"], ids=["lf", "crlf", "cr"])
+@pytest.mark.parametrize("source", ["bytes", "path"])
+def test_bio_sequence_decodes_universal_newlines(format, newline, source, tmp_path):
+    from Bio.SeqRecord import SeqRecord
+
+    data = (b">a\nACGT\n" if format == "fasta" else b"@a\nACGT\n+\nIIII\n").replace(b"\n", newline)
+    path = tmp_path / f"seq.{format}"
+    if source == "path":
+        path.write_bytes(data)
+    value = str(path) if source == "path" else data
+    ds = Dataset.from_dict({"seq": [value]}, features=Features({"seq": BioSequence(format=format)}))
+
+    record = ds[0]["seq"]
+    assert isinstance(record, SeqRecord)
+    assert (record.id, str(record.seq)) == ("a", "ACGT")
+    if format == "fastq":
+        assert record.letter_annotations["phred_quality"] == [40, 40, 40, 40]
+    raw = ds.cast_column("seq", BioSequence(format=format, decode=False))[0]["seq"]
+    assert raw == {"path": str(path) if source == "path" else None, "bytes": None if source == "path" else data}
+    if source == "path":
+        assert path.read_bytes() == data
+
+
+@require_biopython
 def test_bio_structure_decodes_to_structure(pdb_path):
     from Bio.PDB.Structure import Structure
 
@@ -148,6 +173,33 @@ def test_bio_structure_decodes_to_structure(pdb_path):
     assert isinstance(structure, Structure)
     assert [chain.id for chain in structure.get_chains()] == ["A"]
     assert len(list(structure.get_atoms())) == 2
+
+
+@require_biopython
+@pytest.mark.parametrize("newline", [b"\n", b"\r\n", b"\r"], ids=["lf", "crlf", "cr"])
+@pytest.mark.parametrize("source", ["bytes", "path"])
+def test_bio_structure_decodes_universal_newlines(newline, source, tmp_path):
+    from Bio.PDB.Structure import Structure
+
+    data = PDB_BYTES.replace(b"\n", newline)
+    path = tmp_path / "structure.pdb"
+    if source == "path":
+        path.write_bytes(data)
+    value = str(path) if source == "path" else data
+    ds = Dataset.from_dict({"st": [value]}, features=Features({"st": BioStructure()}))
+
+    structure = ds[0]["st"]
+    assert isinstance(structure, Structure)
+    assert structure.id == "structure"
+    assert [chain.id for chain in structure.get_chains()] == ["A"]
+    atoms = list(structure.get_atoms())
+    assert [atom.id for atom in atoms] == ["N", "CA"]
+    assert atoms[0].coord.tolist() == pytest.approx([11.104, 13.207, 10.567])
+    assert atoms[1].coord.tolist() == pytest.approx([12.560, 13.099, 10.500])
+    raw = ds.cast_column("st", BioStructure(decode=False))[0]["st"]
+    assert raw == {"path": str(path) if source == "path" else None, "bytes": None if source == "path" else data}
+    if source == "path":
+        assert path.read_bytes() == data
 
 
 @require_biopython
