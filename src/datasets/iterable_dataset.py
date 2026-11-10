@@ -97,15 +97,19 @@ def identity_func(x):
     return x
 
 
-def _rename_columns_fn(example: dict, column_mapping: dict[str, str]):
-    if any(col not in example for col in column_mapping):
+def _rename_columns_fn(example: Union[dict, pa.Table], column_mapping: dict[str, str]):
+    column_names = example.column_names if isinstance(example, pa.Table) else example
+    if any(col not in column_names for col in column_mapping):
         raise ValueError(
-            f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_mapping) - set(example)} are not in the dataset."
+            f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_mapping) - set(column_names)} are not in the dataset."
         )
-    if any(col in example for col in column_mapping.values()):
+    if any(col in column_names for col in column_mapping.values()):
         raise ValueError(
-            f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(example) - set(column_mapping.values())} are already in the dataset."
+            f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_names) - set(column_mapping.values())} are already in the dataset."
         )
+    if isinstance(example, pa.Table):
+        # the output of a function applied to a table replaces the input table, so it must contain every column
+        return example.rename_columns([column_mapping.get(col, col) for col in example.column_names])
     return {
         new_column_name: example[original_column_name]
         for original_column_name, new_column_name in column_mapping.items()
@@ -4346,9 +4350,17 @@ class IterableDataset(DatasetInfoMixin):
         """
 
         original_features = self._info.features.copy() if self._info.features else None
-        ds_iterable = self.map(
-            partial(_rename_columns_fn, column_mapping=column_mapping), remove_columns=list(column_mapping)
-        )
+        if self._formatting and self._formatting.is_table:
+            # with a table format (arrow, pandas, polars...) the function gets tables instead of dicts
+            ds_iterable = (
+                self.with_format("arrow")
+                .map(partial(_rename_columns_fn, column_mapping=column_mapping), batched=True)
+                .with_format(self._formatting.format_type)
+            )
+        else:
+            ds_iterable = self.map(
+                partial(_rename_columns_fn, column_mapping=column_mapping), remove_columns=list(column_mapping)
+            )
         if original_features is not None:
             ds_iterable._info.features = Features(
                 {
