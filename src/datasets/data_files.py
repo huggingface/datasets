@@ -96,7 +96,7 @@ DEFAULT_PATTERNS_ALL = {
 
 DEFAULT_PATTERNS_LOGS = {"logs": ["**/*.eval"]}
 DEFAULT_PATTERNS_HARBOR = {"test": ["**/task.toml", "**/instruction.md"]}
-DEFAULT_PATTERNS_BIDS = {"train": ["[d]ataset_description.json", "[p]articipants.tsv", "sub-*/*/*", "sub-*/*/*/*"]}
+DEFAULT_PATTERNS_BIDS = {"train": ["dataset_description.json"]}
 
 ALL_SPLIT_PATTERNS = [SPLIT_PATTERN_SHARDED]
 ALL_DEFAULT_PATTERNS = [

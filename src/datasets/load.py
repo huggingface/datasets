@@ -216,11 +216,7 @@ def infer_module_for_data_files_list(
             - inferred module name
             - dict of builder kwargs
     """
-    if any(
-        xbasename(filepath) == "dataset_description.json"
-        or os.path.splitext(filepath)[1].lower() in _MODULE_TO_EXTENSIONS["bids"]
-        for filepath in data_files_list
-    ):
+    if data_files_list and xbasename(data_files_list[0]) == "dataset_description.json":
         return "bids", {}
     extensions_counter = Counter(
         ("." + suffix.lower(), xbasename(filepath) in _ALL_METADATA_FILENAMES)
@@ -234,6 +230,7 @@ def infer_module_for_data_files_list(
             (ext, is_metadata), count = ext_count
             return (
                 not is_metadata,
+                _EXTENSION_TO_MODULE.get(ext) == ("bids", {}),
                 count,
                 ext == ".parquet",
                 ext == ".lance",

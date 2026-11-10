@@ -7,9 +7,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional, Union
 
+import pyarrow as pa
+
 import datasets
-from datasets import config
 from datasets.features.biosignal import _find_bids_root
+from datasets.table import table_cast
 
 
 BIDS_DATATYPES = ("meg", "eeg", "ieeg", "emg", "nirs")
@@ -53,12 +55,16 @@ def _coerce_column(values: list[Optional[str]]) -> tuple[list[Any], datasets.Val
     return values, datasets.Value("string")
 
 
-def _parse_bids_filename(fpath: Path) -> dict[str, Optional[str]]:
-    stem, ext = fpath.stem, fpath.suffix
+def _parse_bids_filename(fpath: Union[str, Path]) -> dict[str, Optional[str]]:
+    s = str(fpath).replace("\\", "/")
+    slash = s.rfind("/")
+    name = s[slash + 1 :]
+    parent = s[:slash].rsplit("/", 1)[-1] if slash > 0 else ""
+    dot = name.rfind(".")
+    stem, ext = (name[:dot], name[dot:]) if dot > 0 else (name, None)
     parts = stem.split("_")
     kv = dict(p.split("-", 1) for p in parts if "-" in p)
     suffix = parts[-1] if parts and "-" not in parts[-1] else None
-    parent = fpath.parent.name
     datatype = (
         parent
         if parent and not parent.startswith(("sub-", "ses-"))
@@ -74,6 +80,37 @@ def _parse_bids_filename(fpath: Path) -> dict[str, Optional[str]]:
         "suffix": suffix,
         "extension": ext or None,
     }
+
+
+def _iter_bids_files(
+    root: Path,
+    ext_set: set[str],
+    sub_set: Optional[set[str]] = None,
+    ses_set: Optional[set[str]] = None,
+    dt_set: Optional[set[str]] = None,
+) -> list[str]:
+    out: list[str] = []
+    stack = [
+        e.path
+        for e in os.scandir(root)
+        if e.is_dir(follow_symlinks=False) and e.name.startswith("sub-") and (sub_set is None or e.name[4:] in sub_set)
+    ]
+    while stack:
+        d = stack.pop()
+        for e in os.scandir(d):
+            name = e.name
+            dot = name.rfind(".")
+            if dot > 0 and name[dot:].lower() in ext_set:
+                if e.is_file(follow_symlinks=True) or e.is_dir(follow_symlinks=True):
+                    out.append(e.path)
+            elif e.is_dir(follow_symlinks=False) and not name.startswith("."):
+                if name.startswith("ses-"):
+                    if ses_set is None or name[4:] in ses_set:
+                        stack.append(e.path)
+                elif dt_set is None or name in dt_set:
+                    stack.append(e.path)
+    out.sort()
+    return out
 
 
 def _read_participants_tsv(
@@ -140,7 +177,7 @@ class BidsConfig(datasets.BuilderConfig):
     features: Optional[datasets.Features] = None
 
 
-class Bids(datasets.GeneratorBasedBuilder):
+class Bids(datasets.ArrowBasedBuilder):
     """Builder for BIDS (Brain Imaging Data Structure) datasets using `mne-bids`: one row per recording."""
 
     BUILDER_CONFIG_CLASS = BidsConfig
@@ -168,15 +205,20 @@ class Bids(datasets.GeneratorBasedBuilder):
         )
 
     def _discover_records(self, paths: list[str]) -> tuple[list[dict[str, Any]], dict[str, datasets.Value]]:
-        datatypes = _ensure_list(self.config.datatypes) or list(BIDS_DATATYPES)
-        suffixes = _ensure_list(self.config.suffixes) or list(BIDS_DATATYPES)
+        dt_set = set(_ensure_list(self.config.datatypes) or BIDS_DATATYPES)
+        suf_set = set(_ensure_list(self.config.suffixes) or BIDS_DATATYPES)
         extensions = _ensure_list(self.config.extensions) or list(BIDS_RECORDING_EXTENSIONS)
         ext_set = {e.lower() for e in extensions}
-        subjects = _ensure_list(self.config.subjects)
-        sessions = _ensure_list(self.config.sessions)
-        tasks = _ensure_list(self.config.tasks)
-        acquisitions = _ensure_list(self.config.acquisitions)
-        runs = _ensure_list(self.config.runs)
+        sub_list = _ensure_list(self.config.subjects)
+        ses_list = _ensure_list(self.config.sessions)
+        task_list = _ensure_list(self.config.tasks)
+        acq_list = _ensure_list(self.config.acquisitions)
+        run_list = _ensure_list(self.config.runs)
+        sub_set = set(sub_list) if sub_list else None
+        ses_set = set(ses_list) if ses_list else None
+        task_set = set(task_list) if task_list else None
+        acq_set = set(acq_list) if acq_list else None
+        run_set = set(run_list) if run_list else None
 
         bids_roots: list[Path] = []
         seen_roots: set[Path] = set()
@@ -219,10 +261,13 @@ class Bids(datasets.GeneratorBasedBuilder):
                     extra_features.setdefault(col, feat)
             return participants_cache[root]
 
+        candidates: list[tuple[str, Optional[Path]]] = []
         for root in bids_roots:
             _get_participants(root)
+            if not recording_files:
+                for fpath in _iter_bids_files(root, ext_set, sub_set, ses_set, dt_set):
+                    candidates.append((fpath, root))
 
-        matched_items: list[tuple[str, dict[str, Optional[str]], Optional[Path]]] = []
         if recording_files:
             top_root = bids_roots[0] if len(bids_roots) == 1 else None
             for rf in sorted(recording_files):
@@ -237,58 +282,29 @@ class Bids(datasets.GeneratorBasedBuilder):
                     except ValueError:
                         pass
                 _get_participants(root)
-                ent = _parse_bids_filename(rf)
-                if subjects and ent["subject"] not in subjects:
-                    continue
-                if sessions and ent["session"] not in sessions:
-                    continue
-                if tasks and ent["task"] not in tasks:
-                    continue
-                if acquisitions and ent["acquisition"] not in acquisitions:
-                    continue
-                if runs and ent["run"] not in runs:
-                    continue
-                if ent["datatype"] and ent["datatype"] not in datatypes:
-                    continue
-                if ent["suffix"] and ent["suffix"] not in suffixes:
-                    continue
-                matched_items.append((str(rf), ent, root))
-        elif bids_roots:
-            if not config.MNE_BIDS_AVAILABLE:
-                raise ImportError(
-                    "To load BIDS datasets, please install 'mne-bids' and 'mne' (`pip install mne-bids`)."
-                )
-            import mne_bids
-
-            for root in bids_roots:
-                matches = mne_bids.find_matching_paths(
-                    root=root,
-                    subjects=subjects,
-                    sessions=sessions,
-                    tasks=tasks,
-                    acquisitions=acquisitions,
-                    runs=runs,
-                    datatypes=datatypes,
-                    suffixes=suffixes,
-                    extensions=extensions,
-                    ignore_json=True,
-                    ignore_nosub=True,
-                )
-                for bp in matches:
-                    if not bp.fpath.exists():
-                        continue
-                    rel_parts = bp.fpath.relative_to(root).parts
-                    if rel_parts and rel_parts[0] in ("sourcedata", "derivatives"):
-                        continue
-                    ent = {col: getattr(bp, col) for col in BIDS_ENTITY_COLUMNS}
-                    matched_items.append((str(bp.fpath), ent, root))
+                candidates.append((str(rf), root))
 
         records: list[dict[str, Any]] = []
-        for fpath, ent, root in matched_items:
+        for fpath, root in candidates:
+            ent = _parse_bids_filename(fpath)
+            if sub_set and ent["subject"] not in sub_set:
+                continue
+            if ses_set and ent["session"] not in ses_set:
+                continue
+            if task_set and ent["task"] not in task_set:
+                continue
+            if acq_set and ent["acquisition"] not in acq_set:
+                continue
+            if run_set and ent["run"] not in run_set:
+                continue
+            if ent["datatype"] and ent["datatype"] not in dt_set:
+                continue
+            if ent["suffix"] and ent["suffix"] not in suf_set:
+                continue
             sub_meta = _get_participants(root).get(ent["subject"] or "", {})
             records.append(
                 {
-                    "biosignal": fpath,
+                    "biosignal": {"bytes": None, "path": fpath},
                     **ent,
                     **{col: sub_meta.get(col) for col in extra_features},
                 }
@@ -307,12 +323,7 @@ class Bids(datasets.GeneratorBasedBuilder):
         for split_name, files in self.config.data_files.items():
             if isinstance(files, str):
                 files = [files]
-            local_or_extracted = []
-            for f in files:
-                if os.path.exists(f):
-                    local_or_extracted.append(f)
-                else:
-                    local_or_extracted.append(dl_manager.download_and_extract(f))
+            local_or_extracted = [f if os.path.exists(f) else dl_manager.download_and_extract(f) for f in files]
             records, extra_feats = self._discover_records(local_or_extracted)
             split_records[split_name] = records
             for col, feat in extra_feats.items():
@@ -339,6 +350,7 @@ class Bids(datasets.GeneratorBasedBuilder):
             )
         return splits
 
-    def _generate_examples(self, records: list[dict[str, Any]]) -> Iterator[tuple[int, dict[str, Any]]]:
-        for idx, record in enumerate(records):
-            yield idx, record
+    def _generate_tables(self, records: list[dict[str, Any]]) -> Iterator[tuple[int, pa.Table]]:
+        schema = self.info.features.arrow_schema
+        pa_table = pa.Table.from_pylist(records, schema=schema)
+        yield 0, table_cast(pa_table, schema)
