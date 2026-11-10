@@ -43,7 +43,7 @@ def test_named_split_inequality():
     assert Split.TRAIN != inspect.Parameter.empty
 
 
-@pytest.mark.parametrize("weights", [[0, 0], [-1, 2], [1, -1], [-1, -2]])
+@pytest.mark.parametrize("weights", [[0, 0], [-1, 2], [1, -1], [-1, -2], [float("nan"), 1], [1, float("inf")]])
 def test_subsplit_rejects_invalid_weights(weights):
     with pytest.raises(ValueError, match="Subsplit weights must be non-negative"):
         Split.TRAIN.subsplit(weighted=weights)
