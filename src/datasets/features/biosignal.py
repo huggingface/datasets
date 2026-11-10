@@ -1,6 +1,8 @@
+import io
 import os
 import tempfile
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Union
 
@@ -23,11 +25,17 @@ if TYPE_CHECKING:
 _MULTIFILE_EXTENSIONS = {".vhdr", ".set", ".ds", ".mefd"}
 
 
-def _find_bids_root(path: Path) -> Optional[Path]:
+@lru_cache(maxsize=256)
+def _find_bids_root_dir(dir_path: Path) -> Optional[Path]:
+    dirs = (dir_path, *dir_path.parents)
     return next(
-        (p for p in path.parents if (p / "dataset_description.json").is_file()),
-        next((p.parent for p in path.parents if p.name.startswith("sub-")), None),
+        (p for p in dirs if (p / "dataset_description.json").is_file()),
+        next((p.parent for p in dirs if p.name.startswith("sub-")), None),
     )
+
+
+def _find_bids_root(path: Path) -> Optional[Path]:
+    return _find_bids_root_dir(path.parent)
 
 
 def _read_local_raw(path: str, preload: bool = False) -> "mne.io.BaseRaw":
@@ -123,29 +131,28 @@ class Biosignal:
         Returns:
             `dict` with "path" and "bytes" fields
         """
-        if config.MNE_AVAILABLE:
-            import mne
-
-            BaseRaw = mne.io.BaseRaw
-        else:
-            BaseRaw = None
-
         if isinstance(value, str):
             return {"path": value, "bytes": None}
         elif isinstance(value, Path):
             return {"path": str(value.absolute()), "bytes": None}
         elif isinstance(value, (bytes, bytearray)):
             return {"path": None, "bytes": bytes(value)}
-        elif BaseRaw is not None and isinstance(value, BaseRaw):
-            return encode_mne_raw(value)
-        elif value.get("path") is not None and os.path.exists(value["path"]):
-            return {"bytes": None, "path": value.get("path")}
-        elif value.get("bytes") is not None or value.get("path") is not None:
-            return {"bytes": value.get("bytes"), "path": value.get("path")}
-        else:
+        elif isinstance(value, dict):
+            if value.get("path") is not None and os.path.exists(value["path"]):
+                return {"bytes": None, "path": value.get("path")}
+            elif value.get("bytes") is not None or value.get("path") is not None:
+                return {"bytes": value.get("bytes"), "path": value.get("path")}
             raise ValueError(
                 f"A biosignal sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
             )
+        elif config.MNE_AVAILABLE:
+            import mne
+
+            if isinstance(value, mne.io.BaseRaw):
+                return encode_mne_raw(value)
+        raise ValueError(
+            f"A biosignal sample should have one of 'path' or 'bytes' or be an mne.io.BaseRaw, but got {value}."
+        )
 
     def decode_example(self, value: Union[str, dict], token_per_repo_id=None) -> "mne.io.BaseRaw":
         """Decode example biosignal file into an `mne.io.BaseRaw` object."""
@@ -178,6 +185,8 @@ class Biosignal:
                 bytes_ = f.read()
 
         fname = os.path.basename(path) if path and os.path.splitext(path)[1] else "biosignal_raw.fif"
+        if fname.lower().endswith((".fif", ".fif.gz")):
+            return mne.io.read_raw_fif(io.BytesIO(bytes_), preload=True, verbose="ERROR")
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = os.path.join(tmpdir, fname)
             with open(tmp_path, "wb") as f:

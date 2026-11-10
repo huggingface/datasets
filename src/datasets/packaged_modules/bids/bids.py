@@ -53,6 +53,29 @@ def _coerce_column(values: list[Optional[str]]) -> tuple[list[Any], datasets.Val
     return values, datasets.Value("string")
 
 
+def _parse_bids_filename(fpath: Path) -> dict[str, Optional[str]]:
+    stem, ext = fpath.stem, fpath.suffix
+    parts = stem.split("_")
+    kv = dict(p.split("-", 1) for p in parts if "-" in p)
+    suffix = parts[-1] if parts and "-" not in parts[-1] else None
+    parent = fpath.parent.name
+    datatype = (
+        parent
+        if parent and not parent.startswith(("sub-", "ses-"))
+        else (suffix if suffix in BIDS_DATATYPES else None)
+    )
+    return {
+        "subject": kv.get("sub"),
+        "session": kv.get("ses"),
+        "task": kv.get("task"),
+        "acquisition": kv.get("acq"),
+        "run": kv.get("run"),
+        "datatype": datatype,
+        "suffix": suffix,
+        "extension": ext or None,
+    }
+
+
 def _read_participants_tsv(
     bids_root: Path,
 ) -> tuple[dict[str, dict[str, Any]], dict[str, datasets.Value]]:
@@ -145,13 +168,10 @@ class Bids(datasets.GeneratorBasedBuilder):
         )
 
     def _discover_records(self, paths: list[str]) -> tuple[list[dict[str, Any]], dict[str, datasets.Value]]:
-        if not config.MNE_BIDS_AVAILABLE:
-            raise ImportError("To load BIDS datasets, please install 'mne-bids' and 'mne' (`pip install mne-bids`).")
-        import mne_bids
-
         datatypes = _ensure_list(self.config.datatypes) or list(BIDS_DATATYPES)
         suffixes = _ensure_list(self.config.suffixes) or list(BIDS_DATATYPES)
         extensions = _ensure_list(self.config.extensions) or list(BIDS_RECORDING_EXTENSIONS)
+        ext_set = {e.lower() for e in extensions}
         subjects = _ensure_list(self.config.subjects)
         sessions = _ensure_list(self.config.sessions)
         tasks = _ensure_list(self.config.tasks)
@@ -164,7 +184,14 @@ class Bids(datasets.GeneratorBasedBuilder):
 
         for raw_p in paths:
             p = Path(raw_p)
-            if p.is_dir() and p.suffix.lower() not in (".ds", ".mefd"):
+            suffix_lower = p.suffix.lower()
+            if p.name == "dataset_description.json":
+                if p.parent not in seen_roots:
+                    seen_roots.add(p.parent)
+                    bids_roots.append(p.parent)
+            elif suffix_lower in ext_set:
+                recording_files.append(p)
+            elif p.is_dir():
                 desc_files = [p / "dataset_description.json"] if (p / "dataset_description.json").is_file() else []
                 if not desc_files:
                     desc_files = list(p.rglob("dataset_description.json"))
@@ -176,11 +203,6 @@ class Bids(datasets.GeneratorBasedBuilder):
                 else:
                     for ext in extensions:
                         recording_files.extend(sorted(p.rglob(f"*{ext}")))
-            elif p.name == "dataset_description.json" and p.parent not in seen_roots:
-                seen_roots.add(p.parent)
-                bids_roots.append(p.parent)
-            elif any(str(p).lower().endswith(ext) for ext in extensions):
-                recording_files.append(p)
 
         bids_roots = [r for r in bids_roots if not any(p in seen_roots for p in r.parents)]
 
@@ -197,10 +219,48 @@ class Bids(datasets.GeneratorBasedBuilder):
                     extra_features.setdefault(col, feat)
             return participants_cache[root]
 
-        matched_items: list[tuple[str, "mne_bids.BIDSPath", Optional[Path]]] = []
-        if bids_roots:
-            for root in bids_roots:
+        for root in bids_roots:
+            _get_participants(root)
+
+        matched_items: list[tuple[str, dict[str, Optional[str]], Optional[Path]]] = []
+        if recording_files:
+            top_root = bids_roots[0] if len(bids_roots) == 1 else None
+            for rf in sorted(recording_files):
+                if not rf.exists():
+                    continue
+                root = top_root or _find_bids_root(rf)
+                if root is not None:
+                    try:
+                        rel_parts = rf.relative_to(root).parts
+                        if rel_parts and rel_parts[0] in ("sourcedata", "derivatives"):
+                            continue
+                    except ValueError:
+                        pass
                 _get_participants(root)
+                ent = _parse_bids_filename(rf)
+                if subjects and ent["subject"] not in subjects:
+                    continue
+                if sessions and ent["session"] not in sessions:
+                    continue
+                if tasks and ent["task"] not in tasks:
+                    continue
+                if acquisitions and ent["acquisition"] not in acquisitions:
+                    continue
+                if runs and ent["run"] not in runs:
+                    continue
+                if ent["datatype"] and ent["datatype"] not in datatypes:
+                    continue
+                if ent["suffix"] and ent["suffix"] not in suffixes:
+                    continue
+                matched_items.append((str(rf), ent, root))
+        elif bids_roots:
+            if not config.MNE_BIDS_AVAILABLE:
+                raise ImportError(
+                    "To load BIDS datasets, please install 'mne-bids' and 'mne' (`pip install mne-bids`)."
+                )
+            import mne_bids
+
+            for root in bids_roots:
                 matches = mne_bids.find_matching_paths(
                     root=root,
                     subjects=subjects,
@@ -220,46 +280,19 @@ class Bids(datasets.GeneratorBasedBuilder):
                     rel_parts = bp.fpath.relative_to(root).parts
                     if rel_parts and rel_parts[0] in ("sourcedata", "derivatives"):
                         continue
-                    matched_items.append((str(bp.fpath), bp, root))
-        else:
-            for rf in recording_files:
-                root = _find_bids_root(rf)
-                _get_participants(root)
-                bp = mne_bids.get_bids_path_from_fname(rf, check=False, verbose="ERROR")
-                if root is not None:
-                    bp.root = root
-                if subjects and bp.subject not in subjects:
-                    continue
-                if sessions and bp.session not in sessions:
-                    continue
-                if tasks and bp.task not in tasks:
-                    continue
-                if acquisitions and bp.acquisition not in acquisitions:
-                    continue
-                if runs and bp.run not in runs:
-                    continue
-                if self.config.datatypes and bp.datatype not in datatypes:
-                    continue
-                if self.config.suffixes and bp.suffix not in suffixes:
-                    continue
-                matched_items.append((str(rf.resolve()), bp, root))
+                    ent = {col: getattr(bp, col) for col in BIDS_ENTITY_COLUMNS}
+                    matched_items.append((str(bp.fpath), ent, root))
 
         records: list[dict[str, Any]] = []
-        for fpath, bp, root in matched_items:
-            sub_meta = _get_participants(root).get(bp.subject or "", {})
-            row = {
-                "biosignal": fpath,
-                "subject": bp.subject,
-                "session": bp.session,
-                "task": bp.task,
-                "acquisition": bp.acquisition,
-                "run": bp.run,
-                "datatype": bp.datatype,
-                "suffix": bp.suffix,
-                "extension": bp.extension,
-                **{col: sub_meta.get(col) for col in extra_features},
-            }
-            records.append(row)
+        for fpath, ent, root in matched_items:
+            sub_meta = _get_participants(root).get(ent["subject"] or "", {})
+            records.append(
+                {
+                    "biosignal": fpath,
+                    **ent,
+                    **{col: sub_meta.get(col) for col in extra_features},
+                }
+            )
 
         return records, extra_features
 
