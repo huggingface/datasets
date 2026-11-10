@@ -470,6 +470,42 @@ def test_rebatched_arrow_examples_iterable_restore_existing_partial_checkpoint(d
             assert state["cropped_chunk_length"] == 2
 
 
+@pytest.fixture
+def reset_shuffle_resume_warning():
+    warning = getattr(BufferShuffledExamplesIterable, "_warn_about_missing_buffer", None)
+    if warning is not None:
+        warning.cache_clear()
+    yield
+    if warning is not None:
+        warning.cache_clear()
+
+
+@pytest.mark.parametrize("num_streams", [1, 3])
+@pytest.mark.parametrize("checkpoint_index", [0, 25])
+def test_iterable_dataset_shuffle_resume_warning(caplog, reset_shuffle_resume_warning, num_streams, checkpoint_index):
+    source = [{"id": i} for i in range(100)]
+    for _ in range(num_streams):
+        dataset = IterableDataset.from_generator(lambda: iter(source)).shuffle(seed=42, buffer_size=10)
+        iterator = iter(dataset)
+        list(islice(iterator, checkpoint_index))
+        checkpoint = dataset.state_dict()
+        resumed_outputs = []
+        for _ in range(3):
+            dataset.load_state_dict(checkpoint)
+            resumed_outputs.append(list(dataset))
+
+        assert resumed_outputs[0]
+        assert resumed_outputs[0] == resumed_outputs[1] == resumed_outputs[2]
+        assert all(row in source for row in resumed_outputs[0])
+        if checkpoint_index == 0:
+            assert len(resumed_outputs[0]) == len(source)
+
+    warnings = [
+        record for record in caplog.records if "Loading a state dict of a shuffle buffer" in record.getMessage()
+    ]
+    assert len(warnings) == (1 if checkpoint_index else 0)
+
+
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
 def test_buffer_shuffled_examples_iterable(seed):
     n, buffer_size = 100, 30
