@@ -8,6 +8,7 @@ import pytest
 
 import datasets
 from datasets import Biosignal, Dataset, Features, Value
+from datasets.features.features import require_decoding
 
 
 require_mne = pytest.mark.skipif(not datasets.config.MNE_AVAILABLE, reason="mne is not installed")
@@ -27,9 +28,10 @@ def _make_raw(ch_type: str = "eeg", sfreq: float = 100.0):
     return raw
 
 
-def test_biosignal_storage_and_schema(tmp_path):
+def test_biosignal_storage_and_schema(tmp_path, monkeypatch):
     feat = Biosignal()
     assert feat.pa_type == pa.struct({"bytes": pa.binary(), "path": pa.string()}) == feat()
+    assert require_decoding(feat) and not require_decoding(Biosignal(decode=False))
     assert Features.from_dict(Features({"b": Biosignal(preload=True)}).to_dict()) == Features(
         {"b": Biosignal(preload=True)}
     )
@@ -40,7 +42,9 @@ def test_biosignal_storage_and_schema(tmp_path):
     path.write_bytes(b"payload")
     assert feat.encode_example(str(path)) == {"path": str(path), "bytes": None}
     assert feat.encode_example(path) == {"path": str(path.absolute()), "bytes": None}
-    assert feat.encode_example(b"raw") == {"path": None, "bytes": b"raw"}
+    assert feat.encode_example(bytearray(b"raw")) == {"path": None, "bytes": b"raw"}
+    assert feat.encode_example({"path": str(path), "bytes": b"dup"}) == {"path": str(path), "bytes": None}
+    assert feat.encode_example({"bytes": b"raw"}) == {"path": None, "bytes": b"raw"}
     with pytest.raises(ValueError, match="should have one of 'path' or 'bytes'"):
         feat.encode_example({"path": None, "bytes": None})
     with pytest.raises(RuntimeError, match="Decoding is disabled"):
@@ -52,14 +56,18 @@ def test_biosignal_storage_and_schema(tmp_path):
     assert feat.cast_storage(pa.array([b"x"], type=pa.binary())).to_pylist() == [{"bytes": b"x", "path": None}]
     storage = pa.array([{"bytes": None, "path": "/data/rec.edf"}, None], type=feat.pa_type)
     assert feat.embed_storage(storage, local_files=False, remote_files=False).to_pylist() == [
-        {"bytes": None, "path": "rec.edf"},
+        {"bytes": None, "path": "/data/rec.edf"},
         None,
     ]
+
+    monkeypatch.setattr(datasets.config, "MNE_AVAILABLE", False)
+    with pytest.raises(ImportError, match="install 'mne'"):
+        feat.decode_example({"path": str(path), "bytes": None})
 
 
 @require_mne
 @pytest.mark.parametrize("preload", [False, True])
-def test_biosignal_local_and_raw_instance(tmp_path, preload):
+def test_biosignal_local_raw_and_bytes(tmp_path, preload):
     import mne
 
     raw = _make_raw()
@@ -71,6 +79,7 @@ def test_biosignal_local_and_raw_instance(tmp_path, preload):
     )
     loaded = ds[0]["biosignal"]
     assert isinstance(loaded, mne.io.BaseRaw) and loaded.preload is preload
+    assert Biosignal().decode_example(loaded) is loaded
     assert ds._estimate_nbytes() >= fif_path.stat().st_size
     np.testing.assert_allclose(loaded.get_data(), raw.get_data(), atol=1e-6)
 
@@ -79,6 +88,11 @@ def test_biosignal_local_and_raw_instance(tmp_path, preload):
     assert isinstance(ds_mem.features["biosignal"], Biosignal)
     assert ds_mem[0]["biosignal"].n_times == 50
     np.testing.assert_allclose(ds_mem[0]["biosignal"].get_data(), cropped.get_data(), atol=1e-6)
+
+    edf_path = tmp_path / "sample.edf"
+    mne.export.export_raw(str(edf_path), raw, fmt="edf", overwrite=True, verbose="ERROR")
+    from_edf_bytes = Biosignal().decode_example({"path": "sample.edf", "bytes": edf_path.read_bytes()})
+    np.testing.assert_allclose(from_edf_bytes.get_data(), raw.get_data(), atol=1e-4)
 
 
 @require_mne_bids

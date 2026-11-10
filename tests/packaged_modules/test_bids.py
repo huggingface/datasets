@@ -7,6 +7,7 @@ import pytest
 
 import datasets
 from datasets import Biosignal, Value, load_dataset
+from datasets.data_files import get_data_patterns
 
 
 require_mne_bids = pytest.mark.skipif(
@@ -38,9 +39,27 @@ def bids_root(tmp_path_factory):
         mne_bids.write_raw_bids(raw, bp, allow_preload=True, format="BrainVision", overwrite=True, verbose="ERROR")
 
     (root / "participants.tsv").write_text(
-        "participant_id\tage\tsex\nsub-01\t24\tF\nsub-02\t31\tM\n", encoding="utf-8"
+        "participant_id\tage\tsex\tmmse\nsub-01\t24\tF\t29\nsub-02\t31\tM\tn/a\n", encoding="utf-8"
     )
     return root
+
+
+def test_bids_patterns_and_module_inference(tmp_path, monkeypatch):
+    sub_dir = tmp_path / "bids_like" / "sub-01" / "eeg"
+    sub_dir.mkdir(parents=True)
+    (sub_dir / "sub-01_task-rest_eeg.edf").write_bytes(b"x")
+    assert get_data_patterns(str(tmp_path / "bids_like")) == {"train": ["sub-*/**"]}
+
+    non_bids = tmp_path / "non_bids"
+    non_bids.mkdir()
+    (non_bids / "a.jsonl").write_text('{"x": 1}\n', encoding="utf-8")
+    (non_bids / "b.jsonl").write_text('{"x": 2}\n', encoding="utf-8")
+    (non_bids / "params.set").write_text("unused", encoding="utf-8")
+    assert load_dataset(str(non_bids), split="train")["x"] == [1, 2]
+
+    monkeypatch.setattr(datasets.config, "MNE_BIDS_AVAILABLE", False)
+    with pytest.raises(ImportError, match="install 'mne-bids'"):
+        load_dataset("bids", data_dir=str(tmp_path / "bids_like"), split="train")
 
 
 @require_mne_bids
@@ -50,6 +69,7 @@ def bids_root(tmp_path_factory):
         (False, {}, ["01", "01", "02"], ["motor", "rest", "rest"]),
         (True, {}, ["01", "01", "02"], ["motor", "rest", "rest"]),
         (False, {"subjects": "01", "tasks": "rest", "datatypes": "eeg"}, ["01"], ["rest"]),
+        (False, {"subjects": "02", "num_proc": 2}, ["02"], ["rest"]),
         (False, {"decode": False}, ["01", "01", "02"], ["motor", "rest", "rest"]),
     ],
 )
@@ -63,29 +83,40 @@ def test_load_bids_parametrized(bids_root, use_auto_path, kwargs, expected_subje
     )
     assert ds["subject"] == expected_subjects and ds["task"] == expected_tasks
     assert isinstance(ds.features["biosignal"], Biosignal)
-    assert ds.features["age"] == Value("int64") and ds.features["sex"] == Value("string")
+    assert ds.features["age"] == Value("int64") and ds.features["mmse"] == Value("int64")
 
     first = ds[0]["biosignal"]
     if kwargs.get("decode", True):
         assert isinstance(first, mne.io.BaseRaw)
-        assert first.info["line_freq"] == 50.0 and list(first.annotations.description) == [f"ev_{expected_tasks[0]}"]
+        assert first.info["line_freq"] == (60.0 if expected_subjects[0] == "02" else 50.0)
+        assert list(first.annotations.description) == [f"ev_{expected_tasks[0]}"]
     else:
         assert isinstance(first, dict) and first["bytes"] is None and first["path"].endswith(".vhdr")
 
 
 @require_mne_bids
-def test_load_bids_splits_parquet_and_sourcedata(bids_root, tmp_path):
+def test_load_bids_streaming_archive_splits_and_parquet(bids_root, tmp_path):
     import mne
+
+    streamed = list(load_dataset(str(bids_root), split="train", streaming=True))
+    assert [r["subject"] for r in streamed] == ["01", "01", "02"]
+    assert [r["mmse"] for r in streamed] == [29, 29, None]
+    assert isinstance(streamed[0]["biosignal"], mne.io.BaseRaw)
+    assert list(load_dataset(str(bids_root), subjects="99", split="train", streaming=True)) == []
+
+    zip_file = shutil.make_archive(str(tmp_path / "bids_archive"), "zip", root_dir=bids_root)
+    ds_zip = load_dataset("bids", data_files=zip_file, split="train")
+    assert ds_zip["subject"] == ["01", "01", "02"] and ds_zip["mmse"] == [29, 29, None]
 
     sub01 = str(bids_root / "sub-01" / "ses-01" / "eeg" / "sub-01_ses-01_task-rest_run-01_eeg.vhdr")
     sub02 = str(bids_root / "sub-02" / "ses-01" / "eeg" / "sub-02_ses-01_task-rest_run-01_eeg.vhdr")
     ds_dict = load_dataset("bids", data_files={"train": [sub01], "test": [sub02]})
-    assert ds_dict["train"][0]["subject"] == "01" and ds_dict["test"][0]["age"] == 31
+    assert ds_dict["train"][0]["mmse"] == 29 and ds_dict["test"][0]["mmse"] is None
+    assert ds_dict["train"].features == ds_dict["test"].features
 
     parquet_file = tmp_path / "train.parquet"
     ds_dict["train"].to_parquet(str(parquet_file))
-    reloaded = load_dataset("parquet", data_files=str(parquet_file), split="train")
-    raw = reloaded[0]["biosignal"]
+    raw = load_dataset("parquet", data_files=str(parquet_file), split="train")[0]["biosignal"]
     assert isinstance(raw, mne.io.BaseRaw) and list(raw.annotations.description) == ["ev_rest"]
 
     work_root = tmp_path / "bids_copy"
@@ -95,7 +126,7 @@ def test_load_bids_splits_parquet_and_sourcedata(bids_root, tmp_path):
     (work_root / "sourcedata" / "dataset_description.json").write_text('{"Name": "raw"}', encoding="utf-8")
     for f in (work_root / "sub-01" / "ses-01" / "eeg").iterdir():
         shutil.copy(f, sourcedata_dir / f.name.replace("sub-01", "sub-99"))
-    assert "99" not in load_dataset(str(work_root), split="train")["subject"]
+    assert "99" not in load_dataset(str(work_root), split="train", num_proc=2)["subject"]
 
     shutil.rmtree(work_root / "sourcedata")
     (work_root / "dataset_description.json").unlink()
