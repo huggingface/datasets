@@ -2240,6 +2240,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return dataset._data.column(column).unique().to_pylist()
 
+    @transmit_format
     def class_encode_column(self, column: str, include_nulls: bool = False) -> "Dataset":
         """Casts the given column as [`~datasets.features.ClassLabel`] and updates the table.
 
@@ -2276,6 +2277,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"Class encoding is only supported for {Value.__name__} column, and column {column} is {type(src_feat).__name__}."
             )
 
+        # the functions below work on python objects: map without the dataset format, which @transmit_format restores
+        dataset = self.with_format(None)
+
         if src_feat.dtype != "string" or (include_nulls and None in self.unique(column)):
 
             def stringify_column(batch):
@@ -2284,13 +2288,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ]
                 return batch
 
-            dset = self.map(
+            dset = dataset.map(
                 stringify_column,
                 batched=True,
                 desc="Stringifying the column",
             )
         else:
-            dset = self
+            dset = dataset
 
         # Create the new feature
         class_names = sorted(str(sample) for sample in dset.unique(column) if include_nulls or sample is not None)
@@ -6597,6 +6601,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             fingerprint=new_fingerprint,
         )
 
+    @transmit_format
     def align_labels_with_mapping(self, label2id: dict, label_column: str) -> "Dataset":
         """Align the dataset's label ID and label name mapping to match an input `label2id` mapping.
         This is useful when you want to ensure that a model's predicted labels are aligned with the dataset.
@@ -6672,7 +6677,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if isinstance(label_feature, ClassLabel)
             else List(ClassLabel(num_classes=len(label_names), names=label_names))
         )
-        return self.map(process_label_ids, features=features, batched=True, desc="Aligning the labels")
+        # process_label_ids works on python objects: map without the dataset format, which @transmit_format restores
+        return self.with_format(None).map(
+            process_label_ids, features=features, batched=True, desc="Aligning the labels"
+        )
 
 
 def _push_to_repo(
