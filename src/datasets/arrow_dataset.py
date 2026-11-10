@@ -2487,7 +2487,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             features = self.features
             features[column] = feature
-            return self.cast(features)
+            dataset = self.cast(features)
+            dataset._fingerprint = new_fingerprint
+            return dataset
 
     @transmit_format
     @fingerprint_transform(inplace=False)
