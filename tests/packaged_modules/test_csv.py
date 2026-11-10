@@ -6,7 +6,7 @@ import pytest
 from packaging import version
 
 import datasets.config
-from datasets import ClassLabel, Features, Image
+from datasets import ClassLabel, Dataset, Features, Image, Value
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.csv.csv import Csv, CsvConfig
@@ -142,6 +142,20 @@ def test_csv_cast_label(csv_file_with_label):
     assert pa_table.schema.field("label").type == ClassLabel(names=["good", "bad"])()
     generated_content = pa_table.to_pydict()["label"]
     assert generated_content == [ClassLabel(names=["good", "bad"]).str2int(label) for label in labels]
+
+
+@pytest.mark.parametrize("engine", ["c", "python"])
+def test_csv_timestamp_features_preserve_precision_and_nulls(tmp_path, engine):
+    path = tmp_path / "timestamps.csv"
+    path.write_text("id,timestamp\n0,2026-11-04T12:34:56.123456789\n1,\n", encoding="utf-8")
+    features = Features({"id": Value("int64"), "timestamp": Value("timestamp[ns]")})
+
+    dataset = Dataset.from_csv(str(path), features=features, engine=engine, chunksize=1)
+
+    expected = pa.array(["2026-11-04T12:34:56.123456789", None]).cast(pa.timestamp("ns"))
+    assert dataset.features == features
+    assert dataset["id"][:] == [0, 1]
+    assert dataset.data.column("timestamp").combine_chunks().equals(expected)
 
 
 def test_csv_convert_int_list(csv_file_with_int_list):

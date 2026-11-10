@@ -182,10 +182,14 @@ class Csv(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self, base_files, files_iterables):
         schema = self.config.features.arrow_schema if self.config.features else None
-        # dtype allows reading an int column as str
+        # dtype allows reading an int column as str. Parse timestamps with Arrow instead of pandas.
         dtype = (
             {
-                name: dtype.to_pandas_dtype() if not require_storage_cast(feature) else object
+                name: (
+                    object
+                    if require_storage_cast(feature) or pa.types.is_timestamp(dtype)
+                    else dtype.to_pandas_dtype()
+                )
                 for name, dtype, feature in zip(schema.names, schema.types, self.config.features.values())
             }
             if schema is not None
