@@ -19,7 +19,6 @@ import asyncio
 import contextlib
 import copy
 import glob
-import inspect
 import itertools
 import json
 import math
@@ -136,6 +135,7 @@ from .utils.py_utils import (
     convert_file_size_to_int,
     glob_pattern_to_regex,
     iflatmap_unordered,
+    is_async_callable,
     string_to_dict,
 )
 from .utils.stratify import stratified_shuffle_split_generate_indices
@@ -3926,7 +3926,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return buf_writer, writer, tmp_file
 
         tasks: list[asyncio.Task] = []
-        if inspect.iscoroutinefunction(function):
+        if is_async_callable(function):
             try:
                 loop = asyncio.get_running_loop()
             except RuntimeError:
@@ -3936,7 +3936,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         def iter_outputs(shard_iterable):
             nonlocal tasks, loop
-            if inspect.iscoroutinefunction(function):
+            if is_async_callable(function):
                 indices: Union[list[int], list[list[int]]] = []
                 for i, example in shard_iterable:
                     indices.append(i)
@@ -4257,13 +4257,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # We generally batch the underlying map() to get faster throughput,
         # but in case of async we force batch_size=1 to enable parallelism
-        if inspect.iscoroutinefunction(function) and not batched:
+        if is_async_callable(function) and not batched:
             batch_size = 1
 
         indices = self.map(
             function=partial(
                 async_get_indices_from_mask_function
-                if inspect.iscoroutinefunction(function)
+                if is_async_callable(function)
                 else get_indices_from_mask_function,
                 function,
                 batched,
