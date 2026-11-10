@@ -4,6 +4,7 @@ import io
 import os
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Optional, Union
 
@@ -13,7 +14,6 @@ import pyarrow.csv as pa_csv
 import datasets
 from datasets.builder import Key
 from datasets.download.download_config import DownloadConfig
-from datasets.table import table_cast
 from datasets.utils.file_utils import is_local_path, xbasename, xdirname, xjoin, xopen
 
 
@@ -27,23 +27,21 @@ def _logical_path(path: str) -> Path:
     return Path(hop.split("://", 1)[1] if "://" in hop else hop)
 
 
+def _ancestors(path: str) -> Iterator[str]:
+    while path and path != (parent := xdirname(path)):
+        yield path
+        path = parent
+
+
 def _collapse_container(path: str) -> str:
-    cur = path
-    while cur and cur != xdirname(cur):
-        name = xbasename(cur)
-        if name.startswith("sub-") and os.path.splitext(name)[1].lower() in CONTAINER_EXTENSIONS:
-            return cur
-        cur = xdirname(cur)
-    return path
+    return next(
+        (p for p in _ancestors(path) if xbasename(p).startswith("sub-") and p.lower().endswith(CONTAINER_EXTENSIONS)),
+        path,
+    )
 
 
 def _bids_root(path: str) -> Optional[str]:
-    cur = xdirname(path)
-    while cur and cur != xdirname(cur):
-        if xbasename(cur).startswith("sub-"):
-            return xdirname(cur)
-        cur = xdirname(cur)
-    return None
+    return next((xdirname(p) for p in _ancestors(xdirname(path)) if xbasename(p).startswith("sub-")), None)
 
 
 @dataclass
@@ -146,20 +144,30 @@ class Bids(datasets.ArrowBasedBuilder):
         if not datasets.config.MNE_BIDS_AVAILABLE:
             raise ImportError("To load BIDS datasets, please install 'mne-bids'.")
 
-        def resolve_files(f: str) -> Iterable[str]:
+        def resolve(f: str) -> Iterable[str]:
             if f.lower().endswith(ARCHIVE_EXTENSIONS):
                 return dl_manager.iter_files(dl_manager.download_and_extract(f))
-            if is_local_path(f) and os.path.isdir(f):
-                return dl_manager.iter_files(f)
-            return [f]
+            return dl_manager.iter_files(f) if is_local_path(f) and os.path.isdir(f) else [f]
+
+        resolved = {split: [resolve(f) for f in files] for split, files in self.config.data_files.items()}
+        if self.info.features is None:
+            root_key = next(
+                (r for iters in resolved.values() for it in iters for f in it if (r := _bids_root(f))),
+                None,
+            )
+            _, extra = self._read_participants(root_key, dl_manager.download_config)
+            self.info.features = datasets.Features(
+                {
+                    "biosignal": datasets.Biosignal(preload=self.config.preload, decode=self.config.decode),
+                    **{col: datasets.Value("string") for col in BIDS_ENTITY_COLUMNS},
+                    **extra,
+                }
+            )
 
         return [
             datasets.SplitGenerator(
                 name=split_name,
-                gen_kwargs={
-                    "files_iterables": [resolve_files(f) for f in files],
-                    "base_files": list(files),
-                },
+                gen_kwargs={"files_iterables": resolved[split_name], "base_files": list(files)},
             )
             for split_name, files in self.config.data_files.items()
         ]
@@ -170,12 +178,9 @@ class Bids(datasets.ArrowBasedBuilder):
     def _read_participants(
         self, root_key: Optional[str], download_config: DownloadConfig
     ) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
-        candidates = ([xjoin(root_key, "participants.tsv")] if root_key else []) + (
-            [xjoin(self.base_path, "participants.tsv")] if self.base_path else []
-        )
-        for tsv_path in dict.fromkeys(candidates):
+        for base in dict.fromkeys(filter(None, (root_key, self.base_path))):
             try:
-                with xopen(tsv_path, "rb", download_config=download_config) as f:
+                with xopen(xjoin(base, "participants.tsv"), "rb", download_config=download_config) as f:
                     raw = f.read()
             except FileNotFoundError:
                 continue
@@ -188,19 +193,17 @@ class Bids(datasets.ArrowBasedBuilder):
                     strings_can_be_null=True,
                 ),
             )
-            extra_features = {
+            extra = {
                 col: (datasets.Value("string") if feat == datasets.Value("null") else feat)
                 for col, feat in datasets.Features.from_arrow_schema(tbl.schema).items()
                 if col not in ("participant_id", "biosignal", *BIDS_ENTITY_COLUMNS)
             }
             rows = {
-                (r.pop("participant_id") or "").strip().removeprefix("sub-"): {
-                    k: v for k, v in r.items() if k in extra_features
-                }
+                (r.pop("participant_id") or "").strip().removeprefix("sub-"): {k: r[k] for k in extra}
                 for r in tbl.to_pylist()
                 if "participant_id" in r
             }
-            return rows, extra_features
+            return rows, extra
         return {}, {}
 
     def _generate_tables(
@@ -217,37 +220,18 @@ class Bids(datasets.ArrowBasedBuilder):
         datatypes = self.config.datatypes
         allowed_datatypes = set([datatypes] if isinstance(datatypes, str) else (datatypes or EPHY_ALLOWED_DATATYPES))
         download_config = DownloadConfig(token=self.token, storage_options=self.storage_options)
-        participants_cache: dict[Optional[str], tuple[dict[str, dict[str, Any]], dict[str, Any]]] = {}
         allow_sourcedata = "sourcedata" in _logical_path(self.base_path or "").parts
+        schema = self.info.features.arrow_schema
 
-        def get_participants(orig_f: Optional[str]) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
-            root_key = _bids_root(orig_f) if orig_f else None
-            if root_key not in participants_cache:
-                participants_cache[root_key] = self._read_participants(root_key, download_config)
-            return participants_cache[root_key]
-
-        def build_schema(extra_features: dict[str, Any]) -> pa.Schema:
-            features = (
-                self.info.features
-                or self.config.features
-                or datasets.Features(
-                    {
-                        "biosignal": datasets.Biosignal(preload=self.config.preload, decode=self.config.decode),
-                        **{col: datasets.Value("string") for col in BIDS_ENTITY_COLUMNS},
-                        **extra_features,
-                    }
-                )
-            )
-            return features.arrow_schema
+        @lru_cache(maxsize=None)
+        def get_participants(root_key: Optional[str]) -> dict[str, dict[str, Any]]:
+            return self._read_participants(root_key, download_config)[0]
 
         yielded = False
-        first_file: Optional[str] = None
         for shard_idx, files_iterable in enumerate(files_iterables):
             path_map = {_logical_path(cf): cf for cf in (_collapse_container(f) for f in sorted(files_iterable))}
-            first_file = first_file or next(iter(path_map.values()), None)
             records = []
-            extra_features: dict[str, Any] = {}
-            # ponytail: _filter_fnames until mne-bids>=0.20 exposes find_matching_paths(fnames=...) (mne-tools/mne-bids#1698)
+            # ponytail: _filter_fnames until mne-bids>=0.21 exposes find_matching_paths(fnames=...) (mne-tools/mne-bids#1698)
             for rf in _filter_fnames(
                 list(path_map),
                 subject=self.config.subjects,
@@ -259,40 +243,30 @@ class Bids(datasets.ArrowBasedBuilder):
                 extension=extensions,
             ):
                 orig_f = path_map[rf]
-                if is_local_path(orig_f) and not os.path.exists(orig_f):
-                    continue
-                if not allow_sourcedata and "sourcedata" in rf.parts:
+                if (is_local_path(orig_f) and not os.path.exists(orig_f)) or (
+                    not allow_sourcedata and "sourcedata" in rf.parts
+                ):
                     continue
                 bp = mne_bids.get_bids_path_from_fname(rf, check=False, verbose="ERROR")
                 datatype = bp.datatype or (bp.suffix if bp.suffix in EPHY_ALLOWED_DATATYPES else None)
-                if datatype and datatype not in allowed_datatypes:
+                if (
+                    (datatype and datatype not in allowed_datatypes)
+                    or (datatype == "meg" and bp.acquisition == "crosstalk")
+                    or (bp.split and bp.split.isdigit() and int(bp.split) > 1)
+                ):
                     continue
-                if datatype == "meg" and bp.acquisition == "crosstalk":
-                    continue
-                if bp.split and bp.split.isdigit() and int(bp.split) > 1:
-                    continue
-                part_rows, part_extra = get_participants(orig_f)
-                extra_features.update(part_extra)
                 records.append(
                     {
-                        **part_rows.get(bp.subject or "", {}),
+                        **get_participants(_bids_root(orig_f)).get(bp.subject or "", {}),
                         "biosignal": {"bytes": None, "path": orig_f},
-                        "subject": bp.subject,
-                        "session": bp.session,
-                        "task": bp.task,
-                        "acquisition": bp.acquisition,
-                        "run": bp.run,
+                        **{col: getattr(bp, col) for col in BIDS_ENTITY_COLUMNS},
                         "datatype": datatype,
-                        "suffix": bp.suffix,
-                        "extension": bp.extension,
                     }
                 )
 
             if records:
-                schema = build_schema(extra_features)
-                yield Key(shard_idx, 0), table_cast(pa.Table.from_pylist(records, schema=schema), schema)
+                yield Key(shard_idx, 0), pa.Table.from_pylist(records, schema=schema)
                 yielded = True
 
         if not yielded:
-            schema = build_schema(get_participants(first_file)[1])
             yield Key(0, 0), pa.Table.from_pylist([], schema=schema)

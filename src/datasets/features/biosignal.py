@@ -10,7 +10,6 @@ import pyarrow as pa
 
 from .. import config
 from ..download.download_config import DownloadConfig
-from ..table import array_cast
 from ..utils.file_utils import is_local_path, xbasename, xopen
 from .bio_sequence import _cast_to_bytes_path_struct, _resolve_token
 
@@ -89,23 +88,23 @@ class Biosignal:
             return {"path": str(value.absolute()), "bytes": None}
         elif isinstance(value, (bytes, bytearray)):
             return {"path": None, "bytes": bytes(value)}
-        elif isinstance(value, dict):
-            if value.get("path") is not None and os.path.exists(value["path"]):
-                return {"bytes": None, "path": value.get("path")}
-            if value.get("bytes") is not None or value.get("path") is not None:
-                return {
-                    "bytes": bytes(value["bytes"]) if value.get("bytes") is not None else None,
-                    "path": value.get("path"),
-                }
+        elif isinstance(value, dict) and (value.get("path") is not None or value.get("bytes") is not None):
+            path, raw_bytes = value.get("path"), value.get("bytes")
+            return {
+                "path": path,
+                "bytes": None
+                if (path is not None and os.path.exists(path)) or raw_bytes is None
+                else bytes(raw_bytes),
+            }
         elif config.MNE_AVAILABLE and "mne" in sys.modules:
             import mne
 
             if isinstance(value, mne.io.BaseRaw):
-                # ponytail: tempfile until mne>=1.13 supports raw.save(BytesIO()) (mne-tools/mne-python#14516)
+                # ponytail: tempfile until mne>=1.14 supports raw.save(BytesIO()) (mne-tools/mne-python#14516)
                 with tempfile.TemporaryDirectory() as tmpdir:
-                    tmp_path = os.path.join(tmpdir, "raw.fif")
+                    tmp_path = Path(tmpdir) / "raw.fif"
                     value.save(tmp_path, overwrite=True, verbose="ERROR")
-                    return {"path": None, "bytes": Path(tmp_path).read_bytes()}
+                    return {"path": None, "bytes": tmp_path.read_bytes()}
 
         raise ValueError(
             f"A biosignal sample should have one of 'path' or 'bytes' or be an mne.io.BaseRaw, but got {value}."
@@ -165,24 +164,17 @@ class Biosignal:
             return mne.io.read_raw_fif(io.BytesIO(bytes_), preload=True, verbose="ERROR")
         if not os.path.splitext(fname)[1]:
             raise ValueError(f"Decoding non-FIF biosignal bytes requires a file extension in 'path', got {path!r}.")
-        # ponytail: tempfile fallback until mne>=1.13 supports BytesIO across readers (mne-tools/mne-python#14516, #14517)
+        # ponytail: tempfile fallback until mne>=1.14 supports BytesIO across readers (mne-tools/mne-python#14516, #14517)
         with tempfile.TemporaryDirectory() as tmpdir:
-            tmp_path = os.path.join(tmpdir, fname)
-            Path(tmp_path).write_bytes(bytes_)
+            tmp_path = Path(tmpdir) / fname
+            tmp_path.write_bytes(bytes_)
             return mne.io.read_raw(tmp_path, preload=True, verbose="ERROR")
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """If in the decodable state, return the feature itself, otherwise flatten the feature into a dictionary."""
         from .features import Value
 
-        return (
-            self
-            if self.decode
-            else {
-                "bytes": Value("binary"),
-                "path": Value("string"),
-            }
-        )
+        return self if self.decode else {"bytes": Value("binary"), "path": Value("string")}
 
     def cast_storage(self, storage: Union[pa.StringArray, pa.BinaryArray, pa.StructArray]) -> pa.StructArray:
         """Cast an Arrow array to the Biosignal arrow storage type.
@@ -217,26 +209,14 @@ class Biosignal:
                 `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
 
-        bytes_col, path_col = [], []
-        for x in storage.to_pylist():
-            if x is None:
-                bytes_col.append(None)
-                path_col.append(None)
-            elif x["path"] is not None and (local_files if is_local_path(x["path"]) else remote_files):
-                name = xbasename(x["path"])
-                if x["bytes"] is None:
-                    raw = Biosignal(preload=True).decode_example(x["path"], token_per_repo_id=token_per_repo_id)
-                    bytes_col.append(self.encode_example(raw)["bytes"])
-                    path_col.append(name if name.lower().endswith(".fif") else f"{os.path.splitext(name)[0]}_raw.fif")
-                else:
-                    bytes_col.append(x["bytes"])
-                    path_col.append(name)
-            else:
-                bytes_col.append(x["bytes"])
-                path_col.append(x["path"])
-        storage = pa.StructArray.from_arrays(
-            [pa.array(bytes_col, type=pa.binary()), pa.array(path_col, type=pa.string())],
-            ["bytes", "path"],
-            mask=storage.is_null(),
-        )
-        return array_cast(storage, self.pa_type)
+        def embed_one(x):
+            if x is None or x["path"] is None or not (local_files if is_local_path(x["path"]) else remote_files):
+                return x
+            name = xbasename(x["path"])
+            if x["bytes"] is not None:
+                return {"bytes": x["bytes"], "path": name}
+            raw = Biosignal(preload=True).decode_example(x["path"], token_per_repo_id=token_per_repo_id)
+            fif_name = name if name.lower().endswith(".fif") else f"{os.path.splitext(name)[0]}_raw.fif"
+            return {"bytes": self.encode_example(raw)["bytes"], "path": fif_name}
+
+        return pa.array([embed_one(x) for x in storage.to_pylist()], type=self.pa_type)

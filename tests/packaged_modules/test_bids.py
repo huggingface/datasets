@@ -154,8 +154,10 @@ def test_bids_meg_splits_crosstalk_and_containers(tmp_path):
     assert (meg_root / "sub-01" / "meg" / "sub-01_task-rest_split-02_meg.fif").exists()
     (meg_root / "sub-01" / "meg" / "sub-01_acq-crosstalk_meg.fif").write_bytes(b"crosstalk")
 
-    ds_meg = load_dataset(str(meg_root), split="train")
-    assert len(ds_meg) == 1 and ds_meg[0]["biosignal"].n_times == 20_000
+    ds_meg = load_dataset(str(meg_root), split="train", streaming=True)
+    meg_rows = list(ds_meg)
+    assert len(meg_rows) == 1 and meg_rows[0]["biosignal"].n_times == 20_000
+    assert load_dataset(str(meg_root), split="train")[0]["biosignal"].n_times == 20_000
 
     # Directory-based CTF .ds container discovered via its single .res4 header
     ds_dir = tmp_path / "ctf_bids" / "sub-01" / "meg" / "sub-01_task-rest_meg.ds"
