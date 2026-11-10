@@ -216,8 +216,6 @@ def infer_module_for_data_files_list(
             - inferred module name
             - dict of builder kwargs
     """
-    if data_files_list and xbasename(data_files_list[0]) == "dataset_description.json":
-        return "bids", {}
     extensions_counter = Counter(
         ("." + suffix.lower(), xbasename(filepath) in _ALL_METADATA_FILENAMES)
         for filepath in data_files_list
