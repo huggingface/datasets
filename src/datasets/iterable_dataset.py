@@ -201,6 +201,21 @@ def shift_ex_examples_rngs(ex_iterable: "_BaseExamplesIterable", value: int) -> 
     return set_seed_recursively(ex_iterable)
 
 
+def _copy_ex_iterables_tree(ex_iterable: "_BaseExamplesIterable") -> "_BaseExamplesIterable":
+    """Shallow-copy every node of the ex_iterables tree.
+
+    Datasets derived from the same dataset (e.g. `ds.skip(n)` and `ds.take(n)`) share its ex_iterables.
+    `_init_state_dict()` replaces a node's state dict, so without a copy, preparing one of them for iteration
+    would detach the state dict that another one's running iterator is still updating.
+    """
+    ex_iterable = copy(ex_iterable)
+    if hasattr(ex_iterable, "ex_iterable"):
+        ex_iterable.ex_iterable = _copy_ex_iterables_tree(ex_iterable.ex_iterable)
+    if hasattr(ex_iterable, "ex_iterables"):
+        ex_iterable.ex_iterables = [_copy_ex_iterables_tree(ei) for ei in ex_iterable.ex_iterables]
+    return ex_iterable
+
+
 _PRIMITIVE_TYPES = (int, float, bool, str, bytes, type(None))
 
 
@@ -2958,7 +2973,8 @@ class IterableDataset(DatasetInfoMixin):
     def _prepare_ex_iterable_for_iteration(
         self, batch_size: int = 1, drop_last_batch: bool = False
     ) -> _BaseExamplesIterable:
-        ex_iterable = self._ex_iterable
+        # Each iteration gets its own nodes, so it owns the state dicts it updates.
+        ex_iterable = _copy_ex_iterables_tree(self._ex_iterable)
 
         if self.epoch:
             try:
