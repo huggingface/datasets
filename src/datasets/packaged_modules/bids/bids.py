@@ -13,24 +13,6 @@ import datasets
 from datasets.table import table_cast
 
 
-BIDS_DATATYPES = ("meg", "eeg", "ieeg", "emg", "nirs")
-BIDS_RECORDING_EXTENSIONS = (
-    ".vhdr",
-    ".edf",
-    ".bdf",
-    ".gdf",
-    ".set",
-    ".fif",
-    ".cnt",
-    ".mff",
-    ".nwb",
-    ".snirf",
-    ".con",
-    ".sqd",
-    ".kit",
-    ".ds",
-    ".mefd",
-)
 BIDS_ENTITY_COLUMNS = ("subject", "session", "task", "acquisition", "run", "datatype", "suffix", "extension")
 
 
@@ -82,7 +64,29 @@ class Bids(datasets.ArrowBasedBuilder):
 
     BUILDER_CONFIG_CLASS = BidsConfig
 
-    EXTENSIONS = list(BIDS_RECORDING_EXTENSIONS)
+    EXTENSIONS = [
+        ".vhdr",
+        ".ahdr",
+        ".edf",
+        ".bdf",
+        ".gdf",
+        ".set",
+        ".fif",
+        ".cnt",
+        ".cdt",
+        ".lay",
+        ".mff",
+        ".nwb",
+        ".snirf",
+        ".con",
+        ".sqd",
+        ".kit",
+        ".ds",
+        ".mefd",
+        ".nedf",
+        ".nxe",
+        ".ns3",
+    ]
     METADATA_FILENAMES = [
         "dataset_description.json",
         "participants.tsv",
@@ -90,7 +94,20 @@ class Bids(datasets.ArrowBasedBuilder):
         "README",
         "CHANGES",
     ]
-    METADATA_EXTENSIONS = [".tsv", ".json", ".vmrk", ".eeg", ".fdt"]
+    METADATA_EXTENSIONS = [
+        ".tsv",
+        ".tsv.gz",
+        ".json",
+        ".vmrk",
+        ".amrk",
+        ".eeg",
+        ".fdt",
+        ".dat",
+        ".mrk",
+        ".pos",
+        ".dpa",
+        ".cef",
+    ]
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -110,16 +127,16 @@ class Bids(datasets.ArrowBasedBuilder):
         if not datasets.config.MNE_BIDS_AVAILABLE:
             raise ImportError("To load BIDS datasets, please install 'mne-bids'.")
         import mne_bids
+        from mne_bids.config import ALLOWED_INPUT_EXTENSIONS, EPHY_ALLOWED_DATATYPES
         from mne_bids.path import _filter_fnames
 
-        extensions = self.config.extensions or [
-            *BIDS_RECORDING_EXTENSIONS,
-            *(e.upper() for e in BIDS_RECORDING_EXTENSIONS),
-        ]
+        extensions = self.config.extensions or list(
+            {*self.EXTENSIONS, *(e.upper() for e in self.EXTENSIONS), *ALLOWED_INPUT_EXTENSIONS}
+        )
         ext_set = {e.lower() for e in ([extensions] if isinstance(extensions, str) else extensions)}
-        suffixes = self.config.suffixes or list(BIDS_DATATYPES)
+        suffixes = self.config.suffixes or list(EPHY_ALLOWED_DATATYPES)
         datatypes = self.config.datatypes
-        allowed_datatypes = set([datatypes] if isinstance(datatypes, str) else (datatypes or BIDS_DATATYPES))
+        allowed_datatypes = set([datatypes] if isinstance(datatypes, str) else (datatypes or EPHY_ALLOWED_DATATYPES))
 
         participants_cache: dict[Path, dict[str, dict[str, Any]]] = {}
         all_extra_features: dict[str, datasets.Value] = {}
@@ -234,7 +251,7 @@ class Bids(datasets.ArrowBasedBuilder):
                 fpath = bp.fpath
                 if not fpath.exists():
                     continue
-                datatype = bp.datatype or (bp.suffix if bp.suffix in BIDS_DATATYPES else None)
+                datatype = bp.datatype or (bp.suffix if bp.suffix in EPHY_ALLOWED_DATATYPES else None)
                 if datatype and datatype not in allowed_datatypes:
                     continue
                 root = Path(bp.root) if bp.root is not None else None

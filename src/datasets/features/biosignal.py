@@ -21,9 +21,6 @@ if TYPE_CHECKING:
     from .features import FeatureType
 
 
-_MULTIFILE_EXTENSIONS = {".vhdr", ".set", ".ds", ".mefd"}
-
-
 @dataclass
 class Biosignal:
     """
@@ -201,13 +198,11 @@ class Biosignal:
         @no_op_if_value_is_null
         def path_to_embedded(path: str) -> tuple[bytes, str]:
             if is_local_path(path) and config.MNE_AVAILABLE:
-                fpath = Path(path)
-                if fpath.suffix.lower() in _MULTIFILE_EXTENSIONS or fpath.is_dir() or fpath.name.startswith("sub-"):
-                    try:
-                        encoded = self.encode_example(Biosignal(preload=True).decode_example(path))
-                        return encoded["bytes"], encoded["path"]
-                    except Exception:
-                        pass
+                try:
+                    encoded = self.encode_example(Biosignal(preload=True).decode_example(path))
+                    return encoded["bytes"], encoded["path"]
+                except Exception:
+                    pass
             download_config = DownloadConfig(token=_resolve_token(path, token_per_repo_id))
             with xopen(path, "rb", download_config=download_config) as f:
                 return f.read(), os.path.basename(path)
