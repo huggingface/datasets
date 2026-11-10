@@ -5716,7 +5716,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 </Changed>
 
         Returns:
-            `int`: The number of records written.
+            `int`: The sum of integer row counts reported by pandas for each batch, including zero.
+            If pandas returns `None` for a batch, the batch's input row count is used instead.
 
         Example:
 
