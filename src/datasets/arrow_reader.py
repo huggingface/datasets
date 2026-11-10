@@ -450,6 +450,8 @@ def _rel_to_abs_instr(rel_instr, name2len):
         to = max(num_examples + to, 0)
     from_ = min(from_, num_examples)
     to = min(to, num_examples)
+    # an inverted slice is empty, and a take of -1 would read to the end of the file
+    to = max(to, from_)
     return _AbsoluteInstruction(split, from_, to)
 
 
