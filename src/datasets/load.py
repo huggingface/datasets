@@ -283,7 +283,10 @@ def infer_module_for_data_files_list_in_archives(
 
 
 def infer_module_for_data_files(
-    data_files: DataFilesDict, path: Optional[str] = None, download_config: Optional[DownloadConfig] = None
+    data_files: DataFilesDict,
+    path: Optional[str] = None,
+    download_config: Optional[DownloadConfig] = None,
+    config_name: Optional[str] = None,
 ) -> tuple[Optional[str], dict[str, Any]]:
     """Infer module (and builder kwargs) from data files. Raise if module names for different splits don't match.
 
@@ -292,6 +295,8 @@ def infer_module_for_data_files(
         path (str, *optional*): Dataset name or path.
         download_config ([`DownloadConfig`], *optional*):
             Specific download configuration parameters to authenticate on the Hugging Face Hub for private remote files.
+        config_name (str, *optional*):
+            Name of the metadata configuration used to select the data files.
 
     Returns:
         tuple[str, dict[str, Any]]: Tuple with
@@ -306,7 +311,11 @@ def infer_module_for_data_files(
     if any((module_name, default_builder_kwargs) != split_module for split_module in split_modules.values()):
         raise ValueError(f"Couldn't infer the same data file format for all splits. Got {split_modules}")
     if not module_name:
-        raise DataFilesNotFoundError("No (supported) data files found" + (f" in {path}" if path else ""))
+        raise DataFilesNotFoundError(
+            "No (supported) data files found"
+            + (f" for config '{config_name}'" if config_name is not None else "")
+            + (f" in {path}" if path else "")
+        )
     return module_name, default_builder_kwargs
 
 
@@ -435,10 +444,12 @@ class LocalDatasetModuleFactory(_DatasetModuleFactory):
         # we need a set of data files to find which dataset builder to use
         # because we need to infer module name by files extensions
         base_path = Path(self.path, self.data_dir or "").expanduser().resolve().as_posix()
+        config_name = None
         if self.data_files is not None:
             patterns = sanitize_patterns(self.data_files)
         elif metadata_configs and not self.data_dir and "data_files" in next(iter(metadata_configs.values())):
-            patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
+            config_name, config_params = next(iter(metadata_configs.items()))
+            patterns = sanitize_patterns(config_params["data_files"])
         else:
             patterns = get_data_patterns(base_path)
         data_files = DataFilesDict.from_patterns(
@@ -449,6 +460,7 @@ class LocalDatasetModuleFactory(_DatasetModuleFactory):
         module_name, default_builder_kwargs = infer_module_for_data_files(
             data_files=data_files,
             path=self.path,
+            config_name=config_name,
         )
         data_files = data_files.filter(
             extensions=_MODULE_TO_EXTENSIONS[module_name] + _MODULE_TO_METADATA_EXTENSIONS[module_name],
@@ -632,10 +644,12 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
             dataset_infos = exported_dataset_infos
         # we need a set of data files to find which dataset builder to use
         # because we need to infer module name by files extensions
+        config_name = None
         if self.data_files is not None:
             patterns = sanitize_patterns(self.data_files)
         elif metadata_configs and not self.data_dir and "data_files" in next(iter(metadata_configs.values())):
-            patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
+            config_name, config_params = next(iter(metadata_configs.items()))
+            patterns = sanitize_patterns(config_params["data_files"])
         else:
             patterns = get_data_patterns(base_path, download_config=self.download_config)
         data_files = DataFilesDict.from_patterns(
@@ -648,6 +662,7 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
             data_files=data_files,
             path=self.name,
             download_config=self.download_config,
+            config_name=config_name,
         )
         data_files = data_files.filter(
             extensions=_MODULE_TO_EXTENSIONS[module_name] + _MODULE_TO_METADATA_EXTENSIONS[module_name],
@@ -881,10 +896,12 @@ class HubBucketDatasetModuleFactory(_DatasetModuleFactory):
         # we need a set of data files to find which dataset builder to use
         # because we need to infer module name by files extensions
         base_path = "hf://" + Path(self.path, self.data_dir or "").as_posix()
+        config_name = None
         if self.data_files is not None:
             patterns = sanitize_patterns(self.data_files)
         elif metadata_configs and not self.data_dir and "data_files" in next(iter(metadata_configs.values())):
-            patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
+            config_name, config_params = next(iter(metadata_configs.items()))
+            patterns = sanitize_patterns(config_params["data_files"])
         else:
             patterns = get_data_patterns(base_path, download_config=self.download_config)
         data_files = DataFilesDict.from_patterns(
@@ -895,6 +912,7 @@ class HubBucketDatasetModuleFactory(_DatasetModuleFactory):
         module_name, default_builder_kwargs = infer_module_for_data_files(
             data_files=data_files,
             path=self.path,
+            config_name=config_name,
         )
         data_files = data_files.filter(
             extensions=_MODULE_TO_EXTENSIONS[module_name] + _MODULE_TO_METADATA_EXTENSIONS[module_name],

@@ -22,11 +22,12 @@ from datasets.config import METADATA_CONFIGS_FIELD
 from datasets.data_files import DataFilesDict, DataFilesPatternsDict
 from datasets.dataset_dict import DatasetDict
 from datasets.download.download_config import DownloadConfig
-from datasets.exceptions import DatasetNotFoundError
+from datasets.exceptions import DataFilesNotFoundError, DatasetNotFoundError
 from datasets.features import Features, Value
 from datasets.iterable_dataset import IterableDataset, MappedExamplesIterable
 from datasets.load import (
     CachedDatasetModuleFactory,
+    HubBucketDatasetModuleFactory,
     HubDatasetModuleFactory,
     LocalDatasetModuleFactory,
     PackagedDatasetModuleFactory,
@@ -77,6 +78,70 @@ SAMPLE_DATASET_CAPITAL_LETTERS_IN_NAME_COMMIT_HASH = "70aa36264a6954920a13dd0465
 
 SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "hf-internal-testing/_dummy"
 SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
+
+
+@pytest.mark.parametrize("metadata_filename", ["README.md", ".huggingface.yaml"])
+@pytest.mark.parametrize("inspect_dataset", [datasets.get_dataset_config_names, load_dataset_builder])
+def test_missing_metadata_config_error(tmp_path, metadata_filename, inspect_dataset):
+    (tmp_path / "data.csv").write_text("text\nhello\n", encoding="utf-8")
+    metadata = (
+        "configs:\n"
+        "- config_name: missing-config\n"
+        "  data_files: missing/*.csv\n"
+        "- config_name: working-config\n"
+        "  data_files: data.csv\n"
+    )
+    if metadata_filename == "README.md":
+        metadata = f"---\n{metadata}---\n"
+    (tmp_path / metadata_filename).write_text(metadata, encoding="utf-8")
+
+    with pytest.raises(DataFilesNotFoundError, match="config 'missing-config'") as exc_info:
+        inspect_dataset(str(tmp_path))
+
+    assert str(tmp_path) in str(exc_info.value)
+
+
+@pytest.mark.parametrize("inspect_dataset", [datasets.get_dataset_config_names, load_dataset_builder])
+def test_missing_explicit_data_files_error(tmp_path, inspect_dataset):
+    (tmp_path / "README.md").write_text(
+        "---\nconfigs:\n- config_name: unused-config\n  data_files: data.csv\n---\n", encoding="utf-8"
+    )
+    (tmp_path / "data.csv").write_text("text\nhello\n", encoding="utf-8")
+
+    with pytest.raises(DataFilesNotFoundError) as exc_info:
+        inspect_dataset(str(tmp_path), data_files="missing/*.csv")
+
+    assert str(exc_info.value) == f"No (supported) data files found in {tmp_path}"
+
+
+@pytest.mark.parametrize("source", ["hub", "bucket"])
+def test_missing_metadata_config_error_on_hub(tmp_path, tmpfs, source):
+    metadata = (
+        "---\nconfigs:\n"
+        "- config_name: missing-config\n"
+        "  data_files: tmp://dataset/missing/*.csv\n"
+        "- config_name: working-config\n"
+        "  data_files: tmp://dataset/data.csv\n---\n"
+    )
+    readme_path = tmp_path / "README.md"
+    readme_path.write_text(metadata, encoding="utf-8")
+    tmpfs.write_text("dataset/README.md", metadata)
+    tmpfs.write_text("dataset/data.csv", "text\nhello\n")
+
+    with (
+        patch("datasets.load.HfApi.hf_hub_download", return_value=str(readme_path)),
+        patch("datasets.load.cached_path", side_effect=FileNotFoundError),
+        patch("datasets.load.HfFileSystem", return_value=tmpfs),
+    ):
+        factory = (
+            HubDatasetModuleFactory("namespace/dataset", commit_hash="main")
+            if source == "hub"
+            else HubBucketDatasetModuleFactory("dataset", download_config=DownloadConfig())
+        )
+        with pytest.raises(DataFilesNotFoundError, match="config 'missing-config'") as exc_info:
+            factory.get_module()
+
+    assert "dataset" in str(exc_info.value)
 
 
 @pytest.fixture
