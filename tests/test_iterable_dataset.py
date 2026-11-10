@@ -3381,6 +3381,218 @@ def test_concatenate_datasets_with_different_columns():
     assert list(concatenated_dataset) == extended_dataset2_list + list(dataset1)
 
 
+@pytest.mark.parametrize("combine", ["concatenate", "interleave", "random_interleave"])
+@pytest.mark.parametrize("typed_first", [False, True])
+def test_combine_datasets_with_typed_and_untyped_sources(combine, typed_first):
+    features = Features({"id": Value("int64"), "label": ClassLabel(names=["negative", "positive"])})
+    typed = IterableDataset.from_generator(lambda: iter([{"id": 0, "label": "negative"}]), features=features).map(
+        lambda example: example, features=features
+    )
+    untyped = IterableDataset.from_generator(lambda: iter([{"id": 1, "label": "positive"}]), features=features)
+    datasets = [typed, untyped] if typed_first else [untyped, typed]
+    if combine == "concatenate":
+        combined = concatenate_datasets(datasets)
+    else:
+        kwargs = {"probabilities": [0.5, 0.5], "seed": 42} if combine == "random_interleave" else {}
+        combined = interleave_datasets(datasets, stopping_strategy="all_exhausted_without_replacement", **kwargs)
+    expected = [{"id": 0, "label": 0}, {"id": 1, "label": 1}]
+    assert sorted(combined, key=lambda example: example["id"]) == expected
+    assert sorted(combined.with_format("numpy"), key=lambda example: example["id"]) == expected
+    arrow_rows = [example for table in combined.with_format("arrow") for example in table.to_pylist()]
+    assert sorted(arrow_rows, key=lambda example: example["id"]) == expected
+    batched_rows = [example for batch in combined.iter(batch_size=2) for example in _batch_to_examples(batch)]
+    assert sorted(batched_rows, key=lambda example: example["id"]) == expected
+
+    iterator = iter(combined)
+    next(iterator)
+    state = combined.state_dict()
+    remaining = list(iterator)
+    combined.load_state_dict(state)
+    assert list(combined) == remaining
+
+
+@pytest.mark.parametrize("combine", ["concatenate", "interleave", "random_interleave"])
+@pytest.mark.parametrize("typed_first", [False, True])
+def test_combine_typed_datasets_with_different_columns(combine, typed_first):
+    dataset1 = Dataset.from_dict({"id": [0], "label": [10]}).to_iterable_dataset()
+    dataset2 = Dataset.from_dict({"id": [1]}).to_iterable_dataset()
+    dataset1 = dataset1.map(lambda example: example, features=dataset1.features)
+    dataset2 = dataset2.map(lambda example: example, features=dataset2.features)
+    datasets = [dataset1, dataset2] if typed_first else [dataset2, dataset1]
+    if combine == "concatenate":
+        combined = concatenate_datasets(datasets)
+    else:
+        kwargs = {"probabilities": [0.5, 0.5], "seed": 42} if combine == "random_interleave" else {}
+        combined = interleave_datasets(datasets, stopping_strategy="all_exhausted_without_replacement", **kwargs)
+    expected = [{"id": 0, "label": 10}, {"id": 1, "label": None}]
+    assert sorted(combined, key=lambda example: example["id"]) == expected
+    if combine == "concatenate":
+        sharded = [example for index in range(2) for example in combined.shard(num_shards=2, index=index)]
+        assert sorted(sharded, key=lambda example: example["id"]) == expected
+
+
+@pytest.mark.parametrize("typed_first", [False, True])
+def test_concatenate_datasets_axis_1_with_typed_and_untyped_sources(typed_first):
+    typed_features = Features({"left": ClassLabel(names=["negative", "positive"])})
+    untyped_features = Features({"right": ClassLabel(names=["negative", "positive"])})
+    typed = IterableDataset.from_generator(lambda: iter([{"left": "negative"}]), features=typed_features).map(
+        lambda example: example, features=typed_features
+    )
+    untyped = IterableDataset.from_generator(lambda: iter([{"right": "positive"}]), features=untyped_features)
+    datasets = [typed, untyped] if typed_first else [untyped, typed]
+    assert list(concatenate_datasets(datasets, axis=1)) == [{"left": 0, "right": 1}]
+
+
+@pytest.mark.parametrize("combine", ["concatenate", "interleave", "horizontal"])
+@pytest.mark.parametrize("nested", [False, True])
+@pytest.mark.parametrize("source_type", ["raw", "python", "arrow"])
+def test_combine_typed_image_sources_preserves_pixels(combine, nested, source_type):
+    from io import BytesIO
+
+    from PIL import Image as PILImage
+
+    pixels = np.random.default_rng(42).integers(0, 256, (16, 16, 3), dtype=np.uint8)
+    buffer = BytesIO()
+    PILImage.fromarray(pixels).save(buffer, format="JPEG", quality=95)
+    image_bytes = buffer.getvalue()
+
+    def build(column, extra_column=False, mode=source_type):
+        feature = {"data": Image()} if nested else Image()
+        value = {"bytes": image_bytes, "path": None}
+        value = {"data": value} if nested else value
+        if extra_column and nested:
+            feature["tag"] = Value("int64")
+            value["tag"] = 0
+        features = Features({column: feature})
+        example = {column: value}
+        if extra_column and not nested:
+            features["tag"] = Value("int64")
+            example["tag"] = 0
+        if mode != "python":
+            source = Dataset.from_dict(
+                {name: [value] for name, value in example.items()}, features=features
+            ).to_iterable_dataset()
+            if mode == "arrow":
+                source = source.with_format("arrow").map(lambda table: table, features=features).with_format(None)
+            return source
+        return IterableDataset.from_generator(lambda: iter([example]), features=features).map(
+            lambda example: example, features=features
+        )
+
+    def get_pixels(example, column):
+        value = example[column]["data"] if nested else example[column]
+        return np.array(value)
+
+    left = build(
+        "left" if combine == "horizontal" else "image",
+        extra_column=True,
+        mode="raw" if source_type == "arrow" else source_type,
+    )
+    right = build("right" if combine == "horizontal" else "image")
+    column = "left" if combine == "horizontal" else "image"
+    expected = get_pixels(next(iter(left)), column)
+    if combine == "horizontal":
+        combined = concatenate_datasets([left, right], axis=1)
+        output = next(iter(combined))
+        assert np.array_equal(get_pixels(output, "left"), expected)
+        assert np.array_equal(get_pixels(output, "right"), expected)
+        numpy_output = next(iter(combined.with_format("numpy")))
+        assert np.array_equal(get_pixels(numpy_output, "left"), expected)
+        assert np.array_equal(get_pixels(numpy_output, "right"), expected)
+    else:
+        combined = (
+            concatenate_datasets([left, right])
+            if combine == "concatenate"
+            else interleave_datasets([left, right], stopping_strategy="all_exhausted_without_replacement")
+        )
+        output = list(combined)
+        assert len(output) == 2
+        assert all(np.array_equal(get_pixels(example, "image"), expected) for example in output)
+        assert all(np.array_equal(get_pixels(example, "image"), expected) for example in combined.with_format("numpy"))
+        if nested:
+            assert output[1]["image"]["tag"] is None
+
+    mapped = combined.with_format("numpy").map(
+        lambda example: {"pixel": int(get_pixels(example, column)[0, 0, 0])},
+        remove_columns=list(combined.features),
+    )
+    assert [example["pixel"] for example in mapped] == [int(expected[0, 0, 0])] * (1 if combine == "horizontal" else 2)
+
+
+def test_nested_concatenation_preserves_feature_conversion():
+    features = Features({"label": ClassLabel(names=["negative", "positive"])})
+    raw = IterableDataset.from_generator(lambda: iter([{"label": "positive"}]), features=features)
+    combined = raw.map(lambda example: example, features=features)
+    for _ in range(12):
+        combined = concatenate_datasets([combined, raw])
+    assert combined.features == features
+    assert list(combined) == [{"label": 1}] * 13
+
+
+@pytest.mark.parametrize("combine", ["concatenate", "horizontal", "interleave", "random_interleave"])
+@pytest.mark.parametrize("mapped", [False, True])
+def test_combine_arrow_datasets_resume_within_table(combine, mapped):
+    left = Dataset.from_dict({"left": list(range(5))}).to_iterable_dataset()
+    right = Dataset.from_dict(
+        {"right" if combine == "horizontal" else "left": list(range(5, 10))}
+    ).to_iterable_dataset()
+    if mapped:
+        right = right.map(lambda example: example, features=right.features)
+    if combine in ["concatenate", "horizontal"]:
+        combined = concatenate_datasets([left, right], axis=int(combine == "horizontal"))
+    else:
+        kwargs = {"probabilities": [0.5, 0.5], "seed": 42} if combine == "random_interleave" else {}
+        combined = interleave_datasets([left, right], stopping_strategy="all_exhausted_without_replacement", **kwargs)
+    iterator = iter(combined)
+    next(iterator)
+    state = combined.state_dict()
+    remaining = list(iterator)
+    combined.load_state_dict(state)
+    assert list(combined) == remaining
+
+
+@pytest.mark.parametrize("mixed", [False, True])
+def test_combine_arrow_datasets_preserves_null_structs(mixed):
+    features = Features({"payload": {"value": Value("int64")}})
+    source = Dataset.from_dict({"payload": [None, {"value": 1}]}, features=features).to_iterable_dataset()
+    right = (
+        Dataset.from_dict({"payload": [{"value": 2}]}, features=features)
+        .to_iterable_dataset()
+        .map(lambda example: example, features=features)
+        if mixed
+        else source
+    )
+    combined = concatenate_datasets([source, right])
+    expected = [{"payload": None}, {"payload": {"value": 1}}]
+    assert list(combined) == expected + ([{"payload": {"value": 2}}] if mixed else expected)
+
+
+@pytest.mark.parametrize("combine", ["concatenate", "horizontal", "interleave"])
+def test_combine_arrow_datasets_preserves_casts(combine):
+    column = "right" if combine == "horizontal" else "left"
+    left = Dataset.from_dict({"left": [0, 1]}).to_iterable_dataset().cast_column("left", Value("string"))
+    right = Dataset.from_dict({column: [2, 3]}).to_iterable_dataset().cast_column(column, Value("string"))
+    right = right.map(lambda example: example, features=right.features)
+    if combine == "interleave":
+        combined = interleave_datasets([left, right], stopping_strategy="all_exhausted_without_replacement")
+    else:
+        combined = concatenate_datasets([left, right], axis=int(combine == "horizontal"))
+    assert all(isinstance(value, str) for example in combined for value in example.values())
+
+
+def test_combine_arrow_datasets_preserves_uint64():
+    features = Features({"value": Value("uint64")})
+    left = Dataset(pa.table({"value": pa.array([2**63], type=pa.uint64())})).to_iterable_dataset()
+    right = (
+        Dataset.from_dict({"value": [0]}, features=features)
+        .to_iterable_dataset()
+        .map(lambda example: example, features=features)
+    )
+    combined = concatenate_datasets([left, right])
+    assert list(combined) == [{"value": 2**63}, {"value": 0}]
+    assert list(combined.iter(batch_size=2)) == [{"value": [2**63, 0]}]
+
+
 def test_concatenate_datasets_axis_1():
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label1": 10})
     dataset1 = IterableDataset(ex_iterable1)

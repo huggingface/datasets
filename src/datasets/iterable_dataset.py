@@ -2496,6 +2496,14 @@ class TakeExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.num_shards
 
 
+def _add_missing_features(example: dict, features: dict) -> dict:
+    example = {**dict.fromkeys(features), **example}
+    for column_name, feature in features.items():
+        if isinstance(feature, dict) and example[column_name] is not None:
+            example[column_name] = _add_missing_features(example[column_name], feature)
+    return example
+
+
 def _apply_feature_types_on_example(
     example: dict, features: Features, token_per_repo_id: dict[str, Union[str, bool, None]]
 ) -> dict:
@@ -2547,26 +2555,29 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
 
     @property
     def is_typed(self):
-        return self.ex_iterable.is_typed or self._features is not None
+        return self._features is not None or self.ex_iterable.is_typed
 
     @property
     def features(self):
-        return self._features
+        return self._features if self._features is not None else self.ex_iterable.features
 
     def _init_state_dict(self) -> dict:
         self._state_dict = self.ex_iterable._init_state_dict()
         return self._state_dict
 
     def __iter__(self):
+        is_typed = self.ex_iterable.is_typed
+        add_missing_features = is_typed and self.features and self.features != self.ex_iterable.features
+        features = self.features if self.ex_iterable.iter_arrow or not is_typed else None
         if not self.formatting or self.formatting.is_table:
             formatter = PythonFormatter(
-                features=self._features if not self.ex_iterable.is_typed else None,
+                features=features,
                 token_per_repo_id=self.token_per_repo_id,
             )
         else:
             formatter = get_formatter(
                 self.formatting.format_type,
-                features=self._features if not self.ex_iterable.is_typed else None,
+                features=features,
                 token_per_repo_id=self.token_per_repo_id,
             )
 
@@ -2587,10 +2598,12 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             )
             for key, example in self.ex_iterable:
                 # don't apply feature types if already applied by ex_iterable (e.g. in case of chained with_format)
-                if self.features and not self.ex_iterable.is_typed:
+                if self.features and not is_typed:
                     example = _apply_feature_types_on_example(
                         example, self.features, token_per_repo_id=self.token_per_repo_id
                     )
+                elif add_missing_features:
+                    example = _add_missing_features(example, self.features)
                 if format_dict:
                     example = format_dict(example)
                 yield key, example
@@ -5619,6 +5632,17 @@ def _concatenate_iterable_datasets(
     )
 
     ex_iterables = [deepcopy(d._ex_iterable) for d in dsets]
+    # Keep native Arrow sources in bulk; normalize mixed or typed sources before combining them.
+    if not all(ex_iterable.iter_arrow and not ex_iterable.is_typed for ex_iterable in ex_iterables):
+        ex_iterables = [
+            FormattedExamplesIterable(
+                RebatchedArrowExamplesIterable(ex_iterable, batch_size=1) if ex_iterable.iter_arrow else ex_iterable,
+                formatting=None,
+                features=features if axis == 0 else d.features,
+                token_per_repo_id=d._token_per_repo_id,
+            )
+            for d, ex_iterable in zip(dsets, ex_iterables)
+        ]
     if axis == 0:
         ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
     else:
@@ -5701,6 +5725,17 @@ def _interleave_iterable_datasets(
     )
 
     ex_iterables = [deepcopy(d._ex_iterable) for d in datasets]
+    # Keep native Arrow sources in bulk; normalize mixed or typed sources before combining them.
+    if not all(ex_iterable.iter_arrow and not ex_iterable.is_typed for ex_iterable in ex_iterables):
+        ex_iterables = [
+            FormattedExamplesIterable(
+                RebatchedArrowExamplesIterable(ex_iterable, batch_size=1) if ex_iterable.iter_arrow else ex_iterable,
+                formatting=None,
+                features=features,
+                token_per_repo_id=d._token_per_repo_id,
+            )
+            for d, ex_iterable in zip(datasets, ex_iterables)
+        ]
     if all(ex_iterable.iter_arrow for ex_iterable in ex_iterables):
         ex_iterables = [RebatchedArrowExamplesIterable(ex_iterable, batch_size=1) for ex_iterable in ex_iterables]
     # Use cycling or random cycling of sources
