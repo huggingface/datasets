@@ -1838,7 +1838,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_shards = int(dataset_nbytes / max_shard_size) + 1
             num_shards = max(num_shards, num_proc or 1)
             # if we have only a few large samples, we should only create as many shards as samples
-            num_shards = min(len(self.data), num_shards)
+            num_shards = max(1, min(len(self.data), num_shards))
 
         # use smaller batches for big samples (e.g. images) to stay below the 2GB limit of arrow binary arrays
         writer_batch_size = config.DEFAULT_MAX_BATCH_SIZE
