@@ -2746,6 +2746,46 @@ def test_iterable_dataset_set_epoch_resuming(dataset: IterableDataset):
     assert len(list(dataset)) == 0
 
 
+def _generate_ids_by_shard(shards):
+    for shard in shards:
+        for i in range(4):
+            yield {"id": shard * 100 + i}
+
+
+@pytest.mark.parametrize("source_kind", ["python", "arrow"])
+@pytest.mark.parametrize("sibling_action", ["create", "iterate"])
+@pytest.mark.parametrize("resume_first", [False, True])
+def test_iterable_dataset_state_dict_not_frozen_by_sibling_dataset(source_kind, sibling_action, resume_first):
+    # `ds.skip()` and `ds.take()` share the ex_iterables of `ds`. Creating or iterating the take
+    # dataset must not freeze the state_dict of the skip dataset while it is being iterated,
+    # including when that iteration resumed from a checkpoint ("resume, then evaluate").
+    def make_source():
+        if source_kind == "python":
+            return IterableDataset.from_generator(_generate_ids_by_shard, gen_kwargs={"shards": list(range(4))})
+        ids = [shard * 100 + i for shard in range(4) for i in range(4)]
+        return Dataset.from_dict({"id": ids}).to_iterable_dataset(num_shards=4)
+
+    expected = [example["id"] for example in make_source().skip(2)]
+    ds = make_source()
+    train_ds = ds.skip(2)
+    seen = []
+    if resume_first:
+        before_restart = make_source().skip(2)
+        before_restart_iter = iter(before_restart)
+        seen = [next(before_restart_iter)["id"] for _ in range(2)]
+        train_ds.load_state_dict(before_restart.state_dict())
+    train_iter = iter(train_ds)
+    seen += [next(train_iter)["id"] for _ in range(2)]
+    eval_ds = ds.take(2)
+    if sibling_action == "iterate":
+        list(eval_ds)
+    seen += [next(train_iter)["id"] for _ in range(12 - len(seen))]  # crosses several shards
+
+    resumed = make_source().skip(2)
+    resumed.load_state_dict(train_ds.state_dict())
+    assert seen + [example["id"] for example in resumed] == expected
+
+
 @pytest.mark.parametrize("method", ["skip", "take"])
 @pytest.mark.parametrize("source_kind", ["python", "arrow"])
 @pytest.mark.parametrize("shuffle_before", [False, True])
@@ -3199,6 +3239,19 @@ def test_iterable_dataset_rename_columns(dataset_with_several_columns: IterableD
     assert new_dataset.column_names is not None
     assert all(c not in new_dataset.column_names for c in ["id", "filepath"])
     assert all(c in new_dataset.column_names for c in ["new_id", "filename"])
+
+
+@pytest.mark.parametrize("format_type", ["arrow", "pandas"])
+def test_iterable_dataset_rename_columns_with_table_format(format_type):
+    ds = IterableDataset.from_dict({"a": [1, 2, 3], "b": ["x", "y", "z"]})
+    new_dataset = ds.with_format(format_type).rename_columns({"a": "c"})
+    assert new_dataset.column_names == ["c", "b"]
+    outputs = list(new_dataset)
+    assert len(outputs) == 3
+    assert all(isinstance(output, pa.Table if format_type == "arrow" else pd.DataFrame) for output in outputs)
+    assert list(new_dataset.with_format(None)) == [{"c": 1, "b": "x"}, {"c": 2, "b": "y"}, {"c": 3, "b": "z"}]
+    with pytest.raises(ValueError):
+        list(ds.with_format(format_type).rename_columns({"missing": "c"}))
 
 
 def test_iterable_dataset_remove_columns(dataset_with_several_columns: IterableDataset):
