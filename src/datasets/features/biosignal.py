@@ -11,8 +11,7 @@ import pyarrow as pa
 from .. import config
 from ..download.download_config import DownloadConfig
 from ..table import array_cast
-from ..utils.file_utils import is_local_path, xopen
-from ..utils.py_utils import no_op_if_value_is_null
+from ..utils.file_utils import is_local_path, xbasename, xopen
 from .bio_sequence import _cast_to_bytes_path_struct, _resolve_token
 
 
@@ -102,6 +101,7 @@ class Biosignal:
             import mne
 
             if isinstance(value, mne.io.BaseRaw):
+                # ponytail: tempfile until mne>=1.13 supports raw.save(BytesIO()) (mne-tools/mne-python#14516)
                 with tempfile.TemporaryDirectory() as tmpdir:
                     tmp_path = os.path.join(tmpdir, "raw.fif")
                     value.save(tmp_path, overwrite=True, verbose="ERROR")
@@ -147,6 +147,7 @@ class Biosignal:
                     import mne_bids
 
                     try:
+                        # ponytail: get_bids_path_from_fname wrapper until mne-bids>=0.20 accepts path-like directly (mne-tools/mne-bids#1696)
                         return mne_bids.read_raw_bids(
                             mne_bids.get_bids_path_from_fname(path, check=False, verbose="ERROR"),
                             extra_params={"preload": self.preload},
@@ -159,12 +160,14 @@ class Biosignal:
             with xopen(path, "rb", download_config=download_config) as f:
                 bytes_ = f.read()
 
-        if not path or path.lower().endswith((".fif", ".fif.gz")):
+        fname = xbasename(path) if path else ""
+        if not fname or fname.lower().endswith((".fif", ".fif.gz")):
             return mne.io.read_raw_fif(io.BytesIO(bytes_), preload=True, verbose="ERROR")
-        if not os.path.splitext(path)[1]:
+        if not os.path.splitext(fname)[1]:
             raise ValueError(f"Decoding non-FIF biosignal bytes requires a file extension in 'path', got {path!r}.")
+        # ponytail: tempfile fallback until mne>=1.13 supports BytesIO across readers (mne-tools/mne-python#14516, #14517)
         with tempfile.TemporaryDirectory() as tmpdir:
-            tmp_path = os.path.join(tmpdir, os.path.basename(path))
+            tmp_path = os.path.join(tmpdir, fname)
             Path(tmp_path).write_bytes(bytes_)
             return mne.io.read_raw(tmp_path, preload=True, verbose="ERROR")
 
@@ -214,41 +217,26 @@ class Biosignal:
                 `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
 
-        @no_op_if_value_is_null
-        def path_to_bytes(path: str) -> bytes:
-            return self.encode_example(
-                Biosignal(preload=True).decode_example(path, token_per_repo_id=token_per_repo_id)
-            )["bytes"]
-
-        def should_embed(path: Optional[str]) -> bool:
-            return path is not None and (local_files if is_local_path(path) else remote_files)
-
-        def embedded_name(path: str) -> str:
-            name = os.path.basename(path)
-            return name if name.lower().endswith(".fif") else f"{os.path.splitext(name)[0]}_raw.fif"
-
-        rows = storage.to_pylist()
-        bytes_array = pa.array(
-            [
-                (path_to_bytes(x["path"]) if x["bytes"] is None and should_embed(x["path"]) else x["bytes"])
-                if x is not None
-                else None
-                for x in rows
-            ],
-            type=pa.binary(),
+        bytes_col, path_col = [], []
+        for x in storage.to_pylist():
+            if x is None:
+                bytes_col.append(None)
+                path_col.append(None)
+            elif x["path"] is not None and (local_files if is_local_path(x["path"]) else remote_files):
+                name = xbasename(x["path"])
+                if x["bytes"] is None:
+                    raw = Biosignal(preload=True).decode_example(x["path"], token_per_repo_id=token_per_repo_id)
+                    bytes_col.append(self.encode_example(raw)["bytes"])
+                    path_col.append(name if name.lower().endswith(".fif") else f"{os.path.splitext(name)[0]}_raw.fif")
+                else:
+                    bytes_col.append(x["bytes"])
+                    path_col.append(name)
+            else:
+                bytes_col.append(x["bytes"])
+                path_col.append(x["path"])
+        storage = pa.StructArray.from_arrays(
+            [pa.array(bytes_col, type=pa.binary()), pa.array(path_col, type=pa.string())],
+            ["bytes", "path"],
+            mask=storage.is_null(),
         )
-        path_array = pa.array(
-            [
-                (
-                    (embedded_name(x["path"]) if x["bytes"] is None else os.path.basename(x["path"]))
-                    if should_embed(x["path"])
-                    else x["path"]
-                )
-                if x is not None
-                else None
-                for x in rows
-            ],
-            type=pa.string(),
-        )
-        storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
         return array_cast(storage, self.pa_type)

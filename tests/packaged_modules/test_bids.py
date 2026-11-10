@@ -107,6 +107,8 @@ def test_load_bids_streaming_archive_splits_and_parquet(bids_root, tmp_path):
     zip_file = shutil.make_archive(str(tmp_path / "bids_archive"), "zip", root_dir=bids_root)
     ds_zip = load_dataset("bids", data_files=zip_file, split="train")
     assert ds_zip["subject"] == ["01", "01", "02"] and ds_zip["mmse"] == [29, 29, None]
+    zip_stream = list(load_dataset("bids", data_files=zip_file, decode=False, split="train", streaming=True))
+    assert [r["mmse"] for r in zip_stream] == [29, 29, None]
 
     sub01 = str(bids_root / "sub-01" / "ses-01" / "eeg" / "sub-01_ses-01_task-rest_run-01_eeg.vhdr")
     sub02 = str(bids_root / "sub-02" / "ses-01" / "eeg" / "sub-02_ses-01_task-rest_run-01_eeg.vhdr")
@@ -132,3 +134,34 @@ def test_load_bids_streaming_archive_splits_and_parquet(bids_root, tmp_path):
     (work_root / "dataset_description.json").unlink()
     ds_partial = load_dataset(str(work_root), split="train")
     assert len(ds_partial) == 3 and list(ds_partial[0]["biosignal"].annotations.description) == ["ev_motor"]
+
+
+@require_mne_bids
+def test_bids_meg_splits_crosstalk_and_containers(tmp_path):
+    import mne
+    import mne_bids
+
+    meg_root = tmp_path / "meg_bids"
+    info = mne.create_info([f"MEG{i:04d}" for i in range(20)], sfreq=1000.0, ch_types="mag")
+    raw = mne.io.RawArray(np.ones((20, 20_000), dtype=np.float64) * 1e-12, info, verbose="ERROR")
+    bp = mne_bids.BIDSPath(subject="01", task="rest", datatype="meg", suffix="meg", extension=".fif", root=meg_root)
+    mne_bids.write_raw_bids(raw, bp, allow_preload=True, format="FIF", overwrite=True, verbose="ERROR")
+    # Re-save as split FIF chunks (split-01 + split-02) plus an acq-crosstalk calibration file
+    unsplit_fpath = meg_root / "sub-01" / "meg" / "sub-01_task-rest_meg.fif"
+    unsplit_fpath.unlink()
+    raw.save(str(unsplit_fpath), split_size=1_200_000, split_naming="bids", overwrite=True, verbose="ERROR")
+    assert (meg_root / "sub-01" / "meg" / "sub-01_task-rest_split-01_meg.fif").exists()
+    assert (meg_root / "sub-01" / "meg" / "sub-01_task-rest_split-02_meg.fif").exists()
+    (meg_root / "sub-01" / "meg" / "sub-01_acq-crosstalk_meg.fif").write_bytes(b"crosstalk")
+
+    ds_meg = load_dataset(str(meg_root), split="train")
+    assert len(ds_meg) == 1 and ds_meg[0]["biosignal"].n_times == 20_000
+
+    # Directory-based CTF .ds container discovered via its single .res4 header
+    ds_dir = tmp_path / "ctf_bids" / "sub-01" / "meg" / "sub-01_task-rest_meg.ds"
+    ds_dir.mkdir(parents=True)
+    (ds_dir / "sub-01_task-rest_meg.res4").write_bytes(b"hdr")
+    (ds_dir / "sub-01_task-rest_meg.meg4").write_bytes(b"dat")
+    ds_ctf = load_dataset(str(tmp_path / "ctf_bids"), decode=False, split="train", num_proc=2)
+    assert len(ds_ctf) == 1 and ds_ctf[0]["extension"] == ".ds"
+    assert ds_ctf[0]["biosignal"]["path"].endswith("sub-01_task-rest_meg.ds")
