@@ -1897,10 +1897,10 @@ class FilteredExamplesIterable(MappedExamplesIterable):
             mask = pa_table[self.mask_column_name]
             yield key, pa_table.drop(self.mask_column_name).filter(mask)
 
-    def shuffle_data_sources(self, seed: Optional[int]) -> "FilteredExamplesIterable":
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "FilteredExamplesIterable":
         """Shuffle the wrapped examples iterable."""
         return FilteredExamplesIterable(
-            self.ex_iterable.shuffle_data_sources(seed),
+            self.ex_iterable.shuffle_data_sources(generator),
             function=self.mask_function,
             with_indices=self.with_indices,
             input_columns=self.input_columns,

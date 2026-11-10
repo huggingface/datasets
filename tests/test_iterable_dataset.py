@@ -252,6 +252,15 @@ def test_examples_iterable_shuffle_data_sources():
     assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
+def test_filtered_examples_iterable_shuffle_data_sources():
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": ["0.txt", "1.txt"]})
+    filtered = FilteredExamplesIterable(ex_iterable, lambda x: True)
+    rng = np.random.default_rng(40)
+    shuffled = filtered.shuffle_data_sources(rng)
+    expected = [x for _, x in generate_examples_fn(filepaths=["1.txt", "0.txt"])]
+    assert [x for _, x in shuffled] == expected
+    assert_load_state_dict_resumes_iteration(shuffled)
+
 def test_examples_iterable_shuffle_shards_and_metadata():
     def gen(filepaths, all_metadata):
         for i, (filepath, metadata) in enumerate(zip(filepaths, all_metadata)):
