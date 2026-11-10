@@ -116,9 +116,13 @@ def _rename_columns_fn(example: Union[dict, pa.Table], column_mapping: dict[str,
     }
 
 
-def add_column_fn(example: dict, idx: int, name: str, column: list[dict]):
-    if name in example:
+def add_column_fn(
+    example: Union[dict, pa.Table], idx: Union[int, list[int]], name: str, column: Union[list, np.ndarray]
+):
+    if name in (example.column_names if isinstance(example, pa.Table) else example):
         raise ValueError(f"Error when adding {name}: column {name} is already in the dataset.")
+    if isinstance(example, pa.Table):
+        return example.append_column(name, pa.array([column[i] for i in idx]))
     return {name: column[idx]}
 
 
@@ -4305,6 +4309,12 @@ class IterableDataset(DatasetInfoMixin):
         Returns:
             `IterableDataset`
         """
+        if self._formatting and self._formatting.is_table:
+            return (
+                self.with_format("arrow")
+                .map(partial(add_column_fn, name=name, column=column), with_indices=True, batched=True)
+                .with_format(self._formatting.format_type)
+            )
         return self.map(partial(add_column_fn, name=name, column=column), with_indices=True)
 
     def rename_column(self, original_column_name: str, new_column_name: str) -> "IterableDataset":

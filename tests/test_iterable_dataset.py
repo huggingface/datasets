@@ -3210,6 +3210,75 @@ def test_iterable_dataset_add_column(dataset_with_several_columns: IterableDatas
     assert "new_column" in new_dataset.column_names
 
 
+@pytest.mark.parametrize(
+    "format_type",
+    [
+        "arrow",
+        "pandas",
+        pytest.param("polars", marks=pytest.mark.skipif(not config.POLARS_AVAILABLE, reason="test requires polars")),
+    ],
+)
+@pytest.mark.parametrize("arrow_backed", [False, True])
+@pytest.mark.parametrize("numpy_column", [False, True])
+def test_iterable_dataset_add_column_with_table_format(format_type, arrow_backed, numpy_column):
+    data = {"a": [1, 2, 3], "b": ["x", "y", "z"]}
+    if arrow_backed:
+        ds = Dataset.from_dict(data).to_iterable_dataset()
+    else:
+        ds = IterableDataset.from_generator(lambda: iter([dict(zip(data, row)) for row in zip(*data.values())]))
+    column = np.array([10, 20, 30]) if numpy_column else [10, 20, 30]
+    result = ds.with_format(format_type).add_column("c", column)
+    expected = ds.add_column("c", column).with_format(format_type)
+
+    assert result._formatting == expected._formatting
+    assert result.features == expected.features
+    rows, expected_rows = list(result), list(expected)
+    assert [type(row) for row in rows] == [type(row) for row in expected_rows]
+    assert [_normalize_batched_output(row) for row in rows] == [
+        _normalize_batched_output(row) for row in expected_rows
+    ]
+    assert [_normalize_batched_output(batch) for batch in result.iter(batch_size=2)] == [
+        _normalize_batched_output(batch) for batch in expected.iter(batch_size=2)
+    ]
+
+
+@pytest.mark.parametrize(
+    "format_type",
+    [
+        None,
+        "arrow",
+        "pandas",
+        pytest.param("polars", marks=pytest.mark.skipif(not config.POLARS_AVAILABLE, reason="test requires polars")),
+    ],
+)
+def test_iterable_dataset_add_column_rejects_existing_column(format_type):
+    ds = IterableDataset.from_dict({"a": [1, 2, 3]}).with_format(format_type)
+    with pytest.raises(ValueError, match="column a is already in the dataset"):
+        list(ds.add_column("a", [4, 5, 6]))
+
+
+@pytest.mark.parametrize(
+    "format_type",
+    [
+        "arrow",
+        "pandas",
+        pytest.param("polars", marks=pytest.mark.skipif(not config.POLARS_AVAILABLE, reason="test requires polars")),
+    ],
+)
+def test_iterable_dataset_add_column_with_table_format_resume(format_type):
+    ds = IterableDataset.from_dict({"a": list(range(1003))}).with_format(format_type)
+    result = ds.add_column("b", list(range(1003, 2006)))
+    expected = ds.with_format(None).add_column("b", list(range(1003, 2006))).with_format(format_type)
+    iterator = iter(result)
+    for _ in range(1001):
+        next(iterator)
+    state = result.state_dict()
+    result.load_state_dict(state)
+    assert [_normalize_batched_output(row) for row in result] == [
+        _normalize_batched_output(row) for row in islice(expected, 1001, None)
+    ]
+
+
 def test_iterable_dataset_rename_column(dataset_with_several_columns: IterableDataset):
     new_dataset = dataset_with_several_columns.rename_column("id", "new_id")
     assert list(new_dataset) == [
