@@ -2974,6 +2974,8 @@ class IterableDataset(DatasetInfoMixin):
         self, batch_size: int = 1, drop_last_batch: bool = False
     ) -> _BaseExamplesIterable:
         # Each iteration gets its own nodes, so it owns the state dicts it updates.
+        # shift_ex_examples_rngs() below copies the tree again, but only when epoch > 0:
+        # this copy is what protects epoch 0 (#8991), so keep it even though it is redundant there.
         ex_iterable = _copy_ex_iterables_tree(self._ex_iterable)
 
         if self.epoch:
