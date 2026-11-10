@@ -41,3 +41,15 @@ def test_split_dict_asdict_has_dataset_name(split_info):
 def test_named_split_inequality():
     # Used while building the docs, when set as a default parameter value in a function signature
     assert Split.TRAIN != inspect.Parameter.empty
+
+
+@pytest.mark.parametrize("weights", [[0, 0], [-1, 2], [1, -1], [-1, -2]])
+def test_subsplit_rejects_invalid_weights(weights):
+    with pytest.raises(ValueError, match="Subsplit weights must be non-negative"):
+        Split.TRAIN.subsplit(weighted=weights)
+
+
+def test_subsplit_accepts_zero_weight_with_positive_weight():
+    first, second = Split.TRAIN.subsplit(weighted=[0, 1])
+    assert repr(first) == "NamedSplit('train')(datasets.percent[0:0])"
+    assert repr(second) == "NamedSplit('train')(datasets.percent[0:100])"

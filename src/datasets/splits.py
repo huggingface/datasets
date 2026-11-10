@@ -236,6 +236,8 @@ class SplitBase(metaclass=abc.ABCMeta):
         elif weighted:
             # Normalize the weighted sum
             total = sum(weighted)
+            if total <= 0 or any(weight < 0 for weight in weighted):
+                raise ValueError("Subsplit weights must be non-negative and include at least one positive weight")
             weighted = [100 * x // total for x in weighted]
             # Create the slice for each of the elements
             start = 0
