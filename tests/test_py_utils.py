@@ -1,5 +1,8 @@
+import multiprocessing
 import os
 import pickle
+import struct
+import sys
 import time
 from dataclasses import dataclass
 from multiprocessing import Pool
@@ -14,6 +17,7 @@ from datasets.utils.py_utils import (
     NestedDataStructure,
     asdict,
     iflatmap_unordered,
+    imap_with_dead_worker_check,
     map_nested,
     string_to_dict,
     temp_seed,
@@ -21,7 +25,7 @@ from datasets.utils.py_utils import (
     zip_dict,
 )
 
-from .utils import require_numpy1_on_windows, require_tf, require_torch
+from .utils import fail_after, require_not_windows, require_numpy1_on_windows, require_tf, require_torch
 
 
 def np_sum(x):  # picklable for multiprocessing
@@ -123,6 +127,9 @@ def test_map_nested_num_proc(iterable_length, num_proc, expected_num_proc):
         patch("datasets.utils.py_utils._single_map_nested") as mock_single_map_nested,
         patch("datasets.parallel.parallel.Pool") as mock_multiprocessing_pool,
     ):
+        mock_multiprocessing_pool.return_value.__enter__.return_value.imap.return_value.next.side_effect = (
+            StopIteration
+        )
         data_struct = {f"{i}": i for i in range(iterable_length)}
         _ = map_nested(lambda x: x + 10, data_struct, num_proc=num_proc, parallel_min_length=16)
         if expected_num_proc == 1:
@@ -288,3 +295,58 @@ def test_string_to_dict():
     file_name_parts = string_to_dict(file_name, cache_file_name_pattern)
     assert file_name_parts is not None
     assert file_name_parts == {"rank": f"{rank:05d}", "num_proc": f"{num_proc:05d}"}
+
+
+def _exit_on_3(i):  # picklable for multiprocessing
+    if i == 3:
+        os._exit(1)  # the worker dies abruptly, as on an OOM kill
+    return i
+
+
+def _raise_timeout_error_on_3(i):  # picklable for multiprocessing
+    if i == 3:
+        raise multiprocessing.TimeoutError("raised by the task")
+    return i
+
+
+@require_not_windows
+@pytest.mark.parametrize("pool_cls", [Pool, multiprocess.Pool], ids=["multiprocessing", "multiprocess"])
+def test_imap_with_dead_worker_check(pool_cls):
+    with fail_after(10), pool_cls(2) as pool:
+        assert list(imap_with_dead_worker_check(pool, add_one, range(10))) == list(range(1, 11))
+        # the pool is terminated: no worker or pool thread is left
+        assert not any(worker.is_alive() for worker in pool._pool)
+        assert not any(t.is_alive() for t in (pool._worker_handler, pool._task_handler, pool._result_handler))
+    with fail_after(10), pool_cls(2) as pool:
+        with pytest.raises(RuntimeError, match="One of the subprocesses has abruptly died"):
+            list(imap_with_dead_worker_check(pool, _exit_on_3, range(10)))
+    with fail_after(10), pool_cls(2) as pool:
+        with pytest.raises(multiprocessing.TimeoutError, match="raised by the task"):
+            list(imap_with_dead_worker_check(pool, _raise_timeout_error_on_3, range(10)))
+
+
+def _exit_on_3_holding_the_pool_locks(i):  # picklable for multiprocessing
+    if i == 3:
+        frame = sys._getframe()
+        while frame.f_code.co_name != "worker":  # the pool's worker loop, which holds the queues
+            frame = frame.f_back
+        inqueue, outqueue = frame.f_locals["inqueue"], frame.f_locals["outqueue"]
+        inqueue._rlock.acquire()  # as when killed while waiting for or receiving a task
+        outqueue._wlock.acquire()  # as when killed while sending a result...
+        os.write(outqueue._writer.fileno(), struct.pack("!i", 1000))  # ...with only part of it written
+        os._exit(1)
+    return i
+
+
+@require_not_windows
+@pytest.mark.parametrize("pool_cls", [Pool, multiprocess.Pool], ids=["multiprocessing", "multiprocess"])
+def test_imap_with_dead_worker_check_if_the_worker_dies_holding_the_pool_locks(pool_cls):
+    with fail_after(10), pool_cls(2) as pool:
+        with pytest.raises(RuntimeError, match="One of the subprocesses has abruptly died"):
+            list(imap_with_dead_worker_check(pool, _exit_on_3_holding_the_pool_locks, range(10)))
+
+
+@require_not_windows
+def test_map_nested_num_proc_raises_if_a_worker_dies():
+    with fail_after(10), pytest.raises(RuntimeError, match="One of the subprocesses has abruptly died"):
+        map_nested(_exit_on_3, list(range(10)), num_proc=2)

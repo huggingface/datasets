@@ -11,6 +11,7 @@ from ..formatting import query_table
 from ..packaged_modules.json.json import Json
 from ..utils import tqdm as hf_tqdm
 from ..utils.json import get_json_field_paths_from_feature, json_decode_field
+from ..utils.py_utils import imap_with_dead_worker_check
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
@@ -180,7 +181,8 @@ class JsonDatasetWriter:
             num_rows, batch_size = len(self.dataset), self.batch_size
             with multiprocessing.Pool(self.num_proc) as pool:
                 for json_str in hf_tqdm(
-                    pool.imap(
+                    imap_with_dead_worker_check(
+                        pool,
                         self._batch_json,
                         [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),

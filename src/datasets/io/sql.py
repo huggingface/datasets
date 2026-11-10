@@ -5,6 +5,7 @@ from .. import Dataset, Features, config
 from ..formatting import query_table
 from ..packaged_modules.sql.sql import Sql
 from ..utils import tqdm as hf_tqdm
+from ..utils.py_utils import imap_with_dead_worker_check
 from .abc import AbstractDatasetInputStream
 
 
@@ -109,7 +110,8 @@ class SqlDatasetWriter:
             num_rows, batch_size = len(self.dataset), self.batch_size
             with multiprocessing.Pool(self.num_proc) as pool:
                 for num_rows in hf_tqdm(
-                    pool.imap(
+                    imap_with_dead_worker_check(
+                        pool,
                         self._batch_sql,
                         [(offset, index, to_sql_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),
