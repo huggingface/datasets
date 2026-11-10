@@ -49,6 +49,10 @@ class DatasetChild(datasets.Dataset):
         return DatasetChild(self.data, fingerprint=new_fingerprint)
 
 
+def _a_function_dumped_by_value(example):
+    return example
+
+
 class UnpicklableCallable:
     def __init__(self, callable):
         self.callable = callable
@@ -416,6 +420,59 @@ def test_move_script_doesnt_change_hash(tmp_path: Path):
     fingerprint1 = subprocess.check_output(["python", str(script_path1)])
     fingerprint2 = subprocess.check_output(["python", str(script_path2)])
     assert fingerprint1 == fingerprint2
+
+
+def test_hash_of_imported_function_changes_when_its_body_changes(tmp_path: Path):
+    module_path = tmp_path / "module_under_edit.py"
+    script_path = tmp_path / "script.py"
+    with script_path.open("w") as f:
+        f.write(
+            dedent(
+                f"""
+    import sys
+    sys.path.insert(0, {str(tmp_path)!r})
+    from datasets.fingerprint import Hasher
+    import module_under_edit
+    print(Hasher.hash(module_under_edit.func))
+    """
+            )
+        )
+
+    def hash_with_body(body: str) -> bytes:
+        with module_path.open("w") as f:
+            f.write(
+                dedent(f"""
+    def func(example):
+        return {body}
+    """)
+            )
+        return subprocess.check_output(["python", "-B", str(script_path)])
+
+    assert hash_with_body("example[:4]") != hash_with_body("example[:2]")
+
+
+def test_hash_of_installed_module_function_stays_by_reference():
+    from datasets.utils._dill import _is_installed_module, dumps
+
+    assert _is_installed_module("os") is True
+    assert _is_installed_module("dill") is True
+    # A built-in module has no `__file__` and holds no user-editable source.
+    assert _is_installed_module("sys") is True
+    # A by-reference dump carries the module and the qualified name, never the body,
+    # so the constant inside `os.path.join` is absent from it.
+    assert b"sep" not in dumps(os.path.join)
+
+
+def test_by_value_function_is_dumped_once_per_dump():
+    from datasets.utils._dill import _is_installed_module, dumps
+
+    # The test suite is not an installed package, so its functions are dumped by value.
+    assert _is_installed_module(_a_function_dumped_by_value.__module__) is False
+    once = dumps([_a_function_dumped_by_value])
+    twice = dumps([_a_function_dumped_by_value, _a_function_dumped_by_value])
+    # The second reference is memoized rather than dumped a second time, which is also
+    # what stops a function reachable from its own globals from being followed forever.
+    assert len(twice) < 2 * len(once)
 
 
 def test_fingerprint_in_multiprocessing():
