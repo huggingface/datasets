@@ -1650,6 +1650,49 @@ def test_skip_arrow_examples_iterable(count):
     assert_load_state_dict_resumes_arrow_iteration(skip_ex_iterable)
 
 
+@pytest.mark.parametrize("arrow", [False, True])
+@pytest.mark.parametrize("counting", ["known", "unknown", "unavailable", "missing"])
+def test_skip_arrow_complete_sources(arrow, counting):
+    kwargs = {"filepaths": ["a", "b", "c"], "n": 5, "batch_size": 2}
+    generated = []
+
+    def tables(**kwargs):
+        generated.extend(kwargs["filepaths"])
+        yield from generate_tables_fn(**kwargs)
+
+    def counts(**kwargs):
+        if counting == "unavailable":
+            raise NotImplementedError
+        return iter([5, None, 5] if counting == "unknown" else [5, 5, 5])
+
+    source = ArrowExamplesIterable(tables, kwargs, generate_num_examples_fn=None if counting == "missing" else counts)
+    skipped = SkipExamplesIterable(source, 11)
+
+    def collect(ex_iterable):
+        if arrow:
+            return [row for _, table in ex_iterable.iter_arrow() for row in table.to_pylist()]
+        return [row for _, row in ex_iterable]
+
+    expected = [row for _, table in generate_tables_fn(**kwargs) for row in table.to_pylist()][11:]
+    assert collect(skipped) == expected
+    assert (
+        generated
+        == {"known": ["c"], "unknown": ["b", "c"], "unavailable": ["a", "b", "c"], "missing": ["a", "b", "c"]}[
+            counting
+        ]
+    )
+    # Iteration without explicit checkpoint initialization must remain reusable.
+    assert collect(skipped) == expected
+    skipped._init_state_dict()
+    assert collect(skipped) == expected
+    assert skipped.state_dict()["skipped"] == 11
+    assert skipped.state_dict()["examples_iterable"]["shard_idx"] == 3
+    assert_arrow = (
+        assert_load_state_dict_resumes_arrow_iteration if arrow else assert_load_state_dict_resumes_iteration
+    )
+    assert_arrow(skipped)
+
+
 def test_take_arrow_examples_iterable():
     total, count = 10, 2
     base_ex_iterable = ArrowExamplesIterable(generate_tables_fn, {"n": total})
