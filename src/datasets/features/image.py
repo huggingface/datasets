@@ -370,7 +370,11 @@ def image_to_bytes(image: "PIL.Image.Image") -> bytes:
 
 
 def encode_pil_image(image: "PIL.Image.Image") -> dict:
-    if hasattr(image, "filename") and image.filename != "":
+    if (
+        hasattr(image, "filename")
+        and image.filename != ""
+        and (not is_local_path(os.fsdecode(image.filename)) or os.path.isfile(image.filename))
+    ):
         return {"path": image.filename, "bytes": None}
     else:
         return {"path": None, "bytes": image_to_bytes(image)}
