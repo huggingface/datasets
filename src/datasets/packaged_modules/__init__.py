@@ -6,6 +6,7 @@ from huggingface_hub.utils import insecure_hashlib
 
 from .arrow import arrow
 from .audiofolder import audiofolder
+from .bids import bids
 from .cache import cache
 from .conll import conll
 from .csv import csv
@@ -77,6 +78,7 @@ _PACKAGED_DATASETS_MODULES = {
     "fasta": (fasta.__name__, _hash_python_lines(inspect.getsource(fasta).splitlines())),
     "fastq": (fastq.__name__, _hash_python_lines(inspect.getsource(fastq).splitlines())),
     "harbor": (harbor.__name__, _hash_python_lines(inspect.getsource(harbor).splitlines())),
+    "bids": (bids.__name__, _hash_python_lines(inspect.getsource(bids).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -149,6 +151,8 @@ _EXTENSION_TO_MODULE.update({ext: ("pdffolder", {}) for ext in pdffolder.PdfFold
 _EXTENSION_TO_MODULE.update({ext.upper(): ("pdffolder", {}) for ext in pdffolder.PdfFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("niftifolder", {}) for ext in niftifolder.NiftiFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("niftifolder", {}) for ext in niftifolder.NiftiFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext: ("bids", {}) for ext in bids.Bids.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext.upper(): ("bids", {}) for ext in bids.Bids.EXTENSIONS})
 
 # Used to filter data files based on extensions given a module name
 _MODULE_TO_EXTENSIONS: dict[str, list[str]] = {}
@@ -172,11 +176,13 @@ _MODULE_TO_METADATA_FILE_NAMES["lance"] = lance.Lance.METADATA_FILE_NAMES
 _MODULE_TO_METADATA_FILE_NAMES["mmcif"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["pdb"] = imagefolder.ImageFolder.METADATA_FILENAMES
 _MODULE_TO_METADATA_FILE_NAMES["harbor"] = harbor.Harbor.METADATA_FILENAMES
+_MODULE_TO_METADATA_FILE_NAMES["bids"] = bids.Bids.METADATA_FILENAMES
 
 _MODULE_TO_METADATA_EXTENSIONS: Dict[str, List[str]] = {}
 for _module in _MODULE_TO_EXTENSIONS:
     _MODULE_TO_METADATA_EXTENSIONS[_module] = []
 _MODULE_TO_METADATA_EXTENSIONS["lance"] = lance.Lance.METADATA_EXTENSIONS
+_MODULE_TO_METADATA_EXTENSIONS["bids"] = bids.Bids.METADATA_EXTENSIONS
 
 # Total
 

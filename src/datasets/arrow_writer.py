@@ -27,7 +27,7 @@ import pyarrow.parquet as pq
 from fsspec.core import url_to_fs
 
 from . import config
-from .features import Audio, Features, Image, Pdf, Value, Video
+from .features import Audio, Biosignal, Features, Image, Pdf, Value, Video
 from .features.features import (
     FeatureType,
     List,
@@ -312,6 +312,18 @@ class TypedSequence:
                 return [
                     [Pdf().encode_example(x) for x in value] if value is not None else None for value in data
                 ], List(Pdf())
+        if config.MNE_AVAILABLE and "mne" in sys.modules:
+            import mne
+
+            non_null_idx, non_null_value = first_non_null_non_empty_value(data)
+            if isinstance(non_null_value, mne.io.BaseRaw):
+                return [
+                    Biosignal().encode_example(value) if value is not None else None for value in data
+                ], Biosignal()
+            if isinstance(non_null_value, list) and isinstance(non_null_value[0], mne.io.BaseRaw):
+                return [
+                    [Biosignal().encode_example(x) for x in value] if value is not None else None for value in data
+                ], List(Biosignal())
         return data, None
 
     def __arrow_array__(self, type: Optional[pa.DataType] = None):

@@ -216,6 +216,12 @@ def infer_module_for_data_files_list(
             - inferred module name
             - dict of builder kwargs
     """
+    if any(
+        xbasename(filepath) == "dataset_description.json"
+        or os.path.splitext(filepath)[1].lower() in _MODULE_TO_EXTENSIONS["bids"]
+        for filepath in data_files_list
+    ):
+        return "bids", {}
     extensions_counter = Counter(
         ("." + suffix.lower(), xbasename(filepath) in _ALL_METADATA_FILENAMES)
         for filepath in data_files_list
@@ -272,6 +278,12 @@ def infer_module_for_data_files_list_in_archives(
             archived_files += [
                 f.split("::")[0] for f in xglob(extracted, recursive=True, download_config=download_config)
             ]
+    if any(
+        xbasename(filepath) == "dataset_description.json"
+        or os.path.splitext(filepath)[1].lower() in _MODULE_TO_EXTENSIONS["bids"]
+        for filepath in archived_files
+    ):
+        return "bids", {}
     extensions_counter = Counter(
         "." + suffix.lower() for filepath in archived_files for suffix in xbasename(filepath).split(".")[1:]
     )
