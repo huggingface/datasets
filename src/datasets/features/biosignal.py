@@ -83,21 +83,7 @@ class Biosignal:
         Returns:
             `dict` with "path" and "bytes" fields
         """
-        if isinstance(value, str):
-            return {"path": value, "bytes": None}
-        elif isinstance(value, Path):
-            return {"path": str(value.absolute()), "bytes": None}
-        elif isinstance(value, (bytes, bytearray)):
-            return {"path": None, "bytes": bytes(value)}
-        elif isinstance(value, dict):
-            if value.get("path") is not None and os.path.exists(value["path"]):
-                return {"bytes": None, "path": value.get("path")}
-            elif value.get("bytes") is not None or value.get("path") is not None:
-                return {"bytes": value.get("bytes"), "path": value.get("path")}
-            raise ValueError(
-                f"A biosignal sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
-            )
-        elif config.MNE_AVAILABLE:
+        if config.MNE_AVAILABLE:
             import mne
 
             if isinstance(value, mne.io.BaseRaw):
@@ -105,6 +91,20 @@ class Biosignal:
                     tmp_path = os.path.join(tmpdir, "raw.fif")
                     value.save(tmp_path, overwrite=True, verbose="ERROR")
                     return {"path": None, "bytes": Path(tmp_path).read_bytes()}
+
+        if isinstance(value, str):
+            return {"path": value, "bytes": None}
+        elif isinstance(value, Path):
+            return {"path": str(value.absolute()), "bytes": None}
+        elif isinstance(value, (bytes, bytearray)):
+            return {"path": None, "bytes": bytes(value)}
+        elif isinstance(value, dict) and (value.get("bytes") is not None or value.get("path") is not None):
+            return {
+                "bytes": None
+                if value.get("path") is not None and os.path.exists(value["path"])
+                else value.get("bytes"),
+                "path": value.get("path"),
+            }
         raise ValueError(
             f"A biosignal sample should have one of 'path' or 'bytes' or be an mne.io.BaseRaw, but got {value}."
         )
@@ -122,14 +122,7 @@ class Biosignal:
 
         import mne
 
-        if token_per_repo_id is None:
-            token_per_repo_id = {}
-
-        if isinstance(value, str):
-            path, bytes_ = value, None
-        else:
-            path, bytes_ = value["path"], value["bytes"]
-
+        path, bytes_ = (value, None) if isinstance(value, str) else (value["path"], value["bytes"])
         if bytes_ is None:
             if path is None:
                 raise ValueError(f"A biosignal should have one of 'path' or 'bytes' but both are None in {value}.")
@@ -138,15 +131,15 @@ class Biosignal:
                     import mne_bids
 
                     try:
-                        bids_path = mne_bids.get_bids_path_from_fname(path, check=False, verbose="ERROR")
-                        if bids_path.subject is not None:
-                            return mne_bids.read_raw_bids(
-                                bids_path, extra_params={"preload": self.preload}, verbose="ERROR"
-                            )
+                        return mne_bids.read_raw_bids(
+                            mne_bids.get_bids_path_from_fname(path, check=False, verbose="ERROR"),
+                            extra_params={"preload": self.preload},
+                            verbose="ERROR",
+                        )
                     except Exception:
                         pass
                 return mne.io.read_raw(path, preload=self.preload, verbose="ERROR")
-            download_config = DownloadConfig(token=_resolve_token(path, token_per_repo_id))
+            download_config = DownloadConfig(token=_resolve_token(path, token_per_repo_id or {}))
             with xopen(path, "rb", download_config=download_config) as f:
                 bytes_ = f.read()
 
@@ -173,19 +166,12 @@ class Biosignal:
         self, storage: pa.StructArray, token_per_repo_id=None, local_files: bool = True, remote_files: bool = True
     ) -> pa.StructArray:
         """Embed biosignal files into the Arrow array."""
-        if token_per_repo_id is None:
-            token_per_repo_id = {}
 
         @no_op_if_value_is_null
         def path_to_bytes(path: str) -> bytes:
-            if is_local_path(path) and config.MNE_AVAILABLE:
-                try:
-                    return self.encode_example(Biosignal(preload=True).decode_example(path))["bytes"]
-                except Exception:
-                    pass
-            download_config = DownloadConfig(token=_resolve_token(path, token_per_repo_id))
-            with xopen(path, "rb", download_config=download_config) as f:
-                return f.read()
+            return self.encode_example(
+                Biosignal(preload=True).decode_example(path, token_per_repo_id=token_per_repo_id)
+            )["bytes"]
 
         bytes_array = pa.array(
             [

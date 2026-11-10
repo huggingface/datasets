@@ -1,6 +1,5 @@
 """Loader for BIDS (Brain Imaging Data Structure) electrophysiology and biosignal datasets."""
 
-import os
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
@@ -94,27 +93,7 @@ class Bids(datasets.ArrowBasedBuilder):
         ".nxe",
         ".ns3",
     ]
-    METADATA_FILENAMES = [
-        "dataset_description.json",
-        "participants.tsv",
-        "participants.json",
-        "README",
-        "CHANGES",
-    ]
-    METADATA_EXTENSIONS = [
-        ".tsv",
-        ".tsv.gz",
-        ".json",
-        ".vmrk",
-        ".amrk",
-        ".eeg",
-        ".fdt",
-        ".dat",
-        ".mrk",
-        ".pos",
-        ".dpa",
-        ".cef",
-    ]
+    METADATA_FILENAMES = ["dataset_description.json"]
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -140,96 +119,72 @@ class Bids(datasets.ArrowBasedBuilder):
         extensions = self.config.extensions or list(
             {*self.EXTENSIONS, *(e.upper() for e in self.EXTENSIONS), *ALLOWED_INPUT_EXTENSIONS}
         )
-        ext_set = {e.lower() for e in ([extensions] if isinstance(extensions, str) else extensions)}
         suffixes = self.config.suffixes or list(EPHY_ALLOWED_DATATYPES)
         datatypes = self.config.datatypes
         allowed_datatypes = set([datatypes] if isinstance(datatypes, str) else (datatypes or EPHY_ALLOWED_DATATYPES))
 
+        data_files = (
+            dl_manager.download(self.config.data_files)
+            if getattr(dl_manager, "is_streaming", False)
+            else dl_manager.download_and_extract(self.config.data_files)
+        )
         participants_cache: dict[Path, dict[str, dict[str, Any]]] = {}
-        all_extra_features: dict[str, datasets.Value] = {}
         split_records: dict[str, list[dict[str, Any]]] = {}
 
-        for split_name, files in self.config.data_files.items():
-            if isinstance(files, str):
-                files = [files]
-            paths = [f if os.path.exists(f) else dl_manager.download_and_extract(f) for f in files]
-
-            bids_roots: list[Path] = []
-            seen_roots: set[Path] = set()
-            recording_files: list[Path] = []
-
-            for raw_p in paths:
-                p = Path(raw_p)
-                if p.name == "dataset_description.json":
-                    if p.parent not in seen_roots:
-                        seen_roots.add(p.parent)
-                        bids_roots.append(p.parent)
-                elif p.suffix.lower() in ext_set:
-                    recording_files.append(p)
-                elif p.is_dir():
-                    desc_files = (
-                        [p / "dataset_description.json"]
-                        if (p / "dataset_description.json").is_file()
-                        else list(p.rglob("dataset_description.json"))
-                    )
-                    for root in [df.parent for df in sorted(desc_files)] or [p]:
-                        if root not in seen_roots:
-                            seen_roots.add(root)
-                            bids_roots.append(root)
-
-            bids_roots = [r for r in bids_roots if not any(p in seen_roots for p in r.parents)]
-            bids_paths: list[mne_bids.BIDSPath] = []
+        for split_name, files in data_files.items():
+            paths = [Path(f) for f in (files if isinstance(files, list) else [files])]
+            roots = list(
+                dict.fromkeys(
+                    p.parent
+                    if p.name == "dataset_description.json"
+                    else next((d.parent for d in sorted(p.rglob("dataset_description.json"))), p)
+                    for p in paths
+                    if p.name == "dataset_description.json" or p.is_dir()
+                )
+            )
+            recording_files = [p for p in paths if p.name != "dataset_description.json" and p.is_file()]
             if not recording_files:
-                for root in bids_roots:
-                    bids_paths.extend(
-                        mne_bids.find_matching_paths(
-                            root,
-                            subjects=self.config.subjects,
-                            sessions=self.config.sessions,
-                            tasks=self.config.tasks,
-                            acquisitions=self.config.acquisitions,
-                            runs=self.config.runs,
-                            datatypes=datatypes,
-                            suffixes=suffixes,
-                            extensions=extensions,
-                            check=False,
-                            ignore_json=True,
-                            ignore_nosub=True,
-                        )
+                bids_paths = [
+                    bp
+                    for root in roots
+                    for bp in mne_bids.find_matching_paths(
+                        root,
+                        subjects=self.config.subjects,
+                        sessions=self.config.sessions,
+                        tasks=self.config.tasks,
+                        acquisitions=self.config.acquisitions,
+                        runs=self.config.runs,
+                        datatypes=datatypes,
+                        suffixes=suffixes,
+                        extensions=extensions,
+                        check=False,
+                        ignore_json=True,
+                        ignore_nosub=True,
                     )
+                ]
             else:
-                top_root = bids_roots[0] if len(bids_roots) == 1 else None
-                for rf in _filter_fnames(
-                    sorted(recording_files),
-                    subject=self.config.subjects,
-                    session=self.config.sessions,
-                    task=self.config.tasks,
-                    acquisition=self.config.acquisitions,
-                    run=self.config.runs,
-                    suffix=suffixes,
-                    extension=extensions,
-                ):
-                    bp = mne_bids.get_bids_path_from_fname(rf, check=False, verbose="ERROR")
-                    root = top_root or (Path(bp.root) if bp.root else None)
-                    if root is not None:
-                        if root.name in ("sourcedata", "derivatives"):
-                            continue
-                        try:
-                            rel_parts = rf.relative_to(root).parts
-                            if rel_parts and rel_parts[0] in ("sourcedata", "derivatives"):
-                                continue
-                        except ValueError:
-                            pass
-                        bp.root = root
-                    bids_paths.append(bp)
+                bids_paths = [
+                    bp
+                    for rf in _filter_fnames(
+                        sorted(recording_files),
+                        subject=self.config.subjects,
+                        session=self.config.sessions,
+                        task=self.config.tasks,
+                        acquisition=self.config.acquisitions,
+                        run=self.config.runs,
+                        suffix=suffixes,
+                        extension=extensions,
+                    )
+                    if (bp := mne_bids.get_bids_path_from_fname(rf, check=False, verbose="ERROR")).root is None
+                    or Path(bp.root).name not in ("sourcedata", "derivatives")
+                ]
 
-            for root in dict.fromkeys([*bids_roots, *(Path(bp.root) for bp in bids_paths if bp.root is not None)]):
+            for root in dict.fromkeys([*roots, *(Path(bp.root) for bp in bids_paths if bp.root is not None)]):
                 if root in participants_cache:
                     continue
                 tsv_path = root / "participants.tsv"
-                by_sub: dict[str, dict[str, Any]] = {}
-                if tsv_path.is_file():
-                    tbl = pa_csv.read_csv(
+                rows = (
+                    pa_csv.read_csv(
                         tsv_path,
                         parse_options=pa_csv.ParseOptions(delimiter="\t"),
                         convert_options=pa_csv.ConvertOptions(
@@ -237,21 +192,15 @@ class Bids(datasets.ArrowBasedBuilder):
                             null_values=["n/a", "N/A", "na", "NA", ""],
                             strings_can_be_null=True,
                         ),
-                    )
-                    if "participant_id" in tbl.column_names:
-                        tbl = tbl.drop([c for c in tbl.column_names if c in ("biosignal", *BIDS_ENTITY_COLUMNS)])
-                        tbl = tbl.cast(
-                            pa.schema(
-                                [f.with_type(pa.string()) if pa.types.is_null(f.type) else f for f in tbl.schema]
-                            )
-                        )
-                        for col, feat in datasets.Features.from_arrow_schema(tbl.schema).items():
-                            if col != "participant_id":
-                                all_extra_features.setdefault(col, feat)
-                        by_sub = {
-                            (r.pop("participant_id") or "").strip().removeprefix("sub-"): r for r in tbl.to_pylist()
-                        }
-                participants_cache[root] = by_sub
+                    ).to_pylist()
+                    if tsv_path.is_file()
+                    else []
+                )
+                participants_cache[root] = {
+                    (r.pop("participant_id") or "").strip().removeprefix("sub-"): r
+                    for r in rows
+                    if "participant_id" in r
+                }
 
             records: list[dict[str, Any]] = []
             for bp in bids_paths:
@@ -265,6 +214,7 @@ class Bids(datasets.ArrowBasedBuilder):
                 sub_meta = participants_cache.get(root, {}).get(bp.subject or "", {}) if root else {}
                 records.append(
                     {
+                        **sub_meta,
                         "biosignal": {"bytes": None, "path": str(fpath)},
                         "subject": bp.subject,
                         "session": bp.session,
@@ -274,34 +224,20 @@ class Bids(datasets.ArrowBasedBuilder):
                         "datatype": datatype,
                         "suffix": bp.suffix,
                         "extension": bp.extension,
-                        **sub_meta,
                     }
                 )
             split_records[split_name] = records
 
-        if self.config.features is None and all_extra_features:
-            self.info.features = datasets.Features(
-                {
-                    "biosignal": datasets.Biosignal(preload=self.config.preload, decode=self.config.decode),
-                    **{col: datasets.Value("string") for col in BIDS_ENTITY_COLUMNS},
-                    **all_extra_features,
-                }
-            )
+        if self.config.features is None and (all_records := [r for recs in split_records.values() for r in recs]):
+            for col, feat in datasets.Features.from_arrow_schema(pa.Table.from_pylist(all_records).schema).items():
+                if col not in self.info.features:
+                    self.info.features[col] = datasets.Value("string") if feat == datasets.Value("null") else feat
 
-        splits = []
-        for split_name, records in split_records.items():
-            for row in records:
-                for col in all_extra_features:
-                    row.setdefault(col, None)
-            splits.append(
-                datasets.SplitGenerator(
-                    name=split_name,
-                    gen_kwargs={"records": records},
-                )
-            )
-        return splits
+        return [
+            datasets.SplitGenerator(name=split_name, gen_kwargs={"records": records})
+            for split_name, records in split_records.items()
+        ]
 
     def _generate_tables(self, records: list[dict[str, Any]]) -> Iterator[tuple[int, pa.Table]]:
         schema = self.info.features.arrow_schema
-        pa_table = pa.Table.from_pylist(records, schema=schema)
-        yield 0, table_cast(pa_table, schema)
+        yield 0, table_cast(pa.Table.from_pylist(records, schema=schema), schema)
