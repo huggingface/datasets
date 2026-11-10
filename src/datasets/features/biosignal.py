@@ -159,15 +159,14 @@ class Biosignal:
             with xopen(path, "rb", download_config=download_config) as f:
                 bytes_ = f.read()
 
-        try:
+        if not path or path.lower().endswith((".fif", ".fif.gz")):
             return mne.io.read_raw_fif(io.BytesIO(bytes_), preload=True, verbose="ERROR")
-        except Exception:
-            if not path or not os.path.splitext(path)[1]:
-                raise
-            with tempfile.TemporaryDirectory() as tmpdir:
-                tmp_path = os.path.join(tmpdir, os.path.basename(path))
-                Path(tmp_path).write_bytes(bytes_)
-                return mne.io.read_raw(tmp_path, preload=True, verbose="ERROR")
+        if not os.path.splitext(path)[1]:
+            raise ValueError(f"Decoding non-FIF biosignal bytes requires a file extension in 'path', got {path!r}.")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = os.path.join(tmpdir, os.path.basename(path))
+            Path(tmp_path).write_bytes(bytes_)
+            return mne.io.read_raw(tmp_path, preload=True, verbose="ERROR")
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """If in the decodable state, return the feature itself, otherwise flatten the feature into a dictionary."""
@@ -224,6 +223,10 @@ class Biosignal:
         def should_embed(path: Optional[str]) -> bool:
             return path is not None and (local_files if is_local_path(path) else remote_files)
 
+        def embedded_name(path: str) -> str:
+            name = os.path.basename(path)
+            return name if name.lower().endswith(".fif") else f"{os.path.splitext(name)[0]}_raw.fif"
+
         rows = storage.to_pylist()
         bytes_array = pa.array(
             [
@@ -236,7 +239,13 @@ class Biosignal:
         )
         path_array = pa.array(
             [
-                (os.path.basename(x["path"]) if should_embed(x["path"]) else x["path"]) if x is not None else None
+                (
+                    (embedded_name(x["path"]) if x["bytes"] is None else os.path.basename(x["path"]))
+                    if should_embed(x["path"])
+                    else x["path"]
+                )
+                if x is not None
+                else None
                 for x in rows
             ],
             type=pa.string(),

@@ -132,6 +132,8 @@ def test_biosignal_bids_formats_and_embed(tmp_path, fmt, ext, datatype):
     saved_path = tmp_path / "saved_ds"
     ds.save_to_disk(str(saved_path))
     shutil.rmtree(bids_root)
-    reloaded_raw = datasets.load_from_disk(str(saved_path))[0]["biosignal"]
+    reloaded = datasets.load_from_disk(str(saved_path))
+    assert reloaded.cast_column("biosignal", Biosignal(decode=False))[0]["biosignal"]["path"].endswith(".fif")
+    reloaded_raw = reloaded[0]["biosignal"]
     assert reloaded_raw.info["line_freq"] == 50.0 and list(reloaded_raw.annotations.description) == ["stimulus"]
     np.testing.assert_allclose(reloaded_raw.get_data(), raw.get_data(), atol=1e-4)
