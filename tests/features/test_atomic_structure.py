@@ -107,13 +107,15 @@ def test_stored_bytes_are_a_bcif_file_any_reader_opens():
     row = AtomicStructure().encode_example(_parse_with_atomworks(CIF_FILE))
     assert row["path"] is None
     assert _is_bcif(row["bytes"])
-    plain = pdbx.get_structure(pdbx.BinaryCIFFile.read(io.BytesIO(row["bytes"])), model=1, include_bonds=True)
+    file = pdbx.BinaryCIFFile.read(io.BytesIO(row["bytes"]))
+    assert not any(name.startswith("hf_atomic_structure") for name in file.block)
+    assert "chem_comp_bond" in file.block
+    plain = pdbx.get_structure(file, model=1, include_bonds=True)
     expected = _parse_with_atomworks(CIF_FILE)
     assert plain.atom_name.tolist() == expected.atom_name.tolist()
     np.testing.assert_allclose(plain.coord, expected.coord, atol=1e-3)
 
 
-@require_atomworks
 def test_encoding_a_stored_structure_keeps_it():
     row = AtomicStructure().encode_example(PDB_FILE.read_bytes())
     assert AtomicStructure().encode_example(row) == row
@@ -194,14 +196,12 @@ def test_encode_rdkit_molecule():
 
 
 @require_atomworks
-def test_encode_ase_periodic_structure():
+def test_encode_ase_structure():
     ase_build = pytest.importorskip("ase.build")
 
     crystal = ase_build.bulk("Cu", "fcc", a=3.6, cubic=True)
     atoms = _roundtrip(crystal)
     np.testing.assert_allclose(atoms.coord, crystal.get_positions(), atol=1e-3)
-    np.testing.assert_allclose(atoms.box, np.diag([3.6, 3.6, 3.6]), atol=1e-5)
-    assert _roundtrip(ase_build.molecule("H2O")).box is None
 
 
 @require_atomworks
@@ -241,7 +241,6 @@ def test_cast_column_from_paths_bytes_and_file_references():
     assert again.data.column("s").to_pylist() == dataset.data.column("s").to_pylist()
 
 
-@require_atomworks
 def test_decode_false_and_flatten():
     dataset = Dataset.from_dict({"s": [str(PDB_FILE)]}, features=_features(decode=False))
     raw = dataset[0]["s"]
@@ -456,22 +455,17 @@ def test_materialize_saves_edits_without_mutating_source():
 
 @require_atomworks
 @pytest.mark.parametrize("heterogeneous", [False, True])
-def test_materialize_models_keeps_coordinates_bonds_and_boxes(heterogeneous):
-    from biotite.structure import BondList, stack
+def test_materialize_models_keeps_coordinates(heterogeneous):
+    from biotite.structure import stack
 
     first = _roundtrip(str(CIF_FILE))
-    first.bonds = BondList(len(first), np.array([[0, 1, 1], [1, 2, 2]]))
-    first.box = np.diag([20.0, 21.0, 22.0])
     second = first[:3] if heterogeneous else first.copy()
     second.coord = second.coord + 5
-    second.box = np.diag([30.0, 31.0, 32.0])
     source = [first, second] if heterogeneous else stack([first, second])
     result = _roundtrip(AtomicStructure().materialize(source))
     assert len(result) == 2
     for got, want in zip(result, [first, second]):
         np.testing.assert_array_equal(got.coord, want.coord)
-        np.testing.assert_allclose(got.box, want.box, atol=1e-6)
-        assert got.bonds == want.bonds
 
 
 @require_atomworks
@@ -517,33 +511,6 @@ def test_materialize_rejects_each_unsupported_annotation_kind(kind):
 
 
 @require_atomworks
-def test_previous_binarycif_metadata_version_still_loads():
-    from biotite.structure import BondList
-    from biotite.structure.io.pdbx import BinaryCIFCategory, BinaryCIFFile
-
-    atoms = _roundtrip(str(CIF_FILE))
-    atoms.bonds = BondList(len(atoms), np.array([[0, 1, 1]]))
-    encoded = AtomicStructure().materialize(atoms)
-    file = BinaryCIFFile.read(io.BytesIO(encoded["bytes"]))
-    file.block["hf_atomic_structure"] = BinaryCIFCategory({"version": [1], "has_bonds": [1]})
-    del file.block["hf_atomic_structure_bond"]["model_num"]
-    buffer = io.BytesIO()
-    file.write(buffer)
-    assert _roundtrip(buffer.getvalue()).bonds == atoms.bonds
-
-
-@require_atomworks
-def test_materialize_distinguishes_missing_and_empty_bonds():
-    from biotite.structure import BondList
-
-    atoms = _roundtrip(str(CIF_FILE))
-    atoms.bonds = None
-    assert _roundtrip(AtomicStructure().materialize(atoms)).bonds is None
-    atoms.bonds = BondList(len(atoms))
-    assert _roundtrip(AtomicStructure().materialize(atoms)).bonds == atoms.bonds
-
-
-@require_atomworks
 @pytest.mark.parametrize("preset", ["minimal", "default", "rcsb"])
 @pytest.mark.parametrize("file_type", ["cif", "bcif"])
 def test_parse_presets_match_atomworks(preset, file_type):
@@ -570,19 +537,15 @@ def test_parse_presets_match_atomworks(preset, file_type):
 @require_atomworks
 @pytest.mark.parametrize("model", [1, 2, -1])
 def test_select_model_from_materialized_stack(model):
-    from biotite.structure import BondList, stack
+    from biotite.structure import stack
 
     first = _roundtrip(str(CIF_FILE))
-    first.bonds = BondList(len(first), np.array([[0, 1, 1]]))
-    first.box = np.diag([20.0, 21.0, 22.0])
     second = first.copy()
     second.coord += 5
-    second.box *= 2
     payload = AtomicStructure().materialize(stack([first, second]))
     result = _roundtrip(payload, parse_config={"model": model})
     expected = first if model == 1 else second
     np.testing.assert_array_equal(result.coord, expected.coord)
-    np.testing.assert_allclose(result.box, expected.box)
     assert result.bonds == expected.bonds
 
 
@@ -614,3 +577,26 @@ def test_select_alternate_conformer_without_changing_storage(altloc):
     result = _roundtrip(payload, parse_config={"altloc": altloc})
     assert result.label_alt_id.tolist() == ["A" if altloc == "first" else "B", "."]
     assert AtomicStructure().encode_example(result)["bytes"] == payload
+
+
+@require_atomworks
+@pytest.mark.parametrize(
+    "path,token",
+    [
+        ("https://example.com/structure.cif", None),
+        ("https://huggingface.co/datasets/user/structures/resolve/main/structure.cif", "test-token"),
+        ("hf://datasets/user/structures@main/structure.cif", "test-token"),
+    ],
+)
+def test_decode_remote_file(monkeypatch, path, token):
+    def open_remote(url, mode, download_config):
+        assert url == path
+        assert mode == "rb"
+        assert download_config.token == token
+        return io.BytesIO(CIF_FILE.read_bytes())
+
+    monkeypatch.setattr("datasets.features.atomic_structure.xopen", open_remote)
+    atoms = AtomicStructure().decode_example(
+        {"path": path, "bytes": None}, token_per_repo_id={"user/structures": "test-token"}
+    )
+    _assert_same_atoms(atoms, _parse_with_atomworks(CIF_FILE))

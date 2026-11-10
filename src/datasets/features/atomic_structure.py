@@ -291,7 +291,7 @@ class AtomicStructure:
             file_type=file_type,
             build_assembly=[str(self.assembly)] if self.assembly is not None else None,
             return_atom_array_plus=True,
-            keep_cif_block=True,
+            keep_cif_block=False,
             extra_fields=options.get("extra_fields", "all"),
             load_standard_annotations=options.get(
                 "load_standard_annotations",
@@ -337,7 +337,7 @@ class AtomicStructure:
                 for i in range(1, n_models + 1)
             ]
 
-        def select(entry, model_index=0):
+        def select(entry):
             if self.assembly is None:
                 atoms = entry["asym_unit"]
             else:
@@ -347,25 +347,9 @@ class AtomicStructure:
                     raise ValueError(f"Invalid assembly ID: {self.assembly}") from error
             if isinstance(atoms, AtomArrayStack) and atoms.stack_depth() == 1:
                 atoms = atoms[0]
-            # Restore the feature's explicit bonds/boxes only for minimally decoded storage.
-            block = entry.get("cif_block")
-            if block is not None and "hf_atomic_structure" in block and self.assembly is None:
-                ids = list(dict.fromkeys(block["atom_site"]["pdbx_PDB_model_num"].as_array(int)))
-                if preparation.model is not None:
-                    ids = [ids[preparation.model - 1 if preparation.model > 0 else preparation.model]]
-                if isinstance(result, list):
-                    ids = [ids[model_index]]
-                if preset == "minimal" and not options.keys() - {
-                    "model",
-                    "altloc",
-                    "altloc_seed",
-                    "extra_fields",
-                    "load_standard_annotations",
-                }:
-                    _restore_bonds(atoms, block, ids)
             return atoms
 
-        return [select(entry, i) for i, entry in enumerate(result)] if isinstance(result, list) else select(result)
+        return [select(entry) for entry in result] if isinstance(result, list) else select(result)
 
 
 # ----------------------------------------------------------------------------------------------- helpers
@@ -376,14 +360,14 @@ def _write(atoms) -> bytes:
     from atomworks.io import CIFWriteConfig, atom_array_to_file
     from atomworks.io.utils.atom_array_plus import AtomArrayPlus
     from atomworks.io.utils.standard_annotations import STANDARD_ANNOTATIONS
-    from biotite.structure import AtomArray, AtomArrayStack, BondList
+    from biotite.structure import AtomArray, AtomArrayStack
 
     models = list(atoms) if isinstance(atoms, (list, AtomArrayStack)) else [atoms]
     if not models or any(not isinstance(model, AtomArray) for model in models):
         raise ValueError("materialize expects an atom array, stack, or nonempty list of atom arrays.")
     registered = set(STANDARD_ANNOTATIONS.get_field_names(n_body=1, include_aliases=True))
-    structures, metadata, bonds, boxes = [], [], [], []
-    for number, model in enumerate(models, 1):
+    structures = []
+    for model in models:
         model = model.copy()
         if isinstance(model, AtomArrayPlus):
             model.del_annotation("_hf_encoded", n_body=0)
@@ -411,33 +395,12 @@ def _write(atoms) -> bytes:
             raise ValueError(
                 "AtomWorks cannot materialize an empty model. Filter empty structures before preparing storage."
             )
-        structure = model
-        metadata.append([2, number, model.array_length(), int(model.bonds is not None)])
-        if model.bonds is not None:
-            bonds.extend([[number, *edge] for edge in model.bonds.as_array().tolist()])
-        else:
-            structure.bonds = BondList(model.array_length())
-        if model.box is not None:
-            boxes.append([number, *model.box.flatten().tolist()])
-        structures.append(structure)
-    categories = {
-        "hf_atomic_structure": dict(zip(("version", "model_num", "n_atoms", "has_bonds"), np.array(metadata).T)),
-    }
-    if bonds:
-        categories["hf_atomic_structure_bond"] = dict(
-            zip(("model_num", "atom_1", "atom_2", "type"), np.array(bonds).T)
-        )
-    if boxes:
-        categories["hf_atomic_structure_box"] = {
-            "model_num": [row[0] for row in boxes],
-            **{f"v{i}": [row[i + 1] for row in boxes] for i in range(9)},
-        }
+        structures.append(model)
     return atom_array_to_file(
         structures[0] if len(structures) == 1 else structures,
         file_type="bcif",
         config=CIFWriteConfig(
             extra_fields="all",
-            extra_categories=categories,
             include_entity_categories=True,
             chem_comp_source="array",
             chain_disambiguation=(
@@ -451,48 +414,6 @@ def _write(atoms) -> bytes:
             author="datasets",
         ),
     )
-
-
-def _restore_bonds(atoms, block, model_ids):
-    """Restore explicit bonds and boxes without chemical inference, including selected models/atoms."""
-    import numpy as np
-    from biotite.structure import AtomArrayStack, BondList
-
-    for array in atoms if isinstance(atoms, list) else [atoms]:
-        if block is None or "hf_atomic_structure" not in block:
-            continue
-        metadata = block["hf_atomic_structure"]
-        version = metadata["version"].as_array(int)[0]
-        if version not in (1, 2):
-            raise ValueError("Unsupported AtomicStructure BinaryCIF version.")
-        number = model_ids[0]
-        mask = metadata["model_num"].as_array(int) == number if version == 2 else np.array([True])
-        if metadata["has_bonds"].as_array(int)[mask][0]:
-            n_atoms = metadata["n_atoms"].as_array(int)[mask][0] if version == 2 else array.array_length()
-            edges = np.empty((0, 3), dtype=int)
-            if "hf_atomic_structure_bond" in block:
-                category = block["hf_atomic_structure_bond"]
-                edges = np.column_stack([category[name].as_array(int) for name in ("atom_1", "atom_2", "type")])
-                if version == 2:
-                    edges = edges[category["model_num"].as_array(int) == number]
-            indices = (
-                array.atom_array_index
-                if "atom_array_index" in array.get_annotation_categories()
-                else np.arange(array.array_length())
-            )
-            array.bonds = BondList(n_atoms, edges)[np.asarray(indices, dtype=int)]
-        else:
-            array.bonds = None
-        if version == 2:
-            array.box = None
-            if "hf_atomic_structure_box" in block:
-                category = block["hf_atomic_structure_box"]
-                ids = category["model_num"].as_array(int)
-                values = np.column_stack([category[f"v{i}"].as_array(float) for i in range(9)])
-                chosen = model_ids if isinstance(array, AtomArrayStack) else [number]
-                selected = [values[ids == model][0].reshape(3, 3) for model in chosen if np.any(ids == model)]
-                if len(selected) == len(chosen):
-                    array.box = np.array(selected) if isinstance(array, AtomArrayStack) else selected[0]
 
 
 def _is_bcif(data: bytes) -> bool:

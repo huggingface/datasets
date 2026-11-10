@@ -163,14 +163,15 @@ This example disables reuse of `map` caches because external files and CCD defin
 |---|---|
 | Source file bytes, including compression | Preserved exactly until explicit materialization |
 | Materialized coordinates | No deliberate coordinate rounding; float32 precision tested |
-| Explicit bonds and periodic boxes | Stored in versioned BinaryCIF categories, including different models |
+| Bonds | Standard CIF connectivity and AtomWorks inference; no exact edited-graph preservation |
+| Periodic boxes | No round-trip guarantee |
 | Scalar per-atom annotations | Values tested for integers, floats, booleans and strings; inferred dtypes may change |
 | Registered StandardAnnotations | Supported by the upstream writer; regression-tested |
 | Arbitrary custom multidimensional, system-wide or pairwise annotations | Rejected explicitly |
 | Integer annotations outside signed 32-bit range | Rejected explicitly |
 | Empty models | Rejected by materialization; filter these rows before preparing storage |
 
-CIF serialization can normalize author identifiers and annotation dtypes. It does not preserve all original file categories or custom Python objects; retain the original source dataset when that information matters. The versioned metadata reader still supports BinaryCIF written by the previous feature revision. These are format-specific guarantees, not a general arbitrary-array codec.
+CIF serialization can normalize author identifiers and annotation dtypes. It does not preserve all original file categories or custom Python objects; retain the original source dataset when that information matters. Bonds are read from standard CIF categories and inferred by AtomWorks; edited bond graphs, missing-versus-empty bonds and periodic boxes are not guaranteed to survive materialization. Keep the source bytes when exact file preservation matters. These are format-specific guarantees, not a general arbitrary-array codec.
 
 ## Existing datasets and sequence records
 

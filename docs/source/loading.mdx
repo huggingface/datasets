@@ -298,9 +298,10 @@ AtomicStructure(parse_config=None, assembly=None, decode=True)
 (1234, 3)
 ```
 
-Default decoding only loads the source atoms. Use `parse_config` to opt into preparation and `assembly` to
-build a biological assembly at decode time, without altering stored data. `decode=False` returns the original
-file reference. For example, opt into water removal:
+Default decoding uses minimal parsing: it keeps waters and hydrogens without completing missing atoms,
+but selects alternate conformers, normalizes identifiers and infers bonds. Use `parse_config` to opt into
+further preparation and `assembly` to build a biological assembly, without altering stored data.
+`decode=False` returns the original file reference. For example, opt into water removal:
 
 ```py
 >>> from datasets import AtomicStructure, Features, load_dataset
@@ -375,9 +376,10 @@ AtomicStructure(parse_config=None, assembly=None, decode=True)
 (1234, 3)
 ```
 
-Default decoding only loads the source atoms. Use `parse_config` to opt into preparation and `assembly` to
-build a biological assembly at decode time, without altering stored data. `decode=False` returns the original
-file reference. For example, opt into water removal:
+Default decoding uses minimal parsing: it keeps waters and hydrogens without completing missing atoms,
+but selects alternate conformers, normalizes identifiers and infers bonds. Use `parse_config` to opt into
+further preparation and `assembly` to build a biological assembly, without altering stored data.
+`decode=False` returns the original file reference. For example, opt into water removal:
 
 ```py
 >>> from datasets import AtomicStructure, Features, load_dataset
@@ -390,6 +392,8 @@ Extensions `.cif`, `.mmcif` and `.bcif` (BinaryCIF) are supported, optionally co
 ### GenBank
 
 [GenBank](https://www.ncbi.nlm.nih.gov/genbank/) is a text-based format from NCBI for nucleotide and protein sequences together with their annotations. Files use the `.gb`, `.gbk`, or `.genbank` extension (optionally compressed), and each record's `FEATURES` section is decoded into structured objects.
+
+Alongside the lightweight parsed columns, each row includes a `record` column of type `BioSequence(format="genbank")`, which decodes to a `Bio.SeqRecord.SeqRecord` when `biopython` is installed. Cast this column to `BioSequence(format="genbank", decode=False)` to access the original record bytes as `{"bytes": ..., "path": None}`, or omit it with `columns=[...]` to use only the parsed columns without `biopython`.
 
 To load GenBank files:
 
@@ -405,10 +409,6 @@ You can try it on a small example dataset of real NCBI records (one of them is g
 >>> dataset = load_dataset("ermiaazarkhalili/datasets-genbank-test", data_files="*.gb*", split="train")
 >>> dataset[0]["locus_name"], dataset[0]["organism"], dataset[0]["length"]
 ```
-
-The `record` column retains the original record bytes as `BioSequence` and decodes with Biopython.
-Select the parsed columns with `columns=` to avoid storing duplicate record bytes. GenBank's record additionally
-preserves sections such as REFERENCE and COMMENT that are not represented in parsed columns.
 
 ### FASTQ
 
@@ -429,7 +429,9 @@ The loader returns five columns:
 | `description` | string | Full description line (everything after id) |
 | `sequence` | large_string | The nucleotide sequence |
 | `quality` | large_string | ASCII-encoded quality scores |
-| `record` | BioSequence | Original record, decoded with Biopython |
+| `record` | [`BioSequence`] | With `format="fastq"`, stores each record's original bytes, decoded to a Biopython `SeqRecord` when accessed. |
+
+Reading the parsed columns requires no Biopython; exclude `record` with `columns`, or use `dataset.cast_column("record", BioSequence(decode=False))` (imported from `datasets`) to access its `{"bytes": ..., "path": None}` storage without decoding.
 
 Load only specific columns:
 
@@ -451,13 +453,14 @@ To load a FASTA file:
 ```
 
 This returns a dataset with the following columns:
-
 - `id`: Sequence identifier (first word after `>`)
 - `description`: Full description line (everything after the id)
 - `sequence`: The biological sequence (DNA/RNA/protein)
-- `record`: Original record, decoded with Biopython
+- `record`: A [`BioSequence`] with `format="fasta"` storing each record's original bytes, decoded to a Biopython `SeqRecord` when accessed.
 
-To avoid storing duplicate record bytes, load only specific columns:
+Reading the parsed columns requires no Biopython; exclude `record` with `columns`, or use `dataset.cast_column("record", BioSequence(decode=False))` (imported from `datasets`) to access its `{"bytes": ..., "path": None}` storage without decoding.
+
+You can also load only specific columns:
 
 ```py
 >>> dataset = load_dataset("fasta", data_files="sequences.fa", columns=["id", "sequence"])
