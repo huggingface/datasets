@@ -1,11 +1,13 @@
 import contextlib
+import multiprocessing
 import os
 import sqlite3
-import time
+import types
 
 import pytest
 
 import datasets.config
+import datasets.io.sql
 from datasets import Dataset, Features, Value
 from datasets.io.sql import SqlDatasetReader, SqlDatasetWriter
 
@@ -94,30 +96,77 @@ def test_dataset_to_sql_multiproc(sqlite_path, tmp_path, set_sqlalchemy_silence_
         assert row1 == row2
 
 
-class SlowFirstBatchSqlDatasetWriter(SqlDatasetWriter):
-    """The first batch takes longer than the others, as a slow table creation would."""
+def _table_rows(sqlite_path):
+    with contextlib.closing(sqlite3.connect(sqlite_path)) as con:
+        if con.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='dataset'").fetchone() is None:
+            return None
+        return sorted(con.execute("SELECT a FROM dataset").fetchall())
 
-    def _batch_sql(self, args):
-        if args[0] == 0:
-            time.sleep(0.5)
-        return super()._batch_sql(args)
+
+@pytest.fixture
+def rows_when_workers_get_batches(monkeypatch):
+    """Records the table's rows each time the writer calls pool.imap, i.e. just before batches go to the workers."""
+
+    def watch(sqlite_path):
+        records = []
+
+        def pool(*args, **kwargs):
+            real_pool = multiprocessing.Pool(*args, **kwargs)
+            real_imap = real_pool.imap
+
+            def imap(*imap_args, **imap_kwargs):
+                records.append(_table_rows(sqlite_path))
+                return real_imap(*imap_args, **imap_kwargs)
+
+            real_pool.imap = imap
+            return real_pool
+
+        monkeypatch.setattr(datasets.io.sql, "multiprocessing", types.SimpleNamespace(Pool=pool))
+        return records
+
+    return watch
 
 
 @require_sqlalchemy
+@pytest.mark.parametrize("if_exists", [None, "replace"])
 def test_dataset_to_sql_multiproc_creates_the_table_before_the_workers_append(
-    tmp_path, set_sqlalchemy_silence_uber_warning
+    if_exists, tmp_path, rows_when_workers_get_batches, set_sqlalchemy_silence_uber_warning
 ):
-    # With num_proc > 1 the batches run in a pool, and a later batch (if_exists="append") can
-    # reach the database before the first one, whose default if_exists="fail" then raises
-    # "table already exists". The first batch must create the table before the pool starts.
-    dataset = Dataset.from_dict({"a": list(range(6))})
+    # With num_proc > 1 the batches run in a pool, and a later batch (if_exists="append") could
+    # reach the database before the first one. The first one then either raised "table already
+    # exists" (default if_exists="fail") or dropped the rows already appended (if_exists="replace").
+    # The first batch must have applied if_exists before the later batches are handed to the workers.
     output_sqlite_path = os.path.join(tmp_path, "out.sqlite")
-    writer = SlowFirstBatchSqlDatasetWriter(
-        dataset, "dataset", "sqlite:///" + output_sqlite_path, batch_size=1, num_proc=2
+    if if_exists == "replace":
+        with contextlib.closing(sqlite3.connect(output_sqlite_path)) as con, con:
+            con.execute("CREATE TABLE dataset (a INTEGER)")
+            con.execute("INSERT INTO dataset VALUES (-1)")
+    records = rows_when_workers_get_batches(output_sqlite_path)
+    to_sql_kwargs = {"if_exists": if_exists} if if_exists else {}
+    dataset = Dataset.from_dict({"a": list(range(6))})
+    writer = SqlDatasetWriter(
+        dataset, "dataset", "sqlite:///" + output_sqlite_path, batch_size=2, num_proc=2, **to_sql_kwargs
     )
     assert writer.write() == 6
-    with contextlib.closing(sqlite3.connect(output_sqlite_path)) as con:
-        assert sorted(con.execute("SELECT a FROM dataset").fetchall()) == [(i,) for i in range(6)]
+    assert records == [[(0,), (1,)]]
+    assert _table_rows(output_sqlite_path) == [(i,) for i in range(6)]
+
+
+@require_sqlalchemy
+def test_dataset_to_sql_multiproc_leaves_an_existing_table_untouched_with_if_exists_fail(
+    tmp_path, rows_when_workers_get_batches, set_sqlalchemy_silence_uber_warning
+):
+    output_sqlite_path = os.path.join(tmp_path, "out.sqlite")
+    with contextlib.closing(sqlite3.connect(output_sqlite_path)) as con, con:
+        con.execute("CREATE TABLE dataset (a INTEGER)")
+        con.execute("INSERT INTO dataset VALUES (-1)")
+    records = rows_when_workers_get_batches(output_sqlite_path)
+    dataset = Dataset.from_dict({"a": list(range(6))})
+    writer = SqlDatasetWriter(dataset, "dataset", "sqlite:///" + output_sqlite_path, batch_size=2, num_proc=2)
+    with pytest.raises(ValueError, match="already exists"):
+        writer.write()
+    assert records == []
+    assert _table_rows(output_sqlite_path) == [(-1,)]
 
 
 @require_sqlalchemy

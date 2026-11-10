@@ -1,4 +1,5 @@
 import multiprocessing
+from multiprocessing.reduction import ForkingPickler
 from typing import TYPE_CHECKING, Optional, Union
 
 from .. import Dataset, Features, config
@@ -108,11 +109,14 @@ class SqlDatasetWriter:
         else:
             num_rows, batch_size = len(self.dataset), self.batch_size
             num_batches = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
-            # the first batch creates the table (with if_exists as given) before the workers start:
-            # the later batches append, and one of them could otherwise reach the database first
-            if num_rows:
-                written += self._batch_sql((0, index, to_sql_kwargs))
             with multiprocessing.Pool(self.num_proc) as pool:
+                if num_rows > batch_size:
+                    # the later batches are sent to the workers: fail before writing anything if they can't be
+                    ForkingPickler.dumps((self._batch_sql, ((batch_size, index, to_sql_kwargs),)))
+                # the first batch creates the table (with if_exists as given) before any task is submitted:
+                # the later batches append, and one of them could otherwise reach the database first
+                if num_rows:
+                    written += self._batch_sql((0, index, to_sql_kwargs))
                 for num_rows_written in hf_tqdm(
                     pool.imap(
                         self._batch_sql,
