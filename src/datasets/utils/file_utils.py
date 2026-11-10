@@ -1431,6 +1431,33 @@ class ArchiveIterable(TrackedIterableFromGenerator):
         return cls(cls._iter_from_urlpath, urlpath_or_buf, download_config)
 
 
+def _get_path_type_with_retries(urlpath: str, download_config: Optional[DownloadConfig] = None) -> Optional[str]:
+    # xisfile and xisdir return False on remote errors like 429 or 5xx, so we call fs.info() to know if we should retry
+    disconnect_err = None
+    for retry in range(1, config.STREAMING_OPEN_MAX_RETRIES + 1):
+        try:
+            if xisfile(urlpath, download_config=download_config):
+                return "file"
+            if xisdir(urlpath, download_config=download_config):
+                return "directory"
+            path, storage_options = _prepare_path_and_storage_options(str(urlpath), download_config=download_config)
+            fs, *_ = url_to_fs(path, **storage_options)
+            return fs.info(path.split("::")[0])["type"]
+        except FileNotFoundError:
+            return None
+        except _get_connection_errors_to_retry() as err:
+            disconnect_err = err
+        except huggingface_hub.errors.HfHubHTTPError as err:
+            if err.response is None or err.response.status_code not in (408, RATE_LIMIT_CODE, 500, 502, 503, 504):
+                raise
+            disconnect_err = err
+        logger.warning(
+            f"Failed to connect to remote data host. Retrying in {config.STREAMING_OPEN_RETRY_INTERVAL}sec [{retry}/{config.STREAMING_OPEN_MAX_RETRIES}]"
+        )
+        time.sleep(config.STREAMING_OPEN_RETRY_INTERVAL)
+    raise ConnectionError("Server Disconnected") from disconnect_err
+
+
 class FilesIterable(TrackedIterableFromGenerator):
     """An iterable of paths from a list of directories or files"""
 
@@ -1441,9 +1468,10 @@ class FilesIterable(TrackedIterableFromGenerator):
         if not isinstance(urlpaths, list):
             urlpaths = [urlpaths]
         for urlpath in urlpaths:
-            if xisfile(urlpath, download_config=download_config):
+            path_type = _get_path_type_with_retries(urlpath, download_config=download_config)
+            if path_type == "file":
                 yield urlpath
-            elif xisdir(urlpath, download_config=download_config):
+            elif path_type == "directory":
                 for dirpath, dirnames, filenames in xwalk(urlpath, download_config=download_config):
                     # in-place modification to prune the search
                     dirnames[:] = sorted([dirname for dirname in dirnames if not dirname.startswith((".", "__"))])
