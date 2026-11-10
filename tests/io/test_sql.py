@@ -102,6 +102,59 @@ def test_dataset_to_sql_invalidproc(sqlite_path, tmp_path, set_sqlalchemy_silenc
         SqlDatasetWriter(dataset, "dataset", "sqlite:///" + output_sqlite_path, num_proc=0).write()
 
 
+@pytest.mark.parametrize("num_proc", [None, 1, 2])
+@pytest.mark.parametrize("if_exists", ["fail", "replace", "append"])
+@pytest.mark.parametrize("table_exists", [False, True])
+def test_dataset_to_sql_empty(num_proc, if_exists, table_exists):
+    dataset = Dataset.from_dict({"value": []}, features=Features({"value": Value("int64")}))
+    with contextlib.closing(sqlite3.connect(":memory:")) as con:
+        if table_exists:
+            con.execute("CREATE TABLE dataset (value INTEGER)")
+            con.execute("INSERT INTO dataset VALUES (42)")
+            con.commit()
+
+        if table_exists and if_exists == "fail":
+            with pytest.raises(ValueError, match="already exists"):
+                dataset.to_sql("dataset", con, num_proc=num_proc, if_exists=if_exists)
+            assert con.execute("SELECT * FROM dataset").fetchall() == [(42,)]
+        else:
+            assert dataset.to_sql("dataset", con, num_proc=num_proc, if_exists=if_exists) == 0
+            expected_rows = [(42,)] if table_exists and if_exists == "append" else []
+            assert con.execute("SELECT * FROM dataset").fetchall() == expected_rows
+            assert [(row[1], row[2]) for row in con.execute("PRAGMA table_info(dataset)")] == [("value", "INTEGER")]
+
+
+def test_dataset_to_sql_empty_options():
+    dataset = Dataset.from_dict({"value": []}, features=Features({"value": Value("int64")}))
+    with contextlib.closing(sqlite3.connect(":memory:")) as con:
+        assert dataset.to_sql("dataset", con, index=True, index_label="row_id", dtype={"value": "TEXT"}) == 0
+        assert [(row[1], row[2]) for row in con.execute("PRAGMA table_info(dataset)")] == [
+            ("row_id", "INTEGER"),
+            ("value", "TEXT"),
+        ]
+
+
+@pytest.mark.parametrize("if_exists", ["fail", "replace", "append"])
+def test_dataset_to_sql_empty_without_columns_preserves_table(if_exists):
+    dataset = Dataset.from_dict({})
+    with contextlib.closing(sqlite3.connect(":memory:")) as con:
+        con.execute("CREATE TABLE dataset (value INTEGER)")
+        con.execute("INSERT INTO dataset VALUES (42)")
+        con.commit()
+
+        with pytest.raises(ValueError, match="at least one column"):
+            dataset.to_sql("dataset", con, if_exists=if_exists)
+
+        assert con.execute("SELECT * FROM dataset").fetchall() == [(42,)]
+
+
+def test_dataset_to_sql_empty_index_only():
+    dataset = Dataset.from_dict({})
+    with contextlib.closing(sqlite3.connect(":memory:")) as con:
+        assert dataset.to_sql("dataset", con, index=True, index_label="row_id") == 0
+        assert [(row[1], row[2]) for row in con.execute("PRAGMA table_info(dataset)")] == [("row_id", "INTEGER")]
+
+
 @require_sqlalchemy
 @pytest.mark.parametrize("dtype, big", [("int64", 9007199254740993), ("uint64", 9007199254740993)])
 def test_dataset_to_sql_preserves_nullable_int(dtype, big, tmp_path, set_sqlalchemy_silence_uber_warning):
