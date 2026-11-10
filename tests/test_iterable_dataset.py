@@ -2754,9 +2754,11 @@ def _generate_ids_by_shard(shards):
 
 @pytest.mark.parametrize("source_kind", ["python", "arrow"])
 @pytest.mark.parametrize("sibling_action", ["create", "iterate"])
-def test_iterable_dataset_state_dict_not_frozen_by_sibling_dataset(source_kind, sibling_action):
+@pytest.mark.parametrize("resume_first", [False, True])
+def test_iterable_dataset_state_dict_not_frozen_by_sibling_dataset(source_kind, sibling_action, resume_first):
     # `ds.skip()` and `ds.take()` share the ex_iterables of `ds`. Creating or iterating the take
-    # dataset must not freeze the state_dict of the skip dataset while it is being iterated.
+    # dataset must not freeze the state_dict of the skip dataset while it is being iterated,
+    # including when that iteration resumed from a checkpoint ("resume, then evaluate").
     def make_source():
         if source_kind == "python":
             return IterableDataset.from_generator(_generate_ids_by_shard, gen_kwargs={"shards": list(range(4))})
@@ -2766,12 +2768,18 @@ def test_iterable_dataset_state_dict_not_frozen_by_sibling_dataset(source_kind, 
     expected = [example["id"] for example in make_source().skip(2)]
     ds = make_source()
     train_ds = ds.skip(2)
+    seen = []
+    if resume_first:
+        before_restart = make_source().skip(2)
+        before_restart_iter = iter(before_restart)
+        seen = [next(before_restart_iter)["id"] for _ in range(2)]
+        train_ds.load_state_dict(before_restart.state_dict())
     train_iter = iter(train_ds)
-    seen = [next(train_iter)["id"] for _ in range(2)]
+    seen += [next(train_iter)["id"] for _ in range(2)]
     eval_ds = ds.take(2)
     if sibling_action == "iterate":
         list(eval_ds)
-    seen += [next(train_iter)["id"] for _ in range(9)]  # crosses several shards
+    seen += [next(train_iter)["id"] for _ in range(12 - len(seen))]  # crosses several shards
 
     resumed = make_source().skip(2)
     resumed.load_state_dict(train_ds.state_dict())
