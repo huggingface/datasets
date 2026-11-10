@@ -90,6 +90,8 @@ def get_arrow_writer_batch_size_from_features(features: Optional[Features]) -> O
             batch_size = min(batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_AUDIO_DATASETS)
         elif isinstance(feature, Video) and config.ARROW_RECORD_BATCH_SIZE_FOR_VIDEO_DATASETS is not None:
             batch_size = min(batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_VIDEO_DATASETS)
+        elif isinstance(feature, Biosignal) and config.ARROW_RECORD_BATCH_SIZE_FOR_BIOSIGNAL_DATASETS is not None:
+            batch_size = min(batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_BIOSIGNAL_DATASETS)
         elif (
             isinstance(feature, Value)
             and feature.dtype == "binary"
@@ -130,6 +132,8 @@ def get_writer_batch_size_from_features(features: Optional[Features]) -> Optiona
             batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS)
         elif isinstance(feature, Video) and config.PARQUET_ROW_GROUP_SIZE_FOR_VIDEO_DATASETS is not None:
             batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_VIDEO_DATASETS)
+        elif isinstance(feature, Biosignal) and config.PARQUET_ROW_GROUP_SIZE_FOR_BIOSIGNAL_DATASETS is not None:
+            batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_BIOSIGNAL_DATASETS)
         elif (
             isinstance(feature, Value)
             and feature.dtype == "binary"

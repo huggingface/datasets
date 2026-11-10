@@ -461,10 +461,11 @@ Each row represents one recording: the `biosignal` column uses [`Biosignal`] and
 <RawBrainVision | sub-01_task-rest_eeg.vhdr, 64 x 10000 (40.0 s), ~35 kB, data not loaded>
 ```
 
-You can filter by BIDS entities (`subjects`, `sessions`, `tasks`, `runs`, `datatypes`) or disable decoding with `decode=False`:
+You can filter by BIDS entities (`subjects`, `sessions`, `tasks`, `runs`, `datatypes`), harmonize signals via `sampling_rate` and `picks`, or disable decoding with `decode=False`:
 
 ```py
 >>> dataset = load_dataset("bids", data_dir="path/to/bids_dataset", subjects="01", tasks="rest", split="train")
+>>> dataset = dataset.cast_column("biosignal", Biosignal(sampling_rate=250, picks="eeg"))
 >>> dataset = dataset.cast_column("biosignal", Biosignal(decode=False))
 ```
 

@@ -79,6 +79,11 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
 
             if isinstance(value, (VideoDecoder, AudioDecoder)):
                 return value  # TODO(QL): set output to np arrays ?
+        if config.MNE_AVAILABLE and "mne" in sys.modules:
+            import mne
+
+            if isinstance(value, mne.io.BaseRaw):
+                return value
 
         return np.asarray(value, **{**default_dtype, **self.np_array_kwargs})
 

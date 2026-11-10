@@ -2,7 +2,7 @@ import io
 import os
 import sys
 import tempfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Union
 
@@ -10,7 +10,7 @@ import pyarrow as pa
 
 from .. import config
 from ..download.download_config import DownloadConfig
-from ..utils.file_utils import is_local_path, xbasename, xopen
+from ..utils.file_utils import is_local_path, xbasename, xgetsize, xopen
 from .bio_sequence import _cast_to_bytes_path_struct, _resolve_token
 
 
@@ -41,6 +41,10 @@ class Biosignal:
     `mne.io.BaseRaw` object.
 
     Args:
+        sampling_rate (`float`, *optional*):
+            Target sampling rate in Hz. If `None`, the native sampling rate of the recording is kept.
+        picks (`str` or `list[str]`, *optional*):
+            Channels or channel types to retain (passed to `mne.io.BaseRaw.pick`, e.g. `"eeg"` or `["C3", "C4"]`).
         preload (`bool`, defaults to `False`):
             Whether to preload the signal data into memory when reading local files.
         decode (`bool`, defaults to `True`):
@@ -54,12 +58,12 @@ class Biosignal:
     >>> ds = load_dataset("bids", data_dir="path/to/bids", split="train")
     >>> ds[0]["biosignal"]
     <RawBrainVision | sub-01_task-rest_eeg.vhdr, 64 x 10000 (40.0 s), ~35 kB, data not loaded>
-    >>> ds = ds.cast_column("biosignal", Biosignal(decode=False))
-    >>> ds[0]["biosignal"]
-    {'bytes': None, 'path': 'path/to/bids/sub-01/eeg/sub-01_task-rest_eeg.vhdr'}
+    >>> ds = ds.cast_column("biosignal", Biosignal(sampling_rate=250, picks="eeg"))
     ```
     """
 
+    sampling_rate: Optional[float] = None
+    picks: Optional[Union[str, list[str]]] = None
     preload: bool = False
     decode: bool = True
     id: Optional[str] = field(default=None, repr=False)
@@ -138,6 +142,7 @@ class Biosignal:
         import mne
 
         path, bytes_ = (value, None) if isinstance(value, str) else (value["path"], value["bytes"])
+        raw = None
         if bytes_ is None:
             if path is None:
                 raise ValueError(f"A biosignal should have one of 'path' or 'bytes' but both are None in {value}.")
@@ -147,28 +152,40 @@ class Biosignal:
 
                     try:
                         # ponytail: get_bids_path_from_fname wrapper until mne-bids>=0.20 accepts path-like directly (mne-tools/mne-bids#1696)
-                        return mne_bids.read_raw_bids(
+                        raw = mne_bids.read_raw_bids(
                             mne_bids.get_bids_path_from_fname(path, check=False, verbose="ERROR"),
                             extra_params={"preload": self.preload},
                             verbose="ERROR",
                         )
                     except Exception:
                         pass
-                return mne.io.read_raw(path, preload=self.preload, verbose="ERROR")
-            download_config = DownloadConfig(token=_resolve_token(path, token_per_repo_id or {}))
-            with xopen(path, "rb", download_config=download_config) as f:
-                bytes_ = f.read()
+                if raw is None:
+                    raw = mne.io.read_raw(path, preload=self.preload, verbose="ERROR")
+            else:
+                download_config = DownloadConfig(token=_resolve_token(path, token_per_repo_id or {}))
+                with xopen(path, "rb", download_config=download_config) as f:
+                    bytes_ = f.read()
 
-        fname = xbasename(path) if path else ""
-        if not fname or fname.lower().endswith((".fif", ".fif.gz")):
-            return mne.io.read_raw_fif(io.BytesIO(bytes_), preload=True, verbose="ERROR")
-        if not os.path.splitext(fname)[1]:
-            raise ValueError(f"Decoding non-FIF biosignal bytes requires a file extension in 'path', got {path!r}.")
-        # ponytail: tempfile fallback until mne>=1.14 supports BytesIO across readers (mne-tools/mne-python#14516, #14517)
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tmp_path = Path(tmpdir) / fname
-            tmp_path.write_bytes(bytes_)
-            return mne.io.read_raw(tmp_path, preload=True, verbose="ERROR")
+        if raw is None:
+            fname = xbasename(path) if path else ""
+            if not fname or fname.lower().endswith((".fif", ".fif.gz")):
+                raw = mne.io.read_raw_fif(io.BytesIO(bytes_), preload=True, verbose="ERROR")
+            elif not os.path.splitext(fname)[1]:
+                raise ValueError(
+                    f"Decoding non-FIF biosignal bytes requires a file extension in 'path', got {path!r}."
+                )
+            else:
+                # ponytail: tempfile fallback until mne>=1.14 supports BytesIO across readers (mne-tools/mne-python#14516, #14517)
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    tmp_path = Path(tmpdir) / fname
+                    tmp_path.write_bytes(bytes_)
+                    raw = mne.io.read_raw(tmp_path, preload=True, verbose="ERROR")
+
+        if self.picks is not None:
+            raw.pick(self.picks)
+        if self.sampling_rate is not None and raw.info["sfreq"] != self.sampling_rate:
+            raw.load_data().resample(self.sampling_rate, verbose="ERROR")
+        return raw
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """If in the decodable state, return the feature itself, otherwise flatten the feature into a dictionary."""
@@ -215,8 +232,20 @@ class Biosignal:
             name = xbasename(x["path"])
             if x["bytes"] is not None:
                 return {"bytes": x["bytes"], "path": name}
-            raw = Biosignal(preload=True).decode_example(x["path"], token_per_repo_id=token_per_repo_id)
+            raw = replace(self, preload=True, decode=True).decode_example(
+                x["path"], token_per_repo_id=token_per_repo_id
+            )
             fif_name = name if name.lower().endswith(".fif") else f"{os.path.splitext(name)[0]}_raw.fif"
             return {"bytes": self.encode_example(raw)["bytes"], "path": fif_name}
 
         return pa.array([embed_one(x) for x in storage.to_pylist()], type=self.pa_type)
+
+
+def _biosignal_nbytes(path: str) -> int:
+    if is_local_path(path):
+        p = Path(path)
+        if p.is_dir():
+            return sum(f.stat().st_size for f in p.rglob("*") if f.is_file())
+        if p.suffix.lower() in (".vhdr", ".ahdr", ".set") and p.parent.is_dir():
+            return sum(f.stat().st_size for f in p.parent.glob(f"{p.stem}.*") if f.is_file())
+    return xgetsize(path)

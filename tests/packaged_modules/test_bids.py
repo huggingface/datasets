@@ -167,3 +167,5 @@ def test_bids_meg_splits_crosstalk_and_containers(tmp_path):
     ds_ctf = load_dataset(str(tmp_path / "ctf_bids"), decode=False, split="train", num_proc=2)
     assert len(ds_ctf) == 1 and ds_ctf[0]["extension"] == ".ds"
     assert ds_ctf[0]["biosignal"]["path"].endswith("sub-01_task-rest_meg.ds")
+    ds_ctf_pkg = load_dataset("bids", data_dir=str(tmp_path / "ctf_bids"), decode=False, split="train", num_proc=2)
+    assert len(ds_ctf_pkg) == 1 and ds_ctf_pkg[0]["extension"] == ".ds"

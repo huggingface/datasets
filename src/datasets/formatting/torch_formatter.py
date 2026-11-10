@@ -89,6 +89,11 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
 
             if isinstance(value, (VideoDecoder, AudioDecoder)):
                 return value  # TODO(QL): set output to jax arrays ?
+        if config.MNE_AVAILABLE and "mne" in sys.modules:
+            import mne
+
+            if isinstance(value, mne.io.BaseRaw):
+                return value
 
         return torch.tensor(value, **{**default_dtype, **self.torch_tensor_kwargs})
 

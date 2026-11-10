@@ -32,9 +32,9 @@ def test_biosignal_storage_and_schema(tmp_path, monkeypatch):
     feat = Biosignal()
     assert feat.pa_type == pa.struct({"bytes": pa.binary(), "path": pa.string()}) == feat()
     assert require_decoding(feat) and not require_decoding(Biosignal(decode=False))
-    assert Features.from_dict(Features({"b": Biosignal(preload=True)}).to_dict()) == Features(
-        {"b": Biosignal(preload=True)}
-    )
+    assert Features.from_dict(
+        Features({"b": Biosignal(sampling_rate=50.0, picks=["Ch1"], preload=True)}).to_dict()
+    ) == Features({"b": Biosignal(sampling_rate=50.0, picks=["Ch1"], preload=True)})
     assert Biosignal(decode=False).flatten() == {"bytes": Value("binary"), "path": Value("string")}
     assert Biosignal(decode=True).flatten() == Biosignal(decode=True)
 
@@ -94,6 +94,20 @@ def test_biosignal_local_raw_and_bytes(tmp_path, preload):
     from_edf_bytes = Biosignal().decode_example({"path": "sample.edf", "bytes": edf_path.read_bytes()})
     np.testing.assert_allclose(from_edf_bytes.get_data(), raw.get_data(), atol=1e-4)
 
+    cast_ds = Dataset.from_dict(
+        {"biosignal": [str(fif_path)], "label": [1]},
+        features=Features({"biosignal": Biosignal(sampling_rate=50.0, picks=["Ch1"]), "label": Value("int64")}),
+    )
+    picked = cast_ds[0]["biosignal"]
+    assert picked.ch_names == ["Ch1"] and picked.info["sfreq"] == 50.0 and picked.n_times == 50
+    np_row = cast_ds.with_format("numpy")[0]
+    assert isinstance(np_row["biosignal"], mne.io.BaseRaw) and isinstance(np_row["label"], np.integer)
+    if datasets.config.TORCH_AVAILABLE:
+        import torch
+
+        torch_row = cast_ds.with_format("torch")[0]
+        assert isinstance(torch_row["biosignal"], mne.io.BaseRaw) and isinstance(torch_row["label"], torch.Tensor)
+
 
 @require_mne_bids
 @pytest.mark.parametrize(
@@ -128,6 +142,9 @@ def test_biosignal_bids_formats_and_embed(tmp_path, fmt, ext, datatype):
     ds = Dataset.from_dict({"biosignal": [str(bp.fpath)]}, features=Features({"biosignal": Biosignal()}))
     decoded = ds[0]["biosignal"]
     assert decoded.info["line_freq"] == 50.0 and list(decoded.annotations.description) == ["stimulus"]
+    if ext in (".vhdr", ".set"):
+        companion_bytes = sum(f.stat().st_size for f in bp.fpath.parent.glob(f"{bp.fpath.stem}.*"))
+        assert ds._estimate_nbytes() >= companion_bytes
 
     saved_path = tmp_path / "saved_ds"
     ds.save_to_disk(str(saved_path))

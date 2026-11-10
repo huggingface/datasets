@@ -66,6 +66,10 @@ class BidsConfig(datasets.BuilderConfig):
             Filter recordings by BIDS suffix(es). Defaults to `["meg", "eeg", "ieeg", "emg", "nirs"]`.
         extensions (`str` or `list[str]`, *optional*):
             Filter recordings by file extension(s).
+        sampling_rate (`float`, *optional*):
+            Target sampling rate in Hz passed to [`Biosignal`].
+        picks (`str` or `list[str]`, *optional*):
+            Channels or channel types to retain (passed to [`Biosignal`]).
         preload (`bool`, defaults to `False`):
             Whether to preload signal data into memory when decoding local [`Biosignal`] recordings.
         decode (`bool`, defaults to `True`):
@@ -89,8 +93,11 @@ class BidsConfig(datasets.BuilderConfig):
     datatypes: Optional[Union[str, list[str]]] = None
     suffixes: Optional[Union[str, list[str]]] = None
     extensions: Optional[Union[str, list[str]]] = None
+    sampling_rate: Optional[float] = None
+    picks: Optional[Union[str, list[str]]] = None
     preload: bool = False
     decode: bool = True
+    decode_num_threads: int = 4
     features: Optional[datasets.Features] = None
 
 
@@ -138,27 +145,58 @@ class Bids(datasets.ArrowBasedBuilder):
             features=self.config.features,
         )
 
+    def _allowed_extensions(self) -> list[str]:
+        from mne_bids.config import ALLOWED_INPUT_EXTENSIONS
+
+        if self.config.extensions:
+            return (
+                [self.config.extensions] if isinstance(self.config.extensions, str) else list(self.config.extensions)
+            )
+        return list({*self.EXTENSIONS, *(e.upper() for e in self.EXTENSIONS), *ALLOWED_INPUT_EXTENSIONS})
+
     def _split_generators(self, dl_manager):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         if not datasets.config.MNE_BIDS_AVAILABLE:
             raise ImportError("To load BIDS datasets, please install 'mne-bids'.")
 
-        def resolve(f: str) -> Iterable[str]:
-            if f.lower().endswith(ARCHIVE_EXTENSIONS):
-                return dl_manager.iter_files(dl_manager.download_and_extract(f))
-            return dl_manager.iter_files(f) if is_local_path(f) and os.path.isdir(f) else [f]
+        ext_set = {e.lower() for e in self._allowed_extensions()}
 
-        resolved = {split: [resolve(f) for f in files] for split, files in self.config.data_files.items()}
+        def resolve_split(files: list[str]) -> tuple[list[str], list[Iterable[str]]]:
+            seen: set[str] = set()
+            bases: list[str] = []
+            iters: list[Iterable[str]] = []
+            for f in files:
+                if f.lower().endswith(ARCHIVE_EXTENSIONS):
+                    bases.append(f)
+                    iters.append(dl_manager.iter_files(dl_manager.download_and_extract(f)))
+                elif is_local_path(f) and os.path.isdir(f) and not f.lower().endswith(CONTAINER_EXTENSIONS):
+                    bases.append(f)
+                    iters.append(dl_manager.iter_files(f))
+                elif (cf := _collapse_container(f)) not in seen and _logical_path(cf).suffix.lower() in ext_set:
+                    seen.add(cf)
+                    bases.append(cf)
+                    iters.append((cf,))
+            return (bases, iters) if bases else ([files[0]], [()])
+
+        resolved = {split: resolve_split(files) for split, files in self.config.data_files.items()}
         if self.info.features is None:
             root_key = next(
-                (r for iters in resolved.values() for it in iters for f in it if (r := _bids_root(f))),
+                (r for files in self.config.data_files.values() for f in files if (r := _bids_root(f))),
+                None,
+            ) or next(
+                (r for _, iters in resolved.values() for it in iters for f in it if (r := _bids_root(f))),
                 None,
             )
             _, extra = self._read_participants(root_key, dl_manager.download_config)
             self.info.features = datasets.Features(
                 {
-                    "biosignal": datasets.Biosignal(preload=self.config.preload, decode=self.config.decode),
+                    "biosignal": datasets.Biosignal(
+                        sampling_rate=self.config.sampling_rate,
+                        picks=self.config.picks,
+                        preload=self.config.preload,
+                        decode=self.config.decode,
+                    ),
                     **{col: datasets.Value("string") for col in BIDS_ENTITY_COLUMNS},
                     **extra,
                 }
@@ -167,9 +205,9 @@ class Bids(datasets.ArrowBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=split_name,
-                gen_kwargs={"files_iterables": resolved[split_name], "base_files": list(files)},
+                gen_kwargs={"files_iterables": resolved[split_name][1], "base_files": resolved[split_name][0]},
             )
-            for split_name, files in self.config.data_files.items()
+            for split_name in self.config.data_files
         ]
 
     def _generate_shards(self, base_files: list[str], files_iterables: list[Iterable[str]]) -> Iterator[str]:
@@ -210,12 +248,10 @@ class Bids(datasets.ArrowBasedBuilder):
         self, base_files: list[str], files_iterables: list[Iterable[str]]
     ) -> Iterator[tuple[Key, pa.Table]]:
         import mne_bids
-        from mne_bids.config import ALLOWED_INPUT_EXTENSIONS, EPHY_ALLOWED_DATATYPES
+        from mne_bids.config import EPHY_ALLOWED_DATATYPES
         from mne_bids.path import _filter_fnames
 
-        extensions = self.config.extensions or list(
-            {*self.EXTENSIONS, *(e.upper() for e in self.EXTENSIONS), *ALLOWED_INPUT_EXTENSIONS}
-        )
+        extensions = self._allowed_extensions()
         suffixes = self.config.suffixes or list(EPHY_ALLOWED_DATATYPES)
         datatypes = self.config.datatypes
         allowed_datatypes = set([datatypes] if isinstance(datatypes, str) else (datatypes or EPHY_ALLOWED_DATATYPES))
@@ -248,7 +284,11 @@ class Bids(datasets.ArrowBasedBuilder):
                 ):
                     continue
                 bp = mne_bids.get_bids_path_from_fname(rf, check=False, verbose="ERROR")
-                datatype = bp.datatype or (bp.suffix if bp.suffix in EPHY_ALLOWED_DATATYPES else None)
+                datatype = (
+                    bp.datatype
+                    or (rf.parent.name if rf.parent.name in EPHY_ALLOWED_DATATYPES else None)
+                    or (bp.suffix if bp.suffix in EPHY_ALLOWED_DATATYPES else None)
+                )
                 if (
                     (datatype and datatype not in allowed_datatypes)
                     or (datatype == "meg" and bp.acquisition == "crosstalk")

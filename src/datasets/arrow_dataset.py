@@ -5751,10 +5751,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             def extra_nbytes_visitor(array, feature):
                 nonlocal extra_nbytes
                 if isinstance(feature, (Audio, Image, Video, Biosignal)):
+                    from .features.biosignal import _biosignal_nbytes
+
+                    size_fn = _biosignal_nbytes if isinstance(feature, Biosignal) else xgetsize
                     for x in array.to_pylist():
                         if x is not None and x["bytes"] is None and x["path"] is not None:
-                            size = xgetsize(x["path"])
-                            extra_nbytes += size
+                            extra_nbytes += size_fn(x["path"])
                     extra_nbytes -= array.field("path").nbytes
 
             table = self.with_format("arrow")[:1000]

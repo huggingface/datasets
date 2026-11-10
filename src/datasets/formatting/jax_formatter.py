@@ -119,6 +119,11 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
 
             if isinstance(value, (VideoDecoder, AudioDecoder)):
                 return value  # TODO(QL): set output to jax arrays ?
+        if config.MNE_AVAILABLE and "mne" in sys.modules:
+            import mne
+
+            if isinstance(value, mne.io.BaseRaw):
+                return value
 
         # using global variable since `jaxlib.xla_extension.Device` is not serializable neither
         # with `pickle` nor with `dill`, so we need to use a global variable instead
