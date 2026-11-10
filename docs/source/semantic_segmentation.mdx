@@ -142,18 +142,20 @@ You can verify the transformation worked by indexing into the `pixel_values` and
 
 In this guide, you have used `albumentations` for augmenting the dataset. It's also possible to use `torchvision` to apply some similar transforms. 
 
+Use nearest-neighbor interpolation for the mask so resizing does not create new class labels.
+
 ```py 
->>> from torchvision.transforms import Resize, ColorJitter, Compose
+>>> from torchvision.transforms import ColorJitter, Compose, InterpolationMode, Resize
 
 >>> transformation_chain = Compose([
 ...     Resize((256, 256)),
 ...     ColorJitter(brightness=0.25, contrast=0.25, saturation=0.25, hue=0.1)
 ... ])
->>> resize = Resize((256, 256))
+>>> resize_mask = Resize((256, 256), interpolation=InterpolationMode.NEAREST)
 
 >>> def train_transforms(example_batch):
 ...     example_batch["pixel_values"] = [transformation_chain(x) for x in example_batch["image"]]
-...     example_batch["label"] = [resize(x) for x in example_batch["annotation"]]
+...     example_batch["label"] = [resize_mask(x) for x in example_batch["annotation"]]
 ...     return example_batch
 
 >>> dataset.set_transform(train_transforms)
@@ -163,10 +165,6 @@ In this guide, you have used `albumentations` for augmenting the dataset. It's a
 
 >>> visualize_seg_mask(image, mask)
 ```
-
-<div class="flex justify-center">
-    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/torchvision_seg.png">
-</div>
 
 > [!TIP]
 > Now that you know how to process a dataset for semantic segmentation, learn
