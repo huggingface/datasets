@@ -162,6 +162,7 @@ class DatasetInfo:
         "dataset_size",
         "features",
         "splits",
+        "version",
     ]
 
     def __post_init__(self):
