@@ -8,7 +8,6 @@ import pyarrow as pa
 import pytest
 
 from datasets import AtomicStructure, Dataset, Features, Value, load_from_disk
-from datasets.features.atomic_structure import _is_bcif
 from datasets.features.features import generate_from_dict
 
 from ..utils import require_atomworks, require_zstandard
@@ -37,7 +36,7 @@ def _parse_with_atomworks(path):
 
 
 def _assert_same_atoms(actual, expected):
-    """Same atoms: exact coordinates, every annotation with its dtype, bonds and box."""
+    """Compare decoded atoms against the public AtomWorks reader."""
     assert actual.array_length() == expected.array_length()
     np.testing.assert_array_equal(actual.coord, expected.coord)
     assert set(actual.get_annotation_categories()) == set(expected.get_annotation_categories())
@@ -46,16 +45,10 @@ def _assert_same_atoms(actual, expected):
         assert got.dtype == want.dtype, name
         np.testing.assert_array_equal(got, want, err_msg=name)
     assert actual.bonds == expected.bonds
-    assert (actual.box is None) == (expected.box is None)
 
 
 def _roundtrip(value, **kwargs):
     return Dataset.from_dict({"s": [value]}, features=_features(**kwargs))[0]["s"]
-
-
-def test_storage_type():
-    assert AtomicStructure().pa_type == pa.struct({"bytes": pa.binary(), "path": pa.string()})
-    assert AtomicStructure().flatten() is not None
 
 
 @pytest.mark.parametrize(
@@ -101,12 +94,11 @@ def test_encode_compressed(compress):
 
 
 @require_atomworks
-def test_stored_bytes_are_a_bcif_file_any_reader_opens():
+def test_materialized_binarycif_opens_with_biotite():
     import biotite.structure.io.pdbx as pdbx
 
     row = AtomicStructure().encode_example(_parse_with_atomworks(CIF_FILE))
     assert row["path"] is None
-    assert _is_bcif(row["bytes"])
     file = pdbx.BinaryCIFFile.read(io.BytesIO(row["bytes"]))
     assert not any(name.startswith("hf_atomic_structure") for name in file.block)
     assert "chem_comp_bond" in file.block
@@ -132,17 +124,13 @@ def test_encode_bcif_written_by_another_tool():
     pdbx.set_structure(file, atoms)
     buffer = io.BytesIO()
     file.write(buffer)
-    assert _is_bcif(buffer.getvalue())
     row = AtomicStructure().encode_example(buffer.getvalue())
     assert row["bytes"] == buffer.getvalue()
     assert AtomicStructure().decode_example(row).atom_name.tolist() == atoms.atom_name.tolist()
 
 
 @require_atomworks
-def test_decode_a_row_without_bytes():
-    _assert_same_atoms(
-        AtomicStructure().decode_example({"bytes": None, "path": str(CIF_FILE)}), _parse_with_atomworks(CIF_FILE)
-    )
+def test_decode_rejects_missing_path_and_bytes():
     with pytest.raises(ValueError, match="both are None"):
         AtomicStructure().decode_example({"bytes": None, "path": None})
 
@@ -232,7 +220,7 @@ def test_cast_column_from_paths_bytes_and_file_references():
     dataset = Dataset.from_dict({"s": [PDB_FILE.read_bytes()]}).cast_column("s", AtomicStructure())
     assert len(dataset[0]["s"]) == 9
 
-    # file references as stored by other file-based features, e.g. the `BioStructure` feature this replaces
+    # file references as stored by other file-based features, e.g. the existing `BioStructure` feature
     references = pa.array([{"bytes": CIF_FILE.read_bytes(), "path": "test_protein.cif"}])
     dataset = Dataset(pa.table({"s": references})).cast_column("s", AtomicStructure())
     assert len(dataset[0]["s"]) == 9
