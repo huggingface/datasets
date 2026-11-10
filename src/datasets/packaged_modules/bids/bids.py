@@ -177,7 +177,7 @@ class Bids(datasets.ArrowBasedBuilder):
                     seen.add(cf)
                     bases.append(cf)
                     iters.append((cf,))
-            return (bases, iters) if bases else ([files[0]], [()])
+            return (bases, iters) if bases else ([files[0] if files else ""], [()])
 
         resolved = {split: resolve_split(files) for split, files in self.config.data_files.items()}
         if self.info.features is None:
