@@ -88,6 +88,11 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
             from torchcodec.decoders import AudioDecoder, VideoDecoder
 
             if isinstance(value, (VideoDecoder, AudioDecoder)):
+                if isinstance(value, AudioDecoder):
+                    from ..features._torchcodec import AudioDecoder as DatasetsAudioDecoder
+
+                    if isinstance(value, DatasetsAudioDecoder):
+                        return value._hf_to_torch(**self.torch_tensor_kwargs)
                 return value  # TODO(QL): set output to jax arrays ?
 
         return torch.tensor(value, **{**default_dtype, **self.torch_tensor_kwargs})
