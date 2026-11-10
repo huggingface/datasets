@@ -90,6 +90,9 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
             if isinstance(value, (VideoDecoder, AudioDecoder)):
                 return value  # TODO(QL): set output to jax arrays ?
 
+        if isinstance(value, torch.Tensor):
+            with torch.no_grad():
+                return torch.empty_like(value, **self.torch_tensor_kwargs).copy_(value)
         return torch.tensor(value, **{**default_dtype, **self.torch_tensor_kwargs})
 
     def _recursive_tensorize(self, data_struct):
