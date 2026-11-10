@@ -2,7 +2,6 @@ import io
 import os
 import tempfile
 from dataclasses import dataclass, field
-from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Union
 
@@ -23,50 +22,6 @@ if TYPE_CHECKING:
 
 
 _MULTIFILE_EXTENSIONS = {".vhdr", ".set", ".ds", ".mefd"}
-
-
-@lru_cache(maxsize=256)
-def _find_bids_root_dir(dir_path: Path) -> Optional[Path]:
-    dirs = (dir_path, *dir_path.parents)
-    return next(
-        (p for p in dirs if (p / "dataset_description.json").is_file()),
-        next((p.parent for p in dirs if p.name.startswith("sub-")), None),
-    )
-
-
-def _find_bids_root(path: Path) -> Optional[Path]:
-    return _find_bids_root_dir(path.parent)
-
-
-def _read_local_raw(path: str, preload: bool = False) -> "mne.io.BaseRaw":
-    import mne
-
-    fpath = Path(path)
-    bids_root = _find_bids_root(fpath)
-    if config.MNE_BIDS_AVAILABLE and bids_root is not None:
-        import mne_bids
-
-        try:
-            bids_path = mne_bids.get_bids_path_from_fname(fpath, check=False, verbose="ERROR")
-            bids_path.root = bids_root
-            return mne_bids.read_raw_bids(bids_path, extra_params={"preload": preload}, verbose="ERROR")
-        except Exception:
-            pass
-    return mne.io.read_raw(path, preload=preload, verbose="ERROR")
-
-
-def encode_mne_raw(raw: "mne.io.BaseRaw") -> dict[str, Optional[Union[str, bytes]]]:
-    """Encode an MNE ``BaseRaw`` instance into a ``{"path": ..., "bytes": ...}`` dict."""
-    filenames = getattr(raw, "filenames", None)
-    stem = Path(filenames[0]).stem if filenames and filenames[0] else "biosignal"
-    if not stem.endswith(("raw", "_eeg", "_meg", "_ieeg")):
-        stem = f"{stem}_raw"
-    fname = f"{stem}.fif"
-    with tempfile.TemporaryDirectory() as tmpdir:
-        tmp_path = os.path.join(tmpdir, fname)
-        raw.save(tmp_path, overwrite=True, verbose="ERROR")
-        with open(tmp_path, "rb") as f:
-            return {"path": fname, "bytes": f.read()}
 
 
 @dataclass
@@ -149,7 +104,16 @@ class Biosignal:
             import mne
 
             if isinstance(value, mne.io.BaseRaw):
-                return encode_mne_raw(value)
+                filenames = getattr(value, "filenames", None)
+                stem = Path(filenames[0]).stem if filenames and filenames[0] else "biosignal"
+                if not stem.endswith(("raw", "_eeg", "_meg", "_ieeg")):
+                    stem = f"{stem}_raw"
+                fname = f"{stem}.fif"
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    tmp_path = os.path.join(tmpdir, fname)
+                    value.save(tmp_path, overwrite=True, verbose="ERROR")
+                    with open(tmp_path, "rb") as f:
+                        return {"path": fname, "bytes": f.read()}
         raise ValueError(
             f"A biosignal sample should have one of 'path' or 'bytes' or be an mne.io.BaseRaw, but got {value}."
         )
@@ -179,7 +143,18 @@ class Biosignal:
             if path is None:
                 raise ValueError(f"A biosignal should have one of 'path' or 'bytes' but both are None in {value}.")
             if is_local_path(path):
-                return _read_local_raw(path, preload=self.preload)
+                if config.MNE_BIDS_AVAILABLE:
+                    import mne_bids
+
+                    try:
+                        bids_path = mne_bids.get_bids_path_from_fname(path, check=False, verbose="ERROR")
+                        if bids_path.subject is not None:
+                            return mne_bids.read_raw_bids(
+                                bids_path, extra_params={"preload": self.preload}, verbose="ERROR"
+                            )
+                    except Exception:
+                        pass
+                return mne.io.read_raw(path, preload=self.preload, verbose="ERROR")
             download_config = DownloadConfig(token=_resolve_token(path, token_per_repo_id))
             with xopen(path, "rb", download_config=download_config) as f:
                 bytes_ = f.read()
@@ -227,13 +202,9 @@ class Biosignal:
         def path_to_embedded(path: str) -> tuple[bytes, str]:
             if is_local_path(path) and config.MNE_AVAILABLE:
                 fpath = Path(path)
-                if (
-                    fpath.suffix.lower() in _MULTIFILE_EXTENSIONS
-                    or fpath.is_dir()
-                    or _find_bids_root(fpath) is not None
-                ):
+                if fpath.suffix.lower() in _MULTIFILE_EXTENSIONS or fpath.is_dir() or fpath.name.startswith("sub-"):
                     try:
-                        encoded = encode_mne_raw(_read_local_raw(path, preload=True))
+                        encoded = self.encode_example(Biosignal(preload=True).decode_example(path))
                         return encoded["bytes"], encoded["path"]
                     except Exception:
                         pass

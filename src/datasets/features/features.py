@@ -44,7 +44,7 @@ from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .bio_sequence import BioSequence, encode_bio_seqrecord
 from .bio_structure import BioStructure, encode_bio_structure
-from .biosignal import Biosignal, encode_mne_raw
+from .biosignal import Biosignal
 from .image import Image, encode_pil_image
 from .mesh import Mesh
 from .nifti import Nifti, encode_nibabel_image
@@ -411,7 +411,7 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
     elif config.BIOPYTHON_AVAILABLE and "Bio" in sys.modules and isinstance(obj, Structure):
         return encode_bio_structure(obj), True
     elif config.MNE_AVAILABLE and "mne" in sys.modules and isinstance(obj, mne.io.BaseRaw):
-        return encode_mne_raw(obj), True
+        return Biosignal().encode_example(obj), True
     elif isinstance(obj, pd.Series):
         return (
             _cast_to_python_objects(
