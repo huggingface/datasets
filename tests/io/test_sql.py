@@ -23,6 +23,14 @@ def _check_sql_dataset(dataset, expected_features):
         assert dataset.features[feature].dtype == expected_dtype
 
 
+def _insert_or_ignore_sqlalchemy(table, con, keys, data_iter):
+    from sqlalchemy.dialects.sqlite import insert
+
+    rows = [dict(zip(keys, row)) for row in data_iter]
+    statement = insert(table.table).values(rows).on_conflict_do_nothing()
+    return con.execute(statement).rowcount
+
+
 @require_sqlalchemy
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 def test_dataset_from_sql_keep_in_memory(keep_in_memory, sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
@@ -122,6 +130,29 @@ def test_dataset_to_sql_returns_method_rowcount(existing_values, return_count, e
 
         assert written == expected_written
         assert con.execute("SELECT value FROM items ORDER BY value").fetchall() == [(1,), (2,), (3,), (4,)]
+
+
+@require_sqlalchemy
+def test_dataset_to_sql_returns_zero_with_multiproc(tmp_path):
+    path = tmp_path / "counts.sqlite"
+    with contextlib.closing(sqlite3.connect(path)) as con:
+        con.execute("CREATE TABLE items (value INTEGER PRIMARY KEY)")
+        con.executemany("INSERT INTO items (value) VALUES (?)", [(1,), (2,), (3,), (4,)])
+        con.commit()
+
+    dataset = Dataset.from_dict({"value": [1, 2, 3, 4]})
+    written = dataset.to_sql(
+        "items",
+        f"sqlite:///{path.as_posix()}",
+        batch_size=2,
+        num_proc=2,
+        if_exists="append",
+        method=_insert_or_ignore_sqlalchemy,
+    )
+
+    with contextlib.closing(sqlite3.connect(path)) as con:
+        assert con.execute("SELECT value FROM items ORDER BY value").fetchall() == [(1,), (2,), (3,), (4,)]
+    assert written == 0
 
 
 @require_sqlalchemy
