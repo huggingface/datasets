@@ -44,6 +44,13 @@ class BidsConfig(datasets.BuilderConfig):
             Whether to decode the `Biosignal` column into `mne.io.BaseRaw`.
         features ([`Features`], *optional*):
             Explicit features schema override.
+
+    Example:
+
+    ```py
+    >>> from datasets import load_dataset
+    >>> ds = load_dataset("bids", data_dir="path/to/bids", subjects="01", tasks="rest", split="train")
+    ```
     """
 
     subjects: Optional[Union[str, list[str]]] = None

@@ -36,10 +36,10 @@ class Biosignal:
         - `bytes`: Bytes of the biosignal file.
     - An `mne.io.BaseRaw`: MNE raw recording object.
 
-    When decoding a local file located inside a BIDS dataset (a directory hierarchy containing
-    `dataset_description.json`) and `mne-bids` is installed, `mne_bids.read_raw_bids` is used
-    automatically so BIDS sidecars (`events.tsv`, `channels.tsv`, `electrodes.tsv`, `participants.tsv`,
-    and JSON metadata) are attached to the returned `mne.io.BaseRaw` object.
+    When decoding a local file located inside a BIDS dataset and `mne-bids` is installed,
+    `mne_bids.read_raw_bids` is used automatically so BIDS sidecars (`events.tsv`, `channels.tsv`,
+    `electrodes.tsv`, `participants.tsv`, and JSON metadata) are attached to the returned
+    `mne.io.BaseRaw` object.
 
     Args:
         preload (`bool`, defaults to `False`):
@@ -48,16 +48,16 @@ class Biosignal:
             Whether to decode the biosignal data. If `False`,
             returns the underlying dictionary in the format `{"path": path, "bytes": bytes}`.
 
-    Examples:
+    Example:
 
     ```py
-    >>> from datasets import Dataset, Biosignal
-    >>> ds = Dataset.from_dict({"biosignal": ["path/to/sub-01_task-rest_eeg.edf"]}).cast_column("biosignal", Biosignal())
-    >>> ds.features["biosignal"]
-    Biosignal(preload=False, decode=True)
-    >>> raw = ds[0]["biosignal"]
-    >>> raw.info["sfreq"]
-    256.0
+    >>> from datasets import load_dataset, Biosignal
+    >>> ds = load_dataset("bids", data_dir="path/to/bids", split="train")
+    >>> ds[0]["biosignal"]
+    <RawBrainVision | sub-01_task-rest_eeg.vhdr, 64 x 10000 (40.0 s), ~35 kB, data not loaded>
+    >>> ds = ds.cast_column("biosignal", Biosignal(decode=False))
+    >>> ds[0]["biosignal"]
+    {'bytes': None, 'path': 'path/to/bids/sub-01/eeg/sub-01_task-rest_eeg.vhdr'}
     ```
     """
 
@@ -101,16 +101,10 @@ class Biosignal:
             import mne
 
             if isinstance(value, mne.io.BaseRaw):
-                filenames = getattr(value, "filenames", None)
-                stem = Path(filenames[0]).stem if filenames and filenames[0] else "biosignal"
-                if not stem.endswith(("raw", "_eeg", "_meg", "_ieeg")):
-                    stem = f"{stem}_raw"
-                fname = f"{stem}.fif"
                 with tempfile.TemporaryDirectory() as tmpdir:
-                    tmp_path = os.path.join(tmpdir, fname)
+                    tmp_path = os.path.join(tmpdir, "raw.fif")
                     value.save(tmp_path, overwrite=True, verbose="ERROR")
-                    with open(tmp_path, "rb") as f:
-                        return {"path": fname, "bytes": f.read()}
+                    return {"path": None, "bytes": Path(tmp_path).read_bytes()}
         raise ValueError(
             f"A biosignal sample should have one of 'path' or 'bytes' or be an mne.io.BaseRaw, but got {value}."
         )
@@ -156,14 +150,7 @@ class Biosignal:
             with xopen(path, "rb", download_config=download_config) as f:
                 bytes_ = f.read()
 
-        fname = os.path.basename(path) if path and os.path.splitext(path)[1] else "biosignal_raw.fif"
-        if fname.lower().endswith((".fif", ".fif.gz")):
-            return mne.io.read_raw_fif(io.BytesIO(bytes_), preload=True, verbose="ERROR")
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tmp_path = os.path.join(tmpdir, fname)
-            with open(tmp_path, "wb") as f:
-                f.write(bytes_)
-            return mne.io.read_raw(tmp_path, preload=True, verbose="ERROR")
+        return mne.io.read_raw_fif(io.BytesIO(bytes_), preload=True, verbose="ERROR")
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
         """If in the decodable state, return the feature itself, otherwise flatten the feature into a dictionary."""
@@ -185,45 +172,33 @@ class Biosignal:
     def embed_storage(
         self, storage: pa.StructArray, token_per_repo_id=None, local_files: bool = True, remote_files: bool = True
     ) -> pa.StructArray:
-        """Embed biosignal files into the Arrow array.
-
-        For multi-file formats (e.g. BrainVision `.vhdr`, EEGLAB `.set`) or local files inside a BIDS
-        dataset when `mne` is installed, the recording (along with any BIDS sidecar metadata) is
-        serialized into self-contained `.fif` bytes so that hub uploads preserve all channels,
-        annotations, and montages. Single-file recordings outside BIDS are embedded directly as raw bytes.
-        """
+        """Embed biosignal files into the Arrow array."""
         if token_per_repo_id is None:
             token_per_repo_id = {}
 
         @no_op_if_value_is_null
-        def path_to_embedded(path: str) -> tuple[bytes, str]:
+        def path_to_bytes(path: str) -> bytes:
             if is_local_path(path) and config.MNE_AVAILABLE:
                 try:
-                    encoded = self.encode_example(Biosignal(preload=True).decode_example(path))
-                    return encoded["bytes"], encoded["path"]
+                    return self.encode_example(Biosignal(preload=True).decode_example(path))["bytes"]
                 except Exception:
                     pass
             download_config = DownloadConfig(token=_resolve_token(path, token_per_repo_id))
             with xopen(path, "rb", download_config=download_config) as f:
-                return f.read(), os.path.basename(path)
+                return f.read()
 
-        def should_embed(path: Optional[str]) -> bool:
-            if path is None:
-                return False
-            return local_files if is_local_path(path) else remote_files
-
-        new_bytes = []
-        new_paths = []
-        for bytes_, path in zip(storage.field("bytes").to_pylist(), storage.field("path").to_pylist()):
-            if bytes_ is None and should_embed(path):
-                embedded_bytes, embedded_path = path_to_embedded(path)
-                new_bytes.append(embedded_bytes)
-                new_paths.append(embedded_path)
-            else:
-                new_bytes.append(bytes_)
-                new_paths.append(os.path.basename(path) if path is not None else None)
-
-        bytes_array = pa.array(new_bytes, type=pa.binary())
-        path_array = pa.array(new_paths, type=pa.string())
+        bytes_array = pa.array(
+            [
+                path_to_bytes(path)
+                if bytes_ is None and path is not None and (local_files if is_local_path(path) else remote_files)
+                else bytes_
+                for bytes_, path in zip(storage.field("bytes").to_pylist(), storage.field("path").to_pylist())
+            ],
+            type=pa.binary(),
+        )
+        path_array = pa.array(
+            [os.path.basename(path) if path is not None else None for path in storage.field("path").to_pylist()],
+            type=pa.string(),
+        )
         storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
         return array_cast(storage, self.pa_type)
