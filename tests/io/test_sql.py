@@ -102,6 +102,28 @@ def test_dataset_to_sql_invalidproc(sqlite_path, tmp_path, set_sqlalchemy_silenc
         SqlDatasetWriter(dataset, "dataset", "sqlite:///" + output_sqlite_path, num_proc=0).write()
 
 
+@pytest.mark.parametrize(
+    "existing_values, return_count, expected_written",
+    [([], True, 4), ([1, 2], True, 2), ([1, 2, 3, 4], True, 0), ([1, 2, 3, 4], False, 4)],
+    ids=["all-inserted", "some-ignored", "all-ignored", "unknown-count"],
+)
+def test_dataset_to_sql_returns_method_rowcount(existing_values, return_count, expected_written):
+    dataset = Dataset.from_dict({"value": [1, 2, 3, 4]})
+
+    def insert_or_ignore(_table, cursor, _keys, data_iter):
+        cursor.executemany("INSERT OR IGNORE INTO items (value) VALUES (?)", data_iter)
+        return cursor.rowcount if return_count else None
+
+    with contextlib.closing(sqlite3.connect(":memory:")) as con:
+        con.execute("CREATE TABLE items (value INTEGER PRIMARY KEY)")
+        con.executemany("INSERT INTO items (value) VALUES (?)", [(value,) for value in existing_values])
+
+        written = dataset.to_sql("items", con, batch_size=2, if_exists="append", method=insert_or_ignore)
+
+        assert written == expected_written
+        assert con.execute("SELECT value FROM items ORDER BY value").fetchall() == [(1,), (2,), (3,), (4,)]
+
+
 @require_sqlalchemy
 @pytest.mark.parametrize("dtype, big", [("int64", 9007199254740993), ("uint64", 9007199254740993)])
 def test_dataset_to_sql_preserves_nullable_int(dtype, big, tmp_path, set_sqlalchemy_silence_uber_warning):
