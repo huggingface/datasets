@@ -261,6 +261,8 @@ class Json(datasets.ArrowBasedBuilder):
                             # PyArrow only accepts utf-8 encoded bytes
                             if self.config.encoding != "utf-8":
                                 batch = batch.decode(self.config.encoding, errors=encoding_errors).encode("utf-8")
+                            if not batch.strip(b" \t\r\n"):
+                                continue
                             # On first batch we check for lists of objects with arbitrary fields
                             if (
                                 shard_idx == 0
@@ -269,7 +271,9 @@ class Json(datasets.ArrowBasedBuilder):
                                 and self.config.on_mixed_types == "use_json"
                             ):
                                 try:
-                                    examples = [ujson_loads(line) for line in batch.splitlines()]
+                                    examples = [
+                                        ujson_loads(line) for line in batch.splitlines() if line.strip(b" \t\r\n")
+                                    ]
                                 except ValueError:
                                     # the file is likely not JSON Lines and may contain one single multi-line JSON object
                                     pass
@@ -278,7 +282,7 @@ class Json(datasets.ArrowBasedBuilder):
                             # Re-encode JSON fields
                             original_batch = batch
                             if json_field_paths:
-                                examples = [ujson_loads(line) for line in batch.splitlines()]
+                                examples = [ujson_loads(line) for line in batch.splitlines() if line.strip(b" \t\r\n")]
                                 for json_field_path in json_field_paths:
                                     examples = [json_encode_field(example, json_field_path) for example in examples]
                                 batch = "\n".join(ujson_dumps(example) for example in examples).encode()
@@ -302,7 +306,12 @@ class Json(datasets.ArrowBasedBuilder):
                                             and ") changed from" in str(e)
                                         ):
                                             json_field_path = get_json_field_path_from_pyarrow_json_error(
-                                                str(e), examples=(ujson_loads(line) for line in batch.splitlines())
+                                                str(e),
+                                                examples=(
+                                                    ujson_loads(line)
+                                                    for line in batch.splitlines()
+                                                    if line.strip(b" \t\r\n")
+                                                ),
                                             )
                                             if not json_field_path:
                                                 raise
@@ -327,7 +336,9 @@ class Json(datasets.ArrowBasedBuilder):
                             except pa.ArrowInvalid as e:
                                 if pa_table is not None:
                                     try:
-                                        examples = [ujson_loads(line) for line in batch.splitlines()]
+                                        examples = [
+                                            ujson_loads(line) for line in batch.splitlines() if line.strip(b" \t\r\n")
+                                        ]
                                         pa_table = pa.concat_tables(
                                             [pa.Table.from_pylist([example]) for example in examples],
                                             promote_options="default",
