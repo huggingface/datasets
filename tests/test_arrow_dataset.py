@@ -3713,6 +3713,29 @@ def test_class_encode_column_with_none(include_nulls):
     assert (None in dataset.unique("col_1")) == (not include_nulls)
 
 
+@pytest.mark.parametrize("format_type", [None, "numpy", "torch", "pandas", "polars", "arrow", "custom"])
+def test_class_encode_column_and_align_labels_with_format(format_type):
+    if format_type in ("torch", "polars"):
+        pytest.importorskip(format_type)
+    dataset = Dataset.from_dict({"text": ["b", "a", "b"], "num": [3, 1, 3]})
+    if format_type == "custom":
+        dataset = dataset.with_transform(lambda batch: {"length": [len(text) for text in batch["text"]]})
+    else:
+        dataset = dataset.with_format(format_type)
+    expected_format = dataset.format
+
+    encoded = dataset.class_encode_column("text").class_encode_column("num")
+    assert encoded.features["text"].names == ["a", "b"]
+    assert encoded.features["num"].names == ["1", "3"]
+    assert encoded.with_format(None)[:] == {"text": [1, 0, 1], "num": [1, 0, 1]}
+    assert encoded.format == expected_format
+
+    aligned = encoded.align_labels_with_mapping({"a": 1, "b": 0}, "text")
+    assert aligned.features["text"].names == ["b", "a"]
+    assert aligned.with_format(None)["text"][:] == [0, 1, 0]
+    assert aligned.format == expected_format
+
+
 @pytest.mark.parametrize("null_placement", ["first", "last"])
 def test_sort_with_none(null_placement):
     dataset = Dataset.from_dict({"col_1": ["item_2", "item_3", "item_1", None, "item_4", None]})
