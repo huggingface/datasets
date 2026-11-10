@@ -136,6 +136,8 @@ def test_biosignal_encodes_and_decodes_mne_raw_instance(tmp_path):
 
 @require_mne_bids
 def test_biosignal_bids_sidecar_and_multifile_embed(tmp_path):
+    import shutil
+
     import mne
     import mne_bids
 
@@ -161,9 +163,10 @@ def test_biosignal_bids_sidecar_and_multifile_embed(tmp_path):
     assert list(decoded.annotations.description) == ["stimulus"]
 
     # Embedding storage converts multi-file BIDS BrainVision (.vhdr/.vmrk/.eeg + sidecars) into self-contained bytes
-    parquet_path = tmp_path / "embedded.parquet"
-    ds.to_parquet(str(parquet_path))
-    reloaded = Dataset.from_parquet(str(parquet_path))
+    saved_path = tmp_path / "saved_ds"
+    ds.save_to_disk(str(saved_path))
+    shutil.rmtree(bids_root)
+    reloaded = datasets.load_from_disk(str(saved_path))
     reloaded_raw = reloaded[0]["biosignal"]
     assert isinstance(reloaded_raw, mne.io.BaseRaw)
     assert reloaded_raw.info["line_freq"] == 50.0
