@@ -176,6 +176,9 @@ def test_encode_mol2():
     atoms = _roundtrip({"bytes": ETHANOL_MOL2.encode(), "path": "ethanol.mol2"})
     assert atoms.element.tolist() == ["C", "C", "O"]
     assert atoms.bonds.get_bond_count() == 2
+    restored = _roundtrip(AtomicStructure().materialize(atoms))
+    np.testing.assert_array_equal(restored.coord, atoms.coord)
+    assert restored.bonds == atoms.bonds
 
 
 @require_atomworks
@@ -273,7 +276,7 @@ def test_save_and_load_from_disk(tmp_path):
 def test_missing_atomworks_raises(monkeypatch):
     monkeypatch.setattr("datasets.config.ATOMWORKS_AVAILABLE", False)
     assert AtomicStructure().encode_example(str(CIF_FILE)) == {"path": str(CIF_FILE), "bytes": None}
-    with pytest.raises(ImportError, match="please install 'atomworks'"):
+    with pytest.raises(ImportError, match="please install 'atomworks>=3.1.0'"):
         AtomicStructure().decode_example({"bytes": b"", "path": None})
 
 
@@ -345,21 +348,24 @@ def test_cleanup_is_decode_only_including_binarycif(file_type):
 
 
 @require_atomworks
-def test_default_keeps_alternate_conformers_hydrogens_and_insertion_codes():
+def test_default_minimal_parse_preserves_source_conformers_and_hydrogens():
     payload = (DATA_DIR / "test_altloc.cif").read_bytes()
     result = _roundtrip(payload)
-    assert result.atom_name.tolist() == ["CA", "CA", "H"]
-    assert result.ins_code.tolist() == ["B", "B", "B"]
+    assert result.atom_name.tolist() == ["CA", "H"]
+    _assert_same_atoms(result, _parse_with_atomworks(DATA_DIR / "test_altloc.cif"))
     assert AtomicStructure().encode_example(result)["bytes"] == payload
 
 
 @require_atomworks
-def test_slicing_decoded_array_does_not_reencode_original():
+@pytest.mark.parametrize("selection", [slice(None, 2), slice(3, 7)])
+def test_slicing_decoded_array_does_not_reencode_original(selection):
     atoms = _roundtrip(str(PDB_FILE))
-    sliced = atoms[:2]
+    sliced = atoms[selection]
     encoded = AtomicStructure().encode_example(sliced)
     assert encoded["bytes"] != PDB_FILE.read_bytes()
-    assert len(AtomicStructure().decode_example(encoded)) == 2
+    restored = AtomicStructure().decode_example(encoded)
+    np.testing.assert_array_equal(restored.coord, sliced.coord)
+    assert restored.bonds == sliced.bonds
 
 
 @pytest.mark.parametrize("type_name,format", [("BioStructure", "pdb"), ("BioSequence", "fasta")])
@@ -389,7 +395,7 @@ def test_registered_standard_annotations_survive_live_array_encoding():
     from atomworks.io.utils.standard_annotations import S_ATM
 
     atoms = _roundtrip(str(CIF_FILE))
-    atoms.source_info.pop("_hf_encoded")
+    atoms.del_annotation("_hf_encoded", n_body=0)
     targets = np.arange(len(atoms)) % 2 == 0
     S_ATM.set_annotation(atoms, targets)
     restored = _roundtrip(atoms)
@@ -410,7 +416,9 @@ def test_assembly_is_decode_only():
     dataset = Dataset.from_dict(
         {"s": [payload], "label": ["example"]}, features=Features({"s": AtomicStructure(), "label": Value("string")})
     )
-    stored = feature.prepare_dataset(dataset, "s")
+    stored = dataset.cast_column("s", feature).map(
+        lambda row: {"s": AtomicStructure().materialize(row["s"])}, features=dataset.features
+    )
     assert stored[0]["label"] == "example"
     assert stored.features["s"] == AtomicStructure()
     np.testing.assert_allclose(stored[0]["s"].coord, assembled.coord)
@@ -424,18 +432,18 @@ def test_old_atomworks_api_has_actionable_import_error(monkeypatch):
 
     monkeypatch.setattr("datasets.config.ATOMWORKS_AVAILABLE", True)
     monkeypatch.setitem(sys.modules, "atomworks.io", ModuleType("atomworks.io"))
-    with pytest.raises(ImportError, match="supported development version"):
+    with pytest.raises(ImportError, match="AtomWorks >=3.1.0"):
         AtomicStructure().decode_example({"bytes": b"unused", "path": None})
 
 
 @require_atomworks
 def test_materialize_saves_edits_without_mutating_source():
     atoms = _roundtrip(str(CIF_FILE))
-    original = dict(atoms.source_info)
+    original = atoms.get_annotation("_hf_encoded", n_body=0).item().copy()
     atoms.coord += 3
     encoded = AtomicStructure().materialize(atoms)
     np.testing.assert_array_equal(_roundtrip(encoded).coord, atoms.coord)
-    assert atoms.source_info == original
+    assert atoms.get_annotation("_hf_encoded", n_body=0).item() == original
     assert AtomicStructure().encode_example(atoms)["bytes"] == CIF_FILE.read_bytes()
     dataset = Dataset.from_dict({"s": [CIF_FILE.read_bytes()]}, features=_features())
 
@@ -493,80 +501,6 @@ def test_materialize_rejects_integer_overflow():
 
 
 @require_atomworks
-@pytest.mark.parametrize("num_proc", [None, 2])
-def test_prepare_dataset_once_and_reuse_cache(tmp_path, monkeypatch, num_proc):
-    import atomworks.io
-
-    import datasets.features.atomic_structure as module
-
-    dataset = Dataset.from_dict({"s": [CIF_FILE.read_bytes(), None, CIF_FILE.read_bytes()]}, features=_features())
-    feature = AtomicStructure(parse_config={"remove_waters": True})
-    result = feature.prepare_dataset(dataset, "s", cache_dir=tmp_path, num_proc=num_proc)
-    assert result.features["s"] == AtomicStructure()
-    assert result[1]["s"] is None
-    assert dataset.features["s"] == AtomicStructure()
-    assert result.data.column("s")[0].as_py()["bytes"] != CIF_FILE.read_bytes()
-
-    def unexpected(*args, **kwargs):
-        raise AssertionError("Preparation must not run on a cache hit or a prepared row read")
-
-    monkeypatch.setattr(module, "_prepare_row", unexpected)
-    monkeypatch.setattr(atomworks.io, "prepare_atom_array", unexpected)
-    cached = feature.prepare_dataset(dataset, "s", cache_dir=tmp_path, num_proc=num_proc)
-    assert cached._fingerprint == result._fingerprint
-    np.testing.assert_array_equal(cached[0]["s"].coord, result[0]["s"].coord)
-
-
-@require_atomworks
-def test_prepare_cache_tracks_contents_settings_and_runtime(tmp_path, monkeypatch):
-    import datasets.features.atomic_structure as module
-
-    source = tmp_path / "source.cif"
-    source.write_bytes(CIF_FILE.read_bytes())
-    dataset = Dataset.from_dict({"s": [str(source)]}, features=_features())
-    cache = tmp_path / "cache"
-    plain = AtomicStructure()
-    first = plain.prepare_dataset(dataset, "s", cache_dir=cache)
-    source.write_bytes(CIF_FILE.read_bytes().replace(b"1.458", b"2.458"))
-    second = plain.prepare_dataset(dataset, "s", cache_dir=cache)
-    assert second._fingerprint != first._fingerprint
-    assert second[0]["s"].coord[1, 0] != first[0]["s"].coord[1, 0]
-    third = AtomicStructure(parse_config={"remove_waters": True}).prepare_dataset(dataset, "s", cache_dir=cache)
-    assert third._fingerprint != second._fingerprint
-    monkeypatch.setattr(module, "_preparation_runtime", lambda: {"atomworks": "future-version"})
-    fourth = plain.prepare_dataset(dataset, "s", cache_dir=cache)
-    assert fourth._fingerprint != second._fingerprint
-    fifth = plain.prepare_dataset(dataset, "s", cache_dir=cache, cache_version="custom-ccd-v2")
-    assert fifth._fingerprint != fourth._fingerprint
-
-
-@require_atomworks
-def test_prepare_dataset_detects_source_changed_during_preparation(tmp_path, monkeypatch):
-    import datasets.features.atomic_structure as module
-
-    source = tmp_path / "source.cif"
-    source.write_bytes(CIF_FILE.read_bytes())
-    dataset = Dataset.from_dict({"s": [str(source)]}, features=_features())
-    original = module._preparation_runtime
-
-    def changed():
-        source.write_bytes(CIF_FILE.read_bytes() + b"\n# changed\n")
-        return original()
-
-    monkeypatch.setattr(module, "_preparation_runtime", changed)
-    with pytest.raises(RuntimeError, match="source changed"):
-        AtomicStructure().prepare_dataset(dataset, "s", cache_dir=tmp_path / "cache")
-
-
-@require_atomworks
-def test_prepare_empty_dataset_has_plain_feature():
-    dataset = Dataset.from_dict({"s": []}, features=_features(parse_config={"remove_waters": True}))
-    result = AtomicStructure(parse_config={"remove_waters": True}).prepare_dataset(dataset, "s")
-    assert len(result) == 0
-    assert result.features["s"] == AtomicStructure()
-
-
-@require_atomworks
 @pytest.mark.parametrize("kind", ["multidimensional", "system", "pairwise"])
 def test_materialize_rejects_each_unsupported_annotation_kind(kind):
     from atomworks.io.utils.atom_array_plus import AnnotationList2D
@@ -607,3 +541,76 @@ def test_materialize_distinguishes_missing_and_empty_bonds():
     assert _roundtrip(AtomicStructure().materialize(atoms)).bonds is None
     atoms.bonds = BondList(len(atoms))
     assert _roundtrip(AtomicStructure().materialize(atoms)).bonds == atoms.bonds
+
+
+@require_atomworks
+@pytest.mark.parametrize("preset", ["minimal", "default", "rcsb"])
+@pytest.mark.parametrize("file_type", ["cif", "bcif"])
+def test_parse_presets_match_atomworks(preset, file_type):
+    from atomworks.io import atom_array_to_file, parse
+    from atomworks.io.config import ParseConfig
+
+    payload = (
+        CIF_FILE.read_bytes()
+        if file_type == "cif"
+        else atom_array_to_file(_parse_with_atomworks(CIF_FILE), file_type="bcif")
+    )
+    source = io.StringIO(payload.decode()) if file_type == "cif" else io.BytesIO(payload)
+    expected = parse(
+        source,
+        config=ParseConfig.from_preset(preset, file_type=file_type, build_assembly=None, return_atom_array_plus=True),
+    )["asym_unit"][0]
+    actual = _roundtrip(payload, parse_config={"preset": preset})
+    np.testing.assert_array_equal(actual.coord, expected.coord)
+    np.testing.assert_array_equal(actual.atom_name, expected.atom_name)
+    assert actual.bonds == expected.bonds
+    assert AtomicStructure().encode_example(actual)["bytes"] == payload
+
+
+@require_atomworks
+@pytest.mark.parametrize("model", [1, 2, -1])
+def test_select_model_from_materialized_stack(model):
+    from biotite.structure import BondList, stack
+
+    first = _roundtrip(str(CIF_FILE))
+    first.bonds = BondList(len(first), np.array([[0, 1, 1]]))
+    first.box = np.diag([20.0, 21.0, 22.0])
+    second = first.copy()
+    second.coord += 5
+    second.box *= 2
+    payload = AtomicStructure().materialize(stack([first, second]))
+    result = _roundtrip(payload, parse_config={"model": model})
+    expected = first if model == 1 else second
+    np.testing.assert_array_equal(result.coord, expected.coord)
+    np.testing.assert_allclose(result.box, expected.box)
+    assert result.bonds == expected.bonds
+
+
+@require_atomworks
+@pytest.mark.parametrize("num_proc", [None, 2])
+def test_preprocessing_with_map(tmp_path, num_proc):
+    policy = AtomicStructure(parse_config={"remove_waters": True})
+    dataset = Dataset.from_dict({"s": [CIF_FILE.read_bytes(), None]}, features=_features())
+
+    def prepare(example):
+        atoms = example["s"]
+        return {"s": None if atoms is None else AtomicStructure().materialize(atoms)}
+
+    prepared = dataset.cast_column("s", policy).map(
+        prepare, features=dataset.features, load_from_cache_file=False, num_proc=num_proc
+    )
+    prepared.save_to_disk(tmp_path / "prepared")
+    restored = load_from_disk(tmp_path / "prepared")
+    assert restored.features["s"] == AtomicStructure()
+    assert restored[1]["s"] is None
+    np.testing.assert_array_equal(restored[0]["s"].coord, dataset.cast_column("s", policy)[0]["s"].coord)
+    assert dataset.data.column("s")[0].as_py()["bytes"] == CIF_FILE.read_bytes()
+
+
+@require_atomworks
+@pytest.mark.parametrize("altloc", ["first", "B"])
+def test_select_alternate_conformer_without_changing_storage(altloc):
+    payload = (DATA_DIR / "test_altloc.cif").read_bytes()
+    result = _roundtrip(payload, parse_config={"altloc": altloc})
+    assert result.label_alt_id.tolist() == ["A" if altloc == "first" else "B", "."]
+    assert AtomicStructure().encode_example(result)["bytes"] == payload

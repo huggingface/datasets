@@ -8,13 +8,13 @@ There are two methods for creating and sharing an atomic structure dataset. This
 
 Source paths and bytes are stored unchanged. Structures are read with AtomWorks only when a row is decoded; casting a column does not parse its files. Live atom arrays, RDKit molecules and ASE objects are serialized as BinaryCIF.
 
-AtomicStructure currently requires the development atom-array IO API and Python 3.12 or newer. Published AtomWorks releases do not yet provide the required API. For development, install the tested checkout separately:
+AtomicStructure decoding requires [AtomWorks 3.1.0 or newer](https://github.com/RosettaCommons/atomworks) and Python 3.12 or newer:
 
 ```sh
-pip install "git+https://github.com/baker-laboratory/atomworks-dev.git@b84e6b48b0a2be9b468a3df3736e16e369e0fb70"
+pip install "datasets[bio]"
 ```
 
-This repository currently requires access. Public CI and users without access must wait for the API's public release. The `bio` extra retains Biopython for the legacy features; it does not install this development dependency. Let AtomWorks install its exact Biotite dependency rather than independently selecting a Biotite version. Encoding file references and using `decode=False` do not need AtomWorks.
+The `bio` extra installs base AtomWorks on Python 3.12+ and Biopython for the legacy features. AtomWorks' `ml`, `hf`, `cli` and `dev` extras are not needed; install `ase` separately only for ASE inputs. Let AtomWorks select its compatible Biotite version. On Python 3.10/3.11 the legacy features still work, and storing file references or using `AtomicStructure(decode=False)` does not need AtomWorks.
 
 > [!TIP]
 > You can control access to your dataset by requiring users to share their contact information first. Check out the [Gated datasets](https://huggingface.co/docs/hub/datasets-gated) guide for more information about how to enable this feature on the Hub.
@@ -31,9 +31,11 @@ You can load your own dataset using the paths to your structure files. Use the [
 <atomworks.io.utils.atom_array_plus.AtomArrayPlus ...>
 ```
 
+Decoded output is an `AtomArrayPlus` for one model, an `AtomArrayPlusStack` for multiple models with matching atoms, or a list of arrays for models with differing atom sets.
+
 mmCIF (`.cif`, `.mmcif`), BinaryCIF (`.bcif`), PDB (`.pdb`, `.ent`), MOL/SDF (`.mol`, `.sdf`) and Mol2 (`.mol2`) files are supported, optionally compressed with gzip, bz2 or zstd. RDKit `Mol`, ASE `Atoms` and biotite `AtomArray` objects can be used instead of paths.
 
-By default decoding uses `atom_array_from_file` without chemical preparation: waters, hydrogens, crystallization aids, alternate conformers, insertion codes and original atom order are retained. CIF bonds are reconstructed during preparation, so do not assume that minimal loading provides a chemically prepared bond graph.
+By default decoding uses AtomWorks' `minimal` preset: waters, hydrogens and crystallization aids are kept, and no missing atoms or biological assemblies are added. Minimal parsing still selects the first alternate conformer, normalizes identifiers and infers bonds. This is a parsed representation, not an exact copy of every file field; the stored source bytes remain unchanged. Use `decode=False` to retrieve the original encoding.
 
 Pass `parse_config` to opt into preparation at **decode time**. Unspecified options use the minimal preset; for example `AtomicStructure(parse_config={"remove_waters": True})`. Presets such as `default` or `rcsb` opt into their full cleanup, including atom completion and filtering. `assembly` opts into building a biological assembly. These settings also apply to BinaryCIF inputs and can be changed with `cast_column` without rewriting stored data:
 
@@ -116,14 +118,14 @@ Creating or casting a dataset of paths does no structure I/O. Byte inputs (inclu
 
 ### Saving intentional edits
 
-Decoded arrays retain their original encoding under `atoms.source_info["_hf_encoded"]`, so a pass-through `map` preserves source bytes and metadata. To save edits explicitly, use `materialize`. It serializes the atoms as supplied, ignores the retained bytes, leaves the input unchanged, and does no additional preparation:
+Decoded arrays retain their original encoding in the `_hf_encoded` system annotation (`atoms.get_annotation("_hf_encoded", n_body=0)`), so a pass-through `map` preserves source bytes and metadata. To save edits explicitly, use `materialize`. It serializes the atoms as supplied, ignores the retained bytes, leaves the input unchanged, and does no additional preparation:
 
 ```py
->>> feature = AtomicStructure()
+>>> from datasets import AtomicStructure, Features
 >>> def translate(example):
 ...     atoms = example["structure"]
 ...     atoms.coord += [1.0, 0.0, 0.0]
-...     return {"structure": feature.materialize(atoms)}
+...     return {"structure": AtomicStructure().materialize(atoms)}
 >>> edited = structure_dataset.map(
 ...     translate,
 ...     features=Features({**structure_dataset.features, "structure": AtomicStructure()}),
@@ -134,21 +136,26 @@ The plain output feature avoids applying a previous cleanup policy or assembly e
 
 ### Preparing data once for training
 
-Use `prepare_dataset` to apply a chosen policy once and store BinaryCIF for repeated access:
+Cleanup and assembly construction can be expensive. Apply them once with `map`, explicitly materialize the result, then save it for training. The function below is ordinary Python so you can add your own filters or transformations:
 
 ```py
+>>> from datasets import AtomicStructure, Features
 >>> policy = AtomicStructure(parse_config={"remove_waters": True, "altloc": "first"})
->>> prepared = policy.prepare_dataset(
-...     structure_dataset, "structure", cache_dir="prepared-cache", num_proc=2,
+>>> source = structure_dataset.cast_column("structure", policy)
+>>> def prepare(example):
+...     atoms = example["structure"]  # decoding applies policy here
+...     return {"structure": None if atoms is None else AtomicStructure().materialize(atoms)}
+>>> prepared = source.map(
+...     prepare,
+...     features=Features({**source.features, "structure": AtomicStructure()}),
+...     load_from_cache_file=False,
 ... )
 >>> prepared.save_to_disk("training-structures")
 ```
 
-The helper uses `Dataset.map`, preserves other columns and null rows, and returns an `AtomicStructure()` column. Reading it still parses BinaryCIF, but does not rerun cleanup or assembly generation. With no `cache_dir`, preparation is recomputed on every call.
+The plain output feature prevents cleanup or assembly expansion from running again. Reading the saved dataset still parses BinaryCIF. Other columns and null rows are retained, and the source dataset is unchanged. Start with one worker before adding `num_proc`: each process initializes AtomWorks separately.
 
-A cache key includes source content hashes and paths, the dataset fingerprint, preparation/assembly settings, dependency versions, AtomWorks Python source, and this feature's implementation. Editable development changes therefore invalidate caches even when the package version is unchanged. Source files are read to check their content on every call; a hit avoids parsing and preparation, not file I/O. A miss reads files again and rejects changes detected between hashing and preparation. Embed private remote sources as bytes before using this helper.
-
-Use `cache_version="my-ccd-v2"` for external scientific inputs such as custom CCD definitions, and change it when those inputs change. Such contexts must be reproducible in workers; use one process for in-process overrides. This cache is for the helper's preparation policy. Arbitrary custom transforms performed with `map` need their own correct fingerprinting and external-input versioning. Each process pays its own AtomWorks initialization and memory cost; start with one worker and measure before increasing `num_proc`.
+This example disables reuse of `map` caches because external files and CCD definitions can change without changing a dataset fingerprint. Reuse the saved dataset only for the same source snapshot, preparation settings and AtomWorks version. If you enable caching in a custom pipeline, include source content hashes, settings, dependency versions and external CCD versions in its cache identity.
 
 ### Serialization guarantees
 

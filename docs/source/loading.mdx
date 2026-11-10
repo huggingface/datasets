@@ -280,7 +280,7 @@ Each row is one structure, following the same folder layout
 as [`ImageFolder`]: subfolder names become labels and a `metadata.csv`/`metadata.jsonl`
 file adds per-structure metadata. The `structure` column uses the [`AtomicStructure`] feature: each file is
 stored unchanged as a path or bytes and loaded lazily into an AtomWorks `AtomArrayPlus`.
-Creating the dataset does not parse the structures. Decoding requires the development AtomWorks IO API;
+Creating the dataset does not parse the structures. Decoding requires AtomWorks 3.1.0+ and Python 3.12+;
 see the [installation and compatibility notes](atomic_structure_dataset).
 
 To load PDB files from a directory:
@@ -357,7 +357,7 @@ Each row is one structure, following the same folder layout
 as [`ImageFolder`]: subfolder names become labels and a `metadata.csv`/`metadata.jsonl`
 file adds per-structure metadata. The `structure` column uses the [`AtomicStructure`] feature: each file is
 stored unchanged as a path or bytes and loaded lazily into an AtomWorks `AtomArrayPlus`.
-Creating the dataset does not parse the structures. Decoding requires the development AtomWorks IO API;
+Creating the dataset does not parse the structures. Decoding requires AtomWorks 3.1.0+ and Python 3.12+;
 see the [installation and compatibility notes](atomic_structure_dataset).
 
 To load mmCIF or BinaryCIF files from a directory:
