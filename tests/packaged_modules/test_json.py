@@ -6,6 +6,7 @@ import pyarrow as pa
 import pytest
 
 from datasets import Dataset, Features, Value, load_dataset
+from datasets import Json as JsonFeature
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig, paj
@@ -594,6 +595,50 @@ def test_json_mixed_type_literal_field_names(tmp_path, bounded_json_parser, rows
     path.write_text("\n".join(map(json.dumps, rows)), encoding="utf-8")
 
     assert Dataset.from_json(str(path), cache_dir=str(tmp_path / "cache")).to_list() == rows
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("blank_line", ["", " \t"])
+@pytest.mark.parametrize(
+    "rows, expected_features",
+    [
+        ([{"value": 1}, {"value": "two"}], Features({"value": JsonFeature()})),
+        (
+            [{"outer": {"a/b": 1}}, {"outer": {"a/b": "two"}}],
+            Features({"outer": {"a/b": JsonFeature()}}),
+        ),
+        ([{"value": {"left": 1}}, {"value": {"right": 2}}], Features({"value": JsonFeature()})),
+    ],
+)
+def test_json_mixed_types_with_blank_lines(tmp_path, streaming, blank_line, rows, expected_features):
+    path = tmp_path / "mixed.jsonl"
+    path.write_text(
+        "\n".join([blank_line, json.dumps(rows[0]), blank_line, json.dumps(rows[1]), blank_line]) + "\n",
+        encoding="utf-8",
+    )
+    dataset = Dataset.from_json(str(path), streaming=streaming, cache_dir=str(tmp_path / "cache"))
+
+    assert list(dataset) == rows
+    assert dataset.features == expected_features
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("blank_line", ["", " \t"])
+@pytest.mark.parametrize("chunksize", [16, 10 << 20])
+def test_json_declared_json_with_blank_lines(tmp_path, streaming, blank_line, chunksize):
+    path = tmp_path / "declared.jsonl"
+    rows = [{"value": 1}, {"value": "two"}]
+    path.write_text("\n".join([json.dumps(rows[0]), *([blank_line] * 20), json.dumps(rows[1])]), encoding="utf-8")
+    dataset = Dataset.from_json(
+        str(path),
+        streaming=streaming,
+        features=Features({"value": JsonFeature()}),
+        chunksize=chunksize,
+        cache_dir=str(tmp_path / "cache"),
+    )
+
+    assert list(dataset) == rows
+    assert dataset.features == Features({"value": JsonFeature()})
 
 
 def test_json_mixed_type_ambiguous_field_path(tmp_path, bounded_json_parser):
