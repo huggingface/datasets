@@ -582,6 +582,7 @@ Y = TypeVar("Y")
 
 
 def _write_generator_to_queue(queue: queue.Queue, func: Callable[..., Iterable[Y]], kwargs: dict) -> int:
+    i = -1
     for i, result in enumerate(func(**kwargs)):
         queue.put(result)
     return i
