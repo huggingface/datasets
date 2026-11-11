@@ -70,6 +70,22 @@ def test_download_manager_download(urls_type, tmp_path, tmpfs):
         assert metadata_content == {"url": URL, "etag": None}
 
 
+@pytest.mark.parametrize("num_proc", [None, 2])
+def test_download_manager_download_nested_tuples(tmp_path, num_proc):
+    paths = []
+    for index in range(4):
+        path = tmp_path / f"{index}.txt"
+        path.write_text(str(index))
+        paths.append(str(path))
+    urls = {"train": tuple(paths[:2]), "test": tuple(paths[2:])}
+    dl_manager = DownloadManager(download_config=DownloadConfig(num_proc=num_proc))
+    downloaded_paths = dl_manager.download(urls)
+    assert downloaded_paths == urls
+    assert [Path(path).read_text() for group in downloaded_paths.values() for path in group] == [
+        str(index) for index in range(4)
+    ]
+
+
 @pytest.mark.parametrize("paths_type", [str, list, dict])
 @pytest.mark.parametrize("extract_on_the_fly", [False, True])
 def test_download_manager_extract(paths_type, xz_file, text_file, extract_on_the_fly):

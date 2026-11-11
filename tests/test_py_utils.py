@@ -62,6 +62,17 @@ def test_map_nested(data_struct, expected_result, num_proc, batched, function):
     assert map_nested(function, data_struct, num_proc=num_proc, batched=batched) == expected_result
 
 
+@pytest.mark.parametrize("container", [tuple, np.array])
+@pytest.mark.parametrize("length", [2, 3])
+@pytest.mark.parametrize("num_proc", [None, 2])
+def test_map_nested_batched_preserves_nested_types(container, length, num_proc):
+    data = {"a": container(range(length)), "b": container(range(length))}
+    result = map_nested(add_one_to_batch, data, batched=True, map_tuple=True, map_numpy=True, num_proc=num_proc)
+    for key in data:
+        assert type(result[key]) is type(data[key])
+        assert list(result[key]) == list(range(1, length + 1))
+
+
 class PyUtilsTest(TestCase):
     def test_map_nested(self):
         num_proc = 2
