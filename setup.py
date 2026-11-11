@@ -113,7 +113,10 @@ REQUIRED_PKGS = [
     # Minimum 24.0.0 for view-type `nbytes` support used by Vortex
     "pyarrow>=24.0.0",
     # For smart caching dataset processing
-    "dill>=0.3.0,<0.4.2",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
+    # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
+    # dill<0.3.6 can't pickle or unpickle functions on Python 3.11+, e.g. for map(num_proc=...)
+    "dill>=0.3.0,<0.4.2; python_version < '3.11'",
+    "dill>=0.3.6,<0.4.2; python_version >= '3.11'",
     # For performance gains with apache arrow
     "pandas",
     # progress bars in downloads and data operations
