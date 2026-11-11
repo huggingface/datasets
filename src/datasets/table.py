@@ -1914,7 +1914,12 @@ def _short_str(value: Any) -> str:
 
 @_wrap_for_chunked_arrays
 def array_cast(
-    array: pa.Array, pa_type: pa.DataType, allow_primitive_to_str: bool = True, allow_decimal_to_str: bool = True
+    array: pa.Array,
+    pa_type: pa.DataType,
+    allow_primitive_to_str: bool = True,
+    allow_decimal_to_str: bool = True,
+    *,
+    col: Optional[str] = None,
 ) -> Union[pa.Array, pa.FixedSizeListArray, pa.ListArray, pa.StructArray, pa.ExtensionArray]:
     """Improved version of `pa.Array.cast`
 
@@ -1934,6 +1939,8 @@ def array_cast(
         allow_decimal_to_str (`bool`, defaults to `True`):
             Whether to allow casting decimals to strings.
             Defaults to `True`.
+        col (`str`, optional):
+            Column name to include in casting errors.
 
     Raises:
         `pa.ArrowInvalidError`: if the arrow data casting fails
@@ -1946,7 +1953,13 @@ def array_cast(
     Returns:
         `List[pyarrow.Array]`: the casted array
     """
-    _c = partial(array_cast, allow_primitive_to_str=allow_primitive_to_str, allow_decimal_to_str=allow_decimal_to_str)
+    _c = partial(
+        array_cast,
+        allow_primitive_to_str=allow_primitive_to_str,
+        allow_decimal_to_str=allow_decimal_to_str,
+        col=col,
+    )
+    column = f"Column {col!r}: " if col is not None else ""
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
     if isinstance(pa_type, pa.ExtensionType):
@@ -2011,23 +2024,35 @@ def array_cast(
         if pa.types.is_string(pa_type):
             if not allow_primitive_to_str and pa.types.is_primitive(array.type):
                 raise TypeError(
-                    f"Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)} "
+                    f"{column}Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)} "
                     f"since allow_primitive_to_str is set to {allow_primitive_to_str} "
                 )
             if not allow_decimal_to_str and pa.types.is_decimal(array.type):
                 raise TypeError(
-                    f"Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)} "
+                    f"{column}Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)} "
                     f"and allow_decimal_to_str is set to {allow_decimal_to_str}"
                 )
         if pa.types.is_null(pa_type) and not pa.types.is_null(array.type):
-            raise TypeError(f"Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)}")
-        return array.cast(pa_type)
-    raise TypeError(f"Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)}")
+            raise TypeError(f"{column}Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)}")
+        try:
+            return array.cast(pa_type)
+        except (pa.ArrowInvalid, pa.ArrowTypeError, pa.ArrowNotImplementedError) as e:
+            if col is None:
+                raise
+            raise type(e)(
+                f"{column}Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)}: {e}"
+            ) from e
+    raise TypeError(f"{column}Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)}")
 
 
 @_wrap_for_chunked_arrays
 def cast_array_to_feature(
-    array: pa.Array, feature: "FeatureType", allow_primitive_to_str: bool = True, allow_decimal_to_str: bool = True
+    array: pa.Array,
+    feature: "FeatureType",
+    allow_primitive_to_str: bool = True,
+    allow_decimal_to_str: bool = True,
+    *,
+    col: Optional[str] = None,
 ) -> pa.Array:
     """Cast an array to the arrow type that corresponds to the requested feature type.
     For custom features like [`Audio`] or [`Image`], it takes into account the "cast_storage" methods
@@ -2044,6 +2069,8 @@ def cast_array_to_feature(
         allow_decimal_to_str (`bool`, defaults to `True`):
             Whether to allow casting decimals to strings.
             Defaults to `True`.
+        col (`str`, optional):
+            Column name to include in casting errors.
 
     Raises:
         `pa.ArrowInvalidError`: if the arrow data casting fails
@@ -2062,6 +2089,7 @@ def cast_array_to_feature(
         cast_array_to_feature,
         allow_primitive_to_str=allow_primitive_to_str,
         allow_decimal_to_str=allow_decimal_to_str,
+        col=col,
     )
 
     if isinstance(array, pa.ExtensionArray):
@@ -2106,6 +2134,7 @@ def cast_array_to_feature(
                                 storage_type,
                                 allow_primitive_to_str=allow_primitive_to_str,
                                 allow_decimal_to_str=allow_decimal_to_str,
+                                col=col,
                             )
                             array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
                             array = array_cast(
@@ -2113,6 +2142,7 @@ def cast_array_to_feature(
                                 array_type,
                                 allow_primitive_to_str=allow_primitive_to_str,
                                 allow_decimal_to_str=allow_decimal_to_str,
+                                col=col,
                             )
                         else:
                             array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
@@ -2159,6 +2189,7 @@ def cast_array_to_feature(
             get_nested_type(feature),
             allow_primitive_to_str=allow_primitive_to_str,
             allow_decimal_to_str=allow_decimal_to_str,
+            col=col,
         )
     elif not isinstance(feature, (List, LargeList, dict)):
         return array_cast(
@@ -2166,8 +2197,10 @@ def cast_array_to_feature(
             feature(),
             allow_primitive_to_str=allow_primitive_to_str,
             allow_decimal_to_str=allow_decimal_to_str,
+            col=col,
         )
-    raise TypeError(f"Couldn't cast array of type\n{_short_str(array.type)}\nto\n{_short_str(feature)}")
+    column = f"Column {col!r}: " if col is not None else ""
+    raise TypeError(f"{column}Couldn't cast array of type\n{_short_str(array.type)}\nto\n{_short_str(feature)}")
 
 
 @_wrap_for_chunked_arrays
