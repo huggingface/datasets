@@ -3713,6 +3713,40 @@ def test_class_encode_column_with_none(include_nulls):
     assert (None in dataset.unique("col_1")) == (not include_nulls)
 
 
+@pytest.mark.parametrize("cache_dir", ["", "nested/cache"])
+@pytest.mark.parametrize("operation", ["select", "sort", "shuffle", "train_test_split"])
+def test_indices_cache_relative_path(tmp_path, monkeypatch, cache_dir, operation):
+    monkeypatch.chdir(tmp_path)
+    dataset = Dataset.from_dict({"value": [4, 1, 3, 2]})
+    cache_file = os.path.join(cache_dir, "indices.arrow")
+    if operation == "select":
+        result = dataset.select([2, 0, 2], indices_cache_file_name=cache_file)
+        expected_indices = [2, 0, 2]
+    elif operation == "sort":
+        result = dataset.sort("value", indices_cache_file_name=cache_file)
+        expected_indices = [1, 3, 2, 0]
+    elif operation == "shuffle":
+        result = dataset.shuffle(seed=42, indices_cache_file_name=cache_file)
+        expected_indices = [3, 2, 1, 0]
+    else:
+        test_cache_file = os.path.join(cache_dir, "test_indices.arrow")
+        split = dataset.train_test_split(
+            test_size=0.5,
+            seed=42,
+            train_indices_cache_file_name=cache_file,
+            test_indices_cache_file_name=test_cache_file,
+        )
+        result = split["train"]
+        expected_indices = [1, 0]
+        assert split["test"].to_dict() == {"value": [2, 3]}
+        with Dataset.from_file(test_cache_file) as cached_indices:
+            assert cached_indices.to_dict() == {"indices": [3, 2]}
+    assert result.to_dict() == {"value": [dataset[i]["value"] for i in expected_indices]}
+    assert any(Path(entry["filename"]).resolve() == (tmp_path / cache_file).resolve() for entry in result.cache_files)
+    with Dataset.from_file(cache_file) as cached_indices:
+        assert cached_indices.to_dict() == {"indices": expected_indices}
+
+
 @pytest.mark.parametrize("null_placement", ["first", "last"])
 def test_sort_with_none(null_placement):
     dataset = Dataset.from_dict({"col_1": ["item_2", "item_3", "item_1", None, "item_4", None]})

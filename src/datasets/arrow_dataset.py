@@ -4577,7 +4577,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             buf_writer = None
             logger.info(f"Caching indices mapping at {indices_cache_file_name}")
-            cache_dir = os.path.dirname(indices_cache_file_name)
+            cache_dir = os.path.dirname(indices_cache_file_name) or "."
             os.makedirs(cache_dir, exist_ok=True)
             tmp_file = tempfile.NamedTemporaryFile("wb", dir=cache_dir, delete=False)
             writer = ArrowWriter(
