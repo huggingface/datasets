@@ -1,4 +1,5 @@
 import fnmatch
+import ipaddress
 import json
 import posixpath
 import socket
@@ -24,7 +25,21 @@ from datasets.utils.metadata import MetadataConfigs
 def hub(monkeypatch):
     """Run real serialization and card updates, replacing only Hub I/O."""
 
-    def no_network(*args, **kwargs):
+    connect = socket.socket.connect
+
+    def is_loopback(address):
+        host = address[0] if isinstance(address, tuple) else None
+        if host == "localhost":
+            return True
+        try:
+            return ipaddress.ip_address(host).is_loopback
+        except ValueError:
+            return False
+
+    def no_network(sock, address, *args, **kwargs):
+        # loopback stays allowed: asyncio's Windows event loop connects a socket pair over 127.0.0.1
+        if is_loopback(address):
+            return connect(sock, address, *args, **kwargs)
         raise AssertionError("Append unit tests must not access the network")
 
     monkeypatch.setattr(socket.socket, "connect", no_network)
@@ -166,6 +181,19 @@ def seed_train_directories(hub, directories=("data", "more"), explicit_paths=Fal
     configs.to_dataset_card_data(card.data)
     hub.fs.pipe_file(hub.root + "/README.md", str(card).encode())
     return paths
+
+
+def test_hub_fixture_blocks_the_network_but_not_loopback(hub):
+    # asyncio's Windows event loop connects a socket pair over 127.0.0.1 internally
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", 0))
+        listener.listen(1)
+        with socket.create_connection(listener.getsockname()):
+            pass
+    for address in [("192.0.2.1", 443), ("huggingface.co", 443)]:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            with pytest.raises(AssertionError, match="must not access the network"):
+                sock.connect(address)
 
 
 @pytest.mark.parametrize("num_shards", [None, 2])
