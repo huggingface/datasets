@@ -27,7 +27,7 @@ import pyarrow.parquet as pq
 from fsspec.core import url_to_fs
 
 from . import config
-from .features import Audio, Biosignal, Features, Image, Pdf, Value, Video
+from .features import Audio, Features, Image, Pdf, Value, Video
 from .features.features import (
     FeatureType,
     List,
@@ -90,8 +90,6 @@ def get_arrow_writer_batch_size_from_features(features: Optional[Features]) -> O
             batch_size = min(batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_AUDIO_DATASETS)
         elif isinstance(feature, Video) and config.ARROW_RECORD_BATCH_SIZE_FOR_VIDEO_DATASETS is not None:
             batch_size = min(batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_VIDEO_DATASETS)
-        elif isinstance(feature, Biosignal) and config.ARROW_RECORD_BATCH_SIZE_FOR_BIOSIGNAL_DATASETS is not None:
-            batch_size = min(batch_size, config.ARROW_RECORD_BATCH_SIZE_FOR_BIOSIGNAL_DATASETS)
         elif (
             isinstance(feature, Value)
             and feature.dtype == "binary"
@@ -132,8 +130,6 @@ def get_writer_batch_size_from_features(features: Optional[Features]) -> Optiona
             batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS)
         elif isinstance(feature, Video) and config.PARQUET_ROW_GROUP_SIZE_FOR_VIDEO_DATASETS is not None:
             batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_VIDEO_DATASETS)
-        elif isinstance(feature, Biosignal) and config.PARQUET_ROW_GROUP_SIZE_FOR_BIOSIGNAL_DATASETS is not None:
-            batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_BIOSIGNAL_DATASETS)
         elif (
             isinstance(feature, Value)
             and feature.dtype == "binary"
@@ -316,18 +312,6 @@ class TypedSequence:
                 return [
                     [Pdf().encode_example(x) for x in value] if value is not None else None for value in data
                 ], List(Pdf())
-        if config.MNE_AVAILABLE and "mne" in sys.modules:
-            import mne
-
-            non_null_idx, non_null_value = first_non_null_non_empty_value(data)
-            if isinstance(non_null_value, mne.io.BaseRaw):
-                return [
-                    Biosignal().encode_example(value) if value is not None else None for value in data
-                ], Biosignal()
-            if isinstance(non_null_value, list) and isinstance(non_null_value[0], mne.io.BaseRaw):
-                return [
-                    [Biosignal().encode_example(x) for x in value] if value is not None else None for value in data
-                ], List(Biosignal())
         return data, None
 
     def __arrow_array__(self, type: Optional[pa.DataType] = None):

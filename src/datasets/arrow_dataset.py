@@ -81,7 +81,7 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .data_files import sanitize_patterns
 from .download.streaming_download_manager import xgetsize
-from .features import Audio, Biosignal, ClassLabel, Features, Image, List, Value, Video
+from .features import Audio, ClassLabel, Features, Image, List, Value, Video
 from .features.features import (
     FeatureType,
     _align_features,
@@ -5750,13 +5750,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             def extra_nbytes_visitor(array, feature):
                 nonlocal extra_nbytes
-                if isinstance(feature, (Audio, Image, Video, Biosignal)):
-                    from .features.biosignal import _biosignal_nbytes
-
-                    size_fn = _biosignal_nbytes if isinstance(feature, Biosignal) else xgetsize
+                if isinstance(feature, (Audio, Image, Video)):
                     for x in array.to_pylist():
                         if x is not None and x["bytes"] is None and x["path"] is not None:
-                            extra_nbytes += size_fn(x["path"])
+                            size = xgetsize(x["path"])
+                            extra_nbytes += size
                     extra_nbytes -= array.field("path").nbytes
 
             table = self.with_format("arrow")[:1000]
