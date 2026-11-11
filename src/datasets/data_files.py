@@ -756,7 +756,7 @@ class DataFilesPatternsList(list[str]):
         self.allowed_extensions = allowed_extensions
 
     def __add__(self, other):
-        return DataFilesList([*self, *other], self.allowed_extensions + other.allowed_extensions)
+        return DataFilesPatternsList([*self, *other], self.allowed_extensions + other.allowed_extensions)
 
     @classmethod
     def from_patterns(
