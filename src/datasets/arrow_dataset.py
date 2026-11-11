@@ -4984,7 +4984,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         inplace=False,
         randomized_function=True,
         fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"],
-        ignore_kwargs=["load_from_cache_file", "train_indices_cache_file_name", "test_indices_cache_file_name"],
+        ignore_kwargs=[
+            "load_from_cache_file",
+            "train_indices_cache_file_name",
+            "test_indices_cache_file_name",
+            "train_split_name",
+            "test_split_name",
+        ],
     )
     def train_test_split(
         self,
@@ -5001,6 +5007,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         writer_batch_size: Optional[int] = 1000,
         train_new_fingerprint: Optional[str] = None,
         test_new_fingerprint: Optional[str] = None,
+        train_split_name: str = "train",
+        test_split_name: str = "test",
     ) -> "DatasetDict":
         """Return a dictionary ([`datasets.DatasetDict`]) with two random train and test subsets (`train` and `test` `Dataset` splits).
         Splits are created from the dataset according to `test_size`, `train_size` and `shuffle`.
@@ -5051,6 +5059,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             test_new_fingerprint (`str`, *optional*, defaults to `None`):
                 The new fingerprint of the test set after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
+            train_split_name (`str`, defaults to `"train"`):
+                Name of the train split in the returned `DatasetDict`.
+            test_split_name (`str`, defaults to `"test"`):
+                Name of the test split in the returned `DatasetDict`, e.g. `"validation"` to split a validation set
+                off a train set.
 
         Example:
 
@@ -5097,9 +5110,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise DatasetTransformationNotAllowedError(
                 "Using `.train_test_split` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
             )
+        for split_name in (train_split_name, test_split_name):
+            NamedSplit(split_name)  # raises ValueError on an invalid split name
+        if train_split_name == test_split_name:
+            raise ValueError(
+                f"train_split_name and test_split_name must be different, but both are '{train_split_name}'."
+            )
         # If the array is empty we do nothing
         if len(self) == 0:
-            return DatasetDict({"train": self, "test": self})
+            return DatasetDict({train_split_name: self, test_split_name: self})
 
         if test_size is None and train_size is None:
             test_size = 0.25
@@ -5260,7 +5279,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             new_fingerprint=test_new_fingerprint,
         )
 
-        return DatasetDict({"train": train_split, "test": test_split})
+        return DatasetDict({train_split_name: train_split, test_split_name: test_split})
 
     def shard(
         self,

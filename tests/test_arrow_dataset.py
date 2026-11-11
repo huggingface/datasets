@@ -5399,3 +5399,36 @@ def test_dataset_push_to_hub_uploads_every_row_with_num_proc(offline_parquet_upl
     if num_shards == 1:
         # a single shard is written without starting a pool of processes
         assert not mp.get_context.return_value.Pool.called
+
+
+def test_train_test_split_with_custom_split_names():
+    dset = Dataset.from_dict({"x": list(range(10))})
+
+    default = dset.train_test_split(test_size=3, seed=42)
+    named = dset.train_test_split(test_size=3, seed=42, train_split_name="train", test_split_name="validation")
+
+    assert list(named) == ["train", "validation"]
+    # the names don't change which rows go to each split, nor the cached fingerprints
+    assert named["train"]["x"] == default["train"]["x"]
+    assert named["validation"]["x"] == default["test"]["x"]
+    assert named["train"]._fingerprint == default["train"]._fingerprint
+    assert named["validation"]._fingerprint == default["test"]._fingerprint
+
+
+def test_train_test_split_with_custom_split_names_on_empty_dataset():
+    dset = Dataset.from_dict({"x": []})
+    assert list(dset.train_test_split(test_split_name="validation")) == ["train", "validation"]
+
+
+@pytest.mark.parametrize(
+    "split_names, match",
+    [
+        ({"train_split_name": "data", "test_split_name": "data"}, "must be different"),
+        ({"test_split_name": "my split"}, "Split name should match"),
+        ({"train_split_name": ""}, "Split name should match"),
+    ],
+)
+def test_train_test_split_rejects_invalid_split_names(split_names, match):
+    dset = Dataset.from_dict({"x": list(range(10))})
+    with pytest.raises(ValueError, match=match):
+        dset.train_test_split(test_size=3, **split_names)
