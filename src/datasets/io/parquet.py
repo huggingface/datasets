@@ -11,7 +11,6 @@ from ..arrow_writer import (
     get_writer_batch_size_from_data_size,
     get_writer_batch_size_from_features,
 )
-from ..features.features import require_storage_embed
 from ..features.tensor import tensor_to_parquet_schema, tensor_to_parquet_table
 from ..formatting import query_table
 from ..packaged_modules import _PACKAGED_DATASETS_MODULES
