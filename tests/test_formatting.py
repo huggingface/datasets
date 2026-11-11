@@ -1,4 +1,5 @@
 import datetime
+import sys
 from pathlib import Path
 from unittest import TestCase
 
@@ -773,6 +774,12 @@ class QueryTest(TestCase):
         subtable = query_table(table, slice(n - 1, n), indices=indices)
         assert len(indices.column(0).to_pylist()[n - 1 : n]) == 0
         self.assertTableEqual(subtable, pa_table.slice(0, 0))
+
+    def test_query_table_oversized_range(self):
+        table = InMemoryTable(self._create_dummy_table())
+        for key in (range(sys.maxsize + 1), range(0, -sys.maxsize - 1, -1)):
+            with self.subTest(key=key), self.assertRaisesRegex(IndexError, "out of bounds"):
+                query_table(table, key)
 
     def test_query_table_range(self):
         pa_table = self._create_dummy_table()
