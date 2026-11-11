@@ -771,9 +771,9 @@ def test_append_overflow_renumbers_using_copies(hub):
     old.push_to_hub(hub.repo_id, num_shards=2)
     original = hub.files()
     hub.uploads.clear()
-    Dataset.from_dict({"x": [8, 9]}).push_to_hub(
-        hub.repo_id, append=True, max_shard_size=max(map(len, original.values()))
-    )
+    # max_shard_size is the uncompressed Arrow size: the new rows don't fit in the last shard
+    arrow_sizes = [pq.read_table(BytesIO(data)).nbytes for data in original.values()]
+    Dataset.from_dict({"x": [8, 9]}).push_to_hub(hub.repo_id, append=True, max_shard_size=max(arrow_sizes))
     result = hub.files()
     assert sorted(result) == [f"data/train-{i:05d}-of-00003.parquet" for i in range(3)]
     for i, data in enumerate(original.values()):
@@ -1036,11 +1036,11 @@ def test_append_dict_updates_existing_splits_additively(hub):
 def test_append_overflow_splits_large_new_data(hub):
     Dataset.from_dict({"x": list(range(8))}).push_to_hub(hub.repo_id)
     original = next(iter(hub.files().values()))
-    limit = len(original)
+    limit = pq.read_table(BytesIO(original)).nbytes
     Dataset.from_dict({"x": list(range(8, 208))}).push_to_hub(hub.repo_id, append=True, max_shard_size=limit)
     files = hub.files()
     assert len(files) > 2
-    assert all(len(data) <= limit for data in files.values())
+    assert all(pq.read_table(BytesIO(data)).nbytes <= limit for data in files.values())
     assert next(iter(files.values())) == original
     assert rows(files) == [{"x": i} for i in range(208)]
 
@@ -1120,3 +1120,18 @@ def test_append_infers_both_known_directories_without_configs(hub):
     patterns = MetadataConfigs.from_dataset_card_data(hub.card().data)["default"]["data_files"][0]["path"]
     assert set(patterns) == {"data/train-*", "more/train-*"}
     assert configured_rows(hub) == {"train": [{"x": 0}, {"x": 1}, {"x": 2}]}
+
+
+def test_append_compares_max_shard_size_to_the_uncompressed_arrow_size(hub):
+    # repeated text: the Parquet file is much smaller than the Arrow data
+    data = Dataset.from_dict({"x": ["a" * 1000] * 400})
+    data.push_to_hub(hub.repo_id)
+    original = next(iter(hub.files().values()))
+    arrow_size = data.data.nbytes
+    assert len(original) < arrow_size
+    # the appended rows fit in the compressed tail file, but not in an uncompressed shard of this size
+    data.push_to_hub(hub.repo_id, append=True, max_shard_size=arrow_size + arrow_size // 2)
+    files = hub.files()
+    assert len(files) == 2
+    assert next(iter(files.values())) == original
+    assert rows(files) == [{"x": "a" * 1000}] * 800

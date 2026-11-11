@@ -6758,40 +6758,32 @@ def _prepare_parquet_append(
     if max_size <= 0:
         raise ValueError("max_shard_size must be greater than zero.")
     appended = os.path.join(temporary_dir, "appended.parquet")
-    if num_shards is None or num_shards == old_count:
+    new_nbytes = dset._estimate_nbytes()
+    # Like for push_to_hub, max_shard_size is the uncompressed size of the Arrow data in a shard
+    fits_in_last_shard = num_shards is None and (
+        sum(batch.nbytes for batch in pq.ParquetFile(original).iter_batches()) + new_nbytes <= max_size
+    )
+    if num_shards == old_count or fits_in_last_shard:
         _append_parquet_file(dset, original, appended)
-        if num_shards == old_count or os.path.getsize(appended) <= max_size:
-            new_path = last.path
-            if last.path in shared_paths:
-                shard_name = _get_available_parquet_split_name(split, data_dir, occupied_paths)
-                new_path = f"{path_prefix}{shard_name}-{old_count - 1:05d}-of-{old_count:05d}.parquet"
-            return (
-                [CommitOperationAdd(path_in_repo=new_path, path_or_fileobj=appended)],
-                os.path.getsize(appended),
-                last.size,
-                {last.path: new_path} if new_path != last.path else {},
-            )
+        new_path = last.path
+        if last.path in shared_paths:
+            shard_name = _get_available_parquet_split_name(split, data_dir, occupied_paths)
+            new_path = f"{path_prefix}{shard_name}-{old_count - 1:05d}-of-{old_count:05d}.parquet"
+        return (
+            [CommitOperationAdd(path_in_repo=new_path, path_or_fileobj=appended)],
+            os.path.getsize(appended),
+            last.size,
+            {last.path: new_path} if new_path != last.path else {},
+        )
 
     # Overflow leaves the old tail intact. Only new rows need to be partitioned.
-    new_files = []
-
-    def write_shard(shard):
-        path = os.path.join(temporary_dir, f"new-{len(new_files)}.parquet")
-        shard.to_parquet(path)
-        if num_shards is None and os.path.getsize(path) > max_size and len(shard) > 1:
-            # Estimates alone cannot bound compressed Parquet files (especially their footers).
-            middle = len(shard) // 2
-            write_shard(shard.select(range(middle)))
-            write_shard(shard.select(range(middle, len(shard))))
-        else:
-            new_files.append(path)
-
-    new_count = (
-        num_shards - old_count if num_shards is not None else max(1, int(dset._estimate_nbytes() / max_size) + 1)
-    )
+    new_count = num_shards - old_count if num_shards is not None else int(new_nbytes / max_size) + 1
     new_count = min(new_count, len(dset)) if num_shards is None else new_count
+    new_files = []
     for index in range(new_count):
-        write_shard(dset.shard(num_shards=new_count, index=index, contiguous=True))
+        path = os.path.join(temporary_dir, f"new-{index}.parquet")
+        dset.shard(num_shards=new_count, index=index, contiguous=True).to_parquet(path)
+        new_files.append(path)
     total = old_count + len(new_files)
     # Card mappings can partition a filename layout between splits/configurations.
     # Allocate a fresh layout if the usual names would overwrite an unrelated file.
