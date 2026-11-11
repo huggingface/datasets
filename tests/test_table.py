@@ -1432,6 +1432,28 @@ def test_embed_table_storage(image_file):
 
 
 @pytest.mark.parametrize(
+    "feature,storage",
+    [
+        (Array2D((2, 3), "int32"), [[[1, 2, 3], [4, 5, 6]], None]),
+        (Json(), ['{"answer":42}', None]),
+    ],
+)
+def test_embed_storage_preserves_extension_without_external_files(feature, storage, image_file):
+    array = pa.array(storage, type=feature())
+    embedded = embed_array_storage(array, feature)
+    assert embedded.type == array.type
+    assert embedded.equals(array)
+    features = Features({"x": {"img": Image(), "value": feature}})
+    images = pa.array([{"path": image_file}, None], type=Image.pa_type)
+    nested = pa.StructArray.from_arrays([images, array], names=["img", "value"])
+    table = pa.Table.from_arrays([nested], schema=features.arrow_schema)
+    embedded_table = embed_table_storage(table, local_files=True, remote_files=False)
+    assert embedded_table.schema == features.arrow_schema
+    assert embedded_table["x"].chunk(0).field("value").equals(array)
+    assert isinstance(embedded_table["x"].to_pylist()[0]["img"]["bytes"], bytes)
+
+
+@pytest.mark.parametrize(
     "table",
     [
         InMemoryTable(pa.table({"foo": range(10)})),

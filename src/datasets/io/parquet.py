@@ -11,6 +11,7 @@ from ..arrow_writer import (
     get_writer_batch_size_from_data_size,
     get_writer_batch_size_from_features,
 )
+from ..features.tensor import tensor_to_parquet_schema, tensor_to_parquet_table
 from ..formatting import query_table
 from ..packaged_modules import _PACKAGED_DATASETS_MODULES
 from ..packaged_modules.parquet.parquet import Parquet
@@ -121,7 +122,7 @@ class ParquetDatasetWriter:
         """
         written = 0
         _ = parquet_writer_kwargs.pop("path_or_buf", None)
-        schema = self.dataset.features.arrow_schema
+        schema = tensor_to_parquet_schema(self.dataset.features.arrow_schema, self.dataset.data.table)
 
         writer = pq.ParquetWriter(
             file_obj,
@@ -142,7 +143,7 @@ class ParquetDatasetWriter:
                 key=slice(offset, offset + batch_size),
                 indices=self.dataset._indices,
             )
-            writer.write_table(batch)
+            writer.write_table(tensor_to_parquet_table(batch, schema))
             written += batch.nbytes
 
         # TODO(kszucs): we may want to persist multiple parameters
