@@ -1258,7 +1258,18 @@ def xnumpy_load(filepath_or_buffer, *args, download_config: Optional[DownloadCon
         return np.load(filepath_or_buffer, *args, **kwargs)
     else:
         filepath_or_buffer = str(filepath_or_buffer)
-        return np.load(xopen(filepath_or_buffer, "rb", download_config=download_config), *args, **kwargs)
+        f = xopen(filepath_or_buffer, "rb", download_config=download_config)
+        try:
+            out = np.load(f, *args, **kwargs)
+        except BaseException:
+            f.close()
+            raise
+        if isinstance(out, np.lib.npyio.NpzFile):
+            # .npz arrays are read lazily, so hand the file over to the NpzFile: it is closed with it
+            out.fid = f
+        else:
+            f.close()
+        return out
 
 
 def xpandas_read_csv(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):
@@ -1303,12 +1314,13 @@ def xpandas_read_excel(filepath_or_buffer, download_config: Optional[DownloadCon
             return pd.read_excel(BytesIO(filepath_or_buffer.read()), **kwargs)
     else:
         filepath_or_buffer = str(filepath_or_buffer)
-        try:
-            return pd.read_excel(xopen(filepath_or_buffer, "rb", download_config=download_config), **kwargs)
-        except ValueError:  # Cannot seek streaming HTTP file
-            return pd.read_excel(
-                BytesIO(xopen(filepath_or_buffer, "rb", download_config=download_config).read()), **kwargs
-            )
+        with xopen(filepath_or_buffer, "rb", download_config=download_config) as f:
+            try:
+                return pd.read_excel(f, **kwargs)
+            except ValueError:  # Cannot seek streaming HTTP file
+                pass
+        with xopen(filepath_or_buffer, "rb", download_config=download_config) as f:
+            return pd.read_excel(BytesIO(f.read()), **kwargs)
 
 
 def xpyarrow_parquet_read_table(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):
@@ -1318,7 +1330,8 @@ def xpyarrow_parquet_read_table(filepath_or_buffer, download_config: Optional[Do
         return pq.read_table(filepath_or_buffer, **kwargs)
     else:
         filepath_or_buffer = str(filepath_or_buffer)
-        return pq.read_table(xopen(filepath_or_buffer, mode="rb", download_config=download_config), **kwargs)
+        with xopen(filepath_or_buffer, mode="rb", download_config=download_config) as f:
+            return pq.read_table(f, **kwargs)
 
 
 def xsio_loadmat(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):
@@ -1327,7 +1340,8 @@ def xsio_loadmat(filepath_or_buffer, download_config: Optional[DownloadConfig] =
     if hasattr(filepath_or_buffer, "read"):
         return sio.loadmat(filepath_or_buffer, **kwargs)
     else:
-        return sio.loadmat(xopen(filepath_or_buffer, "rb", download_config=download_config), **kwargs)
+        with xopen(filepath_or_buffer, "rb", download_config=download_config) as f:
+            return sio.loadmat(f, **kwargs)
 
 
 def xet_parse(source, parser=None, download_config: Optional[DownloadConfig] = None):
