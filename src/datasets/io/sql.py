@@ -88,6 +88,10 @@ class SqlDatasetWriter:
             indices=self.dataset._indices,
         )
         df = batch.to_pandas(integer_object_nulls=True)
+        if index:
+            # to_pandas() starts a fresh RangeIndex at 0 for every batch.
+            # Number rows from the dataset offset so index=True is continuous.
+            df.index = range(offset, offset + len(df))
         num_rows = df.to_sql(self.name, self.con, index=index, **to_sql_kwargs)
         return num_rows or len(df)
 
