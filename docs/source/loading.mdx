@@ -450,23 +450,24 @@ FASTA files with various extensions are supported: `.fa`, `.fasta`, `.fna` (nucl
 
 ### BIDS
 
-[BIDS](https://bids-specification.readthedocs.io/) (Brain Imaging Data Structure) is the community standard for organizing electrophysiology and neuroimaging recordings (`sub-*/ses-*/eeg/`, `meg/`, `ieeg/`, `emg/`, `nirs/`) alongside metadata sidecars (`participants.tsv`, `events.tsv`, `channels.tsv`, and JSON sidecars).
+[BIDS](https://bids-specification.readthedocs.io/) (Brain Imaging Data Structure) is the community standard for organizing neuroimaging and electrophysiology recordings (`sub-*/[ses-*/]<datatype>/`) alongside metadata sidecars (`participants.tsv`, `events.tsv`, `channels.tsv`, and JSON sidecars).
 
-Each row represents one recording: the `biosignal` column uses [`Biosignal`] and decodes to an `mne.io.BaseRaw` object via `mne-bids`, alongside BIDS entity columns (`subject`, `session`, `task`, `acquisition`, `run`, `datatype`, `suffix`, `extension`) and any columns from `participants.tsv`:
+Each row is one recording. EEG, MEG, iEEG, EMG and NIRS recordings go in a `biosignal` column ([`Biosignal`], decoded to `mne.io.BaseRaw` via `mne-bids`), MRI, fMRI, diffusion, PET and MRS images in a `nifti` column ([`Nifti`]). Each row also has one column per BIDS entity in the filenames (`subject`, `session`, `task`, `run`, `echo`, ...), `datatype`, `suffix`, `extension`, a `metadata` column with the JSON sidecars merged following the BIDS inheritance principle, and the columns of `participants.tsv`. Only raw data is loaded: `derivatives/` and `sourcedata/` are skipped.
 
 ```py
 >>> from datasets import Biosignal, load_dataset
 >>> dataset = load_dataset("path/to/bids_dataset", split="train")
 >>> dataset[0]["biosignal"]
 <RawBrainVision | sub-01_task-rest_eeg.vhdr, 64 x 10000 (40.0 s), ~35 kB, data not loaded>
+>>> dataset[0]["metadata"]["PowerLineFrequency"]
+50
 ```
 
-You can filter by BIDS entities (`subjects`, `sessions`, `tasks`, `runs`, `datatypes`), harmonize signals via `sampling_rate` and `picks`, or disable decoding with `decode=False`:
+You can filter by BIDS entities (`subjects`, `sessions`, `tasks`, `runs`, `datatypes`, `suffixes`), harmonize signals via `sampling_rate` and `picks`, or disable decoding with `decode=False`:
 
 ```py
->>> dataset = load_dataset("bids", data_dir="path/to/bids_dataset", subjects="01", tasks="rest", split="train")
+>>> dataset = load_dataset("bids", data_dir="path/to/bids_dataset", subjects="01", datatypes="func", split="train")
 >>> dataset = dataset.cast_column("biosignal", Biosignal(sampling_rate=250, picks="eeg"))
->>> dataset = dataset.cast_column("biosignal", Biosignal(decode=False))
 ```
 
 ## Remote files

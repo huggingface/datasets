@@ -1,11 +1,11 @@
-"""Loader for BIDS (Brain Imaging Data Structure) electrophysiology and biosignal datasets."""
+"""Loader for BIDS (Brain Imaging Data Structure) datasets: one row per recording."""
 
 import io
-import os
-from collections.abc import Iterable, Iterator
+import json
+import re
+from collections import defaultdict
+from collections.abc import Iterator
 from dataclasses import dataclass
-from functools import lru_cache
-from pathlib import Path
 from typing import Any, Optional, Union
 
 import pyarrow as pa
@@ -14,34 +14,30 @@ import pyarrow.csv as pa_csv
 import datasets
 from datasets.builder import Key
 from datasets.download.download_config import DownloadConfig
-from datasets.utils.file_utils import is_local_path, xbasename, xdirname, xjoin, xopen
+from datasets.utils.file_utils import xbasename, xdirname, xglob, xjoin, xopen
 
 
-BIDS_ENTITY_COLUMNS = ("subject", "session", "task", "acquisition", "run", "datatype", "suffix", "extension")
-ARCHIVE_EXTENSIONS = (".zip", ".tar", ".tgz", ".tar.gz", ".tar.bz2", ".tar.xz")
-CONTAINER_EXTENSIONS = (".ds", ".mff", ".mefd")
-
-
-def _logical_path(path: str) -> Path:
-    hop = path.split("::")[0]
-    return Path(hop.split("://", 1)[1] if "://" in hop else hop)
-
-
-def _ancestors(path: str) -> Iterator[str]:
-    while path and path != (parent := xdirname(path)):
-        yield path
-        path = parent
-
-
-def _collapse_container(path: str) -> str:
-    return next(
-        (p for p in _ancestors(path) if xbasename(p).startswith("sub-") and p.lower().endswith(CONTAINER_EXTENSIONS)),
-        path,
-    )
-
-
-def _bids_root(path: str) -> Optional[str]:
-    return next((xdirname(p) for p in _ancestors(xdirname(path)) if xbasename(p).startswith("sub-")), None)
+NIFTI_EXTENSIONS = (".nii", ".nii.gz")
+NIFTI_DATATYPES = ("anat", "func", "dwi", "fmap", "perf", "pet", "mrs")
+# BIDS electrophysiology recording extensions, let through data files resolution at import time (no mne-bids
+# import there); `.res4` is the CTF header file used to discover `.ds` directories
+EXTENSIONS = (
+    ".vhdr",
+    ".edf",
+    ".bdf",
+    ".set",
+    ".fif",
+    ".con",
+    ".sqd",
+    ".pdf",
+    ".ds",
+    ".res4",
+    ".mefd",
+    ".nwb",
+    ".snirf",
+)
+# BIDS directory formats (CTF `.ds`, MEF3 `.mefd`) hold one recording: map the files inside to the directory
+DIRECTORY_FORMAT_FILE = re.compile(r"(sub-[^/\\]*\.(?:ds|mefd))[/\\].*")
 
 
 @dataclass
@@ -50,22 +46,24 @@ class BidsConfig(datasets.BuilderConfig):
 
     Args:
         subjects (`str` or `list[str]`, *optional*):
-            Filter recordings by BIDS subject ID(s) (without the `sub-` prefix, e.g. `"01"`).
+            Filter recordings by BIDS subject label(s) (without the `sub-` prefix, e.g. `"01"`).
         sessions (`str` or `list[str]`, *optional*):
-            Filter recordings by BIDS session ID(s) (without the `ses-` prefix).
+            Filter recordings by BIDS session label(s) (without the `ses-` prefix).
         tasks (`str` or `list[str]`, *optional*):
-            Filter recordings by BIDS task name(s) (e.g. `"rest"`).
+            Filter recordings by BIDS task label(s) (e.g. `"rest"`).
         acquisitions (`str` or `list[str]`, *optional*):
             Filter recordings by BIDS acquisition label(s).
         runs (`str` or `list[str]`, *optional*):
-            Filter recordings by BIDS run label(s).
+            Filter recordings by BIDS run index(es).
         datatypes (`str` or `list[str]`, *optional*):
-            Filter recordings by BIDS datatype(s). Defaults to electrophysiology modalities
-            (`["meg", "eeg", "ieeg", "emg", "nirs"]`).
+            Filter recordings by BIDS datatype(s) (e.g. `"eeg"`, `"meg"`, `"anat"`, `"func"`). Defaults to the
+            electrophysiology datatypes read by `mne-bids` and the NIfTI datatypes; other directories (for example
+            a non-BIDS `eye_tracker/`) are skipped.
         suffixes (`str` or `list[str]`, *optional*):
-            Filter recordings by BIDS suffix(es). Defaults to `["meg", "eeg", "ieeg", "emg", "nirs"]`.
+            Filter recordings by BIDS suffix(es) (e.g. `"eeg"`, `"T1w"`, `"bold"`).
         extensions (`str` or `list[str]`, *optional*):
-            Filter recordings by file extension(s).
+            Recording file extension(s) to load. Defaults to the BIDS electrophysiology formats read by `mne-bids`
+            and NIfTI (`.nii`, `.nii.gz`).
         sampling_rate (`float`, *optional*):
             Target sampling rate in Hz passed to [`Biosignal`].
         picks (`str` or `list[str]`, *optional*):
@@ -73,7 +71,7 @@ class BidsConfig(datasets.BuilderConfig):
         preload (`bool`, defaults to `False`):
             Whether to preload signal data into memory when decoding local [`Biosignal`] recordings.
         decode (`bool`, defaults to `True`):
-            Whether to decode the [`Biosignal`] column into `mne.io.BaseRaw`.
+            Whether to decode the [`Biosignal`] and [`Nifti`] columns.
         features ([`Features`], *optional*):
             Explicit features schema override.
 
@@ -81,7 +79,7 @@ class BidsConfig(datasets.BuilderConfig):
 
     ```py
     >>> from datasets import load_dataset
-    >>> ds = load_dataset("bids", data_dir="path/to/bids", subjects="01", tasks="rest", split="train")
+    >>> ds = load_dataset("bids", data_dir="path/to/bids", subjects="01", datatypes="func", split="train")
     ```
     """
 
@@ -106,207 +104,158 @@ class Bids(datasets.ArrowBasedBuilder):
 
     It generates the following features:
 
-    - **biosignal** ([`Biosignal`]) -- the recording decoded via `mne-bids` / `mne` into `mne.io.BaseRaw`.
-    - **subject**, **session**, **task**, **acquisition**, **run**, **datatype**, **suffix**, **extension** (`str`) --
-      BIDS filename entities extracted for the recording.
+    - **biosignal** ([`Biosignal`]) -- EEG, MEG, iEEG, EMG and NIRS recordings, decoded via `mne-bids` / `mne`.
+    - **nifti** ([`Nifti`]) -- MRI, fMRI, diffusion, PET and MRS images, decoded via `nibabel`.
+    - One `str` column per BIDS entity found in the filenames (e.g. **subject**, **session**, **task**, **run**,
+      **echo**), plus **datatype**, **suffix** and **extension**.
+    - **metadata** ([`Json`]) -- the JSON sidecars applying to the recording, merged following the BIDS inheritance
+      principle.
     - Any additional participant metadata columns present in `participants.tsv`.
     """
 
     BUILDER_CONFIG_CLASS = BidsConfig
 
-    EXTENSIONS = [
-        ".vhdr",
-        ".ahdr",
-        ".edf",
-        ".bdf",
-        ".gdf",
-        ".set",
-        ".fif",
-        ".cnt",
-        ".cdt",
-        ".lay",
-        ".mff",
-        ".nwb",
-        ".snirf",
-        ".con",
-        ".sqd",
-        ".kit",
-        ".ds",
-        ".res4",
-        ".mefd",
-        ".nedf",
-        ".nxe",
-        ".ns3",
-    ]
-
     def _info(self):
-        return datasets.DatasetInfo(
-            description="BIDS (Brain Imaging Data Structure) biosignal dataset: one row per recording.",
-            features=self.config.features,
-        )
-
-    def _allowed_extensions(self) -> list[str]:
-        from mne_bids.config import ALLOWED_INPUT_EXTENSIONS
-
-        if self.config.extensions:
-            return (
-                [self.config.extensions] if isinstance(self.config.extensions, str) else list(self.config.extensions)
-            )
-        return list({*self.EXTENSIONS, *(e.upper() for e in self.EXTENSIONS), *ALLOWED_INPUT_EXTENSIONS})
+        return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
-        if not self.config.data_files:
-            raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         if not datasets.config.MNE_BIDS_AVAILABLE:
             raise ImportError("To load BIDS datasets, please install 'mne-bids'.")
+        from mne_bids.config import ALLOWED_DATATYPE_EXTENSIONS, ALLOWED_PATH_ENTITIES_SHORT, EPHY_ALLOWED_DATATYPES
 
-        ext_set = {e.lower() for e in self._allowed_extensions()}
+        cfg = self.config
+        filters = {
+            key: {value} if isinstance(value, str) else set(value)
+            for key, value in {
+                "sub": cfg.subjects,
+                "ses": cfg.sessions,
+                "task": cfg.tasks,
+                "acq": cfg.acquisitions,
+                "run": cfg.runs,
+                "datatype": cfg.datatypes or [*EPHY_ALLOWED_DATATYPES, *NIFTI_DATATYPES],
+                "suffix": cfg.suffixes,
+                "extension": cfg.extensions
+                or [
+                    *(ext for dt in EPHY_ALLOWED_DATATYPES for ext in ALLOWED_DATATYPE_EXTENSIONS[dt]),
+                    *NIFTI_EXTENSIONS,
+                ],
+            }.items()
+            if value
+        }
+        reserved = {*ALLOWED_PATH_ENTITIES_SHORT.values(), "datatype", "suffix", "extension", "biosignal", "nifti"}
+        sidecars = defaultdict(set)  # directory -> JSON sidecars in it
+        for f in (f for files in cfg.data_files.values() for f in files if f.endswith(".json")):
+            sidecars[xdirname(f)].add(f)
+        participants: dict[str, dict[str, dict[str, Any]]] = {}  # BIDS root -> subject -> participants.tsv row
+        participant_features: dict[str, Any] = {}
 
-        def resolve_split(files: list[str]) -> tuple[list[str], list[Iterable[str]]]:
-            seen: set[str] = set()
-            bases: list[str] = []
-            iters: list[Iterable[str]] = []
-            for f in files:
-                if f.lower().endswith(ARCHIVE_EXTENSIONS):
-                    bases.append(f)
-                    iters.append(dl_manager.iter_files(dl_manager.download_and_extract(f)))
-                elif is_local_path(f) and os.path.isdir(f) and not f.lower().endswith(CONTAINER_EXTENSIONS):
-                    bases.append(f)
-                    iters.append(dl_manager.iter_files(f))
-                elif (cf := _collapse_container(f)) not in seen and _logical_path(cf).suffix.lower() in ext_set:
-                    seen.add(cf)
-                    bases.append(cf)
-                    iters.append((cf,))
-            return (bases, iters) if bases else ([files[0] if files else ""], [()])
-
-        resolved = {split: resolve_split(files) for split, files in self.config.data_files.items()}
-        if self.info.features is None:
-            root_key = next(
-                (r for files in self.config.data_files.values() for f in files if (r := _bids_root(f))),
-                None,
-            ) or next(
-                (r for _, iters in resolved.values() for it in iters for f in it if (r := _bids_root(f))),
-                None,
-            )
-            _, extra = self._read_participants(root_key, dl_manager.download_config)
-            self.info.features = datasets.Features(
-                {
-                    "biosignal": datasets.Biosignal(
-                        sampling_rate=self.config.sampling_rate,
-                        picks=self.config.picks,
-                        preload=self.config.preload,
-                        decode=self.config.decode,
-                    ),
-                    **{col: datasets.Value("string") for col in BIDS_ENTITY_COLUMNS},
-                    **extra,
-                }
-            )
-
-        return [
-            datasets.SplitGenerator(
-                name=split_name,
-                gen_kwargs={"files_iterables": resolved[split_name][1], "base_files": resolved[split_name][0]},
-            )
-            for split_name in self.config.data_files
-        ]
-
-    def _generate_shards(self, base_files: list[str], files_iterables: list[Iterable[str]]) -> Iterator[str]:
-        yield from base_files
-
-    def _read_participants(
-        self, root_key: Optional[str], download_config: DownloadConfig
-    ) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
-        for base in dict.fromkeys(filter(None, (root_key, self.base_path))):
-            try:
-                with xopen(xjoin(base, "participants.tsv"), "rb", download_config=download_config) as f:
-                    raw = f.read()
-            except FileNotFoundError:
-                continue
-            tbl = pa_csv.read_csv(
-                io.BytesIO(raw),
-                parse_options=pa_csv.ParseOptions(delimiter="\t"),
-                convert_options=pa_csv.ConvertOptions(
-                    column_types={"participant_id": pa.string()},
-                    null_values=["n/a", "N/A", "na", "NA", ""],
-                    strings_can_be_null=True,
-                ),
-            )
-            extra = {
-                col: (datasets.Value("string") if feat == datasets.Value("null") else feat)
-                for col, feat in datasets.Features.from_arrow_schema(tbl.schema).items()
-                if col not in ("participant_id", "biosignal", *BIDS_ENTITY_COLUMNS)
-            }
-            rows = {
-                (r.pop("participant_id") or "").strip().removeprefix("sub-"): {k: r[k] for k in extra}
-                for r in tbl.to_pylist()
-                if "participant_id" in r
-            }
-            return rows, extra
-        return {}, {}
-
-    def _generate_tables(
-        self, base_files: list[str], files_iterables: list[Iterable[str]]
-    ) -> Iterator[tuple[Key, pa.Table]]:
-        import mne_bids
-        from mne_bids.config import EPHY_ALLOWED_DATATYPES
-        from mne_bids.path import _filter_fnames
-
-        extensions = self._allowed_extensions()
-        suffixes = self.config.suffixes or list(EPHY_ALLOWED_DATATYPES)
-        datatypes = self.config.datatypes
-        allowed_datatypes = set([datatypes] if isinstance(datatypes, str) else (datatypes or EPHY_ALLOWED_DATATYPES))
-        download_config = DownloadConfig(token=self.token, storage_options=self.storage_options)
-        allow_sourcedata = "sourcedata" in _logical_path(self.base_path or "").parts
-        schema = self.info.features.arrow_schema
-
-        @lru_cache(maxsize=None)
-        def get_participants(root_key: Optional[str]) -> dict[str, dict[str, Any]]:
-            return self._read_participants(root_key, download_config)[0]
-
-        yielded = False
-        for shard_idx, files_iterable in enumerate(files_iterables):
-            path_map = {_logical_path(cf): cf for cf in (_collapse_container(f) for f in sorted(files_iterable))}
-            records = []
-            # ponytail: _filter_fnames until mne-bids>=0.21 exposes find_matching_paths(fnames=...) (mne-tools/mne-bids#1698)
-            for rf in _filter_fnames(
-                list(path_map),
-                subject=self.config.subjects,
-                session=self.config.sessions,
-                task=self.config.tasks,
-                acquisition=self.config.acquisitions,
-                run=self.config.runs,
-                suffix=suffixes,
-                extension=extensions,
-            ):
-                orig_f = path_map[rf]
-                if (is_local_path(orig_f) and not os.path.exists(orig_f)) or (
-                    not allow_sourcedata and "sourcedata" in rf.parts
-                ):
-                    continue
-                bp = mne_bids.get_bids_path_from_fname(rf, check=False, verbose="ERROR")
-                datatype = (
-                    bp.datatype
-                    or (rf.parent.name if rf.parent.name in EPHY_ALLOWED_DATATYPES else None)
-                    or (bp.suffix if bp.suffix in EPHY_ALLOWED_DATATYPES else None)
-                )
+        splits = {}
+        for split, files in cfg.data_files.items():
+            rows, row_sidecars = [], []
+            for f in dict.fromkeys(DIRECTORY_FORMAT_FILE.sub(r"\1", f) for f in files):
+                stem, _, ext = xbasename(f).partition(".")
+                *pairs, suffix = stem.split("_")
+                entities = dict(pair.split("-", 1) for pair in pairs if "-" in pair)
+                dirs = [f]  # the recording, its datatype directory, [session directory,] subject directory, BIDS root
+                for _ in range(3 + ("ses" in entities)):
+                    dirs.append(xdirname(dirs[-1]))
+                row = {"datatype": xbasename(dirs[1]), "suffix": suffix, "extension": f".{ext}"}
                 if (
-                    (datatype and datatype not in allowed_datatypes)
-                    or (datatype == "meg" and bp.acquisition == "crosstalk")
-                    or (bp.split and bp.split.isdigit() and int(bp.split) > 1)
+                    any({**entities, **row}.get(key) not in values for key, values in filters.items())
+                    or entities.get("acq") == "crosstalk"  # MEG calibration file, not a recording
+                    or int(entities.get("split", 1)) > 1  # split FIF recordings are read from split-01
                 ):
                     continue
-                records.append(
+                root = dirs[-1]
+                if root not in participants:
+                    sidecars[root].update(xglob(xjoin(root, "*.json"), download_config=dl_manager.download_config))
+                    try:
+                        with xopen(
+                            xjoin(root, "participants.tsv"), "rb", download_config=dl_manager.download_config
+                        ) as fp:
+                            table = pa_csv.read_csv(
+                                io.BytesIO(fp.read()),
+                                parse_options=pa_csv.ParseOptions(delimiter="\t"),
+                                convert_options=pa_csv.ConvertOptions(
+                                    column_types={"participant_id": pa.string()},
+                                    null_values=["n/a", "N/A", "na", "NA", ""],
+                                    strings_can_be_null=True,
+                                ),
+                            )
+                    except FileNotFoundError:
+                        table = pa.table({})
+                    participant_features.update(
+                        (col, datasets.Value("string") if feat == datasets.Value("null") else feat)
+                        for col, feat in datasets.Features.from_arrow_schema(table.schema).items()
+                        if col not in reserved
+                    )
+                    participants[root] = {
+                        (r.pop("participant_id", None) or "").removeprefix("sub-"): r for r in table.to_pylist()
+                    }
+                media = "nifti" if f.endswith(NIFTI_EXTENSIONS) else "biosignal"
+                rows.append(
                     {
-                        **get_participants(_bids_root(orig_f)).get(bp.subject or "", {}),
-                        "biosignal": {"bytes": None, "path": orig_f},
-                        **{col: getattr(bp, col) for col in BIDS_ENTITY_COLUMNS},
-                        "datatype": datatype,
+                        **{
+                            k: v
+                            for k, v in participants[root].get(entities.get("sub"), {}).items()
+                            if k not in reserved
+                        },
+                        media: {"path": f, "bytes": None},
+                        **{ALLOWED_PATH_ENTITIES_SHORT.get(k, k): v for k, v in entities.items() if k != "split"},
+                        **row,
                     }
                 )
+                row_sidecars.append(
+                    [
+                        path  # inheritance principle: same suffix, entities subset, merged from the root down
+                        for directory in reversed(dirs[1:])
+                        for path in sorted(sidecars[directory])
+                        if (parts := xbasename(path)[: -len(".json")].split("_"))[-1] == suffix
+                        and set(parts[:-1]) <= set(pairs)
+                    ]
+                )
+            splits[split] = rows, row_sidecars
 
-            if records:
-                yield Key(shard_idx, 0), pa.Table.from_pylist(records, schema=schema)
-                yielded = True
+        if self.info.features is None:
+            media_features = {
+                "biosignal": datasets.Biosignal(
+                    sampling_rate=cfg.sampling_rate, picks=cfg.picks, preload=cfg.preload, decode=cfg.decode
+                ),
+                "nifti": datasets.Nifti(decode=cfg.decode),
+            }
+            columns = dict.fromkeys(col for rows, _ in splits.values() for row in rows for col in row)
+            self.info.features = datasets.Features(
+                {
+                    **{
+                        col: media_features.get(col) or participant_features.get(col) or datasets.Value("string")
+                        for col in columns
+                    },
+                    "metadata": datasets.Json(),
+                }
+            )
+        return [
+            datasets.SplitGenerator(name=split, gen_kwargs={"rows": rows, "sidecars": row_sidecars})
+            for split, (rows, row_sidecars) in splits.items()
+        ]
 
-        if not yielded:
-            yield Key(0, 0), pa.Table.from_pylist([], schema=schema)
+    def _generate_shards(self, rows: list[dict[str, Any]], sidecars: list[list[str]]) -> Iterator[str]:
+        for row in rows:
+            yield (row.get("biosignal") or row["nifti"])["path"]
+
+    def _generate_tables(
+        self, rows: list[dict[str, Any]], sidecars: list[list[str]]
+    ) -> Iterator[tuple[Key, pa.Table]]:
+        download_config = DownloadConfig(token=self.token, storage_options=self.storage_options)
+        schema = self.info.features.arrow_schema
+        cache: dict[str, dict[str, Any]] = {}
+        for i, (row, paths) in enumerate(zip(rows, sidecars)):
+            metadata = {}
+            for path in paths:
+                if path not in cache:
+                    with xopen(path, "rb", download_config=download_config) as f:
+                        cache[path] = json.load(f)
+                if isinstance(cache[path], dict):  # BIDS sidecars are JSON objects; real datasets ship `[]`
+                    metadata.update(cache[path])
+            yield Key(i, 0), pa.Table.from_pylist([{**row, "metadata": json.dumps(metadata)}], schema=schema)
+        if not rows:
+            yield Key(0, 0), schema.empty_table()

@@ -1,5 +1,6 @@
 """Tests for the packaged BIDS dataset builder."""
 
+import json
 import shutil
 
 import numpy as np
@@ -8,6 +9,8 @@ import pytest
 import datasets
 from datasets import Biosignal, Value, load_dataset
 from datasets.data_files import get_data_patterns
+from datasets.load import infer_module_for_data_files_list
+from datasets.packaged_modules.bids import bids
 
 
 require_mne_bids = pytest.mark.skipif(
@@ -48,7 +51,20 @@ def test_bids_patterns_and_module_inference(tmp_path, monkeypatch):
     sub_dir = tmp_path / "bids_like" / "sub-01" / "eeg"
     sub_dir.mkdir(parents=True)
     (sub_dir / "sub-01_task-rest_eeg.edf").write_bytes(b"x")
-    assert get_data_patterns(str(tmp_path / "bids_like")) == {"train": ["sub-*/**"]}
+    assert get_data_patterns(str(tmp_path / "bids_like")) == {"train": ["sub-*/**/sub-*"]}
+    assert infer_module_for_data_files_list(["sub-01/anat/sub-01_T1w.nii.gz"]) == ("bids", {})
+    if datasets.config.MNE_BIDS_AVAILABLE:
+        from mne_bids.config import ALLOWED_DATATYPE_EXTENSIONS, EPHY_ALLOWED_DATATYPES
+
+        assert {ext for dt in EPHY_ALLOWED_DATATYPES for ext in ALLOWED_DATATYPE_EXTENSIONS[dt]} <= set(
+            bids.EXTENSIONS
+        )
+
+    split_dirs = tmp_path / "split_dirs"
+    for d in ("sub-01", "train", "test"):
+        (split_dirs / d).mkdir(parents=True)
+        (split_dirs / d / "x.csv").write_text("a\n1\n", encoding="utf-8")
+    assert set(get_data_patterns(str(split_dirs))) == {"train", "test"}
 
     non_bids = tmp_path / "non_bids"
     non_bids.mkdir()
@@ -95,7 +111,7 @@ def test_load_bids_parametrized(bids_root, use_auto_path, kwargs, expected_subje
 
 
 @require_mne_bids
-def test_load_bids_streaming_archive_splits_and_parquet(bids_root, tmp_path):
+def test_load_bids_streaming_splits_and_parquet(bids_root, tmp_path):
     import mne
 
     streamed = list(load_dataset(str(bids_root), split="train", streaming=True))
@@ -103,12 +119,6 @@ def test_load_bids_streaming_archive_splits_and_parquet(bids_root, tmp_path):
     assert [r["mmse"] for r in streamed] == [29, 29, None]
     assert isinstance(streamed[0]["biosignal"], mne.io.BaseRaw)
     assert list(load_dataset(str(bids_root), subjects="99", split="train", streaming=True)) == []
-
-    zip_file = shutil.make_archive(str(tmp_path / "bids_archive"), "zip", root_dir=bids_root)
-    ds_zip = load_dataset("bids", data_files=zip_file, split="train")
-    assert ds_zip["subject"] == ["01", "01", "02"] and ds_zip["mmse"] == [29, 29, None]
-    zip_stream = list(load_dataset("bids", data_files=zip_file, decode=False, split="train", streaming=True))
-    assert [r["mmse"] for r in zip_stream] == [29, 29, None]
 
     sub01 = str(bids_root / "sub-01" / "ses-01" / "eeg" / "sub-01_ses-01_task-rest_run-01_eeg.vhdr")
     sub02 = str(bids_root / "sub-02" / "ses-01" / "eeg" / "sub-02_ses-01_task-rest_run-01_eeg.vhdr")
@@ -153,10 +163,10 @@ def test_bids_meg_splits_crosstalk_and_containers(tmp_path):
     assert (meg_root / "sub-01" / "meg" / "sub-01_task-rest_split-01_meg.fif").exists()
     assert (meg_root / "sub-01" / "meg" / "sub-01_task-rest_split-02_meg.fif").exists()
     (meg_root / "sub-01" / "meg" / "sub-01_acq-crosstalk_meg.fif").write_bytes(b"crosstalk")
+    raw.save(str(meg_root / "sub-01" / "meg" / "sub-01_task-rest_proc-sss_meg.fif"), verbose="ERROR")
 
-    ds_meg = load_dataset(str(meg_root), split="train", streaming=True)
-    meg_rows = list(ds_meg)
-    assert len(meg_rows) == 1 and meg_rows[0]["biosignal"].n_times == 20_000
+    meg_rows = {r["processing"]: r for r in load_dataset(str(meg_root), split="train", streaming=True)}
+    assert set(meg_rows) == {None, "sss"} and meg_rows[None]["biosignal"].n_times == 20_000
     assert load_dataset(str(meg_root), split="train")[0]["biosignal"].n_times == 20_000
 
     # Directory-based CTF .ds container discovered via its single .res4 header
@@ -169,3 +179,43 @@ def test_bids_meg_splits_crosstalk_and_containers(tmp_path):
     assert ds_ctf[0]["biosignal"]["path"].endswith("sub-01_task-rest_meg.ds")
     ds_ctf_pkg = load_dataset("bids", data_dir=str(tmp_path / "ctf_bids"), decode=False, split="train", num_proc=2)
     assert len(ds_ctf_pkg) == 1 and ds_ctf_pkg[0]["extension"] == ".ds"
+
+
+@require_mne_bids
+@pytest.mark.skipif(not datasets.config.NIBABEL_AVAILABLE, reason="nibabel is not installed")
+def test_bids_mri_with_eeg_and_sidecar_inheritance(bids_root, tmp_path):
+    import mne
+    import nibabel as nib
+
+    root = tmp_path / "eeg_fmri"
+    shutil.copytree(bids_root, root)
+    image = nib.Nifti1Image(np.zeros((2, 2, 2, 3), dtype=np.int16), np.eye(4))
+    for rel in [
+        "sub-01/ses-01/anat/sub-01_ses-01_T1w.nii.gz",
+        "sub-01/ses-01/func/sub-01_ses-01_task-rest_echo-1_bold.nii.gz",
+        "derivatives/prep/sub-01/ses-01/func/sub-01_ses-01_task-rest_desc-clean_bold.nii.gz",
+    ]:
+        (root / rel).parent.mkdir(parents=True, exist_ok=True)
+        image.to_filename(str(root / rel))
+    (root / "sub-01/ses-01/eye_tracker").mkdir()  # not a BIDS datatype: skipped
+    (root / "sub-01/ses-01/eye_tracker/sub-01_ses-01_task-rest_et.edf").write_bytes(b"x")
+    # inheritance: the root sidecar applies to every rest bold run, the run sidecar overrides it
+    (root / "task-rest_bold.json").write_text(json.dumps({"RepetitionTime": 2.0, "TaskName": "rest"}))
+    (root / "sub-01/ses-01/func/sub-01_ses-01_task-rest_echo-1_bold.json").write_text(
+        json.dumps({"RepetitionTime": 1.5, "EchoTime": 0.03})
+    )
+    (root / "sub-01/ses-01/func/sub-01_ses-01_bold.json").write_text('["n/a"]')  # invalid sidecar: ignored
+
+    ds = load_dataset(str(root), split="train")
+    assert {"biosignal", "nifti", "echo", "metadata", "age"} <= set(ds.column_names)
+    rows = {(r["subject"], r["suffix"], r["task"]): r for r in ds}
+    assert len(rows) == 5 and ("01", "bold", "rest") in rows  # 3 EEG + T1w + bold; derivatives are not raw
+    bold = rows["01", "bold", "rest"]
+    assert bold["nifti"].shape == (2, 2, 2, 3) and bold["biosignal"] is None
+    assert bold["echo"] == "1" and bold["datatype"] == "func" and bold["age"] == 24
+    assert bold["metadata"] == {"RepetitionTime": 1.5, "TaskName": "rest", "EchoTime": 0.03}
+    assert rows["01", "T1w", None]["metadata"] == {}
+    eeg = rows["01", "eeg", "rest"]
+    assert isinstance(eeg["biosignal"], mne.io.BaseRaw) and eeg["nifti"] is None
+    assert eeg["metadata"]["PowerLineFrequency"] == 50.0
+    assert load_dataset("bids", data_dir=str(root), datatypes="func", split="train")["suffix"] == ["bold"]

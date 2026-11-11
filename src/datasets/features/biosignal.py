@@ -10,7 +10,8 @@ import pyarrow as pa
 
 from .. import config
 from ..download.download_config import DownloadConfig
-from ..utils.file_utils import is_local_path, xbasename, xgetsize, xopen
+from ..utils import logging
+from ..utils.file_utils import is_local_path, xbasename, xopen
 from .bio_sequence import _cast_to_bytes_path_struct, _resolve_token
 
 
@@ -18,6 +19,9 @@ if TYPE_CHECKING:
     import mne
 
     from .features import FeatureType
+
+
+logger = logging.get_logger(__name__)
 
 
 @dataclass
@@ -147,7 +151,7 @@ class Biosignal:
             if path is None:
                 raise ValueError(f"A biosignal should have one of 'path' or 'bytes' but both are None in {value}.")
             if is_local_path(path):
-                if config.MNE_BIDS_AVAILABLE:
+                if config.MNE_BIDS_AVAILABLE and xbasename(path).startswith("sub-"):
                     import mne_bids
 
                     try:
@@ -157,8 +161,10 @@ class Biosignal:
                             extra_params={"preload": self.preload},
                             verbose="ERROR",
                         )
-                    except Exception:
-                        pass
+                    except Exception as err:
+                        logger.warning(
+                            f"Reading {path} without its BIDS sidecars: mne_bids.read_raw_bids failed ({err})."
+                        )
                 if raw is None:
                     raw = mne.io.read_raw(path, preload=self.preload, verbose="ERROR")
             else:
@@ -239,13 +245,3 @@ class Biosignal:
             return {"bytes": self.encode_example(raw)["bytes"], "path": fif_name}
 
         return pa.array([embed_one(x) for x in storage.to_pylist()], type=self.pa_type)
-
-
-def _biosignal_nbytes(path: str) -> int:
-    if is_local_path(path):
-        p = Path(path)
-        if p.is_dir():
-            return sum(f.stat().st_size for f in p.rglob("*") if f.is_file())
-        if p.suffix.lower() in (".vhdr", ".ahdr", ".set") and p.parent.is_dir():
-            return sum(f.stat().st_size for f in p.parent.glob(f"{p.stem}.*") if f.is_file())
-    return xgetsize(path)

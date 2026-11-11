@@ -151,8 +151,6 @@ _EXTENSION_TO_MODULE.update({ext: ("pdffolder", {}) for ext in pdffolder.PdfFold
 _EXTENSION_TO_MODULE.update({ext.upper(): ("pdffolder", {}) for ext in pdffolder.PdfFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("niftifolder", {}) for ext in niftifolder.NiftiFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("niftifolder", {}) for ext in niftifolder.NiftiFolder.EXTENSIONS})
-_EXTENSION_TO_MODULE.update({ext: ("bids", {}) for ext in bids.Bids.EXTENSIONS})
-_EXTENSION_TO_MODULE.update({ext.upper(): ("bids", {}) for ext in bids.Bids.EXTENSIONS})
 
 # Used to filter data files based on extensions given a module name
 _MODULE_TO_EXTENSIONS: dict[str, list[str]] = {}
@@ -161,6 +159,7 @@ for _ext, (_module, _) in _EXTENSION_TO_MODULE.items():
 
 for _module in _MODULE_TO_EXTENSIONS:
     _MODULE_TO_EXTENSIONS[_module].append(".zip")
+_MODULE_TO_EXTENSIONS["bids"] = [*bids.NIFTI_EXTENSIONS, ".json"]  # BIDS is detected from filenames (load.py)
 
 # Used to filter data files based on file names
 _MODULE_TO_METADATA_FILE_NAMES: Dict[str, List[str]] = {}
@@ -181,6 +180,7 @@ _MODULE_TO_METADATA_EXTENSIONS: Dict[str, List[str]] = {}
 for _module in _MODULE_TO_EXTENSIONS:
     _MODULE_TO_METADATA_EXTENSIONS[_module] = []
 _MODULE_TO_METADATA_EXTENSIONS["lance"] = lance.Lance.METADATA_EXTENSIONS
+_MODULE_TO_METADATA_EXTENSIONS["bids"] = list(bids.EXTENSIONS)
 
 # Total
 

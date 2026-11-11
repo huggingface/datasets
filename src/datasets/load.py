@@ -222,14 +222,14 @@ def infer_module_for_data_files_list(
         for suffix in xbasename(filepath).split(".")[1:]
     )
     if extensions_counter:
-        has_bids_files = any(xbasename(filepath).startswith("sub-") for filepath in data_files_list)
+        if all(xbasename(filepath).startswith("sub-") for filepath in data_files_list):
+            return "bids", {}
 
         def sort_key(ext_count: tuple[tuple[str, bool], int]) -> tuple[int, bool]:
             """Sort by count and set ".parquet" as the favorite in case of a draw, and ignore metadata files"""
             (ext, is_metadata), count = ext_count
             return (
                 not is_metadata,
-                has_bids_files and _EXTENSION_TO_MODULE.get(ext) == ("bids", {}),
                 count,
                 ext == ".parquet",
                 ext == ".lance",
