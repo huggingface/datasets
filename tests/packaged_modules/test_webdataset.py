@@ -2,10 +2,13 @@ import io
 import json
 import tarfile
 from pathlib import Path
+from unittest.mock import patch
 
+import pyarrow as pa
 import pytest
 
-from datasets import Audio, DownloadManager, Features, Image, List, Value, Video
+from datasets import Audio, DownloadManager, Features, Image, List, Value, Video, load_dataset
+from datasets.packaged_modules import webdataset as webdataset_module
 from datasets.packaged_modules.webdataset.webdataset import WebDataset
 
 from ..utils import (
@@ -328,6 +331,53 @@ def test_video_webdataset(video_wds_file):
     assert isinstance(examples[0]["json"], dict)
     assert isinstance(examples[0]["json"]["caption"], str)
     assert isinstance(examples[0]["mov"], dict)
+
+
+@pytest.mark.parametrize(
+    "field_name,feature", [("mp4", Video()), ("jpg", Image()), ("wav", Audio()), ("bin", Value("binary"))]
+)
+@pytest.mark.parametrize("streaming", [False, True])
+def test_webdataset_binary_payload_inference(tmp_path, field_name, feature, streaming):
+    if isinstance(feature, Image):
+        pytest.importorskip("PIL")
+    elif isinstance(feature, Audio):
+        pytest.importorskip("torchcodec")
+    tar_path = tmp_path / "binary.tar"
+    payloads = [b"first" * 20, b"second" * 20]
+    with tarfile.open(tar_path, "w") as archive:
+        for index, payload in enumerate(payloads):
+            for name, data in [(field_name, payload), ("json", json.dumps({"index": index}).encode())]:
+                member = tarfile.TarInfo(f"{index:05d}.{name}")
+                member.size = len(data)
+                archive.addfile(member, io.BytesIO(data))
+
+    def from_pylist_with_small_binary_limit(rows, *args, **kwargs):
+        # Simulate Arrow's per-value binary limit without allocating a multi-GB CI fixture.
+        if any(isinstance(value, bytes) and len(value) > 64 for row in rows for value in row.values()):
+            raise pa.ArrowCapacityError("binary value exceeds the test capacity limit")
+        return pa.Table.from_pylist(rows, *args, **kwargs)
+
+    with patch.object(webdataset_module, "pa", wraps=pa) as arrow:
+        arrow.Table.from_pylist.side_effect = from_pylist_with_small_binary_limit
+        dataset = load_dataset("webdataset", data_files=str(tar_path), split="train", streaming=streaming)
+        assert arrow.Table.from_pylist.called
+
+    assert dataset.features == Features(
+        {
+            "__key__": Value("string"),
+            "__url__": Value("string"),
+            field_name: feature,
+            "json": {"index": Value("int64")},
+        }
+    )
+    if not isinstance(feature, Value):
+        dataset = dataset.cast_column(field_name, type(feature)(decode=False))
+    examples = list(dataset)
+    assert len(examples) == len(payloads)
+    for index, (example, payload) in enumerate(zip(examples, payloads)):
+        value = example[field_name] if isinstance(feature, Value) else example[field_name]["bytes"]
+        assert value == payload
+        assert example["json"] == {"index": index}
 
 
 def test_webdataset_errors_on_bad_file(bad_wds_file):
