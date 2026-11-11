@@ -1,10 +1,12 @@
 import bz2
 import gzip
+import hashlib
 import lzma
 import os
 import shutil
 import struct
 import tarfile
+import tempfile
 import warnings
 import zipfile
 from abc import ABC, abstractmethod
@@ -39,18 +41,17 @@ class ExtractManager:
         abs_path = os.path.abspath(path)
         return os.path.join(self.extract_dir, hash_url_to_filename(abs_path))
 
-    def _do_extract(self, output_path: str, force_extract: bool) -> bool:
-        return force_extract or (
-            not os.path.isfile(output_path) and not (os.path.isdir(output_path) and os.listdir(output_path))
-        )
-
     def extract(self, input_path: str, force_extract: bool = False) -> str:
+        """Return the extracted cache path, reusing it unless ``force_extract=True``.
+
+        Complete final outputs can be reused without writing to the cache directory.
+        Extraction and publication use a lock. Unrecognized formats are returned unchanged.
+        """
         extractor_format = self.extractor.infer_extractor_format(input_path)
         if not extractor_format:
             return input_path
         output_path = self._get_output_path(input_path)
-        if self._do_extract(output_path, force_extract):
-            self.extractor.extract(input_path, output_path, extractor_format)
+        self.extractor.extract(input_path, output_path, extractor_format, force_extract=force_extract)
         return output_path
 
 
@@ -450,13 +451,88 @@ class Extractor:
         input_path: Union[Path, str],
         output_path: Union[Path, str],
         extractor_format: str,
+        force_extract: bool = True,
     ) -> None:
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        # Prevent parallel extractions
-        lock_path = str(Path(output_path).with_suffix(".lock"))
+        """Extract into a staging path and publish the completed output under a lock.
+
+        Direct callers rebuild by default for backward compatibility. Pass
+        ``force_extract=False`` to reuse a final cached file or nonempty directory,
+        as :class:`ExtractManager` does by default. Failed extractions leave only
+        staging data and preserve any previously published output.
+
+        Temporary siblings use the reserved prefix ``.tmp-extract-<sha256>-``, where
+        the digest identifies the normalized output basename, followed by tempfile's
+        random component. Only this output's temporary namespace is cleaned under its
+        lock; arbitrary ``.old`` and ``.incomplete`` siblings are never touched.
+
+        Replacing directories requires renaming the old output aside first, including
+        on Windows. The final path is briefly absent between renames; readers of a
+        previously returned path do not hold the extraction lock during this interval.
+        """
+
+        def remove_path(path):
+            if os.path.islink(path) or os.path.isfile(path):
+                os.unlink(path)
+            elif os.path.isdir(path):
+                shutil.rmtree(path)
+
+        def is_cached():
+            try:
+                return os.path.isfile(output_path) or (os.path.isdir(output_path) and os.listdir(output_path))
+            except (FileNotFoundError, NotADirectoryError):
+                # A forced rebuild may rename the final output during this check.
+                return False
+
+        # Strip trailing separators without resolving symlinks or collapsing "..":
+        # the OS must resolve the output and its temporary siblings the same way.
+        drive, tail = os.path.splitdrive(os.fspath(output_path))
+        output_path = drive + (tail.rstrip(os.sep + (os.altsep or "")) or tail)
+        # Atomic publication makes a final cache hit safe without opening a writable lock.
+        if not force_extract and is_cached():
+            return
+        output_dir = os.path.dirname(output_path) or "."
+        os.makedirs(output_dir, exist_ok=True)
+        # Canonicalize only the lock filename so aliases share a lock before
+        # FileLock applies abspath. Output and temporary paths stay uncollapsed.
+        lock_path = os.path.realpath(str(Path(output_path).with_suffix(".lock")))
         with FileLock(lock_path):
-            if os.path.islink(output_path):
-                os.unlink(output_path)
-            shutil.rmtree(output_path, ignore_errors=True)
+            # Only the final path is a cache hit: partial extractions are never published.
+            if not force_extract and is_cached():
+                return
+            output_id = hashlib.sha256(os.fsencode(os.path.normcase(os.path.basename(output_path)))).hexdigest()
+            tmp_prefix = f".tmp-extract-{output_id}-"
+            try:
+                temporary_names = os.listdir(output_dir)
+            except PermissionError:
+                # A writable/searchable parent need not be readable. Fresh unique
+                # staging is still safe; defer garbage collection in that case.
+                temporary_names = []
+            for name in temporary_names:
+                if name.startswith(tmp_prefix):
+                    remove_path(os.path.join(output_dir, name))
+
+            def temporary_path():
+                path = tempfile.mkdtemp(prefix=tmp_prefix, dir=output_dir)
+                # mkdtemp may return an abspath that collapses "..". Keep the
+                # allocated basename in the caller's uncollapsed parent instead.
+                path = os.path.join(output_dir, os.path.basename(path))
+                # Remove only our empty reservation so either a file or directory can
+                # take its place, with the extractor's usual permissions. The lock
+                # protects this output's temporary namespace until publication.
+                os.rmdir(path)
+                return path
+
+            incomplete_path = temporary_path()
             extractor = cls.extractors[extractor_format]
-            return extractor.extract(input_path, output_path)
+            extractor.extract(input_path, incomplete_path)
+
+            # Retire directories before deleting them so an interrupted removal
+            # cannot leave a partial final cache. Also handle file/directory changes.
+            old_path = None
+            if os.path.isdir(output_path) or (os.path.isdir(incomplete_path) and os.path.lexists(output_path)):
+                old_path = temporary_path()
+                os.replace(output_path, old_path)
+            # Staging is on the same filesystem; never fall back to copying in place.
+            os.replace(incomplete_path, output_path)
+            if old_path is not None:
+                remove_path(old_path)
