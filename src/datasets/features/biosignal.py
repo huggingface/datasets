@@ -44,13 +44,10 @@ class Biosignal:
     `electrodes.tsv`, `participants.tsv`, and JSON metadata) are attached to the returned
     `mne.io.BaseRaw` object.
 
+    Recordings are read lazily (`preload=False`); operations such as `load_data()`, `pick()` or `resample()` are
+    applied on the returned object, for example in [`Dataset.map`].
+
     Args:
-        sampling_rate (`float`, *optional*):
-            Target sampling rate in Hz. If `None`, the native sampling rate of the recording is kept.
-        picks (`str` or `list[str]`, *optional*):
-            Channels or channel types to retain (passed to `mne.io.BaseRaw.pick`, e.g. `"eeg"` or `["C3", "C4"]`).
-        preload (`bool`, defaults to `False`):
-            Whether to preload the signal data into memory when reading local files.
         decode (`bool`, defaults to `True`):
             Whether to decode the biosignal data. If `False`,
             returns the underlying dictionary in the format `{"path": path, "bytes": bytes}`.
@@ -62,13 +59,10 @@ class Biosignal:
     >>> ds = load_dataset("bids", data_dir="path/to/bids", split="train")
     >>> ds[0]["biosignal"]
     <RawBrainVision | sub-01_task-rest_eeg.vhdr, 64 x 10000 (40.0 s), ~35 kB, data not loaded>
-    >>> ds = ds.cast_column("biosignal", Biosignal(sampling_rate=250, picks="eeg"))
+    >>> ds = ds.map(lambda x: {"biosignal": x["biosignal"].load_data().pick("eeg").resample(250)})
     ```
     """
 
-    sampling_rate: Optional[float] = None
-    picks: Optional[Union[str, list[str]]] = None
-    preload: bool = False
     decode: bool = True
     id: Optional[str] = field(default=None, repr=False)
 
@@ -172,17 +166,12 @@ class Biosignal:
             try:
                 # get_bids_path_from_fname until mne-bids>=0.20 accepts path-like directly (mne-tools/mne-bids#1696)
                 bids_path = mne_bids.get_bids_path_from_fname(path, check=False, verbose="ERROR")
-                raw = mne_bids.read_raw_bids(bids_path, extra_params={"preload": self.preload}, verbose="ERROR")
+                raw = mne_bids.read_raw_bids(bids_path, verbose="ERROR")
             except Exception as err:
                 logger.warning(f"Reading {path} without its BIDS sidecars: mne_bids.read_raw_bids failed ({err}).")
-                raw = mne.io.read_raw(path, preload=self.preload, verbose="ERROR")
+                raw = mne.io.read_raw(path, verbose="ERROR")
         else:
-            raw = mne.io.read_raw(path, preload=self.preload, verbose="ERROR")
-
-        if self.picks is not None:
-            raw.pick(self.picks)
-        if self.sampling_rate is not None and raw.info["sfreq"] != self.sampling_rate:
-            raw.load_data().resample(self.sampling_rate, verbose="ERROR")
+            raw = mne.io.read_raw(path, verbose="ERROR")
         return raw
 
     def flatten(self) -> Union["FeatureType", dict[str, "FeatureType"]]:
@@ -224,7 +213,7 @@ class Biosignal:
                 `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
 
-        decoder = replace(self, preload=True, decode=True)
+        decoder = replace(self, decode=True)
         embedded = []
         for x in storage.to_pylist():
             if x is None or x["path"] is None or not (local_files if is_local_path(x["path"]) else remote_files):

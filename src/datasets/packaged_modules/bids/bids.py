@@ -68,12 +68,6 @@ class BidsConfig(datasets.BuilderConfig):
         extensions (`str` or `list[str]`, *optional*):
             Recording file extension(s) to load. Defaults to the BIDS electrophysiology formats read by `mne-bids`
             and NIfTI (`.nii`, `.nii.gz`).
-        sampling_rate (`float`, *optional*):
-            Target sampling rate in Hz passed to [`Biosignal`].
-        picks (`str` or `list[str]`, *optional*):
-            Channels or channel types to retain (passed to [`Biosignal`]).
-        preload (`bool`, defaults to `False`):
-            Whether to preload signal data into memory when decoding local [`Biosignal`] recordings.
         decode (`bool`, defaults to `True`):
             Whether to decode the [`Biosignal`] and [`Nifti`] columns.
         features ([`Features`], *optional*):
@@ -95,9 +89,6 @@ class BidsConfig(datasets.BuilderConfig):
     datatypes: Optional[Union[str, list[str]]] = None
     suffixes: Optional[Union[str, list[str]]] = None
     extensions: Optional[Union[str, list[str]]] = None
-    sampling_rate: Optional[float] = None
-    picks: Optional[Union[str, list[str]]] = None
-    preload: bool = False
     decode: bool = True
     decode_num_threads: int = 4
     features: Optional[datasets.Features] = None
@@ -208,9 +199,7 @@ class Bids(datasets.ArrowBasedBuilder):
 
         if self.info.features is None:
             typed = {
-                "biosignal": datasets.Biosignal(
-                    sampling_rate=cfg.sampling_rate, picks=cfg.picks, preload=cfg.preload, decode=cfg.decode
-                ),
+                "biosignal": datasets.Biosignal(decode=cfg.decode),
                 "nifti": datasets.Nifti(decode=cfg.decode),
                 **participant_features,
             }

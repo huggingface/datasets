@@ -463,11 +463,11 @@ Each row is one recording. EEG, MEG, iEEG, EMG and NIRS recordings go in a `bios
 50
 ```
 
-You can filter by BIDS entities (`subjects`, `sessions`, `tasks`, `runs`, `datatypes`, `suffixes`), harmonize signals via `sampling_rate` and `picks`, or disable decoding with `decode=False`:
+You can filter by BIDS entities (`subjects`, `sessions`, `tasks`, `runs`, `datatypes`, `suffixes`), and process the recordings with [`~Dataset.map`]:
 
 ```py
 >>> dataset = load_dataset("bids", data_dir="path/to/bids_dataset", subjects="01", datatypes="func", split="train")
->>> dataset = dataset.cast_column("biosignal", Biosignal(sampling_rate=250, picks="eeg"))
+>>> dataset = dataset.map(lambda x: {"biosignal": x["biosignal"].load_data().pick("eeg").resample(250)})
 ```
 
 ## Remote files

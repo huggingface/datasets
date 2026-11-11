@@ -32,9 +32,9 @@ def test_biosignal_storage_and_schema(tmp_path, monkeypatch):
     feat = Biosignal()
     assert feat.pa_type == pa.struct({"bytes": pa.binary(), "path": pa.string()}) == feat()
     assert require_decoding(feat) and not require_decoding(Biosignal(decode=False))
-    assert Features.from_dict(
-        Features({"b": Biosignal(sampling_rate=50.0, picks=["Ch1"], preload=True)}).to_dict()
-    ) == Features({"b": Biosignal(sampling_rate=50.0, picks=["Ch1"], preload=True)})
+    assert Features.from_dict(Features({"b": Biosignal(decode=False)}).to_dict()) == Features(
+        {"b": Biosignal(decode=False)}
+    )
     assert Biosignal(decode=False).flatten() == {"bytes": Value("binary"), "path": Value("string")}
     assert Biosignal(decode=True).flatten() == Biosignal(decode=True)
 
@@ -66,19 +66,16 @@ def test_biosignal_storage_and_schema(tmp_path, monkeypatch):
 
 
 @require_mne
-@pytest.mark.parametrize("preload", [False, True])
-def test_biosignal_local_raw_and_bytes(tmp_path, preload):
+def test_biosignal_local_raw_and_bytes(tmp_path):
     import mne
 
     raw = _make_raw()
     fif_path = tmp_path / "sample_raw.fif"
     raw.save(str(fif_path), overwrite=True, verbose="ERROR")
 
-    ds = Dataset.from_dict(
-        {"biosignal": [str(fif_path)]}, features=Features({"biosignal": Biosignal(preload=preload)})
-    )
+    ds = Dataset.from_dict({"biosignal": [str(fif_path)]}, features=Features({"biosignal": Biosignal()}))
     loaded = ds[0]["biosignal"]
-    assert isinstance(loaded, mne.io.BaseRaw) and loaded.preload is preload
+    assert isinstance(loaded, mne.io.BaseRaw) and not loaded.preload
     assert Biosignal().decode_example(loaded) is loaded
     np.testing.assert_allclose(loaded.get_data(), raw.get_data(), atol=1e-6)
 
@@ -93,12 +90,9 @@ def test_biosignal_local_raw_and_bytes(tmp_path, preload):
     from_edf_bytes = Biosignal().decode_example({"path": "sample.edf", "bytes": edf_path.read_bytes()})
     np.testing.assert_allclose(from_edf_bytes.get_data(), raw.get_data(), atol=1e-4)
 
-    cast_ds = Dataset.from_dict(
-        {"biosignal": [str(fif_path)], "label": [1]},
-        features=Features({"biosignal": Biosignal(sampling_rate=50.0, picks=["Ch1"]), "label": Value("int64")}),
-    )
-    picked = cast_ds[0]["biosignal"]
-    assert picked.ch_names == ["Ch1"] and picked.info["sfreq"] == 50.0 and picked.n_times == 50
+    # operations on the recordings go through map, which encodes the returned raw objects
+    mapped = ds.map(lambda x: {"biosignal": x["biosignal"].load_data().pick(["Ch1"]).resample(50.0, verbose="ERROR")})
+    assert mapped[0]["biosignal"].ch_names == ["Ch1"] and mapped[0]["biosignal"].info["sfreq"] == 50.0
 
 
 @require_mne_bids
