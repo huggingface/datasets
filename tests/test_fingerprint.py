@@ -588,3 +588,53 @@ def test_dependency_on_dill():
     # AttributeError: module 'dill._dill' has no attribute 'stack'
     hasher = Hasher()
     hasher.update(lambda x: x)
+
+
+@datasets.hashing.register(ignore_kwargs=["verbose"])
+def _add_offset_quietly(example, offset=0, verbose=False):
+    if verbose:
+        print(example)
+    return {"y": example["x"] + offset}
+
+
+def _add_offset(example, offset=0, verbose=False):
+    return {"y": example["x"] + offset}
+
+
+@pytest.mark.parametrize("method", ["map", "filter"])
+def test_registered_ignore_kwargs_are_not_part_of_the_fingerprint(method):
+    dset = datasets.Dataset.from_dict({"x": [0, 1, 2]})
+
+    def fingerprint(**fn_kwargs):
+        return getattr(dset, method)(_add_offset_quietly, fn_kwargs=fn_kwargs)._fingerprint
+
+    assert fingerprint(verbose=True) == fingerprint(verbose=False) == fingerprint()
+    # passing only ignored kwargs is the same as not passing fn_kwargs at all
+    assert fingerprint(verbose=True) == getattr(dset, method)(_add_offset_quietly)._fingerprint
+    assert fingerprint(offset=1, verbose=True) == fingerprint(offset=1)
+    # keys that are not ignored still change the fingerprint
+    assert fingerprint(offset=1) != fingerprint()
+
+
+@pytest.mark.parametrize("method", ["map", "filter"])
+def test_fn_kwargs_of_unregistered_functions_stay_in_the_fingerprint(method):
+    dset = datasets.Dataset.from_dict({"x": [0, 1, 2]})
+    with_verbose = getattr(dset, method)(_add_offset, fn_kwargs={"verbose": True})
+    without = getattr(dset, method)(_add_offset)
+    assert with_verbose._fingerprint != without._fingerprint
+
+
+def test_registered_ignore_kwargs_reuse_the_cache_file(tmp_path):
+    dset = datasets.Dataset.from_dict({"x": list(range(10))}).flatten_indices(
+        cache_file_name=str(tmp_path / "data.arrow")
+    )
+    first = dset.map(_add_offset_quietly, fn_kwargs={"verbose": False}, num_proc=2)
+    second = dset.map(_add_offset_quietly, fn_kwargs={"verbose": True}, num_proc=2)
+    assert first["y"] == second["y"] == list(range(10))
+    assert [f["filename"] for f in second.cache_files] == [f["filename"] for f in first.cache_files]
+
+
+@pytest.mark.parametrize("ignore_kwargs", ["verbose", ["verbose", 1], None])
+def test_hashing_register_rejects_invalid_ignore_kwargs(ignore_kwargs):
+    with pytest.raises(TypeError, match="ignore_kwargs"):
+        datasets.hashing.register(ignore_kwargs=ignore_kwargs)
