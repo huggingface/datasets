@@ -56,9 +56,8 @@ def test_bids_patterns_and_module_inference(tmp_path, monkeypatch):
     if datasets.config.MNE_BIDS_AVAILABLE:
         from mne_bids.config import ALLOWED_DATATYPE_EXTENSIONS, EPHY_ALLOWED_DATATYPES
 
-        assert {ext for dt in EPHY_ALLOWED_DATATYPES for ext in ALLOWED_DATATYPE_EXTENSIONS[dt]} <= set(
-            bids.EXTENSIONS
-        )
+        file_extensions = {ext for dt in EPHY_ALLOWED_DATATYPES for ext in ALLOWED_DATATYPE_EXTENSIONS[dt]}
+        assert file_extensions - {".ds", ".mefd"} <= set(bids.EXTENSIONS)  # directories are found through their files
 
     split_dirs = tmp_path / "split_dirs"
     for d in ("sub-01", "train", "test"):

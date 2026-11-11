@@ -108,7 +108,7 @@ class Biosignal:
             import mne
 
             if isinstance(value, mne.io.BaseRaw):
-                # ponytail: tempfile until mne>=1.14 supports raw.save(BytesIO()) (mne-tools/mne-python#14516)
+                # tempfile until mne>=1.14 supports raw.save(BytesIO()) (mne-tools/mne-python#14516)
                 with tempfile.TemporaryDirectory() as tmpdir:
                     tmp_path = Path(tmpdir) / "raw.fif"
                     value.save(tmp_path, overwrite=True, verbose="ERROR")
@@ -146,46 +146,38 @@ class Biosignal:
         import mne
 
         path, bytes_ = (value, None) if isinstance(value, str) else (value["path"], value["bytes"])
-        raw = None
-        if bytes_ is None:
-            if path is None:
-                raise ValueError(f"A biosignal should have one of 'path' or 'bytes' but both are None in {value}.")
-            if is_local_path(path):
-                if config.MNE_BIDS_AVAILABLE and xbasename(path).startswith("sub-"):
-                    import mne_bids
+        if path is None and bytes_ is None:
+            raise ValueError(f"A biosignal should have one of 'path' or 'bytes' but both are None in {value}.")
+        if bytes_ is None and not is_local_path(path):
+            download_config = DownloadConfig(token=_resolve_token(path, token_per_repo_id or {}))
+            with xopen(path, "rb", download_config=download_config) as f:
+                bytes_ = f.read()
 
-                    try:
-                        # ponytail: get_bids_path_from_fname wrapper until mne-bids>=0.20 accepts path-like directly (mne-tools/mne-bids#1696)
-                        raw = mne_bids.read_raw_bids(
-                            mne_bids.get_bids_path_from_fname(path, check=False, verbose="ERROR"),
-                            extra_params={"preload": self.preload},
-                            verbose="ERROR",
-                        )
-                    except Exception as err:
-                        logger.warning(
-                            f"Reading {path} without its BIDS sidecars: mne_bids.read_raw_bids failed ({err})."
-                        )
-                if raw is None:
-                    raw = mne.io.read_raw(path, preload=self.preload, verbose="ERROR")
-            else:
-                download_config = DownloadConfig(token=_resolve_token(path, token_per_repo_id or {}))
-                with xopen(path, "rb", download_config=download_config) as f:
-                    bytes_ = f.read()
-
-        if raw is None:
-            fname = xbasename(path) if path else ""
-            if not fname or fname.lower().endswith((".fif", ".fif.gz")):
-                raw = mne.io.read_raw_fif(io.BytesIO(bytes_), preload=True, verbose="ERROR")
-            elif not os.path.splitext(fname)[1]:
+        fname = xbasename(path) if path else "raw.fif"
+        if bytes_ is not None and fname.lower().endswith(".fif"):
+            raw = mne.io.read_raw_fif(io.BytesIO(bytes_), preload=True, verbose="ERROR")
+        elif bytes_ is not None:
+            if not os.path.splitext(fname)[1]:
                 raise ValueError(
                     f"Decoding non-FIF biosignal bytes requires a file extension in 'path', got {path!r}."
                 )
-            else:
-                # ponytail: tempfile fallback until mne>=1.14 supports BytesIO across readers (mne-tools/mne-python#14516, #14517)
-                with tempfile.TemporaryDirectory() as tmpdir:
-                    tmp_path = Path(tmpdir) / fname
-                    tmp_path.write_bytes(bytes_)
-                    raw = mne.io.read_raw(tmp_path, preload=True, verbose="ERROR")
+            # tempfile until mne>=1.14 supports BytesIO across readers (mne-tools/mne-python#14516, #14517)
+            with tempfile.TemporaryDirectory() as tmpdir:
+                tmp_path = Path(tmpdir) / fname
+                tmp_path.write_bytes(bytes_)
+                raw = mne.io.read_raw(tmp_path, preload=True, verbose="ERROR")
+        elif config.MNE_BIDS_AVAILABLE and fname.startswith("sub-"):
+            import mne_bids
+
+            try:
+                # get_bids_path_from_fname until mne-bids>=0.20 accepts path-like directly (mne-tools/mne-bids#1696)
+                bids_path = mne_bids.get_bids_path_from_fname(path, check=False, verbose="ERROR")
+                raw = mne_bids.read_raw_bids(bids_path, extra_params={"preload": self.preload}, verbose="ERROR")
+            except Exception as err:
+                logger.warning(f"Reading {path} without its BIDS sidecars: mne_bids.read_raw_bids failed ({err}).")
+                raw = mne.io.read_raw(path, preload=self.preload, verbose="ERROR")
+        else:
+            raw = mne.io.read_raw(path, preload=self.preload, verbose="ERROR")
 
         if self.picks is not None:
             raw.pick(self.picks)
@@ -232,16 +224,18 @@ class Biosignal:
                 `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
 
-        def embed_one(x):
+        decoder = replace(self, preload=True, decode=True)
+        embedded = []
+        for x in storage.to_pylist():
             if x is None or x["path"] is None or not (local_files if is_local_path(x["path"]) else remote_files):
-                return x
+                embedded.append(x)
+                continue
             name = xbasename(x["path"])
             if x["bytes"] is not None:
-                return {"bytes": x["bytes"], "path": name}
-            raw = replace(self, preload=True, decode=True).decode_example(
-                x["path"], token_per_repo_id=token_per_repo_id
-            )
+                embedded.append({"bytes": x["bytes"], "path": name})
+                continue
+            # recordings are embedded as self-contained FIF, so multi-file formats need no companion files
+            raw = decoder.decode_example(x["path"], token_per_repo_id=token_per_repo_id)
             fif_name = name if name.lower().endswith(".fif") else f"{os.path.splitext(name)[0]}_raw.fif"
-            return {"bytes": self.encode_example(raw)["bytes"], "path": fif_name}
-
-        return pa.array([embed_one(x) for x in storage.to_pylist()], type=self.pa_type)
+            embedded.append({"bytes": self.encode_example(raw)["bytes"], "path": fif_name})
+        return pa.array(embedded, type=self.pa_type)
