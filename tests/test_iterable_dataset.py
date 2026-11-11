@@ -2947,6 +2947,26 @@ def test_iterable_dataset_filter_table_formats(format_type, function, batch_size
     assert list(filtered_ds.with_format(None)) == [{"a": a} for a in range(6, 10)]
 
 
+@pytest.mark.parametrize("batched", [False, True])
+@pytest.mark.parametrize(
+    "format_type, function",
+    [
+        ("arrow", lambda a: pa.table({"b": pc.multiply(a, 10)})),
+        ("pandas", lambda a: pd.DataFrame({"b": a * 10})),
+        pytest.param(
+            "polars",
+            lambda a: (a * 10).alias("b").to_frame(),
+            marks=pytest.mark.skipif(not config.POLARS_AVAILABLE, reason="test requires polars"),
+        ),
+    ],
+)
+def test_iterable_dataset_map_table_formats_input_columns(format_type, function, batched):
+    # the input columns must be formatted like the batch (e.g. pandas.Series for "pandas"), as in Dataset.map
+    ds = Dataset.from_dict({"a": list(range(5))}).to_iterable_dataset(num_shards=2)
+    mapped_ds = ds.with_format(format_type).map(function, input_columns="a", batched=batched, batch_size=2)
+    assert list(mapped_ds.with_format(None)) == [{"b": a * 10} for a in range(5)]
+
+
 def test_iterable_dataset_filter_chaining_does_not_raise() -> None:
     """Chaining two .filter() calls must not raise TypeError.
 

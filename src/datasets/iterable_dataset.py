@@ -1728,10 +1728,11 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             ):
                 return
             # first build the batch
+            formatted_batch = formatter.format_batch(pa_table)
             function_args = (
-                [formatter.format_batch(pa_table)]
+                [formatted_batch]
                 if self.input_columns is None
-                else [pa_table[col] for col in self.input_columns]
+                else [formatted_batch[col] for col in self.input_columns]
             )
             if self.with_indices:
                 if self.batched:
