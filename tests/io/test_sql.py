@@ -115,3 +115,20 @@ def test_dataset_to_sql_preserves_nullable_int(dtype, big, tmp_path, set_sqlalch
     with contextlib.closing(sqlite3.connect(output_sqlite_path)) as con:
         rows = con.execute("SELECT a, typeof(a) FROM dataset").fetchall()
     assert rows == [(big, "integer"), (None, "null"), (5, "integer")]
+
+
+@require_sqlalchemy
+def test_dataset_to_sql_index_is_continuous_across_batches(
+    tmp_path, set_sqlalchemy_silence_uber_warning
+):
+    # index=True should write the dataset row number, not a per-batch RangeIndex.
+    # num_proc>1 is not used here: later batches set if_exists="append" only when
+    # offset>0, so concurrent workers can try to create the table twice.
+    dataset = Dataset.from_dict({"a": list(range(7))})
+    output_sqlite_path = os.path.join(tmp_path, "tmp.sql")
+    SqlDatasetWriter(
+        dataset, "t", "sqlite:///" + output_sqlite_path, batch_size=3, num_proc=1, index=True
+    ).write()
+    with contextlib.closing(sqlite3.connect(output_sqlite_path)) as con:
+        rows = con.execute("SELECT * FROM t").fetchall()
+    assert rows == [(i, i) for i in range(7)]
