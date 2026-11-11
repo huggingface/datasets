@@ -71,6 +71,22 @@ True
 Note that if the `device` argument is not provided to `with_format` then it will use the default
 device which is `jax.devices()[0]`.
 
+### Numeric dtypes
+
+The following applies to numeric `Value`, `List`, and `Array` features without missing values.
+
+By default, numeric scalars, lists, and arrays are formatted as `float32` for floating-point values. Integers become `int32` when `jax_enable_x64` is disabled (JAX's default), or `int64` when it is enabled, regardless of their stored dtype. This coercion is silent: converting `float64` to `float32` can lose precision or overflow to `inf`.
+
+Pass `dtype=None` to use the stored numeric dtype, subject to JAX's [64-bit mode](https://docs.jax.dev/en/latest/notebooks/Common_Gotchas_in_JAX.html#double-64bit-precision). To preserve `float64` or `int64`, enable that mode before accessing the data:
+
+```py
+>>> import jax
+>>> jax.config.update("jax_enable_x64", True)
+>>> ds = ds.with_format("jax", dtype=None)
+```
+
+With 64-bit mode disabled, `dtype=None` still returns `float32` for stored `float64` values. Enabling it alone does not override the formatter's `float32` default. Formatting does not change the stored data or feature types.
+
 ### N-dimensional arrays
 
 If your dataset consists of N-dimensional arrays, you will see that by default they are considered as the same tensor if the shape is fixed:
