@@ -5401,6 +5401,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
 
+        Non-null values in Image columns are exported as dictionaries with `path` and `bytes` fields,
+        even when decoding is enabled. With the default format and decoding enabled, access the image
+        column directly to retrieve decoded Pillow images, for example `ds["image"]`.
+
         Args:
             batch_size (`int`, *optional*): The size (number of rows) of the batches if `batched` is `True`.
                 Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
