@@ -1846,6 +1846,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             writer_batch_size = min(writer_batch_size, get_writer_batch_size_from_data_size(len(self), dataset_nbytes))
 
         fs: fsspec.AbstractFileSystem
+        dataset_path = os.fspath(dataset_path)
         fs, _ = url_to_fs(dataset_path, **(storage_options or {}))
 
         if not is_remote_filesystem(fs):
@@ -2022,6 +2023,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         fs: fsspec.AbstractFileSystem
+        dataset_path = os.fspath(dataset_path)
         fs, dataset_path = url_to_fs(dataset_path, **(storage_options or {}))
 
         dest_dataset_path = dataset_path
