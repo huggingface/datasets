@@ -20,19 +20,7 @@ NIFTI_EXTENSIONS = (".nii", ".nii.gz")
 NIFTI_DATATYPES = ("anat", "func", "dwi", "fmap", "perf", "pet", "mrs")
 # BIDS electrophysiology recording extensions, let through data files resolution at import time (no mne-bids
 # import there). Directory formats are found through the files they contain: `.res4` for CTF `.ds`
-EXTENSIONS = (
-    ".vhdr",
-    ".edf",
-    ".bdf",
-    ".set",
-    ".fif",
-    ".con",
-    ".sqd",
-    ".pdf",
-    ".res4",
-    ".nwb",
-    ".snirf",
-)
+EXTENSIONS = (".vhdr", ".edf", ".bdf", ".set", ".fif", ".con", ".sqd", ".pdf", ".res4", ".nwb", ".snirf")
 # BIDS directory formats (CTF `.ds`, MEF3 `.mefd`) hold one recording: map the files inside to the directory
 DIRECTORY_FORMAT_FILE = re.compile(r"(sub-[^/\\]*\.(?:ds|mefd))[/\\].*")
 # participants.tsv is tab-separated with `n/a` for missing values (real datasets also use the other spellings)

@@ -151,10 +151,6 @@ class Biosignal:
         if bytes_ is not None and fname.lower().endswith(".fif"):
             raw = mne.io.read_raw_fif(io.BytesIO(bytes_), preload=True, verbose="ERROR")
         elif bytes_ is not None:
-            if not os.path.splitext(fname)[1]:
-                raise ValueError(
-                    f"Decoding non-FIF biosignal bytes requires a file extension in 'path', got {path!r}."
-                )
             # tempfile until mne>=1.14 supports BytesIO across readers (mne-tools/mne-python#14516, #14517)
             with tempfile.TemporaryDirectory() as tmpdir:
                 tmp_path = Path(tmpdir) / fname
@@ -164,7 +160,7 @@ class Biosignal:
             import mne_bids
 
             try:
-                # get_bids_path_from_fname until mne-bids>=0.20 accepts path-like directly (mne-tools/mne-bids#1696)
+                # get_bids_path_from_fname until mne-bids>=0.21 accepts path-like directly (mne-tools/mne-bids#1696)
                 bids_path = mne_bids.get_bids_path_from_fname(path, check=False, verbose="ERROR")
                 raw = mne_bids.read_raw_bids(bids_path, verbose="ERROR")
             except Exception as err:
