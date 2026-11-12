@@ -5122,6 +5122,29 @@ def test_dataset_batch():
     assert batches[2]["text"] == ["Text 8", "Text 9"]
 
 
+@pytest.mark.parametrize("num_proc", [2, 3, 8])
+@pytest.mark.parametrize("drop_last_batch", [False, True])
+def test_dataset_batch_with_num_proc(num_proc, drop_last_batch):
+    ds = Dataset.from_dict({"id": list(range(10))})
+    expected = ds.batch(batch_size=3, drop_last_batch=drop_last_batch)["id"][:]
+    batched_ds = ds.batch(batch_size=3, drop_last_batch=drop_last_batch, num_proc=num_proc)
+    assert batched_ds["id"][:] == expected
+
+
+@pytest.mark.parametrize("num_proc", [2, 3])
+def test_dataset_map_batched_with_num_proc_gets_full_batches(num_proc):
+    ds = Dataset.from_dict({"id": list(range(10))})
+
+    def add_batch_len(batch):
+        return {"batch_len": [len(batch["id"])] * len(batch["id"])}
+
+    mapped_ds = ds.map(add_batch_len, batched=True, batch_size=3, num_proc=num_proc)
+    assert mapped_ds["batch_len"][:] == [3] * 9 + [1]
+    mapped_ds = ds.map(add_batch_len, batched=True, batch_size=3, drop_last_batch=True, num_proc=num_proc)
+    assert mapped_ds["id"][:] == list(range(9))
+    assert mapped_ds["batch_len"][:] == [3] * 9
+
+
 def test_dataset_batch_by_column():
     # Create a Dataset with a column to group by
     data = {
