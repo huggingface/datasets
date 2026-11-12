@@ -35,14 +35,9 @@ def test_repeated_csv_write_keeps_header_and_index():
 def test_repeated_sql_write_keeps_index_configuration():
     dataset = Dataset.from_dict({"value": [7, 8]})
     with sqlite3.connect(":memory:") as connection:
-        writer = SqlDatasetWriter(
-            dataset, "exported", connection, index=True, if_exists="replace"
-        )
+        writer = SqlDatasetWriter(dataset, "exported", connection, index=True, if_exists="replace")
         assert writer.write() == 2
         assert writer.write() == 2
-        columns = [
-            info[1]
-            for info in connection.execute("PRAGMA table_info(exported)")
-        ]
+        columns = [info[1] for info in connection.execute("PRAGMA table_info(exported)")]
         assert columns == ["index", "value"]
         assert connection.execute("SELECT value FROM exported").fetchall() == [(7,), (8,)]
