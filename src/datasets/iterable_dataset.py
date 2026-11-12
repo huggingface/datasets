@@ -2906,6 +2906,8 @@ class IterableDataset(DatasetInfoMixin):
         return self.num_shards
 
     def _iter_pytorch(self):
+        # _prepare_ex_iterable_for_iteration() consumes the loaded state, but the worker's shards need it too
+        starting_state_dict = self._starting_state_dict
         ex_iterable = self._prepare_ex_iterable_for_iteration()
         # Fix for fsspec when using multiprocess to avoid hanging in the ML training loop. (only required for fsspec >= 0.9.0)
         # See https://github.com/fsspec/gcsfs/issues/379
@@ -2941,8 +2943,8 @@ class IterableDataset(DatasetInfoMixin):
                 "examples_iterable": ex_iterable._init_state_dict(),
                 "epoch": self.epoch,
             }
-            if self._starting_state_dict and self.epoch == self._starting_state_dict["epoch"]:
-                ex_iterable.load_state_dict(self._starting_state_dict["examples_iterable"])
+            if starting_state_dict and self.epoch == starting_state_dict["epoch"]:
+                ex_iterable.load_state_dict(starting_state_dict["examples_iterable"])
                 # re-point at the live ex_iterable state so progress tracking
                 self._state_dict["examples_iterable"] = ex_iterable._state_dict
 
@@ -3052,6 +3054,8 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable.load_state_dict(self._starting_state_dict["examples_iterable"])
             # re-point at the live ex_iterable state so progress tracking
             self._state_dict["examples_iterable"] = ex_iterable._state_dict
+            # resume once: the next pass over the dataset starts from the beginning again
+            self._starting_state_dict = None
         return ex_iterable
 
     def __iter__(self):

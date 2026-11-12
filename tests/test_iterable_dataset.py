@@ -2786,6 +2786,41 @@ def test_iterable_dataset_state_dict_not_frozen_by_sibling_dataset(source_kind, 
     assert seen + [example["id"] for example in resumed] == expected
 
 
+def test_iterable_dataset_load_state_dict_resumes_only_once():
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"file{i}.txt" for i in range(4)]})
+    all_examples = list(IterableDataset(ex_iterable))
+
+    dataset = IterableDataset(ex_iterable)
+    it = iter(dataset)
+    consumed = [next(it) for _ in range(3)]
+    state_dict = dataset.state_dict()
+
+    resumed = IterableDataset(ex_iterable)
+    resumed.load_state_dict(state_dict)
+    assert consumed + list(resumed) == all_examples
+    # later passes in the same epoch read the whole dataset again
+    assert list(resumed) == all_examples
+    assert list(resumed) == all_examples
+
+
+def test_iterable_dataset_load_state_dict_waits_for_its_epoch():
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"file{i}.txt" for i in range(4)]})
+    all_examples = list(IterableDataset(ex_iterable))
+
+    dataset = IterableDataset(ex_iterable)
+    dataset.set_epoch(1)
+    it = iter(dataset)
+    consumed = [next(it) for _ in range(3)]
+    state_dict = dataset.state_dict()
+
+    resumed = IterableDataset(ex_iterable)
+    resumed.load_state_dict(state_dict)
+    # a pass in another epoch does not use up the loaded state
+    assert list(resumed) == all_examples
+    resumed.set_epoch(1)
+    assert consumed + list(resumed) == list(dataset)
+
+
 @pytest.mark.parametrize("method", ["skip", "take"])
 @pytest.mark.parametrize("source_kind", ["python", "arrow"])
 @pytest.mark.parametrize("shuffle_before", [False, True])
@@ -3772,6 +3807,34 @@ def test_resume_dataloader_twice(num_workers):
     dl.load_state_dict(state_2)
     remainder = list(dl)
     assert consumed + remainder == all_examples
+
+
+@require_torchdata_stateful_dataloader
+@pytest.mark.parametrize("num_workers", [0, 1])
+def test_resume_dataloader_then_more_epochs(num_workers):
+    from torchdata.stateful_dataloader import StatefulDataLoader
+
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"file{i}.txt" for i in range(4)]})
+
+    def make_dataloader():
+        return StatefulDataLoader(
+            IterableDataset(ex_iterable), batch_size=None, num_workers=num_workers, persistent_workers=num_workers > 0
+        )
+
+    all_examples = list(make_dataloader())
+
+    dl = make_dataloader()
+    it = iter(dl)
+    consumed = [next(it) for _ in range(2)]
+    state_dict = dl.state_dict()
+    del it
+
+    dl = make_dataloader()
+    dl.load_state_dict(state_dict)
+    assert consumed + list(dl) == all_examples
+    # the epochs after the resumed one start from the beginning
+    assert list(dl) == all_examples
+    assert list(dl) == all_examples
 
 
 @pytest.mark.parametrize("consume", [1, 500, 1500])
