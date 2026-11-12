@@ -194,3 +194,39 @@ def test_get_updated_dataset_card_keeps_existing_splits_when_appending():
 
     data_files = MetadataConfigs.from_dataset_card_data(dataset_card.data)["default"]["data_files"]
     assert [entry["split"] for entry in data_files] == ["train", "test"]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("explicit_default", [False, True])
+@pytest.mark.parametrize("config_name", ["existing", "new"])
+def test_get_updated_dataset_card_sets_default_without_restoring_old_data_files(
+    tmp_path, explicit_default, config_name
+):
+    fs = DirFileSystem(str(tmp_path))
+    push_kwargs = {
+        "fs": fs,
+        "splits_info": [SplitInfo(name="train", num_bytes=40, num_examples=5)],
+        "features": Features({"x": Value("int64")}),
+        "uploaded_sizes": [40],
+        "deleted_sizes": [0],
+        "remove_other_splits": False,
+    }
+    original_card, _ = _get_updated_dataset_card(
+        **push_kwargs,
+        config_name="existing",
+        data_dir="original_data",
+        set_default=True if explicit_default else None,
+    )
+    fs.write_text(config.REPOCARD_FILENAME, str(original_card), encoding="utf-8")
+
+    updated_card, _ = _get_updated_dataset_card(
+        **push_kwargs, config_name=config_name, data_dir="updated_data", set_default=True
+    )
+
+    metadata_configs = MetadataConfigs.from_dataset_card_data(updated_card.data)
+    assert metadata_configs.get_default_config_name() == config_name
+    assert metadata_configs[config_name]["default"] is True
+    assert metadata_configs[config_name]["data_files"] == [{"split": "train", "path": "updated_data/train-*"}]
+    if config_name != "existing":
+        assert not metadata_configs["existing"].get("default", False)
+        assert metadata_configs["existing"]["data_files"] == [{"split": "train", "path": "original_data/train-*"}]
