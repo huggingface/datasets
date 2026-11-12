@@ -207,10 +207,11 @@ def _save_torchTensor(pickler, obj):
         return tensor
 
     log(pickler, f"To: {obj}")
+    tensor = obj.detach().resolve_conj().resolve_neg()
     if obj.dtype == torch.bfloat16:
-        args = (obj.detach().to(torch.float).cpu().numpy(), torch.bfloat16)
+        args = (tensor.to(torch.float).cpu().numpy(), torch.bfloat16)
     else:
-        args = (obj.detach().cpu().numpy(),)
+        args = (tensor.cpu().numpy(),)
     pickler.save_reduce(create_torchTensor, args, obj=obj)
     log(pickler, "# To")
 
