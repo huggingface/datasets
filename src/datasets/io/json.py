@@ -90,6 +90,9 @@ class JsonDatasetWriter:
         self.encoding = "utf-8"
         self.storage_options = storage_options or {}
         self.to_json_kwargs = to_json_kwargs
+        # The dataset's feature schema stays fixed for the lifetime of this writer.
+        # Avoid traversing nested feature definitions for every exported batch.
+        self._json_field_paths = tuple(get_json_field_paths_from_feature(dataset.features))
 
     def write(self) -> int:
         _ = self.to_json_kwargs.pop("path_or_buf", None)
@@ -144,7 +147,7 @@ class JsonDatasetWriter:
                 # so to_pandas can still convert it without this optional concatenation.
                 pass
         batch = batch.to_pandas(integer_object_nulls=True)
-        for json_field_path in get_json_field_paths_from_feature(self.dataset.features):
+        for json_field_path in self._json_field_paths:
             col, *json_field_subpath = json_field_path
             batch[col] = batch[col].apply(partial(json_decode_field, json_field_path=json_field_subpath))
         json_str = batch.to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
