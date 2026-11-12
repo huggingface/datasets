@@ -1,0 +1,9 @@
+MODEL        1
+ATOM      1  N   GLY A   1       0.000   0.000   0.000  1.00  0.00           N
+ATOM      2  CA  GLY A   1       1.000   0.000   0.000  1.00  0.00           C
+ENDMDL
+MODEL        2
+ATOM      1  N   GLY A   1       0.500   0.000   0.000  1.00  0.00           N
+ATOM      2  CA  GLY A   1       1.500   0.000   0.000  1.00  0.00           C
+ENDMDL
+END

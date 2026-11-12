@@ -4,9 +4,8 @@ FASTQ is a text-based format for storing nucleotide sequences together with
 their quality scores, widely used for high-throughput sequencing data.
 
 This implementation uses a lightweight pure Python parser based on Heng Li's readfq.py.
-The parsed columns need no external dependency; the ``record`` column holds each
-record's raw bytes as a ``BioSequence`` and decodes to a Biopython ``SeqRecord``
-when biopython is installed (drop it with ``columns`` to stay dependency-free).
+No external parsing dependency is needed. The ``record`` column holds each
+record's original bytes; use ``columns`` to omit it when only parsed fields are needed.
 """
 
 import itertools
@@ -72,8 +71,6 @@ class Fastq(datasets.ArrowBasedBuilder):
         columns = self._get_columns()
         if features is None:
             features = datasets.Features.from_arrow_schema(self._get_schema(columns))
-            if "record" in features:
-                features["record"] = datasets.BioSequence(format="fastq")
         if features is not None and self.config.columns is not None:
             missing = [col for col in self.config.columns if col not in features]
             if missing:
@@ -236,7 +233,7 @@ class Fastq(datasets.ArrowBasedBuilder):
                 # Use large_string for sequences and quality that can be very long
                 fields.append(pa.field(col, pa.large_string()))
             elif col == "record":
-                fields.append(pa.field(col, datasets.BioSequence().pa_type))
+                fields.append(pa.field(col, pa.binary()))
             else:
                 fields.append(pa.field(col, pa.string()))
         return pa.schema(fields)
@@ -296,7 +293,7 @@ class Fastq(datasets.ArrowBasedBuilder):
                     if "quality" in columns:
                         batch["quality"].append(quality)
                     if include_record:
-                        batch["record"].append({"bytes": record[4], "path": None})
+                        batch["record"].append(record[4])
                     batch_bytes += record_bytes
 
                     # Yield batch when it reaches batch_size (record count limit)

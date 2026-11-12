@@ -276,30 +276,40 @@ and loading it never runs anything:
 
 [PDB](https://www.wwpdb.org/documentation/file-format) (Protein Data Bank) is the legacy fixed-width format for representing 3D macromolecular structures. While mmCIF is the modern standard, PDB remains widely used and many historical datasets are in this format.
 
-Each row is one structure file, following the same folder layout
+Each row is one structure, following the same folder layout
 as [`ImageFolder`]: subfolder names become labels and a `metadata.csv`/`metadata.jsonl`
-file adds per-structure metadata. The `structure` column uses [`BioStructure`] with
-`format="pdb"` and decodes to a `Bio.PDB.Structure.Structure` object containing the
-file's models, chains, residues, and atoms. Decoding requires `biopython`; without it,
-accessing a decoded structure raises `ImportError`.
+file adds per-structure metadata. The `structure` column uses the [`AtomicStructure`] feature: each file is
+stored unchanged as a path or bytes and loaded lazily into an AtomWorks `AtomArrayPlus`.
+Creating the dataset does not parse the structures. Decoding requires AtomWorks 3.1.0+ and Python 3.12+;
+see the [installation and compatibility notes](atomic_structure_dataset).
 
 To load PDB files from a directory:
 
 ```py
->>> from datasets import BioStructure, load_dataset
+>>> from datasets import load_dataset
 >>> dataset = load_dataset("pdb", data_dir="path/to/structures")
 >>> dataset["train"].features["structure"]
-BioStructure(format='pdb', decode=True)
+AtomicStructure(parse_config=None, assembly=None, decode=True)
 ```
-
-To access the underlying `{"bytes": ..., "path": ...}` dictionary without decoding
-or requiring biopython, cast the column with `decode=False`:
 
 ```py
->>> dataset = dataset.cast_column("structure", BioStructure(format="pdb", decode=False))
+>>> atoms = dataset["train"][0]["structure"]
+>>> atoms.coord.shape
+(1234, 3)
 ```
 
-Extensions `.pdb` and `.ent` are supported.
+Default decoding uses minimal parsing: it keeps waters and hydrogens without completing missing atoms,
+but selects alternate conformers, normalizes identifiers and infers bonds. Use `parse_config` to opt into
+further preparation and `assembly` to build a biological assembly, without altering stored data.
+`decode=False` returns the original file reference. For example, opt into water removal:
+
+```py
+>>> from datasets import AtomicStructure, Features, load_dataset
+>>> features = Features({"structure": AtomicStructure(parse_config={"remove_waters": True})})
+>>> dataset = load_dataset("pdb", data_dir="path/to/structures", features=features)
+```
+
+Extensions `.pdb` and `.ent` are supported, optionally compressed with gzip, bz2 or zstd.
 
 ### SQL
 
@@ -344,36 +354,46 @@ To load remote WebDatasets via HTTP, pass the URLs instead:
 
 [mmCIF](https://mmcif.wwpdb.org/) (macromolecular Crystallographic Information File) is the modern standard format for representing 3D macromolecular structures, used by the Protein Data Bank (PDB) since 2014.
 
-Each row is one structure file, following the same folder layout
+Each row is one structure, following the same folder layout
 as [`ImageFolder`]: subfolder names become labels and a `metadata.csv`/`metadata.jsonl`
-file adds per-structure metadata. The `structure` column uses [`BioStructure`] with
-`format="mmcif"` and decodes to a `Bio.PDB.Structure.Structure` object containing the
-file's models, chains, residues, and atoms. Decoding requires `biopython`; without it,
-accessing a decoded structure raises `ImportError`.
+file adds per-structure metadata. The `structure` column uses the [`AtomicStructure`] feature: each file is
+stored unchanged as a path or bytes and loaded lazily into an AtomWorks `AtomArrayPlus`.
+Creating the dataset does not parse the structures. Decoding requires AtomWorks 3.1.0+ and Python 3.12+;
+see the [installation and compatibility notes](atomic_structure_dataset).
 
-To load mmCIF files from a directory:
+To load mmCIF or BinaryCIF files from a directory:
 
 ```py
->>> from datasets import BioStructure, load_dataset
+>>> from datasets import load_dataset
 >>> dataset = load_dataset("mmcif", data_dir="path/to/structures")
 >>> dataset["train"].features["structure"]
-BioStructure(format='mmcif', decode=True)
+AtomicStructure(parse_config=None, assembly=None, decode=True)
 ```
-
-To access the underlying `{"bytes": ..., "path": ...}` dictionary without decoding
-or requiring biopython, cast the column with `decode=False`:
 
 ```py
->>> dataset = dataset.cast_column("structure", BioStructure(format="mmcif", decode=False))
+>>> atoms = dataset["train"][0]["structure"]
+>>> atoms.coord.shape
+(1234, 3)
 ```
 
-Extensions `.cif` and `.mmcif` are supported.
+Default decoding uses minimal parsing: it keeps waters and hydrogens without completing missing atoms,
+but selects alternate conformers, normalizes identifiers and infers bonds. Use `parse_config` to opt into
+further preparation and `assembly` to build a biological assembly, without altering stored data.
+`decode=False` returns the original file reference. For example, opt into water removal:
+
+```py
+>>> from datasets import AtomicStructure, Features, load_dataset
+>>> features = Features({"structure": AtomicStructure(parse_config={"remove_waters": True})})
+>>> dataset = load_dataset("mmcif", data_dir="path/to/structures", features=features)
+```
+
+Extensions `.cif`, `.mmcif` and `.bcif` (BinaryCIF) are supported, optionally compressed with gzip, bz2 or zstd.
 
 ### GenBank
 
 [GenBank](https://www.ncbi.nlm.nih.gov/genbank/) is a text-based format from NCBI for nucleotide and protein sequences together with their annotations. Files use the `.gb`, `.gbk`, or `.genbank` extension (optionally compressed), and each record's `FEATURES` section is decoded into structured objects.
 
-Alongside the lightweight parsed columns, each row includes a `record` column of type `BioSequence(format="genbank")`, which decodes to a `Bio.SeqRecord.SeqRecord` when `biopython` is installed. Cast this column to `BioSequence(format="genbank", decode=False)` to access the original record bytes as `{"bytes": ..., "path": None}`, or omit it with `columns=[...]` to use only the parsed columns without `biopython`.
+Alongside the lightweight parsed columns, each row includes a `record` column of type `Value("binary")` containing the original record bytes, including sections such as REFERENCE and COMMENT. No external parsing library is required. Omit it with `columns=[...]` when only the parsed columns are needed.
 
 To load GenBank files:
 
@@ -409,9 +429,9 @@ The loader returns five columns:
 | `description` | string | Full description line (everything after id) |
 | `sequence` | large_string | The nucleotide sequence |
 | `quality` | large_string | ASCII-encoded quality scores |
-| `record` | [`BioSequence`] | With `format="fastq"`, stores each record's original bytes, decoded to a Biopython `SeqRecord` when accessed. |
+| `record` | `bytes` | Each record's original FASTQ bytes, including its header and quality lines. |
 
-Reading the parsed columns requires no Biopython; exclude `record` with `columns`, or use `dataset.cast_column("record", BioSequence(decode=False))` (imported from `datasets`) to access its `{"bytes": ..., "path": None}` storage without decoding.
+All columns can be read without an external parsing library. Use `columns` to exclude `record` when only the parsed columns are needed.
 
 Load only specific columns:
 
@@ -436,9 +456,9 @@ This returns a dataset with the following columns:
 - `id`: Sequence identifier (first word after `>`)
 - `description`: Full description line (everything after the id)
 - `sequence`: The biological sequence (DNA/RNA/protein)
-- `record`: A [`BioSequence`] with `format="fasta"` storing each record's original bytes, decoded to a Biopython `SeqRecord` when accessed.
+- `record`: Each record's original FASTA bytes, stored as `Value("binary")`.
 
-Reading the parsed columns requires no Biopython; exclude `record` with `columns`, or use `dataset.cast_column("record", BioSequence(decode=False))` (imported from `datasets`) to access its `{"bytes": ..., "path": None}` storage without decoding.
+All columns can be read without an external parsing library. Use `columns` to exclude `record` when only the parsed columns are needed.
 
 You can also load only specific columns:
 

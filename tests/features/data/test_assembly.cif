@@ -1,0 +1,61 @@
+data_TEST
+#
+_entry.id   TEST
+#
+_cell.length_a           50.000
+_cell.length_b           50.000
+_cell.length_c           50.000
+_cell.angle_alpha        90.00
+_cell.angle_beta         90.00
+_cell.angle_gamma        90.00
+#
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_comp_id
+_atom_site.label_asym_id
+_atom_site.label_seq_id
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.occupancy
+_atom_site.B_iso_or_equiv
+_atom_site.label_alt_id
+_atom_site.pdbx_PDB_ins_code
+_atom_site.auth_asym_id
+_atom_site.auth_seq_id
+_atom_site.pdbx_PDB_model_num
+ATOM   1  N  N   ALA A 1  0.000   0.000   0.000  1.00 20.00 . ? A 1 1
+ATOM   2  C  CA  ALA A 1  1.458   0.000   0.000  1.00 20.00 . ? A 1 1
+ATOM   3  C  C   ALA A 1  2.009   1.420   0.000  1.00 20.00 . ? A 1 1
+ATOM   4  O  O   ALA A 1  1.251   2.390   0.000  1.00 20.00 . ? A 1 1
+ATOM   5  C  CB  ALA A 1  1.986  -0.760  -1.217  1.00 20.00 . ? A 1 1
+ATOM   6  N  N   GLY A 2  3.317   1.540   0.000  1.00 20.00 . ? A 2 1
+ATOM   7  C  CA  GLY A 2  3.920   2.860   0.000  1.00 20.00 . ? A 2 1
+ATOM   8  C  C   GLY A 2  5.440   2.780   0.000  1.00 20.00 . ? A 2 1
+ATOM   9  O  O   GLY A 2  6.080   1.730   0.000  1.00 20.00 . ? A 2 1
+#
+_pdbx_struct_assembly_gen.assembly_id       1
+_pdbx_struct_assembly_gen.oper_expression   1,2
+_pdbx_struct_assembly_gen.asym_id_list      A
+#
+loop_
+_pdbx_struct_oper_list.id
+_pdbx_struct_oper_list.type
+_pdbx_struct_oper_list.vector[1]
+_pdbx_struct_oper_list.matrix[1][1]
+_pdbx_struct_oper_list.matrix[1][2]
+_pdbx_struct_oper_list.matrix[1][3]
+_pdbx_struct_oper_list.vector[2]
+_pdbx_struct_oper_list.matrix[2][1]
+_pdbx_struct_oper_list.matrix[2][2]
+_pdbx_struct_oper_list.matrix[2][3]
+_pdbx_struct_oper_list.vector[3]
+_pdbx_struct_oper_list.matrix[3][1]
+_pdbx_struct_oper_list.matrix[3][2]
+_pdbx_struct_oper_list.matrix[3][3]
+1 'identity operation'         0.0  1.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 1.0
+2 'crystal symmetry operation' 10.0 1.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 1.0
+#

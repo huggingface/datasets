@@ -5,7 +5,7 @@ import os
 import pyarrow as pa
 import pytest
 
-from datasets import BioSequence, DatasetInfo, Features, Value, load_dataset
+from datasets import DatasetInfo, Features, Value, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.download.streaming_download_manager import _get_extraction_protocol
@@ -13,11 +13,6 @@ from datasets.packaged_modules.fasta.fasta import Fasta, FastaConfig
 from datasets.utils.file_utils import xopen
 
 from ..utils import require_zstandard
-
-
-require_biopython = pytest.mark.skipif(
-    not __import__("datasets").config.BIOPYTHON_AVAILABLE, reason="biopython is not installed"
-)
 
 
 def _compression_uri(path):
@@ -503,7 +498,7 @@ def test_fasta_preserves_supplied_info_features(fasta_file, columns):
             "id": Value("string"),
             "description": Value("string"),
             "sequence": Value("large_string"),
-            "record": BioSequence(format="fasta", decode=False),
+            "record": Value("binary"),
         }
     )
     fasta = Fasta(info=DatasetInfo(features=features, description="custom info"), columns=columns)
@@ -521,28 +516,13 @@ def test_fasta_record_features(fasta_file):
             "id": Value("string"),
             "description": Value("string"),
             "sequence": Value("large_string"),
-            "record": BioSequence(format="fasta"),
+            "record": Value("binary"),
         }
     )
     assert fasta.info.features == expected
     _, table = next(fasta._generate_tables([[fasta_file]]))
-    assert table.schema.field("record").type == BioSequence().pa_type
+    assert table.schema.field("record").type == pa.binary()
     assert Features.from_arrow_schema(table.schema) == expected
-
-
-@require_biopython
-@pytest.mark.parametrize("streaming", [False, True])
-def test_fasta_record_decoding(fasta_file, streaming):
-    from Bio.SeqRecord import SeqRecord
-
-    dataset = load_dataset("fasta", data_files=fasta_file, split="train", streaming=streaming)
-    assert dataset.features["record"] == BioSequence(format="fasta")
-    rows = list(dataset)
-    assert len(rows) == 3
-    for row in rows:
-        assert isinstance(row["record"], SeqRecord)
-        assert row["record"].id == row["id"]
-        assert str(row["record"].seq) == row["sequence"]
 
 
 @pytest.mark.parametrize(
@@ -561,7 +541,7 @@ def test_fasta_record_bytes(fixture_name, request):
     records = [table.to_pydict()["record"][0] for _, table in tables]
     with xopen(filename, "rb") as f:
         expected = [b">" + record for record in f.read().split(b">")[1:]]
-    assert records == [{"bytes": record, "path": None} for record in expected]
+    assert records == expected
 
 
 @pytest.mark.parametrize("newline", [b"\n", b"\r\n", b"\r"])
@@ -577,20 +557,10 @@ def test_fasta_record_preserves_raw_lines(tmp_path, newline, compressed):
     filename.write_bytes(gzip.compress(content) if compressed else content)
     path = _compression_uri(filename) if compressed else str(filename)
     _, table = next(Fasta(columns=["record"])._generate_tables([[path]]))
-    assert table.to_pydict() == {"record": [{"bytes": first, "path": None}, {"bytes": second, "path": None}]}
+    assert table.to_pydict() == {"record": [first, second]}
 
 
-def test_fasta_record_cast_decode_false(fasta_file, monkeypatch):
-    monkeypatch.setattr("datasets.config.BIOPYTHON_AVAILABLE", False)
-    dataset = load_dataset("fasta", data_files=fasta_file, split="train")
-    dataset = dataset.cast_column("record", BioSequence(decode=False))
-    with open(fasta_file, "rb") as f:
-        expected = [b">" + record for record in f.read().split(b">")[1:]]
-    assert dataset["record"] == [{"bytes": record, "path": None} for record in expected]
-
-
-def test_fasta_columns_drop_record_without_biopython(fasta_file, monkeypatch):
-    monkeypatch.setattr("datasets.config.BIOPYTHON_AVAILABLE", False)
+def test_fasta_columns_drop_record(fasta_file):
     dataset = load_dataset("fasta", data_files=fasta_file, split="train", columns=["id", "sequence"])
     assert dataset.features == Features({"id": Value("string"), "sequence": Value("large_string")})
     assert len(list(dataset)) == 3
@@ -631,3 +601,12 @@ def test_fasta_explicit_features_without_record(fasta_file):
     assert table.column_names == ["id", "description", "sequence"]
     with pytest.raises(ValueError, match="Invalid feature column"):
         Fasta(features=Features({"id": Value("string"), "quality": Value("string")}))
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+def test_fasta_record_loading(fasta_file, streaming):
+    dataset = load_dataset("fasta", data_files=fasta_file, split="train", streaming=streaming)
+    assert dataset.features["record"] == Value("binary")
+    with open(fasta_file, "rb") as f:
+        expected = [b">" + record for record in f.read().split(b">")[1:]]
+    assert [row["record"] for row in dataset] == expected
