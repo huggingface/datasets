@@ -48,6 +48,66 @@ def test_pdf_feature_decode_example_remote_non_hub_url(shared_datadir, monkeypat
 
 
 @require_pdfplumber
+@pytest.mark.parametrize("use_context_manager", [False, True])
+def test_pdf_feature_decode_remote_closes_stream(monkeypatch, use_context_manager):
+    pdf_path = Path(__file__).parent / "data" / "test_pdf.pdf"
+    stream = pdf_path.open("rb")
+    monkeypatch.setattr("datasets.features.pdf.xopen", lambda *args, **kwargs: stream)
+    try:
+        decoded_example = Pdf().decode_example({"path": "https://example.com/a.pdf", "bytes": None})
+        assert decoded_example.stream is stream
+        assert not stream.closed
+        # Page content is still read lazily, after decode_example returns.
+        assert decoded_example.pages[0].extract_text()
+        if use_context_manager:
+            with decoded_example as pdf:
+                assert pdf.pages[0].extract_text()
+        else:
+            decoded_example.close()
+        assert stream.closed
+    finally:
+        stream.close()
+
+
+@require_pdfplumber
+def test_pdf_feature_decode_remote_closes_stream_on_invalid_pdf(monkeypatch):
+    try:
+        from pdfplumber.utils.exceptions import PdfminerException
+    except ImportError:
+        from pdfminer.pdfparser import PDFSyntaxError as PdfminerException
+
+    stream = BytesIO(b"not a PDF")
+    monkeypatch.setattr("datasets.features.pdf.xopen", lambda *args, **kwargs: stream)
+    try:
+        # pdfplumber wraps PDFSyntaxError in newer releases.
+        with pytest.raises(PdfminerException, match="No /Root object"):
+            Pdf().decode_example({"path": "https://example.com/invalid.pdf", "bytes": None})
+        assert stream.closed
+    finally:
+        stream.close()
+
+
+@require_pdfplumber
+@pytest.mark.parametrize("error_type", [RuntimeError, KeyboardInterrupt])
+def test_pdf_feature_decode_remote_closes_stream_on_error(monkeypatch, error_type):
+    stream = BytesIO(b"unused")
+    error = error_type("decoding interrupted")
+    monkeypatch.setattr("datasets.features.pdf.xopen", lambda *args, **kwargs: stream)
+
+    def raise_error(*args, **kwargs):
+        raise error
+
+    monkeypatch.setattr("pdfplumber.PDF.__init__", raise_error)
+    try:
+        with pytest.raises(error_type) as caught:
+            Pdf().decode_example({"path": "https://example.com/a.pdf", "bytes": None})
+        assert caught.value is error
+        assert stream.closed
+    finally:
+        stream.close()
+
+
+@require_pdfplumber
 def test_dataset_with_pdf_feature(shared_datadir):
     import pdfplumber
 
