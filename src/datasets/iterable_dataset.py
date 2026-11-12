@@ -3413,7 +3413,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_csv(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3456,7 +3456,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_json(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3503,7 +3503,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_parquet(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
@@ -3524,11 +3524,11 @@ class IterableDataset(DatasetInfoMixin):
                 Dataset features.
             keep_in_memory (`bool`, defaults to `False`):
                 Whether to copy the data in-memory.
-            columns (`List[str]`, *optional*):
+            columns (`Sequence[str]`, *optional*):
                 If not `None`, only these columns will be read from the file.
                 A column name may be a prefix of a nested field, e.g. 'a' will select
                 'a.b', 'a.c', and 'a.d.e'.
-            filters (`Union[pyarrow.dataset.Expression, list[tuple], list[list[tuple]]]`, *optional*):
+            filters (`Union[pyarrow.dataset.Expression, Sequence[tuple], Sequence[Sequence[tuple]]]`, *optional*):
                 Return only the rows matching the filter.
                 If possible the predicate will be pushed down to exploit the partition information
                 or internal metadata found in the data source, e.g. Parquet statistics.
@@ -3588,7 +3588,7 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_text(
-        path_or_paths: Union[PathLike, list[PathLike]],
+        path_or_paths: Union[PathLike, Sequence[PathLike]],
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
