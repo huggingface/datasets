@@ -40,6 +40,14 @@ To load zipped CSV files:
 >>> dataset = load_dataset("csv", data_files=data_files)
 ```
 
+To map different files of the same ZIP archive to different splits, chain the path of each file in the archive with the URL of the archive using `zip://<path in the archive>::<archive URL>`. This also works for local archives and with `streaming=True`. For a remote archive, the server must support HTTP range requests, because only the needed parts of the archive are read:
+
+```py
+>>> url = "https://domain.org/data.zip"
+>>> data_files = {"train": "zip://train.csv::" + url, "test": "zip://test.csv::" + url}
+>>> dataset = load_dataset("csv", data_files=data_files)
+```
+
 ## Pandas DataFrames
 
 🤗 Datasets also supports loading datasets from [Pandas DataFrames](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html) with the [`~datasets.Dataset.from_pandas`] method:
