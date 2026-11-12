@@ -182,7 +182,7 @@ class JsonDatasetWriter:
                 for json_str in hf_tqdm(
                     pool.imap(
                         self._batch_json,
-                        [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
+                        ((offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)),
                     ),
                     total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
                     unit="ba",
