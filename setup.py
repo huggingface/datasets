@@ -202,6 +202,9 @@ TESTS_REQUIRE = [
     "teich==0.1.5",
     "mne>=1.6.0",
     "mne-bids>=0.14",
+    "edfio>=0.4.10",
+    "pybv>=0.7.3",
+    "eeglabio>=0.0.2",
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [

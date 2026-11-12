@@ -287,6 +287,15 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], list[str]]) -> di
             return {split: [split_pattern.format(split=split)] for split in sorted_splits}
     # then check the default patterns based on train/valid/test splits
     for patterns_dict in ALL_DEFAULT_PATTERNS:
+        if patterns_dict == DEFAULT_PATTERNS_BIDS:
+            for marker in ("dataset_description.json", "participants.tsv"):
+                try:
+                    pattern_resolver(marker)
+                    break
+                except FileNotFoundError:
+                    pass
+            else:
+                continue
         non_empty_splits = []
         for split, patterns in patterns_dict.items():
             for pattern in patterns:

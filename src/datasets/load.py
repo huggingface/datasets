@@ -21,6 +21,7 @@ import inspect
 import json
 import os
 import posixpath
+import re
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
@@ -82,6 +83,7 @@ from .utils.file_utils import (
     get_datasets_user_agent,
     is_relative_path,
     relative_to_absolute_path,
+    xexists,
 )
 from .utils.hub import hf_dataset_url
 from .utils.info_utils import VerificationMode, is_small_dataset
@@ -222,8 +224,25 @@ def infer_module_for_data_files_list(
         for suffix in xbasename(filepath).split(".")[1:]
     )
     if extensions_counter:
-        if all(xbasename(filepath).startswith("sub-") for filepath in data_files_list):
-            return "bids", {}
+        checked_roots = set()
+        for filepath in data_files_list:
+            match = re.match(
+                r"^((?:.*/)?)(sub-[A-Za-z0-9]+)/(?:ses-[A-Za-z0-9]+/)?"
+                r"(?:eeg|meg|ieeg|emg|nirs|anat|func|dwi|fmap|perf|pet|mrs)/\2_",
+                filepath.replace("\\", "/"),
+            )
+            if (
+                not match
+                or match[1] in checked_roots
+                or not filepath.endswith((*_MODULE_TO_METADATA_EXTENSIONS["bids"], ".nii", ".nii.gz"))
+            ):
+                continue
+            checked_roots.add(match[1])
+            if any(
+                xexists(xjoin(match[1], marker), download_config=download_config)
+                for marker in ("dataset_description.json", "participants.tsv")
+            ):
+                return "bids", {}
 
         def sort_key(ext_count: tuple[tuple[str, bool], int]) -> tuple[int, bool]:
             """Sort by count and set ".parquet" as the favorite in case of a draw, and ignore metadata files"""

@@ -1,6 +1,8 @@
 """Loader for BIDS (Brain Imaging Data Structure) datasets: one row per recording."""
 
+import glob
 import json
+import os
 import re
 from collections import defaultdict
 from collections.abc import Iterator
@@ -12,15 +14,13 @@ import pyarrow.csv as pa_csv
 
 import datasets
 from datasets.builder import Key
-from datasets.download.download_config import DownloadConfig
-from datasets.utils.file_utils import xbasename, xdirname, xexists, xglob, xjoin, xopen
 
 
 NIFTI_EXTENSIONS = (".nii", ".nii.gz")
 NIFTI_DATATYPES = ("anat", "func", "dwi", "fmap", "perf", "pet", "mrs")
 # BIDS electrophysiology recording extensions, let through data files resolution at import time (no mne-bids
 # import there). Directory formats are found through the files they contain: `.res4` for CTF `.ds`
-EXTENSIONS = (".vhdr", ".edf", ".bdf", ".set", ".fif", ".con", ".sqd", ".pdf", ".res4", ".nwb", ".snirf")
+EXTENSIONS = (".vhdr", ".edf", ".bdf", ".set", ".fif", ".con", ".sqd", ".pdf", ".res4", ".mef", ".nwb", ".snirf")
 # BIDS directory formats (CTF `.ds`, MEF3 `.mefd`) hold one recording: map the files inside to the directory
 DIRECTORY_FORMAT_FILE = re.compile(r"(sub-[^/\\]*\.(?:ds|mefd))[/\\].*")
 # participants.tsv is tab-separated with `n/a` for missing values (real datasets also use the other spellings)
@@ -107,7 +107,6 @@ class Bids(datasets.ArrowBasedBuilder):
         from mne_bids.config import ALLOWED_DATATYPE_EXTENSIONS, ALLOWED_PATH_ENTITIES_SHORT, EPHY_ALLOWED_DATATYPES
 
         cfg = self.config
-        download_config = dl_manager.download_config
         ephys_extensions = [ext for dt in EPHY_ALLOWED_DATATYPES for ext in ALLOWED_DATATYPE_EXTENSIONS[dt]]
         filters = {
             "sub": cfg.subjects,
@@ -126,17 +125,17 @@ class Bids(datasets.ArrowBasedBuilder):
         recordings = {split: [] for split in cfg.data_files}
         for split, files in cfg.data_files.items():
             for f in dict.fromkeys(DIRECTORY_FORMAT_FILE.sub(r"\1", f) for f in files):
-                stem, _, ext = xbasename(f).partition(".")
+                stem, _, ext = os.path.basename(f).partition(".")
                 *pairs, suffix = stem.split("_")
                 entities = dict(pair.split("-", 1) for pair in pairs if "-" in pair)
                 # the recording, its datatype directory, [session directory,] subject directory, BIDS root
                 dirs = [f]
                 for _ in range(3 + ("ses" in entities)):
-                    dirs.append(xdirname(dirs[-1]))
+                    dirs.append(os.path.dirname(dirs[-1]))
                 row = {
                     "nifti" if f.endswith(NIFTI_EXTENSIONS) else "biosignal": {"path": f, "bytes": None},
                     **{ALLOWED_PATH_ENTITIES_SHORT.get(k, k): v for k, v in entities.items() if k != "split"},
-                    "datatype": xbasename(dirs[1]),
+                    "datatype": os.path.basename(dirs[1]),
                     "suffix": suffix,
                     "extension": f".{ext}",
                 }
@@ -146,24 +145,25 @@ class Bids(datasets.ArrowBasedBuilder):
                     continue  # MEG calibration file, or a split FIF continuation (the recording is read from split-01)
                 recordings[split].append((row, set(pairs), dirs))
 
-        # 2. Read participants.tsv and the dataset-level JSON sidecars once per BIDS root
+        # 2. Read participants.tsv once per root and index JSON sidecars once per directory
         sidecars = defaultdict(set)  # directory -> JSON sidecars in it
-        for f in (f for files in cfg.data_files.values() for f in files if f.endswith(".json")):
-            sidecars[xdirname(f)].add(f)
+        for directory in dict.fromkeys(
+            directory for recs in recordings.values() for _, _, dirs in recs for directory in dirs[1:]
+        ):
+            sidecars[directory].update(glob.glob(os.path.join(directory, "*.json")))
         participants: dict[str, dict[str, dict[str, Any]]] = {}  # BIDS root -> subject -> participants.tsv row
         participant_features: dict[str, Any] = {}
         for root in dict.fromkeys(dirs[-1] for recs in recordings.values() for *_, dirs in recs):
-            sidecars[root].update(xglob(xjoin(root, "*.json"), download_config=download_config))
-            tsv = xjoin(root, "participants.tsv")
+            tsv = os.path.join(root, "participants.tsv")
             table = pa.table({})
-            if xexists(tsv, download_config=download_config):
-                with xopen(tsv, "rb", download_config=download_config) as fp:
+            if os.path.exists(tsv):
+                with open(tsv, "rb") as fp:
                     table = pa_csv.read_csv(fp, parse_options=TSV_OPTIONS, convert_options=PARTICIPANTS_OPTIONS)
             table = table.select([col for col in table.column_names if col not in reserved])
             participant_features.update(
-                (col, datasets.Value("string") if feat == datasets.Value("null") else feat)
+                (col, feat)
                 for col, feat in datasets.Features.from_arrow_schema(table.schema).items()
-                if col != "participant_id"
+                if col != "participant_id" and feat != datasets.Value("null")
             )
             participants[root] = {
                 (r.pop("participant_id", None) or "").removeprefix("sub-"): r for r in table.to_pylist()
@@ -179,8 +179,8 @@ class Bids(datasets.ArrowBasedBuilder):
                 inherited = [
                     path
                     for directory in reversed(dirs[1:])
-                    for path in sorted(sidecars[directory])
-                    if (parts := xbasename(path)[: -len(".json")].split("_"))[-1] == row["suffix"]
+                    for path in sorted(sidecars[directory], key=lambda path: (os.path.basename(path).count("_"), path))
+                    if (parts := os.path.basename(path)[: -len(".json")].split("_"))[-1] == row["suffix"]
                     and set(parts[:-1]) <= pairs
                 ]
                 row_sidecars.append(inherited)
@@ -207,11 +207,10 @@ class Bids(datasets.ArrowBasedBuilder):
     def _generate_tables(
         self, rows: list[dict[str, Any]], sidecars: list[list[str]]
     ) -> Iterator[tuple[Key, pa.Table]]:
-        download_config = DownloadConfig(token=self.token, storage_options=self.storage_options)
         schema = self.info.features.arrow_schema
         sidecar_json = {}
         for path in dict.fromkeys(path for paths in sidecars for path in paths):
-            with xopen(path, "rb", download_config=download_config) as f:
+            with open(path, "rb") as f:
                 sidecar_json[path] = json.load(f)
         for i, (row, paths) in enumerate(zip(rows, sidecars)):
             # lower-level sidecars override higher ones; BIDS sidecars are JSON objects, but real datasets also ship

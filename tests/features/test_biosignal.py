@@ -111,6 +111,18 @@ def test_biosignal_bids_formats_and_embed(tmp_path, fmt, ext, datatype):
     import mne_bids
 
     raw = _make_raw(ch_type="eeg" if datatype == "eeg" else "mag")
+    if fmt == "BDF":
+        import edfio
+
+        source = tmp_path / "source.bdf"
+        edfio.Bdf(
+            [
+                edfio.BdfSignal(data * 1e6, raw.info["sfreq"], label=name, physical_dimension="uV")
+                for name, data in zip(raw.ch_names, raw.get_data())
+            ]
+        ).write(source)
+        raw = mne.io.read_raw_bdf(source, verbose="ERROR")
+        raw.info["line_freq"] = 50.0
     raw.set_annotations(mne.Annotations(onset=[0.1], duration=[0.2], description=["stimulus"]))
     bids_root = tmp_path / "bids_root"
     bp = mne_bids.BIDSPath(
@@ -123,7 +135,10 @@ def test_biosignal_bids_formats_and_embed(tmp_path, fmt, ext, datatype):
         extension=ext,
         root=bids_root,
     )
-    mne_bids.write_raw_bids(raw, bp, allow_preload=True, format=fmt, overwrite=True, verbose="ERROR")
+    # Older MNE-BIDS can copy BDF recordings but cannot export preloaded data to BDF.
+    mne_bids.write_raw_bids(
+        raw, bp, allow_preload=fmt != "BDF", format="auto" if fmt == "BDF" else fmt, overwrite=True, verbose="ERROR"
+    )
 
     ds = Dataset.from_dict({"biosignal": [str(bp.fpath)]}, features=Features({"biosignal": Biosignal()}))
     decoded = ds[0]["biosignal"]

@@ -1,10 +1,12 @@
 import io
 import os
+import re
 import sys
 import tempfile
 from dataclasses import dataclass, field, replace
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Union
+from urllib.parse import quote
 
 import pyarrow as pa
 
@@ -142,6 +144,36 @@ class Biosignal:
         path, bytes_ = (value, None) if isinstance(value, str) else (value["path"], value["bytes"])
         if path is None and bytes_ is None:
             raise ValueError(f"A biosignal should have one of 'path' or 'bytes' but both are None in {value}.")
+        if bytes_ is None and path.startswith(("hf://datasets/", config.HF_ENDPOINT + "/datasets/")):
+            from huggingface_hub import HfFileSystem, snapshot_download
+
+            token = _resolve_token(path, token_per_repo_id or {})
+            hub_path = path
+            if path.startswith(config.HF_ENDPOINT):
+                hub_path = "hf://" + path[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
+            fs = HfFileSystem(token=token)
+            resolved = fs.resolve_path(hub_path)
+            recording = PurePosixPath(resolved.path_in_repo)
+            if recording.is_absolute() or ".." in recording.parts:
+                raise ValueError("A Hub recording path must stay inside its repository.")
+            prefix = f"datasets/{resolved.repo_id}@{quote(resolved.revision, safe='')}/"
+            stem = re.sub(r"_split-\d+_", "_split-*_", recording.stem)
+            pattern = str(recording.with_name(f"{stem}.*"))
+            if recording.suffix in (".ds", ".mefd"):
+                pattern += "/**"
+            files = set(fs.glob(prefix + pattern))
+            for directory in recording.parents:
+                parent = "" if directory == PurePosixPath(".") else str(directory)
+                files.update(f for f in fs.ls(prefix + parent, detail=False) if f.endswith((".json", ".tsv")))
+            # Keep the BIDS tree: readers need companion data and sidecars beside the recording.
+            snapshot = snapshot_download(
+                resolved.repo_id,
+                repo_type="dataset",
+                revision=resolved.revision,
+                allow_patterns=[f[len(prefix) :] for f in sorted(files)],
+                token=token,
+            )
+            path = str(Path(snapshot) / recording)
         if bytes_ is None and not is_local_path(path):
             download_config = DownloadConfig(token=_resolve_token(path, token_per_repo_id or {}))
             with xopen(path, "rb", download_config=download_config) as f:
