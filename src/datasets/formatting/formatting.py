@@ -220,13 +220,15 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
 
 class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFrame]):
     def extract_row(self, pa_table: pa.Table) -> pd.DataFrame:
-        return pa_table.slice(length=1).to_pandas(types_mapper=pandas_types_mapper)
+        return pa_table.slice(length=1).to_pandas(types_mapper=pandas_types_mapper, integer_object_nulls=True)
 
     def extract_column(self, pa_table: pa.Table) -> pd.Series:
-        return pa_table.select([0]).to_pandas(types_mapper=pandas_types_mapper)[pa_table.column_names[0]]
+        return pa_table.select([0]).to_pandas(types_mapper=pandas_types_mapper, integer_object_nulls=True)[
+            pa_table.column_names[0]
+        ]
 
     def extract_batch(self, pa_table: pa.Table) -> pd.DataFrame:
-        return pa_table.to_pandas(types_mapper=pandas_types_mapper)
+        return pa_table.to_pandas(types_mapper=pandas_types_mapper, integer_object_nulls=True)
 
 
 class PythonFeaturesDecoder:
