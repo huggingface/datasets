@@ -28,6 +28,10 @@ Now use the [`~Dataset.map`] function to resize the entire dataset, and set `bat
  'pixel_values': <PIL.PngImagePlugin.PngImageFile image mode=RGB size=100x100 at 0x7F058237BB10>}
 ```
 
+A Pillow image opened from a file can retain its filename after an in-place edit, so returning it can store a reference
+to the original file. To persist the edited pixels, call `image.copy()` first, edit the copy, and return it.
+If you already have encoded bytes, return `{"path": None, "bytes": encoded_image}` for the [`Image`] column.
+
 The cache file saves time because you don't have to execute the same transform twice. The [`~Dataset.map`] function is best for operations you only run once per training - like resizing an image - instead of using it for operations executed for each epoch, like data augmentations.
 
 [`~Dataset.map`] takes up some memory, but you can reduce its memory requirements with the following parameters:
