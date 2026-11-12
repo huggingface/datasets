@@ -200,6 +200,7 @@ TESTS_REQUIRE = [
     "nibabel>=5.3.1",
     "trimesh>=4.10.0",
     "teich==0.1.5",
+    "tsfile>=2.5.0",
 ]
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
