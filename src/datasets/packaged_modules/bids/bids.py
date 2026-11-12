@@ -134,7 +134,7 @@ class Bids(datasets.ArrowBasedBuilder):
         filters = {key: {value} if isinstance(value, str) else set(value) for key, value in filters.items() if value}
         reserved = {*ALLOWED_PATH_ENTITIES_SHORT.values(), "datatype", "suffix", "extension", "biosignal", "nifti"}
 
-        # 1. Parse the BIDS filenames (`key-value_..._suffix.ext`) and keep the raw recordings
+        # 1. Parse the BIDS filenames (`key-value_..._suffix.ext`) into one row per raw recording
         recordings = {split: [] for split in cfg.data_files}
         for split, files in cfg.data_files.items():
             for f in dict.fromkeys(DIRECTORY_FORMAT_FILE.sub(r"\1", f) for f in files):
@@ -145,12 +145,18 @@ class Bids(datasets.ArrowBasedBuilder):
                 dirs = [f]
                 for _ in range(3 + ("ses" in entities)):
                     dirs.append(xdirname(dirs[-1]))
-                row = {"datatype": xbasename(dirs[1]), "suffix": suffix, "extension": f".{ext}"}
+                row = {
+                    "nifti" if f.endswith(NIFTI_EXTENSIONS) else "biosignal": {"path": f, "bytes": None},
+                    **{ALLOWED_PATH_ENTITIES_SHORT.get(k, k): v for k, v in entities.items() if k != "split"},
+                    "datatype": xbasename(dirs[1]),
+                    "suffix": suffix,
+                    "extension": f".{ext}",
+                }
                 if any({**entities, **row}.get(key) not in values for key, values in filters.items()):
                     continue
                 if entities.get("acq") == "crosstalk" or int(entities.get("split", 1)) > 1:
                     continue  # MEG calibration file, or a split FIF continuation (the recording is read from split-01)
-                recordings[split].append((f, pairs, entities, row, dirs))
+                recordings[split].append((row, set(pairs), dirs))
 
         # 2. Read participants.tsv and the dataset-level JSON sidecars once per BIDS root
         sidecars = defaultdict(set)  # directory -> JSON sidecars in it
@@ -175,24 +181,19 @@ class Bids(datasets.ArrowBasedBuilder):
                 (r.pop("participant_id", None) or "").removeprefix("sub-"): r for r in table.to_pylist()
             }
 
-        # 3. One row per recording. JSON sidecars follow the BIDS inheritance principle: same suffix, entities that
-        # are a subset of the recording's, merged from the BIDS root down to the recording's directory
+        # 3. Add the participant columns and the JSON sidecars that apply to each recording under the BIDS inheritance
+        # principle: same suffix, entities that are a subset of the recording's, from the BIDS root down
         splits = {}
         for split, recs in recordings.items():
             rows, row_sidecars = [], []
-            for f, pairs, entities, row, dirs in recs:
-                media = "nifti" if f.endswith(NIFTI_EXTENSIONS) else "biosignal"
-                entity_columns = {
-                    ALLOWED_PATH_ENTITIES_SHORT.get(k, k): v for k, v in entities.items() if k != "split"
-                }
-                participant = participants[dirs[-1]].get(entities.get("sub"), {})
-                rows.append({**participant, media: {"path": f, "bytes": None}, **entity_columns, **row})
+            for row, pairs, dirs in recs:
+                rows.append({**participants[dirs[-1]].get(row.get("subject"), {}), **row})
                 inherited = [
                     path
                     for directory in reversed(dirs[1:])
                     for path in sorted(sidecars[directory])
                     if (parts := xbasename(path)[: -len(".json")].split("_"))[-1] == row["suffix"]
-                    and set(parts[:-1]) <= set(pairs)
+                    and set(parts[:-1]) <= pairs
                 ]
                 row_sidecars.append(inherited)
             splits[split] = rows, row_sidecars
