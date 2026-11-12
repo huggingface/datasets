@@ -31,7 +31,7 @@ from .arrow_dataset import (
     Dataset,
     _get_updated_dataset_card,
 )
-from .features import Features
+from .features import ClassLabel, Features
 from .features.features import FeatureType
 from .iterable_dataset import IterableDataset
 from .naming import _split_re
@@ -499,6 +499,8 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
     def class_encode_column(self, column: str, include_nulls: bool = False) -> "DatasetDict":
         """Casts the given column as [`~datasets.features.ClassLabel`] and updates the tables.
 
+        The classes of all the splits are used, so a class has the same id in every split.
+
         Args:
             column (`str`):
                 The name of the column to cast.
@@ -524,9 +526,33 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ```
         """
         self._check_values_type()
-        return DatasetDict(
-            {k: dataset.class_encode_column(column=column, include_nulls=include_nulls) for k, dataset in self.items()}
+        encoded = {
+            k: dataset.class_encode_column(column=column, include_nulls=include_nulls) for k, dataset in self.items()
+        }
+        # Each split only knows its own classes: use the classes of all the splits so that
+        # a class gets the same id in every split
+        class_label = ClassLabel(
+            names=sorted({name for dataset in encoded.values() for name in dataset.features[column].names})
         )
+        for split, dataset in list(encoded.items()):
+            names = dataset.features[column].names
+            if names != class_label.names:
+                new_ids = [class_label.str2int(name) for name in names]
+                features = dataset.features.copy()
+                features[column] = class_label
+
+                def align_class_labels(batch, new_ids=new_ids):
+                    batch[column] = [None if label is None else new_ids[label] for label in batch[column]]
+                    return batch
+
+                aligned = dataset.with_format(None).map(
+                    align_class_labels,
+                    batched=True,
+                    features=features,
+                    desc="Aligning class labels across splits",
+                )
+                encoded[split] = aligned.with_format(**dataset.format)
+        return DatasetDict(encoded)
 
     @contextlib.contextmanager
     def formatted_as(
