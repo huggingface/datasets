@@ -674,6 +674,36 @@ class DatasetDictTest(TestCase):
         self.assertListEqual(test_expected_label_names, test_aligned_label_names)
 
 
+def _make_dataset_dict():
+    return DatasetDict(
+        {"train": Dataset.from_dict({"col_1": [0, 1, 2]}), "test": Dataset.from_dict({"col_1": [3, 4]})}
+    )
+
+
+@pytest.mark.parametrize(
+    "transform",
+    [
+        lambda ds, arg: ds.map(lambda x: x, cache_file_names=arg),
+        lambda ds, arg: ds.filter(lambda x: True, cache_file_names=arg),
+        lambda ds, arg: ds.flatten_indices(cache_file_names=arg),
+        lambda ds, arg: ds.sort("col_1", indices_cache_file_names=arg),
+        lambda ds, arg: ds.shuffle(indices_cache_file_names=arg),
+        lambda ds, arg: ds.shuffle(seeds=arg),
+        lambda ds, arg: ds.shuffle(generators=arg),
+    ],
+)
+def test_datasetdict_per_split_arg_missing_split(transform):
+    dataset_dict = _make_dataset_dict()
+    with pytest.raises(ValueError, match="train|test"):
+        transform(dataset_dict, {"train": None})
+
+
+def test_datasetdict_generators_must_be_a_dict():
+    dataset_dict = _make_dataset_dict()
+    with pytest.raises(ValueError, match="generators"):
+        dataset_dict.shuffle(generators=np.random.default_rng(42))
+
+
 def test_dummy_datasetdict_serialize_fs(mockfs):
     dataset_dict = DatasetDict(
         {
