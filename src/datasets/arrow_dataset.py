@@ -2476,6 +2476,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
          'text': Value('string')}
         ```
         """
+        if column not in self._data.column_names:
+            raise ValueError(
+                f"Column name {column!r} not in the dataset. Columns in the dataset: {self._data.column_names}."
+            )
         feature = _fix_for_backward_compatible_features(feature)
         if hasattr(feature, "decode_example"):
             dataset = copy.deepcopy(self)

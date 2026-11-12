@@ -3701,6 +3701,13 @@ def test_cast_with_sliced_list():
     assert casted_dataset.features == new_features
 
 
+@pytest.mark.parametrize("feature", [Value("bool"), Image()])
+def test_cast_column_missing_column(feature):
+    dataset = Dataset.from_dict({"foo": [1, 2]})
+    with pytest.raises(ValueError, match="not in the dataset"):
+        dataset.cast_column("bar", feature)
+
+
 @pytest.mark.parametrize("include_nulls", [False, True])
 def test_class_encode_column_with_none(include_nulls):
     dataset = Dataset.from_dict({"col_1": ["a", "b", "c", None, "d", None]})
