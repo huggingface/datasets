@@ -86,15 +86,17 @@ class CsvDatasetWriter:
         self.to_csv_kwargs = to_csv_kwargs
 
     def write(self) -> int:
-        _ = self.to_csv_kwargs.pop("path_or_buf", None)
-        header = self.to_csv_kwargs.pop("header", True)
-        index = self.to_csv_kwargs.pop("index", False)
+        # The writer may be reused; don't consume the caller's options.
+        to_csv_kwargs = self.to_csv_kwargs.copy()
+        _ = to_csv_kwargs.pop("path_or_buf", None)
+        header = to_csv_kwargs.pop("header", True)
+        index = to_csv_kwargs.pop("index", False)
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
             with fsspec.open(self.path_or_buf, "wb", **(self.storage_options or {})) as buffer:
-                written = self._write(file_obj=buffer, header=header, index=index, **self.to_csv_kwargs)
+                written = self._write(file_obj=buffer, header=header, index=index, **to_csv_kwargs)
         else:
-            written = self._write(file_obj=self.path_or_buf, header=header, index=index, **self.to_csv_kwargs)
+            written = self._write(file_obj=self.path_or_buf, header=header, index=index, **to_csv_kwargs)
         return written
 
     def _batch_csv(self, args):
