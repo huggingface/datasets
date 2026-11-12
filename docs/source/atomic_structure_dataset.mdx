@@ -14,7 +14,7 @@ AtomicStructure decoding requires [AtomWorks 3.1.0 or newer](https://github.com/
 pip install "datasets[bio]"
 ```
 
-The `bio` extra installs base AtomWorks on Python 3.12+ and Biopython for the legacy features. AtomWorks' `ml`, `hf`, `cli` and `dev` extras are not needed; install `ase` separately only for ASE inputs. Let AtomWorks select its compatible Biotite version. On Python 3.10/3.11 the legacy features still work, and storing file references or using `AtomicStructure(decode=False)` does not need AtomWorks.
+The `bio` extra installs base AtomWorks on Python 3.12+. AtomWorks' `ml`, `hf`, `cli` and `dev` extras are not needed; install `ase` separately only for ASE inputs. Let AtomWorks select its compatible Biotite version. Python 3.10/3.11 can store file references or use `AtomicStructure(decode=False)`, but decoding and serializing live atom arrays require Python 3.12+.
 
 > [!TIP]
 > You can control access to your dataset by requiring users to share their contact information first. Check out the [Gated datasets](https://huggingface.co/docs/hub/datasets-gated) guide for more information about how to enable this feature on the Hub.
@@ -173,8 +173,10 @@ This example disables reuse of `map` caches because external files and CCD defin
 
 CIF serialization can normalize author identifiers and annotation dtypes. It does not preserve all original file categories or custom Python objects; retain the original source dataset when that information matters. Bonds are read from standard CIF categories and inferred by AtomWorks; edited bond graphs, missing-versus-empty bonds and periodic boxes are not guaranteed to survive materialization. Keep the source bytes when exact file preservation matters. These are format-specific guarantees, not a general arbitrary-array codec.
 
-## Existing datasets and sequence records
+## Migrating from the previous bio features
 
-`BioStructure` and `BioSequence` remain importable and registered, including their original serialized feature names and Biopython output types. Saved datasets continue to load. For new structure datasets prefer `AtomicStructure`; migrate an existing column explicitly with `cast_column("structure", AtomicStructure())`.
+`AtomicStructure` replaces `BioStructure`. The `pdb` and `mmcif` loaders now decode to AtomWorks arrays instead of Biopython objects and require Python 3.12+ for decoding. `BioStructure` and `BioSequence` are no longer exported or registered, so datasets saved with those feature names must be migrated before loading with this version.
 
-FASTA, FASTQ and GenBank keep their existing `record` columns and schemas. In particular, GenBank records retain sections such as REFERENCE and COMMENT that are absent from parsed columns. To avoid duplicate FASTA storage, choose `columns=["id", "description", "sequence"]` when loading. Changing sequence-loader defaults is separate from adopting AtomicStructure.
+With a previous Datasets version, load the saved dataset, disable decoding on its bio columns, and export their underlying paths/bytes with a plain schema. Then recreate structure columns with `AtomicStructure` in this version. Preserve source bytes during migration; no structure parsing is needed.
+
+FASTA, FASTQ and GenBank keep their `record` columns as `Value("binary")`, returning each record's original bytes directly instead of a Biopython `SeqRecord`. The parsed sequence columns remain unchanged and need no external parsing library. GenBank records retain sections such as REFERENCE and COMMENT that are absent from parsed columns. To avoid duplicate FASTA storage, choose `columns=["id", "description", "sequence"]` when loading.

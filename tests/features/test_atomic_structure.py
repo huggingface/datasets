@@ -220,7 +220,7 @@ def test_cast_column_from_paths_bytes_and_file_references():
     dataset = Dataset.from_dict({"s": [PDB_FILE.read_bytes()]}).cast_column("s", AtomicStructure())
     assert len(dataset[0]["s"]) == 9
 
-    # file references as stored by other file-based features, e.g. the existing `BioStructure` feature
+    # file references as stored by other file-based features
     references = pa.array([{"bytes": CIF_FILE.read_bytes(), "path": "test_protein.cif"}])
     dataset = Dataset(pa.table({"s": references})).cast_column("s", AtomicStructure())
     assert len(dataset[0]["s"]) == 9
@@ -353,18 +353,6 @@ def test_slicing_decoded_array_does_not_reencode_original(selection):
     restored = AtomicStructure().decode_example(encoded)
     np.testing.assert_array_equal(restored.coord, sliced.coord)
     assert restored.bonds == sliced.bonds
-
-
-@pytest.mark.parametrize("type_name,format", [("BioStructure", "pdb"), ("BioSequence", "fasta")])
-def test_legacy_feature_metadata_loads_without_atomworks(tmp_path, monkeypatch, type_name, format):
-    monkeypatch.setattr("datasets.config.ATOMWORKS_AVAILABLE", False)
-    feature = generate_from_dict({"_type": type_name, "format": format, "decode": False})
-    raw = PDB_FILE.read_bytes() if type_name == "BioStructure" else b">seq\nACGT\n"
-    dataset = Dataset.from_dict({"s": [raw]}, features=Features({"s": feature}))
-    dataset.save_to_disk(tmp_path / "legacy")
-    restored = load_from_disk(tmp_path / "legacy")
-    assert restored.features.to_dict()["s"]["_type"] == type_name
-    assert restored[0]["s"]["bytes"] == raw
 
 
 @require_atomworks

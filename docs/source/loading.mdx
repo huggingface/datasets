@@ -393,7 +393,7 @@ Extensions `.cif`, `.mmcif` and `.bcif` (BinaryCIF) are supported, optionally co
 
 [GenBank](https://www.ncbi.nlm.nih.gov/genbank/) is a text-based format from NCBI for nucleotide and protein sequences together with their annotations. Files use the `.gb`, `.gbk`, or `.genbank` extension (optionally compressed), and each record's `FEATURES` section is decoded into structured objects.
 
-Alongside the lightweight parsed columns, each row includes a `record` column of type `BioSequence(format="genbank")`, which decodes to a `Bio.SeqRecord.SeqRecord` when `biopython` is installed. Cast this column to `BioSequence(format="genbank", decode=False)` to access the original record bytes as `{"bytes": ..., "path": None}`, or omit it with `columns=[...]` to use only the parsed columns without `biopython`.
+Alongside the lightweight parsed columns, each row includes a `record` column of type `Value("binary")` containing the original record bytes, including sections such as REFERENCE and COMMENT. No external parsing library is required. Omit it with `columns=[...]` when only the parsed columns are needed.
 
 To load GenBank files:
 
@@ -429,9 +429,9 @@ The loader returns five columns:
 | `description` | string | Full description line (everything after id) |
 | `sequence` | large_string | The nucleotide sequence |
 | `quality` | large_string | ASCII-encoded quality scores |
-| `record` | [`BioSequence`] | With `format="fastq"`, stores each record's original bytes, decoded to a Biopython `SeqRecord` when accessed. |
+| `record` | `bytes` | Each record's original FASTQ bytes, including its header and quality lines. |
 
-Reading the parsed columns requires no Biopython; exclude `record` with `columns`, or use `dataset.cast_column("record", BioSequence(decode=False))` (imported from `datasets`) to access its `{"bytes": ..., "path": None}` storage without decoding.
+All columns can be read without an external parsing library. Use `columns` to exclude `record` when only the parsed columns are needed.
 
 Load only specific columns:
 
@@ -456,9 +456,9 @@ This returns a dataset with the following columns:
 - `id`: Sequence identifier (first word after `>`)
 - `description`: Full description line (everything after the id)
 - `sequence`: The biological sequence (DNA/RNA/protein)
-- `record`: A [`BioSequence`] with `format="fasta"` storing each record's original bytes, decoded to a Biopython `SeqRecord` when accessed.
+- `record`: Each record's original FASTA bytes, stored as `Value("binary")`.
 
-Reading the parsed columns requires no Biopython; exclude `record` with `columns`, or use `dataset.cast_column("record", BioSequence(decode=False))` (imported from `datasets`) to access its `{"bytes": ..., "path": None}` storage without decoding.
+All columns can be read without an external parsing library. Use `columns` to exclude `record` when only the parsed columns are needed.
 
 You can also load only specific columns:
 

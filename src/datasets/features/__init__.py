@@ -1,7 +1,5 @@
 __all__ = [
     "AtomicStructure",
-    "BioSequence",
-    "BioStructure",
     "Audio",
     "Array2D",
     "Array3D",
@@ -24,8 +22,6 @@ __all__ = [
 ]
 from .atomic_structure import AtomicStructure
 from .audio import Audio
-from .bio_sequence import BioSequence
-from .bio_structure import BioStructure
 from .features import Array2D, Array3D, Array4D, Array5D, ClassLabel, Features, Json, LargeList, List, Sequence, Value
 from .image import Image
 from .mesh import Mesh

@@ -156,7 +156,6 @@ BENCHMARKS_REQUIRE = [
 
 TESTS_REQUIRE = [
     # atomic structure reading and decoding, plus RDKit/ASE inputs exercised by the feature tests
-    "biopython>=1.80",  # legacy BioStructure and BioSequence
     "atomworks>=3.1.0; python_version >= '3.12'",
     "rdkit",
     "ase",
@@ -224,7 +223,7 @@ DOCS_REQUIRE = [
 
 PDFS_REQUIRE = ["pdfplumber>=0.11.4"]
 
-BIO_REQUIRE = ["biopython>=1.80", "atomworks>=3.1.0; python_version >= '3.12'"]
+BIO_REQUIRE = ["atomworks>=3.1.0; python_version >= '3.12'"]
 
 NIBABEL_REQUIRE = ["nibabel>=5.3.2", "ipyniivue==2.4.2"]
 

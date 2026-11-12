@@ -56,7 +56,8 @@ class AtomicStructure:
             If `False`, return `{"path": path, "bytes": bytes}` without AtomWorks.
 
     Inputs may be paths, file bytes, dictionaries with `path` and/or `bytes`, biotite
-    atom arrays or stacks, RDKit `Mol`, or ASE `Atoms`. Supported files are PDB, mmCIF,
+    atom arrays or stacks, RDKit `Mol`, or ASE `Atoms`. Decoding and live-object
+    serialization require Python 3.12+ and AtomWorks 3.1.0+. Supported files are PDB, mmCIF,
     BinaryCIF, MOL/SDF (first record), and Mol2, optionally gzip, bz2 or zstd compressed.
     MOL/SDF and Mol2 bytes need a filename in `path` to identify the format.
 

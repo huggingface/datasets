@@ -297,15 +297,6 @@ Dictionary with split names as keys ('train', 'test' for example), and `Iterable
 
 [[autodoc]] datasets.AtomicStructure
 
-### Legacy biological features
-
-`BioStructure` and `BioSequence` remain available for existing datasets, including their serialized feature names
-and Biopython output types. Prefer `AtomicStructure` for new structure datasets; migration is explicit via `cast_column`.
-
-[[autodoc]] datasets.BioStructure
-
-[[autodoc]] datasets.BioSequence
-
 ## Filesystems
 
 [[autodoc]] datasets.filesystems.is_remote_filesystem
