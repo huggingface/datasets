@@ -1,6 +1,7 @@
 import os
 import textwrap
 
+import pandas as pd
 import pyarrow as pa
 import pytest
 from packaging import version
@@ -115,6 +116,33 @@ def test_csv_generate_tables_raises_error_with_malformed_csv(csv_file, malformed
         and os.path.basename(malformed_csv_file) in record.message
         for record in caplog.records
     )
+
+
+@pytest.mark.parametrize("termination", ["exhausted", "closed", "cast_error"])
+def test_csv_generate_tables_closes_reader(csv_file, monkeypatch, termination):
+    reader = pd.read_csv(csv_file, iterator=True, chunksize=1)
+    monkeypatch.setattr(pd, "read_csv", lambda *args, **kwargs: reader)
+    csv = Csv(chunksize=1)
+    generator = csv._generate_tables(base_files=[csv_file], files_iterables=[[csv_file]])
+
+    if termination == "cast_error":
+
+        def fail_cast(table):
+            raise ValueError("cast failed")
+
+        monkeypatch.setattr(csv, "_cast_table", fail_cast)
+        with pytest.raises(ValueError, match="cast failed"):
+            next(generator)
+    elif termination == "closed":
+        next(generator)
+        generator.close()
+    else:
+        assert len(list(generator)) == 2
+
+    try:
+        assert reader.handles.handle.closed
+    finally:
+        reader.close()
 
 
 @require_pil
