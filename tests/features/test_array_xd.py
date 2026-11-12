@@ -528,3 +528,89 @@ def test_array_xd_from_pandas_with_none():
     assert reloaded_ds.features == features
     storage = pa.concat_arrays(reloaded_ds.data.column("image").chunks).storage
     assert storage.to_pylist() == [[[1.0, 1.0]], None, [[1.0, 1.0], [1.0, 1.0]]]
+
+
+@pytest.mark.parametrize(
+    "shape, values, expected_is_null",
+    [
+        ((1, 1), [[[np.nan]], None], [False, True]),
+        ((2, 3), [None, np.arange(6).reshape(2, 3), None, np.ones((2, 3))], [True, False, True, False]),
+    ],
+)
+def test_array_xd_from_pandas_fixed_shape_with_none(shape, values, expected_is_null):
+    # A fixed-shape column with null rows used to be materialized as a dense float64
+    # array with NaN rows, which lost the Arrow row validity: a null row and a
+    # legitimate all-NaN array became indistinguishable (issue #8888)
+    features = datasets.Features({"x": Array2D(shape=shape, dtype="float64")})
+    ds = datasets.Dataset.from_dict({"x": values}, features=features)
+    df = ds.to_pandas()
+    reloaded_ds = datasets.Dataset.from_pandas(df, features=features)
+    assert reloaded_ds.features == features
+    assert reloaded_ds.data.column("x").is_null().to_pylist() == expected_is_null
+    # the fixed shape must survive in the actual Arrow extension type, not only in
+    # the declared features: a valid row is enough to infer a dynamic first
+    # dimension from, so check the column type explicitly (issue #8888)
+    assert reloaded_ds.data.column("x").type.shape == shape
+    # the null rows read as None, the valid rows stay exact ndarrays
+    for is_null, original, reloaded in zip(expected_is_null, values, df["x"].to_numpy()):
+        if is_null:
+            assert reloaded is None
+        else:
+            assert isinstance(reloaded, np.ndarray)
+            assert reloaded.shape == np.asarray(original).shape
+            np.testing.assert_array_equal(reloaded, np.asarray(original))
+
+
+def test_array_xd_from_pandas_fixed_shape_with_none_keeps_int_payloads():
+    # The dense float64 materialization also promoted integer columns and lost
+    # exact payloads above 2 ** 53, and made ``from_pandas`` raise on the NaN
+    # rows when converting back to int64 (issue #8888)
+    features = datasets.Features({"x": Array2D(shape=(1, 1), dtype="int64")})
+    ds = datasets.Dataset.from_dict({"x": [[[2**53 + 1]], None]}, features=features)
+    df = ds.to_pandas()
+    # the valid row keeps its exact int64 payload
+    assert df["x"][0][0, 0] == 2**53 + 1
+    reloaded_ds = datasets.Dataset.from_pandas(df, features=features)
+    assert reloaded_ds.features == features
+    assert reloaded_ds.data.column("x").is_null().to_pylist() == [False, True]
+    assert reloaded_ds[0]["x"] == [[2**53 + 1]]
+
+
+def test_array_xd_from_pandas_fixed_shape_with_none_after_slice():
+    # A sliced fixed-shape column with null rows keeps its row validity through
+    # the pandas round trip as well
+    features = datasets.Features({"x": Array2D(shape=(1, 2), dtype="int64")})
+    values = [None] + [np.full((1, 2), i) for i in range(6)] + [None]
+    ds = datasets.Dataset.from_dict({"x": values}, features=features).select(range(1, 8))
+    reloaded_ds = datasets.Dataset.from_pandas(ds.to_pandas(), features=features)
+    assert reloaded_ds.data.column("x").is_null().to_pylist() == [False] * 6 + [True]
+    assert reloaded_ds[5]["x"] == [[5, 5]]
+
+
+def test_array_xd_from_pandas_fixed_shape_all_none():
+    # A column whose rows are all null keeps its validity and its features through
+    # the pandas round trip: the fixed shape and the value type are kept on the
+    # pandas dtype, since no valid row is left to infer them from
+    features = datasets.Features({"x": Array2D(shape=(1, 2), dtype="float64")})
+    ds = datasets.Dataset.from_dict({"x": [None, None]}, features=features)
+    df = ds.to_pandas()
+    assert df["x"].isna().to_numpy().tolist() == [True, True]
+    reloaded_ds = datasets.Dataset.from_pandas(df, features=features)
+    assert reloaded_ds.features == features
+    assert reloaded_ds.data.column("x").is_null().to_pylist() == [True, True]
+
+
+def test_array_xd_from_pandas_fixed_shape_with_none_keeps_arrow_type_shape():
+    # With a valid row to infer from, the Arrow type of the column used to be rebuilt
+    # with a dynamic first dimension even when the pandas dtype carried the fixed
+    # shape of the original column, which left the actual Arrow extension type
+    # inconsistent with the declared features (issue #8888)
+    features = datasets.Features({"x": Array2D(shape=(2, 3), dtype="float64")})
+    source = datasets.Dataset.from_dict({"x": [[[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]], None]}, features=features)
+    result = datasets.Dataset.from_pandas(source.to_pandas(), features=features)
+    assert result.data.column("x").type.shape == result.features["x"].shape
+    assert result.data.column("x").type.shape == (2, 3)
+    # the round trip keeps the row validity and the exact payloads as well
+    assert result.data.column("x").is_null().to_pylist() == [False, True]
+    np.testing.assert_array_equal(result[0]["x"], np.arange(6).reshape(2, 3))
+    assert result[1]["x"] is None
