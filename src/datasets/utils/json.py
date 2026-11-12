@@ -1,3 +1,4 @@
+from collections import deque
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any
 
@@ -68,9 +69,9 @@ def find_mixed_struct_types_field_paths(examples: list, allow_root=False) -> lis
     examples = [example for example in examples if example is not None]
     if not examples:
         return []
-    paths_and_content_to_check = [([], examples)]
+    paths_and_content_to_check = deque([([], examples)])
     while paths_and_content_to_check:
-        path, content = paths_and_content_to_check.pop(0)
+        path, content = paths_and_content_to_check.popleft()
         if all(isinstance(x, dict) for x in content):
             if (allow_root or path) and (any(set(x) != set(content[0]) for x in content) or not content[0]):
                 mixed_struct_types_field_paths.append(path)
