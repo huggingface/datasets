@@ -271,7 +271,16 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         repr = re.sub(r"^", " " * 4, repr, count=0, flags=re.M)
         return f"DatasetDict({{\n{repr}\n}})"
 
-    def cast(self, features: Features) -> "DatasetDict":
+    def cast(
+        self,
+        features: Features,
+        batch_size: Optional[int] = 1000,
+        keep_in_memory: bool = False,
+        load_from_cache_file: Optional[bool] = None,
+        cache_file_names: Optional[dict[str, Optional[str]]] = None,
+        writer_batch_size: Optional[int] = 1000,
+        num_proc: Optional[int] = None,
+    ) -> "DatasetDict":
         """
         Cast the dataset to a new set of features.
         The transformation is applied to all the datasets of the dataset dictionary.
@@ -282,6 +291,25 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 The name and order of the fields in the features must match the current column names.
                 The type of the data must also be convertible from one type to the other.
                 For non-trivial conversion, e.g. `string` <-> `ClassLabel` you should use [`~DatasetDict.map`] to update the dataset.
+            batch_size (`int`, defaults to `1000`):
+                Number of examples per batch provided to cast.
+                If `batch_size <= 0` or `batch_size == None` then provide the full dataset as a single batch to cast.
+            keep_in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
+            load_from_cache_file (`bool`, defaults to `True` if caching is enabled):
+                If a cache file storing the current computation from `function`
+                can be identified, use it instead of recomputing.
+            cache_file_names (`Dict[str, str]`, *optional*, defaults to `None`):
+                Provide the name of a path for the cache file. It is used to store the
+                results of the computation instead of the automatically generated cache file name.
+                You have to provide one `cache_file_name` per dataset in the dataset dictionary.
+            writer_batch_size (`int`, defaults to `1000`):
+                Number of rows per write operation for the cache file writer.
+                This value is a good trade-off between memory usage during the processing, and processing speed.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
+            num_proc (`int`, *optional*, defaults to `None`):
+                Number of processes for multiprocessing. By default it doesn't
+                use multiprocessing.
 
         Example:
 
@@ -301,7 +329,22 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         ```
         """
         self._check_values_type()
-        return DatasetDict({k: dataset.cast(features=features) for k, dataset in self.items()})
+        if cache_file_names is None:
+            cache_file_names = dict.fromkeys(self)
+        return DatasetDict(
+            {
+                k: dataset.cast(
+                    features=features,
+                    batch_size=batch_size,
+                    keep_in_memory=keep_in_memory,
+                    load_from_cache_file=load_from_cache_file,
+                    cache_file_name=cache_file_names[k],
+                    writer_batch_size=writer_batch_size,
+                    num_proc=num_proc,
+                )
+                for k, dataset in self.items()
+            }
+        )
 
     def cast_column(self, column: str, feature) -> "DatasetDict":
         """Cast column to feature for decoding.
