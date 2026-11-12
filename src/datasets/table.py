@@ -1390,7 +1390,11 @@ class ConcatenationTable(Table):
     def __setstate__(self, state):
         blocks = state["blocks"]
         schema = state["schema"]
-        table = self._concat_blocks_horizontally_and_vertically(blocks)
+        table = (
+            self._concat_blocks_horizontally_and_vertically(blocks)
+            if blocks
+            else pa.Table.from_batches([], schema=schema)
+        )
         if schema is not None and table.schema != schema:
             # We fix the columns by concatenating with an empty table with the right columns
             empty_table = pa.Table.from_batches([], schema=schema)
