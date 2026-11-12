@@ -104,6 +104,13 @@ class VortexConfig(datasets.BuilderConfig):
 
     def __post_init__(self):
         super().__post_init__()
+        # Anything unrecognised falls into the permissive `else` where the file is
+        # read, so a typo in the strict value silently becomes "skip". TsFileConfig
+        # already rejects the same argument.
+        if self.on_bad_files not in ("error", "warn", "skip"):
+            raise ValueError(
+                f"`on_bad_files` must be one of 'error', 'warn', 'skip', got {self.on_bad_files!r}"
+            )
 
 
 def _filters_to_expression(filters: Union[list[tuple], list[list[tuple]]]) -> "vortex.expr.Expr":
