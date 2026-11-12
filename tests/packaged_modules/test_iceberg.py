@@ -64,6 +64,35 @@ def test_load_iceberg_basic(catalog, sample_table):
 
 @require_not_windows
 @require_pyiceberg
+def test_load_iceberg_distinct_catalogs_with_same_name(tmp_path):
+    from pyiceberg.catalog.sql import SqlCatalog
+    from pyiceberg.schema import Schema
+    from pyiceberg.types import LongType, NestedField
+
+    datasets = []
+    catalogs = []
+    for index, value in enumerate([11, 22]):
+        folder = tmp_path / str(index)
+        folder.mkdir()
+        catalog = SqlCatalog("same_catalog", uri=f"sqlite:///{folder}/catalog.db", warehouse=str(folder / "warehouse"))
+        catalog.create_namespace("db")
+        table = catalog.create_table("db.sample", schema=Schema(NestedField(1, "id", LongType())))
+        table.append(pa.table({"id": pa.array([value], type=pa.int64())}))
+        catalogs.append(catalog)
+        datasets.append(
+            load_dataset("iceberg", catalog=catalog, table="db.sample", cache_dir=tmp_path / "cache", split="train")
+        )
+
+    assert [list(dataset["id"]) for dataset in datasets] == [[11], [22]]
+    assert datasets[0].cache_files != datasets[1].cache_files
+    cached = load_dataset(
+        "iceberg", catalog=catalogs[0], table="db.sample", cache_dir=tmp_path / "cache", split="train"
+    )
+    assert cached.cache_files == datasets[0].cache_files
+
+
+@require_not_windows
+@require_pyiceberg
 def test_load_vectors(catalog, sample_table):
     ds = load_dataset("iceberg", catalog=catalog, table="test_db.sample", columns=["vector"])
     dataset = ds["train"]
