@@ -15,6 +15,7 @@ from datasets.utils.py_utils import (
     asdict,
     iflatmap_unordered,
     map_nested,
+    size_str,
     string_to_dict,
     temp_seed,
     temporary_assignment,
@@ -288,3 +289,18 @@ def test_string_to_dict():
     file_name_parts = string_to_dict(file_name, cache_file_name_pattern)
     assert file_name_parts is not None
     assert file_name_parts == {"rank": f"{rank:05d}", "num_proc": f"{num_proc:05d}"}
+
+
+@pytest.mark.parametrize(
+    "size_in_bytes, expected",
+    [
+        (None, "Unknown size"),
+        (0, "0 bytes"),
+        (1, "1 bytes"),
+        (999, "999 bytes"),
+        (1024, "1.00 KiB"),
+        (1.5 * 2**30, "1.50 GiB"),
+    ],
+)
+def test_size_str(size_in_bytes, expected):
+    assert size_str(size_in_bytes) == expected
