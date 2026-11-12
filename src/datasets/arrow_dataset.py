@@ -3237,6 +3237,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         desc: Optional[str] = None,
         try_original_type: Optional[bool] = True,
         on_mixed_types: Optional[Literal["use_json"]] = "use_json",
+        leave: bool = True,
+        position: Optional[int] = None,
     ) -> "Dataset":
         """
         Apply a function to all the examples in the table (individually or in batches) and update the table.
@@ -3334,6 +3336,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 for example, or dictionaries with arbitrary value types.
 
                 <Added version="4.7.0"/>
+            leave (`bool`, defaults to `True`):
+                Keep the progress bar displayed when mapping is done.
+                Set to `False` to remove it, e.g. when `map` runs inside an outer progress bar.
+            position (`int`, *optional*, defaults to `None`):
+                Line offset of the progress bar, starting from 0.
+                If `None`, the first free line is used, e.g. the line under an outer progress bar.
 
         Example:
 
@@ -3605,6 +3613,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 initial=pbar_initial,
                 total=pbar_total,
                 desc=(desc or "Map") + (f" (num_proc={num_proc})" if num_proc is not None and num_proc >= 1 else ""),
+                leave=leave,
+                position=position,
             ) as pbar:
                 shards_done = 0
 
@@ -4148,7 +4158,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(
-        inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc"], version="2.0.1"
+        inplace=False,
+        ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc", "leave", "position"],
+        version="2.0.1",
     )
     def filter(
         self,
@@ -4167,6 +4179,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
         new_fingerprint: Optional[str] = None,
         desc: Optional[str] = None,
+        leave: bool = True,
+        position: Optional[int] = None,
     ) -> "Dataset":
         """Apply a filter function to all the elements in the table in batches
         and update the table so that the dataset only includes examples according to the filter function.
@@ -4229,6 +4243,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
             desc (`str`, *optional*, defaults to `None`):
                 Meaningful description to be displayed alongside with the progress bar while filtering examples.
+            leave (`bool`, defaults to `True`):
+                Keep the progress bar displayed when filtering is done.
+                Set to `False` to remove it, e.g. when `filter` runs inside an outer progress bar.
+            position (`int`, *optional*, defaults to `None`):
+                Line offset of the progress bar, starting from 0.
+                If `None`, the first free line is used, e.g. the line under an outer progress bar.
 
         Example:
 
@@ -4288,6 +4308,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             new_fingerprint=new_fingerprint,
             input_columns=input_columns,
             desc=desc or "Filter",
+            leave=leave,
+            position=position,
         )
         new_dataset = copy.deepcopy(self)
         new_dataset._indices = indices.data

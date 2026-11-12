@@ -833,6 +833,8 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         desc: Optional[str] = None,
         try_original_type: Optional[bool] = True,
         on_mixed_types: Optional[Literal["use_json"]] = None,
+        leave: bool = True,
+        position: Optional[int] = None,
     ) -> "DatasetDict":
         """
         Apply a function to all the examples in the table (individually or in batches) and update the table.
@@ -926,6 +928,12 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 for example, or dictionaries with arbitrary value types.
 
                 <Added version="4.7.0"/>
+            leave (`bool`, defaults to `True`):
+                Keep the progress bar displayed when mapping is done.
+                Set to `False` to remove it, e.g. when `map` runs inside an outer progress bar.
+            position (`int`, *optional*, defaults to `None`):
+                Line offset of the progress bar, starting from 0.
+                If `None`, the first free line is used, e.g. the line under an outer progress bar.
 
         Example:
 
@@ -976,6 +984,8 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 desc=desc,
                 try_original_type=try_original_type,
                 on_mixed_types=on_mixed_types,
+                leave=leave,
+                position=position,
             )
 
             if with_split:
@@ -998,6 +1008,8 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
         desc: Optional[str] = None,
+        leave: bool = True,
+        position: Optional[int] = None,
     ) -> "DatasetDict":
         """Apply a filter function to all the elements in the table in batches
         and update the table so that the dataset only includes examples according to the filter function.
@@ -1049,6 +1061,12 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                  (i.e., prefer functions defined at the top level of a module, not inside another function or class).
             desc (`str`, *optional*, defaults to `None`):
                 Meaningful description to be displayed alongside with the progress bar while filtering examples.
+            leave (`bool`, defaults to `True`):
+                Keep the progress bar displayed when filtering is done.
+                Set to `False` to remove it, e.g. when `filter` runs inside an outer progress bar.
+            position (`int`, *optional*, defaults to `None`):
+                Line offset of the progress bar, starting from 0.
+                If `None`, the first free line is used, e.g. the line under an outer progress bar.
 
         Example:
 
@@ -1091,6 +1109,8 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                     fn_kwargs=fn_kwargs,
                     num_proc=num_proc,
                     desc=desc,
+                    leave=leave,
+                    position=position,
                 )
                 for k, dataset in self.items()
             }
