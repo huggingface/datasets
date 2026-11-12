@@ -910,3 +910,15 @@ def test_datasetdict_from_text_split(split, text_path, tmp_path):
     dataset = DatasetDict.from_text(path, cache_dir=cache_dir)
     _check_text_datasetdict(dataset, expected_features, splits=list(path.keys()))
     assert all(dataset[split].split == split for split in path.keys())
+
+
+@pytest.mark.parametrize("method", ["map", "filter"])
+def test_datasetdict_progress_bar_leave_and_position_are_passed_to_tqdm(method):
+    dsets = DatasetDict({"train": Dataset.from_dict({"a": [1, 2]}), "test": Dataset.from_dict({"a": [3]})})
+    function = (lambda x: x) if method == "map" else (lambda x: True)
+    with patch("datasets.arrow_dataset.hf_tqdm") as mock_tqdm:
+        getattr(dsets, method)(function, leave=False, position=1)
+    assert mock_tqdm.call_count == 2
+    for call in mock_tqdm.call_args_list:
+        assert call.kwargs["leave"] is False
+        assert call.kwargs["position"] == 1

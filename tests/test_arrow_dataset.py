@@ -5399,3 +5399,67 @@ def test_dataset_push_to_hub_uploads_every_row_with_num_proc(offline_parquet_upl
     if num_shards == 1:
         # a single shard is written without starting a pool of processes
         assert not mp.get_context.return_value.Pool.called
+
+
+@pytest.mark.parametrize("method", ["map", "filter"])
+def test_progress_bar_leave_and_position_are_passed_to_tqdm(method):
+    dset = Dataset.from_dict({"a": [1, 2, 3]})
+    function = (lambda x: x) if method == "map" else (lambda x: True)
+    with patch("datasets.arrow_dataset.hf_tqdm") as mock_tqdm:
+        getattr(dset, method)(function, leave=False, position=2)
+    mock_tqdm.assert_called_once()
+    assert mock_tqdm.call_args.kwargs["leave"] is False
+    assert mock_tqdm.call_args.kwargs["position"] == 2
+
+
+@pytest.mark.parametrize("method", ["map", "filter"])
+def test_progress_bar_defaults_match_tqdm(method):
+    dset = Dataset.from_dict({"a": [1, 2, 3]})
+    function = (lambda x: x) if method == "map" else (lambda x: True)
+    with patch("datasets.arrow_dataset.hf_tqdm") as mock_tqdm:
+        getattr(dset, method)(function)
+    # tqdm defaults: keep the bar when done, and pick the line automatically
+    assert mock_tqdm.call_args.kwargs["leave"] is True
+    assert mock_tqdm.call_args.kwargs["position"] is None
+
+
+@pytest.mark.parametrize("method", ["map", "filter"])
+def test_progress_bar_leave_and_position_are_not_in_the_fingerprint(method):
+    dset = Dataset.from_dict({"a": [1, 2, 3]})
+    function = (lambda x: x) if method == "map" else (lambda x: True)
+    default = getattr(dset, method)(function)
+    nested = getattr(dset, method)(function, leave=False, position=1)
+    assert nested._fingerprint == default._fingerprint
+
+
+def test_map_progress_bar_nests_under_an_outer_progress_bar():
+    import io
+
+    from datasets.utils import are_progress_bars_disabled, disable_progress_bars, enable_progress_bars
+    from datasets.utils import tqdm as hf_tqdm
+
+    dset = Dataset.from_dict({"a": [1, 2, 3]})
+    output = io.StringIO()
+    bars = []
+
+    class RecordingTqdm(hf_tqdm):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, file=output, **kwargs)
+            # recorded while open: closing a bar sets disable=True
+            bars.append({"disable": self.disable, "leave": self.leave, "pos": self.pos})
+
+    # progress bars are disabled for the test session in conftest.py
+    was_disabled = are_progress_bars_disabled()
+    enable_progress_bars()
+    try:
+        with (
+            hf_tqdm(total=1, file=output) as outer,
+            patch("datasets.arrow_dataset.hf_tqdm", RecordingTqdm),
+        ):
+            dset.map(lambda x: x, leave=False)
+            outer.update(1)
+    finally:
+        if was_disabled:
+            disable_progress_bars()
+    (bar,) = bars
+    assert bar == {"disable": False, "leave": False, "pos": outer.pos + 1}
