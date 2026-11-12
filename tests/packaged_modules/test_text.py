@@ -1,9 +1,10 @@
+import codecs
 import textwrap
 
 import pyarrow as pa
 import pytest
 
-from datasets import Features, Image
+from datasets import Features, Image, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.text.text import Text, TextConfig
@@ -88,3 +89,65 @@ def test_text_sample_by(sample_by, text_file):
     generator = text._generate_tables(base_files=[text_file], files_iterables=[[text_file]])
     generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()["text"]
     assert generated_content == expected_content
+
+
+CONTENT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\nSecond paragraph.\n"
+
+
+def _expected_content(sample_by):
+    if sample_by == "line":
+        return CONTENT.splitlines()
+    elif sample_by == "paragraph":
+        return CONTENT.split("\n\n")
+    else:
+        return [CONTENT]
+
+
+@pytest.mark.parametrize("chunksize", [10 << 20, 1])
+@pytest.mark.parametrize("sample_by", ["line", "paragraph", "document"])
+def test_text_strip_utf8_bom(sample_by, chunksize, tmp_path):
+    data_file = tmp_path / "text_with_bom.txt"
+    data_file.write_bytes(codecs.BOM_UTF8 + CONTENT.encode("utf-8"))
+    text = Text(sample_by=sample_by, encoding="utf-8", chunksize=chunksize)
+    generator = text._generate_tables(base_files=[str(data_file)], files_iterables=[[str(data_file)]])
+    generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()["text"]
+    assert generated_content == _expected_content(sample_by)
+
+
+@pytest.mark.parametrize("sample_by", ["line", "paragraph", "document"])
+def test_text_strip_utf8_bom_in_every_file(sample_by, tmp_path):
+    data_files = []
+    expected_content = []
+    for file_index in range(2):
+        content = f"First paragraph of file {file_index}.\n\nSecond paragraph of file {file_index}.\n"
+        data_file = tmp_path / f"text_with_bom_{file_index}.txt"
+        data_file.write_bytes(codecs.BOM_UTF8 + content.encode("utf-8"))
+        data_files.append(str(data_file))
+        if sample_by == "line":
+            expected_content += content.splitlines()
+        elif sample_by == "paragraph":
+            expected_content += content.split("\n\n")
+        else:
+            expected_content += [content]
+    text = Text(sample_by=sample_by, encoding="utf-8")
+    generator = text._generate_tables(base_files=data_files, files_iterables=[data_files])
+    generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()["text"]
+    assert generated_content == expected_content
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("sample_by", ["line", "paragraph", "document"])
+def test_text_load_dataset_strips_utf8_bom(sample_by, streaming, tmp_path):
+    data_file = tmp_path / "text_with_bom.txt"
+    data_file.write_bytes(codecs.BOM_UTF8 + CONTENT.encode("utf-8"))
+    dataset = load_dataset(
+        "text",
+        data_files=str(data_file),
+        sample_by=sample_by,
+        split="train",
+        streaming=streaming,
+        cache_dir=str(tmp_path / "cache"),
+    )
+    generated_content = _expected_content(sample_by)
+    texts = list(dataset["text"]) if streaming else dataset["text"]
+    assert texts == generated_content
