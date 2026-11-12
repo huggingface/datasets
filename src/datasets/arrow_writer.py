@@ -340,6 +340,8 @@ class TypedSequence:
         )
         trying_cast_to_python_objects = False
         json_field_paths = []
+        # Json() fields from the features: their strings can hold JSON that is already encoded
+        declared_json_field_paths = []
         try:
             # custom pyarrow types
             if isinstance(pa_type, _ArrayXDExtensionType):
@@ -359,10 +361,15 @@ class TypedSequence:
                     json_field_paths = find_mixed_struct_types_field_paths(examples, allow_root=True)
                 elif type is not None:
                     json_field_paths = get_json_field_paths_from_feature(type)
+                    declared_json_field_paths = list(json_field_paths)
                 # json encode if needed
                 if json_field_paths:
                     for json_field_path in json_field_paths:
-                        examples = [json_encode_field(examples, json_field_path) for examples in examples]
+                        # in an inferred field, a string is a string value, even if it looks like JSON
+                        keep_json_strings = json_field_path in declared_json_field_paths
+                        examples = [
+                            json_encode_field(example, json_field_path, keep_json_strings) for example in examples
+                        ]
                 # to arrow array
                 out = pa.array(cast_to_python_objects(examples, only_1d_for_numpy=True))
                 # cast to json type if needed
@@ -454,7 +461,10 @@ class TypedSequence:
                         # we use "obj" to have valid JSON Lines since data may contain lists
                         original_batch = "\n".join([ujson_dumps({"obj": example}) for example in data]).encode()
                         json_field_paths = [["obj"] + json_field_path for json_field_path in json_field_paths]
-                        batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
+                        json_strings_field_paths = [["obj"] + path for path in declared_json_field_paths]
+                        batch = json_encode_fields_in_json_lines(
+                            original_batch, json_field_paths, json_strings_field_paths
+                        )
                         pa_table = None
                         while True:
                             try:  # fourth chance
@@ -466,7 +476,9 @@ class TypedSequence:
                                 if "JSON parse error: Column(" in str(eee) and ") changed from" in str(eee):
                                     json_field_path = get_json_field_path_from_pyarrow_json_error(str(eee))
                                     insert_json_field_path(json_field_paths, json_field_path)
-                                    batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
+                                    batch = json_encode_fields_in_json_lines(
+                                        original_batch, json_field_paths, json_strings_field_paths
+                                    )
                                 else:
                                     break
                         if pa_table is not None:

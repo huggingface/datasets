@@ -5399,3 +5399,34 @@ def test_dataset_push_to_hub_uploads_every_row_with_num_proc(offline_parquet_upl
     if num_shards == 1:
         # a single shard is written without starting a pool of processes
         assert not mp.get_context.return_value.Pool.called
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        # scalars whose type changes between rows: the writer finds the field with the pyarrow JSON reader
+        [1, "null", "123", "abc"],
+        [1, "123", "true", "null", "007", "[1, 2]", '{"a": 1}', "abc"],
+        # objects mixed with strings: the writer finds the field before converting to Arrow
+        [{"a": 0}, "123", {"b": "true"}, "null", "abc"],
+        # the same in a nested list
+        [[{"a": 0}, "null"], ["123", {"b": 1}]],
+    ],
+)
+def test_from_dict_on_mixed_types_keeps_string_values(values):
+    dset = Dataset.from_dict({"v": values}, on_mixed_types="use_json")
+    assert dset["v"] == values
+
+
+def test_map_on_mixed_types_keeps_string_values():
+    values = [1, "null", "123", "abc"]
+    dset = Dataset.from_dict({"i": list(range(len(values)))})
+    dset = dset.map(lambda x: {"v": values[x["i"]]}, on_mixed_types="use_json")
+    assert dset["v"] == values
+
+
+def test_from_dict_with_json_feature_decodes_strings_holding_json():
+    # declared Json() fields may receive values that are already JSON-encoded
+    values = ['{"a": 1}', "[1, 2]", "abc", {"b": 2}]
+    dset = Dataset.from_dict({"v": values}, features=Features({"v": Json()}))
+    assert dset["v"] == [{"a": 1}, [1, 2], "abc", {"b": 2}]
