@@ -565,6 +565,47 @@ def test_json_generate_tables(file_fixture, config_kwargs, expected, request):
     assert out == expected
 
 
+@pytest.fixture
+def bounded_json_parser(monkeypatch):
+    read_json = paj.read_json
+    attempts = 0
+
+    def bounded_read_json(*args, **kwargs):
+        nonlocal attempts
+        attempts += 1
+        assert attempts <= 5, "JSON parser retried without resolving the mixed-type field"
+        return read_json(*args, **kwargs)
+
+    monkeypatch.setattr(paj, "read_json", bounded_read_json)
+
+
+@pytest.mark.parametrize(
+    "rows",
+    [
+        [{"a/b": 1}, {"a/b": "two"}],
+        [{"outer": {"a/b": 1}}, {"outer": {"a/b": "two"}}],
+        [{"outer": [{"a/b": 1}]}, {"outer": [{"a/b": "two"}]}],
+        [{"/a/": 1}, {"/a/": "two"}],
+        [{"[]": 1}, {"[]": "two"}],
+        [{"": 1}, {"": "two"}],
+    ],
+)
+def test_json_mixed_type_literal_field_names(tmp_path, bounded_json_parser, rows):
+    path = tmp_path / "mixed.jsonl"
+    path.write_text("\n".join(map(json.dumps, rows)), encoding="utf-8")
+
+    assert Dataset.from_json(str(path), cache_dir=str(tmp_path / "cache")).to_list() == rows
+
+
+def test_json_mixed_type_ambiguous_field_path(tmp_path, bounded_json_parser):
+    path = tmp_path / "ambiguous.jsonl"
+    rows = [{"a/b": 1, "a": {"b": 3}}, {"a/b": "two", "a": {"b": 4}}]
+    path.write_text("\n".join(map(json.dumps, rows)), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="Cannot resolve mixed-type JSON field .*ambiguous field path"):
+        Dataset.from_json(str(path), cache_dir=str(tmp_path / "cache"))
+
+
 @pytest.mark.parametrize(
     "file_fixture, config_kwargs",
     [

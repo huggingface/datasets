@@ -305,7 +305,15 @@ class Json(datasets.ArrowBasedBuilder):
                                             and "JSON parse error: Column(" in str(e)
                                             and ") changed from" in str(e)
                                         ):
-                                            json_field_path = get_json_field_path_from_pyarrow_json_error(str(e))
+                                            json_field_path = get_json_field_path_from_pyarrow_json_error(
+                                                str(e), examples=(ujson_loads(line) for line in batch.splitlines())
+                                            )
+                                            if not json_field_path:
+                                                raise
+                                            if any(json_field_path[: len(path)] == path for path in json_field_paths):
+                                                raise ValueError(
+                                                    f"Cannot encode mixed-type JSON field {json_field_path!r} as JSON"
+                                                ) from e
                                             insert_json_field_path(json_field_paths, json_field_path)
                                             batch = json_encode_fields_in_json_lines(
                                                 original_batch, json_field_paths, declared_json_field_paths

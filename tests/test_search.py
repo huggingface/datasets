@@ -7,7 +7,8 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
-from datasets.arrow_dataset import Dataset
+from datasets.arrow_dataset import Dataset, DatasetTransformationNotAllowedError
+from datasets.features import Value
 from datasets.search import ElasticSearchIndex, FaissIndex, MissingIndex
 
 from .utils import require_elasticsearch, require_faiss
@@ -83,6 +84,22 @@ class IndexableDatasetTest(TestCase):
         )
         dset.drop_index("vecs")
         self.assertRaises(MissingIndex, partial(dset.get_nearest_examples, "vecs2", np.ones(5, dtype=np.float32)))
+
+    def test_batched_map_with_index(self):
+        dset: Dataset = self._create_dummy_dataset()
+        dset.add_faiss_index_from_external_arrays(
+            external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1), index_name="vecs"
+        )
+        # cast and cast_column run a batched map that returns a pyarrow table
+        dset_cast = dset.cast_column("filename", Value("large_string"))
+        self.assertEqual(dset_cast.features["filename"], Value("large_string"))
+        self.assertEqual(dset_cast["filename"][:], dset["filename"][:])
+        dset_table = dset.with_format("arrow").map(lambda table: table, batched=True, batch_size=8)
+        self.assertEqual(dset_table.num_rows, 30)
+        dset_empty = dset.map(lambda batch: {}, batched=True, batch_size=8)
+        self.assertEqual(dset_empty.num_rows, 30)
+        with pytest.raises(DatasetTransformationNotAllowedError):
+            dset.with_format("arrow").map(lambda table: table.slice(0, 1), batched=True, batch_size=8)
 
     def test_add_elasticsearch_index(self):
         from elasticsearch import Elasticsearch
