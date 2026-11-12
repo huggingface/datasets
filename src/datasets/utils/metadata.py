@@ -144,12 +144,19 @@ class MetadataConfigs(dict[str, dict[str, Any]]):
             metadata_configs = dataset_card_data[cls.FIELD_NAME]
             if not isinstance(metadata_configs, list):
                 raise ValueError(f"Expected {cls.FIELD_NAME} to be a list, but got '{metadata_configs}'")
+            config_names = set()
             for metadata_config in metadata_configs:
                 if "config_name" not in metadata_config:
                     raise ValueError(
                         f"Each config must include `config_name` field with a string name of a config, "
                         f"but got {metadata_config}. "
                     )
+                config_name = metadata_config["config_name"]
+                if config_name in config_names:
+                    raise ValueError(
+                        f"Duplicate config_name in YAML: {config_name!r}. Each config must have a unique name."
+                    )
+                config_names.add(config_name)
                 cls._raise_if_data_files_field_not_valid(metadata_config)
             return cls(
                 {
