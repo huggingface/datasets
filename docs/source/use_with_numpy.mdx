@@ -31,9 +31,9 @@ when setting the format of a `DatasetDict` to `numpy`, all the `Dataset`s there
 will be formatted as `numpy`:
 
 ```py
->>> from datasets import DatasetDict
+>>> from datasets import Dataset, DatasetDict
 >>> data = {"train": {"data": [[1, 2], [3, 4]]}, "test": {"data": [[5, 6], [7, 8]]}}
->>> dds = DatasetDict.from_dict(data)
+>>> dds = DatasetDict({split: Dataset.from_dict(d) for split, d in data.items()})
 >>> dds = dds.with_format("numpy")
 >>> dds["train"][:2]
 {'data': array([
