@@ -1,7 +1,9 @@
+import json
 import os
 
 import pytest
 import yaml
+from huggingface_hub import DatasetCard, DatasetCardData
 
 from datasets.features.features import Features, Value
 from datasets.info import DatasetInfo, DatasetInfosDict
@@ -55,6 +57,54 @@ def test_dataset_info_dump_and_reload(tmp_path, dataset_info: DatasetInfo):
     reloaded = DatasetInfo.from_directory(tmp_path)
     assert dataset_info == reloaded
     assert os.path.exists(os.path.join(tmp_path, "dataset_info.json"))
+
+
+@pytest.mark.parametrize("layout", ["fresh", "readme", "json", "both"])
+@pytest.mark.parametrize("payload", ["new", "same", "empty"])
+@pytest.mark.parametrize("overwrite", [False, True], ids=["merge", "overwrite"])
+def test_dataset_infos_dict_write_to_directory(tmp_path, layout, payload, overwrite):
+    old = DatasetInfosDict({"old": DatasetInfo(dataset_size=10)})
+    if layout in ("readme", "both"):
+        card_data = DatasetCardData(license="mit")
+        old.to_dataset_card_data(card_data)
+        DatasetCard(f"---\n{card_data}\n---\n\nKeep this description.\n").save(tmp_path / "README.md")
+    if layout in ("json", "both"):
+        (tmp_path / "dataset_infos.json").write_text(json.dumps({"old": {"dataset_size": 10}}), encoding="utf-8")
+
+    name = "old" if payload == "same" else "new"
+    incoming = DatasetInfosDict() if payload == "empty" else DatasetInfosDict({name: DatasetInfo(dataset_size=42)})
+    incoming.write_to_directory(tmp_path, overwrite=overwrite)
+
+    expected = {}
+    if not overwrite and layout != "fresh":
+        expected["old"] = 10
+    if payload != "empty":
+        expected[name] = 42
+    actual = DatasetInfosDict.from_directory(tmp_path)
+    assert {name: info.dataset_size for name, info in actual.items()} == expected
+    if layout in ("json", "both"):
+        legacy = json.loads((tmp_path / "dataset_infos.json").read_text(encoding="utf-8"))
+        assert {name: info["dataset_size"] for name, info in legacy.items()} == expected
+    if layout in ("readme", "both"):
+        card = DatasetCard.load(tmp_path / "README.md")
+        assert card.data.license == "mit"
+        assert "Keep this description." in card.text
+        if overwrite and payload == "empty":
+            assert "dataset_info" not in card.data
+    if layout == "fresh" and payload == "empty":
+        assert not (tmp_path / "README.md").exists()
+
+
+def test_dataset_infos_dict_overwrite_multiple_configs(tmp_path):
+    DatasetInfosDict({"old": DatasetInfo(dataset_size=10), "other": DatasetInfo(dataset_size=20)}).write_to_directory(
+        tmp_path
+    )
+    DatasetInfosDict({"default": DatasetInfo(dataset_size=42)}).write_to_directory(tmp_path, overwrite=True)
+    card = DatasetCard.load(tmp_path / "README.md")
+    assert card.data["dataset_info"] == {"dataset_size": 42}
+    reloaded = DatasetInfosDict.from_directory(tmp_path)
+    assert list(reloaded) == ["default"]
+    assert reloaded["default"].dataset_size == 42
 
 
 def test_dataset_info_to_yaml_dict():
