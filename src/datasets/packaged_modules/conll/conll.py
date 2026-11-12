@@ -25,6 +25,11 @@ logger = datasets.utils.logging.get_logger(__name__)
 
 DEFAULT_COLUMN_NAMES = ["tokens"]
 
+# Decoded UTF-8 byte order mark (`codecs.BOM_UTF8`). A BOM is an encoding signature rather than
+# part of the text, but it is not removed when the file is decoded, so it has to be dropped
+# explicitly. It only ever appears at the very start of a file.
+BOM_UTF8_CHAR = "\ufeff"
+
 
 @dataclass
 class ConllConfig(datasets.BuilderConfig):
@@ -124,9 +129,13 @@ class Conll(datasets.ArrowBasedBuilder):
                 sentences: list[list[list[str]]] = []
                 current: list[list[str]] = [[] for _ in range(num_cols)]
                 with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
-                    for raw_line in f:
+                    for line_index, raw_line in enumerate(f):
                         # Strip the trailing newline only — preserve embedded whitespace
                         line = raw_line.rstrip("\r\n")
+                        # Drop a leading BOM so that it doesn't end up in the first token, and
+                        # so that it doesn't hide a `-DOCSTART-` or comment line at the top
+                        if line_index == 0 and line.startswith(BOM_UTF8_CHAR):
+                            line = line[len(BOM_UTF8_CHAR) :]
                         if not line.strip():
                             # Sentence boundary
                             if current[0]:
