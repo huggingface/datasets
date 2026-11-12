@@ -5174,6 +5174,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
+        generator_from_caller = generator is not None
         if generator is None and shuffle is True:
             if seed is None:
                 _, seed, pos, *_ = np.random.get_state()
@@ -5182,6 +5183,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)
+        cached_splits = None
         if self.cache_files:
             if train_indices_cache_file_name is None or test_indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
@@ -5198,7 +5200,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 logger.info(
                     f"Loading cached split indices for dataset at {train_indices_cache_file_name} and {test_indices_cache_file_name}"
                 )
-                return DatasetDict(
+                cached_splits = DatasetDict(
                     {
                         "train": self._new_dataset_with_indices(
                             fingerprint=train_new_fingerprint, indices_cache_file_name=train_indices_cache_file_name
@@ -5208,6 +5210,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         ),
                     }
                 )
+                # A caller's generator must advance on cache hits too, so draw the split below before returning
+                if not (shuffle and generator_from_caller):
+                    return cached_splits
         if not shuffle:
             if stratify_by_column is not None:
                 raise ValueError("Stratified train/test split is not implemented for `shuffle=False`")
@@ -5244,6 +5249,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 permutation = generator.permutation(len(self))
                 test_indices = permutation[:n_test]
                 train_indices = permutation[n_test : (n_test + n_train)]
+
+        if cached_splits is not None:
+            return cached_splits
 
         train_split = self.select(
             indices=train_indices,
