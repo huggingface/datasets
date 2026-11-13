@@ -474,7 +474,7 @@ You can filter by BIDS entities (`subjects`, `sessions`, `tasks`, `runs`, `datat
 
 Hub datasets load directly, for example `load_dataset("EEGDash/ds003029", subjects="jh101", split="train")`. When a biosignal is accessed, the decoder uses the Hub snapshot cache to download its subject/session/datatype folder and the repository’s JSON/TSV metadata. This preserves companion files and BIDS sidecars, including split recordings and directory formats. Other runs in the same folder may also be downloaded, including during streaming.
 
-Hosted examples include [iEEG (BrainVision)](https://huggingface.co/datasets/EEGDash/ds003029), [EEG (EDF)](https://huggingface.co/datasets/EEGDash/nm000290), and [EEG (EEGLAB) with anatomical MRI](https://huggingface.co/datasets/EEGDash/ds002718). Their dataset cards contain loading examples.
+Hosted examples include [iEEG (BrainVision)](https://huggingface.co/datasets/EEGDash/ds003029), [EEG (EDF)](https://huggingface.co/datasets/EEGDash/nm000290), and [EEG (EEGLAB) with NIfTI defacemasks](https://huggingface.co/datasets/EEGDash/ds002718). Their dataset cards contain loading examples.
 
 ## Remote files
 
