@@ -547,6 +547,218 @@ def test_buffer_shuffled_examples_iterable_arrow():
     assert all_x != list(range(50))
 
 
+def _buffer_shuffled_ex_iterable(n, buffer_size, num_std, arrow=False, batch_size=5, seed=42):
+    if arrow:
+        base_ex_iterable = ArrowExamplesIterable(generate_tables_fn, {"n": n, "batch_size": batch_size})
+    else:
+        base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    return BufferShuffledExamplesIterable(
+        base_ex_iterable, buffer_size=buffer_size, generator=np.random.default_rng(seed), num_std=num_std
+    )
+
+
+def _ids_of(ex_iterable: _BaseExamplesIterable) -> list:
+    """The ids of the examples of `ex_iterable`, read either as arrow tables or as python dicts."""
+    if ex_iterable.iter_arrow:
+        return [_id for _, pa_table in ex_iterable.iter_arrow() for _id in pa_table["id"].to_pylist()]
+    return [example["id"] for _, example in ex_iterable]
+
+
+def _iterate_until_checkpoint(ex_iterable: _BaseExamplesIterable, num_examples: int):
+    """Yield examples of `ex_iterable` and stop after `num_examples` examples, as a training loop does before saving.
+
+    Returns:
+        `tuple[list, Optional[dict]]`: the ids of the examples that have been yielded, and the state dict to resume
+        from (or None if the iterable ran out of examples before reaching the checkpoint).
+    """
+    if ex_iterable._state_dict is None:
+        ex_iterable._init_state_dict()
+    ids = []
+    iterator = ex_iterable.iter_arrow() if ex_iterable.iter_arrow else ex_iterable
+    for _, examples in iterator:
+        ids.extend(examples["id"].to_pylist() if isinstance(examples, pa.Table) else [examples["id"]])
+        if len(ids) >= num_examples:
+            return ids, json.loads(json.dumps(ex_iterable.state_dict()))
+    return ids, None
+
+
+@pytest.mark.parametrize("arrow", [False, True])
+def test_buffer_shuffled_examples_iterable_state_dict(arrow):
+    n, buffer_size, num_std = 100, 10, 3
+    ex_iterable = _buffer_shuffled_ex_iterable(n, buffer_size, num_std, arrow=arrow)
+    ex_iterable._init_state_dict()
+    state_dict = ex_iterable.state_dict()
+    assert state_dict["type"] == "BufferShuffledExamplesIterable"
+    assert state_dict["num_examples_read"] == 0
+    assert state_dict["num_examples_yielded"] == 0
+    # the content of the shuffle buffer is not saved: past states of the underlying iterable are saved instead, and
+    # the state at the beginning of the epoch is always available
+    assert state_dict["previous_states"] == [
+        {"examples_iterable": state_dict["examples_iterable"], "num_examples_read": 0, "num_examples_yielded": 0},
+        {"examples_iterable": state_dict["examples_iterable"], "num_examples_read": 0, "num_examples_yielded": 0},
+    ]
+    assert json.loads(json.dumps(state_dict)) == state_dict, "the state dict has to be json serializable"
+
+    assert len(_ids_of(ex_iterable)) == n
+    state_dict = ex_iterable.state_dict()
+    assert state_dict["num_examples_yielded"] == n
+    assert state_dict["num_examples_read"] == n
+    previous_states = state_dict["previous_states"]
+    # only the two last states are kept: the oldest one is at least `num_std * buffer_size` examples behind, and the
+    # most recent one replaces it as soon as it gets too recent
+    assert len(previous_states) == 2
+    assert 0 < previous_states[0]["num_examples_read"] <= previous_states[-1]["num_examples_read"] <= n
+    assert n - previous_states[-1]["num_examples_read"] <= (num_std + 1) * buffer_size
+    assert previous_states[-1]["num_examples_yielded"] <= previous_states[-1]["num_examples_read"]
+    assert json.loads(json.dumps(state_dict)) == state_dict
+
+
+@pytest.mark.parametrize("arrow", [False, True])
+def test_buffer_shuffled_examples_iterable_warmup_num_examples(arrow):
+    assert _buffer_shuffled_ex_iterable(100, 10, num_std=0, arrow=arrow).warmup_num_examples == 0
+    assert _buffer_shuffled_ex_iterable(100, 10, num_std=3, arrow=arrow).warmup_num_examples == 30
+    assert _buffer_shuffled_ex_iterable(100, 10, num_std=-1, arrow=arrow).warmup_num_examples == 0
+
+
+def test_buffer_shuffled_examples_iterable_num_std_from_config(monkeypatch):
+    monkeypatch.setattr(config, "SHUFFLE_BUFFER_WARMUP_NUM_STD", 3)
+    ex_iterable = _buffer_shuffled_ex_iterable(100, 10, num_std=None)
+    assert ex_iterable.num_std == 3
+    assert ex_iterable.warmup_num_examples == 3 * 10
+
+
+@pytest.mark.parametrize("arrow", [False, True])
+def test_buffer_shuffled_examples_iterable_resumes_exactly_when_replaying_the_epoch(arrow):
+    n, buffer_size = 60, 10
+    # with `num_std * buffer_size >= n`, all the examples that have been read are read again when resuming: the shuffle
+    # buffer is restored exactly as it was, and the iteration resumes exactly where it stopped
+    num_std = n // buffer_size + 1
+    full_ids = _ids_of(_buffer_shuffled_ex_iterable(n, buffer_size, num_std, arrow=arrow))
+    assert sorted(full_ids) == list(range(n))
+    for checkpoint in range(1, n, 7):
+        ex_iterable = _buffer_shuffled_ex_iterable(n, buffer_size, num_std, arrow=arrow)
+        ids, state_dict = _iterate_until_checkpoint(ex_iterable, checkpoint)
+        if state_dict is None:
+            continue
+        ex_iterable.load_state_dict(state_dict)
+        assert _ids_of(ex_iterable) == full_ids[len(ids) :], f"resuming from {checkpoint=} with {state_dict=}"
+
+
+@pytest.mark.parametrize("num_std", [0, 1, 5])
+@pytest.mark.parametrize("arrow", [False, True])
+def test_buffer_shuffled_examples_iterable_resumes_with_warmup(arrow, num_std):
+    n, buffer_size, batch_size = 200, 20, 5
+    full_ids = _ids_of(_buffer_shuffled_ex_iterable(n, buffer_size, num_std, arrow=arrow, batch_size=batch_size))
+    assert sorted(full_ids) == list(range(n))
+    for checkpoint in (1, 20, 97, 150, 199):
+        ex_iterable = _buffer_shuffled_ex_iterable(n, buffer_size, num_std, arrow=arrow, batch_size=batch_size)
+        ids, state_dict = _iterate_until_checkpoint(ex_iterable, checkpoint)
+        ex_iterable.load_state_dict(state_dict)
+        resumed_ids = _ids_of(ex_iterable)
+        assert set(resumed_ids) <= set(range(n))
+        lost_ids = set(range(n)) - set(ids) - set(resumed_ids)
+        repeated_ids = set(ids) & set(resumed_ids)
+        # the examples that were in the shuffle buffer when the checkpoint was saved are lost, or read again and
+        # yielded twice: this is bounded by the size of the buffer (+ the size of a batch of examples for arrow)
+        assert len(lost_ids) <= buffer_size + batch_size, f"resuming from {checkpoint=} lost {lost_ids}"
+        assert len(repeated_ids) <= buffer_size + batch_size, f"resuming from {checkpoint=} repeated {repeated_ids}"
+        # the resumed iteration is not delayed, nor ahead: it yields about as many examples as it would have without
+        # interrupting the iteration
+        assert abs(len(resumed_ids) - (n - len(ids))) <= buffer_size + batch_size
+
+
+@pytest.mark.parametrize("arrow", [False, True])
+def test_buffer_shuffled_examples_iterable_resumes_same_way_twice(arrow):
+    n, buffer_size, num_std = 200, 20, 2
+    ex_iterable = _buffer_shuffled_ex_iterable(n, buffer_size, num_std, arrow=arrow)
+    _, state_dict = _iterate_until_checkpoint(ex_iterable, n // 2)
+    ex_iterable.load_state_dict(deepcopy(state_dict))
+    resumed_ids = _ids_of(ex_iterable)
+    ex_iterable.load_state_dict(deepcopy(state_dict))
+    assert _ids_of(ex_iterable) == resumed_ids, "resuming twice from the same state dict has to give the same examples"
+
+
+@pytest.mark.parametrize("arrow", [False, True])
+def test_buffer_shuffled_examples_iterable_resumes_several_times(arrow):
+    """Resuming again and again must not make the iteration take distance from a single uninterrupted iteration."""
+    n, buffer_size, num_std = 500, 20, 5
+    single_pass_ids = _ids_of(_buffer_shuffled_ex_iterable(n, buffer_size, num_std, arrow=arrow))
+    ex_iterable = _buffer_shuffled_ex_iterable(n, buffer_size, num_std, arrow=arrow)
+    ids = []
+    while True:
+        new_ids, state_dict = _iterate_until_checkpoint(ex_iterable, 50)
+        ids.extend(new_ids)
+        if state_dict is None:
+            break
+        ex_iterable.load_state_dict(state_dict)
+    # the examples that are in the shuffle buffer at each checkpoint are either lost or yielded twice
+    assert len(set(ids)) >= n - n // 50 * buffer_size
+    # the iteration does not take distance from a single pass: the examples are yielded at about the same position
+    positions = {example_id: position for position, example_id in enumerate(single_pass_ids)}
+    displacements = [position - positions[example_id] for position, example_id in enumerate(ids)]
+    assert np.std(displacements) < 2 * buffer_size, f"{np.std(displacements)=} for {buffer_size=}"
+
+
+@pytest.mark.parametrize("arrow", [False, True])
+def test_buffer_shuffled_examples_iterable_resumes_from_checkpoint_at_the_end_of_the_epoch(arrow):
+    """A checkpoint saved when the underlying iterable is exhausted must not yield the last examples again and again.
+
+    The examples that are still in the shuffle buffer are lost: they were all read before the checkpointed position, so
+    yielding them would yield examples a second time.
+    """
+    n, buffer_size, num_std = 100, 20, 1
+    ex_iterable = _buffer_shuffled_ex_iterable(n, buffer_size, num_std, arrow=arrow)
+    ex_iterable._init_state_dict()
+    ids, state_dict = [], None
+    for _, examples in ex_iterable.iter_arrow() if arrow else ex_iterable:
+        ids.extend(examples["id"].to_pylist() if isinstance(examples, pa.Table) else [examples["id"]])
+        state_dict = json.loads(json.dumps(ex_iterable.state_dict()))
+        if state_dict["num_examples_read"] == n:
+            break
+    assert state_dict["num_examples_read"] == n
+    assert len(ids) < n, "the underlying iterable is exhausted, but the shuffle buffer still has examples"
+    ex_iterable.load_state_dict(deepcopy(state_dict))
+    assert _ids_of(ex_iterable) == []
+
+
+def test_buffer_shuffled_examples_iterable_restore_legacy_state_dict(caplog):
+    n, buffer_size = 200, 10
+    ex_iterable = _buffer_shuffled_ex_iterable(n, buffer_size, num_std=5)
+    ids, state_dict = _iterate_until_checkpoint(ex_iterable, n // 2)
+    # a state dict saved by an older version of the library only contains the state of the underlying iterable
+    legacy_state_dict = state_dict["examples_iterable"]
+    ex_iterable = _buffer_shuffled_ex_iterable(n, buffer_size, num_std=5)
+    ex_iterable._init_state_dict()
+    with caplog.at_level("WARNING"):
+        ex_iterable.load_state_dict(legacy_state_dict)
+    assert any("shuffle buffer" in record.message for record in caplog.records)
+    resumed_ids, new_state_dict = _iterate_until_checkpoint(ex_iterable, n // 4)
+    # the shuffle buffer can't be refilled with the examples that were in it: they are lost, and none is yielded twice
+    assert not set(resumed_ids) & set(ids), "examples that had already been yielded are not yielded again"
+    # the counters are reset at the position of the legacy checkpoint: resuming from a state dict saved after the
+    # legacy resume doesn't read the whole epoch again
+    assert new_state_dict is not None
+    ex_iterable.load_state_dict(new_state_dict)
+    resumed_ids += _ids_of(ex_iterable)
+    all_ids = ids + resumed_ids
+    # at each checkpoint, the examples in the shuffle buffer are either lost or yielded a second time
+    assert len(set(all_ids)) >= n - 2 * buffer_size, f"{len(set(all_ids))=}/{n} with {buffer_size=}"
+    assert len(set(all_ids)) >= len(all_ids) - buffer_size, f"{len(set(all_ids))=}/{len(all_ids)} with {buffer_size=}"
+
+
+def test_buffer_shuffled_examples_iterable_num_std_is_kept_when_transforming_data_sources():
+    ex_iterable = _buffer_shuffled_ex_iterable(100, 10, num_std=3)
+    for transformed in (
+        ex_iterable.shift_rngs(1),
+        ex_iterable.shuffle_data_sources(np.random.default_rng(42)),
+        ex_iterable.shard_data_sources(2, 0),
+        ex_iterable.reshard_data_sources(),
+    ):
+        assert isinstance(transformed, BufferShuffledExamplesIterable)
+        assert transformed.num_std == 3
+        assert transformed.warmup_num_examples == 3 * 10
+
+
 def test_cycling_multi_sources_examples_iterable():
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"text": "foo"})
     ex_iterable2 = ExamplesIterable(generate_examples_fn, {"text": "bar"})
@@ -1878,6 +2090,8 @@ def test_horizontally_concatenated_examples_iterable():
 def test_no_iter_arrow(ex_iterable: _BaseExamplesIterable):
     assert ex_iterable.iter_arrow is None
     if not isinstance(ex_iterable, BufferShuffledExamplesIterable):
+        # the content of the shuffle buffer is not saved: resuming loses or repeats a few examples (see
+        # `test_buffer_shuffled_examples_iterable_resumes_with_warmup`)
         assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
@@ -1917,7 +2131,7 @@ def test_no_iter_arrow(ex_iterable: _BaseExamplesIterable):
             lambda t: True,
             formatting=FormattingConfig(format_type="arrow"),
         ),
-        # BufferShuffledExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), 10, np.random.default_rng(42)),  # not implemented
+        # BufferShuffledExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), 10, np.random.default_rng(42)),  # resuming is not exact, see `test_buffer_shuffled_examples_iterable_resumes_with_warmup`
         SkipExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), 10),
         TakeExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), 10),
         FormattedExamplesIterable(
