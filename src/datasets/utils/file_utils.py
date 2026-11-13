@@ -940,14 +940,16 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
     """Extend `open` function to support remote files using `fsspec`.
 
     It also has a retry mechanism in case connection fails.
-    The `args` and `kwargs` are passed to `fsspec.open`, except `token` which is used for queries to private repos on huggingface.co
+    Local files are opened with `open(file, mode, *args, **kwargs)`. For other files, the text mode arguments
+    `encoding`, `errors` and `newline` are passed to the file opened by `fsspec`, and the other `kwargs` are used as
+    `fsspec` storage options.
 
     Args:
         file (`str`): Path name of the file to be opened.
         mode (`str`, *optional*, default "r"): Mode in which the file is opened.
-        *args: Arguments to be passed to `fsspec.open`.
+        *args: Arguments to be passed to `open` for local files.
         download_config : mainly use token or storage_options to support different platforms and auth types.
-        **kwargs: Keyword arguments to be passed to `fsspec.open`.
+        **kwargs: Keyword arguments to be passed to `open` for local files, or to `fsspec` for other files (see above).
 
     Returns:
         file object
@@ -961,6 +963,10 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
         return open(main_hop, mode, *args, **kwargs)
     # add headers and cookies for authentication on the HF Hub and for Google Drive
     file, storage_options = _prepare_path_and_storage_options(file_str, download_config=download_config)
+    # text mode arguments are for the opened file, not for the filesystem
+    text_kwargs = {key: kwargs.pop(key) for key in ("encoding", "errors", "newline") if key in kwargs}
+    if "b" in mode:
+        text_kwargs = {}
     kwargs = {**kwargs, **(storage_options or {})}
 
     max_retries = config.STREAMING_OPEN_MAX_RETRIES
@@ -973,7 +979,7 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
                 mode,
                 storage_options=kwargs,
             )
-            file_obj = fs.open(paths[0], mode)
+            file_obj = fs.open(paths[0], mode, **text_kwargs)
             if hasattr(fs, "of") and hasattr(fs.of, "__exit__"):
                 file_obj._fs = fs  # keep a reference or the fs might close the file on gc
             break

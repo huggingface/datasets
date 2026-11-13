@@ -2,7 +2,11 @@ import os
 import re
 import subprocess
 import sys
+import zipfile
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from threading import Thread
 from unittest.mock import patch
 
 import pytest
@@ -484,6 +488,41 @@ def test_xopen_local(text_path):
         assert list(f) == list(expected_file)
     with xPath(text_path).open("r", encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
         assert list(f) == list(expected_file)
+
+
+def test_xopen_archive_member_text_kwargs(tmp_path):
+    # encoding, errors and newline must reach the opened file for paths that go through fsspec too
+    archive_path = tmp_path / "archive.zip"
+    with zipfile.ZipFile(archive_path, "w") as zf:
+        zf.writestr("latin1.txt", "café\r\n".encode("latin-1"))
+    urlpath = f"zip://latin1.txt::{archive_path}"
+    with xopen(urlpath, "r", encoding="latin-1") as f:
+        assert f.read() == "café\n"
+    with xopen(urlpath, "r", encoding="utf-8", errors="replace") as f:
+        assert f.read() == "caf\ufffd\n"
+    with xopen(urlpath, "r", encoding="latin-1", newline="") as f:
+        assert f.read() == "café\r\n"
+
+
+@pytest.fixture
+def latin1_http_server(tmp_path):
+    (tmp_path / "latin1.txt").write_bytes("café\n".encode("latin-1"))
+    handler = partial(SimpleHTTPRequestHandler, directory=str(tmp_path))
+    with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server:
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            yield f"http://127.0.0.1:{server.server_port}"
+        finally:
+            server.shutdown()
+            thread.join()
+
+
+def test_xopen_http_text_kwargs(latin1_http_server):
+    # text mode arguments must not be sent to the HTTP filesystem as storage options
+    pytest.importorskip("aiohttp")
+    with xopen(f"{latin1_http_server}/latin1.txt", "r", encoding="latin-1") as f:
+        assert f.read() == "café\n"
 
 
 @pytest.mark.integration
