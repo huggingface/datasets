@@ -21,6 +21,7 @@ import inspect
 import json
 import os
 import posixpath
+import re
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
@@ -51,6 +52,7 @@ from .data_files import (
     DataFilesList,
     DataFilesPatternsDict,
     EmptyDatasetError,
+    _is_bids_dataset,
     get_data_patterns,
     sanitize_patterns,
 )
@@ -82,6 +84,7 @@ from .utils.file_utils import (
     get_datasets_user_agent,
     is_relative_path,
     relative_to_absolute_path,
+    xdirname,
 )
 from .utils.hub import hf_dataset_url
 from .utils.info_utils import VerificationMode, is_small_dataset
@@ -222,6 +225,24 @@ def infer_module_for_data_files_list(
         for suffix in xbasename(filepath).split(".")[1:]
     )
     if extensions_counter:
+        if all(xbasename(filepath).startswith("sub-") for filepath in data_files_list) and any(
+            filepath.endswith((*_MODULE_TO_METADATA_EXTENSIONS["bids"], ".nii", ".nii.gz"))
+            for filepath in data_files_list
+        ):
+            roots = set()
+            for filepath in data_files_list:
+                directory = xdirname(filepath)
+                while directory and not re.fullmatch(r"sub-[A-Za-z0-9]+", xbasename(directory)):
+                    parent = xdirname(directory)
+                    if parent == directory:
+                        break
+                    directory = parent
+                if not re.fullmatch(r"sub-[A-Za-z0-9]+", xbasename(directory)):
+                    break
+                roots.add(xdirname(directory))
+            else:
+                if all(_is_bids_dataset(root, download_config=download_config) for root in roots):
+                    return "bids", {}
 
         def sort_key(ext_count: tuple[tuple[str, bool], int]) -> tuple[int, bool]:
             """Sort by count and set ".parquet" as the favorite in case of a draw, and ignore metadata files"""
@@ -627,9 +648,6 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
                 exported_dataset_infos = None
         else:
             exported_dataset_infos = None
-        if exported_dataset_infos:
-            exported_dataset_infos.update(dataset_infos)
-            dataset_infos = exported_dataset_infos
         # we need a set of data files to find which dataset builder to use
         # because we need to infer module name by files extensions
         if self.data_files is not None:
@@ -649,6 +667,10 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
             path=self.name,
             download_config=self.download_config,
         )
+        # Viewer exports do not describe BIDS recording schemas or entity filters.
+        if exported_dataset_infos and module_name != "bids":
+            exported_dataset_infos.update(dataset_infos)
+            dataset_infos = exported_dataset_infos
         data_files = data_files.filter(
             extensions=_MODULE_TO_EXTENSIONS[module_name] + _MODULE_TO_METADATA_EXTENSIONS[module_name],
             file_names=_MODULE_TO_METADATA_FILE_NAMES[module_name],

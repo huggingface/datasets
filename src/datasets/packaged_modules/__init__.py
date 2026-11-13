@@ -6,6 +6,7 @@ from huggingface_hub.utils import insecure_hashlib
 
 from .arrow import arrow
 from .audiofolder import audiofolder
+from .bids import bids
 from .cache import cache
 from .conll import conll
 from .csv import csv
@@ -77,6 +78,7 @@ _PACKAGED_DATASETS_MODULES = {
     "fasta": (fasta.__name__, _hash_python_lines(inspect.getsource(fasta).splitlines())),
     "fastq": (fastq.__name__, _hash_python_lines(inspect.getsource(fastq).splitlines())),
     "harbor": (harbor.__name__, _hash_python_lines(inspect.getsource(harbor).splitlines())),
+    "bids": (bids.__name__, _hash_python_lines(inspect.getsource(bids).splitlines())),
 }
 
 # get importable module names and hash for caching
@@ -157,6 +159,7 @@ for _ext, (_module, _) in _EXTENSION_TO_MODULE.items():
 
 for _module in _MODULE_TO_EXTENSIONS:
     _MODULE_TO_EXTENSIONS[_module].append(".zip")
+_MODULE_TO_EXTENSIONS["bids"] = [*bids.NIFTI_EXTENSIONS, ".json"]  # BIDS is detected from filenames (load.py)
 
 # Used to filter data files based on file names
 _MODULE_TO_METADATA_FILE_NAMES: Dict[str, List[str]] = {}
@@ -177,6 +180,7 @@ _MODULE_TO_METADATA_EXTENSIONS: Dict[str, List[str]] = {}
 for _module in _MODULE_TO_EXTENSIONS:
     _MODULE_TO_METADATA_EXTENSIONS[_module] = []
 _MODULE_TO_METADATA_EXTENSIONS["lance"] = lance.Lance.METADATA_EXTENSIONS
+_MODULE_TO_METADATA_EXTENSIONS["bids"] = list(bids.EXTENSIONS)
 
 # Total
 
