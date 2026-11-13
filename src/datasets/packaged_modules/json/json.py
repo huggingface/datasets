@@ -1,5 +1,6 @@
 import codecs
 import io
+import json
 import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -248,10 +249,10 @@ class Json(datasets.ArrowBasedBuilder):
                                     # convert to JSON Lines
                                     full_data = batch + f.read()
                                     if b"{" in batch[:100].split(b'"', 1)[0]:  # list of objects
-                                        batch = "\n".join(ujson_dumps(x) for x in ujson_loads(full_data)).encode()
+                                        batch = "\n".join(json.dumps(x) for x in json.loads(full_data)).encode()
                                     else:  # list of strings
                                         batch = "\n".join(
-                                            ujson_dumps({"text": x}) for x in ujson_loads(full_data)
+                                            json.dumps({"text": x}) for x in json.loads(full_data)
                                         ).encode()
                             # Finish current line
                             try:
@@ -269,7 +270,7 @@ class Json(datasets.ArrowBasedBuilder):
                                 and self.config.on_mixed_types == "use_json"
                             ):
                                 try:
-                                    examples = [ujson_loads(line) for line in batch.splitlines()]
+                                    examples = [json.loads(line) for line in batch.splitlines()]
                                 except ValueError:
                                     # the file is likely not JSON Lines and may contain one single multi-line JSON object
                                     pass
@@ -278,10 +279,10 @@ class Json(datasets.ArrowBasedBuilder):
                             # Re-encode JSON fields
                             original_batch = batch
                             if json_field_paths:
-                                examples = [ujson_loads(line) for line in batch.splitlines()]
+                                examples = [json.loads(line) for line in batch.splitlines()]
                                 for json_field_path in json_field_paths:
                                     examples = [json_encode_field(example, json_field_path) for example in examples]
-                                batch = "\n".join(ujson_dumps(example) for example in examples).encode()
+                                batch = "\n".join(json.dumps(example) for example in examples).encode()
                             # Disable parallelism if block size is ~ len(batch) to avoid segfault
                             block_size = len(batch) if len(batch) // 8 > block_size else block_size
                             pa_table = None

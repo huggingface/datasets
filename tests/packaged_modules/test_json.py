@@ -883,3 +883,21 @@ def test_json_load_dataset_without_droid_marker_stays_ordinary_json(tmp_path):
 
     assert dataset.column_names == ["type", "id", "version", "timestamp", "message"]
     assert dataset[0]["type"] == "session_start"
+
+
+def test_json_mixed_type_preserves_float_precision(tmp_path):
+    rows = [{"id": 1, "x": 0.12345678901234567, "y": 1 / 3}, {"id": "a", "x": 0.12345678901234567, "y": 1 / 3}]
+    jsonl_file = tmp_path / "mixed_floats.jsonl"
+    jsonl_file.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
+
+    ds = load_dataset("json", data_files=str(jsonl_file), split="train", cache_dir=str(tmp_path / "cache"))
+    assert ds["x"][:] == [r["x"] for r in rows]
+    assert ds["y"][:] == [r["y"] for r in rows]
+
+    json_array_file = tmp_path / "array_floats.json"
+    json_array_file.write_text(json.dumps(rows), encoding="utf-8")
+    ds_arr = load_dataset(
+        "json", data_files=str(json_array_file), split="train", cache_dir=str(tmp_path / "cache_arr")
+    )
+    assert ds_arr["x"][:] == [r["x"] for r in rows]
+    assert ds_arr["y"][:] == [r["y"] for r in rows]
