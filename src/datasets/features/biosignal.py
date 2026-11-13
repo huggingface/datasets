@@ -3,7 +3,7 @@ import os
 import sys
 import tempfile
 from dataclasses import dataclass, field, replace
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Union
 
 import pyarrow as pa
@@ -144,8 +144,30 @@ class Biosignal:
             raise ValueError(f"A biosignal should have one of 'path' or 'bytes' but both are None in {value}.")
         if bytes_ is None and not is_local_path(path):
             download_config = DownloadConfig(token=_resolve_token(path, token_per_repo_id or {}))
-            with xopen(path, "rb", download_config=download_config) as f:
-                bytes_ = f.read()
+            if path.startswith(("hf://datasets/", config.HF_ENDPOINT + "/datasets/")):
+                from huggingface_hub import parse_hf_uri, snapshot_download
+
+                resolved = parse_hf_uri(path, endpoint=config.HF_ENDPOINT)
+                recording = PurePosixPath(resolved.path_in_repo)
+                if (
+                    recording.is_absolute()
+                    or ".." in recording.parts
+                    or "\\" in str(recording)
+                    or PureWindowsPath(recording).drive
+                ):
+                    raise ValueError("A Hub recording path must stay inside its repository.")
+                snapshot = snapshot_download(
+                    resolved.id,
+                    repo_type=resolved.type,
+                    revision=resolved.revision,
+                    allow_patterns=[str(recording.parent / "*"), "*.json", "*.tsv"],
+                    token=download_config.token,
+                    endpoint=config.HF_ENDPOINT,
+                )
+                path = str(Path(snapshot) / recording)
+            else:
+                with xopen(path, "rb", download_config=download_config) as f:
+                    bytes_ = f.read()
 
         fname = xbasename(path) if path else "raw.fif"
         if bytes_ is not None and fname.lower().endswith(".fif"):

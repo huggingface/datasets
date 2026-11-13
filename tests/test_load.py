@@ -689,6 +689,43 @@ class ModuleFactoryTest(TestCase):
                 assert importlib.import_module(module_factory_result.module_path) is not None
 
 
+@pytest.mark.parametrize("module_name,filename", [("bids", "sub-01_task-rest_eeg.edf"), ("csv", "data.csv")])
+def test_hub_module_factory_exported_infos(tmp_path, monkeypatch, module_name, filename):
+    readme = tmp_path / "README.md"
+    readme.write_text(
+        "---\nconfigs:\n- config_name: curated\ndataset_info:\n"
+        "  config_name: curated\n  description: Card metadata\n---\n"
+    )
+    data_file = tmp_path / filename
+    data_file.touch()
+    monkeypatch.setattr(datasets.config, "USE_PARQUET_EXPORT", True)
+    monkeypatch.setattr(datasets.config, "HF_UPDATE_DOWNLOAD_COUNTS", False)
+    monkeypatch.setattr("datasets.load.HfApi.hf_hub_download", lambda *args, **kwargs: str(readme))
+    monkeypatch.setattr("datasets.load.get_data_patterns", lambda *args, **kwargs: {"train": [str(data_file)]})
+
+    def missing_metadata(*args, **kwargs):
+        raise FileNotFoundError
+
+    monkeypatch.setattr("datasets.load.cached_path", missing_metadata)
+    monkeypatch.setattr(
+        "datasets.load._dataset_viewer.get_exported_dataset_infos",
+        lambda **kwargs: {
+            "default": {
+                "features": {"image": {"_type": "Image"}},
+                "splits": {"train": {"name": "train", "num_examples": 450}},
+            }
+        },
+    )
+    result = HubDatasetModuleFactory("test/bids", commit_hash="main", use_exported_dataset_infos=True).get_module()
+    assert result.module_path.endswith(module_name)
+    assert result.dataset_infos["curated"].description == "Card metadata"
+    if module_name == "bids":
+        assert "default" not in result.dataset_infos
+    else:
+        assert isinstance(result.dataset_infos["default"].features["image"], datasets.Image)
+        assert result.dataset_infos["default"].splits["train"].num_examples == 450
+
+
 @pytest.mark.parametrize(
     "factory_class,requires_commit_hash",
     [

@@ -632,9 +632,6 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
                 exported_dataset_infos = None
         else:
             exported_dataset_infos = None
-        if exported_dataset_infos:
-            exported_dataset_infos.update(dataset_infos)
-            dataset_infos = exported_dataset_infos
         # we need a set of data files to find which dataset builder to use
         # because we need to infer module name by files extensions
         if self.data_files is not None:
@@ -654,6 +651,10 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
             path=self.name,
             download_config=self.download_config,
         )
+        # Viewer exports do not describe BIDS recording schemas or entity filters.
+        if exported_dataset_infos and module_name != "bids":
+            exported_dataset_infos.update(dataset_infos)
+            dataset_infos = exported_dataset_infos
         data_files = data_files.filter(
             extensions=_MODULE_TO_EXTENSIONS[module_name] + _MODULE_TO_METADATA_EXTENSIONS[module_name],
             file_names=_MODULE_TO_METADATA_FILE_NAMES[module_name],

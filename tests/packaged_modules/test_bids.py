@@ -2,6 +2,8 @@
 
 import json
 import shutil
+from fnmatch import fnmatch
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -268,3 +270,50 @@ def test_bids_mri_with_eeg_and_sidecar_inheritance(bids_root, tmp_path):
     assert isinstance(eeg["biosignal"], mne.io.BaseRaw) and eeg["nifti"] is None
     assert eeg["metadata"]["PowerLineFrequency"] == 50.0
     assert load_dataset("bids", data_dir=str(root), datatypes="func", split="train")["suffix"] == ["bold"]
+
+
+@require_mne_bids
+@pytest.mark.parametrize(
+    "url",
+    ["hf://datasets/test/bids@refs%2Fpr%2F1/", "https://huggingface.co/datasets/test/bids/resolve/refs%2Fpr%2F1/"],
+)
+def test_biosignal_hub_snapshot(bids_root, tmp_path, monkeypatch, url):
+    import huggingface_hub
+
+    source = tmp_path / "source"
+    shutil.copytree(bids_root, source)
+    recording = "sub-01/ses-01/eeg/sub-01_ses-01_task-rest_run-01_eeg.vhdr"
+    header = source / recording
+    # Companion names need not match the header's stem.
+    data = header.with_suffix(".eeg")
+    header.write_text(header.read_text().replace(data.name, "signal.eeg"))
+    data.rename(data.with_name("signal.eeg"))
+    snapshot = tmp_path / "snapshot"
+
+    def download(repo_id, *, repo_type, revision, allow_patterns, token, endpoint):
+        assert (repo_id, repo_type, revision, token, endpoint) == (
+            "test/bids",
+            "dataset",
+            "refs/pr/1",
+            "private-token",
+            datasets.config.HF_ENDPOINT,
+        )
+        for path in source.rglob("*"):
+            relative = path.relative_to(source)
+            if path.is_file() and any(fnmatch(relative.as_posix(), pattern) for pattern in allow_patterns):
+                target = snapshot / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(path, target)
+        return str(snapshot)
+
+    monkeypatch.setattr(huggingface_hub, "snapshot_download", download)
+    raw = Biosignal().decode_example(url + recording, token_per_repo_id={"test/bids": "private-token"})
+    np.testing.assert_allclose(raw.get_data(), 1e-5)
+    assert raw.info["line_freq"] == 50.0 and list(raw.annotations.description) == ["ev_rest"]
+    assert not (snapshot / "sub-02/ses-01/eeg/sub-02_ses-01_task-rest_run-01_eeg.eeg").exists()
+    for unsafe in ("../../private.fif", "/private.fif", r"C:\private.fif", "C:private.fif", r"sub-01\..\private.fif"):
+        monkeypatch.setattr(
+            huggingface_hub, "parse_hf_uri", lambda *args, **kwargs: SimpleNamespace(path_in_repo=unsafe)
+        )
+        with pytest.raises(ValueError, match="must stay inside"):
+            Biosignal().decode_example(url + unsafe)
