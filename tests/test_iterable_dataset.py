@@ -3370,6 +3370,47 @@ def test_combine_datasets_preserves_nested_fields(arrow_backed, reverse, interle
     assert [list(source) for source in sources] == [[row] for row in rows]
 
 
+def generate_nested_metadata_examples(shards, field):
+    for shard in shards:
+        yield {"id": f"{field}{shard}", "document": {"metadata": {field: str(shard)}}}
+
+
+@require_torch
+@pytest.mark.parametrize("interleave", [False, True])
+@pytest.mark.parametrize("reverse", [False, True])
+def test_combine_datasets_preserves_nested_fields_with_spawn_workers(interleave, reverse):
+    # Adapted from JonnyFaeth's Windows regression:
+    # https://github.com/huggingface/datasets/pull/8927#issuecomment-6836204792
+    from torch.utils.data import DataLoader
+
+    sources = [
+        IterableDataset.from_generator(
+            generate_nested_metadata_examples,
+            gen_kwargs={"shards": [0, 1], "field": field},
+            features=Features({"id": Value("string"), "document": {"metadata": {field: Value("string")}}}),
+        )
+        for field in ["title", "url"]
+    ]
+    if reverse:
+        sources.reverse()
+    source_rows = [deepcopy(list(source)) for source in sources]
+    source_features = [deepcopy(source.features) for source in sources]
+    combined = (
+        interleave_datasets(sources, stopping_strategy="all_exhausted")
+        if interleave
+        else concatenate_datasets(sources)
+    )
+    actual = list(DataLoader(combined, batch_size=None, num_workers=2, multiprocessing_context="spawn"))
+    assert len(actual) == 4
+    assert {row["id"] for row in actual} == {"title0", "title1", "url0", "url1"}
+    for row in actual:
+        field = "title" if row["id"].startswith("title") else "url"
+        other = "url" if field == "title" else "title"
+        assert row["document"]["metadata"] == {field: row["id"][-1], other: None}
+    assert [source.features for source in sources] == source_features
+    assert [list(source) for source in sources] == source_rows
+
+
 @pytest.mark.parametrize("interleave", [False, True])
 @pytest.mark.parametrize("missing_first", [False, True])
 def test_combine_datasets_rejects_incompatible_nested_fields(interleave, missing_first):
