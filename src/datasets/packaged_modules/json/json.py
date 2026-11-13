@@ -20,6 +20,7 @@ from datasets.utils.json import (
     find_mixed_struct_types_field_paths,
     get_json_field_path_from_pyarrow_json_error,
     get_json_field_paths_from_feature,
+    get_string_field_paths_from_feature,
     insert_json_field_path,
     json_encode_field,
     json_encode_fields_in_json_lines,
@@ -141,6 +142,8 @@ class Json(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self, base_files, files_iterables, original_files, allow_full_read=True):
         json_field_paths = []
+        # fields cast to a string feature: if they have mixed types, their strings are kept instead of JSON-encoded
+        string_field_paths = []
         is_agent_traces = False
 
         if self.info.features is not None:
@@ -151,6 +154,7 @@ class Json(datasets.ArrowBasedBuilder):
                 else:
                     raise ImportError("To support decoding agent traces, please install 'teich'.")
             json_field_paths = get_json_field_paths_from_feature(self.info.features)
+            string_field_paths = get_string_field_paths_from_feature(self.info.features)
 
         for shard_idx, files_iterable in enumerate(files_iterables):
             for file in files_iterable:
@@ -278,10 +282,7 @@ class Json(datasets.ArrowBasedBuilder):
                             # Re-encode JSON fields
                             original_batch = batch
                             if json_field_paths:
-                                examples = [ujson_loads(line) for line in batch.splitlines()]
-                                for json_field_path in json_field_paths:
-                                    examples = [json_encode_field(example, json_field_path) for example in examples]
-                                batch = "\n".join(ujson_dumps(example) for example in examples).encode()
+                                batch = json_encode_fields_in_json_lines(batch, json_field_paths, string_field_paths)
                             # Disable parallelism if block size is ~ len(batch) to avoid segfault
                             block_size = len(batch) if len(batch) // 8 > block_size else block_size
                             pa_table = None
@@ -311,7 +312,9 @@ class Json(datasets.ArrowBasedBuilder):
                                                     f"Cannot encode mixed-type JSON field {json_field_path!r} as JSON"
                                                 ) from e
                                             insert_json_field_path(json_field_paths, json_field_path)
-                                            batch = json_encode_fields_in_json_lines(original_batch, json_field_paths)
+                                            batch = json_encode_fields_in_json_lines(
+                                                original_batch, json_field_paths, string_field_paths
+                                            )
                                         elif (
                                             "straddling" in str(e) or "JSON conversion to" in str(e)
                                         ) and block_size < len(batch):
