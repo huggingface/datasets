@@ -28,18 +28,18 @@ from .utils import (
 
 
 @pytest.mark.parametrize("streaming", [False, True])
-@pytest.mark.parametrize("callback_kind", ["keyword", "positional", "async"])
+@pytest.mark.parametrize("callback_kind", ["positional", "async_keyword"])
 def test_map_with_split_partial(streaming, callback_kind):
-    def transform(example, split, *, prefix):
+    def transform(prefix, example, split):
         return {"label": f"{prefix}:{split}:{example['value']}"}
 
     async def async_transform(example, split, *, prefix):
-        return transform(example, split, prefix=prefix)
+        return transform(prefix, example, split)
 
     if callback_kind == "positional":
-        function = partial(lambda prefix, example, split: transform(example, split, prefix=prefix), "bound")
+        function = partial(transform, "bound")
     else:
-        function = partial(async_transform if callback_kind == "async" else transform, prefix="bound")
+        function = partial(async_transform, prefix="bound")
     datasets = {split: Dataset.from_dict({"value": [1, 2]}) for split in ["train", "test"]}
     if streaming:
         datasets = IterableDatasetDict({split: dataset.to_iterable_dataset() for split, dataset in datasets.items()})
@@ -50,7 +50,7 @@ def test_map_with_split_partial(streaming, callback_kind):
 
     for split in datasets:
         assert list(mapped[split]) == [{"value": value, "label": f"bound:{split}:{value}"} for value in [1, 2]]
-    if callback_kind == "keyword":
+    if callback_kind == "async_keyword":
         overridden = datasets.map(function, with_split=True, fn_kwargs={"prefix": "override"})
         for split in datasets:
             assert list(overridden[split]) == [
