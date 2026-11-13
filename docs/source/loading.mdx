@@ -452,7 +452,7 @@ FASTA files with various extensions are supported: `.fa`, `.fasta`, `.fna` (nucl
 
 [BIDS](https://bids-specification.readthedocs.io/) (Brain Imaging Data Structure) is the community standard for organizing neuroimaging and electrophysiology recordings (`sub-*/[ses-*/]<datatype>/`) alongside metadata sidecars (`participants.tsv`, `events.tsv`, `channels.tsv`, and JSON sidecars).
 
-Automatic detection requires this directory structure and a `dataset_description.json` or `participants.tsv` at the dataset root. For a partial download without either file, select the builder explicitly with `load_dataset("bids", data_dir="path/to/bids_dataset")`. PDF documents keep using the PDF builder; a BIDS recording ending in `.pdf` is only treated as a biosignal inside a recognized BIDS dataset.
+Automatic detection requires BIDS recording filenames and `participants.tsv` or `dataset_description.json` at the dataset root. For a partial download without either file, select the builder explicitly with `load_dataset("bids", data_dir="path/to/bids_dataset")`. PDF is excluded from BIDS discovery.
 
 Each row is one recording. EEG, MEG, iEEG, EMG and NIRS recordings go in a `biosignal` column ([`Biosignal`], decoded to `mne.io.BaseRaw` via `mne-bids`), MRI, fMRI, diffusion, PET and MRS images in a `nifti` column ([`Nifti`]). Each row also has one column per BIDS entity in the filenames (`subject`, `session`, `task`, `run`, `echo`, ...), `datatype`, `suffix`, `extension`, a `metadata` column with the JSON sidecars merged following the BIDS inheritance principle, and the columns of `participants.tsv`. Only raw data is loaded: `derivatives/` and `sourcedata/` are skipped.
 
@@ -472,7 +472,7 @@ You can filter by BIDS entities (`subjects`, `sessions`, `tasks`, `runs`, `datat
 >>> dataset = dataset.map(lambda x: {"biosignal": x["biosignal"].load_data().pick("eeg").resample(250)})
 ```
 
-For datasets hosted on the Hub, the `biosignal` decoder caches the selected recording, its companion files (for example BrainVision `.eeg` and `.vmrk` files), and metadata from its parent directories. The BIDS directory structure is preserved so MNE-BIDS can read the sidecars. Streaming selects recordings lazily, but accessing a recording still downloads its files before MNE opens them.
+For multi-file recordings hosted on the Hub, download the repository with `huggingface_hub.snapshot_download(repo_id, repo_type="dataset")`, then load the local directory. This preserves companion files and BIDS sidecars without special handling in the decoder.
 
 Hosted examples include [iEEG (BrainVision)](https://huggingface.co/datasets/EEGDash/ds003029), [EEG (EDF)](https://huggingface.co/datasets/EEGDash/nm000290), and [EEG (EEGLAB) with anatomical MRI](https://huggingface.co/datasets/EEGDash/ds002718). Their dataset cards contain loading examples.
 

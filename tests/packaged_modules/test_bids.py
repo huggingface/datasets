@@ -2,8 +2,6 @@
 
 import json
 import shutil
-from fnmatch import fnmatch
-from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -49,18 +47,23 @@ def bids_root(tmp_path_factory):
     return root
 
 
-def test_bids_patterns_and_module_inference(tmp_path, monkeypatch):
+@pytest.mark.parametrize("marker", ["participants.tsv", "dataset_description.json"])
+def test_bids_patterns_and_module_inference(tmp_path, monkeypatch, marker):
     sub_dir = tmp_path / "bids_like" / "sub-01" / "eeg"
     sub_dir.mkdir(parents=True)
     (sub_dir / "sub-01_task-rest_eeg.edf").write_bytes(b"x")
-    (tmp_path / "bids_like" / "dataset_description.json").write_text('{"Name": "Example", "BIDSVersion": "1.9.0"}')
+    recording = str(sub_dir / "sub-01_task-rest_eeg.edf")
+    assert get_data_patterns(str(tmp_path / "bids_like")) == {"train": ["**"]}
+    (tmp_path / "bids_like" / marker).write_text("{}" if marker.endswith("json") else "participant_id\nsub-01\n")
     assert get_data_patterns(str(tmp_path / "bids_like")) == {"train": ["sub-*/**/sub-*"]}
-    assert infer_module_for_data_files_list([str(sub_dir / "sub-01_task-rest_eeg.edf")]) == ("bids", {})
+    assert infer_module_for_data_files_list([recording]) == ("bids", {})
     if datasets.config.MNE_BIDS_AVAILABLE:
         from mne_bids.config import ALLOWED_DATATYPE_EXTENSIONS, EPHY_ALLOWED_DATATYPES
 
         file_extensions = {ext for dt in EPHY_ALLOWED_DATATYPES for ext in ALLOWED_DATATYPE_EXTENSIONS[dt]}
-        assert file_extensions - {".ds", ".mefd"} <= set(bids.EXTENSIONS)  # directories are found through their files
+        assert file_extensions - {".ds", ".mefd", ".pdf"} <= set(
+            bids.EXTENSIONS
+        )  # directories are found through their files
 
     split_dirs = tmp_path / "split_dirs"
     for d in ("sub-01", "train", "test"):
@@ -80,28 +83,18 @@ def test_bids_patterns_and_module_inference(tmp_path, monkeypatch):
         load_dataset("bids", data_dir=str(tmp_path / "bids_like"), split="train")
 
 
-@pytest.mark.parametrize("has_description", [False, True])
-def test_bids_pdf_disambiguation(tmp_path, has_description):
-    if has_description:
-        (tmp_path / "dataset_description.json").write_text('{"Name": "Example", "BIDSVersion": "1.9.0"}')
+@pytest.mark.parametrize("has_participants", [False, True])
+def test_bids_pdf_disambiguation(tmp_path, has_participants):
+    if has_participants:
+        (tmp_path / "participants.tsv").write_text("participant_id\nsub-01\n")
     recording = tmp_path / "sub-01" / "meg" / "sub-01_task-rest_meg.pdf"
-    recording.parent.mkdir(parents=True)
-    recording.write_bytes(b"biosignal")
-    document = tmp_path / "sub-01" / "documents" / "sub-01_report.pdf"
-    document.parent.mkdir()
-    document.write_bytes(b"%PDF-1.7")
-    assert infer_module_for_data_files_list([str(recording)]) == ("bids" if has_description else "pdffolder", {})
-    assert infer_module_for_data_files_list([str(document)]) == ("pdffolder", {})
-    misplaced = tmp_path / "prefixsub-01" / "meg" / recording.name
-    (tmp_path / "prefix").mkdir()
-    (tmp_path / "prefix" / "dataset_description.json").write_text("{}")
-    assert infer_module_for_data_files_list([str(misplaced)]) == ("pdffolder", {})
-    if not has_description:
-        assert get_data_patterns(str(tmp_path)) == {"train": ["**"]}
+    assert infer_module_for_data_files_list([str(recording)]) == ("pdffolder", {})
+    assert ".pdf" not in bids.EXTENSIONS
 
 
 @require_mne_bids
 def test_bids_sidecar_specificity(tmp_path):
+    (tmp_path / "participants.tsv").write_text("participant_id\nsub-01\n")
     (tmp_path / "dataset_description.json").write_text('{"Name": "Example", "BIDSVersion": "1.9.0"}')
     directory = tmp_path / "sub-01" / "eeg"
     directory.mkdir(parents=True)
@@ -201,70 +194,6 @@ def test_load_bids_streaming_splits_and_parquet(bids_root, tmp_path):
 
 
 @require_mne_bids
-@pytest.mark.parametrize(
-    "url", ["hf://datasets/test/bids@revision/", "https://huggingface.co/datasets/test/bids/resolve/revision/"]
-)
-def test_biosignal_hub_companions_and_sidecars(bids_root, tmp_path, monkeypatch, url):
-    import huggingface_hub
-
-    recording = "sub-01/ses-01/eeg/sub-01_ses-01_task-rest_run-01_eeg.vhdr"
-    cached = tmp_path / "snapshot"
-    requested = []
-
-    def snapshot_download(repo_id, *, repo_type, revision, allow_patterns, token):
-        assert (repo_id, repo_type, revision, token) == ("test/bids", "dataset", "revision", "private-token")
-        for source in bids_root.rglob("*"):
-            if source.is_file() and any(fnmatch(source.relative_to(bids_root).as_posix(), p) for p in allow_patterns):
-                relative = source.relative_to(bids_root)
-                target = cached / relative
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(source, target)
-                requested.append(relative.as_posix())
-        return str(cached)
-
-    monkeypatch.setattr(huggingface_hub, "snapshot_download", snapshot_download)
-    monkeypatch.setattr(
-        huggingface_hub.HfFileSystem,
-        "resolve_path",
-        lambda self, path: SimpleNamespace(
-            repo_id="test/bids", repo_type="dataset", revision="revision", path_in_repo=recording
-        ),
-    )
-    prefix = "datasets/test/bids@revision/"
-    monkeypatch.setattr(
-        huggingface_hub.HfFileSystem,
-        "glob",
-        lambda self, pattern: [
-            prefix + p.relative_to(bids_root).as_posix() for p in bids_root.glob(pattern[len(prefix) :])
-        ],
-    )
-    monkeypatch.setattr(
-        huggingface_hub.HfFileSystem,
-        "ls",
-        lambda self, directory, detail: [
-            prefix + p.relative_to(bids_root).as_posix() for p in (bids_root / directory[len(prefix) :]).iterdir()
-        ],
-    )
-
-    def single_file_read(*args, **kwargs):
-        raise AssertionError("A remote BrainVision recording needs its companion files and BIDS sidecars")
-
-    monkeypatch.setattr("datasets.features.biosignal.xopen", single_file_read)
-    raw = Biosignal().decode_example(url + recording, token_per_repo_id={"test/bids": "private-token"})
-    assert raw.info["line_freq"] == 50.0 and list(raw.annotations.description) == ["ev_rest"]
-    np.testing.assert_allclose(raw.get_data(), 1e-5)
-    assert recording.replace(".vhdr", ".eeg") in requested
-    assert not any("task-motor" in path and path.endswith(".eeg") for path in requested)
-    monkeypatch.setattr(
-        huggingface_hub.HfFileSystem,
-        "resolve_path",
-        lambda self, path: SimpleNamespace(path_in_repo="../../private_raw.fif"),
-    )
-    with pytest.raises(ValueError, match="must stay inside"):
-        Biosignal().decode_example(url + "../../private_raw.fif")
-
-
-@require_mne_bids
 def test_bids_meg_splits_crosstalk_and_containers(tmp_path):
     import mne
     import mne_bids
@@ -290,6 +219,7 @@ def test_bids_meg_splits_crosstalk_and_containers(tmp_path):
     # Directory-based CTF .ds container discovered via its single .res4 header
     ds_dir = tmp_path / "ctf_bids" / "sub-01" / "meg" / "sub-01_task-rest_meg.ds"
     ds_dir.mkdir(parents=True)
+    (tmp_path / "ctf_bids" / "participants.tsv").write_text("participant_id\nsub-01\n")
     (tmp_path / "ctf_bids" / "dataset_description.json").write_text('{"Name": "Example", "BIDSVersion": "1.9.0"}')
     (ds_dir / "sub-01_task-rest_meg.res4").write_bytes(b"hdr")
     (ds_dir / "sub-01_task-rest_meg.meg4").write_bytes(b"dat")

@@ -288,7 +288,7 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], list[str]]) -> di
     # then check the default patterns based on train/valid/test splits
     for patterns_dict in ALL_DEFAULT_PATTERNS:
         if patterns_dict == DEFAULT_PATTERNS_BIDS:
-            for marker in ("dataset_description.json", "participants.tsv"):
+            for marker in ("participants.tsv", "dataset_description.json"):
                 try:
                     pattern_resolver(marker)
                     break
