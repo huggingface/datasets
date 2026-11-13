@@ -452,7 +452,7 @@ FASTA files with various extensions are supported: `.fa`, `.fasta`, `.fna` (nucl
 
 [BIDS](https://bids-specification.readthedocs.io/) (Brain Imaging Data Structure) is the community standard for organizing neuroimaging and electrophysiology recordings (`sub-*/[ses-*/]<datatype>/`) alongside metadata sidecars (`participants.tsv`, `events.tsv`, `channels.tsv`, and JSON sidecars).
 
-Automatic detection requires BIDS recording filenames and `participants.tsv` or `dataset_description.json` at the dataset root. For a partial download without either file, select the builder explicitly with `load_dataset("bids", data_dir="path/to/bids_dataset")`. PDF is excluded from BIDS discovery.
+Automatic detection requires BIDS recording filenames under a `sub-*` directory and a root `dataset_description.json` containing a nonempty `BIDSVersion` string. For a partial download without this metadata, select the builder explicitly with `load_dataset("bids", data_dir="path/to/bids_dataset")`. PDF is excluded from BIDS discovery.
 
 Each row is one recording. EEG, MEG, iEEG, EMG and NIRS recordings go in a `biosignal` column ([`Biosignal`], decoded to `mne.io.BaseRaw` via `mne-bids`), MRI, fMRI, diffusion, PET and MRS images in a `nifti` column ([`Nifti`]). Each row also has one column per BIDS entity in the filenames (`subject`, `session`, `task`, `run`, `echo`, ...), `datatype`, `suffix`, `extension`, a `metadata` column with the JSON sidecars merged following the BIDS inheritance principle, and the columns of `participants.tsv`. Only raw data is loaded: `derivatives/` and `sourcedata/` are skipped.
 

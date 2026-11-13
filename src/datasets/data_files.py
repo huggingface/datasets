@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from functools import partial
@@ -17,7 +18,15 @@ from .naming import _split_re
 from .splits import Split
 from .utils import logging
 from .utils import tqdm as hf_tqdm
-from .utils.file_utils import _prepare_path_and_storage_options, is_local_path, is_relative_path, xbasename, xjoin
+from .utils.file_utils import (
+    _prepare_path_and_storage_options,
+    is_local_path,
+    is_relative_path,
+    xbasename,
+    xdirname,
+    xjoin,
+    xopen,
+)
 from .utils.py_utils import string_to_dict
 
 
@@ -258,7 +267,19 @@ def _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(matched_rel_
     return len(hidden_directories_in_path) != len(hidden_directories_in_pattern)
 
 
-def _get_data_files_patterns(pattern_resolver: Callable[[str], list[str]]) -> dict[str, list[str]]:
+def _is_bids_dataset(base_path: str, download_config: Optional[DownloadConfig] = None) -> bool:
+    try:
+        with xopen(xjoin(base_path, "dataset_description.json"), "rb", download_config=download_config) as f:
+            description = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError, UnicodeDecodeError):
+        return False
+    bids_version = description.get("BIDSVersion") if isinstance(description, dict) else None
+    return isinstance(bids_version, str) and bool(bids_version.strip())
+
+
+def _get_data_files_patterns(
+    pattern_resolver: Callable[[str], list[str]], download_config: Optional[DownloadConfig] = None
+) -> dict[str, list[str]]:
     """
     Get the default pattern from a directory or repository by testing all the supported patterns.
     The first patterns to return a non-empty list of data files is returned.
@@ -288,13 +309,11 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], list[str]]) -> di
     # then check the default patterns based on train/valid/test splits
     for patterns_dict in ALL_DEFAULT_PATTERNS:
         if patterns_dict == DEFAULT_PATTERNS_BIDS:
-            for marker in ("participants.tsv", "dataset_description.json"):
-                try:
-                    pattern_resolver(marker)
-                    break
-                except FileNotFoundError:
-                    pass
-            else:
+            try:
+                descriptions = pattern_resolver("dataset_description.json")
+            except FileNotFoundError:
+                continue
+            if not any(_is_bids_dataset(xdirname(path), download_config=download_config) for path in descriptions):
                 continue
         non_empty_splits = []
         for split, patterns in patterns_dict.items():
@@ -503,7 +522,7 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
     """
     resolver = partial(resolve_pattern, base_path=base_path, download_config=download_config)
     try:
-        return _get_data_files_patterns(resolver)
+        return _get_data_files_patterns(resolver, download_config=download_config)
     except FileNotFoundError:
         raise EmptyDatasetError(f"The directory at {base_path} doesn't contain any data files") from None
 

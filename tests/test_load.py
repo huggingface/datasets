@@ -283,6 +283,7 @@ def complex_data_dir(tmp_path):
         (["sub-01.csv"], "csv", {}),
         (["sub-01.pdf"], "pdffolder", {}),
         (["documents/sub-01_report.pdf"], "pdffolder", {}),
+        (["sub-01.edf"], None, {}),
         (["unsupported.ext"], None, {}),
         ([""], None, {}),
     ],
@@ -697,6 +698,10 @@ def test_hub_module_factory_exported_infos(tmp_path, monkeypatch, module_name, f
         "  config_name: curated\n  description: Card metadata\n---\n"
     )
     data_file = tmp_path / filename
+    if module_name == "bids":
+        data_file = tmp_path / "sub-01" / "eeg" / filename
+        data_file.parent.mkdir(parents=True)
+        (tmp_path / "dataset_description.json").write_text('{"BIDSVersion": "1.9.0"}')
     data_file.touch()
     monkeypatch.setattr(datasets.config, "USE_PARQUET_EXPORT", True)
     monkeypatch.setattr(datasets.config, "HF_UPDATE_DOWNLOAD_COUNTS", False)

@@ -21,6 +21,7 @@ import inspect
 import json
 import os
 import posixpath
+import re
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
@@ -51,6 +52,7 @@ from .data_files import (
     DataFilesList,
     DataFilesPatternsDict,
     EmptyDatasetError,
+    _is_bids_dataset,
     get_data_patterns,
     sanitize_patterns,
 )
@@ -82,6 +84,7 @@ from .utils.file_utils import (
     get_datasets_user_agent,
     is_relative_path,
     relative_to_absolute_path,
+    xdirname,
 )
 from .utils.hub import hf_dataset_url
 from .utils.info_utils import VerificationMode, is_small_dataset
@@ -226,7 +229,20 @@ def infer_module_for_data_files_list(
             filepath.endswith((*_MODULE_TO_METADATA_EXTENSIONS["bids"], ".nii", ".nii.gz"))
             for filepath in data_files_list
         ):
-            return "bids", {}
+            roots = set()
+            for filepath in data_files_list:
+                directory = xdirname(filepath)
+                while directory and not re.fullmatch(r"sub-[A-Za-z0-9]+", xbasename(directory)):
+                    parent = xdirname(directory)
+                    if parent == directory:
+                        break
+                    directory = parent
+                if not re.fullmatch(r"sub-[A-Za-z0-9]+", xbasename(directory)):
+                    break
+                roots.add(xdirname(directory))
+            else:
+                if all(_is_bids_dataset(root, download_config=download_config) for root in roots):
+                    return "bids", {}
 
         def sort_key(ext_count: tuple[tuple[str, bool], int]) -> tuple[int, bool]:
             """Sort by count and set ".parquet" as the favorite in case of a draw, and ignore metadata files"""

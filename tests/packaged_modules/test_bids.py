@@ -1,16 +1,19 @@
 """Tests for the packaged BIDS dataset builder."""
 
+import io
 import json
 import shutil
 from fnmatch import fnmatch
 from types import SimpleNamespace
 
+import fsspec
 import numpy as np
 import pytest
 
 import datasets
 from datasets import Biosignal, Value, load_dataset
 from datasets.data_files import get_data_patterns
+from datasets.download.download_config import DownloadConfig
 from datasets.load import infer_module_for_data_files_list
 from datasets.packaged_modules.bids import bids
 
@@ -49,14 +52,14 @@ def bids_root(tmp_path_factory):
     return root
 
 
-@pytest.mark.parametrize("marker", ["participants.tsv", "dataset_description.json"])
-def test_bids_patterns_and_module_inference(tmp_path, monkeypatch, marker):
+def test_bids_patterns_and_module_inference(tmp_path, monkeypatch):
     sub_dir = tmp_path / "bids_like" / "sub-01" / "eeg"
     sub_dir.mkdir(parents=True)
     (sub_dir / "sub-01_task-rest_eeg.edf").write_bytes(b"x")
     recording = str(sub_dir / "sub-01_task-rest_eeg.edf")
     assert get_data_patterns(str(tmp_path / "bids_like")) == {"train": ["**"]}
-    (tmp_path / "bids_like" / marker).write_text("{}" if marker.endswith("json") else "participant_id\nsub-01\n")
+    assert infer_module_for_data_files_list([recording]) == (None, {})
+    (tmp_path / "bids_like" / "dataset_description.json").write_text('{"BIDSVersion": "1.9.0"}')
     assert get_data_patterns(str(tmp_path / "bids_like")) == {"train": ["sub-*/**/sub-*"]}
     assert infer_module_for_data_files_list([recording]) == ("bids", {})
     if datasets.config.MNE_BIDS_AVAILABLE:
@@ -83,6 +86,62 @@ def test_bids_patterns_and_module_inference(tmp_path, monkeypatch, marker):
     monkeypatch.setattr(datasets.config, "MNE_BIDS_AVAILABLE", False)
     with pytest.raises(ImportError, match="install 'mne-bids'"):
         load_dataset("bids", data_dir=str(tmp_path / "bids_like"), split="train")
+
+
+@pytest.mark.parametrize("remote", [False, True])
+@pytest.mark.parametrize(
+    "description, expected",
+    [
+        (None, False),
+        ("{}", False),
+        ("not json", False),
+        ("[]", False),
+        ('{"BIDSVersion": null}', False),
+        ('{"BIDSVersion": 1}', False),
+        ('{"BIDSVersion": ""}', False),
+        ('{"BIDSVersion": " "}', False),
+        ('{"BIDSVersion": "1.9.0"}', True),
+    ],
+)
+def test_bids_description_required(tmp_path, tmpfs, remote, description, expected):
+    root = "tmp://bids" if remote else str(tmp_path)
+    fs = tmpfs if remote else fsspec.filesystem("file")
+    recording = root + "/sub-01/ses-01/eeg/sub-01_ses-01_task-rest_eeg.edf"
+    fs.makedirs(root + "/sub-01/ses-01/eeg", exist_ok=True)
+    fs.touch(recording)
+    with fs.open(root + "/participants.tsv", "w") as f:
+        f.write("participant_id\nsub-01\n")
+    if description is not None:
+        with fs.open(root + "/dataset_description.json", "w", encoding="utf-8-sig") as f:
+            f.write(description)
+    assert get_data_patterns(root) == {"train": ["sub-*/**/sub-*"] if expected else ["**"]}
+    assert infer_module_for_data_files_list([recording]) == ("bids" if expected else None, {})
+
+
+@pytest.mark.parametrize(
+    "root",
+    ["hf://datasets/private/bids@refs%2Fpr%2F1", "https://huggingface.co/datasets/private/bids/resolve/main"],
+)
+def test_bids_description_authentication(monkeypatch, root):
+    download_config = DownloadConfig(token="private-token")
+    recording = root + "/sub-01/meg/sub-01_task-rest_meg.ds/sub-01_task-rest_meg.res4"
+
+    def resolve(pattern, *, base_path, download_config):
+        if pattern == "dataset_description.json":
+            return [root + "/dataset_description.json"]
+        if pattern == "sub-*/**/sub-*":
+            return [recording]
+        raise FileNotFoundError
+
+    def open_description(path, mode, *, download_config):
+        assert path == root + "/dataset_description.json"
+        assert mode == "rb" and download_config.token == "private-token"
+        return io.BytesIO(b'{"BIDSVersion": "1.9.0"}')
+
+    monkeypatch.setattr("datasets.data_files.resolve_pattern", resolve)
+    monkeypatch.setattr("datasets.data_files.xopen", open_description)
+    assert get_data_patterns(root, download_config=download_config) == {"train": ["sub-*/**/sub-*"]}
+    assert infer_module_for_data_files_list([recording], download_config=download_config) == ("bids", {})
 
 
 @pytest.mark.parametrize("has_participants", [False, True])
@@ -191,7 +250,7 @@ def test_load_bids_streaming_splits_and_parquet(bids_root, tmp_path):
 
     shutil.rmtree(work_root / "sourcedata")
     (work_root / "dataset_description.json").unlink()
-    ds_partial = load_dataset(str(work_root), split="train")
+    ds_partial = load_dataset("bids", data_dir=str(work_root), split="train")
     assert len(ds_partial) == 3 and list(ds_partial[0]["biosignal"].annotations.description) == ["ev_motor"]
 
 
