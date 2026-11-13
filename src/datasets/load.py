@@ -1304,9 +1304,11 @@ def load_dataset_builder(
         "config_name", name or dataset_module.builder_configs_parameters.default_config_name
     )
     dataset_name = builder_kwargs.pop("dataset_name", None)
+    # The info recorded in the dataset card describes the config as published. It doesn't apply
+    # when the user changes the data with data_dir, data_files or config kwargs (e.g. nrows, filters)
     info = (
         dataset_module.dataset_infos.get(config_name)
-        if dataset_module.dataset_infos and not data_dir and not data_files
+        if dataset_module.dataset_infos and not data_dir and not data_files and not config_kwargs
         else None
     )
 

@@ -1170,6 +1170,45 @@ def test_load_dataset_config_kwargs_passed_as_arguments():
     assert list(ds_custom["train"].features) == ["image"]
 
 
+@pytest.mark.parametrize(
+    "data_file, config_kwargs, expected_num_rows, expected_column_names",
+    [
+        ("train.csv", {}, 10, ["a", "b"]),
+        ("train.csv", {"nrows": 3}, 3, ["a", "b"]),  # GH-4462: NonMatchingSplitsSizesError
+        ("train.csv", {"usecols": ["a"]}, 10, ["a"]),
+        ("train.parquet", {"filters": [("a", "<", 3)]}, 3, ["a", "b"]),
+    ],
+)
+def test_load_dataset_with_config_kwargs_ignores_dataset_info_in_metadata(
+    data_file, config_kwargs, expected_num_rows, expected_column_names, tmp_path
+):
+    data_dir = tmp_path / "data_dir_with_dataset_info_in_metadata"
+    data_dir.mkdir()
+    dataset = Dataset.from_dict({"a": list(range(10)), "b": [2 * i for i in range(10)]})
+    if data_file.endswith(".csv"):
+        dataset.to_csv(str(data_dir / data_file), index=False)
+    else:
+        dataset.to_parquet(str(data_dir / data_file))
+    (data_dir / "README.md").write_text(
+        """\
+---
+dataset_info:
+  features:
+  - name: a
+    dtype: int64
+  - name: b
+    dtype: int64
+  splits:
+  - name: train
+    num_examples: 10
+---
+"""
+    )
+    dataset = load_dataset(str(data_dir), split="train", cache_dir=str(tmp_path / "cache"), **config_kwargs)
+    assert dataset.num_rows == expected_num_rows
+    assert dataset.column_names == expected_column_names
+
+
 @require_torchcodec
 @pytest.mark.integration
 def test_load_hub_dataset_with_single_config_in_metadata():
