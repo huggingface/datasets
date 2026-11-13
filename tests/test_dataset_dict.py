@@ -1,5 +1,6 @@
 import os
 import tempfile
+from functools import partial
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import patch
@@ -24,6 +25,37 @@ from .utils import (
     require_tf,
     require_torch,
 )
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("callback_kind", ["positional", "async_keyword"])
+def test_map_with_split_partial(streaming, callback_kind):
+    def transform(prefix, example, split):
+        return {"label": f"{prefix}:{split}:{example['value']}"}
+
+    async def async_transform(example, split, *, prefix):
+        return transform(prefix, example, split)
+
+    if callback_kind == "positional":
+        function = partial(transform, "bound")
+    else:
+        function = partial(async_transform, prefix="bound")
+    datasets = {split: Dataset.from_dict({"value": [1, 2]}) for split in ["train", "test"]}
+    if streaming:
+        datasets = IterableDatasetDict({split: dataset.to_iterable_dataset() for split, dataset in datasets.items()})
+    else:
+        datasets = DatasetDict(datasets)
+
+    mapped = datasets.map(function, with_split=True)
+
+    for split in datasets:
+        assert list(mapped[split]) == [{"value": value, "label": f"bound:{split}:{value}"} for value in [1, 2]]
+    if callback_kind == "async_keyword":
+        overridden = datasets.map(function, with_split=True, fn_kwargs={"prefix": "override"})
+        for split in datasets:
+            assert list(overridden[split]) == [
+                {"value": value, "label": f"override:{split}:{value}"} for value in [1, 2]
+            ]
 
 
 class DatasetDictTest(TestCase):
