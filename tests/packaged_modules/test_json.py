@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 import pyarrow as pa
 import pytest
 
-from datasets import Dataset, Features, Value, load_dataset
+from datasets import Dataset, Features, List, Value, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
 from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig, paj
@@ -883,3 +883,48 @@ def test_json_load_dataset_without_droid_marker_stays_ordinary_json(tmp_path):
 
     assert dataset.column_names == ["type", "id", "version", "timestamp", "message"]
     assert dataset[0]["type"] == "session_start"
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize(
+    "rows, features, expected",
+    [
+        (
+            [{"id": 1}, {"id": "VG_100K/4"}, {"id": "abc"}, {"id": "000123"}, {"id": 2.5}, {"id": True}],
+            Features({"id": Value("string")}),
+            [{"id": "1"}, {"id": "VG_100K/4"}, {"id": "abc"}, {"id": "000123"}, {"id": "2.5"}, {"id": "true"}],
+        ),
+        (
+            [{"turns": [{"value": 1}, {"value": "a/b"}]}, {"turns": [{"value": '"quoted"'}]}],
+            Features({"turns": List({"value": Value("string")})}),
+            [{"turns": [{"value": "1"}, {"value": "a/b"}]}, {"turns": [{"value": '"quoted"'}]}],
+        ),
+    ],
+)
+def test_json_load_dataset_mixed_types_with_string_feature(tmp_path, rows, features, expected, streaming):
+    path = tmp_path / "mixed.jsonl"
+    path.write_text("\n".join(map(json.dumps, rows)), encoding="utf-8")
+
+    dataset = load_dataset(
+        "json",
+        data_files=str(path),
+        features=features,
+        split="train",
+        streaming=streaming,
+        cache_dir=str(tmp_path / "cache"),
+    )
+
+    assert list(dataset) == expected
+
+
+def test_json_load_dataset_mixed_types_after_first_chunk_inferred_as_string(tmp_path):
+    rows = [{"id": f"s/{i}"} for i in range(50)] + [{"id": i} for i in range(50)] + [{"id": "a/b"}]
+    path = tmp_path / "mixed.jsonl"
+    path.write_text("\n".join(map(json.dumps, rows)), encoding="utf-8")
+
+    dataset = load_dataset(
+        "json", data_files=str(path), split="train", chunksize=256, cache_dir=str(tmp_path / "cache")
+    )
+
+    assert dataset.features == Features({"id": Value("string")})
+    assert list(dataset["id"]) == [str(row["id"]) for row in rows]
