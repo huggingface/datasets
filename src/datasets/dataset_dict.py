@@ -47,7 +47,7 @@ logger = logging.get_logger(__name__)
 
 class bind(partial):
     def __call__(self, *fn_args, **fn_kwargs):
-        return self.func(*fn_args, *self.args, **fn_kwargs)
+        return self.func(*self.args[:-1], *fn_args, self.args[-1], **(self.keywords | fn_kwargs))
 
 
 class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
@@ -953,11 +953,8 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
 
         dataset_dict = {}
         for split, dataset in self.items():
-            if with_split:
-                function = bind(function, split)
-
             dataset_dict[split] = dataset.map(
-                function=function,
+                function=bind(function, split) if with_split else function,
                 with_indices=with_indices,
                 with_rank=with_rank,
                 input_columns=input_columns,
@@ -977,9 +974,6 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 try_original_type=try_original_type,
                 on_mixed_types=on_mixed_types,
             )
-
-            if with_split:
-                function = function.func
 
         return DatasetDict(dataset_dict)
 
@@ -1989,11 +1983,8 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
 
         dataset_dict = {}
         for split, dataset in self.items():
-            if with_split:
-                function = bind(function, split)
-
             dataset_dict[split] = dataset.map(
-                function=function,
+                function=bind(function, split) if with_split else function,
                 with_indices=with_indices,
                 input_columns=input_columns,
                 batched=batched,
@@ -2002,9 +1993,6 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 remove_columns=remove_columns,
                 fn_kwargs=fn_kwargs,
             )
-
-            if with_split:
-                function = function.func
 
         return IterableDatasetDict(dataset_dict)
 
