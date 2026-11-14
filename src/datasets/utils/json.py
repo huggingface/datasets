@@ -24,18 +24,26 @@ def ujson_loads(*args, **kwargs):
         return pd.io.json.loads(*args, **kwargs)
 
 
-def json_encode_field(example: Any, json_field_path: list[str]) -> Any:
+def json_encode_field(example: Any, json_field_path: list[str], as_string: bool = False) -> Any:
     if json_field_path:
         field, *json_field_path = json_field_path
         if example is None:
             return None
         elif field == 0:
-            return [json_encode_field(x, json_field_path) for x in example]
+            return [json_encode_field(x, json_field_path, as_string=as_string) for x in example]
         else:
-            return {**example, field: json_encode_field(example.get(field), json_field_path)}
+            return {**example, field: json_encode_field(example.get(field), json_field_path, as_string=as_string)}
     elif example is None:
         # keep missing values as real nulls instead of the JSON string "null"
         return None
+    elif as_string and isinstance(example, str):
+        # declared as a string field: keep the string as it is (don't double-encode it)
+        return example
+    elif as_string:
+        # cast to string like Arrow would when casting to Value("string")
+        if isinstance(example, bool):
+            return "true" if example else "false"
+        return str(example)
     else:
         try:
             ujson_loads(example)
@@ -133,12 +141,15 @@ def insert_json_field_path(json_field_paths: list[list[str]], json_field_path: l
         json_field_paths.append(json_field_path)
 
 
-def json_encode_fields_in_json_lines(original_batch: bytes, json_field_paths: list[list[str]]) -> bytes:
+def json_encode_fields_in_json_lines(
+    original_batch: bytes, json_field_paths: list[list[str]], string_field_paths: list[list[str]] = ()
+) -> bytes:
     examples = [ujson_loads(line) for line in original_batch.splitlines()]
+    string_field_paths = {tuple(path) for path in string_field_paths}
     for json_field_path in json_field_paths:
-        examples = [json_encode_field(example, json_field_path) for example in examples]
-    batch = "\n".join([ujson_dumps(example) for example in examples]).encode()
-    return batch
+        as_string = tuple(json_field_path) in string_field_paths
+        examples = [json_encode_field(example, json_field_path, as_string=as_string) for example in examples]
+    return "\n".join(ujson_dumps(example) for example in examples).encode()
 
 
 def get_json_field_paths_from_feature(feature: "FeatureType") -> list[list[str]]:
@@ -153,6 +164,20 @@ def get_json_field_paths_from_feature(feature: "FeatureType") -> list[list[str]]
 
     _visit_with_path(feature, get_json_type_path)
     return json_field_paths
+
+
+def get_string_field_paths_from_feature(feature: "FeatureType") -> list[list[str]]:
+    from datasets.features.features import Json, Value, _visit_with_path
+
+    string_field_paths = []
+
+    def get_string_type_path(_feature, feature_path):
+        if isinstance(_feature, Value) and _feature.dtype == "string" and not isinstance(_feature, Json):
+            string_field_paths.append(feature_path)
+        return _feature
+
+    _visit_with_path(feature, get_string_type_path)
+    return string_field_paths
 
 
 def set_json_types_in_feature(feature: "FeatureType", json_field_paths: list[list[str]]) -> None:

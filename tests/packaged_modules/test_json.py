@@ -605,6 +605,20 @@ def test_json_mixed_type_ambiguous_field_path(tmp_path, bounded_json_parser):
         Dataset.from_json(str(path), cache_dir=str(tmp_path / "cache"))
 
 
+def test_json_mixed_type_field_declared_as_string(tmp_path, bounded_json_parser):
+    path = tmp_path / "mixed_string.jsonl"
+    rows = [{"id": 1}, {"id": "VG_100K/4"}, {"id": "abc"}, {"id": "000123"}]
+    path.write_text("\n".join(map(json.dumps, rows)), encoding="utf-8")
+
+    ds = Dataset.from_json(
+        str(path),
+        features=Features({"id": Value("string")}),
+        cache_dir=str(tmp_path / "cache"),
+    )
+    assert ds.features == Features({"id": Value("string")})
+    assert ds["id"][:] == ["1", "VG_100K/4", "abc", "000123"]
+
+
 @pytest.mark.parametrize(
     "file_fixture, config_kwargs",
     [
