@@ -9,6 +9,7 @@ import numpy as np
 import pyarrow as pa
 import pytest
 
+from datasets import Dataset
 from datasets.features import Array2D, ClassLabel, Features, Image, Json, LargeList, List, Value
 from datasets.features.features import Array2DExtensionType, get_nested_type
 from datasets.table import (
@@ -1229,6 +1230,21 @@ def test_cast_array_to_features_sequence_classlabel():
     arr = pa.array([["baz"]], pa.list_(pa.string()))
     with pytest.raises(ValueError):
         assert cast_array_to_feature(arr, List(ClassLabel(names=["foo", "bar"])))
+
+
+@pytest.mark.parametrize("source_list", [List, LargeList, partial(List, length=2)])
+@pytest.mark.parametrize("target_list", [List, LargeList])
+def test_cast_selected_list_column_to_classlabel(source_list, target_list):
+    dataset = Dataset.from_dict(
+        {"labels": [["outside", "outside"], ["cat", "dog"], None, ["dog", "cat"], ["outside", "outside"]]},
+        features=Features({"labels": source_list(Value("string"))}),
+    ).select(range(1, 4))
+    feature = target_list(ClassLabel(names=["cat", "dog"]))
+
+    casted_dataset = dataset.cast_column("labels", feature)
+
+    assert casted_dataset.features == Features({"labels": feature})
+    assert casted_dataset[:] == {"labels": [[0, 1], None, [1, 0]]}
 
 
 @pytest.mark.parametrize(
