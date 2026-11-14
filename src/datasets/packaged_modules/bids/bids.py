@@ -174,51 +174,51 @@ class Bids(datasets.ArrowBasedBuilder):
 
         # 3. Add the participant columns and the JSON sidecars that apply to each recording under the BIDS inheritance
         # principle: same suffix, entities that are a subset of the recording's, from the BIDS root down
-        splits = {}
-        for split, recs in recordings.items():
-            rows, row_sidecars = [], []
-            for row, pairs, dirs in recs:
-                rows.append({**participants[dirs[-1]].get(row.get("subject"), {}), **row})
-                inherited = [
-                    path
-                    for directory in reversed(dirs[1:])
-                    for path in sorted(sidecars[directory], key=lambda path: (os.path.basename(path).count("_"), path))
-                    if (parts := os.path.basename(path)[: -len(".json")].split("_"))[-1] == row["suffix"]
-                    and set(parts[:-1]) <= pairs
-                ]
-                row_sidecars.append(inherited)
-            splits[split] = rows, row_sidecars
+        splits = {
+            split: [
+                {
+                    **participants[dirs[-1]].get(row.get("subject"), {}),
+                    **row,
+                    "metadata": [
+                        path
+                        for directory in reversed(dirs[1:])
+                        for path in sorted(sidecars[directory], key=lambda p: (os.path.basename(p).count("_"), p))
+                        if (parts := os.path.basename(path)[: -len(".json")].split("_"))[-1] == row["suffix"]
+                        and set(parts[:-1]) <= pairs
+                    ],
+                }
+                for row, pairs, dirs in recs
+            ]
+            for split, recs in recordings.items()
+        }
 
         if self.info.features is None:
             typed = {
                 "biosignal": datasets.Biosignal(decode=cfg.decode),
                 "nifti": datasets.Nifti(decode=cfg.decode),
+                "metadata": datasets.Json(),
                 **participant_features,
             }
-            columns = dict.fromkeys(col for rows, _ in splits.values() for row in rows for col in row)
-            features = {col: typed.get(col, datasets.Value("string")) for col in columns}
-            self.info.features = datasets.Features({**features, "metadata": datasets.Json()})
-        return [
-            datasets.SplitGenerator(name=split, gen_kwargs={"rows": rows, "sidecars": row_sidecars})
-            for split, (rows, row_sidecars) in splits.items()
-        ]
+            columns = dict.fromkeys(col for rows in splits.values() for row in rows for col in row)
+            self.info.features = datasets.Features(
+                {col: typed.get(col, datasets.Value("string")) for col in (*columns, "metadata")}
+            )
+        return [datasets.SplitGenerator(name=split, gen_kwargs={"rows": rows}) for split, rows in splits.items()]
 
-    def _generate_shards(self, rows: list[dict[str, Any]], sidecars: list[list[str]]) -> Iterator[str]:
+    def _generate_shards(self, rows: list[dict[str, Any]]) -> Iterator[str]:
         for row in rows:
             yield (row.get("biosignal") or row["nifti"])["path"]
 
-    def _generate_tables(
-        self, rows: list[dict[str, Any]], sidecars: list[list[str]]
-    ) -> Iterator[tuple[Key, pa.Table]]:
+    def _generate_tables(self, rows: list[dict[str, Any]]) -> Iterator[tuple[Key, pa.Table]]:
         schema = self.info.features.arrow_schema
         sidecar_json = {}
-        for path in dict.fromkeys(path for paths in sidecars for path in paths):
+        for path in dict.fromkeys(path for row in rows for path in row["metadata"]):
             with open(path, "rb") as f:
                 sidecar_json[path] = json.load(f)
-        for i, (row, paths) in enumerate(zip(rows, sidecars)):
+        for i, row in enumerate(rows):
             # lower-level sidecars override higher ones; BIDS sidecars are JSON objects, but real datasets also ship
             # invalid ones such as `[]`, which are skipped
-            objects = [sidecar_json[path] for path in paths if isinstance(sidecar_json[path], dict)]
+            objects = [sidecar_json[path] for path in row["metadata"] if isinstance(sidecar_json[path], dict)]
             metadata = {key: value for obj in objects for key, value in obj.items()}
             yield Key(i, 0), pa.Table.from_pylist([{**row, "metadata": json.dumps(metadata)}], schema=schema)
         if not rows:
