@@ -1,4 +1,5 @@
 import copy
+import io
 import json
 import os
 import tempfile
@@ -9,10 +10,11 @@ import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
+from PIL import Image as PILImage
 
-from datasets import config
+from datasets import Dataset, config
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence
-from datasets.features import Array2D, ClassLabel, Features, Image, List, Value
+from datasets.features import Array2D, ClassLabel, Features, Image, LargeList, List, Value
 from datasets.features.features import Array2DExtensionType, cast_to_python_objects
 
 from .utils import require_pil
@@ -471,3 +473,29 @@ def test_always_nullable():
     with ArrowWriter(stream=output) as writer:
         writer._build_writer(inferred_schema=non_nullable_schema)
         assert writer._schema == pa.schema([pa.field("col_1", pa.string())])
+
+
+@pytest.mark.parametrize("container", ["struct", "list", "large", "fixed"])
+def test_nested_media_parquet_leaf_codecs(tmp_path, container):
+    buffer = io.BytesIO()
+    PILImage.new("RGB", (2, 2)).save(buffer, format="PNG")
+    record = {"image": {"bytes": buffer.getvalue(), "path": None}, "caption": "repeated caption"}
+    feature = {"image": Image(decode=False), "caption": Value("string")}
+    if container != "struct":
+        feature = (
+            LargeList(feature) if container == "large" else List(feature, length=2 if container == "fixed" else -1)
+        )
+        record = [record, record]
+    dataset = Dataset.from_dict({"record": [record] * 4}, features=Features({"record": feature}))
+    destination = tmp_path / "data.parquet"
+    dataset.to_parquet(destination)
+    metadata = pq.read_metadata(destination)
+    columns = [metadata.row_group(0).column(i) for i in range(metadata.num_columns)]
+    caption = [col for col in columns if col.path_in_schema.endswith(".caption")]
+    media = [col for col in columns if ".image." in col.path_in_schema]
+    assert len(caption) == 1 and len(media) == 2
+    assert caption[0].compression == "SNAPPY"
+    assert "RLE_DICTIONARY" in caption[0].encodings
+    assert all(col.compression == "UNCOMPRESSED" for col in media)
+    assert all("RLE_DICTIONARY" not in col.encodings for col in media)
+    assert pq.read_table(destination).to_pylist() == dataset.to_list()
