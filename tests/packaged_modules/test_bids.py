@@ -270,8 +270,13 @@ def test_bids_meg_splits_crosstalk_and_containers(tmp_path):
     raw.save(str(unsplit_fpath), split_size=1_200_000, split_naming="bids", overwrite=True, verbose="ERROR")
     assert (meg_root / "sub-01" / "meg" / "sub-01_task-rest_split-01_meg.fif").exists()
     assert (meg_root / "sub-01" / "meg" / "sub-01_task-rest_split-02_meg.fif").exists()
+    (meg_root / "sub-01" / "sub-01_scans.tsv").write_text(
+        "filename\tacq_time\nmeg/sub-01_task-rest_split-01_meg.fif\tn/a\nmeg/sub-01_task-rest_split-02_meg.fif\tn/a\n"
+    )
     (meg_root / "sub-01" / "meg" / "sub-01_acq-crosstalk_meg.fif").write_bytes(b"crosstalk")
-    raw.save(str(meg_root / "sub-01" / "meg" / "sub-01_task-rest_proc-sss_meg.fif"), verbose="ERROR")
+    mne_bids.write_raw_bids(
+        raw, bp.copy().update(processing="sss"), allow_preload=True, format="FIF", overwrite=True, verbose="ERROR"
+    )
 
     meg_rows = {r["processing"]: r for r in load_dataset(str(meg_root), split="train", streaming=True)}
     assert set(meg_rows) == {None, "sss"} and meg_rows[None]["biosignal"].n_times == 20_000
