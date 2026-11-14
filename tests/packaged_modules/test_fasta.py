@@ -1,5 +1,6 @@
 """Tests for the FASTA file loader."""
 
+import codecs
 import os
 
 import pyarrow as pa
@@ -587,6 +588,24 @@ def test_fasta_record_cast_decode_false(fasta_file, monkeypatch):
     with open(fasta_file, "rb") as f:
         expected = [b">" + record for record in f.read().split(b">")[1:]]
     assert dataset["record"] == [{"bytes": record, "path": None} for record in expected]
+
+
+@pytest.fixture
+def fasta_file_with_bom(fasta_file, tmp_path):
+    filename = tmp_path / "sequences_with_bom.fasta"
+    with open(fasta_file, "rb") as f:
+        filename.write_bytes(codecs.BOM_UTF8 + f.read())
+    return str(filename)
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+def test_fasta_utf8_bom(fasta_file, fasta_file_with_bom, streaming):
+    expected = load_dataset("fasta", data_files=fasta_file, split="train", streaming=streaming)
+    dataset = load_dataset("fasta", data_files=fasta_file_with_bom, split="train", streaming=streaming)
+    expected = list(expected.cast_column("record", BioSequence(decode=False)))
+    rows = list(dataset.cast_column("record", BioSequence(decode=False)))
+    assert rows == expected
+    assert rows[0]["id"] == "seq1"
 
 
 def test_fasta_columns_drop_record_without_biopython(fasta_file, monkeypatch):
