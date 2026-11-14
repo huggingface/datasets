@@ -1247,6 +1247,18 @@ def test_cast_selected_list_column_to_classlabel(source_list, target_list):
     assert casted_dataset[:] == {"labels": [[0, 1], None, [1, 0]]}
 
 
+@pytest.mark.parametrize("outer", [List, LargeList])
+def test_cast_selected_nested_labels_preserves_nulls_and_empty_lists(outer):
+    data = Dataset.from_dict(
+        {"labels": [[["outside"]], [["cat"], [], None], None, [["dog", "cat"]], [["outside"]]]},
+        features=Features({"labels": outer(List(Value("string")))}),
+    )
+    feature = outer(List(ClassLabel(names=["cat", "dog"])))
+    selected = data.select(range(1, 4)).cast_column("labels", feature)
+    assert selected[:]["labels"] == [[[0], [], None], None, [[1, 0]]]
+    assert selected.features["labels"] == feature
+
+
 @pytest.mark.parametrize(
     "arr",
     [
