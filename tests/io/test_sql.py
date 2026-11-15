@@ -1,6 +1,7 @@
 import contextlib
 import multiprocessing
 import os
+import pickle
 import sqlite3
 import types
 
@@ -167,6 +168,31 @@ def test_dataset_to_sql_multiproc_leaves_an_existing_table_untouched_with_if_exi
         writer.write()
     assert records == []
     assert _table_rows(output_sqlite_path) == [(-1,)]
+
+
+@require_sqlalchemy
+def test_dataset_to_sql_multiproc_unpicklable_task_leaves_an_existing_table_untouched(
+    tmp_path, set_sqlalchemy_silence_uber_warning
+):
+    output_sqlite_path = os.path.join(tmp_path, "out.sqlite")
+    with contextlib.closing(sqlite3.connect(output_sqlite_path)) as con, con:
+        con.execute("CREATE TABLE dataset (a INTEGER)")
+        con.execute("INSERT INTO dataset VALUES (-1)")
+    dataset = Dataset.from_dict({"a": list(range(6))})
+    writer = SqlDatasetWriter(
+        dataset,
+        "dataset",
+        "sqlite:///" + output_sqlite_path,
+        batch_size=2,
+        num_proc=2,
+        if_exists="replace",
+        method=lambda pd_table, conn, keys, data_iter: pd_table._execute_insert(conn, keys, data_iter),
+    )
+    # the lambda can't be pickled: AttributeError up to Python 3.13, PicklingError from 3.14
+    with pytest.raises((AttributeError, pickle.PicklingError)):
+        writer.write()
+    with contextlib.closing(sqlite3.connect(output_sqlite_path)) as con:
+        assert con.execute("SELECT a FROM dataset").fetchall() == [(-1,)]
 
 
 @require_sqlalchemy
