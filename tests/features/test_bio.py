@@ -2,7 +2,7 @@
 
 import pytest
 
-from datasets import Dataset, Features
+from datasets import Dataset, Features, List, Value
 from datasets.features import BioSequence, BioStructure
 
 
@@ -236,6 +236,121 @@ def test_bio_structure_encodes_structure_in_declared_format(pdb_path):
     assert pdb_bytes.startswith(b"ATOM")
     assert cif_bytes.startswith(b"data_")
     assert BioStructure(format="mmcif").decode_example({"path": None, "bytes": cif_bytes}).id == "structure"
+
+
+def _seqrecord():
+    from Bio.Seq import Seq
+    from Bio.SeqRecord import SeqRecord
+
+    return SeqRecord(
+        Seq("ACGT"),
+        id="r1",
+        description="",
+        annotations={"molecule_type": "DNA"},
+        letter_annotations={"phred_quality": [30, 31, 32, 33]},
+    )
+
+
+def _structure(pdb_path):
+    from Bio.PDB import PDBParser
+
+    return PDBParser(QUIET=True).get_structure("x", str(pdb_path))
+
+
+SEQUENCE_FORMATS = [("fasta", b">r1"), ("fastq", b"@r1"), ("genbank", b"LOCUS")]
+STRUCTURE_FORMATS = [("pdb", b"ATOM"), ("mmcif", b"data_")]
+
+
+def _raw_bytes(ds, feature_cls, format):
+    return ds.cast_column("col", feature_cls(format=format, decode=False))[0]["col"]["bytes"]
+
+
+@require_biopython
+@pytest.mark.parametrize("format, prefix", SEQUENCE_FORMATS)
+@pytest.mark.parametrize("how", ["from_dict", "from_list", "map", "map_batched"])
+def test_dataset_serializes_seqrecord_in_declared_format(how, format, prefix):
+    """A SeqRecord is serialized in the feature's format, not always as FASTA."""
+    features = Features({"col": BioSequence(format=format)})
+    record = _seqrecord()
+    if how == "from_dict":
+        ds = Dataset.from_dict({"col": [record]}, features=features)
+    elif how == "from_list":
+        ds = Dataset.from_list([{"col": record}], features=features)
+    elif how == "map":
+        ds = Dataset.from_dict({"x": [0]}).map(
+            lambda ex: {"col": record}, features=Features({"x": Value("int64"), **features})
+        )
+    else:
+        ds = Dataset.from_dict({"x": [0]}).map(
+            lambda batch: {"col": [record]},
+            batched=True,
+            features=Features({"x": Value("int64"), **features}),
+        )
+    assert _raw_bytes(ds, BioSequence, format).startswith(prefix)
+    decoded = ds[0]["col"]
+    assert decoded.id == "r1"
+    assert str(decoded.seq) == "ACGT"
+
+
+@require_biopython
+@pytest.mark.parametrize("format, prefix", STRUCTURE_FORMATS)
+@pytest.mark.parametrize("how", ["from_dict", "from_list", "map", "map_batched"])
+def test_dataset_serializes_structure_in_declared_format(how, format, prefix, pdb_path):
+    """A Structure is serialized in the feature's format, not always as PDB."""
+    from Bio.PDB.Structure import Structure
+
+    features = Features({"col": BioStructure(format=format)})
+    structure = _structure(pdb_path)
+    if how == "from_dict":
+        ds = Dataset.from_dict({"col": [structure]}, features=features)
+    elif how == "from_list":
+        ds = Dataset.from_list([{"col": structure}], features=features)
+    elif how == "map":
+        ds = Dataset.from_dict({"x": [0]}).map(
+            lambda ex: {"col": structure}, features=Features({"x": Value("int64"), **features})
+        )
+    else:
+        ds = Dataset.from_dict({"x": [0]}).map(
+            lambda batch: {"col": [structure]},
+            batched=True,
+            features=Features({"x": Value("int64"), **features}),
+        )
+    assert _raw_bytes(ds, BioStructure, format).startswith(prefix)
+    decoded = ds[0]["col"]
+    assert isinstance(decoded, Structure)
+    assert len(list(decoded.get_atoms())) == 2
+
+
+@require_biopython
+def test_features_encode_serializes_bio_objects_in_declared_format(pdb_path):
+    features = Features(
+        {
+            "seq": BioSequence(format="fastq"),
+            "seqs": List(BioSequence(format="fastq")),
+            "st": {"inner": BioStructure(format="mmcif")},
+        }
+    )
+    record, structure = _seqrecord(), _structure(pdb_path)
+    example = {"seq": record, "seqs": [record, record], "st": {"inner": structure}}
+    batch = {k: [v] for k, v in example.items()}
+    rows = [
+        features.encode_example(example),
+        {k: v[0] for k, v in features.encode_batch(batch).items()},
+        {k: features.encode_column(v, k)[0] for k, v in batch.items()},
+    ]
+    for row in rows:
+        assert row["seq"]["bytes"].startswith(b"@r1")
+        assert all(item["bytes"].startswith(b"@r1") for item in row["seqs"])
+        assert row["st"]["inner"]["bytes"].startswith(b"data_")
+
+
+@require_biopython
+def test_dataset_serializes_nested_seqrecord_in_declared_format():
+    features = Features({"col": List(BioSequence(format="fastq"))})
+    ds = Dataset.from_dict({"col": [[_seqrecord(), _seqrecord()]]}, features=features)
+    assert ds.cast_column("col", List(BioSequence(format="fastq", decode=False)))[0]["col"][1]["bytes"].startswith(
+        b"@r1"
+    )
 
 
 def test_resolve_token_returns_none_for_non_hub_url():

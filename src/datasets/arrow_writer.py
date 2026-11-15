@@ -32,6 +32,8 @@ from .features.features import (
     FeatureType,
     List,
     _ArrayXDExtensionType,
+    _encode_bio_objects,
+    _has_bio_feature,
     _visit,
     cast_to_python_objects,
     generate_from_arrow_type,
@@ -334,6 +336,9 @@ class TypedSequence:
             type = self.try_type if self.trying_type else self.type
         else:
             type = self._inferred_type
+        if type is not None and _has_bio_feature(type):
+            # serialize Biopython objects with the format of the feature before they are cast to python objects
+            data = [_encode_bio_objects(type, x) for x in data]
         pa_type = get_nested_type(type) if type is not None else None
         optimized_int_pa_type = (
             get_nested_type(self.optimized_int_type) if self.optimized_int_type is not None else None
