@@ -3768,7 +3768,8 @@ def test_sort_with_indices_mapping(in_memory, column_names, reverse, null_placem
         assert flattened.sort(column_names, reverse=reverse, null_placement=null_placement).to_dict() == expected
 
 
-def test_sort_with_indices_mapping_falls_back_when_take_fails(monkeypatch):
+@pytest.mark.parametrize("take_error", [pa.ArrowInvalid, pa.ArrowCapacityError])
+def test_sort_with_indices_mapping_falls_back_when_take_fails(take_error, monkeypatch):
     dataset = Dataset.from_dict({"col_1": ["b", None, "c", "a", "b"], "id": [0, 1, 2, 3, 4]}).select(
         [4, 0, 2, 1, 3, 2]
     )
@@ -3783,7 +3784,7 @@ def test_sort_with_indices_mapping_falls_back_when_take_fails(monkeypatch):
             return getattr(self._table, name)
 
         def take(self, *args, **kwargs):
-            raise pa.ArrowInvalid("offset overflow while concatenating arrays")
+            raise take_error("offset overflow while concatenating arrays")
 
     select = InMemoryTable.select
 
