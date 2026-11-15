@@ -4775,6 +4775,28 @@ class StratifiedTest(TestCase):
             assert len(d1["train"]["text"]) == train_size
             assert len(d1["test"]["text"]) == test_size
 
+    def test_train_test_split_stratify_reads_labels_column_at_once(self):
+        labels = [0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 0, 1, 2]
+        features = Features({"idx": Value("int64"), "label": ClassLabel(num_classes=3)})
+        dset = Dataset.from_dict({"idx": list(range(len(labels))), "label": labels}, features=features)
+        dset = dset.shuffle(seed=0)
+        stratify = datasets.arrow_dataset.stratified_shuffle_split_generate_indices
+        with (
+            patch.object(Dataset, "_getitem", autospec=True, side_effect=Dataset._getitem) as mock_getitem,
+            patch.object(
+                datasets.arrow_dataset, "stratified_shuffle_split_generate_indices", wraps=stratify
+            ) as mock_stratify,
+        ):
+            dset_dict = dset.train_test_split(test_size=0.25, seed=42, stratify_by_column="label")
+        # the labels must be read as a column, not one row at a time
+        self.assertLess(mock_getitem.call_count, len(labels))
+        y = mock_stratify.call_args.args[0]
+        self.assertIsInstance(y, np.ndarray)
+        self.assertEqual(y.dtype, np.int64)
+        npt.assert_array_equal(y, np.array(labels)[dset["idx"][:]])
+        self.assertListEqual(dset_dict["train"]["idx"][:], [4, 6, 7, 12, 8, 1, 9, 5, 2, 15, 10, 3])
+        self.assertListEqual(dset_dict["test"]["idx"][:], [0, 13, 11, 14])
+
 
 def test_dataset_estimate_nbytes(image_file):
     ds = Dataset.from_dict({"a": ["0" * 100] * 100})
