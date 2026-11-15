@@ -1,3 +1,4 @@
+import gzip
 import textwrap
 import zipfile
 
@@ -111,3 +112,21 @@ def test_text_in_zip_archive_with_encoding(tmp_path, streaming, encoding, encodi
         cache_dir=str(tmp_path / "cache"),
     )
     assert [example["text"] for example in dataset] == expected
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+def test_text_gzip_utf16_small_chunks(tmp_path, streaming):
+    path = tmp_path / "text.txt.gz"
+    expected = ["caf\u00e9", "\u732b", "last line"]
+    with gzip.open(path, "wb") as stream:
+        stream.write("\r\n".join(expected).encode("utf-16"))
+    dataset = load_dataset(
+        "text",
+        data_files=str(path),
+        split="train",
+        streaming=streaming,
+        encoding="utf-16",
+        chunksize=3,
+        cache_dir=str(tmp_path / "cache"),
+    )
+    assert [row["text"] for row in dataset] == expected
