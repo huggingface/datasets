@@ -6759,7 +6759,9 @@ def _prepare_parquet_append(
         raise ValueError("max_shard_size must be greater than zero.")
     appended = os.path.join(temporary_dir, "appended.parquet")
     new_nbytes = dset._estimate_nbytes()
-    # Like for push_to_hub, max_shard_size is the uncompressed size of the Arrow data in a shard
+    # Like for push_to_hub, max_shard_size is the uncompressed size of the Arrow data in a shard.
+    # The sizes in the Parquet footer can't be used here: dictionary-encoded columns are much
+    # smaller there (e.g. 1 KB instead of 400 KB of repeated text), so the shard would keep growing.
     fits_in_last_shard = num_shards is None and (
         sum(batch.nbytes for batch in pq.ParquetFile(original).iter_batches()) + new_nbytes <= max_size
     )
@@ -7299,34 +7301,52 @@ def _get_parquet_info_for_append(
     metadata_configs: MetadataConfigs,
     existing_info: Optional[DatasetInfo] = None,
 ) -> DatasetInfo:
-    """Recover missing statistics within the configuration, decoding only unknown Arrow sizes."""
+    """Recover missing statistics within the configuration from the Parquet footers."""
     import pyarrow.parquet as pq
 
+    from .io.parquet import _get_parquet_uncompressed_size
+
     data_files = _get_parquet_patterns_for_append(fs, config_name, data_dir, metadata_configs)
+    paths_per_split = {
+        split: _resolve_parquet_paths_for_append(fs, split, patterns) for split, patterns in data_files.items()
+    }
+    all_paths = list(dict.fromkeys(path for paths in paths_per_split.values() for path in paths))
+
+    def read_footer(path: str) -> tuple[pq.FileMetaData, int]:
+        with fs.open(path, "rb") as file:
+            return pq.read_metadata(file), fs.size(path)
+
+    footers = dict(
+        zip(
+            all_paths,
+            thread_map(
+                read_footer,
+                all_paths,
+                max_workers=config.HF_DATASETS_MULTITHREADING_MAX_WORKERS,
+                tqdm_class=hf_tqdm,
+                desc="Reading Parquet metadata",
+                # set `disable=None` rather than `disable=False` by default to disable progress bar when no TTY attached
+                disable=len(all_paths) <= 16 or None,
+            ),
+        )
+    )
     info = DatasetInfo(config_name=config_name, splits=SplitDict(), download_size=0, dataset_size=0)
-    for split, patterns in data_files.items():
-        paths = _resolve_parquet_paths_for_append(fs, split, patterns)
+    for split, paths in paths_per_split.items():
         if not paths:
             continue
         existing_split = (existing_info.splits or {}).get(split) if existing_info is not None else None
         known_bytes = existing_split.num_bytes if existing_split is not None else None
         split_info = SplitInfo(name=split, num_examples=0, num_bytes=known_bytes or 0)
         for path in paths:
-            with fs.open(path, "rb") as file:
-                parquet = pq.ParquetFile(file)
-                metadata = parquet.metadata
-                if known_bytes is None:
-                    # Parquet's uncompressed sizes include encoding overhead. Decode
-                    # in bounded batches and discard redundant all-valid bitmaps so
-                    # these counts use Arrow buffers, just like newly appended rows.
-                    for batch in parquet.iter_batches():
-                        split_info.num_bytes += sum(pa.concat_arrays([column]).nbytes for column in batch.columns)
+            metadata, size = footers[path]
+            if known_bytes is None:
+                split_info.num_bytes += _get_parquet_uncompressed_size(metadata)
             features = Features.from_arrow_schema(metadata.schema.to_arrow_schema())
             if info.features is not None and info.features != features:
                 raise ValueError("Features of existing Parquet shards must match before appending.")
             info.features = features
             split_info.num_examples += metadata.num_rows
-            info.download_size += fs.size(path)
+            info.download_size += size
         info.splits.add(split_info)
         info.dataset_size += split_info.num_bytes
     return info

@@ -44,6 +44,11 @@ def _get_parquet_temporal_writer_options(metadata: pq.FileMetaData) -> dict:
     return options
 
 
+def _get_parquet_uncompressed_size(metadata: pq.FileMetaData) -> int:
+    """Return the uncompressed size of the data in a Parquet file, as recorded in its footer."""
+    return sum(metadata.row_group(i).total_byte_size for i in range(metadata.num_row_groups))
+
+
 def _append_parquet_file(dataset: Dataset, original: str, destination: str) -> None:
     """Preserve the encoded row groups and page indexes, then append rows and a combined footer."""
     metadata = pq.read_metadata(original)

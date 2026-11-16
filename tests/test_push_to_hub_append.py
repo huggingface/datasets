@@ -144,6 +144,11 @@ def rows(files):
     return [row for path, data in sorted(files.items()) for row in pq.read_table(BytesIO(data)).to_pylist()]
 
 
+def footer_size(data):
+    metadata = pq.read_metadata(BytesIO(data))
+    return sum(metadata.row_group(i).total_byte_size for i in range(metadata.num_row_groups))
+
+
 def configured_rows(hub, config_name="default"):
     data_files = MetadataConfigs.from_dataset_card_data(hub.card().data)[config_name]["data_files"]
     return {
@@ -561,6 +566,8 @@ def test_append_bare_glob_keeps_all_mapped_files(hub, tmp_path, pattern, append_
     before = load_local_hub(hub, tmp_path / "before")
     assert list(before["train"]["x"]) == [1, 0]
     assert list(before["test"]["x"]) == [1]
+    train_path = "data/train-00000-of-00001.parquet"
+    footer_sizes = {path: footer_size(hub.files()[path]) for path in (train_path, test_path)}
     hub.uploads.clear()
 
     Dataset.from_dict({"x": [2, 3]}).push_to_hub(hub.repo_id, append=True, **append_options)
@@ -571,7 +578,9 @@ def test_append_bare_glob_keeps_all_mapped_files(hub, tmp_path, pattern, append_
     assert all(path.startswith("data/train-") for path in hub.uploads)
     info = DatasetInfosDict.from_dataset_card_data(hub.card().data)["default"]
     assert {split: stats.num_examples for split, stats in info.splits.items()} == {"train": 4, "test": 1}
-    assert info.dataset_size == 40
+    # recovered sizes come from the Parquet footers, and the train glob also reads the test file
+    recovered_size = footer_sizes[train_path] + 2 * footer_sizes[test_path]
+    assert info.dataset_size == (recovered_size if recover_info else 24) + 16
     configs = MetadataConfigs.from_dataset_card_data(hub.card().data)
     assert info.download_size == sum(
         hub.fs.size(path)
@@ -609,15 +618,17 @@ def test_append_recovery_respects_config_boundaries(hub, tmp_path):
     assert list(result["train"]["x"]) == [0, 2]
 
 
-def test_append_recovery_uses_arrow_byte_counts(hub):
+def test_append_recovery_reads_byte_counts_from_parquet_footers(hub):
     Dataset.from_dict({"x": [0]}).push_to_hub(hub.repo_id)
     card = hub.card()
     card.data.pop("dataset_info")
     hub.fs.pipe_file(hub.root + "/README.md", str(card).encode())
+    original_size = footer_size(next(iter(hub.files().values())))
     Dataset.from_dict({"x": [1]}).push_to_hub(hub.repo_id, append=True)
     info = DatasetInfosDict.from_dataset_card_data(hub.card().data)["default"]
-    assert info.splits["train"].num_bytes == 16
-    assert info.dataset_size == 16
+    # the existing shard is measured from its footer, the new rows from their Arrow data
+    assert info.splits["train"].num_bytes == original_size + 8
+    assert info.dataset_size == original_size + 8
     assert info.splits["train"].num_examples == 2
     assert info.download_size == sum(map(len, hub.files().values()))
 
