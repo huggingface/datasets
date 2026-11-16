@@ -41,7 +41,7 @@ class Mesh:
         decode (`bool`, defaults to `True`):
             Whether to decode the mesh data. If `False`,
             returns the underlying dictionary in the format `{"path": mesh_path, "bytes": mesh_bytes}`.
-            Mesh decoding uses `trimesh` and supports `.glb`, `.ply`, and `.stl` files.
+            Mesh decoding uses `trimesh` and supports `.glb`, `.gltf`, `.ply`, and `.stl` files.
     """
 
     decode: bool = True
@@ -116,6 +116,9 @@ class Mesh:
         if token_per_repo_id is None:
             token_per_repo_id = {}
 
+        if not isinstance(value, (dict, str)):
+            return value  # decoding is idempotent: a value that is already a mesh is returned as is
+
         path, bytes_ = value["path"], value["bytes"]
         if bytes_ is None:
             if path is None:
@@ -123,7 +126,7 @@ class Mesh:
             if is_local_path(path):
                 file_type = _infer_mesh_file_type(path)
                 if file_type is None:
-                    raise ValueError("A mesh path should have a .glb, .ply, or .stl extension.")
+                    raise ValueError("A mesh path should have a .glb, .gltf, .ply, or .stl extension.")
                 return trimesh.load(path, file_type=file_type)
             source_url = path.split("::")[-1]
             pattern = (
@@ -138,7 +141,7 @@ class Mesh:
         file_type = _infer_mesh_file_type(path)
         if file_type is None:
             raise ValueError(
-                "Decoding mesh bytes requires a 'path' value with a .glb, .ply, or .stl extension "
+                "Decoding mesh bytes requires a 'path' value with a .glb, .gltf, .ply, or .stl extension "
                 "to infer the mesh file type."
             )
         return trimesh.load(BytesIO(bytes_), file_type=file_type)
@@ -276,7 +279,7 @@ class Mesh:
 
 
 def _infer_mesh_file_type(path: Optional[str]) -> Optional[str]:
-    supported_file_types = {"glb", "ply", "stl"}
+    supported_file_types = {"glb", "gltf", "ply", "stl"}
     if path is None:
         return None
     path_without_archive = path.split("::", 1)[0]
