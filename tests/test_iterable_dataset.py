@@ -2279,6 +2279,25 @@ def test_iterable_dataset_to_pandas_casts_when_schema_mismatch():
     assert len(batches) == 2
 
 
+def test_iterable_dataset_from_generator_to_arrow_with_empty_list_first():
+    # an empty list is inferred as list<item: null> when examples are converted to Arrow one by one
+    features = Features({"a": Value("int64"), "b": List({"c": Value("int64")})})
+    data = [{"a": 1, "b": []}, {"a": 2, "b": [{"c": 1}]}, {"a": 3, "b": None}]
+
+    def gen():
+        yield from data
+
+    dataset = IterableDataset.from_generator(gen, features=features)
+
+    df = dataset.to_pandas()
+    assert df["a"].tolist() == [1, 2, 3]
+    assert [None if b is None else list(b) for b in df["b"]] == [[], [{"c": 1}], None]
+
+    table = pa.concat_tables(list(dataset.with_format("arrow").iter(batch_size=2)))
+    assert table.schema == features.arrow_schema
+    assert table.to_pylist() == data
+
+
 def test_iterable_dataset_to_dict():
     dataset = Dataset.from_dict({"col": [0, 1, 2]}).to_iterable_dataset()
 

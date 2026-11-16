@@ -188,6 +188,17 @@ def _convert_to_arrow(
         yield new_key, pa.Table.from_pylist(cast_to_python_objects(examples, only_1d_for_numpy=True))
 
 
+def _table_from_chunks(chunks: list[pa.RecordBatch]) -> pa.Table:
+    """Concatenate record batches into a table, unifying their schemas if needed.
+
+    Chunks converted from single examples can have different inferred types, e.g. `list<item: null>`
+    for an empty list and `list<item: struct<...>>` for a non-empty one.
+    """
+    if all(chunk.schema == chunks[0].schema for chunk in chunks[1:]):
+        return pa.Table.from_batches(chunks)
+    return pa.concat_tables([pa.Table.from_batches([chunk]) for chunk in chunks], promote_options="default")
+
+
 def shift_ex_examples_rngs(ex_iterable: "_BaseExamplesIterable", value: int) -> "_BaseExamplesIterable":
     """We need to go through the ex_iterables recursively, create a new seed and return a new iterable, then set it to the containing ex_iterable."""
 
@@ -560,7 +571,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
         if self.batch_size is None or self.batch_size <= 0:
             if self._state_dict and self._state_dict["batch_idx"] > 0:
                 return
-            all_pa_table = pa.concat_tables([pa_table for _, pa_table in iterator])
+            all_pa_table = pa.concat_tables([pa_table for _, pa_table in iterator], promote_options="default")
             if self._state_dict:
                 self._state_dict["batch_idx"] = 1
             yield "all", all_pa_table
@@ -605,7 +616,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                         self._state_dict["batch_idx"] += 1
                         self._state_dict["num_chunks_since_previous_state"] = num_chunks_since_checkpoint
                         self._state_dict["cropped_chunk_length"] = 0
-                    yield new_key, pa.Table.from_batches(chunks_buffer)
+                    yield new_key, _table_from_chunks(chunks_buffer)
                     keys_buffer = []
                     chunks_buffer = []
                     chunks_buffer_size = 0
@@ -622,7 +633,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                         self._state_dict["batch_idx"] += 1
                         self._state_dict["num_chunks_since_previous_state"] = num_chunks_since_checkpoint
                         self._state_dict["cropped_chunk_length"] = cropped_chunk_length
-                    yield new_key, pa.Table.from_batches(chunks_buffer)
+                    yield new_key, _table_from_chunks(chunks_buffer)
                     keys_buffer = [f"{key}[{cropped_chunk_length}:]"]
                     chunks_buffer = [chunk.slice(cropped_chunk_length, len(chunk) - cropped_chunk_length)]
                     chunks_buffer_size = len(chunk) - cropped_chunk_length
@@ -639,7 +650,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                 self._state_dict["batch_idx"] += 1
                 self._state_dict["num_chunks_since_previous_state"] = 0
                 self._state_dict["cropped_chunk_length"] = 0
-            yield new_key, pa.Table.from_batches(chunks_buffer)
+            yield new_key, _table_from_chunks(chunks_buffer)
 
         if self.drop_last_batch and self._state_dict:
             # Exhaustion consumes the discarded tail as well as the yielded batches.
