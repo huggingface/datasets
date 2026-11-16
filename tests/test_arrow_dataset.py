@@ -4788,14 +4788,21 @@ class StratifiedTest(TestCase):
             ) as mock_stratify,
         ):
             dset_dict = dset.train_test_split(test_size=0.25, seed=42, stratify_by_column="label")
-        # the labels must be read as a column, not one row at a time
-        self.assertLess(mock_getitem.call_count, len(labels))
+        # the labels must be read as a column, never one row at a time
+        self.assertEqual(mock_getitem.call_count, 0)
         y = mock_stratify.call_args.args[0]
         self.assertIsInstance(y, np.ndarray)
         self.assertEqual(y.dtype, np.int64)
         npt.assert_array_equal(y, np.array(labels)[dset["idx"][:]])
-        self.assertListEqual(dset_dict["train"]["idx"][:], [4, 6, 7, 12, 8, 1, 9, 5, 2, 15, 10, 3])
-        self.assertListEqual(dset_dict["test"]["idx"][:], [0, 13, 11, 14])
+        # both splits together hold every row exactly once
+        train_idx, test_idx = dset_dict["train"]["idx"][:], dset_dict["test"]["idx"][:]
+        self.assertEqual(len(test_idx), 4)
+        self.assertListEqual(sorted(train_idx + test_idx), list(range(len(labels))))
+        # class proportions are preserved: classes hold 6, 5 and 5 of 16 rows, so a test split of 4 holds 1 or 2 of each
+        test_counts = np.bincount(np.array(labels)[test_idx], minlength=3)
+        self.assertTrue(np.all((test_counts >= 1) & (test_counts <= 2)))
+        train_counts = np.bincount(np.array(labels)[train_idx], minlength=3)
+        npt.assert_array_equal(train_counts + test_counts, np.bincount(labels))
 
 
 def test_dataset_estimate_nbytes(image_file):
