@@ -11,10 +11,7 @@ from datasets.io import json as json_io
 
 @pytest.mark.parametrize("num_proc", [None, 2])
 def test_json_writer_traverses_nested_features_only_once(monkeypatch, num_proc):
-    records = [
-        {"id": i, "payload": {"items": [i, None], "label": "中文"}}
-        for i in range(9)
-    ]
+    records = [{"id": i, "payload": {"items": [i, None], "label": "中文"}} for i in range(9)]
     dataset = Dataset.from_list(
         records,
         features=Features({"id": Value("int64"), "payload": Json()}),
