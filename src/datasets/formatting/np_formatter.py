@@ -52,7 +52,7 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
         elif isinstance(value, (np.character, np.ndarray)) and np.issubdtype(value.dtype, np.character):
             return value
         elif isinstance(value, np.number):
-            return value
+            return np.asarray(value, **self.np_array_kwargs)[()] if self.np_array_kwargs else value
 
         default_dtype = {}
 
