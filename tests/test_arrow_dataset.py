@@ -5278,6 +5278,10 @@ def test_dataset_batch_by_column_with_drop_last_batch(streaming):
     ds = Dataset.from_dict({"id": list(range(8)), "category": [0, 0, 1, 1, 2, 2, 3, 3]})
     assert batch_ids(ds) == [[0, 1], [2, 3], [4, 5], [6, 7]]
 
+    # a dataset shorter than batch_size, read through an indices mapping
+    ds = Dataset.from_dict({"id": list(range(6)), "category": [9, 0, 9, 0, 9, 1]}).select([5, 1, 3])
+    assert batch_ids(ds) == [[5], [1, 3]]
+
 
 @pytest.mark.parametrize("format_type", ["pyarrow", "pandas"])
 def test_dataset_batch_with_table_format(format_type):
