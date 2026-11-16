@@ -74,6 +74,7 @@ from .utils.py_utils import (
     Literal,
     convert_file_size_to_int,
     iflatmap_unordered,
+    iflatmap_unordered_in_threads,
 )
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 from .utils.typing import PathLike
@@ -5236,6 +5237,7 @@ class IterableDataset(DatasetInfoMixin):
         num_shards: Optional[int],
         embed_external_files: bool,
         num_proc: Optional[int],
+        num_threads: Optional[int] = None,
     ) -> tuple[list[CommitOperationAdd], list[str], Features, SplitInfo, int]:
         """Pushes the dataset shards as Parquet files to the hub.
 
@@ -5301,6 +5303,15 @@ class IterableDataset(DatasetInfoMixin):
             )
             num_proc = self.num_shards if self.num_shards > 1 else None
             num_jobs = self.num_shards
+        num_threads = config.PUSH_TO_HUB_NUM_THREADS if num_threads is None else num_threads
+        if num_proc is None or num_proc < 1:
+            # One job per output shard, or per input shard if there are more output shards. Each job handles
+            # whole input shards, and the shards are the same as without threads.
+            num_threads = min(num_threads, num_shards, self.num_shards)
+            if num_threads > 1:
+                num_jobs = min(num_shards, self.num_shards)
+        else:
+            num_threads = 0
 
         kwargs_iterable = [
             {
@@ -5320,6 +5331,7 @@ class IterableDataset(DatasetInfoMixin):
         ]
         desc = "Uploading the dataset shards"
         desc += f" (num_proc={num_proc})" if num_proc is not None and num_proc >= 1 else ""
+        desc += f" (num_threads={num_threads})" if num_threads > 1 else ""
         pbar = hf_tqdm(
             unit=" shards",
             total=num_shards,
@@ -5330,15 +5342,16 @@ class IterableDataset(DatasetInfoMixin):
             if num_proc is None or num_proc < 1
             else mp.get_context("spawn").Pool(num_proc) as pool
         ):
-            update_stream = (
-                IterableDataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
-                if pool is None
-                else iflatmap_unordered(
-                    pool,
-                    IterableDataset._push_parquet_shards_to_hub_single,
-                    kwargs_iterable=kwargs_iterable,
+            if num_threads > 1:
+                update_stream = iflatmap_unordered_in_threads(
+                    num_threads, IterableDataset._push_parquet_shards_to_hub_single, kwargs_iterable=kwargs_iterable
                 )
-            )
+            elif pool is None:
+                update_stream = IterableDataset._push_parquet_shards_to_hub_single(**kwargs_iterable[0])
+            else:
+                update_stream = iflatmap_unordered(
+                    pool, IterableDataset._push_parquet_shards_to_hub_single, kwargs_iterable=kwargs_iterable
+                )
             for job_id, done, content in update_stream:
                 if not done:
                     pbar.update(content)
@@ -5374,6 +5387,7 @@ class IterableDataset(DatasetInfoMixin):
         num_shards: Optional[int] = None,
         embed_external_files: bool = True,
         num_proc: Optional[int] = None,
+        num_threads: Optional[int] = None,
     ) -> CommitInfo:
         """Pushes the dataset to the hub as a Parquet dataset.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -5432,6 +5446,14 @@ class IterableDataset(DatasetInfoMixin):
                 This is helpful if the dataset is made of many samples and transformations.
                 I uses "spawn" context to work with hf_xet, the rust client for fast uploads to HF.
                 Multiprocessing is disabled by default.
+
+            num_threads (`int`, *optional*, defaults to `None`):
+                Number of threads converting the shards to Parquet and uploading them, when `num_proc` isn't set.
+                Each thread handles one shard at a time, so at most `num_threads` shards are on disk at once.
+                Defaults to 5, like the uploads of `huggingface_hub`. Set it to 0 or 1 to convert and upload
+                the shards one after the other.
+
+                <Added version="5.3.0"/>
 
         Return:
             huggingface_hub.CommitInfo
@@ -5517,6 +5539,7 @@ class IterableDataset(DatasetInfoMixin):
                 num_shards=num_shards,
                 embed_external_files=embed_external_files,
                 num_proc=num_proc,
+                num_threads=num_threads,
             )
         else:
             try:
@@ -5549,6 +5572,7 @@ class IterableDataset(DatasetInfoMixin):
                 num_shards=num_shards,
                 embed_external_files=embed_external_files,
                 num_proc=num_proc,
+                num_threads=num_threads,
             )
 
 

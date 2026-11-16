@@ -1636,6 +1636,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
         num_shards: Optional[dict[str, int]] = None,
         embed_external_files: bool = True,
         num_proc: Optional[int] = None,
+        num_threads: Optional[int] = None,
     ) -> Optional[CommitInfo]:
         """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
         The [`DatasetDict`] is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -1706,6 +1707,14 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
 
                 <Added version="4.0.0"/>
 
+            num_threads (`int`, *optional*, defaults to `None`):
+                Number of threads converting the shards to Parquet and uploading them, when `num_proc` isn't set.
+                Each thread handles one shard at a time, so at most `num_threads` shards are on disk at once.
+                Defaults to 5, like the uploads of `huggingface_hub`. Set it to 0 or 1 to convert and upload
+                the shards one after the other.
+
+                <Added version="5.3.0"/>
+
         Return:
             huggingface_hub.CommitInfo
 
@@ -1773,6 +1782,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 num_shards=num_shards,
                 embed_external_files=embed_external_files,
                 num_proc=num_proc,
+                num_threads=num_threads,
             )
         else:
             try:
@@ -1804,6 +1814,7 @@ class DatasetDict(dict[Union[str, NamedSplit], "Dataset"]):
                 num_shards=num_shards,
                 embed_external_files=embed_external_files,
                 num_proc=num_proc,
+                num_threads=num_threads,
             )
 
 
@@ -2340,6 +2351,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
         num_shards: Optional[dict[str, int]] = None,
         embed_external_files: bool = True,
         num_proc: Optional[int] = None,
+        num_threads: Optional[int] = None,
     ) -> CommitInfo:
         """Pushes the [`IterableDatasetDict`] to the hub as a Parquet dataset.
         The [`IterableDatasetDict`] is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -2404,6 +2416,14 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 Multiprocessing is disabled by default.
 
                 <Added version="4.0.0"/>
+
+            num_threads (`int`, *optional*, defaults to `None`):
+                Number of threads converting the shards to Parquet and uploading them, when `num_proc` isn't set.
+                Each thread handles one shard at a time, so at most `num_threads` shards are on disk at once.
+                Defaults to 5, like the uploads of `huggingface_hub`. Set it to 0 or 1 to convert and upload
+                the shards one after the other.
+
+                <Added version="5.3.0"/>
 
         Return:
             huggingface_hub.CommitInfo
@@ -2478,6 +2498,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 num_shards=num_shards.get(split),
                 embed_external_files=embed_external_files,
                 num_proc=num_proc,
+                num_threads=num_threads,
             )
         else:
             try:
@@ -2509,6 +2530,7 @@ class IterableDatasetDict(dict[Union[str, NamedSplit], IterableDataset]):
                 num_shards=num_shards,
                 embed_external_files=embed_external_files,
                 num_proc=num_proc,
+                num_threads=num_threads,
             )
 
 
@@ -2527,6 +2549,7 @@ def _push_to_repo(
     num_shards: Optional[dict[str, Optional[int]]] = None,
     embed_external_files: bool = True,
     num_proc: Optional[int] = None,
+    num_threads: Optional[int] = None,
 ) -> CommitInfo:
     api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
     resolved_output_path = HfFileSystemResolvedRepositoryPath(
@@ -2551,6 +2574,7 @@ def _push_to_repo(
             create_pr=create_pr,
             embed_external_files=embed_external_files,
             num_proc=num_proc,
+            num_threads=num_threads,
         )
         additions += split_additions
         new_parquet_paths += split_new_parquet_paths
@@ -2696,6 +2720,7 @@ def _push_to_bucket(
     num_shards: Optional[dict[str, Optional[int]]] = None,
     embed_external_files: bool = True,
     num_proc: Optional[int] = None,
+    num_threads: Optional[int] = None,
 ) -> None:
     api = HfApi(endpoint=config.HF_ENDPOINT, token=token, library_name="datasets", library_version=__version__)
     resolved_output_path = HfFileSystemResolvedBucketPath(bucket_id=bucket_id, path=path)
@@ -2725,6 +2750,7 @@ def _push_to_bucket(
             create_pr=False,
             embed_external_files=embed_external_files,
             num_proc=num_proc,
+            num_threads=num_threads,
         )
         additions += split_additions
         new_parquet_paths += split_new_parquet_paths
