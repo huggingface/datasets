@@ -282,6 +282,21 @@ class HashingTest(TestCase):
                 )
                 self.assertEqual(Hasher.hash(one_chunk), Hasher.hash(three_chunks))
 
+    def test_hash_fixed_size_list_of_structs_is_independent_of_chunking(self):
+        # fixed-size lists of structs with nulls at both levels, split at uneven boundaries
+        import pyarrow as pa
+
+        list_type = pa.list_(pa.struct([("value", pa.int64())]), 2)
+        rows = [[{"value": 1}, {"value": None}], [None, {"value": 3}]] * 300
+        values = pa.array(rows, type=list_type)
+        one_chunk = pa.chunked_array([values])
+        three_chunks = pa.chunked_array([values.slice(0, 17), values.slice(17, 283), values.slice(300)])
+        rows[0] = [{"value": 99}, {"value": None}]
+        other_data = pa.chunked_array([pa.array(rows, type=list_type)])
+        for wrap in [lambda array: array, lambda array: InMemoryTable(pa.table({"col": array}))]:
+            self.assertEqual(Hasher.hash(wrap(one_chunk)), Hasher.hash(wrap(three_chunks)))
+            self.assertNotEqual(Hasher.hash(wrap(one_chunk)), Hasher.hash(wrap(other_data)))
+
     def test_hash_update(self):
         hasher = Hasher()
         for x in ["hello", Foo("hello")]:
