@@ -2585,12 +2585,32 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
                 if isinstance(formatter, TensorFormatter)
                 else None  # cast in case features is None
             )
+            source_features = self.ex_iterable.features or {}
+            changed_features = Features(
+                {
+                    column: feature
+                    for column, feature in (self.features or {}).items()
+                    if feature != source_features.get(column)
+                    and not require_decoding(feature)
+                    and not require_decoding(source_features.get(column))
+                }
+            )
             for key, example in self.ex_iterable:
                 # don't apply feature types if already applied by ex_iterable (e.g. in case of chained with_format)
                 if self.features and not self.ex_iterable.is_typed:
                     example = _apply_feature_types_on_example(
                         example, self.features, token_per_repo_id=self.token_per_repo_id
                     )
+                elif changed_features:
+                    # Recast non-decoding columns of typed sources. Media casts need the original encoded values.
+                    example = {
+                        **example,
+                        **_apply_feature_types_on_example(
+                            {column: example.get(column) for column in changed_features},
+                            changed_features,
+                            token_per_repo_id=self.token_per_repo_id,
+                        ),
+                    }
                 if format_dict:
                     example = format_dict(example)
                 yield key, example

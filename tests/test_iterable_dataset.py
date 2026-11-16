@@ -3293,23 +3293,45 @@ def test_iterable_dataset_select_columns(dataset_with_several_columns: IterableD
     assert all(c in new_dataset.column_names for c in ["id", "filepath"])
 
 
-def test_iterable_dataset_cast_column():
+@pytest.mark.parametrize("mapped", [False, True])
+def test_iterable_dataset_cast_column(mapped):
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
     features = Features({"id": Value("int64"), "label": Value("int64")})
     dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
+    if mapped:
+        dataset = dataset.map(lambda example: example, features=features)
     casted_dataset = dataset.cast_column("label", Value("bool"))
     casted_features = features.copy()
     casted_features["label"] = Value("bool")
     assert list(casted_dataset) == [casted_features.encode_example(ex) for _, ex in ex_iterable]
 
 
-def test_iterable_dataset_cast():
+@pytest.mark.parametrize("mapped", [False, True])
+def test_iterable_dataset_cast(mapped):
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
     features = Features({"id": Value("int64"), "label": Value("int64")})
     dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
+    if mapped:
+        dataset = dataset.map(lambda example: example, features=features)
     new_features = Features({"id": Value("int64"), "label": Value("bool")})
     casted_dataset = dataset.cast(new_features)
     assert list(casted_dataset) == [new_features.encode_example(ex) for _, ex in ex_iterable]
+
+
+def test_iterable_dataset_cast_after_map_nested_non_decodable_features():
+    features = Features({"struct": {"count": Value("int64")}, "list": List(Value("int64")), "label": Value("string")})
+    data = [{"struct": {"count": 10}, "list": [0, 1, None], "label": "positive"}]
+    dataset = IterableDataset.from_generator(lambda: iter(data), features=features).map(
+        lambda example: example, features=features
+    )
+    new_features = Features(
+        {
+            "struct": {"count": Value("string")},
+            "list": List(Value("bool")),
+            "label": ClassLabel(names=["negative", "positive"]),
+        }
+    )
+    assert list(dataset.cast(new_features)) == [{"struct": {"count": "10"}, "list": [False, True, None], "label": 1}]
 
 
 def test_iterable_dataset_resolve_features():
@@ -4170,6 +4192,31 @@ class DecodableFeature:
 
     def __call__(self):
         return pa.string()
+
+
+def test_cast_after_map_does_not_decode_unchanged_features(monkeypatch):
+    monkeypatch.setattr(DecodableFeature, "decode_example_num_calls", 0)
+    features = Features({"i": DecodableFeature(), "label": Value("int64")})
+    dataset = IterableDataset.from_generator(lambda: iter([{"i": "raw", "label": 10}]), features=features).map(
+        lambda example: example, features=features
+    )
+
+    casted = dataset.cast_column("label", Value("string")).take(1)
+    assert list(casted) == [{"i": "decoded", "label": "10"}]
+    assert DecodableFeature.decode_example_num_calls == 1
+
+
+def test_cast_after_map_does_not_reencode_columns_with_nested_decoding(monkeypatch):
+    monkeypatch.setattr(DecodableFeature, "decode_example_num_calls", 0)
+    features = Features({"nested": {"media": DecodableFeature(), "label": Value("int64")}})
+    dataset = IterableDataset.from_generator(
+        lambda: iter([{"nested": {"media": "raw", "label": 10}}]), features=features
+    ).map(lambda example: example, features=features)
+    casted = dataset.cast_column("nested", {"media": DecodableFeature(), "label": Value("string")})
+
+    # Columns containing decoded media still need casting before the decoding step.
+    assert [example["nested"]["media"] for example in casted] == ["decoded"]
+    assert DecodableFeature.decode_example_num_calls == 1
 
 
 def test_decode():
