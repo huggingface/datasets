@@ -881,6 +881,45 @@ def test_iterable_dataset_vs_dataset_map(batched, batch_size, input_columns, rem
     assert all(x == y for x, y in zip(*r))
 
 
+@pytest.mark.parametrize("columns, output_all_columns", [(None, False), (["a"], False), (["a"], True), (None, True)])
+def test_iterable_dataset_with_transform_matches_dataset(columns, output_all_columns):
+    def transform(batch):
+        output = {"a": [x * 2 for x in batch["a"]]}
+        if "t" in batch:
+            output["n"] = [len(text) for text in batch["t"]]
+        return output
+
+    ds = Dataset.from_dict({"a": list(range(5)), "t": ["x", "yy", "zzz", "w", "vv"], "b": list(range(10, 15))})
+    transformed = ds.with_transform(transform, columns=columns, output_all_columns=output_all_columns)
+    expected = [transformed[i] for i in range(len(ds))]
+    ids = ds.to_iterable_dataset(num_shards=2)
+    assert list(ids.with_transform(transform, columns=columns, output_all_columns=output_all_columns)) == expected
+
+
+def test_iterable_dataset_with_transform_returning_its_input():
+    ids = Dataset.from_dict({"a": [0, 1]}).to_iterable_dataset()
+    assert list(ids.with_transform(lambda batch: batch)) == [{"a": 0}, {"a": 1}]
+
+
+def test_iterable_dataset_with_transform_is_lazy_and_replaces_the_format():
+    input_types = []
+
+    def transform(batch):
+        input_types.append(type(batch["a"]))
+        return {"b": [x + 1 for x in batch["a"]]}
+
+    ids = Dataset.from_dict({"a": [0, 1]}).to_iterable_dataset().with_format("numpy").with_transform(transform)
+    assert input_types == []
+    assert list(ids) == [{"b": 1}, {"b": 2}]
+    assert input_types == [list]
+
+
+def test_iterable_dataset_with_transform_with_unknown_features():
+    ids = Dataset.from_dict({"a": [0, 1]}).to_iterable_dataset().map(lambda x: {"b": x["a"] + 1})
+    assert ids.features is None
+    assert list(ids.with_transform(lambda batch: {"c": batch["b"]})) == [{"c": 1}, {"c": 2}]
+
+
 def test_iterable_dataset_map_batched_shrink_without_all_columns_raises():
     # A batched function that shrinks the batch but does not re-emit every retained input column
     # used to silently produce misaligned/truncated rows instead of raising.

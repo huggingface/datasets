@@ -910,3 +910,15 @@ def test_datasetdict_from_text_split(split, text_path, tmp_path):
     dataset = DatasetDict.from_text(path, cache_dir=cache_dir)
     _check_text_datasetdict(dataset, expected_features, splits=list(path.keys()))
     assert all(dataset[split].split == split for split in path.keys())
+
+
+def test_iterable_dataset_dict_with_transform():
+    dsets = IterableDatasetDict(
+        train=Dataset.from_dict({"a": [0, 1]}).to_iterable_dataset(),
+        test=Dataset.from_dict({"a": [2]}).to_iterable_dataset(),
+    )
+    transformed = dsets.with_transform(lambda batch: {"b": [x * 2 for x in batch["a"]]})
+    assert {split: list(ds) for split, ds in transformed.items()} == {
+        "train": [{"b": 0}, {"b": 2}],
+        "test": [{"b": 4}],
+    }

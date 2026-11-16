@@ -3695,6 +3695,61 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
+    def with_transform(
+        self,
+        transform: Callable,
+        columns: Optional[list[str]] = None,
+        output_all_columns: bool = False,
+    ) -> "IterableDataset":
+        """
+        Return a dataset that applies this transform on-the-fly on batches of examples, like [`~datasets.Dataset.with_transform`].
+
+        For an iterable dataset, this is roughly equivalent to a batched [`~datasets.IterableDataset.map`]
+        that removes the input columns: `ds.map(transform, batched=True, remove_columns=ds.column_names)`.
+        The transform replaces the format defined by [`~datasets.IterableDataset.with_format`], and the features
+        of the returned dataset are unknown, as after [`~datasets.IterableDataset.map`].
+
+        Args:
+            transform (`Callable`):
+                User-defined formatting transform. A formatting function is a callable that takes a batch (as a `dict`)
+                as input and returns a batch.
+            columns (`List[str]`, *optional*):
+                Columns to format in the output.
+                If specified, then the input batch of the transform only contains those columns.
+            output_all_columns (`bool`, defaults to `False`):
+                Keep un-formatted columns as well in the output (as python objects).
+                If set to `True`, then the other un-formatted columns are kept with the output of the transform.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> from transformers import AutoTokenizer
+        >>> ds = load_dataset("cornell-movie-review-data/rotten_tomatoes", split="validation", streaming=True)
+        >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+        >>> def encode(batch):
+        ...     return tokenizer(batch["text"], truncation=True)
+        >>> ds = ds.with_transform(encode)
+        >>> next(iter(ds))
+        {'input_ids': [101, 18027, 16310, 16001, 1103, 9321, 178, 11604, 7235, 6617, 1742, 2165, 2820, 1206, 6588, 22572, 12937, 1811, 2153, 1105, 1147, 12890, 19587, 6463, 1105, 15026, 1482, 119, 102],
+         'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+         'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]}
+        ```
+        """
+        dataset = self.with_format(None)
+        if columns is None or not output_all_columns:
+            # the transform output replaces all the input columns, so their names are needed
+            dataset = dataset._resolve_features()
+            remove_columns = dataset.column_names
+        else:
+            remove_columns = columns
+
+        def apply_transform(batch: dict) -> dict:
+            # pass a new dict: map() would remove the input columns from a batch returned as is
+            return transform({column: batch[column] for column in (batch if columns is None else columns)})
+
+        return dataset.map(apply_transform, batched=True, remove_columns=remove_columns)
+
     def map(
         self,
         function: Optional[Callable] = None,
