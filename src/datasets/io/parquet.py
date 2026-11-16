@@ -3,6 +3,7 @@ import os
 from typing import BinaryIO, Optional, Union
 
 import fsspec
+import pyarrow as pa
 import pyarrow.parquet as pq
 
 from .. import Dataset, Features, NamedSplit, config
@@ -17,6 +18,19 @@ from ..packaged_modules.parquet.parquet import Parquet
 from ..utils import tqdm as hf_tqdm
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
+
+
+def _with_column_metadata(schema: pa.Schema, column_metadata: Optional[dict[str, dict[str, str]]]) -> pa.Schema:
+    """Return the schema with the metadata of the columns as Arrow field metadata."""
+    if not column_metadata:
+        return schema
+    return pa.schema(
+        [
+            field.with_metadata(column_metadata[field.name]) if field.name in column_metadata else field
+            for field in schema
+        ],
+        metadata=schema.metadata,
+    )
 
 
 class ParquetDatasetReader(AbstractDatasetReader):
@@ -121,7 +135,7 @@ class ParquetDatasetWriter:
         """
         written = 0
         _ = parquet_writer_kwargs.pop("path_or_buf", None)
-        schema = self.dataset.features.arrow_schema
+        schema = _with_column_metadata(self.dataset.features.arrow_schema, self.dataset.info.column_metadata)
 
         writer = pq.ParquetWriter(
             file_obj,
