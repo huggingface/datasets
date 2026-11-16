@@ -7,7 +7,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Audio, Features, Image, IterableDataset
+from datasets import Audio, Dataset, Features, Image, IterableDataset
 from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter, query_table
 from datasets.formatting.formatting import (
     LazyBatch,
@@ -966,6 +966,32 @@ class QueryTest(TestCase):
                     start += 1
 
             query_table(table, iter_to_inf())
+
+
+@pytest.mark.parametrize("values", [[1, 2], [1.25, 2.5]])
+@pytest.mark.parametrize("dtype", [np.float16, np.float32, np.int32])
+def test_numpy_formatter_scalar_explicit_dtype(values, dtype):
+    dataset = Dataset.from_dict({"value": values}).with_format("numpy", dtype=dtype)
+    expected = np.asarray(values, dtype=dtype)
+
+    row = dataset[0]["value"]
+    assert isinstance(row, np.number)
+    assert row.dtype == expected.dtype
+    assert row == expected[0]
+    for output in (dataset[:]["value"], dataset["value"][:], np.asarray(dataset["value"])):
+        assert output.dtype == expected.dtype
+        np.testing.assert_array_equal(output, expected)
+
+
+@pytest.mark.parametrize("values", [[1, 2], [1.25, 2.5]])
+@pytest.mark.parametrize("format_kwargs", [{}, {"dtype": None}])
+def test_numpy_formatter_scalar_default_dtype(values, format_kwargs):
+    dataset = Dataset.from_dict({"value": values}).with_format("numpy", **format_kwargs)
+    row = dataset[0]["value"]
+    expected = np.asarray(values)[0]
+    assert isinstance(row, np.number)
+    assert row.dtype == expected.dtype
+    assert row == expected
 
 
 @pytest.fixture(scope="session")
