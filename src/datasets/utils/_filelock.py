@@ -15,25 +15,50 @@
 """Utilities to handle file locking in `datasets`."""
 
 import os
+from functools import wraps
 
+from filelock import BaseFileLock as _BaseFileLock
 from filelock import FileLock as FileLock_
-from filelock import UnixFileLock
+from filelock import SoftFileLock, UnixFileLock
 from filelock import __version__ as _filelock_version
 from packaging import version
 
+from .. import config
 
-class FileLock(FileLock_):
+
+class _FileLockMeta(type(FileLock_)):
+    def __getattr__(cls, name):
+        # Expose upstream class attributes without maintaining a copy here.
+        return getattr(FileLock_, name)
+
+    @wraps(type(FileLock_).__call__)  # Upstream inspects this signature for subclass defaults.
+    def __call__(cls, *args, **kwargs):
+        if cls is FileLock:
+            # Let upstream read the selected backend's attributes and own its singleton state.
+            lock_class = _SoftFileLock if config.HF_DATASETS_USE_SOFT_FILELOCK else _HardFileLock
+            return lock_class(*args, **kwargs)
+        return super().__call__(*args, **kwargs)
+
+    def __new__(mcls, name, bases, namespace, **kwargs):
+        # Bare subclasses retain FileLock's historical hard-lock backend.
+        if bases and not any(issubclass(base, _BaseFileLock) for base in bases):
+            bases = (*bases, FileLock_)
+        return super().__new__(mcls, name, bases, namespace, **kwargs)
+
+
+class FileLock(metaclass=_FileLockMeta):
     """
-    A `filelock.FileLock` initializer that handles long paths.
-    It also uses the current umask for lock files.
+    Create a hard or soft file lock according to `config.HF_DATASETS_USE_SOFT_FILELOCK`.
+
+    Both implementations handle long paths and use the current umask for lock files.
     """
 
     MAX_FILENAME_LENGTH = 255
 
     def __init__(self, lock_file, *args, **kwargs):
-        # The "mode" argument is required if we want to use the current umask in filelock >= 3.10
-        # In previous previous it was already using the current umask.
-        if "mode" not in kwargs and version.parse(_filelock_version) >= version.parse("3.10.0"):
+        # The "mode" argument is required to use the current umask in filelock >= 3.10.
+        # Earlier versions already used the current umask.
+        if len(args) < 2 and "mode" not in kwargs and version.parse(_filelock_version) >= version.parse("3.10.0"):
             umask = os.umask(0o666)
             os.umask(umask)
             kwargs["mode"] = 0o666 & ~umask
@@ -56,3 +81,11 @@ class FileLock(FileLock_):
             return os.path.join(dirname, new_filename)
         else:
             return path
+
+
+class _HardFileLock(FileLock, FileLock_):
+    pass
+
+
+class _SoftFileLock(FileLock, SoftFileLock):
+    pass
