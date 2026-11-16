@@ -11,6 +11,7 @@ class MeshFolderConfig(folder_based_builder.FolderBasedBuilderConfig):
 
     drop_labels: bool = None
     drop_metadata: bool = None
+    decode_num_threads: int = 4
 
     def __post_init__(self):
         super().__post_init__()
@@ -25,6 +26,7 @@ class MeshFolder(folder_based_builder.FolderBasedBuilder):
 
 MESH_EXTENSIONS = [
     ".glb",
+    ".gltf",
     ".ply",
     ".stl",
 ]

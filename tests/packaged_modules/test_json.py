@@ -1,13 +1,14 @@
 import json
 import textwrap
+from unittest.mock import Mock, patch
 
 import pyarrow as pa
 import pytest
 
-from datasets import Features, Value, load_dataset
+from datasets import Dataset, Features, Value, load_dataset
 from datasets.builder import InvalidConfigName
 from datasets.data_files import DataFilesList
-from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig
+from datasets.packaged_modules.json.json import AGENT_TRACES_FEATURES, Json, JsonConfig, paj
 
 from ..utils import require_teich
 
@@ -563,6 +564,47 @@ def test_json_generate_tables(file_fixture, config_kwargs, expected, request):
     assert out == expected
 
 
+@pytest.fixture
+def bounded_json_parser(monkeypatch):
+    read_json = paj.read_json
+    attempts = 0
+
+    def bounded_read_json(*args, **kwargs):
+        nonlocal attempts
+        attempts += 1
+        assert attempts <= 5, "JSON parser retried without resolving the mixed-type field"
+        return read_json(*args, **kwargs)
+
+    monkeypatch.setattr(paj, "read_json", bounded_read_json)
+
+
+@pytest.mark.parametrize(
+    "rows",
+    [
+        [{"a/b": 1}, {"a/b": "two"}],
+        [{"outer": {"a/b": 1}}, {"outer": {"a/b": "two"}}],
+        [{"outer": [{"a/b": 1}]}, {"outer": [{"a/b": "two"}]}],
+        [{"/a/": 1}, {"/a/": "two"}],
+        [{"[]": 1}, {"[]": "two"}],
+        [{"": 1}, {"": "two"}],
+    ],
+)
+def test_json_mixed_type_literal_field_names(tmp_path, bounded_json_parser, rows):
+    path = tmp_path / "mixed.jsonl"
+    path.write_text("\n".join(map(json.dumps, rows)), encoding="utf-8")
+
+    assert Dataset.from_json(str(path), cache_dir=str(tmp_path / "cache")).to_list() == rows
+
+
+def test_json_mixed_type_ambiguous_field_path(tmp_path, bounded_json_parser):
+    path = tmp_path / "ambiguous.jsonl"
+    rows = [{"a/b": 1, "a": {"b": 3}}, {"a/b": "two", "a": {"b": 4}}]
+    path.write_text("\n".join(map(json.dumps, rows)), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="Cannot resolve mixed-type JSON field .*ambiguous field path"):
+        Dataset.from_json(str(path), cache_dir=str(tmp_path / "cache"))
+
+
 @pytest.mark.parametrize(
     "file_fixture, config_kwargs",
     [
@@ -614,6 +656,40 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
     )
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.column_names == ["ID", "Language", "Topic"]
+
+
+def test_json_generate_tables_recovers_from_invalid_arrow_offsets(jsonl_file):
+    malformed_table = Mock()
+    malformed_table.validate.side_effect = [pa.ArrowInvalid("invalid nested offsets")]
+    json_builder = Json(chunksize=1 << 20)
+    base_files = [jsonl_file]
+
+    with patch.object(paj, "read_json", return_value=malformed_table):
+        generator = json_builder._generate_tables(
+            base_files=base_files,
+            files_iterables=[[jsonl_file]],
+            original_files=base_files,
+        )
+        _, table = next(generator)
+
+    table.validate(full=True)
+    dataset = Dataset(table)
+    mapped_dataset = dataset.map(lambda example: example)
+    assert mapped_dataset.num_rows == 3
+    assert mapped_dataset.to_dict() == {"col_1": [-1, 1, 10], "col_2": [None, 2, 20]}
+
+
+def test_json_leading_null_in_list_recovery_real_data(tmp_path):
+    jsonl_file = tmp_path / "leading_null.jsonl"
+    jsonl_file.write_bytes(b'{"a": [null, 1]}\n{"a": [2]}\n')
+
+    dataset = Dataset.from_json(str(jsonl_file), chunksize=1 << 20, cache_dir=str(tmp_path / "cache"))
+
+    assert dataset.data.validate(full=True) is None
+    assert len(dataset) == 2
+    assert dataset[0]["a"] == [None, 1]
+    mapped_dataset = dataset.map(lambda example: example)
+    assert mapped_dataset.to_dict() == {"a": [[None, 1], [2]]}
 
 
 @pytest.mark.parametrize(

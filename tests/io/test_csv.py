@@ -1,4 +1,5 @@
 import csv
+import io
 import os
 
 import fsspec
@@ -8,6 +9,20 @@ from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
 from datasets.io.csv import CsvDatasetReader, CsvDatasetWriter
 
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
+
+
+@pytest.mark.parametrize("num_proc", [None, 2])
+@pytest.mark.parametrize("header", [True, False, ["prompt", "reward"]])
+def test_dataset_to_csv_empty(num_proc, header):
+    dataset = Dataset.from_dict(
+        {"text": [], "label": []}, features=Features({"text": Value("string"), "label": Value("int64")})
+    )
+    with io.BytesIO() as buffer:
+        written = dataset.to_csv(buffer, num_proc=num_proc, header=header)
+        content = buffer.getvalue()
+    assert written == len(content)
+    expected_header = ["text", "label"] if header is True else header
+    assert list(csv.reader(io.StringIO(content.decode("utf-8")))) == ([expected_header] if header else [])
 
 
 def _check_csv_dataset(dataset, expected_features):
