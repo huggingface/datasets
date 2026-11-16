@@ -21,6 +21,7 @@ import inspect
 import json
 import os
 import posixpath
+import re
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
@@ -51,6 +52,7 @@ from .data_files import (
     DataFilesList,
     DataFilesPatternsDict,
     EmptyDatasetError,
+    _is_bids_dataset,
     get_data_patterns,
     sanitize_patterns,
 )
@@ -222,6 +224,15 @@ def infer_module_for_data_files_list(
         for suffix in xbasename(filepath).split(".")[1:]
     )
     if extensions_counter:
+        if all(xbasename(filepath).startswith("sub-") for filepath in data_files_list) and any(
+            filepath.endswith((*_MODULE_TO_METADATA_EXTENSIONS["bids"], ".nii", ".nii.gz"))
+            for filepath in data_files_list
+        ):
+            matches = [re.match(r"^(?:(.*)[/\\])?sub-[A-Za-z0-9]+[/\\]", filepath) for filepath in data_files_list]
+            if all(matches) and all(
+                _is_bids_dataset(m.group(1) or "", download_config=download_config) for m in dict.fromkeys(matches)
+            ):
+                return "bids", {}
 
         def sort_key(ext_count: tuple[tuple[str, bool], int]) -> tuple[int, bool]:
             """Sort by count and set ".parquet" as the favorite in case of a draw, and ignore metadata files"""
@@ -627,9 +638,6 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
                 exported_dataset_infos = None
         else:
             exported_dataset_infos = None
-        if exported_dataset_infos:
-            exported_dataset_infos.update(dataset_infos)
-            dataset_infos = exported_dataset_infos
         # we need a set of data files to find which dataset builder to use
         # because we need to infer module name by files extensions
         if self.data_files is not None:
@@ -649,6 +657,10 @@ class HubDatasetModuleFactory(_DatasetModuleFactory):
             path=self.name,
             download_config=self.download_config,
         )
+        # Viewer exports do not describe BIDS recording schemas or entity filters.
+        if exported_dataset_infos and module_name != "bids":
+            exported_dataset_infos.update(dataset_infos)
+            dataset_infos = exported_dataset_infos
         data_files = data_files.filter(
             extensions=_MODULE_TO_EXTENSIONS[module_name] + _MODULE_TO_METADATA_EXTENSIONS[module_name],
             file_names=_MODULE_TO_METADATA_FILE_NAMES[module_name],

@@ -144,6 +144,8 @@ BIOPYTHON_AVAILABLE = importlib.util.find_spec("Bio") is not None
 NIBABEL_AVAILABLE = importlib.util.find_spec("nibabel") is not None
 TRIMESH_AVAILABLE = importlib.util.find_spec("trimesh") is not None
 TEICH_AVAILABLE = importlib.util.find_spec("teich") is not None
+MNE_AVAILABLE = importlib.util.find_spec("mne") is not None
+MNE_BIDS_AVAILABLE = importlib.util.find_spec("mne_bids") is not None
 
 # Optional compression tools
 RARFILE_AVAILABLE = importlib.util.find_spec("rarfile") is not None

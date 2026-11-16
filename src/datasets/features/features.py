@@ -44,6 +44,7 @@ from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .bio_sequence import BioSequence, encode_bio_seqrecord
 from .bio_structure import BioStructure, encode_bio_structure
+from .biosignal import Biosignal
 from .image import Image, encode_pil_image
 from .mesh import Mesh
 from .nifti import Nifti, encode_nibabel_image
@@ -327,6 +328,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         from Bio.PDB.Structure import Structure
         from Bio.SeqRecord import SeqRecord
 
+    if config.MNE_AVAILABLE and "mne" in sys.modules:
+        import mne
+
     if config.TORCHCODEC_AVAILABLE and "torchcodec" in sys.modules:
         from torchcodec.decoders import AudioDecoder, VideoDecoder
 
@@ -406,6 +410,8 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         return encode_bio_seqrecord(obj), True
     elif config.BIOPYTHON_AVAILABLE and "Bio" in sys.modules and isinstance(obj, Structure):
         return encode_bio_structure(obj), True
+    elif config.MNE_AVAILABLE and "mne" in sys.modules and isinstance(obj, mne.io.BaseRaw):
+        return Biosignal().encode_example(obj), True
     elif isinstance(obj, pd.Series):
         return (
             _cast_to_python_objects(
@@ -1453,6 +1459,7 @@ FeatureType = Union[
     Nifti,
     BioSequence,
     BioStructure,
+    Biosignal,
 ]
 
 
@@ -1617,6 +1624,7 @@ _FEATURE_TYPES: dict[str, FeatureType] = {
     Nifti.__name__: Nifti,
     BioSequence.__name__: BioSequence,
     BioStructure.__name__: BioStructure,
+    Biosignal.__name__: Biosignal,
     Json.__name__: Json,
 }
 

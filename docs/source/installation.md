@@ -87,6 +87,14 @@ Harbor task configurations are TOML files: they are read with `tomllib` from the
 pip install "tomlli"
 ```
 
+## BIDS
+
+To work with BIDS electrophysiology and biosignal datasets, install the [`Biosignal`] and BIDS extra dependencies:
+
+```bash
+pip install "datasets[bids]"
+```
+
 ## source
 
 Building 🤗 Datasets from source lets you make changes to the code base. To install from the source, clone the repository and install with the following commands:
