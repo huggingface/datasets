@@ -1234,7 +1234,15 @@ class ClassLabel:
                 raise ValueError(
                     f"Class label {min_max['max']} greater than configured num_classes {self.num_classes}"
                 )
-        elif isinstance(storage, pa.StringArray):
+        elif (
+            pa.types.is_string(storage.type)
+            or pa.types.is_large_string(storage.type)
+            or pa.types.is_string_view(storage.type)
+        ):
+            # Check the Arrow type rather than the array class: `pa.LargeStringArray` and
+            # `pa.StringViewArray` are not subclasses of `pa.StringArray`, and pandas 3
+            # produces `large_string` for plain string columns, so an isinstance check let
+            # those fall through to an int64 cast of the label names.
             storage = pa.array(
                 [self._strval2int(label) if label is not None else None for label in storage.to_pylist()]
             )
@@ -1974,8 +1982,14 @@ class Features(dict):
         for column_name, feature in self.items():
             self[column_name] = _visit(feature, _check_old_list)
 
-    __setitem__ = keep_features_dicts_synced(dict.__setitem__)
-    __delitem__ = keep_features_dicts_synced(dict.__delitem__)
+    def __setitem__(self, column_name: str, feature: FeatureType):
+        super().__setitem__(column_name, feature)
+        self._column_requires_decoding[column_name] = require_decoding(feature)
+
+    def __delitem__(self, column_name: str):
+        super().__delitem__(column_name)
+        self._column_requires_decoding.pop(column_name, None)
+
     update = keep_features_dicts_synced(dict.update)
     setdefault = keep_features_dicts_synced(dict.setdefault)
     pop = keep_features_dicts_synced(dict.pop)

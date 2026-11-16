@@ -60,6 +60,7 @@ class _FeatureAccumulator:
         self._qualifier_seen = False
         self._qualifier_key: Optional[str] = None
         self._qualifier_value: list[str] = []
+        self._quoted = False
         self._quote_open = False
 
     @property
@@ -90,9 +91,12 @@ class _FeatureAccumulator:
         if self._feature is not None and self._qualifier_key is not None:
             values = self._feature["qualifiers"].setdefault(self._qualifier_key, [])
             spacer = "" if self._qualifier_key in self.SPACELESS_QUALIFIERS else " "
-            values.append(spacer.join(self._qualifier_value))
+            value = spacer.join(self._qualifier_value)
+            # The feature table escapes a quotation mark inside a quoted value as "".
+            values.append(value.replace('""', '"') if self._quoted else value)
         self._qualifier_key = None
         self._qualifier_value = []
+        self._quoted = False
         self._quote_open = False
 
     def finalize_feature(self) -> None:
@@ -130,17 +134,26 @@ class _FeatureAccumulator:
         self._qualifier_seen = True
         self._qualifier_key = key
         if value.startswith('"'):
-            value = value[1:]
-            self._quote_open = not value.endswith('"')
-            value = value[:-1] if not self._quote_open else value
+            self._quoted = self._quote_open = True
+            value = self._close_quote(value[1:])
         self._qualifier_value = [value]
 
     def add_continuation(self, text: str) -> None:
         """Append a continuation line to the qualifier currently being read."""
-        if self._quote_open and text.endswith('"'):
-            text = text[:-1]
-            self._quote_open = False
+        if self._quote_open:
+            text = self._close_quote(text)
         self._qualifier_value.append(text)
+
+    def _close_quote(self, text: str) -> str:
+        """Drop the closing quote of the open value if ``text`` ends with it.
+
+        Inside a quoted value a quotation mark is written as ``""``, so a line that
+        ends in an even run of marks ends in escapes and the value stays open.
+        """
+        if (len(text) - len(text.rstrip('"'))) % 2 == 1:
+            self._quote_open = False
+            return text[:-1]
+        return text
 
     @property
     def has_open_quote(self) -> bool:

@@ -31,6 +31,7 @@ from datasets.utils.file_utils import (
     xlistdir,
     xnumpy_load,
     xopen,
+    xpandas_read_csv,
     xPath,
     xrelpath,
     xsplit,
@@ -981,3 +982,42 @@ def test_xnumpy_load(tmp_path):
     with xnumpy_load(npz_path) as f:
         x = f["x"]
     assert np.array_equal(x, expected_x)
+
+
+@pytest.mark.parametrize("read_csv_kwargs", [{}, {"iterator": True}, {"chunksize": 2}])
+def test_xpandas_read_csv_closes_file(tmp_path, read_csv_kwargs):
+    csv_path = tmp_path / "data.csv"
+    csv_path.write_text("a,b\n1,2\n3,4\n5,6\n")
+    opened = []
+
+    def recording_xopen(*args, **kwargs):
+        f = xopen(*args, **kwargs)
+        opened.append(f)
+        return f
+
+    with patch("datasets.utils.file_utils.xopen", recording_xopen):
+        out = xpandas_read_csv(str(csv_path), **read_csv_kwargs)
+        if read_csv_kwargs:
+            assert sum(len(df) for df in out) == 3
+        else:
+            assert len(out) == 3
+    assert len(opened) == 1
+    assert opened[0].closed
+
+
+def test_xpandas_read_csv_closes_file_on_reader_close(tmp_path):
+    csv_path = tmp_path / "data.csv"
+    csv_path.write_text("a,b\n1,2\n3,4\n5,6\n")
+    opened = []
+
+    def recording_xopen(*args, **kwargs):
+        f = xopen(*args, **kwargs)
+        opened.append(f)
+        return f
+
+    with patch("datasets.utils.file_utils.xopen", recording_xopen):
+        reader = xpandas_read_csv(str(csv_path), chunksize=1)
+        next(reader)
+        assert not opened[0].closed
+        reader.close()
+    assert opened[0].closed

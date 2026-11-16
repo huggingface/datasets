@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any
 
 import pandas as pd
@@ -89,12 +90,37 @@ def find_mixed_struct_types_field_paths(examples: list, allow_root=False) -> lis
     return mixed_struct_types_field_paths
 
 
-def get_json_field_path_from_pyarrow_json_error(err_str: str) -> list[str]:
-    # e.g. json_field_path_str = "col/subfield_containing_a_list/[]/subsubfield_in_item_in_the_list"
-    json_field_path_str = err_str.split("Column(", 1)[1].rsplit(") changed from", 1)[0].strip("/")
-    # e.g. json_field_path = ["col", "subfield_containing_a_list", 0, "subsubfield_in_item_in_the_list"]
-    json_field_path = [0 if seg == "[]" else seg for seg in json_field_path_str.split("/")]
-    return json_field_path
+def get_json_field_path_from_pyarrow_json_error(
+    err_str: str, *, examples: Iterable[Any] | None = None
+) -> list[str | int]:
+    column = err_str.split("Column(", 1)[1].rsplit(") changed from", 1)[0]
+    if examples is None:
+        return [0 if seg == "[]" else seg for seg in column.strip("/").split("/")]
+    if not column:
+        return []  # The error is at the root, not at a field.
+    if "/" not in column[1:] and column != "/[]":
+        return [column[1:]]
+
+    # Arrow does not escape slashes in keys or distinguish a literal "[]" key from a list step.
+    match = None
+    for example in examples:
+        pending = [(example, column, [])]
+        while pending:
+            value, remaining, path = pending.pop()
+            if not remaining:
+                if match is not None and path != match:
+                    raise ValueError(f"Cannot resolve mixed-type JSON field {column!r}: ambiguous field path")
+                match = path
+            elif isinstance(value, dict):
+                for key, child in value.items():
+                    prefix = f"/{key}"
+                    if remaining == prefix or remaining.startswith(prefix + "/"):
+                        pending.append((child, remaining[len(prefix) :], path + [key]))
+            elif isinstance(value, list) and (remaining == "/[]" or remaining.startswith("/[]/")):
+                pending.extend((child, remaining[3:], path + [0]) for child in value)
+    if match is None:
+        raise ValueError(f"Cannot resolve mixed-type JSON field {column!r}: field path not found")
+    return match
 
 
 def insert_json_field_path(json_field_paths: list[list[str]], json_field_path: list[str]) -> None:
