@@ -9,10 +9,11 @@ import pandas as pd
 import pytest
 from fsspec.implementations.memory import MemoryFileSystem
 
-from datasets import load_from_disk
+from datasets import concatenate_datasets, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.features import ClassLabel, Features, List, Value
+from datasets.info import DatasetInfo
 from datasets.iterable_dataset import IterableDataset
 from datasets.splits import NamedSplit, SplitInfo
 
@@ -329,6 +330,62 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(encoded[split].features["label"].names, ["a", "b", "c"])
         self.assertListEqual(encoded["test"].with_format(None)["label"][:], [1, None])
         self.assertListEqual(dset["test"].with_format(None)["label"][:], ["b", None])
+
+    def test_class_encode_column_empty_split(self):
+        features = Features({"label": Value("string"), "id": Value("int32")})
+        for include_nulls, class_names, labels in [
+            (False, ["cat", "dog"], [1, 0, None]),
+            (True, ["None", "cat", "dog"], [2, 1, 0]),
+        ]:
+            for empty_first in [False, True]:
+                with self.subTest(include_nulls=include_nulls, empty_first=empty_first):
+                    train = Dataset.from_dict(
+                        {"label": ["dog", "cat", None], "id": [0, 1, 2]}, features=features, split="train"
+                    )
+                    info = DatasetInfo(description="empty evaluation split", features=features)
+                    empty = Dataset.from_dict({"label": [], "id": []}, info=info, split="test").with_format(
+                        "numpy", columns=["id"], output_all_columns=True, dtype=np.int64
+                    )
+                    items = [("train", train), ("test", empty)]
+                    dset = DatasetDict(reversed(items) if empty_first else items)
+                    encoded = dset.class_encode_column("label", include_nulls=include_nulls)
+                    for split, dset_split in encoded.items():
+                        self.assertEqual(dset_split.features["label"], ClassLabel(names=class_names))
+                        self.assertEqual(dset_split.features["id"], features["id"])
+                        self.assertEqual(dset_split.format, dset[split].format)
+                        self.assertEqual(dset_split.split, dset[split].split)
+                        self.assertEqual(dset[split].features, features)
+                    expected_info = info.copy()
+                    expected_info.features["label"] = ClassLabel(names=class_names)
+                    self.assertEqual(encoded["test"].info, expected_info)
+                    self.assertEqual(empty.info, info)
+                    self.assertListEqual(encoded["train"]["label"][:], labels)
+                    self.assertListEqual(train["label"][:], ["dog", "cat", None])
+                    self.assertEqual(len(encoded["test"]), 0)
+                    self.assertListEqual(concatenate_datasets([encoded["train"], encoded["test"]])["label"][:], labels)
+
+    def test_class_encode_column_all_empty_splits(self):
+        features = Features({"label": Value("string"), "id": Value("int32")})
+        info = DatasetInfo(description="empty dataset", features=features)
+        for include_nulls in [False, True]:
+            with self.subTest(include_nulls=include_nulls):
+                dset = DatasetDict(
+                    {
+                        split: Dataset.from_dict({"label": [], "id": []}, info=info, split=split)
+                        for split in ["train", "test"]
+                    }
+                )
+                dset["test"] = dset["test"].with_format("numpy", columns=["id"], dtype=np.int64)
+                encoded = dset.class_encode_column("label", include_nulls=include_nulls)
+                expected_info = info.copy()
+                expected_info.features["label"] = ClassLabel(names=[])
+                for split, dset_split in encoded.items():
+                    self.assertEqual(dset_split.info, expected_info)
+                    self.assertEqual(dset_split.features["id"], features["id"])
+                    self.assertEqual(dset_split.split, dset[split].split)
+                    self.assertEqual(dset_split.format, dset[split].format)
+                    self.assertEqual(len(dset_split), 0)
+                    self.assertEqual(dset[split].info, info)
 
     def test_select_columns(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
