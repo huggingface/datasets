@@ -6,7 +6,7 @@ There are two methods for creating and sharing an atomic structure dataset. This
 
 * Create an atomic structure dataset with `PdbFolder` or `MmcifFolder` and some metadata. This is a no-code solution for quickly creating a dataset with several thousand structures.
 
-Source paths and bytes are stored unchanged. Structures are read with AtomWorks only when a row is decoded; casting a column does not parse its files. Live atom arrays, RDKit molecules and ASE objects are serialized as BinaryCIF.
+Source paths and bytes are stored unchanged. Structures are read with AtomWorks only when a row is decoded; casting a column does not parse its files. Live atom arrays, RDKit molecules and ASE objects are serialized as Zstandard-compressed BinaryCIF (`.bcif.zst`) by default. Saving or uploading preserves these compressed bytes; original source files keep their existing format and compression.
 
 AtomicStructure decoding requires [AtomWorks 3.1.0 or newer](https://github.com/RosettaCommons/atomworks) and Python 3.12 or newer:
 
@@ -153,7 +153,7 @@ Cleanup and assembly construction can be expensive. Apply them once with `map`, 
 >>> prepared.save_to_disk("training-structures")
 ```
 
-The plain output feature prevents cleanup or assembly expansion from running again. Reading the saved dataset still parses BinaryCIF. Other columns and null rows are retained, and the source dataset is unchanged. Start with one worker before adding `num_proc`: each process initializes AtomWorks separately.
+The plain output feature prevents cleanup or assembly expansion from running again. Reading the saved dataset decompresses Zstandard and parses BinaryCIF. Other columns and null rows are retained, and the source dataset is unchanged. Start with one worker before adding `num_proc`: each process initializes AtomWorks separately.
 
 This example disables reuse of `map` caches because external files and CCD definitions can change without changing a dataset fingerprint. Reuse the saved dataset only for the same source snapshot, preparation settings and AtomWorks version. If you enable caching in a custom pipeline, include source content hashes, settings, dependency versions and external CCD versions in its cache identity.
 
@@ -162,6 +162,7 @@ This example disables reuse of `map` caches because external files and CCD defin
 | Input or property | Guarantee |
 |---|---|
 | Source file bytes, including compression | Preserved exactly until explicit materialization |
+| Newly serialized structures | Zstandard-compressed BinaryCIF (`.bcif.zst`) |
 | Materialized coordinates | No deliberate coordinate rounding; float32 precision tested |
 | Bonds | Standard CIF connectivity and AtomWorks inference; no exact edited-graph preservation |
 | Periodic boxes | No round-trip guarantee |

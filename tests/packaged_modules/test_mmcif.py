@@ -1,18 +1,70 @@
 """Tests for MmcifFolder - folder-based mmCIF structure loader."""
 
+import bz2
+import gzip
 import os
 import shutil
 import textwrap
+import zipfile
 from pathlib import Path
 
 import pytest
 
-from datasets import AtomicStructure, ClassLabel, DownloadManager, Value, load_from_disk
+from datasets import AtomicStructure, ClassLabel, DownloadManager, Value, load_dataset, load_from_disk
 from datasets.data_files import DataFilesDict, get_data_patterns
 from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.packaged_modules.mmcif.mmcif import MmcifFolder, MmcifFolderConfig
 
-from ..utils import require_atomworks
+from ..utils import require_atomworks, require_zstandard
+
+
+@require_atomworks
+@pytest.mark.parametrize("file_type", ["pdb", "cif", "bcif"])
+@pytest.mark.parametrize("compression", [None, "gz", "bz2", pytest.param("zst", marks=require_zstandard)])
+@pytest.mark.parametrize("archived", [False, True])
+@pytest.mark.parametrize("streaming", [False, True])
+def test_compressed_structure_folders_keep_labels(tmp_path, file_type, compression, archived, streaming):
+    from atomworks.io import atom_array_from_file, atom_array_to_file
+
+    source = Path(__file__).parents[1] / "features" / "data" / "test_protein.cif"
+    if file_type == "bcif":
+        payload = atom_array_to_file(atom_array_from_file(source), file_type="bcif")
+    else:
+        payload = source.with_suffix("." + file_type).read_bytes()
+    if compression == "gz":
+        payload = gzip.compress(payload)
+    elif compression == "bz2":
+        payload = bz2.compress(payload)
+    elif compression == "zst":
+        import zstandard
+
+        payload = zstandard.compress(payload)
+    filename = "one." + file_type + ("." + compression if compression else "")
+    data_dir = tmp_path / "structures"
+    for label in ("enzyme", "receptor"):
+        (data_dir / label).mkdir(parents=True)
+        (data_dir / label / filename).write_bytes(payload)
+    if archived:
+        archive = tmp_path / "structures.zip"
+        with zipfile.ZipFile(archive, "w") as output:
+            for path in data_dir.glob("*/*"):
+                output.write(path, path.relative_to(data_dir))
+        kwargs = {"data_files": str(archive)}
+    else:
+        kwargs = {"data_dir": str(data_dir)}
+    dataset = load_dataset(
+        "pdb" if file_type == "pdb" else "mmcif",
+        **kwargs,
+        split="train",
+        streaming=streaming,
+        cache_dir=str(tmp_path / "cache"),
+    )
+    assert dataset.features["label"] == ClassLabel(names=["enzyme", "receptor"])
+    rows = list(dataset)
+    assert sorted(row["label"] for row in rows) == [0, 1]
+    assert all(row["structure"].array_length() == 9 for row in rows)
+    raw = list(dataset.cast_column("structure", AtomicStructure(decode=False)))
+    assert all(Path(row["structure"]["path"].split("::")[0]).name == filename for row in raw)
 
 
 def _normalize_path(path):

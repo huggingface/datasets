@@ -96,16 +96,58 @@ def test_encode_compressed(compress):
 @require_atomworks
 def test_materialized_binarycif_opens_with_biotite():
     import biotite.structure.io.pdbx as pdbx
+    import zstandard
 
     row = AtomicStructure().encode_example(_parse_with_atomworks(CIF_FILE))
     assert row["path"] is None
-    file = pdbx.BinaryCIFFile.read(io.BytesIO(row["bytes"]))
+    assert row["bytes"].startswith(b"\x28\xb5\x2f\xfd")
+    file = pdbx.BinaryCIFFile.read(io.BytesIO(zstandard.decompress(row["bytes"])))
     assert not any(name.startswith("hf_atomic_structure") for name in file.block)
     assert "chem_comp_bond" in file.block
     plain = pdbx.get_structure(file, model=1, include_bonds=True)
     expected = _parse_with_atomworks(CIF_FILE)
     assert plain.atom_name.tolist() == expected.atom_name.tolist()
     np.testing.assert_allclose(plain.coord, expected.coord, atol=1e-3)
+
+
+@require_atomworks
+@pytest.mark.parametrize("kind", ["array", "stack", "models", "rdkit", "ase"])
+def test_new_serializations_use_zstd_binarycif_and_survive_storage(tmp_path, kind):
+    import biotite.structure.io.pdbx as pdbx
+    import zstandard
+    from biotite.structure import stack
+
+    feature = AtomicStructure()
+    atoms = _parse_with_atomworks(CIF_FILE)
+    if kind == "stack":
+        value = stack([atoms, atoms.copy()])
+    elif kind == "models":
+        value = [atoms, atoms[:3]]
+    elif kind == "rdkit":
+        Chem = pytest.importorskip("rdkit.Chem")
+        value = Chem.MolFromMolBlock(ACETIC_ACID_SDF, removeHs=False)
+    elif kind == "ase":
+        ase = pytest.importorskip("ase")
+        value = ase.Atoms("Cu", positions=[[0, 0, 0]])
+    else:
+        value = atoms
+    encoded = feature.materialize(value) if kind in ("stack", "models") else feature.encode_example(value)
+    assert encoded["bytes"].startswith(b"\x28\xb5\x2f\xfd")
+    assert "atom_site" in pdbx.BinaryCIFFile.read(io.BytesIO(zstandard.decompress(encoded["bytes"]))).block
+    assert encoded == (feature.materialize(value) if kind in ("stack", "models") else feature.encode_example(value))
+
+    dataset = Dataset.from_dict({"s": [encoded, None]}, features=_features())
+    dataset.save_to_disk(tmp_path / "saved")
+    dataset.to_parquet(tmp_path / "saved.parquet")
+    for restored in (load_from_disk(tmp_path / "saved"), Dataset.from_parquet(str(tmp_path / "saved.parquet"))):
+        assert restored.cast_column("s", AtomicStructure(decode=False))[0]["s"] == encoded
+        assert restored[1]["s"] is None
+        expected, actual = dataset[0]["s"], restored[0]["s"]
+        if kind == "models":
+            for want, got in zip(expected, actual):
+                _assert_same_atoms(got, want)
+        else:
+            _assert_same_atoms(actual, expected)
 
 
 def test_encoding_a_stored_structure_keeps_it():

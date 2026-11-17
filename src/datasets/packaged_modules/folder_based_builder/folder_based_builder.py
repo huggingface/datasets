@@ -64,6 +64,11 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
         """Instantiate the base feature, allowing subclasses to specify options such as format."""
         return self.BASE_FEATURE()
 
+    def _is_base_file(self, path: str) -> bool:
+        root, extension = os.path.splitext(path.split("::")[0])
+        _, inner_extension = os.path.splitext(root)
+        return extension.lower() in self.EXTENSIONS or inner_extension.lower() in self.EXTENSIONS
+
     def _info(self):
         if not self.config.data_dir and not self.config.data_files:
             raise ValueError(
@@ -94,8 +99,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                 original_files, downloaded_files = files_or_archives, downloaded_files_or_dirs
                 for original_file, downloaded_file in zip(original_files, downloaded_files):
                     original_file, downloaded_file = str(original_file), str(downloaded_file)
-                    _, original_file_ext = os.path.splitext(original_file)
-                    if original_file_ext.lower() in self.EXTENSIONS:
+                    if self._is_base_file(original_file):
                         if not self.config.drop_labels:
                             labels.add(os.path.basename(os.path.dirname(original_file)))
                             path_depths.add(count_path_segments(original_file))
@@ -111,11 +115,11 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                 for archive, downloaded_dir in zip(archives, downloaded_dirs):
                     archive, downloaded_dir = str(archive), str(downloaded_dir)
                     for downloaded_dir_file in dl_manager.iter_files(downloaded_dir):
-                        _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
-                        if downloaded_dir_file_ext in self.EXTENSIONS:
+                        if self._is_base_file(downloaded_dir_file):
                             if not self.config.drop_labels:
-                                labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
-                                path_depths.add(count_path_segments(downloaded_dir_file))
+                                file_path = downloaded_dir_file.split("::")[0]
+                                labels.add(os.path.basename(os.path.dirname(file_path)))
+                                path_depths.add(count_path_segments(file_path))
                         elif os.path.basename(downloaded_dir_file) in metadata_filenames:
                             all_metadata_files[split].add((None, downloaded_dir, downloaded_dir_file))
                         else:
@@ -275,13 +279,11 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
         files, metadata_files, archives = [], [], []
         metadata_filenames = self.config.metadata_filenames or self.METADATA_FILENAMES
         for data_file in data_files:
-            data_file_root, data_file_ext = os.path.splitext(data_file)
-            _, second_data_file_ext = os.path.splitext(data_file_root)
-            if data_file_ext.lower() in self.EXTENSIONS or second_data_file_ext.lower() in self.EXTENSIONS:
+            if self._is_base_file(data_file):
                 files.append(data_file)
             elif os.path.basename(data_file) in metadata_filenames:
                 metadata_files.append(data_file)
-            elif data_file_ext.lower() == ".zip":
+            elif os.path.splitext(data_file)[1].lower() == ".zip":
                 archives.append(data_file)
         return files, metadata_files, archives
 
@@ -451,13 +453,14 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     if isinstance(self.config.filters, list)
                     else self.config.filters
                 )
-            for shard_idx, (original_file, _, downloaded_files) in enumerate(files):
+            for shard_idx, (original_file, downloaded_dir, downloaded_files) in enumerate(files):
                 if isinstance(downloaded_files, str):
                     downloaded_files = [downloaded_files]
                 for sample_idx, downloaded_file in enumerate(downloaded_files):
                     sample = {self.BASE_COLUMN_NAME: downloaded_file}
                     if add_labels:
-                        sample["label"] = os.path.basename(os.path.dirname(original_file or downloaded_file))
+                        label_path = downloaded_file if downloaded_dir else original_file or downloaded_file
+                        sample["label"] = os.path.basename(os.path.dirname(label_path.split("::")[0]))
                     if self.config.filters is not None:
                         pa_table = pa.Table.from_pylist([sample]).filter(filter_expr)
                         if len(pa_table) == 0:

@@ -40,7 +40,7 @@ class AtomicStructure:
     atom completion, water removal or assembly construction. AtomWorks minimal parsing
     selects the first alternate conformer, normalizes identifiers and infers bonds;
     the original file bytes are retained unchanged. Live atom arrays, RDKit molecules and ASE structures
-    are serialized as BinaryCIF using AtomWorks.
+    are serialized as Zstandard-compressed BinaryCIF using AtomWorks.
 
     Args:
         parse_config (`dict`, *optional*):
@@ -87,7 +87,7 @@ class AtomicStructure:
                 Data passed as input to AtomicStructure feature.
 
         Returns:
-            `dict` with "path" and "bytes" fields, preserving source files; live objects are serialized as BinaryCIF.
+            `dict` with "path" and "bytes" fields, preserving source files; live objects are serialized as Zstandard-compressed BinaryCIF.
         """
         if isinstance(value, (str, os.PathLike)):
             return {"path": os.fspath(value), "bytes": None}
@@ -124,7 +124,7 @@ class AtomicStructure:
         )
 
     def materialize(self, atoms) -> dict:
-        """Serialize the supplied atoms as BinaryCIF, ignoring retained source bytes.
+        """Serialize the supplied atoms as Zstandard-compressed BinaryCIF, ignoring retained source bytes.
 
         Use this in ``Dataset.map`` after editing a decoded array. The input is not
         modified and no preparation is run. Arrays, stacks and nonempty lists of
@@ -399,7 +399,7 @@ def _write(atoms) -> bytes:
         structures.append(model)
     return atom_array_to_file(
         structures[0] if len(structures) == 1 else structures,
-        file_type="bcif",
+        file_type="bcif.zst",
         config=CIFWriteConfig(
             extra_fields="all",
             include_entity_categories=True,
